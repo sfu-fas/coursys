@@ -25,7 +25,7 @@ from courselib.search import find_member
 from grades.models import all_activities_filter
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, GradeHistory
 from grades.models import NumericGrade, LetterGrade
-from grades.models import CalLetterActivity, ACTIVITY_TYPES
+from grades.models import CalLetterActivity, ACTIVITY_TYPES, FLAGS
 from grades.models import neaten_activity_positions
 from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm, MessageForm
 from grades.forms import ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE
@@ -1190,6 +1190,35 @@ def all_grades_csv(request, course_slug):
     
     _all_grades_output(response, course)        
     return response
+
+
+@requires_course_staff_by_slug
+def grade_history(request, course_slug):
+    """
+    Dump all GradeHistory for the offering to a CSV
+    """
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-history.csv"' % (course_slug,)
+    writer = csv.writer(response)
+    writer.writerow(['Activity', 'Student', 'Entered By', 'Numeric Grade', 'Letter Grade', 'Status', 'Group'])
+
+    grade_histories = GradeHistory.objects.filter(activity__offering=offering, status_change=False) \
+        .select_related('entered_by', 'activity', 'member__person', 'group')
+    for gh in grade_histories:
+        writer.writerow([
+            gh.activity.short_name,
+            gh.member.person.userid_or_emplid(),
+            gh.entered_by.userid_or_emplid(),
+            gh.numeric_grade,
+            gh.letter_grade,
+            FLAGS.get(gh.grade_flag, None),
+            gh.group.slug if gh.group else None,
+        ])
+
+    return response
+
 
 @requires_course_staff_by_slug
 def class_list(request, course_slug):
