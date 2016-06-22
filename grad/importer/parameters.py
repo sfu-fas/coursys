@@ -13,11 +13,18 @@ DATE_OFFSET_START = datetime.timedelta(days=90)
 SIMS_SOURCE = 'sims_source' # key in object.config to record where things came from
 
 # don't even query data before this
-IMPORT_START_SEMESTER = '1101' if settings.DEPLOY_MODE in ['devel', 'proddev'] else '0901'  # No devel test data before 1101.
+if settings.DEPLOY_MODE in ['devel', 'proddev']:
+    IMPORT_START_SEMESTER = Semester.current().offset_name(-6)  # devel/test data doesn't go too far back in time
+else:
+    IMPORT_START_SEMESTER = '0901'
+
 IMPORT_START_DATE = Semester.start_end_dates(Semester.objects.get(name=IMPORT_START_SEMESTER))[0]
 
 # if we find students starting before this semester, don't import
-RELEVANT_PROGRAM_START = '1031'
+if settings.DEPLOY_MODE in ['devel', 'proddev']:
+    RELEVANT_PROGRAM_START = Semester.current().offset_name(-6)  # devel/test data doesn't go too far back in time
+else:
+    RELEVANT_PROGRAM_START = '1031'
 
 # before this, we aren't going to worry about it.
 RELEVANT_DATA_START = datetime.date(1993, 9, 1)

@@ -1,5 +1,6 @@
 from django.conf.urls import url
 from courselib.urlparts import POST_SLUG, COURSE_SLUG, USERID_SLUG
+from ta import views
 
 ta_patterns = [ # prefix /ta/
     url(r'^$', 'ta.views.view_postings'),
@@ -37,6 +38,13 @@ ta_patterns = [ # prefix /ta/
     url(r'^' + POST_SLUG + '/contracts/' + USERID_SLUG + '/offer', 'ta.views.preview_offer'),
     url(r'^' + POST_SLUG + '/contracts/' + USERID_SLUG + '/accept$', 'ta.views.accept_contract'),
     url(r'^' + POST_SLUG + '/application/' + USERID_SLUG + '$', 'ta.views.view_application'),
+    url(r'^' + POST_SLUG + '/application/' + USERID_SLUG + '/download_resume/$', views.download_resume,
+        name="download_resume"),
+    url(r'^' + POST_SLUG + '/application/' + USERID_SLUG + '/view_resume/$', views.view_resume, name="view_resume"),
+    url(r'^' + POST_SLUG + '/application/' + USERID_SLUG + '/download_transcript/$', views.download_transcript,
+        name="download_transcript"),
+    url(r'^' + POST_SLUG + '/application/' + USERID_SLUG + '/view_transcript/$', views.view_transcript,
+        name="view_transcript"),
     url(r'^' + POST_SLUG + '/application/' + USERID_SLUG + '/update$', 'ta.views.update_application'),
     url(r'^' + POST_SLUG + '/application/' + USERID_SLUG + '/edit', 'ta.views.edit_application'),
 ]

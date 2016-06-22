@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}View Registration{% endblock %}
+{% block h1 %}View Registration{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'index' %}">Outreach</a></li>
+<li>View Registration</li>
+{% endblock %}
+
+{% block actions %}
+<h2>Actions</h2>
+<ul>
+    <li><a href="{% url "edit_registration" registration_id=registration.id %}">Edit</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<dt>Event</dt><dd>{{ registration.event }}</dd>
+<dt>Last Name</dt><dd>{{ registration.last_name }}</dd>
+<dt>First Name</dt><dd>{{ registration.first_name }}</dd>
+<dt>Middle Name</dt><dd>{{ registration.middle_name|default:"None" }}</dd>
+<dt>Age</dt><dd>{{ registration.age|default:"None" }}</dd>
+<dt>Parent Name</dt><dd>{{ registration.parent_name }}</dd>
+<dt>Parent Phone</dt><dd>{{ registration.parent_phone }}</dd>
+<dt>Email</dt><dd>{{ registration.email }}</dd>
+<dt>Waiver</dt><dd>{{ registration.waiver|yesno }}</dd>
+<dt>School</dt><dd>{{ registration.school|default:"None" }}</dd>
+<dt>Notes</dt><dd>{{ registration.notes|default:"None"|linebreaks }}</dd>
+<dt>Registered at</dt><dd>{{ registration.created_at }}</dd>
+<dt>Last Modified</dt><dd>{{ registration.last_modified }}</dd>
+{% endblock %}

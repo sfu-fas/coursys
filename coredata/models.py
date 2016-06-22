@@ -58,13 +58,14 @@ ROLE_CHOICES = (
         ('FDCC', 'Grad Funding Reminder CC'),
         ('TECH', 'Tech Staff'),
         ('GPA', 'GPA conversion system admin'),
+        ('OUTR', 'Outreach Administrator'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
 UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'GRPD',
-              'FAC', 'SESS', 'COOP', 'INST', 'SUPV'] # 'PLAN', 'TADM', 'TECH'
+              'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR']  # 'PLAN', 'TADM', 'TECH'
 # help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
@@ -84,6 +85,7 @@ ROLE_DESCR = {
         'INST': 'Instructors outside of the department or others who teach courses',
         'REPR': 'Has Reporting Database access.',
         'SUPV': 'Others who can supervise RAs or grad students, in addition to faculty',
+        'OUTR': 'Can manage outreach events',
               }
 INSTR_ROLES = ["FAC","SESS","COOP",'INST'] # roles that are given to categorize course instructors
 

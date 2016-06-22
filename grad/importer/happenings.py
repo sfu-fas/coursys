@@ -49,8 +49,8 @@ def build_reverse_program_map():
         rev_program_map[gradprog].append(acad_prog)
 
     cmptunit = Unit.objects.get(label="CMPT")
-    rev_program_map[GradProgram.objects.get(label="MSc Thesis", unit=cmptunit)].append('CPMCW')
-    rev_program_map[GradProgram.objects.get(label="MSc Course", unit=cmptunit)].append('CPMSC')
+    rev_program_map[GradProgram.objects.get(label="MSc Thesis", unit=cmptunit)].append('CPMSC')
+    rev_program_map[GradProgram.objects.get(label="MSc Course", unit=cmptunit)].append('CPMCW')
     rev_program_map[GradProgram.objects.get(label="MSc Proj", unit=cmptunit)].append('CPMSC')
     return rev_program_map
 

@@ -35,7 +35,7 @@ celery==3.1.18
 django-celery==3.1.17
 django-celery-email==1.1.4
 flower==0.8.2
-#kombu==3.0.10
+kombu==3.0.35
 django-test-without-migrations==0.2
 iso8601==0.1.10
 django-haystack==2.4.0

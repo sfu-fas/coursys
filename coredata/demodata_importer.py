@@ -1,8 +1,23 @@
 # do the import with fake data for development
+
+# setup:
+#   need courses/secrets.py to have SIMS_USER, SIMS_PASSWORD, EMPLID_API_SECRET
+#   ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
+#   Do reporting DB setup as described in the first set of shell commands: instructions/REPORTING_DATABASE.md
+
+# setup test:
+#   from coredata.queries import *
+#   emplid_to_userid(00000000)  # pick an emplid with active account; only works from courses.cs and coursys-demo.cs.
+#   db = SIMSConn()
+#   db.execute("SELECT descr FROM dbcsown.PS_TERM_TBL WHERE strm='1111'", ())
+#   list(db)
+
 # suggested execution:
-#   echo "drop database coursys; create database coursys; CREATE USER 'coursysuser'@'localhost' IDENTIFIED BY 'coursyspassword'; GRANT ALL PRIVILEGES ON coursys.* TO 'coursysuser'@'localhost'" | mysql -uroot -p
-#   ./manage.py migrate && python coredata/demodata_importer.py
-#   echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py && ./manage.py rebuild_index
+#   echo "drop database coursys; create database coursys;" | mysql -uroot -p
+#   echo "CREATE USER 'coursysuser'@'localhost' IDENTIFIED BY 'coursyspassword'; GRANT ALL PRIVILEGES ON coursys_db.* TO 'coursysuser'@'localhost'" | mysql -uroot -p
+#   ./manage.py migrate && ./manage.py dbdump
+#   python coredata/demodata_importer.py && ./manage.py dbdump
+#   ./manage.py rebuild_index
 
 import string, socket, random
 from importer import create_semesters, import_offering_members, import_offerings
@@ -15,9 +30,9 @@ from django.core.wsgi import get_wsgi_application
 os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 application = get_wsgi_application()
 
-NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151,1154,1157, 1161,1164,1167]
-IMPORT_SEMESTERS = ('1151', '1154')
-TEST_SEMESTER = 1151 # semester for TA/RA demo data
+NEEDED_SEMESTERS = [1131,1134,1137, 1141,1144,1147, 1151,1154,1157, 1161,1164,1167, 1171,1174,1177, 1181,1184,1187]
+IMPORT_SEMESTERS = ('1164', '1167')
+TEST_SEMESTER = 1164 # semester for TA/RA demo data
 
 fakes = {}
 next_emplid = 100

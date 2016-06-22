@@ -91,6 +91,8 @@ def get_unit(acad_org, create=False):
             label = 'ENSC'
         elif acad_org == 'ENVIRONMEN': # for test/demo imports
             label = 'FENV'
+        elif acad_org == 'DEAN GRAD': # for test/demo imports
+            label = 'GRAD'
         else:
             label = acad_org[:4].strip()
 

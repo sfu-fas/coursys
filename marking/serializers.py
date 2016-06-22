@@ -1,5 +1,29 @@
-from rest_framework import serializers
+from rest_framework import views, serializers
+from rest_framework import generics
 from marking.models import ActivityMark, ActivityComponentMark
+
+from .models import ActivityMark, COMMENT_LENGTH
+
+class MarkingDetails(serializers.ModelSerializer):
+    # rename some fields in the API so they're more meaningful
+    mark_penalty = serializers.DecimalField(max_digits=8, decimal_places=2, source='mark_adjustment')
+    mark_penalty_reason = serializers.CharField(max_length=COMMENT_LENGTH, source='mark_adjustment_reason')
+    late_percent = serializers.DecimalField(max_digits=5, decimal_places=2, source='late_penalty')
+    the_mark = serializers.DecimalField(max_digits=5, decimal_places=2, source='mark', read_only=True)
+
+    # read-only fields
+    created_at = serializers.DateTimeField(read_only=True)
+    created_by = serializers.CharField(read_only=True)
+
+    # additional fields beyond the model itself
+    userid = serializers.CharField(max_length=8)
+
+    class Meta:
+        model = ActivityMark
+        #fields = ('slug', 'name', 'short_name', 'due_date', 'percent', 'group', 'url', 'max_grade', 'is_numeric', 'is_calculated')
+        exclude = ('mark_adjustment', 'late_penalty', 'mark_adjustment_reason', 'mark',
+                   'file_attachment', 'file_mediatype', 'activity', 'id')
+
 
 class MarkComponentSerializer(serializers.ModelSerializer):
     title = serializers.CharField(source='activity_component.title')
@@ -34,3 +58,4 @@ class MarkDetailSerializer(serializers.ModelSerializer):
         m.components = components
 
         return super(MarkDetailSerializer, self).to_native(m)
+

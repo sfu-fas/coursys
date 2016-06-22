@@ -26,4 +26,15 @@
 
 {% include "ta/_ta_application.html" with application=application only %}
 
+{% if is_ta_admin %}
+    {% if application.resume or application.transcript %}
+    <h3>Resume/Transcript</h3>
+    Curriculum Vitae: &nbsp; <a href="{% url "view_resume" post_slug=application.posting.slug userid=application.person.userid %}">View</a>
+        &nbsp; <a href="{% url "download_resume" post_slug=application.posting.slug userid=application.person.userid %}">Download</a>
+    <br/>
+    Transcript: &nbsp; <a href="{% url "view_transcript" post_slug=application.posting.slug userid=application.person.userid %}">View</a>
+        &nbsp; <a href="{% url "download_transcript" post_slug=application.posting.slug userid=application.person.userid %}">Download</a>
+    {% endif %}
+{% endif %}
+
 {% endblock %}

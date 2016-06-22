@@ -1,6 +1,10 @@
+import os
 # Django
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils.html import format_html
+from django.utils.encoding import force_text
+from django.utils.safestring import mark_safe
 # App
 from coredata.models import Person, CourseOffering
  
@@ -148,3 +152,39 @@ class CalendarWidget(forms.TextInput):
         # html += "});"
         # html += "</script>"
         return html
+
+
+class NotClearableFileInput(forms.FileInput):
+    """
+    Every once in a while, we want a file input without the "clear" checkbox of the default ClearableFileInput,
+    but with the capability to display the currently selected instance value, like the ClearableFileInput (the
+    plain FileInput we are subclassing here has no such capability).
+
+    This is useful in the case of required fields where we want to display the current value but not allow clearing
+    of it, but only submission of a new one.
+
+    We also don't want to give a full link to the original file like ClearableFileInput, as we most likely don't
+    have a view for that, and why trigger an exception?  We just want to show the filename of what the user has
+    already uploaded.
+
+    Modified from:
+    http://stackoverflow.com/questions/17293627/hide-django-clearablefileinput-checkbox
+    """
+    initial_text = 'Currently'
+    input_text = 'Change'
+
+    template_with_initial = '%(initial_text)s: %(initial)s <br />%(input_text)s: %(input)s'
+
+    def render(self, name, value, attrs=None):
+        substitutions = {
+            'initial_text': self.initial_text,
+            'input_text': self.input_text,
+        }
+        template = '%(input)s'
+        substitutions['input'] = super(NotClearableFileInput, self).render(name, value, attrs)
+
+        if value:
+            template = self.template_with_initial
+            substitutions['initial'] = format_html(force_text(os.path.basename(value.name)))
+
+        return mark_safe(template % substitutions)
