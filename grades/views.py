@@ -1202,12 +1202,13 @@ def grade_history(request, course_slug):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s-history.csv"' % (course_slug,)
     writer = csv.writer(response)
-    writer.writerow(['Activity', 'Student', 'Entered By', 'Numeric Grade', 'Letter Grade', 'Status', 'Group'])
+    writer.writerow(['Date/Time', 'Activity', 'Student', 'Entered By', 'Numeric Grade', 'Letter Grade', 'Status', 'Group'])
 
     grade_histories = GradeHistory.objects.filter(activity__offering=offering, status_change=False) \
         .select_related('entered_by', 'activity', 'member__person', 'group')
     for gh in grade_histories:
         writer.writerow([
+            gh.timestamp,
             gh.activity.short_name,
             gh.member.person.userid_or_emplid(),
             gh.entered_by.userid_or_emplid(),
