@@ -4,8 +4,7 @@ from courselib.urlparts import ID_RE, SLUG_RE
 
 
 EVENT_ID = '(?P<event_id>' + ID_RE + ')'
-#EVENT_SLUG = '(?P<event_slug>' + SLUG_RE + ')'
-EVENT_SLUG = '(?P<event_slug>[\w\-\.]+)'
+EVENT_SLUG = '(?P<event_slug>' + SLUG_RE + ')'
 REGISTRATION_ID = '(?P<registration_id>' + ID_RE + ')'
 PAST_FLAG = '(?P<past>' + ID_RE + ')'
 
