@@ -40,7 +40,7 @@ class Asset(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     def __unicode__(self):
-        return u"%s - %s - %s" % (self.title, self.unit.label)
+        return u"%s - %s" % (self.name, self.unit.label)
 
     def save(self, *args, **kwargs):
         self.last_modified = timezone.now()

@@ -11,5 +11,4 @@ inventory_pattern = [  # prefix /inventory/
     url(r'^' + ASSET_SLUG + '/edit$', views.edit_asset, name='edit_asset'),
     url(r'^' + ASSET_ID + '/delete$', views.delete_asset, name='delete_asset'),
     url(r'^' + ASSET_SLUG + '/view$', views.view_asset, name='view_asset'),
-    
 ]
