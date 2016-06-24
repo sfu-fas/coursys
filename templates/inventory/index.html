@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory{% endblock %}
+{% block h1 %}Inventory{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#assets').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']]
+  } );
+} );
+
+function confirmDelete() {
+  return confirm("Are you sure you want to delete this asset?");
+}
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "new_asset" %}">Add New Asset</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if assets %}
+    <table id="assets">
+    <thead>
+        <tr>
+            <td>Name</td>
+            <td>Unit</td>
+            <td>Brand</td>
+            <td>Serial</td>
+            <td>Asset Tag</td>
+            <td>Last Modified</td>
+            <td>Actions</td>
+        </tr>
+    </thead>
+    {% for asset in assets %}
+        <tr>
+            <td>{{ asset.name }}</td>
+            <td>{{ asset.unit }}</td>
+            <td>{{ asset.brand }}</td>
+            <td>{{ asset.serial }}</td>
+            <td>{{ asset.tag }}</td>
+            <td>{{ asset.last_modified }}</td>
+            <td>
+                <form class="lineform" method="POST"
+                      action="{% url "delete_asset" asset_id=asset.id %}"
+                      onsubmit="return confirmDelete()">
+                    {% csrf_token %}
+                    <button type='submit' class='btn' title="Hide asset">
+                        <i class='fa fa-trash-o'></i>
+                    </button>
+                </form>
+                <form class="lineform" method="GET"
+                    action="{% url "edit_asset" asset_slug=asset.slug %}">
+                    <button type='submit' class='btn' title="Edit asset">
+                        <i class='fa fa-edit'></i>
+                    </button>
+                </form>
+                <form class="lineform" method="GET"
+                    action="{% url "view_asset" asset_slug=asset.slug %}">
+                    <button type='submit' class='btn' title="View asset">
+                        <i class='fa fa-eye'></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+{% else %}
+    <div>There are no assets to display.</div>
+{% endif %}
+
+{% endblock %}
