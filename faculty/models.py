@@ -89,6 +89,8 @@ EVENT_TAGS = {
                 'end_date': 'end date of the event, if applicable',
                 'event_title': 'name of event',
                 'current_rank': "faculty member's current rank",
+                'current_base_salary': "faculty member's current base salary",
+                'unit': "unit of which this person is a member",
             }
 
 #event specific tags
@@ -280,6 +282,23 @@ class CareerEvent(models.Model):
         ranks = set(s.get_handler().get_rank_display() for s in salaries)
         return ', '.join(ranks)
 
+    @classmethod
+    #@cached(6*3600)
+    def current_base_salary(cls, person):
+        """
+        Return a string representing the current base salary for this person.  If the person has more than
+        one currently effective one, they get added together.
+        """
+        salaries = CareerEvent.objects.filter(person=person, event_type='SALARY').effective_now()
+        if not salaries:
+            return 'unknown'
+        total = Decimal(0)
+        for s in salaries:
+            if 'base_salary' in s.config:
+                total += Decimal(s.config.get('base_salary'))
+        # format it nicely with commas, see http://stackoverflow.com/a/10742904/185884
+        return str('$' + "{:,}".format(total))
+
     def get_event_type_display(self):
         "Override to display nicely"
         return EVENT_TYPES[self.event_type].NAME
@@ -366,7 +385,9 @@ class CareerEvent(models.Model):
                 'last_name': self.person.last_name,
                 'start_date': start,
                 'end_date': end,
-                'current_rank': CareerEvent.current_ranks(self.person)
+                'current_rank': CareerEvent.current_ranks(self.person),
+                'unit': self.unit.name,
+                'current_base_salary': CareerEvent.current_base_salary(self.person),
               }
         ls = dict(ls.items() + config_data.items())
         return ls
