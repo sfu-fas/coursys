@@ -9,6 +9,11 @@ from coredata.models import AnyPerson, Unit, JSONField, CourseOffering
 from courselib.slugs import make_slug
 
 
+# TODO:  A SemesterConfig object to store default appointment start/end and pay start/end dates per semester.  All
+# schools use the same dates, and they should never change, as per the latest meetings, so let them manage them to
+# pre-populate the contracts when they are being created.
+
+
 class SessionalAccountQuerySet(models.QuerySet):
     """
     As usual, define some querysets.
@@ -97,3 +102,5 @@ class SessionalContract(models.Model):
     class Meta:
         # Presumably, you can only have one contract for the same person, offering, and account/position.
         unique_together = (('sessional', 'account', 'offering'),)
+
+
