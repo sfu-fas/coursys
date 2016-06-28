@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}View Asset{% endblock %}
+{% block h1 %}View Asset{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'index' %}">Inventory</a></li>
+<li>View Asset</li>
+{% endblock %}
+
+{% block actions %}
+<h2>Actions</h2>
+<ul>
+    <li><a href="{% url "edit_asset" asset_slug=asset.slug %}">Edit</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<dt>Name</dt><dd>{{ asset.name }}</dd>
+<dt>Unit</dt><dd>{{ asset.unit }}</dd>
+<dt>Brand</dt><dd>{{ asset.brand }}</dd>
+<dt>Description</dt><dd>{{ asset.description }}</dd>
+<dt>Serial Number</dt><dd>{{ asset.serial }}</dd>
+<dt>Asset Tag Number</dt><dd>{{ asset.tag }}</dd>
+<dt>Notes</dt><dd>{{ asset.notes }}</dd>
+<dt>Created at</dt><dd>{{ asset.created_at }}</dd>
+<dt>Last Modified</dt><dd>{{ asset.last_modified }}</dd>
+{% endblock %}

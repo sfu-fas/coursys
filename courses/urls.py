@@ -19,6 +19,7 @@ from tacontracts.urls import tacontract_patterns
 from visas.urls import visas_pattern
 from outreach.urls import outreach_pattern
 from sessionals.urls import sessionals_patterns
+from inventory.urls import inventory_pattern
 
 from api.urls import api_patterns
 
@@ -71,6 +72,7 @@ urlpatterns = [
     url(r'^visas/', include(visas_pattern)),
     url(r'^outreach/', include(outreach_pattern)),
     url(r'^sessionals/', include(sessionals_patterns)),
+    url(r'^inventory/', include(inventory_pattern)),ssss
 
     # redirect old mobile URLs to rightful locations
     url(r'^m/(?P<urltail>.*)$',  RedirectView.as_view(url='/%(urltail)s/', permanent=True)),
