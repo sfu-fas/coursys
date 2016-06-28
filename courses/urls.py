@@ -72,7 +72,7 @@ urlpatterns = [
     url(r'^visas/', include(visas_pattern)),
     url(r'^outreach/', include(outreach_pattern)),
     url(r'^sessionals/', include(sessionals_patterns)),
-    url(r'^inventory/', include(inventory_pattern)),ssss
+    url(r'^inventory/', include(inventory_pattern)),
 
     # redirect old mobile URLs to rightful locations
     url(r'^m/(?P<urltail>.*)$',  RedirectView.as_view(url='/%(urltail)s/', permanent=True)),
