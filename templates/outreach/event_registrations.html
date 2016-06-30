@@ -4,7 +4,7 @@
 {% block h1 %}Event Registrations{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'index' %}">Outreach</a></li>
+<li><a href="{% url 'outreach_index' %}">Outreach</a></li>
 <li><a href="{% url 'view_event' event_slug=event.slug %}">{{ event.title }}</a></li>
 <li>Registration</li>
 {% endblock %}
