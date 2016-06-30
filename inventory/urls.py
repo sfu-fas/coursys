@@ -6,7 +6,7 @@ ASSET_SLUG = '(?P<asset_slug>' + SLUG_RE + ')'
 ASSET_ID = '(?P<asset_id>' + ID_RE + ')'
 
 inventory_pattern = [  # prefix /inventory/
-    url('^$', views.index, name='index'),
+    url('^$', views.inventory_index, name='inventory_index'),
     url(r'^new_asset/$', views.new_asset, name='new_asset'),
     url(r'^' + ASSET_SLUG + '/edit$', views.edit_asset, name='edit_asset'),
     url(r'^' + ASSET_ID + '/delete$', views.delete_asset, name='delete_asset'),

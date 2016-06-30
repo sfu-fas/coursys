@@ -18,7 +18,7 @@ def _has_unit_role(user, asset):
     return Role.objects.filter(person__userid=user.username, role='INV', unit=asset.unit).count() > 0
 
 @requires_role('INV')
-def index(request):
+def inventory_index(request):
     unit_ids = [unit.id for unit in request.units]
     units = Unit.objects.filter(id__in=unit_ids)
     assets = Asset.objects.visible(units)
@@ -38,7 +38,7 @@ def new_asset(request):
                          description="Added asset %s" % asset.name,
                          related_object=asset)
             l.save()
-            return HttpResponseRedirect(reverse('index'))
+            return HttpResponseRedirect(reverse('inventory_index'))
     else:
         form = AssetForm(request)
     return render(request, 'inventory/new_asset.html', {'form': form})
@@ -60,7 +60,7 @@ def edit_asset(request, asset_slug):
                          description="Modified asset %s" % asset.name,
                          related_object=asset)
             l.save()
-            return HttpResponseRedirect(reverse(index))
+            return HttpResponseRedirect(reverse('inventory_index'))
     else:
         form = AssetForm(request, instance=asset)
     return render(request, 'inventory/edit_asset.html', {'form': form, 'asset_slug': asset_slug})
@@ -86,7 +86,7 @@ def delete_asset(request, asset_id):
                      description="Deleted asset: %s" % asset,
                      related_object=asset)
         l.save()
-    return HttpResponseRedirect(reverse(index))
+    return HttpResponseRedirect(reverse('inventory_index'))
 
 
 

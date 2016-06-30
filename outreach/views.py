@@ -19,7 +19,7 @@ def _has_unit_role(user, event):
     return Role.objects.filter(person__userid=user.username, role='OUTR', unit=event.unit).count() > 0
 
 @requires_role('OUTR')
-def index(request):
+def outreach_index(request):
     unit_ids = [unit.id for unit in request.units]
     units = Unit.objects.filter(id__in=unit_ids)
     events = OutreachEvent.objects.current(units)
@@ -40,7 +40,7 @@ def new_event(request):
                          description="Added event %s" % event,
                          related_object=event)
             l.save()
-            return HttpResponseRedirect(reverse('index'))
+            return HttpResponseRedirect(reverse('outreach_index'))
     else:
         form = OutreachEventForm(request)
     return render(request, 'outreach/new_event.html', {'form': form})
@@ -71,7 +71,7 @@ def edit_event(request, event_slug):
                          description="Edited event %s" % event,
                          related_object=event)
             l.save()
-            return HttpResponseRedirect(reverse('index'))
+            return HttpResponseRedirect(reverse('outreach_index'))
     else:
         form = OutreachEventForm(request, instance=event)
     return render(request, 'outreach/edit_event.html', {'form': form, 'event_slug': event.slug})
@@ -89,7 +89,7 @@ def delete_event(request, event_id):
                      description="Deleted event: %s" % event,
                      related_object=event)
         l.save()
-    return HttpResponseRedirect(reverse(index))
+    return HttpResponseRedirect(reverse('outreach_index'))
 
 
 def register(request, event_slug):
