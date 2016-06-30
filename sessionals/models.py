@@ -72,10 +72,10 @@ class SessionalContract(models.Model):
     sessional = models.ForeignKey(AnyPerson, null=False, blank=False)
     account = models.ForeignKey(SessionalAccount, null=False, blank=False)
     unit = models.ForeignKey(Unit, null=False, blank=False)
-    appointment_start = models.DateField(null=True, blank=True)
-    appointment_end = models.DateField(null=True, blank=True)
-    pay_start = models.DateField()
-    pay_end = models.DateField()
+    appointment_start = models.DateField(null=False, blank=False)
+    appointment_end = models.DateField(null=False, blank=False)
+    pay_start = models.DateField(null=False, blank=False)
+    pay_end = models.DateField(null=False, blank=False)
     # Was going to add a Semester, but since the offering itself has a semester, no need for it.
     offering = models.ForeignKey(CourseOffering, null=False, blank=False)
 
@@ -104,3 +104,14 @@ class SessionalContract(models.Model):
         unique_together = (('sessional', 'account', 'offering'),)
 
 
+class SessionalConfig(models.Model):
+    """
+    An object to hold default dates for a given unit.  The user can change these whenever the semesters change,
+    and the new contracts will use these as defaults.  There should only be one of these per unit, to avoid
+    overwriting someone else's.
+    """
+    unit = models.OneToOneField(Unit, null=False, blank=False)
+    appointment_start = models.DateField()
+    appointment_end = models.DateField()
+    pay_start = models.DateField()
+    pay_end = models.DateField()

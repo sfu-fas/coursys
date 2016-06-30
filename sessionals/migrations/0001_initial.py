@@ -8,6 +8,9 @@ import courselib.json_fields
 
 class Migration(migrations.Migration):
 
+    dependencies = [
+        ('coredata', '0014_auto_20160623_1509'),
+    ]
 
     operations = [
         migrations.CreateModel(
@@ -23,11 +26,22 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='SessionalConfig',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('appointment_start', models.DateField()),
+                ('appointment_end', models.DateField()),
+                ('pay_start', models.DateField()),
+                ('pay_end', models.DateField()),
+                ('unit', models.OneToOneField(to='coredata.Unit')),
+            ],
+        ),
+        migrations.CreateModel(
             name='SessionalContract',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('appointment_start', models.DateField(null=True, blank=True)),
-                ('appointment_end', models.DateField(null=True, blank=True)),
+                ('appointment_start', models.DateField()),
+                ('appointment_end', models.DateField()),
                 ('pay_start', models.DateField()),
                 ('pay_end', models.DateField()),
                 ('created', models.DateTimeField(auto_now_add=True)),

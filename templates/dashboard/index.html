@@ -40,6 +40,7 @@ $(document).ready(function() {
     {% if 'ADMN' in roles %}
         <li><a href="{% url "faculty.views.index" %}"><i class="fa fa-li fa-files-o"></i> Faculty Management</a></li>
         <li><a href="{% url "coredata.views.unit_admin" %}"><i class="fa fa-li fa-gears"></i> Department Management</a></li>
+        <li><a href="{% url "sessionals.views.sessionals_index" %}"><i class="fa fa-li fa-bell"></i> Sessional Management</a></li>
     {% endif %}
     {% if 'GRAD' in roles or 'GRPD' in roles or 'ADMN' in roles or 'TAAD' in roles %}
         <li><a href="{% url "visas.views.list_all_visas" %}"><i class="fa fa-li fa-plane"></i> Manage Visas</a></li>
