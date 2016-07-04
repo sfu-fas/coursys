@@ -81,6 +81,9 @@ class Visa (models.Model):
     def hide(self):
         self.hidden = True
 
+    def has_attachments(self):
+        return VisaDocumentAttachment.objects.filter(visa=self, hidden=False).count() > 0
+
     @staticmethod
     def import_for(people):
         """
