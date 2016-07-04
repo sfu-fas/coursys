@@ -55,7 +55,10 @@ function confirmDelete() {
         <tbody>
             {% for visa in visa_list %}
                 <tr {{ visa|add_visa_display_class }}>
-                    <td>{{ visa.person }}</td>
+                    <td>
+                        {{ visa.person }} {% if visa.has_attachments %} &nbsp;
+                        <i class="fa fa-paperclip" title="Attachment(s)"></i>{% endif %}
+                    </td>
                     <td><span class="sort">{{ visa.start_date.isoformat }}</span>{{ visa.start_date }}</td>
                     <td><span class="sort">{{ visa.end_date.isoformat }}</span>{{ visa.end_date }}</td>
                     <td>{{ visa.status }}</td>
