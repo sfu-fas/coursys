@@ -27,6 +27,7 @@ class Asset(models.Model):
     serial = models.CharField("Serial Number", max_length=60, null=True, blank=True)
     tag = models.CharField("Asset Tag Number", max_length=60, null=True, blank=True, help_text="SFU Asset Tag number, "
                                                                                                "if it exists")
+    location = models.CharField(max_length=150, null=True, blank=True)
     notes = models.CharField(max_length=400, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
