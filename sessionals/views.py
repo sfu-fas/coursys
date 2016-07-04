@@ -11,19 +11,18 @@ from coredata.models import AnyPerson
 
 
 
-@requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
+@requires_role(["TAAD", "GRAD", "ADMN"])
 def sessionals_index(request):
-    print "got to index gi"
     return render(request, 'sessionals/index.html')
 
 
-@requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
+@requires_role(["TAAD", "GRAD", "ADMN"])
 def manage_accounts(request):
     accounts = SessionalAccount.objects.visible(request.units)
     return render(request, 'sessionals/manage_accounts.html')
 
 
-@requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
+@requires_role(["TAAD", "GRAD", "ADMN"])
 def new_account(request):
     if request.method == 'POST':
         form = SessionalAccountForm(request, request.POST)
@@ -40,7 +39,7 @@ def new_account(request):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse('sessionals_index'))
+            return HttpResponseRedirect(reverse('sessionals:sessionals_index'))
     else:
         form = SessionalAccountForm(request)
     return render(request, 'sessionals/new_account.html', {'form': form})

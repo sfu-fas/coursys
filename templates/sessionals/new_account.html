@@ -6,13 +6,13 @@
 
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'index' %}">Sessionals</a></li>
-<li><a href="{% url 'manage_accounts' %}">Manage Accounts</a></li>
+<li><a href="{% url 'sessionals:sessionals_index' %}">Sessionals</a></li>
+<li><a href="{% url 'sessionals:manage_accounts' %}">Manage Accounts</a></li>
 <li>New Account</li>
 {% endblock %}
 
 {% block content %}
-<form action="{% url 'new_account' %}" method="post">
+<form action="{% url 'sessionals:new_account' %}" method="post">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>

@@ -4,7 +4,7 @@
 
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'index' %}">Sessionals</a></li>
+<li><a href="{% url 'sessionals:sessionals_index' %}">Sessionals</a></li>
     <li>Manage Accounts</li>
 {% endblock %}
 
@@ -12,7 +12,7 @@
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url 'new_account' %}">New Account</a></li>
+        <li><a href="{% url 'sessionals:new_account' %}">New Account</a></li>
     </ul>
 </div>
 {% endblock %}

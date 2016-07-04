@@ -71,7 +71,7 @@ urlpatterns = [
     url(r'^my_grads/download/$', 'grad.views.download_my_grads_csv'),
     url(r'^visas/', include(visas_pattern)),
     url(r'^outreach/', include(outreach_pattern)),
-    url(r'^sessionals/', include(sessionals_patterns)),
+    url(r'^sessionals/', include(sessionals_patterns, namespace='sessionals', app_name='sessionals')),
     url(r'^inventory/', include(inventory_pattern)),
 
     # redirect old mobile URLs to rightful locations
