@@ -3007,7 +3007,7 @@ def build_data_from_position(position):
     # Otherwise, we may have it in that object's config.
     if not data.get('dob'):
         if person.birthdate():
-            data['dob'] = datetime.strptime(person.birthdate(), "%Y-%m-%d")
+            data['dob'] = datetime.datetime.strptime(person.birthdate(), "%Y-%m-%d")
     data['gender'] = person.gender() or ''
     data['degree1'] = position.degree1 or ''
     data['year1'] = position.year1 or ''
