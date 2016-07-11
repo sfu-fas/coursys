@@ -51,6 +51,8 @@ class NewRoleForm(forms.ModelForm):
 
     def clean(self):
         data = self.cleaned_data
+        if 'person' not in data:
+            raise forms.ValidationError("You must specify a person")
         person = data['person']
         unit = data['unit']
         self.old_role = None

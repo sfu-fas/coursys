@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import Q
 from coredata.models import Member, Person, CourseOffering
 from groups.models import Group, GroupMember, all_activities
 from grades.models import Activity, all_activities_filter
@@ -473,10 +474,10 @@ def reject(request, course_slug, group_slug):
 @transaction.atomic
 def invite(request, course_slug, group_slug):
     #TODO need to validate the student who is invited, cannot be the invitor him/herself.
-    course = get_object_or_404(CourseOffering, slug = course_slug)
-    group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
-    person = get_object_or_404(Person, userid = request.user.username)
-    invitor = get_object_or_404(Member, person = person, offering=course)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    group = get_object_or_404(Group, courseoffering=course, slug=group_slug)
+    person = get_object_or_404(Person, userid=request.user.username)
+    invitor = get_object_or_404(Member, ~Q(role='DROP'), person=person, offering=course)
     error_info=None
     group_max = course.group_max()
     from django import forms
