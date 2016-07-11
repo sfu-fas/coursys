@@ -1,0 +1,20 @@
+[
+{
+  "fields": {
+    "created_at": "2016-06-30T13:08:40.528",
+    "hidden": false,
+    "name": "Something",
+    "brand": "Baycrest",
+    "slug": "cmpt-something",
+    "tag": "",
+    "location": "In the dining room, with the candlestick",
+    "last_modified": "2016-07-04T11:08:28.861",
+    "serial": "",
+    "notes": "",
+    "unit": 5,
+    "description": ""
+  },
+  "model": "inventory.asset",
+  "pk": 1
+}
+]

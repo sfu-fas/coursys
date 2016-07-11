@@ -1970,6 +1970,26 @@
  "model": "coredata.role",
  "pk": 4
 },
+ {
+ "fields": {
+  "config": "{}",
+  "person": 1,
+  "role": "OUTR",
+  "unit": 5
+ },
+ "model": "coredata.role",
+ "pk": 5
+},
+ {
+ "fields": {
+  "config": "{}",
+  "person": 1,
+  "role": "INV",
+  "unit": 5
+ },
+ "model": "coredata.role",
+ "pk": 6
+},
 {
  "fields": {
   "config": "{}",

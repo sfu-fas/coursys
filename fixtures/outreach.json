@@ -1,0 +1,43 @@
+[
+{
+  "fields": {
+    "slug": "cmpt-a-test-event-2016-06-23",
+    "cost": null,
+    "description": "Foo",
+    "end_date": "2016-06-24T16:00:00",
+    "title": "A test event",
+    "notes": "",
+    "resources": "",
+    "email": "",
+    "score": null,
+    "location": "",
+    "hidden": false,
+    "start_date": "2016-06-23T14:37:41",
+    "unit": 5
+  },
+  "model": "outreach.outreachevent",
+  "pk": 1
+},
+{
+  "fields": {
+    "parent_name": "Joe Smith Sr.",
+    "first_name": "Bob",
+    "last_name": "SomePerson",
+    "middle_name": "",
+    "uuid": "fd0b873b-8159-4ae9-87d5-a86dbb12a4d0",
+    "age": null,
+    "school": "Little Lord Fauntleroy School for Albino Hemophiliacs",
+    "event": 1,
+    "created_at": "2016-06-24T13:09:45.652",
+    "parent_phone": "7787823111",
+    "last_modified": "2016-06-30T13:03:41.747",
+    "notes": "Added some stuff",
+    "attended": true,
+    "hidden": false,
+    "email": "me@here.com",
+    "waiver": true
+  },
+  "model": "outreach.outreacheventregistration",
+  "pk": 1
+}
+]
