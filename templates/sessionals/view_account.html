@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}View Account{% endblock %}
+{% block h1 %}View Account{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'sessionals:sessionals_index' %}">Sessionals</a></li>
+<li><a href="{% url 'sessionals:manage_accounts' %}">Manage Accounts</a></li>
+<li>View Account</li>
+{% endblock %}
+
+{% block actions %}
+<h2>Actions</h2>
+<ul>
+    <li><a href="{% url "sessionals:edit_account" account_slug=account.slug %}">Edit</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<dt>Unit</dt><dd>{{ account.unit }}</dd>
+<dt>Title</dt><dd>{{ account.title }}</dd>
+<dt>Account Number</dt><dd>{{ account.account_number }}</dd>
+<dt>Position Number</dt><dd>{{ account.position_number }}</dd>
+{% endblock %}

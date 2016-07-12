@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit Configuration{% endblock %}
+{% block h1 %}Edit Configuration{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'sessionals:sessionals_index' %}">Sessionals</a></li>
+<li><a href="{% url 'sessionals:manage_configs' %}">Manage Configurations</a></li>
+<li>Edit Configuration</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'sessionals:edit_config' config_slug=config.slug %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Configuration" />
+    </p>
+</form>
+{% endblock %}

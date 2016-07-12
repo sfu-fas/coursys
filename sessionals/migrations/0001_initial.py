@@ -33,6 +33,7 @@ class Migration(migrations.Migration):
                 ('appointment_end', models.DateField()),
                 ('pay_start', models.DateField()),
                 ('pay_end', models.DateField()),
+                ('slug', autoslug.fields.AutoSlugField(populate_from=b'autoslug', unique=True, editable=False)),
                 ('unit', models.OneToOneField(to='coredata.Unit')),
             ],
         ),

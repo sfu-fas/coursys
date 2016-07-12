@@ -9,11 +9,6 @@ from coredata.models import AnyPerson, Unit, JSONField, CourseOffering
 from courselib.slugs import make_slug
 
 
-# TODO:  A SemesterConfig object to store default appointment start/end and pay start/end dates per semester.  All
-# schools use the same dates, and they should never change, as per the latest meetings, so let them manage them to
-# pre-populate the contracts when they are being created.
-
-
 class SessionalAccountQuerySet(models.QuerySet):
     """
     As usual, define some querysets.
@@ -115,3 +110,14 @@ class SessionalConfig(models.Model):
     appointment_end = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
+
+    def autoslug(self):
+        return make_slug(self.unit.label)
+
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+
+    def __unicode__(self):
+        return u"%s - %s" % (self.unit.label, "default configuration for sessional contracts")
+
+    def delete(self):
+        raise NotImplementedError("This object cannot be deleted")
