@@ -1,6 +1,6 @@
 from django import forms
 from .models import SessionalContract, SessionalAccount, SessionalConfig
-from coredata.widgets import CalendarWidget
+from coredata.widgets import CalendarWidget, AutocompleteOfferingWidget, AnyPersonWidget
 from coredata.models import Unit
 
 
@@ -28,7 +28,9 @@ class SessionalContractForm(forms.ModelForm):
             'pay_start': CalendarWidget,
             'pay_end': CalendarWidget,
             'appointment_start': CalendarWidget,
-            'appointment_end': CalendarWidget
+            'appointment_end': CalendarWidget,
+            'offering': AutocompleteOfferingWidget,
+            'sessional': AnyPersonWidget
         }
 
 
