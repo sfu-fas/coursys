@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}New Contract{% endblock %}
+{% block h1 %}New Contract{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#id_person').each(function() {
+    $(this).autocomplete({
+      source: '/data/students',
+      minLength: 2,
+      select: function(event, ui){
+        $(this).data("val", ui.item.value);
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'sessionals:sessionals_index' %}">Sessionals</a></li>
+<li>New Contract</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'sessionals:new_contract' %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Add Contract" />
+    </p>
+</form>
+{% endblock %}

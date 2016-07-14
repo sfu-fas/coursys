@@ -73,7 +73,8 @@ class SessionalContract(models.Model):
     pay_end = models.DateField(null=False, blank=False)
     # Was going to add a Semester, but since the offering itself has a semester, no need for it.
     offering = models.ForeignKey(CourseOffering, null=False, blank=False)
-
+    contract_hours = models.DecimalField(max_digits=6, decimal_places=2, null=False, blank=False)
+    notes = models.CharField(max_length=400, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     created_by = models.CharField(max_length=20, null=False, blank=False, editable=False)
     hidden = models.BooleanField(null=False, default=False, editable=False)
@@ -82,12 +83,12 @@ class SessionalContract(models.Model):
 
     def autoslug(self):
         """As usual, create a unique slug for each object"""
-        return make_slug(self.sessional + "-" + self.offering)
+        return make_slug(unicode(self.sessional) + "-" + unicode(self.offering))
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     def __unicode__(self):
-        return u"%s - %s" % (self.sessional, self.unit)
+        return u"%s - %s" % (unicode(self.sessional), unicode(self.offering))
 
     def delete(self):
         """Like most of our objects, we don't want to ever really delete it."""

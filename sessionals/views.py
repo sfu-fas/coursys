@@ -21,7 +21,8 @@ def _has_unit_role(user, account_or_contract):
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
 def sessionals_index(request):
-    return render(request, 'sessionals/index.html')
+    sessionals = SessionalContract.objects.visible(request.units)
+    return render(request, 'sessionals/index.html', {'sessionals': sessionals})
 
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
@@ -161,3 +162,29 @@ def edit_config(request, config_slug):
     else:
         form = SessionalConfigForm(request, instance=config)
     return render(request, 'sessionals/edit_config.html', {'form': form, 'config': config})
+
+
+@requires_role(["TAAD", "GRAD", "ADMN"])
+def new_contract(request):
+    if request.method == 'POST':
+        form = SessionalContractForm(request, request.POST)
+        if form.is_valid():
+            contract = form.save(commit=False)
+            # Let's convert the person in there to an AnyPerson
+            person = form.cleaned_data['person']
+            contract.sessional = AnyPerson.get_or_create_for(person=person)
+            contract.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Contract was created.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="added contract for: %s" % contract.sessional,
+                         related_object=contract
+                         )
+            l.save()
+
+            return HttpResponseRedirect(reverse('sessionals:sessionals_index'))
+    else:
+        form = SessionalContractForm(request)
+    return render(request, 'sessionals/new_contract.html', {'form': form})

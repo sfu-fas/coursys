@@ -189,37 +189,3 @@ class NotClearableFileInput(forms.FileInput):
 
         return mark_safe(template % substitutions)
 
-
-class AnyPersonWidget(forms.widgets.MultiWidget):
-    def __init__(self, attrs=None):
-        future_people = FuturePerson.objects.visible()
-        person_attrs = attrs or {}
-        futureperson_attrs = attrs or {}
-        person_attrs.update({'class':'autocomplete_person'})
-        _widgets = (
-            AutocompletePersonWidget(attrs=person_attrs),
-            forms.widgets.Select(attrs=futureperson_attrs, choices=future_people)
-        )
-        super(AnyPersonWidget, self).__init__(_widgets, attrs)
-
-    def decompress(self, value):
-        if value:
-            return [value, None]
-        return [None, None]
-
-    def format_output(self, rendered_widgets):
-        # Add our help text right in the rendering so we don't have to add it to every field or do some other magic.
-        return mark_safe('$ ' + u' '.join(rendered_widgets) + '<br/>' +
-                         "<span class=helptext>Find a current user on the left <strong>or</strong> select"
-                         "a future candidate from the right.</span>")
-
-    def value_from_datadict(self, data, files, name):
-        peoplelist = [w.value_from_datadict(data, files, "%s_%s" % (name, i)) for i, w, in enumerate(self.widgets)]
-        person = salarylist[0]
-        future_person = salarylist[1]
-        if person:
-            return AnyPerson.get_or_create_for(person=person)
-        elif future_person:
-            return AnyPerson.get_or_create_for(future_person=future_person)
-        else:
-            return None

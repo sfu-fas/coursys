@@ -18,4 +18,5 @@ sessionals_patterns = [ # prefix /sessionals/
     url(r'^manage_configs/$', views.manage_configs, name='manage_configs'),
     url(r'^new_config/$', views.new_config, name='new_config'),
     url(r'^config/' + CONFIG_SLUG + '/edit$', views.edit_config, name='edit_config'),
+    url(r'^new_contract/$', views.new_contract, name='new_contract'),
     ]

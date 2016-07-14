@@ -45,6 +45,8 @@ class Migration(migrations.Migration):
                 ('appointment_end', models.DateField()),
                 ('pay_start', models.DateField()),
                 ('pay_end', models.DateField()),
+                ('contract_hours', models.DecimalField(max_digits=6, decimal_places=2)),
+                ('notes', models.CharField(max_length=400, null=True, blank=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('created_by', models.CharField(max_length=20, editable=False)),
                 ('hidden', models.BooleanField(default=False, editable=False)),
