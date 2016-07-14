@@ -4,7 +4,7 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
-from coredata.models import CourseOffering, Member
+from coredata.models import CourseOffering, Member, Person
 from grades.models import Activity
 
 from courselib.json_fields import JSONField
@@ -21,6 +21,8 @@ WRITE_ACL_CHOICES = [
 READ_ACL_CHOICES = WRITE_ACL_CHOICES + [('ALL', 'anybody')]
 ACL_DESC = dict(READ_ACL_CHOICES)
 WRITE_ACL_DESC = dict(WRITE_ACL_CHOICES)
+
+PERMISSION_ACL_CHOICES = WRITE_ACL_CHOICES[1:] # allowed permissions for PagePermission object
 
 MEMBER_ROLES = { # map from ACL roles to allowed Member roles
         'NONE': set(),
@@ -494,6 +496,21 @@ def clear_offering_cache(instance, **kwargs):
 
 models.signals.post_save.connect(clear_offering_cache)
 
+
+class PagePermission(models.Model):
+    """
+    An additional person who has permission to view pages for this offering
+    """
+    offering = models.ForeignKey(CourseOffering)
+    person = models.ForeignKey(Person)
+    role = models.CharField(max_length=4, choices=PERMISSION_ACL_CHOICES, default="STUD",
+        help_text="What level of access should this person have for the course?")
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+
+    defaults = {}
+
+    class Meta:
+        unique_together = (('offering', 'person'), )
 
 
 # custom creoleparser Parser class:

@@ -9,13 +9,51 @@ from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
-from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES, MACRO_LABEL
+from pages.models import Page, PageVersion, PagePermission, MEMBER_ROLES, ACL_ROLES, MACRO_LABEL
 from pages.forms import EditPageForm, EditFileForm, PageImportForm, SiteImportForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import NotFoundResponse, ForbiddenResponse, HttpError
 from importer import HTMLWiki
 import json, datetime
+
+
+def _allowed_member(userid, offering, acl_value):
+    """
+    Is a person with this userid allowed to access a page because they are a Member?
+    """
+    members = Member.objects.filter(person__userid=userid, offering=offering)
+    if not members:
+        if acl_value == 'ALL':
+            return True
+        else:
+            return None
+
+    m = members[0]
+    if acl_value == 'ALL':
+        return m
+    elif m.role in MEMBER_ROLES[acl_value]:
+        return m
+
+    return None
+
+
+def _allowed_permission(userid, offering, acl_value):
+    """
+    Is a person with this userid allowed to access a page because they have a PagePermission?
+    """
+    pps = PagePermission.objects.filter(person__userid=userid, offering=offering)
+    if not pps:
+        if acl_value == 'ALL':
+            return True
+        else:
+            return None
+
+    p = pps[0]
+    if p.role in MEMBER_ROLES[acl_value]:
+        return p
+
+    return None
 
 
 def _check_allowed(request, offering, acl_value, date=None):
@@ -28,19 +66,20 @@ def _check_allowed(request, offering, acl_value, date=None):
     """
     acl_value = Page.adjust_acl_release(acl_value, date)
 
-    members = Member.objects.filter(person__userid=request.user.username, offering=offering)
-    if not members:
-        if acl_value=='ALL':
-            return True
-        else:
-            return None
-    m = members[0]
-    if acl_value == 'ALL':
-        return m
-    elif m.role in MEMBER_ROLES[acl_value]:
+    if request.user.is_authenticated():
+        userid = request.user.username
+    else:
+        userid = '!'
+
+    # first option: can access because of Membership.
+    m = _allowed_member(userid, offering, acl_value)
+    if m and isinstance(m, Member):
         return m
 
-    return None    
+    # next option: can access because of a PagePermission
+    p = _allowed_permission(userid, offering, acl_value)
+    return p
+
 
 def _forbidden_response(request, visible_to):
     """
@@ -225,7 +264,10 @@ def _edit_pagefile(request, course_slug, page_label, kind):
             page = None
             version = None
             member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
-        
+
+        if isinstance(member, PagePermission):
+            return ForbiddenResponse(request, 'Editing of pages by additional-permission holders is not implemented. Sorry')
+
         # make sure we're looking at the right "kind" (page/file)
         if not kind:
             kind = "file" if version.is_filepage() else "page"
@@ -489,10 +531,13 @@ def _pages_from_json(request, offering, data):
             # check write permissions
             
             # mock the request object enough to satisfy _check_allowed()
-            class FakeRequest(object): pass
+            class FakeRequest(object):
+                def is_authenticated(self):
+                    return True
             fake_request = FakeRequest()
             fake_request.user = FakeRequest()
             fake_request.user.username = user.userid
+
             if old_ver:
                 m = _check_allowed(fake_request, offering, page.can_write, page.editdate())
             else:
