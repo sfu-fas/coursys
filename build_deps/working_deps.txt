@@ -47,7 +47,7 @@ djangorestframework-oauth==1.0.1
 django-oauth-plus==2.2.7
 #hg+https://bitbucket.org/coagulant/django-oauth-plus/@c18d240#egg=django-oauth-plus # includes pull request https://bitbucket.org/david/django-oauth-plus/pull-request/15/remove-south-from-package-dependencies/diff
 markdown # for API docs
-django-rest-swagger>=0.3.2
+django-rest-swagger>=0.3.2,<2.0.0
 #git+git://github.com/gregbaker/django-rest-swagger@develop# includes help_text in docs, and choices field support
 django-ipware==1.1.0
 psutil==3.0.1
