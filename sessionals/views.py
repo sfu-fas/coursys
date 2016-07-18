@@ -187,4 +187,61 @@ def new_contract(request):
             return HttpResponseRedirect(reverse('sessionals:sessionals_index'))
     else:
         form = SessionalContractForm(request)
+        #  Everyone except a sysadmin most likely has only one unit they have admin roles for.  Let's try to
+        #  find the config matching that unit, and if it exists, use it for default values.
+        config = SessionalConfig.objects.filter(unit__in=request.units).first()
+        if config:
+            form.fields['appointment_start'].initial = config.appointment_start
+            form.fields['appointment_end'].initial = config.appointment_end
+            form.fields['pay_start'].initial = config.pay_start
+            form.fields['pay_end'].initial = config.pay_end
     return render(request, 'sessionals/new_contract.html', {'form': form})
+
+
+@requires_role(["TAAD", "GRAD", "ADMN"])
+def edit_contract(request, contract_slug):
+    contract = get_object_or_404(SessionalContract, slug=contract_slug)
+    if not _has_unit_role(request.user, contract):
+        return ForbiddenResponse(request)
+    if request.method == 'POST':
+        form = SessionalContractForm(request, request.POST, instance=contract)
+        if form.is_valid():
+            contract = form.save(commit=False)
+            # Let's convert the person in there to an AnyPerson
+            person = form.cleaned_data['person']
+            contract.sessional = AnyPerson.get_or_create_for(person=person)
+            contract.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Contract was edited.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="edited contract for: %s" % contract.sessional,
+                         related_object=contract
+                         )
+            l.save()
+
+            return HttpResponseRedirect(reverse('sessionals:sessionals_index'))
+    else:
+        form = SessionalContractForm(request, instance=contract)
+        form.fields['person'].initial = contract.sessional.get_person().emplid
+    return render(request, 'sessionals/edit_contract.html', {'form': form})
+
+
+@requires_role(["TAAD", "GRAD", "ADMN"])
+def delete_contract(request, contract_id):
+    contract = get_object_or_404(SessionalContract, pk=contract_id)
+    if not _has_unit_role(request.user, contract):
+        return ForbiddenResponse(request)
+    if request.method == 'POST':
+        contract.delete()
+        messages.add_message(request,
+                             messages.SUCCESS,
+                             u'Contract was deleted.'
+                             )
+        l = LogEntry(userid=request.user.username,
+                     description="deleted contract: %s" % account,
+                     related_object=contract
+                     )
+        l.save()
+    return HttpResponseRedirect(reverse('sessionals:sessionals_index'))

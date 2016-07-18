@@ -67,6 +67,13 @@ class SessionalContract(models.Model):
     sessional = models.ForeignKey(AnyPerson, null=False, blank=False)
     account = models.ForeignKey(SessionalAccount, null=False, blank=False)
     unit = models.ForeignKey(Unit, null=False, blank=False)
+    sin = models.CharField(max_length=30,
+                           verbose_name="SIN",
+                           help_text="Social Insurance Number - 000000000 if unknown")
+
+    # We want do add some sort of accountability for checking visas.  Don't
+    # allow printing of the contract if this box hasn't been checked.
+    visa_verified = models.BooleanField(default=False, help_text="I have verified this sessional's visa information")
     appointment_start = models.DateField(null=False, blank=False)
     appointment_end = models.DateField(null=False, blank=False)
     pay_start = models.DateField(null=False, blank=False)

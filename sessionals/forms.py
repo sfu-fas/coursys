@@ -5,11 +5,11 @@ from coredata.forms import PersonField
 from coredata.models import Unit
 
 
-#  TODO:  We need to create a split Person/AnyPerson widget so we can pick one or the other.
-
 class SessionalAccountForm(forms.ModelForm):
     def __init__(self, request, *args, **kwargs):
         super(SessionalAccountForm, self).__init__(*args, **kwargs)
+        #  The following two lines look stupid, but they are not.  request.units contains a set of units.
+        #  in order to be used this way, we need an actual queryset.
         unit_ids = [unit.id for unit in request.units]
         units = Unit.objects.filter(id__in=unit_ids)
         self.fields['unit'].queryset = units
@@ -45,8 +45,8 @@ class SessionalContractForm(forms.ModelForm):
             'contract_hours': forms.NumberInput(attrs={'class': 'smallnumberinput'}),
             'notes': forms.Textarea
         }
-        fields = ['person', 'account', 'unit', 'appointment_start', 'appointment_end', 'pay_start', 'pay_end',
-                  'offering', 'contract_hours', 'notes']
+        fields = ['person', 'account', 'unit', 'sin', 'visa_verified', 'appointment_start', 'appointment_end', 'pay_start',
+                  'pay_end', 'offering', 'contract_hours', 'notes']
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)

@@ -22,4 +22,4 @@ class SessionalTestCase(TestCase):
         # as instructor
         client.login_user('dzhao')
         test_views(self, client, 'sessionals:', ['sessionals_index', 'manage_accounts', 'new_account', 'manage_configs',
-                                                 'new_config'], {})
+                                                 'new_config', 'new_contract'], {})
