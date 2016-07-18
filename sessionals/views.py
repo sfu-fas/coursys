@@ -225,7 +225,7 @@ def edit_contract(request, contract_slug):
     else:
         form = SessionalContractForm(request, instance=contract)
         form.fields['person'].initial = contract.sessional.get_person().emplid
-    return render(request, 'sessionals/edit_contract.html', {'form': form})
+    return render(request, 'sessionals/edit_contract.html', {'form': form, 'contract': contract})
 
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
@@ -240,8 +240,32 @@ def delete_contract(request, contract_id):
                              u'Contract was deleted.'
                              )
         l = LogEntry(userid=request.user.username,
-                     description="deleted contract: %s" % account,
+                     description="deleted contract: %s" % contract,
                      related_object=contract
                      )
         l.save()
     return HttpResponseRedirect(reverse('sessionals:sessionals_index'))
+
+
+@requires_role(["TAAD", "GRAD", "ADMN"])
+def print_contract(request, contract_slug):
+    contract = get_object_or_404(SessionalContract, slug=contract_slug)
+    if not _has_unit_role(request.user, contract):
+        return ForbiddenResponse(request)
+    #  TODO:  Generate the form.
+        # If no one has ever checked the 'I've verified the visa info for this person'
+        # box, let's stop them from printing.  We don't want to send this anywhere, but
+        # it's just for our own peace of mind.
+    if not contract.visa_verified:
+            messages.error(request, 'You must verify the sessional\'s visa information before printing')
+            return HttpResponseRedirect(reverse('sessionals:view_contract',
+                                                kwargs={'contract_slug': contract_slug}))
+    return HttpResponseRedirect(reverse('sessionals:sessionals_index'))
+
+
+@requires_role(["TAAD", "GRAD", "ADMN"])
+def view_contract(request, contract_slug):
+    contract = get_object_or_404(SessionalContract, slug=contract_slug)
+    if not _has_unit_role(request.user, contract):
+        return ForbiddenResponse(request)
+    return render(request, 'sessionals/view_contract.html', {'contract': contract})

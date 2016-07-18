@@ -1,0 +1,46 @@
+[
+{
+  "fields": {
+    "title": "SFUFA Account",
+    "account_number": 234,
+    "position_number": 23453465,
+    "hidden": false,
+    "slug": "cmpt-234-sfufa-account",
+    "unit": 5
+  },
+  "model": "sessionals.sessionalaccount",
+  "pk": 1
+},
+{
+  "fields": {
+    "account": 1,
+    "appointment_start": "2016-08-25",
+    "offering": 10,
+    "created": "2016-07-18T11:46:25.854",
+    "config": "{}",
+    "notes": "This is a test\r\n\r\nNow with linebreaks for twice the flavour.",
+    "pay_end": "2016-12-30",
+    "pay_start": "2016-08-22",
+    "appointment_end": "2016-12-29",
+    "slug": "a-test-sessionalcontract",
+    "sessional": 1,
+    "created_by": "",
+    "visa_verified": false,
+    "hidden": false,
+    "contract_hours": "45.60",
+    "sin": "345345678",
+    "unit": 5
+  },
+  "model": "sessionals.sessionalcontract",
+  "pk": 1
+},
+{
+  "fields": {
+    "role_account": null,
+    "person": 17,
+    "future_person": null
+  },
+  "model": "coredata.anyperson",
+  "pk": 1
+}
+]

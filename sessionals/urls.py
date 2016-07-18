@@ -21,7 +21,8 @@ sessionals_patterns = [ # prefix /sessionals/
     url(r'^new_config/$', views.new_config, name='new_config'),
     url(r'^config/' + CONFIG_SLUG + '/edit$', views.edit_config, name='edit_config'),
     url(r'^new_contract/$', views.new_contract, name='new_contract'),
-    url(r'^' + CONTRACT_SLUG + '/edit$', views.edit_contract, name='edit_contract'),
-    url(r'^' + CONTRACT_ID + '/delete$', views.delete_contract, name='delete_contract'),
-
+    url(r'^contract/' + CONTRACT_SLUG + '/edit$', views.edit_contract, name='edit_contract'),
+    url(r'^contract/' + CONTRACT_ID + '/delete$', views.delete_contract, name='delete_contract'),
+    url(r'^contract/' + CONTRACT_SLUG + '/print$', views.print_contract, name='print_form'),
+    url(r'^contract/' + CONTRACT_SLUG + '/view$', views.view_contract, name='view_contract'),
     ]
