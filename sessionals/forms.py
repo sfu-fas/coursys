@@ -1,8 +1,9 @@
 from django import forms
 from .models import SessionalContract, SessionalAccount, SessionalConfig
-from coredata.widgets import CalendarWidget, AutocompleteOfferingWidget, OfferingField
+from coredata.widgets import CalendarWidget, OfferingField
 from coredata.forms import PersonField
 from coredata.models import Unit
+from faculty.event_types.fields import DollarInput
 
 
 class SessionalAccountForm(forms.ModelForm):
@@ -43,10 +44,11 @@ class SessionalContractForm(forms.ModelForm):
             'appointment_start': CalendarWidget,
             'appointment_end': CalendarWidget,
             'contract_hours': forms.NumberInput(attrs={'class': 'smallnumberinput'}),
-            'notes': forms.Textarea
+            'notes': forms.Textarea,
+            'total_salary': DollarInput
         }
         fields = ['person', 'account', 'unit', 'sin', 'visa_verified', 'appointment_start', 'appointment_end', 'pay_start',
-                  'pay_end', 'offering', 'contract_hours', 'notes']
+                  'pay_end', 'offering', 'contact_hours', 'total_salary', 'notes']
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)

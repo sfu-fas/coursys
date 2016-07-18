@@ -80,7 +80,8 @@ class SessionalContract(models.Model):
     pay_end = models.DateField(null=False, blank=False)
     # Was going to add a Semester, but since the offering itself has a semester, no need for it.
     offering = models.ForeignKey(CourseOffering, null=False, blank=False)
-    contract_hours = models.DecimalField(max_digits=6, decimal_places=2, null=False, blank=False)
+    contact_hours = models.DecimalField("Weekly Contact Hours", max_digits=6, decimal_places=2, null=False, blank=False)
+    total_salary = models.DecimalField(max_digits=8, decimal_places=2, null=False, blank=False)
     notes = models.CharField(max_length=400, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     created_by = models.CharField(max_length=20, null=False, blank=False, editable=False)

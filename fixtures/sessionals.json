@@ -27,8 +27,9 @@
     "created_by": "",
     "visa_verified": false,
     "hidden": false,
-    "contract_hours": "45.60",
+    "contact_hours": "45.60",
     "sin": "345345678",
+    "total_salary": "4657.52",
     "unit": 5
   },
   "model": "sessionals.sessionalcontract",
