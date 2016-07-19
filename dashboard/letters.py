@@ -2172,7 +2172,7 @@ def fasnet_forms(grads, outfile):
     doc.save()
 
 
-class YellowForm(object):
+class FormMixin(object):
     def __init__(self, outfile):
         """
         Create Yellow form in the file object (which could be a Django HttpResponse).
@@ -2238,7 +2238,8 @@ class YellowForm(object):
         self.c.setFont("Courier", 9)
         self.c.drawCentredString(x*mm, y*mm, content)
 
-class YellowFormTenure(YellowForm):
+
+class YellowFormTenure(FormMixin):
 
     def draw_form(self, data):
 
@@ -2583,7 +2584,7 @@ def yellow_form_tenure(careerevent, outfile):
     doc.save()
 
 
-class YellowFormLimited(YellowForm):
+class YellowFormLimited(FormMixin):
 
     def checkbox(self, x, y, filled=0):
         self.c.circle(x*mm, y*mm + 1*mm, 1*mm, fill=filled)
@@ -3061,4 +3062,39 @@ def position_yellow_form_tenure(position, outfile):
     doc = YellowFormTenure(outfile)
     data = build_data_from_position(position)
     doc.draw_form(data)
+    doc.save()
+
+
+class SessionalForm(FormMixin, SFUMediaMixin):
+    def __init__(self, *args, **kwargs):
+        super(SessionalForm, self).__init__(*args, **kwargs)
+        self._media_setup()
+
+    def draw_form(self, contract):
+        x_origin = 12 * mm
+        y_origin = 10 * mm
+        x_max = 195
+        self.c.translate(x_origin, y_origin)  # origin = lower-left of the main box
+        self.c.setStrokeColor(black)
+
+        # SFU logo
+        self.c.drawImage(logofile, x=0, y=247 * mm, width=15 * mm, height=8 * mm)
+        self.c.setFont('BemboMTPro', 10)
+        self.c.setFillColor(self.sfu_red)
+        self._drawStringLeading(self.c, 17 * mm, 250 * mm, u'Simon Fraser University'.translate(self.sc_trans_bembo),
+                                charspace=1.4)
+        self.c.setFont('DINPro', 5)
+        self.c.setFillColor(self.sfu_grey)
+        self._drawStringLeading(self.c, 17 * mm, 247.5 * mm, u'Engaging the World'.upper(), charspace=2)
+        self.c.setFillColor(black)
+
+
+
+        # All done, show the page
+        self.c.showPage()
+
+
+def sessional_form(contract, outfile):
+    doc = SessionalForm(outfile)
+    doc.draw_form(contract)
     doc.save()

@@ -6,9 +6,8 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from log.models import LogEntry
 from courselib.auth import ForbiddenResponse
-from datetime import datetime
-from courselib.search import find_userid_or_emplid
 from coredata.models import AnyPerson, Role
+from dashboard.letters import sessional_form
 
 def _has_unit_role(user, account_or_contract):
     """
@@ -252,7 +251,6 @@ def print_contract(request, contract_slug):
     contract = get_object_or_404(SessionalContract, slug=contract_slug)
     if not _has_unit_role(request.user, contract):
         return ForbiddenResponse(request)
-    #  TODO:  Generate the form.
         # If no one has ever checked the 'I've verified the visa info for this person'
         # box, let's stop them from printing.  We don't want to send this anywhere, but
         # it's just for our own peace of mind.
@@ -260,7 +258,10 @@ def print_contract(request, contract_slug):
             messages.error(request, 'You must verify the sessional\'s visa information before printing')
             return HttpResponseRedirect(reverse('sessionals:view_contract',
                                                 kwargs={'contract_slug': contract_slug}))
-    return HttpResponseRedirect(reverse('sessionals:sessionals_index'))
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="sessionalform.pdf"'
+    sessional_form(contract, response)
+    return response
 
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
