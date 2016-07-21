@@ -71,7 +71,7 @@ class SessionalContractForm(forms.ModelForm):
             raise forms.ValidationError({'pay_end': "Pay end date cannot be before pay start date.",
                                          'pay_start': "Pay end date cannot be before pay start date."})
         sin = cleaned_data.get("sin")
-        if len(sin) != 9:
+        if sin and len(sin) != 9:
             raise forms.ValidationError({'sin': "SIN has to be exactly 9 digits."})
 
 

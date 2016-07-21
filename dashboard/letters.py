@@ -2225,6 +2225,10 @@ class FormMixin(object):
         self.c.setFont("Helvetica", 5)
         self.c.drawString(x*mm, y*mm, content)
 
+    def subscript_small_label_bold(self, x, y, content):
+        self.c.setFont("Helvetica-Bold", 5)
+        self.c.drawString(x * mm, y * mm, content)
+        
     def subscript_tiny_label(self, x, y, content):
         self.c.setFont("Helvetica", 4)
         self.c.drawString(x*mm, y*mm, content)
@@ -3082,6 +3086,14 @@ class SessionalForm(FormMixin, SFUMediaMixin):
     def checkbox(self, x, y, filled=0):
         self.c.rect(x * mm, y * mm, 3.1 * mm, 3.1 * mm, fill=filled)
 
+    def label_mid(self, x, y, content):
+        self.c.setFont("Helvetica", 7.5)
+        self.c.drawString(x * mm, y * mm, content)
+
+    def label_mid_small(self, x, y, content):
+        self.c.setFont("Helvetica", 7.25)
+        self.c.drawString(x * mm, y * mm, content)
+
     def draw_form(self, contract):
         x_origin = 12 * mm
         y_origin = 10 * mm
@@ -3103,8 +3115,8 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         # Header
         self.header_label_large(77, 239, 'Sessional Instructor')
 
-        self.label_mid(1, 231.5, 'SFUID')
-        self.label_mid(62, 231.5, 'Social Insurance #')
+        self.label_mid_bold(1, 231.5, 'SFUID')
+        self.label_mid_bold(62, 231.5, 'Social Insurance #')
         self.label(157, 231.5, 'Employee Group:  TSSU')
         self.rect(12, 229, 48, 7)
         self.rect(92, 229, 54, 7)
@@ -3143,16 +3155,105 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         self.vline(116.22, 203.5, 209.5)
         self.vline(123.11, 203.5, 209.5)
         self.checkbox(135, 220, contract.appt_guarantee == 'GUAR')
-        self.subscript_small_label(141, 220.5,  'APPOINTMENT GUARANTEED')
+        self.subscript_small_label_bold(141, 220.5,  'APPOINTMENT GUARANTEED')
         self.checkbox(135, 214, contract.appt_guarantee == 'COND')
-        self.subscript_small_label(141, 214.5, 'APPOINTMENT CONDITIONAL UPON ENROLMENT')
+        self.subscript_small_label_bold(141, 214.5, 'APPOINTMENT CONDITIONAL UPON ENROLMENT')
         self.checkbox(135, 208, contract.appt_type == 'INIT')
-        self.subscript_small_label(141, 208.5, 'INITIAL APPOINTMENT TO THIS POSITION NUMBER')
+        self.subscript_small_label_bold(141, 208.5, 'INITIAL APPOINTMENT TO THIS POSITION NUMBER')
         self.checkbox(135, 202, contract.appt_type == 'REAP')
-        self.subscript_small_label(141, 202.5, 'REAPPOINTMENT TO SAME POSITION NUMBER OR REVISION')
+        self.subscript_small_label_bold(141, 202.5, 'REAPPOINTMENT TO SAME POSITION NUMBER OR REVISION')
+        self.label_mid(48.5, 193, 'Payroll Start Date')
+        self.label_mid(79, 193, 'Payroll End Date')
+        self.label_mid(115.5, 193, 'Appointment Start Date')
+        self.label_mid(152, 193, 'Appointment End Date')
+        self.rect(46.8, 186, 25.5, 5)
+        self.rect(77, 186, 25.5, 5)
+        self.rect(114, 186, 31.5, 5)
+        self.rect(150, 186, 31.5, 5)
+        self.header_label(1.5, 179, 'ASSIGNMENT')
+        self.rect(0, 139.5, x_max, 36.5)
+        self.label_mid(25, 173.3, 'Course(s)')
+        self.label_mid(86, 173.3, '1x2HR. Lecture')
+        self.label_mid(112, 173.3, 'Sessional Lecturer')
+        self.label_mid(2.5, 172, 'Dept.')
+        self.label_mid(44, 172, 'No.')
+        self.label_mid(64, 172, '1x3 HR. Lab. Etc.')
+        self.label_mid(140, 172, 'Contact hours')
+        self.label_mid(168.5, 172, 'Salary (from grid)')
+        self.label_mid(112, 170, 'Codes 1 or 2')
+        self.hline(0, x_max, 168.7)
+        self.hline(0, x_max, 161.4)
+        self.hline(0, x_max, 154.1)
+        self.hline(0, x_max, 146.8)
+        self.vline(41.5, 139.5, 168.7)
+        self.vline(60.8, 139.5, 176)
+        self.vline(109.8, 139.5, 176)
+        self.vline(137.8, 139.5, 176)
+        self.vline(166, 139.5, 176)
+        self.label_small(27, 136, 'Biweekly Rate')
+        self.label_small(51.8, 136, 'Semester Rate')
+        self.label_small(157, 136, 'Effective date for rate changes')
+        self.label_small(2, 131, 'Total salary incl.')
+        self.label_small(2, 128, 'Vacation pay')
+        self.rect(156, 130, 37.5, 4.5)
+        self.rect(25.5, 127.8, 19.5, 6.5)
+        self.rect(50, 127.8, 19.5, 6.5)
+        self.label(2.5, 117, 'Remarks')
+        self.rect(16, 110.5, 177, 16)
+        self.label_small(158, 106, 'Deadline for acceptance:')
+        self.rect(156, 99, 37.5, 5)
+        self.label_mid_bold(2, 101, 'INSTRUCTIONS TO THE APPOINTEE:')
+        self.label_mid_small(2, 93.5, '1.a) This offer of appointment is conditional upon you accepting this appointment '
+                                  'by signing and dating this appointment form (see bottom right hand corner box) and')
+        self.label_mid_small(2, 90.25, 'returning the signed form to the Dean\'s Office by the deadline for acceptance above.')
+        self.label_mid_small(2, 85.5, '1.b) If this is an initial appointment in the TSSU bargaining unit, then as a '
+                                'condition of employment under the terms of the Collective Agreement you must '
+                                'complete and')
+        self.label_mid_small(2, 82.25, 'sign the first two sections of the attached form entitled "Appendix A to '
+                                       'Article IV Dues and Union Membership or Non Membership" and return it with '
+                                       'this appointment ')
+        self.label_mid_small(2, 79, 'form.')
 
+        self.rect(0, 51.5, x_max, 24)
+        self.hline(0, x_max, 67.5)
+        self.hline(0, x_max, 59.5)
+        self.vline(65, 51.5, 75.5)
+        self.vline(130, 51.5, 75.5)
+        self.label(2, 70, 'Approval by Department')
+        self.label(67, 70, 'Approval by Faculty')
+        self.label(132, 70, 'Accepted by Appointee')
+        self.rect(1, 60.5, 63, 6)
+        self.rect(66, 60.5, 63, 6)
+        self.rect(131, 60.5, 63, 6)
+        self.label(2.5, 54, 'Date')
+        self.label(67.5, 54, 'Date')
+        self.label(132.5, 54, 'Date')
+        self.rect(15, 52.5, 49, 6)
+        self.rect(80, 52.5, 49, 6)
+        self.rect(145, 52.5, 49, 6)
+        self.label_mid_small(1.5, 40, 'The information on this form is collected under the authority of the university '
+                                      'act (RSBC 1996, c.468), the income tax act, the pension plan act, the '
+                                      'employment insurance')
+        self.label_mid_small(1.5, 36.625, 'act, the financial information act of BC, and the workers compensation act '
+                                          'of BC. The information on this form is used by the university for payroll '
+                                          'and benefit plan')
+        self.label_mid_small(1.5, 33.25, 'administration, statistical compilations and operating programs and '
+                                         'activities as required by the university policies. The information on this '
+                                         'form is disclosed to government')
+        self.label_mid_small(1.5, 29.875, 'agencies as required by the government acts. Your banking information is '
+                                          'disclosed to financial institutions for the purpose of direct deposit. '
+                                          'In accordance with the')
+        self.label_mid_small(1.5, 26.5, 'financial information act of BC, your name and remuneration is public '
+                                        'information and may be published.')
+        self.label_small(1.5, 22, 'If you have any questions about the collection and use of this information, please '
+                                  'contact the Simon Fraser University payroll supervisor.')
+        self.label_mid(0.5, 6, 'ORIGINAL: DEAN')
+        self.label_mid(28, 6, 'COPY: EMPLOYEE')
+        self.label_mid(58, 6, 'COPY: PAYROLL')
+        self.label_mid(86, 6, 'COPY: DEPARTMENT')
 
-
+        self.subscript_small_label_bold(0, 0, 'Sessional instructor TSSU v4 update April 2015 - Generated by '
+                                              'CourSys')
 
 
 
