@@ -2186,6 +2186,9 @@ class FormMixin(object):
     def checkbox(self, x, y, filled=0):
         self.c.rect(x*mm, y*mm, 3.1*mm, 3.8*mm, fill=filled)
 
+    def rect(self, x, y, width, height, filled=0):
+        self.c.rect(x*mm, y*mm, width*mm, height*mm, fill=filled)
+
     def header_label(self, x, y, content):
         self.c.setFont("Helvetica-Bold", 9)
         self.c.drawString(x*mm, y*mm, content)
@@ -2193,6 +2196,10 @@ class FormMixin(object):
     def header_label_italics(self, x, y, content):
         self.c.setFont("Helvetica-BoldOblique", 8)
         self.c.drawString(x*mm, y*mm, content)
+
+    def header_label_large(self, x, y, content):
+        self.c.setFont("Helvetica-Bold", 12)
+        self.c.drawString(x * mm, y * mm, content)
 
     def label(self, x, y, content):
         self.c.setFont("Helvetica", 9)
@@ -2229,6 +2236,8 @@ class FormMixin(object):
     def hline(self, x1, x2, y):
         self.c.line(x1*mm, y*mm, x2*mm, y*mm)
 
+    def vline(self, x, y1, y2):
+        self.c.line(x*mm, y1*mm, x*mm, y2*mm)
 
     def label_filled(self, x, y, content):
         self.c.setFont("Courier", 9)
@@ -3070,6 +3079,9 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         super(SessionalForm, self).__init__(*args, **kwargs)
         self._media_setup()
 
+    def checkbox(self, x, y, filled=0):
+        self.c.rect(x * mm, y * mm, 3.1 * mm, 3.1 * mm, fill=filled)
+
     def draw_form(self, contract):
         x_origin = 12 * mm
         y_origin = 10 * mm
@@ -3087,6 +3099,60 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         self.c.setFillColor(self.sfu_grey)
         self._drawStringLeading(self.c, 17 * mm, 247.5 * mm, u'Engaging the World'.upper(), charspace=2)
         self.c.setFillColor(black)
+
+        # Header
+        self.header_label_large(77, 239, 'Sessional Instructor')
+
+        self.label_mid(1, 231.5, 'SFUID')
+        self.label_mid(62, 231.5, 'Social Insurance #')
+        self.label(157, 231.5, 'Employee Group:  TSSU')
+        self.rect(12, 229, 48, 7)
+        self.rect(92, 229, 54, 7)
+        self.rect(155, 228.8, 40, 8.5)
+        self.vline(17.33, 229, 236)
+        self.vline(22.67, 229, 236)
+        self.vline(28, 229, 236)
+        self.vline(33.33, 229, 236)
+        self.vline(38.67, 229, 236)
+        self.vline(44, 229, 236)
+        self.vline(49.33, 229, 236)
+        self.vline(54.67, 229, 236)
+        self.vline(98, 229, 236)
+        self.vline(104, 229, 236)
+        self.vline(110, 229, 236)
+        self.vline(116, 229, 236)
+        self.vline(122, 229, 236)
+        self.vline(128, 229, 236)
+        self.vline(134, 229, 236)
+        self.vline(140, 229, 236)
+
+        self.label_mid(3, 223.2,'Last Name')
+        self.label_mid(70, 223.2, 'First Name')
+        self.rect(1, 215.5, 65, 6)
+        self.rect(68, 215.5, 62, 6)
+        self.label_mid(3, 211.2, 'Department of Employment')
+        self.label_mid(68, 211.2, 'Position Number')
+        self.rect(1, 203.5, 65, 6)
+        self.rect(68, 203.5, 62, 6)
+        self.vline(74.89, 203.5, 209.5)
+        self.vline(81.78, 203.5, 209.5)
+        self.vline(88.67, 203.5, 209.5)
+        self.vline(95.56, 203.5, 209.5)
+        self.vline(102.44, 203.5, 209.5)
+        self.vline(109.33, 203.5, 209.5)
+        self.vline(116.22, 203.5, 209.5)
+        self.vline(123.11, 203.5, 209.5)
+        self.checkbox(135, 220, contract.appt_guarantee == 'GUAR')
+        self.subscript_small_label(141, 220.5,  'APPOINTMENT GUARANTEED')
+        self.checkbox(135, 214, contract.appt_guarantee == 'COND')
+        self.subscript_small_label(141, 214.5, 'APPOINTMENT CONDITIONAL UPON ENROLMENT')
+        self.checkbox(135, 208, contract.appt_type == 'INIT')
+        self.subscript_small_label(141, 208.5, 'INITIAL APPOINTMENT TO THIS POSITION NUMBER')
+        self.checkbox(135, 202, contract.appt_type == 'REAP')
+        self.subscript_small_label(141, 202.5, 'REAPPOINTMENT TO SAME POSITION NUMBER OR REVISION')
+
+
+
 
 
 

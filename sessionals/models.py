@@ -9,6 +9,15 @@ from coredata.models import AnyPerson, Unit, JSONField, CourseOffering
 from courselib.slugs import make_slug
 
 
+GUARANTEE_CHOICES = (
+    ('GUAR', 'Appointment Guaranteed'),
+    ('COND', 'Appointment Conditional Upon Enrolment')
+)
+TYPE_CHOICES = (
+    ('INIT', 'Initial Appointment to this Position Number'),
+    ('REAP', 'Reappointment to Same Position Number or Revision')
+)
+
 class SessionalAccountQuerySet(models.QuerySet):
     """
     As usual, define some querysets.
@@ -28,7 +37,7 @@ class SessionalAccount(models.Model):
     """
     unit = models.ForeignKey(Unit, null=False, blank=False)
     title = models.CharField(max_length=60)
-    account_number = models.PositiveIntegerField(null=False, blank=False)
+    account_number = models.CharField(max_length=40, null=False, blank=False)
     position_number = models.PositiveIntegerField(null=False, blank=False)
 
     def autoslug(self):
@@ -80,6 +89,10 @@ class SessionalContract(models.Model):
     pay_end = models.DateField(null=False, blank=False)
     # Was going to add a Semester, but since the offering itself has a semester, no need for it.
     offering = models.ForeignKey(CourseOffering, null=False, blank=False)
+    appt_guarantee = models.CharField("Appoinment Guarantee", max_length=4, choices=GUARANTEE_CHOICES, null=False,
+                                      blank=False, default='GUAR')
+    appt_type = models.CharField("Appointment Type", max_length=4, choices=TYPE_CHOICES, null=False, blank=False,
+                                 default='INIT')
     contact_hours = models.DecimalField("Weekly Contact Hours", max_digits=6, decimal_places=2, null=False, blank=False)
     total_salary = models.DecimalField(max_digits=8, decimal_places=2, null=False, blank=False)
     notes = models.CharField(max_length=400, null=True, blank=True)

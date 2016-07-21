@@ -45,10 +45,12 @@ class SessionalContractForm(forms.ModelForm):
             'appointment_end': CalendarWidget,
             'contract_hours': forms.NumberInput(attrs={'class': 'smallnumberinput'}),
             'notes': forms.Textarea,
-            'total_salary': DollarInput
+            'total_salary': DollarInput,
+            'appt_guarantee': forms.RadioSelect,
+            'appt_type': forms.RadioSelect
         }
         fields = ['person', 'account', 'unit', 'sin', 'visa_verified', 'appointment_start', 'appointment_end', 'pay_start',
-                  'pay_end', 'offering', 'contact_hours', 'total_salary', 'notes']
+                  'pay_end', 'offering', 'appt_guarantee', 'appt_type', 'contact_hours', 'total_salary', 'notes']
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)

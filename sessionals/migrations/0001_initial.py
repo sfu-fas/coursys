@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('title', models.CharField(max_length=60)),
-                ('account_number', models.PositiveIntegerField()),
+                ('account_number', models.CharField(max_length=40)),
                 ('position_number', models.PositiveIntegerField()),
                 ('slug', autoslug.fields.AutoSlugField(populate_from=b'autoslug', unique=True, editable=False)),
                 ('hidden', models.BooleanField(default=False, editable=False)),
@@ -47,6 +47,8 @@ class Migration(migrations.Migration):
                 ('appointment_end', models.DateField()),
                 ('pay_start', models.DateField()),
                 ('pay_end', models.DateField()),
+                ('appt_guarantee', models.CharField(default=b'GUAR', max_length=4, verbose_name=b'Appoinment Guarantee', choices=[(b'GUAR', b'Appointment Guaranteed'), (b'COND', b'Appointment Conditional Upon Enrolment')])),
+                ('appt_type', models.CharField(default=b'INIT', max_length=4, verbose_name=b'Appointment Type', choices=[(b'INIT', b'Initial Appointment to this Position Number'), (b'REAP', b'Reappointment to Same Position Number or Revision')])),
                 ('contact_hours', models.DecimalField(verbose_name=b'Weekly Contact Hours', max_digits=6, decimal_places=2)),
                 ('total_salary', models.DecimalField(max_digits=8, decimal_places=2)),
                 ('notes', models.CharField(max_length=400, null=True, blank=True)),
