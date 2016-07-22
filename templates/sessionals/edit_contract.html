@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit Contract{% endblock %}
+{% block h1 %}Edit Contract{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#id_person').each(function() {
+    $(this).autocomplete({
+      source: '/data/students',
+      minLength: 2,
+      select: function(event, ui){
+        $(this).data("val", ui.item.value);
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'sessionals:sessionals_index' %}">Sessionals</a></li>
+<li>Edit Contract</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'sessionals:edit_contract' contract_slug=contract.slug %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Contract" />
+    </p>
+</form>
+{% endblock %}

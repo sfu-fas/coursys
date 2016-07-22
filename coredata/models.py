@@ -397,6 +397,38 @@ class AnyPerson(models.Model):
             return "None"
         return self.get_person().name()
 
+    #  The following three methods to easily get attributes that are in Person and FuturePerson but not in RoleAccount.
+    def last_name(self):
+        try:
+            return self.get_person().last_name
+        except AttributeError:
+            return None
+
+    def first_name(self):
+        try:
+            return self.get_person().first_name
+        except AttributeError:
+            return None
+
+    def middle_name(self):
+        try:
+            return self.get_person().middle_name
+        except AttributeError:
+            return None
+
+    # Two more that only exist in Person objects.
+    def userid(self):
+        try:
+            return self.get_person().userid
+        except AttributeError:
+            return None
+
+    def emplid(self):
+        try:
+            return self.get_person().emplid
+        except AttributeError:
+            return None
+
     @classmethod
     def get_or_create_for(cls, person=None, role_account=None, future_person=None):
         """
