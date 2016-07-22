@@ -50,38 +50,8 @@ def check_sims_connection():
         raise SIMSProblem("Didn't get any data back from SIMS query.")
 
 
-from log.models import LogEntry
-from coredata.models import Semester
-import time
 import logging
 logger = logging.getLogger(__name__)
-
-@periodic_task(run_every=crontab(minute='*', hour='*'))
-def database_test():
-    """
-    Time how long DB things take, in the hopes of diagnosis hourly lag.
-    """
-    # read test
-    st = time.clock()
-    s = Semester.objects.first()
-    s.name
-    en = time.clock()
-    logger.info('database read test took %f seconds' % (en - st,))
-
-    # write test
-    l = LogEntry(userid='ggbaker', description='timing database write', related_object=s)
-    st = time.clock()
-    l.save()
-    en = time.clock()
-    logger.info('database write test took %f seconds' % (en - st,))
-
-
-
-
-
-
-
-
 
 
 # daily import tasks
