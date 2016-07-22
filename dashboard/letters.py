@@ -3116,7 +3116,37 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         self.header_label_large(77, 239, 'Sessional Instructor')
 
         self.label_mid_bold(1, 231.5, 'SFUID')
+
+        # Fill in the emplid
+        if contract.sessional.emplid:
+            emplid = str(contract.sessional.emplid())
+            if len(emplid) == 9:
+                self.label_filled_centred(14.67, 231.5, emplid[0])
+                self.label_filled_centred(20, 231.5, emplid[1])
+                self.label_filled_centred(25.33, 231.5, emplid[2])
+                self.label_filled_centred(30.67, 231.5, emplid[3])
+                self.label_filled_centred(36, 231.5, emplid[4])
+                self.label_filled_centred(41.33, 231.5, emplid[5])
+                self.label_filled_centred(46.67, 231.5, emplid[6])
+                self.label_filled_centred(52, 231.5, emplid[7])
+                self.label_filled_centred(57.33, 231.5, emplid[8])
+
         self.label_mid_bold(62, 231.5, 'Social Insurance #')
+
+        # Fill in the SIN.  The contract should always have one as it is required, and the length should always
+        # be 9 as the form enforces that, but let's triple-check anyway.
+        if contract.sin and len(contract.sin) == 9:
+            sin = contract.sin
+            self.label_filled_centred(95, 231.5, sin[0])
+            self.label_filled_centred(101, 231.5, sin[1])
+            self.label_filled_centred(107, 231.5, sin[2])
+            self.label_filled_centred(113, 231.5, sin[3])
+            self.label_filled_centred(119, 231.5, sin[4])
+            self.label_filled_centred(125, 231.5, sin[5])
+            self.label_filled_centred(131, 231.5, sin[6])
+            self.label_filled_centred(137, 231.5, sin[7])
+            self.label_filled_centred(143, 231.5, sin[8])
+
         self.label(157, 231.5, 'Employee Group:  TSSU')
         self.rect(12, 229, 48, 7)
         self.rect(92, 229, 54, 7)
@@ -3141,10 +3171,13 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         self.label_mid(3, 223.2,'Last Name')
         self.label_mid(70, 223.2, 'First Name')
         self.rect(1, 215.5, 65, 6)
+        self.label_filled(2, 217.5, contract.sessional.last_name())
         self.rect(68, 215.5, 62, 6)
+        self.label_filled(69, 217.5, contract.sessional.first_name())
         self.label_mid(3, 211.2, 'Department of Employment')
         self.label_mid(68, 211.2, 'Position Number')
         self.rect(1, 203.5, 65, 6)
+        self.label_filled(2, 205.5, contract.unit.name)
         self.rect(68, 203.5, 62, 6)
         self.vline(74.89, 203.5, 209.5)
         self.vline(81.78, 203.5, 209.5)
@@ -3154,6 +3187,18 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         self.vline(109.33, 203.5, 209.5)
         self.vline(116.22, 203.5, 209.5)
         self.vline(123.11, 203.5, 209.5)
+
+        # We only have 9 spots for position number.  Let's do so me magic to make it print however many digits
+        # we have nicely.
+        posn = str(contract.account.position_number)
+        lp = len(posn)
+        if lp <= 9:
+            #  Center X positions for every possible digit
+            x_positions = [71.44, 78.33, 85.22, 92.11, 99, 105.89, 112.78, 119.67, 126.56]
+            lx = len(x_positions)
+            for i in range(lp):
+                self.label_filled_centred(x_positions[i + lx - lp], 205.5, posn[i])
+
         self.checkbox(135, 220, contract.appt_guarantee == 'GUAR')
         self.subscript_small_label_bold(141, 220.5,  'APPOINTMENT GUARANTEED')
         self.checkbox(135, 214, contract.appt_guarantee == 'COND')
@@ -3167,9 +3212,13 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         self.label_mid(115.5, 193, 'Appointment Start Date')
         self.label_mid(152, 193, 'Appointment End Date')
         self.rect(46.8, 186, 25.5, 5)
+        self.label_filled_centred(59.55, 187.5, str(contract.pay_start))
         self.rect(77, 186, 25.5, 5)
+        self.label_filled_centred(89.75, 187.5, str(contract.pay_end))
         self.rect(114, 186, 31.5, 5)
+        self.label_filled_centred(129.75, 187.5, str(contract.appointment_start))
         self.rect(150, 186, 31.5, 5)
+        self.label_filled_centred(165.75, 187.5, str(contract.appointment_end))
         self.header_label(1.5, 179, 'ASSIGNMENT')
         self.rect(0, 139.5, x_max, 36.5)
         self.label_mid(25, 173.3, 'Course(s)')
@@ -3181,6 +3230,10 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         self.label_mid(140, 172, 'Contact hours')
         self.label_mid(168.5, 172, 'Salary (from grid)')
         self.label_mid(112, 170, 'Codes 1 or 2')
+        self.label_filled_centred(20.75, 164.4, contract.offering.subject)
+        self.label_filled_centred(51.15, 164.4, contract.offering.number)
+        self.label_filled_centred(151.9, 164.4, str(contract.contact_hours))
+        self.label_filled_centred(180.5, 164.4, str(contract.total_salary))
         self.hline(0, x_max, 168.7)
         self.hline(0, x_max, 161.4)
         self.hline(0, x_max, 154.1)
@@ -3198,8 +3251,12 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         self.rect(156, 130, 37.5, 4.5)
         self.rect(25.5, 127.8, 19.5, 6.5)
         self.rect(50, 127.8, 19.5, 6.5)
+        self.label_filled_centred(59.75, 130.3, str(contract.total_salary))
         self.label(2.5, 117, 'Remarks')
         self.rect(16, 110.5, 177, 16)
+        remarks_mandatory_string = 'Account number: ' + str(contract.account.account_number)
+        self.label_filled(17, 123.5, remarks_mandatory_string)
+        self.label_filled(17, 118.5, contract.notes)
         self.label_small(158, 106, 'Deadline for acceptance:')
         self.rect(156, 99, 37.5, 5)
         self.label_mid_bold(2, 101, 'INSTRUCTIONS TO THE APPOINTEE:')

@@ -20,6 +20,13 @@ class SessionalAccountForm(forms.ModelForm):
         exclude = []
         model = SessionalAccount
 
+    def clean(self):
+        cleaned_data = super(SessionalAccountForm, self).clean()
+        position_number = cleaned_data.get('position_number')
+        if position_number and len(str(position_number)) > 9:
+            raise forms.ValidationError({'position_number': "Position number cannot be more than 9 characters if it "
+                                                            "is to fit in the payroll form."})
+
 
 class SessionalContractForm(forms.ModelForm):
     person = PersonField()
@@ -44,10 +51,12 @@ class SessionalContractForm(forms.ModelForm):
             'appointment_start': CalendarWidget,
             'appointment_end': CalendarWidget,
             'contract_hours': forms.NumberInput(attrs={'class': 'smallnumberinput'}),
-            'notes': forms.Textarea,
             'total_salary': DollarInput,
             'appt_guarantee': forms.RadioSelect,
             'appt_type': forms.RadioSelect
+        }
+        help_texts = {
+            'notes': 'These will appear in the "Remarks" field of the payroll form.'
         }
         fields = ['person', 'account', 'unit', 'sin', 'visa_verified', 'appointment_start', 'appointment_end', 'pay_start',
                   'pay_end', 'offering', 'appt_guarantee', 'appt_type', 'contact_hours', 'total_salary', 'notes']

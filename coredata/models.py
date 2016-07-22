@@ -416,6 +416,19 @@ class AnyPerson(models.Model):
         except AttributeError:
             return None
 
+    # Two more that only exist in Person objects.
+    def userid(self):
+        try:
+            return self.get_person().userid
+        except AttributeError:
+            return None
+
+    def emplid(self):
+        try:
+            return self.get_person().emplid
+        except AttributeError:
+            return None
+
     @classmethod
     def get_or_create_for(cls, person=None, role_account=None, future_person=None):
         """
