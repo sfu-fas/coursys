@@ -627,17 +627,16 @@ class RAForm(object, SFUMediaMixin):
         self.c.setLineWidth(1)
         self._box_entry(22*mm, 76*mm, 180*mm, 14*mm, content='')
 
-        f = Frame(23*mm, 76*mm, 175*mm, 14*mm)#, showBoundary=1)
+        f = Frame(23*mm, 76*mm, 175*mm, 14*mm, 0, 0, 0, 0)#, showBoundary=1)
         notes = []
         if self.ra.pay_frequency != 'L':
             default_note = "For total amount of $%s over %.1f pay periods." % (self.ra.lump_sum_pay, self.ra.pay_periods)
         else:
             default_note = "Lump sum payment of $%s." % (self.ra.lump_sum_pay,)
         notes.append(Paragraph(default_note, style=self.NOTE_STYLE))
-        notes.append(Spacer(1, 8))
         notes.append(Paragraph(self.ra.notes, style=self.NOTE_STYLE))
         f.addFromList(notes, self.c)
-
+        print notes
         self.c.setFont("Helvetica", 7.5)
         self.c.drawString(2.5*mm, 72*mm, "As signing authority, I certify that the appointment and its applicable benefits are eligible and for the purpose of the funding. Furthermore, the appointment is NOT for a")
         self.c.drawString(2.5*mm, 68.5*mm, "family member of the account holder or signing authority. If a family member relationship exists then additional approvals must be attached in accordance with policies")
