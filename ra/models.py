@@ -66,7 +66,7 @@ class Project(models.Model):
         ordering = ['project_number']
 
     def __unicode__(self):
-        return "%06i (%s)" % (self.project_number, self.fund_number)
+        return "%06i (%s) - %s" % (self.department_code, self.fund_number, self.project_number)
     def delete(self, *args, **kwargs):
         self.hidden = True
         self.save()
