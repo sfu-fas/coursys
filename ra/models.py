@@ -54,7 +54,8 @@ class Project(models.Model):
     A table to look up the appropriate fund number based on the project number
     """
     unit = models.ForeignKey(Unit, null=False, blank=False)
-    project_number = models.PositiveIntegerField()
+    department_code = models.PositiveIntegerField(default=0)
+    project_number = models.PositiveIntegerField(null=True, blank=True)
     fund_number = models.PositiveIntegerField()
     def autoslug(self):
         return make_slug(self.unit.label + '-' + unicode(self.project_number))
