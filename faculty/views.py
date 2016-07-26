@@ -1772,6 +1772,7 @@ def pick_position(request, userid):
     units = Unit.sub_unit_ids(request.units)
     positions = Position.objects.visible_by_unit(units)
     position_choices = [(p.id, p) for p in positions]
+    person = get_object_or_404(Person, find_userid_or_emplid(userid))
     if request.method == 'POST':
         filled_form = PositionPickerForm(data=request.POST, choices=position_choices)
         if filled_form.is_valid():
@@ -1781,7 +1782,7 @@ def pick_position(request, userid):
             return HttpResponseRedirect(reverse(faculty_wizard, kwargs=({'userid': userid})))
     else:
         new_form = PositionPickerForm(choices=position_choices)
-        context = {'form': new_form, 'userid': userid, 'positions': position_choices}
+        context = {'form': new_form, 'person': person, 'positions': position_choices}
         return render(request, 'faculty/position_picker.html', context)
 
 
