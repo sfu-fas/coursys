@@ -226,7 +226,7 @@ class LetterContents(object):
     """
     def __init__(self, to_addr_lines, from_name_lines, date=None,
                  closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None, use_sig=True,
-                 body_font_size=None):
+                 body_font_size=None, cc_lines=None):
         self.date = date or datetime.date.today()
         self.closing = closing
         self.flowables = []
@@ -235,6 +235,10 @@ class LetterContents(object):
         self.cosigner_lines = cosigner_lines
         self.signer = signer
         self.use_sig = use_sig
+        if cc_lines:
+            self.cc_lines = [cc for cc in cc_lines if cc.strip()]
+        else:
+            self.cc_lines = None
         if paragraphs:
             self.add_paragraphs(paragraphs)
 
@@ -341,6 +345,26 @@ class LetterContents(object):
         else:
             close.extend(signature)
 
+        # the CC lines
+        if self.cc_lines:
+            close.append(Spacer(1, space_height))
+            data = []
+            for cc in self.cc_lines:
+                data.append(['', Paragraph(cc, self.content_style)])
+
+            cc = Paragraph('cc:', self.content_style)
+            data[0][0] = cc
+
+            cc_table = Table(data, colWidths=[0.3 * inch, 5 * inch])
+            cc_table.hAlign = "LEFT"
+            cc_table.setStyle(TableStyle(
+                [('LEFTPADDING', (0, 0), (-1, -1), 0),
+                 ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                 ('TOPPADDING', (0, 0), (-1, -1), 0),
+                 ('BOTTOMPADDING', (0, 0), (-1, -1), 0)]))
+
+            close.append(cc_table)
+
         contents.append(KeepTogether(close))
         contents.append(NextPageTemplate(0)) # next letter starts on letterhead again
         contents.append(PageBreak())
@@ -382,9 +406,8 @@ class MemoHead(Flowable, SFUMediaMixin):
         c.drawString(self.xoffset + self.keywidth, 4, self.value)
 
 class MemoContents(LetterContents):
-    def __init__(self, subject, cc_lines, **kwargs):
+    def __init__(self, subject, **kwargs):
         self.subject = subject
-        self.cc_lines = [cc for cc in cc_lines if cc.strip()]
         super(MemoContents, self).__init__(**kwargs)
 
     def _contents(self, memo):
@@ -416,16 +439,15 @@ class MemoContents(LetterContents):
             cc = Paragraph('cc:', self.content_style)
             data[0][0] = cc
 
-            cc_table = Table(data, colWidths=[0.3*inch, 5*inch])
+            cc_table = Table(data, colWidths=[0.3 * inch, 5 * inch])
             cc_table.hAlign = "LEFT"
             cc_table.setStyle(TableStyle(
-                    [('LEFTPADDING', (0,0), (-1,-1), 0),
-                     ('RIGHTPADDING', (0,0), (-1,-1), 0),
-                     ('TOPPADDING', (0,0), (-1,-1), 0),
-                     ('BOTTOMPADDING', (0,0), (-1,-1), 0)]))
+                [('LEFTPADDING', (0, 0), (-1, -1), 0),
+                 ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                 ('TOPPADDING', (0, 0), (-1, -1), 0),
+                 ('BOTTOMPADDING', (0, 0), (-1, -1), 0)]))
 
             contents.append(cc_table)
-
         return contents
 
 

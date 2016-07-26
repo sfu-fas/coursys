@@ -2196,6 +2196,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
             'subject': '%s %s\n%s' % (person.get_title(), person.name(), template.subject),
             'to_lines': person.letter_name(),
             'from_lines': template.default_from,
+            'is_letter': template.is_letter,
         }
         form = MemoForm(initial=initial)
 
