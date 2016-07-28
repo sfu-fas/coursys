@@ -167,7 +167,7 @@ def view_page(request, course_slug, page_label):
             # but most users just get a 301
             return redirect(url, permanent=True)
 
-    if version.redirect:
+    if False and version.redirect:
         # this is a redirection stub: honour it.
         url = urljoin(page.get_absolute_url(), version.redirect)
         member = _check_allowed(request, offering, offering.page_creators())  # users who can create pages
