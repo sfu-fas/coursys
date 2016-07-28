@@ -273,10 +273,12 @@ def _edit_pagefile(request, course_slug, page_label, kind):
             page = get_object_or_404(Page, offering=offering, label=page_label)
             version = page.current_version()
             member = _check_allowed(request, offering, page.can_write, page.editdate())
+            old_label = page.label
         else:
             page = None
             version = None
             member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
+            old_label = None
 
         if isinstance(member, PagePermission):
             return ForbiddenResponse(request, 'Editing of pages by additional-permission holders is not implemented. Sorry')
@@ -322,6 +324,18 @@ def _edit_pagefile(request, course_slug, page_label, kind):
                     instance.set_editdate(form.cleaned_data['editdate'])
                 elif not restricted:
                     instance.set_editdate(None)
+
+                if old_label and old_label != instance.label:
+                    # page has been moved to a new URL: leave a redirect in its place
+                    redir_page = Page(offering=instance.offering, label=old_label,
+                                      can_read=instance.can_read, can_write=offering.page_creators())
+                    redir_page.set_releasedate(instance.releasedate())
+                    redir_page.set_editdate(instance.editdate())
+                    redir_page.save()
+                    redir_version = PageVersion(page=redir_page, title=version.title, redirect=instance.label,
+                                                editor=member, comment='automatically generated on label change')
+                    redir_version.save()
+                    messages.info(request, 'Page label changed: the old location (%s) will redirect to this page.' % (old_label,))
 
                 instance.save()
                 

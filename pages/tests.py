@@ -365,7 +365,8 @@ class PagesTest(TestCase):
 
         response = c.get(url)
         self.assertEqual(response.status_code, 301)
-        self.assertTrue(response['location'].endswith('/NewLocation'))
+        redir_url = reverse('pages.views.view_page', kwargs={'course_slug': crs.slug, 'page_label': 'NewLocation'})
+        self.assertTrue(response['location'].endswith(redir_url))
 
 
     def test_migration_redirect(self):
