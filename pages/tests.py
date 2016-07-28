@@ -341,7 +341,34 @@ class PagesTest(TestCase):
         # macros disappear: back to original
         self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
 
+
     def test_redirect(self):
+        """
+        Redirecting with redirect stub
+        """
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.get(offering=crs, person__userid="ggbaker")
+
+        p = Page(offering=crs, label="Test")
+        p.save()
+        v = PageVersion(page=p, title="Test Page", wikitext="one +two+ three +four+", editor=memb)
+        v.save()
+
+        c = Client()
+        # normal pages still viewable
+        url = reverse('pages.views.view_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
+        response = c.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        v = PageVersion(page=p, redirect='NewLocation', editor=memb)
+        v.save()
+
+        response = c.get(url)
+        self.assertEqual(response.status_code, 301)
+        self.assertTrue(response['location'].endswith('/NewLocation'))
+
+
+    def test_migration_redirect(self):
         """
         Redirecting after a migration
         """

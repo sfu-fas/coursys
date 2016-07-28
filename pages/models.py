@@ -226,6 +226,7 @@ class PageVersion(models.Model):
     file_attachment = models.FileField(storage=PageFilesStorage, null=False, upload_to=attachment_upload_to, blank=False, max_length=500)
     file_mediatype = models.CharField(null=False, blank=False, max_length=200)
     file_name = models.CharField(null=False, blank=False, max_length=200)
+    redirect = models.CharField(null=True, blank=True, max_length=500) # URL to redirect to: may be an absolute URL or relative from the location of self.page
 
     created_at = models.DateTimeField(auto_now_add=True)
     editor = models.ForeignKey(Member)
@@ -374,16 +375,18 @@ class PageVersion(models.Model):
         assert oldw==neww
 
     def save(self, check_diff=True, minor_change=False, *args, **kwargs):
-        # check coherence of the data model: exactly one of full text, diff text, file.
+        # check coherence of the data model: exactly one of full text, diff text, file, redirect.
         if not minor_change:
             # minor_change flag set when .diff_to has changed the .config only
             has_wikitext = bool(self.wikitext)
             has_difffrom = bool(self.diff_from)
             has_diff = bool(self.diff)
             has_file = bool(self.file_attachment)
-            assert (has_wikitext and not has_difffrom and not has_diff and not has_file) \
-                or (not has_wikitext and has_difffrom and has_diff and not has_file) \
-                or (not has_wikitext and not has_difffrom and not has_diff and has_file)
+            has_redirect = bool(self.redirect)
+            assert (has_wikitext and not has_difffrom and not has_diff and not has_file and not has_redirect) \
+                or (not has_wikitext and has_difffrom and has_diff and not has_file and not has_redirect) \
+                or (not has_wikitext and not has_difffrom and not has_diff and has_file and not has_redirect) \
+                or (not has_wikitext and not has_difffrom and not has_diff and not has_file and has_redirect)
         
             # normalize newlines so our diffs are consistent later
             self.wikitext = normalize_newlines(self.wikitext)

@@ -15,6 +15,7 @@ from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import NotFoundResponse, ForbiddenResponse, HttpError
 from importer import HTMLWiki
+from urlparse import urljoin
 import json, datetime
 
 
@@ -158,6 +159,18 @@ def view_page(request, course_slug, page_label):
         url = reverse(view_page, kwargs={'course_slug': slug, 'page_label': label})
 
         member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
+        can_create = bool(member)
+        if can_create:
+            # show these users a message so they can see what's happening
+            redirect_url = url
+        else:
+            # but most users just get a 301
+            return redirect(url, permanent=True)
+
+    if version.redirect:
+        # this is a redirection stub: honour it.
+        url = urljoin(page.get_absolute_url(), version.redirect)
+        member = _check_allowed(request, offering, offering.page_creators())  # users who can create pages
         can_create = bool(member)
         if can_create:
             # show these users a message so they can see what's happening
