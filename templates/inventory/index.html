@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load staticfiles %}
+{% load inventory_display %}
 
 {% block title %}Inventory{% endblock %}
 {% block h1 %}Inventory{% endblock %}
@@ -6,6 +8,7 @@
 {% block subbreadcrumbs %}<li>Inventory</li>{% endblock %}
 
 {% block headextra %}
+<link rel="stylesheet" href="{% static "style/inventory.css" %}" type="text/css">
 <script type="text/javascript">
 $(document).ready(function() {
   $('#assets').dataTable( {
@@ -46,7 +49,7 @@ function confirmDelete() {
         </tr>
     </thead>
     {% for asset in assets %}
-        <tr>
+        <tr {{ asset|add_asset_display_class }}>
             <td>{{ asset.name }}</td>
             <td>{{ asset.unit }}</td>
             <td>{{ asset.brand }}</td>
@@ -77,6 +80,15 @@ function confirmDelete() {
         </tr>
     {% endfor %}
     </table>
+    <div id="legend">
+        <h3>Legend</h3>
+        <ul>
+            <li class="instock">Green Items: Have stock above the minimum re-order quantity</li>
+            <li class="needsreorder">Orange Items: Are in stock but at a level below the minumum re-order quantity</li>
+            <li class="outofstock">Red Items:  Are out of stock</li>
+            <li>Other items:  Have no quantity and/or no minimum re-order quantity</li>
+        </ul>
+    </div>
 {% else %}
     <div>There are no assets to display.</div>
 {% endif %}

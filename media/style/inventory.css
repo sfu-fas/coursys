@@ -1,0 +1,11 @@
+.outofstock {
+    color: red;
+}
+
+.needsreorder {
+    color: orange;
+}
+
+.instock {
+    color: green;
+}
