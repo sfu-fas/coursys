@@ -116,6 +116,8 @@ def all_pages(request, course_slug):
         pages = Page.objects.filter(offering=offering, can_read='ALL')
         can_create = False
 
+    pages = (p for p in pages if not p.current_version().redirect)
+
     context = {'offering': offering, 'pages': pages, 'can_create': can_create, 'member': member}
     return render(request, 'pages/all_pages.html', context)
 
@@ -334,6 +336,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
                     redir_page.save()
                     redir_version = PageVersion(page=redir_page, title=version.title, redirect=instance.label,
                                                 editor=member, comment='automatically generated on label change')
+                    redir_version.set_redirect_reason('rename')
                     redir_version.save()
                     messages.info(request, 'Page label changed: the old location (%s) will redirect to this page.' % (old_label,))
 

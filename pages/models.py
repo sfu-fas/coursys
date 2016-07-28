@@ -237,12 +237,14 @@ class PageVersion(models.Model):
         # p.config['syntax']: page uses SyntaxHighlighter? (boolean)
         # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)
         # p.config['depth']: max depth of diff pages below me (to keep it within reason)
-    
-    defaults = {'math': False, 'syntax': False, 'brushes': [], 'depth': 0}
+        # p.config['redirect_reason']: if present, how this redirect got here: 'rename' or 'delete'.
+
+    defaults = {'math': False, 'syntax': False, 'brushes': [], 'depth': 0, 'redirect_reason': None}
     math, set_math = getter_setter('math')
     syntax, set_syntax = getter_setter('syntax')
     brushes, set_brushes = getter_setter('brushes')
     depth, set_depth = getter_setter('depth')
+    redirect_reason, set_redirect_reason = getter_setter('redirect_reason')
 
     def html_cache_key(self):
         return "page-html-" + str(self.id)
