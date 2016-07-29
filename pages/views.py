@@ -116,6 +116,8 @@ def all_pages(request, course_slug):
         pages = Page.objects.filter(offering=offering, can_read='ALL')
         can_create = False
 
+    pages = (p for p in pages if not p.current_version().redirect)
+
     context = {'offering': offering, 'pages': pages, 'can_create': can_create, 'member': member}
     return render(request, 'pages/all_pages.html', context)
 
@@ -176,8 +178,11 @@ def view_page(request, course_slug, page_label):
             # show these users a message so they can see what's happening
             redirect_url = url
         else:
-            # but most users just get a 301
-            return redirect(url, permanent=True)
+            # but most users just get a 301/410
+            resp = redirect(url, permanent=True)
+            if version.redirect_reason() == 'delete':
+                resp.status_code = 410
+            return resp
 
     is_index = page_label=='Index'
     if is_index:
@@ -265,7 +270,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     """
     View to create and edit pages
     """
-    if 'delete' in request.POST and request.POST['delete'] == 'yes':
+    if request.method == 'POST' and 'delete' in request.POST and request.POST['delete'] == 'yes':
         return _delete_pagefile(request, course_slug, page_label, kind)
     with django.db.transaction.atomic():
         offering = get_object_or_404(CourseOffering, slug=course_slug)
@@ -325,6 +330,8 @@ def _edit_pagefile(request, course_slug, page_label, kind):
                 elif not restricted:
                     instance.set_editdate(None)
 
+                instance.redirect = None
+
                 if old_label and old_label != instance.label:
                     # page has been moved to a new URL: leave a redirect in its place
                     redir_page = Page(offering=instance.offering, label=old_label,
@@ -334,6 +341,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
                     redir_page.save()
                     redir_version = PageVersion(page=redir_page, title=version.title, redirect=instance.label,
                                                 editor=member, comment='automatically generated on label change')
+                    redir_version.set_redirect_reason('rename')
                     redir_version.save()
                     messages.info(request, 'Page label changed: the old location (%s) will redirect to this page.' % (old_label,))
 
@@ -388,7 +396,7 @@ def _delete_pagefile(request, course_slug, page_label, kind):
     with django.db.transaction.atomic():
         offering = get_object_or_404(CourseOffering, slug=course_slug)
         page = get_object_or_404(Page, offering=offering, label=page_label)
-        #version = page.current_version()
+        version = page.current_version()
         member = _check_allowed(request, offering, page.can_write, page.editdate())
         if not member:
             return ForbiddenResponse(request, 'Not allowed to edit this '+kind+'.')
@@ -396,14 +404,26 @@ def _delete_pagefile(request, course_slug, page_label, kind):
         if not can_create:
             return ForbiddenResponse(request, 'Not allowed to delete pages in for this offering (must have page-creator permission).')
 
-        page.safely_delete()
+        from django.core.validators import URLValidator
+        from django.core.exceptions import ValidationError
+        val = URLValidator()
 
-        messages.success(request, "Page deleted (but can be recovered by an administrator in an emergency).")
-        return HttpResponseRedirect(reverse(index_page, kwargs={'course_slug': course_slug}))
+        redirect = request.POST.get('redirect', 'Index')
+        url = request.build_absolute_uri(urljoin(page.get_absolute_url(), redirect))
 
+        try:
+            val(url)
+        except ValidationError:
+            messages.error(request, "Bad redirect URL entered. Not deleted.")
+            return HttpResponseRedirect(reverse(edit_page, kwargs={'course_slug': course_slug, 'page_label': page.label}))
 
+        redir_version = PageVersion(page=page, title=version.title, redirect=redirect,
+                                    editor=member, comment='automatically generated on deletion')
+        redir_version.set_redirect_reason('delete')
+        redir_version.save()
 
-
+        messages.success(request, "Page deleted and will redirect to this location.")
+        return HttpResponseRedirect(urljoin(page.get_absolute_url(), redirect))
 
 
 def convert_content(request, course_slug, page_label=None):
