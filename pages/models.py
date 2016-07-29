@@ -160,9 +160,11 @@ class Page(models.Model):
             cache.set(key, v, 24*3600) # expired when a PageVersion is saved
             return v
 
-    def safely_delete(self):
+    def XXX_safely_delete(self):
         """
         Delete this page (and by "delete", we mean "don't really delete").
+
+        No longer used since redirects are now left in place of deleted pages.
         """
         with transaction.atomic():
             # mangle name and short-name so instructors can delete and replace
