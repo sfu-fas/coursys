@@ -336,7 +336,8 @@ class PagesTest(TestCase):
         # macros defined: should be substituted
         self.assertEqual(p.current_version().html_contents().strip(), u"<p>one 22 three 4444</p>")
 
-        mp.safely_delete()
+        mp.label = 'NOT_MACROS'
+        mp.save()
 
         # macros disappear: back to original
         self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
