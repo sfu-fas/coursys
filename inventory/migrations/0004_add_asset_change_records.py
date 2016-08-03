@@ -25,14 +25,14 @@ class Migration(migrations.Migration):
                 ('last_modified', models.DateTimeField(editable=False)),
                 ('hidden', models.BooleanField(default=False, editable=False)),
                 ('saved_by_userid', models.CharField(max_length=8, editable=False)),
-                ('config', courselib.json_fields.JSONField(default=dict)),
+                ('config', courselib.json_fields.JSONField(default=dict, editable=False)),
                 ('slug', autoslug.fields.AutoSlugField(populate_from=b'autoslug', unique=True, editable=False)),
             ],
         ),
         migrations.AddField(
             model_name='asset',
             name='config',
-            field=courselib.json_fields.JSONField(default=dict),
+            field=courselib.json_fields.JSONField(default=dict, editable=False),
         ),
         migrations.AddField(
             model_name='asset',

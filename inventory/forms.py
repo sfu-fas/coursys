@@ -1,6 +1,7 @@
 from models import Asset
 from django import forms
 from coredata.models import Unit
+from coredata.widgets import CalendarWidget
 from faculty.event_types.fields import DollarInput
 
 
@@ -17,5 +18,6 @@ class AssetForm(forms.ModelForm):
         model = Asset
         widgets = {
             'notes': forms.Textarea,
-            'price': DollarInput
+            'price': DollarInput,
+            'last_order_date': CalendarWidget
         }

@@ -53,7 +53,7 @@ class Asset(models.Model):
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     # In case we forgot something, this will make it easier to add something in the future without a migration.
-    config = JSONField(null=False, blank=False, default=dict)
+    config = JSONField(null=False, blank=False, default=dict, editable=False)
 
     objects = AssetQuerySet.as_manager()
 
@@ -109,7 +109,7 @@ class AssetChangeRecord(models.Model):
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     saved_by_userid = models.CharField(max_length=8, blank=False, null=False, editable=False)
     # In case we forgot something, this will make it easier to add something in the future without a migration.
-    config = JSONField(null=False, blank=False, default=dict)
+    config = JSONField(null=False, blank=False, default=dict, editable=False)
 
     def autoslug(self):
         if self.qty > 0:

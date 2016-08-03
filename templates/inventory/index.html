@@ -41,9 +41,9 @@ function confirmDelete() {
     <thead>
         <tr>
             <td>Name</td>
-            <td>Unit</td>
-            <td>Brand</td>
-            <td>Location</td>
+            <td>Qty</td>
+            <td>Category</td>
+            <td>Price</td>
             <td>Last Modified</td>
             <td>Actions</td>
         </tr>
@@ -51,10 +51,10 @@ function confirmDelete() {
     {% for asset in assets %}
         <tr {{ asset|add_asset_display_class }}>
             <td>{{ asset.name }}</td>
-            <td>{{ asset.unit }}</td>
-            <td>{{ asset.brand }}</td>
-            <td>{{ asset.location }}</td>
-            <td>{{ asset.last_modified }}</td>
+            <td>{{ asset.quantity }}</td>
+            <td>{{ asset.get_category_display }}</td>
+            <td>{% if asset.price %}${% endif %}{{ asset.price }}</td>
+            <td>{{ asset.last_modified|date:"M m, Y" }}</td>
             <td>
                 <form class="lineform" method="POST"
                       action="{% url "delete_asset" asset_id=asset.id %}"
