@@ -30,7 +30,7 @@ function confirmDelete() {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "new_asset" %}">Add New Asset</a></li>
+        <li><a href="{% url "inventory:new_asset" %}">Add New Asset</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -57,7 +57,7 @@ function confirmDelete() {
             <td>{{ asset.last_modified|date:"M m, Y" }}</td>
             <td>
                 <form class="lineform" method="POST"
-                      action="{% url "delete_asset" asset_id=asset.id %}"
+                      action="{% url "inventory:delete_asset" asset_id=asset.id %}"
                       onsubmit="return confirmDelete()">
                     {% csrf_token %}
                     <button type='submit' class='btn' title="Hide asset">
@@ -65,13 +65,13 @@ function confirmDelete() {
                     </button>
                 </form>
                 <form class="lineform" method="GET"
-                    action="{% url "edit_asset" asset_slug=asset.slug %}">
+                    action="{% url "inventory:edit_asset" asset_slug=asset.slug %}">
                     <button type='submit' class='btn' title="Edit asset">
                         <i class='fa fa-edit'></i>
                     </button>
                 </form>
                 <form class="lineform" method="GET"
-                    action="{% url "view_asset" asset_slug=asset.slug %}">
+                    action="{% url "inventory:view_asset" asset_slug=asset.slug %}">
                     <button type='submit' class='btn' title="View asset">
                         <i class='fa fa-eye'></i>
                     </button>

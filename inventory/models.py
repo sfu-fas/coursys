@@ -2,15 +2,18 @@
 A module written for inventory control of any type of asset we may want.
 """
 
-
+import datetime
+import os
 from coredata.models import Unit, Person
 from outreach.models import OutreachEvent
 from autoslug import AutoSlugField
 from django.db import models
 from django.utils import timezone
-from django.db.models import Q
 from courselib.slugs import make_slug
 from courselib.json_fields import JSONField
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+
 
 CATEGORY_CHOICES = {
     ('SWAG', 'Swag'),
@@ -20,6 +23,8 @@ CATEGORY_CHOICES = {
     ('EVEN', 'Events'),
     ('GEN', 'General'),
 }
+
+AttachmentSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 class AssetQuerySet(models.QuerySet):
     """
@@ -91,12 +96,12 @@ class AssetChangeRecordQuerySet(models.QuerySet):
     """
     Only see visible items, in this case also limited by a given asset.
     """
-    def visible(self, asset):
-        return self.filter(hidden=False, asset=asset)
+    def visible(self):
+        return self.filter(hidden=False)
 
 
 class AssetChangeRecord(models.Model):
-    asset = models.ForeignKey(Asset, null=False, blank=False)
+    asset = models.ForeignKey(Asset, null=False, blank=False, related_name='records')
     person = models.ForeignKey(Person, null=False, blank=False)
     qty = models.IntegerField("Quantity adjustment", null=False, blank=False,
                               help_text="The change in quantity.  For removal of item, make it a negative number. "
@@ -133,3 +138,50 @@ class AssetChangeRecord(models.Model):
         """
         self.hidden = True
         self.save(user)
+
+
+def asset_attachment_upload_to(instance, filename):
+    """
+    callback to avoid path in the filename(that we have append folder structure to) being striped
+    """
+    fullpath = os.path.join(
+        'assets',
+        str(instance.asset.id),
+        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        filename.encode('ascii', 'ignore'))
+    return fullpath
+
+
+class AssetDocumentAttachmentQueryset(models.QuerySet):
+    def visible(self):
+        return self.filter(hidden=False)
+
+
+class AssetDocumentAttachment(models.Model):
+    """
+    Document attached to a CareerEvent.
+    """
+    asset = models.ForeignKey(Asset, null=False, blank=False, related_name="attachments")
+    title = models.CharField(max_length=250, null=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('asset',))
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
+    contents = models.FileField(storage=AttachmentSystemStorage, upload_to=asset_attachment_upload_to, max_length=500)
+    mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = AssetChangeRecordQuerySet.as_manager()
+
+    def __unicode__(self):
+        return self.contents.name
+
+    class Meta:
+        ordering = ("created_at",)
+        unique_together = (("asset", "slug"),)
+
+    def contents_filename(self):
+        return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()

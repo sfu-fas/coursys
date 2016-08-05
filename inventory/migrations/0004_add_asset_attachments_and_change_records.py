@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import autoslug.fields
+import django.core.files.storage
+import inventory.models
 import courselib.json_fields
 
 
@@ -29,6 +31,21 @@ class Migration(migrations.Migration):
                 ('slug', autoslug.fields.AutoSlugField(populate_from=b'autoslug', unique=True, editable=False)),
             ],
         ),
+        migrations.CreateModel(
+            name='AssetDocumentAttachment',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('title', models.CharField(max_length=250)),
+                ('slug', autoslug.fields.AutoSlugField(populate_from=b'title', unique_with=(b'asset',), editable=False)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('contents', models.FileField(storage=django.core.files.storage.FileSystemStorage(base_url=None, location=b'submitted_files'), max_length=500, upload_to=inventory.models.asset_attachment_upload_to)),
+                ('mediatype', models.CharField(max_length=200, null=True, editable=False, blank=True)),
+                ('hidden', models.BooleanField(default=False, editable=False)),
+            ],
+            options={
+                'ordering': ('created_at',),
+            },
+        ),
         migrations.AddField(
             model_name='asset',
             name='config',
@@ -45,9 +62,19 @@ class Migration(migrations.Migration):
             field=models.PositiveIntegerField(help_text=b'The minimum quantity the vendor will let us order', null=True, verbose_name=b'Minimum vendor order quantity', blank=True),
         ),
         migrations.AddField(
+            model_name='assetdocumentattachment',
+            name='asset',
+            field=models.ForeignKey(related_name='attachments', to='inventory.Asset'),
+        ),
+        migrations.AddField(
+            model_name='assetdocumentattachment',
+            name='created_by',
+            field=models.ForeignKey(help_text=b'Document attachment created by.', to='coredata.Person'),
+        ),
+        migrations.AddField(
             model_name='assetchangerecord',
             name='asset',
-            field=models.ForeignKey(to='inventory.Asset'),
+            field=models.ForeignKey(related_name='records', to='inventory.Asset'),
         ),
         migrations.AddField(
             model_name='assetchangerecord',
@@ -58,5 +85,9 @@ class Migration(migrations.Migration):
             model_name='assetchangerecord',
             name='person',
             field=models.ForeignKey(to='coredata.Person'),
+        ),
+        migrations.AlterUniqueTogether(
+            name='assetdocumentattachment',
+            unique_together=set([('asset', 'slug')]),
         ),
     ]

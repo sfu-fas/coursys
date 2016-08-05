@@ -1,4 +1,4 @@
-from models import Asset
+from models import Asset, AssetDocumentAttachment
 from django import forms
 from coredata.models import Unit
 from coredata.widgets import CalendarWidget
@@ -21,3 +21,9 @@ class AssetForm(forms.ModelForm):
             'price': DollarInput,
             'last_order_date': CalendarWidget
         }
+
+
+class AssetAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = AssetDocumentAttachment
+        exclude = ("asset", "created_by")

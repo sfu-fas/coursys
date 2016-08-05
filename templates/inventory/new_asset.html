@@ -6,12 +6,12 @@
 
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'inventory_index' %}">Inventory</a></li>
+<li><a href="{% url 'inventory:inventory_index' %}">Inventory</a></li>
 <li>New Event</li>
 {% endblock %}
 
 {% block content %}
-<form action="{% url 'new_asset' %}" method="post">
+<form action="{% url 'inventory:new_asset' %}" method="post">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>
