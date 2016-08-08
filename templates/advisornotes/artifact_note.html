@@ -1,5 +1,3 @@
-{% ifchanged note.category %}<h3>{{ note.get_category_display }}</h3>{% endifchanged %}
-
 <div class="artifact-note{% if note.hidden or note.is_expired %} collapsed{% endif %}{% if note.is_expired %} expired{% endif %}" id="note-box-{{note.id}}">
     <div class="artifact-note-header">
         <dl class="note-info">
@@ -11,6 +9,9 @@
 
             <dt>Best before</dt>
             <dd>{{ note.best_before }} {% if note.is_expired %}(Expired){% endif %}</dd>
+
+            <dt>Category</dt>
+            <dd>{{ note.get_category_display }}</dd>
         </dl>
 
         <div class="hideshow">
