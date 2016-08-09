@@ -107,7 +107,7 @@ class AssetChangeRecord(models.Model):
                               help_text="The change in quantity.  For removal of item, make it a negative number. "
                                         "For adding items, make it a positive.  e.g. '-2' if someone removed two of"
                                         "this item for something")
-    event = models.ForeignKey(OutreachEvent, null=False, blank=False, help_text="The event it was for, if any")
+    event = models.ForeignKey(OutreachEvent, null=True, blank=True, help_text="The event it was for, if any")
     date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
@@ -121,7 +121,7 @@ class AssetChangeRecord(models.Model):
             change_string=" added "
         else:
             change_string=" removed "
-        return make_slug(self.person + change_string + self.qty + ' ' + self.asset)
+        return make_slug(self.person.userid_or_emplid() + change_string + str(self.qty) + ' ' + unicode(self.asset))
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
@@ -130,7 +130,7 @@ class AssetChangeRecord(models.Model):
     def save(self, user, *args, **kwargs):
         self.last_modified = timezone.now()
         self.saved_by_userid = user
-        super(Asset, self).save(*args, **kwargs)
+        super(AssetChangeRecord, self).save(*args, **kwargs)
 
     def delete(self, user):
         """

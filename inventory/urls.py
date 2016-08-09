@@ -13,6 +13,7 @@ inventory_pattern = [  # prefix /inventory/
     url(r'^' + ASSET_SLUG + '/edit$', views.edit_asset, name='edit_asset'),
     url(r'^' + ASSET_ID + '/delete$', views.delete_asset, name='delete_asset'),
     url(r'^' + ASSET_SLUG + '/view$', views.view_asset, name='view_asset'),
+    url(r'^' + ASSET_SLUG + '/add_change', views.add_change_record, name='add_change_record'),
     url(r'^' + ASSET_ID + '/new_attach$', views.new_attachment, name='new_attachment'),
     url(r'^' + ASSET_ID + '/attach/' + ATTACH_SLUG + '/delete$', views.delete_attachment,
         name='delete_attachment'),

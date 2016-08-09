@@ -13,6 +13,7 @@
 <ul>
     <li><a href="{% url "inventory:edit_asset" asset_slug=asset.slug %}">Edit</a></li>
     <li><a href="{% url "inventory:new_attachment" asset_id=asset.id %}">Add Attachment</a></li>
+    <li><a href="{% url "inventory:add_change_record" asset_slug=asset.slug %}">Add Change Record</a></li>
 </ul>
 {% endblock %}
 
@@ -45,4 +46,17 @@
 </ul>
 {% endif %}
 {% endwith %}
+{% with records=asset.records.visible %}
+{% if records %}
+<h2 id="records">History</h2>
+<ul>
+{% for r in records %}
+<li>{{ r.person }} {% if r.qty > 0 %} added {% else %} removed {% endif %} {{ r.qty }} item(s) {% if r.date %} on
+    {{ r.date }} {% endif %}
+</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+
 {% endblock %}

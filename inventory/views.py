@@ -2,7 +2,7 @@ from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from .models import Asset
-from .forms import AssetForm, AssetAttachmentForm
+from .forms import AssetForm, AssetAttachmentForm, AssetChangeForm
 from courselib.auth import requires_role
 from log.models import LogEntry
 from coredata.models import Unit, Role, Person
@@ -152,3 +152,32 @@ def delete_attachment(request, asset_id, attach_slug):
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
     return HttpResponseRedirect(reverse('inventory:view_asset', kwargs={'asset_slug': asset.slug}))
+
+
+@requires_role('INV')
+def add_change_record(request, asset_slug):
+    asset = get_object_or_404(Asset, slug=asset_slug)
+    if request.method == 'POST':
+        form = AssetChangeForm(request, request.POST)
+        if form.is_valid():
+            change = form.save(commit=False)
+            change.asset = asset
+            qty = int(form.cleaned_data['qty'])
+            if qty + asset.quantity < 0:
+                messages.add_message(request, messages.WARNING, u'You tried to remove more of this asset than you '
+                                                                u'originally had.  Asset quantity set to zero.')
+                asset.quantity = 0
+            else:
+                asset.quantity += qty
+            asset.save()
+            print request.user.username
+            change.save(request.user.username)
+            messages.add_message(request, messages.SUCCESS, u'Asset change record added')
+            l = LogEntry(userid=request.user.username, description="Added change record %s for asset %s" %
+                                                                   (change, asset), related_object=change)
+            l.save()
+            return HttpResponseRedirect(reverse('inventory:view_asset', kwargs={'asset_slug': asset.slug}))
+    else:
+        form = AssetChangeForm(request)
+
+    return render(request, 'inventory/add_change_record.html', {'form': form, 'asset': asset})

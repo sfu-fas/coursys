@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import migrations, models
+from django.db import models, migrations
 import autoslug.fields
 import django.core.files.storage
 import inventory.models
@@ -79,7 +79,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='assetchangerecord',
             name='event',
-            field=models.ForeignKey(help_text=b'The event it was for, if any', to='outreach.OutreachEvent'),
+            field=models.ForeignKey(blank=True, to='outreach.OutreachEvent', help_text=b'The event it was for, if any', null=True),
         ),
         migrations.AddField(
             model_name='assetchangerecord',
