@@ -50,7 +50,10 @@ function confirmDelete() {
     </thead>
     {% for asset in assets %}
         <tr {{ asset|add_asset_display_class }}>
-            <td>{{ asset.name }}</td>
+            <td>{{ asset.name }}
+                {% if asset.has_attachments %} &nbsp; <i class="fa fa-paperclip" title="Attachment(s)"></i>{% endif %}
+                {% if asset.has_records %} &nbsp; <i class="fa fa-book" title="Record(s)"></i>{% endif %}
+            </td>
             <td>{{ asset.quantity }}</td>
             <td>{{ asset.get_category_display }}</td>
             <td>{% if asset.price %}${% endif %}{{ asset.price }}</td>

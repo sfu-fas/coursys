@@ -91,6 +91,12 @@ class Asset(models.Model):
     def in_stock(self):
         return self.quantity is not None and self.min_qty is not None and self.quantity > self.min_qty
 
+    def has_attachments(self):
+        return self.attachments.visible().count() > 0
+
+    def has_records(self):
+        return self.records.visible().count() > 0
+
 
 class AssetChangeRecordQuerySet(models.QuerySet):
     """
