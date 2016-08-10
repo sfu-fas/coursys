@@ -7,7 +7,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 # course with the test data
-TEST_COURSE_SLUG = '2015su-cmpt-120-d1'
+TEST_COURSE_SLUG = '2016su-cmpt-120-d1'
 
 class CachedFixtureTestCase(TestCase):
     current_fixtures = None

@@ -1,6 +1,7 @@
 from courselib.testing import test_views, Client
 from django.test import TestCase
 from django.core.urlresolvers import reverse
+from sessionals.models import SessionalContract
 
 class SessionalTestCase(TestCase):
     fixtures = ['basedata', 'coredata', 'sessionals']
@@ -13,7 +14,7 @@ class SessionalTestCase(TestCase):
         self.assertEquals(response.status_code, 302)
 
         # Now log in but without the correct role
-        client.login_user('pba7')
+        client.login_user('foo')
         response = client.get(url)
         self.assertEquals(response.status_code, 403)
         url = reverse('sessionals:delete_contract', kwargs={'contract_id': contract_id})
@@ -24,7 +25,8 @@ class SessionalTestCase(TestCase):
         client = Client()
         account_slug = 'cmpt-234-sfufa-account'
         contract_slug = 'a-test-sessionalcontract'
-        contract_id = 1
+        contract = SessionalContract.objects.get(slug=contract_slug)
+        contract_id = contract.id
         # as instructor
         client.login_user('dzhao')
         test_views(self, client, 'sessionals:', ['sessionals_index', 'manage_accounts', 'new_account', 'manage_configs',

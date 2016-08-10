@@ -29,11 +29,8 @@
 <dt>Notes</dt><dd>{{ event.notes|linebreaks }}</dd>
 <dt>Contact Email</dt><dd>{{ event.email }}</dd>
 {% if event.current %}
-<p>
-<div>
+    <h4>Registration</h4>
     The registration link for this event is:
     <a href="{% url "register" event_slug=event.slug %}"> {{ register_url }}</a>
-</div>
-</p>
 {% endif %}
 {% endblock %}

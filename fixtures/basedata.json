@@ -208,6 +208,33 @@
 },
 {
  "fields": {
+  "end": "2017-12-04",
+  "name": "1177",
+  "start": "2017-09-05"
+ },
+ "model": "coredata.semester",
+ "pk": 157
+},
+{
+ "fields": {
+  "end": "2018-04-10",
+  "name": "1181",
+  "start": "2018-01-03"
+ },
+ "model": "coredata.semester",
+ "pk": 158
+},
+{
+ "fields": {
+  "end": "2018-08-03",
+  "name": "1184",
+  "start": "2018-05-07"
+ },
+ "model": "coredata.semester",
+ "pk": 159
+},
+{
+ "fields": {
   "config": "{}",
   "emplid": 200000100,
   "first_name": "Gregor\u028f",

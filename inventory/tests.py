@@ -23,7 +23,7 @@ class InventoryTestCase(TestCase):
         client = Client()
         asset_slug = 'cmpt-something'
         asset_id = 1
-        client.login_user('ggbaker')
+        client.login_user('dzhao')
         test_views(self, client, '', ['inventory_index', 'new_asset'], {})
         test_views(self, client, '', ['edit_asset', 'view_asset'], {'asset_slug': asset_slug})
         url = reverse('delete_asset', kwargs={'asset_id': asset_id})
