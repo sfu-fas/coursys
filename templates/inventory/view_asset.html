@@ -51,7 +51,7 @@
 <h2 id="records">History</h2>
 <ul>
 {% for r in records %}
-<li>{{ r.person }} {% if r.qty > 0 %} added {% else %} removed {% endif %} {{ r.qty }} item(s) {% if r.date %} on
+<li>{{ r.person }} {% if r.qty > 0 %} added {% else %} removed {% endif %} {{ r.qty }} item{% if r.qty > 1 %}s{% endif %} {% if r.date %} on
     {{ r.date }} {% endif %}
 </li>
 {% endfor %}

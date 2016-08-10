@@ -38,10 +38,9 @@ class AssetChangeForm(forms.ModelForm):
         super(AssetChangeForm, self).__init__(*args, **kwargs)
         #  The following two lines look stupid, but they are not.  request.units contains a set of units.
         #  in order to be used this way, we need an actual queryset.
-        unit_ids = [unit.id for unit in request.units]
+        unit_ids = [unit.id for unit in Unit.sub_units(request.units)]
         units = Unit.objects.filter(id__in=unit_ids)
         self.fields['event'].queryset = OutreachEvent.objects.visible(units)
-        self.fields['event'].empty_label = None
 
     class Meta:
         model = AssetChangeRecord
