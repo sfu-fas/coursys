@@ -9,7 +9,7 @@ class InventoryTestCase(TestCase):
     def test_unaccessible_pages(self):
         client = Client()
         # First, without logging in:
-        url = reverse('inventory:inventory_index')
+        url = reverse('inventory_index')
         response = client.get(url)
         self.assertEquals(response.status_code, 302)
 
@@ -23,9 +23,9 @@ class InventoryTestCase(TestCase):
         client = Client()
         asset_slug = 'cmpt-something'
         asset_id = 1
-        client.login_user('ggbaker')
-        test_views(self, client, 'inventory:', ['inventory_index', 'new_asset'], {})
-        test_views(self, client, 'inventory:', ['edit_asset', 'view_asset'], {'asset_slug': asset_slug})
-        url = reverse('inventory:delete_asset', kwargs={'asset_id': asset_id})
+        client.login_user('dzhao')
+        test_views(self, client, '', ['inventory_index', 'new_asset'], {})
+        test_views(self, client, '', ['edit_asset', 'view_asset'], {'asset_slug': asset_slug})
+        url = reverse('delete_asset', kwargs={'asset_id': asset_id})
         response = client.post(url, follow=True)
         self.assertEquals(response.status_code, 200)

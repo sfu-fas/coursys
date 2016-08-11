@@ -1,3 +1,4 @@
+# coding=utf-8
 """
     Test portions of the marking app.
 """
@@ -644,6 +645,11 @@ class TestMarkingImport(TestCase):
         self.act = self.crs.activity_set.get(slug="a1")
     
     def test_import(self):
+
+        #  A weird looking workaround.  In devtest_importer, we specified the title of the activity component to be
+        #  "part-➀", and the slug to be "part-1".  However, the slug gets changed on every save, so it gets changed to
+        #  "part". Let's do this so, in this instance, it gets changed back to "part-1"
+        ActivityComponent.objects.filter(slug='part').update(slug='part-1')
         self.client.login_user('ggbaker')
         url = reverse('marking.views.import_marks', kwargs={'course_slug':self.crs.slug, 'activity_slug':self.act.slug})
         response = basic_page_tests(self, self.client, url)

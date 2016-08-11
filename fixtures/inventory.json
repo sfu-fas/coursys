@@ -1,20 +1,25 @@
 [
 {
-  "fields": {
-    "created_at": "2016-06-30T13:08:40.528",
-    "hidden": false,
-    "name": "Something",
-    "brand": "Baycrest",
-    "slug": "cmpt-something",
-    "tag": "",
-    "location": "In the dining room, with the candlestick",
-    "last_modified": "2016-07-04T11:08:28.861",
-    "serial": "",
-    "notes": "",
-    "unit": 5,
-    "description": ""
-  },
-  "model": "inventory.asset",
-  "pk": 1
+ "fields": {
+  "brand": "Baycrest",
+  "category": "GEN",
+  "created_at": "2016-08-10T13:46:07.817",
+  "description": null,
+  "hidden": false,
+  "last_modified": "2016-08-10T13:46:07.816",
+  "location": "In the dining room, with the candlestick",
+  "min_qty": null,
+  "name": "Something",
+  "notes": null,
+  "price": null,
+  "qty_ordered": null,
+  "quantity": null,
+  "serial": null,
+  "slug": "cmpt-something",
+  "tag": null,
+  "unit": 5
+ },
+ "model": "inventory.asset",
+ "pk": 1
 }
 ]
