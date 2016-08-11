@@ -163,6 +163,9 @@ def add_change_record(request, asset_slug):
             change = form.save(commit=False)
             change.asset = asset
             qty = int(form.cleaned_data['qty'])
+            #  If no one has ever put in a quantity for the asset, make it 0 to avoid adding int to Nonetype
+            if not asset.quantity:
+                asset.quantity = 0
             if qty + asset.quantity < 0:
                 messages.add_message(request, messages.WARNING, u'You tried to remove more of this asset than you '
                                                                 u'originally had.  Asset quantity set to zero.')
