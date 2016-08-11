@@ -5,6 +5,7 @@ from courselib.urlparts import ID_RE, SLUG_RE
 ASSET_SLUG = '(?P<asset_slug>' + SLUG_RE + ')'
 ASSET_ID = '(?P<asset_id>' + ID_RE + ')'
 ATTACH_SLUG = '(?P<attach_slug>' + SLUG_RE + ')'
+CHANGE_RECORD_ID = '(?P<record_id>' + ID_RE + ')'
 
 
 inventory_pattern = [  # prefix /inventory/
@@ -20,4 +21,6 @@ inventory_pattern = [  # prefix /inventory/
     url(r'^' + ASSET_ID + '/attach/' + ATTACH_SLUG + '/view', views.view_attachment, name='view_attachment'),
     url(r'^' + ASSET_ID + '/attach/' + ATTACH_SLUG + '/download$', views.download_attachment,
         name='download_attachment'),
+    url(r'^' + CHANGE_RECORD_ID + '/delete_record$', views.delete_change_record, name='delete_change_record'),
+
 ]

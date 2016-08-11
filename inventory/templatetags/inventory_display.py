@@ -12,3 +12,16 @@ def add_asset_display_class(asset):
         return 'class=instock'
     else:
         return ""
+
+
+@register.filter
+def item_pluralize(value):
+    if abs(value) == 1:
+        return "item"
+    else:
+        return "items"
+
+
+@register.filter
+def abs_value(value):
+    return abs(value)

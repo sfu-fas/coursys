@@ -1,7 +1,7 @@
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-from .models import Asset
+from .models import Asset, AssetChangeRecord
 from .forms import AssetForm, AssetAttachmentForm, AssetChangeForm
 from courselib.auth import requires_role
 from log.models import LogEntry
@@ -181,3 +181,20 @@ def add_change_record(request, asset_slug):
         form = AssetChangeForm(request)
 
     return render(request, 'inventory/add_change_record.html', {'form': form, 'asset': asset})
+
+
+@requires_role('INV')
+def delete_change_record(request, record_id):
+    record = get_object_or_404(AssetChangeRecord, pk=record_id)
+    asset = record.asset
+    if not _has_unit_role(request.user, asset):
+        return ForbiddenResponse(request)
+    record.delete(request.user.username)
+    messages.success(request, 'Successfully hid record')
+    l = LogEntry(userid=request.user.username,
+                 description="Deleted record: %s" % record,
+                 related_object=record)
+    l.save()
+    messages.warning(request, 'WARNING:  Quantity for this asset has not been changed.  If deleting this '
+                              'record implies quantity changes, please adjust the asset quantity now.')
+    return HttpResponseRedirect(reverse('inventory:view_asset', kwargs={'asset_slug': asset.slug}))
