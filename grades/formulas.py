@@ -149,11 +149,15 @@ def activities_dictionary(activities):
             ((a.short_name,a) for a in activities)
             ))
 
-def visible_grade(act, member, visible):
+
+def visible_grade(act, member, visible, calculating_leak=False):
     """
     Return student-visible grade on this activity
+
+    "calculating_leak": use unreleased values, even if the activity is released. May leak those values to students, but
+    it's what the instructor requested.
     """
-    if visible and act.status != 'RLS':
+    if not calculating_leak and visible and act.status != 'RLS':
         return 0.0
     grades = act.numericgrade_set.filter(member=member)
     if len(grades)==0:
@@ -167,12 +171,14 @@ def visible_grade(act, member, visible):
 
 def eval_parse(tree, activity, act_dict, member, visible):
     """
-    Evaluate an expression given its parse tree and dictionary of column values.  "visible" indicates whether the activity in question is visible to students or not.
-    
+    Evaluate an expression given its parse tree and dictionary of column values.
+    "visible" indicates whether the activity in question is visible to students or not.
+
     Throws EvalException if there's a problem with the expression tree.
     
     Throws KeyError for unknown column.
     """
+    calculating_leak = activity.calculation_leak()
     t = tree[0]
     if t == 'sign' and tree[2] == '+':
         return eval_parse(tree[3], activity, act_dict, member, visible)
@@ -182,7 +188,7 @@ def eval_parse(tree, activity, act_dict, member, visible):
         act = act_dict[tree[2]]
         part = tree[3]
         if part=="val":
-            return visible_grade(act, member, visible)
+            return visible_grade(act, member, visible, calculating_leak=calculating_leak)
         elif part=="max":
             return float(act.max_grade)
         elif part=="per":
@@ -192,7 +198,7 @@ def eval_parse(tree, activity, act_dict, member, visible):
                 return 0.0
         elif part=="fin":
             if act.percent:
-                grade = visible_grade(act, member, visible)
+                grade = visible_grade(act, member, visible, calculating_leak=calculating_leak)
                 max_grade = float(act.max_grade)
                 if max_grade:
                     return grade/max_grade * float(act.percent)
@@ -260,15 +266,15 @@ def eval_parse(tree, activity, act_dict, member, visible):
             fix_used_acts(tree, activity.offering, activity)
             for label in tree[1]:
                 act = act_dict[label]
-                grade = visible_grade(act, member, visible)
+                grade = visible_grade(act, member, visible, calculating_leak=calculating_leak)
                 max_grade = float(act.max_grade)
                 if max_grade:
                     total += grade/max_grade * float(act.percent)
             return total
         else:
-            raise EvalException, "Unknown flag in parse tree: %s"%(func,)
+            raise EvalException, "Unknown flag in parse tree: %s" % (flag,)
     else:
-        raise EvalException, "Unknown element in parse tree: %s"%(tree,)
+        raise EvalException, "Unknown element in parse tree: %s" % (tree,)
     
 
 def create_display(tree, act_dict):

@@ -91,16 +91,18 @@ class Activity(models.Model):
         # a.config['showhisto'] (boolean, default True): show students histogram for this activity?
         # a.config['showformula'] (boolean, default False): show students formula/cutoffs for this activity?
         # a.config['multisubmit'] (boolean, default False): Use the "submit many times" behaviour?
+        # a.config['calculation_leak'] (boolean, default False): For CalNumericActivity, include unreleased grades when calculating? (Thus possibly leaking URLS values to students)
         # TODO: showformula not actually implemented yet
     
     offering = models.ForeignKey(CourseOffering)
     
-    defaults = {'url': '', 'showstats': True, 'showhisto': True, 'showformula': False, 'multisubmit': False}
+    defaults = {'url': '', 'showstats': True, 'showhisto': True, 'showformula': False, 'multisubmit': False, 'calculation_leak': False}
     url, set_url = getter_setter('url')
     showstats, set_showstats = getter_setter('showstats')
     showhisto, set_showhisto = getter_setter('showhisto')
     showformula, set_showformula = getter_setter('showformula')
     multisubmit, set_multisubmit = getter_setter('multisubmit')
+    calculation_leak, set_calculation_leak = getter_setter('calculation_leak')
 
     def __unicode__(self):
         return u"%s - %s" % (self.offering, self.name)

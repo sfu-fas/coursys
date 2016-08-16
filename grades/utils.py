@@ -151,6 +151,8 @@ class FakeEvalActivity(object):
     def __init__(self, course):
         self.id = -1
         self.offering = course
+    def calculation_leak(self):
+        return False
 
 
 def reorder_course_activities(ordered_activities, activity_slug, order):
@@ -641,7 +643,7 @@ def calculate_numeric_grade(course, activity, student=None):
             numeric_grade.save(newsitem=False, entered_by=None)
 
     uses_unreleased = True in (act_dict[c].status != 'RLS' for c in cols_used(parsed_expr))
-    hiding_info = visible and uses_unreleased
+    hiding_info = visible and uses_unreleased and not activity.calculation_leak()
 
     if student != None:
         return StudentActivityInfo(student, activity, FLAGS['CALC'], numeric_grade.value, None).display_grade_staff(), hiding_info
