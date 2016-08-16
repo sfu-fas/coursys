@@ -626,6 +626,7 @@ def add_cal_numeric_activity(request, course_slug):
                 config = {
                         'showstats': form.cleaned_data['showstats'],
                         'showhisto': form.cleaned_data['showhisto'],
+                        'calculation_leak': form.cleaned_data['calculation_leak'],
                         'url': form.cleaned_data['url'],
                         }
                 CalNumericActivity.objects.create(name=form.cleaned_data['name'],
@@ -823,6 +824,7 @@ def calculate_individual_ajax(request, course_slug, activity_slug):
         return HttpResponse(displayable_result)
     return ForbiddenResponse(request)
 
+
 def _create_activity_formdatadict(activity):
     if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
         return
@@ -841,6 +843,8 @@ def _create_activity_formdatadict(activity):
     data['showhisto'] = True
     if 'showhisto' in activity.config:
         data['showhisto'] = activity.config['showhisto']
+    if 'calculation_leak' in activity.config:
+        data['calculation_leak'] = activity.config['calculation_leak']
 
     for (k, v) in GROUP_STATUS_MAP.items():
         if activity.group == v:
@@ -881,6 +885,8 @@ def _populate_activity_from_formdata(activity, data):
         activity.config['showstats'] = data['showstats']
     if data.has_key('showhisto'):
         activity.config['showhisto'] = data['showhisto']
+    if data.has_key('calculation_leak'):
+        activity.config['calculation_leak'] = data['calculation_leak']
     if data.has_key('numeric_activity'):
         activity.numeric_activity = NumericActivity.objects.get(pk=data['numeric_activity'])
     if data.has_key('exam_activity'):

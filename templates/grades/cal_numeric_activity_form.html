@@ -30,7 +30,7 @@ $(document).ready(function() {
     <form action="{% ifequal form_type 'add' %}{% url "grades.views.add_cal_numeric_activity" course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url "grades.views.edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}"
                 method="post">{% csrf_token %}
         <fieldset>
-            {{ form|as_dl_excludefields:"showstats,showhisto" }}
+            {{ form|as_dl_excludefields:"showstats,showhisto,calculation_leak" }}
 
                         <div class="collapsible">The applicable numeric activities:</div>
                         <div class="activity_reference_container">
@@ -72,7 +72,7 @@ $(document).ready(function() {
         </fieldset>
         <fieldset>
             <legend id="moreconfig">Additional Options</legend>
-            {{ form|as_dl_includefields:"showstats,showhisto" }}
+            {{ form|as_dl_includefields:"showstats,showhisto,calculation_leak" }}
         </fieldset>
 
 
