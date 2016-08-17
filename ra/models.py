@@ -303,7 +303,7 @@ class RAAppointment(models.Model):
         """
         today = datetime.datetime.now()
         min_age = datetime.datetime.now() + datetime.timedelta(days=14)
-        expiring_ras = RAAppointment.objects.filter(end_date__gt=today, end_date__lte=min_age)
+        expiring_ras = RAAppointment.objects.filter(end_date__gt=today, end_date__lte=min_age, deleted=False)
         ras = [ra for ra in expiring_ras if 'reminded' not in ra.config or not ra.config['reminded']]
         return ras
 
