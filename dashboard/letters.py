@@ -2316,8 +2316,8 @@ class YellowFormTenure(FormMixin):
         self.hline(124, 133, 226.5)
         self.hline(140, 147, 226.5)
         # Add SIN to the form if it's exactly 9 digits to avoid out-of-range index issues
-        sin = data.get('sin')
-        if len(str(sin)) == 9:
+        sin = str(data.get('sin'))
+        if len(sin) == 9:
             self.label_filled(24, 227, sin[0:3])
             self.label_filled(32.5, 227, sin[3:6])
             self.label_filled(40.5, 227, sin[6:9])
@@ -2685,8 +2685,8 @@ class YellowFormLimited(FormMixin):
         self.hline(124.5, 133.5, 222.5)
         self.hline(141.5, 147.5, 222.5)
         # Add SIN to the form if it's exactly 9 digits to avoid out-of-range index issues
-        sin = data.get('sin')
-        if len(str(sin)) == 9:
+        sin = str(data.get('sin'))
+        if len(sin) == 9:
             self.label_filled(26, 223.5, sin[0:3])
             self.label_filled(39, 223.5, sin[3:6])
             self.label_filled(51.5, 223.5, sin[6:9])
