@@ -162,8 +162,10 @@ class RAAppointment(models.Model):
     reappointment = models.BooleanField(default=False, help_text="Are we re-appointing to the same position?")
     medical_benefits = models.BooleanField(default=False, help_text="50% of Medical Service Plan")
     dental_benefits = models.BooleanField(default=False, help_text="50% of Dental Plan")
-    notes = models.TextField(blank=True, help_text="Biweekly employment earnings rates must include vacation pay, hourly rates will automatically have vacation pay added. The employer cost of statutory benefits will be charged to the amount to the earnings rate.")
-    comments = models.TextField(blank=True, help_text="For internal use")
+    #  The two following fields verbose names are reversed for a reason.  They were named incorrectly with regards to
+    #  the PAF we generate, so the verbose names are correct.
+    notes = models.TextField("Comments", blank=True, help_text="Biweekly employment earnings rates must include vacation pay, hourly rates will automatically have vacation pay added. The employer cost of statutory benefits will be charged to the amount to the earnings rate.")
+    comments = models.TextField("Notes", blank=True, help_text="For internal use")
     offer_letter_text = models.TextField(null=True, help_text="Text of the offer letter to be signed by the RA and supervisor.")
     def autoslug(self):
         if self.person.userid:
