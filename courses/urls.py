@@ -18,6 +18,8 @@ from ta.urls import ta_patterns, tug_patterns
 from tacontracts.urls import tacontract_patterns
 from visas.urls import visas_pattern
 from outreach.urls import outreach_pattern
+from sessionals.urls import sessionals_patterns
+from inventory.urls import inventory_pattern
 
 from api.urls import api_patterns
 
@@ -69,6 +71,8 @@ urlpatterns = [
     url(r'^my_grads/download/$', 'grad.views.download_my_grads_csv'),
     url(r'^visas/', include(visas_pattern)),
     url(r'^outreach/', include(outreach_pattern)),
+    url(r'^sessionals/', include(sessionals_patterns, namespace='sessionals', app_name='sessionals')),
+    url(r'^inventory/', include(inventory_pattern, namespace='inventory', app_name='inventory')),
 
     # redirect old mobile URLs to rightful locations
     url(r'^m/(?P<urltail>.*)$',  RedirectView.as_view(url='/%(urltail)s/', permanent=True)),

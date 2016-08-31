@@ -563,6 +563,7 @@ def copy_setup_pages(course_copy_from, course_copy_to):
         # copy the Pages
         from pages.models import Page, PageFilesStorage, attachment_upload_to
         copy_pages = Page.objects.filter(offering=course_copy_from).exclude(can_read='NONE', can_write='NONE')
+        copy_pages = (p for p in copy_pages if not p.current_version().redirect)
         for p in copy_pages:
             new_p = copy.deepcopy(p)
             new_p.id = None

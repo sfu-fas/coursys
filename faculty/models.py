@@ -89,6 +89,9 @@ EVENT_TAGS = {
                 'end_date': 'end date of the event, if applicable',
                 'event_title': 'name of event',
                 'current_rank': "faculty member's current rank",
+                'current_base_salary': "faculty member's current base salary",
+                'current_market_diff': "faculty member's current market differential",
+                'unit': "unit of which this person is a member",
             }
 
 #event specific tags
@@ -280,6 +283,50 @@ class CareerEvent(models.Model):
         ranks = set(s.get_handler().get_rank_display() for s in salaries)
         return ', '.join(ranks)
 
+    @classmethod
+    @cached(6*3600)
+    def current_base_salary(cls, person):
+        """
+        Return a string representing the current base salary for this person.  If the person has more than
+        one currently effective one, they get added together.
+        """
+        salaries = CareerEvent.objects.filter(person=person, event_type='SALARY').effective_now()
+        if not salaries:
+            return 'unknown'
+        # One could theoretically have more than one active base salary (for example, if one is a member of more than
+        # one school and gets a salary from both).  In that case, add them up.
+        total = Decimal(0)
+        for s in salaries:
+            if 'base_salary' in s.config:
+                total += Decimal(s.config.get('base_salary'))
+        # format it nicely with commas, see http://stackoverflow.com/a/10742904/185884
+        return str('$' + "{:,}".format(total))
+
+
+    @classmethod
+    @cached(6*3600)
+    def current_market_diff(cls, person):
+        """
+        Return a string representing the current market differential for this person.
+        """
+        diffs = CareerEvent.objects.filter(person=person, event_type='STIPEND').effective_now()
+        if not diffs:
+            return 'unknown'
+        #  Retention, market differentials, research chair stipends, and other adjustments are stored in the same
+        #  stipend type event. We only care about market differentials.
+        marketdiffs = [d for d in diffs if 'source' in d.config and d.config.get('source') == 'MARKETDIFF']
+        if marketdiffs:
+            # Just like base salaries, we could theoretically have more than one active at a given time, we think.
+            # Let's add them up in that case
+            total = Decimal(0)
+            for diff in marketdiffs:
+                if 'amount' in diff.config:
+                    total += Decimal(diff.config.get('amount'))
+            return str('$' + "{:,}".format(total))
+        else:
+            return 'unknown'
+
+
     def get_event_type_display(self):
         "Override to display nicely"
         return EVENT_TYPES[self.event_type].NAME
@@ -366,7 +413,10 @@ class CareerEvent(models.Model):
                 'last_name': self.person.last_name,
                 'start_date': start,
                 'end_date': end,
-                'current_rank': CareerEvent.current_ranks(self.person)
+                'current_rank': CareerEvent.current_ranks(self.person),
+                'unit': self.unit.name,
+                'current_base_salary': CareerEvent.current_base_salary(self.person),
+                'current_market_diff': CareerEvent.current_market_diff(self.person),
               }
         ls = dict(ls.items() + config_data.items())
         return ls
@@ -450,10 +500,14 @@ class MemoTemplate(models.Model):
                              help_text='The name for this template (that you select it by when using it)')
     event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES,
                                   help_text='The type of event that this memo applies to')
-    default_from = models.CharField(verbose_name='Default From', help_text='The default sender of the memo', max_length=255, blank=True)
-    subject = models.CharField(verbose_name='Default Subject', help_text='The default subject of the memo', max_length=255)
+    default_from = models.CharField(verbose_name='Default From', help_text='The default sender of the memo',
+                                    max_length=255, blank=True)
+    subject = models.CharField(verbose_name='Default Subject', help_text='The default subject of the memo. Will be '
+                                                                         'ignored for letters', max_length=255)
+    is_letter = models.BooleanField(verbose_name="Make it a letter", help_text="Should this be a letter by default",
+                                    default=False)
     template_text = models.TextField(help_text="The template for the memo. It may be edited when creating "
-            "each memo. (i.e. 'Congratulations {{first_name}} on ... ')")
+                                               "each memo. (i.e. 'Congratulations {{first_name}} on ... ')")
 
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Memo template created by.', related_name='+')
@@ -483,16 +537,23 @@ class Memo(models.Model):
     A memo created by the system, and attached to a CareerEvent.
     """
     career_event = models.ForeignKey(CareerEvent, null=False, blank=False)
-    unit = models.ForeignKey(Unit, null=False, blank=False, help_text="The unit producing the memo: will determine the letterhead used for the memo.")
+    unit = models.ForeignKey(Unit, null=False, blank=False, help_text="The unit producing the memo: will determine the "
+                                                                      "letterhead used for the memo.")
 
     sent_date = models.DateField(default=datetime.date.today, help_text="The sending date of the letter")
     to_lines = models.TextField(verbose_name='Attention', help_text='Recipient of the memo', null=True, blank=True)
-    cc_lines = models.TextField(verbose_name='CC lines', help_text='Additional recipients of the memo', null=True, blank=True)
+    cc_lines = models.TextField(verbose_name='CC lines', help_text='Additional recipients of the memo', null=True,
+                                blank=True)
     from_person = models.ForeignKey(Person, null=True, related_name='+')
-    from_lines = models.TextField(verbose_name='From', help_text='Name (and title) of the sender, e.g. "John Smith, Applied Sciences, Dean"')
-    subject = models.TextField(help_text='The subject of the memo (lines will be formatted separately in the memo header)')
+    from_lines = models.TextField(verbose_name='From', help_text='Name (and title) of the sender, e.g. "John Smith, '
+                                                                 'Applied Sciences, Dean"')
+    subject = models.TextField(help_text='The subject of the memo (lines will be formatted separately in the memo '
+                                         'header). This will be ignored for letters')
 
     template = models.ForeignKey(MemoTemplate, null=True)
+    is_letter = models.BooleanField(verbose_name="Make it a letter", help_text="Make it a letter with correct "
+                                                                               "letterhead instead of a memo.",
+                                    default=False)
     memo_text = models.TextField(help_text="I.e. 'Congratulations on ... '")
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -542,19 +603,26 @@ class Memo(models.Model):
         return None
 
     def write_pdf(self, response):
-        from dashboard.letters import OfficialLetter, MemoContents
+        from dashboard.letters import OfficialLetter, MemoContents, LetterContents
 
         # record the fact that it was generated (for editability checking)
         self.config['pdf_generated'] = True
         self.save()
 
         doc = OfficialLetter(response, unit=self.unit)
-        l = MemoContents(to_addr_lines=self.to_lines.split("\n"),
-                        from_name_lines=self.from_lines.split("\n"),
-                        date=self.sent_date,
-                        subject=self.subject.split("\n"),
-                        cc_lines=self.cc_lines.split("\n"),
-                        )
+        if self.is_letter:
+            l = LetterContents(to_addr_lines=self.to_lines.split("\n"),
+                               from_name_lines=self.from_lines.split("\n"),
+                               date=self.sent_date,
+                               cc_lines=self.cc_lines.split("\n"),
+                               )
+        else:
+            l = MemoContents(to_addr_lines=self.to_lines.split("\n"),
+                             from_name_lines=self.from_lines.split("\n"),
+                             date=self.sent_date,
+                             subject=self.subject.split("\n"),
+                             cc_lines=self.cc_lines.split("\n"),
+                             )
         content_lines = self.memo_text.split("\n\n")
         l.add_paragraphs(content_lines)
         doc.add_letter(l)

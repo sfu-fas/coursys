@@ -189,7 +189,7 @@ FROM ps_class_tbl ct
   LEFT OUTER JOIN ps_crse_catalog cc ON ct.crse_id=cc.crse_id
   LEFT OUTER JOIN ps_term_tbl t ON ct.strm=t.strm AND ct.acad_career=t.acad_career
 WHERE
-  cc.eff_status='A' AND ct.class_type='E'
+  cc.eff_status='A' AND ct.class_type='E' AND ct.class_stat='A'
   AND cc.effdt=(SELECT MAX(effdt) FROM ps_crse_catalog
                 WHERE crse_id=cc.crse_id AND eff_status='A' AND effdt<=t.term_begin_dt)
 """ # AND more stuff added where it is used.

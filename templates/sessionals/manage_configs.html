@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Manage Configurations{% endblock %}
+{% block h1 %}Manage Configurations{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#configs').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'sessionals:sessionals_index' %}">Sessionals</a></li>
+    <li>Manage Configurations</li>
+{% endblock %}
+
+{% block actions %}
+    {% if not configs or is_admin %}
+        <div id="actions">
+            <h2>Actions</h2>
+            <ul>
+                <li><a href="{% url 'sessionals:new_config' %}">New Default Configuration</a></li>
+            </ul>
+        </div>
+    {% endif %}
+{% endblock %}
+
+
+{% block content %}
+    {% if configs %}
+    <table id="configs" class="display">
+        <thead>
+            <tr>
+                <td>Unit</td>
+                <td>Appointment Start</td>
+                <td>Appointment End</td>
+                <td>Pay Start</td>
+                <td>Pay End</td>
+                <td>Actions</td>
+            </tr>
+        </thead>
+        {% for config in configs %}
+            <tr>
+                <td>{{ config.unit }}</td>
+                <td>{{ config.appointment_start }}</td>
+                <td>{{ config.appointment_end }}</td>
+                <td>{{ config.pay_start }}</td>
+                <td>{{ config.pay_end }}</td>
+                <td>
+                    <form class="lineform" method="GET"
+                        action="{% url "sessionals:edit_config" config_slug=config.slug %}">
+                        <button type='submit' class='btn' title="Edit Config">
+                            <i class='fa fa-edit'></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <div>There are no defaults to display</div>
+    {% endif %}
+
+{% endblock %}

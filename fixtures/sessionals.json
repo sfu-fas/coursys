@@ -1,0 +1,49 @@
+[
+{
+ "fields": {
+  "account_number": "234",
+  "hidden": false,
+  "position_number": 123456,
+  "slug": "cmpt-234-sfufa-account",
+  "title": "SFUFA Account",
+  "unit": 5
+ },
+ "model": "sessionals.sessionalaccount",
+ "pk": 1
+},
+{
+ "fields": {
+  "future_person": null,
+  "person": 16,
+  "role_account": null
+ },
+ "model": "coredata.anyperson",
+ "pk": 1
+},
+{
+ "fields": {
+  "account": 1,
+  "appointment_end": "2016-08-08",
+  "appointment_start": "2016-05-09",
+  "appt_guarantee": "GUAR",
+  "appt_type": "INIT",
+  "config": "{}",
+  "contact_hours": "45.60",
+  "created": "2016-08-10T13:46:07.757",
+  "created_by": "devtest",
+  "hidden": false,
+  "notes": null,
+  "offering": 1,
+  "pay_end": "2016-08-06",
+  "pay_start": "2016-05-07",
+  "sessional": 1,
+  "sin": "000000000",
+  "slug": "a-test-sessionalcontract",
+  "total_salary": "4657.95",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "sessionals.sessionalcontract",
+ "pk": 1
+}
+]

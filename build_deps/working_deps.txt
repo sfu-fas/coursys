@@ -35,7 +35,7 @@ celery==3.1.18
 django-celery==3.1.17
 django-celery-email==1.1.4
 flower==0.8.2
-#kombu==3.0.10
+kombu==3.0.35
 django-test-without-migrations==0.2
 iso8601==0.1.10
 django-haystack==2.4.0
@@ -47,7 +47,7 @@ djangorestframework-oauth==1.0.1
 django-oauth-plus==2.2.7
 #hg+https://bitbucket.org/coagulant/django-oauth-plus/@c18d240#egg=django-oauth-plus # includes pull request https://bitbucket.org/david/django-oauth-plus/pull-request/15/remove-south-from-package-dependencies/diff
 markdown # for API docs
-django-rest-swagger>=0.3.2
+django-rest-swagger>=0.3.2,<2.0.0
 #git+git://github.com/gregbaker/django-rest-swagger@develop# includes help_text in docs, and choices field support
 django-ipware==1.1.0
 psutil==3.0.1

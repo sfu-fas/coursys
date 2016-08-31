@@ -4,13 +4,12 @@ from courselib.urlparts import ID_RE, SLUG_RE
 
 
 EVENT_ID = '(?P<event_id>' + ID_RE + ')'
-#EVENT_SLUG = '(?P<event_slug>' + SLUG_RE + ')'
-EVENT_SLUG = '(?P<event_slug>[\w\-\.]+)'
+EVENT_SLUG = '(?P<event_slug>' + SLUG_RE + ')'
 REGISTRATION_ID = '(?P<registration_id>' + ID_RE + ')'
 PAST_FLAG = '(?P<past>' + ID_RE + ')'
 
 outreach_pattern = [  # prefix /outreach/
-    url('^$', views.index, name='index'),
+    url('^$', views.outreach_index, name='outreach_index'),
     url(r'^new_event/$', views.new_event, name='new_event'),
     url(r'^' + EVENT_SLUG + '/edit$', views.edit_event, name='edit_event'),
     url(r'^' + EVENT_ID + '/delete$', views.delete_event, name='delete_event'),

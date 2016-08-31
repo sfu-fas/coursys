@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Add Change Record{% endblock %}
+{% block h1 %}Add Change Record{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'inventory:inventory_index' %}">Inventory</a></li>
+<li><a href="{% url 'inventory:view_asset' asset_slug=asset.slug %}">View Asset</a></li>
+<li>Add Change Record</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#id_person').each(function() {
+    $(this).autocomplete({
+      source: '/data/students',
+      minLength: 2,
+      select: function(event, ui){
+        $(this).data("val", ui.item.value);
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'inventory:add_change_record' asset_slug=asset.slug %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Add Change Record" />
+    </p>
+</form>
+{% endblock %}

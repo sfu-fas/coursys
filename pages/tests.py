@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.test import  TestCase
 from django.core.urlresolvers import reverse
-from pages.models import Page, PageVersion, brushes_used, MACRO_LABEL, ParserFor
+from pages.models import Page, PageVersion, brushes_used, MACRO_LABEL, ParserFor, PagePermission
 from coredata.models import CourseOffering, Member, Person
 from grades.models import Activity
 from courselib.testing import TEST_COURSE_SLUG, Client, test_views
@@ -241,6 +241,78 @@ class PagesTest(TestCase):
         test_views(self, c, 'pages.views.', ['view_page', 'page_history', 'edit_page', 'import_page'],
                 {'course_slug': crs.slug, 'page_label': 'OtherPage'})
 
+    def test_permissions(self):
+        """
+        Test page access control behaviour.
+        """
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.filter(offering=crs, role='INST').first()
+        inst = memb.person
+        ta = Member.objects.filter(offering=crs, role='TA').first().person
+        stud = Member.objects.filter(offering=crs, role='STUD').first().person
+        non_member = Person.objects.get(userid='dixon')
+        assert not Member.objects.filter(offering=crs, person=non_member)
+
+        p = Page(offering=crs, label="Test", can_read='STAF', can_write='INST')
+        p.save()
+        v = PageVersion(page=p, title="Test Page", wikitext="Page contents", editor=memb)
+        v.save()
+
+        # page-viewing permissions
+        c = Client()
+        url = reverse('pages.views.view_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
+
+        c.logout()
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        c.login_user(inst.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        c.login_user(ta.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        c.login_user(stud.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        c.login_user(non_member.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        # ... but with a PagePermission object, non_member can access
+        pp = PagePermission(person=non_member, offering=crs, role='INST')
+        pp.save()
+        response = c.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        # page-editing permissions
+        url = reverse('pages.views.edit_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
+
+        c.logout()
+        response = c.get(url)
+        self.assertEqual(response.status_code, 302) # redirect to log in
+
+        c.login_user(inst.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        c.login_user(ta.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        c.login_user(stud.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        # editing with PagePermission not implemented
+        c.login_user(non_member.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+
     def test_macros(self):
         """
         Test macro behaviour
@@ -264,12 +336,41 @@ class PagesTest(TestCase):
         # macros defined: should be substituted
         self.assertEqual(p.current_version().html_contents().strip(), u"<p>one 22 three 4444</p>")
 
-        mp.safely_delete()
+        mp.label = 'NOT_MACROS'
+        mp.save()
 
         # macros disappear: back to original
         self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
 
+
     def test_redirect(self):
+        """
+        Redirecting with redirect stub
+        """
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.get(offering=crs, person__userid="ggbaker")
+
+        p = Page(offering=crs, label="Test")
+        p.save()
+        v = PageVersion(page=p, title="Test Page", wikitext="one +two+ three +four+", editor=memb)
+        v.save()
+
+        c = Client()
+        # normal pages still viewable
+        url = reverse('pages.views.view_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
+        response = c.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        v = PageVersion(page=p, redirect='NewLocation', editor=memb)
+        v.save()
+
+        response = c.get(url)
+        self.assertEqual(response.status_code, 301)
+        redir_url = reverse('pages.views.view_page', kwargs={'course_slug': crs.slug, 'page_label': 'NewLocation'})
+        self.assertTrue(response['location'].endswith(redir_url))
+
+
+    def test_migration_redirect(self):
         """
         Redirecting after a migration
         """

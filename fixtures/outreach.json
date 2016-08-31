@@ -1,0 +1,43 @@
+[
+{
+ "fields": {
+  "cost": null,
+  "description": "An event to test",
+  "email": null,
+  "end_date": "2099-01-03T00:00:00",
+  "hidden": false,
+  "location": null,
+  "notes": "Here are some notes",
+  "resources": null,
+  "score": null,
+  "slug": "devtest_a_test_event",
+  "start_date": "2099-01-01T00:00:00",
+  "title": "A Test Event",
+  "unit": 5
+ },
+ "model": "outreach.outreachevent",
+ "pk": 1
+},
+{
+ "fields": {
+  "age": null,
+  "attended": true,
+  "created_at": "2016-08-10T13:46:07.519",
+  "email": "",
+  "event": 1,
+  "first_name": "Bob",
+  "hidden": false,
+  "last_modified": "2016-08-10T13:46:07.519",
+  "last_name": "SomePerson",
+  "middle_name": null,
+  "notes": null,
+  "parent_name": "Joe Smith Sr.",
+  "parent_phone": "",
+  "school": "Little Lord Fauntleroy School for Albino Hemophiliacs",
+  "uuid": "21382e7d-4025-46e7-8800-9ccecd0f107b",
+  "waiver": false
+ },
+ "model": "outreach.outreacheventregistration",
+ "pk": 1
+}
+]

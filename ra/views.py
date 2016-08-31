@@ -276,7 +276,7 @@ def view(request, ra_slug):
 #View RA Appointment Form (PDF)
 @requires_role("FUND")
 def form(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=Unit.sub_units(request.units))
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (appointment.slug)
     ra_form(appointment, response)

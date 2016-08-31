@@ -64,7 +64,8 @@ Macro names (before the colon) cannot contain spaces; replacements (after the co
 <h2 id="delete">Delete this page</h2>
 <form action="{% if url %}{{url}}{% endif %}" method="post">{% csrf_token %}
 <p>
-<input type="hidden" name="delete" value="yes" />
+<input type="hidden" name="delete" value="yes" size="30"/>
+URL to redirect after deletion: <input type="text" name="redirect" value="Index" />
 <input class="submit" type="submit" value="Delete {{kind}}" onclick="confirmSubmit('delete this {{kind}}')" />
 </p>
 </form>

@@ -9,13 +9,52 @@ from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
-from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES, MACRO_LABEL
+from pages.models import Page, PageVersion, PagePermission, MEMBER_ROLES, ACL_ROLES, MACRO_LABEL
 from pages.forms import EditPageForm, EditFileForm, PageImportForm, SiteImportForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import NotFoundResponse, ForbiddenResponse, HttpError
 from importer import HTMLWiki
+from urlparse import urljoin
 import json, datetime
+
+
+def _allowed_member(userid, offering, acl_value):
+    """
+    Is a person with this userid allowed to access a page because they are a Member?
+    """
+    members = Member.objects.filter(person__userid=userid, offering=offering)
+    if not members:
+        if acl_value == 'ALL':
+            return True
+        else:
+            return None
+
+    m = members[0]
+    if acl_value == 'ALL':
+        return m
+    elif m.role in MEMBER_ROLES[acl_value]:
+        return m
+
+    return None
+
+
+def _allowed_permission(userid, offering, acl_value):
+    """
+    Is a person with this userid allowed to access a page because they have a PagePermission?
+    """
+    pps = PagePermission.objects.filter(person__userid=userid, offering=offering)
+    if not pps:
+        if acl_value == 'ALL':
+            return True
+        else:
+            return None
+
+    p = pps[0]
+    if p.role in MEMBER_ROLES[acl_value]:
+        return p
+
+    return None
 
 
 def _check_allowed(request, offering, acl_value, date=None):
@@ -28,19 +67,20 @@ def _check_allowed(request, offering, acl_value, date=None):
     """
     acl_value = Page.adjust_acl_release(acl_value, date)
 
-    members = Member.objects.filter(person__userid=request.user.username, offering=offering)
-    if not members:
-        if acl_value=='ALL':
-            return True
-        else:
-            return None
-    m = members[0]
-    if acl_value == 'ALL':
-        return m
-    elif m.role in MEMBER_ROLES[acl_value]:
+    if request.user.is_authenticated():
+        userid = request.user.username
+    else:
+        userid = '!'
+
+    # first option: can access because of Membership.
+    m = _allowed_member(userid, offering, acl_value)
+    if m and isinstance(m, Member):
         return m
 
-    return None    
+    # next option: can access because of a PagePermission
+    p = _allowed_permission(userid, offering, acl_value)
+    return p
+
 
 def _forbidden_response(request, visible_to):
     """
@@ -75,6 +115,8 @@ def all_pages(request, course_slug):
     else:
         pages = Page.objects.filter(offering=offering, can_read='ALL')
         can_create = False
+
+    pages = (p for p in pages if not p.current_version().redirect)
 
     context = {'offering': offering, 'pages': pages, 'can_create': can_create, 'member': member}
     return render(request, 'pages/all_pages.html', context)
@@ -126,6 +168,21 @@ def view_page(request, course_slug, page_label):
         else:
             # but most users just get a 301
             return redirect(url, permanent=True)
+
+    if version.redirect:
+        # this is a redirection stub: honour it.
+        url = urljoin(page.get_absolute_url(), version.redirect)
+        member = _check_allowed(request, offering, offering.page_creators())  # users who can create pages
+        can_create = bool(member)
+        if can_create:
+            # show these users a message so they can see what's happening
+            redirect_url = url
+        else:
+            # but most users just get a 301/410
+            resp = redirect(url, permanent=True)
+            if version.redirect_reason() == 'delete':
+                resp.status_code = 410
+            return resp
 
     is_index = page_label=='Index'
     if is_index:
@@ -213,7 +270,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     """
     View to create and edit pages
     """
-    if 'delete' in request.POST and request.POST['delete'] == 'yes':
+    if request.method == 'POST' and 'delete' in request.POST and request.POST['delete'] == 'yes':
         return _delete_pagefile(request, course_slug, page_label, kind)
     with django.db.transaction.atomic():
         offering = get_object_or_404(CourseOffering, slug=course_slug)
@@ -221,11 +278,16 @@ def _edit_pagefile(request, course_slug, page_label, kind):
             page = get_object_or_404(Page, offering=offering, label=page_label)
             version = page.current_version()
             member = _check_allowed(request, offering, page.can_write, page.editdate())
+            old_label = page.label
         else:
             page = None
             version = None
             member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
-        
+            old_label = None
+
+        if isinstance(member, PagePermission):
+            return ForbiddenResponse(request, 'Editing of pages by additional-permission holders is not implemented. Sorry')
+
         # make sure we're looking at the right "kind" (page/file)
         if not kind:
             kind = "file" if version.is_filepage() else "page"
@@ -267,6 +329,21 @@ def _edit_pagefile(request, course_slug, page_label, kind):
                     instance.set_editdate(form.cleaned_data['editdate'])
                 elif not restricted:
                     instance.set_editdate(None)
+
+                instance.redirect = None
+
+                if old_label and old_label != instance.label:
+                    # page has been moved to a new URL: leave a redirect in its place
+                    redir_page = Page(offering=instance.offering, label=old_label,
+                                      can_read=instance.can_read, can_write=offering.page_creators())
+                    redir_page.set_releasedate(instance.releasedate())
+                    redir_page.set_editdate(instance.editdate())
+                    redir_page.save()
+                    redir_version = PageVersion(page=redir_page, title=version.title, redirect=instance.label,
+                                                editor=member, comment='automatically generated on label change')
+                    redir_version.set_redirect_reason('rename')
+                    redir_version.save()
+                    messages.info(request, 'Page label changed: the old location (%s) will redirect to this page.' % (old_label,))
 
                 instance.save()
                 
@@ -319,7 +396,7 @@ def _delete_pagefile(request, course_slug, page_label, kind):
     with django.db.transaction.atomic():
         offering = get_object_or_404(CourseOffering, slug=course_slug)
         page = get_object_or_404(Page, offering=offering, label=page_label)
-        #version = page.current_version()
+        version = page.current_version()
         member = _check_allowed(request, offering, page.can_write, page.editdate())
         if not member:
             return ForbiddenResponse(request, 'Not allowed to edit this '+kind+'.')
@@ -327,14 +404,26 @@ def _delete_pagefile(request, course_slug, page_label, kind):
         if not can_create:
             return ForbiddenResponse(request, 'Not allowed to delete pages in for this offering (must have page-creator permission).')
 
-        page.safely_delete()
+        from django.core.validators import URLValidator
+        from django.core.exceptions import ValidationError
+        val = URLValidator()
 
-        messages.success(request, "Page deleted (but can be recovered by an administrator in an emergency).")
-        return HttpResponseRedirect(reverse(index_page, kwargs={'course_slug': course_slug}))
+        redirect = request.POST.get('redirect', 'Index')
+        url = request.build_absolute_uri(urljoin(page.get_absolute_url(), redirect))
 
+        try:
+            val(url)
+        except ValidationError:
+            messages.error(request, "Bad redirect URL entered. Not deleted.")
+            return HttpResponseRedirect(reverse(edit_page, kwargs={'course_slug': course_slug, 'page_label': page.label}))
 
+        redir_version = PageVersion(page=page, title=version.title, redirect=redirect,
+                                    editor=member, comment='automatically generated on deletion')
+        redir_version.set_redirect_reason('delete')
+        redir_version.save()
 
-
+        messages.success(request, "Page deleted and will redirect to this location.")
+        return HttpResponseRedirect(urljoin(page.get_absolute_url(), redirect))
 
 
 def convert_content(request, course_slug, page_label=None):
@@ -489,10 +578,13 @@ def _pages_from_json(request, offering, data):
             # check write permissions
             
             # mock the request object enough to satisfy _check_allowed()
-            class FakeRequest(object): pass
+            class FakeRequest(object):
+                def is_authenticated(self):
+                    return True
             fake_request = FakeRequest()
             fake_request.user = FakeRequest()
             fake_request.user.username = user.userid
+
             if old_ver:
                 m = _check_allowed(fake_request, offering, page.can_write, page.editdate())
             else:

@@ -215,12 +215,17 @@ def create_coredata():
 
     d = Person.objects.get(userid='dzhao')
     set_privacy_signed(d)
-    r1 = Role(person=d, role='ADVS', unit=Unit.objects.get(slug='cmpt'))
+    u = Unit.objects.get(slug='cmpt')
+    r1 = Role(person=d, role='ADVS', unit=u)
     r1.save()
-    r2 = Role(person=d, role='ADMN', unit=Unit.objects.get(slug='cmpt'))
+    r2 = Role(person=d, role='ADMN', unit=u)
     r2.save()
     r3 = Role(person=Person.objects.get(userid='pba7'), role='SYSA', unit=Unit.objects.get(slug='univ'))
     r3.save()
+    r4 = Role(person=d, role='INV', unit=u)
+    r4.save()
+    r5 = Role(person=d, role='OUTR', unit=u)
+    r5.save()
 
     # ensures course appears in menu for students
     a = NumericActivity(offering=o, name=u'Assignmenț 1', short_name='A1', status='URLS', position=1, percent=10,
@@ -234,7 +239,7 @@ def create_coredata():
         CourseOffering.objects.all(),
         Person.objects.order_by('emplid'),
         Member.objects.all(),
-        [r1, r2, r3, a.activity_ptr, a],
+        [r1, r2, r3, r4, r5, a.activity_ptr, a],
     )
 
 def create_test_offering():
@@ -690,6 +695,54 @@ def create_onlineforms():
     )
 
 
+def create_outreach():
+    from outreach.models import OutreachEvent, OutreachEventRegistration
+    unit = Unit.objects.get(slug='cmpt')
+    start = datetime.datetime(2099,01,01,00,00,00) # Start a long time from now so the tests are always valid
+    end = start + datetime.timedelta(days=2)
+    e = OutreachEvent(title='A Test Event', start_date=start, end_date=end, unit=unit, notes='Here are some notes',
+                      description='An event to test', slug='devtest_a_test_event')
+    e.save()
+    r = OutreachEventRegistration(event=e, parent_name='Joe Smith Sr.', last_name='SomePerson', first_name='Bob',
+                                  school='Little Lord Fauntleroy School for Albino Hemophiliacs')
+    r.save()
+    return itertools.chain(
+        OutreachEvent.objects.all(),
+        OutreachEventRegistration.objects.all(),
+    )
+def create_sessionals():
+    from sessionals.models import SessionalAccount, SessionalContract
+    from coredata.models import AnyPerson, Person
+    unit = Unit.objects.get(slug='cmpt')
+    a = SessionalAccount(unit=unit, title='SFUFA Account', account_number='234', position_number=123456,
+                         slug='cmpt-234-sfufa-account')
+    a.save()
+    p = Person.objects.get(userid='0ggg1')
+    ap = AnyPerson.get_or_create_for(person=p)
+    ap.save()
+    co = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+    c = SessionalContract(account=a, sessional=ap, offering=co, appointment_start=co.semester.start,
+                          appointment_end=co.semester.end, pay_start=co.semester.start - datetime.timedelta(days=2),
+                          pay_end=co.semester.end - datetime.timedelta(days=2), slug='a-test-sessionalcontract',
+                          sin='000000000', contact_hours=45.6, total_salary=4657.95, created_by='devtest', unit=unit)
+    c.save()
+    return itertools.chain(
+        SessionalAccount.objects.all(),
+        AnyPerson.objects.all(),
+        SessionalContract.objects.all(),
+    )
+
+
+def create_inventory():
+    from inventory.models import Asset
+    unit = Unit.objects.get(slug='cmpt')
+    a = Asset(unit=unit, name='Something', brand='Baycrest', slug='cmpt-something',
+              location='In the dining room, with the candlestick')
+    a.save()
+    return itertools.chain(
+        Asset.objects.all(),
+    )
+
 def serialize_result(data_func, filename):
     print "creating %s.json" % (filename)
     start = time.time()
@@ -713,6 +766,9 @@ def main():
     serialize_result(create_grad, 'grad')
     serialize_result(create_onlineforms, 'onlineforms')
     serialize_result(create_ta_ra, 'ta_ra')
+    serialize_result(create_outreach, 'outreach')
+    serialize_result(create_sessionals, 'sessionals')
+    serialize_result(create_inventory, 'inventory')
 
 if __name__ == "__main__":
     hostname = socket.gethostname()

@@ -1447,6 +1447,8 @@ def edit_posting(request, post_slug=None):
     if current_contact:
         contact_choices.append((current_contact.id, current_contact.name()))
     contact_choices = list(set(contact_choices))
+    # Let's sort these choices by name at least.
+    contact_choices = sorted(contact_choices, key=lambda name: name[1])
     
     if request.method == "POST":
         form = TAPostingForm(data=request.POST, instance=posting)

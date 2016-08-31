@@ -153,12 +153,18 @@ def edit_member(request, member_id=None):
 @requires_global_role("SYSA")
 def user_summary(request, userid):
     query = find_userid_or_emplid(userid)
-    user = get_object_or_404(Person, query)
+    person = get_object_or_404(Person, query)
+
+    if request.method == 'POST':
+        from coredata.importer import import_person
+        grad_data = 'import-grad' in request.POST
+        person = import_person(person, commit=True, grad_data=grad_data)
+        messages.success(request, 'Imported SIMS data for %s.' % (person.userid_or_emplid()))
     
-    memberships = Member.objects.filter(person=user)
-    roles = Role.objects.filter(person=user).exclude(role="NONE")
+    memberships = Member.objects.filter(person=person)
+    roles = Role.objects.filter(person=person).exclude(role="NONE")
     
-    context = {'user': user, 'memberships': memberships, 'roles': roles}
+    context = {'person': person, 'memberships': memberships, 'roles': roles}
     return render(request, "coredata/user_summary.html", context)
 
 @requires_global_role("SYSA")

@@ -40,7 +40,8 @@ function confirmDelete() {
     <thead>
       <tr>
         <th scope="col">Project Number</th>
-        <th scope="col">Position Number</th>
+        <th scope="col">Fund Number</th>
+        <th scope="col">Department Number</th>
         <th scope="col">Unit</th>
         <th scope="col">Actions</th>
       </tr>
@@ -50,6 +51,7 @@ function confirmDelete() {
         <tr>
           <td scope="row"><span class="sort">{{project.project_number}}</span>{{project.project_number}}</td>
           <td>{{project.fund_number}}</td>
+          <td>{{ project.department_code }}</td>
           <td>{{project.unit}}</td>
           <td><a href="{% url "ra.views.edit_project" project_slug=project.slug %}">Edit</a>
                 | 

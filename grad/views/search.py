@@ -113,7 +113,13 @@ def search(request):
 
     scholarshiptype_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False)]
 
-    program_choices = [(gp.id, gp.label) for gp in GradProgram.objects.filter(unit__in=request.units, hidden=False)]
+    # If the user has the grad role for more than one unit, append the unit label to the name of the program so
+    # they know which one they are looking at.
+    if len(request.units) > 1:
+        program_choices = [(gp.id, "%s - %s" % (gp.unit.label, gp.label)) for gp in
+                           GradProgram.objects.filter(unit__in=request.units, hidden=False)]
+    else:
+        program_choices = [(gp.id, gp.label) for gp in GradProgram.objects.filter(unit__in=request.units, hidden=False)]
 
     status_choices = [(st,desc) for st,desc in STATUS_CHOICES if st not in STATUS_OBSOLETE] + [('', 'None')]
 

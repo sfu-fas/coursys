@@ -76,6 +76,8 @@
       </td></tr>
     <tr><th>Position Number:</th>
       <td>{{ appointment.account.position_number }}</td></tr>
+    <tr><th>Department Number</th>
+      <td>{{ appointment.project.department_code }}</td></tr>
     <tr><th>Start Date:</th>
       <td>{{ appointment.start_date|date:GRAD_DATE_FORMAT }}</td></tr>
     <tr><th>End Date:</th>
@@ -130,9 +132,9 @@
 <div class="table_container">
   <h2>Other Information</h2>
   <table class="info">
-    <tr><th>Notes:</th>
-      <td>{{ appointment.notes|linebreaksbr }}</td></tr>
     <tr><th>Comments:</th>
+      <td>{{ appointment.notes|linebreaksbr }}</td></tr>
+    <tr><th>Notes:</th>
       <td>{{ appointment.comments|linebreaksbr }}</td></tr>
   </table>
 </div>

@@ -44,5 +44,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(escape_page_entities),
+        #migrations.RunPython(escape_page_entities),
     ]

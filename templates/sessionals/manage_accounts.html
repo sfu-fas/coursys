@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Manage Accounts{% endblock %}
+{% block h1 %}Manage Accounts{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#accounts').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']]
+  } );
+} );
+
+function confirmDelete() {
+  return confirm("Are you sure you want to delete this account?");
+}
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'sessionals:sessionals_index' %}">Sessionals</a></li>
+    <li>Manage Accounts</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url 'sessionals:new_account' %}">New Account</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    {% if accounts %}
+    <table id="accounts" class="display">
+        <thead>
+            <tr>
+                <td>Title</td>
+                <td>Unit</td>
+                <td>Account Number</td>
+                <td>Position Number</td>
+                <td>Actions</td>
+            </tr>
+        </thead>
+        {% for account in accounts %}
+            <tr>
+                <td>{{ account.title }}</td>
+                <td>{{ account.unit }}</td>
+                <td>{{ account.account_number }}</td>
+                <td>{{ account.position_number }}</td>
+                <td>
+                    <form class="lineform" method="POST"
+                          action="{% url "sessionals:delete_account" account_id=account.id %}"
+                          onsubmit="return confirmDelete()">
+                        {% csrf_token %}
+                        <button type='submit' class='btn' title="Hide Account">
+                            <i class='fa fa-trash-o'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "sessionals:edit_account" account_slug=account.slug %}">
+                        <button type='submit' class='btn' title="Edit Account">
+                            <i class='fa fa-edit'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "sessionals:view_account" account_slug=account.slug %}">
+                        <button type='submit' class='btn' title="View account">
+                            <i class='fa fa-eye'></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <div>There are no accounts to display</div>
+    {% endif %}
+
+{% endblock %}

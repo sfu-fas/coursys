@@ -50,14 +50,8 @@ def check_sims_connection():
         raise SIMSProblem("Didn't get any data back from SIMS query.")
 
 
-
-
-
-
-
-
-
-
+import logging
+logger = logging.getLogger(__name__)
 
 
 # daily import tasks

@@ -233,12 +233,15 @@ class CalNumericActivityForm(ActivityForm):
                     help_text=mark_safe('Formula to calculate the numeric grade: see <a href="#help">formula help</a> below for more info'),
                     widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
     showstats = forms.BooleanField(initial=True, required=False,
-            label="Show summary stats:", 
+            label="Show summary stats",
             help_text="Should students be able to view the summary stats: max, min, median, etc?")
     showhisto = forms.BooleanField(initial=True, required=False,
-            label="Show histogram:", 
+            label="Show histogram",
             help_text="Should students be able to view the grade distribution histogram?")
-    
+    calculation_leak = forms.BooleanField(initial=False, required=False,
+            label="Allow leaking unreleased",
+            help_text="Include unreleased grades in the calculation, even after this grade is released? May leak unreleased grades to students.")
+
     def activate_addform_validation(self, course_slug):
         super(CalNumericActivityForm, self).activate_addform_validation(course_slug)
         self._course_numeric_activities = NumericActivity.objects.filter(offering__slug=course_slug, deleted=False)

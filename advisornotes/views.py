@@ -661,7 +661,7 @@ def view_course_notes(request, unit_course_slug):
     """
     course = get_object_or_404(Course, slug=unit_course_slug)
     offerings = CourseOffering.objects.filter(course=course)
-    notes = ArtifactNote.objects.filter(course=course, unit__in=request.units).order_by('category', 'created_at')
+    notes = ArtifactNote.objects.filter(course=course, unit__in=request.units).order_by('-created_at')
     important_notes = notes.filter(important=True)
     notes = notes.exclude(important=True)
 

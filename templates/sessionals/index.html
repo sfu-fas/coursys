@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Sessionals{% endblock %}
+{% block h1 %}Sessionals{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li>Sessionals</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url 'sessionals:new_contract' %}">New Contract</a></li>
+        <li class="newsec"><a href="{% url 'sessionals:manage_accounts' %}">Manage Accounts</a></li>
+        <li><a href="{% url 'sessionals:manage_configs' %}">Manage Default Configurations</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#sessionals').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']]
+  } );
+} );
+
+function confirmDelete() {
+    return confirm("Are you sure you want to delete this contract?");
+}
+</script>
+{% endblock %}
+
+{% block content %}
+{% if sessionals %}
+    <table id="sessionals">
+    <thead>
+        <tr>
+            <td>Name</td>
+            <td>Unit</td>
+            <td>Course</td>
+            <td>Actions</td>
+        </tr>
+    </thead>
+    {% for contract in sessionals %}
+        <tr>
+            <td>{{ contract.sessional.get_person }}</td>
+            <td>{{ contract.unit }}</td>
+            <td>{{ contract.offering }}</td>
+            <td>
+                <form class="lineform" method="POST"
+                      action="{% url "sessionals:delete_contract" contract_id=contract.id %}"
+                      onsubmit="return confirmDelete()">
+                    {% csrf_token %}
+                    <button type='submit' class='btn' title="Delete contract">
+                        <i class='fa fa-trash-o'></i>
+                    </button>
+                </form>
+                <form class="lineform" method="GET"
+                      action="{% url "sessionals:print_form" contract_slug=contract.slug %}">
+                      <button type='submit' class='btn' title="Print sessional instructor form">
+                          <i class='fa fa-print'></i>
+                      </button>
+                </form>
+                <form class="lineform" method="GET"
+                    action="{% url "sessionals:edit_contract" contract_slug=contract.slug %}">
+                    <button type='submit' class='btn' title="Edit contract">
+                        <i class='fa fa-edit'></i>
+                    </button>
+                </form>
+                <form class="lineform" method="GET"
+                    action="{% url "sessionals:view_contract" contract_slug=contract.slug %}">
+                    <button type='submit' class='btn' title="View contract">
+                        <i class='fa fa-eye'></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+{% else %}
+    <div>There are no sessional contracts to display.</div>
+{% endif %}
+
+{% endblock %}

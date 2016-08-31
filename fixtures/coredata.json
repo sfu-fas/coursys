@@ -208,6 +208,33 @@
 },
 {
  "fields": {
+  "monday": "2017-09-04",
+  "semester": 157,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 157
+},
+{
+ "fields": {
+  "monday": "2018-01-08",
+  "semester": 158,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 158
+},
+{
+ "fields": {
+  "monday": "2018-05-07",
+  "semester": 159,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 159
+},
+{
+ "fields": {
   "acad_org": "COMP SCI",
   "config": "{\"deptid\":\"12345\",\"web\":\"http://www.cs.sfu.ca/\",\"fax\":\"778-782-3045\",\"tel\":\"778-782-4277\",\"informal_name\":\"Computing Science\",\"address\":[\"9971 Applied Sciences Building\",\"8888 University Drive, Burnaby, BC\",\"Canada V5A 1S6\"],\"email\":\"csdept@sfu.ca\"}",
   "label": "CMPT",
@@ -275,7 +302,7 @@
   "title": "Intro.Cmpt.Sci/Programming I"
  },
  "model": "coredata.course",
- "pk": 3
+ "pk": 1
 },
 {
  "fields": {
@@ -286,18 +313,7 @@
   "title": "Intro.Cmpt.Sci/Programming II"
  },
  "model": "coredata.course",
- "pk": 4
-},
-{
- "fields": {
-  "config": "{}",
-  "number": "126",
-  "slug": "cmpt-126",
-  "subject": "CMPT",
-  "title": "Intro.Cmpt.Sci and Programming"
- },
- "model": "coredata.course",
- "pk": 5
+ "pk": 2
 },
 {
  "fields": {
@@ -308,7 +324,7 @@
   "title": "Computing Laboratory"
  },
  "model": "coredata.course",
- "pk": 6
+ "pk": 3
 },
 {
  "fields": {
@@ -319,6 +335,17 @@
   "title": "Intro. Cmpt.Sci/Prgm/Engineers"
  },
  "model": "coredata.course",
+ "pk": 6
+},
+{
+ "fields": {
+  "config": "{}",
+  "number": "129",
+  "slug": "cmpt-129",
+  "subject": "CMPT",
+  "title": "Intro. to CS for Maths"
+ },
+ "model": "coredata.course",
  "pk": 7
 },
 {
@@ -327,10 +354,10 @@
   "number": "100W",
   "slug": "ensc-100w",
   "subject": "ENSC",
-  "title": "Eng. Technology and Society"
+  "title": "Engineering, Science & Society"
  },
  "model": "coredata.course",
- "pk": 2
+ "pk": 5
 },
 {
  "fields": {
@@ -341,41 +368,15 @@
   "title": "Process of Prof. Writing"
  },
  "model": "coredata.course",
- "pk": 1
+ "pk": 4
 },
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 7367,
+  "class_nbr": 8692,
   "component": "LEC",
   "config": "{}",
-  "course": 3,
-  "crse_id": 14580,
-  "enrl_cap": 156,
-  "enrl_tot": 0,
-  "flags": "10",
-  "graded": true,
-  "instr_mode": "P",
-  "number": "120",
-  "owner": 5,
-  "section": "D100",
-  "semester": 151,
-  "slug": "2015fa-cmpt-120-d1",
-  "subject": "CMPT",
-  "title": "Intro.Cmpt.Sci/Programming I",
-  "units": 3,
-  "wait_tot": 0
- },
- "model": "coredata.courseoffering",
- "pk": 10
-},
-{
- "fields": {
-  "campus": "BRNBY",
-  "class_nbr": 7375,
-  "component": "LEC",
-  "config": "{}",
-  "course": 3,
+  "course": 1,
   "crse_id": 14580,
   "enrl_cap": 208,
   "enrl_tot": 0,
@@ -384,24 +385,24 @@
   "instr_mode": "P",
   "number": "120",
   "owner": 5,
-  "section": "D200",
-  "semester": 151,
-  "slug": "2015fa-cmpt-120-d2",
+  "section": "D100",
+  "semester": 155,
+  "slug": "2017sp-cmpt-120-d1",
   "subject": "CMPT",
   "title": "Intro.Cmpt.Sci/Programming I",
   "units": 3,
   "wait_tot": 0
  },
  "model": "coredata.courseoffering",
- "pk": 11
+ "pk": 18
 },
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 7385,
+  "class_nbr": 8712,
   "component": "LEC",
   "config": "{}",
-  "course": 4,
+  "course": 2,
   "crse_id": 14581,
   "enrl_cap": 192,
   "enrl_tot": 0,
@@ -411,23 +412,23 @@
   "number": "125",
   "owner": 5,
   "section": "D100",
-  "semester": 151,
-  "slug": "2015fa-cmpt-125-d1",
+  "semester": 155,
+  "slug": "2017sp-cmpt-125-d1",
   "subject": "CMPT",
   "title": "Intro.Cmpt.Sci/Programming II",
   "units": 3,
   "wait_tot": 0
  },
  "model": "coredata.courseoffering",
- "pk": 12
+ "pk": 19
 },
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 7387,
+  "class_nbr": 8714,
   "component": "LAB",
   "config": "{}",
-  "course": 6,
+  "course": 3,
   "crse_id": 17292,
   "enrl_cap": 64,
   "enrl_tot": 0,
@@ -437,23 +438,23 @@
   "number": "127",
   "owner": 5,
   "section": "D100",
-  "semester": 151,
-  "slug": "2015fa-cmpt-127-d1",
+  "semester": 155,
+  "slug": "2017sp-cmpt-127-d1",
   "subject": "CMPT",
   "title": "Computing Laboratory",
   "units": 3,
   "wait_tot": 0
  },
  "model": "coredata.courseoffering",
- "pk": 13
+ "pk": 20
 },
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 7388,
+  "class_nbr": 8715,
   "component": "LAB",
   "config": "{}",
-  "course": 6,
+  "course": 3,
   "crse_id": 17292,
   "enrl_cap": 64,
   "enrl_tot": 0,
@@ -463,23 +464,23 @@
   "number": "127",
   "owner": 5,
   "section": "D200",
-  "semester": 151,
-  "slug": "2015fa-cmpt-127-d2",
+  "semester": 155,
+  "slug": "2017sp-cmpt-127-d2",
   "subject": "CMPT",
   "title": "Computing Laboratory",
   "units": 3,
   "wait_tot": 0
  },
  "model": "coredata.courseoffering",
- "pk": 14
+ "pk": 21
 },
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 7389,
+  "class_nbr": 8716,
   "component": "LAB",
   "config": "{}",
-  "course": 6,
+  "course": 3,
   "crse_id": 17292,
   "enrl_cap": 64,
   "enrl_tot": 0,
@@ -489,12 +490,194 @@
   "number": "127",
   "owner": 5,
   "section": "D300",
-  "semester": 151,
-  "slug": "2015fa-cmpt-127-d3",
+  "semester": 155,
+  "slug": "2017sp-cmpt-127-d3",
   "subject": "CMPT",
   "title": "Computing Laboratory",
   "units": 3,
   "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 22
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 8717,
+  "component": "LEC",
+  "config": "{}",
+  "course": 7,
+  "crse_id": 17605,
+  "enrl_cap": 130,
+  "enrl_tot": 0,
+  "flags": "2",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "129",
+  "owner": 5,
+  "section": "D100",
+  "semester": 155,
+  "slug": "2017sp-cmpt-129-d1",
+  "subject": "CMPT",
+  "title": "Intro. to CS for Maths",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 23
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 7030,
+  "component": "LEC",
+  "config": "{}",
+  "course": 1,
+  "crse_id": 14580,
+  "enrl_cap": 120,
+  "enrl_tot": 117,
+  "flags": "10",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "120",
+  "owner": 5,
+  "section": "D100",
+  "semester": 154,
+  "slug": "2016fa-cmpt-120-d1",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci/Programming I",
+  "units": 3,
+  "wait_tot": 49
+ },
+ "model": "coredata.courseoffering",
+ "pk": 10
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 7037,
+  "component": "LEC",
+  "config": "{}",
+  "course": 1,
+  "crse_id": 14580,
+  "enrl_cap": 225,
+  "enrl_tot": 158,
+  "flags": "10",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "120",
+  "owner": 5,
+  "section": "D200",
+  "semester": 154,
+  "slug": "2016fa-cmpt-120-d2",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci/Programming I",
+  "units": 3,
+  "wait_tot": 95
+ },
+ "model": "coredata.courseoffering",
+ "pk": 11
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 7052,
+  "component": "LEC",
+  "config": "{}",
+  "course": 2,
+  "crse_id": 14581,
+  "enrl_cap": 128,
+  "enrl_tot": 119,
+  "flags": "2",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "125",
+  "owner": 5,
+  "section": "D100",
+  "semester": 154,
+  "slug": "2016fa-cmpt-125-d1",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci/Programming II",
+  "units": 3,
+  "wait_tot": 27
+ },
+ "model": "coredata.courseoffering",
+ "pk": 12
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 7053,
+  "component": "LAB",
+  "config": "{}",
+  "course": 3,
+  "crse_id": 17292,
+  "enrl_cap": 60,
+  "enrl_tot": 60,
+  "flags": "0",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "127",
+  "owner": 5,
+  "section": "D100",
+  "semester": 154,
+  "slug": "2016fa-cmpt-127-d1",
+  "subject": "CMPT",
+  "title": "Computing Laboratory",
+  "units": 3,
+  "wait_tot": 14
+ },
+ "model": "coredata.courseoffering",
+ "pk": 13
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 7054,
+  "component": "LAB",
+  "config": "{}",
+  "course": 3,
+  "crse_id": 17292,
+  "enrl_cap": 60,
+  "enrl_tot": 60,
+  "flags": "0",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "127",
+  "owner": 5,
+  "section": "D200",
+  "semester": 154,
+  "slug": "2016fa-cmpt-127-d2",
+  "subject": "CMPT",
+  "title": "Computing Laboratory",
+  "units": 3,
+  "wait_tot": 15
+ },
+ "model": "coredata.courseoffering",
+ "pk": 14
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 7055,
+  "component": "LAB",
+  "config": "{}",
+  "course": 3,
+  "crse_id": 17292,
+  "enrl_cap": 60,
+  "enrl_tot": 3,
+  "flags": "0",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "127",
+  "owner": 5,
+  "section": "D300",
+  "semester": 154,
+  "slug": "2016fa-cmpt-127-d3",
+  "subject": "CMPT",
+  "title": "Computing Laboratory",
+  "units": 3,
+  "wait_tot": 4
  },
  "model": "coredata.courseoffering",
  "pk": 15
@@ -502,25 +685,25 @@
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 7391,
+  "class_nbr": 7057,
   "component": "LEC",
   "config": "{}",
-  "course": 7,
+  "course": 6,
   "crse_id": 14583,
-  "enrl_cap": 156,
-  "enrl_tot": 0,
+  "enrl_cap": 150,
+  "enrl_tot": 147,
   "flags": "10",
   "graded": true,
   "instr_mode": "P",
   "number": "128",
   "owner": 5,
   "section": "D100",
-  "semester": 151,
-  "slug": "2015fa-cmpt-128-d1",
+  "semester": 154,
+  "slug": "2016fa-cmpt-128-d1",
   "subject": "CMPT",
   "title": "Intro. Cmpt.Sci/Prgm/Engineers",
   "units": 3,
-  "wait_tot": 0
+  "wait_tot": 18
  },
  "model": "coredata.courseoffering",
  "pk": 16
@@ -528,25 +711,25 @@
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 7392,
+  "class_nbr": 7063,
   "component": "LEC",
   "config": "{}",
-  "course": 7,
+  "course": 6,
   "crse_id": 14583,
-  "enrl_cap": 104,
-  "enrl_tot": 0,
+  "enrl_cap": 100,
+  "enrl_tot": 41,
   "flags": "10",
   "graded": true,
   "instr_mode": "P",
   "number": "128",
   "owner": 5,
   "section": "D200",
-  "semester": 151,
-  "slug": "2015fa-cmpt-128-d2",
+  "semester": 154,
+  "slug": "2016fa-cmpt-128-d2",
   "subject": "CMPT",
   "title": "Intro. Cmpt.Sci/Prgm/Engineers",
   "units": 3,
-  "wait_tot": 0
+  "wait_tot": 14
  },
  "model": "coredata.courseoffering",
  "pk": 17
@@ -554,49 +737,75 @@
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 4429,
+  "class_nbr": 4844,
   "component": "LEC",
   "config": "{}",
-  "course": 2,
+  "course": 5,
   "crse_id": 14917,
-  "enrl_cap": 240,
-  "enrl_tot": 0,
+  "enrl_cap": 204,
+  "enrl_tot": 190,
   "flags": "12",
   "graded": true,
   "instr_mode": "P",
   "number": "100W",
   "owner": 3,
   "section": "D100",
-  "semester": 151,
-  "slug": "2015fa-ensc-100w-d1",
+  "semester": 154,
+  "slug": "2016fa-ensc-100w-d1",
   "subject": "ENSC",
-  "title": "Eng. Technology and Society",
+  "title": "Engineering, Science & Society",
   "units": 3,
-  "wait_tot": 0
+  "wait_tot": 1
  },
  "model": "coredata.courseoffering",
- "pk": 3
+ "pk": 9
 },
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 4407,
+  "class_nbr": 4828,
   "component": "LEC",
   "config": "{}",
-  "course": 1,
+  "course": 4,
   "crse_id": 16516,
-  "enrl_cap": 150,
-  "enrl_tot": 0,
+  "enrl_cap": 200,
+  "enrl_tot": 189,
   "flags": "1",
   "graded": true,
   "instr_mode": "P",
   "number": "105W",
   "owner": 3,
   "section": "D100",
-  "semester": 151,
-  "slug": "2015fa-ensc-105w-d1",
+  "semester": 154,
+  "slug": "2016fa-ensc-105w-d1",
   "subject": "ENSC",
   "title": "Process of Prof. Writing",
+  "units": 3,
+  "wait_tot": 1
+ },
+ "model": "coredata.courseoffering",
+ "pk": 8
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 4085,
+  "component": "LEC",
+  "config": "{}",
+  "course": 1,
+  "crse_id": 14580,
+  "enrl_cap": 208,
+  "enrl_tot": 190,
+  "flags": "10",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "120",
+  "owner": 5,
+  "section": "D100",
+  "semester": 153,
+  "slug": "2016su-cmpt-120-d1",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci/Programming I",
   "units": 3,
   "wait_tot": 0
  },
@@ -606,23 +815,23 @@
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 4426,
+  "class_nbr": 4093,
   "component": "LEC",
   "config": "{}",
-  "course": 1,
-  "crse_id": 16516,
-  "enrl_cap": 150,
-  "enrl_tot": 0,
-  "flags": "1",
+  "course": 2,
+  "crse_id": 14581,
+  "enrl_cap": 128,
+  "enrl_tot": 102,
+  "flags": "2",
   "graded": true,
   "instr_mode": "P",
-  "number": "105W",
-  "owner": 3,
-  "section": "D200",
-  "semester": 151,
-  "slug": "2015fa-ensc-105w-d2",
-  "subject": "ENSC",
-  "title": "Process of Prof. Writing",
+  "number": "125",
+  "owner": 5,
+  "section": "D100",
+  "semester": 153,
+  "slug": "2016su-cmpt-125-d1",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci/Programming II",
   "units": 3,
   "wait_tot": 0
  },
@@ -632,23 +841,49 @@
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 4513,
-  "component": "LEC",
+  "class_nbr": 4094,
+  "component": "LAB",
   "config": "{}",
   "course": 3,
-  "crse_id": 14580,
-  "enrl_cap": 182,
-  "enrl_tot": 171,
-  "flags": "10",
+  "crse_id": 17292,
+  "enrl_cap": 32,
+  "enrl_tot": 30,
+  "flags": "0",
   "graded": true,
   "instr_mode": "P",
-  "number": "120",
+  "number": "127",
   "owner": 5,
   "section": "D100",
-  "semester": 150,
-  "slug": "2015su-cmpt-120-d1",
+  "semester": 153,
+  "slug": "2016su-cmpt-127-d1",
   "subject": "CMPT",
-  "title": "Intro.Cmpt.Sci/Programming I",
+  "title": "Computing Laboratory",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 3
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 4095,
+  "component": "LAB",
+  "config": "{}",
+  "course": 3,
+  "crse_id": 17292,
+  "enrl_cap": 32,
+  "enrl_tot": 26,
+  "flags": "0",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "127",
+  "owner": 5,
+  "section": "D200",
+  "semester": 153,
+  "slug": "2016su-cmpt-127-d2",
+  "subject": "CMPT",
+  "title": "Computing Laboratory",
   "units": 3,
   "wait_tot": 0
  },
@@ -658,23 +893,23 @@
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 4514,
-  "component": "LEC",
+  "class_nbr": 4096,
+  "component": "CAN",
   "config": "{}",
-  "course": 4,
-  "crse_id": 14581,
-  "enrl_cap": 165,
-  "enrl_tot": 73,
-  "flags": "2",
+  "course": 3,
+  "crse_id": 17292,
+  "enrl_cap": 32,
+  "enrl_tot": 0,
+  "flags": "0",
   "graded": true,
   "instr_mode": "P",
-  "number": "125",
+  "number": "127",
   "owner": 5,
-  "section": "D100",
-  "semester": 150,
-  "slug": "2015su-cmpt-125-d1",
+  "section": "D300",
+  "semester": 153,
+  "slug": "2016su-cmpt-127-d3",
   "subject": "CMPT",
-  "title": "Intro.Cmpt.Sci/Programming II",
+  "title": "Computing Laboratory",
   "units": 3,
   "wait_tot": 0
  },
@@ -684,23 +919,23 @@
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 4515,
-  "component": "LEC",
+  "class_nbr": 4097,
+  "component": "CAN",
   "config": "{}",
-  "course": 5,
-  "crse_id": 14582,
-  "enrl_cap": 78,
-  "enrl_tot": 47,
-  "flags": "10",
+  "course": 3,
+  "crse_id": 17292,
+  "enrl_cap": 32,
+  "enrl_tot": 0,
+  "flags": "0",
   "graded": true,
   "instr_mode": "P",
-  "number": "126",
+  "number": "127",
   "owner": 5,
-  "section": "D100",
-  "semester": 150,
-  "slug": "2015su-cmpt-126-d1",
+  "section": "D400",
+  "semester": 153,
+  "slug": "2016su-cmpt-127-d4",
   "subject": "CMPT",
-  "title": "Intro.Cmpt.Sci and Programming",
+  "title": "Computing Laboratory",
   "units": 3,
   "wait_tot": 0
  },
@@ -710,21 +945,21 @@
 {
  "fields": {
   "campus": "BRNBY",
-  "class_nbr": 4519,
+  "class_nbr": 4098,
   "component": "LAB",
   "config": "{}",
-  "course": 6,
+  "course": 3,
   "crse_id": 17292,
-  "enrl_cap": 55,
-  "enrl_tot": 47,
+  "enrl_cap": 64,
+  "enrl_tot": 53,
   "flags": "0",
   "graded": true,
   "instr_mode": "P",
   "number": "127",
   "owner": 5,
-  "section": "LAB1",
-  "semester": 150,
-  "slug": "2015su-cmpt-127-lab1",
+  "section": "D500",
+  "semester": 153,
+  "slug": "2016su-cmpt-127-d5",
   "subject": "CMPT",
   "title": "Computing Laboratory",
   "units": 3,
@@ -732,58 +967,6 @@
  },
  "model": "coredata.courseoffering",
  "pk": 7
-},
-{
- "fields": {
-  "campus": "BRNBY",
-  "class_nbr": 4520,
-  "component": "LAB",
-  "config": "{}",
-  "course": 6,
-  "crse_id": 17292,
-  "enrl_cap": 55,
-  "enrl_tot": 29,
-  "flags": "0",
-  "graded": true,
-  "instr_mode": "P",
-  "number": "127",
-  "owner": 5,
-  "section": "LAB2",
-  "semester": 150,
-  "slug": "2015su-cmpt-127-lab2",
-  "subject": "CMPT",
-  "title": "Computing Laboratory",
-  "units": 3,
-  "wait_tot": 0
- },
- "model": "coredata.courseoffering",
- "pk": 8
-},
-{
- "fields": {
-  "campus": "BRNBY",
-  "class_nbr": 4521,
-  "component": "LAB",
-  "config": "{}",
-  "course": 6,
-  "crse_id": 17292,
-  "enrl_cap": 55,
-  "enrl_tot": 0,
-  "flags": "0",
-  "graded": true,
-  "instr_mode": "P",
-  "number": "127",
-  "owner": 5,
-  "section": "LAB3",
-  "semester": 150,
-  "slug": "2015su-cmpt-127-lab3",
-  "subject": "CMPT",
-  "title": "Computing Laboratory",
-  "units": 3,
-  "wait_tot": 0
- },
- "model": "coredata.courseoffering",
- "pk": 9
 },
 {
  "fields": {
@@ -839,7 +1022,7 @@
   "middle_name": "Raquel",
   "pref_first_name": "Diana",
   "temporary": false,
-  "title": null,
+  "title": "Dr",
   "userid": "diana"
  },
  "model": "coredata.person",
@@ -864,21 +1047,6 @@
  "fields": {
   "config": "{}",
   "emplid": 200000105,
-  "first_name": "John",
-  "last_name": "Jones",
-  "middle_name": "",
-  "pref_first_name": "John",
-  "temporary": false,
-  "title": "Dr",
-  "userid": "jones"
- },
- "model": "coredata.person",
- "pk": 11
-},
-{
- "fields": {
-  "config": "{}",
-  "emplid": 200000106,
   "first_name": "Anne",
   "last_name": "Lavergne",
   "middle_name": "",
@@ -893,7 +1061,7 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 200000107,
+  "emplid": 200000106,
   "first_name": "Fred",
   "last_name": "Popowich",
   "middle_name": "",
@@ -908,7 +1076,7 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 200000108,
+  "emplid": 200000107,
   "first_name": "Janice",
   "last_name": "Regan",
   "middle_name": "",
@@ -918,12 +1086,12 @@
   "userid": "jregan"
  },
  "model": "coredata.person",
- "pk": 10
+ "pk": 9
 },
 {
  "fields": {
   "config": "{}",
-  "emplid": 200000109,
+  "emplid": 200000108,
   "first_name": "Michael",
   "last_name": "Sjoerdsma",
   "middle_name": "Henri",
@@ -933,27 +1101,12 @@
   "userid": "mhs"
  },
  "model": "coredata.person",
- "pk": 12
+ "pk": 11
 },
 {
  "fields": {
   "config": "{}",
-  "emplid": 200000110,
-  "first_name": "Karol",
-  "last_name": "Swietlicki",
-  "middle_name": "Ryszard",
-  "pref_first_name": "Karol",
-  "temporary": false,
-  "title": "Mr",
-  "userid": "kswietli"
- },
- "model": "coredata.person",
- "pk": 14
-},
-{
- "fields": {
-  "config": "{}",
-  "emplid": 200000111,
+  "emplid": 200000109,
   "first_name": "Richard",
   "last_name": "Vaughan",
   "middle_name": "Terence",
@@ -963,12 +1116,12 @@
   "userid": "vaughan"
  },
  "model": "coredata.person",
- "pk": 9
+ "pk": 10
 },
 {
  "fields": {
   "config": "{}",
-  "emplid": 200000112,
+  "emplid": 200000110,
   "first_name": "Stephen",
   "last_name": "Whitmore",
   "middle_name": "",
@@ -978,15 +1131,15 @@
   "userid": "whitmore"
  },
  "model": "coredata.person",
- "pk": 13
+ "pk": 12
 },
 {
  "fields": {
-  "config": "{\"privacy_signed\":true,\"privacy_version\":1,\"privacy_date\":\"2015-06-23\"}",
-  "emplid": 200000113,
+  "config": "{\"privacy_signed\":true,\"privacy_version\":1,\"privacy_date\":\"2016-08-10\"}",
+  "emplid": 200000111,
   "first_name": "DanYu",
   "last_name": "Zhao",
-  "middle_name": "",
+  "middle_name": "Olivia",
   "pref_first_name": "DanYu",
   "temporary": false,
   "title": null,
@@ -999,13 +1152,28 @@
  "fields": {
   "config": "{}",
   "emplid": 300000300,
-  "first_name": "Hlrbgnto",
+  "first_name": "Cllauvlu",
   "last_name": "Student",
-  "middle_name": "Ltolah",
-  "pref_first_name": "Hlrb",
+  "middle_name": "Etv\u00e0px",
+  "pref_first_name": "Cllauvlu",
   "temporary": false,
   "title": null,
   "userid": "0aaa0"
+ },
+ "model": "coredata.person",
+ "pk": 13
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000301,
+  "first_name": "Ossqcuky",
+  "last_name": "Student",
+  "middle_name": "Avm\u00f5yu",
+  "pref_first_name": "Ossqcuky",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa1"
  },
  "model": "coredata.person",
  "pk": 15
@@ -1013,14 +1181,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000301,
-  "first_name": "Rjhzyjh\u00e0",
+  "emplid": 300000302,
+  "first_name": "Brrkk\u00f5lt",
   "last_name": "Student",
-  "middle_name": "Fcw\u00fabv",
-  "pref_first_name": "Rjhz",
+  "middle_name": "Ffofpx",
+  "pref_first_name": "Brrkk\u00f5lt",
   "temporary": false,
   "title": null,
-  "userid": "0aaa1"
+  "userid": "0aaa2"
  },
  "model": "coredata.person",
  "pk": 17
@@ -1028,14 +1196,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000302,
-  "first_name": "Yugezhof",
+  "emplid": 300000303,
+  "first_name": "Qx\u00eff\u00ef\u00f5ys",
   "last_name": "Student",
-  "middle_name": "Dv\u00eafqd",
-  "pref_first_name": "Yugezhof",
+  "middle_name": "Si\u00eaojj",
+  "pref_first_name": "Qx\u00eff",
   "temporary": false,
   "title": null,
-  "userid": "0aaa2"
+  "userid": "0aaa3"
  },
  "model": "coredata.person",
  "pk": 19
@@ -1043,14 +1211,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000303,
-  "first_name": "Qqkilhwh",
+  "emplid": 300000304,
+  "first_name": "Nbgolv\u00e0l",
   "last_name": "Student",
-  "middle_name": "Qguww\u00e0",
-  "pref_first_name": "Qqkilhwh",
+  "middle_name": "Qtjdkw",
+  "pref_first_name": "Nbgo",
   "temporary": false,
   "title": null,
-  "userid": "0aaa3"
+  "userid": "0aaa4"
  },
  "model": "coredata.person",
  "pk": 21
@@ -1058,14 +1226,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000304,
-  "first_name": "Y\u00ea\u00e0\u00f5\u00e0ghs",
+  "emplid": 300000305,
+  "first_name": "Idwte\u00efva",
   "last_name": "Student",
-  "middle_name": "T\u00f5puss",
-  "pref_first_name": "Y\u00ea\u00e0\u00f5",
+  "middle_name": "Asbnpr",
+  "pref_first_name": "Idwte\u00efva",
   "temporary": false,
   "title": null,
-  "userid": "0aaa4"
+  "userid": "0aaa5"
  },
  "model": "coredata.person",
  "pk": 23
@@ -1073,14 +1241,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000305,
-  "first_name": "Z\u00eamg\u00fanvb",
+  "emplid": 300000306,
+  "first_name": "Xmzkip\u00f5\u00ea",
   "last_name": "Student",
-  "middle_name": "Z\u00fanfna",
-  "pref_first_name": "Z\u00eamg\u00fanvb",
+  "middle_name": "Rin\u00efrt",
+  "pref_first_name": "Xmzk",
   "temporary": false,
   "title": null,
-  "userid": "0aaa5"
+  "userid": "0aaa6"
  },
  "model": "coredata.person",
  "pk": 25
@@ -1088,14 +1256,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000306,
-  "first_name": "Eiahefew",
+  "emplid": 300000307,
+  "first_name": "Rzby\u00eafzl",
   "last_name": "Student",
-  "middle_name": "Vedcoh",
-  "pref_first_name": "Eiah",
+  "middle_name": "Ftzjyw",
+  "pref_first_name": "Rzby\u00eafzl",
   "temporary": false,
   "title": null,
-  "userid": "0aaa6"
+  "userid": "0aaa7"
  },
  "model": "coredata.person",
  "pk": 27
@@ -1103,14 +1271,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000307,
-  "first_name": "Rmlhwebe",
+  "emplid": 300000308,
+  "first_name": "Lopun\u00fahc",
   "last_name": "Student",
-  "middle_name": "Jgurfb",
-  "pref_first_name": "Rmlh",
+  "middle_name": "Kjbcof",
+  "pref_first_name": "Lopun\u00fahc",
   "temporary": false,
   "title": null,
-  "userid": "0aaa7"
+  "userid": "0aaa8"
  },
  "model": "coredata.person",
  "pk": 29
@@ -1118,14 +1286,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000308,
-  "first_name": "Botnnkb\u00ef",
+  "emplid": 300000309,
+  "first_name": "Vvidp\u00f5\u00fa\u00f5",
   "last_name": "Student",
-  "middle_name": "X\u00f5wuha",
-  "pref_first_name": "Botn",
+  "middle_name": "Nuukqj",
+  "pref_first_name": "Vvidp\u00f5\u00fa\u00f5",
   "temporary": false,
   "title": null,
-  "userid": "0aaa8"
+  "userid": "0aaa9"
  },
  "model": "coredata.person",
  "pk": 31
@@ -1133,14 +1301,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000309,
-  "first_name": "Prdjvm\u00e0s",
+  "emplid": 300000310,
+  "first_name": "K\u00efnr\u00f5ads",
   "last_name": "Student",
-  "middle_name": "Vqjpjh",
-  "pref_first_name": "Prdjvm\u00e0s",
+  "middle_name": "Wiamjl",
+  "pref_first_name": "K\u00efnr\u00f5ads",
   "temporary": false,
   "title": null,
-  "userid": "0aaa9"
+  "userid": "0aaa10"
  },
  "model": "coredata.person",
  "pk": 33
@@ -1148,14 +1316,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000310,
-  "first_name": "Oxepso\u00efp",
+  "emplid": 300000311,
+  "first_name": "Ny\u00eanlpzv",
   "last_name": "Student",
-  "middle_name": "Mq\u00e0j\u00f5m",
-  "pref_first_name": "Oxepso\u00efp",
+  "middle_name": "A\u00faqoqy",
+  "pref_first_name": "Ny\u00ean",
   "temporary": false,
   "title": null,
-  "userid": "0aaa10"
+  "userid": "0aaa11"
  },
  "model": "coredata.person",
  "pk": 35
@@ -1163,14 +1331,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000311,
-  "first_name": "Y\u00efdl\u00e0ri\u00ea",
+  "emplid": 300000312,
+  "first_name": "Rmjod\u00f5vq",
   "last_name": "Student",
-  "middle_name": "Ystf\u00efj",
-  "pref_first_name": "Y\u00efdl\u00e0ri\u00ea",
+  "middle_name": "Snagm\u00ef",
+  "pref_first_name": "Rmjod\u00f5vq",
   "temporary": false,
   "title": null,
-  "userid": "0aaa11"
+  "userid": "0aaa12"
  },
  "model": "coredata.person",
  "pk": 37
@@ -1178,14 +1346,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000312,
-  "first_name": "Tvotawfk",
+  "emplid": 300000313,
+  "first_name": "Dsjig\u00e0p\u00ea",
   "last_name": "Student",
-  "middle_name": "Vd\u00ea\u00f5\u00efz",
-  "pref_first_name": "Tvotawfk",
+  "middle_name": "Eb\u00ef\u00ears",
+  "pref_first_name": "Dsjig\u00e0p\u00ea",
   "temporary": false,
   "title": null,
-  "userid": "0aaa12"
+  "userid": "0aaa13"
  },
  "model": "coredata.person",
  "pk": 39
@@ -1193,14 +1361,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000313,
-  "first_name": "Hwni\u00e0qia",
+  "emplid": 300000314,
+  "first_name": "Umibtblm",
   "last_name": "Student",
-  "middle_name": "Suzj\u00eft",
-  "pref_first_name": "Hwni",
+  "middle_name": "Fqfxc\u00fa",
+  "pref_first_name": "Umibtblm",
   "temporary": false,
   "title": null,
-  "userid": "0aaa13"
+  "userid": "0aaa14"
  },
  "model": "coredata.person",
  "pk": 41
@@ -1208,14 +1376,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000314,
-  "first_name": "Bvh\u00fa\u00eaanz",
+  "emplid": 300000315,
+  "first_name": "Pdhj\u00f5vbz",
   "last_name": "Student",
-  "middle_name": "Eaqujz",
-  "pref_first_name": "Bvh\u00fa\u00eaanz",
+  "middle_name": "Debxtz",
+  "pref_first_name": "Pdhj\u00f5vbz",
   "temporary": false,
   "title": null,
-  "userid": "0aaa14"
+  "userid": "0aaa15"
  },
  "model": "coredata.person",
  "pk": 43
@@ -1223,14 +1391,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000315,
-  "first_name": "Vgd\u00f5hi\u00f5h",
+  "emplid": 300000316,
+  "first_name": "Qlvgjyf\u00fa",
   "last_name": "Student",
-  "middle_name": "Jgq\u00fafc",
-  "pref_first_name": "Vgd\u00f5",
+  "middle_name": "Pqz\u00f5b\u00fa",
+  "pref_first_name": "Qlvgjyf\u00fa",
   "temporary": false,
   "title": null,
-  "userid": "0aaa15"
+  "userid": "0aaa16"
  },
  "model": "coredata.person",
  "pk": 45
@@ -1238,14 +1406,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000316,
-  "first_name": "Yrwczjgd",
+  "emplid": 300000317,
+  "first_name": "Tvlrewsk",
   "last_name": "Student",
-  "middle_name": "Snyvlk",
-  "pref_first_name": "Yrwczjgd",
+  "middle_name": "Sjlckg",
+  "pref_first_name": "Tvlr",
   "temporary": false,
   "title": null,
-  "userid": "0aaa16"
+  "userid": "0aaa17"
  },
  "model": "coredata.person",
  "pk": 47
@@ -1253,14 +1421,14 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000317,
-  "first_name": "Hkgnho\u00f5t",
+  "emplid": 300000318,
+  "first_name": "Rjul\u00ea\u00e0zd",
   "last_name": "Student",
-  "middle_name": "A\u00f5zivv",
-  "pref_first_name": "Hkgn",
+  "middle_name": "K\u00eart\u00ea\u00fa",
+  "pref_first_name": "Rjul",
   "temporary": false,
   "title": null,
-  "userid": "0aaa17"
+  "userid": "0aaa18"
  },
  "model": "coredata.person",
  "pk": 49
@@ -1268,332 +1436,317 @@
 {
  "fields": {
   "config": "{}",
-  "emplid": 300000318,
-  "first_name": "Kxacvjmp",
+  "emplid": 300000319,
+  "first_name": "Zohsd\u00eabr",
   "last_name": "Student",
-  "middle_name": "Bnhse\u00ea",
-  "pref_first_name": "Kxac",
+  "middle_name": "Tv\u00efqd\u00e0",
+  "pref_first_name": "Zohsd\u00eabr",
   "temporary": false,
   "title": null,
-  "userid": "0aaa18"
+  "userid": "0aaa19"
  },
  "model": "coredata.person",
  "pk": 51
 },
 {
  "fields": {
-  "config": "{}",
-  "emplid": 300000319,
-  "first_name": "Mpmxjrmc",
-  "last_name": "Student",
-  "middle_name": "Kwfu\u00eft",
-  "pref_first_name": "Mpmxjrmc",
-  "temporary": false,
-  "title": null,
-  "userid": "0aaa19"
- },
- "model": "coredata.person",
- "pk": 53
-},
-{
- "fields": {
-  "config": "{\"gender\":\"F\",\"visa\":\"Other\",\"gpa\":0.97,\"citizen\":\"Canadian\"}",
+  "config": "{\"gender\":\"M\",\"visa\":\"Visitor\",\"gpa\":0.97,\"citizen\":\"OtherCountrian\"}",
   "emplid": 300000500,
-  "first_name": "Fazocvze",
+  "first_name": "Aa\u00easmzje",
   "last_name": "Grad",
-  "middle_name": "D\u00efq\u00e0ls",
-  "pref_first_name": "Fazocvze",
+  "middle_name": "Dv\u00eftcw",
+  "pref_first_name": "Aa\u00easmzje",
   "temporary": false,
   "title": null,
   "userid": "0ggg0"
+ },
+ "model": "coredata.person",
+ "pk": 14
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"F\",\"visa\":\"Unknown\",\"gpa\":3.31,\"citizen\":\"Canadian\"}",
+  "emplid": 300000501,
+  "first_name": "Uzlf\u00eaeyp",
+  "last_name": "Grad",
+  "middle_name": "Umr\u00f5fy",
+  "pref_first_name": "Uzlf\u00eaeyp",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg1"
  },
  "model": "coredata.person",
  "pk": 16
 },
 {
  "fields": {
-  "config": "{\"gender\":\"F\",\"visa\":\"Live-in Ca\",\"gpa\":1.53,\"citizen\":\"OtherCountrian\"}",
-  "emplid": 300000501,
-  "first_name": "Cyrmyrvs",
+  "config": "{\"gender\":\"U\",\"visa\":\"Live-in Ca\",\"gpa\":2.22,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000502,
+  "first_name": "Kwuzgtzz",
   "last_name": "Grad",
-  "middle_name": "Pqrqnh",
-  "pref_first_name": "Cyrm",
+  "middle_name": "Dcyyn\u00f5",
+  "pref_first_name": "Kwuz",
   "temporary": false,
   "title": null,
-  "userid": "0ggg1"
+  "userid": "0ggg2"
  },
  "model": "coredata.person",
  "pk": 18
 },
 {
  "fields": {
-  "config": "{\"gender\":\"U\",\"visa\":\"Unknown\",\"gpa\":1.79,\"citizen\":\"OtherCountrian\"}",
-  "emplid": 300000502,
-  "first_name": "Njnn\u00eas\u00e0t",
+  "config": "{\"gender\":\"F\",\"visa\":\"Conv Refug\",\"gpa\":2.59,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000503,
+  "first_name": "Dwts\u00faenx",
   "last_name": "Grad",
-  "middle_name": "Nv\u00facpk",
-  "pref_first_name": "Njnn",
+  "middle_name": "Eegopn",
+  "pref_first_name": "Dwts",
   "temporary": false,
   "title": null,
-  "userid": "0ggg2"
+  "userid": "0ggg3"
  },
  "model": "coredata.person",
  "pk": 20
 },
 {
  "fields": {
-  "config": "{\"gender\":\"F\",\"visa\":\"New CDN\",\"gpa\":2.72,\"citizen\":\"OtherCountrian\"}",
-  "emplid": 300000503,
-  "first_name": "Isgpkjdg",
+  "config": "{\"gender\":\"M\",\"visa\":\"Conv Refug\",\"gpa\":1.18,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000504,
+  "first_name": "Dkq\u00eazk\u00e0e",
   "last_name": "Grad",
-  "middle_name": "Wimocc",
-  "pref_first_name": "Isgpkjdg",
+  "middle_name": "Vei\u00ef\u00e0\u00f5",
+  "pref_first_name": "Dkq\u00ea",
   "temporary": false,
   "title": null,
-  "userid": "0ggg3"
+  "userid": "0ggg4"
  },
  "model": "coredata.person",
  "pk": 22
 },
 {
  "fields": {
-  "config": "{\"gender\":\"U\",\"visa\":\"Min Permit\",\"gpa\":2.8,\"citizen\":\"OtherCountrian\"}",
-  "emplid": 300000504,
-  "first_name": "D\u00e0iyoztg",
+  "config": "{\"gender\":\"F\",\"visa\":\"Diplomat\",\"gpa\":1.58,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000505,
+  "first_name": "Tigijnjl",
   "last_name": "Grad",
-  "middle_name": "Lno\u00e0f\u00ef",
-  "pref_first_name": "D\u00e0iyoztg",
+  "middle_name": "Aqy\u00eauq",
+  "pref_first_name": "Tigijnjl",
   "temporary": false,
   "title": null,
-  "userid": "0ggg4"
+  "userid": "0ggg5"
  },
  "model": "coredata.person",
  "pk": 24
 },
 {
  "fields": {
-  "config": "{\"gender\":\"U\",\"visa\":\"Visitor\",\"gpa\":2.32,\"citizen\":\"Canadian\"}",
-  "emplid": 300000505,
-  "first_name": "Gbdbuyx\u00ea",
+  "config": "{\"gender\":\"F\",\"visa\":\"Unknown\",\"gpa\":2.81,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000506,
+  "first_name": "Uycuff\u00e0p",
   "last_name": "Grad",
-  "middle_name": "Jb\u00ef\u00f5eo",
-  "pref_first_name": "Gbdb",
+  "middle_name": "T\u00f5gs\u00f5f",
+  "pref_first_name": "Uycuff\u00e0p",
   "temporary": false,
   "title": null,
-  "userid": "0ggg5"
+  "userid": "0ggg6"
  },
  "model": "coredata.person",
  "pk": 26
 },
 {
  "fields": {
-  "config": "{\"gender\":\"M\",\"visa\":\"Student\",\"gpa\":3.3,\"citizen\":\"OtherCountrian\"}",
-  "emplid": 300000506,
-  "first_name": "Pkhi\u00f5\u00faen",
+  "config": "{\"gender\":\"M\",\"visa\":\"Other\",\"gpa\":1.63,\"citizen\":\"Canadian\"}",
+  "emplid": 300000507,
+  "first_name": "Sgz\u00eamzs\u00e0",
   "last_name": "Grad",
-  "middle_name": "Kakfbu",
-  "pref_first_name": "Pkhi",
+  "middle_name": "Ubyw\u00f5\u00f5",
+  "pref_first_name": "Sgz\u00eamzs\u00e0",
   "temporary": false,
   "title": null,
-  "userid": "0ggg6"
+  "userid": "0ggg7"
  },
  "model": "coredata.person",
  "pk": 28
 },
 {
  "fields": {
-  "config": "{\"gender\":\"F\",\"visa\":\"New CDN\",\"gpa\":3.4,\"citizen\":\"OtherCountrian\"}",
-  "emplid": 300000507,
-  "first_name": "Ux\u00efq\u00f5dmb",
+  "config": "{\"gender\":\"M\",\"visa\":\"Conv Refug\",\"gpa\":2.07,\"citizen\":\"Canadian\"}",
+  "emplid": 300000508,
+  "first_name": "Mprxt\u00e0\u00faj",
   "last_name": "Grad",
-  "middle_name": "Tqhm\u00e0q",
-  "pref_first_name": "Ux\u00efq\u00f5dmb",
+  "middle_name": "Uowhmi",
+  "pref_first_name": "Mprx",
   "temporary": false,
   "title": null,
-  "userid": "0ggg7"
+  "userid": "0ggg8"
  },
  "model": "coredata.person",
  "pk": 30
 },
 {
  "fields": {
-  "config": "{\"gender\":\"F\",\"visa\":\"Live-in Ca\",\"gpa\":0.42,\"citizen\":\"Canadian\"}",
-  "emplid": 300000508,
-  "first_name": "Hluh\u00f5vcg",
+  "config": "{\"gender\":\"U\",\"visa\":\"New CDN\",\"gpa\":2.32,\"citizen\":\"Canadian\"}",
+  "emplid": 300000509,
+  "first_name": "Ogpwjdc\u00ea",
   "last_name": "Grad",
-  "middle_name": "Kegbsl",
-  "pref_first_name": "Hluh\u00f5vcg",
+  "middle_name": "Wabczq",
+  "pref_first_name": "Ogpwjdc\u00ea",
   "temporary": false,
   "title": null,
-  "userid": "0ggg8"
+  "userid": "0ggg9"
  },
  "model": "coredata.person",
  "pk": 32
 },
 {
  "fields": {
-  "config": "{\"gender\":\"M\",\"visa\":\"Other\",\"gpa\":1.47,\"citizen\":\"Canadian\"}",
-  "emplid": 300000509,
-  "first_name": "Bre\u00eazstx",
+  "config": "{\"gender\":\"M\",\"visa\":\"Visitor\",\"gpa\":1.4,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000510,
+  "first_name": "Mmqnr\u00f5l\u00f5",
   "last_name": "Grad",
-  "middle_name": "Drevec",
-  "pref_first_name": "Bre\u00eazstx",
+  "middle_name": "Smndxy",
+  "pref_first_name": "Mmqnr\u00f5l\u00f5",
   "temporary": false,
   "title": null,
-  "userid": "0ggg9"
+  "userid": "0ggg10"
  },
  "model": "coredata.person",
  "pk": 34
 },
 {
  "fields": {
-  "config": "{\"gender\":\"M\",\"visa\":\"Unknown\",\"gpa\":3.53,\"citizen\":\"Canadian\"}",
-  "emplid": 300000510,
-  "first_name": "Bxyohgxe",
+  "config": "{\"gender\":\"F\",\"visa\":\"No Visa St\",\"gpa\":2.62,\"citizen\":\"Canadian\"}",
+  "emplid": 300000511,
+  "first_name": "Wxokc\u00e0as",
   "last_name": "Grad",
-  "middle_name": "Iwtpvp",
-  "pref_first_name": "Bxyo",
+  "middle_name": "Ynxj\u00fao",
+  "pref_first_name": "Wxok",
   "temporary": false,
   "title": null,
-  "userid": "0ggg10"
+  "userid": "0ggg11"
  },
  "model": "coredata.person",
  "pk": 36
 },
 {
  "fields": {
-  "config": "{\"gender\":\"F\",\"visa\":\"Perm Resid\",\"gpa\":2.48,\"citizen\":\"Canadian\"}",
-  "emplid": 300000511,
-  "first_name": "Reeu\u00ef\u00ef\u00efj",
+  "config": "{\"gender\":\"F\",\"visa\":\"Unknown\",\"gpa\":1.33,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000512,
+  "first_name": "Rz\u00fafp\u00efih",
   "last_name": "Grad",
-  "middle_name": "Jt\u00eazdo",
-  "pref_first_name": "Reeu",
+  "middle_name": "Xzuvqy",
+  "pref_first_name": "Rz\u00faf",
   "temporary": false,
   "title": null,
-  "userid": "0ggg11"
+  "userid": "0ggg12"
  },
  "model": "coredata.person",
  "pk": 38
 },
 {
  "fields": {
-  "config": "{\"gender\":\"F\",\"visa\":\"Perm Resid\",\"gpa\":1.37,\"citizen\":\"OtherCountrian\"}",
-  "emplid": 300000512,
-  "first_name": "Zv\u00eaypj\u00e0\u00fa",
+  "config": "{\"gender\":\"F\",\"visa\":\"Min Permit\",\"gpa\":3.69,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000513,
+  "first_name": "Sy\u00e0\u00e0\u00f5ihz",
   "last_name": "Grad",
-  "middle_name": "Oyc\u00f5\u00e0d",
-  "pref_first_name": "Zv\u00eay",
+  "middle_name": "Vatssv",
+  "pref_first_name": "Sy\u00e0\u00e0\u00f5ihz",
   "temporary": false,
   "title": null,
-  "userid": "0ggg12"
+  "userid": "0ggg13"
  },
  "model": "coredata.person",
  "pk": 40
 },
 {
  "fields": {
-  "config": "{\"gender\":\"U\",\"visa\":\"Live-in Ca\",\"gpa\":1.26,\"citizen\":\"Canadian\"}",
-  "emplid": 300000513,
-  "first_name": "Gaxxgn\u00e0t",
+  "config": "{\"gender\":\"U\",\"visa\":\"Unknown\",\"gpa\":1.12,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000514,
+  "first_name": "Sfo\u00efb\u00eay\u00fa",
   "last_name": "Grad",
-  "middle_name": "Ycek\u00ea\u00fa",
-  "pref_first_name": "Gaxx",
+  "middle_name": "Kfpcue",
+  "pref_first_name": "Sfo\u00efb\u00eay\u00fa",
   "temporary": false,
   "title": null,
-  "userid": "0ggg13"
+  "userid": "0ggg14"
  },
  "model": "coredata.person",
  "pk": 42
 },
 {
  "fields": {
-  "config": "{\"gender\":\"F\",\"visa\":\"Perm Resid\",\"gpa\":2.36,\"citizen\":\"Canadian\"}",
-  "emplid": 300000514,
-  "first_name": "Htbv\u00efglp",
+  "config": "{\"gender\":\"F\",\"visa\":\"New CDN\",\"gpa\":3.29,\"citizen\":\"Canadian\"}",
+  "emplid": 300000515,
+  "first_name": "Tj\u00e0pqe\u00efi",
   "last_name": "Grad",
-  "middle_name": "Dj\u00f5\u00ef\u00e0e",
-  "pref_first_name": "Htbv",
+  "middle_name": "Lgholc",
+  "pref_first_name": "Tj\u00e0p",
   "temporary": false,
   "title": null,
-  "userid": "0ggg14"
+  "userid": "0ggg15"
  },
  "model": "coredata.person",
  "pk": 44
 },
 {
  "fields": {
-  "config": "{\"gender\":\"U\",\"visa\":\"Visitor\",\"gpa\":1.8,\"citizen\":\"Canadian\"}",
-  "emplid": 300000515,
-  "first_name": "Atwomh\u00e0\u00e0",
+  "config": "{\"gender\":\"M\",\"visa\":\"New CDN\",\"gpa\":0.75,\"citizen\":\"Canadian\"}",
+  "emplid": 300000516,
+  "first_name": "Nelph\u00f5i\u00e0",
   "last_name": "Grad",
-  "middle_name": "Cr\u00e0skq",
-  "pref_first_name": "Atwomh\u00e0\u00e0",
+  "middle_name": "Ufcznf",
+  "pref_first_name": "Nelph\u00f5i\u00e0",
   "temporary": false,
   "title": null,
-  "userid": "0ggg15"
+  "userid": "0ggg16"
  },
  "model": "coredata.person",
  "pk": 46
 },
 {
  "fields": {
-  "config": "{\"gender\":\"F\",\"visa\":\"Diplomat\",\"gpa\":0.57,\"citizen\":\"OtherCountrian\"}",
-  "emplid": 300000516,
-  "first_name": "Eomvm\u00efla",
+  "config": "{\"gender\":\"F\",\"visa\":\"No Visa St\",\"gpa\":2.12,\"citizen\":\"Canadian\"}",
+  "emplid": 300000517,
+  "first_name": "Br\u00eaokxev",
   "last_name": "Grad",
-  "middle_name": "Wrh\u00e0pk",
-  "pref_first_name": "Eomvm\u00efla",
+  "middle_name": "Ll\u00fazu\u00e0",
+  "pref_first_name": "Br\u00eao",
   "temporary": false,
   "title": null,
-  "userid": "0ggg16"
+  "userid": "0ggg17"
  },
  "model": "coredata.person",
  "pk": 48
 },
 {
  "fields": {
-  "config": "{\"gender\":\"U\",\"visa\":\"Other\",\"gpa\":2.31,\"citizen\":\"OtherCountrian\"}",
-  "emplid": 300000517,
-  "first_name": "Kfhvyx\u00fa\u00ea",
+  "config": "{\"gender\":\"U\",\"visa\":\"Unknown\",\"gpa\":0.7,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000518,
+  "first_name": "Dl\u00e0\u00efnnre",
   "last_name": "Grad",
-  "middle_name": "Xfaqxe",
-  "pref_first_name": "Kfhv",
+  "middle_name": "Hk\u00efclb",
+  "pref_first_name": "Dl\u00e0\u00ef",
   "temporary": false,
   "title": null,
-  "userid": "0ggg17"
+  "userid": "0ggg18"
  },
  "model": "coredata.person",
  "pk": 50
 },
 {
  "fields": {
-  "config": "{\"gender\":\"U\",\"visa\":\"Unknown\",\"gpa\":3.56,\"citizen\":\"OtherCountrian\"}",
-  "emplid": 300000518,
-  "first_name": "Hnsgeg\u00e0m",
-  "last_name": "Grad",
-  "middle_name": "Roruq\u00f5",
-  "pref_first_name": "Hnsgeg\u00e0m",
-  "temporary": false,
-  "title": null,
-  "userid": "0ggg18"
- },
- "model": "coredata.person",
- "pk": 52
-},
-{
- "fields": {
-  "config": "{\"gender\":\"U\",\"visa\":\"New CDN\",\"gpa\":0.95,\"citizen\":\"Canadian\"}",
+  "config": "{\"gender\":\"F\",\"visa\":\"Visitor\",\"gpa\":2.85,\"citizen\":\"Canadian\"}",
   "emplid": 300000519,
-  "first_name": "Po\u00f5\u00fayeff",
+  "first_name": "Uin\u00efawcy",
   "last_name": "Grad",
-  "middle_name": "Dvy\u00efei",
-  "pref_first_name": "Po\u00f5\u00fayeff",
+  "middle_name": "Agh\u00fasx",
+  "pref_first_name": "Uin\u00ef",
   "temporary": false,
   "title": null,
   "userid": "0ggg19"
  },
  "model": "coredata.person",
- "pk": 54
+ "pk": 52
 },
 {
  "fields": {
@@ -1602,7 +1755,7 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 10,
+  "offering": 18,
   "official_grade": null,
   "person": 7,
   "role": "INST"
@@ -1617,9 +1770,9 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 11,
+  "offering": 19,
   "official_grade": null,
-  "person": 7,
+  "person": 8,
   "role": "INST"
  },
  "model": "coredata.member",
@@ -1632,9 +1785,9 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 12,
+  "offering": 20,
   "official_grade": null,
-  "person": 8,
+  "person": 7,
   "role": "INST"
  },
  "model": "coredata.member",
@@ -1647,9 +1800,9 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 13,
+  "offering": 21,
   "official_grade": null,
-  "person": 9,
+  "person": 7,
   "role": "INST"
  },
  "model": "coredata.member",
@@ -1662,9 +1815,9 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 14,
+  "offering": 22,
   "official_grade": null,
-  "person": 9,
+  "person": 7,
   "role": "INST"
  },
  "model": "coredata.member",
@@ -1677,7 +1830,7 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 15,
+  "offering": 23,
   "official_grade": null,
   "person": 9,
   "role": "INST"
@@ -1692,9 +1845,9 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 16,
+  "offering": 10,
   "official_grade": null,
-  "person": 10,
+  "person": 4,
   "role": "INST"
  },
  "model": "coredata.member",
@@ -1707,9 +1860,9 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 17,
+  "offering": 11,
   "official_grade": null,
-  "person": 10,
+  "person": 4,
   "role": "INST"
  },
  "model": "coredata.member",
@@ -1722,9 +1875,9 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 3,
+  "offering": 12,
   "official_grade": null,
-  "person": 11,
+  "person": 8,
   "role": "INST"
  },
  "model": "coredata.member",
@@ -1737,9 +1890,9 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 1,
+  "offering": 13,
   "official_grade": null,
-  "person": 12,
+  "person": 10,
   "role": "INST"
  },
  "model": "coredata.member",
@@ -1752,9 +1905,9 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 1,
+  "offering": 14,
   "official_grade": null,
-  "person": 13,
+  "person": 10,
   "role": "INST"
  },
  "model": "coredata.member",
@@ -1767,9 +1920,9 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 2,
+  "offering": 15,
   "official_grade": null,
-  "person": 12,
+  "person": 10,
   "role": "INST"
  },
  "model": "coredata.member",
@@ -1782,9 +1935,9 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 2,
+  "offering": 16,
   "official_grade": null,
-  "person": 13,
+  "person": 9,
   "role": "INST"
  },
  "model": "coredata.member",
@@ -1797,13 +1950,13 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 4,
+  "offering": 17,
   "official_grade": null,
-  "person": 1,
+  "person": 9,
   "role": "INST"
  },
  "model": "coredata.member",
- "pk": 20
+ "pk": 14
 },
 {
  "fields": {
@@ -1812,13 +1965,133 @@
   "config": "{}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 4,
+  "offering": 9,
   "official_grade": null,
-  "person": 16,
+  "person": 11,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 15
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 8,
+  "official_grade": null,
+  "person": 12,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 16
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 1,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 22
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 4,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 17
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 14,
   "role": "TA"
  },
  "model": "coredata.member",
- "pk": 21
+ "pk": 23
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 13,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 24
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 15,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 25
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 2,
+  "official_grade": null,
+  "person": 8,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 18
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 3,
+  "official_grade": null,
+  "person": 7,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 19
 },
 {
  "fields": {
@@ -1833,67 +2106,7 @@
   "role": "INST"
  },
  "model": "coredata.member",
- "pk": 14
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 4,
-  "official_grade": null,
-  "person": 15,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 22
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 4,
-  "official_grade": null,
-  "person": 17,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 23
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "NONS",
-  "config": "{}",
-  "credits": 0,
-  "labtut_section": null,
-  "offering": 5,
-  "official_grade": null,
-  "person": 8,
-  "role": "INST"
- },
- "model": "coredata.member",
- "pk": 15
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "NONS",
-  "config": "{}",
-  "credits": 0,
-  "labtut_section": null,
-  "offering": 6,
-  "official_grade": null,
-  "person": 14,
-  "role": "INST"
- },
- "model": "coredata.member",
- "pk": 16
+ "pk": 20
 },
 {
  "fields": {
@@ -1908,37 +2121,7 @@
   "role": "INST"
  },
  "model": "coredata.member",
- "pk": 17
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "NONS",
-  "config": "{}",
-  "credits": 0,
-  "labtut_section": null,
-  "offering": 8,
-  "official_grade": null,
-  "person": 7,
-  "role": "INST"
- },
- "model": "coredata.member",
- "pk": 18
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "NONS",
-  "config": "{}",
-  "credits": 0,
-  "labtut_section": null,
-  "offering": 9,
-  "official_grade": null,
-  "person": 7,
-  "role": "INST"
- },
- "model": "coredata.member",
- "pk": 19
+ "pk": 21
 },
 {
  "fields": {
@@ -1973,11 +2156,31 @@
 {
  "fields": {
   "config": "{}",
+  "person": 5,
+  "role": "INV",
+  "unit": 5
+ },
+ "model": "coredata.role",
+ "pk": 5
+},
+{
+ "fields": {
+  "config": "{}",
+  "person": 5,
+  "role": "OUTR",
+  "unit": 5
+ },
+ "model": "coredata.role",
+ "pk": 6
+},
+{
+ "fields": {
+  "config": "{}",
   "deleted": false,
-  "due_date": "2015-07-10T00:00:00",
+  "due_date": "2016-07-08T00:00:00",
   "group": false,
   "name": "Assignmen\u021b 1",
-  "offering": 4,
+  "offering": 1,
   "percent": "10.00",
   "position": 1,
   "short_name": "A1",

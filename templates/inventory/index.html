@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load inventory_display %}
+
+{% block title %}Inventory{% endblock %}
+{% block h1 %}Inventory{% endblock %}
+
+{% block subbreadcrumbs %}<li>Inventory</li>{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/inventory.css" %}" type="text/css">
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#assets').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']]
+  } );
+} );
+
+function confirmDelete() {
+  return confirm("Are you sure you want to delete this asset?");
+}
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "inventory:new_asset" %}">Add New Asset</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if assets %}
+    <table id="assets">
+    <thead>
+        <tr>
+            <td>Name</td>
+            <td>Qty</td>
+            <td>Category</td>
+            <td>Price</td>
+            <td>Last Modified</td>
+            <td>Actions</td>
+        </tr>
+    </thead>
+    {% for asset in assets %}
+        <tr {{ asset|add_asset_display_class }}>
+            <td>{{ asset.name }}
+                {% if asset.has_attachments %} &nbsp; <i class="fa fa-paperclip" title="Attachment(s)"></i>{% endif %}
+                {% if asset.has_records %} &nbsp; <i class="fa fa-book" title="Record(s)"></i>{% endif %}
+            </td>
+            <td>{{ asset.quantity }}</td>
+            <td>{{ asset.get_category_display }}</td>
+            <td>{% if asset.price %}${% endif %}{{ asset.price }}</td>
+            <td>{{ asset.last_modified|date:"M m, Y" }}</td>
+            <td>
+                <form class="lineform" method="POST"
+                      action="{% url "inventory:delete_asset" asset_id=asset.id %}"
+                      onsubmit="return confirmDelete()">
+                    {% csrf_token %}
+                    <button type='submit' class='btn' title="Hide asset">
+                        <i class='fa fa-trash-o'></i>
+                    </button>
+                </form>
+                <form class="lineform" method="GET"
+                    action="{% url "inventory:edit_asset" asset_slug=asset.slug %}">
+                    <button type='submit' class='btn' title="Edit asset">
+                        <i class='fa fa-edit'></i>
+                    </button>
+                </form>
+                <form class="lineform" method="GET"
+                    action="{% url "inventory:view_asset" asset_slug=asset.slug %}">
+                    <button type='submit' class='btn' title="View asset">
+                        <i class='fa fa-eye'></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+    <div id="legend">
+        <h3>Legend</h3>
+        <ul>
+            <li class="instock">Green Items: Have stock above the minimum re-order quantity</li>
+            <li class="needsreorder">Orange Items: Are in stock but at a level below the minumum re-order quantity</li>
+            <li class="outofstock">Red Items:  Are out of stock</li>
+            <li>Other items:  Have no quantity and/or no minimum re-order quantity</li>
+        </ul>
+    </div>
+{% else %}
+    <div>There are no assets to display.</div>
+{% endif %}
+
+{% endblock %}

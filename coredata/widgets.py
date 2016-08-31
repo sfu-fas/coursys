@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 # App
-from coredata.models import Person, CourseOffering
+from coredata.models import Person, CourseOffering, FuturePerson, AnyPerson
  
 
 class AutocompletePersonWidget(forms.TextInput):
@@ -188,3 +188,4 @@ class NotClearableFileInput(forms.FileInput):
             substitutions['initial'] = format_html(force_text(os.path.basename(value.name)))
 
         return mark_safe(template % substitutions)
+

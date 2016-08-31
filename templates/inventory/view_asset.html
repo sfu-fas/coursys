@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load inventory_display %}
+
+{% block title %}View Asset{% endblock %}
+{% block h1 %}View Asset{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'inventory:inventory_index' %}">Inventory</a></li>
+<li>View Asset</li>
+{% endblock %}
+
+{% block actions %}
+<h2>Actions</h2>
+<ul>
+    <li><a href="{% url "inventory:edit_asset" asset_slug=asset.slug %}">Edit</a></li>
+    <li><a href="{% url "inventory:new_attachment" asset_id=asset.id %}">Add Attachment</a></li>
+    <li><a href="{% url "inventory:add_change_record" asset_slug=asset.slug %}">Add Change Record</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<dt>Name</dt><dd>{{ asset.name }}</dd>
+<dt>Unit</dt><dd>{{ asset.unit }}</dd>
+<dt>Brand</dt><dd>{{ asset.brand }}</dd>
+<dt>Description</dt><dd>{{ asset.description }}</dd>
+<dt>Serial Number</dt><dd>{{ asset.serial }}</dd>
+<dt>Asset Tag Number</dt><dd>{{ asset.tag }}</dd>
+<dt>Quantity</dt><dd>{{ asset.quantity }}</dd>
+<dt>Minimum re-order quantity</dt><dd>{{ asset.min_qty }}</dd>
+<dt>Category</dt><dd>{{ asset.get_category_display }}</dd>
+<dt>Location</dt><dd>{{  asset.location }}</dd>
+<dt>Notes</dt><dd>{{ asset.notes }}</dd>
+<dt>Created at</dt><dd>{{ asset.created_at }}</dd>
+<dt>Last Modified</dt><dd>{{ asset.last_modified }}</dd>
+
+{% with attachments=asset.attachments.visible %}
+{% if attachments %}
+<h2 id="attachments">Attachments</h2>
+<ul>
+{% for a in attachments %}
+<li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
+  <a href="{% url 'inventory:view_attachment' asset_id=asset.id  attach_slug=a.slug %}">View</a> |
+  <a href="{% url 'inventory:download_attachment' asset_id=asset.id  attach_slug=a.slug %}">Download</a> |
+  <a href="{% url 'inventory:delete_attachment' asset_id=asset.id  attach_slug=a.slug  %}">Delete</a>
+</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+{% with records=asset.records.visible %}
+{% if records %}
+<h2 id="records">History</h2>
+<ul>
+{% for r in records %}
+<li>{{ r.person }} {% if r.qty > 0 %} added {% else %} removed {% endif %} {{ r.qty|abs_value }} {{ r.qty|item_pluralize }} {% if r.date %} on
+    {{ r.date }} {% endif %} {% if r.event %} for {{ r.event.title }} {% endif %}
+    <a href="{% url 'inventory:delete_change_record' record_id=r.id %}">Delete</a>
+</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+
+{% endblock %}

@@ -59,13 +59,14 @@ ROLE_CHOICES = (
         ('TECH', 'Tech Staff'),
         ('GPA', 'GPA conversion system admin'),
         ('OUTR', 'Outreach Administrator'),
+        ('INV', 'Inventory Administrator'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
 UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'GRPD',
-              'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR']  # 'PLAN', 'TADM', 'TECH'
+              'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV']  # 'PLAN', 'TADM', 'TECH'
 # help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
@@ -86,8 +87,9 @@ ROLE_DESCR = {
         'REPR': 'Has Reporting Database access.',
         'SUPV': 'Others who can supervise RAs or grad students, in addition to faculty',
         'OUTR': 'Can manage outreach events',
+        'INV': 'Can manage assets',
               }
-INSTR_ROLES = ["FAC","SESS","COOP",'INST'] # roles that are given to categorize course instructors
+INSTR_ROLES = ["FAC", "SESS", "COOP", 'INST']  # roles that are given to categorize course instructors
 
 
 class Person(models.Model, ConditionalSaveMixin):
@@ -394,6 +396,38 @@ class AnyPerson(models.Model):
         if not self.get_person():
             return "None"
         return self.get_person().name()
+
+    #  The following three methods to easily get attributes that are in Person and FuturePerson but not in RoleAccount.
+    def last_name(self):
+        try:
+            return self.get_person().last_name
+        except AttributeError:
+            return None
+
+    def first_name(self):
+        try:
+            return self.get_person().first_name
+        except AttributeError:
+            return None
+
+    def middle_name(self):
+        try:
+            return self.get_person().middle_name
+        except AttributeError:
+            return None
+
+    # Two more that only exist in Person objects.
+    def userid(self):
+        try:
+            return self.get_person().userid
+        except AttributeError:
+            return None
+
+    def emplid(self):
+        try:
+            return self.get_person().emplid
+        except AttributeError:
+            return None
 
     @classmethod
     def get_or_create_for(cls, person=None, role_account=None, future_person=None):

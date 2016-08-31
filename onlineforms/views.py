@@ -23,6 +23,7 @@ from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, FormLogEntry, reorder_sheet_fields
 
 from coredata.models import Person, Role, Unit
+from coredata.queries import ensure_person_from_userid
 from log.models import LogEntry
 import unicodecsv as csv
 import json
@@ -1173,9 +1174,8 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
 
         # get their info if they are logged in
         if request.user.is_authenticated():
-            try:
-                loggedin_user = Person.objects.get(userid=request.user.username)
-            except Person.DoesNotExist:
+            loggedin_user = ensure_person_from_userid(request.user.username)
+            if loggedin_user is None:
                 return ForbiddenResponse(request, u"The userid '%s' isn't known to this system. If this is a 'role' account, please log in under your primary SFU userid. Otherwise, please contact coursys-help@sfu.ca for assistance." % (request.user.username))
             logentry_userid = loggedin_user.userid
             nonSFUFormFillerForm = None

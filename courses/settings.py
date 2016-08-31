@@ -92,6 +92,8 @@ INSTALLED_APPS = (
     'api',
     'visas',
     'outreach',
+    'sessionals',	
+    'inventory',
 )
 MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
     'django.contrib.sessions.middleware.SessionMiddleware',

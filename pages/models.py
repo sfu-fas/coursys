@@ -4,7 +4,7 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
-from coredata.models import CourseOffering, Member
+from coredata.models import CourseOffering, Member, Person
 from grades.models import Activity
 
 from courselib.json_fields import JSONField
@@ -21,6 +21,8 @@ WRITE_ACL_CHOICES = [
 READ_ACL_CHOICES = WRITE_ACL_CHOICES + [('ALL', 'anybody')]
 ACL_DESC = dict(READ_ACL_CHOICES)
 WRITE_ACL_DESC = dict(WRITE_ACL_CHOICES)
+
+PERMISSION_ACL_CHOICES = WRITE_ACL_CHOICES[1:] # allowed permissions for PagePermission object
 
 MEMBER_ROLES = { # map from ACL roles to allowed Member roles
         'NONE': set(),
@@ -158,9 +160,11 @@ class Page(models.Model):
             cache.set(key, v, 24*3600) # expired when a PageVersion is saved
             return v
 
-    def safely_delete(self):
+    def XXX_safely_delete(self):
         """
         Delete this page (and by "delete", we mean "don't really delete").
+
+        No longer used since redirects are now left in place of deleted pages.
         """
         with transaction.atomic():
             # mangle name and short-name so instructors can delete and replace
@@ -224,6 +228,7 @@ class PageVersion(models.Model):
     file_attachment = models.FileField(storage=PageFilesStorage, null=False, upload_to=attachment_upload_to, blank=False, max_length=500)
     file_mediatype = models.CharField(null=False, blank=False, max_length=200)
     file_name = models.CharField(null=False, blank=False, max_length=200)
+    redirect = models.CharField(null=True, blank=True, max_length=500) # URL to redirect to: may be an absolute URL or relative from the location of self.page
 
     created_at = models.DateTimeField(auto_now_add=True)
     editor = models.ForeignKey(Member)
@@ -234,12 +239,14 @@ class PageVersion(models.Model):
         # p.config['syntax']: page uses SyntaxHighlighter? (boolean)
         # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)
         # p.config['depth']: max depth of diff pages below me (to keep it within reason)
-    
-    defaults = {'math': False, 'syntax': False, 'brushes': [], 'depth': 0}
+        # p.config['redirect_reason']: if present, how this redirect got here: 'rename' or 'delete'.
+
+    defaults = {'math': False, 'syntax': False, 'brushes': [], 'depth': 0, 'redirect_reason': None}
     math, set_math = getter_setter('math')
     syntax, set_syntax = getter_setter('syntax')
     brushes, set_brushes = getter_setter('brushes')
     depth, set_depth = getter_setter('depth')
+    redirect_reason, set_redirect_reason = getter_setter('redirect_reason')
 
     def html_cache_key(self):
         return "page-html-" + str(self.id)
@@ -372,16 +379,18 @@ class PageVersion(models.Model):
         assert oldw==neww
 
     def save(self, check_diff=True, minor_change=False, *args, **kwargs):
-        # check coherence of the data model: exactly one of full text, diff text, file.
+        # check coherence of the data model: exactly one of full text, diff text, file, redirect.
         if not minor_change:
             # minor_change flag set when .diff_to has changed the .config only
             has_wikitext = bool(self.wikitext)
             has_difffrom = bool(self.diff_from)
             has_diff = bool(self.diff)
             has_file = bool(self.file_attachment)
-            assert (has_wikitext and not has_difffrom and not has_diff and not has_file) \
-                or (not has_wikitext and has_difffrom and has_diff and not has_file) \
-                or (not has_wikitext and not has_difffrom and not has_diff and has_file)
+            has_redirect = bool(self.redirect)
+            assert (has_wikitext and not has_difffrom and not has_diff and not has_file and not has_redirect) \
+                or (not has_wikitext and has_difffrom and has_diff and not has_file and not has_redirect) \
+                or (not has_wikitext and not has_difffrom and not has_diff and has_file and not has_redirect) \
+                or (not has_wikitext and not has_difffrom and not has_diff and not has_file and has_redirect)
         
             # normalize newlines so our diffs are consistent later
             self.wikitext = normalize_newlines(self.wikitext)
@@ -494,6 +503,21 @@ def clear_offering_cache(instance, **kwargs):
 
 models.signals.post_save.connect(clear_offering_cache)
 
+
+class PagePermission(models.Model):
+    """
+    An additional person who has permission to view pages for this offering
+    """
+    offering = models.ForeignKey(CourseOffering)
+    person = models.ForeignKey(Person)
+    role = models.CharField(max_length=4, choices=PERMISSION_ACL_CHOICES, default="STUD",
+        help_text="What level of access should this person have for the course?")
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+
+    defaults = {}
+
+    class Meta:
+        unique_together = (('offering', 'person'), )
 
 
 # custom creoleparser Parser class:

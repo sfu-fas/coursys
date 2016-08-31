@@ -54,7 +54,8 @@ class Project(models.Model):
     A table to look up the appropriate fund number based on the project number
     """
     unit = models.ForeignKey(Unit, null=False, blank=False)
-    project_number = models.PositiveIntegerField()
+    department_code = models.PositiveIntegerField(default=0)
+    project_number = models.PositiveIntegerField(null=True, blank=True)
     fund_number = models.PositiveIntegerField()
     def autoslug(self):
         return make_slug(self.unit.label + '-' + unicode(self.project_number))
@@ -65,7 +66,7 @@ class Project(models.Model):
         ordering = ['project_number']
 
     def __unicode__(self):
-        return "%06i (%s)" % (self.project_number, self.fund_number)
+        return "%06i (%s) - %s" % (self.department_code, self.fund_number, self.project_number)
     def delete(self, *args, **kwargs):
         self.hidden = True
         self.save()
@@ -161,8 +162,10 @@ class RAAppointment(models.Model):
     reappointment = models.BooleanField(default=False, help_text="Are we re-appointing to the same position?")
     medical_benefits = models.BooleanField(default=False, help_text="50% of Medical Service Plan")
     dental_benefits = models.BooleanField(default=False, help_text="50% of Dental Plan")
-    notes = models.TextField(blank=True, help_text="Biweekly emplyment earnings rates must include vacation pay, hourly rates will automatically have vacation pay added. The employer cost of statutory benefits will be charged to the amount to the earnings rate.")
-    comments = models.TextField(blank=True, help_text="For internal use")
+    #  The two following fields verbose names are reversed for a reason.  They were named incorrectly with regards to
+    #  the PAF we generate, so the verbose names are correct.
+    notes = models.TextField("Comments", blank=True, help_text="Biweekly employment earnings rates must include vacation pay, hourly rates will automatically have vacation pay added. The employer cost of statutory benefits will be charged to the amount to the earnings rate.")
+    comments = models.TextField("Notes", blank=True, help_text="For internal use")
     offer_letter_text = models.TextField(null=True, help_text="Text of the offer letter to be signed by the RA and supervisor.")
     def autoslug(self):
         if self.person.userid:
@@ -302,7 +305,7 @@ class RAAppointment(models.Model):
         """
         today = datetime.datetime.now()
         min_age = datetime.datetime.now() + datetime.timedelta(days=14)
-        expiring_ras = RAAppointment.objects.filter(end_date__gt=today, end_date__lte=min_age)
+        expiring_ras = RAAppointment.objects.filter(end_date__gt=today, end_date__lte=min_age, deleted=False)
         ras = [ra for ra in expiring_ras if 'reminded' not in ra.config or not ra.config['reminded']]
         return ras
 

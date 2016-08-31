@@ -1,0 +1,25 @@
+[
+{
+ "fields": {
+  "brand": "Baycrest",
+  "category": "GEN",
+  "created_at": "2016-08-10T13:46:07.817",
+  "description": null,
+  "hidden": false,
+  "last_modified": "2016-08-10T13:46:07.816",
+  "location": "In the dining room, with the candlestick",
+  "min_qty": null,
+  "name": "Something",
+  "notes": null,
+  "price": null,
+  "qty_ordered": null,
+  "quantity": null,
+  "serial": null,
+  "slug": "cmpt-something",
+  "tag": null,
+  "unit": 5
+ },
+ "model": "inventory.asset",
+ "pk": 1
+}
+]
