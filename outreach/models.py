@@ -49,7 +49,7 @@ class OutreachEvent(models.Model):
     end_date = models.DateTimeField('End Date and Time', blank=False, null=False,
                                     help_text='Event end date and time')
     location = models.CharField(max_length=400, blank=True, null=True)
-    description = models.CharField(max_length=400, blank=True, null=True)
+    description = models.CharField(max_length=800, blank=True, null=True)
     score = models.DecimalField(max_digits=2, decimal_places=0, max_length=2, null=True, blank=True,
                                 help_text='The score according to the event score matrix')
     unit = models.ForeignKey(Unit, blank=False, null=False)
