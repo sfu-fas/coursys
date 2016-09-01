@@ -134,6 +134,8 @@ class OutreachEventRegistration(models.Model):
     email = models.EmailField("Contact E-mail")
     event = models.ForeignKey(OutreachEvent, blank=False, null=False)
     waiver = models.BooleanField(default=False)
+    previously_attended = models.BooleanField("I have previously attended this event", default=False,
+                                              help_text='Check here if you have attended this event in the past')
     school = models.CharField("Participant School", null=True, blank=True, max_length=200)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     notes = models.CharField("Allergies/Dietary Restrictions", max_length=400, blank=True, null=True)

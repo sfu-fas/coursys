@@ -52,7 +52,7 @@ class OutreachEventRegistrationForm(forms.ModelForm):
             'waiver': "Photo Waiver.  I hereby agree to <legalese>"
         }
         fields = ['last_name', 'first_name', 'middle_name', 'age', 'parent_name', 'parent_phone', 'email',
-                  'confirm_email', 'waiver', 'school', 'notes']
+                  'confirm_email', 'waiver', 'previously_attended', 'school', 'notes']
 
         # Add help text for legalese here so we can add it when we have it without creating a migration
         help_texts = {
