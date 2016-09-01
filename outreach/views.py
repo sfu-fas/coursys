@@ -268,8 +268,8 @@ def download_registrations(request, event_slug=None, past=None):
     writer = csv.writer(response)
     if registrations:
         header_row = header_row_initial + ['Last Name', 'First Name', 'Middle Name', 'Age', 'Parent Name',
-                                           'Parent Phone', 'Email', 'Waiver', 'School', 'Notes', 'Attended(ing)',
-                                           'Registered at', 'Last Modified']
+                                           'Parent Phone', 'Email', 'Waiver', 'Previously Attended', 'School',
+                                           'Notes', 'Attended(ing)', 'Registered at', 'Last Modified']
         writer.writerow(header_row)
         for r in registrations:
             # Same rationale as above
@@ -278,7 +278,8 @@ def download_registrations(request, event_slug=None, past=None):
             else:
                 initial_regitration_row = [r.event.title]
             registration_row = initial_regitration_row + [r.last_name, r.first_name, r.middle_name, r.age,
-                                                          r.parent_name, r.parent_phone, r.email, r.waiver, r.school,
-                                                          r.notes, r.attended, r.created_at, r.last_modified]
+                                                          r.parent_name, r.parent_phone, r.email, r.waiver,
+                                                          r.previously_attended, r.school, r.notes, r.attended,
+                                                          r.created_at, r.last_modified]
             writer.writerow(registration_row)
     return response
