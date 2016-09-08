@@ -21,6 +21,7 @@ ta_patterns = [ # prefix /ta/
     url(r'^' + POST_SLUG + '/apps/$', 'ta.views.assign_tas'),
     url(r'^' + POST_SLUG + '/' + COURSE_SLUG + '$', 'ta.views.assign_bus'),
     url(r'^' + POST_SLUG + '/all_apps$', 'ta.views.view_all_applications'),
+    url(r'^' + POST_SLUG + '/download_apps$', views.download_all_applications, name='download_all_ta_applications'),
     url(r'^' + POST_SLUG + '/print_all_applications$', 'ta.views.print_all_applications'),
     url(r'^' + POST_SLUG + '/print_all_applications_by_course$', 'ta.views.print_all_applications_by_course'),
     url(r'^' + POST_SLUG + '/late_apps$', 'ta.views.view_late_applications'),

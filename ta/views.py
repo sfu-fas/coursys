@@ -604,6 +604,24 @@ def view_all_applications(request,post_slug):
     return render(request, 'ta/view_all_applications.html', context)
 
 @requires_role("TAAD")
+def download_all_applications(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    applications = TAApplication.objects.filter(posting=posting)
+    response = HttpResponse(content_type='text/csv')
+
+    response['Content-Disposition'] = 'inline; filename="ta_applications-%s-%s.csv"' % \
+                                      (posting.semester.name, datetime.datetime.now().strftime('%Y%m%d'))
+    writer = csv.writer(response)
+    if applications:
+        writer.writerow(['Person', 'Category', 'Program', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned'])
+
+        for a in applications:
+            writer.writerow([a.person.sortname(), a.get_category_display(), a.current_program, a.base_units_assigned(),
+                             a.base_units, a.course_pref_display(), a.course_assigned_display()])
+    return response
+
+
+@requires_role("TAAD")
 def print_all_applications(request,post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     applications = TAApplication.objects.filter(posting=posting).order_by('person')
