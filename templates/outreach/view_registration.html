@@ -27,6 +27,7 @@
 <dt>Waiver</dt><dd>{{ registration.waiver|yesno }}</dd>
 <dt>Previously Attended</dt><dd>{{ registration.previously_attended|yesno }}</dd>
 <dt>School</dt><dd>{{ registration.school|default:"None" }}</dd>
+<dt>Grade</dt><dd>{{ registration.grade }}</dd>
 <dt>Notes</dt><dd>{{ registration.notes|default:"None"|linebreaks }}</dd>
 <dt>Registered at</dt><dd>{{ registration.created_at }}</dd>
 <dt>Last Modified</dt><dd>{{ registration.last_modified }}</dd>
