@@ -163,7 +163,7 @@ def edit_registration(request, registration_id, event_slug=None):
                 return HttpResponseRedirect(reverse(view_event_registrations, kwargs={'event_slug': event_slug}))
             return HttpResponseRedirect(reverse(view_all_registrations))
     else:
-        form = OutreachEventRegistrationForm(instance=registration)
+        form = OutreachEventRegistrationForm(instance=registration, initial={'confirm_email': registration.email})
     return render(request, 'outreach/edit_registration.html', {'form': form, 'registration': registration,
                                                                'event_slug': event_slug})
 

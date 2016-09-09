@@ -137,6 +137,7 @@ class OutreachEventRegistration(models.Model):
     previously_attended = models.BooleanField("I have previously attended this event", default=False,
                                               help_text='Check here if you have attended this event in the past')
     school = models.CharField("Participant School", null=True, blank=True, max_length=200)
+    grade = models.PositiveSmallIntegerField("Participant Grade", blank=False, null=False)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     notes = models.CharField("Allergies/Dietary Restrictions", max_length=400, blank=True, null=True)
     objects = OutreachEventRegistrationQuerySet.as_manager()
