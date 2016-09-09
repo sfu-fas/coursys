@@ -28,9 +28,14 @@
 <dt>Cost</dt><dd>${{ event.cost }}</dd>
 <dt>Notes</dt><dd>{{ event.notes|linebreaks }}</dd>
 <dt>Contact Email</dt><dd>{{ event.email }}</dd>
+<dt>Registration Closed</dt><dd>{{ event.closed|yesno }}</dd>
 {% if event.current %}
     <h4>Registration</h4>
+    {% if event.closed %}
+    You have closed registration for this event.  If you want people to be able to register, edit this event and un-check the "Close Registration" box.
+    {% else %}
     The registration link for this event is:
     <a href="{% url "register" event_slug=event.slug %}"> {{ register_url }}</a>
+    {% endif %}
 {% endif %}
 {% endblock %}
