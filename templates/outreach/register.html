@@ -6,7 +6,7 @@
 
 
 {% block content %}
-    {% if event.current %}
+    {% if event.current and not event.closed %}
     This is the registration form for {{ event.title }}.
     <dt>Event description</dt><dd>{{ event.description|linebreaks }}</dd>
     <dt>Start date</dt><dd>{{ event.start_date }}</dd>
@@ -21,6 +21,6 @@
         </p>
     </form>
     {% else %}
-    <div>Sorry, this event has already ended.  You can no longer register for it.</div>
+    <div>Sorry, either this event has already ended or registrations for this event are closed.  You cannot register for it.</div>
     {% endif %}
 {% endblock %}

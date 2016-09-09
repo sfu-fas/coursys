@@ -62,6 +62,9 @@ class OutreachEvent(models.Model):
     email = models.EmailField('Contact e-mail', null=True, blank=True,
                               help_text='Contact email.  Address that will be given to registrants on the registration '
                                         'success page in case they have any questions/problems.')
+    closed = models.BooleanField('Close Registration', default=False,
+                                 help_text='If this box is checked, people will not be able to register for this '
+                                           'event even if it is still current.')
     objects = EventQuerySet.as_manager()
 
     def autoslug(self):
