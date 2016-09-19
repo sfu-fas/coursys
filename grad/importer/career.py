@@ -202,7 +202,7 @@ class GradCareer(object):
         student_info = {
             'student': self.gradstudent,
             'career': self,
-            'statuses': list(GradStatus.objects.filter(student=self.gradstudent)
+            'statuses': list(GradStatus.objects.filter(student=self.gradstudent, hidden=False)
                 .select_related('start').order_by('start__name', 'start_date')),
             'programs': list(GradProgramHistory.objects.filter(student=self.gradstudent)
                 .select_related('start_semester', 'program').order_by('start_semester__name', 'starting')),

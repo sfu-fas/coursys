@@ -704,7 +704,7 @@ def create_outreach():
                       description='An event to test', slug='devtest_a_test_event')
     e.save()
     r = OutreachEventRegistration(event=e, parent_name='Joe Smith Sr.', last_name='SomePerson', first_name='Bob',
-                                  school='Little Lord Fauntleroy School for Albino Hemophiliacs')
+                                  school='Little Lord Fauntleroy School for Albino Hemophiliacs', grade=2)
     r.save()
     return itertools.chain(
         OutreachEvent.objects.all(),

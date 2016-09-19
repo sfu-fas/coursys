@@ -49,7 +49,7 @@ class OutreachEvent(models.Model):
     end_date = models.DateTimeField('End Date and Time', blank=False, null=False,
                                     help_text='Event end date and time')
     location = models.CharField(max_length=400, blank=True, null=True)
-    description = models.CharField(max_length=400, blank=True, null=True)
+    description = models.CharField(max_length=800, blank=True, null=True)
     score = models.DecimalField(max_digits=2, decimal_places=0, max_length=2, null=True, blank=True,
                                 help_text='The score according to the event score matrix')
     unit = models.ForeignKey(Unit, blank=False, null=False)
@@ -62,6 +62,9 @@ class OutreachEvent(models.Model):
     email = models.EmailField('Contact e-mail', null=True, blank=True,
                               help_text='Contact email.  Address that will be given to registrants on the registration '
                                         'success page in case they have any questions/problems.')
+    closed = models.BooleanField('Close Registration', default=False,
+                                 help_text='If this box is checked, people will not be able to register for this '
+                                           'event even if it is still current.')
     objects = EventQuerySet.as_manager()
 
     def autoslug(self):
@@ -134,7 +137,10 @@ class OutreachEventRegistration(models.Model):
     email = models.EmailField("Contact E-mail")
     event = models.ForeignKey(OutreachEvent, blank=False, null=False)
     waiver = models.BooleanField(default=False)
+    previously_attended = models.BooleanField("I have previously attended this event", default=False,
+                                              help_text='Check here if you have attended this event in the past')
     school = models.CharField("Participant School", null=True, blank=True, max_length=200)
+    grade = models.PositiveSmallIntegerField("Participant Grade", blank=False, null=False)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     notes = models.CharField("Allergies/Dietary Restrictions", max_length=400, blank=True, null=True)
     objects = OutreachEventRegistrationQuerySet.as_manager()

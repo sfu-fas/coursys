@@ -163,7 +163,7 @@ def edit_registration(request, registration_id, event_slug=None):
                 return HttpResponseRedirect(reverse(view_event_registrations, kwargs={'event_slug': event_slug}))
             return HttpResponseRedirect(reverse(view_all_registrations))
     else:
-        form = OutreachEventRegistrationForm(instance=registration)
+        form = OutreachEventRegistrationForm(instance=registration, initial={'confirm_email': registration.email})
     return render(request, 'outreach/edit_registration.html', {'form': form, 'registration': registration,
                                                                'event_slug': event_slug})
 
@@ -268,8 +268,8 @@ def download_registrations(request, event_slug=None, past=None):
     writer = csv.writer(response)
     if registrations:
         header_row = header_row_initial + ['Last Name', 'First Name', 'Middle Name', 'Age', 'Parent Name',
-                                           'Parent Phone', 'Email', 'Waiver', 'School', 'Notes', 'Attended(ing)',
-                                           'Registered at', 'Last Modified']
+                                           'Parent Phone', 'Email', 'Waiver', 'Previously Attended', 'School',
+                                           'Grade', 'Notes', 'Attended(ing)', 'Registered at', 'Last Modified']
         writer.writerow(header_row)
         for r in registrations:
             # Same rationale as above
@@ -278,7 +278,8 @@ def download_registrations(request, event_slug=None, past=None):
             else:
                 initial_regitration_row = [r.event.title]
             registration_row = initial_regitration_row + [r.last_name, r.first_name, r.middle_name, r.age,
-                                                          r.parent_name, r.parent_phone, r.email, r.waiver, r.school,
-                                                          r.notes, r.attended, r.created_at, r.last_modified]
+                                                          r.parent_name, r.parent_phone, r.email, r.waiver,
+                                                          r.previously_attended, r.school, r.grade, r.notes, r.attended,
+                                                          r.created_at, r.last_modified]
             writer.writerow(registration_row)
     return response
