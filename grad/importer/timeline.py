@@ -226,9 +226,9 @@ class GradTimeline(object):
         """
         Look for things in the local data that don't seem to match reality.
         """
-        if self.unit.slug == 'cmpt':
-            # don't worry about these for now
-            return
+        # if self.unit.slug == 'cmpt':
+        #     # don't worry about these for now
+        #     return
 
         existing_grads = set(GradStudent.objects
                 .filter(program__unit=self.unit, person__emplid=self.emplid, start_semester__name__gt=RELEVANT_PROGRAM_START)
