@@ -21,6 +21,7 @@
 
 {% block content %}
     <dt>Person</dt><dd>{{ visa.person }}</dd>
+    <dt>Unit</dt><dd>{{ visa.unit.name }}</dd>
     <dt>Status</dt><dd>{{ visa.get_status_display }}</dd>
     <dt>Start Date</dt><dd>{{ visa.start_date }}</dd>
     <dt>End Date</dt><dd>{{ visa.end_date }}</dd>

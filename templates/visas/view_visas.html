@@ -45,6 +45,7 @@ function confirmDelete() {
         <thead>
             <tr>
                 <th>Person</th>
+                <th>Unit</th>
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Type</th>
@@ -59,6 +60,7 @@ function confirmDelete() {
                         {{ visa.person }} {% if visa.has_attachments %} &nbsp;
                         <i class="fa fa-paperclip" title="Attachment(s)"></i>{% endif %}
                     </td>
+                    <td>{{ visa.unit.label }}</td>
                     <td><span class="sort">{{ visa.start_date.isoformat }}</span>{{ visa.start_date }}</td>
                     <td><span class="sort">{{ visa.end_date.isoformat }}</span>{{ visa.end_date }}</td>
                     <td>{{ visa.status }}</td>

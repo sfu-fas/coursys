@@ -20,7 +20,7 @@ def list_all_visas(request, emplid=None):
         visa_list = Visa.objects.visible_given_user(person)
     else:
         person = None
-        visa_list = Visa.objects.visible
+        visa_list = Visa.objects.visible_by_unit(request.units)
     context = {'visa_list': visa_list, 'person': person}
     return render(request, 'visas/view_visas.html', context)
 
@@ -28,7 +28,7 @@ def list_all_visas(request, emplid=None):
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def new_visa(request, emplid=None):
     if request.method == 'POST':
-        form = VisaForm(request.POST)
+        form = VisaForm(request, request.POST)
         if form.is_valid():
             visa = form.save(commit=False)
             visa.save()
@@ -46,9 +46,9 @@ def new_visa(request, emplid=None):
     else:
         if emplid:
             person = Person.objects.get(find_userid_or_emplid(emplid))
-            form = VisaForm(initial={'person':person})
+            form = VisaForm(request, initial={'person': person})
         else:
-            form = VisaForm()
+            form = VisaForm(request)
 
     return render(request, 'visas/new_visa.html', {'form': form})
 
@@ -57,7 +57,7 @@ def new_visa(request, emplid=None):
 def edit_visa(request, visa_id):
     visa = get_object_or_404(Visa, pk=visa_id)
     if request.method == 'POST':
-        form = VisaForm(request.POST, instance=visa)
+        form = VisaForm(request, request.POST, instance=visa)
         if form.is_valid():
             visa = form.save(commit=False)
             visa.save()
@@ -75,7 +75,7 @@ def edit_visa(request, visa_id):
     else:
         # The initial value needs to be the person's emplid in the form.
         # Django defaults to the pk, which is not human readable.
-        form = VisaForm(instance=visa, initial={'person': visa.person.emplid})
+        form = VisaForm(request, instance=visa, initial={'person': visa.person.emplid})
 
     return render(request, 'visas/edit_visa.html', {'form': form, 'visa_id': visa_id})
 
@@ -104,18 +104,19 @@ def delete_visa(request, visa_id):
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def download_visas_csv(request):
-    visas = Visa.objects.visible()
+    visas = Visa.objects.visible_by_unit(request.units)
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'inline; filename="%s.csv"' % datetime.now().strftime('%Y%m%d')
+    response['Content-Disposition'] = 'inline; filename="visas-%s.csv"' % datetime.now().strftime('%Y%m%d')
     writer = csv.writer(response)
-    writer.writerow(['Person', 'Start Date', 'End Date', 'Type', 'Validity'])
+    writer.writerow(['Person', 'Unit', 'Start Date', 'End Date', 'Type', 'Validity'])
     for v in visas:
         person = v.person
+        unit = v.unit.name
         start_date = v.start_date
         end_date = v.end_date
         visa_type = v.status
         validity = v.get_validity()
-        writer.writerow([person, start_date, end_date, visa_type, validity])
+        writer.writerow([person, unit, start_date, end_date, visa_type, validity])
 
     return response
 

@@ -7,7 +7,7 @@ from django.db import models
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 
-from coredata.models import VISA_STATUSES as REAL_VISA_STATUSES, Person
+from coredata.models import VISA_STATUSES as REAL_VISA_STATUSES, Person, Unit
 from django.utils import timezone
 from courselib.json_fields import JSONField
 from coredata.models import Semester
@@ -29,25 +29,27 @@ def timezone_today():
     return timezone.now().date()
 
 
-class VisaManager(models.Manager):
+class VisaQuerySet(models.QuerySet):
     def visible(self):
-        qs = self.get_queryset()
-        return qs.filter(hidden=False)
+        return self.filter(hidden=False)
+
+    def visible_by_unit(self, units):
+        return self.visible().filter(unit__in=units)
 
     def visible_given_user(self, person):
-        qs = self.get_queryset()
-        return qs.filter(hidden=False, person=person)
+        return self.filter(hidden=False, person=person)
 
 
 class Visa (models.Model):
     person = models.ForeignKey(Person, null=False, blank=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False)
     status = models.CharField(max_length=50, choices=VISA_STATUSES, default='')
     start_date = models.DateField('Start Date', default=timezone_today, help_text='First day of visa validity')
     end_date = models.DateField('End Date', blank=True, null=True, help_text='Expiry of the visa (if known)')
     config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
     hidden = models.BooleanField(default=False, editable=False)
 
-    objects = VisaManager()
+    objects = VisaQuerySet.as_manager()
 
     class Meta:
         ordering = ('start_date',)
