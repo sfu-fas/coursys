@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='visa',
             name='unit',
-            field=models.ForeignKey(default=3, to='coredata.Unit'),
+            field=models.ForeignKey(default=34, to='coredata.Unit'),
             preserve_default=False,
         ),
     ]
