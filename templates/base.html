@@ -3,9 +3,10 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
 {% endcomment %}{% load staticfiles %}{% load compress %}<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="origin" />
   <title>{% block wholetitle %}CourSys - {% block title %}{% endblock %}{% endblock %}</title>
   {% compress js %}
   <script type="text/javascript" src="{% static "newsfu/jquery.js" %}"></script>
@@ -31,11 +32,11 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
   <![endif]-->
 
   {% compress css %}
-  <link rel="stylesheet" href="{% static "newsfu/head.styles.css" %}" type="text/css">
+  <link rel="stylesheet" href="{% static "newsfu/head.styles.css" %}" />
   <link rel="stylesheet" href="{% static "style/main.css" %}" />
   <link rel="stylesheet" href="{% static "style/custom-theme/jquery-ui-1.10.4.custom.min.css" %}" />
   <link rel="stylesheet" href="{% static "style/print.css" %}" />
-  <link rel="stylesheet" href="{% static "font-awesome/css/font-awesome.min.css" %}">
+  <link rel="stylesheet" href="{% static "font-awesome/css/font-awesome.min.css" %}" />
   {% endcompress %}
 
   <link rel="icon" href="{% static "icons/favicon.ico" %}" type="image/x-icon" />
