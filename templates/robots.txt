@@ -1,4 +1,5 @@
 User-agent: *
+Allow: /static/
 Allow: /news/
 Allow: /calendar/
 Allow: /data/
