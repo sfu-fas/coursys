@@ -11,7 +11,6 @@ from coredata.models import VISA_STATUSES as REAL_VISA_STATUSES, Person, Unit
 from django.utils import timezone
 from courselib.json_fields import JSONField
 from coredata.models import Semester
-from django.db.models.query import QuerySet
 
 # "citizen" isn't truly a visa status, but it's something we want to track here.
 # SIMS has no Work Visa status, so we're adding that here too.
@@ -20,6 +19,7 @@ VISA_STATUSES = (('Citizen', 'Citizen'), ('Work', 'Work Visa')) + REAL_VISA_STAT
 EXPIRY_STATUSES = ['Expired', 'Expiring Soon', 'Valid']
 
 NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
+
 
 def timezone_today():
     """
@@ -84,7 +84,7 @@ class Visa (models.Model):
         self.hidden = True
 
     def has_attachments(self):
-        return VisaDocumentAttachment.objects.filter(visa=self, hidden=False).count() > 0
+        return VisaDocumentAttachment.objects.visible().filter(visa=self).count() > 0
 
     @staticmethod
     def import_for(people):
@@ -131,10 +131,9 @@ def visa_attachment_upload_to(instance, filename):
     return fullpath
 
 
-class VisaDocumentAttachmentManager(models.Manager):
+class VisaDocumentAttachmentQueryset(models.QuerySet):
     def visible(self):
-        qs = self.get_queryset()
-        return qs.filter(hidden=False)
+        return self.filter(hidden=False)
 
 
 class VisaDocumentAttachment(models.Model):
@@ -150,7 +149,7 @@ class VisaDocumentAttachment(models.Model):
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
 
-    objects = VisaDocumentAttachmentManager()
+    objects = VisaDocumentAttachmentQueryset.as_manager()
 
     def __unicode__(self):
         return self.contents.name
