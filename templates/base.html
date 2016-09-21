@@ -8,6 +8,14 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="referrer" content="origin" />
   <title>{% block wholetitle %}CourSys - {% block title %}{% endblock %}{% endblock %}</title>
+  {% compress css %}
+  <link rel="stylesheet" href="{% static "newsfu/head.styles.css" %}" />
+  <link rel="stylesheet" href="{% static "style/main.css" %}" />
+  <link rel="stylesheet" href="{% static "style/custom-theme/jquery-ui-1.10.4.custom.min.css" %}" />
+  <link rel="stylesheet" href="{% static "style/print.css" %}" />
+  <link rel="stylesheet" href="{% static "font-awesome/css/font-awesome.min.css" %}" />
+  {% endcompress %}
+
   {% compress js %}
   <script type="text/javascript" src="{% static "newsfu/jquery.js" %}"></script>
   <script type="text/javascript" src="{% static "newsfu/jquery-ui.js" %}"></script>
@@ -30,14 +38,6 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
   <script type="text/javascript" src="{% static "newsfu/matchmedia.js" %}"></script>
   {% endcompress %}
   <![endif]-->
-
-  {% compress css %}
-  <link rel="stylesheet" href="{% static "newsfu/head.styles.css" %}" />
-  <link rel="stylesheet" href="{% static "style/main.css" %}" />
-  <link rel="stylesheet" href="{% static "style/custom-theme/jquery-ui-1.10.4.custom.min.css" %}" />
-  <link rel="stylesheet" href="{% static "style/print.css" %}" />
-  <link rel="stylesheet" href="{% static "font-awesome/css/font-awesome.min.css" %}" />
-  {% endcompress %}
 
   <link rel="icon" href="{% static "icons/favicon.ico" %}" type="image/x-icon" />
   <link rel="shortcut icon" href="{% static "icons/favicon.ico" %}" type="image/x-icon" />
