@@ -1,6 +1,9 @@
 from django.conf.urls import url
 from courselib.urlparts import USERID_OR_EMPLID, ACCOUNT_SLUG, PROJECT_SLUG, RA_SLUG, SLUG_RE
 
+
+ATTACH_SLUG = '(?P<attach_slug>' + SLUG_RE + ')'
+
 ra_patterns = [ # prefix /ra/
     url(r'^$', 'ra.views.search'),
     url(r'^search/' + USERID_OR_EMPLID + '/$', 'ra.views.student_appointments'),
@@ -28,6 +31,9 @@ ra_patterns = [ # prefix /ra/
     url(r'^' + RA_SLUG + '/reappoint$', 'ra.views.reappoint'),
     url(r'^' + RA_SLUG + '/delete$', 'ra.views.delete_ra'),
     url(r'^' + RA_SLUG + '/select_letter$', 'ra.views.select_letter'),
-    url(r'^' + RA_SLUG + '/select_letter/' + '(?P<print_only>[\w\-]+)' + '$', 'ra.views.select_letter')
-
+    url(r'^' + RA_SLUG + '/select_letter/' + '(?P<print_only>[\w\-]+)' + '$', 'ra.views.select_letter'),
+    url(r'^' + RA_SLUG + '/new_attach$', 'ra.views.new_attachment'),
+    url(r'^' + RA_SLUG + '/attach/' + ATTACH_SLUG + '/delete$', 'ra.views.delete_attachment'),
+    url(r'^' + RA_SLUG + '/attach/' + ATTACH_SLUG + '/view', 'ra.views.view_attachment'),
+    url(r'^' + RA_SLUG + '/attach/' + ATTACH_SLUG + '/download$', 'ra.views.download_attachment'),
 ]

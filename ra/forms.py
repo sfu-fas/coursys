@@ -1,9 +1,10 @@
 from django import forms
-from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED
+from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED, RAAppointmentAttachment
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
+
 
 class RAForm(forms.ModelForm):
     person = PersonField(label='Hire')
@@ -62,6 +63,7 @@ class RALetterForm(forms.ModelForm):
                    'offer_letter_text': forms.Textarea(attrs={'rows': 25, 'cols': 70}),
                    }
 
+
 class LetterSelectForm(forms.Form):
     letter_choice = forms.ChoiceField(label='Select a letter', required=True, help_text='Please select the appropriate letter template for this RA.')
 
@@ -92,21 +94,26 @@ class StudentField(forms.ModelChoiceField):
             raise forms.ValidationError("Unknown person selected")
         return st
 
+
 class RASearchForm(forms.Form):
     search = StudentField()
 
+
 class RABrowseForm(forms.Form):
     current = forms.BooleanField(label='Only current appointments', initial=True, help_text='Appointments active now (or within two weeks).')
+
 
 class AccountForm(forms.ModelForm):
     class Meta:
         model = Account
         exclude = ('hidden',)
 
+
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         exclude = ('hidden',)
+
 
 class SemesterConfigForm(forms.Form):
     unit = forms.ModelChoiceField(queryset=Unit.objects.all())
@@ -114,4 +121,7 @@ class SemesterConfigForm(forms.Form):
     end_date = forms.DateField(required=True, help_text="Default end date for contracts")
 
 
-
+class RAAppointmentAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = RAAppointmentAttachment
+        exclude = ('appointment', 'created_by')

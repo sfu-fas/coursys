@@ -26,6 +26,7 @@
       <li><a href="{% url "ra.views.form" ra_slug=appointment.slug %}">Appointment Form</a></li>
       <li><a href="{% url "ra.views.letter" ra_slug=appointment.slug %}">Appointment Letter</a></li>
       <li><a href="{% url "ra.views.reappoint" ra_slug=appointment.slug %}">Reappoint</a></li>
+      <li><a href="{% url "ra.views.new_attachment" ra_slug=appointment.slug %}">Add Attachment</a></li>
     </ul>
   </div>
 {% endblock %}
@@ -138,6 +139,20 @@
       <td>{{ appointment.comments|linebreaksbr }}</td></tr>
   </table>
 </div>
+{% with attachments=appointment.attachments.visible %}
+    {% if attachments %}
+    <h2 id="attachments">Attachments</h2>
+    <ul>
+    {% for a in attachments %}
+    <li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
+      <a href="{% url 'ra.views.view_attachment' ra_slug=appointment.slug  attach_slug=a.slug %}">View</a> |
+      <a href="{% url 'ra.views.download_attachment' ra_slug=appointment.slug  attach_slug=a.slug %}">Download</a> |
+      <a href="{% url 'ra.views.delete_attachment' ra_slug=appointment.slug  attach_slug=a.slug  %}">Delete</a>
+    </li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
 
                         <form action="{% url "ra.views.delete_ra" ra_slug=appointment.slug %}" method="post">
                             {% csrf_token %}

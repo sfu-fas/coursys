@@ -1,13 +1,12 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
 from django.contrib import messages
-from django.template.defaultfilters import date as datefilter
-from django.conf import settings
 from django.db.models import Q
 from django.utils.html import conditional_escape as escape
 from ra.models import RAAppointment, Project, Account, SemesterConfig
-from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, LetterSelectForm
+from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, \
+    LetterSelectForm, RAAppointmentAttachmentForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
@@ -17,6 +16,7 @@ from grad.models import GradStudent, Scholarship
 from log.models import LogEntry
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
+from django.db import transaction
 
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -611,3 +611,69 @@ def person_info(request):
             result['error'] = e.message
 
     return HttpResponse(json.dumps(result), content_type='application/json;charset=utf-8')
+
+
+@requires_role("FUND")
+@transaction.atomic
+def new_attachment(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    form = RAAppointmentAttachmentForm()
+    context = {"appointment": appointment,
+               "attachment_form": form}
+
+    if request.method == "POST":
+        form = RAAppointmentAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.appointment = appointment
+            attachment.created_by = editor
+            upfile = request.FILES['contents']
+            filetype = upfile.content_type
+            if upfile.charset:
+                filetype += "; charset=" + upfile.charset
+            attachment.mediatype = filetype
+            attachment.save()
+            return HttpResponseRedirect(reverse(view, kwargs={'ra_slug': appointment.slug}))
+        else:
+            context.update({"attachment_form": form})
+
+    return render(request, 'ra/appointment_attachment_form.html', context)
+
+
+@requires_role("FUND")
+def view_attachment(request, ra_slug, attach_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
+    attachment = get_object_or_404(appointment.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role("FUND")
+def download_attachment(request, ra_slug, attach_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
+    attachment = get_object_or_404(appointment.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role("FUND")
+def delete_attachment(request, ra_slug, attach_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
+    attachment = get_object_or_404(appointment.attachments.all(), slug=attach_slug)
+    attachment.hide()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         u'Attachment deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
+    l.save()
+    return HttpResponseRedirect(reverse(view, kwargs={'ra_slug': appointment.slug}))
+

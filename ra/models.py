@@ -10,8 +10,9 @@ from courselib.text import normalize_newlines
 from django.template.loader import get_template
 from django.template import Context
 from django.core.mail import EmailMultiAlternatives
+from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-import datetime
+import datetime, os
 
 
 HIRING_CATEGORY_CHOICES = (
@@ -49,6 +50,9 @@ PAY_FREQUENCY_CHOICES = (
 # chunks. 
 SEMESTER_SLIDE = 15
 
+NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
+
+
 class Project(models.Model):
     """
     A table to look up the appropriate fund number based on the project number
@@ -71,6 +75,7 @@ class Project(models.Model):
         self.hidden = True
         self.save()
 
+
 class Account(models.Model):
     """
     A table to look up the appropriate position number based on the account number.
@@ -89,6 +94,7 @@ class Account(models.Model):
 
     def __unicode__(self):
         return "%06i (%s)" % (self.account_number, self.title)
+
     def delete(self, *args, **kwargs):
         self.hidden = True
         self.save()
@@ -136,6 +142,7 @@ DEFAULT_LETTERS = {
     'POSTDOC': ('RA Letter for Post-Doc', DEFAULT_LETTER_POSTDOC_LUMPSUM, DEFAULT_LETTER_POSTDOC_BIWEEKLY),
 }   # note to self: if allowing future configuration per-unit, make sure the keys are globally-unique.
 
+
 class RAAppointment(models.Model):
     """
     This stores information about a (Research Assistant)s application and pay.
@@ -167,6 +174,7 @@ class RAAppointment(models.Model):
     notes = models.TextField("Comments", blank=True, help_text="Biweekly employment earnings rates must include vacation pay, hourly rates will automatically have vacation pay added. The employer cost of statutory benefits will be charged to the amount to the earnings rate.")
     comments = models.TextField("Notes", blank=True, help_text="For internal use")
     offer_letter_text = models.TextField(null=True, help_text="Text of the offer letter to be signed by the RA and supervisor.")
+
     def autoslug(self):
         if self.person.userid:
             ident = self.person.userid
@@ -342,7 +350,52 @@ class RAAppointment(models.Model):
             raappt.mark_reminded()
 
 
+def ra_attachment_upload_to(instance, filename):
+    """
+    callback to avoid path in the filename(that we have append folder structure to) being striped
+    """
+    fullpath = os.path.join(
+        'raattachments',
+        instance.appointment.person.userid_or_emplid(),
+        str(instance.appointment.id),
+        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        filename.encode('ascii', 'ignore'))
+    return fullpath
 
+
+class RAAppointmentAttachmentQueryset(models.QuerySet):
+    def visible(self):
+        return self.filter(hidden=False)
+
+
+class RAAppointmentAttachment(models.Model):
+    """
+    Like most of our contract-based objects, an attachment object that can be attached to them.
+    """
+    appointment = models.ForeignKey(RAAppointment, null=False, blank=False, related_name="attachments")
+    title = models.CharField(max_length=250, null=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('appointment',))
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
+    contents = models.FileField(storage=NoteSystemStorage, upload_to=ra_attachment_upload_to, max_length=500)
+    mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = RAAppointmentAttachmentQueryset.as_manager()
+
+    def __unicode__(self):
+        return self.contents.name
+
+    class Meta:
+        ordering = ("created_at",)
+        unique_together = (("appointment", "slug"),)
+
+    def contents_filename(self):
+        return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()
 
 
 class SemesterConfig(models.Model):

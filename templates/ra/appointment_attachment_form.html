@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load form_display %}{% load staticfiles %}
+{% block title %}Add File Attachment{% endblock %}
+{% block h1 %}Add File Attachment{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ra.views.search" %}">RAs</a></li>
+<li><a href="{% url "ra.views.student_appointments" userid=appointment.person.emplid %}">{{ student.name }}</a></li>
+<li>{{ appointment.account.title }} starting {{ appointment.start_date }}</li>
+<li>Add Attachment</li>
+{% endblock %}
+
+
+{% block content %}
+<div class="form_container">
+    <form action="{% url "ra.views.new_attachment" ra_slug=appointment.slug  %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset>
+            {{ attachment_form|as_dl }}
+            <p><input type="submit" class="submit" value="Create Attachment" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}
