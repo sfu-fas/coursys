@@ -14,6 +14,8 @@ Column logic:
     Student #
   if group assignment:
     Group
+  if course has labs/tutorials and instructor cares
+    lab/tut secion
   if calculated letter
     source grade
   always:
@@ -53,6 +55,7 @@ Column logic:
 		    null,
 		    { "sType": "by-nolink" },
 		    {% if activity.group %}null,{% endif %}
+		    {% if course.labtut and course.labtut_use %}null,{% endif %}
 		    {% if not activity.is_numeric and activity.is_calculated %}{ "sType": "by-mark" },{% endif %}
 		    {% if activity.is_numeric %}{ "sType": "by-nolinkmark" }{% else %}{ "sType": "by-nolinkletter" }{% endif %}
 		    {% if not activity.is_calculated and activity.is_numeric %},{ "sType": "by-marklink" }{% endif %}
@@ -260,6 +263,7 @@ Column logic:
 		{% if activity.group %}
 		  <th scope="col">Group</th>
 		{% endif %}
+        {% if course.labtut and course.labtut_use %}<th scope="col">Lab/Tut</th>{% endif %}
 		{% if not activity.is_numeric and activity.is_calculated %}
 		  <th scope="col"><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.numeric_activity.slug %}">{{activity.numeric_activity.short_name}}</a> Grade</th>
 		{% endif %}
@@ -290,6 +294,7 @@ Column logic:
 		  {% if group %}<a href="{{group.get_absolute_url}}">{{group}}</a>{% else %}&mdash;{% endif %}
 		  {% endwith %}</td>
 		{% endif %}
+        {% if course.labtut and course.labtut_use %}<td>{{ member.labtut_section|default_if_none:'&mdash;' }}</td>{% endif %}
 		{% if not activity.is_numeric and activity.is_calculated %}<td>
 		  {% with source_grades|hash:userid as sgrade %}
 		  {% if not sgrade or sgrade.flag == 'NOGR'%}

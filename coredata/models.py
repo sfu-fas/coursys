@@ -916,6 +916,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         # 'taemail': TAs' contact email (if not their personal email)
         # 'labtut': are there lab sections? (default False)
         # 'labtas': TAs get the LAB_BONUS lab/tutorial bonus (default False)
+        # 'labtut_use': the instructor cares about labs/tutorials and wants them displayed more
         # 'uses_svn': create SVN repos for this course? (default False)
         # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
         # 'instr_rw_svn': can instructors/TAs *write* to student SVN repos? (default False)
@@ -931,8 +932,9 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
                 'instr_rw_svn': False, 'joint_with': (), 'group_min': None, 'group_max': None,
-                'maillist': None}
+                'maillist': None, 'labtut_use': False}
     labtut, set_labtut = getter_setter('labtut')
+    labtut_use, set_labtut_use = getter_setter('labtut_use')
     _, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
