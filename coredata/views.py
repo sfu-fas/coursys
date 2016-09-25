@@ -45,7 +45,7 @@ def role_list(request):
     """
     Display list of who has what role
     """
-    roles = Role.objects.exclude(role="NONE")
+    roles = Role.objects.exclude(role="NONE").select_related('person', 'unit')
     
     return render(request, 'coredata/roles.html', {'roles': roles})
 
@@ -121,7 +121,8 @@ def edit_unit(request, unit_slug=None):
 
 @requires_global_role("SYSA")
 def members_list(request):
-    members = Member.objects.exclude(added_reason="AUTO").exclude(added_reason="CTA").exclude(added_reason="TAC")
+    members = Member.objects.exclude(added_reason="AUTO").exclude(added_reason="CTA").exclude(added_reason="TAC") \
+            .select_related('offering__semester')
     return render(request, 'coredata/members_list.html', {'members': members})
 
 
@@ -162,7 +163,7 @@ def user_summary(request, userid):
         messages.success(request, 'Imported SIMS data for %s.' % (person.userid_or_emplid()))
     
     memberships = Member.objects.filter(person=person)
-    roles = Role.objects.filter(person=person).exclude(role="NONE")
+    roles = Role.objects.filter(person=person).exclude(role="NONE").select_related('unit')
     
     context = {'person': person, 'memberships': memberships, 'roles': roles}
     return render(request, "coredata/user_summary.html", context)
