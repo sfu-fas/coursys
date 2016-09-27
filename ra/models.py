@@ -53,6 +53,43 @@ SEMESTER_SLIDE = 15
 NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 
+class ProgramQueryset(models.QuerySet):
+    def visible(self):
+        return self.filter(hidden=False)
+
+    def visible_by_unit(self, units):
+        return self.visible().filter(unit__in=units)
+
+
+class Program(models.Model):
+    """
+    A field required for the new Chart of Accounts
+    """
+    unit = models.ForeignKey(Unit)
+    program_number = models.PositiveIntegerField()
+    title = models.CharField(max_length=60)
+    objects = ProgramQueryset.as_manager()
+
+    def autoslug(self):
+        return make_slug(self.unit.label + '-' + unicode(self.program_number).zfill(5))
+
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+    hidden = models.BooleanField(null=False, default=False)
+
+    class Meta:
+        ordering = ['program_number']
+
+    def __unicode__(self):
+        return "%s- %05d, %s" % (self.unit.label, self.program_number, self.title)
+
+    def delete(self, *args, **kwargs):
+        self.hidden = True
+        self.save()
+
+    def get_program_number_display(self):
+        return str(self.program_number).zfill(5)
+
+
 class Project(models.Model):
     """
     A table to look up the appropriate fund number based on the project number
@@ -156,7 +193,8 @@ class RAAppointment(models.Model):
     hiring_category = models.CharField(max_length=4, choices=HIRING_CATEGORY_CHOICES, default='GRA')
     scholarship = models.ForeignKey(Scholarship, null=True, blank=True, help_text='Scholarship associated with this appointment. Optional.')
     project = models.ForeignKey(Project, null=False, blank=False)
-    account = models.ForeignKey(Account, null=False, blank=False)
+    account = models.ForeignKey(Account, null=False, blank=False, help_text='This is now called "Object" in the new PAF')
+    program = models.ForeignKey(Program, null=True, blank=True, help_text='If none is provided,  "00000" will be added in the PAF')
     start_date = models.DateField(auto_now=False, auto_now_add=False)
     end_date = models.DateField(auto_now=False, auto_now_add=False)
     pay_frequency = models.CharField(max_length=60, choices=PAY_FREQUENCY_CHOICES, default='B')
@@ -440,5 +478,4 @@ class SemesterConfig(models.Model):
 
     def set_end_date(self, date):
         self.config['end_date'] = date.strftime('%Y-%m-%d')
-
 

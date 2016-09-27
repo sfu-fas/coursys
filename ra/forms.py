@@ -1,5 +1,5 @@
 from django import forms
-from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED, RAAppointmentAttachment
+from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED, RAAppointmentAttachment, Program
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
@@ -125,3 +125,15 @@ class RAAppointmentAttachmentForm(forms.ModelForm):
     class Meta:
         model = RAAppointmentAttachment
         exclude = ('appointment', 'created_by')
+
+
+class ProgramForm(forms.ModelForm):
+    class Meta:
+        model = Program
+        exclude = ('hidden',)
+
+    def clean_program_number(self):
+        program_number = self.cleaned_data['program_number']
+        if program_number > 99999:
+            raise forms.ValidationError("Program number cannot be more than 5 digits.")
+        return program_number

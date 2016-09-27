@@ -4,9 +4,9 @@ from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpRespons
 from django.contrib import messages
 from django.db.models import Q
 from django.utils.html import conditional_escape as escape
-from ra.models import RAAppointment, Project, Account, SemesterConfig
+from ra.models import RAAppointment, Project, Account, SemesterConfig, Program
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, \
-    LetterSelectForm, RAAppointmentAttachmentForm
+    LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
@@ -102,14 +102,16 @@ def _appointment_defaults(units, emplid=None):
     if emplid:
         for s in Scholarship.objects.filter(student__person__emplid=emplid):
             scholarship_choices.append((s.pk, s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"))
-
-    return (scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices)
+    program_choices = [(p.id, unicode(p)) for p in Program.objects.visible_by_unit(units).order_by('program_number')]
+    return (scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices,
+            program_choices)
     
 
 #New RA Appointment
 @requires_role("FUND")
 def new(request):
-    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices = _appointment_defaults(request.units)
+    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices, program_choices = \
+        _appointment_defaults(request.units)
     if request.method == 'POST':
         data = request.POST.copy()
         if data['pay_frequency'] == 'L':
@@ -124,6 +126,7 @@ def new(request):
         raform.fields['unit'].choices = unit_choices
         raform.fields['project'].choices = project_choices
         raform.fields['account'].choices = account_choices
+        raform.fields['program'].choices = program_choices
 
         if raform.is_valid():
             userid = raform.cleaned_data['person'].userid_or_emplid()
@@ -141,6 +144,7 @@ def new(request):
         raform.fields['unit'].choices = unit_choices
         raform.fields['project'].choices = project_choices
         raform.fields['account'].choices = account_choices
+        raform.fields['program'].choices = program_choices
     return render(request, 'ra/new.html', { 'raform': raform })
 
 #New RA Appointment with student pre-filled.
@@ -151,7 +155,8 @@ def new_student(request, userid):
     semesterconfig = SemesterConfig.get_config(request.units, semester)
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     initial = {'person': student.emplid, 'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 80 }
-    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices = _appointment_defaults(request.units, emplid=student.emplid)
+    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices, program_choices = \
+        _appointment_defaults(request.units, emplid=student.emplid)
     gss = GradStudent.objects.filter(person=student)
     if gss:
         gradstudent = gss[0]
@@ -164,13 +169,15 @@ def new_student(request, userid):
     raform.fields['unit'].choices = unit_choices
     raform.fields['project'].choices = project_choices
     raform.fields['account'].choices = account_choices
+    raform.fields['program'].choices = program_choices
     return render(request, 'ra/new.html', { 'raform': raform, 'person': person })
 
 #Edit RA Appointment
 @requires_role("FUND")
 def edit(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
-    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices = _appointment_defaults(request.units, emplid=appointment.person.emplid)
+    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices, program_choices = \
+        _appointment_defaults(request.units, emplid=appointment.person.emplid)
     if request.method == 'POST':
         data = request.POST.copy()
         if data['pay_frequency'] == 'L':
@@ -198,7 +205,7 @@ def edit(request, ra_slug):
         raform.fields['unit'].choices = unit_choices
         raform.fields['project'].choices = project_choices
         raform.fields['account'].choices = account_choices
-
+        raform.fields['program'].choices = program_choices
     return render(request, 'ra/edit.html', { 'raform': raform, 'appointment': appointment, 'person': appointment.person })
 
 #Quick Reappoint, The difference between this and edit is that the reappointment box is automatically checked, and date information is filled out as if a new appointment is being created.
@@ -337,13 +344,12 @@ def new_account(request):
     return render(request, 'ra/new_account.html', {'accountform': accountform})
 
 
-@requires_role(["FUND", "TAAD", "GRAD"])
+@requires_role("FUND")
 def accounts_index(request):
-    depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
-    accounts = Account.objects.filter(unit__id__in=depts, hidden=False).order_by("account_number")
+    accounts = Account.objects.filter(unit__in=request.units, hidden=False).order_by("account_number")
     return render(request, 'ra/accounts_index.html', {'accounts': accounts})
 
-@requires_role(["FUND", "TAAD", "GRAD"])
+@requires_role("FUND")
 def edit_account(request, account_slug):
     account = get_object_or_404(Account, slug=account_slug, unit__in=request.units)
     if request.method == 'POST':
@@ -676,4 +682,66 @@ def delete_attachment(request, ra_slug, attach_slug):
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
     return HttpResponseRedirect(reverse(view, kwargs={'ra_slug': appointment.slug}))
+
+
+@requires_role("FUND")
+def programs_index(request):
+    unit_ids = [unit.id for unit in request.units]
+    units = Unit.objects.filter(id__in=unit_ids)
+    programs = Program.objects.visible_by_unit(units)
+    return render(request, 'ra/programs_index.html', {'programs': programs})
+
+
+@requires_role("FUND")
+def new_program(request):
+    if request.method == 'POST':
+        form = ProgramForm(request.POST)
+        if form.is_valid():
+            program = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Program was created')
+            l = LogEntry(userid=request.user.username,
+                         description="Added program %s" % program,
+                         related_object=program)
+            l.save()
+            return HttpResponseRedirect(reverse(programs_index))
+    else:
+        form = ProgramForm()
+        form.fields['unit'].choices = [(u.id, u.name) for u in request.units]
+    return render(request, 'ra/new_program.html', {'form': form})
+
+
+@requires_role("FUND")
+def delete_program(request, program_id):
+    program = get_object_or_404(Program, pk=program_id, unit__in=request.units)
+    program.delete()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         u'Program deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid program %s" % program, related_object=program)
+    l.save()
+    return HttpResponseRedirect(reverse(programs_index))
+
+
+@requires_role("FUND")
+def edit_program(request, program_slug):
+    program = get_object_or_404(Program, slug=program_slug, unit__in=request.units)
+    if request.method == 'POST':
+        form = ProgramForm(request.POST, instance=program)
+        if form.is_valid():
+            program = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Program was created')
+            l = LogEntry(userid=request.user.username,
+                         description="Added program %s" % program,
+                         related_object=program)
+            l.save()
+            return HttpResponseRedirect(reverse(programs_index))
+    else:
+        form = ProgramForm(instance=program)
+        form.fields['unit'].choices = [(u.id, u.name) for u in request.units]
+    return render(request, 'ra/edit_program.html', {'form': form, 'program': program})
 

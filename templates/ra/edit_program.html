@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit Program{% endblock %}
+{% block h1 %}Edit Program{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ra.views.search" %}">RAs</a></li>
+<li><a href="{% url "ra.views.programs_index" %}">Programs</a></li>
+<li>Edit {{ program.program_number}} - {{ program.title }}</li>{% endblock %}
+
+{% block content %}
+  <div class="form_container">
+    <form action="{% url "ra.views.edit_program" program_slug=program.slug %}" method="post">{% csrf_token %}
+      <fieldset>
+        {{ form|as_dl }}
+        <p><input type="submit" value="Submit" class="submit" /></p>
+      </fieldset>
+    </form>
+  </div>
+{% endblock %}

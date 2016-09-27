@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}New Program{% endblock %}
+{% block h1 %}New Program{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ra.views.search" %}">RAs</a></li>
+<li><a href="{% url "ra.views.programs_index" %}">Programs</a></li>
+<li>New</li>{% endblock %}
+
+{% block content %}
+  <div class="form_container">
+    <form action="{% url "ra.views.new_program" %}" method="post">{% csrf_token %}
+      <fieldset>
+        {{ form|as_dl }}
+        <p><input type="submit" value="Submit" class="submit" /></p>
+      </fieldset>
+    </form>
+  </div>
+{% endblock %}
