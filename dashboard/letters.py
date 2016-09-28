@@ -570,16 +570,25 @@ class RAForm(object, SFUMediaMixin):
 
         # position numbers
         self.c.setFont("Helvetica", 7)
-        self.c.drawString(1.5*mm, 148*mm, "Fund (2 digit)")
-        self.c.drawString(23*mm, 148*mm, "Dept (5 digit)")
-        self.c.drawString(66*mm, 148*mm, "Prjct Num (6 digit)")
-        self.c.drawString(110*mm, 148*mm, "Acct (4 digit)")
+        self.c.drawString(1.5*mm, 150*mm, "Project (6-8)")
+        self.c.drawString(45*mm, 150*mm, "Object (4)")
+        self.c.drawString(71*mm, 150*mm, "Fund (2)")
+        self.c.drawString(85*mm, 150*mm, "Dept (4)")
+        self.c.drawString(112*mm, 150*mm, "Program (5)")
         self.c.drawString(151*mm, 148*mm, "Position Number")
-        self._box_entry(1.5*mm, 139*mm, 16*mm, 6.5*mm, content="%i" % (self.ra.project.fund_number))
-        self._box_entry(23*mm, 139*mm, 38*mm, 6.5*mm, content=unicode(self.ra.project.department_code))
-        self._box_entry(66*mm, 139*mm, 38*mm, 6.5*mm, content="%s" % (self.ra.project.project_number or ''))
-        self._box_entry(110*mm, 139*mm, 29*mm, 6.5*mm, content="%06i" % (self.ra.account.account_number))
-        self._box_entry(150*mm, 139*mm, 48*mm, 6.5*mm, content='')
+        self.c.setFont("Helvetica-Oblique", 7)
+        self.c.drawString(1.5*mm, 147*mm, "if applicable")
+        self.c.drawString(45*mm, 147*mm, "Required")
+        self.c.drawString(71*mm, 147*mm, "Required")
+        self.c.drawString(85*mm, 147*mm, "If no project")
+        self.c.drawString(112*mm, 147*mm, "If no project")
+        self._box_entry(1.5*mm, 139*mm, 40*mm,  6.5*mm, content="%s" % (self.ra.project.project_number or ''))
+        self._box_entry(45*mm, 139*mm, 23*mm, 6.5 * mm, content="%04i" % (self.ra.account.account_number))
+        self._box_entry(71*mm, 139*mm, 11.5*mm, 6.5*mm, content="%i" % (self.ra.project.fund_number))
+        self._box_entry(85*mm, 139*mm, 25*mm, 6.5*mm, content=unicode(self.ra.project.department_code))
+        self._box_entry(112*mm, 139*mm, 31*mm, 6.5*mm, content=self.ra.get_program_display())
+
+        self._box_entry(150*mm, 139*mm, 46*mm, 6.5*mm, content='')
 
         # dates
         self.c.setFont("Helvetica", 8)
@@ -635,21 +644,21 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(172*mm, 112*mm, "Hours and")
         self.c.drawString(173*mm, 109.5*mm, "Minutes")
 
-        self._box_entry(103*mm, 101*mm, 15.5*mm, 8*mm, content=biweekhours)
-        self._box_entry(168*mm, 101*mm, 15.5*mm, 8*mm, content=lumphours)
+        self._box_entry(103*mm, 103*mm, 15.5*mm, 6*mm, content=biweekhours)
+        self._box_entry(168*mm, 103*mm, 15.5*mm, 6*mm, content=lumphours)
 
         self.c.setFont("Helvetica", 5)
-        self.c.drawString(1.5*mm, 96*mm, "Notes:")
-        self.c.drawString(23*mm, 96*mm, "Bi-Weekly employment earnings rate must include vacation pay. Hourly rates will automatically have vacation pay added. The employer cost of the statutory benefits will be charged to the account in")
-        self.c.drawString(23*mm, 93*mm, "addition to the earnings rate. Bi-weekly hours must reflect the number of hours worked and must meet legislative requirements for minimum wage.")
+        self.c.drawString(1.5*mm, 100*mm, "Notes:")
+        self.c.drawString(23*mm, 100*mm, "Bi-Weekly employment earnings rate must include vacation pay. Hourly rates will automatically have vacation pay added. The employer cost of the statutory benefits will be charged to the account in")
+        self.c.drawString(23*mm, 97*mm, "addition to the earnings rate. Bi-weekly hours must reflect the number of hours worked and must meet legislative requirements for minimum wage.")
 
         # Commments
         self.c.setFont("Helvetica", 9)
-        self.c.drawString(2*mm, 81.5*mm, "Comments:")
+        self.c.drawString(2*mm, 90.5*mm, "Comments:")
         self.c.setLineWidth(1)
-        self._box_entry(22*mm, 76*mm, 180*mm, 14*mm, content='')
+        self._box_entry(22*mm, 80*mm, 180*mm, 14*mm, content='')
 
-        f = Frame(23*mm, 76*mm, 175*mm, 14*mm, 0, 0, 0, 0)#, showBoundary=1)
+        f = Frame(23*mm, 80*mm, 175*mm, 14*mm, 0, 0, 0, 0)#, showBoundary=1)
         notes = []
         if self.ra.pay_frequency != 'L':
             default_note = "For total amount of $%s over %.1f pay periods." % (self.ra.lump_sum_pay, self.ra.pay_periods)
@@ -658,22 +667,23 @@ class RAForm(object, SFUMediaMixin):
         notes.append(Paragraph(default_note, style=self.NOTE_STYLE))
         notes.append(Paragraph(self.ra.notes, style=self.NOTE_STYLE))
         f.addFromList(notes, self.c)
-        print notes
-        self.c.setFont("Helvetica", 7.5)
-        self.c.drawString(2.5*mm, 72*mm, "As signing authority, I certify that the appointment and its applicable benefits are eligible and for the purpose of the funding. Furthermore, the appointment is NOT for a")
-        self.c.drawString(2.5*mm, 68.5*mm, "family member of the account holder or signing authority. If a family member relationship exists then additional approvals must be attached in accordance with policies")
-        self.c.drawString(2.5*mm, 65*mm, "GP 37 and R10.01. Please see the procedures contained in GP 37 for more information.")
+        self.c.setFont("Helvetica", 7.3)
+        self.c.drawString(2.5*mm, 76*mm, "As signing authority, I certify that the appointment and its applicable benefits are eligible and for the purpose of the funding. In accordance with the Tri-Agency Financial")
+        self.c.drawString(2.5*mm, 73*mm, "Administration Guide, this appointment is not for any part of compensation: to a grantee or to other persons who status would make them eligible to apply for grants")
+        self.c.drawString(2.5*mm, 70*mm, "related to the Tri-Agency (NSERC, SSHRC,or CIHR); or for any co-applicants and collaborators of the grant regardless of their eligibility to apply for grants. Furthermore, the")
+        self.c.drawString(2.5*mm, 67*mm, "appointment is NOT for a family member of the account holder or signing authority. If a family member relationship exists then additional approvals must be attached in")
+        self.c.drawString(2.5*mm, 64*mm, "accordance with policies GP 37 and R10.01. Please see the procedures contained in GP 37 for more information.")
 
         # signatures
         self.c.setFont("Helvetica", 9)
         self.c.drawString(2*mm, 59*mm, "HIRING DEPARTMENT")
         self.c.drawString(117*mm, 59*mm, "REVIEWED BY")
         self.c.setFont("Helvetica", 7)
-        self.c.drawString(2*mm, 51*mm, "Signing Authority")
+        self.c.drawString(2*mm, 51*mm, "Signature Authority")
         self.c.drawString(2*mm, 43*mm, "Date")
-        self.c.drawString(98*mm, 51*mm, "Signing Authority")
+        self.c.drawString(98*mm, 51*mm, "Signature Authority")
         self.c.drawString(98*mm, 43*mm, "Date")
-        self.c.drawString(2*mm, 32.5*mm, "Prepared by/Conact")
+        self.c.drawString(2*mm, 32.5*mm, "Prepared by/Contact")
         self.c.drawString(2*mm, 29*mm, "Person (Phone no.)")
         self.c.drawString(2*mm, 19*mm, "Date")
 
@@ -693,7 +703,7 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(2*mm, 5*mm, "of BC. The information on this form is used by the University for payroll and benefit plan administration, statistical compilations, and operating programs and activities as required by University policies. The information on this form is disclosed to")
         self.c.drawString(2*mm, 2.5*mm, "government agencies as required by legislation. In accordance with Financial Information Act of BC, your Name, and Remuneration is public information and may be published. If you have any questions about the collection and use of this")
         self.c.drawString(2*mm, 0*mm, "information, please contact the Manager, Payroll.")
-        self.c.drawString(2*mm, -5*mm, "PAYROLL APPOINTMENT FORM (formerly FPP4) - July 2013 (produced by CourSys RAForm)")
+        self.c.drawString(2*mm, -5*mm, "PAYROLL APPOINTMENT FORM (formerly FPP4) - March 2016 (produced by CourSys RAForm)")
 
         self.c.showPage()
         self.c.save()

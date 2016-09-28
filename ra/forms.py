@@ -131,9 +131,3 @@ class ProgramForm(forms.ModelForm):
     class Meta:
         model = Program
         exclude = ('hidden',)
-
-    def clean_program_number(self):
-        program_number = self.cleaned_data['program_number']
-        if program_number > 99999:
-            raise forms.ValidationError("Program number cannot be more than 5 digits.")
-        return program_number

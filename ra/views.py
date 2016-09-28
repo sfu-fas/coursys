@@ -102,7 +102,7 @@ def _appointment_defaults(units, emplid=None):
     if emplid:
         for s in Scholarship.objects.filter(student__person__emplid=emplid):
             scholarship_choices.append((s.pk, s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"))
-    program_choices = [(p.id, unicode(p)) for p in Program.objects.visible_by_unit(units).order_by('program_number')]
+    program_choices = [('', "00000, None")] + [(p.id, unicode(p)) for p in Program.objects.visible_by_unit(units).order_by('program_number')]
     return (scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices,
             program_choices)
     

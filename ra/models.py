@@ -80,7 +80,7 @@ class Program(models.Model):
         ordering = ['program_number']
 
     def __unicode__(self):
-        return "%s- %05d, %s" % (self.unit.label, self.program_number, self.title)
+        return "%05d, %s" % (self.program_number, self.title)
 
     def delete(self, *args, **kwargs):
         self.hidden = True
@@ -386,6 +386,12 @@ class RAAppointment(models.Model):
                                          headers={'X-coursys-topic': 'ra'}, cc=cc)
             msg.send()
             raappt.mark_reminded()
+
+    def get_program_display(self):
+        if self.program:
+            return self.program.get_program_number_display()
+        else:
+            return '00000'
 
 
 def ra_attachment_upload_to(instance, filename):
