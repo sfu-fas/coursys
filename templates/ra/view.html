@@ -63,7 +63,7 @@
     <tr><th>Fund Number:</th>
       <td>{{ appointment.project.fund_number }}</td></tr>
     <tr><th>Project Number:</th>
-      <td>{{ appointment.project.project_number }}
+      <td>{{ appointment.project.get_full_project_number }}
           {% if appointment.project.hidden %}
             : <span class='warning'>Warning! This project has been deleted! </span>
           {% endif %} 

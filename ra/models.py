@@ -96,6 +96,8 @@ class Project(models.Model):
     """
     unit = models.ForeignKey(Unit, null=False, blank=False)
     department_code = models.PositiveIntegerField(default=0)
+    project_prefix = models.CharField("Prefix", max_length=1, null=True, blank=True,
+                                      help_text="If the project number has a prefix of 'R', 'X', etc, add it here")
     project_number = models.PositiveIntegerField(null=True, blank=True)
     fund_number = models.PositiveIntegerField()
     def autoslug(self):
@@ -108,10 +110,13 @@ class Project(models.Model):
 
     def __unicode__(self):
         return "%06i (%s) - %s" % (self.department_code, self.fund_number, self.project_number)
+
     def delete(self, *args, **kwargs):
         self.hidden = True
         self.save()
 
+    def get_full_project_number(self):
+        return (self.project_prefix or '').upper() + str(self.project_number).zfill(6)
 
 class Account(models.Model):
     """

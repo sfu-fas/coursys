@@ -49,7 +49,7 @@ function confirmDelete() {
     <tbody>
       {% for project in projects %}
         <tr>
-          <td scope="row"><span class="sort">{{project.project_number}}</span>{{project.project_number}}</td>
+          <td scope="row"><span class="sort">{{project.project_number}}</span>{{ project.get_full_project_number }}</td>
           <td>{{project.fund_number}}</td>
           <td>{{ project.department_code }}</td>
           <td>{{project.unit}}</td>

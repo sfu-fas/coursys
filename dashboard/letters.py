@@ -582,7 +582,7 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(71*mm, 147*mm, "Required")
         self.c.drawString(85*mm, 147*mm, "If no project")
         self.c.drawString(112*mm, 147*mm, "If no project")
-        self._box_entry(1.5*mm, 139*mm, 40*mm,  6.5*mm, content="%s" % (self.ra.project.project_number or ''))
+        self._box_entry(1.5*mm, 139*mm, 40*mm,  6.5*mm, content=self.ra.project.get_full_project_number())
         self._box_entry(45*mm, 139*mm, 23*mm, 6.5 * mm, content="%04i" % (self.ra.account.account_number))
         self._box_entry(71*mm, 139*mm, 11.5*mm, 6.5*mm, content="%i" % (self.ra.project.fund_number))
         self._box_entry(85*mm, 139*mm, 25*mm, 6.5*mm, content=unicode(self.ra.project.department_code))

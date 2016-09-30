@@ -113,6 +113,9 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         exclude = ('hidden',)
+        widgets = {
+            'project_prefix': forms.TextInput(attrs={'size': 1})
+        }
 
 
 class SemesterConfigForm(forms.Form):
