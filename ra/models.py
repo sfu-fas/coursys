@@ -116,7 +116,10 @@ class Project(models.Model):
         self.save()
 
     def get_full_project_number(self):
-        return (self.project_prefix or '').upper() + str(self.project_number).zfill(6)
+        if self.project_number:
+            return (self.project_prefix or '').upper() + str(self.project_number).zfill(6)
+        else:
+            return ''
 
 class Account(models.Model):
     """
