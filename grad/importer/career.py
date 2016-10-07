@@ -243,15 +243,14 @@ class GradCareer(object):
 
         # are there any GradProgramHistory objects happening before the student actually started (because they
         # deferred)? If so, defer them too.
-        if self.unit.slug != 'cmpt':
-            premature_gph = GradProgramHistory.objects.filter(student=self.gradstudent,
-                                                              start_semester__name__lt=self.admit_term)
-            for gph in premature_gph:
-                gph.start_semester = STRM_MAP[self.admit_term]
-                if verbosity:
-                    print "Deferring program start for %s/%s to %s." % (self.emplid, self.unit.slug, self.admit_term)
-                if not dry_run:
-                    gph.save()
+        premature_gph = GradProgramHistory.objects.filter(student=self.gradstudent,
+                                                          start_semester__name__lt=self.admit_term)
+        for gph in premature_gph:
+            gph.start_semester = STRM_MAP[self.admit_term]
+            if verbosity:
+                print "Deferring program start for %s/%s to %s." % (self.emplid, self.unit.slug, self.admit_term)
+            if not dry_run:
+                gph.save()
 
         # TODO: should we set GradStudent.config['start_semester'] here and be done with it?
 
