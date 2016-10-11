@@ -362,10 +362,6 @@ class ProgramStatusChange(GradHappening):
         """
         programs = student_info['programs']
 
-        # if self.unit.slug == 'cmpt' and programs:
-        #     # CMPT students get only their initial application gradprogramhistory filled in.
-        #     return
-
         key = self.import_key()
         if self.strm < student_info['real_admit_term']:
             # program change could happen before admit: we take those as effective the student's admit term
@@ -385,6 +381,17 @@ class ProgramStatusChange(GradHappening):
                         and p.program == self.grad_program]
                 if similar_history:
                     ph = similar_history[0]
+                    #  We need to check if we have a different date for this action than the matching entry.
+                    #  in some cases (like adding an active status afterwards), we need this date to be maximized
+                    #  to show the correct current program.
+                    if ph.starting != self.effdt:
+                        if verbosity > 1:
+                            print "Changing start of similar program %s/%s in %s from %s to %s" % \
+                                  (self.emplid, self.unit.slug, self.grad_program.slug, ph.starting, self.effdt)
+                        ph.starting = self.effdt
+                        if not dry_run:
+                            ph.save()
+
                 else:
                     need_ph = True
 
