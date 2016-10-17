@@ -83,7 +83,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
                   {% if user.is_authenticated %}
                     <a href="{{ LOGOUT_URL }}">Sign Out</a>
 				  {% else %}
-                    <a href="{{ LOGIN_URL }}">Sign In</a>
+                    <a href="{{ LOGIN_URL }}?next={{ request_path }}">Sign In</a>
 				  {% endif %}
                 </li>
               </ul>
@@ -102,7 +102,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
                     </ul>
               </li>
               <li>
-                {% if user.is_authenticated %}<a href="{% url "dashboard.views.index" %}">{{user.username}}</a>{% else %}<a href="{{ LOGIN_URL }}">Sign In</a>{% endif %}
+                {% if user.is_authenticated %}<a href="{% url "dashboard.views.index" %}">{{user.username}}</a>{% else %}<a href="{{ LOGIN_URL }}?next={{ request_path }}">Sign In</a>{% endif %}
                 <ul class="expanded">
                   <li><a href="{% url "dashboard.views.news_list" %}">All News Items</a></li>
                   <li><a href="{% url "dashboard.views.calendar" %}">View Calendar</a></li>
@@ -122,7 +122,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
 			{% if user.is_authenticated %}
 			Logged in as {{user.username}}. <a href="{{ LOGOUT_URL }}">Logout</a>
 			{% else %}
-			Not logged in. <a href="{{ LOGIN_URL }}">Login</a>
+			Not logged in. <a href="{{ LOGIN_URL }}?next={{ request_path }}">Login</a>
 			{% endif %}
 			</div>
       </div><!-- end header-divider -->
