@@ -23,7 +23,7 @@ def _allowed_member(userid, offering, acl_value):
     """
     Is a person with this userid allowed to access a page because they are a Member?
     """
-    members = Member.objects.filter(person__userid=userid, offering=offering)
+    members = Member.objects.filter(person__userid=userid, offering=offering).exclude(role='DROP')
     if not members:
         if acl_value == 'ALL':
             return True
