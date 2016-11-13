@@ -49,7 +49,7 @@ end
 package "mysql-client"
 package "libmysqlclient-dev"
 
-# Media Server
+# Frontend Server
 package "nginx"
 
 # Queue Server
@@ -66,6 +66,10 @@ package "stunnel4"
 
 # Keep the time in sync
 package "ntp"
+
+# encrypted backups
+package "duplicity"
+package "libssl-dev"
 
 # for pillow build
 package "libjpeg-dev"
