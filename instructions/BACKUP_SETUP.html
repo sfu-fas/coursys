@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>CourSys Backup Server Config</title>
+<style type="text/css">
+body {
+  margin-bottom: 5em;
+}
+h2 {
+  margin-top: 2em;
+}
+dt {
+  margin-top: 1em;
+  font-weight: bold;
+}
+code.file {
+  font-weight: bold;
+}
+.del {
+  text-decoration: line-through;
+}
+</style>
+</head>
+<body>
+<h1>CourSys Backup Server Config</h1>
+
+<p>This describes the method used to set up the production backup server in November 2016.</p>
+
+<h2 id="base">Base System Setup</h2>
+<dl>
+    <dt>Base system</dt>
+    <dd>
+        <p>VM provided by CSTS with Ubuntu 14.04 base system installed.</p>
+        <p>Basic setup needed to bootstsrap the coursys user:</p>
+        <blockquote><pre>sudo apt-get update
+sudo apt-get dist-upgrade
+sudo apt-get install git
+sudo adduser coursys
+sudo gpasswd -a coursys sudo
+sudo su coursys</pre></blockquote>
+    </dd>
+
+    <dt>Get the codebase</dt>
+    <dd>
+        <p>Add the deployment user's <code class="file">id_rsa</code> and <code class="file">id_rsa.pub</code> in
+            <code class="file">~/.ssh/</code>.</p>
+        <blockquote><pre>git config --global user.name "CourSys Backups"
+git config --global user.email "coursys@courses.cs.sfu.ca"
+git clone https://github.com/sfu-fas/coursys.git -b deployed-2016 ~/courses</pre></blockquote>
+        <p>But please <strong>check the correct branch</strong>: we have been known to rename the deployment/production branch.</p>
+    </dd>
+
+    <dt>Configure Production Server</dt>
+    <dd>
+        <p>Install or create the GPG key for backup encryption. Store the key and passphrase somewhere safe.</p>
+        <p>On the production server, in <code class="file">courses/secrets.py</code>, set the variables <code>BACKUP_SERVER</code>, <code>BACKUP_USER</code>, <code>BACKUP_PATH</code>, <code>BACKUP_PASSPHRASE</code>.</p>
+    </dd>
+    <dt>Configure Backup Server</dt>
+    <dd>
+        <p>Make sure there is a disk with lots of space mounted covering <code>BACKUP_PATH</code>.</p>
+        <blockquote><pre>sudo mkdir $BACKUP_PATH
+sudo chown $BACKUP_USER $BACKUP_PATH</pre></blockquote>
+        <p>Copy the coursys user's public key from production to <code class="file">~/.ssh/authorized_keys</code>. Make sure you can <code>ssh</code> from production to the backup server.</p>
+    </dd>
+
+</dl>
+
+
+
+</body>
+</html>
+
+
