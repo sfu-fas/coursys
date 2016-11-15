@@ -1699,7 +1699,7 @@ def generate_csv_by_course(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Name', 'Student ID', 'Email', 'Category', 'Program', 'BU']
+    off = ['Rank', 'Name', 'Student ID', 'Email', 'Category', 'Program', 'BU']
     extra_questions = []
     if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
         for question in posting.config['extra_questions']:
@@ -1712,8 +1712,8 @@ def generate_csv_by_course(request, post_slug):
         applications_for_this_offering = [pref.app for pref in prefs if 
             (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
         for app in applications_for_this_offering:
-            
-            row = [app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.current_program, app.base_units]
+            rank = 'P%d' % app.rank
+            row = [rank, app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.current_program, app.base_units]
             if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:
                 for question in extra_questions:
                     try:
