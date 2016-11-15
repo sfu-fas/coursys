@@ -228,7 +228,7 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
         <td>
             {% for form in formset %}
                 {% ifequal forloop.counter forloop.parentloop.counter %}
-                  {{ form.rank }}
+                  {{ form.rank }}  {{ form.rank.errors }}
                 {% endifequal %}
             {% endfor %}
         </td>

@@ -1615,8 +1615,8 @@ def generate_csv(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Name', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus',
-           'Assigned Course(s)', 'Assigned BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
+    off = ['Rank', 'Name', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU',
+           'Campus', 'Assigned Course(s)', 'Assigned BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
     csvWriter.writerow(off)
     
     # next row: campuses
@@ -1625,6 +1625,7 @@ def generate_csv(request, post_slug):
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')
     for app in apps:
+        rank = 'P%d' % app.rank
         system_program = ''
         startsem = ''
         status = ''
@@ -1665,7 +1666,7 @@ def generate_csv(request, post_slug):
                 assigned_courses = ', '.join([tacourse.course.name() for tacourse in ta_courses])
                 assigned_bus = sum([t.total_bu for t in ta_courses])
 
-        row = [app.person.sortname(), app.category, app.current_program, system_program, status, unit, startsem,
+        row = [rank, app.person.sortname(), app.category, app.current_program, system_program, status, unit, startsem,
                app.base_units, campuspref, assigned_courses, assigned_bus]
         
         for off in offerings:
