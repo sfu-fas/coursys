@@ -124,7 +124,12 @@ class SIMSConn(DBConn):
         get DB2 value into a useful format
         """
         if isinstance(v, basestring):
-            return v.strip().decode('utf8')
+            # First try decoding it as UTF-8.  If that fails, decode it with Windows-1250 encoding, as that
+            # seems to be the other case we get.
+            try:
+                return v.strip().decode('utf8')
+            except UnicodeDecodeError:
+                return v.strip().decode('windows-1250')
         else:
             return v
 
