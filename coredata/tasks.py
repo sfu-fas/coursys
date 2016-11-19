@@ -1,6 +1,6 @@
 from django.conf import settings
 from courselib.svn import update_repository
-from coredata.management.commands import backup_db
+from django.core.management import call_command
 from celery.task import task, periodic_task
 from celery.schedules import crontab
 
@@ -35,11 +35,24 @@ def beat_test():
     with file(BEAT_TEST_FILE, 'w') as fh:
         fh.write('Celery beat did things on %s.\n' % (datetime.datetime.now()))
 
+
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
-def backup_database():
+def regular_backup():
     if settings.DO_IMPORTING_HERE:
         # if we're not on the "real" database, then don't bother with regular backups
-        backup_db.Command().handle(clean_old=True)
+        (backup_database.si() | backup_to_remote.si()).apply_async()
+
+
+@app.task()
+def backup_database():
+    call_command('backup_db', clean_old=True)
+
+
+@app.task()
+def backup_to_remote():
+    call_command('backup_remote', db_only=True)
+
+
 
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
 def check_sims_connection():
@@ -57,7 +70,6 @@ logger = logging.getLogger(__name__)
 # daily import tasks
 
 from django.conf import settings
-from django.core.management import call_command
 from djcelery.models import TaskMeta
 from coredata.models import CourseOffering, Member
 from dashboard.models import NewsItem

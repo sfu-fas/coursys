@@ -63,6 +63,21 @@ git clone https://github.com/sfu-fas/coursys.git -b deployed-2016 ~/courses</pre
 sudo chown $BACKUP_USER $BACKUP_PATH</pre></blockquote>
         <p>Copy the coursys user's public key from production to <code class="file">~/.ssh/authorized_keys</code>. Make sure you can <code>ssh</code> from production to the backup server.</p>
     </dd>
+    <dt>Bootstrap/Try It</dt>
+    <dd>
+        <p>Make sure things are working, and do the initial full backup:</p>
+        <blockquote><pre>./manage.py backup_remote --db-only --full --dry-run
+./manage.py backup_remote --full</pre></blockquote>
+    </dd>
+    <dt>Restoring</dt>
+    <dd>
+        <p>If you need the backups, they can be retrieved with the commands given by:</p>
+        <blockquote><pre>./manage.py backup_remote --retrieve-commands</pre></blockquote>
+        <p>The workflow to restore after complete and total failure would be something like:</p>
+        <blockquote><pre>zcat db_dump/???.dump.gz | ./manage.py dbshell
+cp -a submitted_files/* $SUBMISSION_PATH</pre></blockquote>
+        <p>Let's hope it never comes to that.</p>
+    </dd>
 
 </dl>
 

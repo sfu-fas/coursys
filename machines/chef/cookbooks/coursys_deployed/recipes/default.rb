@@ -70,6 +70,7 @@ package "ntp"
 # encrypted backups
 package "duplicity"
 package "libssl-dev"
+package "libffi-dev"
 
 # for pillow build
 package "libjpeg-dev"
