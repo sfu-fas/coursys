@@ -41,16 +41,6 @@ sudo gpasswd -a coursys sudo
 sudo su coursys</pre></blockquote>
     </dd>
 
-    <dt>Get the codebase</dt>
-    <dd>
-        <p>Add the deployment user's <code class="file">id_rsa</code> and <code class="file">id_rsa.pub</code> in
-            <code class="file">~/.ssh/</code>.</p>
-        <blockquote><pre>git config --global user.name "CourSys Backups"
-git config --global user.email "coursys@courses.cs.sfu.ca"
-git clone https://github.com/sfu-fas/coursys.git -b deployed-2016 ~/courses</pre></blockquote>
-        <p>But please <strong>check the correct branch</strong>: we have been known to rename the deployment/production branch.</p>
-    </dd>
-
     <dt>Configure Production Server</dt>
     <dd>
         <p>Install or create the GPG key for backup encryption. Store the key and passphrase somewhere safe.</p>
