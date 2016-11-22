@@ -103,14 +103,6 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
               </li>
               <li>
                 {% if user.is_authenticated %}<a href="{% url "dashboard.views.index" %}">{{user.username}}</a>{% else %}<a href="{{ LOGIN_URL }}?next={{ request_path }}">Sign In</a>{% endif %}
-                <ul class="expanded">
-                  <li><a href="{% url "dashboard.views.news_list" %}">All News Items</a></li>
-                  <li><a href="{% url "dashboard.views.calendar" %}">View Calendar</a></li>
-                  <li><a href="{% url "dashboard.views.config" %}">User Configuration</a></li>
-                  {% if 'FAC' in roles or 'SESS' in roles or 'INST' in roles %}
-                  <li><a href="{% url "ta.views.instr_offers" %}">TA Offers</a></li>{% endif %}
-                  {% if user.is_authenticated %}<li><a href="{{ LOGOUT_URL }}">Sign Out</a></li>{% endif %}
-                </ul>
               </li>
             </ul>
           </div>
