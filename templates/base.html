@@ -88,23 +88,6 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
                 </li>
               </ul>
             </div>
-
-            <ul class="sf-menu">
-              <li class="header">
-                <a href="/">Courses</a>
-                  {% regroup memberships by offering.semester as by_semester %}
-                    <ul>
-                    {% for semester in by_semester %}
-                    {% for membership in semester.list %}
-                      <li><a href="{{membership.offering.get_absolute_url}}">{{semester.grouper.label}} - {{membership.offering.name}}</a></li>
-                    {% endfor %}
-                    {% endfor %}
-                    </ul>
-              </li>
-              <li>
-                {% if user.is_authenticated %}<a href="{% url "dashboard.views.index" %}">{{user.username}}</a>{% else %}<a href="{{ LOGIN_URL }}?next={{ request_path }}">Sign In</a>{% endif %}
-              </li>
-            </ul>
           </div>
         </section>
       </header>

@@ -49,13 +49,11 @@ def _create_news(person, url, from_user, accept_deadline):
         # See if we can find a supervisor to notify.  The student shouldn't have Senior, CoSenior, and Potential
         #  supervisors, so we'll just get all of those and grab the first one.
         supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type__in=['SEN', 'COS', 'POT'])
-        supervisor_url = reverse('ta.views.instr_offers')
         if len(supervisors) > 0:
             supervisor = supervisors[0].supervisor
             n = NewsItem(user=supervisor,
                          source_app="ta_contract",
                          title=u"TA Contract Offer for %s" % person,
-                         url=supervisor_url,
                          author=from_user,
                          content=u"Your student %s has been offered a TA contract." % person
                          )
@@ -1842,25 +1840,3 @@ def new_description(request):
         form.fields['unit'].choices = unit_choices
     context = {'form': form}
     return render(request, 'ta/new_description.html', context)
-
-from grad.models import STATUS_ACTIVE, STATUS_INACTIVE
-@login_required
-def instr_offers(request):
-    p = get_object_or_404(Person, userid=request.user.username)
-    cutoff = datetime.date.today() - datetime.timedelta(days=60)
-    members = Member.objects.filter(person=p, role="INST", offering__semester__start__gte=cutoff) \
-              .select_related('offering')
-    offerings = [m.offering for m in members]
-    tacrses = TACourse.objects.filter(course__in=offerings, bu__gt=0,
-                                      contract__status__in=['OPN','REJ','ACC','SGN']) \
-                              .select_related('contract__application__person')
-
-    for crs in tacrses:
-        p = crs.contract.application.person
-        gradprog = GradStudent.objects.filter(person=p, current_status__in=STATUS_ACTIVE+STATUS_INACTIVE) \
-                   .select_related('program__unit')
-        crs.gradprog = ', '.join("%s %s" % (gp.program.label, gp.program.unit.label) for gp in gradprog)
-    
-    context = {'tacrses': tacrses}    
-    return render(request, 'ta/instr_offers.html', context)
-
