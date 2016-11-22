@@ -1776,10 +1776,11 @@ def contact_tas(request, post_slug):
             from_person = Person.objects.get(userid=request.user.username)
             if 'url' in form.cleaned_data and form.cleaned_data['url']:
                 url = form.cleaned_data['url']
+            else:
+                url = ''
             # message each person
             count = 0
             for person in people:
-                url = ''
                 n = NewsItem(user=person, author=from_person, course=None, source_app='ta_contract',
                              title=form.cleaned_data['subject'], content=form.cleaned_data['text'], url=url)
                 n.save()
