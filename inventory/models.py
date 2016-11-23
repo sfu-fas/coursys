@@ -22,6 +22,7 @@ CATEGORY_CHOICES = {
     ('BROC', 'Brochures'),
     ('EVEN', 'Events'),
     ('GEN', 'General'),
+    ('OFF', 'Office Supplies'),
 }
 
 AttachmentSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
