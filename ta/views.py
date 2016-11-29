@@ -1136,10 +1136,15 @@ def accept_contract(request, post_slug, userid, preview=False):
     person = get_object_or_404(Person, userid=request.user.username)
     
     contract = TAContract.objects.filter(posting=posting, application__person__userid=userid)
+    #  If you have at least one contract for this posting, return the first one that matches.
     if contract.count() > 0:
         contract = contract[0]
         application = TAApplication.objects.get(person__userid=userid, posting=posting)
-        
+    #  Otherwise, someone is probably trying to guess/make up a URL, or the contract has been deleted since they
+    #  got the URL.
+    else:
+        return ForbiddenResponse(request)
+
     courses = TACourse.objects.filter(contract=contract)
     total = contract.total_bu()
     bu = contract.bu()
