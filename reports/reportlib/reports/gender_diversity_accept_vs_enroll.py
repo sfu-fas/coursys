@@ -9,9 +9,12 @@ class AcceptedQuery(DB2_Query):
     description = "The list of students we accepted in specific plans who start next semester, and their gender."
 
     query = string.Template("""
-    SELECT emplid, sex from PS_PERSONAL_DATA
+    SELECT pers.emplid, pers.sex, c.descrshort AS citizen
+      FROM PS_PERSONAL_DATA pers
+        JOIN ps_citizenship cit ON cit.emplid=pers.emplid
+        JOIN ps_country_tbl c ON cit.country=c.country
     WHERE
-      emplid IN
+      pers.emplid IN
       (SELECT DISTINCT (plan.EMPLID) from PS_ACAD_PLAN plan where REQ_TERM=$strm AND ACAD_PLAN IN $acad_plans);
                             """)
 
@@ -31,9 +34,11 @@ class EnrolledQuery(DB2_Query):
     description = "The list of students enrolled in specific programs who start next semester, and their gender."
 
     query = string.Template("""
-    SELECT emplid, sex
-    FROM PS_PERSONAL_DATA
-    WHERE EMPLID IN (SELECT
+    SELECT pers.emplid, pers.sex, c.descrshort AS citizentest
+    FROM PS_PERSONAL_DATA pers
+      JOIN ps_citizenship cit ON cit.emplid=pers.emplid
+      JOIN ps_country_tbl c ON cit.country=c.country
+    WHERE pers.EMPLID IN (SELECT
     DISTINCT (EMPLID) from PS_ACAD_PROG
     WHERE REQ_TERM=$strm AND PROG_STATUS='AC' AND PROG_ACTION='MATR' AND ACAD_PROG in $acad_progs );
     """)
