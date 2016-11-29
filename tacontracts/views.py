@@ -653,9 +653,8 @@ def contracts_csv(request, unit_slug, semester):
                      'Payroll Start Date', 'Payroll End Date',
                      'Action', 'Action Reason', 'Position Number', 
                      'Job Code', 'Full_Part time', 'Pay Group',
-                     'Employee Class', 'Category', 'Fund', 
-                     'Dept ID (cost center)', 'Project', 'Account',
-                     'Prep Units', 'Base Units', 'Appt Comp Freq', 
+                     'Employee Class', 'Category', 'Project', 'Object', 'Fund',
+                     'Dept ID (cost center)', 'Prep Units', 'Base Units', 'Appt Comp Freq',
                      'Semester Base Salary Rate',
                      'Biweekly Base Salary Pay Rate', 
                      'Hourly Rate', 'Standard Hours', 'Scholarship Rate Code',
@@ -718,14 +717,16 @@ def contracts_csv(request, unit_slug, semester):
         row.append('')
         #Category
         row.append(c.category.code)
+        # Project
+        row.append('')
+        # Account
+        row.append(c.category.account.account_number)
         #Fund
         row.append(11)
         #Dept ID(cost center)
         row.append(hiring_semester.unit.deptid())
-        #Project
-        row.append('')
-        #Account
-        row.append(c.category.account.account_number)
+        # Program
+        row.append(90150)
         #Prep Units
         row.append(prep_units)
         #Base Units

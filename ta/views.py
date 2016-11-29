@@ -1086,7 +1086,7 @@ def contracts_csv(request, post_slug):
     writer.writerow(['Batch ID', 'Term ID', 'Contract Signed', 'Benefits Indicator', 'EmplID', 'SIN',
                      'Last Name', 'First Name 1', 'First Name 2', 'Payroll Start Date', 'Payroll End Date',
                      'Action', 'Action Reason', 'Position Number', 'Job Code', 'Full_Part time', 'Pay Group',
-                     'Employee Class', 'Category', 'Fund', 'Dept ID (cost center)', 'Project', 'Account',
+                     'Employee Class', 'Category', 'Project', 'Object', 'Fund', 'Dept ID (cost center)', 'Program',
                      'Prep Units', 'Base Units', 'Appt Comp Freq', 'Semester Base Salary Rate',
                      'Biweekly Base Salary Pay Rate', 'Hourly Rate', 'Standard Hours', 'Scholarship Rate Code',
                      'Semester Scholarship Salary Pay Rate', 'Biweekly Scholarship Salary Pay Rate', 'Lump Sum Amount',
@@ -1112,9 +1112,9 @@ def contracts_csv(request, post_slug):
         row = [batchid, posting.semester.name, signed, benefits, c.application.person.emplid, c.application.sin]
         row.extend([c.application.person.last_name, c.application.person.first_name, c.application.person.middle_name])
         row.extend([c.pay_start.strftime("%Y%m%d"), c.pay_end.strftime("%Y%m%d"), 'REH', 'REH'])
-        row.extend(["%08i" % (c.position_number.position_number), '', '', 'TSU', '', c.application.category])
-        row.extend([11, posting.unit.deptid(), '', c.position_number.account_number, prep_units, bu])
-        row.extend(['T', "%.2f"%(salary_total), '', '', '', schol_rate, "%.2f"%(schol_total), '', '', '', ''])
+        row.extend(["%08i" % c.position_number.position_number, '', '', 'TSU', '', c.application.category])
+        row.extend(['', c.position_number.account_number, 11, posting.unit.deptid(),  90150, prep_units, bu])
+        row.extend(['T', "%.2f" % salary_total, '', '', '', schol_rate, "%.2f" % schol_total, '', '', '', ''])
         writer.writerow(row)
     
     return response
