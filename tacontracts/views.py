@@ -706,7 +706,7 @@ def contracts_csv(request, unit_slug, semester):
         row.append('REH')
         row.append('REH')
         #Position Number
-        row.append("%08i" % c.category.account.position_number)
+        row.append("'%08i" % c.category.account.position_number)
         #Job Code
         row.append('')
         #Full_Part time

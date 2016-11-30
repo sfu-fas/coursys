@@ -1112,7 +1112,7 @@ def contracts_csv(request, post_slug):
         row = [batchid, posting.semester.name, signed, benefits, c.application.person.emplid, c.application.sin]
         row.extend([c.application.person.last_name, c.application.person.first_name, c.application.person.middle_name])
         row.extend([c.pay_start.strftime("%Y%m%d"), c.pay_end.strftime("%Y%m%d"), 'REH', 'REH'])
-        row.extend(["%08i" % c.position_number.position_number, '', '', 'TSU', '', c.application.category])
+        row.extend(["'%08i" % c.position_number.position_number, '', '', 'TSU', '', c.application.category])
         row.extend(['', c.position_number.account_number, 11, posting.unit.deptid(),  90150, prep_units, bu])
         row.extend(['T', "%.2f" % salary_total, '', '', '', schol_rate, "%.2f" % schol_total, '', '', '', ''])
         writer.writerow(row)
