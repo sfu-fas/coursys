@@ -7,15 +7,7 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static 'style/onlineforms.css' %}" media="all" />
-<script type="text/javascript">
-    $(document).ready(function() {
-        $('#form_table').dataTable({
-                    "bPaginate": false,
-                    "bJQueryUI": true,
-                    "aaSorting": [[0, "asc"]],
-        }); 
-    });
-</script>
+<script type="text/javascript" src="{% static 'js/onlineforms.js' %}"></script>
 {% endblock %}
 
 {% block subbreadcrumbs %}

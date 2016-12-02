@@ -1,19 +1,13 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load staticfiles %}
 
 {% block title %}Preview {{owner_sheet.title }}{% endblock %}
 {% block h1 %}Preview {{owner_sheet.title }}{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{STATIC_URL}}style/onlineforms.css" media="all" />
-<script type="text/javascript">
-//<![CDATA[
-$(document).ready(function() {
-  $('.date-input').datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
-                                changeMonth: true, changeYear: true,
-                                dateFormat: 'yy-mm-dd', showOn: 'both'});
-});
-//]]></script>
+<link rel="stylesheet" href="{% static 'style/onlineforms.css' %}" media="all" />
+<script type="text/javascript" src="{% static 'js/onlineforms.js' %}"></script>
 {% endblock %}
 
 {% block subbreadcrumbs %}

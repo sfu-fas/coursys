@@ -139,7 +139,7 @@ class GradeSelectField(DropdownSelectField):
         if choice in GRADE_TO_LETTER:
             return '%s (%s)' % (GRADE_TO_LETTER[choice], choice)
         else:
-            return u'\u2014'
+            return 'None selected'
 
 
 class MultipleSelectField(FieldBase):
