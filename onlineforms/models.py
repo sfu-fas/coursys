@@ -20,7 +20,7 @@ import datetime, random, hashlib, itertools, collections
 
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField, DateSelectField
-from onlineforms.fieldtypes.select import DropdownSelectField, RadioSelectField, MultipleSelectField
+from onlineforms.fieldtypes.select import DropdownSelectField, RadioSelectField, MultipleSelectField, GradeSelectField
 from onlineforms.fieldtypes.text import SmallTextField, MediumTextField, LargeTextField, ExplanationTextField, EmailTextField
 
 INITIATOR_CHOICES = [
@@ -54,6 +54,7 @@ FIELD_TYPE_CHOICES = [
         ('RADI', 'Select with radio buttons'),
         ('SEL1', 'Select with a drop-down menu'),
         ('SELN', 'Select multiple values'),
+        ('GRAD', 'Select grade (A+ to F)'),
         ('LIST', 'Enter a list of short responses'),
         ('FILE', 'Upload a file'),
         ('URL', 'Web page address (URL)'),
@@ -74,6 +75,7 @@ FIELD_TYPE_MODELS = {
         'RADI': RadioSelectField,
         'SEL1': DropdownSelectField,
         'SELN': MultipleSelectField,
+        'GRAD': GradeSelectField,
         'LIST': ListField,
         'FILE': FileCustomField,
         'URL': URLCustomField,
