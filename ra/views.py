@@ -77,7 +77,7 @@ def found(request):
     people = Person.objects.filter(studentQuery)[:200]
     for p in people:
         # decorate with RAAppointment count
-        p.ras = RAAppointment.objects.filter(unit__in=Unit.sub_units(request.units), person=p, deleted=False).count()
+        p.ras = RAAppointment.objects.filter(unit__in=request.units, person=p, deleted=False).count()
 
     context = {'people': people}
     return render(request, 'ra/found.html', context)
@@ -87,8 +87,8 @@ def found(request):
 @requires_role("FUND")
 def student_appointments(request, userid):
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
-    appointments = RAAppointment.objects.filter(person=student, unit__in=Unit.sub_units(request.units), deleted=False).order_by("-created_at")
-    grads = GradStudent.objects.filter(person=student, program__unit__in=Unit.sub_units(request.units))
+    appointments = RAAppointment.objects.filter(person=student, unit__in=request.units, deleted=False).order_by("-created_at")
+    grads = GradStudent.objects.filter(person=student, program__unit__in=request.units)
     context = {'appointments': appointments, 'student': student,
                'grads': grads}
     return render(request, 'ra/student_appointments.html', context)
@@ -274,7 +274,7 @@ def select_letter(request, ra_slug, print_only=None):
 @_can_view_ras()
 def view(request, ra_slug):
     appointment = get_object_or_404(RAAppointment,
-        Q(unit__in=Unit.sub_units(request.units)) | Q(hiring_faculty__userid=request.user.username),
+        Q(unit__in=request.units) | Q(hiring_faculty__userid=request.user.username),
         slug=ra_slug, deleted=False)
     student = appointment.person
     return render(request, 'ra/view.html',
@@ -283,7 +283,7 @@ def view(request, ra_slug):
 #View RA Appointment Form (PDF)
 @requires_role("FUND")
 def form(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=Unit.sub_units(request.units))
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (appointment.slug)
     ra_form(appointment, response)
@@ -291,7 +291,7 @@ def form(request, ra_slug):
 
 @requires_role("FUND")
 def letter(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=Unit.sub_units(request.units))
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
     if not appointment.offer_letter_text:
         letter_choices = RAAppointment.letter_choices(request.units)
         if len(letter_choices) == 1:  # why make them select from one?
@@ -496,7 +496,7 @@ class RADataJson(BaseDatatableView):
 
         # limit to those visible to this user
         qs = qs.filter(
-            Q(unit__in=Unit.sub_units(self.request.units))
+            Q(unit__in=self.request.units)
             | Q(hiring_faculty__userid=self.request.user.username)
         )
         qs = qs.exclude(deleted=True)
@@ -598,7 +598,7 @@ def person_info(request):
         
         # GradPrograms
         emplid = request.GET['emplid']
-        grads = GradStudent.objects.filter(person__emplid=emplid, program__unit__in=Unit.sub_units(request.units))
+        grads = GradStudent.objects.filter(person__emplid=emplid, program__unit__in=request.units)
         for gs in grads:
             pdata = {
                      'program': gs.program.label,
