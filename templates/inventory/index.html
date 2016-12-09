@@ -68,6 +68,12 @@ function confirmDelete() {
                     </button>
                 </form>
                 <form class="lineform" method="GET"
+                    action="{% url "inventory:add_change_record" asset_slug=asset.slug %}">
+                    <button type='submit' class='btn' title="Add change record">
+                        <i class='fa fa-book'></i>
+                    </button>
+                </form>
+                <form class="lineform" method="GET"
                     action="{% url "inventory:edit_asset" asset_slug=asset.slug %}">
                     <button type='submit' class='btn' title="Edit asset">
                         <i class='fa fa-edit'></i>
