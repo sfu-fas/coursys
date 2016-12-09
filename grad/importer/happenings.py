@@ -169,9 +169,12 @@ class ProgramStatusChange(GradHappening):
         # application-related
         if st_ac == ('AP', 'APPL'):
             return 'COMP'
-        if st_ac == ('AP', 'RAPP'):
+        elif st_ac == ('AP', 'RAPP'):
             # application for readmission
             return 'COMP'
+        elif st_ac == ('AP', 'DDEF'):
+            # deferred decision: we don't represent that.
+            return None
         elif st_ac == ('CN', 'WAPP'):
             return 'DECL'
         elif st_ac == ('CN', 'WADM'):
