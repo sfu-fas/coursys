@@ -160,16 +160,25 @@ def admin_list_all(request):
                 .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
 
         #Waiting submissions
-        wait_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='WAIT') \
-                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
+        wait_submissions = list(FormSubmission.objects.filter(owner__in=form_groups, status='WAIT') \
+                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form'))
         wait_lookup = dict((fs.id, fs) for fs in wait_submissions)
         wait_ss = SheetSubmission.objects.filter(form_submission__in=wait_submissions).order_by('given_at') \
                 .select_related('filler__sfuFormFiller', 'filler__nonSFUFormFiller', 'sheet')
+
         # .assigned_to will be the most recently given_at sheetsub after this
         for ss in wait_ss:
             wait_lookup[ss.form_submission_id].assigned_to = ss
-
-    context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions}
+            # We no longer allow returning/assigning the initial sheet.  Let's find out if the sheet that is waiting
+            # is the initial sheet, as this would indicate an unsubmitted form.  We should display that in a separate
+            # list
+            wait_lookup[ss.form_submission_id].is_initial = ss.sheet.is_initial
+        #  Let's split up the list between unsubmitted forms and submitted ones.  Most people won't care about the
+        # unsubmitted ones.
+        unsubmitted_forms = list((f for f in wait_submissions if f.is_initial))
+        wait_submissions = list((f for f in wait_submissions if not f.is_initial))
+    context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'unsubmitted_forms':
+        unsubmitted_forms}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
 
