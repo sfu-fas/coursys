@@ -175,8 +175,8 @@ def admin_list_all(request):
             wait_lookup[ss.form_submission_id].is_initial = ss.sheet.is_initial
         #  Let's split up the list between unsubmitted forms and submitted ones.  Most people won't care about the
         # unsubmitted ones.
-        unsubmitted_forms = list((f for f in wait_submissions if f.is_initial))
-        wait_submissions = list((f for f in wait_submissions if not f.is_initial))
+        unsubmitted_forms = [f for f in wait_submissions if f.is_initial]
+        wait_submissions = [f for f in wait_submissions if not f.is_initial]
     context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'unsubmitted_forms':
         unsubmitted_forms}
     return render(request, "onlineforms/admin/admin_forms.html", context)
