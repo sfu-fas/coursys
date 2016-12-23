@@ -72,7 +72,7 @@ execute "rabbit add_vhost" do
 end
 
 execute "chown static" do
-    command "chown -R vagrant /home/coursys/static"
+    command "chown -R coursys /home/coursys/static"
 end
 
 execute "rabbit set_permissions" do
@@ -87,5 +87,5 @@ end
 #end
 
 execute "restart gunicorns" do
-    command "restart gunicorn"
+    command "systemctl restart gunicorn"
 end

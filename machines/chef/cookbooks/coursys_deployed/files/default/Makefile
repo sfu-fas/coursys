@@ -2,10 +2,10 @@ reload:
 	killall -USR2 gunicorn
 
 restart:
-	sudo /sbin/restart gunicorn
+	sudo systemctl restart gunicorn
 
 run:
-	sudo /sbin/start gunicorn
+	sudo systemctl start gunicorn
 
 big-restart: restart
 	sudo /etc/init.d/nginx reload

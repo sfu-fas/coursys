@@ -9,7 +9,7 @@ package "sqlite3"
 package "zlib1g-dev"
 package "libjpeg8-dev" # for pillow build
 package "mercurial"
-
+package "build-essential"
 
 
 #install the proper pip
@@ -19,13 +19,13 @@ end
 
 # pip install any listed requirements
 execute "install_pip_requirements" do
-    cwd "/home/vagrant/"
-    command "pip install -r /home/vagrant/courses/build_deps/working_deps.txt"
+    cwd "/home/ubuntu/"
+    command "pip install -r /home/ubuntu/courses/build_deps/working_deps.txt"
 end
 
 # throw ipython in there: we know it works on the VM
 execute "install_ipython" do
-    cwd "/home/vagrant/"
+    cwd "/home/ubuntu/"
     command "pip install ipython"
 end
 

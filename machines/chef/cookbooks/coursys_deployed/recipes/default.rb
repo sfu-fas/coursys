@@ -1,4 +1,3 @@
-
 # Create 'coursys' user
 user "coursys" do
     home "/home/coursys"
@@ -21,13 +20,13 @@ directory "/home/coursys" do
     action :create
 end
 
-# Link /home/vagrant/courses to /home/coursys/courses"
+# Link /home/ubuntu/courses to /home/coursys/courses"
 execute "link coursys" do
-    command "ln -s /home/vagrant/courses /home/coursys/courses"
+    command "ln -s /home/ubuntu/courses /home/coursys/courses"
     not_if do ::File.exists?('/home/coursys/courses/manage.py') end
 end
 execute "chmod courses" do
-    command "chown -R coursys /home/vagrant/courses"
+    command "chown -R coursys /home/ubuntu/courses"
     ignore_failure true
 end
 
@@ -38,7 +37,7 @@ directory "/home/coursys/static" do
     mode 00755
     action :create
 end
-directory "/home/vagrant/static" do
+directory "/home/ubuntu/static" do
     owner "coursys"
     group "coursys"
     mode 00755
@@ -88,8 +87,8 @@ package "dos2unix"
 
 # pip install any listed requirements
 execute "install_pip_requirements" do
-    cwd "/home/vagrant/"
-    command "pip install -r /home/vagrant/courses/build_deps/deployed_deps.txt"
+    cwd "/home/ubuntu/"
+    command "pip install -r /home/ubuntu/courses/build_deps/deployed_deps.txt"
 end
 
 # collect static files
@@ -108,7 +107,7 @@ directory "/home/coursys/db_backup" do
 end
 
 # elasticsearch
-package "openjdk-7-jre-headless"
+package "openjdk-8-jre-headless"
 directory "/tmp/elasticsearch" do
     owner "coursys"
     group "coursys"
@@ -270,13 +269,20 @@ cookbook_file "Makefile" do
 end
 
 # gunicorn upstart config
-cookbook_file "gunicorn.conf" do
-    path "/etc/init/gunicorn.conf"
+#cookbook_file "gunicorn.conf" do
+#    path "/etc/init/gunicorn.conf"
+#    mode "0644"
+#    action :create
+#end
+
+# gunicorn systemd config
+cookbook_file "gunicorn.service" do
+    path "/lib/systemd/system/gunicorn.service"
     mode "0644"
     action :create
 end
 
 #start gunicorn
 execute "gunicorn" do
-    command "restart gunicorn || start gunicorn"
+    command "systemctl restart gunicorn || systemctl start gunicorn"
 end
