@@ -282,6 +282,11 @@ cookbook_file "gunicorn.service" do
     action :create
 end
 
+
+execute "gunicorn-systemd" do
+    command "systemctl enable gunicorn"
+end
+
 #start gunicorn
 execute "gunicorn" do
     command "systemctl restart gunicorn || systemctl start gunicorn"
