@@ -6,7 +6,7 @@
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}js/discipline.js"></script>
 {% endblock %}
-{% block subbreadcrumbs %}<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li><li><a href="{% url "discipline.views.show_templates" %}">Dishonesty Templates</a></li><li>New</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li><li><a href="{% url "sysadmin:show_templates" %}">Dishonesty Templates</a></li><li>New</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 

@@ -35,7 +35,7 @@ $(document).ready(function() {
 
 {% block content %}
 <div class="form_container">
-    <form action="{% ifequal form_type 'add' %}{% url "offering:add_cal_letter_activity" course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url "grades.views.edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}"
+    <form action="{% ifequal form_type 'add' %}{% url "offering:add_cal_letter_activity" course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url "offering:edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}"
                 method="post">{% csrf_token %}
         <fieldset>
             {{ form|as_dl_excludefields:"showstats,showhisto" }}

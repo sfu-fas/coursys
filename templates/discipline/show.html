@@ -4,7 +4,7 @@
 {% block title %}Dishonesty Case for {{case.student.name}}{% if chair %}: Instructor's case{% endif %}{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.name}}{% if chair %}: Instructor's case{% endif %}{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li><li><a href="{% url "discipline.views.chair_show" course_slug=case.offering.slug case_slug=case.slug %}">Case for {{case.student.name}}</a></li>{% if chair %}<li>Instructor's case</li>{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "offering:discipline:index" course_slug=course.slug %}">Dishonesty Cases</a></li><li><a href="{% url "discipline:chair_show" course_slug=case.offering.slug case_slug=case.slug %}">Case for {{case.student.name}}</a></li>{% if chair %}<li>Instructor's case</li>{% endif %}{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -49,7 +49,7 @@
 {% if not case.done %}
 Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text}}</a>.
   {% if case.next_step == 'contacted' or case.next_step == 'response' %}
-  Optional but useful: Enter <a href="{% url "offering:discipline:edit_related" course_slug=course.slug case_slug=case.slug %}">related items</a> or <a href="{% url "discipline.views.edit_attach" course_slug=course.slug case_slug=case.slug %}">attach files</a>.
+  Optional but useful: Enter <a href="{% url "offering:discipline:edit_related" course_slug=course.slug case_slug=case.slug %}">related items</a> or <a href="{% url "offering:discipline:edit_attach" course_slug=course.slug case_slug=case.slug %}">attach files</a>.
   {% endif %}
 {% else %}
     Case is completed.

@@ -11,6 +11,7 @@ from django.core.urlresolvers import get_resolver, get_callable
 resolver = get_resolver()
 
 dot_ref_re = re.compile(r'(?P<quote>\'|\")(?P<dotted>(?P<app>\w+)\.views\.(?P<view>\w+))\1')
+function_reverse_re = re.compile(r'reverse\((?P<quote>\'|\")')
 
 from api.views import oauth_authorize, oauth_callback
 initial_view_names = {

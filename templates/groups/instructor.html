@@ -27,7 +27,7 @@ $(document).ready(function() {
 {% block title %}{{course.name}} Groups{% if activity %} for {{activity.name}}{% endif %}{% endblock %}
 {% block h1 %}{{course.name}} Groups{% if activity %} for {{activity.name}}{% endif %}{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% if activity %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>for {{activity.name}}</li>{% else %}<li>Groups</li>{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% if activity %}<li><a href="{% url "offering:groups:groupmanage" course_slug=course.slug %}">Groups</a></li><li>for {{activity.name}}</li>{% else %}<li>Groups</li>{% endif %}{% endblock %}
 
 {% block actions %}
 <div id="actions">

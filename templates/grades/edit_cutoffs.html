@@ -135,7 +135,7 @@ if (!Array.prototype.filter) {
 //]]></script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li><li>Edit cutoffs</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li><li>Edit cutoffs</li>{% endblock %}
 
 
 {% block content %}

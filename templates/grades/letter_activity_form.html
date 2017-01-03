@@ -33,7 +33,7 @@ $(document).ready(function() {
 
 
 
-{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% ifequal form_type 'add' %}<li>Add Letter Graded Activity</li>{% endifequal %}{% if activity %}<li><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>{% endif %}{% ifequal form_type 'edit' %}<li>Edit</li>{% endifequal %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% ifequal form_type 'add' %}<li>Add Letter Graded Activity</li>{% endifequal %}{% if activity %}<li><a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>{% endif %}{% ifequal form_type 'edit' %}<li>Edit</li>{% endifequal %}{% endblock %}
 
 {% block content %}
 <br/>

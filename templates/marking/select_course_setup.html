@@ -4,7 +4,7 @@
 {% block title %}Copy Course Setup{% endblock %}
 {% block h1 %}Copy Course Setup{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>Copy Setup</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li><li>Copy Setup</li>{% endblock %}
 
 {% block content %}
 

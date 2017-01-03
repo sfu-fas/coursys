@@ -28,13 +28,13 @@ def sysadmin(request):
         form = SysAdminSearchForm(request.GET)
         if form.is_valid() and form.cleaned_data['user']:
             emplid = form.cleaned_data['user'].emplid
-            return HttpResponseRedirect(reverse(user_summary, kwargs={'userid': emplid}))
+            return HttpResponseRedirect(reverse('sysadmin:user_summary', kwargs={'userid': emplid}))
     elif 'offeringsearch' in request.GET:
         # course offering search
         form = SysAdminSearchForm(request.GET)
         if form.is_valid() and form.cleaned_data['offering']:
             offering = form.cleaned_data['offering']
-            return HttpResponseRedirect(reverse(offering_summary, kwargs={'course_slug': offering.slug}))
+            return HttpResponseRedirect(reverse('sysadmin:offering_summary', kwargs={'course_slug': offering.slug}))
     else:
         form = SysAdminSearchForm()
     
@@ -61,7 +61,7 @@ def new_role(request, role=None):
                   description=("new role: %s as %s") % (form.instance.person.userid, form.instance.role),
                   related_object=form.instance)
             l.save()
-            return HttpResponseRedirect(reverse(role_list))
+            return HttpResponseRedirect(reverse('sysadmin:role_list'))
     else:
         form = RoleForm()
 
@@ -78,7 +78,7 @@ def delete_role(request, role_id):
     l.save()
     
     role.delete()
-    return HttpResponseRedirect(reverse(role_list))
+    return HttpResponseRedirect(reverse('sysadmin:role_list'))
 
 
 
@@ -108,7 +108,7 @@ def edit_unit(request, unit_slug=None):
                   description=("edited unit %s") % (form.instance.slug),
                   related_object=unit)
             l.save()
-            return HttpResponseRedirect(reverse(unit_list))
+            return HttpResponseRedirect(reverse('sysadmin:unit_list'))
     else:
         form = UnitForm(instance=unit)
     
@@ -425,7 +425,7 @@ def delete_anyperson(request, anyperson_id):
                  related_object=anyperson)
     l.save()
 
-    return HttpResponseRedirect(reverse(list_anypersons))
+    return HttpResponseRedirect(reverse('sysadmin:list_anypersons'))
 
 
 @requires_global_role("SYSA")
@@ -444,7 +444,7 @@ def add_anyperson(request):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse(list_anypersons))
+            return HttpResponseRedirect(reverse('sysadmin:list_anypersons'))
     else:
         form = AnyPersonForm()
 
@@ -468,7 +468,7 @@ def edit_anyperson(request, anyperson_id):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse(list_anypersons))
+            return HttpResponseRedirect(reverse('sysadmin:list_anypersons'))
     else:
         initial_values = {}
         if anyperson.person:
@@ -490,7 +490,7 @@ def delete_empty_anypersons(request):
                              u'Deleted %s empty AnyPersonn(s).' % unicode(res)
                              )
 
-        return HttpResponseRedirect(reverse(list_anypersons))
+        return HttpResponseRedirect(reverse('sysadmin:list_anypersons'))
 
 
 @requires_global_role("SYSA")

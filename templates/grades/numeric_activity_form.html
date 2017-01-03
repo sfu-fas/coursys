@@ -27,12 +27,12 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% ifequal form_type 'add' %}<li>Add Graded Numeric Activity</li>{% endifequal %}{% if activity %}<li><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>{% endif %}{% ifequal form_type 'edit' %}<li>Edit</li>{% endifequal %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% ifequal form_type 'add' %}<li>Add Graded Numeric Activity</li>{% endifequal %}{% if activity %}<li><a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>{% endif %}{% ifequal form_type 'edit' %}<li>Edit</li>{% endifequal %}{% endblock %}
 
 
 {% block content %}
 <div class="form_container">
-    <form action="{% ifequal form_type 'add' %}{% url "offering:add_numeric_activity" course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url "grades.views.edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}" method="post">{% csrf_token %}
+    <form action="{% ifequal form_type 'add' %}{% url "offering:add_numeric_activity" course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url "offering:edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}" method="post">{% csrf_token %}
         <fieldset>
             {{ form|as_dl_excludefields:"showstats,showhisto" }}
             <p><input class="submit" type="submit" value="Submit" /></p>
