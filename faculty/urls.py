@@ -8,33 +8,33 @@ GRANT_SLUG = '(?P<grant_slug>' + SLUG_RE + ')'
 ATTACH_SLUG = '(?P<attach_slug>' + SLUG_RE + ')'
 
 event_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/events/EVENT_SLUG/
-    url(r'^$', 'faculty.views.view_event', name='view_event', name="faculty_event_view"),
-    url(r'^change$', 'faculty.views.change_event', name='change_event', name="faculty_change_event"),
-    url(r'^change-status$', 'faculty.views.change_event_status', name='change_event_status', name="faculty_change_event_status"),
+    url(r'^$', 'faculty.views.view_event', name='view_event'),
+    url(r'^change$', 'faculty.views.change_event', name='change_event'),
+    url(r'^change-status$', 'faculty.views.change_event_status', name='change_event_status'),
     url(r'^attach$', 'faculty.views.new_attachment', name='new_attachment'),
     url(r'^attach-text$', 'faculty.views.new_text_attachment', name='new_text_attachment'),
-    url(r'^attach/(?P<attach_slug>' + SLUG_RE + ')/view$', 'faculty.views.view_attachment', name='view_attachment', name="faculty_view_attachment"),
-    url(r'^attach/(?P<attach_slug>' + SLUG_RE + ')/download$', 'faculty.views.download_attachment', name='download_attachment', name="faculty_download_attachment"),
+    url(r'^attach/(?P<attach_slug>' + SLUG_RE + ')/view$', 'faculty.views.view_attachment', name='view_attachment'),
+    url(r'^attach/(?P<attach_slug>' + SLUG_RE + ')/download$', 'faculty.views.download_attachment', name='download_attachment'),
     url(r'^attach/(?P<attach_slug>' + SLUG_RE + ')/delete$', 'faculty.views.delete_attachment', name='delete_attachment'),
-    url(r'^(?P<memo_template_slug>' + SLUG_RE + ')' + '/new$', 'faculty.views.new_memo', name='new_memo', name="faculty_event_memo_create"),
+    url(r'^(?P<memo_template_slug>' + SLUG_RE + ')' + '/new$', 'faculty.views.new_memo', name='new_memo'),
     url(r'^new-memo$', 'faculty.views.new_memo_no_template', name='new_memo_no_template'),
-    url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/manage$', 'faculty.views.manage_memo', name='manage_memo', name="faculty_event_memo_manage"),
-    url(r'^_get_text/(?P<memo_template_id>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_text', name='get_memo_text', name="faculty_event_memo_manage"),
-    url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_pdf', name='get_memo_pdf', name="faculty_event_memo_pdf"),
-    url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/view$', 'faculty.views.view_memo', name='view_memo', name="faculty_event_view_memo"),
-    url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/delete$', 'faculty.views.delete_memo', name='delete_memo', name="faculty_event_delete_memo"),
-    url(r'^generate_pdf/(?P<pdf_key>' + SLUG_RE + ')' + '$', 'faculty.views.generate_pdf', name='generate_pdf', name="faculty_handler_generate_pdf")
+    url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/manage$', 'faculty.views.manage_memo', name='manage_memo'),
+    url(r'^_get_text/(?P<memo_template_id>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_text', name='get_memo_text'),
+    url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_pdf', name='get_memo_pdf'),
+    url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/view$', 'faculty.views.view_memo', name='view_memo'),
+    url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/delete$', 'faculty.views.delete_memo', name='delete_memo'),
+    url(r'^generate_pdf/(?P<pdf_key>' + SLUG_RE + ')' + '$', 'faculty.views.generate_pdf', name='generate_pdf')
 ]
 
 faculty_member_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/
     # Person Specific Actions
-    url(r'^summary$', 'faculty.views.summary', name='summary', name="faculty_summary"),
-    url(r'^setup$', 'faculty.views.faculty_wizard', name='faculty_wizard', name="faculty_wizard"),
+    url(r'^summary$', 'faculty.views.summary', name='summary'),
+    url(r'^setup$', 'faculty.views.faculty_wizard', name='faculty_wizard'),
     url(r'^setup/(?P<position>\d+)$', 'faculty.views.faculty_wizard', name='faculty_wizard'),
-    url(r'^otherinfo$', 'faculty.views.otherinfo', name='otherinfo', name="faculty_otherinfo"),
-    url(r'^new-event$', 'faculty.views.event_type_list', name='event_type_list', name="faculty_event_types"),
-    url(r'^new-event/(?P<event_type>' + SLUG_RE + ')$', 'faculty.views.create_event', name='create_event', name="faculty_create_event"),
-    url(r'^setup/pick_position$', 'faculty.views.pick_position', name='pick_position', name="faculty_pick_position"),
+    url(r'^otherinfo$', 'faculty.views.otherinfo', name='otherinfo'),
+    url(r'^new-event$', 'faculty.views.event_type_list', name='event_type_list'),
+    url(r'^new-event/(?P<event_type>' + SLUG_RE + ')$', 'faculty.views.create_event', name='create_event'),
+    url(r'^setup/pick_position$', 'faculty.views.pick_position', name='pick_position'),
 
     url(r'^timeline$', 'faculty.views.timeline', name='timeline'),
     url(r'^timeline.json$', 'faculty.views.timeline_json', name='timeline_json'),
@@ -46,11 +46,11 @@ faculty_member_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/
     url(r'^salary$', 'faculty.views.salary_summary', name='salary_summary'),
 
     # Report:Teaching Summary
-    url(r'^teaching_summary$', 'faculty.views.teaching_summary', name='teaching_summary', name="faculty_teaching_summary"),
+    url(r'^teaching_summary$', 'faculty.views.teaching_summary', name='teaching_summary'),
     url(r'^teaching_summary.csv$', 'faculty.views.teaching_summary_csv', name='teaching_summary_csv'),
 
     # Report: Study Leave Credits
-    url(r'^study_leave_credits$', 'faculty.views.study_leave_credits', name='study_leave_credits', name="faculty_study_leave_credits"),
+    url(r'^study_leave_credits$', 'faculty.views.study_leave_credits', name='study_leave_credits'),
     url(r'^study_leave_credits.csv$', 'faculty.views.study_leave_credits_csv', name='study_leave_credits_csv'),
 
     # Event Specific Actions
@@ -60,7 +60,7 @@ faculty_member_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/
 faculty_patterns = [ # prefix: /faculty/
     # Top Level Stuff
     url(r'^$', 'faculty.views.index', name='index'),
-    url(r'^queue$', 'faculty.views.status_index', name='status_index', name="status_index"),
+    url(r'^queue$', 'faculty.views.status_index', name='status_index'),
     url(r'^members$', 'faculty.views.manage_faculty_roles', name='manage_faculty_roles'),
 
     # Event Searching
@@ -84,21 +84,21 @@ faculty_patterns = [ # prefix: /faculty/
     url(r'^report/course_accreditation.csv$', 'faculty.views.course_accreditation_csv', name='course_accreditation_csv'),
 
     # Event Management
-    url(r'^event-management$', 'faculty.views.manage_event_index', name='manage_event_index', name="faculty_events_manage_index"),
-    url(r'^event-management/' + EVENT_TYPE + '/$', 'faculty.views.event_config', name='event_config', name="template_index"),
-    url(r'^event-management/' + EVENT_TYPE + '/new-memo$', 'faculty.views.new_memo_template', name='new_memo_template', name="faculty_create_template"),
-    url(r'^event-management/' + EVENT_TYPE + '/memos/(?P<slug>' + SLUG_RE + ')/manage$', 'faculty.views.manage_memo_template', name='manage_memo_template', name="faculty_manage_template"),
-    url(r'^event-management/' + EVENT_TYPE + '/new-config$', 'faculty.views.event_config_add', name='event_config_add', name="faculty_create_flag"),
+    url(r'^event-management$', 'faculty.views.manage_event_index', name='manage_event_index'),
+    url(r'^event-management/' + EVENT_TYPE + '/$', 'faculty.views.event_config', name='event_config'),
+    url(r'^event-management/' + EVENT_TYPE + '/new-memo$', 'faculty.views.new_memo_template', name='new_memo_template'),
+    url(r'^event-management/' + EVENT_TYPE + '/memos/(?P<slug>' + SLUG_RE + ')/manage$', 'faculty.views.manage_memo_template', name='manage_memo_template'),
+    url(r'^event-management/' + EVENT_TYPE + '/new-config$', 'faculty.views.event_config_add', name='event_config_add'),
     #url(r'^event-management/' + EVENT_TYPE + '/memo-templates/(?P<unit>\w+)/(?P<flag>\w+)/delete-flag$', 'faculty.views.delete_event_flag', name='delete_event_flag', name="faculty_delete_flag"),
 
     # Grant Stuff
-    url(r'^grants/$', 'faculty.views.grant_index', name='grant_index', name="grants_index"),
+    url(r'^grants/$', 'faculty.views.grant_index', name='grant_index'),
     #url(r'^grants/new$', 'faculty.views.new_grant', name='new_grant', name="new_grant"),
-    url(r'^grants/convert/(?P<gid>\d+)$', 'faculty.views.convert_grant', name='convert_grant', name="convert_grant"),
-    url(r'^grants/delete/(?P<gid>\d+)$', 'faculty.views.delete_grant', name='delete_grant', name="delete_grant"),
-    url(r'^grants/import$', 'faculty.views.import_grants', name='import_grants', name="import_grants"),
-    url(r'^grants/' + UNIT_SLUG + '/' + GRANT_SLUG + '$', 'faculty.views.view_grant', name='view_grant', name="view_grant"),
-    url(r'^grants/' + UNIT_SLUG + '/' + GRANT_SLUG + '/edit$', 'faculty.views.edit_grant', name='edit_grant', name="edit_grant"),
+    url(r'^grants/convert/(?P<gid>\d+)$', 'faculty.views.convert_grant', name='convert_grant'),
+    url(r'^grants/delete/(?P<gid>\d+)$', 'faculty.views.delete_grant', name='delete_grant'),
+    url(r'^grants/import$', 'faculty.views.import_grants', name='import_grants'),
+    url(r'^grants/' + UNIT_SLUG + '/' + GRANT_SLUG + '$', 'faculty.views.view_grant', name='view_grant'),
+    url(r'^grants/' + UNIT_SLUG + '/' + GRANT_SLUG + '/edit$', 'faculty.views.edit_grant', name='edit_grant'),
 
     # faculty-member hierarchy
     url(r'^' + USERID_OR_EMPLID + '/', include(faculty_member_patterns)),

@@ -10,12 +10,15 @@ def intersting_file(f):
 
 
 def fix_urls_py(fn):
+    '''
+    Add a name='foo' to each url pattern in this urls.py
+    '''
     new_content = []
     with open(fn, 'r') as py:
         for line in py:
             line = line.rstrip() + '\n'
             m = dot_ref_re.search(line)
-            if m:
+            if m and 'name=' not in line:
                 repl = "%s, name=%r" % (m.group(0), m.group('view'))
                 new_content.append(dot_ref_re.sub(repl, line))
             else:
@@ -28,6 +31,5 @@ def fix_urls_py(fn):
 for dirpath, dnames, fnames in os.walk("./"):
     for f in fnames:
         if intersting_file(f):
-            #print f
             if f == 'urls.py':
                 fix_urls_py(os.path.join(dirpath, f))

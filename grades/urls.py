@@ -31,8 +31,8 @@ activity_patterns = [ # prefix /COURSE_SLUG/+ACTIVITY_SLUG/
     url(r'^markall/students$', 'marking.views.mark_all_students', name='mark_all_students'),
     url(r'^markall/groups$', 'marking.views.mark_all_groups', name='mark_all_groups'),
 
-    url(r'^submission/', include(submission_patterns)),
-    url(r'^marking/', include(marking_patterns)),
+    url(r'^submission/', include(submission_patterns, namespace='submission')),
+    url(r'^marking/', include(marking_patterns, namespace='marking')),
 ]
 
 offering_patterns = [ # prefix /COURSE_SLUG/
@@ -65,14 +65,12 @@ offering_patterns = [ # prefix /COURSE_SLUG/
     url(r'^config/taoffers/$', 'ta.views.ta_offers', name='ta_offers'),
 
     url(r'^groups$', RedirectView.as_view(url='/%(course_slug)s/groups/', permanent=True)),
-    url(r'^groups/', include(group_patterns)),
-    url(r'^discussion/', include(discussion_patterns)),
+    url(r'^groups/', include(group_patterns, namespace='groups')),
+    url(r'^discussion/', include(discussion_patterns, namespace='discussion')),
 
     url(r'^\+' + ACTIVITY_SLUG + '/', include(activity_patterns)),
-    url(r'^dishonesty/', include(discipline_offering_patterns)),
-    url(r'^pages/', include(pages_patterns)),
-
-
+    url(r'^dishonesty/', include(discipline_offering_patterns, namespace='discipline')),
+    url(r'^pages/', include(pages_patterns, namespace='pages')),
 
     # redirect for old-style activity URLs (must be last to avoid conflict with other rules)
     url(r'^' + ACTIVITY_SLUG + '/(?P<tail>.*)$', 'grades.views.activity_info_oldurl', name='activity_info_oldurl'),

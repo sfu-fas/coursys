@@ -20,17 +20,17 @@ $(document).ready(function() {
 <div id="actions">
     <h2>Actions</h2>
     <ul class="fa-ul">
-    <li><a href="{% url "dashboard.views.news_list" %}"><i class="fa fa-li fa-envelope"></i> All News Items</a></li>
-    <li><a href="{% url "dashboard.views.calendar" %}"><i class="fa fa-li fa-calendar"></i> View Calendar</a></li>
+    <li><a href="{% url "news:news_list" %}"><i class="fa fa-li fa-envelope"></i> All News Items</a></li>
+    <li><a href="{% url "calendar:calendar" %}"><i class="fa fa-li fa-calendar"></i> View Calendar</a></li>
     
-    {% if 'DISC' in roles %}<li><a href="{% url "discipline.views.chair_index" %}"><i class="fa fa-li fa-gavel"></i> Discipline Cases</a></li>{% endif %}
-    {% if 'ADVS' in roles %}<li><a href="{% url "advisornotes.views.advising" %}"><i class="fa fa-li fa-comments"></i> Advisor Notes</a></li>{% endif %}
-    {% if 'OUTR' in roles %}<li><a href="{% url "outreach.views.outreach_index" %}"><i class="fa fa-li fa-university"></i> Outreach </a></li>{% endif %}
+    {% if 'DISC' in roles %}<li><a href="{% url "discipline:chair_index" %}"><i class="fa fa-li fa-gavel"></i> Discipline Cases</a></li>{% endif %}
+    {% if 'ADVS' in roles %}<li><a href="{% url "advisornotes:advising" %}"><i class="fa fa-li fa-comments"></i> Advisor Notes</a></li>{% endif %}
+    {% if 'OUTR' in roles %}<li><a href="{% url "outreach:outreach_index" %}"><i class="fa fa-li fa-university"></i> Outreach </a></li>{% endif %}
     {% if 'INV' in roles %}<li><a href="{% url "inventory:inventory_index" %}"><i class="fa fa-li fa-laptop"></i> Inventory </a></li>{% endif %}
 
-    {% if 'GRAD' in roles or 'GRPD' in roles %}<li class="newsec"><a href="{% url "grad.views.index" %}"><i class="fa fa-li fa-group"></i> Grad Students</a></li>{% endif %}
+    {% if 'GRAD' in roles or 'GRPD' in roles %}<li class="newsec"><a href="{% url "grad:index" %}"><i class="fa fa-li fa-group"></i> Grad Students</a></li>{% endif %}
 
-    {% if 'FUND' in roles %}<li class="newsec"><a href="{% url "ra.views.search" %}"><i class="fa fa-li fa-money"></i> Research Associates</a></li>{% endif %}
+    {% if 'FUND' in roles %}<li class="newsec"><a href="{% url "ra:search" %}"><i class="fa fa-li fa-money"></i> Research Associates</a></li>{% endif %}
     {% if 'ADMN' in roles or 'TAAD' in roles %}<li><a href="{% url "ta.views.all_tugs_admin" %}"><i class="fa fa-li fa-clock-o"></i> Time Use Guidelines</a></li>{% endif %}
 
     <li class='newsec'><a href="{% url "onlineforms:index" %}"><i class="fa fa-li fa-envelope-o"></i> Online Forms</a></li>
