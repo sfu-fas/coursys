@@ -2020,11 +2020,12 @@ def event_config_add(request, event_type):
         }
     return render(request, 'faculty/event_config_add.html', context)
 
-'''
 @require_POST
 @requires_role('ADMN')
 def delete_event_flag(request, event_type, unit, flag):
     # currently not linked anywhere in frontend
+    raise NotImplementedError
+
     Unit.sub_units(request.units)
     unit_obj = get_object_or_404(Unit, id__in=Unit.sub_unit_ids(request.units), label=unit)
     ec, _ = EventConfig.objects.get_or_create(unit=unit_obj, event_type='FELLOW')
@@ -2037,7 +2038,7 @@ def delete_event_flag(request, event_type, unit, flag):
     ec.save()
 
     return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
-'''
+
 
 @requires_role('ADMN')
 def new_memo_template(request, event_type):

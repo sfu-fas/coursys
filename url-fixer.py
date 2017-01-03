@@ -1,12 +1,25 @@
 #!/usr/bin/env python
 
-import os, re
+import os, re, sys
 
-dot_ref_re = re.compile(r'(?P<quote>\'|\")(?P<app>\w+)\.views\.(?P<view>\w+)\1')
+from django.core.wsgi import get_wsgi_application
+sys.path.append('.')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
+application = get_wsgi_application()
 
+from django.core.urlresolvers import get_resolver, get_callable
+resolver = get_resolver()
+
+dot_ref_re = re.compile(r'(?P<quote>\'|\")(?P<dotted>(?P<app>\w+)\.views\.(?P<view>\w+))\1')
+
+from api.views import oauth_authorize, oauth_callback
+initial_view_names = {
+    oauth_authorize: 'api.views.oauth_authorize',
+    oauth_callback: 'api.views.oauth_callback',
+}
 
 def intersting_file(f):
-    return f.endswith('.html') or f.endswith('.py')
+    return 'oldcode' not in f and (f.endswith('.html') or f.endswith('.py'))
 
 
 def fix_urls_py(fn):
@@ -37,8 +50,49 @@ def fix_urls_py(fn):
         py.write(''.join(new_content))
 
 
-for dirpath, dnames, fnames in os.walk("./"):
-    for f in fnames:
-        if intersting_file(f):
-            if f == 'urls.py':
-                fix_urls_py(os.path.join(dirpath, f))
+def catalogue_resolver(resolver, ns=()):
+    #index_full = get_callable('dashboard.views.index_full')
+    view_names = initial_view_names
+    resolver._populate()
+    for fn in resolver.reverse_dict.keys():
+        if isinstance(fn, str) or fn.__name__ in ['RedirectView']:
+            continue
+        new_name = ':'.join(ns + (fn.__name__,))
+        view_names[fn] = new_name
+
+    for n,v in resolver.namespace_dict.values():
+        this_ns = ns + (v.namespace,)
+        #print this_ns, v
+        vns = catalogue_resolver(v, ns=this_ns)
+        view_names.update(vns)
+
+    return view_names
+
+
+def fix_references(fn, view_names):
+    new_content = []
+    with open(fn, 'r') as code:
+        for line in code:
+            m = dot_ref_re.search(line)
+            if m:
+                dotted = m.group('dotted')
+                viewfunc = get_callable(dotted)
+                newline = line.replace(dotted, view_names[viewfunc])
+            else:
+                newline = line
+            new_content.append(newline)
+
+
+
+def main():
+    view_names = catalogue_resolver(resolver)
+    for dirpath, dnames, fnames in os.walk("./"):
+        for f in fnames:
+            fullpath = os.path.join(dirpath, f)
+            if intersting_file(fullpath):
+                if f == 'urls.py':
+                    fix_urls_py(fullpath)
+                else:
+                    fix_references(fullpath, view_names)
+
+main()

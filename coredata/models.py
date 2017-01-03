@@ -986,7 +986,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         super(CourseOffering, self).save(*args, **kwargs)
     
     def get_absolute_url(self):
-        return reverse('grades.views.course_info', kwargs={'course_slug': self.slug})
+        return reverse('offering:course_info', kwargs={'course_slug': self.slug})
     
     def instructors(self):
         return (m.person for m in self.member_set.filter(role="INST").select_related('person'))

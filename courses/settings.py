@@ -110,11 +110,10 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'APP_DIRS': True,
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'OPTIONS': {'context_processors': ['dashboard.context.media']},
     },
 ]
-TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + [
-    'dashboard.context.media',
-]
+
 AUTHENTICATION_BACKENDS = (
     'django_cas.backends.CASBackend',
 )

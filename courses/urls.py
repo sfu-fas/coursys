@@ -28,18 +28,25 @@ from django_cas.views import logout
 
 handler404 = 'courselib.auth.NotFoundResponse'
 
-urlpatterns = [
+toplevel_patterns = [
     # system URLs
     url(r'^login/$', dashboard_views.login, name='login'),
     url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
     url(r'^logout/(?P<next_page>.*)/$', logout, name='auth_logout_next'),
     url(r'^robots.txt$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
-    url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL+'icons/favicon.ico', permanent=True)),
+    url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL + 'icons/favicon.ico', permanent=True)),
 
     # top-level pages
-    url(r'^$', dashboard_views.index, name='dashboard-index'),
+    url(r'^$', dashboard_views.index, name='index'),
     url(r'^history$', dashboard_views.index_full, name='index_full'),
     url(r'^search$', dashboard_views.site_search, name='site_search'),
+
+    url(r'^my_grads/$', grad_views.supervisor_index, name='supervisor_index'),
+    url(r'^my_grads/download/$', grad_views.download_my_grads_csv, name='download_my_grads_csv'),
+]
+
+urlpatterns = [
+    url(r'', include(toplevel_patterns, namespace='dashboard')),
 
     # top-level paths from dashboard and coredata
     url(r'^api/', include(api_patterns, namespace='api')),
@@ -66,12 +73,10 @@ urlpatterns = [
 
     # graduate student-related apps
     url(r'^grad/', include(grad_patterns, namespace='grad')),
-    url(r'^ra/', include(ra_patterns, namespace='ta')),
-    url(r'^ta/', include(ta_patterns, namespace='ra')),
+    url(r'^ra/', include(ra_patterns, namespace='ra')),
+    url(r'^ta/', include(ta_patterns, namespace='ta')),
     url(r'^tacontracts/', include(tacontract_patterns, namespace='tacontracts')),
     url(r'^tugs/', include(tug_patterns, namespace='tugs')),
-    url(r'^my_grads/$', grad_views.supervisor_index, name='supervisor_index'),
-    url(r'^my_grads/download/$', grad_views.download_my_grads_csv, name='download_my_grads_csv'),
     url(r'^visas/', include(visas_pattern, namespace='visas')),
     url(r'^outreach/', include(outreach_pattern, namespace='outreach')),
     url(r'^sessionals/', include(sessionals_patterns, namespace='sessionals')),

@@ -115,7 +115,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
             <tr>
                 <td>{{ name }}</td>
                 <td>{{ unit.informal_name }}</td>
-                <!--<td><a href="{ url 'faculty.views.delete_event_flag' event_type=event_type_slug unit=unit.label flag=short }">Delete</a></td>-->
+                <!--<td><a href="{ url 'faculty:delete_event_flag' event_type=event_type_slug unit=unit.label flag=short }">Delete</a></td>-->
             </tr>
             {% endif %}
             {% endfor %}

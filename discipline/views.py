@@ -260,10 +260,7 @@ def edit_case_info(request, course_slug, case_slug, field):
                                 reverse('discipline.views.edit_case_info',
                                     kwargs={'field': 'contacted', 'course_slug': course_slug, 'case_slug': c0.slug}))))
             
-            if isinstance(case, DisciplineCaseChair):
-                return HttpResponseRedirect(reverse('discipline.views.show_chair', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
-            else:
-                return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         form = FormClass(instance=case)
     

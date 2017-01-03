@@ -28,7 +28,7 @@ $(document).ready(function() {
 		],
 	});
 
-    var reorder_url = "{% url "grades.views.reorder_activity" course_slug=course.slug %}";
+    var reorder_url = "{% url "offering:reorder_activity" course_slug=course.slug %}";
     var csrf_token = "{{csrf_token}}";
 
 	$('.sortarrows .arrow_up').attr('href', 'javascript:').bind('click', function(event) {
@@ -54,21 +54,21 @@ $(document).ready(function() {
 <div id="actions">
     <h2>Actions</h2>
     <ul class="fa-ul">
-	<li><a href="{% url "grades.views.course_config" course_slug=course.slug %}"><i class="fa fa-li fa-wrench"></i> Edit Course Setup</a></li>
-        <li><a href="{% url "grades.views.activity_choice" course_slug=course.slug %}"><i class="fa fa-li fa-plus"></i>Add Activity</a></li>
+	<li><a href="{% url "offering:course_config" course_slug=course.slug %}"><i class="fa fa-li fa-wrench"></i> Edit Course Setup</a></li>
+        <li><a href="{% url "offering:activity_choice" course_slug=course.slug %}"><i class="fa fa-li fa-plus"></i>Add Activity</a></li>
         {% if course.discussion %}
         <li><a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}"><i class="fa fa-li fa-comment-o"></i> Course Discussion
         	{% if discussion_activity %}<i class="fa fa-comments infomessage"></i>{% endif %}
         	</a></li>
         {% endif %}
-        <li class="newsec"><a href="{% url "grades.views.class_list" course_slug=course.slug %}"><i class="fa fa-li fa-list"></i>Display Class List</a></li>
-    {% if member.role == "INST" %}<li><a href="{% url "grades.views.photo_list" course_slug=course.slug %}"><i class="fa fa-li fa-picture-o"></i>Photo Class List</a></li>{% endif %}
-        <li><a href="{% url "grades.views.all_grades" course_slug=course.slug %}"><i class="fa fa-li fa-table"></i>Display All Grades</a></li>
-        <li><a href="{% url "grades.views.student_search" course_slug=course.slug %}"><i class="fa fa-li fa-search"></i>Student Search</a></li>
-	<li class="newsec"><a href="{% url "grades.views.new_message" course_slug=course.slug %}"><i class="fa fa-li fa-bullhorn"></i>Create News Item</a></li>
-	{% if any_group %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}"><i class="fa fa-li fa-group"></i>Manage Groups</a></li>{% endif %}
-    {% if member.role == "INST" %}<li><a href="{% url "discipline.views.index" course_slug=course.slug %}"><i class="fa fa-li fa-gavel"></i>Dishonesty Cases</a></li>{% endif %}
-        <li><a href="{% url "pages.views.index_page" course_slug=course.slug %}"><i class="fa fa-li fa-edit"></i>Course Pages</a></li>
+        <li class="newsec"><a href="{% url "offering:class_list" course_slug=course.slug %}"><i class="fa fa-li fa-list"></i>Display Class List</a></li>
+    {% if member.role == "INST" %}<li><a href="{% url "offering:photo_list" course_slug=course.slug %}"><i class="fa fa-li fa-picture-o"></i>Photo Class List</a></li>{% endif %}
+        <li><a href="{% url "offering:all_grades" course_slug=course.slug %}"><i class="fa fa-li fa-table"></i>Display All Grades</a></li>
+        <li><a href="{% url "offering:student_search" course_slug=course.slug %}"><i class="fa fa-li fa-search"></i>Student Search</a></li>
+	<li class="newsec"><a href="{% url "offering:new_message" course_slug=course.slug %}"><i class="fa fa-li fa-bullhorn"></i>Create News Item</a></li>
+	{% if any_group %}<li><a href="{% url "offering:groupmanage" course_slug=course.slug %}"><i class="fa fa-li fa-group"></i>Manage Groups</a></li>{% endif %}
+    {% if member.role == "INST" %}<li><a href="{% url "offering:discipline:index" course_slug=course.slug %}"><i class="fa fa-li fa-gavel"></i>Dishonesty Cases</a></li>{% endif %}
+        <li><a href="{% url "offering:pages:index_page" course_slug=course.slug %}"><i class="fa fa-li fa-edit"></i>Course Pages</a></li>
     {% if member.role == "TA" %}
         <li class="newsec"><a href="{% url "ta.views.view_tug" course_slug=course.slug userid=user.username %}"><i class="fa fa-li fa-clock-o"></i>Time Use Guideline</a></li>
     {% endif %}
