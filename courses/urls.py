@@ -34,7 +34,7 @@ urlpatterns = [
     url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL+'icons/favicon.ico', permanent=True)),
 
     # top-level pages
-    url(r'^$', 'dashboard.views.index'),
+    url(r'^$', 'dashboard.views.index', name='dashboard-index'),
     url(r'^history$', 'dashboard.views.index_full'),
     url(r'^search$', 'dashboard.views.site_search'),
 
@@ -58,7 +58,7 @@ urlpatterns = [
     url(r'^advising/', include(advisornotes_patterns)),
     url(r'^discipline/', include(discipline_patterns)),
     url(r'^faculty/', include(faculty_patterns)),
-    url(r'^forms/', include(forms_patterns)),
+    url(r'^forms/', include(forms_patterns, namespace='onlineforms')),
     url(r'^reports/', include(report_patterns)),
 
     # graduate student-related apps

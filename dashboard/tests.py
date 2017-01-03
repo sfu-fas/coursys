@@ -145,7 +145,7 @@ class DashboardTest(TestCase):
         self.assertEquals(response.status_code, 403)
         # try non-course URL as non-admin: shouldn't be able to impersonate
         client.login_user("diana")
-        url = reverse('dashboard.views.index', kwargs={})
+        url = reverse('dashboard-index', kwargs={})
         response = client.get(url, {"__impersonate": "0aaa0"})
         self.assertEquals(response.status_code, 403)
 

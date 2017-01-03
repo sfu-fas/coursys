@@ -111,7 +111,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
         {% endblock %}
 
         {% block allbreadcrumbs %}<div class="breadcrumb">
-        {% block breadcrumbs %}<ul><li><a href="/">CourSys</a></li>{% block subbreadcrumbs %}{% endblock %}</ul>{% endblock %}
+        {% block breadcrumbs %}<ul><li><a href="{% url 'dashboard-index' %}">CourSys</a></li>{% block subbreadcrumbs %}{% endblock %}</ul>{% endblock %}
         </div>{% endblock %}
 
         <div class="mobile-sub-nav">

@@ -860,7 +860,7 @@ class SheetSubmission(models.Model):
         """
         Email those with sheets waiting for their attention.
         """
-        full_url = settings.BASE_ABS_URL + reverse('onlineforms.views.index')
+        full_url = settings.BASE_ABS_URL + reverse('onlineforms:index')
         subject = 'Waiting form reminder'
         from_email = settings.DEFAULT_FROM_EMAIL
 

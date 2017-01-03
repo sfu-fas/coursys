@@ -1130,7 +1130,7 @@ def _reject_sheet(request, sheetsub):
             messages.success(request, 'Form discarded.')
         else:
             messages.success(request, 'Sheet rejected and returned to the admins.')
-        return HttpResponseRedirect(reverse('onlineforms.views.index'))
+        return HttpResponseRedirect(reverse('onlineforms:index'))
 
 
 def sheet_submission_via_url(request, secret_url):

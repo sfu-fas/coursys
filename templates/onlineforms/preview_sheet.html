@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+<li><a href="{% url "onlineforms:index" %}">Forms</a></li>
 <li><a href="{% url "onlineforms.views.list_all" %}">Manage Forms</a></li>
 <li><a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
 <li><a href="{% url "onlineforms.views.edit_sheet" form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a></li>

@@ -33,7 +33,7 @@ $(document).ready(function() {
     {% if 'FUND' in roles %}<li class="newsec"><a href="{% url "ra.views.search" %}"><i class="fa fa-li fa-money"></i> Research Associates</a></li>{% endif %}
     {% if 'ADMN' in roles or 'TAAD' in roles %}<li><a href="{% url "ta.views.all_tugs_admin" %}"><i class="fa fa-li fa-clock-o"></i> Time Use Guidelines</a></li>{% endif %}
 
-    <li class='newsec'><a href="{% url "onlineforms.views.index" %}"><i class="fa fa-li fa-envelope-o"></i> Online Forms</a></li>
+    <li class='newsec'><a href="{% url "onlineforms:index" %}"><i class="fa fa-li fa-envelope-o"></i> Online Forms</a></li>
     {% if 'TAAD' in roles %}<li><a href="{% url "ta.views.view_postings" %}"><i class="fa fa-li fa-briefcase"></i> TA Job Postings</a></li>{% endif %}
     {% if 'TAAD' in roles %}<li><a href="{% url "tacontracts.views.list_all_semesters" %}"><i class="fa fa-li fa-file-zip-o"></i> TA Contracts</a></li>{% endif %}
     {% if 'ADMN' in roles %}

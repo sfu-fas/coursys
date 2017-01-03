@@ -21,7 +21,7 @@ class PrivacyTestCase(TestCase):
         privacy_url = reverse('privacy.views.privacy')
 
         # non-role page should still render
-        url = reverse('dashboard.views.index')
+        url = reverse('dashboard-index')
         basic_page_tests(self, client, url)
 
         # but role page should redirect to agreement
