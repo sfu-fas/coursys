@@ -17,12 +17,21 @@ def fix_urls_py(fn):
     with open(fn, 'r') as py:
         for line in py:
             line = line.rstrip() + '\n'
+            newline = line
             m = dot_ref_re.search(line)
+
+            # make sure every pattern has a name
             if m and 'name=' not in line:
-                repl = "%s, name=%r" % (m.group(0), m.group('view'))
-                new_content.append(dot_ref_re.sub(repl, line))
-            else:
-                new_content.append(line)
+                repl = '%s, name=%r' % (m.group(0), m.group('view'))
+                newline = dot_ref_re.sub(repl, line)
+
+            # undo the dotted-string style references
+            if m:
+                repl = '%s_views.%s' % (m.group('app'), m.group('view'))
+                newline = dot_ref_re.sub(repl, newline)
+
+            new_content.append(newline)
+
 
     with open(fn, 'w') as py:
         py.write(''.join(new_content))
