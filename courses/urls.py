@@ -27,16 +27,16 @@ handler404 = 'courselib.auth.NotFoundResponse'
 
 urlpatterns = [
     # system URLs
-    url(r'^login/$', 'dashboard.views.login'),
-    url(r'^logout/$', 'django_cas.views.logout', {'next_page': '/'}),
-    url(r'^logout/(?P<next_page>.*)/$', 'django_cas.views.logout', name='auth_logout_next'),
+    url(r'^login/$', 'dashboard.views.login', name='login'),
+    url(r'^logout/$', 'django_cas.views.logout', name='logout', {'next_page': '/'}),
+    url(r'^logout/(?P<next_page>.*)/$', 'django_cas.views.logout', name='logout', name='auth_logout_next'),
     url(r'^robots.txt$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
     url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL+'icons/favicon.ico', permanent=True)),
 
     # top-level pages
-    url(r'^$', 'dashboard.views.index', name='dashboard-index'),
-    url(r'^history$', 'dashboard.views.index_full'),
-    url(r'^search$', 'dashboard.views.site_search'),
+    url(r'^$', 'dashboard.views.index', name='index', name='dashboard-index'),
+    url(r'^history$', 'dashboard.views.index_full', name='index_full'),
+    url(r'^search$', 'dashboard.views.site_search', name='site_search'),
 
     # top-level paths from dashboard and coredata
     url(r'^api/', include(api_patterns)),
@@ -67,8 +67,8 @@ urlpatterns = [
     url(r'^ta/', include(ta_patterns)),
     url(r'^tacontracts/', include(tacontract_patterns)),
     url(r'^tugs/', include(tug_patterns)),
-    url(r'^my_grads/$', 'grad.views.supervisor_index'),
-    url(r'^my_grads/download/$', 'grad.views.download_my_grads_csv'),
+    url(r'^my_grads/$', 'grad.views.supervisor_index', name='supervisor_index'),
+    url(r'^my_grads/download/$', 'grad.views.download_my_grads_csv', name='download_my_grads_csv'),
     url(r'^visas/', include(visas_pattern)),
     url(r'^outreach/', include(outreach_pattern)),
     url(r'^sessionals/', include(sessionals_patterns, namespace='sessionals', app_name='sessionals')),
@@ -83,7 +83,7 @@ urlpatterns = [
 if settings.DEPLOY_MODE != 'production':
     # URLs for development only:
     urlpatterns += [
-        url(r'^fake_login', 'dashboard.views.fake_login'),
-        url(r'^fake_logout', 'dashboard.views.fake_logout'),
+        url(r'^fake_login', 'dashboard.views.fake_login', name='fake_login'),
+        url(r'^fake_logout', 'dashboard.views.fake_logout', name='fake_logout'),
     ]
 

@@ -13,14 +13,16 @@ def fix_urls_py(fn):
     new_content = []
     with open(fn, 'r') as py:
         for line in py:
+            line = line.rstrip() + '\n'
             m = dot_ref_re.search(line)
             if m:
-                print line.rstrip()
                 repl = "%s, name=%r" % (m.group(0), m.group('view'))
                 new_content.append(dot_ref_re.sub(repl, line))
             else:
                 new_content.append(line)
-        print ''.join(new_content)
+
+    with open(fn, 'w') as py:
+        py.write(''.join(new_content))
 
 
 for dirpath, dnames, fnames in os.walk("./"):
