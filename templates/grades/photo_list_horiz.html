@@ -3,14 +3,14 @@
 {% block title %}{{ course.name }} Class List{% endblock %}
 {% block h1 %}{{ course.name }} Class List{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Photo List</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Photo List</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
   <h2>Actions</h2>
   <ul>
-  <li><a href="{% url 'grades.views.photo_list' course_slug=course.slug style='table' %}">View in table display</a></li>
-  <li><a href="{% url 'grades.views.photo_list' course_slug=course.slug style='signin' %}">View as signin sheet</a></li>
+  <li><a href="{% url 'offering:photo_list' course_slug=course.slug style='table' %}">View in table display</a></li>
+  <li><a href="{% url 'offering:photo_list' course_slug=course.slug style='signin' %}">View as signin sheet</a></li>
   </ul>
 </div>{% endblock %}
 
@@ -18,7 +18,7 @@
     <div id="photolist">
     {% for member in members %}
         <div class="student">
-        <div class="idphoto"><img src="{% url "grades.views.student_photo" emplid=member.person.emplid %}" alt="" /></div>
+        <div class="idphoto"><img src="{% url "data:student_photo" emplid=member.person.emplid %}" alt="" /></div>
         <span>{{ member.person.name_with_pref }}, <a href="{{member.get_absolute_url}}">{{ member.person.emplid }}</a>, {{ member.person.userid }}</span>
         </div>
     {% endfor %}

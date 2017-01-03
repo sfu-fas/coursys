@@ -19,4 +19,4 @@ def remove_promise(request, grad_slug, p_id):
               related_object=promise)
         l.save()              
     
-    return HttpResponseRedirect(reverse('grad.views.manage_promises', kwargs={'grad_slug':grad_slug}))
+    return HttpResponseRedirect(reverse('grad:manage_promises', kwargs={'grad_slug':grad_slug}))

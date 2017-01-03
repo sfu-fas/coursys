@@ -57,7 +57,7 @@ $(document).ready(function() {
 	<li><a href="{% url "offering:course_config" course_slug=course.slug %}"><i class="fa fa-li fa-wrench"></i> Edit Course Setup</a></li>
         <li><a href="{% url "offering:activity_choice" course_slug=course.slug %}"><i class="fa fa-li fa-plus"></i>Add Activity</a></li>
         {% if course.discussion %}
-        <li><a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}"><i class="fa fa-li fa-comment-o"></i> Course Discussion
+        <li><a href="{% url "offering:discussion:discussion_index" course_slug=course.slug %}"><i class="fa fa-li fa-comment-o"></i> Course Discussion
         	{% if discussion_activity %}<i class="fa fa-comments infomessage"></i>{% endif %}
         	</a></li>
         {% endif %}
@@ -70,7 +70,7 @@ $(document).ready(function() {
     {% if member.role == "INST" %}<li><a href="{% url "offering:discipline:index" course_slug=course.slug %}"><i class="fa fa-li fa-gavel"></i>Dishonesty Cases</a></li>{% endif %}
         <li><a href="{% url "offering:pages:index_page" course_slug=course.slug %}"><i class="fa fa-li fa-edit"></i>Course Pages</a></li>
     {% if member.role == "TA" %}
-        <li class="newsec"><a href="{% url "ta.views.view_tug" course_slug=course.slug userid=user.username %}"><i class="fa fa-li fa-clock-o"></i>Time Use Guideline</a></li>
+        <li class="newsec"><a href="{% url "offering:view_tug" course_slug=course.slug userid=user.username %}"><i class="fa fa-li fa-clock-o"></i>Time Use Guideline</a></li>
     {% endif %}
     </ul>
 </div>
@@ -144,18 +144,18 @@ email <a href="mailto:coursys-help@sfu.ca">coursys-help@sfu.ca</a> to get it set
                 <td class="sortarrows">
                     <span class="sort">{{ activity.position }}</span>
                     {% if not forloop.first %}
-                    <a class="arrow_up" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">
+                    <a class="arrow_up" href="{% url "offering:course_info" course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">
                     <i class="fa fa-arrow-up"></i>
                     </a>
                     {% endif %}
                     {% if not forloop.last %}
-                    <a class="arrow_down" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=down&amp;act={{ activity.slug }}">
+                    <a class="arrow_down" href="{% url "offering:course_info" course_slug=course.slug %}?order=down&amp;act={{ activity.slug }}">
                     <i class="fa fa-arrow-down"></i>
                     </a>
                     {% endif %}
                 </td>
                 <td scope="row">
-                <a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
+                <a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
                 </td>
                 
                 <td>{% if activity.group %}group{% else %}individual{% endif %}</td>
@@ -193,7 +193,7 @@ email <a href="mailto:coursys-help@sfu.ca">coursys-help@sfu.ca</a> to get it set
         </tbody>
     </table>
     {% else %}
-    <p class="empty">No activities defined. You can <a href="{% url "grades.views.activity_choice" course_slug=course.slug %}">add an activity</a> to get started.</p>
+    <p class="empty">No activities defined. You can <a href="{% url "offering:activity_choice" course_slug=course.slug %}">add an activity</a> to get started.</p>
     {% endif %}
 {% if activities_info %}
 <p>Percent total: {{total_percent}}%</p>

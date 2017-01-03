@@ -46,7 +46,7 @@ def manage_general(request, grad_slug):
                   description="Updated grad general info for %s." % (form.instance.slug),
                   related_object=gradF)
             l.save()    
-            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:view', kwargs={'grad_slug':grad.slug}))
     else:
         initial = {'sin':sin}
         for x in extra_fields:

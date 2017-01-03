@@ -64,7 +64,7 @@ class ApplicationTest(TestCase):
         client.login_user(userid)     
 
         #Check that assign_tas page has two courses in it, one with someone who has applied
-        url = reverse('ta.views.assign_tas', kwargs={'post_slug': posting.slug,})
+        url = reverse('ta:assign_tas', kwargs={'post_slug': posting.slug,})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="/ta/%s/%s"' % (posting.slug, self.co1.slug) )
@@ -72,14 +72,14 @@ class ApplicationTest(TestCase):
         self.assertContains(response, '<td class="num">1</td>')
 
         #Check the view application page to make sure it displays properly
-        url = reverse('ta.views.view_application', kwargs={'post_slug': posting.slug, 'userid':app.person.userid,})
+        url = reverse('ta:view_application', kwargs={'post_slug': posting.slug, 'userid':app.person.userid,})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="mailto:%s@sfu.ca"' % (app.person.userid) )
         self.assertContains(response, '<td>%s</td>' % (c1) )
        
         #Check the assign_bu page to make sure applicant appears
-        url = reverse('ta.views.assign_bus', kwargs={'post_slug': posting.slug, 'course_slug':self.co1.slug,})
+        url = reverse('ta:assign_bus', kwargs={'post_slug': posting.slug, 'course_slug':self.co1.slug,})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="/ta/%s/application/%s"' % (posting.slug, app.person.userid) )

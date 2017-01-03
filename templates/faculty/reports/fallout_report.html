@@ -53,7 +53,7 @@ $(document).ready(function() {
   <h2>Actions</h2>
   <ul class="fa-ul">
     <li>
-      <a href="{% url 'faculty.views.fallout_report_csv' %}?start_date={{ start_date.isoformat }}&amp;end_date={{ end_date.isoformat }}">
+      <a href="{% url 'faculty:fallout_report_csv' %}?start_date={{ start_date.isoformat }}&amp;end_date={{ end_date.isoformat }}">
         <i class="fa fa-li fa-download"></i> Download CSV
       </a>
     </li>
@@ -62,13 +62,13 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty:index" %}">Faculty</a></li>
 <li>Fallout Report</li>
 {% endblock %}
 
 {% block content %}
 
-<form class="noprint" action="{% url 'faculty.views.fallout_report' %}" method="GET">
+<form class="noprint" action="{% url 'faculty:fallout_report' %}" method="GET">
   {{ form.as_p }}
   <input type="submit" value="Select" />
 </form>
@@ -93,12 +93,12 @@ $(document).ready(function() {
   {% for units, person, event, start, end, days, salary, frac, fallout in table %}
   <tr class="{{ units }}">
   <td>{{ units }}</td>
-  <td><a href="{% url 'faculty.views.summary' userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
+  <td><a href="{% url 'faculty:summary' userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
   <td><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</a></td>
   <td>{{ start }}</td>
   <td>{{ end }}</td>
   <td>{{ days }}</td>
-  <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">${{ salary }}</a></td>
+  <td><a href="{% url 'faculty:salary_summary' userid=person.userid_or_emplid %}">${{ salary }}</a></td>
   <td>{{ frac }}</td>
   <td><span class="rowdata">{{fallout}}</span> ${{ fallout }}</td>
   </tr>

@@ -26,7 +26,7 @@ def manage_otherfunding(request, grad_slug):
             l.save()
 
             
-            return HttpResponseRedirect(reverse('grad.views.manage_otherfunding', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:manage_otherfunding', kwargs={'grad_slug':grad.slug}))
     else:
         form = OtherFundingForm(initial={'student':grad, 'semester':Semester.get_semester(), 'amount':'0.00'})
     

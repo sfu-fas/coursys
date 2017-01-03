@@ -324,12 +324,12 @@ def submit(request, course_slug):
     if Group.objects.filter(name=name,courseoffering=course):
         error_info="A group named \"%s\" already exists" % (name)
         messages.add_message(request, messages.ERROR, error_info)
-        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
     #Check if the group name is empty, these two checks may need to be moved to forms later.
     if name == "":
         error_info = "Group name cannot be empty: please enter a group name."
         messages.add_message(request, messages.ERROR, error_info)
-        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
     
 
     else:
@@ -347,7 +347,7 @@ def submit(request, course_slug):
         # no selected activities: fail.
         if not selected_act:
             messages.add_message(request, messages.ERROR, "Group not created: no activities selected.")
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
         
         #groupForSemesterForm = GroupForSemesterForm(request.POST)
         #if groupForSemesterForm.is_valid():
@@ -370,11 +370,11 @@ def submit(request, course_slug):
                     studentList.append(student)
         #Check if students has already in a group
         if _validateIntegrity(request,isStudentCreatedGroup, groupForSemester, course, studentList, selected_act) == False:
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
         #No selected members,group creating will fail.        
         if not studentList:
             messages.add_message(request, messages.ERROR, "Group not created: no members selected.")
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
         
         group = Group(name=name, manager=member, courseoffering=course, groupForSemester = groupForSemester)
         group.save()
@@ -395,7 +395,7 @@ def submit(request, course_slug):
                 l.save()
 
             messages.add_message(request, messages.SUCCESS, 'Group Created')
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
 
         elif is_course_staff_by_slug(request, course_slug):
             students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
@@ -414,12 +414,12 @@ def submit(request, course_slug):
                     n = NewsItem(user=student.person, author=member.person, course=group.courseoffering,
                      source_app="group", title="Added to Group",
                      content="You have been added the group %s." % (group.name),
-                     url=reverse('groups.views.groupmanage', kwargs={'course_slug':course.slug})
+                     url=reverse('offering:groups:groupmanage', kwargs={'course_slug':course.slug})
                     )
                     n.save()
                     
             messages.add_message(request, messages.SUCCESS, 'Group Created')
-            return HttpResponseRedirect(reverse('groups.views.view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
+            return HttpResponseRedirect(reverse('offering:groups:view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
         else:
             return HttpResponseForbidden()
 
@@ -446,7 +446,7 @@ def join(request, course_slug, group_slug):
     related_object=group )
     l.save()
     messages.add_message(request, messages.SUCCESS, 'You have joined the group "%s".' % (group.name))
-    return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+    return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
 
 @requires_course_by_slug
 @transaction.atomic
@@ -468,7 +468,7 @@ def reject(request, course_slug, group_slug):
     related_object=group )
     l.save()
     messages.add_message(request, messages.SUCCESS, 'You have left the group "%s".' % (group.name))
-    return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+    return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
 
 @requires_course_by_slug
 @transaction.atomic
@@ -493,12 +493,12 @@ def invite(request, course_slug, group_slug):
             existing = GroupMember.objects.filter(group=group).values('student').order_by().distinct().count()
             if group_max and existing >= group_max:
                 messages.add_message(request, messages.ERROR, 'Group already has %s members, which is the maximum.' % (group_max))
-                return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+                return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
 
             members = Member.objects.filter(person__userid = name, offering = course, role="STUD")
             if not members:
                 messages.add_message(request, messages.ERROR, 'Could not find userid "%s".' % (name))
-                return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+                return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
             member = members[0]
             
             # find out if this person is already in a group
@@ -527,15 +527,15 @@ def invite(request, course_slug, group_slug):
                 n = NewsItem(user=member.person, author=person, course=group.courseoffering,
                      source_app="group", title="Group Invitation",
                      content="You have been invited to join group %s." % (group.name),
-                     url=reverse('groups.views.groupmanage', kwargs={'course_slug':course.slug})
+                     url=reverse('offering:groups:groupmanage', kwargs={'course_slug':course.slug})
                     )
                 n.save()
                 messages.add_message(request, messages.SUCCESS, 'Your invitation to %s has been sent out.' % (member.person.name()))
 
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
         else:
             messages.add_message(request, messages.ERROR, "Invalid userid.")
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
     else:
         student_receiver_form = StudentReceiverForm()
         context = {'course': course, 'form': student_receiver_form}
@@ -575,9 +575,9 @@ def remove_student(request, course_slug, group_slug):
                 l.save()
 
         if is_staff:
-            return HttpResponseRedirect(reverse('groups.views.view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
+            return HttpResponseRedirect(reverse('offering:groups:view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
         else:
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
 
     else:
         data = []
@@ -609,7 +609,7 @@ def change_name(request, course_slug, group_slug):
             description="changed name of group %s to %s for course %s." % (oldname, group.name, group.courseoffering),
             related_object=group)
             l.save()
-            return HttpResponseRedirect(reverse('groups.views.view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
+            return HttpResponseRedirect(reverse('offering:groups:view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
 
     else:
         groupForm = GroupNameForm(instance=group)
@@ -650,7 +650,7 @@ def assign_student(request, course_slug, group_slug):
                         description="added %s to group %s for %s." % (m.person.userid, group.name, a), related_object=gm)
                         l.save()
 
-        return HttpResponseRedirect(reverse('groups.views.view_group', kwargs={'course_slug': course.slug, 'group_slug': group.slug}))
+        return HttpResponseRedirect(reverse('offering:groups:view_group', kwargs={'course_slug': course.slug, 'group_slug': group.slug}))
         
     else:
         activity_data = []

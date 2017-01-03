@@ -37,7 +37,7 @@ class Group(models.Model):
         return cmp(self.name, other.name)
 
     def get_absolute_url(self):
-        return reverse('groups.views.view_group', kwargs={'course_slug': self.courseoffering.slug,
+        return reverse('offering:groups:view_group', kwargs={'course_slug': self.courseoffering.slug,
                                                           'group_slug': self.slug})
 
     def confirmed_members(self):

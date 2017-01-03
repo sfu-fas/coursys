@@ -4,13 +4,13 @@
 {% block h1 %}Edit Artifact {{ artifact }}{% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+    <li><a href="{% url "advising:advising" %}">Advising</a></li>
     <li>Edit Artifact</li>
 {% endblock %}
 
 {% block content %}
 <div class="form_container">
-    <form action="{% url "advisornotes.views.edit_artifact" artifact_slug=artifact.slug %}" method="post">
+    <form action="{% url "advising:edit_artifact" artifact_slug=artifact.slug %}" method="post">
         {% csrf_token %}
             {{ form|as_dl }}
             <p><input type="submit" class="submit" value="Update" /></p>

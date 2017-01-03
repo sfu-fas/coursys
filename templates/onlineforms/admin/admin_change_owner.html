@@ -6,8 +6,8 @@
 
 {% block subbreadcrumbs %}
     <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
-    <li><a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
-    <li><a href="{% url "onlineforms.views.view_submission" form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">View {{ formsub.form.title }}</a></li>
+    <li><a href="{% url "onlineforms:admin_list_all" %}">Admin Forms</a></li>
+    <li><a href="{% url "onlineforms:view_submission" form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">View {{ formsub.form.title }}</a></li>
     <li>Give</li>
 {% endblock %}
 

@@ -57,7 +57,7 @@ def newgroup(request, course_slug):
                       description=("created a discipline case for %s in cluster %s") % (userid, group.name),
                       related_object=case)
                 l.save()
-            return HttpResponseRedirect(reverse('discipline.views.showgroup', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:showgroup', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
 
     else:
         form = DisciplineGroupForm(offering=course)
@@ -92,7 +92,7 @@ def new(request, course_slug):
                   description=("created a discipline case for %s in %s") % (case.student.name(), course),
                   related_object=case)
             l.save()
-            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
 
     else:
         form = DisciplineCaseForm(offering=course)
@@ -124,7 +124,7 @@ def new_nonstudent(request, course_slug):
                   description=("created a non-student discipline case for %s in %s") % (case.student.name(), course),
                   related_object=case)
             l.save()
-            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
 
     else:
         form = DisciplineInstrNonStudentCaseForm()
@@ -257,10 +257,10 @@ def edit_case_info(request, course_slug, case_slug, field):
                         messages.add_message(request, messages.ERROR,
                             mark_safe('Email not sent to %s since their "Contact Email Text" was not updated. You can <a href="%s">edit their contact info</a> if you wish.'
                             % (c0.student.name(),
-                                reverse('discipline.views.edit_case_info',
+                                reverse('offering:discipline:edit_case_info',
                                     kwargs={'field': 'contacted', 'course_slug': course_slug, 'case_slug': c0.slug}))))
             
-            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         form = FormClass(instance=case)
     
@@ -384,7 +384,7 @@ def edit_related(request, course_slug, case_slug):
                 messages.add_message(request, messages.SUCCESS,
                     "Also updated %s for %s." % (STEP_DESC[field], c0.student.name()))
 
-            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         initial = {'students': [], 'activities': [], 'submissions': []}
         for ro in case.relatedobject_set.all():
@@ -486,7 +486,7 @@ def new_file(request, course_slug, case_slug):
                   related_object=case)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (f.name))
-            return HttpResponseRedirect(reverse('discipline.views.edit_attach', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:edit_attach', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         form = NewAttachFileForm(case)
 
@@ -544,7 +544,7 @@ def edit_file(request, course_slug, case_slug, fileid):
                   related_object=case)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Updated file attachment "%s".' % (f.name))
-            return HttpResponseRedirect(reverse('discipline.views.edit_attach', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:edit_attach', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         form = EditAttachFileForm(instance=attach)
 
@@ -582,9 +582,9 @@ def chair_create(request, course_slug, case_slug):
               related_object=chair_case)
         l.save()
         messages.add_message(request, messages.SUCCESS, "Created Chair's case.")
-        return HttpResponseRedirect(reverse('discipline.views.chair_show', kwargs={'course_slug': course_slug, 'case_slug': chair_case.slug}))
+        return HttpResponseRedirect(reverse('discipline:chair_show', kwargs={'course_slug': course_slug, 'case_slug': chair_case.slug}))
         
-    return HttpResponseRedirect(reverse('discipline.views.chair_index', kwargs={}))
+    return HttpResponseRedirect(reverse('discipline:chair_index', kwargs={}))
 
 @requires_role("DISC")
 def chair_show(request, course_slug, case_slug):
@@ -631,7 +631,7 @@ def new_template(request):
                   related_object=t)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Created template "%s".' % (t.label))
-            return HttpResponseRedirect(reverse('discipline.views.show_templates'))
+            return HttpResponseRedirect(reverse('sysadmin:show_templates'))
     else:
         form = TemplateForm()
     context = {'form': form}
@@ -650,7 +650,7 @@ def edit_template(request, template_id):
                   related_object=t)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Edited template "%s".' % (t.label))
-            return HttpResponseRedirect(reverse('discipline.views.show_templates'))
+            return HttpResponseRedirect(reverse('sysadmin:show_templates'))
     else:
         form = TemplateForm(instance=template)
     context = {'template': template, 'form': form}
@@ -667,5 +667,5 @@ def delete_template(request, template_id):
         l.save()
         messages.add_message(request, messages.SUCCESS, 'Deleted template "%s".' % (template.label))
         template.delete()
-    return HttpResponseRedirect(reverse('discipline.views.show_templates'))
+    return HttpResponseRedirect(reverse('sysadmin:show_templates'))
 

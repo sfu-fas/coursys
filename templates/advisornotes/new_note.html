@@ -3,12 +3,12 @@
 {% block title %}New Note for {{ student.first_name}} {{ student.last_name}} {% endblock %}
 {% block h1 %}New Note for {{ student.first_name}} {{ student.last_name}} {% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li><li><a href="{% url "advisornotes.views.student_notes" userid=userid %}">Notes for {{ student.first_name}} {{ student.last_name}}</a></li><li>New Note</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "advising:advising" %}">Advising</a></li><li><a href="{% url "advisornotes.views.student_notes" userid=userid %}">Notes for {{ student.first_name}} {{ student.last_name}}</a></li><li>New Note</li>{% endblock %}
 
 {% block content %}
 
 <div class="form_container">
-<form action="{% url "advisornotes.views.new_note" userid=userid %}" enctype="multipart/form-data" method="post">{% csrf_token %}
+<form action="{% url "advising:new_note" userid=userid %}" enctype="multipart/form-data" method="post">{% csrf_token %}
 <fieldset>
 {{ form|as_dl }}
 <p><input type="submit" class="submit" value="Submit" /></p>

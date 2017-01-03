@@ -27,14 +27,14 @@ $(document).ready(function() {
 {% block title %}{{course.name}} Groups{% if activity %} for {{activity.name}}{% endif %}{% endblock %}
 {% block h1 %}{{course.name}} Groups{% if activity %} for {{activity.name}}{% endif %}{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% if activity %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>for {{activity.name}}</li>{% else %}<li>Groups</li>{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% if activity %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>for {{activity.name}}</li>{% else %}<li>Groups</li>{% endif %}{% endblock %}
 
 {% block actions %}
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
-<li><a href="{% url "groups.views.create" course_slug=course.slug %}{% if activity %}?activity={{ activity.slug }}{% endif %}">Create New Group</a></li>
-<li><a href="{% url "groups.views.group_data" course_slug=course.slug %}{% if activity %}?activity={{ activity.slug }}{% endif %}">Fetch Group Data</a></li>
+<li><a href="{% url "offering:groups:create" course_slug=course.slug %}{% if activity %}?activity={{ activity.slug }}{% endif %}">Create New Group</a></li>
+<li><a href="{% url "offering:groups:group_data" course_slug=course.slug %}{% if activity %}?activity={{ activity.slug }}{% endif %}">Fetch Group Data</a></li>
 
 </ul>
 </div>
@@ -44,7 +44,7 @@ $(document).ready(function() {
 {% if not activity %}
   <p>
   See groups for only: {% for a in activities %}
-  <a href="{% url "groups.views.groupmanage" course_slug=course.slug activity_slug=a.slug %}">{{ a.name }}</a>{% if forloop.last %}{% else %}, {% endif %}
+  <a href="{% url "offering:groups:groupmanage" course_slug=course.slug activity_slug=a.slug %}">{{ a.name }}</a>{% if forloop.last %}{% else %}, {% endif %}
   {% endfor %}
 {% endif%}
 </p>
@@ -69,7 +69,7 @@ $(document).ready(function() {
                 <ul>
                     {% for m in info.unique_members %}
                     <li>
-                        <a href="{% url "grades.views.student_info" course_slug=course.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>,
+                        <a href="{% url "offering:student_info" course_slug=course.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>,
                         {{ m.member.person.userid }}
                         {% if not m.confirmed %}(unconfirmed){% endif %}
                     </li>
@@ -90,7 +90,7 @@ $(document).ready(function() {
   {% if studentsNotInGroup %}
     <ul>
     {% for student in studentsNotInGroup %}
-      <li><a href="{% url "grades.views.student_info" course_slug=course.slug userid=student.person.userid %}">{{student.person.name_with_pref}}</a>, {{student.person.userid}}</li>
+      <li><a href="{% url "offering:student_info" course_slug=course.slug userid=student.person.userid %}">{{student.person.name_with_pref}}</a>, {{student.person.userid}}</li>
       {% endfor %}
     </ul>
   {% else %}

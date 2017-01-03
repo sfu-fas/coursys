@@ -688,7 +688,7 @@ class FormSubmission(models.Model):
         return u"%s for %s" % (self.form, self.initiator)
 
     def get_absolute_url(self):
-        return reverse('onlineforms.views.view_submission', kwargs={'form_slug': self.form.slug,'formsubmit_slug': self.slug})
+        return reverse('onlineforms:view_submission', kwargs={'form_slug': self.form.slug,'formsubmit_slug': self.slug})
 
     def closer(self):
         try:
@@ -725,7 +725,7 @@ class FormSubmission(models.Model):
         plaintext = get_template('onlineforms/emails/notify_new_owner.txt')
         html = get_template('onlineforms/emails/notify_new_owner.html')
 
-        full_url = request.build_absolute_uri(reverse('onlineforms.views.view_submission',
+        full_url = request.build_absolute_uri(reverse('onlineforms:view_submission',
                                     kwargs={'form_slug': self.form.slug,
                                             'formsubmit_slug': self.slug}))
         email_context = Context({'formsub': self, 'admin': admin, 'adminurl': full_url})
@@ -808,9 +808,9 @@ class SheetSubmission(models.Model):
         """
         secret_urls = SheetSubmissionSecretUrl.objects.filter(sheet_submission=self)
         if secret_urls:
-            return reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_urls[0].key})
+            return reverse('onlineforms:sheet_submission_via_url', kwargs={'secret_url': secret_urls[0].key})
         else:
-            return reverse('onlineforms.views.sheet_submission_subsequent', kwargs={
+            return reverse('onlineforms:sheet_submission_subsequent', kwargs={
                                 'form_slug': self.form_submission.form.slug,
                                 'formsubmit_slug': self.form_submission.slug,
                                 'sheet_slug': self.sheet.slug,
@@ -922,7 +922,7 @@ class SheetSubmission(models.Model):
                         description=u'Notified %s that they saved an incomplete sheet.' % (self.filler.full_email(),))
 
     def email_submitted(self, request, rejected=False):
-        full_url = request.build_absolute_uri(reverse('onlineforms.views.view_submission',
+        full_url = request.build_absolute_uri(reverse('onlineforms:view_submission',
                                     kwargs={'form_slug': self.sheet.form.slug,
                                             'formsubmit_slug': self.form_submission.slug}))
         context = {'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form,
@@ -991,7 +991,7 @@ class FieldSubmissionFile(models.Model):
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
     
     def get_file_url(self):
-        return reverse('onlineforms.views.file_field_download',
+        return reverse('onlineforms:file_field_download',
                        kwargs={'form_slug': self.field_submission.sheet_submission.sheet.form.slug,
                                'formsubmit_slug': self.field_submission.sheet_submission.form_submission.slug,
                                'file_id': self.id,

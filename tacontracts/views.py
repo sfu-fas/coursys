@@ -21,13 +21,13 @@ from .forms import HiringSemesterForm, TACategoryForm, TAContractForm, \
 from dashboard.letters import tacontract_form
 
 def _home_redirect():
-    return HttpResponseRedirect(reverse('tacontracts.views.list_all_semesters'))
+    return HttpResponseRedirect(reverse('tacontracts:list_all_semesters'))
 
 
 def _contracts_redirect(unit_slug, semester):
     if not isinstance(semester, basestring):
         raise ValueError("Semester must be a four-character string - 1141")
-    return HttpResponseRedirect(reverse('tacontracts.views.list_all_contracts', 
+    return HttpResponseRedirect(reverse('tacontracts:list_all_contracts', 
                                         kwargs={'unit_slug':unit_slug,
                                             'semester':semester}))
 
@@ -35,7 +35,7 @@ def _contracts_redirect(unit_slug, semester):
 def _category_redirect(unit_slug, semester):
     if not isinstance(semester, basestring):
         raise ValueError("Semester must be a four-character string - 1141")
-    return HttpResponseRedirect(reverse('tacontracts.views.view_categories',
+    return HttpResponseRedirect(reverse('tacontracts:view_categories',
                                         kwargs={'unit_slug':unit_slug,
                                             'semester':semester}))
 
@@ -43,7 +43,7 @@ def _category_redirect(unit_slug, semester):
 def _contract_redirect(unit_slug, semester, contract_slug):
     if not isinstance(semester, basestring):
         raise ValueError("Semester must be a four-character string - 1141")
-    return HttpResponseRedirect(reverse('tacontracts.views.view_contract',
+    return HttpResponseRedirect(reverse('tacontracts:view_contract',
                                         kwargs={'unit_slug':unit_slug,
                                                 'semester':semester, 
                                                 'contract_slug':contract_slug}))
@@ -499,7 +499,7 @@ def print_contract(request, unit_slug, semester, contract_slug):
     # it's just for our own peace of mind.
     if not contract.visa_verified:
         messages.error(request, 'You must verify the TA\'s visa information before printing')
-        return HttpResponseRedirect(reverse('tacontracts.views.view_contract',
+        return HttpResponseRedirect(reverse('tacontracts:view_contract',
                                             kwargs={'unit_slug': unit_slug,
                                                     'semester': semester,
                                                     'contract_slug': contract_slug}))
@@ -581,7 +581,7 @@ def bulk_email(request, unit_slug, semester):
             subject = form.cleaned_data['subject']
             message = form.cleaned_data['message']
             sender = form.cleaned_data['sender']
-            url = reverse('tacontracts.views.student_contract', 
+            url = reverse('tacontracts:student_contract', 
                                                   kwargs={'semester':semester})
             contract_ids = [int(x) for x in request.POST.getlist('contracts[]')]
             contracts = TAContract.objects.visible(hiring_semester)\
@@ -631,7 +631,7 @@ def accept_contract(request, semester, contract_slug):
         messages.add_message(request, 
                              messages.SUCCESS, 
                              u'Contract Accepted.')
-    return HttpResponseRedirect(reverse('tacontracts.views.student_contract', 
+    return HttpResponseRedirect(reverse('tacontracts:student_contract', 
                                         kwargs={'semester':semester}))
 
 

@@ -10,4 +10,4 @@ def student_financials(request):
     # TODO: Even though there should only be one grad, 
     # figure out the right grad student entry to use
     # in case there are multiple
-    return HttpResponseRedirect(reverse('grad.views.financials',kwargs={'grad_slug': grad.slug})) 
+    return HttpResponseRedirect(reverse('grad:financials',kwargs={'grad_slug': grad.slug})) 

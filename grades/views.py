@@ -109,7 +109,7 @@ def _course_info_staff(request, course_slug):
         act = request.GET['act']  
     if order and act:  
         reorder_course_activities(activities, act, order)  
-        return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))  
+        return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))  
 
 
     # Todo: is the activity type necessary?
@@ -166,7 +166,7 @@ def course_config(request, course_slug):
                   related_object=course)
             l.save()
 
-            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))
     else:
         form = CourseConfigForm({'url': course.url(), 'taemail': course.taemail(), 'discussion': course.discussion(),
                 'indiv_svn': course.indiv_svn(), 'instr_rw_svn': course.instr_rw_svn(), 'group_min': course.group_min(),'group_max': course.group_max()})
@@ -209,7 +209,7 @@ def activity_info_oldurl(request, course_slug, activity_slug, tail):
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=course)
-    act_url = reverse('grades.views.activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug})
+    act_url = reverse('offering:activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug})
     return HttpResponseRedirect(act_url + tail)
 
 @login_required
@@ -476,7 +476,7 @@ def edit_cutoffs(request, course_slug, activity_slug):
             except NotImplementedError:
                 return NotFoundResponse(request)
 
-            return HttpResponseRedirect(reverse('grades.views.activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
+            return HttpResponseRedirect(reverse('offering:activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
     else:
         cutoff=activity.get_cutoffs()
         cutoffsdict=_cutoffsdict(cutoff)
@@ -600,7 +600,7 @@ def add_numeric_activity(request, course_slug):
             messages.success(request, 'New activity "%s" added' % a.name)
             _semester_date_warning(request, a)
             
-            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))
         else:
             messages.error(request, "Please correct the error below")
     else:
@@ -643,7 +643,7 @@ def add_cal_numeric_activity(request, course_slug):
                 return NotFoundResponse(request)
             
             messages.success(request, 'New activity "%s" added' % form.cleaned_data['name'])
-            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))
         else:
             messages.error(request, "Please correct the error below")
     else:
@@ -695,7 +695,7 @@ def add_cal_letter_activity(request, course_slug):
                 return NotFoundResponse(request)
             
             messages.success(request, 'New activity "%s" added' % form.cleaned_data['name'])
-            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))
         else:
             messages.error(request, "Please correct the error below")
     else:
@@ -962,9 +962,9 @@ def edit_activity(request, course_slug, activity_slug):
                 _semester_date_warning(request, activity)
 
                 if from_page == FROMPAGE['course']:
-                    return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+                    return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))
                 else:
-                    return HttpResponseRedirect(reverse('grades.views.activity_info',
+                    return HttpResponseRedirect(reverse('offering:activity_info',
                                                         kwargs={'course_slug': course_slug, 'activity_slug': activity.slug}))
             else:
                 messages.error(request, "Please correct the error below")
@@ -1027,7 +1027,7 @@ def delete_activity(request, course_slug, activity_slug):
               related_object=course)
         l.save()
 
-        return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course.slug}))
+        return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course.slug}))
 
     else:
         return ForbiddenResponse(request)
@@ -1062,7 +1062,7 @@ def release_activity(request, course_slug, activity_slug):
                   related_object=course)
             l.save()
 
-        return HttpResponseRedirect(reverse('grades.views.activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
+        return HttpResponseRedirect(reverse('offering:activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
             
     else:
         return ForbiddenResponse(request)
@@ -1114,7 +1114,7 @@ def add_letter_activity(request, course_slug):
                 messages.success(request, 'New activity "%s" added' % a.name)
                 _semester_date_warning(request, a)
                 
-                return HttpResponseRedirect(reverse('grades.views.course_info',
+                return HttpResponseRedirect(reverse('offering:course_info',
                                                 kwargs={'course_slug': course_slug}))
     else:
         form = LetterActivityForm(previous_activities=activities_list)
@@ -1260,7 +1260,7 @@ def photo_list(request, course_slug, style='horiz'):
         raise Http404
     user = get_object_or_404(Person, userid=request.user.username)
     if not _has_photo_agreement(user):
-        url = reverse('dashboard.views.photo_agreement') + '?return=' + urllib.quote(request.path)
+        url = reverse('config:photo_agreement') + '?return=' + urllib.quote(request.path)
         return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
     
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -1283,7 +1283,7 @@ def student_photo(request, emplid):
         can_access = True
     else:
         if not _has_photo_agreement(user):
-            url = reverse('dashboard.views.photo_agreement') + '?return=' + urllib.quote(request.path)
+            url = reverse('config:photo_agreement') + '?return=' + urllib.quote(request.path)
             return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
 
         # confirm user is an instructor of this student (within the last two years)
@@ -1331,7 +1331,7 @@ def new_message(request, course_slug):
                   related_object=offering)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'News item created.')
-            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': offering.slug}))
+            return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': offering.slug}))
     else:
         form = MessageForm()    
     return render(request, "grades/new_message.html", {"form" : form,'course': offering})
@@ -1364,7 +1364,7 @@ def student_search(request, course_slug):
             return render_to_response('grades/student_search.html', context, context_instance=RequestContext(request))
 
         student = students[0]
-        return HttpResponseRedirect(reverse('grades.views.student_info',
+        return HttpResponseRedirect(reverse('offering:student_info',
                                                 kwargs={'course_slug': course_slug, 'userid': student.person.userid}))
 
 

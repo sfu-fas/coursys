@@ -24,7 +24,7 @@ class RATest(TestCase):
         test_views(self, c, 'ra.views.', ['edit', 'reappoint', 'view',], {'ra_slug': ra.slug})
 
         # No offer text yet, we should get a redirect when trying to edit the letter text:
-        url = reverse('ra.views.edit_letter', kwargs={'ra_slug': ra.slug})
+        url = reverse('ra:edit_letter', kwargs={'ra_slug': ra.slug})
         response = c.get(url)
         self.assertEquals(response.status_code, 302)
 

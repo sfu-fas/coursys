@@ -24,7 +24,7 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty:index" %}">Faculty</a></li>
 <li>{{ person.name }}</li>
 {% endblock %}
 
@@ -40,17 +40,17 @@ $(document).ready(function() {
     <li><a href="{% url 'faculty_wizard' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-magic"></i> Faculty Setup Wizard</a></li>
     {% endif %}
   <li>
-    <a href="{% url 'faculty.views.faculty_member_info' userid=person.userid_or_emplid %}">
+    <a href="{% url 'faculty:faculty_member_info' userid=person.userid_or_emplid %}">
       <i class="fa fa-li fa-user"></i> Contact Info
     </a>
   </li>
-    <li class="newsec"><a href="{% url 'faculty.views.teaching_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-book"></i> Teaching Summary</a></li>
-    <li><a href="{% url 'faculty.views.study_leave_credits' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-rocket"></i> Study Leave Credits</a></li>
-    <li><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-money"></i> Salary Info</a></li>
+    <li class="newsec"><a href="{% url 'faculty:teaching_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-book"></i> Teaching Summary</a></li>
+    <li><a href="{% url 'faculty:study_leave_credits' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-rocket"></i> Study Leave Credits</a></li>
+    <li><a href="{% url 'faculty:salary_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-money"></i> Salary Info</a></li>
   <li><a href="{% url 'faculty_otherinfo' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-list"></i> View Other Info</a></li>
     {% if career_events %}
     <li class="newsec">
-      <a href="{% url 'faculty.views.timeline' person.userid_or_emplid %}">
+      <a href="{% url 'faculty:timeline' person.userid_or_emplid %}">
         <i class="fa fa-li fa-random"></i> Career Timeline
       </a>
     </li>

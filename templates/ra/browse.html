@@ -10,7 +10,7 @@
 <script src="{% static 'js/ra.js' %}"></script>
 <script>
 $(document).ready(function() {
-  ra_browser_setup("{% url 'ra.views.browse' %}");
+  ra_browser_setup("{% url 'ra:browse' %}");
 });
 </script>{% endblock %}
 
@@ -18,7 +18,7 @@ $(document).ready(function() {
 {% if supervisor_only %}
 <li>RAs</li>
 {% else %}
-<li><a href="{% url "ra.views.search" %}">RAs</a></li>
+<li><a href="{% url "ra:search" %}">RAs</a></li>
 {% endif %}
 <li>Browse</li>
 {% endblock %}

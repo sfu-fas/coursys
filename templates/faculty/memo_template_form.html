@@ -6,9 +6,9 @@
 {% block h1 %}{% if memo_template %}Edit{% else %}New{% endif %} Memo Template{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
-<li><a href="{% url 'faculty.views.manage_event_index' %}">Manage Event Types</a></li>
-<li><a href="{% url 'faculty.views.event_config' event_type=event_type_slug %}">{{ event_name }}</a></li>
+<li><a href="{% url 'faculty:index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty:manage_event_index' %}">Manage Event Types</a></li>
+<li><a href="{% url 'faculty:event_config' event_type=event_type_slug %}">{{ event_name }}</a></li>
 <li>{% if memo_template %}Edit &ldquo;{{ memo_template.label }}&rdquo;{% else %}New Template{% endif %}</li>
 {% endblock %}
 

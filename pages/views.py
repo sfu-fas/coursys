@@ -364,7 +364,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
                     offering.save()
                     messages.info(request, "Set course URL to new Index page.")
                 
-                return HttpResponseRedirect(reverse('pages.views.view_page', kwargs={'course_slug': course_slug, 'page_label': instance.label}))
+                return HttpResponseRedirect(reverse('offering:pages:view_page', kwargs={'course_slug': course_slug, 'page_label': instance.label}))
         else:
             form = Form(instance=page, offering=offering)
             if 'label' in request.GET:

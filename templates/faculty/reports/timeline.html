@@ -21,9 +21,9 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty:index" %}">Faculty</a></li>
 <li>
-  <a href="{% url "faculty.views.summary" person.userid_or_emplid %}">{{ person.name }}</a>
+  <a href="{% url "faculty:summary" person.userid_or_emplid %}">{{ person.name }}</a>
 </li>
 <li>Career Timeline</li>
 {% endblock %}

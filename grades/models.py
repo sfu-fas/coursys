@@ -111,7 +111,7 @@ class Activity(models.Model):
     def __cmp__(self, other):
         return cmp(self.position, other.position)
     def get_absolute_url(self):
-        return reverse('grades.views.activity_info', kwargs={'course_slug': self.offering.slug, 'activity_slug': self.slug})
+        return reverse('offering:activity_info', kwargs={'course_slug': self.offering.slug, 'activity_slug': self.slug})
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     def is_numeric(self):
@@ -580,9 +580,9 @@ class NumericGrade(models.Model):
         because there is no associated mark summary record
         """
         if CalNumericActivity.objects.filter(id=self.activity.id):
-            return reverse("grades.views.activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
+            return reverse("offering:activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
         else:
-            return reverse("marking.views.mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
+            return reverse("offering:marking:mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
     class Meta:
         unique_together = (('activity', 'member'),)
 
@@ -663,9 +663,9 @@ class LetterGrade(models.Model):
         because there is no associated mark summary record
         """
         if CalNumericActivity.objects.filter(id=self.activity.id):
-            return reverse("grades.views.activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
+            return reverse("offering:activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
         else:
-            return reverse("marking.views.mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
+            return reverse("offering:marking:mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
             
     class Meta:
         unique_together = (('activity', 'member'), )

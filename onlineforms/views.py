@@ -55,7 +55,7 @@ def new_group(request):
                       description=(u"created form group %s (%i)") % (formgroup, formgroup.id),
                       related_object=formgroup)
                 l.save()
-                return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup.slug }))
+                return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup.slug }))
         else:
             form = GroupForm()
             form.fields['unit'].choices = unit_choices
@@ -81,7 +81,7 @@ def manage_group(request, formgroup_slug):
                       description=(u"edited form group %s (%i)") % (group, group.id),
                       related_object=group)
                 l.save()
-                return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
+                return HttpResponseRedirect(reverse('onlineforms:manage_groups'))
         form = EditGroupForm(instance=group)
 
         # below is for finding person thru coredata/personfield and adding to group
@@ -107,7 +107,7 @@ def add_group_member(request, formgroup_slug):
                     if FormGroupMember.objects.filter(person=person, formgroup=group).exists():
                         messages.error(request, "This person is already in this Form Group")
                         return HttpResponseRedirect(
-                            reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+                            reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup_slug}))
                     member = FormGroupMember(person=person, formgroup=group)
                     member.set_email(email)
                     member.save()
@@ -116,11 +116,11 @@ def add_group_member(request, formgroup_slug):
                          related_object=member)
                     l.save()
                     messages.success(request, u"%s added to this Form Group." % person)
-                    return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+                    return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup_slug}))
             else: # if accidentally don't search for anybody
-                return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))
+                return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup_slug }))
         
-        return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+        return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup_slug}))
 
 
 @requires_role('ADMN')
@@ -140,7 +140,7 @@ def remove_group_member(request, formgroup_slug, userid):
                         description=(u"Removed %s from form group %s (%i)") % (person.userid_or_emplid(), group, group.id),
                         related_object=group)
                     l.save()
-                    return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+                    return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup_slug}))
         
         groups = FormGroup.objects.filter(unit__in=Unit.sub_units(request.units))
         context = {'groups': groups}
@@ -253,7 +253,7 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
                 related_object=sheet_submission)
             l.save()
             messages.success(request, 'Sheet assigned.')
-            return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+            return HttpResponseRedirect(reverse('onlineforms:admin_list_all'))
 
         # collect dictionary of frequent fillers of each form, for convenience links
         frequent_fillers = ((s, SheetSubmission.objects.filter(sheet__original=s.original)
@@ -327,7 +327,7 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
                 related_object=sheet_submission)
             l.save()
             messages.success(request, 'Form assigned.')
-            return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+            return HttpResponseRedirect(reverse('onlineforms:admin_list_all'))
 
         context = {'form': form, 'assign_to_sfu_account': assign_to_sfu_account}
         return render(request, "onlineforms/admin/admin_assign_any.html", context)
@@ -361,7 +361,7 @@ def admin_change_owner(request, form_slug, formsubmit_slug):
                     related_object=form_submission)
                 l.save()
                 messages.success(request, u'Form given to group "%s".' % (new_g.name))
-                return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+                return HttpResponseRedirect(reverse('onlineforms:admin_list_all'))
 
         else:
             form = ChangeOwnerForm(queryset=allowed_groups)
@@ -384,7 +384,7 @@ def admin_return_sheet(request, form_slug, formsubmit_slug, sheetsubmit_slug):
         # where older than our cutoff period:
         if sheet_submission.sheet.is_initial:
             messages.error(request, u'You cannot return the initial sheet.')
-            return HttpResponseRedirect(reverse('onlineforms.views.view_submission',
+            return HttpResponseRedirect(reverse('onlineforms:view_submission',
                                                 kwargs={'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}))
 
         if request.method == 'POST':
@@ -406,7 +406,7 @@ def admin_return_sheet(request, form_slug, formsubmit_slug, sheetsubmit_slug):
                     related_object=sheet_submission)
                 l.save()
                 messages.success(request, u'Sheet returned to %s.' % (sheet_submission.filler.name()))
-                return HttpResponseRedirect(reverse('onlineforms.views.view_submission', kwargs={'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}))
+                return HttpResponseRedirect(reverse('onlineforms:view_submission', kwargs={'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}))
 
         else:
             form = AdminReturnForm()
@@ -540,7 +540,7 @@ def edit_form(request, form_slug):
                     description=(u"Edited form %s.") % (f,),
                     related_object=f)
                 l.save()
-                return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))
+                return HttpResponseRedirect(reverse('onlineforms:view_form', kwargs={'form_slug': owner_form.slug}))
         else:
             form = FormForm(instance=owner_form)
             form.fields['owner'].choices = group_choices
@@ -564,7 +564,7 @@ def new_sheet(request, form_slug):
                 l.save()
                 messages.success(request, u'Successfully created the new sheet "%s' % form.cleaned_data['title'])
                 return HttpResponseRedirect(
-                    reverse('onlineforms.views.edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug': sheet.slug}))
+                    reverse('onlineforms:edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug': sheet.slug}))
         else:
             initial = {}
             other_sheets = Sheet.objects.filter(form=owner_form, active=True).count()
@@ -618,7 +618,7 @@ def edit_sheet(request, form_slug, sheet_slug):
         if order and field_slug:
             reorder_sheet_fields(fields, field_slug, order)
             return HttpResponseRedirect(
-                reverse('onlineforms.views.edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug': sheet_slug}))
+                reverse('onlineforms:edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug': sheet_slug}))
 
         # check if they are deleting a field from the sheet
         if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
@@ -699,7 +699,7 @@ def edit_sheet_info(request, form_slug, sheet_slug):
                     description=(u"Edited form sheet %s.") % (new_sheet,),
                     related_object=new_sheet)
                 l.save()
-                return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet',
+                return HttpResponseRedirect(reverse('onlineforms:edit_sheet',
                     kwargs={'form_slug': owner_form.slug, 'sheet_slug': new_sheet.slug}))
         else:
             form = EditSheetForm(instance=owner_sheet)
@@ -739,7 +739,7 @@ def new_field(request, form_slug, sheet_slug):
                 messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['label'])
 
                 return HttpResponseRedirect(
-                        reverse('onlineforms.views.edit_sheet', args=(form_slug, new_sheet.slug)))
+                        reverse('onlineforms:edit_sheet', args=(form_slug, new_sheet.slug)))
                 
             # Fall-through to redisplay form with errors
             invalid_submission = True
@@ -774,7 +774,7 @@ def new_field(request, form_slug, sheet_slug):
                 messages.success(request, 'Successfully created a new field')
 
                 return HttpResponseRedirect(
-                    reverse('onlineforms.views.edit_sheet', args=(form_slug, new_sheet.slug)))
+                    reverse('onlineforms:edit_sheet', args=(form_slug, new_sheet.slug)))
             
             context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'choices': need_choices, 'ftype': ftype, 'type_description': type_description}
             return render(request, 'onlineforms/new_field.html', context)
@@ -829,12 +829,12 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
                 messages.success(request, u'Successfully updated the field "%s"' % form.cleaned_data['label'])
 
                 return HttpResponseRedirect(
-                    reverse('onlineforms.views.edit_sheet', args=(new_sheet.form.slug, new_sheet.slug)))
+                    reverse('onlineforms:edit_sheet', args=(new_sheet.form.slug, new_sheet.slug)))
 
         else:
             if not ftype.configurable:
                 return HttpResponseRedirect(
-                    reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
+                    reverse('onlineforms:edit_sheet', args=(form_slug, sheet_slug)))
             form = FIELD_TYPE_MODELS[field.fieldtype](config=field.config).make_config_form()
 
         context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'field': field,
@@ -1058,7 +1058,7 @@ def view_submission(request, form_slug, formsubmit_slug):
                     description=(u"Marked form submission %s done.") % (form_submission,),
                     related_object=form_submission)
                 l.save()
-                return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+                return HttpResponseRedirect(reverse('onlineforms:admin_list_all'))
 
         elif can_admin:
             close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, prefix='close')
@@ -1142,7 +1142,7 @@ def sheet_submission_via_url(request, secret_url):
     sheet = sheet_submission_object.sheet
     form_submission = sheet_submission_object.form_submission
     form = form_submission.form
-    alternate_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url})
+    alternate_url = reverse('onlineforms:sheet_submission_via_url', kwargs={'secret_url': secret_url})
     return _sheet_submission(request, form_slug=form.slug, formsubmit_slug=form_submission.slug,
                              sheet_slug=sheet.slug, sheetsubmit_slug=sheet_submission_object.slug,
                              alternate_url=alternate_url)
@@ -1358,10 +1358,10 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                 l.save()
                                 # email them the URL
                                 sheet_submission.email_started(request)
-                                access_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url.key})
+                                access_url = reverse('onlineforms:sheet_submission_via_url', kwargs={'secret_url': secret_url.key})
                             else:
                                 sheet_submission.email_started(request)
-                                access_url = reverse('onlineforms.views.sheet_submission_subsequent', kwargs={
+                                access_url = reverse('onlineforms:sheet_submission_subsequent', kwargs={
                                     'form_slug': owner_form.slug,
                                     'formsubmit_slug': form_submission.slug,
                                     'sheet_slug': sheet.slug,

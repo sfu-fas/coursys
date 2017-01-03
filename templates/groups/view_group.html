@@ -19,8 +19,8 @@ $(document).ready(function() {
 {% block h1 %}{{ offering.name }} Group: {{ group.name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>
-<li><a href="{% url "groups.views.groupmanage" course_slug=offering.slug %}">Groups</a></li>
+<li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>
+<li><a href="{% url "offering:groups:groupmanage" course_slug=offering.slug %}">Groups</a></li>
 <li>{{ group.name }}</li>
 {% endblock %}
 
@@ -28,9 +28,9 @@ $(document).ready(function() {
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
-<li><a href="{% url "groups.views.change_name" course_slug=offering.slug group_slug=info.group.slug %}">Change Name</a></li>
-<li><a href="{% url "groups.views.assign_student" course_slug=offering.slug group_slug=info.group.slug %}">Add Student</a></li>
-<li><a href="{% url "groups.views.remove_student" course_slug=offering.slug group_slug=info.group.slug %}">Remove Student</a></li>
+<li><a href="{% url "offering:groups:change_name" course_slug=offering.slug group_slug=info.group.slug %}">Change Name</a></li>
+<li><a href="{% url "offering:groups:assign_student" course_slug=offering.slug group_slug=info.group.slug %}">Add Student</a></li>
+<li><a href="{% url "offering:groups:remove_student" course_slug=offering.slug group_slug=info.group.slug %}">Remove Student</a></li>
 <li><a href="mailto:{{ info.email|urlencode }}">Email Group</a></li>
 {% if offering.uses_svn %}<li><a href="{{info.group.svn_url}}">SVN repo</a></li>{% endif %}
 </ul>
@@ -43,7 +43,7 @@ $(document).ready(function() {
 <h2 id="members">Group Members</h2>
 <ul class="bulleted">
   {% for m in info.unique_members %}
-  <li><a href="{% url "grades.views.student_info" course_slug=offering.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
+  <li><a href="{% url "offering:student_info" course_slug=offering.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
     {% if m.missing %}(not
     {% for a in m.missing %}
     {{ a.name }}{% if forloop.last %}){% else %}, {% endif %}
@@ -67,16 +67,16 @@ $(document).ready(function() {
         {% if a.mark %}
             {% if a.is_numeric %}
             {{ a.mark.mark }} / {{ a.max_grade }}
-            <a href="{% url 'marking.views.mark_summary_group' course_slug=offering.slug activity_slug=a.slug group_slug=group.slug %}"><i class="fa fa-search" title="View detail"></i></a>
+            <a href="{% url 'offering:marking:mark_summary_group' course_slug=offering.slug activity_slug=a.slug group_slug=group.slug %}"><i class="fa fa-search" title="View detail"></i></a>
             {% else %}
             {{ a.mark.mark }}
-            <a href="{% url 'marking.views.mark_all_groups' course_slug=offering.slug activity_slug=a.slug %}"><i class="fa fa-edit" title="Edit group marks"></i></a>
+            <a href="{% url 'offering:mark_all_groups' course_slug=offering.slug activity_slug=a.slug %}"><i class="fa fa-edit" title="Edit group marks"></i></a>
             {% endif %}
         {% else %}
             {% if a.is_numeric %}
-            <a href="{% url 'marking.views.marking_group' course_slug=offering.slug activity_slug=a.slug group_slug=group.slug %}"><i class="fa fa-edit" title="Edit group mark"></i></a>
+            <a href="{% url 'offering:marking:marking_group' course_slug=offering.slug activity_slug=a.slug group_slug=group.slug %}"><i class="fa fa-edit" title="Edit group mark"></i></a>
             {% else %}
-            <a href="{% url 'marking.views.mark_all_groups' course_slug=offering.slug activity_slug=a.slug %}"><i class="fa fa-edit" title="Edit group marks"></i></a>
+            <a href="{% url 'offering:mark_all_groups' course_slug=offering.slug activity_slug=a.slug %}"><i class="fa fa-edit" title="Edit group marks"></i></a>
             {% endif %}
         {% endif %}
 

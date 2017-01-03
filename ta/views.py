@@ -363,7 +363,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
         if not userid and existing_app.count() > 0: 
             messages.success(request, u"You have already applied for the %s %s posting." % (posting.unit, posting.semester))
-            return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
+            return HttpResponseRedirect(reverse('ta:view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
 
         if person.sin() != person.defaults['sin']:
             sin = person.sin()
@@ -377,13 +377,13 @@ def _new_application(request, post_slug, manual=False, userid=None):
             except ValueError:
                 search_form = StudentSearchForm(request.POST['search'])
                 messages.error(request, u"Invalid emplid %s for person." % (request.POST['search']))
-                return HttpResponseRedirect(reverse('ta.views.new_application_manual', args=(post_slug,)))
+                return HttpResponseRedirect(reverse('ta:new_application_manual', args=(post_slug,)))
             
             #Check to see if an application already exists for the person 
             existing_app = TAApplication.objects.filter(person=person, posting=posting)
             if existing_app.count() > 0: 
                 messages.success(request, u"%s has already applied for the %s %s posting." % (person, posting.unit, posting.semester))
-                return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
+                return HttpResponseRedirect(reverse('ta:view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
         
         if editing:
             ta_form = TAApplicationForm(request.POST, request.FILES, prefix='ta', instance=application)
@@ -488,7 +488,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
                     course.rank = 0
                     course.save()
                 
-                return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': app.posting.slug, 'userid': app.person.userid}))
+                return HttpResponseRedirect(reverse('ta:view_application', kwargs={'post_slug': app.posting.slug, 'userid': app.person.userid}))
         
         # redisplaying form: build values for template with entered values
         campus_preferences = []
@@ -829,7 +829,7 @@ def assign_bus(request, post_slug, course_slug):
     descrs = CourseDescription.objects.filter(unit=posting.unit)
     if not descrs.filter(labtut=True) or not descrs.filter(labtut=False):
         messages.error(request, "Must have at least one course description for TAs with and without labs/tutorials before assigning TAs.")
-        return HttpResponseRedirect(reverse('ta.views.descriptions', kwargs={}))
+        return HttpResponseRedirect(reverse('ta:descriptions', kwargs={}))
     
     if request.method == "POST" and 'extra_bu' in request.POST:
         # update extra BU and lab/tutorial setting for course
@@ -1010,7 +1010,7 @@ def all_contracts(request, post_slug):
     descrs = CourseDescription.objects.filter(unit=posting.unit)
     if not descrs.filter(labtut=True) or not descrs.filter(labtut=False):
         messages.error(request, "Must have at least one course description for TAs with and without labs/tutorials before assigning TAs.")
-        return HttpResponseRedirect(reverse('ta.views.descriptions', kwargs={}))
+        return HttpResponseRedirect(reverse('ta:descriptions', kwargs={}))
 
     existing = set(c.application_id for c in TAContract.objects.filter(posting=posting).select_related('application'))
     queryset = TAApplication.objects.filter(posting=posting).exclude(id__in=existing).order_by('person')
@@ -1035,7 +1035,7 @@ def all_contracts(request, post_slug):
             cname = u'contract_%s' % contract.id
             if cname in request.POST:
                 app = contract.application.person
-                offer_url = reverse('ta.views.accept_contract', kwargs={'post_slug': post_slug, 'userid': app.userid})
+                offer_url = reverse('ta:accept_contract', kwargs={'post_slug': post_slug, 'userid': app.userid})
                 contract.status = 'OPN'
                 _create_news(app, offer_url, from_user, contract.deadline)
                 contract.save()
@@ -1061,7 +1061,7 @@ def all_contracts(request, post_slug):
                         description=u"Set contract for %s to signed." % (contract.application.person.name()),
                         related_object=contract)
                     l.save()
-                return HttpResponseRedirect(reverse('ta.views.all_contracts', kwargs={'post_slug': posting.slug}))
+                return HttpResponseRedirect(reverse('ta:all_contracts', kwargs={'post_slug': posting.slug}))
 
     
     # Create a list of courses that this TA is assigned to. 
@@ -1366,7 +1366,7 @@ def edit_contract(request, post_slug, userid):
                 # if contract.status == "OPN":
                 person = application.person
                 
-                offer_url = reverse('ta.views.accept_contract', kwargs={'post_slug': post_slug, 'userid': userid})
+                offer_url = reverse('ta:accept_contract', kwargs={'post_slug': post_slug, 'userid': userid})
                 from_user = posting.contact()
                 if contract.status == 'OPN':
                     _create_news(person, offer_url, from_user, contract.deadline)
@@ -1501,7 +1501,7 @@ def edit_posting(request, post_slug=None):
                 messages.success(request, u"Edited TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
             else:
                 messages.success(request, u"Created TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
-            return HttpResponseRedirect(reverse('ta.views.view_postings', kwargs={}))
+            return HttpResponseRedirect(reverse('ta:view_postings', kwargs={}))
     else:
         form = TAPostingForm(instance=posting)
         form.fields['unit'].choices = unit_choices
@@ -1792,7 +1792,7 @@ def contact_tas(request, post_slug):
                 count += 1
             
             messages.success(request, "Message sent to %i TAs." % (count))
-            return HttpResponseRedirect(reverse('ta.views.posting_admin', kwargs={'post_slug': posting.slug}))
+            return HttpResponseRedirect(reverse('ta:posting_admin', kwargs={'post_slug': posting.slug}))
     
     elif 'statuses' in request.GET:
         statuses = request.GET['statuses'].split(',')
@@ -1839,7 +1839,7 @@ def new_description(request):
                   description=u"Created contract description '%s' in %s." % (desc.description, desc.unit.label),
                   related_object=desc)
             l.save()
-            return HttpResponseRedirect(reverse('ta.views.descriptions', kwargs={}))
+            return HttpResponseRedirect(reverse('ta:descriptions', kwargs={}))
             
     else:
         form = CourseDescriptionForm()

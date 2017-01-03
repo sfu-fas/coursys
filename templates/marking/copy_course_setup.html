@@ -19,13 +19,13 @@ $(document).ready(function(){
 {% block title %}Copy Course Setup{% endblock %}
 {% block h1 %}Copy Course Setup{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
-<li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>Copy Setup</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li><li>Copy Setup</li>{% endblock %}
 
 {% block content %}
 
 
-<form action="{% url "marking.views.copy_course_setup" course_slug=course.slug %}?copy_from={{source_course.slug}}" method="post">{% csrf_token %}
+<form action="{% url "offering:copy_course_setup" course_slug=course.slug %}?copy_from={{source_course.slug}}" method="post">{% csrf_token %}
 
 {% if source_pages %}
 <p>These course pages will be copied:</p>

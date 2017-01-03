@@ -42,7 +42,7 @@ def new_visa(request, emplid=None):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse('visas.views.list_all_visas'))
+            return HttpResponseRedirect(reverse('visas:list_all_visas'))
     else:
         if emplid:
             person = Person.objects.get(find_userid_or_emplid(emplid))
@@ -71,7 +71,7 @@ def edit_visa(request, visa_id):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse('visas.views.list_all_visas'))
+            return HttpResponseRedirect(reverse('visas:list_all_visas'))
     else:
         # The initial value needs to be the person's emplid in the form.
         # Django defaults to the pk, which is not human readable.

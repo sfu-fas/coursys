@@ -32,7 +32,7 @@ def manage_requirements(request, grad_slug):
               related_object=req )
             l.save()
             
-            return HttpResponseRedirect(reverse('grad.views.manage_requirements', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:manage_requirements', kwargs={'grad_slug':grad.slug}))
     else:
         form = CompletedRequirementForm(initial={'student':grad, 'semester':Semester.get_semester()})
         form.fields['requirement'].choices = req_choices

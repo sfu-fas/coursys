@@ -25,8 +25,8 @@ function confirmDelete(url) {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
-    <li><a href="{% url "coredata.views.list_anypersons" %}">AnyPersons</a></li>
+    <li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
+    <li><a href="{% url "sysadmin:list_anypersons" %}">AnyPersons</a></li>
     <li>Role Accounts</li>
 {% endblock %}
 
@@ -35,7 +35,7 @@ function confirmDelete(url) {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "coredata.views.add_roleaccount" %}">Add New Role Account</a></li>
+        <li><a href="{% url "sysadmin:add_roleaccount" %}">Add New Role Account</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -62,12 +62,12 @@ function confirmDelete(url) {
             <td>
                 <div class="lineform">
                     <button type='submit' class='btn' title="Delete"
-                            onclick="confirmDelete('{% url "coredata.views.delete_roleaccount" roleaccount_id=roleaccount.id %}')">
+                            onclick="confirmDelete('{% url "sysadmin:delete_roleaccount" roleaccount_id=roleaccount.id %}')">
                         <i class='fa fa-trash-o'></i>
                     </button>
                 </div>
                 <form class="lineform" method="GET"
-                    action="{% url "coredata.views.edit_roleaccount" roleaccount_id=roleaccount.id %}">
+                    action="{% url "sysadmin:edit_roleaccount" roleaccount_id=roleaccount.id %}">
                     <button type='submit' class='btn' title="Edit">
                         <i class='fa fa-edit'></i>
                     </button>

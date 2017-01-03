@@ -35,9 +35,9 @@ $(document).ready(function() {
 {% endblock%}
 
 {% block title %}Marking: {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
-{% block h1 %}Marking: {% if student %}<a href="{% url 'grades.views.student_info' course_slug=course.slug userid=student.userid_or_emplid %}">{{student.name}}</a>{% else %}<a href="{{ group.get_absolute_url }}">{{ group.name }}</a>{% endif %}, {{activity.name}}{% endblock %}
+{% block h1 %}Marking: {% if student %}<a href="{% url 'offering:student_info' course_slug=course.slug userid=student.userid_or_emplid %}">{{student.name}}</a>{% else %}<a href="{{ group.get_absolute_url }}">{{ group.name }}</a>{% endif %}, {{activity.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li>
 <li>Mark {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}</li>{% endblock %}
 
@@ -46,7 +46,7 @@ $(document).ready(function() {
     <h2 class="group_members">Group Members ({{ group_members|length }})</h2>
     <ul class="bulleted">
     {% for m in group_members %}
-        <li><a href="{% url "grades.views.student_info" course_slug=course.slug userid=m.student.person.userid %}">{{ m.student.person.name_with_pref }}</a>, {{ m.student.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
+        <li><a href="{% url "offering:student_info" course_slug=course.slug userid=m.student.person.userid %}">{{ m.student.person.name_with_pref }}</a>, {{ m.student.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
     {% endfor %}
     </ul>
     {% endif %}
@@ -62,7 +62,7 @@ $(document).ready(function() {
 			        <input type="button" value="{{problem.title}}" title="{{problem.description}}{%if problem.penalty%} [penalty: {{problem.penalty}}]{%endif%}"
 			        onclick="append_problem({{pos}}, {{problem.penalty}}, '{{problem.description|escapejs}}', {{entry.component.max_mark}});"/>
 			    {% endfor %}
-			    <a href="{% url "marking.views.manage_common_problems" course_slug=course.slug activity_slug=activity.slug%}" title="Manage common problems">Manage&hellip;</a>
+			    <a href="{% url "offering:marking:manage_common_problems" course_slug=course.slug activity_slug=activity.slug%}" title="Manage common problems">Manage&hellip;</a>
 			    </div>
 			    {% endwith %}
 		 	 </div>
@@ -70,7 +70,7 @@ $(document).ready(function() {
              {{ entry.form|as_dl_noreq }}
 	  </fieldset>
      {% empty %}
-	   	<p class="empty">Marking is not <a href="{% url "marking.views.manage_activity_components" course_slug=course.slug activity_slug=activity.slug %}" title="Edit components">configured</a>.
+	   	<p class="empty">Marking is not <a href="{% url "offering:marking:manage_activity_components" course_slug=course.slug activity_slug=activity.slug %}" title="Edit components">configured</a>.
 	    </p>
 	 {% endfor %}
 	 <fieldset>

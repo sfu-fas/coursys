@@ -235,7 +235,7 @@ def edit_semester(request, semester_name=None):
                   related_object=sem)
             l.save()
             messages.success(request, 'Edited semester %s.' % (sem.name))
-            return HttpResponseRedirect(reverse('coredata.views.semester_list', kwargs={}))
+            return HttpResponseRedirect(reverse('sysadmin:semester_list', kwargs={}))
     else:
         form = SemesterForm(instance=semester, prefix='sem')
         week_formset = SemesterWeekFormset(queryset=SemesterWeek.objects.filter(semester=semester), prefix='week')
@@ -293,7 +293,7 @@ def new_combined(request):
                   related_object=combined)
             l.save()
             messages.success(request, 'Created combined offering.')
-            return HttpResponseRedirect(reverse('coredata.views.combined_offerings', kwargs={}))
+            return HttpResponseRedirect(reverse('sysadmin:combined_offerings', kwargs={}))
     else:
         # set up creation form from the offering given
         initial = {
@@ -331,7 +331,7 @@ def add_combined_offering(request, pk):
                       related_object=combined)
                 l.save()
                 messages.success(request, 'Added offering.')
-                return HttpResponseRedirect(reverse('coredata.views.combined_offerings', kwargs={}))
+                return HttpResponseRedirect(reverse('sysadmin:combined_offerings', kwargs={}))
     else:
         form = OneOfferingForm()
 
@@ -502,7 +502,7 @@ def list_futurepersons(request):
 
 @requires_global_role("SYSA")
 def edit_futureperson(request, futureperson_id):
-    return HttpResponseRedirect(reverse('faculty.views.edit_futureperson', kwargs={'futureperson_id': futureperson_id,
+    return HttpResponseRedirect(reverse('faculty:edit_futureperson', kwargs={'futureperson_id': futureperson_id,
                                                                                    'from_admin': 1}))
 
 
@@ -545,7 +545,7 @@ def add_futureperson(request):
 
 @requires_global_role("SYSA")
 def view_futureperson(request, futureperson_id):
-    return HttpResponseRedirect(reverse('faculty.views.view_futureperson', kwargs={'futureperson_id': futureperson_id,
+    return HttpResponseRedirect(reverse('faculty:view_futureperson', kwargs={'futureperson_id': futureperson_id,
                                                                                    'from_admin': 1}))
 
 @requires_global_role("SYSA")
@@ -752,7 +752,7 @@ def unit_address(request, unit_slug):
                   description=("updated contact info for %s") % (unit.label),
                   related_object=unit)
             l.save()
-            return HttpResponseRedirect(reverse('coredata.views.unit_admin'))
+            return HttpResponseRedirect(reverse('admin:unit_admin'))
     else:
         form = UnitAddressForm(unit=unit)
     context = {'unit': unit, 'form': form}
@@ -801,7 +801,7 @@ def missing_instructors(request, unit_slug):
                       related_object=r)
                 l.save()
             messages.success(request, 'Set instructor roles for %i people.' % (count))
-            return HttpResponseRedirect(reverse('coredata.views.unit_admin'))
+            return HttpResponseRedirect(reverse('admin:unit_admin'))
     else:
         formset = InstrRoleFormSet(initial=initial)
 
@@ -998,7 +998,7 @@ class OfferingDataJson(BaseDatatableView):
     def render_column(self, offering, column):
         if column == 'coursecode':
             txt = u'%s\u00a0%s\u00a0%s' % (offering.subject, offering.number, offering.section) # those are nbsps
-            url = reverse('coredata.views.browse_courses_info', kwargs={'course_slug': offering.slug})
+            url = reverse('browse:browse_courses_info', kwargs={'course_slug': offering.slug})
             col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
         elif column == 'instructors':
             col = offering.instructors_str()

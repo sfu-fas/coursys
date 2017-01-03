@@ -3,7 +3,7 @@
 {% block h1 %}Manage Projects{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra.views.search" %}">RAs</a></li>
+<li><a href="{% url "ra:search" %}">RAs</a></li>
 <li>Projects</li>
 {% endblock %}
 
@@ -29,7 +29,7 @@ function confirmDelete() {
 <div id="actions">
   <h2>Actions</h2>
     <ul>
-      <li><a href="{% url "ra.views.new_project" %}">New Project</a></li>
+      <li><a href="{% url "ra:new_project" %}">New Project</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -53,10 +53,10 @@ function confirmDelete() {
           <td>{{project.fund_number}}</td>
           <td>{{ project.department_code }}</td>
           <td>{{project.unit}}</td>
-          <td><a href="{% url "ra.views.edit_project" project_slug=project.slug %}">Edit</a>
+          <td><a href="{% url "ra:edit_project" project_slug=project.slug %}">Edit</a>
                 | 
               <a onclick="return confirmDelete();" 
-                href="{% url "ra.views.remove_project" project_slug=project.slug %}">Delete</a>
+                href="{% url "ra:remove_project" project_slug=project.slug %}">Delete</a>
           </td>
         </tr>
       {% endfor %}

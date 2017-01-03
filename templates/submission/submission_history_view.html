@@ -5,9 +5,9 @@
 {% block h1 %}Submission History for {{activity.name}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'grades.views.course_info' course_slug=offering.slug %}">{{offering.name}}</a></li>
-<li><a href="{% url 'grades.views.activity_info' course_slug=offering.slug activity_slug=activity.slug %}">{{activity.name}}</a></li>
-<li><a href="{% url 'submission.views.show_components' course_slug=offering.slug activity_slug=activity.slug %}">Submission</a></li>
+<li><a href="{% url 'offering:course_info' course_slug=offering.slug %}">{{offering.name}}</a></li>
+<li><a href="{% url 'offering:activity_info' course_slug=offering.slug activity_slug=activity.slug %}">{{activity.name}}</a></li>
+<li><a href="{% url 'offering:submission:show_components' course_slug=offering.slug activity_slug=activity.slug %}">Submission</a></li>
 <li>History</li>{% endblock %}
 
 
@@ -31,7 +31,7 @@
                 <th scope="row">{{comp.title}}</th>
                 <td>
                     {% if subcomp %}
-                        <a href="{% url 'submission.views.download_file' course_slug=offering.slug activity_slug=activity.slug component_slug=comp.slug submission_id=submission.id %}">
+                        <a href="{% url 'offering:submission:download_file' course_slug=offering.slug activity_slug=activity.slug component_slug=comp.slug submission_id=submission.id %}">
                         <i class="fa fa-download"></i> Download</a>
                     {% else %}
                         &mdash;

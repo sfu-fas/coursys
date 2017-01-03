@@ -7,15 +7,15 @@
 
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
-<li><a href="{% url "coredata.views.list_anypersons" %}">AnyPersons</a></li>
-<li><a href="{% url "coredata.views.list_roleaccounts" %}">Role Accounts</a></li>
+<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
+<li><a href="{% url "sysadmin:list_anypersons" %}">AnyPersons</a></li>
+<li><a href="{% url "sysadmin:list_roleaccounts" %}">Role Accounts</a></li>
 <li>Edit Role Account</li>
 {% endblock %}
 
 
 {% block content %}
-    <form action="{% url "coredata.views.edit_roleaccount" roleaccount_id=roleaccount_id %}" method="post">
+    <form action="{% url "sysadmin:edit_roleaccount" roleaccount_id=roleaccount_id %}" method="post">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>

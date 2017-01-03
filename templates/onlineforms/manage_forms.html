@@ -25,7 +25,7 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url "onlineforms.views.new_form" %}">New Form</a></li>
+        <li><a href="{% url "onlineforms:new_form" %}">New Form</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -44,13 +44,13 @@
             </thead>
             {% for form in forms %}
                 <tr>
-                    <td><a href="{% url "onlineforms.views.view_form" form_slug=form.slug %}">{{ form.title }}</a>{% if form.unlisted %} (unlisted){% endif %}</td>
+                    <td><a href="{% url "onlineforms:view_form" form_slug=form.slug %}">{{ form.title }}</a>{% if form.unlisted %} (unlisted){% endif %}</td>
                     <td>{{ form.owner|default:"" }}</td>
                     <td>{{ form.get_initiators_display_short }}</td>
                     <td class="miniaction">
-                        <form action="{% url "onlineforms.views.list_all" %}" method="post">{% csrf_token %}
+                        <form action="{% url "onlineforms:list_all" %}" method="post">{% csrf_token %}
                             <p>
-                                <a href="{% url "onlineforms.views.edit_form" form_slug=form.slug %}">Edit Info</a>
+                                <a href="{% url "onlineforms:edit_form" form_slug=form.slug %}">Edit Info</a>
                                 <input type="hidden" name="action" value="del" />
                                 <input type="hidden" name="form_id" value="{{form.id}}" />
                                 <input type="submit" value="Remove" onclick="return confirmSubmit('remove this Form')" />

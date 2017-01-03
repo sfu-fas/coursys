@@ -6,7 +6,7 @@
 {% block h1 %}Grad Quick Search{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li><a href="{% url "grad:index" %}">Grad</a></li>
 <li>Quick Search</li>
 {% endblock %}
 
@@ -28,7 +28,7 @@
 		<tbody>
 			{% for g in grads %}
 			<tr>
-				<td><a href="{% url "grad.views.view" grad_slug=g.slug %}">{{g.person.last_name}}</a></td>
+				<td><a href="{% url "grad:view" grad_slug=g.slug %}">{{g.person.last_name}}</a></td>
 				<td>{{g.person.first_name}}</td>
 				<td>{{g.person.emplid}}</td>
 				<td>{{g.person.userid}}</td>

@@ -43,15 +43,15 @@ from marking.forms import UploadGradeFileForm, UploadGradeFileForm_LetterGrade
 def _redirct_response(request, course_slug, activity_slug, userid=None):
     from_page = request.GET.get('from_page')
     if from_page == 'course':
-        redirect_url = reverse('grades.views.course_info', args=(course_slug,))
+        redirect_url = reverse('offering:course_info', args=(course_slug,))
     elif from_page == 'activityinfo':
-        redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
+        redirect_url = reverse('offering:activity_info', args=(course_slug, activity_slug))
     elif from_page == 'activityinfo_group':
-        redirect_url = reverse('grades.views.activity_info_with_groups', args=(course_slug, activity_slug))
+        redirect_url = reverse('offering:activity_info_with_groups', args=(course_slug, activity_slug))
     elif userid and from_page == 'studentinfo':
-        redirect_url = reverse('grades.views.student_info', args=(course_slug, userid))
+        redirect_url = reverse('offering:student_info', args=(course_slug, userid))
     else: #default to the activity_info page
-        redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
+        redirect_url = reverse('offering:activity_info', args=(course_slug, activity_slug))
     return HttpResponseRedirect(redirect_url)
 
 
@@ -180,7 +180,7 @@ def copy_course_setup(request, course_slug):
                     l.save()                         
                     messages.add_message(request, messages.SUCCESS,
                             "Course Setup copied from %s (%s)" % (source_course.name(), source_course.semester.label(),))                
-                    return HttpResponseRedirect(reverse('grades.views.course_info', args=(course_slug,)))
+                    return HttpResponseRedirect(reverse('offering:course_info', args=(course_slug,)))
 
             if error_info:
                 messages.add_message(request, messages.ERROR, error_info)   
@@ -316,7 +316,7 @@ def manage_common_problems(request, course_slug, activity_slug):
                 # save the formset  
                 _save_common_problems(formset, activity, request.user.username)
                 messages.add_message(request, messages.SUCCESS, 'Common problems Saved')
-                return HttpResponseRedirect(reverse('marking.views.manage_common_problems', kwargs={'course_slug': activity.offering.slug, 'activity_slug': activity.slug}))
+                return HttpResponseRedirect(reverse('offering:marking:manage_common_problems', kwargs={'course_slug': activity.offering.slug, 'activity_slug': activity.slug}))
         else: # for GET request     
             formset = CommonProblemFormSet(components, queryset = qset) 
         
@@ -607,7 +607,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                     except IndexError:
                         messages.add_message(request, messages.INFO, 'That was the last userid in the course.')
                 elif groupmark:
-                    return HttpResponseRedirect(reverse('grades.views.activity_info_with_groups', 
+                    return HttpResponseRedirect(reverse('offering:activity_info_with_groups', 
                                kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
 
                 return _redirct_response(request, course_slug, activity_slug)

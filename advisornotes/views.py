@@ -33,11 +33,11 @@ def _redirect_to_notes(student):
     """
     if type(student) is Person:
         if student.userid:
-            return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': student.userid}))
+            return HttpResponseRedirect(reverse('advising:student_notes', kwargs={'userid': student.userid}))
         else:
-            return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': student.emplid}))
+            return HttpResponseRedirect(reverse('advising:student_notes', kwargs={'userid': student.emplid}))
     else:
-        return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'nonstudent_slug': student.slug}))
+        return HttpResponseRedirect(reverse('advising:student_notes', kwargs={'nonstudent_slug': student.slug}))
 
 
 @requires_role('ADVS')
@@ -114,7 +114,7 @@ def sims_add_person(request):
                 messages.add_message(request, messages.SUCCESS, u'Record for %s created.' % (p.name()))
                 return _redirect_to_notes(p)
 
-    return HttpResponseRedirect(reverse('advisornotes.views.advising', kwargs={}))
+    return HttpResponseRedirect(reverse('advising:advising', kwargs={}))
 
 
 def _email_student_note(note):
@@ -221,11 +221,11 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
             messages.add_message(request, messages.SUCCESS, u'Note for %s created.' % related)
 
             if course:
-                return HttpResponseRedirect(reverse('advisornotes.views.view_course_notes', kwargs={'unit_course_slug': course.slug}))
+                return HttpResponseRedirect(reverse('advising:view_course_notes', kwargs={'unit_course_slug': course.slug}))
             elif offering:
-                return HttpResponseRedirect(reverse('advisornotes.views.view_offering_notes', kwargs={'course_slug': offering.slug}))
+                return HttpResponseRedirect(reverse('advising:view_offering_notes', kwargs={'course_slug': offering.slug}))
             else:
-                return HttpResponseRedirect(reverse('advisornotes.views.view_artifact_notes', kwargs={'artifact_slug': artifact.slug}))
+                return HttpResponseRedirect(reverse('advising:view_artifact_notes', kwargs={'artifact_slug': artifact.slug}))
     else:
         form = ArtifactNoteForm(initial={})
         form.fields['unit'].choices = unit_choices
@@ -264,11 +264,11 @@ def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None
             messages.add_message(request, messages.SUCCESS, u'Note for %s edited.' % related)
 
             if course:
-                return HttpResponseRedirect(reverse('advisornotes.views.view_course_notes', kwargs={'unit_course_slug': course.slug}))
+                return HttpResponseRedirect(reverse('advising:view_course_notes', kwargs={'unit_course_slug': course.slug}))
             elif offering:
-                return HttpResponseRedirect(reverse('advisornotes.views.view_offering_notes', kwargs={'course_slug': offering.slug}))
+                return HttpResponseRedirect(reverse('advising:view_offering_notes', kwargs={'course_slug': offering.slug}))
             else:
-                return HttpResponseRedirect(reverse('advisornotes.views.view_artifact_notes', kwargs={'artifact_slug': artifact.slug}))
+                return HttpResponseRedirect(reverse('advising:view_artifact_notes', kwargs={'artifact_slug': artifact.slug}))
 
     return render(request, 'advisornotes/edit_artifact_note.html',
         {'form': form, 'note': note, 'related': related, 'artifact': artifact, 'course': course, 'offering': offering})
@@ -504,7 +504,7 @@ def record_advisor_visit(request, userid, unit_slug):
     av.save()
 
     messages.add_message(request, messages.SUCCESS, u'%s advisor visit recorded on %s.' % (unit.informal_name(), datetime.date.today()))
-    return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': userid}))
+    return HttpResponseRedirect(reverse('advising:student_notes', kwargs={'userid': userid}))
 
 
 @requires_role('ADVS')
@@ -552,7 +552,7 @@ def new_artifact(request):
                   related_object=form.instance)
             l.save()
             messages.add_message(request, messages.SUCCESS, u'Artifact "%s" created.' % artifact)
-            return HttpResponseRedirect(reverse('advisornotes.views.view_artifacts', kwargs={}))
+            return HttpResponseRedirect(reverse('advising:view_artifacts', kwargs={}))
     else:
         form = ArtifactForm()
         form.fields['unit'].choices = unit_choices
@@ -579,7 +579,7 @@ def edit_artifact(request, artifact_slug):
                   related_object=form.instance)
             l.save()
             messages.add_message(request, messages.SUCCESS, u'Artifact "%s" edited.' % artifact)
-            return HttpResponseRedirect(reverse('advisornotes.views.view_artifacts', kwargs={}))
+            return HttpResponseRedirect(reverse('advising:view_artifacts', kwargs={}))
     else:
         form = ArtifactForm(instance=artifact)
         form.fields['unit'].choices = unit_choices
@@ -622,7 +622,7 @@ def view_courses(request):
             and request.GET['course'] and request.GET['course'].isdigit():
         # handle the search for other courses
         offering = get_object_or_404(Course, id=request.GET['course'])
-        return HttpResponseRedirect(reverse('advisornotes.views.view_course_notes', kwargs={'unit_course_slug': offering.slug}))
+        return HttpResponseRedirect(reverse('advising:view_course_notes', kwargs={'unit_course_slug': offering.slug}))
 
     # all courses where a recent offering was owned by relevant units
     subunits = Unit.sub_unit_ids(request.units)
@@ -710,7 +710,7 @@ def view_course_offerings(request, semester=None):
     if 'offeringsearch' in request.GET and request.GET['offeringsearch'] and request.GET['offeringsearch'].isdigit():
         # handle the search for other offerings
         offering = get_object_or_404(CourseOffering, id=request.GET['offering'])
-        return HttpResponseRedirect(reverse('advisornotes.views.view_offering_notes', kwargs={'course_slug': offering.slug}))
+        return HttpResponseRedirect(reverse('advising:view_offering_notes', kwargs={'course_slug': offering.slug}))
 
     subunits = Unit.sub_unit_ids(request.units)
     offerings = CourseOffering.objects.filter(owner__in=subunits, semester=semester)

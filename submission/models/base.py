@@ -101,7 +101,7 @@ class StudentSubmission(Submission):
     def short_str(self):
         return "%s submission by %s at %s" % (self.activity.short_str(), self.member.person.userid, self.created_at.strftime("%Y-%m-%d %H:%M"))
     def get_absolute_url(self):
-        return reverse('submission.views.show_components_submission_history', kwargs={'course_slug': self.member.offering.slug, 'activity_slug': self.activity.slug, 'userid': self.member.person.userid})
+        return reverse('offering:submission:show_components_submission_history', kwargs={'course_slug': self.member.offering.slug, 'activity_slug': self.activity.slug, 'userid': self.member.person.userid})
     def file_slug(self):
         return self.member.person.userid_or_emplid()
 
@@ -118,7 +118,7 @@ class GroupSubmission(Submission):
     def short_str(self):
         return "%s submission by %s for group %s at %s" % (self.activity.short_str(), self.creator.person.userid, self.group.name, self.created_at.strftime("%Y-%m-%d %H:%M"))
     def get_absolute_url(self):
-        return reverse('submission.views.show_components_submission_history', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': self.activity.slug, 'userid': self.creator.person.userid})
+        return reverse('offering:submission:show_components_submission_history', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': self.activity.slug, 'userid': self.creator.person.userid})
     def file_slug(self):
         return self.group.slug
 
@@ -132,7 +132,7 @@ class GroupSubmission(Submission):
                     source_app="submit_group", title="New Group Submission",
                     content="Your group member %s has made a submission for %s."
                         % (self.creator.person.name(), self.activity.name),
-                    url=reverse('submission.views.show_components', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': member.activity.slug})
+                    url=reverse('offering:submission:show_components', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': member.activity.slug})
                     )
                 n.save()
 

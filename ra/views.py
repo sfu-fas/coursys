@@ -49,14 +49,14 @@ def search(request, student_id=None):
     if request.method == 'POST':
         form = RASearchForm(request.POST)
         if not form.is_valid():
-            return HttpResponseRedirect(reverse('ra.views.found') + "?search=" + urllib.quote_plus(form.data['search']))
+            return HttpResponseRedirect(reverse('ra:found') + "?search=" + urllib.quote_plus(form.data['search']))
         search = form.cleaned_data['search']
         # deal with people without active computing accounts
         if search.userid:
             userid = search.userid
         else:
             userid = search.emplid
-        return HttpResponseRedirect(reverse('ra.views.student_appointments', kwargs={'userid': userid}))
+        return HttpResponseRedirect(reverse('ra:student_appointments', kwargs={'userid': userid}))
     if student_id:
         form = RASearchForm(instance=student, initial={'student': student.userid})
     else:
@@ -325,7 +325,7 @@ def delete_ra(request, ra_slug):
               related_object=appointment)
         l.save()              
     
-    return HttpResponseRedirect(reverse('ra.views.student_appointments', kwargs={'userid': appointment.person.emplid}))
+    return HttpResponseRedirect(reverse('ra:student_appointments', kwargs={'userid': appointment.person.emplid}))
 
 
 
@@ -340,7 +340,7 @@ def new_account(request):
         if accountform.is_valid():
             account = accountform.save()
             messages.success(request, 'Created account ' + str(account.account_number))
-            return HttpResponseRedirect(reverse('ra.views.accounts_index'))
+            return HttpResponseRedirect(reverse('ra:accounts_index'))
     return render(request, 'ra/new_account.html', {'accountform': accountform})
 
 
@@ -373,7 +373,7 @@ def remove_account(request, account_slug):
           related_object=account)
     l.save()              
     
-    return HttpResponseRedirect(reverse('ra.views.accounts_index'))
+    return HttpResponseRedirect(reverse('ra:accounts_index'))
 
 #Project methods. Also straight forward.
 @requires_role("FUND")
@@ -385,7 +385,7 @@ def new_project(request):
         if projectform.is_valid():
             project = projectform.save()
             messages.success(request, 'Created project ' + str(project.project_number))
-            return HttpResponseRedirect(reverse('ra.views.projects_index'))
+            return HttpResponseRedirect(reverse('ra:projects_index'))
     return render(request, 'ra/new_project.html', {'projectform': projectform})
 
 @requires_role("FUND")
@@ -418,7 +418,7 @@ def remove_project(request, project_slug):
           related_object=project)
     l.save()              
     
-    return HttpResponseRedirect(reverse('ra.views.projects_index'))
+    return HttpResponseRedirect(reverse('ra:projects_index'))
 
 @requires_role("FUND")
 def semester_config(request, semester_name=None):
@@ -437,7 +437,7 @@ def semester_config(request, semester_name=None):
             config.set_end_date(form.cleaned_data['end_date'])
             config.save()
             messages.success(request, 'Updated semester configuration for %s.' % (semester.name))
-            return HttpResponseRedirect(reverse('ra.views.search'))
+            return HttpResponseRedirect(reverse('ra:search'))
     else:
         config = SemesterConfig.get_config(units=request.units, semester=semester)
         form = SemesterConfigForm(initial={'start_date': config.start_date(), 'end_date': config.end_date()})

@@ -765,7 +765,7 @@ def new_position(request):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+            return HttpResponseRedirect(reverse('faculty:list_positions'))
 
     else:
         form = PositionForm()
@@ -808,7 +808,7 @@ def edit_position(request, position_id):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+            return HttpResponseRedirect(reverse('faculty:list_positions'))
     else:
         form = PositionForm(instance=position)
         form.fields['teaching_load'].initial = position.get_load_display()
@@ -871,7 +871,7 @@ def assign_position_person(request, position_id):
                              )
                 l.save()
 
-                return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+                return HttpResponseRedirect(reverse('faculty:list_positions'))
 
     else:
         form = PositionPersonForm()
@@ -893,7 +893,7 @@ def position_add_credentials(request, position_id):
                          related_object=position
                          )
             l.save()
-            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+            return HttpResponseRedirect(reverse('faculty:list_positions'))
     else:
         form = PositionCredentialsForm(instance=position)
     return render(request, 'faculty/add_position_credentials.html', {'form': form, 'position': position})
@@ -924,7 +924,7 @@ def assign_position_futureperson(request, position_id):
                          related_object=position
                          )
             l.save()
-            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+            return HttpResponseRedirect(reverse('faculty:list_positions'))
     else:
         form = FuturePersonForm()
     return render(request, 'faculty/assign_position_futureperson.html', {'form': form, 'position_id': position_id})
@@ -982,9 +982,9 @@ def edit_futureperson(request, futureperson_id, from_admin=0):
                          )
             l.save()
             if from_admin == '1':
-                return HttpResponseRedirect(reverse('coredata.views.list_futurepersons'))
+                return HttpResponseRedirect(reverse('sysadmin:list_futurepersons'))
             else:
-                return HttpResponseRedirect(reverse('faculty.views.index'))
+                return HttpResponseRedirect(reverse('faculty:index'))
     else:
         form = FuturePersonForm(instance=fp)
         form.fields['sin'].initial = fp.sin()

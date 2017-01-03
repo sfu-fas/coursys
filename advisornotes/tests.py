@@ -30,25 +30,25 @@ class AdvisorNotestest(TestCase):
         n3.save()
 
         # index page
-        url = reverse('advisornotes.views.advising', kwargs={})
+        url = reverse('advising:advising', kwargs={})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # new nonstudent form
-        url = reverse('advisornotes.views.new_nonstudent', kwargs={})
+        url = reverse('advising:new_nonstudent', kwargs={})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # student with userid
-        url = reverse('advisornotes.views.advising', kwargs={})
+        url = reverse('advising:advising', kwargs={})
         response = client.post(url, {'search': p1.emplid})
         self.assertEqual(response.status_code, 302)
         redir_url = response['location']
-        student_url = reverse('advisornotes.views.student_notes', kwargs={'userid': p1.userid})
+        student_url = reverse('advising:student_notes', kwargs={'userid': p1.userid})
         self.assertIn(student_url, redir_url)
         response = basic_page_tests(self, client, student_url, check_valid=False)
         self.assertEqual(response.status_code, 200)
-        new_url = reverse('advisornotes.views.new_note', kwargs={'userid': p1.userid})
+        new_url = reverse('advising:new_note', kwargs={'userid': p1.userid})
         response = basic_page_tests(self, client, new_url)
         self.assertEqual(response.status_code, 200)
 
@@ -56,11 +56,11 @@ class AdvisorNotestest(TestCase):
         response = client.post(url, {'search': p2.emplid})
         self.assertEqual(response.status_code, 302)
         redir_url = response['location']
-        student_url = reverse('advisornotes.views.student_notes', kwargs={'userid': p2.emplid})
+        student_url = reverse('advising:student_notes', kwargs={'userid': p2.emplid})
         self.assertIn(student_url, redir_url)
         response = basic_page_tests(self, client, student_url, check_valid=False)
         self.assertEqual(response.status_code, 200)
-        new_url = reverse('advisornotes.views.new_note', kwargs={'userid': p2.emplid})
+        new_url = reverse('advising:new_note', kwargs={'userid': p2.emplid})
         response = basic_page_tests(self, client, new_url)
         self.assertEqual(response.status_code, 200)
 
@@ -68,20 +68,20 @@ class AdvisorNotestest(TestCase):
         response = client.post(url, {'search': ns.slug})
         self.assertEqual(response.status_code, 302)
         redir_url = response['location']
-        student_url = reverse('advisornotes.views.student_notes', kwargs={'userid': ns.slug})
+        student_url = reverse('advising:student_notes', kwargs={'userid': ns.slug})
         self.assertIn(student_url, redir_url)
         response = basic_page_tests(self, client, student_url, check_valid=False)
         self.assertEqual(response.status_code, 200)
-        new_url = reverse('advisornotes.views.new_note', kwargs={'userid': ns.slug})
+        new_url = reverse('advising:new_note', kwargs={'userid': ns.slug})
         response = basic_page_tests(self, client, new_url)
         self.assertEqual(response.status_code, 200)
 
         # note content search
-        url = reverse('advisornotes.views.note_search', kwargs={}) + "?text-search=nice"
+        url = reverse('advising:note_search', kwargs={}) + "?text-search=nice"
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['notes']), 1)
-        url = reverse('advisornotes.views.note_search', kwargs={}) + "?text-search="
+        url = reverse('advising:note_search', kwargs={}) + "?text-search="
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['notes']), 3)
@@ -89,19 +89,19 @@ class AdvisorNotestest(TestCase):
     def test_new_nonstudent_not_advisor(self):
         client = Client()
         client.login_user("0ppp0")
-        response = client.get(reverse('advisornotes.views.new_nonstudent'))
+        response = client.get(reverse('advising:new_nonstudent'))
         self.assertEqual(response.status_code, 403, "Student shouldn't have access")
 
     def test_new_nonstudent_is_advisor(self):
         client = Client()
         client.login_user("dzhao")
-        response = client.get(reverse('advisornotes.views.new_nonstudent'))
+        response = client.get(reverse('advising:new_nonstudent'))
         self.assertEqual(response.status_code, 200)
 
     def test_new_nonstudent_post_failure(self):
         client = Client()
         client.login_user("dzhao")
-        response = client.post(reverse('advisornotes.views.new_nonstudent'), {'first_name': 'test123'})
+        response = client.post(reverse('advising:new_nonstudent'), {'first_name': 'test123'})
         self.assertEqual(response.status_code, 200, "Should be brought back to form")
         q = NonStudent.objects.filter(first_name='test123')
         self.assertEqual(len(q), 0, "Nonstudent should not have been created")
@@ -109,7 +109,7 @@ class AdvisorNotestest(TestCase):
     def test_new_nonstudent_post_success(self):
         client = Client()
         client.login_user("dzhao")
-        response = client.post(reverse('advisornotes.views.new_nonstudent'), {'first_name': 'test123', 'last_name': 'test_new_nonstudent_post', 'start_year': 2020})
+        response = client.post(reverse('advising:new_nonstudent'), {'first_name': 'test123', 'last_name': 'test_new_nonstudent_post', 'start_year': 2020})
         self.assertEqual(response.status_code, 302, 'Should have been redirected')
         q = NonStudent.objects.filter(first_name='test123')
         self.assertEqual(len(q), 1, "There should only be one result")

@@ -19,4 +19,4 @@ def remove_financialcomment(request, grad_slug, f_id):
               related_object=fin)
         l.save()              
     
-    return HttpResponseRedirect(reverse('grad.views.manage_financialcomments', kwargs={'grad_slug':grad_slug}))
+    return HttpResponseRedirect(reverse('grad:manage_financialcomments', kwargs={'grad_slug':grad_slug}))

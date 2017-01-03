@@ -6,7 +6,7 @@
 
 {% block subbreadcrumbs %}
     <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
-    <li><a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
+    <li><a href="{% url "onlineforms:admin_list_all" %}">Admin Forms</a></li>
     <li>Assign Form</li>
 {% endblock %}
 
@@ -31,9 +31,9 @@
     <h2 class="heading">Actions</h2>
     <ul>
     {% if assign_to_sfu_account %}
-    <li><a href="{% url "onlineforms.views.admin_assign_any_nonsfu" %}">Assign to non-SFU user</a></li>
+    <li><a href="{% url "onlineforms:admin_assign_any_nonsfu" %}">Assign to non-SFU user</a></li>
     {% else %}
-    <li><a href="{% url "onlineforms.views.admin_assign_any" %}">Assign to an SFU user</a></li>
+    <li><a href="{% url "onlineforms:admin_assign_any" %}">Assign to an SFU user</a></li>
     {% endif %}
     </ul>
 </div>

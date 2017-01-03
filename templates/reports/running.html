@@ -4,7 +4,7 @@
 
 {% block headextra %}
 <script type="text/javascript">
-    var console_url = '{% url "reports.views.console" report=report.slug %}';
+    var console_url = '{% url "reports:can_access_report" report=report.slug %}';
 
     var reload = function(){
         $.ajax( console_url, {
@@ -20,8 +20,8 @@ setInterval(reload, 1000);
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li>
-<li><a href="{% url "reports.views.view_report" report=report.slug %}">{{report.name}}</a> </li>
+<li><a href="{% url "reports:view_reports" %}">Reports</a></li>
+<li><a href="{% url "reports:can_access_report" report=report.slug %}">{{report.name}}</a> </li>
 <li>Running&hellip;</li>
 {% endblock %}
 

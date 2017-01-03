@@ -10,14 +10,14 @@
 {% block h1 %}Edit Position{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty Management</a></li>
-<li><a href="{% url "faculty.views.list_positions" %}">Positions</a></li>
+<li><a href="{% url "faculty:index" %}">Faculty Management</a></li>
+<li><a href="{% url "faculty:list_positions" %}">Positions</a></li>
 <li>Edit Position</li>
 {% endblock %}
 
 
 {% block content %}
-<form action="{% url "faculty.views.edit_position" position_id=position_id%}" method="post">
+<form action="{% url "faculty:edit_position" position_id=position_id%}" method="post">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>

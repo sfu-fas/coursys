@@ -41,7 +41,7 @@ def manage_start_end_semesters(request, grad_slug):
                   description="Updated start/end semester for %s." % (grad),
                   related_object=grad)
             l.save()    
-            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:view', kwargs={'grad_slug':grad.slug}))
     else:
         form = GradSemesterForm(initial={'start_semester': grad.start_semester, 'end_semester': grad.end_semester})
 

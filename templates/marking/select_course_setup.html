@@ -4,12 +4,12 @@
 {% block title %}Copy Course Setup{% endblock %}
 {% block h1 %}Copy Course Setup{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>Copy Setup</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>Copy Setup</li>{% endblock %}
 
 {% block content %}
 
 <p>This will copy all activities, along with their submission and marking configuration to this course.</p>
-<form action="{% url "marking.views.copy_course_setup" course_slug=course.slug %}" method="post">{% csrf_token %}
+<form action="{% url "offering:copy_course_setup" course_slug=course.slug %}" method="post">{% csrf_token %}
 {{ select_form|as_dl }}
 <p><input type="submit" value="Continue" class="submit"></p>
 </form>

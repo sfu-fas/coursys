@@ -22,5 +22,5 @@ def remove_document(request, grad_slug, d_id):
                      related_object=document)
         l.save()              
     
-    return HttpResponseRedirect(reverse('grad.views.manage_documents', 
+    return HttpResponseRedirect(reverse('grad:manage_documents', 
                                 kwargs={'grad_slug':grad_slug}))

@@ -3,15 +3,15 @@
 {% block h1 %}Add Activity: select type{% endblock %}
 {% block title %}Add Activity: select type{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li>Add activity</li>{% endblock %}
 
 
 {% block content %}
 <ul>
-    <li><a href="{% url "grades.views.add_numeric_activity" course_slug=course.slug %}">Numeric Graded Activity</a> <span class="helptext">(an activity where students or groups will receive a numeric grade)</span></li>
-    <li><a href="{% url "grades.views.add_letter_activity" course_slug=course.slug %}">Letter Graded Activity</a> <span class="helptext">(an activity where students or groups will receive a letter grade)</span></li>
-    <li><a href="{% url "grades.views.add_cal_numeric_activity" course_slug=course.slug %}">Calculated Numeric Activity</a> <span class="helptext">(a numeric grade calculated by a formula)</span></li>
-    <li><a href="{% url "grades.views.add_cal_letter_activity" course_slug=course.slug %}">Calculated Letter Activity</a> <span class="helptext">(a letter grade calculated by specifying cutoffs for each grade)</span></li>
+    <li><a href="{% url "offering:add_numeric_activity" course_slug=course.slug %}">Numeric Graded Activity</a> <span class="helptext">(an activity where students or groups will receive a numeric grade)</span></li>
+    <li><a href="{% url "offering:add_letter_activity" course_slug=course.slug %}">Letter Graded Activity</a> <span class="helptext">(an activity where students or groups will receive a letter grade)</span></li>
+    <li><a href="{% url "offering:add_cal_numeric_activity" course_slug=course.slug %}">Calculated Numeric Activity</a> <span class="helptext">(a numeric grade calculated by a formula)</span></li>
+    <li><a href="{% url "offering:add_cal_letter_activity" course_slug=course.slug %}">Calculated Letter Activity</a> <span class="helptext">(a letter grade calculated by specifying cutoffs for each grade)</span></li>
 </ul>
 {% endblock %}

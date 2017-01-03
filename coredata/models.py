@@ -1350,7 +1350,7 @@ class Member(models.Model, ConditionalSaveMixin):
         #unique_together = (('person', 'offering', 'role'),)  # now handled by self.clean()
         ordering = ['offering', 'person']
     def get_absolute_url(self):
-        return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug,
+        return reverse('offering:student_info', kwargs={'course_slug': self.offering.slug,
                                                             'userid': self.person.userid_or_emplid()})
     
     @classmethod

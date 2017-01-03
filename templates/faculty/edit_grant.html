@@ -17,7 +17,7 @@
 {% block h1 %}Edit Grant: {{ grant }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty:index' %}">Faculty</a></li>
 <li><a href="{% url 'grants_index' %}">Grants</a></li>
 <li>Edit Grant: {{ grant }}</li>
 {% endblock %}

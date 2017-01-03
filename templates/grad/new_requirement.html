@@ -4,10 +4,10 @@
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grad.views.index" %}">Grad</a></li><li>{{crumb}}</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grad:index" %}">Grad</a></li><li>{{crumb}}</li>{% endblock %}
 {% block content %}
 <div class="form_container">
-    <form action="{% url "grad.views.new_requirement" %}" method="post">{% csrf_token %}
+    <form action="{% url "grad:new_requirement" %}" method="post">{% csrf_token %}
     	<fieldset>
               {{ form|as_dl }}
         <p><input  class="submit"  type="submit" value="Submit" /></p>

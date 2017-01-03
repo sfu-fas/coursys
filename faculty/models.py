@@ -781,7 +781,7 @@ class Grant(models.Model):
         for o in self.grantowner_set.all():
             p = o.person
             if Role.objects.filter(unit__in=units, role='FAC', person=p).exists():
-                url = reverse('faculty.views.summary', kwargs={'userid': p.userid_or_emplid()})
+                url = reverse('faculty:summary', kwargs={'userid': p.userid_or_emplid()})
                 res.append('<a href="%s">%s</a>' %(escape(url), escape(o.person.name())))
             else:
                 res.append(escape(o.person.name()))
@@ -825,7 +825,7 @@ class FacultyMemberInfo(models.Model):
         return u'<FacultyMemberInfo({})>'.format(self.person)
 
     def get_absolute_url(self):
-        return reverse('faculty.views.faculty_member_info',
+        return reverse('faculty:faculty_member_info',
                        args=[self.person.userid_or_emplid()])
 
 

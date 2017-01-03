@@ -51,7 +51,7 @@ def fix_urls_py(fn):
 
 
 def catalogue_resolver(resolver, ns=()):
-    #index_full = get_callable('dashboard.views.index_full')
+    #index_full = get_callable('dashboard:index_full')
     view_names = initial_view_names
     resolver._populate()
     for fn in resolver.reverse_dict.keys():
@@ -81,6 +81,9 @@ def fix_references(fn, view_names):
             else:
                 newline = line
             new_content.append(newline)
+
+    with open(fn, 'w') as py:
+        py.write(''.join(new_content))
 
 
 

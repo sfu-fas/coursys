@@ -119,7 +119,7 @@ class EventTypesTest(TestCase):
         c.login_user(editor.userid)
 
         # make sure the form renders with value="6"
-        url = reverse('faculty.views.change_event', kwargs={'userid': person.userid, 'event_slug': event.slug})
+        url = reverse('faculty:change_event', kwargs={'userid': person.userid, 'event_slug': event.slug})
         resp = c.get(url)
         inputs = [l for l in resp.content.split('\n') if 'name="load"' in l]
         inputs_correct_value = [l for l in inputs if 'value="6"' in l]

@@ -19,4 +19,4 @@ def remove_otherfunding(request, grad_slug, o_id):
               related_object=otherfunding)
         l.save()              
     
-    return HttpResponseRedirect(reverse('grad.views.manage_otherfunding', kwargs={'grad_slug':grad_slug}))
+    return HttpResponseRedirect(reverse('grad:manage_otherfunding', kwargs={'grad_slug':grad_slug}))
