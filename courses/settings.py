@@ -95,7 +95,7 @@ INSTALLED_APPS = (
     'sessionals',	
     'inventory',
 )
-MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
+MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -104,13 +104,17 @@ MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
     'django_cas.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
     #'piwik_middleware.middleware.PiwikMiddleware',
-)
-TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR, 'templates'),
-)
-TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
+]
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+    },
+]
+TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + [
     'dashboard.context.media',
-)
+]
 AUTHENTICATION_BACKENDS = (
     'django_cas.backends.CASBackend',
 )
@@ -145,6 +149,9 @@ if 'test' in sys.argv[1:]:
 
 # security-related settings
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca'])
+if DEBUG:
+    ALLOWED_HOSTS.append('localhost')
+
 SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 X_FRAME_OPTIONS = 'DENY'

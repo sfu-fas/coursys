@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanen
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
-from django.template.base import TemplateDoesNotExist
+from django.template import TemplateDoesNotExist
 from django.views.decorators.cache import cache_page
 from django.views.decorators.gzip import gzip_page
 from django.conf import settings
