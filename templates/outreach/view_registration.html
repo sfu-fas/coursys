@@ -4,14 +4,14 @@
 
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'outreach_index' %}">Outreach</a></li>
+<li><a href="{% url 'outreach:outreach_index' %}">Outreach</a></li>
 <li>View Registration</li>
 {% endblock %}
 
 {% block actions %}
 <h2>Actions</h2>
 <ul>
-    <li><a href="{% url "edit_registration" registration_id=registration.id %}">Edit</a></li>
+    <li><a href="{% url "outreach:edit_registration" registration_id=registration.id %}">Edit</a></li>
 </ul>
 {% endblock %}
 

@@ -12,6 +12,7 @@ resolver = get_resolver()
 
 dot_ref_re = re.compile(r'(?P<quote>\'|\")(?P<dotted>(?P<app>\w+)\.views\.(?P<view>\w+))\1')
 function_reverse_re = re.compile(r'reverse\((?P<funcname>\w+)')
+no_namespace_tag_re = re.compile(r'{\%\s*url[^:]{15,}')
 
 from api.views import oauth_authorize, oauth_callback
 initial_view_names = {
@@ -86,6 +87,10 @@ def fix_references(fn, view_names):
             m = function_reverse_re.search(line)
             if m:
                 print "function reference reverse() in ", fn
+
+            m = no_namespace_tag_re.search(line)
+            if m:
+                print "no namespace on {% url %} in ", fn
 
     with open(fn, 'w') as py:
         py.write(''.join(new_content))

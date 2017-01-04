@@ -17,7 +17,7 @@
 
 {% block content %}
 <div class="form_container">
-  <form action="{% url 'new_grant' %}" method="post">
+  <form action="{% url 'faculty:new_grant' %}" method="post">
     {% csrf_token %}
     <fieldset>
       {{ grant_form|as_dl }}

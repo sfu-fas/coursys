@@ -19,17 +19,17 @@
 <p>For &ldquo;real&rdquo; API use, users must be authenticated with OAuth (1.0). The short instructions: it's like
     <a href="https://dev.twitter.com/docs/auth/obtaining-access-tokens">Twitter &ldquo;application-user authentication&rdquo;</a>, either 3-legged or PIN-based but with these URLs:</p>
 <ul class="bulleted">
-    <li>Request token URL: {{BASE_ABS_URL}}{% url 'oauth_request_token' %}</li>
-    <li>Authorize token URL: {{BASE_ABS_URL}}{% url 'oauth_user_authorization' %}</li>
-    <li>Access token URL: {{BASE_ABS_URL}}{% url 'oauth_access_token' %}</li>
+    <li>Request token URL: {{BASE_ABS_URL}}{% url 'api:oauth_request_token' %}</li>
+    <li>Authorize token URL: {{BASE_ABS_URL}}{% url 'api:oauth_user_authorization' %}</li>
+    <li>Access token URL: {{BASE_ABS_URL}}{% url 'api:oauth_access_token' %}</li>
 </li>
 </ul>
 <p>Remember that users can <a href="{% url 'config:manage_tokens' %}">revoke</a> their access tokens, so just because a token worked today, that doesn't mean it will work tomorrow.</p>
 
 <h2 id="urls">API Endpoints</h2>
-<p>The &ldquo;right&rdquo; endpoints to have are still very much up for debate and are under development. We will make them all <a href="{% url 'api.APIRoot' %}">discoverable from the root</a>.</p>
+<p>The &ldquo;right&rdquo; endpoints to have are still very much up for debate and are under development. We will make them all <a href="{% url 'api:APIRoot' %}">discoverable from the root</a>.</p>
 
 <h2 id="swagger">API Details</h2>
-<p>For now, <a href="{% url 'django.swagger.base.view' %}">Swagger</a>.</p>
+<p>For now, <a href="{% url 'api:django.swagger.base.view' %}">Swagger</a>.</p>
 
 {% endblock %}

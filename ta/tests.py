@@ -103,34 +103,35 @@ class ApplicationTest(TestCase):
         c.login_user('dzhao')
         offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         ta = Member.objects.filter(offering=offering, role="TA")[0]
-        test_views(self, c, 'ta.views.', ['new_tug'], {'course_slug': offering.slug, 'userid': ta.person.userid})
+        test_views(self, c, 'offering:', ['new_tug'], {'course_slug': offering.slug, 'userid': ta.person.userid})
 
         # create TUG to view/edit
         tug = TUG(member=ta, base_units=5)
         for f in tug.config_meta.keys():
             tug.config[f] = {'weekly': 1, 'total': 13, 'note': 'somenote'}
         tug.save()
-        test_views(self, c, 'ta.views.', ['view_tug', 'edit_tug'], {'course_slug': offering.slug, 'userid': ta.person.userid})
+        test_views(self, c, 'offering:', ['view_tug', 'edit_tug'], {'course_slug': offering.slug, 'userid': ta.person.userid})
 
         # admin views
         c.login_user('dzhao')
-        test_views(self, c, 'ta.views.', ['all_tugs_admin', 'view_postings'], {})
+        test_views(self, c, 'tugs:', ['all_tugs_admin'], {})
+        test_views(self, c, 'ta:', ['view_postings'], {})
         post = TAPosting.objects.filter(unit__label='CMPT')[0]
-        test_views(self, c, 'ta.views.', ['new_application', 'new_application_manual', 'view_all_applications',
+        test_views(self, c, 'ta:', ['new_application', 'new_application_manual', 'view_all_applications',
                     'print_all_applications', 'print_all_applications_by_course', 'view_late_applications',
                     'assign_tas', 'all_contracts'],
                 {'post_slug': post.slug})
-        test_views(self, c, 'ta.views.', ['assign_bus'],
+        test_views(self, c, 'ta:', ['assign_bus'],
                 {'post_slug': post.slug, 'course_slug': offering.slug})
 
         contr = TAContract.objects.filter(posting=post)[0]
-        test_views(self, c, 'ta.views.', ['edit_application', 'view_application', 'preview_offer', 'view_contract',
+        test_views(self, c, 'ta:', ['edit_application', 'view_application', 'preview_offer', 'view_contract',
                                           'edit_contract'],
                    {'post_slug': post.slug, 'userid': contr.application.person.userid})
 
         # applicant views
         c.login_user(contr.application.person.userid)
-        test_views(self, c, 'ta.views.', ['accept_contract'],
+        test_views(self, c, 'ta:', ['accept_contract'],
                    {'post_slug': post.slug, 'userid': contr.application.person.userid})
 
 

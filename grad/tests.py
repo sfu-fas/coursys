@@ -83,14 +83,14 @@ class GradTest(TestCase):
         lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
         lt.save()
 
-        test_views(self, client, 'grad.views.',
+        test_views(self, client, 'grad:',
                 ['programs', 'new_program', 'requirements', 'new_requirement', 
                     'letter_templates', 'new_letter_template', 
                     'manage_scholarshipType', 'search', 'funding_report', 
                     'all_promises'],
                 {})
-        test_views(self, client, 'grad.views.', ['manage_letter_template'], {'letter_template_slug': lt.slug})
-        test_views(self, client, 'grad.views.', ['not_found'], {}, qs='search=grad')
+        test_views(self, client, 'grad:', ['manage_letter_template'], {'letter_template_slug': lt.slug})
+        test_views(self, client, 'grad:', ['not_found'], {}, qs='search=grad')
 
 
     def __make_test_grad(self):
@@ -178,7 +178,7 @@ class GradTest(TestCase):
                      'manage_progress',
                      'manage_documents']:
             try:
-                url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
+                url = reverse('grad:'+view, kwargs={'grad_slug': gs.slug})
                 response = basic_page_tests(self, client, url)
                 self.assertEqual(response.status_code, 200)
             except:

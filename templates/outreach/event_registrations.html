@@ -4,8 +4,8 @@
 {% block h1 %}Event Registrations{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'outreach_index' %}">Outreach</a></li>
-<li><a href="{% url 'view_event' event_slug=event.slug %}">{{ event.title }}</a></li>
+<li><a href="{% url 'outreach:outreach_index' %}">Outreach</a></li>
+<li><a href="{% url 'outreach:view_event' event_slug=event.slug %}">{{ event.title }}</a></li>
 <li>Registration</li>
 {% endblock %}
 
@@ -45,21 +45,21 @@ function confirmDelete() {
             {% for registration in registrations %}
                 <tr>
                     <td>{{ registration.fullname }}</td>
-                    <td><a href="{% url 'view_event' event_slug=registration.event.slug  %}" title="View event">{{ registration.event.title }}</a></td>
+                    <td><a href="{% url 'outreach:view_event' event_slug=registration.event.slug  %}" title="View event">{{ registration.event.title }}</a></td>
                     <td>{{ registration.event.start_date }}</td>
                     <td>{{ registration.created_at }}</td>
                     <td>{{ registration.waiver|yesno }}</td>
                     <td>{{ registration.attended|yesno }}</td>
                     <td>
                     <form class="lineform" method="POST"
-                        action = "{% url "toggle_registration_attendance" registration_id=registration.id event_slug=event.slug %}">
+                        action = "{% url "outreach:toggle_registration_attendance" registration_id=registration.id event_slug=event.slug %}">
                         {% csrf_token %}
                         <button type='submit' class='btn' title="Toggle Attendance">
                             <i class='fa fa-check-square'></i>
                         </button>
                     </form>
                     <form class="lineform" method="POST"
-                          action="{% url "delete_registration" registration_id=registration.id event_slug=event.slug %}"
+                          action="{% url "outreach:delete_registration" registration_id=registration.id event_slug=event.slug %}"
                           onsubmit="return confirmDelete();">
                         {% csrf_token %}
                         <button type='submit' class='btn' title="Hide Registration">
@@ -67,13 +67,13 @@ function confirmDelete() {
                         </button>
                     </form>
                     <form class="lineform" method="GET"
-                        action="{% url "edit_registration" registration_id=registration.id event_slug=event.slug %}">
+                        action="{% url "outreach:edit_registration" registration_id=registration.id event_slug=event.slug %}">
                         <button type='submit' class='btn' title="Edit Registration">
                             <i class='fa fa-edit'></i>
                         </button>
                     </form>
                     <form class="lineform" method="GET"
-                        action="{% url "view_registration" registration_id=registration.id %}">
+                        action="{% url "outreach:view_registration" registration_id=registration.id %}">
                         <button type='submit' class='btn' title="View Registration">
                             <i class='fa fa-eye'></i>
                         </button>
