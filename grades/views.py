@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.aggregates import Max
-from django.shortcuts import render, render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.html import mark_safe
@@ -139,8 +139,7 @@ def _course_info_staff(request, course_slug):
     context = {'course': course, 'member': member, 'activities_info': activities_info, 'from_page': FROMPAGE['course'],
                'order_type': ORDER_TYPE, 'any_group': any_group, 'total_percent': total_percent, 'discussion_activity': discussion_activity,
                'offer_combined': offer_combined}
-    return render_to_response("grades/course_info_staff.html", context,
-                              context_instance=RequestContext(request))
+    return render(request, "grades/course_info_staff.html", context)
 
 
 @requires_course_staff_by_slug
@@ -199,8 +198,7 @@ def _course_info_student(request, course_slug):
     context = {'course': course, 'member': student, 'activity_data': activity_data, 'any_group': any_group, 
                'has_index': has_index, 'from_page': FROMPAGE['course'], 'discussion_activity': discussion_activity}
     
-    return render_to_response("grades/course_info_student.html", context,
-                              context_instance=RequestContext(request))
+    return render(request, "grades/course_info_student.html", context)
 
 @login_required
 def activity_info_oldurl(request, course_slug, activity_slug, tail):
@@ -291,7 +289,7 @@ def _activity_info_staff(request, course_slug, activity_slug):
                'from_page': FROMPAGE['activityinfo'],
                'sub_comps': sub_comps, 'mark_comps': mark_comps,
                'submitted': submitted, 'marked': marked}
-    return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
+    return render('grades/activity_info.html', context)
 
 
 def _activity_info_student(request, course_slug, activity_slug):
@@ -323,7 +321,7 @@ def _activity_info_student(request, course_slug, activity_slug):
 
     context = {'course': course, 'activity': activity, 'grade': grade,
                'activity_stat': activity_stat, 'reason_msg': reason_msg}
-    return render_to_response('grades/activity_info_student.html', context, context_instance=RequestContext(request))
+    return render('grades/activity_info_student.html', context)
 
 
 @requires_course_staff_by_slug
@@ -380,7 +378,7 @@ def activity_info_with_groups(request, course_slug, activity_slug):
                'group_grade_info_list': groups_found.values(), 'from_page': FROMPAGE['activityinfo_group'],
                'sub_comps': sub_comps, 'mark_comps': mark_comps,
                'submitted': submitted}
-    return render_to_response('grades/activity_info_with_groups.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/activity_info_with_groups.html', context)
 
 @requires_course_staff_by_slug
 def activity_stat(request, course_slug, activity_slug):
@@ -437,13 +435,13 @@ def activity_stat(request, course_slug, activity_slug):
 
 
     context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary, 'submark_stat': submark_stat, 'sub_comp_rows': sub_comp_rows}
-    return render_to_response('grades/activity_stat.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/activity_stat.html', context)
 
 @requires_course_staff_by_slug
 def activity_choice(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     context = {'course': course}
-    return render_to_response('grades/activity_choice.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/activity_choice.html', context)
 
 @requires_course_staff_by_slug
 def edit_cutoffs(request, course_slug, activity_slug):

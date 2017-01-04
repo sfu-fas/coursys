@@ -1,7 +1,7 @@
 BeautifulSoup==3.2.1
 #Creoleparser==0.7.4  Replaced with version below that incorporates our fix for null headings
 git+git://github.com/garrison/creoleparser.git@78aab98896a05185997ca5da0859a8448fa35cc9
-Django==1.9.12
+Django==1.10.5
 Genshi==0.7
 #South==1.0.1
 Unidecode>=0.04.18
@@ -24,9 +24,8 @@ pillow>=2.7.0 # let reportlab choose the version
 icalendar==3.9.0
 xlwt==1.0.0
 django-datatables-view==1.12.1
-#django-bitfield==1.7.1 # suffers from https://github.com/disqus/django-bitfield/issues/46
-#git+git://github.com/Eksmo/django-bitfield@5b19177
-django-bitfield==1.8.0
+#django-bitfield==1.8.0
+git+git://github.com/disqus/django-bitfield@306ba5cb193fe444719d4286cd1d6296628ea339 # django 1.10 compatibility
 django-localflavor==1.1
 django-countries==3.3
 django-compressor==1.5
@@ -38,13 +37,14 @@ flower==0.8.2
 kombu==3.0.35
 django-test-without-migrations==0.2
 iso8601==0.1.10
-django-haystack==2.4.0
+django-haystack==2.6.0
 whoosh==2.7.0
 django-model-utils==2.2
 mock==1.0.1
-djangorestframework==3.3.3
+djangorestframework==3.5.3
 djangorestframework-oauth==1.0.1
-django-oauth-plus==2.2.7
+#django-oauth-plus==2.2.9
+hg+https://bitbucket.org/kerrermanisNL/django-oauth-plus/@5c17c4c5cecba4ce221a3e834bfc78eb1d21e73b # django 1.10 compatibility
 #hg+https://bitbucket.org/coagulant/django-oauth-plus/@c18d240#egg=django-oauth-plus # includes pull request https://bitbucket.org/david/django-oauth-plus/pull-request/15/remove-south-from-package-dependencies/diff
 markdown # for API docs
 django-rest-swagger>=0.3.2,<2.0.0
