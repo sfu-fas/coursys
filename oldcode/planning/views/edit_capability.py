@@ -48,4 +48,4 @@ def edit_capability(request):
         form = CapabilityForm(initial={'instructor': instructor})
         form.fields['course'].choices = possible_courses
 
-    return render_to_response("planning/edit_capability.html", {'capability_list': capability_list, 'form': form}, context_instance=RequestContext(request))
+    return render(request, "planning/edit_capability.html", {'capability_list': capability_list, 'form': form})

@@ -7,7 +7,6 @@ import urllib
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.aggregates import Max
 from django.shortcuts import render, get_object_or_404
@@ -484,7 +483,7 @@ def edit_cutoffs(request, course_slug, activity_slug):
     source_grades = '[' + ", ".join(["%.2f" % (g.value) for g in source_grades]) + ']'
 
     context = {'course': course, 'activity': activity, 'cutoff':form, 'source_grades': source_grades}
-    return render_to_response('grades/edit_cutoffs.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/edit_cutoffs.html', context)
 
 def _cutoffsdict(cutoff):
     data = dict()
@@ -521,7 +520,7 @@ def compare_official(request, course_slug, activity_slug):
     
     #print data
     context = {'course': course, 'activity': activity, 'data': data}
-    return render_to_response('grades/compare_official.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/compare_official.html', context)
 
 from dashboard.letters import grade_change_form
 @requires_course_staff_by_slug
@@ -604,7 +603,7 @@ def add_numeric_activity(request, course_slug):
     else:
         form = NumericActivityForm(previous_activities=activities_list)
     context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
-    return render_to_response('grades/numeric_activity_form.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/numeric_activity_form.html', context)
     
 @requires_course_staff_by_slug
 def add_cal_numeric_activity(request, course_slug):
@@ -647,7 +646,7 @@ def add_cal_numeric_activity(request, course_slug):
     else:
         form = CalNumericActivityForm(initial={'formula': '[[activitytotal]]'})
     context = {'course': course, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['add']}
-    return render_to_response('grades/cal_numeric_activity_form.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/cal_numeric_activity_form.html', context)
 
 @requires_course_staff_by_slug
 def add_cal_letter_activity(request, course_slug):
@@ -701,7 +700,7 @@ def add_cal_letter_activity(request, course_slug):
         form.fields['numeric_activity'].choices = numact_choices
         form.fields['exam_activity'].choices = examact_choices
     context = {'course': course, 'form': form, 'letter_activities': letter_activities, 'form_type': FORMTYPE['add']}
-    return render_to_response('grades/cal_letter_activity_form.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/cal_letter_activity_form.html', context)
 
 
 @requires_course_staff_by_slug
@@ -751,7 +750,7 @@ def formula_tester(request, course_slug):
         formula_form_entry = FormulaFormEntry()
     context = {'course': course, 'activity_entries': activity_entries,
                'formula_form_entry': formula_form_entry, 'result': result}
-    return render_to_response('grades/formula_tester.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/formula_tester.html', context)
     
 @requires_course_staff_by_slug
 def calculate_all(request, course_slug, activity_slug):
@@ -989,16 +988,16 @@ def edit_activity(request, course_slug, activity_slug):
         if isinstance(activity, CalNumericActivity):
             numeric_activities = NumericActivity.objects.exclude(slug=activity_slug).filter(offering=course, deleted=False)
             context = {'course': course, 'activity': activity, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
-            return render_to_response('grades/cal_numeric_activity_form.html', context, context_instance=RequestContext(request))
+            return render(request, 'grades/cal_numeric_activity_form.html', context)
         elif isinstance(activity, NumericActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
-            return render_to_response('grades/numeric_activity_form.html', context, context_instance=RequestContext(request))
+            return render(request, 'grades/numeric_activity_form.html', context)
         elif isinstance(activity, CalLetterActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
-            return render_to_response('grades/cal_letter_activity_form.html', context, context_instance=RequestContext(request))
+            return render(request, 'grades/cal_letter_activity_form.html', context)
         elif isinstance(activity, LetterActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
-            return render_to_response('grades/letter_activity_form.html', context, context_instance=RequestContext(request))       
+            return render(request, 'grades/letter_activity_form.html', context)       
     else:
         return NotFoundResponse(request)
     
@@ -1118,7 +1117,7 @@ def add_letter_activity(request, course_slug):
         form = LetterActivityForm(previous_activities=activities_list)
     activities = course.activity_set.all()
     context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
-    return render_to_response('grades/letter_activity_form.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/letter_activity_form.html', context)
 
 @requires_course_staff_by_slug
 def all_grades(request, course_slug):
@@ -1138,7 +1137,7 @@ def all_grades(request, course_slug):
             grades[a.slug][g.member.person.userid] = g
 
     context = {'course': course, 'students': students, 'activities': activities, 'grades': grades}
-    return render_to_response('grades/all_grades.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/all_grades.html', context)
 
 
 def _all_grades_output(response, course):
@@ -1243,7 +1242,7 @@ def class_list(request, course_slug):
         rows.append(data)
 
     context = {'course': course, 'rows': rows}
-    return render_to_response('grades/class_list.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/class_list.html', context)
 
 
 def _has_photo_agreement(user):
@@ -1344,7 +1343,7 @@ def student_search(request, course_slug):
         if not form.is_valid():
             messages.add_message(request, messages.ERROR, 'Invalid search')
             context = {'course': course, 'form': form}
-            return render_to_response('grades/student_search.html', context, context_instance=RequestContext(request))
+            return render(request, 'grades/student_search.html', context)
 
         search = form.cleaned_data['search']
         try:
@@ -1359,7 +1358,7 @@ def student_search(request, course_slug):
             else:
                 messages.add_message(request, messages.ERROR, 'Multiple students found')
             context = {'course': course, 'form': form}
-            return render_to_response('grades/student_search.html', context, context_instance=RequestContext(request))
+            return render(request, 'grades/student_search.html', context)
 
         student = students[0]
         return HttpResponseRedirect(reverse('offering:student_info',
@@ -1368,7 +1367,7 @@ def student_search(request, course_slug):
 
     form = StudentSearchForm()
     context = {'course': course, 'form': form}
-    return render_to_response('grades/student_search.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/student_search.html', context)
     
 
 @requires_course_staff_by_slug
@@ -1423,7 +1422,7 @@ def student_info(request, course_slug, userid):
 
     context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships,
                'grade_history': grade_history, 'dishonesty_cases': dishonesty_cases, 'can_photo': _has_photo_agreement(requestor.person)}
-    return render_to_response('grades/student_info.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/student_info.html', context)
 
 
 @requires_course_staff_by_slug

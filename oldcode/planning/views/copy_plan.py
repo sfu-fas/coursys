@@ -39,4 +39,4 @@ def copy_plan(request):
     else:
         form = CopyPlanForm()
 
-    return render_to_response("planning/copy_plan.html", {'form': form}, context_instance=RequestContext(request))
+    return render(request, "planning/copy_plan.html", {'form': form})

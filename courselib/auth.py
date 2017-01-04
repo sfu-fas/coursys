@@ -51,7 +51,7 @@ def HttpError(request, status=404, title="Not Found", error="The requested resou
         template = 'simple-error.html'
     else:
         template = 'error.html'
-    resp = render_to_response(template, {'title': title, 'error': error, 'errormsg': errormsg}, context_instance=RequestContext(request))
+    resp = render(request, template, {'title': title, 'error': error, 'errormsg': errormsg})
     resp.status_code = status
     return resp
 

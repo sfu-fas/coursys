@@ -4,8 +4,7 @@ from django.db.models import Q
 from coredata.models import Member, Person, CourseOffering
 from groups.models import Group, GroupMember, all_activities
 from grades.models import Activity, all_activities_filter
-from django.shortcuts import render_to_response, render, get_object_or_404
-from django.template import RequestContext
+from django.shortcuts import render, get_object_or_404
 from groups.forms import ActivityForm, GroupForSemesterForm, StudentForm, GroupNameForm
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.core.urlresolvers import reverse
@@ -243,9 +242,8 @@ def create(request, course_slug):
                              'percent': activity.percent, 'due_date': activity.due_date})
 
     if is_course_student_by_slug(request, course_slug):
-        return render_to_response('groups/create_student.html',
-                                  {'manager':group_manager, 'course':course, 'groupForSemester':groupForSemesterForm, 'activityList':activityList},\
-                                  context_instance = RequestContext(request))
+        return render(request, 'groups/create_student.html',
+                                  {'manager':group_manager, 'course':course, 'groupForSemester':groupForSemesterForm, 'activityList':activityList})
 
     elif is_course_staff_by_slug(request, course_slug):
         #For instructor page, there is a student table for him/her to choose the students who belong to the new group
@@ -257,9 +255,9 @@ def create(request, course_slug):
                                  'last_name' : student.person.last_name, 'userid' : student.person.userid,\
                                  'emplid' : student.person.emplid})
 
-        return render_to_response('groups/create_instructor.html',
+        return render(request, 'groups/create_instructor.html',
                           {'manager':group_manager, 'course':course,'groupForSemester':groupForSemesterForm, 'activityList':activityList, \
-                           'studentList':studentList}, context_instance = RequestContext(request))
+                           'studentList':studentList})
     else:
         return HttpResponseForbidden()
     
@@ -539,7 +537,7 @@ def invite(request, course_slug, group_slug):
     else:
         student_receiver_form = StudentReceiverForm()
         context = {'course': course, 'form': student_receiver_form}
-        return render_to_response("groups/invite.html", context, context_instance=RequestContext(request))
+        return render(request, "groups/invite.html", context)
 
 @login_required
 @transaction.atomic
@@ -589,9 +587,8 @@ def remove_student(request, course_slug, group_slug):
             else:
                 data.append({'form': None, 'member': m, 'reason': editable})
 
-        return render_to_response('groups/remove_student.html', \
-                          {'course':course, 'group' : group, 'data':data, 'is_staff':is_staff}, \
-                          context_instance = RequestContext(request))
+        return render(request, 'groups/remove_student.html', \
+                          {'course':course, 'group' : group, 'data':data, 'is_staff':is_staff})
 
 @requires_course_staff_by_slug
 @transaction.atomic
@@ -614,9 +611,8 @@ def change_name(request, course_slug, group_slug):
     else:
         groupForm = GroupNameForm(instance=group)
 
-    return render_to_response("groups/change_name.html", \
-                                  {'groupForm': groupForm, 'course': course, 'group': group}, 
-                                  context_instance=RequestContext(request))
+    return render(request, "groups/change_name.html", \
+                                  {'groupForm': groupForm, 'course': course, 'group': group})
 
 
 @requires_course_staff_by_slug
@@ -663,7 +659,6 @@ def assign_student(request, course_slug, group_slug):
             form = StudentForm(prefix=m.person.userid)
             student_data.append( {'form': form, 'member': m} )
 
-        return render_to_response('groups/assign_student.html', \
-                          {'course':course, 'group':group, 'activity_data': activity_data, 'student_data': student_data}, \
-                          context_instance = RequestContext(request))
+        return render(request, 'groups/assign_student.html', \
+                          {'course':course, 'group':group, 'activity_data': activity_data, 'student_data': student_data})
 

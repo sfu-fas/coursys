@@ -35,4 +35,4 @@ def edit_course(request, course_slug):
         form = CourseForm(instance=course)
         form.fields['owner'].choices = units
 
-    return render_to_response("planning/edit_course.html", {'form': form, 'course': course}, context_instance=RequestContext(request))
+    return render(request, "planning/edit_course.html", {'form': form, 'course': course})

@@ -25,7 +25,7 @@ def index(request, course_slug):
     groups = DisciplineGroup.objects.filter(offering=course)
     
     context = {'course': course, 'cases': cases, 'groups': groups}
-    return render_to_response("discipline/index.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/index.html", context)
 
 @requires_discipline_user
 def newgroup(request, course_slug):
@@ -64,7 +64,7 @@ def newgroup(request, course_slug):
 
     form.fields['students'].choices = student_choices
     context = {'course': course, 'form': form}
-    return render_to_response("discipline/newgroup.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/newgroup.html", context)
 
 @requires_discipline_user
 def new(request, course_slug):
@@ -100,7 +100,7 @@ def new(request, course_slug):
     form.fields['student'].choices = student_choices
     form.fields['group'].choices = group_choices
     context = {'course': course, 'form': form}
-    return render_to_response("discipline/new.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/new.html", context)
 
 
 @requires_discipline_user
@@ -131,7 +131,7 @@ def new_nonstudent(request, course_slug):
     
     form.fields['group'].choices = group_choices
     context = {'course': course, 'form': form}
-    return render_to_response("discipline/new_nonstudent.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/new_nonstudent.html", context)
 
 
 @requires_discipline_user
@@ -147,7 +147,7 @@ def show(request, course_slug, case_slug):
         messages.add_message(request, messages.WARNING, 'Total size of public attachments must be at most %s because of email limitations. Please make some of the attachments private.' % (MAX_ATTACHMENTS_TEXT))
     
     context = {'course': course, 'case': case, 'roles': roles}
-    return render_to_response("discipline/show.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/show.html", context)
 
 @requires_discipline_user
 def showgroup(request, course_slug, group_slug):
@@ -158,7 +158,7 @@ def showgroup(request, course_slug, group_slug):
     group = get_object_or_404(DisciplineGroup, slug=group_slug, offering__slug=course_slug)
     
     context = {'course': course, 'group': group}
-    return render_to_response("discipline/showgroup.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/showgroup.html", context)
 
 
 also_set_re = re.compile("also-(?P<field>[[a-z_]+)-(?P<caseid>\d+)")
@@ -273,7 +273,7 @@ def edit_case_info(request, course_slug, case_slug, field):
         'templatesJSON': mark_safe(tempaltesJSON), 'groupmembersJSON': mark_safe(groupmembersJSON), 'hasRelAct': hasRelAct}
     if field == 'letter_review':
         context['currentuser'] = _currentuser(request)
-    return render_to_response("discipline/edit_"+field+".html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/edit_"+field+".html", context)
 
 
 def _currentuser(request):
@@ -403,7 +403,7 @@ def edit_related(request, course_slug, case_slug):
     
     context = {'course': course, 'case': case, 'form': form,
             'templatesJSON': '[]', 'groupmembersJSON': mark_safe(groupmembersJSON), 'hasRelAct': 'false'}
-    return render_to_response("discipline/edit_related.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/edit_related.html", context)
 
 
 
@@ -430,7 +430,7 @@ def view_letter(request, course_slug, case_slug):
         return ForbiddenResponse(request, errormsg="The letter for this case was not sent by this system.")
     
     context = {'course': course, 'case': case, 'is_student': is_student}
-    return render_to_response("discipline/view_letter.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/view_letter.html", context)
 
 
 
@@ -455,7 +455,7 @@ def edit_attach(request, course_slug, case_slug):
     groupmembersJSON = case.groupmembersJSON()
     context = {'course': course, 'case': case, 'attach_pub': attach_pub, 'attach_pri': attach_pri,
             'templatesJSON': '[]', 'groupmembersJSON': mark_safe(groupmembersJSON)}
-    return render_to_response("discipline/show_attach.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/show_attach.html", context)
 
 @requires_discipline_user
 def new_file(request, course_slug, case_slug):
@@ -491,7 +491,7 @@ def new_file(request, course_slug, case_slug):
         form = NewAttachFileForm(case)
 
     context = {'course': course, 'case': case, 'form': form}
-    return render_to_response("discipline/new_file.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/new_file.html", context)
 
 @login_required
 def download_file(request, course_slug, case_slug, fileid):
@@ -549,7 +549,7 @@ def edit_file(request, course_slug, case_slug, fileid):
         form = EditAttachFileForm(instance=attach)
 
     context = {'course': course, 'case': case, 'attach': attach, 'form': form}
-    return render_to_response("discipline/edit_file.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/edit_file.html", context)
 
 
 
@@ -566,7 +566,7 @@ def chair_index(request):
     instr_cases = [c.subclass() for c in instr_cases]
 
     context = {'instr_cases': instr_cases}
-    return render_to_response("discipline/chair-index.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/chair-index.html", context)
     
 @requires_role("DISC")
 def chair_create(request, course_slug, case_slug):
@@ -592,7 +592,7 @@ def chair_show(request, course_slug, case_slug):
     case = case.subclass()
     
     context = {'case': case}
-    return render_to_response("discipline/chair-show.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/chair-show.html", context)
 
 @requires_role("DISC")
 def chair_show_instr(request, course_slug, case_slug):
@@ -606,7 +606,7 @@ def chair_show_instr(request, course_slug, case_slug):
     case.ro_display = True
     
     context = {'course': course, 'case': case, 'roles': roles, 'chair': True}
-    return render_to_response("discipline/show.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/show.html", context)
 
 
 
@@ -617,7 +617,7 @@ def chair_show_instr(request, course_slug, case_slug):
 def show_templates(request):
     templates = DisciplineTemplate.objects.all()
     context = {'templates': templates}
-    return render_to_response("discipline/show_templates.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/show_templates.html", context)
 
 @requires_global_role("SYSA")
 def new_template(request):
@@ -635,7 +635,7 @@ def new_template(request):
     else:
         form = TemplateForm()
     context = {'form': form}
-    return render_to_response("discipline/new_template.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/new_template.html", context)
 
 @requires_global_role("SYSA")
 def edit_template(request, template_id):
@@ -654,7 +654,7 @@ def edit_template(request, template_id):
     else:
         form = TemplateForm(instance=template)
     context = {'template': template, 'form': form}
-    return render_to_response("discipline/edit_template.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/edit_template.html", context)
 
 @requires_global_role("SYSA")
 def delete_template(request, template_id):

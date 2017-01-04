@@ -24,4 +24,4 @@ def view_intentions(request):
     semesters = Semester.objects.all()
 
     plans = zip(semester_list, intentions)
-    return render_to_response("planning/view_intentions.html", {'plans': plans, 'semesters': semesters}, context_instance=RequestContext(request))
+    return render(request, "planning/view_intentions.html", {'plans': plans, 'semesters': semesters})

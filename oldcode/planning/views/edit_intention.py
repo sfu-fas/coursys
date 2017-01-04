@@ -37,4 +37,4 @@ def edit_intention(request):
         form = IntentionForm(initial={'instructor': instructor})
         form.fields['semester'].choices = semester_choices
 
-    return render_to_response("planning/add_intention.html", {'form': form, 'intention_list': intention_list}, context_instance=RequestContext(request))
+    return render(request, "planning/add_intention.html", {'form': form, 'intention_list': intention_list})
