@@ -53,4 +53,5 @@ django-ipware==1.1.0
 psutil==3.0.1
 intervaltree==2.1.0
 requests==2.7.0
-piwikapi==0.3
+#piwikapi==0.3
+ntplib==0.3.3
