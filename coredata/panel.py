@@ -316,6 +316,15 @@ def deploy_checks(request=None):
         passed.append(('Ports listening externally', 'okay'))
 
 
+    # is the server time close to real-time?
+    import ntplib
+    c = ntplib.NTPClient()
+    response = c.request('0.ca.pool.ntp.org')
+    if abs(response.offset) > 0.01:
+        failed.append(('Server time', 'Time is %g seconds off NTP pool.' % (response.offset,)))
+    else:
+        passed.append(('Server time', 'okay'))
+
     return passed, failed
 
 
