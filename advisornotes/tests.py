@@ -125,7 +125,7 @@ class AdvisorNotestest(TestCase):
         for view in ['new_nonstudent', 'new_artifact', 'view_artifacts',
                      'view_courses', 'view_course_offerings', 'view_all_semesters']:
             try:
-                url = reverse('advisornotes.views.' + view, kwargs={})
+                url = reverse('advising:' + view, kwargs={})
                 response = basic_page_tests(self, client, url)
                 self.assertEqual(response.status_code, 200)
             except:
