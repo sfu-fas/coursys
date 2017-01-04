@@ -264,36 +264,36 @@ class PagesTest(TestCase):
         # as department admin
         c.login_user('dzhao')
 
-        test_views(self, c, 'faculty.views.', ['index', 'search_index', 'salary_index', 'status_index', 'manage_event_index',
+        test_views(self, c, 'faculty:', ['index', 'search_index', 'salary_index', 'status_index', 'manage_event_index',
                 'teaching_capacity', 'fallout_report', 'course_accreditation', 'manage_faculty_roles'],
                 {})
-        test_views(self, c, 'faculty.views.', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo',
+        test_views(self, c, 'faculty:', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo',
                 'event_type_list', 'study_leave_credits', 'timeline', 'faculty_member_info', 'edit_faculty_member_info',
                 'faculty_wizard'],
                 {'userid': 'ggbaker'})
-        test_views(self, c, 'faculty.views.', ['view_event', 'change_event', 'new_attachment', 'new_text_attachment',
+        test_views(self, c, 'faculty:', ['view_event', 'change_event', 'new_attachment', 'new_text_attachment',
                                                'new_memo_no_template'],
                 {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position'})
 
-        test_views(self, c, 'faculty.views.', ['manage_memo_template'],
+        test_views(self, c, 'faculty:', ['manage_memo_template'],
                 {'event_type': 'appoint', 'slug': 'cmpt-welcome'})
-        test_views(self, c, 'faculty.views.', ['new_memo'],
+        test_views(self, c, 'faculty:', ['new_memo'],
                 {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position',
                  'memo_template_slug': 'cmpt-welcome'})
-        test_views(self, c, 'faculty.views.', ['manage_memo', 'view_memo'],
+        test_views(self, c, 'faculty:', ['manage_memo', 'view_memo'],
                 {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position',
                  'memo_slug': '2000-appointment-to-position-welcome'})
 
-        test_views(self, c, 'faculty.views.', ['teaching_credit_override'],
+        test_views(self, c, 'faculty:', ['teaching_credit_override'],
                 {'userid': 'ggbaker', 'course_slug': TEST_COURSE_SLUG})
-        test_views(self, c, 'faculty.views.', ['event_config_add'],
+        test_views(self, c, 'faculty:', ['event_config_add'],
                 {'event_type': 'fellow'})
 
         # grant views
-        test_views(self, c, 'faculty.views.', ['grant_index'], {})
-        test_views(self, c, 'faculty.views.', ['convert_grant'],
+        test_views(self, c, 'faculty:', ['grant_index'], {})
+        test_views(self, c, 'faculty:', ['convert_grant'],
                 {'gid': TempGrant.objects.all()[0].id})
-        test_views(self, c, 'faculty.views.', ['edit_grant', 'view_grant'],
+        test_views(self, c, 'faculty:', ['edit_grant', 'view_grant'],
                 {'unit_slug': 'cmpt', 'grant_slug': 'baker-startup-grant'})
 
         # TODO: CSV views, JSON view
@@ -303,16 +303,16 @@ class PagesTest(TestCase):
             try:
                 slug = Handler.EVENT_TYPE.lower()
 
-                test_views(self, c, 'faculty.views.', ['create_event'],
+                test_views(self, c, 'faculty:', ['create_event'],
                     {'userid': 'ggbaker', 'event_type': slug})
-                test_views(self, c, 'faculty.views.', ['event_config', 'new_memo_template'],
+                test_views(self, c, 'faculty:', ['event_config', 'new_memo_template'],
                     {'event_type': slug})
 
                 # the search form
-                test_views(self, c, 'faculty.views.', ['search_events'],
+                test_views(self, c, 'faculty:', ['search_events'],
                     {'event_type': slug})
                 # search with some results
-                test_views(self, c, 'faculty.views.', ['search_events'],
+                test_views(self, c, 'faculty:', ['search_events'],
                     {'event_type': slug}, qs='only_current=on')
             except:
                 print "failure with Handler==%s" % (Handler)

@@ -48,7 +48,7 @@ class BasicTest(TestCase):
         
         self.client.login_user('ggbaker')
 
-        response = basic_page_tests(self, self.client, reverse(manage_activity_components, args=(self.c_slug,a.slug)))
+        response = basic_page_tests(self, self.client, reverse('offering:marking:manage_activity_components', args=(self.c_slug,a.slug)))
           
         forms = response.context['formset'].forms
         self.assertEquals(forms[0].instance.title, 'part1')
@@ -77,7 +77,7 @@ class BasicTest(TestCase):
         
         self.client.login_user('ggbaker')        
 
-        response = basic_page_tests(self, self.client, reverse(manage_common_problems, args=(self.c_slug,a.slug)))
+        response = basic_page_tests(self, self.client, reverse('offering:marking:manage_common_problems', args=(self.c_slug,a.slug)))
         
         forms = response.context['formset'].forms
  
@@ -93,7 +93,7 @@ class BasicTest(TestCase):
         self.assertEquals(ins2.activity_component, co2)
         
         #test the marking page as well        
-        url = reverse(marking_student, args=(self.c_slug, a.slug, '0aaa0'))
+        url = reverse('offering:marking:marking_student', args=(self.c_slug, a.slug, '0aaa0'))
         response = basic_page_tests(self, self.client, url)
         
         mark_components = response.context['component_data']
@@ -116,7 +116,7 @@ class BasicTest(TestCase):
                                     
         self.client.login_user('ggbaker')
 
-        url = reverse(manage_activity_components, args=(self.c_slug, a.slug))
+        url = reverse('offering:marking:manage_activity_components', args=(self.c_slug, a.slug))
 
         # 2 forms for the first 2 components to add
         post_data = {'form-0-id' : ['', ''], 'form-1-id' : ['', ''],

@@ -235,10 +235,10 @@ class PagesTest(TestCase):
         c.login_user('ggbaker')
         
         # test the basic rendering of the core pages
-        test_views(self, c, 'pages.views.', ['index_page', 'all_pages', 'new_page', 'new_file', 'import_site'],
+        test_views(self, c, 'offering:pages:', ['index_page', 'all_pages', 'new_page', 'new_file', 'import_site'],
                 {'course_slug': crs.slug})
 
-        test_views(self, c, 'pages.views.', ['view_page', 'page_history', 'edit_page', 'import_page'],
+        test_views(self, c, 'offering:pages:', ['view_page', 'page_history', 'edit_page', 'import_page'],
                 {'course_slug': crs.slug, 'page_label': 'OtherPage'})
 
     def test_permissions(self):

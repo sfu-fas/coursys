@@ -283,7 +283,7 @@ def console(request, report):
         data['log'] = log_lines
         data['done'] = last_run.success
         if last_run.success:
-            data['url'] = reverse(view_run, kwargs={'report': report.slug, 'run': last_run.slug})
+            data['url'] = reverse('reports:view_run', kwargs={'report': report.slug, 'run': last_run.slug})
             clear_cache()
 
     return HttpResponse(json.dumps(data), content_type="application/json")

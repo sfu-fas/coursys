@@ -214,7 +214,7 @@ def manage_faculty_roles(request):
                 role.role = 'FAC'
                 role.save()
             messages.success(request, 'New faculty role added.')
-            return HttpResponseRedirect(reverse(manage_faculty_roles))
+            return HttpResponseRedirect(reverse('faculty:manage_faculty_roles'))
 
     elif request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         # submission to delete faculty member
@@ -225,7 +225,7 @@ def manage_faculty_roles(request):
         role.gone = True
         role.save()
         messages.success(request, 'Faculty member marked as "gone".')
-        return HttpResponseRedirect(reverse(manage_faculty_roles))
+        return HttpResponseRedirect(reverse('faculty:manage_faculty_roles'))
 
     else:
         form = NewRoleForm()
@@ -822,7 +822,7 @@ def delete_position(request, position_id):
     messages.add_message(request, messages.SUCCESS, u'Succesfully hid position.')
     l = LogEntry(userid=request.user.username, description="Hid position %s" % position, related_object=position)
     l.save()
-    return HttpResponseRedirect(reverse(list_positions))
+    return HttpResponseRedirect(reverse('faculty:list_positions'))
 
 
 @requires_role('ADMN')
@@ -1002,7 +1002,7 @@ def delete_futureperson(request, futureperson_id):
     messages.add_message(request, messages.SUCCESS, u'Succesfully hid future person.')
     l = LogEntry(userid=request.user.username, description="Hid future person %s" % fp, related_object=fp)
     l.save()
-    return HttpResponseRedirect(reverse(index))
+    return HttpResponseRedirect(reverse('faculty:index'))
 
 ###############################################################################
 # Display/summary views for a faculty member
@@ -1516,7 +1516,7 @@ def teaching_credit_override(request, userid, course_slug):
             course.set_teaching_credit(form.cleaned_data['teaching_credits'])
             course.set_teaching_credit_reason(form.cleaned_data['reason'])
             course.save()
-            return HttpResponseRedirect(reverse(teaching_summary, kwargs={'userid':userid}))
+            return HttpResponseRedirect(reverse('faculty:teaching_summary', kwargs={'userid':userid}))
 
         else:
             context.update({'form': form})
@@ -1719,7 +1719,7 @@ def faculty_wizard(request, userid, position=None):
                     f = a.future_person
                     f.set_assigned(True)
                     f.save()
-            return HttpResponseRedirect(reverse(summary, kwargs={'userid':userid}))
+            return HttpResponseRedirect(reverse('faculty:summary', kwargs={'userid':userid}))
         else:
             form_list = [form_appoint, form_salary, form_load]
             context.update({"event_form": form_list})
@@ -1777,9 +1777,9 @@ def pick_position(request, userid):
         filled_form = PositionPickerForm(data=request.POST, choices=position_choices)
         if filled_form.is_valid():
             position = filled_form.cleaned_data['position_choice']
-            return HttpResponseRedirect(reverse(faculty_wizard, kwargs=({'userid': userid, 'position': position})))
+            return HttpResponseRedirect(reverse('faculty:faculty_wizard', kwargs=({'userid': userid, 'position': position})))
         else:
-            return HttpResponseRedirect(reverse(faculty_wizard, kwargs=({'userid': userid})))
+            return HttpResponseRedirect(reverse('faculty:faculty_wizard', kwargs=({'userid': userid})))
     else:
         new_form = PositionPickerForm(choices=position_choices)
         context = {'form': new_form, 'person': person, 'positions': position_choices}
@@ -1927,7 +1927,7 @@ def new_position_attachment(request, position_id):
                 filetype += "; charset=" + upfile.charset
             attachment.mediatype = filetype
             attachment.save()
-            return HttpResponseRedirect(reverse(view_position, kwargs={'position_id':position.id}))
+            return HttpResponseRedirect(reverse('faculty:view_position', kwargs={'position_id':position.id}))
         else:
             context.update({"attachment_form": form})
 
@@ -1966,7 +1966,7 @@ def delete_position_attachment(request, position_id, attach_slug):
                          )
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
-    return HttpResponseRedirect(reverse(view_position, kwargs={'position_id':position.id}))
+    return HttpResponseRedirect(reverse('faculty:view_position', kwargs={'position_id':position.id}))
 
 ###############################################################################
 # Configuring event types, and managing memo templates
@@ -2008,7 +2008,7 @@ def event_config_add(request, event_type):
         form = Handler.get_config_item_form(units=request.units, data=request.POST)
         if form.is_valid():
             form.save_config()
-            return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
+            return HttpResponseRedirect(reverse('faculty:event_config', kwargs={'event_type':event_type}))
     else:
         form = Handler.get_config_item_form(units=request.units, initial={'unit': in_unit.id})
 
@@ -2037,7 +2037,7 @@ def delete_event_flag(request, event_type, unit, flag):
     ec.config['fellowships'] = list_flags
     ec.save()
 
-    return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
+    return HttpResponseRedirect(reverse('faculty:event_config', kwargs={'event_type':event_type}))
 
 
 @requires_role('ADMN')
@@ -2056,7 +2056,7 @@ def new_memo_template(request, event_type):
             f.event_type = event_type.upper()
             f.save()
             messages.success(request, "Created memo template %s for %s." % (form.instance.label, form.instance.unit))
-            return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
+            return HttpResponseRedirect(reverse('faculty:event_config', kwargs={'event_type':event_type}))
     else:
         form = MemoTemplateForm(initial={'unit': in_unit})
         form.fields['unit'].choices = unit_choices
@@ -2098,7 +2098,7 @@ def manage_memo_template(request, event_type, slug):
             f.event_type = event_type.upper()
             f.save()
             messages.success(request, "Updated %s template for %s." % (form.instance.label, form.instance.unit))
-            return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
+            return HttpResponseRedirect(reverse('faculty:event_config', kwargs={'event_type':event_type}))
     else:
         form = MemoTemplateForm(instance=memo_template)
         form.fields['unit'].choices = unit_choices
@@ -2150,7 +2150,7 @@ def new_memo_no_template(request, userid, event_slug):
             f.template = None
             f.save()
             messages.success(request, "Created new memo.")
-            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
+            return HttpResponseRedirect(reverse('faculty:view_event', kwargs={'userid':userid, 'event_slug':event_slug}))
     else:
         initial = {
             'date': datetime.date.today(),
@@ -2191,7 +2191,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
             f.template = template
             f.save()
             messages.success(request, "Created new %s memo." % (form.instance.template.label,))
-            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
+            return HttpResponseRedirect(reverse('faculty:view_event', kwargs={'userid':userid, 'event_slug':event_slug}))
     else:
         initial = {
             'date': datetime.date.today(),
@@ -2237,7 +2237,7 @@ def manage_memo(request, userid, event_slug, memo_slug):
                 else:
                     f.save()
                     messages.success(request, "Edited memo.")
-            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
+            return HttpResponseRedirect(reverse('faculty:view_event', kwargs={'userid':userid, 'event_slug':event_slug}))
     else:
         form = MemoForm(instance=memo)
 
@@ -2343,7 +2343,7 @@ def import_grants(request):
             messages.error(request, "Created %d grants, %d failed" % (len(created), len(failed)))
         else:
             messages.info(request, "Created %d grants" % (len(created)))
-    return HttpResponseRedirect(reverse("grants_index"))
+    return HttpResponseRedirect(reverse("faculty:grant_index"))
 
 
 @requires_role('ADMN')
@@ -2378,7 +2378,7 @@ def convert_grant(request, gid):
             else:
                 # Delete the temporary grant
                 tmp.delete()
-                return HttpResponseRedirect(reverse("grants_index"))
+                return HttpResponseRedirect(reverse("faculty:grant_index"))
     else:
         form = GrantForm(units, initial=tmp.grant_dict())
 
@@ -2393,7 +2393,7 @@ def delete_grant(request, gid):
     editor = get_object_or_404(Person, userid=request.user.username)
     tmp = get_object_or_404(TempGrant, id=gid, creator=editor)
     tmp.delete()
-    return HttpResponseRedirect(reverse("grants_index"))
+    return HttpResponseRedirect(reverse("faculty:grant_index"))
 
 
 #@requires_role('ADMN')
@@ -2439,7 +2439,7 @@ def edit_grant(request, unit_slug, grant_slug):
             for p in form.cleaned_data['owners']:
                 GrantOwner(grant=grant, person=p).save()
 
-            return HttpResponseRedirect(reverse("view_grant", kwargs={'unit_slug': grant.unit.slug, 'grant_slug': grant.slug}))
+            return HttpResponseRedirect(reverse("faculty:view_grant", kwargs={'unit_slug': grant.unit.slug, 'grant_slug': grant.slug}))
 
     else:
         form = GrantForm(units, instance=grant)

@@ -368,7 +368,7 @@ class ViewTestCase(TestCase):
     def run_basic_page_tests(self, views, arguments):
         for view in views:
             try:
-                url = reverse('onlineforms.views.' + view, kwargs=arguments)
+                url = reverse('onlineforms:' + view, kwargs=arguments)
                 response = basic_page_tests(self, self.client, url)
                 self.assertEqual(response.status_code, 200)
             except:
@@ -472,7 +472,7 @@ class FieldTestCase(TestCase):
         self.assertEqual(field_submission.data["info"], test_input)
 
     def test_lrgtxt_field(self):
-        test_input = repeat_to_length("The quick brown fox jumps over the lazy dog.", 444)
+        test_input = repeat_to_length("The quick brown fox jumps over the lazy dog.", 443)
         config = self.standard_config.copy()
         config["min_length"] = 401
         config["max_length"] = 490

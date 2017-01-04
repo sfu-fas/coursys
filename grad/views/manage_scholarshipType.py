@@ -15,7 +15,7 @@ def manage_scholarshipType(request):
             scholarshipType_form.save()
             messages.success(request, "Scholarship Type sucessfully saved.")
             
-            return HttpResponseRedirect(reverse(index))
+            return HttpResponseRedirect(reverse('grad:index'))
     else:
         scholarshipType_form = new_scholarshipTypeForm()
         scholarshipType_form.fields['unit'].choices = unit_choices

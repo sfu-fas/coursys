@@ -663,8 +663,8 @@ class APITests(TestCase):
         """
         client = Client()
         client.login_user("0aaa0")
-        grades_url = reverse('api.OfferingGrades', kwargs={'course_slug': TEST_COURSE_SLUG})
-        stats_url = reverse('api.OfferingStats', kwargs={'course_slug': TEST_COURSE_SLUG})
+        grades_url = reverse('api:OfferingGrades', kwargs={'course_slug': TEST_COURSE_SLUG})
+        stats_url = reverse('api:OfferingStats', kwargs={'course_slug': TEST_COURSE_SLUG})
 
         o = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         na = NumericActivity.objects.get(slug='a1')
@@ -779,36 +779,36 @@ class PagesTests(TestCase):
         u = Unit.objects.get(label='UNIV')
         u.config['photopass'] = 'foo'
         u.save()
-        test_views(self, c, 'grades.views.', ['course_config', 'course_info', 'add_numeric_activity',
+        test_views(self, c, 'offering:', ['course_config', 'course_info', 'add_numeric_activity',
                 'add_cal_numeric_activity', 'add_letter_activity', 'add_cal_letter_activity', 'formula_tester',
                 'all_grades', 'class_list', 'photo_list', 'student_search', 'new_message'],
                 {'course_slug': crs.slug})
-        test_views(self, c, 'grades.views.', ['student_info'],
+        test_views(self, c, 'offering:', ['student_info'],
                 {'course_slug': crs.slug, 'userid': student.person.userid})
 
         # photo list styles
         for style in ['table', 'horiz']:
-            test_views(self, c, 'grades.views.', ['photo_list'], {'course_slug': crs.slug, 'style': style})
+            test_views(self, c, 'offering:', ['photo_list'], {'course_slug': crs.slug, 'style': style})
 
 
         # various combinations of activity type and view
-        test_views(self, c, 'grades.views.', ['activity_info', 'activity_info_with_groups', 'activity_stat',
+        test_views(self, c, 'offering:', ['activity_info', 'activity_info_with_groups', 'activity_stat',
                 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': na.slug})
-        test_views(self, c, 'grades.views.', ['compare_official', 'activity_info',
+        test_views(self, c, 'offering:', ['compare_official', 'activity_info',
                 'activity_info_with_groups', 'activity_stat', 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': la.slug})
-        test_views(self, c, 'grades.views.', ['activity_info', 'activity_stat', 'edit_activity'],
+        test_views(self, c, 'offering:', ['activity_info', 'activity_stat', 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': cna.slug})
-        test_views(self, c, 'grades.views.', ['edit_cutoffs', 'compare_official', 'activity_info',
+        test_views(self, c, 'offering:', ['edit_cutoffs', 'compare_official', 'activity_info',
                 'activity_stat', 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': cla.slug})
 
         # as student
         c.login_user(student.person.userid)
-        test_views(self, c, 'grades.views.', ['course_info'],
+        test_views(self, c, 'offering:', ['course_info'],
                 {'course_slug': crs.slug})
-        test_views(self, c, 'grades.views.', ['activity_info'],
+        test_views(self, c, 'offering:', ['activity_info'],
                 {'course_slug': crs.slug, 'activity_slug': na.slug})
 
 

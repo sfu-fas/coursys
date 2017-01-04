@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 
 {% block headextra %}
-<link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
-<script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
+<link type="text/css" href="{% static 'multiselect/css/ui.multiselect.css' %}" rel="stylesheet" />
+<script type="text/javascript" src="{% static 'multiselect/js/ui.multiselect.js' %}"></script>
 <script type="text/javascript">
   $(document).ready(function() {
     $("#id_allowed").multiselect();

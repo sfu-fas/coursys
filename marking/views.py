@@ -601,7 +601,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                     try:
                         nextmember = Member.objects.filter(offering=course, person__userid__gt=userid, role="STUD"
                                      ).order_by('person__userid')[0]
-                        return HttpResponseRedirect(reverse(marking_student, 
+                        return HttpResponseRedirect(reverse('offering:marking:marking_student',
                                kwargs={'course_slug': course.slug, 'activity_slug': activity.slug,
                                'userid': nextmember.person.userid}) + "?load_old")
                     except IndexError:

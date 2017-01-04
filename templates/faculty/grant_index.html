@@ -43,7 +43,7 @@ $(document).ready(function() {
 </table>
 </div>
 
-<form action="{% url 'import_grants' %}" method="post" enctype="multipart/form-data">
+<form action="{% url 'faculty:import_grants' %}" method="post" enctype="multipart/form-data">
   {% csrf_token %}
   {{ import_form|as_dl }}
   <input type="submit" value="Import Grants CSV" />

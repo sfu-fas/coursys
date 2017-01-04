@@ -5,7 +5,6 @@ from log.models import LogEntry
 from courselib.auth import requires_role
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from manage_supervisors import manage_supervisors
 
 @requires_role("GRAD", get_only=["GRPD"])
 def remove_supervisor(request, grad_slug, sup_id):
@@ -20,4 +19,4 @@ def remove_supervisor(request, grad_slug, sup_id):
               related_object=supervisor)
         l.save()              
     
-    return HttpResponseRedirect(reverse(manage_supervisors, kwargs={'grad_slug':grad_slug}))
+    return HttpResponseRedirect(reverse('grad:manage_supervisors', kwargs={'grad_slug':grad_slug}))

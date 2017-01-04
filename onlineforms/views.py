@@ -471,7 +471,7 @@ def list_all(request):
                     related_object=form)
                 l.save()
                 messages.success(request, 'Removed the Form')
-            return HttpResponseRedirect(reverse(list_all))
+            return HttpResponseRedirect(reverse('onlineforms:list_all'))
         else:
             form = FormForm()
             context = {'form': form, 'forms': forms}
@@ -495,7 +495,7 @@ def new_form(request):
                     description=(u"Created form %s.") % (f,),
                     related_object=f)
                 l.save()
-                return HttpResponseRedirect(reverse(view_form, kwargs={'form_slug':f.slug }))
+                return HttpResponseRedirect(reverse('onlineforms:view_form', kwargs={'form_slug':f.slug }))
         else:
             form = NewFormForm()
             form.fields['owner'].choices = group_choices
@@ -515,7 +515,7 @@ def view_form(request, form_slug):
             messages.success(request, u'Removed the sheet "%s".' % (sheet.title))
            
         return HttpResponseRedirect(
-            reverse(view_form, kwargs={'form_slug':form.slug }))
+            reverse('onlineforms:view_form', kwargs={'form_slug':form.slug }))
 
     context = {'form': form, 'sheets': sheets}
     return render(request, "onlineforms/view_form.html", context)       
@@ -638,7 +638,7 @@ def edit_sheet(request, form_slug, sheet_slug):
                 l.save()
                 messages.success(request, u'Removed the field %s.' % (field.label))
             return HttpResponseRedirect(
-                reverse(edit_sheet, kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
+                reverse('onlineforms:edit_sheet', kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
 
         # construct a form from this sheets fields
         form = DynamicForm(owner_sheet.title)
@@ -1208,7 +1208,6 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
             # check if this sheet has already been filled
             if sheet_submission.status in ["DONE", "REJE"]:
                 messages.info(request, u'That form sheet has already been completed and submitted. It cannot be edited further.')
-                # return HttpResponseRedirect(reverse(index))
                 filled_sheets = _readonly_sheets(form_submission, sheet_submission)
                 # Set correct flags.  Don't set the sheet to None, as we need it in the template for some info.
                 # instead, set the readonly flag.
@@ -1387,7 +1386,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                     description=u'Submitted sheet.')
 
                             messages.success(request, u'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
-                            return HttpResponseRedirect(reverse(index))
+                            return HttpResponseRedirect(reverse('onlineforms:index'))
                     else:
                         messages.error(request, "Error in user data.")
                 else:

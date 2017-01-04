@@ -270,7 +270,7 @@ def _edit_tug(request, course_slug, userid, tug=None):
         if form.is_valid():
             tug = form.save(False)
             tug.save(newsitem_author=Person.objects.get(userid=request.user.username))
-            return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
+            return HttpResponseRedirect(reverse('ta:view_tug', args=(course.slug, userid)))
     else:
         form = TUGForm(instance=tug, offering=course, userid=userid, enforced_prep_min=prep_min, initial={
             'holiday':{'total': holiday_hours},
@@ -589,7 +589,7 @@ def update_application(request, post_slug, userid):
     application.late = False
     application.save()
     messages.success(request, "Removed late status from the application.")
-    return HttpResponseRedirect(reverse(view_application, kwargs={'post_slug': application.posting.slug, 'userid': application.person.userid}))
+    return HttpResponseRedirect(reverse('ta:view_application', kwargs={'post_slug': application.posting.slug, 'userid': application.person.userid}))
     
 @requires_role("TAAD")
 def view_all_applications(request,post_slug):
@@ -992,7 +992,7 @@ def assign_bus(request, post_slug, course_slug):
                         course = applicant.assigned_course
                         course.delete()
             if not descr_error:
-                return HttpResponseRedirect(reverse(assign_tas, args=(post_slug,)))
+                return HttpResponseRedirect(reverse('ta:assign_tas', args=(post_slug,)))
     else:
         formset = AssignBUFormSet(initial=initial)
     
@@ -1178,7 +1178,7 @@ def accept_contract(request, post_slug, userid, preview=False):
             contract.save()
             messages.success(request, u"Successfully %s the offer." % (contract.get_status_display()))
             ##not sure where to redirect to...so currently redirects to itself
-            return HttpResponseRedirect(reverse(accept_contract, args=(post_slug,userid)))
+            return HttpResponseRedirect(reverse('ta:accept_contract', args=(post_slug,userid)))
     else:   
         form = TAContractForm(instance=contract) 
 
@@ -1277,9 +1277,9 @@ def new_contract(request, post_slug):
             app = form.cleaned_data['application']
             contract = TAContract(created_by=request.user.username)
             contract.first_assign(app, posting)
-            return HttpResponseRedirect(reverse(edit_contract, kwargs={'post_slug': posting.slug, 'userid': app.person.userid}))
+            return HttpResponseRedirect(reverse('ta:edit_contract', kwargs={'post_slug': posting.slug, 'userid': app.person.userid}))
     
-    return HttpResponseRedirect(reverse(all_contracts, args=(post_slug,)))
+    return HttpResponseRedirect(reverse('ta:all_contracts', args=(post_slug,)))
 
 
 def _lab_or_tutorial( courseDescription ):
@@ -1382,7 +1382,7 @@ def edit_contract(request, post_slug, userid):
                     messages.success(request, u"Created TA Contract for %s for %s." % (contract.application.person, posting))
                 else:
                     messages.success(request, u"Edited TA Contract for %s for %s." % (contract.application.person, posting))
-                return HttpResponseRedirect(reverse(all_contracts, args=(post_slug,)))
+                return HttpResponseRedirect(reverse('ta:all_contracts', args=(post_slug,)))
     else:
         form = TAContractForm(instance=contract) 
         formset = TACourseFormset(instance=contract)
