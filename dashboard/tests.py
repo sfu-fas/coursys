@@ -145,7 +145,7 @@ class DashboardTest(TestCase):
         self.assertEquals(response.status_code, 403)
         # try non-course URL as non-admin: shouldn't be able to impersonate
         client.login_user("diana")
-        url = reverse('dashboard-index', kwargs={})
+        url = reverse('dashboard:index', kwargs={})
         response = client.get(url, {"__impersonate": "0aaa0"})
         self.assertEquals(response.status_code, 403)
 
@@ -258,15 +258,17 @@ class DashboardTest(TestCase):
         
         # as instructor
         c.login_user(person.userid)
-        test_views(self, c, 'dashboard.views.', ['index', 'index_full', 'news_list', 'config', 'calendar',
-                'create_calendar_url', 'disable_calendar_url', 'news_config', 'create_news_url',
-                'disable_news_url', 'list_docs', 'photo_agreement'], {})
-        test_views(self, c, 'dashboard.views.', ['view_doc'], {'doc_slug': 'impersonate'})
+        test_views(self, c, 'dashboard:', ['index', 'index_full'], {})
+        test_views(self, c, 'config:', ['config', 'news_config', 'photo_agreement', 'create_calendar_url', 'disable_calendar_url', 'create_news_url', 'disable_news_url'], {})
+        test_views(self, c, 'calendar:', ['calendar'], {})
+        test_views(self, c, 'news:', ['news_list'], {})
+        test_views(self, c, 'docs:', ['list_docs'], {})
+        test_views(self, c, 'docs:', ['view_doc'], {'doc_slug': 'impersonate'})
 
         # admin views for signatures
         r = Role.objects.filter(role='ADMN')[0]
         c.login_user(r.person.userid)
-        test_views(self, c, 'dashboard.views.', ['signatures', 'new_signature'], {})
+        test_views(self, c, 'admin:', ['signatures', 'new_signature'], {})
 
 
 class DatetimeTest(TestCase):
@@ -286,12 +288,12 @@ class DatetimeTest(TestCase):
 
         c = Client()
         c.login_user(instr.userid)
-        test_views(self, c, 'dashboard.views.', ['index', 'news_list'], {})
+        test_views(self, c, '', ['dashboard:index', 'news:news_list'], {})
 
         n.published = datetime.datetime(2014, 11, 2, 1, 30, 0) # there are two of this time because of the DST transition
         n.save()
 
-        test_views(self, c, 'dashboard.views.', ['index', 'news_list'], {})
+        test_views(self, c, '', ['dashboard:index', 'news:news_list'], {})
 
 
 class FulltextTest(TestCase):

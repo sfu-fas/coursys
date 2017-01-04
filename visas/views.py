@@ -99,7 +99,7 @@ def delete_visa(request, visa_id):
 
         visa.hide()
         visa.save()
-    return HttpResponseRedirect(reverse(list_all_visas))
+    return HttpResponseRedirect(reverse('visas:list_all_visas'))
 
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
@@ -142,7 +142,7 @@ def new_attachment(request, visa_id):
                 filetype += "; charset=" + upfile.charset
             attachment.mediatype = filetype
             attachment.save()
-            return HttpResponseRedirect(reverse(view_visa, kwargs={'visa_id':visa.id}))
+            return HttpResponseRedirect(reverse('visas:view_visa', kwargs={'visa_id':visa.id}))
         else:
             context.update({"attachment_form": form})
 
@@ -181,4 +181,4 @@ def delete_attachment(request, visa_id, attach_slug):
                          )
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
-    return HttpResponseRedirect(reverse(view_visa, kwargs={'visa_id':visa.id}))
+    return HttpResponseRedirect(reverse('visas:view_visa', kwargs={'visa_id':visa.id}))

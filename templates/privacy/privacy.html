@@ -12,7 +12,7 @@
 
 {% if good_to_go %}
     <h2>You're good to go!</h2>
-    <form action="{% url 'dashboard-index' %}" method="get">
+    <form action="{% url 'dashboard:index' %}" method="get">
         <p>
         You've already signed this Privacy Agreement, as of {{privacy_date}}.
         </p>

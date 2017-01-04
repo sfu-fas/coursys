@@ -11,7 +11,7 @@ from django.core.urlresolvers import get_resolver, get_callable
 resolver = get_resolver()
 
 dot_ref_re = re.compile(r'(?P<quote>\'|\")(?P<dotted>(?P<app>\w+)\.views\.(?P<view>\w+))\1')
-function_reverse_re = re.compile(r'reverse\((?P<quote>\'|\")')
+function_reverse_re = re.compile(r'reverse\((?P<funcname>\w+)')
 
 from api.views import oauth_authorize, oauth_callback
 initial_view_names = {
@@ -82,6 +82,10 @@ def fix_references(fn, view_names):
             else:
                 newline = line
             new_content.append(newline)
+
+            m = function_reverse_re.search(line)
+            if m:
+                print "function reference reverse() in ", fn
 
     with open(fn, 'w') as py:
         py.write(''.join(new_content))

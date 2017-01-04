@@ -739,7 +739,7 @@ def new_signature(request):
 def student_info(request, userid=None):
     # old student search view: new search is better in every way.
     messages.add_message(request, messages.INFO, 'The old student search has been replaced with an awesome site search, accessible from the search box at the top of every page in CourSys.')
-    return HttpResponsePermanentRedirect(reverse(site_search))
+    return HttpResponsePermanentRedirect(reverse('dashboard:site_search'))
 
 
 # documentation views
