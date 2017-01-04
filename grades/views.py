@@ -288,7 +288,7 @@ def _activity_info_staff(request, course_slug, activity_slug):
                'from_page': FROMPAGE['activityinfo'],
                'sub_comps': sub_comps, 'mark_comps': mark_comps,
                'submitted': submitted, 'marked': marked}
-    return render('grades/activity_info.html', context)
+    return render(request, 'grades/activity_info.html', context)
 
 
 def _activity_info_student(request, course_slug, activity_slug):
@@ -320,7 +320,7 @@ def _activity_info_student(request, course_slug, activity_slug):
 
     context = {'course': course, 'activity': activity, 'grade': grade,
                'activity_stat': activity_stat, 'reason_msg': reason_msg}
-    return render('grades/activity_info_student.html', context)
+    return render(request, 'grades/activity_info_student.html', context)
 
 
 @requires_course_staff_by_slug

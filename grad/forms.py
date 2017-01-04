@@ -394,12 +394,12 @@ class NullBooleanSearchSelect(forms.widgets.Select):
         choices = ((u'', '---------'), (u'2', u'Yes'), (u'3', u'No'), (u'1', u'Unknown'))
         super(NullBooleanSearchSelect, self).__init__(attrs, choices)
 
-    def render(self, name, value, attrs=None, choices=()):
+    def render(self, name, value, attrs=None):
         try:
             value = {Unknown: u'1', True: u'2', False: u'3', u'1':u'1', u'2': u'2', u'3': u'3'}[value]
         except KeyError:
             value = u''
-        return super(NullBooleanSearchSelect, self).render(name, value, attrs, choices)
+        return super(NullBooleanSearchSelect, self).render(name, value, attrs)
 
     def value_from_datadict(self, data, files, name):
         value = data.get(name, None)

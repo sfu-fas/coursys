@@ -1,8 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from django.utils.http import urlquote, urlencode
 from django.utils.safestring import mark_safe
 from coredata.models import Role, CourseOffering, Member
