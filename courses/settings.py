@@ -50,7 +50,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'test_without_migrations',
+    'test_without_migrations',
     'compressor',
     'haystack',
     'djcelery',
@@ -136,7 +136,12 @@ FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
 
 # Disable migrations only when running tests.
 if 'test' in sys.argv[1:]:
-    from test_without_migrations.management.commands.test import DisableMigrations
+    # imitating from test_without_migrations internals, so we always get that behaviour
+    class DisableMigrations(object):
+        def __contains__(self, item):
+            return True
+        def __getitem__(self, item):
+            return "notmigrations"
     MIGRATION_MODULES = DisableMigrations()
 
 # security-related settings
