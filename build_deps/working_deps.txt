@@ -32,23 +32,20 @@ git+git://github.com/celery/django-celery@v3.2.1 # works with django 1.10, until
 django-celery-email==1.1.5
 flower==0.8.2
 kombu==3.0.35
-django-test-without-migrations==0.2
-iso8601==0.1.10
+#django-test-without-migrations==0.4
+iso8601==0.1.11
 django-haystack==2.6.0
-whoosh==2.7.0
-django-model-utils==2.2
-mock==1.0.1
+whoosh==2.7.4
 djangorestframework==3.5.3
-djangorestframework-oauth==1.0.1
+djangorestframework-oauth==1.1.0
 #django-oauth-plus==2.2.9
 hg+https://bitbucket.org/kerrermanisNL/django-oauth-plus/@5c17c4c5cecba4ce221a3e834bfc78eb1d21e73b # django 1.10 compatibility
 #hg+https://bitbucket.org/coagulant/django-oauth-plus/@c18d240#egg=django-oauth-plus # includes pull request https://bitbucket.org/david/django-oauth-plus/pull-request/15/remove-south-from-package-dependencies/diff
 markdown # for API docs
-django-rest-swagger>=0.3.2,<2.0.0
+django-rest-swagger==2.1.0
 #git+git://github.com/gregbaker/django-rest-swagger@develop# includes help_text in docs, and choices field support
-django-ipware==1.1.0
+django-ipware==1.1.6
 psutil==3.0.1
 intervaltree==2.1.0
-requests==2.7.0
-#piwikapi==0.3
+requests==2.12.4
 ntplib==0.3.3

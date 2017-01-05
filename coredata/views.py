@@ -364,7 +364,7 @@ def admin_panel(request):
             return render(request, 'coredata/admin_panel_tab.html', {'tasks': True})
         elif request.GET['content'] == 'request':
             import pprint
-            return render(request, 'coredata/admin_panel_tab.html', {'request': pprint.pformat(request.__dict__)})
+            return render(request, 'coredata/admin_panel_tab.html', {'the_request': pprint.pformat(request.__dict__)})
         elif request.GET['content'] == 'git':
             git = {}
             git['branch'] = panel.git_branch()

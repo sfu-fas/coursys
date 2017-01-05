@@ -9,7 +9,6 @@ from django.core.urlresolvers import reverse, resolve
 #Third Party
 from oauth_provider.models import Consumer, Token
 from oauth_provider.consts import ACCEPTED
-import mock
 
 #Local
 from courselib.testing import Client, TEST_COURSE_SLUG

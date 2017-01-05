@@ -2,7 +2,8 @@ from django.conf.urls import url, include
 from rest_framework.urlpatterns import format_suffix_patterns
 
 from oauth_provider.urls import urlpatterns as oauth_patterns
-from rest_framework_swagger.urls import urlpatterns as swagger_patterns
+
+from rest_framework_swagger.views import get_swagger_view
 from courselib.urlparts import COURSE_SLUG, ACTIVITY_SLUG
 from api.api_views import APIRoot
 from coredata.api_views import MyOfferings, OfferingInfo
@@ -24,10 +25,11 @@ endpoint_v1_patterns = [
 
 ]
 endpoint_v1_patterns = format_suffix_patterns(endpoint_v1_patterns)
+schema_view = get_swagger_view(title='CourSys API')
 
 api_patterns = [
     url(r'^1$', APIRoot.as_view(), name='APIRoot'),
     url(r'^1/', include(endpoint_v1_patterns)),
     url(r'^oauth/', include(oauth_patterns)),
-    url(r'^docs/', include(swagger_patterns)),
+    url(r'^docs/', schema_view, name='swagger_base'),
 ]

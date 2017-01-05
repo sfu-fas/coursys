@@ -50,6 +50,9 @@ class IsOfferingMember(permissions.BasePermission):
     Check that the authenticated user is a (non-dropped) member of the course.
     """
     def has_permission(self, request, view):
+        if 'course_slug' not in view.kwargs:
+            return False
+
         if not hasattr(view, 'offering'):
             offering = get_object_or_404(CourseOffering, slug=view.kwargs['course_slug'])
             view.offering = offering
@@ -66,6 +69,9 @@ class IsOfferingStaff(permissions.BasePermission):
     Check that the authenticated user is an instructor or TA for the course
     """
     def has_permission(self, request, view):
+        if 'course_slug' not in view.kwargs:
+            return False
+
         if not hasattr(view, 'offering'):
             offering = get_object_or_404(CourseOffering, slug=view.kwargs['course_slug'])
             view.offering = offering
