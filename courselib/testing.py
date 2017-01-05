@@ -43,6 +43,7 @@ class CachedFixtureTestCase(TestCase):
         print "teardown pass"
         pass
 
+
 def validate_content_xhtml(testcase, data, page_descr="unknown page"):
     """
     Validate data as XHTML 1.0 (strict).
