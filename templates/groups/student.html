@@ -49,7 +49,9 @@
           </form>
           {% else %}
             {% if course.uses_svn %}
+            <!--
             <p>Group <a href="http://svnbook.red-bean.com/">Subversion</a> repository: {{ info.group.svn_url|urlize }}.  All group members, as well as instructors and TAs can access this repository.</p>
+            -->
             {% endif %}
           <p>
           [<a href="{% url "groups.views.invite" course_slug=course.slug group_slug=info.group.slug %}">Invite Member</a> |
