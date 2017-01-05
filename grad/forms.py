@@ -606,12 +606,14 @@ class SearchForm(forms.Form):
     first_name_contains = forms.CharField( required=False )
     last_name_contains = forms.CharField( required=False )
 
-    start_semester_start = StaffSemesterField(required=False, label="Start semester after")
+    start_semester_start = StaffSemesterField(required=False, label="Start semester after (inclusively)")
     start_semester_end = StaffSemesterField(required=False,
-            help_text='Semester in which the student started their program', label="Start semester before")
-    end_semester_start = StaffSemesterField(required=False, label="End semester after")
-    end_semester_end = StaffSemesterField(required=False, label="End semester before",
-            help_text='Semester in which the student completed/left their program')
+            help_text='Semester in which the student started their program To get only a single semester, '
+                      'put in the same value in both boxes.', label="Start semester before (inclusively)")
+    end_semester_start = StaffSemesterField(required=False, label="End semester after (inclusively)")
+    end_semester_end = StaffSemesterField(required=False, label="End semester before (inclusively)",
+            help_text='Semester in which the student completed/left their program.  To get only a single semester, '
+                      'put in the same value in both boxes.')
     
     student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES + (('', 'None'),),
             required=False, help_text="Student's current status"
