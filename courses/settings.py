@@ -133,7 +133,6 @@ USE_I18N = False
 USE_L10N = False
 USE_TZ = False
 FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
-#TEST_RUNNER = 'django_coverage.coverage_runner.CoverageRunner'
 
 # Disable migrations only when running tests.
 if 'test' in sys.argv[1:]:
