@@ -31,8 +31,6 @@ else:
 #print "DEPLOY_MODE: ", DEPLOY_MODE
 
 DEBUG = DEPLOY_MODE != 'production'
-TEMPLATE_DEBUG = DEBUG
-
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.append( BASE_DIR )
@@ -110,12 +108,13 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'APP_DIRS': True,
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'OPTIONS': {'context_processors': [
-             'django.template.context_processors.debug',
-            'django.template.context_processors.request',
-            'django.contrib.auth.context_processors.auth',
-            'django.contrib.messages.context_processors.messages',
-            'dashboard.context.media']},
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'dashboard.context.media']},
     },
 ]
 

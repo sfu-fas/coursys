@@ -18,6 +18,7 @@ def media(request):
             'GRAD_DATETIME_FORMAT': settings.GRAD_DATETIME_FORMAT,
             'LOGOUT_URL': settings.LOGOUT_URL,
             'LOGIN_URL': settings.LOGIN_URL,
+            'STATIC_URL': settings.STATIC_URL,
             'memberships': context_memberships(request.user.username),
             'request_path': request.path,
             }
