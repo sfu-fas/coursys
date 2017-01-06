@@ -1573,6 +1573,13 @@ def create_event(request, userid, event_type):
 
     if request.method == "POST":
         form = Handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
+        # We have at least one event handler that takes in a file upload.  If we run accross file data, inject it into
+        # the form.
+        if len(request.FILES) != 0:
+            print request.FILES
+            form.files = request.FILES
+            form.handler = Handler
+
         if form.is_valid():
             handler = Handler.create_for(person=person, form=form)
             handler.save(editor)

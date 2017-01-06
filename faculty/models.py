@@ -42,6 +42,7 @@ from faculty.event_types.info import ExternalServiceHandler
 from faculty.event_types.info import OtherEventHandler
 from faculty.event_types.info import ResearchMembershipHandler
 from faculty.event_types.info import SpecialDealHandler
+from faculty.event_types.info import ResumeEventHandler
 from faculty.event_types.position import AdminPositionEventHandler
 from faculty.event_types.teaching import NormalTeachingLoadHandler
 from faculty.event_types.teaching import OneInNineHandler
@@ -73,7 +74,8 @@ HANDLERS = [
     AccreditationFlagEventHandler,
     PromotionApplicationEventHandler,
     SalaryReviewEventHandler,
-    ContractReviewEventHandler
+    ContractReviewEventHandler,
+    ResumeEventHandler
 ]
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
 EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in HANDLERS]
