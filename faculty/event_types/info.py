@@ -328,3 +328,38 @@ class OtherEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         return 'Other Event / Note'
+
+
+class ResumeEventHandler(CareerEventHandlerBase):
+
+    EVENT_TYPE = 'RESUME'
+    NAME = 'Resume / CV'
+    IS_INSTANT = True
+
+    class EntryForm(BaseEntryForm):
+        file = forms.FileField(required=True)
+
+        def post_init(self):
+            self.fields['comments'].help_text = 'Enter details about the event or note here.'
+            self.fields['comments'].required = True
+
+
+
+    def short_summary(self):
+        return 'Resume / CV'
+
+    @classmethod
+    def add_attachment(cls, event, filedata, editor):
+        from ..models import DocumentAttachment
+        upfile = filedata['file']
+        filetype = upfile.content_type
+        if upfile.charset:
+            filetype += "; charset=" + upfile.charset
+        mediatype = filetype
+        attach = DocumentAttachment(career_event=event, title='Resume', created_by=editor, mediatype=mediatype,
+                                    contents=upfile)
+        attach.save()
+
+
+
+
