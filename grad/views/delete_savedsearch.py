@@ -20,4 +20,4 @@ def delete_savedsearch(request):
         return ForbiddenResponse(request, u"You cannot delete this Saved Search.")
     savedsearch.delete()
     messages.add_message(request, messages.SUCCESS, u"Saved Search '%s' was successfully deleted." % savedsearch.name())
-    return HttpResponseRedirect(reverse('grad.views.index'))
+    return HttpResponseRedirect(reverse('grad:index'))

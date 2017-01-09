@@ -7,7 +7,7 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li><a href="{% url "grad:index" %}">Grad</a></li>
 <li>Scholarship Types</li>
 {% endblock %}
 
@@ -16,7 +16,7 @@
 {% block content %}
 
 <div class="form_container">
-    <form action="{% url "grad.views.manage_scholarshipType" %}" method="post">
+    <form action="{% url "grad:manage_scholarshipType" %}" method="post">
     	{% csrf_token %}
     	<fieldset>
               {{ new_scholarshipTypeForm|as_dl }}

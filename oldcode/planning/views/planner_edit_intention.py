@@ -34,4 +34,4 @@ def planner_edit_intention(request, semester, userid):
     else:
         form = IntentionForm(initial={'instructor': instructor}, instance=intention)
 
-    return render_to_response("planning/planner_edit_intention.html", {'semester': semester, 'instructor': instructor, 'form': form}, context_instance=RequestContext(request))
+    return render(request, "planning/planner_edit_intention.html", {'semester': semester, 'instructor': instructor, 'form': form})

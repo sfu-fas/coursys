@@ -118,7 +118,7 @@ class SubmissionTest(TestCase):
         client.login_user("ggbaker")
         
         # When no component, should display error message
-        url = reverse('submission.views.show_components', kwargs={'course_slug':course.slug, 'activity_slug':a2.slug})
+        url = reverse('offering:submission:show_components', kwargs={'course_slug':course.slug, 'activity_slug':a2.slug})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, 'No components configured.')
         # add component and test
@@ -232,7 +232,7 @@ class SubmissionTest(TestCase):
         client.login_user("0aaa0")
 
         #submission page for assignment 1
-        url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
+        url = reverse('offering:submission:show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, "This is a group activity. You will submit on behalf of the group &ldquo;Test Group&rdquo;.")
         self.assertContains(response, "You haven't made a submission for this component.")
@@ -259,7 +259,7 @@ class SubmissionTest(TestCase):
         # submit as student
         client = Client()
         client.login_user("0aaa0")
-        url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
+        url = reverse('offering:submission:show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
         response = basic_page_tests(self, client, url)
 
         # submit a file
@@ -307,14 +307,14 @@ class SubmissionTest(TestCase):
                                    check=False, prefix='')
         component2.save()
 
-        test_views(self, client, 'submission.views.', ['show_components', 'add_component'],
+        test_views(self, client, 'offering:submission:', ['show_components', 'add_component'],
                    {'course_slug': offering.slug, 'activity_slug': activity.slug})
 
-        url = reverse('submission.views.edit_single', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug}) \
+        url = reverse('offering:submission:edit_single', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug}) \
                 + '?id=' + unicode(component1.id)
         basic_page_tests(self, client, url)
 
-        url = reverse('submission.views.add_component', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug}) \
+        url = reverse('offering:submission:add_component', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug}) \
                 + '?type=url'
         basic_page_tests(self, client, url)
 
@@ -333,9 +333,9 @@ class SubmissionTest(TestCase):
             ({name1: 'http://www.sfu.ca/', name2: 'http://example.com/'}, True),
         ]
         for submitdata, redir in submissions:
-            test_views(self, client, 'submission.views.', ['show_components', 'show_components_submission_history'],
+            test_views(self, client, 'offering:submission:', ['show_components', 'show_components_submission_history'],
                        {'course_slug': offering.slug, 'activity_slug': activity.slug})
-            url = reverse('submission.views.show_components', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug})
+            url = reverse('offering:submission:show_components', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug})
             response = client.post(url, submitdata)
             if redir:
                 # success: we expect a redirect
@@ -358,7 +358,7 @@ class SubmissionTest(TestCase):
 
         for Type in ALL_TYPE_CLASSES:
             label = Type.label
-            test_views(self, client, 'submission.views.', ['add_component'],
+            test_views(self, client, 'offering:submission:', ['add_component'],
                    {'course_slug': offering.slug, 'activity_slug': activity.slug}, qs='type='+label)
 
 

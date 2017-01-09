@@ -248,7 +248,7 @@ class RAAppointment(models.Model):
         super(RAAppointment, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse('ra.views.view', kwargs={'ra_slug': self.slug})
+        return reverse('ra:view', kwargs={'ra_slug': self.slug})
 
     def mark_reminded(self):
         self.config['reminded'] = True

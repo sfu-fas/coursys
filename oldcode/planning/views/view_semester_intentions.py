@@ -11,4 +11,4 @@ def view_semester_intentions(request, semester):
     semester = get_object_or_404(Semester, name=semester)
     intentions = TeachingIntention.objects.filter(semester=semester)
 
-    return render_to_response("planning/view_semester_intentions.html", {'semester': semester, 'intentions': intentions}, context_instance=RequestContext(request))
+    return render(request, "planning/view_semester_intentions.html", {'semester': semester, 'intentions': intentions})

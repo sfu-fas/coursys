@@ -6,17 +6,18 @@ from coredata import panel
 
 class Command(BaseCommand):
     help = 'Check the status of the various things we rely on in deployment.'
-    option_list = BaseCommand.option_list + (
-        make_option('--cache_subcall',
-            dest='cache_subcall',
-            action='store_true',
-            default=False,
-            help="Called only as part of check_things. Doesn't do anything useful on its own."),
-        make_option('--email',
-            dest='email',
-            default='',
-            help="Email this address to make sure it's sent."),
-        )
+
+    def add_arguments(self, parser):
+        parser.add_argument('--cache_subcall',
+                            action='store_true',
+                            dest='cache_subcall',
+                            default=False,
+                            help="Called only as part of check_things. Doesn't do anything useful on its own.")
+        parser.add_argument('--email',
+                            dest='email',
+                            default='',
+                            help="Email this address to make sure it's sent.")
+
 
     def _report(self, title, reports):
         if reports:

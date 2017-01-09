@@ -57,8 +57,8 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
-<li><a href="{% url 'faculty.views.search_index' %}">Event Search</a></li>
+<li><a href="{% url "faculty:index" %}">Faculty</a></li>
+<li><a href="{% url 'faculty:search_index' %}">Event Search</a></li>
 <li>{{ event_type }}</li>
 {% endblock %}
 

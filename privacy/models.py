@@ -43,7 +43,7 @@ def privacy_redirect(request):
     """
     Build the redirect response to give a user that needs to agree
     """
-    privacy_url = reverse('privacy.views.privacy')
+    privacy_url = reverse('config:privacy')
     path = '%s?%s=%s' % (privacy_url, REDIRECT_FIELD_NAME,
                          urlquote(request.get_full_path()))
     return HttpResponseRedirect(path)

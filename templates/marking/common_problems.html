@@ -5,7 +5,7 @@
 {% block h1 %}{{activity.name}} Common Problems{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Common Problems</li>
 {% endblock %}
 

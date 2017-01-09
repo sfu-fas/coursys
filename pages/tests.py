@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.test import  TestCase
+from django.test import TestCase
 from django.core.urlresolvers import reverse
 from pages.models import Page, PageVersion, brushes_used, MACRO_LABEL, ParserFor, PagePermission
 from coredata.models import CourseOffering, Member, Person
@@ -187,7 +187,7 @@ class PagesTest(TestCase):
         
         # make a request with no auth token in place
         c = Client()
-        url = reverse('pages.views.api_import', kwargs={'course_slug': crs.slug})
+        url = reverse('offering:pages:api_import', kwargs={'course_slug': crs.slug})
         response = c.post(url, data=updata.encode('utf8'), content_type="application/json")
         self.assertEquals(response.status_code, 403)
         
@@ -235,10 +235,10 @@ class PagesTest(TestCase):
         c.login_user('ggbaker')
         
         # test the basic rendering of the core pages
-        test_views(self, c, 'pages.views.', ['index_page', 'all_pages', 'new_page', 'new_file', 'import_site'],
+        test_views(self, c, 'offering:pages:', ['index_page', 'all_pages', 'new_page', 'new_file', 'import_site'],
                 {'course_slug': crs.slug})
 
-        test_views(self, c, 'pages.views.', ['view_page', 'page_history', 'edit_page', 'import_page'],
+        test_views(self, c, 'offering:pages:', ['view_page', 'page_history', 'edit_page', 'import_page'],
                 {'course_slug': crs.slug, 'page_label': 'OtherPage'})
 
     def test_permissions(self):
@@ -260,7 +260,7 @@ class PagesTest(TestCase):
 
         # page-viewing permissions
         c = Client()
-        url = reverse('pages.views.view_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
+        url = reverse('offering:pages:view_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
 
         c.logout()
         response = c.get(url)
@@ -289,7 +289,7 @@ class PagesTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # page-editing permissions
-        url = reverse('pages.views.edit_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
+        url = reverse('offering:pages:edit_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
 
         c.logout()
         response = c.get(url)
@@ -357,7 +357,7 @@ class PagesTest(TestCase):
 
         c = Client()
         # normal pages still viewable
-        url = reverse('pages.views.view_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
+        url = reverse('offering:pages:view_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
         response = c.get(url)
         self.assertEqual(response.status_code, 200)
 
@@ -366,7 +366,7 @@ class PagesTest(TestCase):
 
         response = c.get(url)
         self.assertEqual(response.status_code, 301)
-        redir_url = reverse('pages.views.view_page', kwargs={'course_slug': crs.slug, 'page_label': 'NewLocation'})
+        redir_url = reverse('offering:pages:view_page', kwargs={'course_slug': crs.slug, 'page_label': 'NewLocation'})
         self.assertTrue(response['location'].endswith(redir_url))
 
 
@@ -384,7 +384,7 @@ class PagesTest(TestCase):
         p.config['migrated_to'] = ['2000sp-subj-000-d1', 'PageLabel']
         p.can_read = 'ALL'
         p.save()
-        url = reverse('pages.views.view_page', kwargs={'course_slug': crs.slug, 'page_label': p.label})
+        url = reverse('offering:pages:view_page', kwargs={'course_slug': crs.slug, 'page_label': p.label})
 
         # without course setting, shouldn't redirect
         resp = c.get(url)

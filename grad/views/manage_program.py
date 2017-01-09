@@ -33,7 +33,7 @@ def manage_program(request, grad_slug):
                   description="Updated grad program for %s." % (grad),
                   related_object=gph)
             l.save()    
-            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:view', kwargs={'grad_slug':grad.slug}))
     else:
         form = GradProgramHistoryForm(initial={'program': grad.program, 'semester': Semester.current()})
         form.fields['program'].choices = program_choices

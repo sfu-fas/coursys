@@ -6,7 +6,6 @@ from log.models import LogEntry
 from django.http import HttpResponseRedirect
 from grad.forms import LetterTemplateForm
 from django.core.urlresolvers import reverse
-from letter_templates import letter_templates
 
 @requires_role("GRAD", get_only=["GRPD"])
 def new_letter_template(request):
@@ -23,7 +22,7 @@ def new_letter_template(request):
                   description="Created new letter template %s for %s." % (form.instance.label, form.instance.unit),
                   related_object=form.instance)
             l.save()            
-            return HttpResponseRedirect(reverse(letter_templates))
+            return HttpResponseRedirect(reverse('grad:letter_templates'))
     else:
         form = LetterTemplateForm()
         form.fields['unit'].choices = unit_choices 

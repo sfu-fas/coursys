@@ -13,7 +13,7 @@
     {% if event.end_date %}<dt>End date</dt><dd>{{ event.end_date }}</dd>{% endif %}
     {% if event.location %}<dt>Location</dt><dd>{{ event.location|linebreaks }}</dd>{% endif %}
     {% if event.notes %}<dt>Notes</dt><dd>{{ event.notes|linebreaks }}</dd>{% endif %}
-    <form action="{% url 'register' event_slug=event.slug %}" method="post">
+    <form action="{% url 'outreach:register' event_slug=event.slug %}" method="post">
         {% csrf_token %}
         {{ form|as_dl }}
         <p>

@@ -28,7 +28,7 @@ def manage_documents(request, grad_slug):
               related_object=document )
             l.save()
             
-            return HttpResponseRedirect(reverse('grad.views.manage_documents', 
+            return HttpResponseRedirect(reverse('grad:manage_documents', 
                                                 kwargs={'grad_slug':grad.slug}))
     else:
         form = ExternalDocumentForm()

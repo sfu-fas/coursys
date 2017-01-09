@@ -630,7 +630,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, boot
     holidays = dict((k,list(v)) for k,v in holidays)
 
     for strm in strms:
-        url = settings.BASE_ABS_URL + reverse('coredata.views.edit_semester', kwargs={'semester_name': strm})
+        url = settings.BASE_ABS_URL + reverse('sysadmin:edit_semester', kwargs={'semester_name': strm})
 
         # Semester object
         try:

@@ -4,9 +4,9 @@
 <div id="actions">
 	<h2>Actions</h2>
 	<ul>
-		<li><a href="{% url 'faculty.views.new_memo_template' event_type=event_type_slug %}">New Memo Template</a></li>
+		<li><a href="{% url 'faculty:new_memo_template' event_type=event_type_slug %}">New Memo Template</a></li>
 		{% if config_name %}
-		<li><a href="{% url 'faculty.views.event_config_add' event_type=event_type_slug %}">Add {{ config_name }}</a></li>
+		<li><a href="{% url 'faculty:event_config_add' event_type=event_type_slug %}">Add {{ config_name }}</a></li>
 		{% endif %}
 	</ul>
 </div>
@@ -16,8 +16,8 @@
 {% block h1 %}Event Management{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
-<li><a href="{% url 'faculty.views.manage_event_index' %}">Manage Event Types</a></li>
+<li><a href="{% url 'faculty:index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty:manage_event_index' %}">Manage Event Types</a></li>
 <li>{{ event_name }}</li>
 {% endblock %}
 
@@ -42,14 +42,14 @@
         <td>{{s.get_event_type_display}}</td>
         <td>{{s.template_text|truncatechars:50}}</td>
         <td>{{s.created_at}}</td>
-        <td><a href="{% url 'faculty.views.manage_memo_template' event_type=event_type_slug slug=s.slug %}">Edit</a></td>
+        <td><a href="{% url 'faculty:manage_memo_template' event_type=event_type_slug slug=s.slug %}">Edit</a></td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 {% else %}
-<p>There are no templates for this event type. <a href="{% url 'faculty.views.new_memo_template' event_type=event_type_slug %}">Create one now.</a></p>
+<p>There are no templates for this event type. <a href="{% url 'faculty:new_memo_template' event_type=event_type_slug %}">Create one now.</a></p>
 {% endif %}
 
 {% if config_display %}

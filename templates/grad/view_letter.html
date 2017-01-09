@@ -5,9 +5,9 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grad.views.index" %}">Grad</a></li>
-<li><a href="{% url "grad.views.view" grad_slug=grad.slug %}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li><a href="{% url "grad.views.manage_letters" grad_slug=grad.slug%}">Letters</a></li>
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li><a href="{% url "grad:view" grad_slug=grad.slug %}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li><a href="{% url "grad:manage_letters" grad_slug=grad.slug%}">Letters</a></li>
 <li>{{letter.template.label}}, {{letter.date}}</li>
 {% endblock %}
 
@@ -15,7 +15,7 @@
 <div id="actions">
 <h2>Actions</h2>
 <ul>
-<li><a href="{% url "grad.views.get_letter" grad_slug=grad.slug letter_slug=letter.slug %}">Get PDF</a></li>
+<li><a href="{% url "grad:get_letter" grad_slug=grad.slug letter_slug=letter.slug %}">Get PDF</a></li>
 </ul>
 </div>
 {% endblock %}

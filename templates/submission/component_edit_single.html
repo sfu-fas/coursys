@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 
 {% block headextra %}
-<link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
-<script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
+<link type="text/css" href="{% static 'multiselect/css/ui.multiselect.css' %}" rel="stylesheet" />
+<script type="text/javascript" src="{% static 'multiselect/js/ui.multiselect.js' %}"></script>
 <script type="text/javascript">
   $(document).ready(function() {
     $("#id_allowed").multiselect();
@@ -28,7 +29,7 @@
 
 {% block subbreadcrumbs %}<li><a href="{{ course.get_absolute_url }}">{{course.name}}</a></li>
 <li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li>
-<li><a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug %}">Submission Components</a></li>
+<li><a href="{% url "offering:submission:show_components" course_slug=course.slug activity_slug=activity.slug %}">Submission Components</a></li>
 <li>Edit {{ component.title }}</li>{% endblock %}
 
 

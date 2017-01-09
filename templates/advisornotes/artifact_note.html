@@ -25,13 +25,13 @@
             </label>
 
             {% if course %}
-            <a href="{% url "advisornotes.views.edit_artifact_note" note_id=note.id unit_course_slug=course.slug %}">Edit</a>
+            <a href="{% url "advising:edit_artifact_note" note_id=note.id unit_course_slug=course.slug %}">Edit</a>
             {% endif %}
             {% if offering %}
-            <a href="{% url "advisornotes.views.edit_artifact_note" note_id=note.id course_slug=offering.slug %}">Edit</a>
+            <a href="{% url "advising:edit_artifact_note" note_id=note.id course_slug=offering.slug %}">Edit</a>
             {% endif %}
             {% if artifact %}
-            <a href="{% url "advisornotes.views.edit_artifact_note" note_id=note.id artifact_slug=artifact.slug %}">Edit</a>
+            <a href="{% url "advising:edit_artifact_note" note_id=note.id artifact_slug=artifact.slug %}">Edit</a>
             {% endif %}
         </div>
     </div>
@@ -40,7 +40,7 @@
         <p>{{note.text|linebreaks}}</p>
         
         {% if note.file_attachment %}
-            <p><a href="{% url "advisornotes.views.download_artifact_file" note_id=note.id%}">
+            <p><a href="{% url "advising:download_artifact_file" note_id=note.id%}">
                 <i class="fa fa-download" title="Download"></i>
                 {{ note.attachment_filename }}</a>
                 ({{ note.file_attachment.size|filesizeformat }})

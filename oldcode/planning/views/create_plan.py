@@ -31,4 +31,4 @@ def create_plan(request):
         form = PlanBasicsForm()
         form.fields['unit'].choices = unit_choices
 
-    return render_to_response("planning/create_plan.html", {'form': form}, context_instance=RequestContext(request))
+    return render(request, "planning/create_plan.html", {'form': form})

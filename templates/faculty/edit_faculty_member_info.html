@@ -19,10 +19,10 @@ $(document).ready(function () {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
-<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url "faculty:index" %}">Faculty</a></li>
+<li><a href="{% url "faculty:summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
 <li>
-  <a href="{% url 'faculty.views.faculty_member_info' userid=person.userid_or_emplid %}">
+  <a href="{% url 'faculty:faculty_member_info' userid=person.userid_or_emplid %}">
     Contact Info
   </a>
 </li>

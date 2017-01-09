@@ -5,7 +5,7 @@ from coredata.models import CourseOffering
 
 class ShortCourseOfferingSerializer(serializers.ModelSerializer):
     semester = serializers.ReadOnlyField(source='semester.name', help_text='The SIMS-format semester for the offering')
-    link = serializers.HyperlinkedIdentityField(view_name='api.OfferingInfo', lookup_field='slug',
+    link = serializers.HyperlinkedIdentityField(view_name='api:OfferingInfo', lookup_field='slug',
         lookup_url_kwarg='course_slug', help_text='Link to more information for this offering')
 
     class Meta:
@@ -17,25 +17,25 @@ class CourseOfferingSerializer(ShortCourseOfferingSerializer):
     link_data = [
         {
             'label': 'activities',
-            'view_name': 'api.OfferingActivities',
+            'view_name': 'api:OfferingActivities',
             'lookup_field': 'slug',
             'lookup_url_kwarg': 'course_slug',
         },
         {
             'label': 'grades',
-            'view_name': 'api.OfferingGrades',
+            'view_name': 'api:OfferingGrades',
             'lookup_field': 'slug',
             'lookup_url_kwarg': 'course_slug',
         },
         {
             'label': 'stats',
-            'view_name': 'api.OfferingStats',
+            'view_name': 'api:OfferingStats',
             'lookup_field': 'slug',
             'lookup_url_kwarg': 'course_slug',
         },
         {
             'label': 'students',
-            'view_name': 'api.OfferingStudents',
+            'view_name': 'api:OfferingStudents',
             'lookup_field': 'slug',
             'lookup_url_kwarg': 'course_slug',
         },

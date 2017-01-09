@@ -3,7 +3,7 @@ from appconf import AppConf
 
 class FlagsAppConf(AppConf):
     LOADER = 'featureflags.loaders.settings_loader'
-    VIEW = 'featureflags.views.service_unavailable'
+    VIEW = 'featureflags:service_unavailable'
     DISABLED_TEMPLATE = '503.html'
     CACHE_TIMEOUT = 10
     PANIC_TIMEOUT = 60

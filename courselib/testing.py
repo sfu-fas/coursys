@@ -43,6 +43,7 @@ class CachedFixtureTestCase(TestCase):
         print "teardown pass"
         pass
 
+
 def validate_content_xhtml(testcase, data, page_descr="unknown page"):
     """
     Validate data as XHTML 1.0 (strict).
@@ -113,7 +114,7 @@ def test_views(testcase, client, view_prefix, views, url_args, qs=None):
                 url += '?' + qs
             response = basic_page_tests(testcase, client, url)
         except Exception as e:
-            print "failing with view=" + view
+            print "failing with view=%s; kwargs=%s" % (view, url_args)
             raise
 
 

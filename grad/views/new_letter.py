@@ -40,7 +40,7 @@ def new_letter(request, grad_slug, letter_template_slug):
                   description="Created new %s letter for %s." % (form.instance.template.label, form.instance.student),
                   related_object=form.instance)
             l.save()            
-            return HttpResponseRedirect(reverse('grad.views.manage_letters', kwargs={'grad_slug':grad_slug}))
+            return HttpResponseRedirect(reverse('grad:manage_letters', kwargs={'grad_slug':grad_slug}))
     else:
         form = LetterForm(initial={'student': grad, 'date': datetime.date.today(), 'from_person': default_from})
         form.fields['from_person'].choices = from_choices

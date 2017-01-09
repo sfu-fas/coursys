@@ -40,7 +40,7 @@ def new_event(request):
                          description="Added event %s" % event,
                          related_object=event)
             l.save()
-            return HttpResponseRedirect(reverse('outreach_index'))
+            return HttpResponseRedirect(reverse('outreach:outreach_index'))
     else:
         form = OutreachEventForm(request)
     return render(request, 'outreach/new_event.html', {'form': form})
@@ -51,7 +51,7 @@ def view_event(request, event_slug):
     event = get_object_or_404(OutreachEvent, slug=event_slug)
     if not _has_unit_role(request.user, event):
         return ForbiddenResponse(request)
-    register_url = request.build_absolute_uri(reverse('register', kwargs={'event_slug': event.slug}))
+    register_url = request.build_absolute_uri(reverse('outreach:register', kwargs={'event_slug': event.slug}))
     return render(request, 'outreach/view_event.html', {'event': event, 'register_url': register_url})
 
 
@@ -71,7 +71,7 @@ def edit_event(request, event_slug):
                          description="Edited event %s" % event,
                          related_object=event)
             l.save()
-            return HttpResponseRedirect(reverse('outreach_index'))
+            return HttpResponseRedirect(reverse('outreach:outreach_index'))
     else:
         form = OutreachEventForm(request, instance=event)
     return render(request, 'outreach/edit_event.html', {'form': form, 'event_slug': event.slug})
@@ -89,7 +89,7 @@ def delete_event(request, event_id):
                      description="Deleted event: %s" % event,
                      related_object=event)
         l.save()
-    return HttpResponseRedirect(reverse('outreach_index'))
+    return HttpResponseRedirect(reverse('outreach:outreach_index'))
 
 
 def register(request, event_slug):
@@ -111,7 +111,7 @@ def register(request, event_slug):
                          related_object=registration
                          )
             l.save()
-            return HttpResponseRedirect(reverse('register_success', kwargs={'event_slug': event_slug}))
+            return HttpResponseRedirect(reverse('outreach:register_success', kwargs={'event_slug': event_slug}))
     else:
         form = OutreachEventRegistrationForm()
     return render(request, 'outreach/register.html', {'form': form, 'event': event})
@@ -160,8 +160,8 @@ def edit_registration(request, registration_id, event_slug=None):
                          related_object=registration)
             l.save()
             if event_slug:
-                return HttpResponseRedirect(reverse(view_event_registrations, kwargs={'event_slug': event_slug}))
-            return HttpResponseRedirect(reverse(view_all_registrations))
+                return HttpResponseRedirect(reverse('outreach:view_event_registrations', kwargs={'event_slug': event_slug}))
+            return HttpResponseRedirect(reverse('outreach:view_all_registrations'))
     else:
         form = OutreachEventRegistrationForm(instance=registration, initial={'confirm_email': registration.email})
     return render(request, 'outreach/edit_registration.html', {'form': form, 'registration': registration,
@@ -181,8 +181,8 @@ def delete_registration(request, registration_id, event_slug=None):
                      related_object=registration)
         l.save()
     if event_slug:
-        return HttpResponseRedirect(reverse(view_event_registrations, kwargs={'event_slug': event_slug}))
-    return HttpResponseRedirect(reverse(view_all_registrations))
+        return HttpResponseRedirect(reverse('outreach:view_event_registrations', kwargs={'event_slug': event_slug}))
+    return HttpResponseRedirect(reverse('outreach:view_all_registrations'))
 
 @requires_role('OUTR')
 def toggle_registration_attendance(request, registration_id, event_slug=None):
@@ -198,8 +198,8 @@ def toggle_registration_attendance(request, registration_id, event_slug=None):
                      related_object=registration)
         l.save()
     if event_slug:
-        return HttpResponseRedirect(reverse(view_event_registrations, kwargs={'event_slug': event_slug}))
-    return HttpResponseRedirect(reverse(view_all_registrations))
+        return HttpResponseRedirect(reverse('outreach:view_event_registrations', kwargs={'event_slug': event_slug}))
+    return HttpResponseRedirect(reverse('outreach:view_all_registrations'))
 
 
 @requires_role('OUTR')
@@ -232,7 +232,7 @@ def download_current_events_csv(request, past=None):
         for e in events:
             writer.writerow([e.title, e.start_date, e.end_date, e.description, e.location, e.unit, e.resources, e.cost,
                              e.notes, e.email, e.registration_count(),
-                             request.build_absolute_uri(reverse('register', kwargs={'event_slug': e.slug}))])
+                             request.build_absolute_uri(reverse('outreach:register', kwargs={'event_slug': e.slug}))])
     return response
 
 

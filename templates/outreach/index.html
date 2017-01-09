@@ -40,13 +40,13 @@ function togglePast() {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "new_event" %}">Add New Event</a></li>
-        <li><a href="{% url "all_registrations" %}">View All Registrations</a></li>
+        <li><a href="{% url "outreach:new_event" %}">Add New Event</a></li>
+        <li><a href="{% url "outreach:view_all_registrations" %}">View All Registrations</a></li>
         {% if events %}
-            <li><a href="{% url "download_events" %}">Download Current Events</a></li>
+            <li><a href="{% url "outreach:download_events" %}">Download Current Events</a></li>
         {% endif %}
         {% if past_events %}
-            <li><a href="{% url "download_events" past=1 %}">Download Past Events</a></li>
+            <li><a href="{% url "outreach:download_events" past=1 %}">Download Past Events</a></li>
         {% endif %}
     </ul>
 </div>
@@ -77,7 +77,7 @@ function togglePast() {
                 <td>{{ event.registration_count }}</td>
                 <td>
                     <form class="lineform" method="POST"
-                          action="{% url "delete_event" event_id=event.id %}"
+                          action="{% url "outreach:delete_event" event_id=event.id %}"
                           onsubmit="return confirmDelete()">
                         {% csrf_token %}
                         <button type='submit' class='btn' title="Hide Event">
@@ -85,13 +85,13 @@ function togglePast() {
                         </button>
                     </form>
                     <form class="lineform" method="GET"
-                        action="{% url "edit_event" event_slug=event.slug %}">
+                        action="{% url "outreach:edit_event" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="Edit Event">
                             <i class='fa fa-edit'></i>
                         </button>
                     </form>
                     <form class="lineform" method="GET"
-                        action="{% url "view_event" event_slug=event.slug %}">
+                        action="{% url "outreach:view_event" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="View Event">
                             <i class='fa fa-eye'></i>
                         </button>
@@ -127,7 +127,7 @@ function togglePast() {
                 <td>{{ event.registration_count }}</td>
                 <td>
                     <form class="lineform" method="POST"
-                          action="{% url "delete_event" event_id=event.id %}"
+                          action="{% url "outreach:delete_event" event_id=event.id %}"
                           onsubmit="confirmDelete(this)">
                         {% csrf_token %}
                         <button type='submit' class='btn' title="Hide Event">
@@ -135,13 +135,13 @@ function togglePast() {
                         </button>
                     </form>
                     <form class="lineform" method="GET"
-                        action="{% url "edit_event" event_slug=event.slug %}">
+                        action="{% url "outreach:edit_event" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="Edit Event">
                             <i class='fa fa-edit'></i>
                         </button>
                     </form>
                     <form class="lineform" method="GET"
-                        action="{% url "view_event" event_slug=event.slug %}">
+                        action="{% url "outreach:view_event" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="View Event">
                             <i class='fa fa-eye'></i>
                         </button>

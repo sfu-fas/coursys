@@ -16,7 +16,7 @@
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "tacontracts.views.new_semester" %}">New Hiring Semester</a></li>
+        <li><a href="{% url "tacontracts:new_semester" %}">New Hiring Semester</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -29,7 +29,7 @@
         {% include "tacontracts/module_semester_table.html" with semesters=next_hiring_semesters display_units=display_units only %}
     {% else %}
         <p> Semester {{next_semester.name}} hasn't been 
-            <a href="{% url "tacontracts.views.setup_semester" semester=next_semester.name %}">created</a>, 
+            <a href="{% url "tacontracts:setup_semester" semester=next_semester.name %}">created</a>, 
             yet. 
         </p>
     {% endif %}
@@ -46,7 +46,7 @@
         {% include "tacontracts/module_semester_table.html" with semesters=current_hiring_semesters display_units=display_units only %}
     {% else %}
         <p> Semester {{current_semester.name}} hasn't been 
-            <a href="{% url "tacontracts.views.setup_semester" semester=current_semester.name %}">created</a>, 
+            <a href="{% url "tacontracts:setup_semester" semester=current_semester.name %}">created</a>, 
             yet. 
         </p>
     {% endif %}

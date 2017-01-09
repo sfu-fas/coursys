@@ -18,14 +18,14 @@ class PrivacyTestCase(TestCase):
 
         client = Client()
         client.login_user(p.userid)
-        privacy_url = reverse('privacy.views.privacy')
+        privacy_url = reverse('config:privacy')
 
         # non-role page should still render
-        url = reverse('dashboard.views.index')
+        url = reverse('dashboard:index')
         basic_page_tests(self, client, url)
 
         # but role page should redirect to agreement
-        url = reverse('advisornotes.views.advising')
+        url = reverse('advising:advising')
         response = client.get(url)
         self.assertRedirects(response, privacy_url + '?next=' + url)
 

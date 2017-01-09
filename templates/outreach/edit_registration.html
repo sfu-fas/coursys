@@ -5,7 +5,7 @@
 {% block h1 %}Edit Registration{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'outreach_index' %}">Outreach</a></li>
+<li><a href="{% url 'outreach:outreach_index' %}">Outreach</a></li>
 <li>Edit Registration</li>
 {% endblock %}
 
@@ -21,9 +21,9 @@
     {% if registration.event.location %}<dt>Location</dt><dd>{{ registration.event.location|linebreaks }}</dd>{% endif %}
     {% if registration.event.notes %}<dt>Notes</dt><dd>{{ registration.event.notes|linebreaks }}</dd>{% endif %}
     {% if event_slug %}
-    <form action="{% url 'edit_registration' registration_id=registration.id event_slug=event_slug %}" method="post">
+    <form action="{% url 'outreach:edit_registration' registration_id=registration.id event_slug=event_slug %}" method="post">
     {% else %}
-    <form action="{% url 'edit_registration' registration_id=registration.id %}" method="post">
+    <form action="{% url 'outreach:edit_registration' registration_id=registration.id %}" method="post">
     {% endif %}
         {% csrf_token %}
         {{ form|as_dl }}

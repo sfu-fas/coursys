@@ -23,7 +23,7 @@
   <h2>Actions</h2>
   <ul class="fa-ul">
     <li>
-      <a href="{% url 'faculty.views.edit_faculty_member_info' userid=person.userid_or_emplid %}">
+      <a href="{% url 'faculty:edit_faculty_member_info' userid=person.userid_or_emplid %}">
         {% if info %}
         <i class="fa fa-li fa-edit"></i> Edit Contact Info
         {% else %}
@@ -37,8 +37,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
-<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url "faculty:index" %}">Faculty</a></li>
+<li><a href="{% url "faculty:summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
 <li>Contact Info</li>
 {% endblock %}
 

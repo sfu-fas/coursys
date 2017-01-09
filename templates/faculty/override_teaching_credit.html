@@ -5,14 +5,14 @@
 {% block h1 %}Edit Teaching Credits: {{ course.offering.name }} ({{course.offering.semester }}){% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
-<li><a href="{% url 'faculty.views.summary' userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
-<li><a href="{% url 'faculty.views.teaching_summary' userid=person.userid_or_emplid %}">Teaching Summary</a></li>
+<li><a href="{% url 'faculty:index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty:summary' userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url 'faculty:teaching_summary' userid=person.userid_or_emplid %}">Teaching Summary</a></li>
 <li>Edit Teaching Credits</li>
 {% endblock %}
 
 {% block content %}
-<form action="{% url 'faculty.views.teaching_credit_override' userid=person.userid_or_emplid course_slug=course_slug %}" method="POST">
+<form action="{% url 'faculty:teaching_credit_override' userid=person.userid_or_emplid course_slug=course_slug %}" method="POST">
   {% csrf_token %}
   {{ form|as_dl }}
   <input type="submit" value="Submit" />

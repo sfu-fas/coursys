@@ -1,5 +1,5 @@
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.template import RequestContext, defaultfilters
 from django.contrib import messages
@@ -25,7 +25,7 @@ def index(request, course_slug):
     groups = DisciplineGroup.objects.filter(offering=course)
     
     context = {'course': course, 'cases': cases, 'groups': groups}
-    return render_to_response("discipline/index.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/index.html", context)
 
 @requires_discipline_user
 def newgroup(request, course_slug):
@@ -57,14 +57,14 @@ def newgroup(request, course_slug):
                       description=("created a discipline case for %s in cluster %s") % (userid, group.name),
                       related_object=case)
                 l.save()
-            return HttpResponseRedirect(reverse('discipline.views.showgroup', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:showgroup', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
 
     else:
         form = DisciplineGroupForm(offering=course)
 
     form.fields['students'].choices = student_choices
     context = {'course': course, 'form': form}
-    return render_to_response("discipline/newgroup.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/newgroup.html", context)
 
 @requires_discipline_user
 def new(request, course_slug):
@@ -92,7 +92,7 @@ def new(request, course_slug):
                   description=("created a discipline case for %s in %s") % (case.student.name(), course),
                   related_object=case)
             l.save()
-            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
 
     else:
         form = DisciplineCaseForm(offering=course)
@@ -100,7 +100,7 @@ def new(request, course_slug):
     form.fields['student'].choices = student_choices
     form.fields['group'].choices = group_choices
     context = {'course': course, 'form': form}
-    return render_to_response("discipline/new.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/new.html", context)
 
 
 @requires_discipline_user
@@ -124,14 +124,14 @@ def new_nonstudent(request, course_slug):
                   description=("created a non-student discipline case for %s in %s") % (case.student.name(), course),
                   related_object=case)
             l.save()
-            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
 
     else:
         form = DisciplineInstrNonStudentCaseForm()
     
     form.fields['group'].choices = group_choices
     context = {'course': course, 'form': form}
-    return render_to_response("discipline/new_nonstudent.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/new_nonstudent.html", context)
 
 
 @requires_discipline_user
@@ -147,7 +147,7 @@ def show(request, course_slug, case_slug):
         messages.add_message(request, messages.WARNING, 'Total size of public attachments must be at most %s because of email limitations. Please make some of the attachments private.' % (MAX_ATTACHMENTS_TEXT))
     
     context = {'course': course, 'case': case, 'roles': roles}
-    return render_to_response("discipline/show.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/show.html", context)
 
 @requires_discipline_user
 def showgroup(request, course_slug, group_slug):
@@ -158,7 +158,7 @@ def showgroup(request, course_slug, group_slug):
     group = get_object_or_404(DisciplineGroup, slug=group_slug, offering__slug=course_slug)
     
     context = {'course': course, 'group': group}
-    return render_to_response("discipline/showgroup.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/showgroup.html", context)
 
 
 also_set_re = re.compile("also-(?P<field>[[a-z_]+)-(?P<caseid>\d+)")
@@ -257,13 +257,10 @@ def edit_case_info(request, course_slug, case_slug, field):
                         messages.add_message(request, messages.ERROR,
                             mark_safe('Email not sent to %s since their "Contact Email Text" was not updated. You can <a href="%s">edit their contact info</a> if you wish.'
                             % (c0.student.name(),
-                                reverse('discipline.views.edit_case_info',
+                                reverse('offering:discipline:edit_case_info',
                                     kwargs={'field': 'contacted', 'course_slug': course_slug, 'case_slug': c0.slug}))))
             
-            if isinstance(case, DisciplineCaseChair):
-                return HttpResponseRedirect(reverse('discipline.views.show_chair', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
-            else:
-                return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         form = FormClass(instance=case)
     
@@ -276,7 +273,7 @@ def edit_case_info(request, course_slug, case_slug, field):
         'templatesJSON': mark_safe(tempaltesJSON), 'groupmembersJSON': mark_safe(groupmembersJSON), 'hasRelAct': hasRelAct}
     if field == 'letter_review':
         context['currentuser'] = _currentuser(request)
-    return render_to_response("discipline/edit_"+field+".html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/edit_"+field+".html", context)
 
 
 def _currentuser(request):
@@ -387,7 +384,7 @@ def edit_related(request, course_slug, case_slug):
                 messages.add_message(request, messages.SUCCESS,
                     "Also updated %s for %s." % (STEP_DESC[field], c0.student.name()))
 
-            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         initial = {'students': [], 'activities': [], 'submissions': []}
         for ro in case.relatedobject_set.all():
@@ -406,7 +403,7 @@ def edit_related(request, course_slug, case_slug):
     
     context = {'course': course, 'case': case, 'form': form,
             'templatesJSON': '[]', 'groupmembersJSON': mark_safe(groupmembersJSON), 'hasRelAct': 'false'}
-    return render_to_response("discipline/edit_related.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/edit_related.html", context)
 
 
 
@@ -433,7 +430,7 @@ def view_letter(request, course_slug, case_slug):
         return ForbiddenResponse(request, errormsg="The letter for this case was not sent by this system.")
     
     context = {'course': course, 'case': case, 'is_student': is_student}
-    return render_to_response("discipline/view_letter.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/view_letter.html", context)
 
 
 
@@ -458,7 +455,7 @@ def edit_attach(request, course_slug, case_slug):
     groupmembersJSON = case.groupmembersJSON()
     context = {'course': course, 'case': case, 'attach_pub': attach_pub, 'attach_pri': attach_pri,
             'templatesJSON': '[]', 'groupmembersJSON': mark_safe(groupmembersJSON)}
-    return render_to_response("discipline/show_attach.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/show_attach.html", context)
 
 @requires_discipline_user
 def new_file(request, course_slug, case_slug):
@@ -489,12 +486,12 @@ def new_file(request, course_slug, case_slug):
                   related_object=case)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (f.name))
-            return HttpResponseRedirect(reverse('discipline.views.edit_attach', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:edit_attach', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         form = NewAttachFileForm(case)
 
     context = {'course': course, 'case': case, 'form': form}
-    return render_to_response("discipline/new_file.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/new_file.html", context)
 
 @login_required
 def download_file(request, course_slug, case_slug, fileid):
@@ -547,12 +544,12 @@ def edit_file(request, course_slug, case_slug, fileid):
                   related_object=case)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Updated file attachment "%s".' % (f.name))
-            return HttpResponseRedirect(reverse('discipline.views.edit_attach', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            return HttpResponseRedirect(reverse('offering:discipline:edit_attach', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         form = EditAttachFileForm(instance=attach)
 
     context = {'course': course, 'case': case, 'attach': attach, 'form': form}
-    return render_to_response("discipline/edit_file.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/edit_file.html", context)
 
 
 
@@ -569,7 +566,7 @@ def chair_index(request):
     instr_cases = [c.subclass() for c in instr_cases]
 
     context = {'instr_cases': instr_cases}
-    return render_to_response("discipline/chair-index.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/chair-index.html", context)
     
 @requires_role("DISC")
 def chair_create(request, course_slug, case_slug):
@@ -585,9 +582,9 @@ def chair_create(request, course_slug, case_slug):
               related_object=chair_case)
         l.save()
         messages.add_message(request, messages.SUCCESS, "Created Chair's case.")
-        return HttpResponseRedirect(reverse('discipline.views.chair_show', kwargs={'course_slug': course_slug, 'case_slug': chair_case.slug}))
+        return HttpResponseRedirect(reverse('discipline:chair_show', kwargs={'course_slug': course_slug, 'case_slug': chair_case.slug}))
         
-    return HttpResponseRedirect(reverse('discipline.views.chair_index', kwargs={}))
+    return HttpResponseRedirect(reverse('discipline:chair_index', kwargs={}))
 
 @requires_role("DISC")
 def chair_show(request, course_slug, case_slug):
@@ -595,7 +592,7 @@ def chair_show(request, course_slug, case_slug):
     case = case.subclass()
     
     context = {'case': case}
-    return render_to_response("discipline/chair-show.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/chair-show.html", context)
 
 @requires_role("DISC")
 def chair_show_instr(request, course_slug, case_slug):
@@ -609,7 +606,7 @@ def chair_show_instr(request, course_slug, case_slug):
     case.ro_display = True
     
     context = {'course': course, 'case': case, 'roles': roles, 'chair': True}
-    return render_to_response("discipline/show.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/show.html", context)
 
 
 
@@ -620,7 +617,7 @@ def chair_show_instr(request, course_slug, case_slug):
 def show_templates(request):
     templates = DisciplineTemplate.objects.all()
     context = {'templates': templates}
-    return render_to_response("discipline/show_templates.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/show_templates.html", context)
 
 @requires_global_role("SYSA")
 def new_template(request):
@@ -634,11 +631,11 @@ def new_template(request):
                   related_object=t)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Created template "%s".' % (t.label))
-            return HttpResponseRedirect(reverse('discipline.views.show_templates'))
+            return HttpResponseRedirect(reverse('sysadmin:show_templates'))
     else:
         form = TemplateForm()
     context = {'form': form}
-    return render_to_response("discipline/new_template.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/new_template.html", context)
 
 @requires_global_role("SYSA")
 def edit_template(request, template_id):
@@ -653,11 +650,11 @@ def edit_template(request, template_id):
                   related_object=t)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Edited template "%s".' % (t.label))
-            return HttpResponseRedirect(reverse('discipline.views.show_templates'))
+            return HttpResponseRedirect(reverse('sysadmin:show_templates'))
     else:
         form = TemplateForm(instance=template)
     context = {'template': template, 'form': form}
-    return render_to_response("discipline/edit_template.html", context, context_instance=RequestContext(request))
+    return render(request, "discipline/edit_template.html", context)
 
 @requires_global_role("SYSA")
 def delete_template(request, template_id):
@@ -670,5 +667,5 @@ def delete_template(request, template_id):
         l.save()
         messages.add_message(request, messages.SUCCESS, 'Deleted template "%s".' % (template.label))
         template.delete()
-    return HttpResponseRedirect(reverse('discipline.views.show_templates'))
+    return HttpResponseRedirect(reverse('sysadmin:show_templates'))
 

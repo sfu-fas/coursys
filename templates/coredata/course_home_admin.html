@@ -4,8 +4,8 @@
 {% block h1 %}{{ offering.name }} Home Page{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "coredata.views.browse_courses" %}">Browse Course Offerings</a></li>
-<li><a href="{% url 'coredata.views.course_home_pages' %}">Home Pages</a></li>
+<li><a href="{% url "browse:browse_courses" %}">Browse Course Offerings</a></li>
+<li><a href="{% url 'browse:course_home_pages' %}">Home Pages</a></li>
 <li>Edit</li>{% endblock %}
 
 {% block content %}

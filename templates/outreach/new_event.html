@@ -14,12 +14,12 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'outreach_index' %}">Outreach</a></li>
+<li><a href="{% url 'outreach:outreach_index' %}">Outreach</a></li>
 <li>New Event</li>
 {% endblock %}
 
 {% block content %}
-<form action="{% url 'new_event' %}" method="post">
+<form action="{% url 'outreach:new_event' %}" method="post">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>

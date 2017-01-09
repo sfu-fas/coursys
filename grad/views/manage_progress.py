@@ -24,7 +24,7 @@ def manage_progress(request, grad_slug):
               related_object=report )
             l.save()
             
-            return HttpResponseRedirect(reverse('grad.views.manage_progress', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:manage_progress', kwargs={'grad_slug':grad.slug}))
     else:
         form = ProgressReportForm()
     

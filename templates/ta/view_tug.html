@@ -10,11 +10,12 @@
 
 {% block subbreadcrumbs %}
     {% if user_role == "ADMN" %}
-    <li><a href="{% url "ta.views.all_tugs_admin" %}">All TUGs</a> {{tug.member.person}}</li>
+    <li><a href="{% url "tugs:all_tugs_admin" %}">All TUGs</a></li>
+	<li>{{tug.member.person}}</li>
     {% else %}
-    <li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
-    <li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li>
-    <li><a href="{% url "coredata.views.manage_tas" course_slug=course.slug %}">Manage TAs</a></li>
+    <li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+    <li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li>
+    <li><a href="{% url "offering:manage_tas" course_slug=course.slug %}">Manage TAs</a></li>
     <li>{{ta.person.name}}</li>
     {% endif %}
 {% endblock %}
@@ -26,10 +27,10 @@
 <h2 class="heading">Actions</h2>
 <ul>
 {% if user_role == "ADMN" %}
-<li><a href="{% url "ta.views.all_tugs_admin" %}">View All TUGs</a></li>
-<li><a href="{% url "ta.views.edit_tug" course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
+<li><a href="{% url "tugs:all_tugs_admin" %}">View All TUGs</a></li>
+<li><a href="{% url "offering:edit_tug" course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
 {% else %}{% if user_role != "TA" %}
-<li><a href="{% url "ta.views.edit_tug" course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
+<li><a href="{% url "offering:edit_tug" course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
 {% endif %}{% endif %}
 <li><a href="javascript:print()">Print TUG</a></li>
 </ul>

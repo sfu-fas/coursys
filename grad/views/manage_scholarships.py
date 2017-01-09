@@ -30,7 +30,7 @@ def manage_scholarships(request, grad_slug):
               related_object=schol )
             l.save()
             
-            return HttpResponseRedirect(reverse('grad.views.manage_scholarships', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:manage_scholarships', kwargs={'grad_slug':grad.slug}))
     else:
         form = ScholarshipForm(initial={'student':grad, 'start_semester':get_semester(), 'end_semester':get_semester(), 'amount':'0.00'})
         form.fields['scholarship_type'].choices = scholarship_type_choices

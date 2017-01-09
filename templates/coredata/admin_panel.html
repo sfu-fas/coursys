@@ -2,7 +2,7 @@
 
 {% block headextra %}
 <script type="text/javascript">
-var tab_url = '{% url "coredata.views.admin_panel" %}';
+var tab_url = '{% url "sysadmin:admin_panel" %}';
 $(document).ready(function() {
   /* http://stackoverflow.com/questions/9288467/jquery-tabs-display-indicator-in-the-container-div-during-ajax-load */
   $.ajaxSetup({
@@ -24,23 +24,23 @@ $(document).ready(function() {
 {% block title %}Admin Panel{% endblock %}
 {% block h1 %}Admin Panel{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>Admin Panel</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li><li>Admin Panel</li>{% endblock %}
 
 {% block content %}
 <p><i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></p>
 <div id="tabs">
   <ul>
   <li><a href="#welcome">Welcome</a></li>
-  <li><a href="{% url 'coredata.views.admin_panel' %}?content=psinfo">Process Info</a></li>
-  <li><a href="{% url 'coredata.views.admin_panel' %}?content=settings_info">Settings Info</a></li>
-  <li><a href="{% url 'coredata.views.admin_panel' %}?content=deploy_checks">Deployment Checks</a></li>
-  <li><a href="{% url 'coredata.views.admin_panel' %}?content=email">Email Check</a></li>
-  <li><a href="{% url 'coredata.views.admin_panel' %}?content=celery">Celery Queues</a></li>
-  <li><a href="{% url 'coredata.views.admin_panel' %}?content=tasks">Celery Tasks</a></li>
-  <li><a href="{% url 'coredata.views.admin_panel' %}?content=request">Request Details</a></li>
-  <li><a href="{% url 'coredata.views.admin_panel' %}?content=git">Git Status</a></li>
-  <li><a href="{% url 'coredata.views.admin_panel' %}?content=pip">PIP Status</a></li>
-  <li><a href="{% url 'coredata.views.admin_panel' %}?content=csrpt">Reporting DB</a></li>
+  <li><a href="{% url 'sysadmin:admin_panel' %}?content=psinfo">Process Info</a></li>
+  <li><a href="{% url 'sysadmin:admin_panel' %}?content=settings_info">Settings Info</a></li>
+  <li><a href="{% url 'sysadmin:admin_panel' %}?content=deploy_checks">Deployment Checks</a></li>
+  <li><a href="{% url 'sysadmin:admin_panel' %}?content=email">Email Check</a></li>
+  <li><a href="{% url 'sysadmin:admin_panel' %}?content=celery">Celery Queues</a></li>
+  <li><a href="{% url 'sysadmin:admin_panel' %}?content=tasks">Celery Tasks</a></li>
+  <li><a href="{% url 'sysadmin:admin_panel' %}?content=request">Request Details</a></li>
+  <li><a href="{% url 'sysadmin:admin_panel' %}?content=git">Git Status</a></li>
+  <li><a href="{% url 'sysadmin:admin_panel' %}?content=pip">PIP Status</a></li>
+  <li><a href="{% url 'sysadmin:admin_panel' %}?content=csrpt">Reporting DB</a></li>
   </ul>
   <div id="welcome">
   <p>Current load average: {{ loadavg }}</p>

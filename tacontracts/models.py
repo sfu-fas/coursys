@@ -5,7 +5,6 @@ import decimal
 from django.db import models, transaction
 from django.db.models.query import QuerySet
 # Third Party
-from model_utils.managers import PassThroughManager
 from autoslug import AutoSlugField
 # Local
 from coredata.models import Unit, Person, CourseOffering, Semester, Member

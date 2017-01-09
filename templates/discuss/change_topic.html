@@ -5,13 +5,13 @@
 
 {% block subbreadcrumbs %}
 <li>
-	<a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a>
+	<a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a>
 </li>
 <li>
-	<a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">Discussion</a>
+	<a href="{% url "offering:discussion:discussion_index" course_slug=course.slug %}">Discussion</a>
 </li>
 <li>
-	<a href="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}">View Topic</a>
+	<a href="{% url "offering:discussion:view_topic" course_slug=course.slug topic_slug=topic.slug %}">View Topic</a>
 </li>
 <li>
 	Manage Topic	
@@ -20,7 +20,7 @@
 
 {% block content %}
 <div class="form_container">
-	<form action="{% url "discuss.views.change_topic_status" course_slug=course.slug topic_slug=topic.slug %}" method="post">{% csrf_token %}
+	<form action="{% url "offering:discussion:change_topic_status" course_slug=course.slug topic_slug=topic.slug %}" method="post">{% csrf_token %}
 		<fieldset>
 			<legend>Manage Topic</legend>
 			{{ form|as_dl }}

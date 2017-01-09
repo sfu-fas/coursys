@@ -33,7 +33,7 @@ def edit_link(case, field):
         return ""
     if not case.can_edit(field):
         return ""
-    return mark_safe('<p class="editlink"><a href="%s">Edit %s</a></p>' % (reverse('discipline.views.edit_case_info',
+    return mark_safe('<p class="editlink"><a href="%s">Edit %s</a></p>' % (reverse('offering:discipline:edit_case_info',
             kwargs={'course_slug':case.offering.slug, 'case_slug': case.slug, 'field': STEP_VIEW[field]}), STEP_DESC[field]))
 
 @register.filter()
@@ -43,5 +43,5 @@ def chair_edit_link(case, field):
     """
     if case.chair_done():
         return ""
-    return mark_safe('<p class="editlink"><a href="%s">Edit %s</a></p>' % (reverse('discipline.views.edit_case_info',
+    return mark_safe('<p class="editlink"><a href="%s">Edit %s</a></p>' % (reverse('offering:discipline:edit_case_info',
             kwargs={'course_slug':case.offering.slug, 'case_slug': case.slug, 'field': STEP_VIEW[field]}), STEP_DESC[field]))

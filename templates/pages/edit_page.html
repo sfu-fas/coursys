@@ -3,14 +3,14 @@
 
 {% block title %}{% if page %}Edit {{kind}} {{page.label}}{% else %}New {{kind}}{% endif %}{% endblock %}
 {% block h1 %}{% if page %}Edit {{kind}} {{page.label}}{% else %}New {{kind}}{% endif %}{% endblock %}
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li><li><a href="{% url "pages.views.index_page" course_slug=offering.slug %}">Pages</a></li>{% if page %}<li><a href="{% url "pages.views.view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>Edit</li>{% else %}<li>New Page</li>{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li><li><a href="{% url "offering:pages:index_page" course_slug=offering.slug %}">Pages</a></li>{% if page %}<li><a href="{% url "offering:pages:view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>Edit</li>{% else %}<li>New Page</li>{% endif %}{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}tiny_mce/tiny_mce.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}jquery-ext/jquery.cookie.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}js/pages.js"></script>
 <script type="text/javascript">
-var convert_url = '{% if page %}{% url "pages.views.convert_content" course_slug=offering.slug page_label=page.label %}{% else %}{% url "pages.views.convert_content" course_slug=offering.slug %}{% endif %}';
+var convert_url = '{% if page %}{% url "offering:pages:convert_content" course_slug=offering.slug page_label=page.label %}{% else %}{% url "offering:pages:convert_content" course_slug=offering.slug %}{% endif %}';
 var csrf_token = '{{csrf_token}}';
 $(document).ready(function() {
 	if ( $('#id_markup').val() == 'html' ) {
@@ -32,7 +32,7 @@ $(document).ready(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url "pages.views.import_page" course_slug=offering.slug page_label=page.label %}">Import Content</a></li>
+    <li><a href="{% url "offering:pages:import_page" course_slug=offering.slug page_label=page.label %}">Import Content</a></li>
     </ul>
 </div>
 {% endif %}

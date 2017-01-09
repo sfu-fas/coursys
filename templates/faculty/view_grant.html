@@ -11,8 +11,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
-<li><a href="{% url 'grants_index' %}">Grants</a></li>
+<li><a href="{% url 'faculty:index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty:grant_index' %}">Grants</a></li>
 <li>{{ grant.title }}</li>
 {% endblock %}
 
@@ -20,7 +20,7 @@
 <div id="actions">
   <h2>Actions</h2>
   <ul>
-    <li><a href="{% url 'edit_grant' grant.unit.label|lower grant.slug %}">Edit Grant</a></li>
+    <li><a href="{% url 'faculty:edit_grant' grant.unit.label|lower grant.slug %}">Edit Grant</a></li>
   </ul>
 </div>
 {% endblock %}

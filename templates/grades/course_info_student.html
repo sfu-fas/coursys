@@ -10,10 +10,10 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	{% if any_group %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
+	{% if any_group %}<li><a href="{% url "offering:groups:groupmanage" course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
 	{% if course.discussion %}
     <li>
-    	<a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">
+    	<a href="{% url "offering:discussion:discussion_index" course_slug=course.slug %}">
     		Course Discussion
     		{% if discussion_activity %}
             <i class="fa fa-comments infomessage"></i>
@@ -21,7 +21,7 @@
     	</a>
     </li>    
     {% endif %}
-	{% if has_index %}<li><a href="{% url "pages.views.index_page" course_slug=course.slug %}">View Pages</a></li>{% endif %}
+	{% if has_index %}<li><a href="{% url "offering:pages:index_page" course_slug=course.slug %}">View Pages</a></li>{% endif %}
     </ul>
 </div>
 {% endif %}
@@ -99,6 +99,7 @@
 {% endif %}
 
 {% if course.uses_svn %}
+<!--
 <h2 id="svn">Subversion Repository</h2>
 <p>You have a personal <a href="http://svnbook.red-bean.com/">Subversion</a> repository for this course at this URL:
 {{ member.svn_url|urlize }}&nbsp;.</p>
@@ -109,6 +110,7 @@ The instructor and TAs <strong>do</strong> have read-only access to this reposit
 The instructor and TAs do <strong>not</strong> have access to this repository.
 {% endif %}
 </p>
+-->
 {% endif %}
 
 {% endblock %}

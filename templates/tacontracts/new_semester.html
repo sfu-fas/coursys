@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "tacontracts.views.list_all_semesters" %}">Hiring Semesters</a></li>
+<li><a href="{% url "tacontracts:list_all_semesters" %}">Hiring Semesters</a></li>
 <li>New Semester</li>
 {% endblock %}
 
@@ -16,7 +16,7 @@
 {% endblock %}
 
 {% block content %}
-<form action="{% url "tacontracts.views.new_semester" %}" method="post">
+<form action="{% url "tacontracts:new_semester" %}" method="post">
     {% csrf_token %}
     <fieldset>
     {{ form|as_dl }}

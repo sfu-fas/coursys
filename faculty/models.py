@@ -257,13 +257,13 @@ class CareerEvent(models.Model):
         return super(CareerEvent, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse("faculty_event_view", args=[self.person.userid, self.slug])
+        return reverse("faculty:view_event", args=[self.person.userid, self.slug])
 
     def get_status_change_url(self):
-        return reverse("faculty_change_event_status", args=[self.person.userid, self.slug])
+        return reverse("faculty:change_event_status", args=[self.person.userid, self.slug])
 
     def get_change_url(self):
-        return reverse("faculty_change_event", args=[self.person.userid, self.slug])
+        return reverse("faculty:change_event", args=[self.person.userid, self.slug])
 
     @property
     def slug_string(self):
@@ -707,10 +707,10 @@ class TempGrant(models.Model):
         unique_together = (('label', 'creator'),)
 
     def get_convert_url(self):
-        return reverse("convert_grant", args=[self.id])
+        return reverse("faculty:convert_grant", args=[self.id])
 
     def get_delete_url(self):
-        return reverse("delete_grant", args=[self.id])
+        return reverse("faculty:delete_grant", args=[self.id])
 
     def grant_dict(self, **kwargs):
         data = {
@@ -759,7 +759,7 @@ class Grant(models.Model):
         return u"%s" % self.title
 
     def get_absolute_url(self):
-        return reverse("view_grant", kwargs={'unit_slug': self.unit.slug, 'grant_slug': self.slug})
+        return reverse("faculty:view_grant", kwargs={'unit_slug': self.unit.slug, 'grant_slug': self.slug})
 
     def update_balance(self, balance, spent_this_month, actual, date=datetime.datetime.today()):
         gb = GrantBalance.objects.create(
@@ -783,7 +783,7 @@ class Grant(models.Model):
         for o in self.grantowner_set.all():
             p = o.person
             if Role.objects.filter(unit__in=units, role='FAC', person=p).exists():
-                url = reverse('faculty.views.summary', kwargs={'userid': p.userid_or_emplid()})
+                url = reverse('faculty:summary', kwargs={'userid': p.userid_or_emplid()})
                 res.append('<a href="%s">%s</a>' %(escape(url), escape(o.person.name())))
             else:
                 res.append(escape(o.person.name()))
@@ -827,7 +827,7 @@ class FacultyMemberInfo(models.Model):
         return u'<FacultyMemberInfo({})>'.format(self.person)
 
     def get_absolute_url(self):
-        return reverse('faculty.views.faculty_member_info',
+        return reverse('faculty:faculty_member_info',
                        args=[self.person.userid_or_emplid()])
 
 

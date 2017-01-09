@@ -158,7 +158,7 @@ def view_page(request, course_slug, page_label):
             and not page.config.get('prevent_redirect', False) ):
         # we have a migrated page and should redirect to the new location
         slug, label = page.config['migrated_to']
-        url = reverse(view_page, kwargs={'course_slug': slug, 'page_label': label})
+        url = reverse('offering:pages:view_page', kwargs={'course_slug': slug, 'page_label': label})
 
         member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
         can_create = bool(member)
@@ -187,7 +187,7 @@ def view_page(request, course_slug, page_label):
     is_index = page_label=='Index'
     if is_index:
         # canonical-ize the index URL
-        url = reverse(index_page, kwargs={'course_slug': course_slug})
+        url = reverse('offering:pages:index_page', kwargs={'course_slug': course_slug})
         if request.path != url:
             return HttpResponseRedirect(url)
     
@@ -364,7 +364,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
                     offering.save()
                     messages.info(request, "Set course URL to new Index page.")
                 
-                return HttpResponseRedirect(reverse('pages.views.view_page', kwargs={'course_slug': course_slug, 'page_label': instance.label}))
+                return HttpResponseRedirect(reverse('offering:pages:view_page', kwargs={'course_slug': course_slug, 'page_label': instance.label}))
         else:
             form = Form(instance=page, offering=offering)
             if 'label' in request.GET:
@@ -415,7 +415,7 @@ def _delete_pagefile(request, course_slug, page_label, kind):
             val(url)
         except ValidationError:
             messages.error(request, "Bad redirect URL entered. Not deleted.")
-            return HttpResponseRedirect(reverse(edit_page, kwargs={'course_slug': course_slug, 'page_label': page.label}))
+            return HttpResponseRedirect(reverse('offering:pages:edit_page', kwargs={'course_slug': course_slug, 'page_label': page.label}))
 
         redir_version = PageVersion(page=page, title=version.title, redirect=redirect,
                                     editor=member, comment='automatically generated on deletion')
@@ -486,7 +486,7 @@ def import_page(request, course_slug, page_label):
                 pageform.initial['wikitext'] = wiki
                 
                 # URL for submitting that form
-                url = reverse(edit_page, kwargs={'course_slug': offering.slug, 'page_label': page.label})
+                url = reverse('offering:pages:edit_page', kwargs={'course_slug': offering.slug, 'page_label': page.label})
                 messages.warning(request, "Page has not yet been saved, but your HTML has been imported below.")
                 context = {'offering': offering, 'page': page, 'form': pageform, 'kind': 'Page', 'import': True, 'url': url}
                 return render(request, 'pages/edit_page.html', context)

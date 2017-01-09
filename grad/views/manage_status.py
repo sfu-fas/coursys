@@ -35,7 +35,7 @@ def manage_status(request, grad_slug):
                     description="Updated Status History for %s." % (grad.person),
                     related_object=status)
             l.save()                       
-            return HttpResponseRedirect(reverse('grad.views.manage_status', kwargs={'grad_slug':grad_slug}))
+            return HttpResponseRedirect(reverse('grad:manage_status', kwargs={'grad_slug':grad_slug}))
     else:
         form = GradStatusForm(initial={'start': Semester.current(), 'start_date': None})
         form.fields['status'].choices = status_choices

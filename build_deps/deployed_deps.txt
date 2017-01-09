@@ -1,7 +1,7 @@
-python-memcached==1.54
+python-memcached==1.58
 django-dbdump==1.1
-elasticsearch==1.6.0
-lxml==3.4.4
-gunicorn==19.3.0
+elasticsearch==5.0.1
+lxml==3.7.1
+gunicorn==19.6.0
 MySQL-python==1.2.5
-paramiko>=2.0.2
+paramiko>=2.1.1

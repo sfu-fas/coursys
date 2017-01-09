@@ -20,7 +20,7 @@ def view_capabilities(request):
         capabilities.append(TeachingCapability.objects.filter(course=c))
     course_capabilities_list = zip(courses, capabilities)
 
-    return render_to_response("planning/view_capabilities.html",
+    return render(request, "planning/view_capabilities.html",
                               {'capabilities_list': capabilities_list,
                                'course_capabilities_list': course_capabilities_list},
                               context_instance=RequestContext(request))

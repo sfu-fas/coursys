@@ -41,13 +41,13 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li><a href="{% url "grad:index" %}">Grad</a></li>
 <li>Search</li>
 {% endblock %}
 
 {% block content %}
 {% if savedsearch %}
-<form id="searchform" action="{% url "grad.views.delete_savedsearch" %}" method="post">
+<form id="searchform" action="{% url "grad:delete_savedsearch" %}" method="post">
 
 <input type="hidden" name="person" value="{{ savedsearch.person.pk }}" id="id_person">
 <input type="hidden" name="query" value="{{ savedsearch.query }}" id="id_query">
@@ -58,7 +58,7 @@
 {% endif %}
 <p class="helptext">If you don't make a selection in a category, that category is ignored. Unless specified, all multiple select searches will search for any of the conditions.</p>
 <div class="form_container">
-    <form id="searchform" action="{% url "grad.views.search" %}" method="get">
+    <form id="searchform" action="{% url "grad:search" %}" method="get">
         <fieldset>
             <h2 class="formheaderopen">Status</h2>
             <div class="formsection">{{ form|as_dl_includefields:form.status_fields }}</div>

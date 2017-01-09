@@ -26,7 +26,7 @@ def manage_financialcomments(request, grad_slug):
               related_object=comment )
             l.save()
             
-            return HttpResponseRedirect(reverse('grad.views.manage_financialcomments', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:manage_financialcomments', kwargs={'grad_slug':grad.slug}))
     else:
         form = FinancialCommentForm(initial={
                 'student':grad, 

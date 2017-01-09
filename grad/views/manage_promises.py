@@ -34,7 +34,7 @@ def manage_promises(request, grad_slug):
                   related_object=promise )
                 l.save()
                 
-                return HttpResponseRedirect(reverse('grad.views.manage_promises', kwargs={'grad_slug':grad.slug}))
+                return HttpResponseRedirect(reverse('grad:manage_promises', kwargs={'grad_slug':grad.slug}))
     else:
         form = PromiseForm(initial={'student':grad, 'start_semester':Semester.get_semester(), 'end_semester':Semester.get_semester(), 'amount':'0.00'})
     

@@ -5,9 +5,9 @@
 {% block h1 %}Completed {{ form.title }} [{{ form.unit.label }}]{% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-    <li><a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
-    <li><a href="{% url "onlineforms.views.admin_completed" %}">Completed</a></li>
+    <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms:admin_list_all" %}">Admin Forms</a></li>
+    <li><a href="{% url "onlineforms:admin_completed" %}">Completed</a></li>
     <li>{{ form.title }} [{{ form.unit.label }}]</li>
 {% endblock %}
 
@@ -27,7 +27,7 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url "onlineforms.views.summary_csv" form_slug=form.slug %}">Summary of submissions</a></li>
+        <li><a href="{% url "onlineforms:summary_csv" form_slug=form.slug %}">Summary of submissions</a></li>
     </ul>
 </div>{% endblock %}
 
@@ -42,7 +42,7 @@
             </thead>
             {% for form_sub in formsubs %}
                 <tr>
-                    <td><a href="{% url "onlineforms.views.view_submission" form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
+                    <td><a href="{% url "onlineforms:view_submission" form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
                     <td><span class="sort">{{ form_sub.last_sheet_completion.isoformat }}</span>{{ form_sub.last_sheet_completion }}</td>
                 </tr>
               {% endfor %}

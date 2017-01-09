@@ -6,7 +6,7 @@
 {% block h1 %}Edit AnyPerson{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "coredata.views.list_anypersons" %}">Anypersons</a></li>
+<li><a href="{% url "sysadmin:list_anypersons" %}">Anypersons</a></li>
 <li>Edit AnyPerson</li>
 {% endblock %}
 
@@ -28,7 +28,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-<form action="{% url "coredata.views.edit_anyperson" anyperson_id=anyperson_id %}" method="post">
+<form action="{% url "sysadmin:edit_anyperson" anyperson_id=anyperson_id %}" method="post">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>

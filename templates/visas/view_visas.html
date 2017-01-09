@@ -33,7 +33,7 @@ function confirmDelete() {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "visas.views.new_visa" %}">Add New Visa</a></li>
+        <li><a href="{% url "visas:new_visa" %}">Add New Visa</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -67,7 +67,7 @@ function confirmDelete() {
                     <td>{{ visa.get_validity }}</td>
                     <td>
                         <form class="lineform" method="POST"
-                              action="{% url "visas.views.delete_visa" visa_id=visa.id %}"
+                              action="{% url "visas:delete_visa" visa_id=visa.id %}"
                               onsubmit="return confirmDelete()">
                             {% csrf_token %}
                             <button type='submit' class='btn' title="Hide Visa">
@@ -75,13 +75,13 @@ function confirmDelete() {
                             </button>
                         </form>
                         <form class="lineform" method="GET"
-                            action="{% url "visas.views.edit_visa" visa_id=visa.id %}">
+                            action="{% url "visas:edit_visa" visa_id=visa.id %}">
                             <button type='submit' class='btn' title="Edit Visa">
                                 <i class='fa fa-edit'></i>
                             </button>
                         </form>
                         <form class="lineform" method="GET"
-                            action="{% url "visas.views.view_visa" visa_id=visa.id %}">
+                            action="{% url "visas:view_visa" visa_id=visa.id %}">
                             <button type='submit' class='btn' title="View Visa">
                                 <i class='fa fa-eye'></i>
                             </button>
@@ -91,7 +91,7 @@ function confirmDelete() {
             {% endfor %}
         </tbody>
     </table>
-    <a href="{% url 'visas.views.download_visas_csv' %}">
+    <a href="{% url 'visas:download_visas_csv' %}">
         <i class="fa fa-li fa-download"></i> Download CSV
     </a>
 {% else %}

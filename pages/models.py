@@ -113,9 +113,9 @@ class Page(models.Model):
 
     def get_absolute_url(self):
         if self.label == 'Index':
-            return reverse('pages.views.index_page', kwargs={'course_slug': self.offering.slug})
+            return reverse('offering:pages:index_page', kwargs={'course_slug': self.offering.slug})
         else:
-            return reverse('pages.views.view_page', kwargs={'course_slug': self.offering.slug, 'page_label': self.label})
+            return reverse('offering:pages:view_page', kwargs={'course_slug': self.offering.slug, 'page_label': self.label})
 
     def version_cache_key(self):
         return "page-curver-" + str(self.id)
