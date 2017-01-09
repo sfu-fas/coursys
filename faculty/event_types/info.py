@@ -343,20 +343,13 @@ class ResumeEventHandler(CareerEventHandlerBase):
             self.fields['comments'].help_text = 'Enter details about the event or note here.'
             self.fields['comments'].required = True
 
-        def is_valid(self):
-            print self.files
-            if super(ResumeEventHandler.EntryForm, self).is_valid():
-                event = self.handler.event
-                ResumeEventHandler.add_attachment(self.handler, event, self.files, self.editor)
-                return True
-            else:
-                return False
 
 
     def short_summary(self):
         return 'Resume / CV'
 
-    def add_attachment(self, event, filedata, editor):
+    @classmethod
+    def add_attachment(cls, event, filedata, editor):
         from ..models import DocumentAttachment
         upfile = filedata['file']
         filetype = upfile.content_type

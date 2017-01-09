@@ -45,6 +45,7 @@ from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.choices import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+from faculty.event_types.info import ResumeEventHandler
 from coredata.models import AnyPerson
 from dashboard.letters import position_yellow_form_limited, position_yellow_form_tenure
 from log.models import LogEntry
@@ -1016,6 +1017,7 @@ def summary(request, userid):
     editor = get_object_or_404(Person, userid=request.user.username)
     career_events = CareerEvent.objects.not_deleted().only_subunits(request.units).filter(person=person)
     filterform = EventFilterForm()
+    resume = career_events.filter(event_type='RESUME').order_by('start_date').last()
 
     context = {
         'person': person,
@@ -1023,6 +1025,7 @@ def summary(request, userid):
         'career_events': career_events,
         'filterform': filterform,
         'can_wizard': not career_events.exclude(event_type='GRANTAPP').exists(),
+        'resume': resume
     }
     return render(request, 'faculty/summary.html', context)
 
@@ -1573,17 +1576,19 @@ def create_event(request, userid, event_type):
 
     if request.method == "POST":
         form = Handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
-        # We have at least one event handler that takes in a file upload.  If we run accross file data, inject it into
-        # the form.
+        # If the form has a file field, we should put the file data back in there.  Make sure the actual field is called
+        # "files" in the form!
         if len(request.FILES) != 0:
-            print request.FILES
             form.files = request.FILES
-            form.handler = Handler
 
         if form.is_valid():
             handler = Handler.create_for(person=person, form=form)
             handler.save(editor)
             handler.set_status(editor)
+            if isinstance(handler, ResumeEventHandler):
+                # The ResumeEventHandler has to create an attachment at this point.
+                ResumeEventHandler.add_attachment(event=handler.event, filedata=request.FILES, editor=editor)
+
             return HttpResponseRedirect(handler.event.get_absolute_url())
         else:
             context.update({"event_form": form})

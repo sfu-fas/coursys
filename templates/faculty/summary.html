@@ -54,6 +54,9 @@ $(document).ready(function() {
         <i class="fa fa-li fa-random"></i> Career Timeline
       </a>
     </li>
+        {% if resume %}
+            <li><a href="{{ resume.get_absolute_url }}"><i class="fa fa-li fa-address-card"></i> Show latest resume</a></li>
+        {% endif %}
     {% endif %}
   </ul>
 </div>
