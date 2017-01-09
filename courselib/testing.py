@@ -114,7 +114,7 @@ def test_views(testcase, client, view_prefix, views, url_args, qs=None):
                 url += '?' + qs
             response = basic_page_tests(testcase, client, url)
         except Exception as e:
-            print "failing with view=" + view
+            print "failing with view=%s; kwargs=%s" % (view, url_args)
             raise
 
 

@@ -47,8 +47,8 @@ function form_change() {
     <form action="{% url "offering:discipline:edit_case_info" field='penalty' course_slug=course.slug case_slug=case.slug %}" method="post" onchange="form_change();">{% csrf_token %}
     <hr class="fieldsep" />
     <div class="discside" id="group_penalty"></div>
-    <p>{{ form.penalty.help_text }}
-    	{{ form.penalty }}</p>
+    <p>{{ form.penalty.help_text }}</p>
+    {{ form.penalty }}
 
     <hr class="fieldsep" />
     <div class="discside" id="group_refer"></div>
