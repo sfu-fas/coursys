@@ -10,7 +10,8 @@
 
 {% block subbreadcrumbs %}
     {% if user_role == "ADMN" %}
-    <li><a href="{% url "tugs:all_tugs_admin" %}">All TUGs</a> {{tug.member.person}}</li>
+    <li><a href="{% url "tugs:all_tugs_admin" %}">All TUGs</a></li>
+	<li>{{tug.member.person}}</li>
     {% else %}
     <li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
     <li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li>

@@ -270,7 +270,7 @@ def _edit_tug(request, course_slug, userid, tug=None):
         if form.is_valid():
             tug = form.save(False)
             tug.save(newsitem_author=Person.objects.get(userid=request.user.username))
-            return HttpResponseRedirect(reverse('ta:view_tug', args=(course.slug, userid)))
+            return HttpResponseRedirect(reverse('offering:view_tug', args=(course.slug, userid)))
     else:
         form = TUGForm(instance=tug, offering=course, userid=userid, enforced_prep_min=prep_min, initial={
             'holiday':{'total': holiday_hours},
