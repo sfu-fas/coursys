@@ -67,7 +67,7 @@ class DashboardTest(TestCase):
         Check the requires_course_staff_by_slug decorator.
         """
         # a URL and some members/non-members
-        url = reverse('grades.views.class_list', kwargs={'course_slug': TEST_COURSE_SLUG})
+        url = reverse('offering:class_list', kwargs={'course_slug': TEST_COURSE_SLUG})
         instr = "ggbaker"
         ta = Member.objects.filter(offering__slug=TEST_COURSE_SLUG, role='TA')[0].person.userid
         student = "0aaa0"
@@ -101,7 +101,7 @@ class DashboardTest(TestCase):
         Test impersonation logic
         """
         client = Client()
-        url = reverse('groups.views.groupmanage', kwargs={'course_slug': TEST_COURSE_SLUG})
+        url = reverse('offering:groups:groupmanage', kwargs={'course_slug': TEST_COURSE_SLUG})
 
         # login as a sysadmin
         client.login_user('pba7')
@@ -140,12 +140,12 @@ class DashboardTest(TestCase):
         self.assertContains(response, 'Logged in as 0aaa0')
         
         # try some other course: shouldn't be able to impersonate
-        url = reverse('groups.views.groupmanage', kwargs={'course_slug': '1114-cmpt-310-d100'})
+        url = reverse('offering:groups:groupmanage', kwargs={'course_slug': '1114-cmpt-310-d100'})
         response = client.get(url, {"__impersonate": "0aaa0"})
         self.assertEquals(response.status_code, 403)
         # try non-course URL as non-admin: shouldn't be able to impersonate
         client.login_user("diana")
-        url = reverse('dashboard.views.index', kwargs={})
+        url = reverse('dashboard:index', kwargs={})
         response = client.get(url, {"__impersonate": "0aaa0"})
         self.assertEquals(response.status_code, 403)
 
@@ -158,14 +158,14 @@ class DashboardTest(TestCase):
         client = Client()
         userid = "0aaa0"
         client.login_user(userid)
-        configurl = reverse('dashboard.views.config', kwargs={})
+        configurl = reverse('config:config', kwargs={})
         response = client.get(configurl)
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, "You do not currently have the external news feed")
         self.assertContains(response, "You do not currently have the external calendar")
         
         # activate calendar
-        url = reverse('dashboard.views.create_calendar_url', kwargs={})
+        url = reverse('config:create_calendar_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
         self.assertEquals(response.status_code, 302)
 
@@ -180,14 +180,14 @@ class DashboardTest(TestCase):
         token = uc.value['token']
         self.assertIsNotNone(tokenre.match(token))
         
-        url = reverse('dashboard.views.calendar_ical', kwargs={'token': token, 'userid': userid})
+        url = reverse('calendar:calendar_ical', kwargs={'token': token, 'userid': userid})
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, "BEGIN:VCALENDAR")
         self.assertContains(response, "END:VCALENDAR")
         
         # change calendar URL
-        url = reverse('dashboard.views.create_calendar_url', kwargs={})
+        url = reverse('config:create_calendar_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
         self.assertEquals(response.status_code, 302)
         confs = UserConfig.objects.filter(user__userid=userid, key='calendar-config')
@@ -195,14 +195,14 @@ class DashboardTest(TestCase):
         self.assertNotEqual(token, confs[0].value['token'])
         
         # disable and re-enable calendar URL
-        url = reverse('dashboard.views.disable_calendar_url', kwargs={})
+        url = reverse('config:disable_calendar_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
         self.assertEquals(response.status_code, 302)
         confs = UserConfig.objects.filter(user__userid=userid, key='calendar-config')
         self.assertEquals(len(confs), 1)
         self.assertTrue('token' not in confs[0].value)
         
-        url = reverse('dashboard.views.create_calendar_url', kwargs={})
+        url = reverse('config:create_calendar_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
         confs = UserConfig.objects.filter(user__userid=userid, key='calendar-config')
         self.assertEquals(len(confs), 1)
@@ -211,7 +211,7 @@ class DashboardTest(TestCase):
 
 
         # activate feed
-        url = reverse('dashboard.views.create_news_url', kwargs={})
+        url = reverse('config:create_news_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
         self.assertEquals(response.status_code, 302)
 
@@ -226,13 +226,13 @@ class DashboardTest(TestCase):
         token = uc.value['token']
         self.assertIsNotNone(tokenre.match(token))
         
-        url = reverse('dashboard.views.atom_feed', kwargs={'token': token, 'userid': userid})
+        url = reverse('news:atom_feed', kwargs={'token': token, 'userid': userid})
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, '<feed xmlns="http://www.w3.org/2005/Atom">')
         
         # change feed URL
-        url = reverse('dashboard.views.create_news_url', kwargs={})
+        url = reverse('config:create_news_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
         self.assertEquals(response.status_code, 302)
         confs = UserConfig.objects.filter(user__userid=userid, key='feed-token')
@@ -240,13 +240,13 @@ class DashboardTest(TestCase):
         self.assertNotEqual(token, confs[0].value['token'])
         
         # disable and re-enable feed URL
-        url = reverse('dashboard.views.disable_news_url', kwargs={})
+        url = reverse('config:disable_news_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
         self.assertEquals(response.status_code, 302)
         confs = UserConfig.objects.filter(user__userid=userid, key='feed-token')
         self.assertEquals(len(confs), 0)
         
-        url = reverse('dashboard.views.create_news_url', kwargs={})
+        url = reverse('config:create_news_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
         confs = UserConfig.objects.filter(user__userid=userid, key='feed-token')
         self.assertEquals(len(confs), 1)
@@ -258,15 +258,17 @@ class DashboardTest(TestCase):
         
         # as instructor
         c.login_user(person.userid)
-        test_views(self, c, 'dashboard.views.', ['index', 'index_full', 'news_list', 'config', 'calendar',
-                'create_calendar_url', 'disable_calendar_url', 'news_config', 'create_news_url',
-                'disable_news_url', 'list_docs', 'photo_agreement'], {})
-        test_views(self, c, 'dashboard.views.', ['view_doc'], {'doc_slug': 'impersonate'})
+        test_views(self, c, 'dashboard:', ['index', 'index_full'], {})
+        test_views(self, c, 'config:', ['config', 'news_config', 'photo_agreement', 'create_calendar_url', 'disable_calendar_url', 'create_news_url', 'disable_news_url'], {})
+        test_views(self, c, 'calendar:', ['calendar'], {})
+        test_views(self, c, 'news:', ['news_list'], {})
+        test_views(self, c, 'docs:', ['list_docs'], {})
+        test_views(self, c, 'docs:', ['view_doc'], {'doc_slug': 'impersonate'})
 
         # admin views for signatures
         r = Role.objects.filter(role='ADMN')[0]
         c.login_user(r.person.userid)
-        test_views(self, c, 'dashboard.views.', ['signatures', 'new_signature'], {})
+        test_views(self, c, 'admin:', ['signatures', 'new_signature'], {})
 
 
 class DatetimeTest(TestCase):
@@ -286,12 +288,12 @@ class DatetimeTest(TestCase):
 
         c = Client()
         c.login_user(instr.userid)
-        test_views(self, c, 'dashboard.views.', ['index', 'news_list'], {})
+        test_views(self, c, '', ['dashboard:index', 'news:news_list'], {})
 
         n.published = datetime.datetime(2014, 11, 2, 1, 30, 0) # there are two of this time because of the DST transition
         n.save()
 
-        test_views(self, c, 'dashboard.views.', ['index', 'news_list'], {})
+        test_views(self, c, '', ['dashboard:index', 'news:news_list'], {})
 
 
 class FulltextTest(TestCase):

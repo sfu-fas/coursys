@@ -17,9 +17,9 @@ $(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li>
-<li><a href="{% url "reports.views.view_report" report=report.slug %}">{{report.name}}</a> </li>
-<li><a href="{% url "reports.views.view_run" report=report.slug run=run.slug %}">Run: {{ run.created_at }}</a> </li>
+<li><a href="{% url "reports:view_reports" %}">Reports</a></li>
+<li><a href="{% url "reports:can_access_report" report=report.slug %}">{{report.name}}</a> </li>
+<li><a href="{% url "reports:can_access_report" report=report.slug run=run.slug %}">Run: {{ run.created_at }}</a> </li>
 <li>Result: {{result.name}} {{result.created_at}} </li>
 {% endblock %}
 

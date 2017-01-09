@@ -2,7 +2,7 @@
 
 {% block title %}{{version.title}}{% endblock %}
 {% block h1 %}{{version.title}}{% endblock %}
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>Pages</li>{% else %}<li><a href="{% url "pages.views.index_page" course_slug=offering.slug %}">Pages</a></li>{% if is_old %}<li><a href="{% url "pages.views.view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>Previous Version</li>{% else %}<li>{{page.label}}</li>{% endif %}{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>Pages</li>{% else %}<li><a href="{% url "offering:pages:index_page" course_slug=offering.slug %}">Pages</a></li>{% if is_old %}<li><a href="{% url "offering:pages:view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>Previous Version</li>{% else %}<li>{{page.label}}</li>{% endif %}{% endif %}{% endblock %}
 
 {% block headextra %}
 {% if version.math %}
@@ -35,11 +35,11 @@ MathJax.Hub.Config({
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    {% if is_old %}<li><a href="{% url "pages.views.view_page" course_slug=offering.slug page_label=page.label %}">View current version</a></li>{% endif %}
-    {% if is_index %}<li><a href="{% url "pages.views.all_pages" course_slug=offering.slug %}">List All Pages</a></li>{% endif %}
+    {% if is_old %}<li><a href="{% url "offering:pages:view_page" course_slug=offering.slug page_label=page.label %}">View current version</a></li>{% endif %}
+    {% if is_index %}<li><a href="{% url "offering:pages:all_pages" course_slug=offering.slug %}">List All Pages</a></li>{% endif %}
     {% if can_edit %}
-    <li><a href="{% url "pages.views.edit_page" course_slug=offering.slug page_label=page.label %}">Edit this {% if version.is_filepage %}file{% else %}page{% endif %}</a></li>
-    <li><a href="{% url "pages.views.page_history" course_slug=offering.slug page_label=page.label %}">View History</a></li>{% endif %}
+    <li><a href="{% url "offering:pages:edit_page" course_slug=offering.slug page_label=page.label %}">Edit this {% if version.is_filepage %}file{% else %}page{% endif %}</a></li>
+    <li><a href="{% url "offering:pages:page_history" course_slug=offering.slug page_label=page.label %}">View History</a></li>{% endif %}
     </ul>
 </div>
 {% endif %}
@@ -50,7 +50,7 @@ MathJax.Hub.Config({
 {% if redirect_url %}<div class="infomessage">This page has been configured to <a href="{{ redirect_url }}">redirect to its new location</a>. Non-instructors will be taken there automatically.</div>{% endif %}
 
 {% if version.is_filepage %}
-<p>View file <a href="{% url "pages.views.view_file" course_slug=offering.slug page_label=page.label %}">{{version.file_name}}</a> ({{version.file_attachment.size|filesizeformat}}), or <a href="{% url "pages.views.download_file" course_slug=offering.slug page_label=page.label %}">download</a>.</p>
+<p>View file <a href="{% url "offering:pages:view_file" course_slug=offering.slug page_label=page.label %}">{{version.file_name}}</a> ({{version.file_attachment.size|filesizeformat}}), or <a href="{% url "offering:pages:download_file" course_slug=offering.slug page_label=page.label %}">download</a>.</p>
 {% else %}
 <div class="wikicontents">{{ version.html_contents }}</div>
 {% endif %}

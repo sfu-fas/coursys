@@ -5,13 +5,13 @@
 {% block h1 %}Edit Account{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra.views.search" %}">RAs</a></li>
-<li><a href="{% url "ra.views.accounts_index" %}">Accounts</a></li>
+<li><a href="{% url "ra:search" %}">RAs</a></li>
+<li><a href="{% url "ra:accounts_index" %}">Accounts</a></li>
 <li>Edit {{ account.account_number}} - {{ account.title }}</li>{% endblock %}
 
 {% block content %}
   <div class="form_container">
-    <form action="{% url "ra.views.edit_account" account_slug=account.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "ra:edit_account" account_slug=account.slug %}" method="post">{% csrf_token %}
       <fieldset>
         {{ accountform|as_dl }}
         <p><input type="submit" value="Submit" class="submit" /></p>

@@ -188,7 +188,7 @@ class DisciplineGroup(models.Model):
     def __unicode__(self):
         return "%s in %s" % (self.name, self.offering)
     def get_absolute_url(self):
-        return reverse('discipline.views.showgroup', kwargs={'course_slug': self.offering.slug, 'group_slug': self.slug})
+        return reverse('offering:discipline:showgroup', kwargs={'course_slug': self.offering.slug, 'group_slug': self.slug})
     class Meta:
         unique_together = (("name", "offering"),)
 
@@ -290,7 +290,7 @@ class DisciplineCaseBase(models.Model):
         return str(self.id)
 
     def get_absolute_url(self):
-        return reverse('discipline.views.show', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug})
+        return reverse('offering:discipline:show', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug})
     def get_origsection(self):
         if not self.origsection:
             # no cached section: look up
@@ -426,7 +426,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
 
     def next_step_url(self):
         "The URL to edit view for the next step."
-        return reverse('discipline.views.edit_case_info',
+        return reverse('offering:discipline:edit_case_info',
             kwargs={'field': STEP_VIEW[self.next_step()], 'course_slug':self.offering.slug, 'case_slug': self.slug})
 
     def next_step_short(self):
@@ -481,7 +481,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         """
         html_body = render_to_string('discipline/letter_body.html', { 'case': self, 'currentuser': currentuser })
         text_body = "Letter is included here as an HTML message, or can be viewed online at this URL:\n%s" %\
-            (settings.BASE_ABS_URL + reverse('discipline.views.view_letter', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug}))
+            (settings.BASE_ABS_URL + reverse('offering:discipline:view_letter', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug}))
         self.letter_text = html_body
         self.letter_date = datetime.date.today()
         self.save()

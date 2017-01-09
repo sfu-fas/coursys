@@ -80,7 +80,7 @@ def create_topic(request, course_slug):
             topic.author = _get_member(request.user.username, view, course_slug)
             topic.save()
             messages.add_message(request, messages.SUCCESS, 'Discussion topic created successfully.')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
         form = discussion_topic_form_factory(view, creole=None)
     return render(request, 'discuss/create_topic.html', {'course': course, 'form': form})
@@ -107,7 +107,7 @@ def edit_topic(request, course_slug, topic_slug):
         if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS, 'Discussion topic edited successfully.')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
         form = discussion_topic_form_factory(view, creole=None, instance=topic)
     
@@ -148,7 +148,7 @@ def view_topic(request, course_slug, topic_slug):
             message.author = _get_member(request.user.username, view, course_slug)
             message.save()
             messages.add_message(request, messages.SUCCESS, 'Sucessfully replied')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
         form = DiscussionMessageForm(creole=None)
     context = {'course': course, 'topic': topic, 'replies': replies, 'view': view, 'form': form,
@@ -173,7 +173,7 @@ def change_topic_status(request, course_slug, topic_slug):
         if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS, 'Discussion topic has been successfully changed.')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
         form = DiscussionTopicStatusForm(instance=topic)
     return render(request, 'discuss/change_topic.html', {'course': course, 'topic': topic, 'form': form})
@@ -202,7 +202,7 @@ def edit_message(request, course_slug, topic_slug, message_slug):
         if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS, 'Reply successfully edited.')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
         form = DiscussionMessageForm(instance=message, creole=None)
     return render(request, 'discuss/edit_reply.html', {'course':course, 'topic': topic, 'message': message, 'form': form})
@@ -225,7 +225,7 @@ def remove_message(request, course_slug, topic_slug, message_slug):
         message.status = 'HID'
         message.save()
         messages.add_message(request, messages.SUCCESS, 'Reply successfully removed.')
-        return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic_slug}))
+        return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic_slug}))
     else:
         return HttpResponseForbidden()
     
@@ -247,7 +247,7 @@ def manage_discussion_subscription(request, course_slug):
             sub.member = member
             sub.save()
             messages.add_message(request, messages.SUCCESS, 'Updated your discussion subscription.')
-            return HttpResponseRedirect(reverse('discuss.views.discussion_index', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:discussion_index', kwargs={'course_slug': course_slug}))
         
     else:
         form = DiscussionSubscriptionForm(instance=sub)
@@ -273,7 +273,7 @@ def manage_topic_subscription(request, course_slug, topic_slug):
             sub.topic = topic
             sub.save()
             messages.add_message(request, messages.SUCCESS, 'Updated your subscription to "%s".' % (topic.title))
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic_slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic_slug}))
         
     else:
         form = TopicSubscriptionForm(instance=sub)

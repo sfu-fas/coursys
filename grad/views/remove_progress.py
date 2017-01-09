@@ -22,5 +22,5 @@ def remove_progress(request, grad_slug, p_id):
                      related_object=progress)
         l.save()              
     
-    return HttpResponseRedirect(reverse('grad.views.manage_progress', 
+    return HttpResponseRedirect(reverse('grad:manage_progress', 
                                 kwargs={'grad_slug':grad_slug}))

@@ -76,7 +76,7 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
 
 def _committee_helptext():
     "Lazily generate the helptext so reverse isn't called until it is possible."
-    url = reverse('faculty.views.event_config', kwargs={'event_type': 'committee'})
+    url = reverse('faculty:event_config', kwargs={'event_type': 'committee'})
     h = mark_safe(u'More committees can be added on the <a href="%s">configuration</a> page' % (escape(url)))
     return h
 committee_helptext = lazy(_committee_helptext, SafeText)
@@ -199,7 +199,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
                 <td>{{ name }}</td>
                 <td>{{ ctteunit.informal_name }}</td>
                 <td>{{ unit.informal_name }}</td>
-                <!--<td><a href="{ url 'faculty.views.delete_event_flag' event_type=event_type_slug unit=unit.label flag=short }">Delete</a></td>-->
+                <!--<td><a href="{ url 'faculty:delete_event_flag' event_type=event_type_slug unit=unit.label flag=short }">Delete</a></td>-->
             </tr>
             {% endif %}
             {% endfor %}

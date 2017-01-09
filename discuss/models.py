@@ -87,7 +87,7 @@ class DiscussionTopic(models.Model):
                 s.notify(self)
         
     def get_absolute_url(self):
-        return reverse('discuss.views.view_topic', kwargs={'course_slug': self.offering.slug, 'topic_slug': self.slug})
+        return reverse('offering:discussion:view_topic', kwargs={'course_slug': self.offering.slug, 'topic_slug': self.slug})
 
     def new_message_update(self):
         self.last_activity_at = datetime.datetime.now()
@@ -280,7 +280,7 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
             pass
         elif self.status in ['MAIL', 'ALLM']:
             url = settings.BASE_ABS_URL + topic.get_absolute_url()
-            editurl = settings.BASE_ABS_URL + reverse('discuss.views.manage_discussion_subscription', 
+            editurl = settings.BASE_ABS_URL + reverse('offering:discussion:manage_discussion_subscription', 
                     kwargs={'course_slug': self.member.offering.slug})
             subject = 'New discussion in %s' % (topic.offering.name())
             context = {'topic': topic, 'url': url, 'editurl': editurl,
@@ -295,7 +295,7 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
             pass
         elif self.status == 'ALLM':
             url = settings.BASE_ABS_URL + message.get_absolute_url()
-            editurl = settings.BASE_ABS_URL + reverse('discuss.views.manage_discussion_subscription',
+            editurl = settings.BASE_ABS_URL + reverse('offering:discussion:manage_discussion_subscription',
                     kwargs={'course_slug': self.member.offering.slug})
             subject = 'New discussion on "%s"' % (message.topic.title)
             context = {'topic': message.topic, 'message': message, 'url': url, 'editurl': editurl,
@@ -321,7 +321,7 @@ class TopicSubscription(models.Model, _DiscussionEmailMixin):
             pass
         elif self.status == 'MAIL':
             url = settings.BASE_ABS_URL + message.get_absolute_url()
-            editurl = settings.BASE_ABS_URL + reverse('discuss.views.manage_topic_subscription',
+            editurl = settings.BASE_ABS_URL + reverse('offering:discussion:manage_topic_subscription',
                     kwargs={'course_slug': self.member.offering.slug, 'topic_slug': self.topic.slug})
             subject = 'New discussion on "%s"' % (message.topic.title)
             context = {'topic': self.topic, 'message': message, 'url': url, 'editurl': editurl,

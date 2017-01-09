@@ -28,13 +28,13 @@ def sysadmin(request):
         form = SysAdminSearchForm(request.GET)
         if form.is_valid() and form.cleaned_data['user']:
             emplid = form.cleaned_data['user'].emplid
-            return HttpResponseRedirect(reverse(user_summary, kwargs={'userid': emplid}))
+            return HttpResponseRedirect(reverse('sysadmin:user_summary', kwargs={'userid': emplid}))
     elif 'offeringsearch' in request.GET:
         # course offering search
         form = SysAdminSearchForm(request.GET)
         if form.is_valid() and form.cleaned_data['offering']:
             offering = form.cleaned_data['offering']
-            return HttpResponseRedirect(reverse(offering_summary, kwargs={'course_slug': offering.slug}))
+            return HttpResponseRedirect(reverse('sysadmin:offering_summary', kwargs={'course_slug': offering.slug}))
     else:
         form = SysAdminSearchForm()
     
@@ -61,7 +61,7 @@ def new_role(request, role=None):
                   description=("new role: %s as %s") % (form.instance.person.userid, form.instance.role),
                   related_object=form.instance)
             l.save()
-            return HttpResponseRedirect(reverse(role_list))
+            return HttpResponseRedirect(reverse('sysadmin:role_list'))
     else:
         form = RoleForm()
 
@@ -78,7 +78,7 @@ def delete_role(request, role_id):
     l.save()
     
     role.delete()
-    return HttpResponseRedirect(reverse(role_list))
+    return HttpResponseRedirect(reverse('sysadmin:role_list'))
 
 
 
@@ -108,7 +108,7 @@ def edit_unit(request, unit_slug=None):
                   description=("edited unit %s") % (form.instance.slug),
                   related_object=unit)
             l.save()
-            return HttpResponseRedirect(reverse(unit_list))
+            return HttpResponseRedirect(reverse('sysadmin:unit_list'))
     else:
         form = UnitForm(instance=unit)
     
@@ -142,7 +142,7 @@ def edit_member(request, member_id=None):
                   description=("edited membership: %s as %s in %s") % (form.instance.person.userid, form.instance.role, form.instance.offering),
                   related_object=form.instance)
             l.save()
-            return HttpResponseRedirect(reverse(members_list))
+            return HttpResponseRedirect(reverse('sysadmin:members_list'))
     elif member_id:
         form = MemberForm(instance=member, initial={'person': member.person.userid})
     else:
@@ -189,7 +189,7 @@ def new_person(request):
                   description=("new person added: %s (%s)") % (form.instance.name(), form.instance.userid),
                   related_object=form.instance)
             l.save()
-            return HttpResponseRedirect(reverse(sysadmin))
+            return HttpResponseRedirect(reverse('sysadmin:sysadmin'))
     else:
         form = PersonForm()
 
@@ -235,7 +235,7 @@ def edit_semester(request, semester_name=None):
                   related_object=sem)
             l.save()
             messages.success(request, 'Edited semester %s.' % (sem.name))
-            return HttpResponseRedirect(reverse('coredata.views.semester_list', kwargs={}))
+            return HttpResponseRedirect(reverse('sysadmin:semester_list', kwargs={}))
     else:
         form = SemesterForm(instance=semester, prefix='sem')
         week_formset = SemesterWeekFormset(queryset=SemesterWeek.objects.filter(semester=semester), prefix='week')
@@ -293,7 +293,7 @@ def new_combined(request):
                   related_object=combined)
             l.save()
             messages.success(request, 'Created combined offering.')
-            return HttpResponseRedirect(reverse('coredata.views.combined_offerings', kwargs={}))
+            return HttpResponseRedirect(reverse('sysadmin:combined_offerings', kwargs={}))
     else:
         # set up creation form from the offering given
         initial = {
@@ -331,7 +331,7 @@ def add_combined_offering(request, pk):
                       related_object=combined)
                 l.save()
                 messages.success(request, 'Added offering.')
-                return HttpResponseRedirect(reverse('coredata.views.combined_offerings', kwargs={}))
+                return HttpResponseRedirect(reverse('sysadmin:combined_offerings', kwargs={}))
     else:
         form = OneOfferingForm()
 
@@ -364,7 +364,7 @@ def admin_panel(request):
             return render(request, 'coredata/admin_panel_tab.html', {'tasks': True})
         elif request.GET['content'] == 'request':
             import pprint
-            return render(request, 'coredata/admin_panel_tab.html', {'request': pprint.pformat(request.__dict__)})
+            return render(request, 'coredata/admin_panel_tab.html', {'the_request': pprint.pformat(request.__dict__)})
         elif request.GET['content'] == 'git':
             git = {}
             git['branch'] = panel.git_branch()
@@ -425,7 +425,7 @@ def delete_anyperson(request, anyperson_id):
                  related_object=anyperson)
     l.save()
 
-    return HttpResponseRedirect(reverse(list_anypersons))
+    return HttpResponseRedirect(reverse('sysadmin:list_anypersons'))
 
 
 @requires_global_role("SYSA")
@@ -444,7 +444,7 @@ def add_anyperson(request):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse(list_anypersons))
+            return HttpResponseRedirect(reverse('sysadmin:list_anypersons'))
     else:
         form = AnyPersonForm()
 
@@ -468,7 +468,7 @@ def edit_anyperson(request, anyperson_id):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse(list_anypersons))
+            return HttpResponseRedirect(reverse('sysadmin:list_anypersons'))
     else:
         initial_values = {}
         if anyperson.person:
@@ -490,7 +490,7 @@ def delete_empty_anypersons(request):
                              u'Deleted %s empty AnyPersonn(s).' % unicode(res)
                              )
 
-        return HttpResponseRedirect(reverse(list_anypersons))
+        return HttpResponseRedirect(reverse('sysadmin:list_anypersons'))
 
 
 @requires_global_role("SYSA")
@@ -502,7 +502,7 @@ def list_futurepersons(request):
 
 @requires_global_role("SYSA")
 def edit_futureperson(request, futureperson_id):
-    return HttpResponseRedirect(reverse('faculty.views.edit_futureperson', kwargs={'futureperson_id': futureperson_id,
+    return HttpResponseRedirect(reverse('faculty:edit_futureperson', kwargs={'futureperson_id': futureperson_id,
                                                                                    'from_admin': 1}))
 
 
@@ -515,7 +515,7 @@ def delete_futureperson(request, futureperson_id):
                  description="deleted futureperson: %s" % futureperson,
                  related_object=futureperson)
     l.save()
-    return HttpResponseRedirect(reverse(list_futurepersons))
+    return HttpResponseRedirect(reverse('sysadmin:list_futurepersons'))
 
 @requires_global_role("SYSA")
 def add_futureperson(request):
@@ -537,7 +537,7 @@ def add_futureperson(request):
                          related_object=new_future_person
                          )
             l.save()
-            return HttpResponseRedirect(reverse(list_futurepersons))
+            return HttpResponseRedirect(reverse('sysadmin:list_futurepersons'))
 
     else:
         form = FuturePersonForm()
@@ -545,7 +545,7 @@ def add_futureperson(request):
 
 @requires_global_role("SYSA")
 def view_futureperson(request, futureperson_id):
-    return HttpResponseRedirect(reverse('faculty.views.view_futureperson', kwargs={'futureperson_id': futureperson_id,
+    return HttpResponseRedirect(reverse('faculty:view_futureperson', kwargs={'futureperson_id': futureperson_id,
                                                                                    'from_admin': 1}))
 
 @requires_global_role("SYSA")
@@ -563,7 +563,7 @@ def delete_roleaccount(request, roleaccount_id):
                  description="deleted roleaccount: %s" % roleaccount,
                  related_object=roleaccount)
     l.save()
-    return HttpResponseRedirect(reverse(list_roleaccounts))
+    return HttpResponseRedirect(reverse('sysadmin:list_roleaccounts'))
 
 @requires_global_role("SYSA")
 def edit_roleaccount(request, roleaccount_id):
@@ -582,7 +582,7 @@ def edit_roleaccount(request, roleaccount_id):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse(list_roleaccounts))
+            return HttpResponseRedirect(reverse('sysadmin:list_roleaccounts'))
     else:
         form = RoleAccountForm(instance=roleaccount)
 
@@ -604,7 +604,7 @@ def add_roleaccount(request):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse(list_roleaccounts))
+            return HttpResponseRedirect(reverse('sysadmin:list_roleaccounts'))
     else:
         form = RoleAccountForm()
 
@@ -652,7 +652,7 @@ def manage_tas(request, course_slug):
                   related_object=m)
             l.save()
             messages.success(request, 'Added %s as a TA.' % (p.name()))
-            return HttpResponseRedirect(reverse(manage_tas, kwargs={'course_slug': course.slug}))
+            return HttpResponseRedirect(reverse('offering:manage_tas', kwargs={'course_slug': course.slug}))
             
 
     elif request.method == 'POST' and 'action' in request.POST and request.POST['action']=='del':
@@ -668,7 +668,7 @@ def manage_tas(request, course_slug):
                   related_object=m)
             l.save()
             messages.success(request, 'Removed %s as a TA.' % (m.person.name()))
-        return HttpResponseRedirect(reverse(manage_tas, kwargs={'course_slug': course.slug}))
+        return HttpResponseRedirect(reverse('offering:manage_tas', kwargs={'course_slug': course.slug}))
 
     else:
         form = TAForm(offering=course)
@@ -710,7 +710,7 @@ def new_unit_role(request, role=None):
                   description=("new role: %s as %s in %s") % (form.instance.person.userid, form.instance.role, form.instance.unit),
                   related_object=form.instance)
             l.save()
-            return HttpResponseRedirect(reverse(unit_role_list))
+            return HttpResponseRedirect(reverse('admin:unit_role_list'))
     else:
         form = UnitRoleForm()
         form.fields['role'].choices = role_choices
@@ -731,7 +731,7 @@ def delete_unit_role(request, role_id):
     l.save()
     
     role.delete()
-    return HttpResponseRedirect(reverse(unit_role_list))
+    return HttpResponseRedirect(reverse('admin:unit_role_list'))
 
 
 @requires_role('ADMN')
@@ -752,7 +752,7 @@ def unit_address(request, unit_slug):
                   description=("updated contact info for %s") % (unit.label),
                   related_object=unit)
             l.save()
-            return HttpResponseRedirect(reverse('coredata.views.unit_admin'))
+            return HttpResponseRedirect(reverse('admin:unit_admin'))
     else:
         form = UnitAddressForm(unit=unit)
     context = {'unit': unit, 'form': form}
@@ -801,7 +801,7 @@ def missing_instructors(request, unit_slug):
                       related_object=r)
                 l.save()
             messages.success(request, 'Set instructor roles for %i people.' % (count))
-            return HttpResponseRedirect(reverse('coredata.views.unit_admin'))
+            return HttpResponseRedirect(reverse('admin:unit_admin'))
     else:
         formset = InstrRoleFormSet(initial=initial)
 
@@ -998,7 +998,7 @@ class OfferingDataJson(BaseDatatableView):
     def render_column(self, offering, column):
         if column == 'coursecode':
             txt = u'%s\u00a0%s\u00a0%s' % (offering.subject, offering.number, offering.section) # those are nbsps
-            url = reverse('coredata.views.browse_courses_info', kwargs={'course_slug': offering.slug})
+            url = reverse('browse:browse_courses_info', kwargs={'course_slug': offering.slug})
             col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
         elif column == 'instructors':
             col = offering.instructors_str()
@@ -1243,7 +1243,7 @@ def new_temporary_person(request):
                   description=("new temporary person: %s") % (p,),
                   related_object=p)
             l.save()
-            return HttpResponseRedirect(reverse(unit_admin))
+            return HttpResponseRedirect(reverse('admin:unit_admin'))
     else:
         form = TemporaryPersonForm()
 
@@ -1310,7 +1310,7 @@ def course_home_admin(request, course_slug):
                   description=("Updated course URL for %s.") % (offering.name()),
                   related_object=offering)
             l.save()
-            return HttpResponseRedirect(reverse(course_home_pages_unit, kwargs={'unit_slug': offering.owner.slug, 'semester': offering.semester.name}))
+            return HttpResponseRedirect(reverse('browse:course_home_pages_unit', kwargs={'unit_slug': offering.owner.slug, 'semester': offering.semester.name}))
 
     else:
         form = CourseHomePageForm(initial={'url': offering.url(), 'maillist': offering.maillist()})

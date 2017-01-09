@@ -271,13 +271,13 @@ class CoredataTest(TestCase):
         client = Client()
         client.login_user("test1")
 
-        url = reverse('coredata.views.role_list')
+        url = reverse('sysadmin:role_list')
         response = basic_page_tests(self, client, url)
         self.assertContains(response, 'Lname, Fname</a></td><td>System Administrator</td>')
 
         # add a new role with the front end
         oldcount = Role.objects.filter(role='FAC').count()
-        url = reverse('coredata.views.new_role')
+        url = reverse('sysadmin:new_role')
         response = basic_page_tests(self, client, url)
         
         response = client.post(url, {'person':'33333333', 'role':'FAC', 'unit': 2})
@@ -305,7 +305,7 @@ class SlowCoredataTest(TestCase):
         s, c = create_offering()
         
         # the main search/filter page
-        url = reverse('coredata.views.browse_courses')
+        url = reverse('browse:browse_courses')
         response = basic_page_tests(self, client, url)
 
         # AJAX request for table data
@@ -315,7 +315,7 @@ class SlowCoredataTest(TestCase):
         self.assertEquals(len(data['aaData']), 10)
 
         # courseoffering detail page
-        url = reverse('coredata.views.browse_courses_info', kwargs={'course_slug': TEST_COURSE_SLUG})
+        url = reverse('browse:browse_courses_info', kwargs={'course_slug': TEST_COURSE_SLUG})
         response = basic_page_tests(self, client, url)
     
     def test_ajax(self):
@@ -325,7 +325,7 @@ class SlowCoredataTest(TestCase):
         # test person autocomplete
         client.login_user("dzhao")
         p = Person.objects.get(userid='ggbaker')
-        url = reverse('coredata.views.student_search')
+        url = reverse('data:student_search')
         response = client.get(url, {'term': 'ggba'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'application/json')

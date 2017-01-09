@@ -85,7 +85,7 @@ class Report(models.Model):
             n = NewsItem( user=sysadmin,
                             source_app='reports',
                             title="Failed Report: " + self.name, 
-                            url= reverse('reports.views.view_run', kwargs={'report':self.slug, 'run':failed_run.slug}),
+                            url= reverse('reports:can_access_report', kwargs={'report':self.slug, 'run':failed_run.slug}),
                             content= "A run has failed! \n" + self.description );
             n.save()
 
@@ -213,7 +213,7 @@ class AccessRule(models.Model):
         n = NewsItem( user= self.person, 
                         source_app='reports',
                         title="Completed Run: " + self.report.name + " : " + run.slug, 
-                        url= reverse('reports.views.view_run', kwargs={'report':self.report.slug, 'run':run.slug}),
+                        url= reverse('reports:can_access_report', kwargs={'report':self.report.slug, 'run':run.slug}),
                         content= "You have a scheduled report that has completed! \n" + self.report.description );
         n.save()
 

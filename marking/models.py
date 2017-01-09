@@ -161,7 +161,7 @@ class StudentActivityMark(ActivityMark):
         activity = self.numeric_grade.activity      
         return "Marking for student [%s] for activity [%s]" %(student, activity)   
     def get_absolute_url(self):
-        return reverse('marking.views.mark_history_student', kwargs={'course_slug': self.numeric_grade.activity.offering.slug, 'activity_slug': self.numeric_grade.activity.slug, 'userid': self.numeric_grade.member.person.userid})
+        return reverse('offering:marking:mark_history_student', kwargs={'course_slug': self.numeric_grade.activity.offering.slug, 'activity_slug': self.numeric_grade.activity.slug, 'userid': self.numeric_grade.member.person.userid})
       
     def setMark(self, grade, entered_by):
         """         
@@ -187,7 +187,7 @@ class GroupActivityMark(ActivityMark):
     def __unicode__(self):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.numeric_activity)
     def get_absolute_url(self):
-        return reverse('marking.views.mark_history_group', kwargs={'course_slug': self.numeric_activity.offering.slug, 'activity_slug': self.numeric_activity.slug, 'group_slug': self.group.slug})
+        return reverse('offering:marking:mark_history_group', kwargs={'course_slug': self.numeric_activity.offering.slug, 'activity_slug': self.numeric_activity.slug, 'group_slug': self.group.slug})
     
     def setMark(self, grade, entered_by, details=True):
         """         
@@ -289,7 +289,7 @@ class StudentActivityMark_LetterGrade(ActivityMark_LetterGrade):
         activity = self.letter_grade.activity      
         return "Marking for student [%s] for activity [%s]" %(student, activity)   
     def get_absolute_url(self):
-        return reverse('marking.views.mark_history_student', kwargs={'course_slug': self.letter_grade.activity.offering.slug, 'activity_slug': self.letter_grade.activity.slug, 'userid': self.letter_grade.member.person.userid})
+        return reverse('offering:marking:mark_history_student', kwargs={'course_slug': self.letter_grade.activity.offering.slug, 'activity_slug': self.letter_grade.activity.slug, 'userid': self.letter_grade.member.person.userid})
       
     def setMark(self, grade, entered_by):
         """
@@ -311,7 +311,7 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
     def __unicode__(self):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.letter_activity)
     def get_absolute_url(self):
-        return reverse('marking.views.mark_history_group', kwargs={'course_slug': self.letter_activity.offering.slug, 'activity_slug': self.letter_activity.slug, 'group_slug': self.group.slug})
+        return reverse('offering:marking:mark_history_group', kwargs={'course_slug': self.letter_activity.offering.slug, 'activity_slug': self.letter_activity.slug, 'group_slug': self.group.slug})
     
     def setMark(self, grade, entered_by):
         """         

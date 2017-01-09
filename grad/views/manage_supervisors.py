@@ -27,7 +27,7 @@ def manage_supervisors(request, grad_slug):
                   description=u"Added committee member %s for %s." % (s, grad.person.userid),
                   related_object=s)
             l.save()              
-            return HttpResponseRedirect(reverse(manage_supervisors, kwargs={'grad_slug':grad_slug}))
+            return HttpResponseRedirect(reverse('grad:manage_supervisors', kwargs={'grad_slug':grad_slug}))
     else:
         form = SupervisorForm()
         form.set_supervisor_choices(possible_supervisors([grad.program.unit], extras=supervisor_people, null=True))

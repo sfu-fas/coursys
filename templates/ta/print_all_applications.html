@@ -12,8 +12,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta:posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
 <li>TA Applications for {{posting.short_str}} </li> 
 {% endblock %}
 

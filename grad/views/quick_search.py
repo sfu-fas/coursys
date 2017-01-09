@@ -56,8 +56,8 @@ def quick_search(request):
         grad_slug = request.GET['search']
         try:
             grad = GradStudent.objects.get(slug=grad_slug, program__unit__in=request.units)
-            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:view', kwargs={'grad_slug':grad.slug}))
         except GradStudent.DoesNotExist:
-            return HttpResponseRedirect(reverse('grad.views.not_found') + "?search=" + urllib.quote_plus(grad_slug.encode('utf8')))
+            return HttpResponseRedirect(reverse('grad:not_found') + "?search=" + urllib.quote_plus(grad_slug.encode('utf8')))
     else:
         return ForbiddenResponse(request, 'must send term')

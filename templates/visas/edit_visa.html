@@ -6,7 +6,7 @@
 {% block h1 %}Edit Visa{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "visas.views.list_all_visas" %}">Visas</a></li>
+<li><a href="{% url "visas:list_all_visas" %}">Visas</a></li>
 <li>Edit Visa</li>
 {% endblock %}
 
@@ -27,7 +27,7 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 {% block content %}
-<form action="{% url "visas.views.edit_visa" visa_id=visa_id%}" method="post">
+<form action="{% url "visas:edit_visa" visa_id=visa_id%}" method="post">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>

@@ -6,7 +6,7 @@
 {% block h1 %}View Visa{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "visas.views.list_all_visas" %}">Visas</a></li>
+<li><a href="{% url "visas:list_all_visas" %}">Visas</a></li>
 <li>View Visa</li>
 {% endblock %}
 
@@ -14,7 +14,7 @@
 <div id="actions">
   <h2>Actions</h2>
     <ul>
-        <li><a href="{% url 'visas.views.new_attachment' visa_id=visa.id %}">Add File Attachment</a></li>
+        <li><a href="{% url 'visas:new_attachment' visa_id=visa.id %}">Add File Attachment</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -32,9 +32,9 @@
     <ul>
     {% for a in attachments %}
     <li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
-      <a href="{% url 'visas.views.view_attachment' visa_id=visa.id  attach_slug=a.slug %}">View</a> |
-      <a href="{% url 'visas.views.download_attachment' visa_id=visa.id  attach_slug=a.slug %}">Download</a> |
-      <a href="{% url 'visas.views.delete_attachment' visa_id=visa.id  attach_slug=a.slug  %}">Delete</a>
+      <a href="{% url 'visas:view_attachment' visa_id=visa.id  attach_slug=a.slug %}">View</a> |
+      <a href="{% url 'visas:download_attachment' visa_id=visa.id  attach_slug=a.slug %}">Download</a> |
+      <a href="{% url 'visas:delete_attachment' visa_id=visa.id  attach_slug=a.slug  %}">Delete</a>
     </li>
     {% endfor %}
     </ul>

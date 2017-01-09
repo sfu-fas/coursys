@@ -5,8 +5,8 @@
 {% block h1 %}TA Applications for {{ posting }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta:posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
 <li>Applications</li>
 {% endblock %}
 
@@ -39,7 +39,7 @@
   <tbody>
   {% for app in applications %}
   <tr>
-  	<td><a href="{% url "ta.views.view_application" post_slug=posting.slug userid=app.person.userid %}">{{ app.person.sortname }}</a></td>
+  	<td><a href="{% url "ta:view_application" post_slug=posting.slug userid=app.person.userid %}">{{ app.person.sortname }}</a></td>
   	<td>{{ app.get_category_display }}</td>
     <td>{{ app.current_program }}</td>
   	<td>{{ app.base_units_assigned }}</td>
@@ -51,7 +51,7 @@
   </tbody>
 </table>
 </div>
-    <a href="{% url "download_all_ta_applications" post_slug=posting.slug %}">
+    <a href="{% url "ta:download_all_ta_applications" post_slug=posting.slug %}">
         <i class="fa fa-li fa-download"></i> Download CSV
     </a>
 {% endblock %}

@@ -25,7 +25,7 @@ def render_to(template_filepath):
         def func_wrapper(request, *args, **kwargs):
             result = func(request, *args, **kwargs)
             if isinstance(result, dict):
-                return render_to_response(template_filepath, result,
+                return render(request, template_filepath, result,
                                           context_instance=RequestContext(request))
             else:
                 return result

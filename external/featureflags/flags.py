@@ -2,6 +2,7 @@ import importlib
 from django.core.urlresolvers import get_callable
 from django.core.cache import cache
 from featureflags.conf import settings
+from functools import wraps
 
 cache_timeout = settings.FEATUREFLAGS_CACHE_TIMEOUT
 def _cache_key():
@@ -50,6 +51,7 @@ def uses_feature(feature):
     Decorator to allow disabling views temporarily.
     """
     def decorator(function): # the decorator with 'feature' argument closed
+        @wraps(function)
         def view(*args, **kwargs): # the actual view returned by the decorator
             if feature_disabled(feature):
                 return get_disabled_view()(*args, **kwargs)

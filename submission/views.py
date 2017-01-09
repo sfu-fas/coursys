@@ -171,7 +171,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
 
         if len(not_submitted_comp) == 0:
             messages.add_message(request, messages.SUCCESS, "Your submission was successful.")
-            return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+            return HttpResponseRedirect(reverse('offering:submission:show_components', args=[course_slug, activity_slug]))
 
         return render(request, "submission/submission_error.html",
             {"course":course, "activity":activity, "component_list":component_form_list,
@@ -223,7 +223,7 @@ def _show_components_staff(request, course_slug, activity_slug):
             except:
                 pass
         messages.add_message(request, messages.SUCCESS, 'Component positions updated.')
-        return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+        return HttpResponseRedirect(reverse('offering:submission:show_components', args=[course_slug, activity_slug]))
     
     component_list = select_all_components(activity, include_deleted=True)
     return render(request, "submission/component_view_staff.html",
@@ -263,7 +263,7 @@ def edit_single(request, course_slug, activity_slug):
                   related_object=new_component)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Component "' + new_component.title + '" successfully updated.')
-            return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+            return HttpResponseRedirect(reverse('offering:submission:show_components', args=[course_slug, activity_slug]))
         else:
             form = new_form
             messages.add_message(request, messages.ERROR, 'Please correct the errors in the form.')
@@ -300,7 +300,7 @@ def add_component(request, course_slug, activity_slug):
                   related_object=new_component)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'New component "' + new_component.title + '" successfully added.')
-            return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+            return HttpResponseRedirect(reverse('offering:submission:show_components', args=[course_slug, activity_slug]))
         else:
             messages.add_message(request, messages.ERROR, 'Please correct the errors in the form.')
             form = new_form
@@ -392,7 +392,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
                 submission = StudentSubmission.objects.filter(member=student, activity=activity).latest('created_at')
         except:
             submission = None
-        response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
+        response = HttpResponseRedirect(reverse('offering:submission:marking_student', args=[course_slug, activity_slug, userid]) + urlencode)
         #if it is taken by someone not me, show a confirm dialog
         if request.GET.get('confirm') == None:
             # check disabled until such time as it can be fixed
@@ -418,7 +418,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
             submission = GroupSubmission.objects.filter(group__slug=group_slug).latest('created_at')
         except:
             submission = None
-        response = HttpResponseRedirect(reverse(marking_group, args=[course_slug, activity_slug, group_slug]) + urlencode)
+        response = HttpResponseRedirect(reverse('offering:submission:marking_group', args=[course_slug, activity_slug, group_slug]) + urlencode)
         #if it is taken by someone not me, show a confirm dialog
         if request.GET.get('confirm') == None:
             # check disabled until such time as it can be fixed

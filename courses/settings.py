@@ -31,8 +31,6 @@ else:
 #print "DEPLOY_MODE: ", DEPLOY_MODE
 
 DEBUG = DEPLOY_MODE != 'production'
-TEMPLATE_DEBUG = DEBUG
-
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.append( BASE_DIR )
@@ -50,21 +48,16 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.humanize',
     'django.contrib.sessions',
-    # 'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'test_without_migrations',
-    # 'south',
     'compressor',
     'haystack',
     'djcelery',
     'djcelery_email',
     'featureflags',
-    #'django_nose',
     'rest_framework',
     'oauth_provider',
     'rest_framework_swagger',
-    # 'piwik_middleware',
 
     'coredata',
     'dashboard',
@@ -74,20 +67,15 @@ INSTALLED_APPS = (
     'log',
     'groups',
     'submission',
-    # 'planning',
     'discipline',
     'ta',
     'pages',
     'ra',
     'advisornotes',
-    # 'alerts',
     'reports',
     'discuss',
-    # 'booking',
-    # 'techreq',
     'onlineforms',
     'faculty',
-    # 'gpaconvert',
     'tacontracts',
     'api',
     'visas',
@@ -95,7 +83,7 @@ INSTALLED_APPS = (
     'sessionals',	
     'inventory',
 )
-MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
+MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -103,14 +91,22 @@ MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
     'courselib.middleware.ExceptionIgnorer',
     'django_cas.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
-    #'piwik_middleware.middleware.PiwikMiddleware',
-)
-TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR, 'templates'),
-)
-TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
-    'dashboard.context.media',
-)
+]
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'dashboard.context.media']},
+    },
+]
+
 AUTHENTICATION_BACKENDS = (
     'django_cas.backends.CASBackend',
 )
@@ -136,15 +132,17 @@ USE_I18N = False
 USE_L10N = False
 USE_TZ = False
 FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
-#TEST_RUNNER = 'django_coverage.coverage_runner.CoverageRunner'
 
 # Disable migrations only when running tests.
 if 'test' in sys.argv[1:]:
-    from test_without_migrations.management.commands.test import DisableMigrations
+    from courselib.disable_migrations import DisableMigrations
     MIGRATION_MODULES = DisableMigrations()
 
 # security-related settings
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca'])
+if DEBUG:
+    ALLOWED_HOSTS.append('localhost')
+
 SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 X_FRAME_OPTIONS = 'DENY'

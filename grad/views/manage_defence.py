@@ -87,7 +87,7 @@ def manage_defence(request, grad_slug):
                   description="Updated grad defence info for %s." % (grad),
                   related_object=grad)
             l.save()    
-            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:view', kwargs={'grad_slug':grad.slug}))
     else:
         initial = {}
         if 'thesis_type' in grad.config:

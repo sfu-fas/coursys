@@ -19,6 +19,6 @@ def remove_scholarship(request, grad_slug, s_id):
               related_object=scholarship)
         l.save()              
     
-    return HttpResponseRedirect(reverse('grad.views.manage_scholarships', kwargs={'grad_slug':grad_slug}))
+    return HttpResponseRedirect(reverse('grad:manage_scholarships', kwargs={'grad_slug':grad_slug}))
 
 

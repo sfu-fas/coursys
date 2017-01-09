@@ -7,7 +7,7 @@ import unicodecsv as csv
 from pipes import quote
 from datetime import datetime
 
-from django.core.servers.basehttp import FileWrapper
+from wsgiref.util import FileWrapper
 from django.http import StreamingHttpResponse
 
 from base import SubmissionComponent, Submission, StudentSubmission, GroupSubmission, SubmittedComponent

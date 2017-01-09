@@ -532,7 +532,7 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     from django.conf.urls import url
 
-    EXTRA_LINKS = {'Teaching Summary': 'faculty.views.teaching_summary'}
+    EXTRA_LINKS = {'Teaching Summary': 'faculty:teaching_summary'}
 
     @classmethod
     def default_title(cls):

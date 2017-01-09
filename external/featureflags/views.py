@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.conf import settings
-from django.template.base import TemplateDoesNotExist
+from django.template import TemplateDoesNotExist
 
 def service_unavailable(request, *args, **kwargs):
     template = settings.FEATUREFLAGS_DISABLED_TEMPLATE

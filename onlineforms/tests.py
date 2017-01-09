@@ -132,7 +132,7 @@ class IntegrationTestCase(TestCase):
         old_form_submission_count = len(FormSubmission.objects.all())
         old_sheet_submission_count = len(SheetSubmission.objects.all())
 
-        url = reverse('onlineforms.views.sheet_submission_initial', kwargs={'form_slug': "comp-simple-form"})
+        url = reverse('onlineforms:sheet_submission_initial', kwargs={'form_slug': "comp-simple-form"})
         response = basic_page_tests(self, self.client, url)
         self.assertEqual(response.status_code, 200)
         # make sure it's not displaying the add-nonsfu form
@@ -181,7 +181,7 @@ class IntegrationTestCase(TestCase):
         old_form_submission_count = len(FormSubmission.objects.all())
         old_sheet_submission_count = len(SheetSubmission.objects.all())
 
-        url = reverse('onlineforms.views.sheet_submission_initial', kwargs={'form_slug': "comp-simple-form"})
+        url = reverse('onlineforms:sheet_submission_initial', kwargs={'form_slug': "comp-simple-form"})
         response = basic_page_tests(self, self.client, url)
         self.assertEqual(response.status_code, 200)
         # check that the non sfu form is up
@@ -235,7 +235,7 @@ class IntegrationTestCase(TestCase):
         old_form_submission_count = len(FormSubmission.objects.all())
         old_sheet_submission_count = len(SheetSubmission.objects.all())
 
-        url = reverse('onlineforms.views.sheet_submission_initial', kwargs={'form_slug': "comp-simple-form"})
+        url = reverse('onlineforms:sheet_submission_initial', kwargs={'form_slug': "comp-simple-form"})
         response = basic_page_tests(self, self.client, url)
         # test with each field missing
         person_nofirst = {'first_name': "", 'last_name': "Turing", 'email_address': "alan.turing@example.net"}
@@ -270,7 +270,7 @@ class IntegrationTestCase(TestCase):
     def test_invalid_forbidden_initial(self):
         # this form doesn't allow non-sfu students to fill it out, so if we
         # are not logged in and we try to access it it should return forbidden
-        url = reverse('onlineforms.views.sheet_submission_initial', kwargs={'form_slug': "comp-multi-sheet-form"})
+        url = reverse('onlineforms:sheet_submission_initial', kwargs={'form_slug': "comp-multi-sheet-form"})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 302)
 
@@ -368,7 +368,7 @@ class ViewTestCase(TestCase):
     def run_basic_page_tests(self, views, arguments):
         for view in views:
             try:
-                url = reverse('onlineforms.views.' + view, kwargs=arguments)
+                url = reverse('onlineforms:' + view, kwargs=arguments)
                 response = basic_page_tests(self, self.client, url)
                 self.assertEqual(response.status_code, 200)
             except:
@@ -381,7 +381,7 @@ class ViewTestCase(TestCase):
                 'formsubmit_slug': self.slug_data["formsubmit_slug"],
                 'sheetsubmit_slug': self.slug_data["sheetsubmit_slug"]}
         try:
-            url = reverse('onlineforms.views.admin_return_sheet', kwargs=args)
+            url = reverse('onlineforms:admin_return_sheet', kwargs=args)
             response = self.client.get(url)
             self.assertEquals(response.status_code, 302)
         except:
@@ -406,7 +406,7 @@ class MiscTests(TestCase):
         # act
         url = sheet_submission.get_submission_url()
         # assert, check that we get a full URL with all the slugs
-        expected_url = reverse('onlineforms.views.sheet_submission_subsequent', kwargs=slugs)
+        expected_url = reverse('onlineforms:sheet_submission_subsequent', kwargs=slugs)
         self.assertEqual(url, expected_url)
 
     def test_sheet_submission_get_url_secret(self):
@@ -416,7 +416,7 @@ class MiscTests(TestCase):
         # act
         url = sheet_submission.get_submission_url()
         # assert, check that we get a URL using the key, not all the slugs
-        expected_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': key})
+        expected_url = reverse('onlineforms:sheet_submission_via_url', kwargs={'secret_url': key})
         self.assertEqual(url, expected_url)
 
 
@@ -472,7 +472,7 @@ class FieldTestCase(TestCase):
         self.assertEqual(field_submission.data["info"], test_input)
 
     def test_lrgtxt_field(self):
-        test_input = repeat_to_length("The quick brown fox jumps over the lazy dog.", 444)
+        test_input = repeat_to_length("The quick brown fox jumps over the lazy dog.", 443)
         config = self.standard_config.copy()
         config["min_length"] = 401
         config["max_length"] = 490
@@ -557,7 +557,7 @@ class FieldTestCase(TestCase):
         field = Field.objects.create(label="F1", sheet=sheet, fieldtype=fieldtype, config=config)
         # make a post request to submit the sheet
         post_data = {'0': test_input, 'submit': "submit"}
-        url = reverse('onlineforms.views.sheet_submission_initial', kwargs={'form_slug': form.slug})
+        url = reverse('onlineforms:sheet_submission_initial', kwargs={'form_slug': form.slug})
         response = self.client.post(url, post_data, follow=True)
         self.assertEqual(response.status_code, 200)
         # ensure objects were created

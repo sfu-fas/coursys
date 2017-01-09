@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanen
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
-from django.template.base import TemplateDoesNotExist
+from django.template import TemplateDoesNotExist
 from django.views.decorators.cache import cache_page
 from django.views.decorators.gzip import gzip_page
 from django.conf import settings
@@ -290,9 +290,9 @@ def _weekday_range(start_date, end_date, wkday):
 
 
 def _meeting_url(mt):
-    return mt.offering.url() or reverse('grades.views.course_info', kwargs={'course_slug': mt.offering.slug})
+    return mt.offering.url() or reverse('offering:course_info', kwargs={'course_slug': mt.offering.slug})
 def _activity_url(act):
-    return act.url() or reverse('grades.views.activity_info', kwargs={'course_slug': act.offering.slug, 'activity_slug': act.slug})
+    return act.url() or reverse('offering:activity_info', kwargs={'course_slug': act.offering.slug, 'activity_slug': act.slug})
 
 # wish there was an easy way to do this in CSS, but fullcalendar makes this much easier
 def _meeting_colour(mt):
@@ -552,7 +552,7 @@ def create_calendar_url(request):
                 uc = UserConfig(user=user, key="calendar-config", value=config)
             uc.save()
             messages.add_message(request, messages.SUCCESS, 'Calendar URL configured.')
-            return HttpResponseRedirect(reverse('dashboard.views.config'))
+            return HttpResponseRedirect(reverse('config:config'))
     else:
         if 'token' in config:
             # pre-check if we're changing the token
@@ -580,7 +580,7 @@ def disable_calendar_url(request):
                     uc.save()
 
             messages.add_message(request, messages.SUCCESS, 'External calendar disabled.')
-            return HttpResponseRedirect(reverse('dashboard.views.config'))
+            return HttpResponseRedirect(reverse('config:config'))
     else:
         form = FeedSetupForm({'agree': True})
 
@@ -609,7 +609,7 @@ def news_config(request):
             config.value['email'] = form.cleaned_data['want_email']
             config.save()
             messages.add_message(request, messages.SUCCESS, 'News settings updated.')
-            return HttpResponseRedirect(reverse('dashboard.views.config'))
+            return HttpResponseRedirect(reverse('config:config'))
     else:
         initial = {'want_email': 'email' not in config.value or config.value['email']}
         form = NewsConfigForm(initial)
@@ -645,7 +645,7 @@ def create_news_url(request):
                 c = UserConfig(user=user, key="feed-token", value={'token':token})
             c.save()
             messages.add_message(request, messages.SUCCESS, 'Feed URL configured.')
-            return HttpResponseRedirect(reverse('dashboard.views.config'))
+            return HttpResponseRedirect(reverse('config:config'))
     else:
         if configs:
             # pre-check if we're changing the token
@@ -665,7 +665,7 @@ def disable_news_url(request):
             configs = UserConfig.objects.filter(user=user, key="feed-token")
             configs.delete()
             messages.add_message(request, messages.SUCCESS, 'External feed disabled.')
-            return HttpResponseRedirect(reverse('dashboard.views.config'))
+            return HttpResponseRedirect(reverse('config:config'))
     else:
         form = FeedSetupForm({'agree': True})
 
@@ -706,7 +706,7 @@ def delete_signature(request, userid):
         sig.delete()
         messages.add_message(request, messages.SUCCESS, 'Deleted signature for %s.' % (sig.user.name()))
 
-    return HttpResponseRedirect(reverse('dashboard.views.signatures'))
+    return HttpResponseRedirect(reverse('admin:signatures'))
 
 @requires_role('ADMN')
 def new_signature(request):
@@ -727,7 +727,7 @@ def new_signature(request):
             sig.save()
             
             messages.add_message(request, messages.SUCCESS, 'Created signature for %s.' % (sig.user.name()))
-            return HttpResponseRedirect(reverse('dashboard.views.signatures'))
+            return HttpResponseRedirect(reverse('admin:signatures'))
     else:
         form = SignatureForm()
         form.fields['person'].choices = person_choices
@@ -739,7 +739,7 @@ def new_signature(request):
 def student_info(request, userid=None):
     # old student search view: new search is better in every way.
     messages.add_message(request, messages.INFO, 'The old student search has been replaced with an awesome site search, accessible from the search box at the top of every page in CourSys.')
-    return HttpResponsePermanentRedirect(reverse(site_search))
+    return HttpResponsePermanentRedirect(reverse('dashboard:site_search'))
 
 
 # documentation views
@@ -857,7 +857,7 @@ def enable_advisor_token(request):
             uc = UserConfig(user=user, key="advisor-token", value=config)
             uc.save()
             messages.add_message(request, messages.SUCCESS, 'Advisor notes API enabled')
-            return HttpResponseRedirect(reverse('dashboard.views.config'))
+            return HttpResponseRedirect(reverse('config:config'))
     else:
         form = FeedSetupForm()
     return render(request, "dashboard/enable_advisor_token.html", {"form": form})
@@ -871,7 +871,7 @@ def disable_advisor_token(request):
         if form.is_valid():
             config.delete()
             messages.add_message(request, messages.SUCCESS, 'Advisor notes API disabled')
-            return HttpResponseRedirect(reverse('dashboard.views.config'))
+            return HttpResponseRedirect(reverse('config:config'))
     else:
         form = FeedSetupForm({'agree': True})
         
@@ -887,7 +887,7 @@ def change_advisor_token(request):
             config.value['token'] = new_feed_token()
             config.save()
             messages.add_message(request, messages.SUCCESS, 'Advisor notes API token changed')
-            return HttpResponseRedirect(reverse('dashboard.views.config'))
+            return HttpResponseRedirect(reverse('config:config'))
     else:
         form = FeedSetupForm({'agree': True})
         
@@ -915,7 +915,7 @@ def photo_agreement(request):
             if 'return' in request.GET:
                 url = request.GET['return']
             else:
-                url = reverse('dashboard.views.config')
+                url = reverse('config:config')
             return HttpResponseRedirect(url)
     else:
         form = PhotoAgreementForm({'agree': config.value['agree']})

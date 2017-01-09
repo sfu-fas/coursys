@@ -12,4 +12,4 @@ def instructor_index(request):
     capability_list = TeachingCapability.objects.filter(instructor=instructor).order_by('course')
     intention_list = TeachingIntention.objects.filter(instructor=instructor).order_by('semester')
 
-    return render_to_response("planning/instructor_index.html", {'capability_list': capability_list, 'intention_list': intention_list}, context_instance=RequestContext(request))
+    return render(request, "planning/instructor_index.html", {'capability_list': capability_list, 'intention_list': intention_list})

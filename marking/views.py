@@ -4,14 +4,13 @@ import json
 import decimal
 
 from django.core.urlresolvers import reverse
-from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.forms.models import ModelChoiceField, modelformset_factory
 from django.forms.forms import Form
 from django.forms import BooleanField
 from django.db.models import Q, Max, Sum
 import django.db.transaction
-from django.shortcuts import render_to_response, render, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
@@ -43,15 +42,15 @@ from marking.forms import UploadGradeFileForm, UploadGradeFileForm_LetterGrade
 def _redirct_response(request, course_slug, activity_slug, userid=None):
     from_page = request.GET.get('from_page')
     if from_page == 'course':
-        redirect_url = reverse('grades.views.course_info', args=(course_slug,))
+        redirect_url = reverse('offering:course_info', args=(course_slug,))
     elif from_page == 'activityinfo':
-        redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
+        redirect_url = reverse('offering:activity_info', args=(course_slug, activity_slug))
     elif from_page == 'activityinfo_group':
-        redirect_url = reverse('grades.views.activity_info_with_groups', args=(course_slug, activity_slug))
+        redirect_url = reverse('offering:activity_info_with_groups', args=(course_slug, activity_slug))
     elif userid and from_page == 'studentinfo':
-        redirect_url = reverse('grades.views.student_info', args=(course_slug, userid))
+        redirect_url = reverse('offering:student_info', args=(course_slug, userid))
     else: #default to the activity_info page
-        redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
+        redirect_url = reverse('offering:activity_info', args=(course_slug, activity_slug))
     return HttpResponseRedirect(redirect_url)
 
 
@@ -153,9 +152,8 @@ def copy_course_setup(request, course_slug):
                     rename_forms = [ ActivityRenameForm(prefix=act.id) for act in conflicting_acts ]
                     page_form = PageRedirectForm(prefix='pages')
                 else:
-                    return render_to_response("marking/select_course_setup.html",
-                                 {'course': course, 'select_form': select_form},
-                                 context_instance=RequestContext(request))                
+                    return render(request, "marking/select_course_setup.html",
+                                 {'course': course, 'select_form': select_form})
                 
             else: # POST request for renaming and copy
                 source_course = get_object_or_404(CourseOffering, slug=source_slug)
@@ -180,7 +178,7 @@ def copy_course_setup(request, course_slug):
                     l.save()                         
                     messages.add_message(request, messages.SUCCESS,
                             "Course Setup copied from %s (%s)" % (source_course.name(), source_course.semester.label(),))                
-                    return HttpResponseRedirect(reverse('grades.views.course_info', args=(course_slug,)))
+                    return HttpResponseRedirect(reverse('offering:course_info', args=(course_slug,)))
 
             if error_info:
                 messages.add_message(request, messages.ERROR, error_info)   
@@ -192,9 +190,8 @@ def copy_course_setup(request, course_slug):
                 
         else: # for GET request
             select_form = CourseSourceForm(prefix = "select-form")   
-            return render_to_response("marking/select_course_setup.html",
-                                     {'course': course, 'select_form': select_form},\
-                                     context_instance=RequestContext(request))
+            return render(request, "marking/select_course_setup.html",
+                                     {'course': course, 'select_form': select_form})
 
 def _save_common_problems(formset, activity, user):
     for form in formset.forms:
@@ -282,77 +279,10 @@ def manage_activity_components(request, course_slug, activity_slug):
         
         if error_info:
             messages.add_message(request, messages.ERROR, error_info)
-        return render_to_response("marking/components.html", 
+        return render(request, "marking/components.html", 
                                   {'course' : course, 'activity' : activity,\
-                                   'formset' : formset },\
-                                   context_instance=RequestContext(request))
+                                   'formset' : formset })
 
-
-@requires_course_staff_by_slug
-def OFF_import_components(request, course_slug, activity_slug):
-    """
-    Quick (but not pretty) view to allow importing marking setup from the old system.  Not well tested, but seems to work well enough.
-    """
-    course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)
-
-    if request.method == "POST":
-        form = ImportFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            max_grade = ActivityComponent.objects.filter(numeric_activity=activity).aggregate(Sum('max_mark'))['max_mark__sum']
-            if not max_grade:
-                max_grade = 0
-
-            pos = ActivityComponent.objects.filter(numeric_activity=activity).aggregate(Max('position'))['position__max']
-            if not pos:
-                pos = 1
-            else:
-                pos += 1
-
-            data = request.FILES['file'].read().decode('windows-1252')
-            data = json.loads(data)
-            for comp in data:
-                if len(comp)==0:
-                    # ignore the empty object outputted for ease-of-export
-                    continue
-                ac = ActivityComponent(numeric_activity=activity,
-                        max_mark = comp['mark'],
-                        title = comp['name'],
-                        description = comp['desc'],
-                        position = pos)
-                ac.save()
-                max_grade += comp['mark']
-                pos += 1
-                for c in comp['common']:
-                    if len(c)==0:
-                        # ignore the empty object outputted for ease-of-export
-                        continue
-                    cp = CommonProblem(activity_component=ac,
-                            title=c['short'],
-                            penalty=str(c['mark']),
-                            description=c['long'])
-                    cp.save()
-            
-            # if the max grade changed
-            if max_grade != activity.max_grade: 
-                old_max = activity.max_grade
-                activity.max_grade = max_grade
-                activity.save()               
-                messages.add_message(request, messages.WARNING, \
-                                     "The max grade of %s updated from %s to %s" % (activity.name, old_max, max_grade))
-            #LOG EVENT
-            l = LogEntry(userid=request.user.username,
-                  description=(u"imported marking setup for %s") % (activity),
-                  related_object=activity)
-            l.save()                         
-            messages.add_message(request, messages.SUCCESS, "Marking setup imported.")                
-            return HttpResponseRedirect(reverse('marking.views.manage_activity_components', kwargs={'course_slug':course_slug, 'activity_slug': activity_slug}))
-    else:
-        form = ImportFileForm()
-    return render_to_response("marking/import.html", 
-                              {'course': course, 'activity': activity, 'form': form},\
-                              context_instance=RequestContext(request))
-    
 
 @requires_course_staff_by_slug
 @uses_feature('marking')
@@ -382,16 +312,15 @@ def manage_common_problems(request, course_slug, activity_slug):
                 # save the formset  
                 _save_common_problems(formset, activity, request.user.username)
                 messages.add_message(request, messages.SUCCESS, 'Common problems Saved')
-                return HttpResponseRedirect(reverse('marking.views.manage_common_problems', kwargs={'course_slug': activity.offering.slug, 'activity_slug': activity.slug}))
+                return HttpResponseRedirect(reverse('offering:marking:manage_common_problems', kwargs={'course_slug': activity.offering.slug, 'activity_slug': activity.slug}))
         else: # for GET request     
             formset = CommonProblemFormSet(components, queryset = qset) 
         
         if error_info:
             messages.add_message(request, messages.ERROR, error_info)    
-        return render_to_response("marking/common_problems.html", 
+        return render(request, "marking/common_problems.html", 
                                   {'course' : course, 'activity' : activity, 
-                                  'components': components, 'formset' : formset },\
-                                  context_instance=RequestContext(request))
+                                  'components': components, 'formset' : formset })
 
 @requires_course_staff_by_slug
 @uses_feature('marking')
@@ -419,10 +348,9 @@ def manage_component_positions(request, course_slug, activity_slug):
                     
                 return HttpResponse("Positions of components updated !")
                
-        return render_to_response("marking/component_positions.html",
+        return render(request, "marking/component_positions.html",
                                   {'course' : course, 'activity' : activity,\
-                                   'components': components, 'components': components},\
-                                   context_instance=RequestContext(request))
+                                   'components': components, 'components': components})
         
 
 
@@ -485,8 +413,7 @@ def _change_grade_status_numeric(request, course, activity, userid):
         context = {'course':course,'activity' : activity,\
                    'student' : member.person, 'current_status' : FLAGS[numeric_grade.flag],
                    'status_form': status_form}
-        return render_to_response("marking/grade_status.html", context,
-                                  context_instance=RequestContext(request))  
+        return render(request, "marking/grade_status.html", context)
 
 @retry_transaction()
 def _change_grade_status_letter(request, course, activity, userid):
@@ -527,8 +454,7 @@ def _change_grade_status_letter(request, course, activity, userid):
         context = {'course':course,'activity' : activity,\
                    'student' : member.person, 'current_status' : FLAGS[letter_grade.flag],
                    'status_form': status_form}
-        return render_to_response("marking/grade_status_lettergrade.html", context,
-                                  context_instance=RequestContext(request))  
+        return render(request, "marking/grade_status_lettergrade.html", context)
 
 
 @retry_transaction()
@@ -667,13 +593,13 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                     try:
                         nextmember = Member.objects.filter(offering=course, person__userid__gt=userid, role="STUD"
                                      ).order_by('person__userid')[0]
-                        return HttpResponseRedirect(reverse(marking_student, 
+                        return HttpResponseRedirect(reverse('offering:marking:marking_student',
                                kwargs={'course_slug': course.slug, 'activity_slug': activity.slug,
                                'userid': nextmember.person.userid}) + "?load_old")
                     except IndexError:
                         messages.add_message(request, messages.INFO, 'That was the last userid in the course.')
                 elif groupmark:
-                    return HttpResponseRedirect(reverse('grades.views.activity_info_with_groups', 
+                    return HttpResponseRedirect(reverse('offering:activity_info_with_groups', 
                                kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
 
                 return _redirct_response(request, course_slug, activity_slug)
@@ -685,7 +611,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             context['group_members'] = list(group_members)
         else:
             context['student'] = student
-        return render_to_response("marking/marking.html", context, context_instance=RequestContext(request))  
+        return render(request, "marking/marking.html", context)  
     
 
 @requires_course_staff_by_slug
@@ -724,10 +650,9 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
         act_mark = get_activity_mark_for_student(activity, membership)
     
     if act_mark == None:
-        return render_to_response("marking/mark_summary_none.html", 
+        return render(request, "marking/mark_summary_none.html", 
                                {'course':course, 'activity' : activity, 'student' : student, \
-                                'is_staff': is_staff}, \
-                                context_instance = RequestContext(request))
+                                'is_staff': is_staff})
     
     group = None
     if hasattr(act_mark, 'group'):
@@ -735,11 +660,10 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
                       
     component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)      
     
-    return render_to_response("marking/mark_summary.html", 
+    return render(request, "marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'student' : student, 'group' : group, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
-                                'is_staff': is_staff, 'view_history': act_mark_id == None}, \
-                                context_instance = RequestContext(request))
+                                'is_staff': is_staff, 'view_history': act_mark_id == None})
 
 @login_required
 def mark_summary_group(request, course_slug, activity_slug, group_slug):
@@ -768,11 +692,10 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
         raise Http404('No such ActivityMark for group %s on %s found.' % (group.name, activity))
     component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)
      
-    return render_to_response("marking/mark_summary.html", 
+    return render(request, "marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'group' : group, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
-                                'is_staff': is_staff, 'view_history': act_mark_id == None},\
-                                context_instance = RequestContext(request))
+                                'is_staff': is_staff, 'view_history': act_mark_id == None})
          
 @login_required
 def download_marking_attachment(request, course_slug, activity_slug, mark_id):
@@ -831,7 +754,7 @@ def mark_history_student(request, course_slug, activity_slug, userid):
     if not mark_history_info:
         return NotFoundResponse(request)
     context.update(mark_history_info)
-    return render_to_response("marking/mark_history_student.html", context, context_instance = RequestContext(request))
+    return render(request, "marking/mark_history_student.html", context)
 
 @requires_course_staff_by_slug
 def mark_history_group(request, course_slug, activity_slug, group_slug):
@@ -845,7 +768,7 @@ def mark_history_group(request, course_slug, activity_slug, group_slug):
     context = {'course': course, 'activity' : activity, 'group' : group,}
     mark_history_info = get_group_mark(activity, group, True)
     context.update(mark_history_info)    
-    return render_to_response("marking/mark_history_group.html", context, context_instance = RequestContext(request))
+    return render(request, "marking/mark_history_group.html", context)
     
 
 @requires_course_staff_by_slug
@@ -1087,9 +1010,8 @@ def _mark_all_groups_numeric(request, course, activity):
         
         if error_info:
             messages.add_message(request, messages.ERROR, error_info)     
-        return render_to_response("marking/mark_all_group.html",
-                              {'course': course, 'activity': activity,'mark_all_rows': rows }, 
-                              context_instance = RequestContext(request))
+        return render(request, "marking/mark_all_group.html",
+                              {'course': course, 'activity': activity,'mark_all_rows': rows })
 
 
 @retry_transaction()
@@ -1164,9 +1086,8 @@ def _mark_all_groups_letter(request, course, activity):
 
         if error_info:
             messages.add_message(request, messages.ERROR, error_info)     
-        return render_to_response("marking/mark_all_group_lettergrade.html",
-                              {'course': course, 'activity': activity,'mark_all_rows': rows }, 
-                              context_instance = RequestContext(request))     
+        return render(request, "marking/mark_all_group_lettergrade.html",
+                              {'course': course, 'activity': activity,'mark_all_rows': rows })
 
 #This is for change grade status of letter grades
 
@@ -1266,10 +1187,9 @@ def _mark_all_students_letter(request, course, activity):
         if not fileform:
             fileform = UploadGradeFileForm_LetterGrade(prefix = 'import-file')   
 
-        return render_to_response("marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,
+        return render(request, "marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,
                                   'fileform' : fileform,'too_many': len(rows) >= 100,
-                                  'mark_all_rows': rows, 'userid_header': Person.userid_header() }, 
-                                  context_instance = RequestContext(request))
+                                  'mark_all_rows': rows, 'userid_header': Person.userid_header() })
 
 
 
@@ -1418,10 +1338,9 @@ def _mark_all_students_numeric(request, course, activity):
         if not fileform:
             fileform = UploadGradeFileForm(prefix = 'import-file')   
         
-        return render_to_response("marking/mark_all_student.html",{'course': course, 'activity': activity,
+        return render(request, "marking/mark_all_student.html",{'course': course, 'activity': activity,
                                   'fileform' : fileform,'too_many': len(rows) >= 100,
-                                  'mark_all_rows': rows, 'userid_header': Person.userid_header()},
-                                  context_instance = RequestContext(request))
+                                  'mark_all_rows': rows, 'userid_header': Person.userid_header()})
 
 def _compose_imported_grades(file, students_qset, data_to_return, activity):
     try:
@@ -1647,5 +1566,5 @@ def import_marks(request, course_slug, activity_slug):
         
         components = ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)
         context = {'course': course, 'activity': activity, 'components': components, 'groups': groups, 'form': form}
-        return render_to_response("marking/import_marks.html", context, context_instance=RequestContext(request))
+        return render(request, "marking/import_marks.html", context)
 

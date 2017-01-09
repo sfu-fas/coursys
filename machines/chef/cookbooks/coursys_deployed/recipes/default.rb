@@ -217,9 +217,6 @@ cookbook_file "nginx_default.conf" do
     path "/etc/nginx/sites-available/default"
     action :create
 end
-service "nginx" do
-  action :restart
-end
 cookbook_file "error503.html" do
     path "/usr/share/nginx/html/error503.html"
 end

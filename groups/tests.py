@@ -134,17 +134,17 @@ class GroupTest(TestCase):
         client.login_user(userid1)
         
         # group management screen
-        url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})
+        url = reverse('offering:groups:groupmanage', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, "You don't belong to any group")
-        url = reverse('groups.views.create', kwargs={'course_slug': c.slug})
+        url = reverse('offering:groups:create', kwargs={'course_slug': c.slug})
         self.assertContains(response, 'href="%s"'%(url))
         
         # group creation form
         response = basic_page_tests(self, client, url)
 
         # submit group create
-        url = reverse('groups.views.submit', kwargs={'course_slug': c.slug})
+        url = reverse('offering:groups:submit', kwargs={'course_slug': c.slug})
         response = client.post(url, {"GroupName": "Test Group", "a1-selected": True, "a2-selected": False})
         self.assertEquals(response.status_code, 302)
         
@@ -159,7 +159,7 @@ class GroupTest(TestCase):
         self.assertEquals(gms[0].confirmed, True)
         
         # member invite form
-        url = reverse('groups.views.invite', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
+        url = reverse('offering:groups:invite', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
         response = basic_page_tests(self, client, url)
         
         # submit invite form: invite userid2 and userid3
@@ -173,12 +173,12 @@ class GroupTest(TestCase):
         
         # log in as userid2 and confirm
         client.login_user(userid2)
-        url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})
+        url = reverse('offering:groups:groupmanage', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, ", "+userid1)
         self.assertContains(response, ", "+userid2+" (unconfirmed)")
         
-        url = reverse('groups.views.join', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
+        url = reverse('offering:groups:join', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
         response = client.post(url)
         self.assertEquals(response.status_code, 302)
         
@@ -188,7 +188,7 @@ class GroupTest(TestCase):
         
         # log in as userid3 and reject
         client.login_user(userid3)
-        url = reverse('groups.views.reject', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
+        url = reverse('offering:groups:reject', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
         response = client.post(url)
         self.assertEquals(response.status_code, 302)
         
@@ -203,7 +203,7 @@ class GroupTest(TestCase):
         gm.save()
         
         client.login_user(userid1)
-        url = reverse('groups.views.invite', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
+        url = reverse('offering:groups:invite', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
         response = client.post(url, {"name": userid4})
         
         gms = GroupMember.objects.filter(group__courseoffering=c, student__person__userid=userid4)
@@ -236,17 +236,17 @@ class GroupTest(TestCase):
         client.login_user("ggbaker")
         
         # group management screen
-        url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})
+        url = reverse('offering:groups:groupmanage', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, "There are currently no groups in this course")
-        url = reverse('groups.views.create', kwargs={'course_slug': c.slug})
+        url = reverse('offering:groups:create', kwargs={'course_slug': c.slug})
         self.assertContains(response, 'href="%s"'%(url))
         
         # group creation form
         response = basic_page_tests(self, client, url)
 
         # submit group create
-        url = reverse('groups.views.submit', kwargs={'course_slug': c.slug})
+        url = reverse('offering:groups:submit', kwargs={'course_slug': c.slug})
         response = client.post(url, {"GroupName": "Test Group", "a1-selected": True, "a2-selected": False, 
                 '0aaa6-selected': False, '0aaa0-selected': True, '0aaa1-selected': True})
         self.assertEquals(response.status_code, 302)
@@ -263,11 +263,11 @@ class GroupTest(TestCase):
         self.assertEquals(set(gm.student.person.userid for gm in gms), set([userid2,userid3]))
         
         # check group management screen again
-        url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})
+        url = reverse('offering:groups:groupmanage', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
 
         # add membership form
-        url = reverse('groups.views.assign_student', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
+        url = reverse('offering:groups:assign_student', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
         response = basic_page_tests(self, client, url)
         
         # submit add membership
@@ -282,7 +282,7 @@ class GroupTest(TestCase):
         self.assertEquals(set(gm.student.person.userid for gm in gms), set([userid3]))
         
         # remove member form
-        url = reverse('groups.views.remove_student', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
+        url = reverse('offering:groups:remove_student', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
         response = basic_page_tests(self, client, url)
         
         # submit remove member
@@ -296,7 +296,7 @@ class GroupTest(TestCase):
         self.assertEquals(set(gm.student.person.userid for gm in gms), set([userid3]))
 
         # rename group form
-        url = reverse('groups.views.change_name', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
+        url = reverse('offering:groups:change_name', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
         response = basic_page_tests(self, client, url)
         
         # submit change name
@@ -307,10 +307,10 @@ class GroupTest(TestCase):
         self.assertEquals(g.slug, 'g-test-group')
 
         # recheck basic view with more data        
-        url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})
+        url = reverse('offering:groups:groupmanage', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
 
-        url = reverse('groups.views.view_group', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
+        url = reverse('offering:groups:view_group', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
         response = basic_page_tests(self, client, url)
 
         

@@ -52,44 +52,42 @@ def _shell(cmd):
 class Command(BaseCommand):
     help = 'Send encrypted backup to remote backup server'
 
-    option_list = BaseCommand.option_list + (
-        make_option('--ssh-command',
+    def add_arguments(self, parser):
+        parser.add_argument('--ssh-command',
                     dest='ssh_command',
                     action='store_true',
                     default=False,
-                    help="Output ssh command to get to backup server"),
-        make_option('--backup-commands',
+                    help="Output ssh command to get to backup server")
+        parser.add_argument('--backup-commands',
                     dest='backup_commands',
                     action='store_true',
                     default=False,
-                    help="Output duplicity commands to do a backup"),
-        make_option('--retrieve-commands',
+                    help="Output duplicity commands to do a backup")
+        parser.add_argument('--retrieve-commands',
                     dest='retrieve_commands',
                     action='store_true',
                     default=False,
-                    help="Output duplicity commands to retrieve backups"),
-        make_option('--cleanup-commands',
+                    help="Output duplicity commands to retrieve backups")
+        parser.add_argument('--cleanup-commands',
                     dest='cleanup_commands',
                     action='store_true',
                     default=False,
-                    help="Output duplicity commands to purge old full backups"),
-
-        make_option('--db-only',
+                    help="Output duplicity commands to purge old full backups")
+        parser.add_argument('--db-only',
                     dest='db_only',
                     action='store_true',
                     default=False,
-                    help='Backup the database only [default: database and submitted files]'),
-        make_option('--full',
+                    help='Backup the database only [default: database and submitted files]')
+        parser.add_argument('--full',
                     dest='full',
                     action='store_true',
                     default=False,
-                    help="Do a full backup (as opposed to incremental)"),
-        make_option('--dry-run', '-n',
+                    help="Do a full backup (as opposed to incremental)")
+        parser.add_argument('--dry-run', '-n',
                     dest='dry_run',
                     action='store_true',
                     default=False,
-                    help='Do a dry run of the duplicity backup.'),
-    )
+                    help='Do a dry run of the duplicity backup.')
 
     def handle(self, *args, **options):
         passphrase = settings.BACKUP_PASSPHRASE

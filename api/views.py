@@ -31,7 +31,7 @@ def oauth_authorize(request, request_token, callback, params):
 
     # email the user so we're super-sure they know this is happening
     person = get_object_or_404(Person, userid=request.user.username)
-    manage_url = request.build_absolute_uri(reverse(manage_tokens))
+    manage_url = request.build_absolute_uri(reverse('api:manage_tokens'))
     message = EMAIL_INFORM_TEMPLATE.format(consumername=consumer.name, url=manage_url)
     send_mail('CourSys access requested', message, settings.DEFAULT_FROM_EMAIL, [person.email()], fail_silently=False)
 
@@ -62,7 +62,7 @@ def manage_tokens(request):
         key = request.POST.get('key', None)
         token = get_object_or_404(Token, user__username=request.user.username, token_type=Token.ACCESS, key=key)
         token.delete()
-        return HttpResponseRedirect(reverse(manage_tokens))
+        return HttpResponseRedirect(reverse('api:manage_tokens'))
 
     else:
         tokens = Token.objects.filter(user__username=request.user.username, token_type=Token.ACCESS) \

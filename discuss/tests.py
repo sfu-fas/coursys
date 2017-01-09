@@ -38,19 +38,19 @@ class SimpleTest(TestCase):
         client = Client()
         client.login_user("ggbaker")
 
-        url = reverse('discuss.views.discussion_index', kwargs={'course_slug': self.offering.slug})
+        url = reverse('offering:discussion:discussion_index', kwargs={'course_slug': self.offering.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         
-        url = reverse('discuss.views.create_topic', kwargs={'course_slug': self.offering.slug})
+        url = reverse('offering:discussion:create_topic', kwargs={'course_slug': self.offering.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
-        url = reverse('discuss.views.view_topic', kwargs={'course_slug': self.offering.slug, 'topic_slug': self.topic.slug})
+        url = reverse('offering:discussion:view_topic', kwargs={'course_slug': self.offering.slug, 'topic_slug': self.topic.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
-        url = reverse('discuss.views.change_topic_status', kwargs={'course_slug': self.offering.slug, 'topic_slug': self.topic.slug})
+        url = reverse('offering:discussion:change_topic_status', kwargs={'course_slug': self.offering.slug, 'topic_slug': self.topic.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
@@ -58,19 +58,19 @@ class SimpleTest(TestCase):
         client = Client()
         client.login_user(self.topic.author.person.userid)
 
-        url = reverse('discuss.views.edit_topic', kwargs={'course_slug': self.offering.slug, 'topic_slug': self.topic.slug})
+        url = reverse('offering:discussion:edit_topic', kwargs={'course_slug': self.offering.slug, 'topic_slug': self.topic.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         client = Client()
         client.login_user(self.message.author.person.userid)
         
-        url = reverse('discuss.views.edit_message', kwargs={'course_slug': self.offering.slug,
+        url = reverse('offering:discussion:edit_message', kwargs={'course_slug': self.offering.slug,
                       'topic_slug': self.topic.slug, 'message_slug': self.message.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         
-        url = reverse('discuss.views.remove_message', kwargs={'course_slug': self.offering.slug,
+        url = reverse('offering:discussion:remove_message', kwargs={'course_slug': self.offering.slug,
                       'topic_slug': self.topic.slug, 'message_slug': self.message.slug})
         response = client.post(url)
         self.assertEqual(response.status_code, 302)

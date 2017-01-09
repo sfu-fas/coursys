@@ -1,5 +1,4 @@
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from log.models import LogEntry
 from courselib.auth import requires_global_role
 from courselib.search import get_query
@@ -16,7 +15,5 @@ def index(request):
         logs = None
         reg = ""
 
-    return render_to_response("log/index.html", \
-            {"logs": logs, 'q': q}, \
-            context_instance=RequestContext(request))
+    return render(request, "log/index.html",  {"logs": logs, 'q': q})
 

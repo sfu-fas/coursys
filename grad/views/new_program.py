@@ -7,7 +7,6 @@ from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import GradProgramForm
 import datetime
 from django.core.urlresolvers import reverse
-from programs import programs
 
 @requires_role("GRAD", get_only=["GRPD"])
 def new_program(request):
@@ -22,7 +21,7 @@ def new_program(request):
                   description="Created new program %s for %s." % (form.instance.label, form.instance.unit),
                   related_object=form.instance)
             l.save()                        
-            return HttpResponseRedirect(reverse(programs))
+            return HttpResponseRedirect(reverse('grad:programs'))
     else:
         form = GradProgramForm()    
         form.fields['unit'].choices = unit_choices

@@ -42,7 +42,7 @@ def new_visa(request, emplid=None):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse('visas.views.list_all_visas'))
+            return HttpResponseRedirect(reverse('visas:list_all_visas'))
     else:
         if emplid:
             person = Person.objects.get(find_userid_or_emplid(emplid))
@@ -71,7 +71,7 @@ def edit_visa(request, visa_id):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse('visas.views.list_all_visas'))
+            return HttpResponseRedirect(reverse('visas:list_all_visas'))
     else:
         # The initial value needs to be the person's emplid in the form.
         # Django defaults to the pk, which is not human readable.
@@ -99,7 +99,7 @@ def delete_visa(request, visa_id):
 
         visa.hide()
         visa.save()
-    return HttpResponseRedirect(reverse(list_all_visas))
+    return HttpResponseRedirect(reverse('visas:list_all_visas'))
 
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
@@ -142,7 +142,7 @@ def new_attachment(request, visa_id):
                 filetype += "; charset=" + upfile.charset
             attachment.mediatype = filetype
             attachment.save()
-            return HttpResponseRedirect(reverse(view_visa, kwargs={'visa_id':visa.id}))
+            return HttpResponseRedirect(reverse('visas:view_visa', kwargs={'visa_id':visa.id}))
         else:
             context.update({"attachment_form": form})
 
@@ -181,4 +181,4 @@ def delete_attachment(request, visa_id, attach_slug):
                          )
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
-    return HttpResponseRedirect(reverse(view_visa, kwargs={'visa_id':visa.id}))
+    return HttpResponseRedirect(reverse('visas:view_visa', kwargs={'visa_id':visa.id}))

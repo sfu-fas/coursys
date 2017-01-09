@@ -27,11 +27,11 @@ class GradTest(TestCase):
         """
         client = Client()
         client.login_user('dzhao')
-        response = client.get(reverse('grad.views.index'))
+        response = client.get(reverse('grad:index'))
         self.assertEqual(response.status_code, 200)
         
         # AJAX calls for autocomplete return JSON
-        response = client.get(reverse('grad.views.quick_search')+'?term=grad')
+        response = client.get(reverse('grad:quick_search')+'?term=grad')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'application/json')
         # get this grad's slug from the search
@@ -39,14 +39,14 @@ class GradTest(TestCase):
         grad_slug = [d['value'] for d in autocomplete if d['value'].startswith(self.gs_userid)][0]
         
         # search submit with gradstudent slug redirects to page
-        response = client.get(reverse('grad.views.quick_search')+'?search='+grad_slug)
+        response = client.get(reverse('grad:quick_search')+'?search='+grad_slug)
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(response['location'].endswith( reverse('grad.views.view', kwargs={'grad_slug': grad_slug}) ))
+        self.assertTrue(response['location'].endswith( reverse('grad:view', kwargs={'grad_slug': grad_slug}) ))
 
         # search submit with non-slug redirects to "did you mean" page
-        response = client.get(reverse('grad.views.quick_search')+'?search=' + self.gs_userid)
+        response = client.get(reverse('grad:quick_search')+'?search=' + self.gs_userid)
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(response['location'].endswith( reverse('grad.views.not_found')+"?search=" + self.gs_userid ))
+        self.assertTrue(response['location'].endswith( reverse('grad:not_found')+"?search=" + self.gs_userid ))
         
         response = client.get(response['location'])
         gradlist = response.context['grads']
@@ -59,13 +59,13 @@ class GradTest(TestCase):
         """
         client = Client()
         client.login_user('dzhao')
-        response = client.get(reverse('grad.views.search'))
+        response = client.get(reverse('grad:search'))
         self.assertEqual(response.status_code, 200)
     
     def test_that_grad_search_with_csv_option_returns_csv(self):
         client = Client()
         client.login_user('dzhao')
-        response = client.get(reverse('grad.views.search'), {'columns':'person.first_name', 'csv':'sure'})
+        response = client.get(reverse('grad:search'), {'columns':'person.first_name', 'csv':'sure'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'text/csv')
 
@@ -83,14 +83,14 @@ class GradTest(TestCase):
         lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
         lt.save()
 
-        test_views(self, client, 'grad.views.',
+        test_views(self, client, 'grad:',
                 ['programs', 'new_program', 'requirements', 'new_requirement', 
                     'letter_templates', 'new_letter_template', 
                     'manage_scholarshipType', 'search', 'funding_report', 
                     'all_promises'],
                 {})
-        test_views(self, client, 'grad.views.', ['manage_letter_template'], {'letter_template_slug': lt.slug})
-        test_views(self, client, 'grad.views.', ['not_found'], {}, qs='search=grad')
+        test_views(self, client, 'grad:', ['manage_letter_template'], {'letter_template_slug': lt.slug})
+        test_views(self, client, 'grad:', ['not_found'], {}, qs='search=grad')
 
 
     def __make_test_grad(self):
@@ -129,17 +129,17 @@ class GradTest(TestCase):
         lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
         lt.save()
 
-        url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
+        url = reverse('grad:get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
         content = client.get(url).content
         Letter(student=gs, template=lt, date=datetime.date.today(), content=content).save()
         
-        url = reverse('grad.views.view', kwargs={'grad_slug': gs.slug})
+        url = reverse('grad:view', kwargs={'grad_slug': gs.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         
         # sections of the main gradstudent view that can be loaded
         for section in all_sections:
-            url = reverse('grad.views.view', kwargs={'grad_slug': gs.slug})
+            url = reverse('grad:view', kwargs={'grad_slug': gs.slug})
             # check fragment fetch for AJAX
             try:
                 response = client.get(url, {'section': section})
@@ -178,7 +178,7 @@ class GradTest(TestCase):
                      'manage_progress',
                      'manage_documents']:
             try:
-                url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
+                url = reverse('grad:'+view, kwargs={'grad_slug': gs.slug})
                 response = basic_page_tests(self, client, url)
                 self.assertEqual(response.status_code, 200)
             except:
@@ -186,11 +186,11 @@ class GradTest(TestCase):
                 raise
 
         for style in STYLES:
-            url = reverse('grad.views.financials', kwargs={'grad_slug': gs.slug, 'style': style})
+            url = reverse('grad:financials', kwargs={'grad_slug': gs.slug, 'style': style})
             response = basic_page_tests(self, client, url)
             self.assertEqual(response.status_code, 200)
 
-        url = reverse('grad.views.new_letter', kwargs={'grad_slug': gs.slug, 'letter_template_slug': lt.slug})
+        url = reverse('grad:new_letter', kwargs={'grad_slug': gs.slug, 'letter_template_slug': lt.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
@@ -204,7 +204,7 @@ class GradTest(TestCase):
 
         # get template text and make sure substitutions are made
         lt = LetterTemplate.objects.get(label="Funding")
-        url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
+        url = reverse('grad:get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
         response = client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, gs.person.get_title() + ' ' + gs.person.last_name + ' is making satisfactory progress')
@@ -213,11 +213,11 @@ class GradTest(TestCase):
         # create a letter with that content
         l = Letter(student=gs, date=datetime.date.today(), to_lines="The Student\nSFU", template=lt, created_by='ggbaker', content=content)
         l.save()
-        url = reverse('grad.views.view_letter', kwargs={'grad_slug': gs.slug, 'letter_slug': l.slug})
+        url = reverse('grad:view_letter', kwargs={'grad_slug': gs.slug, 'letter_slug': l.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
-        url = reverse('grad.views.copy_letter', kwargs={'grad_slug': gs.slug, 'letter_slug': l.slug})
+        url = reverse('grad:copy_letter', kwargs={'grad_slug': gs.slug, 'letter_slug': l.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
@@ -243,7 +243,7 @@ class GradTest(TestCase):
         units = [r.unit for r in Role.objects.filter(person__userid='dzhao', role='GRAD')]
 
         # basic search with the frontend
-        url = reverse('grad.views.search', kwargs={})
+        url = reverse('grad:search', kwargs={})
         qs = 'student_status=PART&student_status=ACTI&columns=person.emplid&columns=person.userid&columns=program'
         response = basic_page_tests(self, client, url + '?' + qs)
         self.assertIn('grad/search_results.html', [t.name for t in response.templates])

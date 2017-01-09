@@ -30,4 +30,4 @@ def edit_plan(request, semester, plan_slug):
     else:
         form = PlanBasicsForm(instance=plan)
 
-    return render_to_response("planning/edit_plan.html", {'form': form, 'plan': plan}, context_instance=RequestContext(request))
+    return render(request, "planning/edit_plan.html", {'form': form, 'plan': plan})

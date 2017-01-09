@@ -378,6 +378,7 @@ class CareerEventHandlerBase(object):
                              person=person,
                              **kwargs)
         form.legend = cls.NAME
+        form.use_required_attribute = False
         return form
 
     # event configuration

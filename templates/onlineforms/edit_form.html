@@ -4,15 +4,15 @@
 {% block title %}Edit {{ owner_form.title }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-<li><a href="{% url "onlineforms.views.list_all" %}">Edit Forms</a></li>
-<li><a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+<li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+<li><a href="{% url "onlineforms:list_all" %}">Edit Forms</a></li>
+<li><a href="{% url "onlineforms:view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
 <li>Edit</li>
 {% endblock %}
 
 {% block content %}
 <div class="form_container">
-    <form action="{% url "onlineforms.views.edit_form" form_slug=owner_form.slug %}"  method="post"> {% csrf_token %}
+    <form action="{% url "onlineforms:edit_form" form_slug=owner_form.slug %}"  method="post"> {% csrf_token %}
         <fieldset>
             <legend>Form Information</legend>
                 {{form|as_dl}}           

@@ -38,7 +38,7 @@ def planner_edit_capabilities(request, userid):
         form = CapabilityForm(initial={'instructor': instructor})
         form.fields['course'].choices = possible_courses
 
-    return render_to_response("planning/planner_edit_capabilities.html",
+    return render(request, "planning/planner_edit_capabilities.html",
                               {'instructor': instructor,
                                'capability_list': capability_list,
                                'form': form},

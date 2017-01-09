@@ -193,19 +193,19 @@ class GradesTest(TestCase):
         client.login_user("ggbaker")
 
         response = basic_page_tests(self, client, '/' + c.slug + '/')
-        self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
+        self.assertContains(response, 'href="' + reverse('offering:groups:groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
         basic_page_tests(self, client, c.get_absolute_url())
-        basic_page_tests(self, client, reverse('grades.views.student_info', kwargs={'course_slug': c.slug, 'userid': '0aaa0'}))
-        basic_page_tests(self, client, reverse('grades.views.add_numeric_activity', kwargs={'course_slug':c.slug}))
-        basic_page_tests(self, client, reverse('grades.views.add_letter_activity', kwargs={'course_slug':c.slug}))
+        basic_page_tests(self, client, reverse('offering:student_info', kwargs={'course_slug': c.slug, 'userid': '0aaa0'}))
+        basic_page_tests(self, client, reverse('offering:add_numeric_activity', kwargs={'course_slug':c.slug}))
+        basic_page_tests(self, client, reverse('offering:add_letter_activity', kwargs={'course_slug':c.slug}))
 
         # test student pages
         client = Client()
         client.login_user("0aaa0")
         response = basic_page_tests(self, client, '/' + c.slug + '/')
         self.assertContains(response, u"Gregorʏ (Greg) Baker")
-        self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
+        self.assertContains(response, 'href="' + reverse('offering:groups:groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
         response = basic_page_tests(self, client, a.get_absolute_url())
         # small class (one student) shouldn't contain summary stats
@@ -232,11 +232,11 @@ class GradesTest(TestCase):
         client.login_user("ggbaker")
         
         # course main screen
-        url = reverse('grades.views.course_info', kwargs={'course_slug': c.slug})
+        url = reverse('offering:course_info', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
-        url = reverse('grades.views.activity_choice', kwargs={'course_slug': c.slug})
+        url = reverse('offering:activity_choice', kwargs={'course_slug': c.slug})
         self.assertContains(response, 'href="' + url +'"')
-        url = reverse('grades.views.add_numeric_activity', kwargs={'course_slug': c.slug})
+        url = reverse('offering:add_numeric_activity', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
         
         # add activity
@@ -256,7 +256,7 @@ class GradesTest(TestCase):
         self.assertEquals(a.deleted, False)
         
         # add calculated numeric activity
-        url = reverse('grades.views.add_cal_numeric_activity', kwargs={'course_slug': c.slug})
+        url = reverse('offering:add_cal_numeric_activity', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
         response = client.post(url, {'name':'Total', 'short_name':'Total', 'status':'URLS', 'group': '1', 'max_grade': 30, 'formula': '[A1]+5'})
         self.assertEquals(response.status_code, 302)
@@ -271,7 +271,7 @@ class GradesTest(TestCase):
         self.assertEquals(a.formula, '[A1]+5')
         
         # formula tester
-        url = reverse('grades.views.formula_tester', kwargs={'course_slug': c.slug})
+        url = reverse('offering:formula_tester', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
         response = client.get(url, {'formula': '[A1]+5', 'a1-status': 'RLS', 'a1-value': '6', 'total-status': 'URLS'})
         self.assertContains(response, '<div id="formula_result">11.0</div>')
@@ -316,7 +316,7 @@ class GradesTest(TestCase):
         
         client = Client()
         client.login_user("ggbaker")
-        url = reverse('grades.views.edit_activity', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
+        url = reverse('offering:edit_activity', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
 
         # for whatever reason, '0' is group and '1' is individual for the group value
         submit_dict = {'name': a.name, 'short_name': a.short_name, 'status': a.status, 'due_date_0': due_date, 'due_date_1': due_time, 'percent': a.percent, 'max_grade': a.max_grade, 'group': '1', 'extend_group': 'None'}
@@ -479,7 +479,7 @@ class GradesTest(TestCase):
         client = Client()
         client.login_user("ggbaker")
         
-        url = reverse('marking.views.change_grade_status', kwargs={'course_slug': c.slug, 'activity_slug': a.slug, 'userid': stud.person.userid})
+        url = reverse('offering:change_grade_status', kwargs={'course_slug': c.slug, 'activity_slug': a.slug, 'userid': stud.person.userid})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, "out of 0")
 
@@ -488,17 +488,17 @@ class GradesTest(TestCase):
         g = NumericGrade.objects.get(activity=a, member=stud)
         self.assertEquals(g.value, 3)
         
-        url = reverse('grades.views.activity_info', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
+        url = reverse('offering:activity_info', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
         response = basic_page_tests(self, client, url)
-        url = reverse('grades.views.student_info', kwargs={'course_slug': c.slug, 'userid': stud.person.userid})
+        url = reverse('offering:student_info', kwargs={'course_slug': c.slug, 'userid': stud.person.userid})
         response = basic_page_tests(self, client, url)
 
         # test as student
         client.login_user(stud.person.userid)
 
-        url = reverse('grades.views.course_info', kwargs={'course_slug': c.slug})
+        url = reverse('offering:course_info', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
-        url = reverse('grades.views.activity_info', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
+        url = reverse('offering:activity_info', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
         response = basic_page_tests(self, client, url)
 
 
@@ -537,7 +537,7 @@ class GradesTest(TestCase):
         m = Member.objects.get(offering=o, person__userid='0aaa0')
 
         # grade status form
-        url = reverse('marking.views.change_grade_status', kwargs={'course_slug': o.slug, 'activity_slug': a.slug, 'userid': m.person.userid})
+        url = reverse('offering:change_grade_status', kwargs={'course_slug': o.slug, 'activity_slug': a.slug, 'userid': m.person.userid})
         response = basic_page_tests(self, client, url)
         response = client.post(url, {'grade-status-value': '6', 'grade-status-flag': 'DISH', 'grade-status-comment': 'the comment'})
         self.assertEquals(response.status_code, 302)
@@ -548,7 +548,7 @@ class GradesTest(TestCase):
         self.assertEquals(ng.comment, 'the comment')
 
         # grade all students
-        url = reverse('marking.views.mark_all_students', kwargs={'course_slug': o.slug, 'activity_slug': a.slug})
+        url = reverse('offering:mark_all_students', kwargs={'course_slug': o.slug, 'activity_slug': a.slug})
         response = basic_page_tests(self, client, url)
         response = client.post(url, {'0aaa0-value': '7', '0aaa1-value': '8'})
         self.assertEquals(response.status_code, 302)
@@ -561,7 +561,7 @@ class GradesTest(TestCase):
         self.assertEquals(ng.flag, 'GRAD')
 
         # detailed marking
-        url = reverse('marking.views.marking_student', kwargs={'course_slug': o.slug, 'activity_slug': a.slug, 'userid': m.person.userid})
+        url = reverse('offering:marking:marking_student', kwargs={'course_slug': o.slug, 'activity_slug': a.slug, 'userid': m.person.userid})
         response = basic_page_tests(self, client, url)
         response = client.post(url, {'cmp-1-value': '2', 'cmp-1-comment': 'comment1', 'cmp-2-value': '3', 'cmp-2-comment': 'comment2',
                                      'late_penalty': '0', 'mark_adjustment': '0'})
@@ -571,7 +571,7 @@ class GradesTest(TestCase):
         self.assertEquals(ng.flag, 'GRAD')
 
         # student summary page
-        url = reverse('grades.views.student_info', kwargs={'course_slug': o.slug, 'userid': m.person.userid})
+        url = reverse('offering:student_info', kwargs={'course_slug': o.slug, 'userid': m.person.userid})
         response = basic_page_tests(self, client, url)
 
         # check GradeHistory objects
@@ -663,8 +663,8 @@ class APITests(TestCase):
         """
         client = Client()
         client.login_user("0aaa0")
-        grades_url = reverse('api.OfferingGrades', kwargs={'course_slug': TEST_COURSE_SLUG})
-        stats_url = reverse('api.OfferingStats', kwargs={'course_slug': TEST_COURSE_SLUG})
+        grades_url = reverse('api:OfferingGrades', kwargs={'course_slug': TEST_COURSE_SLUG})
+        stats_url = reverse('api:OfferingStats', kwargs={'course_slug': TEST_COURSE_SLUG})
 
         o = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         na = NumericActivity.objects.get(slug='a1')
@@ -767,10 +767,10 @@ class PagesTests(TestCase):
         c.login_user(instr.person.userid)
 
         # photo things should fail if no agreement
-        url = reverse('grades.views.photo_list', kwargs={'course_slug': crs.slug})
+        url = reverse('offering:photo_list', kwargs={'course_slug': crs.slug})
         response = c.get(url)
         self.assertEqual(response.status_code, 403)
-        url = reverse('grades.views.student_photo', kwargs={'emplid': student.person.emplid})
+        url = reverse('data:student_photo', kwargs={'emplid': student.person.emplid})
         response = c.get(url)
         self.assertEqual(response.status_code, 403)
 
@@ -779,36 +779,36 @@ class PagesTests(TestCase):
         u = Unit.objects.get(label='UNIV')
         u.config['photopass'] = 'foo'
         u.save()
-        test_views(self, c, 'grades.views.', ['course_config', 'course_info', 'add_numeric_activity',
+        test_views(self, c, 'offering:', ['course_config', 'course_info', 'add_numeric_activity',
                 'add_cal_numeric_activity', 'add_letter_activity', 'add_cal_letter_activity', 'formula_tester',
                 'all_grades', 'class_list', 'photo_list', 'student_search', 'new_message'],
                 {'course_slug': crs.slug})
-        test_views(self, c, 'grades.views.', ['student_info'],
+        test_views(self, c, 'offering:', ['student_info'],
                 {'course_slug': crs.slug, 'userid': student.person.userid})
 
         # photo list styles
         for style in ['table', 'horiz']:
-            test_views(self, c, 'grades.views.', ['photo_list'], {'course_slug': crs.slug, 'style': style})
+            test_views(self, c, 'offering:', ['photo_list'], {'course_slug': crs.slug, 'style': style})
 
 
         # various combinations of activity type and view
-        test_views(self, c, 'grades.views.', ['activity_info', 'activity_info_with_groups', 'activity_stat',
+        test_views(self, c, 'offering:', ['activity_info', 'activity_info_with_groups', 'activity_stat',
                 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': na.slug})
-        test_views(self, c, 'grades.views.', ['compare_official', 'activity_info',
+        test_views(self, c, 'offering:', ['compare_official', 'activity_info',
                 'activity_info_with_groups', 'activity_stat', 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': la.slug})
-        test_views(self, c, 'grades.views.', ['activity_info', 'activity_stat', 'edit_activity'],
+        test_views(self, c, 'offering:', ['activity_info', 'activity_stat', 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': cna.slug})
-        test_views(self, c, 'grades.views.', ['edit_cutoffs', 'compare_official', 'activity_info',
+        test_views(self, c, 'offering:', ['edit_cutoffs', 'compare_official', 'activity_info',
                 'activity_stat', 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': cla.slug})
 
         # as student
         c.login_user(student.person.userid)
-        test_views(self, c, 'grades.views.', ['course_info'],
+        test_views(self, c, 'offering:', ['course_info'],
                 {'course_slug': crs.slug})
-        test_views(self, c, 'grades.views.', ['activity_info'],
+        test_views(self, c, 'offering:', ['activity_info'],
                 {'course_slug': crs.slug, 'activity_slug': na.slug})
 
 

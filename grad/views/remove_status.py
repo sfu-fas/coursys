@@ -19,4 +19,4 @@ def remove_status(request, grad_slug, s_id):
               related_object=status)
         l.save()              
     
-    return HttpResponseRedirect(reverse('grad.views.manage_status', kwargs={'grad_slug':grad_slug}))
+    return HttpResponseRedirect(reverse('grad:manage_status', kwargs={'grad_slug':grad_slug}))

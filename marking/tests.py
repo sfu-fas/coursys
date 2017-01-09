@@ -48,7 +48,7 @@ class BasicTest(TestCase):
         
         self.client.login_user('ggbaker')
 
-        response = basic_page_tests(self, self.client, reverse(manage_activity_components, args=(self.c_slug,a.slug)))
+        response = basic_page_tests(self, self.client, reverse('offering:marking:manage_activity_components', args=(self.c_slug,a.slug)))
           
         forms = response.context['formset'].forms
         self.assertEquals(forms[0].instance.title, 'part1')
@@ -77,7 +77,7 @@ class BasicTest(TestCase):
         
         self.client.login_user('ggbaker')        
 
-        response = basic_page_tests(self, self.client, reverse(manage_common_problems, args=(self.c_slug,a.slug)))
+        response = basic_page_tests(self, self.client, reverse('offering:marking:manage_common_problems', args=(self.c_slug,a.slug)))
         
         forms = response.context['formset'].forms
  
@@ -93,7 +93,7 @@ class BasicTest(TestCase):
         self.assertEquals(ins2.activity_component, co2)
         
         #test the marking page as well        
-        url = reverse(marking_student, args=(self.c_slug, a.slug, '0aaa0'))
+        url = reverse('offering:marking:marking_student', args=(self.c_slug, a.slug, '0aaa0'))
         response = basic_page_tests(self, self.client, url)
         
         mark_components = response.context['component_data']
@@ -116,7 +116,7 @@ class BasicTest(TestCase):
                                     
         self.client.login_user('ggbaker')
 
-        url = reverse(manage_activity_components, args=(self.c_slug, a.slug))
+        url = reverse('offering:marking:manage_activity_components', args=(self.c_slug, a.slug))
 
         # 2 forms for the first 2 components to add
         post_data = {'form-0-id' : ['', ''], 'form-1-id' : ['', ''],
@@ -225,7 +225,7 @@ class BasicTest(TestCase):
         
         self.client.login_user('ggbaker')
 
-        response = self.client.get(reverse('marking.views.mark_history_student', args=(self.c_slug, a.slug, '0aaa1')))
+        response = self.client.get(reverse('offering:marking:mark_history_student', args=(self.c_slug, a.slug, '0aaa1')))
         self.assertEquals(response.status_code, 200)
         
         latest_act_mark = response.context['current_mark']
@@ -257,7 +257,7 @@ class BasicTest(TestCase):
         member2 = GroupMember.objects.create(group = group, student = stud2, confirmed = True, activity=a1)
         
         # marking form (student)
-        url = reverse('marking.views.marking_student', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug, 'userid':stud1.person.userid})
+        url = reverse('offering:marking:marking_student', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug, 'userid':stud1.person.userid})
 
         response = basic_page_tests(self, client, url)
         
@@ -303,12 +303,12 @@ class BasicTest(TestCase):
         #self.assertContains(response, 'name="late_penalty" type="text" value="{0}'.format(PENALTY))
 
         # look at the "view details" page
-        url = reverse('marking.views.mark_summary_student', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug, 'userid':stud1.person.userid})
+        url = reverse('offering:marking:mark_summary_student', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug, 'userid':stud1.person.userid})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, 'perfect part 1')
 
         # marking form (group)
-        url = reverse('marking.views.marking_student', kwargs={'course_slug':c.slug,
+        url = reverse('offering:marking:marking_student', kwargs={'course_slug':c.slug,
             'activity_slug':a1.slug, 'userid':stud1.person.userid})
         response = basic_page_tests(self, client, url)
         
@@ -325,14 +325,14 @@ class BasicTest(TestCase):
         response = basic_page_tests(self, client, url)
 
         # common problem form
-        url = reverse('marking.views.manage_common_problems', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug})
+        url = reverse('offering:marking:manage_common_problems', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug})
         response = basic_page_tests(self, client, url)
         
         # mark all (student and group)
-        url = reverse('marking.views.mark_all_students', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug})
+        url = reverse('offering:mark_all_students', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug})
         response = basic_page_tests(self, client, url)
         # mark all (student and group)
-        url = reverse('marking.views.mark_all_groups', kwargs={'course_slug':c.slug, 'activity_slug':a1.slug})
+        url = reverse('offering:mark_all_groups', kwargs={'course_slug':c.slug, 'activity_slug':a1.slug})
         response = basic_page_tests(self, client, url)
 
 class TestImportFunctionsNumeric(TestCase):
@@ -570,7 +570,7 @@ class TestImportViews(TestCase):
         self.client.login_user('ggbaker')
 
         # Import the file, check that resulting HTML has correct entries in fields for two affected students
-        url = reverse('marking.views.mark_all_students', kwargs={'course_slug':self.c_slug, 'activity_slug':self.a1.slug})
+        url = reverse('offering:mark_all_students', kwargs={'course_slug':self.c_slug, 'activity_slug':self.a1.slug})
         with open('marking/testfiles/newformat_noprob_userid.csv') as file:
             post_data = {'import-file-file':[file]}
             response = self.client.post(url+"?import=true", post_data, follow=True)
@@ -613,7 +613,7 @@ class TestImportViewsLet(TestCase):
         self.client.login_user('ggbaker')
 
         # Import the file, check that resulting HTML has correct entries in fields for two affected students
-        url = reverse('marking.views.mark_all_students', kwargs={'course_slug':self.c_slug, 'activity_slug':self.a1.slug})
+        url = reverse('offering:mark_all_students', kwargs={'course_slug':self.c_slug, 'activity_slug':self.a1.slug})
         with open('marking/testfiles/newformat_noprob_userid_let.csv') as file:
             post_data = {'import-file-file':[file]}
             response = self.client.post(url+"?import=true", post_data, follow=True)
@@ -651,7 +651,7 @@ class TestMarkingImport(TestCase):
         #  "part". Let's do this so, in this instance, it gets changed back to "part-1"
         ActivityComponent.objects.filter(slug='part').update(slug='part-1')
         self.client.login_user('ggbaker')
-        url = reverse('marking.views.import_marks', kwargs={'course_slug':self.crs.slug, 'activity_slug':self.act.slug})
+        url = reverse('offering:marking:import_marks', kwargs={'course_slug':self.crs.slug, 'activity_slug':self.act.slug})
         response = basic_page_tests(self, self.client, url)
         
         # post first file

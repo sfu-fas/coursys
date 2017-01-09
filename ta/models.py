@@ -143,7 +143,7 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOUR
             n.save()
 
     def get_absolute_url(self):
-        return reverse('ta.views.view_tug', kwargs={
+        return reverse('offering:view_tug', kwargs={
                 'course_slug': self.member.offering.slug, 
                 'userid':self.member.person.userid})
     

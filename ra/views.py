@@ -49,14 +49,14 @@ def search(request, student_id=None):
     if request.method == 'POST':
         form = RASearchForm(request.POST)
         if not form.is_valid():
-            return HttpResponseRedirect(reverse('ra.views.found') + "?search=" + urllib.quote_plus(form.data['search']))
+            return HttpResponseRedirect(reverse('ra:found') + "?search=" + urllib.quote_plus(form.data['search']))
         search = form.cleaned_data['search']
         # deal with people without active computing accounts
         if search.userid:
             userid = search.userid
         else:
             userid = search.emplid
-        return HttpResponseRedirect(reverse('ra.views.student_appointments', kwargs={'userid': userid}))
+        return HttpResponseRedirect(reverse('ra:student_appointments', kwargs={'userid': userid}))
     if student_id:
         form = RASearchForm(instance=student, initial={'student': student.userid})
     else:
@@ -134,7 +134,7 @@ def new(request):
             appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
             appointment.save()
             messages.success(request, 'Created RA Appointment for ' + appointment.person.name())
-            return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
+            return HttpResponseRedirect(reverse('ra:student_appointments', kwargs=({'userid': userid})))
     else:
         semester = Semester.next_starting()
         semesterconfig = SemesterConfig.get_config(request.units, semester)
@@ -194,7 +194,7 @@ def edit(request, ra_slug):
             appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
             appointment.save()
             messages.success(request, 'Updated RA Appointment for ' + appointment.person.first_name + " " + appointment.person.last_name)
-            return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
+            return HttpResponseRedirect(reverse('ra:student_appointments', kwargs=({'userid': userid})))
     else:
         #The initial value needs to be the person's emplid in the form. Django defaults to the pk, which is not human readable.
         raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'use_hourly': appointment.use_hourly()})
@@ -237,14 +237,14 @@ def edit_letter(request, ra_slug):
         if form.is_valid():
             form.save()
             messages.success(request, 'Updated RA Letter Text for ' + appointment.person.first_name + " " + appointment.person.last_name)
-            return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': appointment.person.userid})))
+            return HttpResponseRedirect(reverse('ra:student_appointments', kwargs=({'userid': appointment.person.userid})))
     else:
         if not appointment.offer_letter_text:
             letter_choices = RAAppointment.letter_choices(request.units)
             if len(letter_choices) == 1: # why make them select from one?
                 appointment.build_letter_text(letter_choices[0][0])
             else:
-                return HttpResponseRedirect(reverse(select_letter, kwargs=({'ra_slug': ra_slug})))
+                return HttpResponseRedirect(reverse('ra:select_letter', kwargs=({'ra_slug': ra_slug})))
         form = RALetterForm(instance=appointment)
     
     context = {'appointment': appointment, 'form': form}
@@ -260,9 +260,9 @@ def select_letter(request, ra_slug, print_only=None):
         if filled_form.is_valid():
             appointment.build_letter_text(filled_form.cleaned_data['letter_choice'])
         if print_only == 'print':
-            return HttpResponseRedirect(reverse(letter, kwargs=({'ra_slug': ra_slug})))
+            return HttpResponseRedirect(reverse('ra:letter', kwargs=({'ra_slug': ra_slug})))
         else:
-            return HttpResponseRedirect(reverse(edit_letter, kwargs=({'ra_slug': ra_slug})))
+            return HttpResponseRedirect(reverse('ra:edit_letter', kwargs=({'ra_slug': ra_slug})))
 
     else:
         new_form = LetterSelectForm(choices=letter_choices)
@@ -297,7 +297,7 @@ def letter(request, ra_slug):
         if len(letter_choices) == 1:  # why make them select from one?
             appointment.build_letter_text(letter_choices[0][0])
         else:
-            return HttpResponseRedirect(reverse(select_letter, kwargs=({'ra_slug': ra_slug, 'print_only': 'print'})))
+            return HttpResponseRedirect(reverse('ra:select_letter', kwargs=({'ra_slug': ra_slug, 'print_only': 'print'})))
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (appointment.slug)
     letter = OfficialLetter(response, unit=appointment.unit)
@@ -325,7 +325,7 @@ def delete_ra(request, ra_slug):
               related_object=appointment)
         l.save()              
     
-    return HttpResponseRedirect(reverse('ra.views.student_appointments', kwargs={'userid': appointment.person.emplid}))
+    return HttpResponseRedirect(reverse('ra:student_appointments', kwargs={'userid': appointment.person.emplid}))
 
 
 
@@ -340,7 +340,7 @@ def new_account(request):
         if accountform.is_valid():
             account = accountform.save()
             messages.success(request, 'Created account ' + str(account.account_number))
-            return HttpResponseRedirect(reverse('ra.views.accounts_index'))
+            return HttpResponseRedirect(reverse('ra:accounts_index'))
     return render(request, 'ra/new_account.html', {'accountform': accountform})
 
 
@@ -357,7 +357,7 @@ def edit_account(request, account_slug):
         if accountform.is_valid():
             accountform.save()
             messages.success(request, 'Updated account ' + str(account.account_number))
-            return HttpResponseRedirect(reverse(accounts_index))
+            return HttpResponseRedirect(reverse('ra:accounts_index'))
     else:
         accountform = AccountForm(instance=account)
         accountform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
@@ -373,7 +373,7 @@ def remove_account(request, account_slug):
           related_object=account)
     l.save()              
     
-    return HttpResponseRedirect(reverse('ra.views.accounts_index'))
+    return HttpResponseRedirect(reverse('ra:accounts_index'))
 
 #Project methods. Also straight forward.
 @requires_role("FUND")
@@ -385,7 +385,7 @@ def new_project(request):
         if projectform.is_valid():
             project = projectform.save()
             messages.success(request, 'Created project ' + str(project.project_number))
-            return HttpResponseRedirect(reverse('ra.views.projects_index'))
+            return HttpResponseRedirect(reverse('ra:projects_index'))
     return render(request, 'ra/new_project.html', {'projectform': projectform})
 
 @requires_role("FUND")
@@ -402,7 +402,7 @@ def edit_project(request, project_slug):
         if projectform.is_valid():
             projectform.save()
             messages.success(request, 'Updated project ' + str(project.project_number))
-            return HttpResponseRedirect(reverse(projects_index))
+            return HttpResponseRedirect(reverse('ra:projects_index'))
     else:
         projectform = ProjectForm(instance=project)
         projectform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
@@ -418,7 +418,7 @@ def remove_project(request, project_slug):
           related_object=project)
     l.save()              
     
-    return HttpResponseRedirect(reverse('ra.views.projects_index'))
+    return HttpResponseRedirect(reverse('ra:projects_index'))
 
 @requires_role("FUND")
 def semester_config(request, semester_name=None):
@@ -437,7 +437,7 @@ def semester_config(request, semester_name=None):
             config.set_end_date(form.cleaned_data['end_date'])
             config.save()
             messages.success(request, 'Updated semester configuration for %s.' % (semester.name))
-            return HttpResponseRedirect(reverse('ra.views.search'))
+            return HttpResponseRedirect(reverse('ra:search'))
     else:
         config = SemesterConfig.get_config(units=request.units, semester=semester)
         form = SemesterConfigForm(initial={'start_date': config.start_date(), 'end_date': config.end_date()})
@@ -641,7 +641,7 @@ def new_attachment(request, ra_slug):
                 filetype += "; charset=" + upfile.charset
             attachment.mediatype = filetype
             attachment.save()
-            return HttpResponseRedirect(reverse(view, kwargs={'ra_slug': appointment.slug}))
+            return HttpResponseRedirect(reverse('ra:view', kwargs={'ra_slug': appointment.slug}))
         else:
             context.update({"attachment_form": form})
 
@@ -681,7 +681,7 @@ def delete_attachment(request, ra_slug, attach_slug):
                          )
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
-    return HttpResponseRedirect(reverse(view, kwargs={'ra_slug': appointment.slug}))
+    return HttpResponseRedirect(reverse('ra:view', kwargs={'ra_slug': appointment.slug}))
 
 
 @requires_role("FUND")
@@ -705,7 +705,7 @@ def new_program(request):
                          description="Added program %s" % program,
                          related_object=program)
             l.save()
-            return HttpResponseRedirect(reverse(programs_index))
+            return HttpResponseRedirect(reverse('ra:programs_index'))
     else:
         form = ProgramForm()
         form.fields['unit'].choices = [(u.id, u.name) for u in request.units]
@@ -722,7 +722,7 @@ def delete_program(request, program_id):
                          )
     l = LogEntry(userid=request.user.username, description="Hid program %s" % program, related_object=program)
     l.save()
-    return HttpResponseRedirect(reverse(programs_index))
+    return HttpResponseRedirect(reverse('ra:programs_index'))
 
 
 @requires_role("FUND")
@@ -739,7 +739,7 @@ def edit_program(request, program_slug):
                          description="Added program %s" % program,
                          related_object=program)
             l.save()
-            return HttpResponseRedirect(reverse(programs_index))
+            return HttpResponseRedirect(reverse('ra:programs_index'))
     else:
         form = ProgramForm(instance=program)
         form.fields['unit'].choices = [(u.id, u.name) for u in request.units]

@@ -23,7 +23,7 @@ def manage_letter_template(request, letter_template_slug):
                   description="Updated new %s letter for %s." % (form.instance.label, form.instance.unit),
                   related_object=form.instance)
             l.save()            
-            return HttpResponseRedirect(reverse(letter_templates))
+            return HttpResponseRedirect(reverse('grad:letter_templates'))
     else:
         form = LetterTemplateForm(instance=letter_template)
         form.fields['unit'].choices = unit_choices 

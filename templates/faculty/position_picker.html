@@ -6,22 +6,22 @@
 {% block h1 %}Select Position{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'faculty.views.index' %}">Faculty Management</a></li>
-<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
-<li><a href="{% url "faculty.views.faculty_wizard" userid=person.userid_or_emplid %}">Setup Wizard</a></li>
+<li><a href="{% url 'faculty:index' %}">Faculty Management</a></li>
+<li><a href="{% url "faculty:summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url "faculty:faculty_wizard" userid=person.userid_or_emplid %}">Setup Wizard</a></li>
 <li>Pick Position</li>
 {% endblock %}
 
 {% block content %}
     {% if positions %}
     <div>Select a position:</div>
-    <form action="{% url "faculty.views.pick_position" userid=person.userid_or_emplid %}" method="POST">
+    <form action="{% url "faculty:pick_position" userid=person.userid_or_emplid %}" method="POST">
         {% csrf_token %}
         {{ form|as_dl }}
         <p><input type="submit" class="submit" value="Submit" /></p>
     </form>
     {% else %}
-    <div>Sorry, there are no positions to select in this faculty member's unit(s). <a href="{% url "faculty.views.list_positions" %}">See all positions</a></div>
+    <div>Sorry, there are no positions to select in this faculty member's unit(s). <a href="{% url "faculty:list_positions" %}">See all positions</a></div>
     {% endif %}
 
 {% endblock %}

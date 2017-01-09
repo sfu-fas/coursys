@@ -16,7 +16,7 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li>Discussion</li>
 {% endblock %}
 
@@ -24,8 +24,8 @@
 <div id="actions">
 	<h2 class="heading">Actions</h2>
 	<ul>
-		<li><a href="{% url "discuss.views.create_topic" course_slug=course.slug %}">Create New Topic</a></li>
-		<li><a href="{% url "discuss.views.manage_discussion_subscription" course_slug=course.slug %}">Manage Subscription</a></li>
+		<li><a href="{% url "offering:discussion:create_topic" course_slug=course.slug %}">Create New Topic</a></li>
+		<li><a href="{% url "offering:discussion:manage_discussion_subscription" course_slug=course.slug %}">Manage Subscription</a></li>
 	</ul>
 </div>
 {% endblock %}
@@ -39,7 +39,7 @@
 {% for topic in topics.object_list %}
 {% if topic.status != 'HID' or view == 'staff' %}
 <div class="discussion-topic{% if topic.status == 'HID' %} fade-out{% endif %}" id="topic-{{ topic.pk }}">
-	<h3><a href="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}">
+	<h3><a href="{% url "offering:discussion:view_topic" course_slug=course.slug topic_slug=topic.slug %}">
 		{% if topic.pinned %}<i class="fa fa-tag"></i>{% endif %}
 		{% if topic.status == 'ANS' %}<i class="fa fa-check" title="Answered"></i>{% endif %}
 		{{ topic.title }}
