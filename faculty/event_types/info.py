@@ -341,7 +341,7 @@ class ResumeEventHandler(CareerEventHandlerBase):
 
         def post_init(self):
             self.fields['comments'].help_text = 'Enter details about the event or note here.'
-            self.fields['comments'].required = True
+            self.fields['comments'].required = False
 
 
 
