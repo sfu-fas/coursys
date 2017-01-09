@@ -488,8 +488,10 @@ def calendar_ical(request, token, userid):
         if 'location' in data:
             e.add('location', data['location'])
         cal.add_component(e)
-    
-    return HttpResponse(cal.to_ical(), content_type="text/calendar")
+
+    resp = HttpResponse(cal.to_ical(), content_type="text/calendar")
+    print resp.reason_phrase
+    return resp
 
 
 @uses_feature('feeds')
