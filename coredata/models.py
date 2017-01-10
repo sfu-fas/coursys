@@ -157,38 +157,38 @@ class Person(models.Model, ConditionalSaveMixin):
         return "Userid"
 
     def __unicode__(self):
-        return "%s, %s" % (self.last_name, self.first_name)
+        return u"%s, %s" % (self.last_name, self.first_name)
 
     def name(self):
-        return "%s %s" % (self.first_name, self.last_name)
+        return u"%s %s" % (self.first_name, self.last_name)
 
     def sortname(self):
-        return "%s, %s" % (self.last_name, self.first_name)
+        return u"%s, %s" % (self.last_name, self.first_name)
 
     def initials(self):
-        return "%s%s" % (self.first_name[0], self.last_name[0])
+        return u"%s%s" % (self.first_name[0], self.last_name[0])
 
     def full_email(self):
-        return "%s <%s>" % (self.name(), self.email())
+        return u"%s <%s>" % (self.name(), self.email())
 
     def real_pref_first(self):
         return self.config.get('pref_first_name', None) or self.pref_first_name or self.first_name
 
     def name_pref(self):
-        return "%s %s" % (self.real_pref_first(), self.last_name)
+        return u"%s %s" % (self.real_pref_first(), self.last_name)
 
     def first_with_pref(self):
         name = self.first_name
         pref = self.real_pref_first()
         if pref != self.first_name:
-            name += ' (%s)' % (pref)
+            name += u' (%s)' % (pref)
         return name
 
     def sortname_pref(self):
-        return "%s, %s" % (self.last_name, self.first_with_pref())
+        return u"%s, %s" % (self.last_name, self.first_with_pref())
 
     def name_with_pref(self):
-        return "%s %s" % (self.first_with_pref(), self.last_name)
+        return u"%s %s" % (self.first_with_pref(), self.last_name)
 
     def letter_name(self):
         if 'letter_name' in self.config:
@@ -241,7 +241,7 @@ class Person(models.Model, ConditionalSaveMixin):
             return "None"
 
     def search_label_value(self):
-        return "%s (%s), %s" % (self.name(), self.userid, self.emplid)
+        return u"%s (%s), %s" % (self.name(), self.userid, self.emplid)
 
     def get_role_account(self, type):
         """
@@ -300,13 +300,13 @@ class FuturePerson(models.Model):
     objects = FuturePersonManager()
 
     def __unicode__(self):
-        return "%s, %s" % (self.last_name, self.first_name)
+        return u"%s, %s" % (self.last_name, self.first_name)
 
     def name(self):
-        return "%s %s" % (self.first_name, self.last_name)
+        return u"%s %s" % (self.first_name, self.last_name)
 
     def sortname(self):
-        return "%s, %s" % (self.last_name, self.first_name)
+        return u"%s, %s" % (self.last_name, self.first_name)
 
     class Meta:
         verbose_name_plural = "FuturePeople"
@@ -993,7 +993,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     def instructors_str(self):
         @cached(60*60*24*2)
         def _instr_str(pk):
-            return '; '.join(p.sortname() for p in CourseOffering.objects.get(pk=pk).instructors())
+            return u'; '.join(p.sortname() for p in CourseOffering.objects.get(pk=pk).instructors())
         return _instr_str(self.pk)
 
     def tas(self):
