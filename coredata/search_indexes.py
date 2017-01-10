@@ -20,16 +20,16 @@ class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
     def prepare_text(self, o):
         fields = [o.subject, o.number, o.section, o.title, o.instructors_str(), o.semester.name,
                   o.semester.label(), o.get_campus_display()]
-        return '\n'.join(fields)
+        return u'\n'.join(fields)
 
     def prepare_name(self, o):
-        return ' '.join([o.subject, o.number, o.section])
+        return u' '.join([o.subject, o.number, o.section])
 
     def prepare_url(self, o):
         return o.get_absolute_url()
 
     def prepare_search_display(self, o):
-        return "%s %s" % (o.name(), o.semester.label())
+        return u"%s %s" % (o.name(), o.semester.label())
 
 
 class PersonIndex(indexes.SearchIndex, indexes.Indexable):
@@ -94,4 +94,4 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
             return None
 
     def prepare_search_display(self, m):
-        return " %s (%s) in %s (%s)" % (m.person.name(), m.person.userid_or_emplid(), m.offering.name(), m.offering.semester.label())
+        return u" %s (%s) in %s (%s)" % (m.person.name(), m.person.userid_or_emplid(), m.offering.name(), m.offering.semester.label())
