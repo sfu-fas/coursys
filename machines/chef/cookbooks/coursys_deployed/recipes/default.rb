@@ -109,7 +109,10 @@ end
 # elasticsearch
 package "elasticsearch"
 file '/etc/default/elasticsearch' do
-  content 'START_DAEMON=true\nRESTART_ON_UPGRADE=true\n'
+  content "START_DAEMON=true\nRESTART_ON_UPGRADE=true\n"
+end
+cookbook_file "elasticsearch.yml" do
+    path "/etc/elasticsearch/elasticsearch.yml"
 end
 
 service "elasticsearch" do
