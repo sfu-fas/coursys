@@ -1,4 +1,4 @@
-python-memcached==1.58
+python-memcached==1.54
 #django-dbdump==1.1
 git+git://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
 elasticsearch==5.0.1
