@@ -520,7 +520,7 @@ def import_joint(extra_where='1=1'):
 
 
 def import_combined(import_semesters=import_semesters):
-    for combined in CombinedOffering.objects.filter(semester__name__in=import_semesters):
+    for combined in CombinedOffering.objects.filter(semester__name__in=import_semesters()):
         combined.create_combined_offering()
 
 def update_grads():
