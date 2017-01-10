@@ -325,7 +325,77 @@ def deploy_checks(request=None):
     else:
         passed.append(('Server time', 'okay'))
 
+
+    # library sanity
+    err = bitfield_check()
+    if err:
+        failed.append(('Library sanity', 'django-bitfield: ' + err))
+    else:
+        err = cache_check()
+        if err:
+            failed.append(('Library sanity', 'django cache: ' + err))
+        else:
+            passed.append(('Library sanity', 'okay'))
+
+
     return passed, failed
+
+
+from django.db.utils import OperationalError, ProgrammingError
+def bitfield_check():
+    """
+    The BitField claims it doesn't work in mysql, but what we need has always seemed to be okay. This system check
+    makes sure that the subset of behaviour we expect from BitField is there.
+    """
+    errors = []
+
+    from coredata.models import CourseOffering, OFFERING_FLAG_KEYS
+    assert OFFERING_FLAG_KEYS[0] == 'write'
+
+    # find an offering that should be returned by a "flag" query
+    try:
+        o = CourseOffering.objects.filter(flags=1).first()
+    except (OperationalError, ProgrammingError):
+        # probably means no DB migration yet: let it slide.
+        return []
+    if o is None:
+        # no data there to check
+        return []
+
+    # ... and the filter had better find it
+    found = CourseOffering.objects.filter(flags=CourseOffering.flags.write, pk=o.pk)
+    if not found:
+        return 'Bitfield set-bit query not finding what it should.'
+    # ... and the opposite had better not
+    found = CourseOffering.objects.filter(flags=~CourseOffering.flags.write, pk=o.pk)
+    if found:
+        return 'Bitfield negated-bit query finding what it should not.'
+
+    # find an offering that should be returned by a "not flag" query
+    o = CourseOffering.objects.filter(flags=0).first()
+    # *** This is the one that fails on mysql. We don't use it, so hooray.
+    # ... and the filter had better find it
+    #found = CourseOffering.objects.filter(flags=~CourseOffering.flags.write, pk=o.pk)
+    #if not found:
+    #    _add_error(errors, 'Bitfield negated-bit query not finding what it should.', 3)
+
+    # .. and the opposite had better not
+    found = CourseOffering.objects.filter(flags=CourseOffering.flags.write, pk=o.pk)
+    if found:
+        return 'Bitfield set-bit query finding what it should not.'
+
+
+def cache_check():
+    # A version of python-memcached had unicode issues: https://github.com/linsomniac/python-memcached/issues/79
+    # Make sure unicode runs through the Django cache unchanged.
+    k = 'test_cache_check_key'
+    v = u'\u2021'
+    cache.set(k, v, 30)
+    v0 = cache.get(k)
+    if v != v0:
+        return 'python-memcached butchering Unicode strings'
+
+
 
 
 def send_test_email(email):
