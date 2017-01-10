@@ -107,27 +107,9 @@ directory "/home/coursys/db_backup" do
 end
 
 # elasticsearch
-package "openjdk-8-jre-headless"
-directory "/tmp/elasticsearch" do
-    owner "coursys"
-    group "coursys"
-    mode 00755
-    action :create
-end
-execute "install_elasticsearch" do
-    cwd "/tmp"
-    command "wget -nc https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb && dpkg -i elasticsearch-1.1.0.deb"
-    not_if do ::File.exists?('/var/lib/elasticsearch/') end
-end
-cookbook_file "elasticsearch.yml" do
-    path "/etc/elasticsearch/elasticsearch.yml"
-end
-execute "install_elasticsearch-HQ" do
-    command "/usr/share/elasticsearch/bin/plugin -install royrusso/elasticsearch-HQ"
-    not_if do ::File.exists?('/usr/share/elasticsearch/plugins/HQ') end
-end
-execute "elasticsearch-update-rc.d" do
-    command "update-rc.d elasticsearch defaults"
+package "elasticsearch"
+file '/etc/default/elasticsearch' do
+  content 'START_DAEMON=true\nRESTART_ON_UPGRADE=true\n'
 end
 
 service "elasticsearch" do
