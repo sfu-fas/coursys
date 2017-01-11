@@ -74,7 +74,7 @@ def new_report(request):
             f.created_by = request.user.username
             f.save()
             messages.success(request, "Created new report: %s." % f.name)
-            return HttpResponseRedirect(reverse('reports:can_access_report', 
+            return HttpResponseRedirect(reverse('reports:view_report',
                                                     kwargs={'report':f.slug}))
     else:
         form = ReportForm()
@@ -132,7 +132,7 @@ def new_access_rule(request, report):
             f.report = report
             f.save()
             messages.success(request, "Created new access rule:  %s." % str(f.person) )
-            return HttpResponseRedirect(reverse('reports:can_access_report', kwargs={'report':report.slug}))
+            return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
     else:
         form = AccessRuleForm()
 
@@ -146,7 +146,7 @@ def delete_access_rule(request, report, access_rule_id):
 
     access_rule.delete()
     messages.success(request, "Deleted access rule")
-    return HttpResponseRedirect(reverse('reports:can_access_report', kwargs={'report':report.slug}))
+    return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
 
 
 @requires_role('SYSA')
@@ -160,7 +160,7 @@ def new_schedule_rule(request, report):
             f.report = report
             f.save()
             messages.success(request, "Created new schedule:  %s." % str(f.next_run) )
-            return HttpResponseRedirect(reverse('reports:can_access_report', kwargs={'report':report.slug}))
+            return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
     else:
         form = ScheduleRuleForm()
 
@@ -174,7 +174,7 @@ def delete_schedule_rule(request, report, schedule_rule_id):
 
     schedule_rule.delete()
     messages.success(request, "Deleted schedule rule")
-    return HttpResponseRedirect(reverse('reports:can_access_report', kwargs={'report':report.slug}))
+    return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
 
 
 @requires_role('SYSA')
@@ -194,11 +194,11 @@ def new_component(request, report):
                 f.created_by = request.user.username
                 f.save()
                 messages.success(request, "Created new report component: %s." % f.file_location)
-                return HttpResponseRedirect(reverse('reports:can_access_report', kwargs={'report':report.slug}))
+                return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
     else:
         form = HardcodedReportForm()
 
-    return render(request, 'reports/new_component.html', {'form': form, 'report': report })
+    return render(request, 'reports/new_component.html', {'form': form, 'report': report})
 
 
 @requires_role('SYSA')
@@ -208,7 +208,7 @@ def delete_component(request, report, component_id):
     
     component.delete()
     messages.success(request, "Deleted component")
-    return HttpResponseRedirect(reverse('reports:can_access_report', kwargs={'report':report.slug}))
+    return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
 
 
 @requires_role('SYSA')
@@ -223,7 +223,7 @@ def new_query(request, report):
             f.created_by = request.user.username
             f.save()
             messages.success(request, "Created new report query: %s" % f.query)
-            return HttpResponseRedirect(reverse('reports:can_access_report', kwargs={'report':report.slug}))
+            return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
     else:
         form = QueryForm()
 
@@ -244,7 +244,7 @@ def edit_query(request, report, query_id):
             f.save()
             query.delete()
             messages.success(request, "Edited query: %s" % f.query)
-            return HttpResponseRedirect(reverse('reports:can_access_report', kwargs={'report':report.slug}))
+            return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
     else:
         form = QueryForm(instance=query)
 
@@ -258,7 +258,7 @@ def delete_query(request, report, query_id):
     
     query.delete()
     messages.success(request, "Deleted query")
-    return HttpResponseRedirect(reverse('reports:can_access_report', kwargs={'report':report.slug}))
+    return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
 
 
 @requires_report_access()
@@ -314,7 +314,7 @@ def delete_run(request, report, run):
     run.delete()
 
     messages.success(request, "Run Deleted!")
-    return HttpResponseRedirect(reverse('reports:can_access_report', kwargs={'report':report.slug}))
+    return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
 
 
 @requires_report_access()

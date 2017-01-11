@@ -25,7 +25,7 @@
 
 <ul>
 {% for report in reports %}
-    <li><a href="{% url "reports:can_access_report" report=report.slug%}">{{report.name}}</a></li>
+    <li><a href="{% url "reports:view_report" report=report.slug%}">{{report.name}}</a></li>
 {% endfor %}
 </ul>
 
