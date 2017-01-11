@@ -277,11 +277,11 @@ if USE_CELERY:
     AMPQ_PASSWORD = getattr(secrets, 'AMPQ_PASSWORD', 'supersecretpassword')
     if DEPLOY_MODE != 'devel' or getattr(localsettings, 'DEPLOYED_CELERY_SETTINGS', False):
         # use AMPQ in production, and move email sending to Celery
-        CELERY_BROKER_URL = getattr(secrets, 'BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
+        CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
         CELERY_RESULT_BACKEND = 'rpc://'
         CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
     else:
-        CELERY_BROKER_URL = getattr(secrets, 'BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
+        CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', "amqp://guest:guest@localhost:5672/")
         CELERY_RESULT_BACKEND = 'rpc://'
         CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
 
@@ -310,9 +310,6 @@ if USE_CELERY:
         'queue': 'email',
         'serializer': 'pickle', # email objects aren't JSON serializable
     }
-
-if hasattr(localsettings, 'BROKER_URL'):
-    BROKER_URL = localsettings.BROKER_URL
 
 
 MAX_SUBMISSION_SIZE = 30000 # kB
