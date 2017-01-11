@@ -39,7 +39,7 @@
 
 <script type="text/javascript">
 
-    var console_url = '{% url "reports:can_access_report" report=report.slug %}';
+    var console_url = '{% url "reports:console" report=report.slug %}';
 
     var show_console = function(){
         $("#console-modal").dialog({
@@ -86,7 +86,7 @@
         <li><a href="{% url "reports:new_component" report=report.slug %}">New Report Component</a></li>
         <li><a href="{% url "reports:new_query" report=report.slug %}">New Query</a></li>
         {% endif %}
-        <li><a class='run' href="{% url "reports:can_access_report" report=report.slug %}">Run This Report Right Now</a></li>
+        <li><a class='run' href="{% url "reports:run" report=report.slug %}">Run This Report Right Now</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -154,7 +154,7 @@
 {% if is_scheduled_to_run %}
     <div>
         This report is scheduled to run <em>today</em>. 
-        <a class='run' href="{% url "reports:can_access_report" report=report.slug %}">Run This Report Right Now</a>
+        <a class='run' href="{% url "reports:run" report=report.slug %}">Run This Report Right Now</a>
     </div>
 {% endif %}
 </div>
@@ -200,7 +200,7 @@
 {% endif %}
 {% for run in runs %}
     <li class='{{run.success|yesno:"success,fail,other"}}'>
-    <a href="{% url "reports:can_access_report" report=report.slug run=run.slug %}">{{run.created_at}} - {{run.name}}</a>
+    <a href="{% url "reports:view_run" report=report.slug run=run.slug %}">{{run.created_at}} - {{run.name}}</a>
         {% if not readonly %}
         <a style='float:right' href="{% url "reports:delete_run" report=report.slug run=run.slug %}">Delete</a>
         {% endif %}

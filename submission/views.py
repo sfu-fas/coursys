@@ -10,7 +10,6 @@ from submission.models import StudentSubmission, GroupSubmission, SubmissionComp
 from submission.models import select_all_components, SubmissionInfo, get_component, find_type_by_label, ALL_TYPE_CLASSES
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-from marking.views import marking_student, marking_group
 from groups.models import Group, GroupMember
 from log.models import LogEntry
 from django.forms.utils import ErrorList
@@ -392,7 +391,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
                 submission = StudentSubmission.objects.filter(member=student, activity=activity).latest('created_at')
         except:
             submission = None
-        response = HttpResponseRedirect(reverse('offering:submission:marking_student', args=[course_slug, activity_slug, userid]) + urlencode)
+        response = HttpResponseRedirect(reverse('offering:marking:marking_student', args=[course_slug, activity_slug, userid]) + urlencode)
         #if it is taken by someone not me, show a confirm dialog
         if request.GET.get('confirm') == None:
             # check disabled until such time as it can be fixed
@@ -418,7 +417,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
             submission = GroupSubmission.objects.filter(group__slug=group_slug).latest('created_at')
         except:
             submission = None
-        response = HttpResponseRedirect(reverse('offering:submission:marking_group', args=[course_slug, activity_slug, group_slug]) + urlencode)
+        response = HttpResponseRedirect(reverse('offering:marking:marking_group', args=[course_slug, activity_slug, group_slug]) + urlencode)
         #if it is taken by someone not me, show a confirm dialog
         if request.GET.get('confirm') == None:
             # check disabled until such time as it can be fixed
