@@ -320,7 +320,7 @@ def deploy_checks(request=None):
     import ntplib
     c = ntplib.NTPClient()
     response = c.request('0.ca.pool.ntp.org')
-    if abs(response.offset) > 0.01:
+    if abs(response.offset) > 0.1:
         failed.append(('Server time', 'Time is %g seconds off NTP pool.' % (response.offset,)))
     else:
         passed.append(('Server time', 'okay'))
