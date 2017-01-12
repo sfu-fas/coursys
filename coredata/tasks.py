@@ -12,20 +12,15 @@ BEAT_FILE_MAX_AGE = 1200
 import sys
 sys.setrecursionlimit(10000)
 
-from celery import Celery
-app = Celery()
-app.config_from_object(settings)
-
 @task(rate_limit="30/m", max_retries=2)
 def update_repository_task(*args, **kwargs):
     return update_repository(*args, **kwargs)
 
 
-
 # system tasks
 
-@app.task(bind=True, queue='fast')
-def ping(self): # used to check that celery is alive
+@task(queue='fast')
+def ping(): # used to check that celery is alive
     return True
 
 # a periodic job that has enough of an effect that we can see celerybeat working
@@ -43,12 +38,12 @@ def regular_backup():
         (backup_database.si() | backup_to_remote.si()).apply_async()
 
 
-@app.task()
+@task()
 def backup_database():
     call_command('backup_db', clean_old=True)
 
 
-@app.task()
+@task()
 def backup_to_remote():
     call_command('backup_remote', db_only=True)
 
@@ -70,7 +65,6 @@ logger = logging.getLogger(__name__)
 # daily import tasks
 
 from django.conf import settings
-from djcelery.models import TaskMeta
 from coredata.models import CourseOffering, Member
 from dashboard.models import NewsItem
 from log.models import LogEntry
@@ -212,7 +206,7 @@ def get_import_offerings_tasks():
     return offering_import_chain
 
 from requests.exceptions import Timeout
-@app.task(bind=True, queue='sims', default_retry_delay=300)
+@task(bind=True, queue='sims', default_retry_delay=300)
 def import_offering_group(self, slugs):
     offerings = CourseOffering.objects.filter(slug__in=slugs)
     for o in offerings:
@@ -250,8 +244,6 @@ def daily_cleanup():
     LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=365)).delete()
     # cleanup old official grades
     Member.clear_old_official_grades()
-    # cleanup old celery tasks
-    TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=2)).delete()
 
 @task(queue='sims')
 def import_active_grad_gpas():

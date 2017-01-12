@@ -52,8 +52,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'compressor',
     'haystack',
-    'djcelery',
     'djcelery_email',
+    'django_celery_beat',
     'featureflags',
     'rest_framework',
     'oauth_provider',
@@ -80,7 +80,7 @@ INSTALLED_APPS = (
     'api',
     'visas',
     'outreach',
-    'sessionals',	
+    'sessionals',
     'inventory',
 )
 MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + [
@@ -272,35 +272,32 @@ else:
 
 
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
-USE_CELERY = getattr(localsettings, 'USE_CELERY', True)
+USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
 if USE_CELERY:
-    os.environ["CELERY_LOADER"] = "django"
+    AMPQ_PASSWORD = getattr(secrets, 'AMPQ_PASSWORD', 'supersecretpassword')
     if DEPLOY_MODE != 'devel' or getattr(localsettings, 'DEPLOYED_CELERY_SETTINGS', False):
         # use AMPQ in production, and move email sending to Celery
-        AMPQ_PASSWORD = getattr(secrets, 'AMPQ_PASSWORD', 'supersecretpassword')
-        BROKER_URL = getattr(secrets, 'BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
-        CELERY_RESULT_BACKEND = 'amqp'
+        CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
+        CELERY_RESULT_BACKEND = 'rpc://'
         CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
     else:
-        # use Kombo (aka the Django database) in devel
-        BROKER_URL = getattr(secrets, 'BROKER_URL', "django://")
-        CELERY_RESULT_BACKEND = 'djcelery.backends.database.DatabaseBackend'
-        INSTALLED_APPS = INSTALLED_APPS + ("kombu.transport.django",)
+        CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', "amqp://guest:guest@localhost:5672/")
+        CELERY_RESULT_BACKEND = 'rpc://'
+        CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
 
     CELERY_EMAIL = getattr(localsettings, 'CELERY_EMAIL', DEPLOY_MODE != 'devel')
     if CELERY_EMAIL:
         CELERY_EMAIL_BACKEND = EMAIL_BACKEND
         EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
-    
-    CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
+
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
-    CELERY_BEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+    CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
     CELERYD_TASK_SOFT_TIME_LIMIT = 1200
 
-    CELERY_DEFAULT_QUEUE = 'batch'
-    CELERY_QUEUES = { # any new queues should be reflected in the /etc/defaults/celery setup
+    CELERY_TASK_DEFAULT_QUEUE = 'batch'
+    CELERY_TASK_QUEUES = { # any new queues should be reflected in the /etc/defaults/celery setup
         'batch': {}, # possibly-slow batch-mode tasks
         'email': {}, # email sending
         'fast': {}, # only jobs that need to run soon, and finish quickly should go in this queue
@@ -313,9 +310,6 @@ if USE_CELERY:
         'queue': 'email',
         'serializer': 'pickle', # email objects aren't JSON serializable
     }
-
-if hasattr(localsettings, 'BROKER_URL'):
-    BROKER_URL = localsettings.BROKER_URL
 
 
 MAX_SUBMISSION_SIZE = 30000 # kB

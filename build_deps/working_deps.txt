@@ -27,11 +27,11 @@ django-localflavor==1.4
 django-countries==4.0
 django-compressor==2.1
 django-cache-utils==0.7.2
-celery==3.1.25
-git+git://github.com/celery/django-celery@v3.2.1 # works with django 1.10, until we tackle the celery 4.0 update
+celery==4.0.2
 django-celery-email==1.1.5
+django_celery_beat==1.0.1
 flower==0.8.2
-kombu==3.0.35
+kombu==4.0.2
 iso8601==0.1.11
 django-haystack==2.6.0
 whoosh==2.7.4

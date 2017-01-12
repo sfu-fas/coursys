@@ -1,22 +1,18 @@
 # Names of nodes to start
-CELERYD_NODES="worker fastworker photo sims"
+CELERYD_NODES="batch fast email photo sims"
 
 # the celery app to work with
-CELERY_APP="courses.celery"
+CELERY_APP="courses"
 
 # Absolute or relative path to the 'celery' command:
-CELERY_BIN="python /home/coursys/courses/manage.py celery"
-
-# settings for django integration
-CELERY_LOADER="django"
-DJANGO_SETTINGS_MODULE="courses.settings"
+CELERY_BIN="/usr/local/bin/celery"
 
 # Where to chdir at start.
 CELERYD_CHDIR="/home/coursys/courses"
 
 # Extra command-line arguments to the worker
-BEAT_OPTS="-B:worker --schedule=/var/run/celery/celerybeat.schedule" # options for celerybeat
-WORKER_OPTS="-Q:fastworker fast -Q:photo photo -Q:sims sims -Q:worker batch,email -Ofair -E"
+BEAT_OPTS="-B:batch" # options for celerybeat
+WORKER_OPTS="-Q:batch batch -Q:fast fast -Q:email email -Q:photo photo -Q:sims sims"
 CONCURRENCY_OPTS="-c 2 -c:photo 5 -c:sims 2"
 CELERYD_OPTS="$BEAT_OPTS $WORKER_OPTS $CONCURRENCY_OPTS" # actual command line options
 CELERYD_LOG_LEVEL="INFO"

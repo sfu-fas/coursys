@@ -66,8 +66,8 @@ def settings_info():
     info.append(('Email backend', settings.EMAIL_BACKEND))
     if hasattr(settings, 'CELERY_EMAIL') and settings.CELERY_EMAIL:
         info.append(('Celery email backend', settings.CELERY_EMAIL_BACKEND))
-    if hasattr(settings, 'BROKER_URL'):
-        info.append(('Celery broker', settings.BROKER_URL.split(':')[0]))
+    if hasattr(settings, 'CELERY_BROKER_URL'):
+        info.append(('Celery broker', settings.CELERY_BROKER_URL.split(':')[0]))
 
     DATABASES = copy.deepcopy(settings.DATABASES)
     for d in DATABASES:
@@ -320,7 +320,7 @@ def deploy_checks(request=None):
     import ntplib
     c = ntplib.NTPClient()
     response = c.request('0.ca.pool.ntp.org')
-    if abs(response.offset) > 0.01:
+    if abs(response.offset) > 0.1:
         failed.append(('Server time', 'Time is %g seconds off NTP pool.' % (response.offset,)))
     else:
         passed.append(('Server time', 'okay'))
