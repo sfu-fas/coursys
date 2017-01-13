@@ -58,6 +58,10 @@ INSTALLED_APPS = (
     'rest_framework',
     'oauth_provider',
     'rest_framework_swagger',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    #'django_otp.plugins.otp_static',
+    'otp',
 
     'coredata',
     'dashboard',
@@ -86,6 +90,8 @@ INSTALLED_APPS = (
 MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    #'otp.middleware.TimeLimitedAuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'courselib.middleware.ExceptionIgnorer',
@@ -347,7 +353,10 @@ GRAD_DATETIME_FORMAT = "m/d/Y H:i"
 
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
+from django.urls import reverse_lazy
 LOGIN_REDIRECT_URL = "/"
+OTP_LOGIN_URL = reverse_lazy('twofactor:login_2fa')
+
 DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', False)
 DO_IMPORTING_HERE = getattr(localsettings, 'DO_IMPORTING_HERE', False)
 
