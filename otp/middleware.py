@@ -33,10 +33,11 @@ def get_user(request):
     from django.contrib.auth.models import AnonymousUser
     user = None
 
-    #session_info = SessionInfo.for_session(request.session)
-    #request.session_info = session_info
-    #if session_info is None:
-    #    return AnonymousUser()
+    session_info = SessionInfo.for_request(request)
+    if session_info is None:
+        return AnonymousUser()
+
+    print session_info.__dict__
 
     #if session_info.age_auth() > OTP_AUTH_AGE or session_info.age_2fa() > OTP_2FA_AGE:
         # either the standard-auth or 2fa is out of date: authentication isn't valid anymore.
