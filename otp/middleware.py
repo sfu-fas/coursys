@@ -9,12 +9,7 @@ The goals here:
 This lets us application demand password authentication more often than the second factor.
 """
 
-from django.conf import settings
-#from django.contrib.auth import get_user as django_get_user
-from django.contrib.auth.middleware import get_user
-#from django.utils.deprecation import MiddlewareMixin
 from django_otp.middleware import OTPMiddleware
-from django.utils.functional import SimpleLazyObject
 
 from .models import SessionInfo
 
@@ -39,7 +34,7 @@ class Authentication2FAMiddleware(OTPMiddleware):
             "'django.contrib.auth.middleware.AuthenticationMiddleware' must be before Authentication2FAMiddleware."
         )
 
-        # By the time we get here, AuthenticationMiddleware has checked the standard Django authentication:
+        # By the time we get here, Django's AuthenticationMiddleware has checked the standard authentication:
         # password-authenticated session is good for request.user (or it's an AnonymousUser).
 
         password_user = request.user

@@ -7,9 +7,10 @@ from django_cas.views import _redirect_url
 
 from courselib.auth import ForbiddenResponse, NotFoundResponse
 from six.moves.urllib.parse import urlencode
-from django_otp.models import Device
 from django_otp.plugins.otp_totp.models import TOTPDevice
-from .models import all_otp_devices, any_otp_device, totpauth_url
+from django_otp import login as otp_login
+
+from .models import SessionInfo, all_otp_devices, totpauth_url
 from .forms import TokenForm
 
 import datetime
@@ -46,11 +47,22 @@ def login_2fa(request, next_page=None):
 
     if not okay_2fa:
         # need to do 2FA for this user
-        if not any_otp_device(request.maybe_stale_user):
+        devices = list(all_otp_devices(request.maybe_stale_user))
+        if not devices:
             messages.add_message(request, messages.WARNING, 'You are required to do two-factor authentication but have no device enabled. You must add one.')
             return HttpResponseRedirect(reverse('otp:add_topt'))
 
-        form = TokenForm(user=request.maybe_stale_user, request=request)
+
+        if request.method == 'POST':
+            form = TokenForm(data=request.POST, devices=devices)
+            if form.is_valid():
+                SessionInfo.just_2fa(request)
+                request.user = request.maybe_stale_user
+                otp_login(request, form.device)
+                return HttpResponseRedirect(next_page)
+        else:
+            form = TokenForm()
+
         context = {
             'form': form,
         }
@@ -80,11 +92,17 @@ def add_topt(request, next_page=None):
         qr.save(response)
         return response
 
-    # TODO: if the user has an existing device, should we re-use that? What's best practice?
-    device = TOTPDevice(user=request.maybe_stale_user, name='Authenticator, enabled %s' % (datetime.date.today()))
-    device.save()
+    # This enforces that users have exactly one TOTP. That *seems* like the best practice.
+    devices = TOTPDevice.objects.devices_for_user(request.maybe_stale_user, confirmed=True)
+    if devices:
+        device = devices[0]
+    else:
+        device = TOTPDevice(user=request.maybe_stale_user, name='Authenticator, enabled %s' % (datetime.date.today()))
+        device.save()
+
     context = {
         'device': device,
+        'next_page': next_page,
     }
     return render(request, 'otp/add_topt.html', context)
 

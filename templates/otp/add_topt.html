@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Two-Factor Verification{% endblock %}
+{% block h1 %}Two-Factor Verification{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>Two-Factor Verification</li>
+<li>Add Device</li>
+{% endblock %}
+
+{% block content %}
+
+<p>You can scan this barcode in <a href="https://en.wikipedia.org/wiki/Google_Authenticator">Google Authenticator</a> or similar to add the one-time password device for CourSys:</p>
+<figure><img src="{% url 'otp:add_topt' %}?qr={{ device.id }}" alt="" /></figure>
+
+<p>{{ uri }}</p>
+
+<p><a href="{{ next_page }}">I'm done. Take me back.</a></p>
+
+{% endblock %}

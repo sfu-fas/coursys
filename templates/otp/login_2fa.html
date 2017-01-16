@@ -8,6 +8,13 @@
 
 {% block content %}
 
-{{ form|as_dl }}
+<p>Please enter the two-factor token to complete the login process.</p>
+
+<form action="" method="post">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" class="submit" value="Authenticate" /></p>
+</form>
+
+
 
 {% endblock %}

@@ -21,8 +21,8 @@ ALL_DEVICES = [TOTPDevice, StaticDevice]
 
 NEVER_AUTH = sys.maxint
 
-OTP_AUTH_AGE = getattr(settings, 'OTP_AUTH_AGE', 100)
-OTP_2FA_AGE = getattr(settings, 'OTP_2FA_AGE', 1000)
+OTP_AUTH_AGE = getattr(settings, 'OTP_AUTH_AGE', 1000)
+OTP_2FA_AGE = getattr(settings, 'OTP_2FA_AGE', 10000)
 
 
 def all_otp_devices(user, confirmed=True):
@@ -32,12 +32,6 @@ def all_otp_devices(user, confirmed=True):
             yield d
 
 
-def any_otp_device(user, confirmed=True):
-    for Dev in ALL_DEVICES:
-        if Dev.objects.devices_for_user(user, confirmed=confirmed).exists():
-            return True
-    return False
-
 def totpauth_url(totp_dev):
     # https://github.com/google/google-authenticator/wiki/Key-Uri-Format
     accountname = totp_dev.user.username.encode('utf8')
@@ -45,7 +39,7 @@ def totpauth_url(totp_dev):
     label = accountname
 
     query = [
-        ('secret', base64.b32encode(totp_dev.key)),
+        ('secret', base64.b32encode(totp_dev.bin_key)),
         ('digits', totp_dev.digits),
         ('issuer', b'CourSys')
     ]
@@ -101,6 +95,14 @@ class SessionInfo(models.Model):
         'Records that the session associated with this request just logged out.'
         si = cls.for_request(request, save_new=False)
         si.last_auth = None
+        si.save()
+        return si
+
+    @classmethod
+    def just_2fa(cls, request):
+        'Records that the session associated with this request just completed 2FA.'
+        si = cls.for_request(request, save_new=False)
+        si.last_2fa = timezone.now()
         si.save()
         return si
 
