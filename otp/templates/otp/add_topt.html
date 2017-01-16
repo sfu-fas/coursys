@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Two-Factor Verification{% endblock %}
+{% block h1 %}Two-Factor Verification{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>Two-Factor Verification</li>
+<li>Add Device</li>
+{% endblock %}
+
+{% block content %}
+
+<img src="{% url 'otp:add_topt' %}?qr={{device.id}}" alt="" />
+
+{% endblock %}

@@ -9,6 +9,7 @@ Unidecode>=0.04.19
 git+git://github.com/neithere/django-autoslug.git@a16fd5e83063e533e709238522fe1321e24349e1
 #django-cas==2.0.3 # should "pip uninstall django-cas"
 django-otp==0.3.8
+qrcode==5.3
 django-debug-toolbar==1.6
 django-timezones==0.2
 jsonfield==1.0.3

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Two-Factor Verification{% endblock %}
+{% block h1 %}Two-Factor Verification{% endblock %}
+
+{% block subbreadcrumbs %}<li>Two-Factor Verification</li>{% endblock %}
+
+{% block content %}
+
+{{ form|as_dl }}
+
+{% endblock %}

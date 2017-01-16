@@ -21,7 +21,7 @@ from outreach.urls import outreach_pattern
 from sessionals.urls import sessionals_patterns
 from inventory.urls import inventory_pattern
 from api.urls import api_patterns
-from otp.urls import twofactor_patterns
+from otp.urls import otp_patterns
 
 import dashboard.views as dashboard_views
 import grad.views as grad_views
@@ -60,7 +60,7 @@ urlpatterns = [
     url(r'^news/', include(news_patterns, namespace='news')),
     url(r'^students/', include(studentsearch_patterns, namespace='students')),
     url(r'^sysadmin/', include(sysadmin_patterns, namespace='sysadmin')),
-    url(r'^2fa/', include(twofactor_patterns, namespace='twofactor')),
+    url(r'^2fa/', include(otp_patterns, namespace='otp')),
 
     # course offering URL hierarchy: many apps sub-included there
     # among them: discipline, discuss, groups, marking, pages, submission

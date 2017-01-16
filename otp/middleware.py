@@ -6,75 +6,59 @@ The goals here:
 3. These are potentially independent (but must be less than or equal to) session cookie age, which is part of Django's
    session middleware and controlled by settings.SESSION_COOKIE_AGE.
 
-This lets us application demand password authentication more (or possibly less) often than the second factor.
+This lets us application demand password authentication more often than the second factor.
 """
 
-
 from django.conf import settings
-from django.contrib import auth
-from django.contrib.auth import load_backend
-from django.contrib.auth.backends import RemoteUserBackend
-from django.core.exceptions import ImproperlyConfigured
-from django.utils.deprecation import MiddlewareMixin
+#from django.contrib.auth import get_user as django_get_user
+from django.contrib.auth.middleware import get_user
+#from django.utils.deprecation import MiddlewareMixin
+from django_otp.middleware import OTPMiddleware
 from django.utils.functional import SimpleLazyObject
-
-from django.utils.crypto import constant_time_compare
-from django.contrib.auth import _get_user_session_key, BACKEND_SESSION_KEY, HASH_SESSION_KEY
 
 from .models import SessionInfo
 
-OTP_AUTH_AGE = getattr(settings, 'OTP_AUTH_AGE', 10000)
-OTP_2FA_AGE = getattr(settings, 'OTP_2FA_AGE', 100000)
 
-def get_user(request):
-    """
-    Clone of django.contrib.auth.middleware.AuthenticationMiddleware (from Django 1.10), but honours the settings.OTP_AUTH_AGE limit.
-    """
-    from django.contrib.auth.models import AnonymousUser
-    user = None
+def auth_ages_okay(request, user):
+    '''
+    Look at the SessionInfo corresponding to this user's session: does it meet the OTP auth criteria?
+    '''
+    session_info = SessionInfo.for_request(request, user=user) # side effect: sets request.session_info.
 
-    session_info = SessionInfo.for_request(request)
-    if session_info is None:
-        return AnonymousUser()
-
-    print session_info.__dict__
-
-    #if session_info.age_auth() > OTP_AUTH_AGE or session_info.age_2fa() > OTP_2FA_AGE:
-        # either the standard-auth or 2fa is out of date: authentication isn't valid anymore.
-    #    return AnonymousUser()
-
-    try:
-        user_id = _get_user_session_key(request)
-        backend_path = request.session[BACKEND_SESSION_KEY]
-    except KeyError:
-        pass
-    else:
-        if backend_path in settings.AUTHENTICATION_BACKENDS:
-            backend = load_backend(backend_path)
-            user = backend.get_user(user_id)
-            # Verify the session
-            if hasattr(user, 'get_session_auth_hash'):
-                session_hash = request.session.get(HASH_SESSION_KEY)
-                session_hash_verified = session_hash and constant_time_compare(
-                    session_hash,
-                    user.get_session_auth_hash()
-                )
-                if not session_hash_verified:
-                    request.session.flush()
-                    user = None
-
-    return user or AnonymousUser()
+    return (
+        session_info is not None # we can check the session metadata to verify something,
+        and session_info.okay_age_auth(user) # and standard auth is up to date,
+        and session_info.okay_age_2fa(user) # and 2FA is up to date.
+    )
 
 
-class TimeLimitedAuthenticationMiddleware(MiddlewareMixin):
-    """
-    Clone of django.contrib.auth.middleware.AuthenticationMiddleware (from Django 1.10), but honours the settings.OTP_AUTH_AGE limit.
-    """
+class Authentication2FAMiddleware(OTPMiddleware):
     def process_request(self, request):
-        assert hasattr(request, 'session'), (
-            "The Django authentication middleware requires session middleware "
-            "to be installed. Edit your MIDDLEWARE%s setting to insert "
-            "'django.contrib.sessions.middleware.SessionMiddleware' before "
-            "'django.contrib.auth.middleware.AuthenticationMiddleware'."
-        ) % ("_CLASSES" if settings.MIDDLEWARE is None else "")
-        request.user = SimpleLazyObject(lambda: get_user(request))
+        from django.contrib.auth.models import AnonymousUser
+        assert hasattr(request, 'user'), (
+            "'django.contrib.auth.middleware.AuthenticationMiddleware' must be before Authentication2FAMiddleware."
+        )
+
+        # By the time we get here, AuthenticationMiddleware has checked the standard Django authentication:
+        # password-authenticated session is good for request.user (or it's an AnonymousUser).
+
+        password_user = request.user
+        request.maybe_stale_user = password_user
+        request.session_info = SessionInfo.for_request(request, user=password_user)
+
+        if not password_user.is_authenticated():
+            # No user authenticated in any way: we're done.
+            return
+
+        # Do the django_otp verification checks, so we know if there's a 2fa on the session.
+        self._verify_user(request, password_user)
+        if not password_user.is_verified():
+            # User has password-authenticated, but no 2FA. That doesn't count.
+            # TODO: what if this user doesn't need 2FA?
+            request.user = AnonymousUser()
+            return
+
+        if not auth_ages_okay(request, password_user):
+            # User has password-authenticated and 2FA, but they're out of date by our standards.
+            request.user = AnonymousUser()
+            return

@@ -60,7 +60,7 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'django_otp',
     'django_otp.plugins.otp_totp',
-    #'django_otp.plugins.otp_static',
+    'django_otp.plugins.otp_static',
     'otp',
 
     'coredata',
@@ -89,8 +89,8 @@ INSTALLED_APPS = (
 )
 MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + [
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'otp.middleware.TimeLimitedAuthenticationMiddleware',
-    'django_otp.middleware.OTPMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'otp.middleware.Authentication2FAMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'courselib.middleware.ExceptionIgnorer',
@@ -350,11 +350,11 @@ SHORT_DATETIME_FORMAT = "N d Y, H:i"
 GRAD_DATE_FORMAT = "m/d/Y"
 GRAD_DATETIME_FORMAT = "m/d/Y H:i"
 
-LOGIN_URL = "/login/"
-LOGOUT_URL = "/logout/"
 from django.urls import reverse_lazy
+PASSWORD_LOGIN_URL = reverse_lazy('dashboard:login')
+LOGIN_URL = reverse_lazy('otp:login_2fa')
+LOGOUT_URL = reverse_lazy('dashboard:logout')
 LOGIN_REDIRECT_URL = "/"
-OTP_LOGIN_URL = reverse_lazy('twofactor:login_2fa')
 
 DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', False)
 DO_IMPORTING_HERE = getattr(localsettings, 'DO_IMPORTING_HERE', False)
@@ -374,7 +374,7 @@ AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 if DEPLOY_MODE != 'production' or DEBUG or hostname != 'courses':
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
     MIDDLEWARE_CLASSES.remove('django_cas.middleware.CASMiddleware')
-    LOGIN_URL = "/fake_login"
+    PASSWORD_LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', True)
 
