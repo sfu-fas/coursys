@@ -1,5 +1,5 @@
 from django.conf import settings
-from celery.task import task, periodic_task
+from courselib.celerytasks import task, periodic_task
 from celery.schedules import crontab
 from dashboard.photos import do_photo_fetch, change_photo_password
 

@@ -1,4 +1,4 @@
-from celery.task import periodic_task
+from courselib.celerytasks import periodic_task
 from celery.schedules import crontab
 from ra.models import RAAppointment
 
