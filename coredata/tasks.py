@@ -1,7 +1,7 @@
 from django.conf import settings
 from courselib.svn import update_repository
 from django.core.management import call_command
-from celery.task import task, periodic_task
+from courselib.celerytasks import task, periodic_task
 from celery.schedules import crontab
 
 # file a periodic task will leave, and the maximum age we'd be happy with

@@ -197,6 +197,8 @@ class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
         self.title = title
         super(DynamicForm, self).__init__(*args, **kwargs)
+        # Force no enforcing of required field by browser so we can save the form.
+        self.use_required_attribute=False
 
     def fromFields(self, fields, field_submissions=[]):
         """
