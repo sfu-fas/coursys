@@ -793,7 +793,7 @@ class Course(models.Model, ConditionalSaveMixin):
     Note that title (and possibly stuff in config) might change over time:
     values in CourseOffering should be used where available.
     """
-    subject = models.CharField(max_length=4, null=False, db_index=True,
+    subject = models.CharField(max_length=8, null=False, db_index=True,
         help_text='Subject code, like "CMPT" or "FAN".')
     number = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Course number, like "120" or "XX1".')
@@ -881,7 +881,7 @@ INSTR_MODE_CHOICES = [ # from ps_instruct_mode in reporting DB
 INSTR_MODE = dict(INSTR_MODE_CHOICES)
 
 class CourseOffering(models.Model, ConditionalSaveMixin):
-    subject = models.CharField(max_length=4, null=False, db_index=True,
+    subject = models.CharField(max_length=8, null=False, db_index=True,
         help_text='Subject code, like "CMPT" or "FAN"')
     number = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Course number, like "120" or "XX1"')
