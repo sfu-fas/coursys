@@ -97,3 +97,8 @@ if settings.DEPLOY_MODE != 'production':
         url(r'^fake_logout', dashboard_views.fake_logout, name='fake_logout'),
     ]
 
+if settings.DEBUG_TOOLBAR:
+    import debug_toolbar
+    urlpatterns += [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ]

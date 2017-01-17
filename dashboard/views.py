@@ -13,7 +13,7 @@ from grades.models import Activity, NumericActivity
 from privacy.models import RELEVANT_ROLES as PRIVACY_ROLES
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
     has_role
-from courselib.search import find_userid_or_emplid
+from courselib.auth import get_person
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
 from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
@@ -1007,14 +1007,7 @@ def site_search(request):
     # grad students you admin/supervise
     # advisors: students/advisornote content
     # marking comments
-
-    if request.user.is_authenticated():
-        try:
-            person = Person.objects.get(userid=request.user.username)
-        except Person.DoesNotExist:
-            person = None
-    else:
-        person = None
+    person = get_person(request.user)
 
     query = request.GET.get('q', '')
     if 'search-scope' in request.GET and request.GET['search-scope'] == 'sfu':

@@ -9,27 +9,26 @@ The goals here:
 This lets us application demand password authentication more often than the second factor.
 """
 
+from django.contrib.auth.models import AnonymousUser
 from django_otp.middleware import OTPMiddleware
 
-from .models import SessionInfo
+from .models import SessionInfo, needs_2fa
 
 
-def auth_ages_okay(request, user):
+def auth_okay(request, user):
     '''
     Look at the SessionInfo corresponding to this user's session: does it meet the OTP auth criteria?
     '''
     session_info = SessionInfo.for_request(request, user=user) # side effect: sets request.session_info.
-
-    return (
-        session_info is not None # we can check the session metadata to verify something,
-        and session_info.okay_age_auth(user) # and standard auth is up to date,
-        and session_info.okay_age_2fa(user) # and 2FA is up to date.
-    )
+    if session_info is None:
+        return False, False
+    else:
+        good_auth, good_2fa = session_info.okay_auth(request, user)
+        return good_auth and good_2fa
 
 
 class Authentication2FAMiddleware(OTPMiddleware):
     def process_request(self, request):
-        from django.contrib.auth.models import AnonymousUser
         assert hasattr(request, 'user'), (
             "'django.contrib.auth.middleware.AuthenticationMiddleware' must be before Authentication2FAMiddleware."
         )
@@ -37,23 +36,25 @@ class Authentication2FAMiddleware(OTPMiddleware):
         # By the time we get here, Django's AuthenticationMiddleware has checked the standard authentication:
         # password-authenticated session is good for request.user (or it's an AnonymousUser).
 
-        password_user = request.user
+        # All we can do here is tighten the restrictions (unless we set request.user to a real User instance, which
+        # we don't).
+
+        password_user = request.user # the user who was password-authenticated by Django
         request.maybe_stale_user = password_user
         request.session_info = SessionInfo.for_request(request, user=password_user)
 
         if not password_user.is_authenticated():
-            # No user authenticated in any way: we're done.
+            # No user authenticated in any way: we have nothing more to check.
             return
 
-        # Do the django_otp verification checks, so we know if there's a 2fa on the session.
+        # Do the django_otp verification checks, so we know that there's a 2fa on the session.
         self._verify_user(request, password_user)
-        if not password_user.is_verified():
-            # User has password-authenticated, but no 2FA. That doesn't count.
-            # TODO: what if this user doesn't need 2FA?
+        if needs_2fa(request, password_user) and not password_user.is_verified():
+            # User has password-authenticated, but 2FA is required and we don't have it.
             request.user = AnonymousUser()
             return
 
-        if not auth_ages_okay(request, password_user):
+        if not auth_okay(request, password_user):
             # User has password-authenticated and 2FA, but they're out of date by our standards.
             request.user = AnonymousUser()
             return

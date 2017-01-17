@@ -1,5 +1,4 @@
-# based on http://stackoverflow.com/a/4631504/1236542
-
+from __future__ import absolute_import
 import sys
 
 from django.db import models
@@ -19,10 +18,10 @@ import base64
 
 ALL_DEVICES = [TOTPDevice, StaticDevice]
 
-NEVER_AUTH = sys.maxint
-
-OTP_AUTH_AGE = getattr(settings, 'OTP_AUTH_AGE', 1000)
-OTP_2FA_AGE = getattr(settings, 'OTP_2FA_AGE', 10000)
+# This could be configurable from settings. It isn't at the moment.
+from . import auth_checks
+check_auth = auth_checks.check_auth
+needs_2fa = auth_checks.needs_2fa
 
 
 def all_otp_devices(user, confirmed=True):
@@ -47,6 +46,7 @@ def totpauth_url(totp_dev):
     return 'otpauth://totp/%s?%s' % (label, urlencode(query))
 
 
+# based on http://stackoverflow.com/a/4631504/1236542
 class SessionInfo(models.Model):
     session_key = models.CharField(max_length=40, primary_key=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -109,21 +109,16 @@ class SessionInfo(models.Model):
     def __unicode__(self):
         return '%s@%s' % (self.session_key, self.created)
 
-    def okay_age_auth(self, user):
-        'Is the age of the standard Django auth okay for this user?'
-        if self.last_auth:
-            age = (timezone.now() - self.last_auth).total_seconds()
-            return age <= OTP_AUTH_AGE
-        else:
-            return False
+    def okay_auth(self, request, user):
+        '''
+        Is the auth okay for this request/user?
 
-    def okay_age_2fa(self, user):
-        'Is the age of the 2FA/OTP validation okay for this user?'
-        if self.last_2fa:
-            age = (timezone.now() - self.last_2fa).total_seconds()
-            return age <= OTP_2FA_AGE
-        else:
-            return False
+        Hook here to allow apps to customize behaviour. Must return a boolean pair:
+            Is standard Django auth okay?
+            Is 2FA okay?
+        May assume that Django auth *and* OTP auth has said yes. Only need to restrict further.
+        '''
+        return check_auth(self, request, user)
 
 
 def logged_in_listener(request, **kwargs):

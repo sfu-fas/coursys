@@ -11,9 +11,11 @@ class TokenForm(forms.Form):
     def clean_otp_token(self):
         otp_token = self.cleaned_data['otp_token']
         self.device = None
+
         # check each of the user's devices (to allow entering TOPT or static recovery code).
         for dev in self.devices:
             if dev.verify_token(otp_token):
                 self.device = dev
-                return
+                return otp_token
+
         raise forms.ValidationError('Incorrect token.')

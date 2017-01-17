@@ -292,3 +292,23 @@ def login_redirect(next_url):
     Send the user to log in, and then to next_url
     """
     return HttpResponseRedirect(settings.LOGIN_URL + '?' + urlencode({'next': next_url}))
+
+
+from coredata.models import Person
+def get_person(user):
+    '''
+    Get the Person object associated with this user, or None.
+    '''
+    if not user.is_authenticated:
+        return None
+
+    if hasattr(user, 'person'):
+        # Cache in the User object, since we might need it multiple times.
+        pass
+    else:
+        try:
+            user.person = Person.objects.get(userid=user.username)
+        except Person.DoesNotExist:
+            user.person = None
+
+    return user.person

@@ -127,6 +127,7 @@ class Person(models.Model, ConditionalSaveMixin):
         # 'phone_ext': local phone number (for faculty/staff) (e.g. '25555')
         # 'form_email': email address to be used by the onlineforms app for this person
         # 'external_email': external email for non-SFU grad committee members
+        # '2fa': do we require this user to do 2FA for all logins?
 
     defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None,
                 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,

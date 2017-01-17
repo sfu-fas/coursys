@@ -148,11 +148,14 @@ ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'c
 if DEBUG:
     ALLOWED_HOSTS.append('localhost')
 
-SESSION_COOKIE_AGE = 86400 # 24 hours
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 1209600 # 2 weeks
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
+
+PASSWORD_AUTH_AGE = 86400 # 24 hours
+TWOFACTOR_AUTH_AGE = 1209600 # 2 weeks
 
 # database config
 if DEPLOY_MODE in ['production', 'proddev']:
@@ -386,17 +389,12 @@ if DEPLOY_MODE == 'production':
     REPORT_CACHE_CLEAR = True
 
 
-if getattr(localsettings, 'DEBUG_TOOLBAR', False):
-    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
+DEBUG_TOOLBAR = getattr(localsettings, 'DEBUG_TOOLBAR', False)
+if DEBUG_TOOLBAR:
+    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',
+                                       )
     MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ['debug_toolbar.middleware.DebugToolbarMiddleware']
     INTERNAL_IPS = getattr(localsettings, 'INTERNAL_IPS', [])
     #DEBUG_TOOLBAR_CONFIG = {
     #    'INTERCEPT_REDIRECTS': False,
     #}
-
-#try:
-#    from local_settings import *
-#except ImportError:
-#    pass
-
-#DEBUG=False
