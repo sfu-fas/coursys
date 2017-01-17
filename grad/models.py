@@ -77,15 +77,17 @@ STATUS_CHOICES = (
         ('TRIN', 'Transferred from another department'),
         ('TROU', 'Transferred to another department'),
         ('DELE', 'Deleted Record'), # used to flag GradStudents as deleted
+        ('DEFR', 'Deferred'),
         )
-STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
+STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV',
+                    'DEFR') # statuses that mean "applicant"
 STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO') # statuses that mean "currently applying"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
 STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE', 'DELE', 'TRIN', 'TROU') # statuses we don't let users enter
 STATUS_REAL_PROGRAM = STATUS_CURRENTAPPLICANT + STATUS_ACTIVE + STATUS_INACTIVE # things to report for TAs
-SHORT_STATUSES = dict([ # a shorter status description we can use in compact tables
+SHORT_STATUSES = dict([  # a shorter status description we can use in compact tables
         ('INCO', 'Incomp App'),
         ('COMP', 'Complete App'),
         ('INRE', 'In-Review'),
@@ -108,6 +110,7 @@ SHORT_STATUSES = dict([ # a shorter status description we can use in compact tab
         ('TRIN', 'Transfer in'),
         ('TROU', 'Transfer out'),
         ('DELE', 'Deleted Record'),
+        ('DEFR', 'Deferred'),
         (None, 'None'),
 ])
 
@@ -1150,6 +1153,7 @@ STATUS_ORDER = {
         'TRIN': 4,
         'CANC': 5,
         'ARIV': 5,
+        'DEFR': 5,
         'ACTI': 6,
         'PART': 6,
         'LEAV': 7,
