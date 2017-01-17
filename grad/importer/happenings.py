@@ -196,7 +196,7 @@ class ProgramStatusChange(GradHappening):
             return None
         elif self.prog_action == 'DEFR':
             # deferred start: probably implies start semester change
-            return None
+            return 'DEFR'
 
         elif self.prog_action == 'DATA':
             if self.prog_reason == 'APPR':
