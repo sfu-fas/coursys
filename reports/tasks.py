@@ -1,4 +1,4 @@
-from celery.task import task, periodic_task
+from courselib.celerytasks import task, periodic_task
 from celery.schedules import crontab
 
 from reports.models import Report, schedule_ping
