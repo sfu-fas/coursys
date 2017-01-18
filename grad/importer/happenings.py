@@ -148,8 +148,8 @@ class ProgramStatusChange(GradHappening):
         self.effdt_to_strm()
 
         # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
-        self.oldkey = ['ps_acad_prog', emplid, 'GRAD', stdnt_car_nbr, effdt, effseq]
-        self.key = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog]
+        self.oldkey = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog]
+        self.key = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog, self.prog_action]
 
         self.in_career = False
         self.gradstatus = None
@@ -196,11 +196,9 @@ class ProgramStatusChange(GradHappening):
             return None
         elif self.prog_action == 'DEFR':
             # deferred start: probably implies start semester change
-            #return 'DEFR'
-            # Not ready to work yet, unique key is no longer unique if we allow this.
-            return None
+            return 'DEFR'
 
-        elif self.prog_action == 'DATA':
+        elif self.prog_action == 'DATA':    
             if self.prog_reason == 'APPR':
                 # approved by department: close enough to ('AD', 'COND')
                 return 'OFFO'
