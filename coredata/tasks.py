@@ -114,7 +114,7 @@ def import_task():
         daily_cleanup.si(),
         fix_unknown_emplids.si(),
         get_role_people.si(),
-        import_grads.si(),
+        #import_grads.si(),
         get_update_grads_task(),
         import_offerings.si(continue_import=True),
         import_semester_info.si(),
