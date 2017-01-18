@@ -2,9 +2,7 @@ from __future__ import absolute_import
 import sys
 
 from django.db import models
-from django.conf import settings
 from django.contrib.sessions.models import Session
-from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 
 from django.db.models.signals import post_save
@@ -33,17 +31,13 @@ def all_otp_devices(user, confirmed=True):
 
 def totpauth_url(totp_dev):
     # https://github.com/google/google-authenticator/wiki/Key-Uri-Format
-    accountname = totp_dev.user.username.encode('utf8')
-
-    label = accountname
-
+    label = totp_dev.user.username.encode('utf8')
     query = [
         ('secret', base64.b32encode(totp_dev.bin_key)),
         ('digits', totp_dev.digits),
         ('issuer', b'CourSys')
     ]
-
-    return 'otpauth://totp/%s?%s' % (label, urlencode(query))
+    return b'otpauth://totp/%s?%s' % (label, urlencode(query))
 
 
 # based on http://stackoverflow.com/a/4631504/1236542
@@ -72,20 +66,21 @@ class SessionInfo(models.Model):
             # already have it.
             return request.session_info
 
-        if isinstance(user, AnonymousUser) or request.session.session_key is None:
+        if user is None or not user.is_authenticated or request.session.session_key is None:
             # no logged-in session: no point in looking.
             request.session_info = None
-            return None
+        else:
+            si = cls.for_session_key(request.session.session_key, save_new=save_new)
+            request.session_info = si
 
-        si = cls.for_session_key(request.session.session_key, save_new=save_new)
-
-        request.session_info = si
-        return si
+        return request.session_info
 
     @classmethod
     def just_logged_in(cls, request):
-        'Records that the session associated with this request just logged in.'
+        'Records that the session associated with this request just logged in (by django auth).'
         si = cls.for_request(request, save_new=False)
+        if si is None:
+            return
         si.last_auth = timezone.now()
         si.save()
         return si
@@ -113,10 +108,10 @@ class SessionInfo(models.Model):
         '''
         Is the auth okay for this request/user?
 
-        Hook here to allow apps to customize behaviour. Must return a boolean pair:
+        Hook here to allow apps to customize behaviour. Returns a boolean pair:
             Is standard Django auth okay?
             Is 2FA okay?
-        May assume that Django auth *and* OTP auth has said yes. Only need to restrict further.
+        May assume that Django auth *and* OTP auth have said yes. Only need to restrict further.
         '''
         return check_auth(self, request, user)
 

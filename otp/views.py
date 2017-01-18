@@ -19,6 +19,9 @@ import datetime
 import qrcode
 import qrcode.image.svg
 
+from log.models import LogEntry # CourSys-specific
+from ipware import ip
+
 
 def _setup_view(request, next_page):
     '''
@@ -42,7 +45,7 @@ def login_2fa(request, next_page=None):
     next_page, okay_auth, okay_2fa = _setup_view(request, next_page)
 
     if not okay_auth:
-        # Stale standard-Django authentication: redirect to normal login page.
+        # Stale standard-Django authentication: redirect to password login page.
         return HttpResponseRedirect(settings.PASSWORD_LOGIN_URL + '?' + urlencode({'next': next_page}))
 
     if not okay_2fa:
@@ -59,6 +62,12 @@ def login_2fa(request, next_page=None):
                 SessionInfo.just_2fa(request)
                 request.user = request.maybe_stale_user # otp_login looks at request.user
                 otp_login(request, form.device)
+
+                l = LogEntry(userid=request.user.username,
+                    description=("2FA as %s from %s") % (request.user.username, ip.get_ip(request)),
+                    related_object=request.user)
+                l.save()
+
                 return HttpResponseRedirect(next_page)
         else:
             form = TokenForm()
@@ -77,22 +86,25 @@ def add_topt(request, next_page=None):
     if not okay_auth:
         return ForbiddenResponse(request)
 
-    # TODO: if they already have 2FA set up, should also check okay_2fa. Or refuse to show anything?
-
     # This enforces that users have exactly one TOTP. That *seems* like the best practice.
     devices = TOTPDevice.objects.devices_for_user(request.maybe_stale_user, confirmed=True)
     if devices:
-        device = devices[0]
-    else:
-        device = TOTPDevice(user=request.maybe_stale_user, name='Authenticator, enabled %s' % (datetime.date.today()))
-        device.save()
+        return ForbiddenResponse(request, "You have already configured an authenticator with this account, and cannot add another. Contact coursys-help@sfu.ca if you are unable to authenticate with CourSys")
+
+    device = TOTPDevice(user=request.maybe_stale_user, name='Authenticator, enabled %s' % (datetime.date.today()))
+    device.save()
+    l = LogEntry(userid=request.user.username,
+                 description=("Added TOPT from %s") % (ip.get_ip(request),),
+                 related_object=device)
+    l.save()
 
     # build QR code
     uri = totpauth_url(device)
     qr = qrcode.make(uri, image_factory=qrcode.image.svg.SvgPathImage)
     qrdata = BytesIO()
     qr.save(qrdata)
-    # This is the OTP secret (bits) encoded as base32, wrapped in an otpauth URL, encoded as a QR code, encoded as an SVG, encoded as base64 in a data URL. I'm strangely proud.
+    # This is the OTP secret (bits) encoded as base32, wrapped in an otpauth URL, encoded as a QR code, encoded as an
+    # SVG, encoded as base64, wrapped in a data URL. I'm strangely proud.
     dataurl = 'data:image/svg+xml;base64,' + base64.b64encode(qrdata.getvalue())
 
     context = {
@@ -101,4 +113,3 @@ def add_topt(request, next_page=None):
         'next_page': next_page,
     }
     return render(request, 'otp/add_topt.html', context)
-

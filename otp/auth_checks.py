@@ -27,7 +27,7 @@ def check_auth(session_info, request, user):
     good_auth = bool(session_info.last_auth) and (now - session_info.last_auth).total_seconds() < PASSWORD_AUTH_AGE
 
     good_2fa = (
-        not needs_2fa(request, user) # 2FA is okay if we didn't need it anyway
+        not needs_2fa(request, user) # any 2FA is okay if we didn't need it
         or (bool(session_info.last_2fa) and (now - session_info.last_2fa).total_seconds() < TWOFACTOR_AUTH_AGE)
     )
 
