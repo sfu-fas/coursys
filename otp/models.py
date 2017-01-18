@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-import sys
 
 from django.db import models
 from django.contrib.sessions.models import Session
@@ -66,8 +65,8 @@ class SessionInfo(models.Model):
             # already have it.
             return request.session_info
 
-        if user is None or not user.is_authenticated or request.session.session_key is None:
-            # no logged-in session: no point in looking.
+        if request.session.session_key is None:
+            # no session: no point in looking.
             request.session_info = None
         else:
             si = cls.for_session_key(request.session.session_key, save_new=save_new)

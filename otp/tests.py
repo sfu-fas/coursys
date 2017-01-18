@@ -1,13 +1,13 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.conf import settings
-from courselib.testing import TEST_COURSE_SLUG, Client, test_views
+from courselib.testing import Client, test_views
 
 from django.contrib.auth.models import User
 from django.utils import timezone
+import datetime
 
 from django_otp.plugins.otp_totp.models import TOTPDevice
-from django_otp import login as otp_login
 from .models import SessionInfo
 from coredata.models import Person
 
@@ -76,8 +76,30 @@ class OTPTest(TestCase):
         # if we fake the 2FA login, we should be seeing pages again
         si.last_2fa = timezone.now()
         si.save()
-        c.user = user  # otp_login looks at request.user
-        otp_login(c, device)
+
+        # (mock django_otp's login())
+        from django_otp import DEVICE_ID_SESSION_KEY
+        session = c.session
+        session._session[DEVICE_ID_SESSION_KEY] = device.persistent_id
+        session.save()
 
         resp = c.get(url)
         self.assertEqual(resp.status_code, 200)
+
+        # now fiddle with the ages of things and check for the right failures
+
+        # old password login: should redirect -> login -> password login
+        si.last_auth = timezone.now() - datetime.timedelta(days=2)
+        si.save()
+        resp = c.get(url, follow=True)
+        self.assertEqual(len(resp.redirect_chain), 2)
+        self.assertTrue(resp.redirect_chain[-1][0].startswith(str(settings.PASSWORD_LOGIN_URL) + '?'))
+
+        # old 2fa: should redirect -> 2fa login
+        si.last_auth = timezone.now() - datetime.timedelta(hours=1)
+        si.last_2fa = timezone.now() - datetime.timedelta(days=30)
+        si.save()
+
+        resp = c.get(url, follow=True)
+        self.assertEqual(len(resp.redirect_chain), 1)
+        self.assertTrue(resp.redirect_chain[-1][0].startswith(str(settings.LOGIN_URL) + '?'))
