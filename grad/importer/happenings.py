@@ -196,7 +196,9 @@ class ProgramStatusChange(GradHappening):
             return None
         elif self.prog_action == 'DEFR':
             # deferred start: probably implies start semester change
-            return 'DEFR'
+            #return 'DEFR'
+            # Not ready to work yet, unique key is no longer unique if we allow this.
+            return None
 
         elif self.prog_action == 'DATA':
             if self.prog_reason == 'APPR':
