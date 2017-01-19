@@ -6,9 +6,7 @@ notifications:
       - coursys-help@sfu.ca
 cache: pip
 before_install:
-  - sudo apt-add-repository -y ppa:travis-ci/sqlite3
-  - sudo apt-get -y update
-  - sudo apt-get -y install sqlite3=3.7.15.1-1~travis1
+  - cd tmp && wget -nc http://mirrors.kernel.org/ubuntu/pool/main/s/sqlite3/sqlite3_3.14.1-1build1_amd64.deb && wget -nc http://mirrors.kernel.org/ubuntu/pool/main/s/sqlite3/libsqlite3-0_3.14.1-1build1_amd64.deb && wget -nc http://mirrors.kernel.org/ubuntu/pool/main/r/readline/libreadline7_7.0-0ubuntu2_amd64.deb && sudo dpkg -i /tmp/*.deb
 install: "pip install -r build_deps/working_deps.txt"
 script: "python manage.py test"
 sudo: required
