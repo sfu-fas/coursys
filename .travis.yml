@@ -5,9 +5,13 @@ notifications:
     email:
       - coursys-help@sfu.ca
 cache: pip
+before_install:
+  - sudo apt-add-repository -y ppa:travis-ci/sqlite3
+  - sudo apt-get -y update
+  - sudo apt-get -y install sqlite3=3.7.15.1-1~travis1
 install: "pip install -r build_deps/working_deps.txt"
 script: "python manage.py test"
-sudo: false
+sudo: required
 branches:
   except:
     - django17
