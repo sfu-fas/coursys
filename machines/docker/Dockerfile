@@ -1,7 +1,3 @@
-# sudo docker build -t django-coursys -f machines/docker/Dockerfile .
-# sudo docker run django-coursys
-# sudo docker run -ti django-coursys /bin/bash
-
 FROM ubuntu:yakkety
 WORKDIR /code
 ADD . /code/

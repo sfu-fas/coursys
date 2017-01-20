@@ -9,8 +9,3 @@ apt_repository 'docker' do
 end
 
 package 'docker-engine'
-
-execute "build_container" do
-    cwd "/home/vagrant/courses"
-    command "docker build -t django-coursys -f machines/docker/Dockerfile . && docker save django-coursys -o test-container.tar"
-end

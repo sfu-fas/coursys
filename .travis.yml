@@ -8,5 +8,6 @@ cache: pip
 sudo: required
 services:
   - docker
-install: "docker build -t django-coursys -f machines/docker/Dockerfile ."
-script: "docker run django-coursys"
+install:
+  - docker pull ggbaker/coursys-test
+script: "docker run ggbaker/django-coursys"
