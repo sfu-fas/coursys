@@ -10,4 +10,4 @@ services:
   - docker
 install:
   - docker pull ggbaker/coursys-test
-script: "docker run ggbaker/django-coursys"
+script: "docker run ggbaker/coursys-test"
