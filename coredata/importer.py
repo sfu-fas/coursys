@@ -134,6 +134,8 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
 
     if section == 'G':
         section = 'G100' # fix broken data somebody entered
+    if section == 'R':
+        section = 'G100' # fix different broken data somebody entered
 
     owner = get_unit(acad_org, create=create_units)
 
