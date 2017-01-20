@@ -128,6 +128,7 @@ class Person(models.Model, ConditionalSaveMixin):
         # 'form_email': email address to be used by the onlineforms app for this person
         # 'external_email': external email for non-SFU grad committee members
         # '2fa': do we require this user to do 2FA for all logins?
+        # 'recovery_email': non-SFU recovery email for 2FA: should be present if config['2fa'].
 
     defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None,
                 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,

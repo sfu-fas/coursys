@@ -32,11 +32,7 @@ class OTPTest(TestCase):
         # do the standard Django auth: should be okay for now, since user doesn't need 2FA.
         c.login_user('ggbaker')
         user = User.objects.get(username='ggbaker')
-        c._login(user)
-        # mock the SessionInfo into place for the tests
-        si = SessionInfo.for_session_key(c.session.session_key)
-        si.last_auth = timezone.now()
-        si.save()
+        session_info = SessionInfo.for_sessionstore(c.session)
 
         resp = c.get(url)
         self.assertEqual(resp.status_code, 200)
@@ -74,9 +70,8 @@ class OTPTest(TestCase):
         test_views(self, c, 'otp:', ['login_2fa'], {})
 
         # if we fake the 2FA login, we should be seeing pages again
-        si.last_2fa = timezone.now()
-        si.save()
-
+        session_info.last_2fa = timezone.now()
+        session_info.save()
         # (mock django_otp's login())
         from django_otp import DEVICE_ID_SESSION_KEY
         session = c.session
@@ -89,16 +84,16 @@ class OTPTest(TestCase):
         # now fiddle with the ages of things and check for the right failures
 
         # old password login: should redirect -> login -> password login
-        si.last_auth = timezone.now() - datetime.timedelta(days=2)
-        si.save()
+        session_info.last_auth = timezone.now() - datetime.timedelta(days=2)
+        session_info.save()
         resp = c.get(url, follow=True)
         self.assertEqual(len(resp.redirect_chain), 2)
         self.assertTrue(resp.redirect_chain[-1][0].startswith(str(settings.PASSWORD_LOGIN_URL) + '?'))
 
         # old 2fa: should redirect -> 2fa login
-        si.last_auth = timezone.now() - datetime.timedelta(hours=1)
-        si.last_2fa = timezone.now() - datetime.timedelta(days=30)
-        si.save()
+        session_info.last_auth = timezone.now() - datetime.timedelta(hours=1)
+        session_info.last_2fa = timezone.now() - datetime.timedelta(days=30)
+        session_info.save()
 
         resp = c.get(url, follow=True)
         self.assertEqual(len(resp.redirect_chain), 1)

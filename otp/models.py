@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from django.db import models
 from django.contrib.sessions.models import Session
+from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 
 from django.db.models.signals import post_save
@@ -41,18 +42,32 @@ def totpauth_url(totp_dev):
 
 # based on http://stackoverflow.com/a/4631504/1236542
 class SessionInfo(models.Model):
-    session_key = models.CharField(max_length=40, primary_key=True)
+    session = models.OneToOneField(Session, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     last_auth = models.DateTimeField(null=True)
     last_2fa = models.DateTimeField(null=True)
 
     @classmethod
-    def for_session_key(cls, session_key, save_new=True):
-        'Retrieve or create a SessionInfo for this session_key.'
+    def for_session(cls, session, save_new=True):
+        'Retrieve or create a SessionInfo for this Session.'
+        assert isinstance(session, Session)
         try:
-            si = cls.objects.get(session_key=session_key)
+            si = cls.objects.get(session=session)
         except (SessionInfo.DoesNotExist):
-            si = SessionInfo(session_key=session_key)
+            si = SessionInfo(session=session)
+            if save_new:
+                si.save()
+
+        return si
+
+    @classmethod
+    def for_sessionstore(cls, sessionstore, save_new=True):
+        'Retrieve or create a SessionInfo for this SessionStore.'
+        assert isinstance(sessionstore, SessionStore)
+        try:
+            si = cls.objects.get(session__session_key=sessionstore.session_key)
+        except (SessionInfo.DoesNotExist):
+            si = SessionInfo(session=Session.objects.get(session_key=sessionstore.session_key))
             if save_new:
                 si.save()
 
@@ -69,7 +84,7 @@ class SessionInfo(models.Model):
             # no session: no point in looking.
             request.session_info = None
         else:
-            si = cls.for_session_key(request.session.session_key, save_new=save_new)
+            si = cls.for_sessionstore(request.session, save_new=save_new)
             request.session_info = si
 
         return request.session_info
@@ -101,7 +116,7 @@ class SessionInfo(models.Model):
         return si
 
     def __unicode__(self):
-        return '%s@%s' % (self.session_key, self.created)
+        return '%s@%s' % (self.session_id, self.created)
 
     def okay_auth(self, request, user):
         '''
@@ -125,6 +140,6 @@ user_logged_in.connect(logged_in_listener)
 user_logged_out.connect(logged_out_listener)
 
 def session_create_listener(instance, **kwargs):
-    instance.session_info = SessionInfo.for_session_key(instance.session_key)
+    instance.session_info = SessionInfo.for_session(instance)
 
 post_save.connect(session_create_listener, sender=Session)

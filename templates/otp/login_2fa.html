@@ -8,7 +8,7 @@
 
 {% block content %}
 
-<p>Please enter the two-factor token to complete the login process.</p>
+<p>Please enter the two-factor token to complete the login process, or you can <a href="{{ LOGOUT_URL }}">sign out</a> to log in as another user.</p>
 
 <form action="" method="post">{% csrf_token %}
 {{ form.as_p }}
