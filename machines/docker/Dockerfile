@@ -9,4 +9,5 @@ RUN apt-get update \
 RUN locale-gen en_CA.UTF-8
 RUN pip install -r build_deps/working_deps.txt
 
-CMD ./manage.py test
+# duplication 'pip install' when running, so Travis tests don't fail on every tiny library update
+CMD pip install -r build_deps/working_deps.txt && ./manage.py test

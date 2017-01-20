@@ -1,3 +1,3 @@
 #!/bin/sh
 
-sudo docker build -t django-coursys -f machines/docker/Dockerfile .
+sudo docker build -t coursys-test -f machines/docker/Dockerfile .
