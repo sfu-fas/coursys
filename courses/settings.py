@@ -1,4 +1,5 @@
 from django.conf import global_settings # Django defaults so we can modify them
+from django.urls import reverse_lazy
 import socket, sys, os
 hostname = socket.gethostname()
 
@@ -353,7 +354,6 @@ SHORT_DATETIME_FORMAT = "N d Y, H:i"
 GRAD_DATE_FORMAT = "m/d/Y"
 GRAD_DATETIME_FORMAT = "m/d/Y H:i"
 
-from django.urls import reverse_lazy
 PASSWORD_LOGIN_URL = reverse_lazy('dashboard:login')
 LOGIN_URL = reverse_lazy('otp:login_2fa')
 LOGOUT_URL = reverse_lazy('dashboard:logout')
@@ -391,8 +391,7 @@ if DEPLOY_MODE == 'production':
 
 DEBUG_TOOLBAR = getattr(localsettings, 'DEBUG_TOOLBAR', False)
 if DEBUG_TOOLBAR:
-    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',
-                                       )
+    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
     MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ['debug_toolbar.middleware.DebugToolbarMiddleware']
     INTERNAL_IPS = getattr(localsettings, 'INTERNAL_IPS', [])
     #DEBUG_TOOLBAR_CONFIG = {

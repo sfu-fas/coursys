@@ -1,14 +1,3 @@
-"""
-The goals here:
-
-1. Password authentication is valid for settings.OTP_AUTH_AGE seconds.
-2. Two-factor authentication is valid for settings.OTP_2FA_AGE seconds.
-3. These are potentially independent (but must be less than or equal to) session cookie age, which is part of Django's
-   session middleware and controlled by settings.SESSION_COOKIE_AGE.
-
-This lets us application demand password authentication more often than the second factor.
-"""
-
 from django.contrib.auth.models import AnonymousUser
 from django_otp.middleware import OTPMiddleware
 

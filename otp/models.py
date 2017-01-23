@@ -14,7 +14,7 @@ from django_otp.plugins.otp_static.models import StaticDevice
 from six.moves.urllib.parse import quote, urlencode
 import base64
 
-ALL_DEVICES = [TOTPDevice, StaticDevice]
+ALL_DEVICE_CLASSES = [TOTPDevice, StaticDevice]
 
 # This could be configurable from settings. It isn't at the moment.
 from . import auth_checks
@@ -23,7 +23,7 @@ needs_2fa = auth_checks.needs_2fa
 
 
 def all_otp_devices(user, confirmed=True):
-    for Dev in ALL_DEVICES:
+    for Dev in ALL_DEVICE_CLASSES:
         devs = Dev.objects.devices_for_user(user, confirmed=confirmed)
         for d in devs: # could be a python3 'yield from'
             yield d
@@ -42,6 +42,9 @@ def totpauth_url(totp_dev):
 
 # based on http://stackoverflow.com/a/4631504/1236542
 class SessionInfo(models.Model):
+    '''
+    Meta-information about Sessions, so we can record when authentications happened.
+    '''
     session = models.OneToOneField(Session, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     last_auth = models.DateTimeField(null=True)

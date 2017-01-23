@@ -93,6 +93,7 @@ def add_topt(request, next_page=None):
 
     device = TOTPDevice(user=request.maybe_stale_user, name='Authenticator, enabled %s' % (datetime.date.today()))
     device.save()
+
     l = LogEntry(userid=request.user.username,
                  description=("Added TOPT from %s") % (ip.get_ip(request),),
                  related_object=device)

@@ -1,11 +1,10 @@
 from django import forms
 
 class TokenForm(forms.Form):
-    otp_token = forms.CharField(label="Authenticator Token", required=True, max_length=6, min_length=6)
+    otp_token = forms.CharField(label="Authenticator Token", required=True, max_length=8, min_length=6)
 
     def __init__(self, devices=None, *args, **kwargs):
         super(TokenForm, self).__init__(*args, **kwargs)
-
         self.devices = devices
 
     def clean_otp_token(self):

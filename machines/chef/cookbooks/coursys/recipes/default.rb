@@ -33,9 +33,3 @@ end
 execute "build_locale" do
     command "locale-gen en_CA.UTF-8"
 end
-
-# Fix sqlite version where we trigger a bug
-# This is probably fragile: will fail if sqlite3 updated in yakkety. I'm hoping the root problem will be fixed soon.
-execute 'fix sqlite' do
-    command "cd tmp && wget -nc http://mirrors.kernel.org/ubuntu/pool/main/s/sqlite3/sqlite3_3.14.1-1build1_amd64.deb && wget -nc http://mirrors.kernel.org/ubuntu/pool/main/s/sqlite3/libsqlite3-0_3.14.1-1build1_amd64.deb && wget -nc http://mirrors.kernel.org/ubuntu/pool/main/r/readline/libreadline7_7.0-0ubuntu2_amd64.deb && dpkg -i /tmp/*.deb"
-end
