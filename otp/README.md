@@ -5,7 +5,7 @@ The goals here:
 3. These are potentially independent (but must be less than or equal to) session cookie age, which is part of Django's
    session middleware and controlled by settings.SESSION_COOKIE_AGE.
 
-This lets us application demand password authentication more often than the second factor.
+This lets our application demand password authentication more often than the second factor.
 
 Parts of the workflow:
 - The Authentication2FAMiddleware middleware augments Django's AuthenticationMiddleware which must be added before it.
@@ -27,3 +27,5 @@ TODO:
 - Need frontend to send a recovery code to the user's recovery email (Person.config['recovery_email']).
 - Need frontend that allows a user to enable 2FA for their account (Person.config['2fa'] = True).
 - Need frontend to set up recovery codes (with django-otp StaticDevice). (They are be accepted if in the DB.)
+- Need to add confirmation of the device before setting device['confirmed'] to True. That way, we don't rely on the
+device until we know it works.
