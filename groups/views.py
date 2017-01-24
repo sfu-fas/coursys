@@ -53,9 +53,6 @@ def _groupmanage_student(request, course_slug):
         if group_min and headcount < group_min:
             # total size too small
             size_message = 'Groups in this course must have at least %i members.' % (group_min)
-        #elif group_max and headcount > group_max:
-        #    # total size too large
-        #    size_message = 'Groups in this course must have at most %i members.' % (group_max)
         else:
             # check size for each activity
             act_count = defaultdict(int)
@@ -222,8 +219,9 @@ def group_data(request, course_slug):
 @requires_course_by_slug
 @transaction.atomic
 def create(request, course_slug):
-    person = get_object_or_404(Person,userid=request.user.username)
-    course = get_object_or_404(CourseOffering, slug = course_slug)
+    person = get_object_or_404(Person, userid=request.user.username)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    span = course.group_span_activities()
 
     # allow 'activity=foo' in query string to suggest default selected for the form
     if 'activity' in request.GET:
@@ -236,7 +234,7 @@ def create(request, course_slug):
     activities = Activity.objects.exclude(status='INVI').filter(offering=course, group=True, deleted=False)
     activityList = []
     for activity in activities:
-        default = (not selected_activity) or (selected_activity and activity == selected_activity)
+        default = (span and not selected_activity) or (selected_activity and activity == selected_activity)
         activityForm = ActivityForm(prefix=activity.slug, initial={'selected': default})
         activityList.append({'activityForm': activityForm, 'name': activity.name,
                              'percent': activity.percent, 'due_date': activity.due_date})
@@ -308,12 +306,16 @@ def _validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course,
                         messages.add_message(request, messages.ERROR, error_info)
     return not integrityError
 
+
 @requires_course_by_slug
 @transaction.atomic
 def submit(request, course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
-    course = get_object_or_404(CourseOffering, slug = course_slug)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
     member = Member.objects.exclude(role='DROP').get(person=person, offering=course)
+    is_staff = is_course_staff_by_slug(request, course_slug)
+    span = course.group_span_activities()
+
     error_info=None
     name = request.POST.get('GroupName')
     if name:
@@ -334,7 +336,7 @@ def submit(request, course_slug):
         # find selected activities
         selected_act = []
         activities = Activity.objects.filter(offering=course, group=True, deleted=False)
-        if not is_course_staff_by_slug(request, course_slug):
+        if not is_staff:
             activities = activities.exclude(status='INVI')
 
         for activity in activities:
@@ -346,10 +348,13 @@ def submit(request, course_slug):
         if not selected_act:
             messages.add_message(request, messages.ERROR, "Group not created: no activities selected.")
             return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
-        
-        #groupForSemesterForm = GroupForSemesterForm(request.POST)
-        #if groupForSemesterForm.is_valid():
-        #    groupForSemester = groupForSemesterForm.cleaned_data['selected']
+
+        # check groups_span_activities restriction if it's set
+        if not span and not is_staff and len(selected_act) > 1:
+            # students cannot violate groups_span_activities restriction, but instructors can
+            messages.add_message(request, messages.ERROR, "Group not created: groups cannot last for more than one activity in this course.")
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
+
         groupForSemester = False
         
         #validate database integrity before saving anything. 

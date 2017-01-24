@@ -932,7 +932,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
                 'instr_rw_svn': False, 'joint_with': (), 'group_min': None, 'group_max': None,
-                'maillist': None, 'labtut_use': False}
+                'maillist': None, 'labtut_use': False, 'group_span_activities': True}
     labtut, set_labtut = getter_setter('labtut')
     labtut_use, set_labtut_use = getter_setter('labtut_use')
     _, set_labtas = getter_setter('labtas')
@@ -947,9 +947,10 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     joint_with, set_joint_with = getter_setter('joint_with')
     group_min, set_group_min = getter_setter('group_min')
     group_max, set_group_max = getter_setter('group_max')
+    group_span_activities, set_group_span_activities = getter_setter('group_span_activities')
     _, set_maillist = getter_setter('maillist')
     copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn', 'instr_rw_svn',
-                          'group_min', 'group_max'] # fields that should be copied when instructor does "copy course setup"
+                          'group_min', 'group_max', 'group_span_activities'] # fields that should be copied when instructor does "copy course setup"
     
     def autoslug(self):
         # changed slug format for fall 2011
