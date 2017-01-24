@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script>
 $(document).ready(function() {
   $('#casestable').dataTable( {
     'bPaginate': false,
@@ -27,6 +27,18 @@ $(document).ready(function() {
 {% block h1 %}Dishonesty Cases{% endblock %}
 
 {% block subbreadcrumbs %}<li>Dishonesty Cases</li>{% endblock %}
+
+{% block actions %}
+{% if has_global_role %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+	<li><a href="{% url 'discipline:permission_admin' %}">Manage departmental permissions</a></li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
 
 {% block content %}
 

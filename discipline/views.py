@@ -560,12 +560,14 @@ def edit_file(request, course_slug, case_slug, fileid):
 def chair_index(request):
     # discipline admin for these departments
     subunit_ids = Unit.sub_unit_ids(request.units)
+    has_global_role = 'UNIV' in (u.label for u in request.units)
+
     instr_cases = DisciplineCaseInstr.objects.filter(offering__owner__id__in=subunit_ids).select_related('owner')
     # can see cases either (1) in your unit, or (2) in subunits if the letter has been sent
     instr_cases = [c for c in instr_cases if (c.owner in request.units) or (c.letter_sent != 'WAIT')]
     instr_cases = [c.subclass() for c in instr_cases]
 
-    context = {'instr_cases': instr_cases}
+    context = {'instr_cases': instr_cases, 'has_global_role': has_global_role}
     return render(request, "discipline/chair-index.html", context)
     
 @requires_role("DISC")
@@ -594,6 +596,7 @@ def chair_show(request, course_slug, case_slug):
     context = {'case': case}
     return render(request, "discipline/chair-show.html", context)
 
+
 @requires_role("DISC")
 def chair_show_instr(request, course_slug, case_slug):
     """
@@ -609,6 +612,47 @@ def chair_show_instr(request, course_slug, case_slug):
     return render(request, "discipline/show.html", context)
 
 
+@requires_global_role('DISC')
+def permission_admin(request):
+    '''
+    View to allow University-level dishonesty case admin manage department-level permissions
+    '''
+    if 'delete' in request.GET:
+        r = get_object_or_404(Role, role__in=['DISC', 'DICC'], id=request.GET['delete'])
+        # LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+                     description=("deleted discipline role %s for %s") % (r.role, r.person.name()),
+                     related_object=r.person)
+        l.save()
+        r.delete()
+
+        messages.add_message(request, messages.SUCCESS, 'Deleted role for %s.' % (r.person.name(),))
+        return HttpResponseRedirect(reverse('discipline:permission_admin'))
+
+    disc_roles = Role.objects.filter(role__in=['DISC', 'DICC']).select_related('person', 'unit')
+    context = {
+        'disc_roles': disc_roles,
+    }
+    return render(request, "discipline/permission_admin.html", context)
+
+
+@requires_global_role('DISC')
+def permission_admin_add(request):
+    if request.method == 'POST':
+        form = DisciplineRoleForm(request.POST)
+        if form.is_valid():
+            r = form.save()
+            l = LogEntry(userid=request.user.username,
+                  description=("added discipline role %s for %s") % (r.role, r.person.name()),
+                  related_object=r)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Added role for %s.' % (r.person.name(),))
+            return HttpResponseRedirect(reverse('discipline:permission_admin'))
+    else:
+        form = DisciplineRoleForm()
+
+    context = {'form': form}
+    return render(request, "discipline/permission_admin_add.html", context)
 
 
 # Template editing views for sysadmin interface

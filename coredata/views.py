@@ -6,7 +6,7 @@ from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm,
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
         TemporaryPersonForm, CourseHomePageForm, OneOfferingForm, NewCombinedForm, AnyPersonForm, RoleAccountForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
-        has_formgroup
+        has_formgroup, has_global_role
 from featureflags.flags import uses_feature
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
@@ -870,7 +870,7 @@ def student_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
     allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND', 'SYSA'])
-    if not(roles & allowed) and not has_formgroup(request):
+    if not(roles & allowed) and not has_formgroup(request) and not has_global_role('DISC', request):
         # doesn't have any allowed roles
         return ForbiddenResponse(request, "Not permitted to do student search.")
     
