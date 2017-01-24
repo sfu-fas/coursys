@@ -23,7 +23,7 @@ from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, FormLogEntry, reorder_sheet_fields
 
 from coredata.models import Person, Role, Unit
-from coredata.queries import ensure_person_from_userid
+from coredata.queries import ensure_person_from_userid, SIMSProblem
 from log.models import LogEntry
 import unicodecsv as csv
 import json
@@ -1183,7 +1183,17 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
 
         # get their info if they are logged in
         if request.user.is_authenticated():
-            loggedin_user = ensure_person_from_userid(request.user.username)
+            try:
+                loggedin_user = ensure_person_from_userid(request.user.username)
+                
+            # If the user is authenticated through CAS, and logged in, but is *not* a Person in our system,
+            # *and* the SIMS reporting DB is down, we'll get a problem here.  Don't ask how we know.  Let's deal
+            # with it.
+            except SIMSProblem:
+                messages.error(request, 'The SIMS database is not allowing us to verify your identity.  Please try '
+                                        'again later.  Your submission has NOT been saved.')
+                return HttpResponseRedirect(reverse('onlineforms:index'))
+
             if loggedin_user is None:
                 return ForbiddenResponse(request, u"The userid '%s' isn't known to this system. If this is a 'role' account, please log in under your primary SFU userid. Otherwise, please contact coursys-help@sfu.ca for assistance." % (request.user.username))
             logentry_userid = loggedin_user.userid
