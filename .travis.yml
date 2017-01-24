@@ -5,7 +5,7 @@ notifications:
     email:
       - coursys-help@sfu.ca
 cache: pip
-install: "pip install -r build_deps/working_deps.txt"
+install: "pip install --upgrade pip setuptools && pip install -r build_deps/working_deps.txt"
 script: "python manage.py test"
 sudo: false
 branches:

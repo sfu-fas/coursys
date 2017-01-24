@@ -69,6 +69,16 @@ class TemplateForm(forms.ModelForm):
         }
 
 
+from coredata.forms import RoleForm
+from coredata.models import Unit
+class DisciplineRoleForm(RoleForm):
+    def __init__(self, *args, **kwargs):
+        super(DisciplineRoleForm, self).__init__(*args, **kwargs)
+        self.fields['role'].choices = [
+            ('DISC', 'Discipline Administrator: can view cases online'),
+            ('DICC', 'Discipline Filer: receives reports by email')]
+        univ_id = Unit.objects.get(label='UNIV').id
+        self.fields['unit'].choices = [(u,l) for u,l in self.fields['unit'].choices if u != univ_id]
 
 
 
