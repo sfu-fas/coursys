@@ -10,7 +10,7 @@ def grad_program_changes(acad_prog):
     db = SIMSConn()
     db.execute("""
         SELECT 'ProgramStatusChange', emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action, prog_reason,
-            effdt, effseq, admit_term, exp_grad_term
+            effdt, effseq, admit_term, exp_grad_term, degr_chkout_stat
         FROM ps_acad_prog
         WHERE acad_career='GRAD' AND acad_prog=%s AND effdt>=%s AND admit_term>=%s
         ORDER BY effdt, effseq
