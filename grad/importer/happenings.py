@@ -198,6 +198,9 @@ class ProgramStatusChange(GradHappening):
             # Self-service application for graduation
             if self.prog_reason == 'SELF' and self.degr_chkout_stat == 'AG':
                 return 'GAPL'
+            # Graduation Status Change to applied for graduation as well
+            elif self.prog_reason == 'GRST' and self.degr_chkout_stat == 'AG':
+                return 'GAPL'
             # Graduation status change to 'Approved'
             elif self.prog_reason == 'GRST' and self.degr_chkout_stat == 'AP':
                 return 'GAPR'
