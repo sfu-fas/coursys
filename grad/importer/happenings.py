@@ -128,7 +128,7 @@ class ProgramStatusChange(GradHappening):
     Record a row from ps_acad_prog
     """
     def __init__(self, emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action,
-            prog_reason, effdt, effseq, admit_term, exp_grad_term):
+            prog_reason, effdt, effseq, admit_term, exp_grad_term, degr_chkout_stat):
         # argument order must match grad_program_changes query
         self.emplid = emplid
         self.stdnt_car_nbr = None
@@ -142,14 +142,17 @@ class ProgramStatusChange(GradHappening):
         self.prog_status = prog_status
         self.prog_action = prog_action
         self.prog_reason = prog_reason
+        self.degr_chkout_stat = degr_chkout_stat
 
         self.status = self.prog_status_translate()
         self.acad_prog_to_gradprogram()
         self.effdt_to_strm()
 
         # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
-        self.oldkey = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog]
-        self.key = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog, self.prog_action]
+        self.oldkey = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog,
+                       self.prog_action]
+        self.key = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog,
+                    self.prog_action, self.degr_chkout_stat]
 
         self.in_career = False
         self.gradstatus = None
@@ -191,6 +194,14 @@ class ProgramStatusChange(GradHappening):
             return 'REJE'
         elif st_ac == ('CN', 'ADRV'):
             return 'CANC'
+        elif st_ac == ('AC', 'DATA'):
+            # Self-service application for graduation
+            if self.prog_reason == 'SELF' and self.degr_chkout_stat == 'AG':
+                return 'GAPL'
+            # Graduation status change to 'Approved'
+            elif self.prog_reason == 'GRST' and self.degr_chkout_stat == 'AP':
+                return 'GAPR'
+
         elif self.prog_action == 'RECN':
             # "reconsideration"
             return None
