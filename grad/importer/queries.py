@@ -25,11 +25,14 @@ def grad_appl_program_changes(acad_prog):
     Rows become ApplProgramChange objects.
 
     Many of these will duplicate ps_acad_prog: the ProgramStatusChange is smart enough to identify them.
+
+    The 13th null argument has been added because ApplProgramChange subclasses ProgramStatusChange, which now requires
+    an extra degr_chkout_stat argument to find the grad application/approved statuses.
     """
     db = SIMSConn()
     db.execute("""
         SELECT 'ApplProgramChange', prog.emplid, prog.stdnt_car_nbr, prog.adm_appl_nbr, prog.acad_prog, prog.prog_status, prog.prog_action, prog.prog_reason,
-            prog.effdt, prog.effseq, prog.admit_term, prog.exp_grad_term
+            prog.effdt, prog.effseq, prog.admit_term, prog.exp_grad_term, null
         FROM ps_adm_appl_prog prog
             LEFT JOIN dbcsown.ps_adm_appl_data data
                 ON prog.emplid=data.emplid AND prog.acad_career=data.acad_career AND prog.stdnt_car_nbr=data.stdnt_car_nbr AND prog.adm_appl_nbr=data.adm_appl_nbr
