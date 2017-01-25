@@ -83,7 +83,7 @@ class GradHappening(object):
         elif isinstance(self, CommitteeMembership):
             offset = datetime.timedelta(days=0)
 
-        if hasattr(self, 'status') and self.status == 'GRAD' and self.exp_grad_term:
+        if hasattr(self, 'status') and self.status in ['GRAD', 'GAPL', 'GAPR'] and self.exp_grad_term:
             # Graduation strm is explicitly in there
             strm = self.exp_grad_term
         elif hasattr(self, 'status') and self.status in STATUS_APPLICANT:
