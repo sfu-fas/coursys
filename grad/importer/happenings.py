@@ -232,7 +232,7 @@ class ProgramStatusChange(GradHappening):
         elif st_ac == ('CM', 'COMP'):
             return 'GRAD'
 
-        raise KeyError, str((self.prog_status, self.prog_action, self.prog_reason, self.degr_chkout_stat))
+        raise KeyError, str((self.emplid, self.prog_status, self.prog_action, self.prog_reason, self.degr_chkout_stat))
 
     def import_key(self):
         return self.key
