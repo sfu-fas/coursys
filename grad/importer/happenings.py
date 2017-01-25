@@ -195,15 +195,14 @@ class ProgramStatusChange(GradHappening):
         elif st_ac == ('CN', 'ADRV'):
             return 'CANC'
         elif st_ac == ('AC', 'DATA'):
-            # Self-service application for graduation
-            if self.prog_reason == 'SELF' and self.degr_chkout_stat == 'AG':
-                return 'GAPL'
-            # Graduation Status Change to applied for graduation as well
-            elif self.prog_reason == 'GRST' and self.degr_chkout_stat == 'AG':
+            # Application for graduation
+            if self.degr_chkout_stat == 'AG':
                 return 'GAPL'
             # Graduation status change to 'Approved'
-            elif self.prog_reason == 'GRST' and self.degr_chkout_stat == 'AP':
+            elif self.degr_chkout_stat == 'AP':
                 return 'GAPR'
+            # Some other data change that we most likely don't care about.
+            return None
 
         elif self.prog_action == 'RECN':
             # "reconsideration"
