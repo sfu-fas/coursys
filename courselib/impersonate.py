@@ -1,5 +1,6 @@
 # modified from http://stackoverflow.com/questions/2242909/django-user-impersonation-by-admin
 
+from django.utils.deprecation import MiddlewareMixin
 from django.http import HttpResponseRedirect
 from courselib.auth import ForbiddenResponse
 from django.contrib.auth.models import User
@@ -12,7 +13,7 @@ import re
 
 course_path_re = re.compile("^/" + COURSE_SLUG + "/")
 
-class ImpersonateMiddleware(object):
+class ImpersonateMiddleware(MiddlewareMixin):
     def _generate_error(self, request, msg):
         return ForbiddenResponse(request, errormsg="cannot impersonate that user: "+msg)
         

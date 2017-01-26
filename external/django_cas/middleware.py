@@ -9,10 +9,11 @@ from django.contrib.auth.views import login, logout
 from django.core.urlresolvers import reverse
 
 from django_cas.views import login as cas_login, logout as cas_logout
+from django.utils.deprecation import MiddlewareMixin
 
 __all__ = ['CASMiddleware']
 
-class CASMiddleware(object):
+class CASMiddleware(MiddlewareMixin):
     """Middleware that allows CAS authentication on admin pages"""
 
     def process_request(self, request):
