@@ -28,7 +28,7 @@
 				</td>
 				<td> 
                     {% if s.hidden %}<del>{% endif %}
-                    	<span class="sort">{{s.start.name}} {% if s.start_date %}{{s.start_date.isoformat}}{% endif %}</span>
+                    	<span class="sort">{{s.start.name}} {% if s.start_date %}{{s.start_date.isoformat}}{% endif %} s{{s.status_order}}</span>
                         {{s.start.name}} ({{s.start}}{% if s.start_date %}, {{s.start_date|date:GRAD_DATE_FORMAT}}{% endif %})
                     {% if s.hidden %}</del>{% endif %}
                 </td>
