@@ -394,7 +394,7 @@ def has_letter_activities(offering):
         cache.set(key, res, 12*60*60)
 
 
-def ensure_member(person, offering, role, cred, added_reason, career, labtut_section=None, grade=None):
+def ensure_member(person, offering, role, cred, added_reason, career, labtut_section=None, grade=None, sched_print_instr=None):
     """
     Make sure this member exists with the right properties.
     """
@@ -428,7 +428,11 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
         m.official_grade = grade or None
     else:
         m.official_grade = None
-    
+
+    # record sched_print_instr status for instructors
+    if role=='INST' and sched_print_instr:
+        m.config['sched_print_instr'] = sched_print_instr == 'Y'
+
     # if offering is being given lab/tutorial sections, flag it as having them
     # there must be some way to detect this in ps_class_tbl, but I can't see it.
     if labtut_section and not offering.labtut():
@@ -444,13 +448,13 @@ def import_instructors(offering):
     Member.objects.filter(added_reason="AUTO", offering=offering, role="INST").update(role='DROP')
     db = SIMSConn()
     db.execute("SELECT emplid, instr_role, sched_print_instr FROM ps_class_instr WHERE " \
-               "crse_id=%s and class_section=%s and strm=%s and instr_role IN ('PI', 'SI') and sched_print_instr='Y'",
+               "crse_id=%s and class_section=%s and strm=%s and instr_role IN ('PI', 'SI')",
                ("%06i" % (int(offering.crse_id)), offering.section, offering.semester.name))
-    for emplid, _, _ in db.rows():
+    for emplid, _, sched_print_instr in db.rows():
         if not emplid:
             continue
         p = get_person(emplid)
-        ensure_member(p, offering, "INST", 0, "AUTO", "NONS")
+        ensure_member(p, offering, "INST", 0, "AUTO", "NONS", sched_print_instr=sched_print_instr)
 
 
 @transaction.atomic

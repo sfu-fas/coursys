@@ -1189,6 +1189,7 @@ class Member(models.Model, ConditionalSaveMixin):
         # 'teaching_credit': The number of teaching credits instructor receives for this offering. Fractions stored as strings: '1/3'
         # 'teaching_credit_reason': reason for the teaching credit override
         # 'last_discuss': Last view of the offering's discussion forum (seconds from epoch)
+        # 'sched_print_instr': should this instructor be displayed in the course browser? ps_class_instr.sched_print_instr from SIMS
 
     defaults = {'bu': 0, 'teaching_credit': 1, 'teaching_credit_reason': None, 'last_discuss': 0}
     raw_bu, set_bu = getter_setter('bu')
