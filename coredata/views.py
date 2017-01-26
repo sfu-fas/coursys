@@ -1001,7 +1001,7 @@ class OfferingDataJson(BaseDatatableView):
             url = reverse('browse:browse_courses_info', kwargs={'course_slug': offering.slug})
             col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
         elif column == 'instructors':
-            col = offering.instructors_str()
+            col = offering.instructors_printing_str()
         elif column == 'campus':
             col = CAMPUSES_SHORT[offering.campus]
         elif column == 'enrol':

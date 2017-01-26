@@ -922,6 +922,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         # 'instr_rw_svn': can instructors/TAs *write* to student SVN repos? (default False)
         # 'group_min': minimum group size
         # 'group_max': maximum group size
+        # 'group_span_activities': are groups allowed to last for multiple activities?
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
@@ -996,6 +997,16 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         def _instr_str(pk):
             return u'; '.join(p.sortname() for p in CourseOffering.objects.get(pk=pk).instructors())
         return _instr_str(self.pk)
+
+    def instructors_printing(self):
+        # like .instructors() but honours the sched_print_instr flag
+        return (m.person for m in self.member_set.filter(role="INST").select_related('person')
+                if m.sched_print_instr())
+    def instructors_printing_str(self):
+        @cached(60*60*24*2)
+        def _instr_printing_str(pk):
+            return u'; '.join(p.sortname() for p in CourseOffering.objects.get(pk=pk).instructors())
+        return _instr_printing_str(self.pk)
 
     def tas(self):
         return (m.person for m in self.member_set.filter(role="TA"))
@@ -1191,9 +1202,11 @@ class Member(models.Model, ConditionalSaveMixin):
         # 'last_discuss': Last view of the offering's discussion forum (seconds from epoch)
         # 'sched_print_instr': should this instructor be displayed in the course browser? ps_class_instr.sched_print_instr from SIMS
 
-    defaults = {'bu': 0, 'teaching_credit': 1, 'teaching_credit_reason': None, 'last_discuss': 0}
+    defaults = {'bu': 0, 'teaching_credit': 1, 'teaching_credit_reason': None, 'last_discuss': 0,
+                'sched_print_instr': True}
     raw_bu, set_bu = getter_setter('bu')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
+    sched_print_instr, set_sched_print_instr = getter_setter('sched_print_instr')
     
     def __unicode__(self):
         return "%s (%s) in %s" % (self.person.userid, self.person.emplid, self.offering,)
