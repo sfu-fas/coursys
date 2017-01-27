@@ -30,8 +30,7 @@ Column logic:
 {% endcomment %}
 
 {% block headextra %}
-<script type="text/javascript">
-//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">
     function fetchUserId(data) {
 	var dataArray = data.split('&')
 	for (var i=0; i<dataArray.length; i++) {
@@ -97,7 +96,7 @@ Column logic:
 	});
 	{% endif %}
     });
-//]]></script>
+</script>
 {% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>{{ activity.name }}</li>{% endblock %}
