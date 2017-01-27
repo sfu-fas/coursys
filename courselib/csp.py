@@ -37,4 +37,8 @@ def context_processor(request):
     Inject the CSP nonce into the context, allowing this in templates where we shouldn't have inline JS, but do anyway:
     <script nonce="{{ CSP_NONCE }}">
     """
-    return {'CSP_NONCE': request.csp_nonce}
+    if hasattr(request, 'csp_nonce'):
+        return {'CSP_NONCE': request.csp_nonce}
+    else:
+        # some middleware has short-circuited CSPMiddleware: make sure there is some token there
+        return {'CSP_NONCE': new_token()}
