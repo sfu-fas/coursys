@@ -1432,7 +1432,7 @@ def export_all(request, course_slug):
     """
     import StringIO, tempfile, zipfile, os, json
     from django.http import StreamingHttpResponse
-    from django.core.servers.basehttp import FileWrapper
+    from wsgiref.util import FileWrapper
     from marking.views import _mark_export_data, _DecimalEncoder
     from discuss.models import DiscussionTopic
 
