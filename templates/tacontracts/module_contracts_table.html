@@ -68,7 +68,8 @@
                           </button>
                     </form>
                     <form class="lineform" method="POST"
-                          action="{% url "tacontracts:cancel_contract" unit_slug=unit_slug semester=semester contract_slug=contract.slug %}">
+                          action="{% url "tacontracts:cancel_contract" unit_slug=unit_slug semester=semester contract_slug=contract.slug %}"
+                          onsubmit="return confirmDelete()">
                         {% csrf_token %}
                           <button type="submit" class="btn" title="Delete Contract">
                               <i class="fa fa-trash-o"></i>
