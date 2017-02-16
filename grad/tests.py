@@ -363,10 +363,13 @@ class GradTest(TestCase):
         self.assertEqual(gs.status_as_of(this_sem.offset(3)), 'LEAV')
         # grad.tasks.update_statuses_to_current will put this student on LEAV on the first day of that future semester
 
+        # The following is no longer true.  The latest status (based on start date) is the one that wins, period,
+        # whether it's manually put in or imported from SIMS.
+        #
         # check that "active" statuses are preferred over "applicant" statuses in status calcs
-        s4 = GradStatus(student=gs, status='COMP', start=this_sem.offset(-3))
-        s4.save()
-        self.assertEqual(gs.status_as_of(this_sem.offset(-3)), 'ACTI')
+        # s4 = GradStatus(student=gs, status='COMP', start=this_sem.offset(-3))
+        # s4.save()
+        # self.assertEqual(gs.status_as_of(this_sem.offset(-3)), 'ACTI')
 
         # because of insanity that makes strange sense, application-decision statuses propagate back a semester
         gs.gradstatus_set.all().delete()
