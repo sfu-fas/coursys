@@ -315,12 +315,11 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         semester_statuses = [(
                                  st.start.name,
-                                 STATUS_ORDER[st.status],
-                                 st.start_date or datetime.date(1970,1,1),
+                                 st.start_date or st.created_at.date() or datetime.date(1970, 1, 1),
                                  st)
                              for st in statuses if st.start == status_sem]
         semester_statuses.sort()
-        return semester_statuses[-1][3].status
+        return semester_statuses[-1][2].status
 
 
     def status_as_of_old(self, semester=None):
@@ -1218,10 +1217,6 @@ class GradStatus(models.Model, ConditionalSaveMixin):
     def __unicode__(self):
         return u"Grad Status: %s %s in %s" % (self.student, self.status, self.start.name)
     
-    def status_order(self):
-        "For sorting by status"
-        return STATUS_ORDER[self.status]
-
     def get_short_status_display(self):
         return SHORT_STATUSES[self.status]
 

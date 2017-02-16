@@ -37,7 +37,7 @@ def manage_status(request, grad_slug):
             l.save()                       
             return HttpResponseRedirect(reverse('grad:manage_status', kwargs={'grad_slug':grad_slug}))
     else:
-        form = GradStatusForm(initial={'start': Semester.current(), 'start_date': None})
+        form = GradStatusForm(initial={'start': Semester.current(), 'start_date': datetime.datetime.today()})
         form.fields['status'].choices = status_choices
 
     context = {
