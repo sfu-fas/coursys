@@ -28,7 +28,7 @@ class Authentication2FAMiddleware(OTPMiddleware):
         # All we can do here is tighten the restrictions (unless we set request.user to a real User instance, which
         # we don't).
 
-        # It might be more efficient to make request.uer and request.maybe_stale_user SimpleLazyObject, but since
+        # It might be more efficient to make request.user and request.maybe_stale_user SimpleLazyObject, but since
         # almost all of our requests are authenticated, they would be fired anyway.
 
         password_user = request.user # the user who was password-authenticated by Django

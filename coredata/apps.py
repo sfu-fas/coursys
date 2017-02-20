@@ -5,9 +5,14 @@ class CoredataConfig(AppConfig):
 
 
 from django.core.checks import Warning, register
+from django.conf import settings
 @register()
 def sqlite_check(app_configs, **kwargs):
     errors = []
+    if 'sqlite' not in settings.DATABASES['default']['ENGINE']:
+        # not using sqlite, so don't worry
+        return errors
+
     import sqlite3
     if sqlite3.sqlite_version_info < (3, 12):
         errors.append(
