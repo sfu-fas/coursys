@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-
+from . import auth_checks
 from django.db import models
 from django.contrib.sessions.models import Session
 from django.contrib.sessions.backends.db import SessionStore
@@ -10,6 +10,7 @@ from django.utils import timezone
 
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from django_otp.plugins.otp_static.models import StaticDevice
+from django.conf import settings
 
 from six.moves.urllib.parse import quote, urlencode
 import base64
@@ -17,7 +18,7 @@ import base64
 ALL_DEVICE_CLASSES = [TOTPDevice, StaticDevice]
 
 # This could be configurable from settings. It isn't at the moment.
-from . import auth_checks
+
 check_auth = auth_checks.check_auth
 needs_2fa = auth_checks.needs_2fa
 
@@ -32,10 +33,18 @@ def all_otp_devices(user, confirmed=True):
 def totpauth_url(totp_dev):
     # https://github.com/google/google-authenticator/wiki/Key-Uri-Format
     label = totp_dev.user.username.encode('utf8')
+
+    # We need two separate issuers, otherwise deploying in prod will override our authenticator token from
+    # dev
+    if settings.DEPLOY_MODE == 'production':
+        issuer = b'CourSys'
+    else:
+        issuer = b'CourSys-DEV'
+
     query = [
         ('secret', base64.b32encode(totp_dev.bin_key)),
         ('digits', totp_dev.digits),
-        ('issuer', b'CourSys')
+        ('issuer', issuer)
     ]
     return b'otpauth://totp/%s?%s' % (label, urlencode(query))
 
