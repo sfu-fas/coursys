@@ -24,7 +24,7 @@ class CMPTCourseHistoryReport(Report):
         for course in courses:
             semester = course.semester.label()
             label = course.name()
-            instr = course.instructors_str()
+            instr = course.instructors_printing_str()
             enrl = '%i/%i' % (course.enrl_tot, course.enrl_cap)
             if course.campus in CAMPUSES_SHORT:
                 campus = CAMPUSES_SHORT[course.campus]

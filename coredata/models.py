@@ -924,6 +924,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         # 'instr_rw_svn': can instructors/TAs *write* to student SVN repos? (default False)
         # 'group_min': minimum group size
         # 'group_max': maximum group size
+        # 'group_span_activities': are groups allowed to last for multiple activities?
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
@@ -934,7 +935,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
                 'instr_rw_svn': False, 'joint_with': (), 'group_min': None, 'group_max': None,
-                'maillist': None, 'labtut_use': False}
+                'maillist': None, 'labtut_use': False, 'group_span_activities': True}
     labtut, set_labtut = getter_setter('labtut')
     labtut_use, set_labtut_use = getter_setter('labtut_use')
     _, set_labtas = getter_setter('labtas')
@@ -949,9 +950,10 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     joint_with, set_joint_with = getter_setter('joint_with')
     group_min, set_group_min = getter_setter('group_min')
     group_max, set_group_max = getter_setter('group_max')
+    group_span_activities, set_group_span_activities = getter_setter('group_span_activities')
     _, set_maillist = getter_setter('maillist')
     copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn', 'instr_rw_svn',
-                          'group_min', 'group_max'] # fields that should be copied when instructor does "copy course setup"
+                          'group_min', 'group_max', 'group_span_activities'] # fields that should be copied when instructor does "copy course setup"
     
     def autoslug(self):
         # changed slug format for fall 2011
@@ -997,6 +999,16 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         def _instr_str(pk):
             return u'; '.join(p.sortname() for p in CourseOffering.objects.get(pk=pk).instructors())
         return _instr_str(self.pk)
+
+    def instructors_printing(self):
+        # like .instructors() but honours the sched_print_instr flag
+        return (m.person for m in self.member_set.filter(role="INST").select_related('person')
+                if m.sched_print_instr())
+    def instructors_printing_str(self):
+        @cached(60*60*24*2)
+        def _instr_printing_str(pk):
+            return u'; '.join(p.sortname() for p in CourseOffering.objects.get(pk=pk).instructors_printing())
+        return _instr_printing_str(self.pk)
 
     def tas(self):
         return (m.person for m in self.member_set.filter(role="TA"))
@@ -1190,10 +1202,13 @@ class Member(models.Model, ConditionalSaveMixin):
         # 'teaching_credit': The number of teaching credits instructor receives for this offering. Fractions stored as strings: '1/3'
         # 'teaching_credit_reason': reason for the teaching credit override
         # 'last_discuss': Last view of the offering's discussion forum (seconds from epoch)
+        # 'sched_print_instr': should this instructor be displayed in the course browser? ps_class_instr.sched_print_instr from SIMS
 
-    defaults = {'bu': 0, 'teaching_credit': 1, 'teaching_credit_reason': None, 'last_discuss': 0}
+    defaults = {'bu': 0, 'teaching_credit': 1, 'teaching_credit_reason': None, 'last_discuss': 0,
+                'sched_print_instr': True}
     raw_bu, set_bu = getter_setter('bu')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
+    sched_print_instr, set_sched_print_instr = getter_setter('sched_print_instr')
     
     def __unicode__(self):
         return "%s (%s) in %s" % (self.person.userid, self.person.emplid, self.offering,)

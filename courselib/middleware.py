@@ -1,10 +1,11 @@
 import time
 import logging
 from django.db import connection
+from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
 logger = logging.getLogger(__name__)
 
-class MonitoringMiddleware(object):
+class MonitoringMiddleware(MiddlewareMixin):
     """
     Middleware to log requests that take strangely long.
     """
@@ -32,7 +33,7 @@ try:
 except ImportError:
     OperationalError = None
 
-class ExceptionIgnorer(object):
+class ExceptionIgnorer(MiddlewareMixin):
     """
     Middleware to eat the exception that we really don't need to see.
     """

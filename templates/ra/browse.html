@@ -24,6 +24,8 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block actions %}
+<li><a href="{% url "ra:download_current_ras" %}">Download Current RAs</a></li>
+<li><a href="{% url "ra:download_all_ras" %}">Download All RAs</a></li>
 {% endblock %}
 
 {% block content %}

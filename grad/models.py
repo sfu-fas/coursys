@@ -78,12 +78,14 @@ STATUS_CHOICES = (
         ('TROU', 'Transferred to another department'),
         ('DELE', 'Deleted Record'), # used to flag GradStudents as deleted
         ('DEFR', 'Deferred'),
+        ('GAPL', 'Applied for Graduation'),
+        ('GAPR', 'Graduation Approved'),
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV',
                     'DEFR') # statuses that mean "applicant"
 STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO') # statuses that mean "currently applying"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
-STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
+STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP', 'GAPL', 'GAPR') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
 STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE', 'DELE', 'TRIN', 'TROU') # statuses we don't let users enter
 STATUS_REAL_PROGRAM = STATUS_CURRENTAPPLICANT + STATUS_ACTIVE + STATUS_INACTIVE # things to report for TAs
@@ -111,6 +113,8 @@ SHORT_STATUSES = dict([  # a shorter status description we can use in compact ta
         ('TROU', 'Transfer out'),
         ('DELE', 'Deleted Record'),
         ('DEFR', 'Deferred'),
+        ('GAPL', 'Grad Applied'),
+        ('GAPR', 'Grad Approved'),
         (None, 'None'),
 ])
 
@@ -311,12 +315,11 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         semester_statuses = [(
                                  st.start.name,
-                                 STATUS_ORDER[st.status],
-                                 st.start_date or datetime.date(1970,1,1),
+                                 st.start_date or st.created_at.date() or datetime.date(1970, 1, 1),
                                  st)
                              for st in statuses if st.start == status_sem]
         semester_statuses.sort()
-        return semester_statuses[-1][3].status
+        return semester_statuses[-1][2].status
 
 
     def status_as_of_old(self, semester=None):
@@ -1158,6 +1161,8 @@ STATUS_ORDER = {
         'PART': 6,
         'LEAV': 7,
         'NOND': 7,
+        'GAPL': 7,
+        'GAPR': 7,
         'TROU': 8,
         'WIDR': 8,
         'GRAD': 8,
@@ -1212,10 +1217,6 @@ class GradStatus(models.Model, ConditionalSaveMixin):
     def __unicode__(self):
         return u"Grad Status: %s %s in %s" % (self.student, self.status, self.start.name)
     
-    def status_order(self):
-        "For sorting by status"
-        return STATUS_ORDER[self.status]
-
     def get_short_status_display(self):
         return SHORT_STATUSES[self.status]
 

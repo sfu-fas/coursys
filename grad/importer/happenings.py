@@ -83,7 +83,7 @@ class GradHappening(object):
         elif isinstance(self, CommitteeMembership):
             offset = datetime.timedelta(days=0)
 
-        if hasattr(self, 'status') and self.status == 'GRAD' and self.exp_grad_term:
+        if hasattr(self, 'status') and self.status in ['GRAD', 'GAPL', 'GAPR'] and self.exp_grad_term:
             # Graduation strm is explicitly in there
             strm = self.exp_grad_term
         elif hasattr(self, 'status') and self.status in STATUS_APPLICANT:
@@ -128,7 +128,7 @@ class ProgramStatusChange(GradHappening):
     Record a row from ps_acad_prog
     """
     def __init__(self, emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action,
-            prog_reason, effdt, effseq, admit_term, exp_grad_term):
+            prog_reason, effdt, effseq, admit_term, exp_grad_term, degr_chkout_stat):
         # argument order must match grad_program_changes query
         self.emplid = emplid
         self.stdnt_car_nbr = None
@@ -142,14 +142,17 @@ class ProgramStatusChange(GradHappening):
         self.prog_status = prog_status
         self.prog_action = prog_action
         self.prog_reason = prog_reason
+        self.degr_chkout_stat = degr_chkout_stat
 
         self.status = self.prog_status_translate()
         self.acad_prog_to_gradprogram()
         self.effdt_to_strm()
 
         # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
-        self.oldkey = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog]
-        self.key = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog, self.prog_action]
+        self.oldkey = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog,
+                       self.prog_action]
+        self.key = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog,
+                    self.prog_action, self.degr_chkout_stat]
 
         self.in_career = False
         self.gradstatus = None
@@ -191,6 +194,16 @@ class ProgramStatusChange(GradHappening):
             return 'REJE'
         elif st_ac == ('CN', 'ADRV'):
             return 'CANC'
+        elif st_ac == ('AC', 'DATA'):
+            # Application for graduation
+            if self.degr_chkout_stat == 'AG':
+                return 'GAPL'
+            # Graduation status change to 'Approved'
+            elif self.degr_chkout_stat == 'AP':
+                return 'GAPR'
+            # Some other data change that we most likely don't care about.
+            return None
+
         elif self.prog_action == 'RECN':
             # "reconsideration"
             return None
@@ -221,7 +234,7 @@ class ProgramStatusChange(GradHappening):
         elif st_ac == ('CM', 'COMP'):
             return 'GRAD'
 
-        raise KeyError, str((self.prog_status, self.prog_action, self.prog_reason))
+        raise KeyError, str((self.emplid, self.prog_status, self.prog_action, self.prog_reason, self.degr_chkout_stat))
 
     def import_key(self):
         return self.key

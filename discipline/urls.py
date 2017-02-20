@@ -4,6 +4,8 @@ import discipline.views as discipline_views
 
 discipline_patterns = [ # prefix /discipline/
     url(r'^$', discipline_views.chair_index, name='chair_index'),
+    url(r'^admin$', discipline_views.permission_admin, name='permission_admin'),
+    url(r'^admin/add$', discipline_views.permission_admin_add, name='permission_admin_add'),
     url(r'^' + COURSE_SLUG + '/' + CASE_SLUG + '/create$', discipline_views.chair_create, name='chair_create'),
     url(r'^' + COURSE_SLUG + '/' + CASE_SLUG + '/$', discipline_views.chair_show, name='chair_show'),
     url(r'^' + COURSE_SLUG + '/' + CASE_SLUG + '/instr$', discipline_views.chair_show_instr, name='chair_show_instr'),

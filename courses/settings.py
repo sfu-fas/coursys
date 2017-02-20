@@ -88,7 +88,9 @@ INSTALLED_APPS = (
     'sessionals',
     'inventory',
 )
-MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + [
+MIDDLEWARE = [
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'otp.middleware.Authentication2FAMiddleware',
@@ -97,6 +99,7 @@ MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + [
     'courselib.middleware.ExceptionIgnorer',
     'django_cas.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
+    'courselib.csp.CSPMiddleware',
 ]
 TEMPLATES = [
     {
@@ -109,7 +112,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'dashboard.context.media']},
+                'dashboard.context.media',
+                'courselib.csp.context_processor']},
     },
 ]
 
@@ -262,7 +266,7 @@ HAYSTACK_CONNECTIONS = getattr(localsettings, 'HAYSTACK_CONNECTIONS', HAYSTACK_C
 
 # things only relevant to the true production environment
 if DEPLOY_MODE == 'production':
-    MIDDLEWARE_CLASSES = ['courselib.middleware.MonitoringMiddleware'] + MIDDLEWARE_CLASSES
+    MIDDLEWARE = ['courselib.middleware.MonitoringMiddleware'] + MIDDLEWARE
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SUBMISSION_PATH = '/data/submitted_files'
@@ -376,7 +380,7 @@ AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
 if DEPLOY_MODE != 'production' or DEBUG or hostname != 'courses':
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
-    MIDDLEWARE_CLASSES.remove('django_cas.middleware.CASMiddleware')
+    MIDDLEWARE.remove('django_cas.middleware.CASMiddleware')
     PASSWORD_LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', True)
@@ -392,7 +396,7 @@ if DEPLOY_MODE == 'production':
 DEBUG_TOOLBAR = getattr(localsettings, 'DEBUG_TOOLBAR', False)
 if DEBUG_TOOLBAR:
     INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
-    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware']
     INTERNAL_IPS = getattr(localsettings, 'INTERNAL_IPS', [])
     #DEBUG_TOOLBAR_CONFIG = {
     #    'INTERCEPT_REDIRECTS': False,

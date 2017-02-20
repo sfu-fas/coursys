@@ -11,6 +11,8 @@ ra_patterns = [ # prefix /ra/
     url(r'^search/' + USERID_OR_EMPLID + '/$', ra_views.student_appointments, name='student_appointments'),
     url(r'^new$', ra_views.new, name='new'),
     url(r'^browse', ra_views.browse, name='browse'),
+    url(r'^download_current', ra_views.download_ras, name='download_current_ras'),
+    url(r'^download_all', ra_views.download_ras, kwargs={'current': False}, name='download_all_ras'),
     url(r'^found', ra_views.found, name='found'),
     url(r'^_payperiods$', ra_views.pay_periods, name='pay_periods'),
     url(r'^_personinfo$', ra_views.person_info, name='person_info'),

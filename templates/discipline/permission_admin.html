@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#roles').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[0, 'asc']],
+  } );
+} );
+function confirmDelete(url) {
+  if ( confirm("Are you sure you want to delete this role?") ) {
+    document.location = url;
+  };
+}
+</script>
+{% endblock %}
+
+{% block title %}Dishonesty Department Permissions{% endblock %}
+{% block h1 %}Dishonesty Department Permissions{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'discipline:chair_index' %}">Dishonesty Cases</a></li>
+<li>Department Permissions</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url 'discipline:permission_admin_add' %}">Add new permission</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+
+{% block content %}
+<table id="roles">
+  <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Unit</th><th scope="col">Actions</th></tr></thead>
+  <tbody>
+  {% for role in disc_roles %}
+  <tr><td scope="row"><span class="sort">{{role.person.sortname}}</span>{{role.person}} (<a href="mailto:{{ role.person.email }}">{{ role.person.email }}</a>)</td>
+      <td>{% if role.role == 'DISC' %}Admin: can view cases online{% else %}Filer: receives reports by email{% endif %}</td>
+      <td>{{role.unit}}</td>
+  <td><a href="javascript:confirmDelete('{% url 'discipline:permission_admin' %}?delete={{ role.pk }}');"><i class="fa fa-trash" title="delete permission"></i><span class="sr-only">delete</span></a></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

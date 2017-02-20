@@ -17,6 +17,7 @@ from log.models import LogEntry
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
 from django.db import transaction
+import unicodecsv as csv
 
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -535,6 +536,28 @@ class RADataJson(BaseDatatableView):
             return ra.unit.label
 
         return unicode(getattr(ra, column))
+
+
+@_can_view_ras()
+def download_ras(request, current=True):
+    ras = RAAppointment.objects.filter(Q(unit__in=request.units)
+                                       | Q(hiring_faculty__userid=request.user.username))\
+        .select_related('person', 'hiring_faculty', 'unit')
+    if current:
+        today = datetime.date.today()
+        slack = 14  # number of days to fudge the start/end
+        ras = ras.filter(start_date__lte=today + datetime.timedelta(days=slack),
+                         end_date__gte=today - datetime.timedelta(days=slack))
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="ras-%s-%s.csv"' % (datetime.datetime.now().strftime('%Y%m%d'),
+                                                                            'current' if current else 'all')
+    writer = csv.writer(response)
+    writer.writerow(['Name', 'Hiring Faculty', 'Unit', 'Account', 'Start Date', 'End Date'])
+    for ra in ras:
+        person = unicode('%s , %s' % (ra.person.last_name, ra.person.first_name))
+        faculty = unicode('%s, %s' % (ra.hiring_faculty.last_name, ra.hiring_faculty.first_name))
+        writer.writerow([person, faculty, ra.unit.label, ra.account, ra.start_date, ra.end_date])
+    return response
 
 
 def pay_periods(request):

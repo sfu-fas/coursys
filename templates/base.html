@@ -17,25 +17,25 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
   {% endcompress %}
 
   {% compress js %}
-  <script type="text/javascript" src="{% static "newsfu/jquery.js" %}"></script>
-  <script type="text/javascript" src="{% static "newsfu/jquery-ui.js" %}"></script>
-  <script type="text/javascript" src="{% static "newsfu/head.scripts.js" %}"></script>
-  <script type="text/javascript">var $ = jQuery;</script>
+  <script src="{% static "newsfu/jquery.js" %}"></script>
+  <script src="{% static "newsfu/jquery-ui.js" %}"></script>
+  <script src="{% static "newsfu/head.scripts.js" %}"></script>
+  <script nonce="{{ CSP_NONCE }}">var $ = jQuery;</script>
 
-  <script type="text/javascript" src="{% static "datatables/js/jquery.dataTables.min.js" %}"></script>
-  <script type="text/javascript" src="{% static "js/core.js" %}"></script>
-  <script type="text/javascript" src="{% static "collapsible/js/jQuery.collapsible.js" %}"></script>
+  <script src="{% static "datatables/js/jquery.dataTables.min.js" %}"></script>
+  <script src="{% static "js/core.js" %}"></script>
+  <script src="{% static "collapsible/js/jQuery.collapsible.js" %}"></script>
   {% endcompress %}
 
   <!--[if lt IE 9]>
   {% compress js %}
-  <script type="text/javascript" src="{% static "newsfu/html5shiv.js" %}"></script>
-  <script type="text/javascript" src="{% static "newsfu/respond.js" %}"></script>
+  <script src="{% static "newsfu/html5shiv.js" %}"></script>
+  <script src="{% static "newsfu/respond.js" %}"></script>
   {% endcompress %}
   <![endif]-->
   <!--[if lte IE 9]>
   {% compress js %}
-  <script type="text/javascript" src="{% static "newsfu/matchmedia.js" %}"></script>
+  <script src="{% static "newsfu/matchmedia.js" %}"></script>
   {% endcompress %}
   <![endif]-->
 
@@ -210,8 +210,8 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
     </div>
   </div>
   {% compress js %}
-  <script type="text/javascript" src="{% static "newsfu/footer.scripts.js" %}"></script>
-  <script type="text/javascript" src="{% static "newsfu/toggleFormContent.js" %}"></script>
+  <script src="{% static "newsfu/footer.scripts.js" %}"></script>
+  <script src="{% static "newsfu/toggleFormContent.js" %}"></script>
   {% endcompress %}
 </body>
 </html>

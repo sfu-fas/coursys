@@ -23,6 +23,9 @@ $(function() {
   $("h2.draft").trigger('expand');
   $("h2.signed").trigger('expand');
 } );
+function confirmDelete() {
+  return confirm("Are you sure you want to delete this contract?");
+}
 </script>
 {% endblock %}
 

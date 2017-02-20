@@ -27,7 +27,7 @@ $(document).ready(function() {
 
 {% block content %}
 <table class="info" id="courseinfo"><tbody>
-  <tr><th scope="row">Instructor</th><td>{{ offering.instructors_str }}</td></tr>
+  <tr><th scope="row">Instructor</th><td>{{ offering.instructors_printing_str }}</td></tr>
   <tr><th scope="row">Campus</th><td>{{ offering.get_campus_display }}</td></tr>
   <tr><th scope="row">Enrolment</th><td>{{ offering.enrl_tot }} out of {{ offering.enrl_cap }}{% if offering.wait_tot %} ({{ offering.wait_tot }} on waitlist){% endif %} *</td></tr>
   <tr><th scope="row">WQB Designation</th><td>{{ offering.get_wqb_display }}</td></tr>
