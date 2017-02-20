@@ -87,7 +87,12 @@ class SessionInfo(models.Model):
             # no session: no point in looking.
             request.session_info = None
         else:
-            si = cls.for_sessionstore(request.session, save_new=save_new)
+            try:
+                si = cls.for_sessionstore(request.session, save_new=save_new)
+            except (Session.DoesNotExist):
+                request.session_info = None
+                return
+
             request.session_info = si
 
         return request.session_info
