@@ -1,5 +1,5 @@
 from coredata.tests import create_offering
-from coredata.models import Person, Member, CourseOffering, Role
+from coredata.models import Person, Member, CourseOffering, Role, Semester
 from dashboard.models import UserConfig, NewsItem
 from courselib.testing import TEST_COURSE_SLUG, Client, validate_content, create_test_offering, test_views
 from django.test import TestCase
@@ -83,10 +83,10 @@ class DashboardTest(TestCase):
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
         validate_content(self, response.content, url)
-        # try as TA
+        # try as TA.  This course is now too old, and shoud fail...
         client.login_user(ta)
         response = client.get(url)
-        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.status_code, 403)
         # try as student
         client.login_user(student)
         response = client.get(url)
@@ -95,6 +95,15 @@ class DashboardTest(TestCase):
         client.login_user(nobody)
         response = client.get(url)
         self.assertEquals(response.status_code, 403)
+        # try again as TA, but cheat by changing the semester for the course first.  We also have to change something
+        # else, in this case, the section, in order to avoid violating unique constraints when saving it.
+        c = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        c.semester = Semester.current()
+        c.section = 'q100'
+        c.save()
+        client.login_user(ta)
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
         
     def test_impersonation(self):
         """
