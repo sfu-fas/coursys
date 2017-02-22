@@ -115,6 +115,8 @@ class SessionInfo(models.Model):
     def just_logged_out(cls, request):
         'Records that the session associated with this request just logged out.'
         si = cls.for_request(request, save_new=False)
+        if si is None:
+            return
         si.last_auth = None
         si.save()
         return si
