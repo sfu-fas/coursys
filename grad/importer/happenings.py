@@ -182,7 +182,7 @@ class ProgramStatusChange(GradHappening):
             return 'DECL'
         elif st_ac == ('CN', 'WADM'):
             # cancelled application
-            return None
+            return 'CANC'
         elif st_ac == ('AD', 'ADMT'):
             return 'OFFO'
         elif st_ac == ('AD', 'COND'):
