@@ -271,7 +271,7 @@ $(document).ready(function(){
   });
 
   // Prevent double-clicking of submissions in all our forms
-  $('form').preventDoubleSubmit()
+  $('form[method=post]').preventDoubleSubmit()
 
   // Add proper date-picker code to anything with the datepicker class, like our CalendarWidget inputs
   $('.datepicker').datepicker({ buttonImageOnly: true, buttonImage: '/static/images/grades/calendar.png',
