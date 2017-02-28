@@ -301,7 +301,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             semester = Semester.current()
 
         timely_status = models.Q(start__name__lte=semester.name)
-        application_status = models.Q(start__name__lte=semester.offset_name(1), status__in=STATUS_APPLICANT)
+        application_status = models.Q(start__name__lte=semester.offset_name(3), status__in=STATUS_APPLICANT)
 
         statuses = GradStatus.objects.filter(student=self, hidden=False) \
                     .filter(timely_status | application_status) \
