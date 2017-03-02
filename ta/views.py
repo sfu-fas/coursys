@@ -7,6 +7,7 @@ from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, has_role, \
     is_course_staff_by_slug, is_course_instr_by_slug, user_passes_test, \
     ForbiddenResponse, NotFoundResponse, HttpError
+from courselib.branding import help_email
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
@@ -358,7 +359,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
                 return HttpError(request, status=503, title="Service Unavailable", error="Currently unable to handle the request.", errormsg="Problem with SIMS connection while trying to find your account info")
 
         if not person:
-            return NotFoundResponse(request, "Unable to find your computing account in the system: this is likely because your account was recently activated, and it should be fixed tomorrow. If not, email coursys-help@sfu.ca.")
+            return NotFoundResponse(request, "Unable to find your computing account in the system: this is likely because your account was recently activated, and it should be fixed tomorrow. If not, email %s." % (help_email(request),))
 
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
         if not userid and existing_app.count() > 0: 

@@ -1,6 +1,7 @@
 from django.conf import settings
 from coredata.models import Member
 from cache_utils.decorators import cached
+from courselib.branding import product_name, help_email
 
 @cached(60)
 def context_memberships(userid):
@@ -21,4 +22,6 @@ def media(request):
             'STATIC_URL': settings.STATIC_URL,
             'memberships': context_memberships(request.user.username),
             'request_path': request.path,
+            'CourSys': product_name(request),
+            'help_email': help_email(request),
             }

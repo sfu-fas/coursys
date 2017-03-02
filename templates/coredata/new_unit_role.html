@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load form_display %}
 {% load course_display %}
-{% block title %}CourSys Roles{% endblock %}
-{% block h1 %}CourSys Roles{% endblock %}
+{% block title %}{{ CourSys }} Roles{% endblock %}
+{% block h1 %}{{ CourSys }} Roles{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "admin:unit_admin" %}">Admin</a></li><li><a href="{% url "admin:unit_role_list" %}">Roles</a></li><li>New</li>{% endblock %}
 

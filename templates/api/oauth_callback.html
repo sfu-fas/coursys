@@ -15,7 +15,7 @@
 <p class="errormessage">Error: {{ error }}</p>
 {% endif %}
 {% if token.is_approved %}
-<p>The application can access CourSys after you give it this &ldquo;PIN&rdquo; (or &ldquo;verifier&rdquo;):</p>
+<p>The application can access {{ CourSys }} after you give it this &ldquo;PIN&rdquo; (or &ldquo;verifier&rdquo;):</p>
 <blockquote>
 {{ token.verifier }}
 </blockquote>

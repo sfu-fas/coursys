@@ -96,7 +96,7 @@ def _get_event_types():
 ###############################################################################
 # Top-level views (management, etc. Not specific to a faculty member)
 
-@requires_role('ADMN')
+@requires_role('ADMN', get_only=['FACR'])
 def index(request):
     sub_units = Unit.sub_units(request.units)
     fac_roles = Role.objects.filter(role='FAC', unit__in=sub_units).select_related('person', 'unit').order_by('person')
@@ -113,6 +113,7 @@ def index(request):
     events = CareerEvent.objects.filter(status='NA').only_subunits(request.units)
     events = [e.get_handler() for e in events]
     events = [h for h in events if h.can_approve(editor)]
+    is_admin = Role.objects.filter(unit__in=request.units, person__userid=request.user.username, role='ADMN').exists()
     filterform = UnitFilterForm(sub_units)
 
     future_people = FuturePerson.objects.visible()
@@ -123,7 +124,8 @@ def index(request):
         'queued_events': len(events),
         'filterform': filterform,
         'viewvisas': request.GET.get('viewvisas', False),
-        'future_people': future_people
+        'future_people': future_people,
+        'is_admin': is_admin,
     }
     return render(request, 'faculty/index.html', context)
 
@@ -528,7 +530,7 @@ def _teaching_capacity_data(unit, semester):
         yield person, credits, -load, -(credits + load)
 
 
-@requires_role('ADMN')
+@requires_role('ADMN', get_only='FACR')
 def teaching_capacity(request):
     sub_units = Unit.sub_units(request.units)
 
@@ -561,7 +563,7 @@ def teaching_capacity(request):
     return render(request, 'faculty/reports/teaching_capacity.html', context)
 
 
-@requires_role('ADMN')
+@requires_role('ADMN', get_only='FACR')
 def teaching_capacity_csv(request):
     sub_units = Unit.sub_units(request.units)
 
@@ -651,7 +653,7 @@ def _course_accreditation_data(viewer, units, semesters, operator, selected_flag
                 yield offering, instructor, matched_flags
 
 
-@requires_role('ADMN')
+@requires_role('ADMN', get_only='FACR')
 def course_accreditation(request):
     viewer = get_object_or_404(Person, userid=request.user.username)
     units = Unit.sub_units(request.units)
@@ -693,7 +695,7 @@ def course_accreditation(request):
     return render(request, 'faculty/reports/course_accreditation.html', context)
 
 
-@requires_role('ADMN')
+@requires_role('ADMN', get_only='FACR')
 def course_accreditation_csv(request):
     viewer = get_object_or_404(Person, userid=request.user.username)
     units = Unit.sub_units(request.units)
@@ -1008,7 +1010,7 @@ def delete_futureperson(request, futureperson_id):
 ###############################################################################
 # Display/summary views for a faculty member
 
-@requires_role('ADMN')
+@requires_role('ADMN', get_only='FACR')
 def summary(request, userid):
     """
     Summary page for a faculty member.
@@ -1018,6 +1020,7 @@ def summary(request, userid):
     career_events = CareerEvent.objects.not_deleted().only_subunits(request.units).filter(person=person)
     filterform = EventFilterForm()
     resume = career_events.filter(event_type='RESUME').order_by('start_date').last()
+    is_admin = Role.objects.filter(unit__in=request.units, person__userid=request.user.username, role='ADMN').exists()
 
     context = {
         'person': person,
@@ -1025,12 +1028,13 @@ def summary(request, userid):
         'career_events': career_events,
         'filterform': filterform,
         'can_wizard': not career_events.exclude(event_type='GRANTAPP').exists(),
-        'resume': resume
+        'resume': resume,
+        'is_admin': is_admin,
     }
     return render(request, 'faculty/summary.html', context)
 
 
-@requires_role('ADMN')
+@requires_role('ADMN', get_only='FACR')
 def teaching_summary(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
 
@@ -1105,7 +1109,7 @@ def _teaching_events_data(person, semester):
     return cb, e
 
 
-@requires_role('ADMN')
+@requires_role('ADMN', get_only='FACR')
 def teaching_summary_csv(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     events = []
@@ -1168,7 +1172,7 @@ def teaching_summary_csv(request, userid):
     return response
 
 
-@requires_role('ADMN')
+@requires_role('ADMN', get_only='FACR')
 def study_leave_credits(request, userid):
     person, units = _get_faculty_or_404(request.units, userid)
     end_semester = ReportingSemester(datetime.date.today())
@@ -1276,7 +1280,7 @@ def _all_study_events(units, person, start_semester, end_semester):
     return slc_total, events, finish_semester
 
 
-@requires_role('ADMN')
+@requires_role('ADMN', get_only='FACR')
 def study_leave_credits_csv(request, userid):
     person, units = _get_faculty_or_404(request.units, userid)
     end_semester = ReportingSemester(datetime.date.today())
@@ -1322,7 +1326,7 @@ def study_leave_credits_csv(request, userid):
     return response
 
 
-@requires_role('ADMN')
+@requires_role('ADMN', get_only='FACR')
 def otherinfo(request, userid):
     person, units = _get_faculty_or_404(request.units, userid)
 

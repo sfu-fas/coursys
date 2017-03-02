@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}CourSys: API{% endblock %}
-{% block h1 %}CourSys: API{% endblock %}
+{% block title %}API{% endblock %}
+{% block h1 %}API{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "docs:list_docs" %}">Docs</a></li><li>API</li>{% endblock %}
 
@@ -11,7 +11,7 @@
 {% block content %}
 
 <h2 id="token">Consumer Token</h2>
-<p>Each app needs a consumer token created in the system. Email Greg Baker (<a href="mailto:ggbaker@sfu.ca">ggbaker@sfu.ca</a>) to get one.</p>
+<p>Each app needs a consumer token created in the system. Email Greg Baker (<a href="mailto:{{ help_email }}">{{ help_email }}</a>) to get one.</p>
 
 <h2 id="auth">Authentication</h2>
 <p>You can test the authenticated parts of the API in a web browser if you have already logged in with CAS.
