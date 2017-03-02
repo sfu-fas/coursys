@@ -9,4 +9,12 @@ def help_email(request=None, hint='course'):
 
 
 def product_name(request=None, hint='course'):
+    if request:
+        hostname = str(request.get_host()).lower()
+        if hostname.startswith('fasit'):
+            return 'FASit'
+        elif hostname.startswith('courses') or hostname.startswith('coursys'):
+            return 'CourSys'
+        elif hostname.startswith('localhost'):
+            return 'CourSys/FASit - DEV'
     return 'CourSys'

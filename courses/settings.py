@@ -378,7 +378,7 @@ LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_logg
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
-if DEPLOY_MODE != 'production' or DEBUG or hostname != 'courses':
+if (DEPLOY_MODE != 'production' or DEBUG) and hostname != 'courses':
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
     MIDDLEWARE.remove('django_cas.middleware.CASMiddleware')
     PASSWORD_LOGIN_URL = "/fake_login"
