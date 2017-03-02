@@ -25,8 +25,9 @@ from cache import clear_cache
 def _has_access(request, report):
     try:
         return (has_role('SYSA', request) or
-                AccessRule.objects.filter(report=report, person__userid=request.user.username).exists()
-               )
+                AccessRule.objects.filter(report=report, person__userid=request.user.username).exists() or
+                has_role('REPV', request)
+                )
     except AccessRule.DoesNotExist:
         return False
 
@@ -57,6 +58,9 @@ def view_reports(request):
     if has_role('SYSA', request):
         reports = Report.objects.filter(hidden=False)
         readonly = False
+    elif has_role('REPV', request):
+        reports = Report.objects.filter(hidden=False)
+        readonly = True
     else:
         readonly = True
         access_rules = AccessRule.objects.filter(person__userid=request.user.username)

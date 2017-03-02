@@ -46,7 +46,6 @@ ROLE_CHOICES = (
         ('COOP', 'Co-op Staff'),
         ('INST', 'Other Instructor'),
         ('SUPV', 'Additional Supervisor'),
-        ('PLAN', 'Planning Administrator'),
         ('DISC', 'Discipline Case Administrator'),
         ('DICC', 'Discipline Case Filer (email CC)'),
         ('ADMN', 'Departmental Administrator'),
@@ -62,6 +61,7 @@ ROLE_CHOICES = (
         ('INV', 'Inventory Administrator'),
         ('FACR', 'Faculty Viewer'),
         ('SYSA', 'System Administrator'),
+        ('REPV', 'Report Viewer'),
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
@@ -73,7 +73,6 @@ ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
         'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
         'DICC': 'Will be copied on all discipline case letters in the unit: include whoever files your discipline cases.',
-        'PLAN': 'Can manage plans for course offerings in future semesters.',
         'TAAD': 'Can administer TA job postings and appointments.',
         'TADM': 'Can manage teaching history for faculty members.',
         'GRAD': 'Can view and update the grad student database.',
@@ -85,7 +84,7 @@ ROLE_DESCR = {
         'SESS': 'Sessional Instructor',
         'COOP': 'Co-op Staff Member',
         'INST': 'Instructors outside of the department or others who teach courses',
-        'REPR': 'Has Reporting Database access.',
+        'REPV': 'Has Reporting Database Viewer Access.',
         'SUPV': 'Others who can supervise RAs or grad students, in addition to faculty',
         'OUTR': 'Can manage outreach events',
         'INV': 'Can manage assets',

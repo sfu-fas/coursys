@@ -54,7 +54,8 @@ $(document).ready(function() {
     {% if has_ras %}<li ><a href="{% url "ra:browse" %}"><i class="fa fa-li fa-user-plus"></i> My RAs</a></li>{% endif %}
 
     {% if 'SYSA' in roles %}
-    <li><a href="{% url "sysadmin:sysadmin" %}"><i class="fa fa-li fa-bolt"></i> System Administration</a></li>
+    <li><a href="{% url "sysadmin:sysadmin" %}"><i class="fa fa-li fa-bolt"></i> System Administration</a></li>{% endif %}
+    {% if 'REPV' in roles or 'SYSA' in roles %}
     <li><a href="{% url "reports:view_reports" %}"><i class="fa fa-li fa-book"></i> Reporting Database</a></li>{% endif %}
     
     <li class="newsec"><a href="{% url "config:config" %}"><i class="fa fa-li fa-wrench"></i> User Configuration</a></li>
