@@ -1,7 +1,7 @@
 # What is this product called? Only this code can tell.
 
 # The 'hint' argument can be used to give a hint about what kind of access is happening, if no 'request' is available.
-# Allowed values: 'course', 'admin'
+# Allowed values: 'course', 'admin', 'forms'
 
 
 def help_email(request=None, hint='course'):

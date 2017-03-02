@@ -1,4 +1,4 @@
-You recently started filling out the form "{{sheetsub.sheet.form.title}}" on CourSys. The form has not yet been submitted and must be submitted before any action will be taken.
+You recently started filling out the form "{{sheetsub.sheet.form.title}}" on {{ CourSys }}. The form has not yet been submitted and must be submitted before any action will be taken.
 
 You can access the form to complete it at {{ sheeturl }}.
 

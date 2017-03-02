@@ -8,6 +8,7 @@ from django.template.context import Context
 from django.conf import settings
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
+from courselib.branding import product_name
 from pages.models import ParserFor, brushes_used
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
@@ -285,7 +286,7 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
             subject = 'New discussion in %s' % (topic.offering.name())
             context = {'topic': topic, 'url': url, 'editurl': editurl,
                        'offering': self.member.offering, 'subject': subject,
-                       'to': self.member.person, 'author': topic.author}
+                       'to': self.member.person, 'author': topic.author, 'CourSys': product_name(hint='course')}
             if self.member.person != topic.author.person:
                 self.email_user('discuss/discuss_notify.txt', 'discuss/discuss_notify.html', context)
 
@@ -300,7 +301,8 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
             subject = 'New discussion on "%s"' % (message.topic.title)
             context = {'topic': message.topic, 'message': message, 'url': url, 'editurl': editurl,
                        'offering': message.topic.offering, 'subject': subject,
-                       'to': self.member.person, 'author': message.author, 'topic_sub': False}
+                       'to': self.member.person, 'author': message.author, 'topic_sub': False,
+                       'CourSys': product_name(hint='course')}
             if self.member.person != message.author.person:
                 self.email_user('discuss/topic_notify.txt', 'discuss/topic_notify.html', context)
 

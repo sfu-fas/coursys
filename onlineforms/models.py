@@ -5,6 +5,7 @@ from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 from coredata.models import Person, Unit
 from courselib.json_fields import JSONField
+from courselib.branding import product_name
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
@@ -881,7 +882,8 @@ class SheetSubmission(models.Model):
                         description=u'Reminded %s of waiting sheet.' % (filler.email()))
 
             context = Context({'full_url': full_url,
-                    'filler': filler, 'sheets': list(sheets), 'BASE_ABS_URL': settings.BASE_ABS_URL})
+                    'filler': filler, 'sheets': list(sheets), 'BASE_ABS_URL': settings.BASE_ABS_URL,
+                    'CourSys': product_name(hint='forms')})
             msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()],
                     headers={'X-coursys-topic': 'onlineforms'})
             msg.send()
@@ -895,6 +897,7 @@ class SheetSubmission(models.Model):
 
         sheeturl = request.build_absolute_uri(self.get_submission_url())
         context['sheeturl'] = sheeturl
+        context['CourSys'] = product_name(hint='forms')
         email_context = Context(context)
         msg = EmailMultiAlternatives(subject, plaintext.render(email_context), mail_from, mail_to,
                 headers={'X-coursys-topic': 'onlineforms'})
