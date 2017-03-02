@@ -21,4 +21,6 @@ def media(request):
             'STATIC_URL': settings.STATIC_URL,
             'memberships': context_memberships(request.user.username),
             'request_path': request.path,
+            'CourSys': settings.PRODUCT_NAME,
+            'help_email': 'coursys-help@sfu.ca'
             }

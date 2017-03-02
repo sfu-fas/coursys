@@ -12,7 +12,7 @@
 
 {% block content %}
 <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
-<p>The application &ldquo;{{ consumer.name }}&rdquo; is requesting access to your CourSys account to do the following:</p>
+<p>The application &ldquo;{{ consumer.name }}&rdquo; is requesting access to your {{ CourSys }} account to do the following:</p>
 <ul class="bulleted">
   {% for p in consumerinfo.permission_descriptions %}
   <li>{{ p }}</li>
