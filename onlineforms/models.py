@@ -907,7 +907,7 @@ class SheetSubmission(models.Model):
     def email_assigned(self, request, admin, assignee):
         full_url = request.build_absolute_uri(self.get_submission_url())
         context = {'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url, 'sheetsub': self}
-        subject = 'CourSys: You have been assigned a sheet.'
+        subject = '%s: You have been assigned a sheet.' % (product_name(hint='forms'),)
         self._send_email(request, 'sheet_assigned', subject, FormFiller.form_full_email(admin),
                          [assignee.full_email()], context)
 

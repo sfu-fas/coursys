@@ -17,4 +17,8 @@ def product_name(request=None, hint='course'):
             return 'CourSys'
         elif hostname.startswith('localhost'):
             return 'CourSys/FASit - DEV'
+
+    if hint and hint == 'admin':
+        return 'FASit'
+
     return 'CourSys'

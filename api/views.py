@@ -9,15 +9,16 @@ from oauth_provider.models import Token
 from oauth_provider.forms import AuthorizeRequestTokenForm
 from api.models import ConsumerInfo
 from coredata.models import Person
+from courselib.branding import product_name
 
 EMAIL_INFORM_TEMPLATE = """
-The application "{consumername}" has requested access to CourSys on your
+The application "{consumername}" has requested access to %s on your
 behalf. You can approve this request using the interface the application
 provided (and may have already done so).
 
 You can review permissions given to third-party applications (removing access
 if you wish) at this URL:
-{url}"""
+{url}""" % (product_name(hint='course'),)
 
 
 @login_required

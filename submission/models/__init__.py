@@ -387,7 +387,7 @@ class SubmissionInfo(object):
                     if e.errno == errno.ENOENT:
                         # Missing file? How did that come up once in five years?
                         fn = os.path.join(prefix, "MISSING_FILE.txt")
-                        zipf.writestr(fn, "A file named '%s' was submitted but can't be found on CourSys. That's weird.\n"
+                        zipf.writestr(fn, "A file named '%s' was submitted but can't be found. That's weird.\n"
                                           "Please email %s and ask us to help track it down."
                                       % (subcomp.get_filename(), help_email(hint='course')))
                     else:

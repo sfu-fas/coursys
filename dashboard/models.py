@@ -8,6 +8,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.core.urlresolvers import reverse
 from autoslug.settings import slugify
 from courselib.json_fields import JSONField
+from courselib.branding import product_name
 import random, hashlib, os, datetime
 from textile import textile_restricted
 
@@ -114,7 +115,7 @@ class NewsItem(models.Model):
             url = settings.BASE_ABS_URL + reverse('news:news_list')
         
         text_content = u"For more information, see " + url + "\n"
-        text_content += u"\n--\nYou received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can edit your email settings here:\n  "
+        text_content += u"\n--\nYou received this email from %s. If you do not wish to receive\nthese notifications by email, you can edit your email settings here:\n  " % (product_name(hint='course'))
         text_content += settings.BASE_ABS_URL + reverse('config:news_config')
         
         if self.course:
@@ -122,7 +123,8 @@ class NewsItem(models.Model):
         else:
             html_content = u'<h3><a href="%s">%s</a></h3>\n' % (url, self.title)
         html_content += self.content_xhtml()
-        html_content += u'\n<p style="font-size: smaller; border-top: 1px solid black;">You received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can <a href="' + settings.BASE_ABS_URL + reverse('config:news_config') + '">change your email settings</a>.</p>'
+        html_content += u'\n<p style="font-size: smaller; border-top: 1px solid black;">You received this email from %s. If you do not wish to receive\nthese notifications by email, you can <a href="%s">change your email settings</a>.</p>' \
+                        % (product_name(hint='course'), settings.BASE_ABS_URL + reverse('config:news_config'))
         
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email], headers=headers)
         msg.attach_alternative(html_content, "text/html")

@@ -14,6 +14,7 @@ from privacy.models import RELEVANT_ROLES as PRIVACY_ROLES
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
     has_role
 from courselib.auth import get_person
+from courselib.branding import product_name
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
 from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
@@ -740,7 +741,7 @@ def new_signature(request):
 
 def student_info(request, userid=None):
     # old student search view: new search is better in every way.
-    messages.add_message(request, messages.INFO, 'The old student search has been replaced with an awesome site search, accessible from the search box at the top of every page in CourSys.')
+    messages.add_message(request, messages.INFO, 'The old student search has been replaced with an awesome site search, accessible from the search box at the top of every page in %s.' % (product_name(request),))
     return HttpResponsePermanentRedirect(reverse('dashboard:site_search'))
 
 
