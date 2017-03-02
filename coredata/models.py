@@ -60,8 +60,8 @@ ROLE_CHOICES = (
         ('OUTR', 'Outreach Administrator'),
         ('INV', 'Inventory Administrator'),
         ('FACR', 'Faculty Viewer'),
-        ('SYSA', 'System Administrator'),
         ('REPV', 'Report Viewer'),
+        ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
