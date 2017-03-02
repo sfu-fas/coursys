@@ -13,6 +13,7 @@ from django.utils.safestring import mark_safe
 from courselib.auth import ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup, login_redirect
 from courselib.db import retry_transaction
+from courselib.branding import help_email
 from django.core.exceptions import ObjectDoesNotExist
 
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
@@ -1195,7 +1196,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                 return HttpResponseRedirect(reverse('onlineforms:index'))
 
             if loggedin_user is None:
-                return ForbiddenResponse(request, u"The userid '%s' isn't known to this system. If this is a 'role' account, please log in under your primary SFU userid. Otherwise, please contact coursys-help@sfu.ca for assistance." % (request.user.username))
+                return ForbiddenResponse(request, u"The userid '%s' isn't known to this system. If this is a 'role' account, please log in under your primary SFU userid. Otherwise, please contact %s for assistance." % (request.user.username, help_email(request)))
             logentry_userid = loggedin_user.userid
             nonSFUFormFillerForm = None
         else:

@@ -44,8 +44,6 @@ ADMINS = (
 )
 SERVER_EMAIL = 'ggbaker@sfu.ca'
 
-PRODUCT_NAME = 'CourSys'
-
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',

@@ -13,6 +13,7 @@ from django.http import StreamingHttpResponse
 from base import SubmissionComponent, Submission, StudentSubmission, GroupSubmission, SubmittedComponent
 from coredata.models import Person
 from groups.models import GroupMember
+from courselib.branding import help_email
 
 from url import URL
 from archive import Archive
@@ -387,8 +388,8 @@ class SubmissionInfo(object):
                         # Missing file? How did that come up once in five years?
                         fn = os.path.join(prefix, "MISSING_FILE.txt")
                         zipf.writestr(fn, "A file named '%s' was submitted but can't be found on CourSys. That's weird.\n"
-                                          "Please email coursys-help@sfu.ca and ask us to help track it down."
-                                      % (subcomp.get_filename()))
+                                          "Please email %s and ask us to help track it down."
+                                      % (subcomp.get_filename(), help_email(hint='course')))
                     else:
                         raise
 

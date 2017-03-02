@@ -6,6 +6,7 @@ from django.urls import reverse
 from django_cas.views import _redirect_url
 
 from courselib.auth import ForbiddenResponse, NotFoundResponse
+from courselib.branding import help_email
 from six import BytesIO
 from six.moves.urllib.parse import urlencode
 from django_otp.plugins.otp_totp.models import TOTPDevice
@@ -89,7 +90,7 @@ def add_topt(request, next_page=None):
     # This enforces that users have exactly one TOTP. That *seems* like the best practice.
     devices = TOTPDevice.objects.devices_for_user(request.maybe_stale_user, confirmed=True)
     if devices:
-        return ForbiddenResponse(request, "You have already configured an authenticator with this account, and cannot add another. Contact coursys-help@sfu.ca if you are unable to authenticate with CourSys")
+        return ForbiddenResponse(request, "You have already configured an authenticator with this account, and cannot add another. Contact %s if you are unable to authenticate with CourSys", (help_email(request),))
 
     device = TOTPDevice(user=request.maybe_stale_user, name='Authenticator, enabled %s' % (datetime.date.today()))
     device.save()
