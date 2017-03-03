@@ -1,13 +1,12 @@
-import sys, os, datetime, time, copy
+import sys, os, datetime, time
 sys.path.append(".")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 
-from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, get_reqmnt_designtn, import_person,\
-    userid_to_emplid, cache_by_args, GRADFIELDS,REQMNT_DESIGNTN_FLAGS
+from coredata.queries import SIMSConn, get_reqmnt_designtn, import_person,\
+    userid_to_emplid, cache_by_args, REQMNT_DESIGNTN_FLAGS
 from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, Holiday
-from coredata.models import CombinedOffering, CAMPUSES, COMPONENTS, INSTR_MODE
+from coredata.models import CombinedOffering, EnrolmentHistory, CAMPUSES, COMPONENTS, INSTR_MODE
 from django.db import transaction
-from django.db.utils import IntegrityError
 from django.conf import settings
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
@@ -15,7 +14,6 @@ from django.core.mail import mail_admins
 from courselib.svn import update_offering_repositories
 from grades.models import LetterActivity
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
-#from grad.importer import create_or_update_student
 from ra.models import RAAppointment
 import itertools, random
 
@@ -23,12 +21,12 @@ today = datetime.date.today()
 past_cutoff = today - datetime.timedelta(days=30)
 future_cutoff = today + datetime.timedelta(days=110)
 
-# fake combined sections now handed at https://courses.cs.sfu.ca/sysadmin/combined/
 
 @transaction.atomic
 def create_semesters():
     pass
     # should be done in the admin interface: https://courses.cs.sfu.ca/sysadmin/semesters/
+
 
 @transaction.atomic
 def fix_emplid():
@@ -54,12 +52,14 @@ def import_semester(sems):
     s = sems[0]
     return s.end >= past_cutoff and s.start <= future_cutoff
 
+
 def import_semesters():
     """
     What semesters should we actually import? (returns tuple of strm values)
     """
     sems = Semester.objects.filter(end__gte=past_cutoff, start__lte=future_cutoff)
     return tuple(s.name for s in sems)
+
 
 def get_unit(acad_org, create=False):
     """
@@ -103,7 +103,8 @@ def get_unit(acad_org, create=False):
             raise KeyError, "Unknown unit: acad_org=%s, label~=%s, name~=%s." % (acad_org, label, name)
 
     return unit
-        
+
+
 REQ_DES = None
 @transaction.atomic
 def import_offering(subject, number, section, strm, crse_id, class_nbr, component, title, campus,
@@ -180,7 +181,10 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
         crs.title = c.title
         crs.save()
 
+    EnrolmentHistory.from_offering(c, save=True)
+
     return c
+
 
 CLASS_TBL_FIELDS = 'ct.subject, ct.catalog_nbr, ct.class_section, ct.strm, ct.crse_id, ct.class_nbr, ' \
         + 'ct.ssr_component, ct.descr, ct.campus, ct.enrl_cap, ct.enrl_tot, ct.wait_tot, ct.cancel_dt, ' \

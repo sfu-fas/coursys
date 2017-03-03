@@ -1669,3 +1669,39 @@ class CombinedOffering(models.Model):
             offering.wait_tot = wait_total
             offering.set_labtut(labtut)
             offering.save()
+
+
+class EnrolmentHistory(models.Model):
+    """
+    A model to store daily history of course enrolments, since that isn't kept in SIMS.
+    """
+    offering = models.ForeignKey(CourseOffering, null=False, blank=False)
+    date = models.DateField()
+    enrl_cap = models.PositiveSmallIntegerField()
+    enrl_tot = models.PositiveSmallIntegerField()
+    wait_tot = models.PositiveSmallIntegerField()
+
+    class Meta:
+        unique_together = (('offering', 'date'),)
+
+    def __unicode__(self):
+        return '%s@%s (%i, %i, %i)' % (self.offering.slug, self.date, self.enrl_cap, self.enrl_tot, self.wait_tot)
+
+    @classmethod
+    def from_offering(cls, offering, date=None, save=True):
+        """
+        Build an EnrolmentHistory for this offering (today or on given date).
+        """
+        eh = cls(offering=offering)
+        eh.enrl_cap = offering.enrl_cap
+        eh.enrl_tot = offering.enrl_tot
+        eh.wait_tot = offering.wait_tot
+
+        if date:
+            eh.date = date
+        else:
+            eh.date = datetime.date.today()
+
+        if save:
+            eh.save()
+
