@@ -178,7 +178,7 @@ def new_contract(request):
                                  u'Contract was created.'
                                  )
             l = LogEntry(userid=request.user.username,
-                         description="added contract for: %s" % contract.sessional,
+                         description="added sessional contract for: %s" % contract.sessional,
                          related_object=contract
                          )
             l.save()
@@ -215,7 +215,7 @@ def edit_contract(request, contract_slug):
                                  u'Contract was edited.'
                                  )
             l = LogEntry(userid=request.user.username,
-                         description="edited contract for: %s" % contract.sessional,
+                         description="edited sessional contract for: %s" % contract.sessional,
                          related_object=contract
                          )
             l.save()
@@ -239,7 +239,7 @@ def delete_contract(request, contract_id):
                              u'Contract was deleted.'
                              )
         l = LogEntry(userid=request.user.username,
-                     description="deleted contract: %s" % contract,
+                     description="deleted sessional contract: %s" % contract,
                      related_object=contract
                      )
         l.save()
