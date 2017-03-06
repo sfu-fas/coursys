@@ -1,4 +1,4 @@
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 from django.db.models import Count
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
@@ -1703,5 +1703,17 @@ class EnrolmentHistory(models.Model):
             eh.date = datetime.date.today()
 
         if save:
-            eh.save()
+            eh.save_or_replace()
 
+    def save_or_replace(self):
+        """
+        Save this object, or replace an existing one if the unique_together constraint fails.
+        """
+        try:
+            self.save()
+        except IntegrityError:
+            other = EnrolmentHistory.objects.get(offering=self.offering, date=self.date)
+            other.enrl_cap = self.enrl_cap
+            other.enrl_tot = self.enrl_tot
+            other.wait_tot = self.wait_tot
+            other.save()
