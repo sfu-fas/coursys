@@ -1024,6 +1024,13 @@ def site_search(request):
     # strip out the really bad results: elasticsearch is pretty liberal
     results = (r for r in results if r.score >= maxscore/10)
 
+    if request.user.is_authenticated:
+        # record authenticated searches for A/B testing
+        l = LogEntry(userid=request.user.username,
+                 description='User %i searched for %r' % (request.user.id, query),
+                 related_object=request.user)
+        l.save()
+
     context = {
         "query": query,
         "results": results,
