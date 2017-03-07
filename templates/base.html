@@ -59,11 +59,12 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
             <div class="site-title"><h2><a href="/">{{ CourSys }}</a></h2></div>
           </div>
         </section>
-        <section class="actionable-header">
+        <section class="actionable-header{% if instr_ta_ab %} ab-yes{% endif %}">
           <div class="search">
             <form action="{% url "dashboard:site_search" %}" method="get">
               <fieldset class="search-field">
-                <input type="search" placeholder="Search" name="q">
+                {% if instr_ta_ab %}<span class="searchlabel"><a href="{% url 'docs:view_doc' doc_slug='search' %}">Search</a> for students, courses, discussion, pages:</span>{% endif %}
+                <input type="search" placeholder="{% if instr_ta_ab %}Search for students, discussion, etc.{% else %}Search{% endif %}" name="q">
               </fieldset>
 
               <fieldset class="search-scope-set">

@@ -859,7 +859,18 @@ table.info span.letter {
   white-space: nowrap;
   text-align: center;
 }
-
+/* A/B testing on search box */
+.actionable-header.ab-yes {
+  width: 35%;
+}
+@media(max-width: 980px) {
+  .actionable-header.ab-yes {
+    width: 100%;
+  }
+  .actionable-header.ab-yes span.searchlabel {
+    display: none;
+  }
+}
 
 /* miniaction buttons in tables */
 td.miniaction, td.miniaction p {
