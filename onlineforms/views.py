@@ -897,15 +897,19 @@ def _readonly_sheets(form_submission, current_sheetsub=None):
             .filter(is_displayable_sheet_sub) \
             .order_by('completed_at')
 
-    # If we passed in a current sheet submission, we may want to see submissions for a form we were involved in.  Based
-    # on the state of said sheet, we can decide if we want to display only that one sheet + the initial sheet
-    # or every sheet up to that one.
+    # If we passed in a current sheet submission, we may want to see submissions for a form we were involved in, or we
+    # have limited access to the current sheet and the initial sheet only.  Based on the passed in sheet sub, we can
+    # decide what sheet subs should be displayed.
     if current_sheetsub:
         # If you could view all sheetsubs at the time you got this one, see everything up to it.
         if current_sheetsub.sheet.can_view == 'ALL':
             sheet_submissions = [sheetsub for sheetsub in sheet_submissions if sheetsub.completed_at <=
                                  current_sheetsub.given_at or sheetsub == current_sheetsub or sheetsub.sheet.is_initial]
 
+        # If you should only see the current and initial sheet, deal with that that here.
+        elif current_sheetsub.sheet.can_view == 'INI':
+            sheet_submissions = [sheetsub for sheetsub in sheet_submissions if sheetsub == current_sheetsub or
+                                 sheetsub.sheet.is_initial]
         else:
         # Otherwise, sheetsub status was "NON", see only this sheet
             sheet_submissions = [current_sheetsub]
@@ -1245,8 +1249,15 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                 field_submission_dict[field_submission.field] = field_submission
 
             # get previously filled in sheet's data
-            if sheet.can_view == 'ALL' and not readonly:
-                filled_sheets = _readonly_sheets(form_submission)
+            if not readonly:
+                #  Most of the logic here is in the next method.  If you can see everything, just pass in the form_sub.
+                if sheet.can_view == 'ALL':
+                    filled_sheets = _readonly_sheets(form_submission)
+                #  If you pass in the sheet_sub, more checking will get done to gauge permissions based on the given
+                # sheet.
+                elif sheet.can_view == 'INI':
+                    filled_sheets = _readonly_sheets(form_submission, sheet_submission)
+
         else:
             # make sure we are allowed to initiate this form
             if not loggedin_user and owner_form.initiators != "ANY":

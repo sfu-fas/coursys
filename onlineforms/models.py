@@ -40,10 +40,12 @@ INITIATOR_SHORT = {
 VIEWABLE_CHOICES = [
         ('ALL', 'Filler can see all info on previous sheets'),
         ('NON', "Filler can't see any info on other sheets (just name/email of initiator)"),
+        ('INI', "Filler can see only the initial sheet"),
         ]
 VIEWABLE_SHORT = {
         'ALL': 'Can see info on previous sheets',
         'NON': 'Can only see name/email',
+        'INI': 'Can only see initial sheet',
         }
 
 # choices for the Field.fieldtype field
