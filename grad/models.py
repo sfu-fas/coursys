@@ -1256,7 +1256,7 @@ class LetterTemplate(models.Model):
 
     def autoslug(self):
         return make_slug(self.unit.label + "-" + self.label)  
-    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     class Meta:
         unique_together = ('unit', 'label')      
     def __unicode__(self):
