@@ -1710,7 +1710,8 @@ class EnrolmentHistory(models.Model):
         Save this object, or replace an existing one if the unique_together constraint fails.
         """
         try:
-            self.save()
+            with transaction.atomic():
+                self.save()
         except IntegrityError:
             other = EnrolmentHistory.objects.get(offering=self.offering, date=self.date)
             other.enrl_cap = self.enrl_cap

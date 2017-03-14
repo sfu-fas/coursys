@@ -494,7 +494,8 @@ def import_students(offering):
         p = get_person(emplid)
         sec = labtut.get(emplid, None)
         grade = grade_official or grade_roster
-        ensure_member(p, offering, "STUD", unt_taken, "AUTO", acad_career, labtut_section=sec, grade=grade)            
+        ensure_member(p, offering, "STUD", unt_taken, "AUTO", acad_career, labtut_section=sec, grade=grade)
+
 
 def import_offering_members(offering, students=True):
     """
@@ -508,6 +509,131 @@ def import_offering_members(offering, students=True):
     import_meeting_times(offering)
     if settings.SVN_DB_CONNECT:
         update_offering_repositories(offering)
+
+
+
+########################################################################################################################
+# Refactored logic to replace import_offering_members
+
+
+def import_semester_offerings(strm, students=True, extra_where='1=1'):
+    offering_map = crseid_offering_map(strm)
+
+    import_all_instructors(strm, extra_where=extra_where, offering_map=offering_map)
+    if students:
+        import_all_students(strm, extra_where=extra_where, offering_map=offering_map)
+    import_all_meeting_times(strm, extra_where=extra_where, offering_map=offering_map)
+    import_all_offering_repositories(strm)
+
+
+def crseid_offering_map(strm):
+    '''
+    Map things-from-SIMS to CourseOfferings we have, to lookup quickly later.
+    '''
+    return {(o.semester.name, "%06i" % (int(o.crse_id)), o.section): o
+            for o in CourseOffering.objects.filter(semester__name=strm)}
+
+
+@transaction.atomic
+def import_all_instructors(strm, extra_where='1=1', offering_map=None):
+    if not offering_map:
+        offering_map = crseid_offering_map(strm)
+
+    Member.objects.filter(added_reason="AUTO", offering__semester__name=strm, role="INST").update(role='DROP')
+    db = SIMSConn()
+    db.execute("SELECT crse_id, class_section, strm, emplid, instr_role, sched_print_instr FROM ps_class_instr WHERE " \
+               "strm=%s AND instr_role IN ('PI', 'SI') AND " + extra_where,
+               (strm,))
+
+    for crse_id, class_section, strm, emplid, instr_role, sched_print_instr in db.rows():
+        if not emplid or (strm, crse_id, class_section) not in offering_map:
+            continue
+        offering = offering_map[(strm, crse_id, class_section)]
+        p = get_person(emplid)
+        ensure_member(p, offering, "INST", 0, "AUTO", "NONS", sched_print_instr=sched_print_instr)
+
+
+@transaction.atomic
+def import_all_students(strm, extra_where='1=1', offering_map=None):
+    if not offering_map:
+        offering_map = crseid_offering_map(strm)
+
+    Member.objects.filter(added_reason="AUTO", offering__semester__name=strm, role="STUD").update(role='DROP')
+    db = SIMSConn()
+
+    # TODO: remainder of this function not yet refactored. Needs to be broken up since >200k registrations shouldn't be
+    # processed at once.
+
+
+
+@transaction.atomic
+def import_all_meeting_times(strm, extra_where='1=1', offering_map=None):
+    if not offering_map:
+        offering_map = crseid_offering_map(strm)
+
+    db = SIMSConn()
+    db.execute("""SELECT crse_id, class_section, strm, meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun,
+               start_dt, end_dt, stnd_mtg_pat FROM ps_class_mtg_pat WHERE strm=%s AND """ + extra_where,
+               (strm,))
+    # keep track of meetings we've found, so we can remove old (non-importing semesters and changed/gone)
+    found_mtg = set()
+
+    for crse_id, class_section, strm, start, end, room, mon, tues, wed, thurs, fri, sat, sun, start_dt, end_dt, stnd_mtg_pat in db:
+        try:
+            offering = offering_map[(strm, crse_id, class_section)]
+        except KeyError:
+            continue
+
+        # dates come in as strings from DB2/reporting DB
+        start_dt = datetime.datetime.strptime(start_dt, "%Y-%m-%d").date()
+        end_dt = datetime.datetime.strptime(end_dt, "%Y-%m-%d").date()
+        if not start or not end:
+            # some meeting times exist with no start/end time
+            continue
+
+        wkdays = [n for n, day in zip(range(7), (mon, tues, wed, thurs, fri, sat, sun)) if day == 'Y']
+        labtut_section, mtg_type = fix_mtg_info(class_section, stnd_mtg_pat)
+
+        for wkd in wkdays:
+            m_old = MeetingTime.objects.filter(offering=offering, weekday=wkd, start_time=start, end_time=end,
+                                               labtut_section=labtut_section, room=room)
+            if len(m_old) > 1:
+                raise KeyError, "Already duplicate meeting: %r" % (m_old)
+            elif len(m_old) == 1:
+                # new data: just replace.
+                m_old = m_old[0]
+                if m_old.start_day == start_dt and m_old.end_day == end_dt and m_old.room == room \
+                        and m_old.meeting_type == mtg_type and m_old.labtut_section == labtut_section:
+                    # unchanged: leave it.
+                    found_mtg.add(m_old.id)
+                    continue
+                else:
+                    # it has changed: remove and replace.
+                    m_old.delete()
+
+            m = MeetingTime(offering=offering, weekday=wkd, start_day=start_dt, end_day=end_dt,
+                            start_time=start, end_time=end, room=room, labtut_section=labtut_section)
+            m.meeting_type = mtg_type
+            m.save()
+            found_mtg.add(m.id)
+
+    # delete any meeting times we haven't found in the DB
+    if extra_where == '1=1':
+        MeetingTime.objects.filter(offering__semester__name=strm).exclude(id__in=found_mtg).delete()
+
+
+@transaction.atomic
+def import_all_offering_repositories(strm):
+    if not settings.SVN_DB_CONNECT:
+        return
+
+    for o in CourseOffering.objects.filter(semester__name=strm):
+        update_offering_repositories(o)
+
+
+
+
+
 
 
 @transaction.atomic
