@@ -976,13 +976,14 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=
             # Another edge case:  The sheetsub with the files is the initial sheet, but it got modified later on,
             # so its completed date is later than the sheet we are using.  If this is the initial sheet, and the
             # user has filled in any other sheets for this form where they could see all, let them get to the file
-            # as well.
+            # as well.  Also, if the user had access to another sheet where the permission was to just view the initial
+            # sheet, they should also be able to download the file.
             filled_sheets_by_user = None
             if sheetsub.sheet.is_initial:
                 filled_sheets_by_user = \
                     SheetSubmission.objects.filter(form_submission=formsub,
                                                    filler__sfuFormFiller__userid=request.user.username,
-                                                   sheet__can_view='ALL')
+                                                   sheet__can_view__in=['ALL', 'INI'])
 
             if later_sheets or filled_sheets_by_user:
                 # this is the filler of a later sheet who can view the other parts or this is the initial sheet and
