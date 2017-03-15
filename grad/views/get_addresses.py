@@ -15,6 +15,8 @@ def get_addresses(request):
     
     try:
         data = more_personal_info(emplid, needed=['addresses'])
+        if data:
+            data['full_name'] = "%s\n" % grad.person.name()
     except SIMSProblem as e:
         data = {'error': e.message}
         
