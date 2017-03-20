@@ -7,7 +7,8 @@ from django.http import HttpResponseRedirect
 from grad.forms import LetterTemplateForm
 from django.core.urlresolvers import reverse
 
-@requires_role("GRAD", get_only=["GRPD"])
+
+@requires_role(["GRAD", "GRPD"])
 def new_letter_template(request):
     unit_choices = [(u.id, u.name) for u in request.units]
     if request.method == 'POST':
