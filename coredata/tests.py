@@ -6,11 +6,11 @@ from django.core.urlresolvers import reverse
 from django.core.management import call_command
 
 from courselib.testing import basic_page_tests, validate_content, Client, \
-                              TEST_COURSE_SLUG
+                              TEST_COURSE_SLUG, TEST_ROLE_EXPIRY
 #from django.conf import settings
 
 from django.db import IntegrityError
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import pytz, json
 
 
@@ -55,7 +55,7 @@ def create_greg(unit):
     baker.config['privacy_version'] = 1 
     baker.save()
     for role_tuple in ROLE_CHOICES:
-        role = Role(person=baker, role=role_tuple[0], unit=unit) 
+        role = Role(person=baker, role=role_tuple[0], unit=unit, expiry=date.today())
         role.save()
     return baker
 
@@ -263,7 +263,7 @@ class CoredataTest(TestCase):
         p1.save()
         
         unit = Unit.objects.get(label="UNIV")
-        r = Role(person=p1, role="SYSA", unit=unit)
+        r = Role(person=p1, role="SYSA", unit=unit, expiry=TEST_ROLE_EXPIRY)
         r.save()
         self.assertEqual( str(r), "Lname, Fname (System Administrator, UNIV)")
 
@@ -289,7 +289,7 @@ class CoredataTest(TestCase):
                         or "Reporting database access has been disabled" in response.content
                         or "Could not communicate with reporting database" in response.content)
 
-        response = client.post(url, {'person':p1.emplid, 'role':'FAC', 'unit':unit.id})
+        response = client.post(url, {'person':p1.emplid, 'role':'FAC', 'unit':unit.id, 'expiry': str(TEST_ROLE_EXPIRY)})
         self.assertEquals(response.status_code, 302)
         
         # make sure the role is now there

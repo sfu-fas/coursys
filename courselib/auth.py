@@ -9,6 +9,7 @@ from coredata.models import Role, CourseOffering, Member, Semester
 from onlineforms.models import FormGroup, Form
 from privacy.models import needs_privacy_signature, privacy_redirect
 import urllib
+import datetime
 
 try:
     from functools import wraps
@@ -69,7 +70,8 @@ def has_global_role(role, request, **kwargs):
     """
     Return True is the given user has the specified role
     """
-    perms = Role.objects.filter(person__userid=request.user.username, role=role, unit__label="UNIV")
+    perms = Role.objects.filter(person__userid=request.user.username, role=role, unit__label="UNIV",
+                                expiry__gte=datetime.date.today())
     count = perms.count()
     return count>0
 
@@ -97,7 +99,8 @@ def has_role(role, request, get_only=None, **kwargs):
         else:
             allowed.append(get_only)
 
-    roles = Role.objects.filter(person__userid=request.user.username, role__in=allowed).select_related('unit')
+    roles = Role.objects.filter(person__userid=request.user.username, role__in=allowed,
+                                expiry__gte=datetime.date.today()).select_related('unit')
     request.units = set(r.unit for r in roles)
     count = roles.count()
     return count > 0

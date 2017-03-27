@@ -63,7 +63,7 @@ def new_role(request, role=None):
             l.save()
             return HttpResponseRedirect(reverse('sysadmin:role_list'))
     else:
-        form = RoleForm()
+        form = RoleForm(initial={'expiry': datetime.date.today() + datetime.timedelta(days=365)})
 
     return render(request, 'coredata/new_role.html', {'form': form})
 
@@ -712,7 +712,7 @@ def new_unit_role(request, role=None):
             l.save()
             return HttpResponseRedirect(reverse('admin:unit_role_list'))
     else:
-        form = UnitRoleForm()
+        form = UnitRoleForm(initial={'expiry': datetime.date.today() + datetime.timedelta(days=365)})
         form.fields['role'].choices = role_choices
         form.fields['unit'].choices = unit_choices
         

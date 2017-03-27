@@ -1,6 +1,6 @@
 from django import forms
 from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, Semester, SemesterWeek, Holiday, \
-    CombinedOffering, AnyPerson, FuturePerson, RoleAccount
+    CombinedOffering, AnyPerson, FuturePerson, RoleAccount, ROLE_MAX_EXPIRY
 from coredata.queries import find_person, add_person, SIMSProblem, userid_to_emplid
 from cache_utils.decorators import cached
 from django.utils.safestring import mark_safe
@@ -244,12 +244,24 @@ class NewCombinedForm(forms.ModelForm):
 
 class RoleForm(forms.ModelForm):
     person = PersonField(label="Emplid", help_text="or type to search")
+
     class Meta:
         model = Role
         exclude = ['config']
+
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(RoleForm, self).is_valid(*args, **kwargs)
+
+    def clean_expiry(self):
+        expiry = self.cleaned_data['expiry']
+        today = datetime.date.today()
+        if expiry < today:
+            raise forms.ValidationError('Role cannot expire in the past.')
+        if expiry > today + datetime.timedelta(days=ROLE_MAX_EXPIRY):
+            raise forms.ValidationError('Role cannot expire more than %i days in the future.' % (ROLE_MAX_EXPIRY,))
+        return expiry
+
 
 class UnitRoleForm(RoleForm):
     role = forms.ChoiceField(widget=forms.RadioSelect())

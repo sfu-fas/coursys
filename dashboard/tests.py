@@ -83,10 +83,10 @@ class DashboardTest(TestCase):
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
         validate_content(self, response.content, url)
-        # try as TA.  This course is now too old, and shoud fail...
+        # try as TA.
         client.login_user(ta)
         response = client.get(url)
-        self.assertEquals(response.status_code, 403)
+        self.assertEquals(response.status_code, 200)
         # try as student
         client.login_user(student)
         response = client.get(url)

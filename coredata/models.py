@@ -67,7 +67,7 @@ ROLE_CHOICES = (
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
 UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'GRPD',
-              'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR']  # 'PLAN', 'TADM', 'TECH'
+              'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR']
 # help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
@@ -91,6 +91,10 @@ ROLE_DESCR = {
         'FACR': 'Can view some faculty data (read-only)',
               }
 INSTR_ROLES = ["FAC", "SESS", "COOP", 'INST']  # roles that are given to categorize course instructors
+
+
+ROLE_MAX_EXPIRY = 730  # maximum days in the future a role can expire (except LONG_LIVED_ROLES roles)
+LONG_LIVED_ROLES = ['FAC', 'SUPV'] # roles that don't allow access to anything, so may be longer lived
 
 
 class Person(models.Model, ConditionalSaveMixin):
@@ -1563,6 +1567,7 @@ class Role(models.Model):
     person = models.ForeignKey(Person)
     role = models.CharField(max_length=4, choices=ROLE_CHOICES)
     unit = models.ForeignKey(Unit)
+    expiry = models.DateField(null=False, blank=False)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
         # 'gone': used with role='FAC' to indicate this person has left/retired/whatever
 
