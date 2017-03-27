@@ -15,7 +15,8 @@
 {% block content %}
 {% if contract.status == 'ACC'  or contract.status == 'REJ' %}
 <h2> You have already {{contract.get_status_display}} the offer.</h2>
-<p><em>** Please contact {{ contract.posting.contact.name }} &lt;{{ contract.posting.contact.email_mailto }}&gt; after <b>accepting</b> the contract.</em> </p>
+<p><em>** Please contact the course instructor after <b>accepting</b> the contract.</em> <br>
+If you have any questions, please contact {{ contract.posting.contact.name }} &lt;{{ contract.posting.contact.email_mailto }}&gt;.</p>
 {%else%}
 <h3>You have been chosen to be a TA for {{contract.posting.semester}}.</h3>
  <table class="info">
