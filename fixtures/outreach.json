@@ -1,6 +1,7 @@
 [
 {
  "fields": {
+  "closed": false,
   "cost": null,
   "description": "An event to test",
   "email": null,
@@ -22,20 +23,21 @@
  "fields": {
   "age": null,
   "attended": true,
-  "created_at": "2016-08-10T13:46:07.519",
+  "created_at": "2017-03-27T12:29:48.462",
   "email": "",
   "event": 1,
   "first_name": "Bob",
+  "grade": 2,
   "hidden": false,
-  "last_modified": "2016-08-10T13:46:07.519",
+  "last_modified": "2017-03-27T12:29:48.461",
   "last_name": "SomePerson",
   "middle_name": null,
   "notes": null,
   "parent_name": "Joe Smith Sr.",
   "parent_phone": "",
+  "previously_attended": false,
   "school": "Little Lord Fauntleroy School for Albino Hemophiliacs",
-  "grade": 2,
-  "uuid": "21382e7d-4025-46e7-8800-9ccecd0f107b",
+  "uuid": "2b455d6c-0ba4-4ba9-8405-f14185390021",
   "waiver": false
  },
  "model": "outreach.outreacheventregistration",

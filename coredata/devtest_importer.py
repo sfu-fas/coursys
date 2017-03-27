@@ -24,6 +24,7 @@ import itertools, random, string
 import datetime, time
 
 SEMESTER_CUTOFF = '1100' # semesters with label >= this will be included
+role_expiry = datetime.date.today() + datetime.timedelta(days=1000)
 
 def import_strms():
     s = Semester.current()
@@ -108,7 +109,7 @@ def create_true_core():
     p.save()
     u = Unit(label='UNIV', name='Simon Fraser University')
     u.save()
-    r = Role(person=p, role='SYSA', unit=u)
+    r = Role(person=p, role='SYSA', unit=u, expiry=role_expiry)
     r.save()
 
     return itertools.chain(
@@ -157,6 +158,7 @@ def create_coredata():
     # import a limited set of course offerings
     offerings = import_offerings(import_semesters=import_strms, extra_where=
         "(subject='CMPT' AND (catalog_nbr LIKE '%% 12%%')) "
+        "OR (subject='CMPT' AND (catalog_nbr LIKE '%% 16%%')) "
         "OR (subject='ENSC' AND (catalog_nbr LIKE '%% 10%%')) "
         )
     offerings = list(offerings)
@@ -216,15 +218,15 @@ def create_coredata():
     d = Person.objects.get(userid='dzhao')
     set_privacy_signed(d)
     u = Unit.objects.get(slug='cmpt')
-    r1 = Role(person=d, role='ADVS', unit=u)
+    r1 = Role(person=d, role='ADVS', unit=u, expiry=role_expiry)
     r1.save()
-    r2 = Role(person=d, role='ADMN', unit=u)
+    r2 = Role(person=d, role='ADMN', unit=u, expiry=role_expiry)
     r2.save()
-    r3 = Role(person=Person.objects.get(userid='pba7'), role='SYSA', unit=Unit.objects.get(slug='univ'))
+    r3 = Role(person=Person.objects.get(userid='pba7'), role='SYSA', unit=Unit.objects.get(slug='univ'), expiry=role_expiry)
     r3.save()
-    r4 = Role(person=d, role='INV', unit=u)
+    r4 = Role(person=d, role='INV', unit=u, expiry=role_expiry)
     r4.save()
-    r5 = Role(person=d, role='OUTR', unit=u)
+    r5 = Role(person=d, role='OUTR', unit=u, expiry=role_expiry)
     r5.save()
 
     # ensures course appears in menu for students
@@ -373,9 +375,9 @@ def create_grad():
 
     # some admin roles
     d = Person.objects.get(userid='dzhao')
-    r1 = Role(person=d, role='GRAD', unit=cmpt)
+    r1 = Role(person=d, role='GRAD', unit=cmpt, expiry=role_expiry)
     r1.save()
-    r2 = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=cmpt)
+    r2 = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=cmpt, expiry=role_expiry)
     r2.save()
     roles = [r1, r2]
 
@@ -545,9 +547,9 @@ def create_ta_ra():
     # TAs
     d = Person.objects.get(userid='dzhao')
     unit = Unit.objects.get(slug='cmpt')
-    r1 = Role(person=d, role='TAAD', unit=unit)
+    r1 = Role(person=d, role='TAAD', unit=unit, expiry=role_expiry)
     r1.save()
-    r2 = Role(person=d, role='FUND', unit=unit)
+    r2 = Role(person=d, role='FUND', unit=unit, expiry=role_expiry)
     r2.save()
 
     s = Semester.current().next_semester()

@@ -1,13 +1,17 @@
 import os
 import urllib
 import html5lib
+import datetime
 from django.core.urlresolvers import reverse
 from django.core.management import call_command
 
 from django.test import TestCase
 
 # course with the test data
-TEST_COURSE_SLUG = '2016su-cmpt-120-d1'
+TEST_COURSE_SLUG = '2017su-cmpt-120-d1'
+
+# when roles can reasonably expire for tests
+TEST_ROLE_EXPIRY = datetime.date.today() + datetime.timedelta(days=365)
 
 class CachedFixtureTestCase(TestCase):
     current_fixtures = None

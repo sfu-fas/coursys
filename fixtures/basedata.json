@@ -235,6 +235,24 @@
 },
 {
  "fields": {
+  "end": "2018-12-03",
+  "name": "1187",
+  "start": "2018-09-04"
+ },
+ "model": "coredata.semester",
+ "pk": 160
+},
+{
+ "fields": {
+  "end": "2019-04-08",
+  "name": "1191",
+  "start": "2019-01-03"
+ },
+ "model": "coredata.semester",
+ "pk": 161
+},
+{
+ "fields": {
   "config": "{}",
   "emplid": 200000100,
   "first_name": "Gregor\u028f",
@@ -263,6 +281,7 @@
 {
  "fields": {
   "config": "{}",
+  "expiry": "2019-12-22",
   "person": 1,
   "role": "SYSA",
   "unit": 1
