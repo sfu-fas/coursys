@@ -391,7 +391,7 @@ def new_project(request):
 
 @requires_role("FUND")
 def projects_index(request):
-    depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
+    depts = Role.objects_fresh.filter(person__userid=request.user.username, role='FUND').values('unit_id')
     projects = Project.objects.filter(unit__id__in=depts, hidden=False).order_by("project_number")
     return render(request, 'ra/projects_index.html', {'projects': projects})
 

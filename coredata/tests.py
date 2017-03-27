@@ -295,6 +295,26 @@ class CoredataTest(TestCase):
         # make sure the role is now there
         self.assertEquals( Role.objects.filter(role='FAC').count(), oldcount+1)
 
+    def test_role_access(self):
+        r = Role.objects.filter(role='SYSA')[0]
+        p = r.person
+        p.config['privacy_signed'] = True
+        p.save()
+
+        client = Client()
+        client.login_user(r.person.userid)
+        url = reverse('sysadmin:new_role')
+
+        # test data role expires in the future: should allow.
+        resp = client.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+        # expire the role: should now forbid.
+        r.expiry = date.today() - timedelta(days=2)
+        r.save()
+        resp = client.get(url)
+        self.assertEqual(resp.status_code, 403)
+
 
 class SlowCoredataTest(TestCase):
     fixtures = ['basedata', 'coredata']

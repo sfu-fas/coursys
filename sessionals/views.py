@@ -15,7 +15,7 @@ def _has_unit_role(user, account_or_contract):
     and SessionalContracts have a unit attribute, we can just use this same method for both.
     """
     sessional_admin_roles=["TAAD", "GRAD", "ADMN"]
-    return Role.objects.filter(person__userid=user.username, role__in=sessional_admin_roles,
+    return Role.objects_fresh.filter(person__userid=user.username, role__in=sessional_admin_roles,
                                unit=account_or_contract.unit).count() > 0
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
@@ -111,7 +111,7 @@ def manage_configs(request):
     #  Sysadmins may manage multiple units.  We'll make sure they always see the "new config" action.  Others
     #  presumably all only admin one single unit, so should only see that link if they don't already have a default
     #  config, since it has a one-to-one relationship with the unit.
-    is_admin = Role.objects.filter(person__userid=request.user.username, role='SYSA').count() > 0
+    is_admin = Role.objects_fresh.filter(person__userid=request.user.username, role='SYSA').count() > 0
     return render(request, 'sessionals/manage_configs.html', {'configs': configs, 'is_admin': is_admin})
 
 

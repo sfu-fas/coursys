@@ -240,7 +240,7 @@ class GradTest(TestCase):
     def test_advanced_search_2(self):
         client = Client()
         client.login_user('dzhao')
-        units = [r.unit for r in Role.objects.filter(person__userid='dzhao', role='GRAD')]
+        units = [r.unit for r in Role.objects_fresh.filter(person__userid='dzhao', role='GRAD')]
 
         # basic search with the frontend
         url = reverse('grad:search', kwargs={})
@@ -294,7 +294,7 @@ class GradTest(TestCase):
         client = Client()
         client.login_user('dzhao')
         this_sem = Semester.current()
-        units = [r.unit for r in Role.objects.filter(person__userid='dzhao', role='GRAD')]
+        units = [r.unit for r in Role.objects_fresh.filter(person__userid='dzhao', role='GRAD')]
 
         gs = self.__make_test_grad()
         gs.gradstatus_set.all().delete()

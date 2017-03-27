@@ -275,7 +275,7 @@ class DashboardTest(TestCase):
         test_views(self, c, 'docs:', ['view_doc'], {'doc_slug': 'impersonate'})
 
         # admin views for signatures
-        r = Role.objects.filter(role='ADMN')[0]
+        r = Role.objects_fresh.filter(role='ADMN')[0]
         c.login_user(r.person.userid)
         test_views(self, c, 'admin:', ['signatures', 'new_signature'], {})
 

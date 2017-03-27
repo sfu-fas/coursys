@@ -16,7 +16,7 @@ def _has_unit_role(user, event):
     """
     A quick method to check that the person has the Outreach Admin role for the given event's unit.
     """
-    return Role.objects.filter(person__userid=user.username, role='OUTR', unit=event.unit).count() > 0
+    return Role.objects_fresh.filter(person__userid=user.username, role='OUTR', unit=event.unit).count() > 0
 
 @requires_role('OUTR')
 def outreach_index(request):

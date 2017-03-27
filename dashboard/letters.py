@@ -1772,7 +1772,7 @@ class CardReqForm(object):
         self._line_entry(1*mm, 63*mm, 'Account Code:', 21*mm, 36*mm, entry_text=unicode(grad.program.unit.config.get('card_account', '')))
 
         # find a sensible person to sign the form
-        signers = list(Role.objects.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) + list(Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
+        signers = list(Role.objects_fresh.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) + list(Role.objects_fresh.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
         sgn_name = ''
         sgn_userid = ''
         sgn_phone = ''
@@ -1995,7 +1995,7 @@ class CardReqForm_old(object):
             self.c.drawString(1*mm, y, rm)
 
         # find a sensible person to sign the form
-        signers = list(Role.objects.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) + list(Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
+        signers = list(Role.objects_fresh.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) + list(Role.objects_fresh.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
         for role in signers:
             import PIL
             try:
@@ -2142,9 +2142,9 @@ class FASnetForm(object):
         self.label_blank(0*mm, base_y - 10*self.ENTRY_HEIGHT, 'Platforms', 'Unix & Windows')
 
         # find a sensible person to sign the form
-        signers = list(Role.objects.filter(unit=grad.program.unit, role='GRAD').order_by('-id')) \
-                  + list(Role.objects.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) \
-                  + list(Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
+        signers = list(Role.objects_fresh.filter(unit=grad.program.unit, role='GRAD').order_by('-id')) \
+                  + list(Role.objects_fresh.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) \
+                  + list(Role.objects_fresh.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
         for role in signers:
             import PIL
             try:

@@ -43,7 +43,7 @@ class NewRoleForm(forms.ModelForm):
     person = PersonField(label="Emplid", help_text="or type to search")
     class Meta:
         model = Role
-        exclude = ("config", "role")
+        exclude = ("config", "role", "expiry")
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)

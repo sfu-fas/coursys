@@ -34,7 +34,7 @@ class OutreachTestCase(TestCase):
         test_views(self, client, 'outreach:', ['register', 'register_success'], {'event_slug': event.slug})
 
         # Log in as someone with the correct role.
-        userid = Role.objects.filter(role='OUTR', unit=Unit.objects.get(slug='cmpt'))[0].person.userid
+        userid = Role.objects_fresh.filter(role='OUTR', unit=Unit.objects.get(slug='cmpt'))[0].person.userid
         client.login_user(userid)
         test_views(self, client, 'outreach:', ['outreach_index', 'view_all_registrations'], {})
         test_views(self, client, 'outreach:', ['edit_event', 'view_event', 'view_event_registrations'],

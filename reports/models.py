@@ -80,7 +80,7 @@ class Report(models.Model):
     def failure_notification(self, failed_run):
         if failed_run.manual:
             return
-        every_sysadmin = [role.person for role in Role.objects.filter(role='SYSA')]
+        every_sysadmin = [role.person for role in Role.objects_fresh.filter(role='SYSA')]
         for sysadmin in every_sysadmin:
             n = NewsItem( user=sysadmin,
                             source_app='reports',

@@ -60,7 +60,7 @@ class ApplicationTest(TestCase):
 
         #Login a ta admin
         client = Client()
-        userid = Role.objects.filter(role="TAAD")[0].person.userid
+        userid = Role.objects_fresh.filter(role="TAAD")[0].person.userid
         client.login_user(userid)     
 
         #Check that assign_tas page has two courses in it, one with someone who has applied

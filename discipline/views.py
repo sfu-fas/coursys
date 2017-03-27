@@ -629,7 +629,7 @@ def permission_admin(request):
         messages.add_message(request, messages.SUCCESS, 'Deleted role for %s.' % (r.person.name(),))
         return HttpResponseRedirect(reverse('discipline:permission_admin'))
 
-    disc_roles = Role.objects.filter(role__in=['DISC', 'DICC']).select_related('person', 'unit')
+    disc_roles = Role.objects_fresh.filter(role__in=['DISC', 'DICC']).select_related('person', 'unit')
     context = {
         'disc_roles': disc_roles,
     }

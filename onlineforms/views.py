@@ -871,7 +871,7 @@ def index(request):
         other_forms = Form.objects.filter(active=True, initiators='LOG')
         other_forms = [form for form in other_forms if not form.unlisted()]
 
-    dept_admin = Role.objects.filter(role='ADMN', person__userid=request.user.username).count() > 0
+    dept_admin = Role.objects_fresh.filter(role='ADMN', person__userid=request.user.username).count() > 0
 
     context = {'forms': forms, 'other_forms': other_forms, 'sheet_submissions': sheet_submissions,
                'form_groups': form_groups, 'dept_admin': dept_admin, 'participated': participated}
@@ -944,7 +944,7 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=
     is_advisor = False
     if not form_submissions:
         # advisors can access relevant completed forms
-        advisor_roles = Role.objects.filter(person__userid=request.user.username, role='ADVS')
+        advisor_roles = Role.objects_fresh.filter(person__userid=request.user.username, role='ADVS')
         units = set(r.unit for r in advisor_roles)
         units = Unit.sub_units(units)
         form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
@@ -1071,7 +1071,7 @@ def view_submission(request, form_slug, formsubmit_slug):
         else:
             close_form = None
 
-        can_advise = Role.objects.filter(person__userid=request.user.username, role='ADVS').count() > 0
+        can_advise = Role.objects_fresh.filter(person__userid=request.user.username, role='ADVS').count() > 0
 
         logentries = FormLogEntry.objects.filter(form_submission=form_submission) \
                 .exclude(category__in=['AUTO', 'MAIL', 'SAVE']) \
@@ -1415,7 +1415,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                 else:
                     messages.error(request, "The form could not be submitted because of errors in the supplied data, please correct them and try again.")
 
-        can_advise = Role.objects.filter(person__userid=request.user.username, role='ADVS').count() > 0
+        can_advise = Role.objects_fresh.filter(person__userid=request.user.username, role='ADVS').count() > 0
 
         context = {'owner_form': owner_form,
                    'sheet': sheet,

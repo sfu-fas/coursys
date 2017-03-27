@@ -15,7 +15,7 @@ def _has_unit_role(user, asset):
     """
     A quick method to check that the person has the Inventory Admin role for the given asset's unit.
     """
-    return Role.objects.filter(person__userid=user.username, role='INV', unit=asset.unit).count() > 0
+    return Role.objects_fresh.filter(person__userid=user.username, role='INV', unit=asset.unit).count() > 0
 
 @requires_role('INV')
 def inventory_index(request):

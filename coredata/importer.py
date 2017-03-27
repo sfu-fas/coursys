@@ -307,7 +307,7 @@ def get_role_people():
     """
     Force a get_person() on all of those with roles and RA appointments
     """
-    roles = Role.objects.all().select_related('person')
+    roles = Role.objects_fresh.all().select_related('person')
     people = set(r.person for r in roles)
 
     cutoff = datetime.datetime.now() - datetime.timedelta(days=365)

@@ -32,7 +32,7 @@ from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
 from faculty.models import Grant, TempGrant, GrantOwner, Position
-from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
+from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, FACULTY_ROLE_EXPIRY
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
     ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, \
@@ -103,17 +103,17 @@ def index(request):
 
     fac_roles_gone = [r for r in fac_roles if r.gone]
     fac_roles_gone = itertools.groupby(fac_roles_gone, key=lambda ro: ro.person)
-    fac_roles_gone = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p)) for p, roles in fac_roles_gone]
+    fac_roles_gone = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p.id)) for p, roles in fac_roles_gone]
 
     fac_roles = [r for r in fac_roles if not r.gone]
     fac_roles = itertools.groupby(fac_roles, key=lambda ro: ro.person)
-    fac_roles = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p)) for p, roles in fac_roles]
+    fac_roles = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p.id)) for p, roles in fac_roles]
 
     editor = get_object_or_404(Person, userid=request.user.username)
     events = CareerEvent.objects.filter(status='NA').only_subunits(request.units)
     events = [e.get_handler() for e in events]
     events = [h for h in events if h.can_approve(editor)]
-    is_admin = Role.objects.filter(unit__in=request.units, person__userid=request.user.username, role='ADMN').exists()
+    is_admin = Role.objects_fresh.filter(unit__in=request.units, person__userid=request.user.username, role='ADMN').exists()
     filterform = UnitFilterForm(sub_units)
 
     future_people = FuturePerson.objects.visible()
@@ -215,6 +215,7 @@ def manage_faculty_roles(request):
             else:
                 role = form.save(commit=False)
                 role.role = 'FAC'
+                role.expiry = FACULTY_ROLE_EXPIRY
                 role.save()
             messages.success(request, 'New faculty role added.')
             return HttpResponseRedirect(reverse('faculty:manage_faculty_roles'))
@@ -1020,7 +1021,7 @@ def summary(request, userid):
     career_events = CareerEvent.objects.not_deleted().only_subunits(request.units).filter(person=person)
     filterform = EventFilterForm()
     resume = career_events.filter(event_type='RESUME').order_by('start_date').last()
-    is_admin = Role.objects.filter(unit__in=request.units, person__userid=request.user.username, role='ADMN').exists()
+    is_admin = Role.objects_fresh.filter(unit__in=request.units, person__userid=request.user.username, role='ADMN').exists()
 
     context = {
         'person': person,

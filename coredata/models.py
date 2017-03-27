@@ -1563,6 +1563,11 @@ class Role(models.Model):
     """
     Additional roles within the system (not course-related).
     """
+    class RoleNonExpiredManager(models.Manager):
+        def get_queryset(self):
+            return super(Role.RoleNonExpiredManager, self).get_queryset().filter(expiry__gte=datetime.date.today())
+
+
     ROLES = dict(ROLE_CHOICES)
     person = models.ForeignKey(Person)
     role = models.CharField(max_length=4, choices=ROLE_CHOICES)
@@ -1573,6 +1578,9 @@ class Role(models.Model):
 
     gone = config_property('gone', False)
 
+    objects = models.Manager()
+    objects_fresh = RoleNonExpiredManager()
+
     def __unicode__(self):
         return "%s (%s, %s)" % (self.person, self.ROLES[str(self.role)], self.unit.label)
     class Meta:
@@ -1580,7 +1588,7 @@ class Role(models.Model):
 
     @classmethod
     def all_roles(cls, userid):
-        return set((r.role for r in Role.objects.filter(person__userid=userid)))
+        return set((r.role for r in Role.objects_fresh.filter(person__userid=userid)))
 
 
 class CombinedOffering(models.Model):

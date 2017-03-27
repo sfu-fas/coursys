@@ -467,9 +467,9 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         """
         student = self.student.full_email()
         instr = self.owner.full_email()
-        roles = Role.objects.filter(role="DICC", unit=self.offering.owner)
+        roles = Role.objects_fresh.filter(role="DICC", unit=self.offering.owner)
         dept = [r.person.full_email() for r in roles]
-        roles = Role.objects.filter(role="DICC", unit__label="UNIV")
+        roles = Role.objects_fresh.filter(role="DICC", unit__label="UNIV")
         univ = [r.person.full_email() for r in roles]
 
         return student, instr, dept, univ

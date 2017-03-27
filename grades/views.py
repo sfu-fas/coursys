@@ -1276,7 +1276,7 @@ def student_photo(request, emplid):
     user = get_object_or_404(Person, userid=request.user.username)
     can_access = False
 
-    if Role.objects.filter(person=user, role='ADVS'):
+    if Role.objects_fresh.filter(person=user, role='ADVS'):
         can_access = True
     else:
         if not _has_photo_agreement(user):

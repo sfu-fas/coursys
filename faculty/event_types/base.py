@@ -214,7 +214,7 @@ class CareerEventHandlerBase(object):
         if self.event.event_type == 'SALARY':
             # invalidate cache of rank
             from faculty.models import CareerEvent
-            CareerEvent.current_ranks.invalidate(self.event.person)
+            CareerEvent.current_ranks.invalidate(self.event.person.id)
 
         self.post_save()
 
@@ -267,7 +267,7 @@ class CareerEventHandlerBase(object):
         """
         This editor's permission level with respect to this faculty member.
         """
-        edit_units = set(r.unit for r in Role.objects.filter(person=editor, role='ADMN'))
+        edit_units = set(r.unit for r in Role.objects_fresh.filter(person=editor, role='ADMN'))
         fac_units = set()
         if self.event:
             fac_units = set(r.unit for r in Role.objects.filter(person=self.event.person, role='FAC'))

@@ -21,7 +21,7 @@ def copy_letter(request, grad_slug, letter_slug):
     from_choices = [('', u'\u2014')] \
                     + [(r.person.id, "%s. %s, %s" %
                             (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
-                        for r in Role.objects.filter(unit=grad.program.unit)]
+                        for r in Role.objects_fresh.filter(unit=grad.program.unit)]
     
     if request.method == 'POST':
         form = LetterForm(request.POST, instance=letter)

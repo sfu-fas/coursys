@@ -67,8 +67,8 @@ def _create_news(person, url, from_user, accept_deadline):
 
 def _is_admin_by_slug(request, course_slug, **kwargs):
     offering = CourseOffering.objects.get(slug=course_slug)
-    roles = Role.objects.filter(person__userid=request.user.username, role='ADMN', unit=offering.owner).count() \
-            + Role.objects.filter(person__userid=request.user.username, role='TAAD', unit=offering.owner).count()
+    roles = Role.objects_fresh.filter(person__userid=request.user.username, role='ADMN', unit=offering.owner).count() \
+            + Role.objects_fresh.filter(person__userid=request.user.username, role='TAAD', unit=offering.owner).count()
     return roles > 0
 
 def _requires_course_staff_or_admin_by_slug(function=None, login_url=None):
@@ -680,7 +680,7 @@ def print_all_applications_by_course(request,post_slug):
 @login_required
 def view_application(request, post_slug, userid):
     application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
-    is_ta_admin = Role.objects.filter(role="TAAD", person__userid=request.user.username,
+    is_ta_admin = Role.objects_fresh.filter(role="TAAD", person__userid=request.user.username,
                                       unit=application.posting.unit).count() > 0
 
     # Only TA Administrator or owner of application can view it
@@ -714,7 +714,7 @@ def view_application(request, post_slug, userid):
 @requires_role("TAAD")
 def view_resume(request, post_slug, userid):
     application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
-    is_ta_admin = Role.objects.filter(role="TAAD", person__userid=request.user.username,
+    is_ta_admin = Role.objects_fresh.filter(role="TAAD", person__userid=request.user.username,
                                       unit=application.posting.unit).count() > 0
     if not is_ta_admin:
         return ForbiddenResponse(request, 'You cannot access this application')
@@ -729,7 +729,7 @@ def view_resume(request, post_slug, userid):
 @requires_role("TAAD")
 def download_resume(request, post_slug, userid):
     application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
-    is_ta_admin = Role.objects.filter(role="TAAD", person__userid=request.user.username,
+    is_ta_admin = Role.objects_fresh.filter(role="TAAD", person__userid=request.user.username,
                                       unit=application.posting.unit).count() > 0
     if not is_ta_admin:
         return ForbiddenResponse(request, 'You cannot access this application')
@@ -744,7 +744,7 @@ def download_resume(request, post_slug, userid):
 @requires_role("TAAD")
 def view_transcript(request, post_slug, userid):
     application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
-    is_ta_admin = Role.objects.filter(role="TAAD", person__userid=request.user.username,
+    is_ta_admin = Role.objects_fresh.filter(role="TAAD", person__userid=request.user.username,
                                       unit=application.posting.unit).count() > 0
     if not is_ta_admin:
         return ForbiddenResponse(request, 'You cannot access this application')
@@ -759,7 +759,7 @@ def view_transcript(request, post_slug, userid):
 @requires_role("TAAD")
 def download_transcript(request, post_slug, userid):
     application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
-    is_ta_admin = Role.objects.filter(role="TAAD", person__userid=request.user.username,
+    is_ta_admin = Role.objects_fresh.filter(role="TAAD", person__userid=request.user.username,
                                       unit=application.posting.unit).count() > 0
     if not is_ta_admin:
         return ForbiddenResponse(request, 'You cannot access this application')
@@ -784,7 +784,7 @@ def view_late_applications(request,post_slug):
 
 @login_required
 def view_postings(request):
-    roles = Role.objects.filter(role="TAAD", person__userid=request.user.username)
+    roles = Role.objects_fresh.filter(role="TAAD", person__userid=request.user.username)
     units = [r.unit for r in roles]
     today = datetime.date.today()
     postings = TAPosting.objects.filter(opens__lte=today, closes__gte=today).order_by('-semester', 'unit')
@@ -1464,7 +1464,7 @@ def edit_posting(request, post_slug=None):
             posting.config['excluded'] = default_exclude
             posting.config['contact'] = Person.objects.get(userid=request.user.username).id
 
-    contact_choices = [(r.person.id, r.person.name()) for r in Role.objects.filter(unit__in=request.units)]
+    contact_choices = [(r.person.id, r.person.name()) for r in Role.objects_fresh.filter(unit__in=request.units)]
     current_contact = posting.contact()
     if current_contact:
         contact_choices.append((current_contact.id, current_contact.name()))

@@ -680,7 +680,7 @@ def disable_news_url(request):
 
 @requires_role('ADMN')
 def signatures(request):
-    roles = Role.objects.filter(unit__in=request.units).select_related('person')
+    roles = Role.objects_fresh.filter(unit__in=request.units).select_related('person')
     people = [p.person for p in roles]
     sigs = Signature.objects.filter(user__in=people)
     context = {'sigs': sigs}
@@ -689,7 +689,7 @@ def signatures(request):
 
 @requires_role('ADMN')
 def view_signature(request, userid):
-    roles = Role.objects.filter(unit__in=request.units).select_related('person')
+    roles = Role.objects_fresh.filter(unit__in=request.units).select_related('person')
     people = [p.person for p in roles]
     sig = get_object_or_404(Signature, user__in=people, user__userid=userid)
     
@@ -700,7 +700,7 @@ def view_signature(request, userid):
 
 @requires_role('ADMN')
 def delete_signature(request, userid):
-    roles = Role.objects.filter(unit__in=request.units).select_related('person')
+    roles = Role.objects_fresh.filter(unit__in=request.units).select_related('person')
     people = [p.person for p in roles]
     sig = get_object_or_404(Signature, user__in=people, user__userid=userid)
     
@@ -713,7 +713,7 @@ def delete_signature(request, userid):
 
 @requires_role('ADMN')
 def new_signature(request):
-    roles = Role.objects.filter(unit__in=request.units).select_related('person')
+    roles = Role.objects_fresh.filter(unit__in=request.units).select_related('person')
     people = set((p.person for p in roles))
     people = sorted(list(people))
     person_choices = [(p.id, p.sortname()) for p in people]

@@ -124,6 +124,11 @@ ADD_TAGS = {
                 'category': 'eg. buyout/release/other',
             }
 
+
+# faculty roles last ~forever, but Role.expiry isn't really checked for them anyway.
+FACULTY_ROLE_EXPIRY = datetime.date.today() + datetime.timedelta(days = 100*365)
+
+
 # adapted from https://djangosnippets.org/snippets/562/
 class CareerQuerySet(models.query.QuerySet):
     def not_deleted(self):
@@ -274,11 +279,11 @@ class CareerEvent(models.Model):
 
     @classmethod
     @cached(6*3600)
-    def current_ranks(cls, person):
+    def current_ranks(cls, person_id):
         """
         Return a string representing the current rank(s) for this person
         """
-        salaries = CareerEvent.objects.filter(person=person, event_type='SALARY').effective_now()
+        salaries = CareerEvent.objects.filter(person__id=person_id, event_type='SALARY').effective_now()
         if not salaries:
             return 'unknown'
 
@@ -415,7 +420,7 @@ class CareerEvent(models.Model):
                 'last_name': self.person.last_name,
                 'start_date': start,
                 'end_date': end,
-                'current_rank': CareerEvent.current_ranks(self.person),
+                'current_rank': CareerEvent.current_ranks(self.person.id),
                 'unit': self.unit.name,
                 'current_base_salary': CareerEvent.current_base_salary(self.person),
                 'current_market_diff': CareerEvent.current_market_diff(self.person),

@@ -379,7 +379,7 @@ class RAAppointment(models.Model):
             context = Context({'supervisor': supervisor, 'raappt': raappt})
             # Let's see if we have any Funding CC supervisors that should also get the reminder.
             cc = None
-            fund_cc_roles = Role.objects.filter(unit=raappt.unit, role='FDCC')
+            fund_cc_roles = Role.objects_fresh.filter(unit=raappt.unit, role='FDCC')
             # If we do, let's add them to the CC list, but let's also make sure to use their role account email for
             # the given role type if it exists.
             if fund_cc_roles:

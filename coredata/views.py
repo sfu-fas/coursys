@@ -45,7 +45,7 @@ def role_list(request):
     """
     Display list of who has what role
     """
-    roles = Role.objects.exclude(role="NONE").select_related('person', 'unit')
+    roles = Role.objects_fresh.exclude(role="NONE").select_related('person', 'unit')
     
     return render(request, 'coredata/roles.html', {'roles': roles})
 
@@ -163,7 +163,7 @@ def user_summary(request, userid):
         messages.success(request, 'Imported SIMS data for %s.' % (person.userid_or_emplid()))
     
     memberships = Member.objects.filter(person=person)
-    roles = Role.objects.filter(person=person).exclude(role="NONE").select_related('unit')
+    roles = Role.objects_fresh.filter(person=person).exclude(role="NONE").select_related('unit')
     
     context = {'person': person, 'memberships': memberships, 'roles': roles}
     return render(request, "coredata/user_summary.html", context)
@@ -692,7 +692,7 @@ def unit_role_list(request):
     """
     Display list of who has what role (for department admins)
     """
-    roles = Role.objects.filter(unit__in=Unit.sub_units(request.units), role__in=UNIT_ROLES)
+    roles = Role.objects_fresh.filter(unit__in=Unit.sub_units(request.units), role__in=UNIT_ROLES)
     return render(request, 'coredata/unit_roles.html', {'roles': roles})
 
 @requires_role("ADMN")
@@ -1280,7 +1280,7 @@ def course_home_pages_unit(request, unit_slug, semester=None):
         .exclude(instr_mode__in=['CO', 'GI'])
 
     if request.user.is_authenticated():
-        is_admin = Role.objects.filter(unit=unit, person__userid=request.user.username, role='ADMN').exists()
+        is_admin = Role.objects_fresh.filter(unit=unit, person__userid=request.user.username, role='ADMN').exists()
     else:
         is_admin = False
 
