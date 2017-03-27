@@ -1590,6 +1590,11 @@ class Role(models.Model):
     def all_roles(cls, userid):
         return set((r.role for r in Role.objects_fresh.filter(person__userid=userid)))
 
+    def expires_far(self):
+        return self.expiry - datetime.date.today() < datetime.timedelta(days=182)
+    def expires_soon(self):
+        return self.expiry - datetime.date.today() < datetime.timedelta(days=14)
+
 
 class CombinedOffering(models.Model):
     """

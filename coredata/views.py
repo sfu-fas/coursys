@@ -40,6 +40,7 @@ def sysadmin(request):
     
     return render(request, 'coredata/sysadmin.html', {'form': form})
 
+
 @requires_global_role("SYSA")
 def role_list(request):
     """
@@ -48,6 +49,7 @@ def role_list(request):
     roles = Role.objects_fresh.exclude(role="NONE").select_related('person', 'unit')
     
     return render(request, 'coredata/roles.html', {'roles': roles})
+
 
 @requires_global_role("SYSA")
 def new_role(request, role=None):
@@ -66,6 +68,28 @@ def new_role(request, role=None):
         form = RoleForm(initial={'expiry': datetime.date.today() + datetime.timedelta(days=365)})
 
     return render(request, 'coredata/new_role.html', {'form': form})
+
+
+@requires_global_role("SYSA")
+def renew_role(request, role_id):
+    if request.method != 'POST':
+        return ForbiddenResponse(request)
+
+    role = get_object_or_404(Role, pk=role_id)
+    new_exp = datetime.date.today() + datetime.timedelta(days=365)
+    role.expiry = new_exp
+    role.save()
+
+    messages.success(request, 'Renewed role for %s until %s.' % (role.person.name(), new_exp))
+    # LOG EVENT#
+    l = LogEntry(userid=request.user.username,
+                 description=("renewed role: %s for %s in %s until %s") % (
+                 role.get_role_display(), role.person.name(), role.unit, new_exp),
+                 related_object=role.person)
+    l.save()
+
+    return HttpResponseRedirect(reverse('sysadmin:role_list'))
+
 
 @requires_global_role("SYSA")
 def delete_role(request, role_id):
@@ -687,6 +711,7 @@ def unit_admin(request):
     """
     return render(request, 'coredata/unit_admin.html', {'units': Unit.sub_units(request.units)})
 
+
 @requires_role("ADMN")
 def unit_role_list(request):
     """
@@ -694,6 +719,7 @@ def unit_role_list(request):
     """
     roles = Role.objects_fresh.filter(unit__in=Unit.sub_units(request.units), role__in=UNIT_ROLES)
     return render(request, 'coredata/unit_roles.html', {'roles': roles})
+
 
 @requires_role("ADMN")
 def new_unit_role(request, role=None):
@@ -721,15 +747,40 @@ def new_unit_role(request, role=None):
 
 
 @requires_role("ADMN")
+def renew_unit_role(request, role_id):
+    if request.method != 'POST':
+        return ForbiddenResponse(request)
+
+    role = get_object_or_404(Role, pk=role_id, unit__in=Unit.sub_units(request.units), role__in=UNIT_ROLES)
+    new_exp = datetime.date.today() + datetime.timedelta(days=365)
+    role.expiry = new_exp
+    role.save()
+
+    messages.success(request, 'Renewed role for %s until %s.' % (role.person.name(), new_exp))
+    # LOG EVENT#
+    l = LogEntry(userid=request.user.username,
+                 description=("renewed role: %s for %s in %s until %s") % (
+                 role.get_role_display(), role.person.name(), role.unit, new_exp),
+                 related_object=role.person)
+    l.save()
+
+    return HttpResponseRedirect(reverse('admin:unit_role_list'))
+
+
+@requires_role("ADMN")
 def delete_unit_role(request, role_id):
+    if request.method != 'POST':
+        return ForbiddenResponse(request)
+
     role = get_object_or_404(Role, pk=role_id, unit__in=Unit.sub_units(request.units), role__in=UNIT_ROLES)
     messages.success(request, 'Deleted role %s for %s.' % (role.get_role_display(), role.person.name()))
-    #LOG EVENT#
+    # LOG EVENT#
     l = LogEntry(userid=request.user.username,
-          description=("deleted role: %s for %s in %s") % (role.get_role_display(), role.person.name(), role.unit),
-          related_object=role.person)
+                 description=("deleted role: %s for %s in %s") % (
+                 role.get_role_display(), role.person.name(), role.unit),
+                 related_object=role.person)
     l.save()
-    
+
     role.delete()
     return HttpResponseRedirect(reverse('admin:unit_role_list'))
 

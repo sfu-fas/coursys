@@ -109,7 +109,7 @@ def requires_global_role(role, login_url=None):
     """
     def has_this_role(req, **kwargs):
         return has_global_role(role, req, **kwargs)
-        
+
     actual_decorator = user_passes_test(has_this_role, login_url=login_url)
     return actual_decorator
 

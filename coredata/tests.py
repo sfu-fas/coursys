@@ -273,7 +273,7 @@ class CoredataTest(TestCase):
 
         url = reverse('sysadmin:role_list')
         response = basic_page_tests(self, client, url)
-        self.assertContains(response, 'Lname, Fname</a></td><td>System Administrator</td>')
+        self.assertContains(response, 'Lname, Fname</a></td>\n  <td>System Administrator</td>')
 
         # add a new role with the front end
         oldcount = Role.objects.filter(role='FAC').count()
