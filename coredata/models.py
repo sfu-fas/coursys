@@ -7,10 +7,12 @@ import datetime, urlparse, decimal
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.core.cache import cache
+from django.core.mail import send_mail
 from cache_utils.decorators import cached
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter, config_property
 from courselib.conditional_save import ConditionalSaveMixin
+from courselib.branding import product_name, help_email
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from bitfield import BitField
@@ -1594,6 +1596,78 @@ class Role(models.Model):
         return self.expiry - datetime.date.today() < datetime.timedelta(days=182)
     def expires_soon(self):
         return self.expiry - datetime.date.today() < datetime.timedelta(days=14)
+
+    @staticmethod
+    def expiring_warning_email(recipients, roles, url, cc=[]):
+        """
+        Send one expiry warning email
+        """
+        from django.core.mail.message import EmailMessage
+        expiring_list = '\n'.join(
+            '  - %s as a %s in %s on %s.' % (r.person.name(), r.get_role_display(), r.unit.name, r.expiry)
+            for r in roles
+        )
+        message = 'The following administrative roles within %s are expiring soon:\n\n%s\n\n' \
+                  'If these roles are still appropriate, please renew them soon by visiting this page: %s\n\n' \
+                  'This might be a good time to see if any other roles need to be revoked as well.\n' \
+                  'Thanks, your friendly automated reminder.' % (product_name(hint='admin'), expiring_list, url)
+
+        mail = EmailMessage(
+            subject=product_name(hint='admin') + ' roles expiring',
+            message=message,
+            from_email=help_email(hint='admin'),
+            recipient_list=recipients,
+            cc=cc,
+        )
+        mail.send()
+
+    @staticmethod
+    def warn_expiring():
+        """
+        Email appropriate admins about soon-to-expire Roles
+        """
+        today = datetime.date.today()
+        cutoff = datetime.date.today() + datetime.timedelta(days=14)
+
+        expiring_roles = Role.objects.filter(expiry__gte=today, expiry__lte=cutoff).select_related('person', 'unit')
+        unit_roles = {} # who do we remind about what?
+        global_roles = []
+
+        for r in expiring_roles:
+            if r.unit.slug != 'univ' and r.role in UNIT_ROLES:
+                unit_roles[r.unit] = unit_roles.get(r.unit, [])
+                unit_roles[r.unit].append(r)
+            else:
+                global_roles.append(r)
+
+        for unit, roles in unit_roles.items():
+            recipients = [r.person.full_email()
+                          for r in Role.objects_fresh.filter(role='ADMN', unit=unit).select_related('person')]
+            url = settings.BASE_ABS_URL + reverse('admin:unit_role_list')
+            Role.expiring_warning_email(recipients, roles, url)
+
+        if global_roles:
+            recipients = [r.person.full_email()
+                          for r in Role.objects_fresh.filter(role='SYSA', unit__slug='univ').select_related('person')]
+            url = settings.BASE_ABS_URL + reverse('sysadmin:role_list')
+            Role.expiring_warning_email(recipients, global_roles, url)
+
+    @staticmethod
+    def purge_expired():
+        """
+        In theory, all of the code that uses Roles should be checking the .expiry date. This purges expired roles, just
+        to be sure.
+        """
+        from log.models import LogEntry
+        today = datetime.date.today()
+        expired_roles = Role.objects.filter(expiry__lte=today).exclude(role__in=LONG_LIVED_ROLES).select_related('person')
+        for r in expired_roles:
+            l = LogEntry(userid='sysadmin',
+                         description=("automatically purged expired role %s for %s") % (
+                             r.role, r.person.userid),
+                         related_object=r.person)
+            l.save()
+            r.delete()
 
 
 class CombinedOffering(models.Model):

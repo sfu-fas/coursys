@@ -3,6 +3,7 @@ from courselib.svn import update_repository
 from django.core.management import call_command
 from courselib.celerytasks import task, periodic_task
 from celery.schedules import crontab
+from coredata.models import Role
 
 # file a periodic task will leave, and the maximum age we'd be happy with
 BEAT_TEST_FILE = '/tmp/celery_beat_test'
@@ -57,6 +58,14 @@ def check_sims_connection():
     db.execute("SELECT descr FROM dbcsown.PS_TERM_TBL WHERE strm='1111'", ())
     if len(list(db)) == 0:
         raise SIMSProblem("Didn't get any data back from SIMS query.")
+
+
+@periodic_task(run_every=crontab(minute='30', hour='15', day_of_week='mon,thu'))
+def expiring_roles():
+    if settings.DO_IMPORTING_HERE:
+        Role.warn_expiring()
+    Role.purge_expired()
+
 
 
 import logging
