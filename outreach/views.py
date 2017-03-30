@@ -99,9 +99,15 @@ def register(request, event_slug):
     event = get_object_or_404(OutreachEvent, slug=event_slug)
     if request.method == 'POST':
         form = OutreachEventRegistrationForm(request.POST)
+        form.add_extra_questions(event)
         if form.is_valid():
             registration = form.save(commit=False)
             registration.event = event
+            if 'extra_questions' in registration.event.config and len(registration.event.config['extra_questions']) > 0:
+                temp = {}
+                for question in registration.event.config['extra_questions']:
+                    temp[question] = form.cleaned_data[question.encode('ascii', 'ignore')]
+                registration.config['extra_questions'] = temp
             registration.save()
             messages.add_message(request,
                                  messages.SUCCESS,
@@ -114,6 +120,7 @@ def register(request, event_slug):
             return HttpResponseRedirect(reverse('outreach:register_success', kwargs={'event_slug': event_slug}))
     else:
         form = OutreachEventRegistrationForm()
+        form.add_extra_questions(event)
     return render(request, 'outreach/register.html', {'form': form, 'event': event})
 
 
@@ -140,6 +147,7 @@ def view_registration(request, registration_id):
     registration = get_object_or_404(OutreachEventRegistration, pk=registration_id)
     if not _has_unit_role(request.user, registration.event):
         return ForbiddenResponse(request)
+    print registration.extra_questions
     return render(request, 'outreach/view_registration.html', {'registration': registration})
 
 
@@ -150,8 +158,15 @@ def edit_registration(request, registration_id, event_slug=None):
         return ForbiddenResponse(request)
     if request.method == 'POST':
         form = OutreachEventRegistrationForm(request.POST, instance=registration)
+        form.add_extra_questions(registration.event)
         if form.is_valid():
-            registration = form.save()
+            registration = form.save(commit=False)
+            if 'extra_questions' in registration.event.config and len(registration.event.config['extra_questions']) > 0:
+                temp = {}
+                for question in registration.event.config['extra_questions']:
+                    temp[question] = form.cleaned_data[question.encode('ascii', 'ignore')]
+                registration.config['extra_questions'] = temp
+            registration.save()
             messages.add_message(request,
                                  messages.SUCCESS,
                                  u'Registration was edited')
@@ -164,6 +179,7 @@ def edit_registration(request, registration_id, event_slug=None):
             return HttpResponseRedirect(reverse('outreach:view_all_registrations'))
     else:
         form = OutreachEventRegistrationForm(instance=registration, initial={'confirm_email': registration.email})
+        form.add_extra_questions(registration.event)
     return render(request, 'outreach/edit_registration.html', {'form': form, 'registration': registration,
                                                                'event_slug': event_slug})
 
@@ -249,11 +265,16 @@ def download_registrations(request, event_slug=None, past=None):
         filestring = event.slug
         #  If you're just getting one event's worth, you probably don't want the event name in every row.
         header_row_initial = []
+        header_row_extras = []
+        if 'extra_questions' in event.config and len(event.config['extra_questions']) > 0:
+            for question in event.config['extra_questions']:
+                header_row_extras.append(question)
     else:
         unit_ids = [unit.id for unit in request.units]
         units = Unit.objects.filter(id__in=unit_ids)
         # But if you're getting all of them, you probably do.
         header_row_initial = ['Event']
+        header_row_extras = []
         if past:
             registrations = OutreachEventRegistration.objects.past(units)
             filestring = "all_past"
@@ -268,18 +289,27 @@ def download_registrations(request, event_slug=None, past=None):
     writer = csv.writer(response)
     if registrations:
         header_row = header_row_initial + ['Last Name', 'First Name', 'Middle Name', 'Age', 'Parent Name',
-                                           'Parent Phone', 'Email', 'Waiver', 'Previously Attended', 'School',
-                                           'Grade', 'Notes', 'Attended(ing)', 'Registered at', 'Last Modified']
+                                           'Parent Phone', 'Email', 'Photo Waiver', 'Previously Attended', 'School',
+                                           'Grade', 'Notes', 'Attended(ing)', 'Registered at', 'Last Modified'] + \
+                     header_row_extras
         writer.writerow(header_row)
         for r in registrations:
-            # Same rationale as above
+            # Same rationale as
+            extra_questions_row = []
             if event_slug:
-                initial_regitration_row = []
+                initial_registration_row = []
+                for question in header_row_extras:
+                    if 'extra_questions' in r.config and question in r.config['extra_questions']:
+                        extra_questions_row.append(r.config['extra_questions'][question])
+                    else:
+                        extra_questions_row.append('')
+
             else:
-                initial_regitration_row = [r.event.title]
-            registration_row = initial_regitration_row + [r.last_name, r.first_name, r.middle_name, r.age,
-                                                          r.parent_name, r.parent_phone, r.email, r.waiver,
+                initial_registration_row = [r.event.title]
+                extra_questions_row = []
+            registration_row = initial_registration_row + [r.last_name, r.first_name, r.middle_name, r.age,
+                                                          r.parent_name, r.parent_phone, r.email, r.photo_waiver,
                                                           r.previously_attended, r.school, r.grade, r.notes, r.attended,
-                                                          r.created_at, r.last_modified]
+                                                          r.created_at, r.last_modified] + extra_questions_row
             writer.writerow(registration_row)
     return response

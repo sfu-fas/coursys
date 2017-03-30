@@ -9,6 +9,7 @@ from coredata.models import Unit
 import uuid
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
+from courselib.json_fields import JSONField, config_property
 
 
 def timezone_today():
@@ -65,6 +66,11 @@ class OutreachEvent(models.Model):
     closed = models.BooleanField('Close Registration', default=False,
                                  help_text='If this box is checked, people will not be able to register for this '
                                            'event even if it is still current.')
+    config = JSONField(null=False, blank=False, default=dict)
+    # 'extra_questions': additional questions to ask registrants
+
+    extra_questions = config_property('extra_questions', [])
+
     objects = EventQuerySet.as_manager()
 
     def autoslug(self):
@@ -136,7 +142,26 @@ class OutreachEventRegistration(models.Model):
     parent_phone = models.CharField(max_length=15, blank=False, null=False)
     email = models.EmailField("Contact E-mail")
     event = models.ForeignKey(OutreachEvent, blank=False, null=False)
-    waiver = models.BooleanField(default=False)
+    photo_waiver = models.BooleanField("I, hereby authorize the Faculty of Applied Sciences Outreach program of Simon "
+                                       "Fraser University to photograph, audio record, video record, podcast and/or "
+                                       "webcast the Child (digitally or otherwise) without charge; and to allow the FAS"
+                                       " Outreach Program to copy, modify and distribute in print and online, those "
+                                       "images that include your child in whatever appropriate way either the FAS "
+                                       "Outreach Program and/or SFU sees fit without having to seek further approval. "
+                                       "No names will be used in association with any images or recordings.",
+                                       help_text="Check this box if you agree with the photo waiver.", default=False)
+    participation_waiver = models.BooleanField("I agree to HOLD HARMLESS AND INDEMNIFY the FAS Outreach Program and "
+                                               "SFU for any and all liability to which the University has no legal "
+                                               "obligation, including but not limited to, any damage to the property "
+                                               "of, or personal injury to my child or for injury and/or property "
+                                               "damage suffered by any third party resulting from my child's actions "
+                                               "whilst participating in the program. By signing this consent, I agree "
+                                               "to allow SFU staff to provide or cause to be provided such medical "
+                                               "services as the University or medical personnel consider appropriate. "
+                                               "The FAS Outreach Program reserves the right to refuse further "
+                                               "participation to any participant for rule infractions.",
+                                               help_text="Check this box if you agree with the participation waiver.",
+                                               default=False)
     previously_attended = models.BooleanField("I have previously attended this event", default=False,
                                               help_text='Check here if you have attended this event in the past')
     school = models.CharField("Participant School", null=True, blank=True, max_length=200)
@@ -147,6 +172,10 @@ class OutreachEventRegistration(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
     attended = models.BooleanField(default=True, editable=False, blank=False, null=False)
+    config = JSONField(null=False, blank=False, default={})
+    # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'}
+
+    extra_questions = config_property('extra_questions', [])
 
     def __unicode__(self):
         return u"%s, %s = %s" % (self.last_name, self.first_name, self.event)

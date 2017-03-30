@@ -5,15 +5,19 @@ from faculty.event_types.fields import DollarInput
 
 
 class OutreachEventForm(forms.ModelForm):
+    extra_questions = forms.CharField(required=False, help_text='Extra questions to ask registrants: one per line',
+                                      widget=forms.Textarea())
+
     def __init__(self, request, *args, **kwargs):
         super(OutreachEventForm, self).__init__(*args, **kwargs)
         unit_ids = [unit.id for unit in request.units]
         units = Unit.objects.filter(id__in=unit_ids)
         self.fields['unit'].queryset = units
         self.fields['unit'].empty_label = None
+        self.initial['extra_questions'] = '\n'.join(self.instance.extra_questions)
 
     class Meta:
-        exclude = []
+        exclude = ['config']
         model = OutreachEvent
         field_classes = {
             'start_date': forms.SplitDateTimeField,
@@ -38,9 +42,17 @@ class OutreachEventForm(forms.ModelForm):
             raise forms.ValidationError({'end_date': "End date cannot be before start date.",
                                          'start_date': "End date cannot be before start date."})
 
+    def clean_extra_questions(self):
+        extra_questions = self.cleaned_data['extra_questions']
+        extra_questions = [q.strip().encode('utf-8', 'ignore') for q in extra_questions.split('\n') if
+                           len(q.strip()) > 0]
+        self.instance.extra_questions = extra_questions
+        return extra_questions
+
 
 class OutreachEventRegistrationForm(forms.ModelForm):
     confirm_email = forms.EmailField(required=True)
+
     class Meta:
         exclude = ['event']
         model = OutreachEventRegistration
@@ -48,16 +60,9 @@ class OutreachEventRegistrationForm(forms.ModelForm):
             'notes': forms.Textarea,
             'contact': forms.Textarea,
         }
-        labels = {
-            'waiver': "Photo Waiver.  I hereby agree to <legalese>"
-        }
         fields = ['last_name', 'first_name', 'middle_name', 'age', 'parent_name', 'parent_phone', 'email',
-                  'confirm_email', 'previously_attended', 'school', 'grade', 'notes']
-
-        # Add help text for legalese here so we can add it when we have it without creating a migration
-        help_texts = {
-            'waiver': "I hereby agree to <insert legalese>"
-        }
+                  'confirm_email', 'photo_waiver', 'participation_waiver', 'previously_attended', 'school', 'grade',
+                  'notes']
 
     def clean(self):
         cleaned_data = super(OutreachEventRegistrationForm, self).clean()
@@ -66,3 +71,18 @@ class OutreachEventRegistrationForm(forms.ModelForm):
         if email != confirm_email:
             raise forms.ValidationError({'confirm_email': "The emails do not match.",
                                          'email': "The emails do not match."})
+        if not cleaned_data.get("participation_waiver"):
+            raise forms.ValidationError({'participation_waiver': "This waiver must be accepted in order to participate "
+                                                                 "in this event."})
+
+    def add_extra_questions(self, event):
+        if 'extra_questions' in event.config and len(event.config['extra_questions']) > 0:
+            for question in event.config['extra_questions']:
+                print question
+                if 'extra_questions' in self.instance.config and question in self.instance.config['extra_questions']:
+                    self.fields[question.encode('ascii', 'ignore')] = \
+                        forms.CharField(label=question,widget=forms.Textarea,
+                                        initial=self.instance.config['extra_questions'][question])
+                else:
+                    self.fields[question.encode('ascii', 'ignore')] = forms.CharField(label=question,
+                                                                                      widget=forms.Textarea)

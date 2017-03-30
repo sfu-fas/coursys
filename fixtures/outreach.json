@@ -38,7 +38,7 @@
   "previously_attended": false,
   "school": "Little Lord Fauntleroy School for Albino Hemophiliacs",
   "uuid": "2b455d6c-0ba4-4ba9-8405-f14185390021",
-  "waiver": false
+  "photo_waiver": false
  },
  "model": "outreach.outreacheventregistration",
  "pk": 1

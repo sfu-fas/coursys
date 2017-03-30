@@ -24,11 +24,15 @@
 <dt>Parent Name</dt><dd>{{ registration.parent_name }}</dd>
 <dt>Parent Phone</dt><dd>{{ registration.parent_phone }}</dd>
 <dt>Email</dt><dd>{{ registration.email }}</dd>
-<dt>Waiver</dt><dd>{{ registration.waiver|yesno }}</dd>
+<dt>Photo Waiver</dt><dd>{{ registration.photo_waiver|yesno }}</dd>
+<dt>Participation Waiver</dt><dd>{{  registration.participation_waiver|yesno }}</dd>
 <dt>Previously Attended</dt><dd>{{ registration.previously_attended|yesno }}</dd>
 <dt>School</dt><dd>{{ registration.school|default:"None" }}</dd>
 <dt>Grade</dt><dd>{{ registration.grade }}</dd>
 <dt>Notes</dt><dd>{{ registration.notes|default:"None"|linebreaks }}</dd>
 <dt>Registered at</dt><dd>{{ registration.created_at }}</dd>
 <dt>Last Modified</dt><dd>{{ registration.last_modified }}</dd>
+{% for k, v in registration.extra_questions.iteritems %}
+    <dt>{{ k }}</dt><dd>{{ v }}</dd>
+{% endfor %}
 {% endblock %}
