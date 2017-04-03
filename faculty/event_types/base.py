@@ -267,7 +267,7 @@ class CareerEventHandlerBase(object):
         """
         This editor's permission level with respect to this faculty member.
         """
-        edit_units = set(r.unit for r in Role.objects_fresh.filter(person=editor, role='ADMN'))
+        edit_units = set(r.unit for r in Role.objects_fresh.filter(person=editor, role__in=['ADMN', 'FACA']))
         fac_units = set()
         if self.event:
             fac_units = set(r.unit for r in Role.objects.filter(person=self.event.person, role='FAC'))

@@ -96,7 +96,7 @@ def _get_event_types():
 ###############################################################################
 # Top-level views (management, etc. Not specific to a faculty member)
 
-@requires_role('ADMN', get_only=['FACR'])
+@requires_role(['ADMN', 'FACA'], get_only=['FACR'])
 def index(request):
     sub_units = Unit.sub_units(request.units)
     fac_roles = Role.objects.filter(role='FAC', unit__in=sub_units).select_related('person', 'unit').order_by('person')
@@ -113,7 +113,8 @@ def index(request):
     events = CareerEvent.objects.filter(status='NA').only_subunits(request.units)
     events = [e.get_handler() for e in events]
     events = [h for h in events if h.can_approve(editor)]
-    is_admin = Role.objects_fresh.filter(unit__in=request.units, person__userid=request.user.username, role='ADMN').exists()
+    is_admin = Role.objects_fresh.filter(unit__in=request.units, person__userid=request.user.username,
+                                         role__in=['ADMN', 'FACA']).exists()
     filterform = UnitFilterForm(sub_units)
 
     future_people = FuturePerson.objects.visible()
@@ -130,7 +131,7 @@ def index(request):
     return render(request, 'faculty/index.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def search_index(request):
     editor = get_object_or_404(Person, userid=request.user.username)
     event_types = _get_event_types()
@@ -141,7 +142,7 @@ def search_index(request):
     })
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def search_events(request, event_type):
     Handler = _get_Handler_or_404(event_type)
     viewer = get_object_or_404(Person, userid=request.user.username)
@@ -197,7 +198,7 @@ def search_events(request, event_type):
     return render(request, 'faculty/search_form.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def manage_faculty_roles(request):
     units = Unit.sub_units(request.units)
@@ -242,7 +243,7 @@ def manage_faculty_roles(request):
     return render(request, 'faculty/manage_faculty_roles.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def salary_index(request):
     """
     Salaries of all faculty members
@@ -313,7 +314,7 @@ def _salary_index_data(request, date):
     return fac_pay_summary
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def salary_index_csv(request):
     if request.GET:
         form = GetSalaryForm(request.GET)
@@ -353,7 +354,7 @@ def salary_index_csv(request):
     return response
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def fallout_report(request):
 
     if request.GET:
@@ -411,7 +412,7 @@ def _fallout_report_data(request, start_date, end_date):
     return table
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def fallout_report_csv(request):
     if request.GET:
         form = DateRangeForm(request.GET)
@@ -457,7 +458,7 @@ def fallout_report_csv(request):
     return response
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def status_index(request):
     """
     Status list of for all yet-to-be approved events.
@@ -472,7 +473,7 @@ def status_index(request):
     return render(request, 'faculty/status_index.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def salary_summary(request, userid):
     """
     Shows all salary career events at a date
@@ -531,7 +532,7 @@ def _teaching_capacity_data(unit, semester):
         yield person, credits, -load, -(credits + load)
 
 
-@requires_role('ADMN', get_only='FACR')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def teaching_capacity(request):
     sub_units = Unit.sub_units(request.units)
 
@@ -564,7 +565,7 @@ def teaching_capacity(request):
     return render(request, 'faculty/reports/teaching_capacity.html', context)
 
 
-@requires_role('ADMN', get_only='FACR')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def teaching_capacity_csv(request):
     sub_units = Unit.sub_units(request.units)
 
@@ -654,7 +655,7 @@ def _course_accreditation_data(viewer, units, semesters, operator, selected_flag
                 yield offering, instructor, matched_flags
 
 
-@requires_role('ADMN', get_only='FACR')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def course_accreditation(request):
     viewer = get_object_or_404(Person, userid=request.user.username)
     units = Unit.sub_units(request.units)
@@ -696,7 +697,7 @@ def course_accreditation(request):
     return render(request, 'faculty/reports/course_accreditation.html', context)
 
 
-@requires_role('ADMN', get_only='FACR')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def course_accreditation_csv(request):
     viewer = get_object_or_404(Person, userid=request.user.username)
     units = Unit.sub_units(request.units)
@@ -748,7 +749,7 @@ def course_accreditation_csv(request):
     return HttpResponseBadRequest(form.errors)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def new_position(request):
     units = Unit.sub_units(request.units)
     unit_choices = [(u.id, u.name) for u in units]
@@ -777,7 +778,7 @@ def new_position(request):
 
     return render(request, 'faculty/new_position.html', {'form': form})
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_position(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     can_wizard = False
@@ -793,7 +794,7 @@ def view_position(request, position_id):
 
     return render(request, 'faculty/view_position.html', {'position': position, 'can_wizard': can_wizard})
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def edit_position(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     if request.method == 'POST':
@@ -818,7 +819,7 @@ def edit_position(request, position_id):
         form.fields['teaching_load'].initial = position.get_load_display()
     return render(request, 'faculty/edit_position.html', {'form': form, 'position_id': position_id})
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def delete_position(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     position.hide()
@@ -829,7 +830,7 @@ def delete_position(request, position_id):
     return HttpResponseRedirect(reverse('faculty:list_positions'))
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def list_positions(request):
     sub_units = Unit.sub_units(request.units)
     positions = Position.objects.visible_by_unit(sub_units)
@@ -837,13 +838,13 @@ def list_positions(request):
     return render(request, 'faculty/view_positions.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def assign_position_entry(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     return render(request, 'faculty/assign_position_entry.html', {'position': position})
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def assign_position_person(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     if request.method == 'POST':
@@ -881,7 +882,7 @@ def assign_position_person(request, position_id):
         form = PositionPersonForm()
     return render(request, 'faculty/assign_position_person.html', {'form': form, 'position_id': position_id})
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def position_add_credentials(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     if request.method == 'POST':
@@ -903,7 +904,7 @@ def position_add_credentials(request, position_id):
     return render(request, 'faculty/add_position_credentials.html', {'form': form, 'position': position})
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def assign_position_futureperson(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     if request.method == 'POST':
@@ -949,7 +950,7 @@ def position_get_yellow_form_limited(request, position_id):
     position_yellow_form_limited(position, response)
     return response
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_futureperson(request, futureperson_id, from_admin=0):
     """
     The from_admin parameter is used to know if we are getting here from the sysadmin panel, and only causes things
@@ -960,7 +961,7 @@ def view_futureperson(request, futureperson_id, from_admin=0):
 
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def edit_futureperson(request, futureperson_id, from_admin=0):
     """
     The from_admin parameter is used to know if we are getting here from the sysadmin panel, and only causes things
@@ -998,7 +999,7 @@ def edit_futureperson(request, futureperson_id, from_admin=0):
     return render(request, 'faculty/edit_future_person.html', {'form': form, 'fp': fp, 'from_admin': from_admin})
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def delete_futureperson(request, futureperson_id):
     fp = get_object_or_404(FuturePerson, pk=futureperson_id)
     fp.hide()
@@ -1011,7 +1012,7 @@ def delete_futureperson(request, futureperson_id):
 ###############################################################################
 # Display/summary views for a faculty member
 
-@requires_role('ADMN', get_only='FACR')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def summary(request, userid):
     """
     Summary page for a faculty member.
@@ -1021,7 +1022,8 @@ def summary(request, userid):
     career_events = CareerEvent.objects.not_deleted().only_subunits(request.units).filter(person=person)
     filterform = EventFilterForm()
     resume = career_events.filter(event_type='RESUME').order_by('start_date').last()
-    is_admin = Role.objects_fresh.filter(unit__in=request.units, person__userid=request.user.username, role='ADMN').exists()
+    is_admin = Role.objects_fresh.filter(unit__in=request.units, person__userid=request.user.username,
+                                         role__in=['ADMN', 'FACA']).exists()
 
     context = {
         'person': person,
@@ -1035,7 +1037,7 @@ def summary(request, userid):
     return render(request, 'faculty/summary.html', context)
 
 
-@requires_role('ADMN', get_only='FACR')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def teaching_summary(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
 
@@ -1110,7 +1112,7 @@ def _teaching_events_data(person, semester):
     return cb, e
 
 
-@requires_role('ADMN', get_only='FACR')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def teaching_summary_csv(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     events = []
@@ -1173,7 +1175,7 @@ def teaching_summary_csv(request, userid):
     return response
 
 
-@requires_role('ADMN', get_only='FACR')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def study_leave_credits(request, userid):
     person, units = _get_faculty_or_404(request.units, userid)
     end_semester = ReportingSemester(datetime.date.today())
@@ -1281,7 +1283,7 @@ def _all_study_events(units, person, start_semester, end_semester):
     return slc_total, events, finish_semester
 
 
-@requires_role('ADMN', get_only='FACR')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def study_leave_credits_csv(request, userid):
     person, units = _get_faculty_or_404(request.units, userid)
     end_semester = ReportingSemester(datetime.date.today())
@@ -1327,7 +1329,7 @@ def study_leave_credits_csv(request, userid):
     return response
 
 
-@requires_role('ADMN', get_only='FACR')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def otherinfo(request, userid):
     person, units = _get_faculty_or_404(request.units, userid)
 
@@ -1354,7 +1356,7 @@ def otherinfo(request, userid):
     return render(request, 'faculty/otherinfo.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_event(request, userid, event_slug):
     """
     Change existing career event for a faculty member.
@@ -1385,7 +1387,7 @@ def view_event(request, userid, event_slug):
     }
     return render(request, 'faculty/view_event.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def generate_pdf(request, userid, event_slug, pdf_key):
     """
     Generate the PDF for a given event, faculty member, and PDF type (dictated by the handler)
@@ -1403,13 +1405,13 @@ def generate_pdf(request, userid, event_slug, pdf_key):
 
     return handler.generate_pdf(pdf_key)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def timeline(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     return render(request, 'faculty/reports/timeline.html', {'person': person})
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def timeline_json(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     viewer = get_object_or_404(Person, userid=request.user.username)
@@ -1462,7 +1464,7 @@ def timeline_json(request, userid):
     return HttpResponse(json.dumps(payload), content_type='application/json')
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def faculty_member_info(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     info = FacultyMemberInfo.objects.filter(person=person).first()
@@ -1479,7 +1481,7 @@ def faculty_member_info(request, userid):
     return render(request, 'faculty/faculty_member_info.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def edit_faculty_member_info(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
@@ -1506,7 +1508,7 @@ def edit_faculty_member_info(request, userid):
     return render(request, 'faculty/edit_faculty_member_info.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def teaching_credit_override(request, userid, course_slug):
     person, _ = _get_faculty_or_404(request.units, userid)
@@ -1543,7 +1545,7 @@ def teaching_credit_override(request, userid, course_slug):
 ###############################################################################
 # Creation and editing of CareerEvents
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def event_type_list(request, userid):
     types = _get_event_types()
     person, _ = _get_faculty_or_404(request.units, userid)
@@ -1556,7 +1558,7 @@ def event_type_list(request, userid):
     return render(request, 'faculty/event_type_list.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def create_event(request, userid, event_type):
     """
@@ -1605,7 +1607,7 @@ def create_event(request, userid, event_type):
     return render(request, 'faculty/career_event_form.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def change_event(request, userid, event_slug):
     """
@@ -1646,7 +1648,7 @@ def change_event(request, userid, event_slug):
 
 
 @require_POST
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def change_event_status(request, userid, event_slug):
     """
@@ -1665,7 +1667,7 @@ def change_event_status(request, userid, event_slug):
         event.get_handler().save(editor)
         return HttpResponseRedirect(event.get_absolute_url())
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def faculty_wizard(request, userid, position=None):
     """
@@ -1784,7 +1786,7 @@ def faculty_wizard(request, userid, position=None):
 
     return render(request, 'faculty/faculty_wizard.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def pick_position(request, userid):
     units = Unit.sub_unit_ids(request.units)
     positions = Position.objects.visible_by_unit(units)
@@ -1805,7 +1807,7 @@ def pick_position(request, userid):
 
 ###############################################################################
 # Management of DocumentAttachments and Memos
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def new_attachment(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
@@ -1836,7 +1838,7 @@ def new_attachment(request, userid, event_slug):
     return render(request, 'faculty/document_attachment_form.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def new_text_attachment(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
@@ -1867,7 +1869,7 @@ def new_text_attachment(request, userid, event_slug):
     return render(request, 'faculty/text_attachment_form.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_attachment(request, userid, event_slug, attach_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -1886,7 +1888,7 @@ def view_attachment(request, userid, event_slug, attach_slug):
     return resp
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def download_attachment(request, userid, event_slug, attach_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -1904,7 +1906,7 @@ def download_attachment(request, userid, event_slug, attach_slug):
     resp['Content-Length'] = attachment.contents.size
     return resp
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def delete_attachment(request, userid, event_slug, attach_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -1922,7 +1924,7 @@ def delete_attachment(request, userid, event_slug, attach_slug):
     return HttpResponseRedirect(event.get_absolute_url())
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def new_position_attachment(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
@@ -1950,7 +1952,7 @@ def new_position_attachment(request, position_id):
 
     return render(request, 'faculty/position_document_attachment_form.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_position_attachment(request, position_id, attach_slug):
     position = get_object_or_404(Position, pk=position_id)
     attachment = get_object_or_404(position.attachments.all(), slug=attach_slug)
@@ -1961,7 +1963,7 @@ def view_position_attachment(request, position_id, attach_slug):
     return resp
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def download_position_attachment(request, position_id, attach_slug):
     position = get_object_or_404(Position, pk=position_id)
     attachment = get_object_or_404(position.attachments.all(), slug=attach_slug)
@@ -1972,7 +1974,7 @@ def download_position_attachment(request, position_id, attach_slug):
     return resp
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def delete_position_attachment(request, position_id, attach_slug):
     position = get_object_or_404(Position, pk=position_id)
     attachment = get_object_or_404(position.attachments.all(), slug=attach_slug)
@@ -1989,7 +1991,7 @@ def delete_position_attachment(request, position_id, attach_slug):
 # Configuring event types, and managing memo templates
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def manage_event_index(request):
     types = _get_event_types()
     context = {
@@ -1997,7 +1999,7 @@ def manage_event_index(request):
         }
     return render(request, 'faculty/manage_events_index.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def event_config(request, event_type):
     templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=event_type.upper(), hidden=False)
     event_type_object = next((key, Handler) for (key, Handler) in EVENT_TYPE_CHOICES if key.lower() == event_type)
@@ -2013,7 +2015,7 @@ def event_config(request, event_type):
         }
     return render(request, 'faculty/event_config.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def event_config_add(request, event_type):
     event_type_object = next((key, Handler) for (key, Handler) in EVENT_TYPE_CHOICES if key.lower() == event_type)
@@ -2038,7 +2040,7 @@ def event_config_add(request, event_type):
     return render(request, 'faculty/event_config_add.html', context)
 
 @require_POST
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def delete_event_flag(request, event_type, unit, flag):
     # currently not linked anywhere in frontend
     raise NotImplementedError
@@ -2057,7 +2059,7 @@ def delete_event_flag(request, event_type, unit, flag):
     return HttpResponseRedirect(reverse('faculty:event_config', kwargs={'event_type':event_type}))
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def new_memo_template(request, event_type):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
@@ -2099,7 +2101,7 @@ def new_memo_template(request, event_type):
                }
     return render(request, 'faculty/memo_template_form.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def manage_memo_template(request, event_type, slug):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))
     subunits = Unit.sub_units(request.units)
@@ -2146,7 +2148,7 @@ def manage_memo_template(request, event_type, slug):
 ###############################################################################
 # Creating and editing Memos
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def new_memo_no_template(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = _get_event_or_404(units=member_units, slug=event_slug, person=person)
@@ -2188,7 +2190,7 @@ def new_memo_no_template(request, userid, event_slug):
     return render(request, 'faculty/new_memo.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def new_memo(request, userid, event_slug, memo_template_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=Unit.sub_units(request.units))
@@ -2227,7 +2229,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
                }
     return render(request, 'faculty/new_memo.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def manage_memo(request, userid, event_slug, memo_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -2266,7 +2268,7 @@ def manage_memo(request, userid, event_slug, memo_slug):
                }
     return render(request, 'faculty/manage_memo.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def get_memo_text(request, userid, event_slug, memo_template_id):
     """ Get the text from memo template """
     person, member_units = _get_faculty_or_404(request.units, userid)
@@ -2278,7 +2280,7 @@ def get_memo_text(request, userid, event_slug, memo_template_id):
 
     return HttpResponse(text, content_type='text/plain')
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def get_memo_pdf(request, userid, event_slug, memo_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -2294,7 +2296,7 @@ def get_memo_pdf(request, userid, event_slug, memo_slug):
     memo.write_pdf(response)
     return response
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_memo(request, userid, event_slug, memo_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -2311,7 +2313,7 @@ def view_memo(request, userid, event_slug, memo_slug):
                }
     return render(request, 'faculty/view_memo.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def delete_memo(request, userid, event_slug, memo_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -2332,7 +2334,7 @@ def delete_memo(request, userid, event_slug, memo_slug):
 ###############################################################################
 # Creating and editing Grants
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def grant_index(request):
     editor = get_object_or_404(Person, userid=request.user.username)
     temp_grants = TempGrant.objects.filter(creator=editor)
@@ -2347,7 +2349,7 @@ def grant_index(request):
     return render(request, "faculty/grant_index.html", context)
 
 @require_POST
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def import_grants(request):
     editor = get_object_or_404(Person, userid=request.user.username)
@@ -2363,7 +2365,7 @@ def import_grants(request):
     return HttpResponseRedirect(reverse("faculty:grant_index"))
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def convert_grant(request, gid):
     editor = get_object_or_404(Person, userid=request.user.username)
@@ -2404,7 +2406,7 @@ def convert_grant(request, gid):
 
 
 @require_POST
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def delete_grant(request, gid):
     editor = get_object_or_404(Person, userid=request.user.username)
@@ -2413,7 +2415,7 @@ def delete_grant(request, gid):
     return HttpResponseRedirect(reverse("faculty:grant_index"))
 
 
-#@requires_role('ADMN')
+#@requires_role(['ADMN', 'FACA'])
 #@transaction.atomic
 #def new_grant(request):
 #    editor = get_object_or_404(Person, userid=request.user.username)
@@ -2436,7 +2438,7 @@ def delete_grant(request, gid):
 #    return render(request, "faculty/new_grant.html", context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def edit_grant(request, unit_slug, grant_slug):
     editor = get_object_or_404(Person, userid=request.user.username)
@@ -2466,7 +2468,7 @@ def edit_grant(request, unit_slug, grant_slug):
     return render(request, "faculty/edit_grant.html", context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_grant(request, unit_slug, grant_slug):
     units = Unit.sub_units(request.units)
     grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug, unit__in=units)
