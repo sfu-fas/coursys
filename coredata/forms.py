@@ -6,6 +6,7 @@ from cache_utils.decorators import cached
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
 from localflavor.ca.forms import CAPhoneNumberField
+from coredata.widgets import CalendarWidget
 
 class OfferingSelect(forms.Select):
     input_type = 'text'
@@ -242,12 +243,16 @@ class NewCombinedForm(forms.ModelForm):
         model = CombinedOffering
         exclude = ('semester', 'crse_id', 'class_nbr', 'config', 'offerings')
 
+
 class RoleForm(forms.ModelForm):
     person = PersonField(label="Emplid", help_text="or type to search")
 
     class Meta:
         model = Role
         exclude = ['config']
+        widgets = {
+            'expiry': CalendarWidget
+        }
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
