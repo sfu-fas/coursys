@@ -94,7 +94,7 @@ def create_parser():
     column = Group(Suppress('[') + CharsNotIn('[]') + Suppress(']') ).setParseAction(column_parse)
     expr = Forward()
     function_name = ( CaselessLiteral("SUM") | CaselessLiteral("AVG") | CaselessLiteral("MAX")
-            | CaselessLiteral("MIN") | CaselessLiteral("BEST") )
+            | CaselessLiteral("MIN") | CaselessLiteral("BEST") | CaselessLiteral("COUNT") )
     function = Group(function_name + Suppress('(') + delimitedList(expr) + Suppress(')')).setParseAction(func_parse)
     operand = number | column | function | actionflag
 
@@ -242,6 +242,9 @@ def eval_parse(tree, activity, act_dict, member, visible):
             return max(eval_parse(t, activity, act_dict, member, visible) for t in tree[3:])
         elif func == 'MIN':
             return min(eval_parse(t, activity, act_dict, member, visible) for t in tree[3:])
+        elif func == 'COUNT':
+            grades = (eval_parse(t, activity, act_dict, member, visible) for t in tree[3:])
+            return sum(1 for g in grades if g > 0.0)
         elif func == 'AVG':
             if len(tree) == 3:
                 return 0
