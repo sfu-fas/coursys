@@ -28,16 +28,17 @@ def download_promises(request, semester_name=None):
     response['Content-Disposition'] = 'inline; filename="promises-%s-%s.csv"' % (semester.name,
                                                                                  datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
-    writer.writerow(['Student', 'Program', 'Status', 'Promised', 'Received', 'Short'])
+    writer.writerow(['Student', 'Program', 'Start Semester', 'Status', 'Promised', 'Received', 'Short'])
     promises = Promise.objects.filter(end_semester=semester,
                                       student__program__unit__in=request.units)
     for p in promises:
         student = p.student.person.sortname()
         program = p.student.program.label
+        start = p.student.start_semester.label()
         status = p.student.get_current_status_display()
         promised = p.amount
         received = p.received()
         short = p.short()
-        writer.writerow([student, program, status, promised, received, short])
+        writer.writerow([student, program, start, status, promised, received, short])
 
     return response
