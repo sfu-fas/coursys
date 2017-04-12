@@ -32,6 +32,7 @@
 {% if semester.next_semester %}
 <li><a href="{% url "grad:all_promises" semester_name=semester.next_semester.name %}">Next Semester</a></li>
 {% endif %}
+<li><a href="{% url "grad:download_promises" semester_name=semester.name %}">Download CSV</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -42,6 +43,7 @@
 		<thead>
 			<tr>
             <th scope="col">Student</th>
+            <th scope="col">Program</th>
             <th scope="col">Status</th>
             <th scope="col">Promised</th>
             <th scope="col">Received</th>
@@ -54,6 +56,7 @@
             <td scope="row">
             <a href="{% url "grad:financials" grad_slug=p.student.slug %}">{{p.student.person.sortname}}</a>
             </td>
+            <td>{{ p.student.program }}</td>
             <td>{{p.student.get_current_status_display}}</td>
             <td class="num"><span class="sort">{{p.amount|floatsortable}}</span>${{p.amount|floatformat:"2"}}</td>
             <td class="num"><span class="sort">{{p.received|floatsortable}}</span>${{p.received|floatformat:"2"}}</td>

@@ -21,6 +21,7 @@ grad_patterns = [ # prefix /grad/
     url(r'^letterTemplates/' + LETTER_TEMPLATE_SLUG + '/manage', grad_views.manage_letter_template, name='manage_letter_template'),
     url(r'^promises/$', grad_views.all_promises, name='all_promises'),
     url(r'^promises/(?P<semester_name>\d{4})$', grad_views.all_promises, name='all_promises'),
+    url(r'^promises_csv/(?P<semester_name>\d{4})$', grad_views.download_promises, name='download_promises'),
     url(r'^funding/$', grad_views.funding_report, name='funding_report'),
     url(r'^funding/(?P<semester_name>\d{4})$', grad_views.funding_report, name='funding_report'),
 
