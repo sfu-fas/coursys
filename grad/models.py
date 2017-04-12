@@ -1373,11 +1373,11 @@ class Promise(models.Model):
             self._received_cache = sum(funding_values)
         return self._received_cache
 
-    def short(self):
+    def difference(self):
         """
         How much are we short on this promise?
         """
-        return self.amount - self.received()
+        return self.received() - self.amount
 
 
 COMMENT_TYPE_CHOICES = [

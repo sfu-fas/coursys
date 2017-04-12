@@ -48,7 +48,7 @@
             <th scope="col">Status</th>
             <th scope="col">Promised</th>
             <th scope="col">Received</th>
-            <th scope="col">Short</th>
+            <th scope="col">Difference</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -62,7 +62,7 @@
             <td>{{p.student.get_current_status_display}}</td>
             <td class="num"><span class="sort">{{p.amount|floatsortable}}</span>${{p.amount|floatformat:"2"}}</td>
             <td class="num"><span class="sort">{{p.received|floatsortable}}</span>${{p.received|floatformat:"2"}}</td>
-            <td class="num"><span class="sort">{{p.short|floatsortable}}</span>${{p.short|floatformat:"2"}}</td>
+            <td class="num"><span class="sort">{{p.difference|floatsortable}}</span>${{p.difference|floatformat:"2"}}</td>
             </tr>
 			{% endfor %}
 		</tbody>
