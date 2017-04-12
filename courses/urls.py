@@ -20,6 +20,7 @@ from visas.urls import visas_pattern
 from outreach.urls import outreach_pattern
 from sessionals.urls import sessionals_patterns
 from inventory.urls import inventory_pattern
+from relationships.urls import relationship_patterns
 from api.urls import api_patterns
 from otp.urls import otp_patterns
 
@@ -72,6 +73,7 @@ urlpatterns = [
     url(r'^faculty/', include(faculty_patterns, namespace='faculty')),
     url(r'^forms/', include(forms_patterns, namespace='onlineforms')),
     url(r'^reports/', include(report_patterns, namespace='reports')),
+    url(r'^relationships/', include(relationship_patterns, namespace='relationships')),
 
     # graduate student-related apps
     url(r'^grad/', include(grad_patterns, namespace='grad')),
