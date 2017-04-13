@@ -89,6 +89,9 @@ class SessionalContract(models.Model):
     pay_end = models.DateField(null=False, blank=False)
     # Was going to add a Semester, but since the offering itself has a semester, no need for it.
     offering = models.ForeignKey(CourseOffering, null=False, blank=False)
+    course_hours_breakdown = models.CharField(null=True, blank=True, max_length=100,
+                                              help_text="e.g. 1x2HR Lecture, etc.  This will show up in the form in "
+                                                        "the column after the course department and number.")
     appt_guarantee = models.CharField("Appoinment Guarantee", max_length=4, choices=GUARANTEE_CHOICES, null=False,
                                       blank=False, default='GUAR')
     appt_type = models.CharField("Appointment Type", max_length=4, choices=TYPE_CHOICES, null=False, blank=False,
@@ -132,6 +135,9 @@ class SessionalConfig(models.Model):
     appointment_end = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
+    course_hours_breakdown = models.CharField(null=True, blank=True, max_length=100,
+                                              help_text="e.g. 1x2HR Lecture, etc.  This will show up in the form in "
+                                                        "the column after the course department and number.")
 
     def autoslug(self):
         return make_slug(self.unit.label)

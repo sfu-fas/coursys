@@ -58,8 +58,9 @@ class SessionalContractForm(forms.ModelForm):
         help_texts = {
             'notes': 'These will appear in the "Remarks" field of the payroll form.'
         }
-        fields = ['person', 'account', 'unit', 'sin', 'visa_verified', 'appointment_start', 'appointment_end', 'pay_start',
-                  'pay_end', 'offering', 'appt_guarantee', 'appt_type', 'contact_hours', 'total_salary', 'notes']
+        fields = ['person', 'account', 'unit', 'sin', 'visa_verified', 'appointment_start', 'appointment_end',
+                  'pay_start', 'pay_end', 'offering', 'course_hours_breakdown','appt_guarantee', 'appt_type',
+                  'contact_hours', 'total_salary', 'notes']
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)

@@ -2283,6 +2283,10 @@ class FormMixin(object):
         self.c.setFont("Courier", 9)
         self.c.drawCentredString(x*mm, y*mm, content)
 
+    def label_filled_small(self, x, y, content):
+        self.c.setFont("Courier", 8)
+        self.c.drawString(x * mm, y * mm, content)
+
 
 class YellowFormTenure(FormMixin):
 
@@ -3264,6 +3268,7 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         self.label_mid(112, 170, 'Codes 1 or 2')
         self.label_filled_centred(20.75, 164.4, contract.offering.subject)
         self.label_filled_centred(51.15, 164.4, contract.offering.number)
+        self.label_filled_small(64, 164.4, contract.course_hours_breakdown)
         self.label_filled_centred(151.9, 164.4, str(contract.contact_hours))
         self.label_filled_centred(180.5, 164.4, str(contract.total_salary))
         self.hline(0, x_max, 168.7)
