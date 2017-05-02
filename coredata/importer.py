@@ -13,7 +13,7 @@ from django.core.urlresolvers import reverse
 from django.core.mail import mail_admins
 from courselib.svn import update_offering_repositories
 from grades.models import LetterActivity
-from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
+from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT, STATUS_GPA
 from ra.models import RAAppointment
 import itertools, random
 
@@ -866,7 +866,7 @@ def import_active_grads_gpas(verbose=False, dry_run=False):
     more about this than we originally thought.  Let's run this every day instead with just the GPA and credits fields.
     """
     from coredata.queries import more_personal_info
-    active_grads = GradStudent.objects.filter(current_status__in=STATUS_ACTIVE).select_related('person')
+    active_grads = GradStudent.objects.filter(current_status__in=STATUS_GPA).select_related('person')
     for grad in active_grads:
         data = more_personal_info(grad.person.emplid, needed=['ccredits', 'gpa'])
         if verbose:

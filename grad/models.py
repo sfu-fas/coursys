@@ -85,6 +85,7 @@ STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DEC
                     'DEFR') # statuses that mean "applicant"
 STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO') # statuses that mean "currently applying"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
+STATUS_GPA = ('GAPL', 'GAPR',) + STATUS_ACTIVE  # Statuses for which we want to import the GPA
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP', 'GAPL', 'GAPR') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
 STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE', 'DELE', 'TRIN', 'TROU') # statuses we don't let users enter
