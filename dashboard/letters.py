@@ -1066,9 +1066,12 @@ class TAForm(object):
 
         courses = []
         for crs in contract.course.filter(bu__gt=0):
-            description = "Office/Marking"
-            if crs.labtut:
-                description = "Office/Marking/Lab"
+            if not crs.description:
+                description = "Office/Marking"
+                if crs.labtut:
+                    description = "Office/Marking/Lab"
+            else:
+                description = unicode(crs.description)
 
             courses.append((
                 crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],

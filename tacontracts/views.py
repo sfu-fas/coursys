@@ -13,11 +13,13 @@ from django.contrib.auth.decorators import login_required
 from courselib.auth import requires_role
 from coredata.models import Semester, Unit, CourseOffering
 from dashboard.models import NewsItem
+from log.models import LogEntry
+
 # App
 from .models import HiringSemester, TACategory, TAContract, TACourse, \
-                    EmailReceipt, NoPreviousSemesterException
+                    EmailReceipt, NoPreviousSemesterException, CourseDescription
 from .forms import HiringSemesterForm, TACategoryForm, TAContractForm, \
-                    TACourseForm, EmailForm
+                    TACourseForm, EmailForm, CourseDescriptionForm
 from dashboard.letters import tacontract_form
 
 def _home_redirect():
@@ -750,3 +752,35 @@ def contracts_csv(request, unit_slug, semester):
         writer.writerow(row)
     
     return response
+
+
+@requires_role("TAAD")
+def descriptions(request):
+    descriptions = CourseDescription.objects.filter(unit__in=request.units, hidden=False).select_related('unit')
+    context = {'descriptions': descriptions}
+    return render(request, 'tacontracts/descriptions.html', context)
+
+
+@requires_role("TAAD")
+def new_description(request):
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    if request.method == 'POST':
+        form = CourseDescriptionForm(request.POST)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            desc = form.save(commit=False)
+            desc.hidden = False
+            desc.save()
+
+            messages.success(request, "Created contract description '%s'." % (desc.description))
+            l = LogEntry(userid=request.user.username,
+                         description=u"Created contract description '%s' in %s." % (desc.description, desc.unit.label),
+                         related_object=desc)
+            l.save()
+            return HttpResponseRedirect(reverse('tacontracts:descriptions', kwargs={}))
+
+    else:
+        form = CourseDescriptionForm()
+        form.fields['unit'].choices = unit_choices
+    context = {'form': form}
+    return render(request, 'tacontracts/new_description.html', context)

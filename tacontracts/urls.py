@@ -8,6 +8,8 @@ COURSE_SLUG = '(?P<course_slug>' + SLUG_RE + ')'
 
 tacontract_patterns = [ # prefix /tacontract/
     url(r'^$', tacontracts_views.list_all_semesters, name='list_all_semesters'),
+    url(r'^descriptions/$', tacontracts_views.descriptions, name='descriptions'),
+    url(r'^descriptions/new$', tacontracts_views.new_description, name='new_description'),
     url(r'^new_semester$', tacontracts_views.new_semester, name='new_semester'),
 
     url(r'^student/'+SEMESTER+'$', tacontracts_views.student_contract, name='student_contract'),

@@ -5,8 +5,9 @@ from coredata.widgets import PersonField, OfferingField, CalendarWidget
 from coredata.models import Unit, Semester
 from ra.models import Account
 # App
-from .models import HiringSemester, TACategory, TAContract, TACourse
+from .models import HiringSemester, TACategory, TAContract, TACourse, CourseDescription
 from .widgets import GuessPayperiodsWidget
+
 
 class HiringSemesterForm(forms.ModelForm):
     def __init__(self, request, *args, **kwargs):
@@ -73,3 +74,9 @@ class EmailForm(forms.Form):
     subject = forms.CharField(max_length=100)
     message = forms.CharField(widget=forms.Textarea)
     sender = PersonField()
+
+
+class CourseDescriptionForm(forms.ModelForm):
+    class Meta:
+        model = CourseDescription
+        exclude = ('config','hidden')

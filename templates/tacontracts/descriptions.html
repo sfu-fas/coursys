@@ -5,17 +5,8 @@
 {% block h1 %}TA Contract Descriptions{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
-<li>Contract Descriptions</li>
-{% endblock %}
-
-{% block actions %}
-<div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-    <li><a href="{% url "ta:new_description" %}">New Description</a></li>
-    </ul>
-</div>
+<li><a href="{% url "tacontracts:list_all_semesters" %}">Hiring Semesters</a></li>
+<li>Descriptions</li>
 {% endblock %}
 
 {% block headextra %}
@@ -36,14 +27,22 @@ function confirmDelete() {
 </script>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url "tacontracts:new_description" %}">New Description</a></li>
+    </ul>
+</div>
+{% endblock %}
+
 {% block content %}
 
-<table id="descriptions" class="display">
+<table class="display" id="descriptions">
 <thead>
 	<tr>
 		<th scope="col">Unit</th>
 		<th scope="col">Description</th>
-		<th scope="col">Lab/Tutorial</th>
 	</tr>
 </thead>
 <tbody>
@@ -51,8 +50,7 @@ function confirmDelete() {
 <tr>
   <td>{{ d.unit }}</td>
   <td>{{ d.description }}</td>
-  <td>{{ d.labtut|yesno }}</td>
-</tr>	
+</tr>
 {% endfor %}
 </tbody>
 </table>
