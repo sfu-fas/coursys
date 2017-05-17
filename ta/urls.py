@@ -1,12 +1,17 @@
 from django.conf.urls import url
-from courselib.urlparts import POST_SLUG, COURSE_SLUG, USERID_SLUG
+from courselib.urlparts import POST_SLUG, COURSE_SLUG, USERID_SLUG, ID_RE
 import ta.views as ta_views
+
+
+DESCRIPTION_ID = '(?P<description_id>' + ID_RE + ')'
 
 ta_patterns = [ # prefix /ta/
     url(r'^$', ta_views.view_postings, name='view_postings'),
     url(r'^new_posting$', ta_views.edit_posting, name='edit_posting'),
     url(r'^descriptions/$', ta_views.descriptions, name='descriptions'),
     url(r'^descriptions/new$', ta_views.new_description, name='new_description'),
+    url(r'^description/' + DESCRIPTION_ID + '/edit$', ta_views.edit_description, name='edit_description'),
+    url(r'^description/' + DESCRIPTION_ID + '/delete$', ta_views.delete_description, name='delete_description'),
     url(r'^' + POST_SLUG + '/$', ta_views.new_application, name='new_application'),
     url(r'^' + POST_SLUG + '/_myinfo$', ta_views.get_info, name='get_info'),
     url(r'^' + POST_SLUG + '/manual$', ta_views.new_application_manual, name='new_application_manual'),

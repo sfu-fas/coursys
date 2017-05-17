@@ -1,15 +1,20 @@
 from django.conf.urls import url
-from courselib.urlparts import SLUG_RE, SEMESTER, UNIT_SLUG
+from courselib.urlparts import SLUG_RE, SEMESTER, UNIT_SLUG, ID_RE
 import tacontracts.views as tacontracts_views
 
 CATEGORY_SLUG = '(?P<category_slug>' + SLUG_RE + ')'
 CONTRACT_SLUG = '(?P<contract_slug>' + SLUG_RE + ')'
 COURSE_SLUG = '(?P<course_slug>' + SLUG_RE + ')'
+DESCRIPTION_ID = '(?P<description_id>' + ID_RE + ')'
+
 
 tacontract_patterns = [ # prefix /tacontract/
     url(r'^$', tacontracts_views.list_all_semesters, name='list_all_semesters'),
     url(r'^descriptions/$', tacontracts_views.descriptions, name='descriptions'),
     url(r'^descriptions/new$', tacontracts_views.new_description, name='new_description'),
+    url(r'^description/' + DESCRIPTION_ID + '/edit$', tacontracts_views.edit_description, name='edit_description'),
+    url(r'^description/' + DESCRIPTION_ID + '/delete$', tacontracts_views.delete_description,
+        name='delete_description'),
     url(r'^new_semester$', tacontracts_views.new_semester, name='new_semester'),
 
     url(r'^student/'+SEMESTER+'$', tacontracts_views.student_contract, name='student_contract'),

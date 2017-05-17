@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 
-{% block title %}TA Contract Descriptions{% endblock %}
-{% block h1 %}TA Contract Descriptions{% endblock %}
+{% block title %}TA Course Descriptions{% endblock %}
+{% block h1 %}TA Course Descriptions{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
-<li>Contract Descriptions</li>
+<li>Course Descriptions</li>
 {% endblock %}
 
 {% block actions %}
@@ -30,7 +30,7 @@ $(document).ready(function() {
   } );
 } );
 function confirmDelete() {
-  return confirm("Are you sure you want to delete this description?");
+  return confirm("Are you sure you want to delete this description?  This is irreversible.");
 }
 
 </script>
@@ -44,6 +44,7 @@ function confirmDelete() {
 		<th scope="col">Unit</th>
 		<th scope="col">Description</th>
 		<th scope="col">Lab/Tutorial</th>
+                <th scope="col">Actions</th>
 	</tr>
 </thead>
 <tbody>
@@ -52,6 +53,22 @@ function confirmDelete() {
   <td>{{ d.unit }}</td>
   <td>{{ d.description }}</td>
   <td>{{ d.labtut|yesno }}</td>
+  <td>
+      <form class="lineform" method="POST"
+          action="{% url "ta:delete_description" description_id=d.id %}"
+          onsubmit="return confirmDelete()">
+        {% csrf_token %}
+        <button type='submit' class='btn' title="Hide Description">
+            <i class='fa fa-trash-o'></i>
+        </button>
+    </form>
+    <form class="lineform" method="GET"
+        action="{% url "ta:edit_description" description_id=d.id %}">
+        <button type='submit' class='btn' title="Edit Description">
+            <i class='fa fa-edit'></i>
+        </button>
+    </form>
+  </td>
 </tr>	
 {% endfor %}
 </tbody>
