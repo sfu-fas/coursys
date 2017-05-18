@@ -29,8 +29,10 @@ class Contact(models.Model):
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True, blank=True)
-    pref_first_name = models.CharField(max_length=32, null=True, blank=True)
+    pref_first_name = models.CharField("Preferred First Name", max_length=32, null=True, blank=True)
     title = models.CharField(max_length=4, null=True, blank=True)
+    email = models.EmailField(blank=True, null=True)
+    phone = models.Charfield(max_length=15, null=True, blank=True)
     deleted = models.BooleanField(default=False)
     config = JSONField(default=dict)
 
