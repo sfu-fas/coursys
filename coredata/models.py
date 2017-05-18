@@ -841,6 +841,7 @@ COMPONENT_CHOICES = (
         ('STD', 'Studio'),
         ('OLC', 'OLC'), # ???
         ('RQL', 'RQL'), # ???
+        ('RSC', 'RSC'), # ??? Showed up the first time 2017/05/18
         ('STL', 'STL'), # ???
         ('CNV', 'CNV'), # converted from SIMON?
         ('OPL', 'Open Lab'), # ???
