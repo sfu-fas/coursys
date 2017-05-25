@@ -26,13 +26,14 @@ class Contact(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
     slug = AutoSlugField(populate_from='slug_string', unique_with=('unit',),
                          slugify=make_slug, null=False, editable=False)
+    title = models.CharField(max_length=4, null=True, blank=True)
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField("Preferred First Name", max_length=32, null=True, blank=True)
-    title = models.CharField(max_length=4, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(blank=True, null=True)
-    phone = models.Charfield(max_length=15, null=True, blank=True)
+    phone = models.CharField(max_length=15, null=True, blank=True)
     deleted = models.BooleanField(default=False)
     config = JSONField(default=dict)
 
@@ -42,6 +43,8 @@ class Contact(models.Model):
     def slug_string(self):
         return u'%s %s' % (self.first_name, self.last_name)
 
+    def full_name(self):
+        return u'%s, %s' % (self.last_name, self.first_name)
 
 class Event(models.Model):
     contact = models.ForeignKey(Contact, null=False, blank=False)

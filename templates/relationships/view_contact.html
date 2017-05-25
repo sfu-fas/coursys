@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}View Contact{% endblock %}
+{% block h1 %}View Contact{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'relationships:index' %}">Relationships</a></li>
+<li>View Contact</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "relationships:edit_contact" contact_slug=contact.slug %}">Edit Contact</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    <dt>Unit</dt><dd>{{ contact.unit.name }}</dd>
+    <dt>Last Name</dt><dd>{{ contact.last_name }}</dd>
+    <dt>First Name</dt><dd>{{ contact.first_name }}</dd>
+    <dt>Middle Name</dt><dd>{{ contact.middle_name }}</dd>
+    <dt>Preferred First Name</dt><dd>{{ contact.pref_first_name }}</dd>
+    <dt>Last Name</dt><dd>{{ contact.last_name }}</dd>
+    <dt>Address</dt><dd>{{ contact.address|linebreaks }}</dd>
+    <dt>Email</dt><dd><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></dd>
+    <dt>Phone</dt><dd>{{ contact.phone }}</dd>
+{% endblock %}

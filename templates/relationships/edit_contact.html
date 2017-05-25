@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit Contact{% endblock %}
+{% block h1 %}Edit Contact{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'relationships:index' %}">Relationships</a></li>
+<li>Edit Contact for {{ contact.full_name }}</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'relationships:edit_contact' contact_slug=contact.slug %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Contact" />
+    </p>
+</form>
+{% endblock %}

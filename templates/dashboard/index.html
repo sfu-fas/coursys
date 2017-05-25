@@ -27,6 +27,7 @@ $(document).ready(function() {
     {% if 'ADVS' in roles %}<li><a href="{% url "advising:advising" %}"><i class="fa fa-li fa-comments"></i> Advisor Notes</a></li>{% endif %}
     {% if 'OUTR' in roles %}<li><a href="{% url "outreach:outreach_index" %}"><i class="fa fa-li fa-university"></i> Outreach </a></li>{% endif %}
     {% if 'INV' in roles %}<li><a href="{% url "inventory:inventory_index" %}"><i class="fa fa-li fa-laptop"></i> Inventory </a></li>{% endif %}
+    {% if 'RELA' in roles %}<li><a href="{% url "relationships:index" %}"><i class="fa fa-li fa-address-book"></i> Relationships </a></li>{% endif %}
 
     {% if 'GRAD' in roles or 'GRPD' in roles %}<li class="newsec"><a href="{% url "grad:index" %}"><i class="fa fa-li fa-group"></i> Grad Students</a></li>{% endif %}
 
