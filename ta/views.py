@@ -1835,7 +1835,7 @@ def new_description(request):
             desc.hidden = False
             desc.save()
             
-            messages.success(request, "Created contract description '%s'." % (desc.description))
+            messages.success(request, "Created course description '%s'." % (desc.description))
             l = LogEntry(userid=request.user.username,
                   description=u"Created contract description '%s' in %s." % (desc.description, desc.unit.label),
                   related_object=desc)
@@ -1847,3 +1847,37 @@ def new_description(request):
         form.fields['unit'].choices = unit_choices
     context = {'form': form}
     return render(request, 'ta/new_description.html', context)
+
+
+@requires_role("TAAD")
+def edit_description(request, description_id):
+    description = get_object_or_404(CourseDescription, pk=description_id, unit__in=request.units)
+    if request.method == 'POST':
+        form = CourseDescriptionForm(request.POST, instance=description)
+        if form.is_valid():
+            description = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Description was modified')
+            l = LogEntry(userid=request.user.username,
+                         description="Modified description %s" % description.description,
+                         related_object=description)
+            l.save()
+            return HttpResponseRedirect(reverse('ta:descriptions'))
+    else:
+        form = CourseDescriptionForm(instance=description)
+    return render(request, 'ta/edit_description.html', {'form': form})
+
+
+@requires_role("TAAD")
+def delete_description(request, description_id):
+    description = get_object_or_404(CourseDescription, pk=description_id, unit__in=request.units)
+    if request.method == 'POST':
+        # Descriptions are actual basically text, we will allow them to delete them.
+        description.delete()
+        messages.success(request, 'Deleted description %s' % description.description)
+        l = LogEntry(userid=request.user.username,
+                     description="Deleted description: %s" % description.description,
+                     related_object=description)
+        l.save()
+    return HttpResponseRedirect(reverse('ta:descriptions'))

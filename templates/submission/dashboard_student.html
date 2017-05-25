@@ -53,7 +53,7 @@
             {% if submission_info.is_group and group %}
             <p class="infomessage">This is a group activity. You will submit on behalf of the group &ldquo;{{ group }}&rdquo;.</p>
             {% endif %}
-            <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+            <form action="" method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
                     {% for data in component_form_list %}
                         <fieldset>
                         <legend>{{data.comp.title}}</legend>

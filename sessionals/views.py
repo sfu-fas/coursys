@@ -194,6 +194,7 @@ def new_contract(request):
             form.fields['appointment_end'].initial = config.appointment_end
             form.fields['pay_start'].initial = config.pay_start
             form.fields['pay_end'].initial = config.pay_end
+            form.fields['course_hours_breakdown'].initial = config.course_hours_breakdown
     return render(request, 'sessionals/new_contract.html', {'form': form})
 
 

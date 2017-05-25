@@ -1,4 +1,5 @@
 # Python
+# Python
 import datetime
 import decimal
 # Django
@@ -531,6 +532,19 @@ class TAContract(models.Model):
         TAContract.update_ta_members(self.person, self.category.hiring_semester.semester_id)
 
 
+class CourseDescription(models.Model):
+    """
+    Description of the work for a TA contract
+    """
+    unit = models.ForeignKey(Unit, related_name='description_unit')
+    description = models.CharField(max_length=60, blank=False, null=False,
+                                   help_text="Description of the work for a course, as it will appear on the contract. (e.g. 'Office/marking')")
+    hidden = models.BooleanField(default=False)
+    config = JSONField(null=False, blank=False, default={})
+
+    def __unicode__(self):
+        return self.description
+
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering,
                                blank=False, 
@@ -548,6 +562,7 @@ class TACourse(models.Model):
     labtut = models.BooleanField(default=False, 
                                  verbose_name="Lab/Tutorial?", 
                                  help_text="Does this course have a lab or tutorial?")
+    description = models.ForeignKey(CourseDescription, null=True, blank=True)
     member = models.ForeignKey(Member, null=True, editable=False, related_name="tacourse")
 
     def autoslug(self):

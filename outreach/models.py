@@ -142,24 +142,26 @@ class OutreachEventRegistration(models.Model):
     parent_phone = models.CharField(max_length=15, blank=False, null=False)
     email = models.EmailField("Contact E-mail")
     event = models.ForeignKey(OutreachEvent, blank=False, null=False)
-    photo_waiver = models.BooleanField("I, hereby authorize the Faculty of Applied Sciences Outreach program of Simon "
-                                       "Fraser University to photograph, audio record, video record, podcast and/or "
-                                       "webcast the Child (digitally or otherwise) without charge; and to allow the FAS"
-                                       " Outreach Program to copy, modify and distribute in print and online, those "
-                                       "images that include your child in whatever appropriate way either the FAS "
-                                       "Outreach Program and/or SFU sees fit without having to seek further approval. "
-                                       "No names will be used in association with any images or recordings.",
+    photo_waiver = models.BooleanField("I, the parent or guardian of the Child, hereby authorize the Faculty of "
+                                       "Applied Sciences (FAS) Outreach program of Simon Fraser University to "
+                                       "photograph, audio record, video record, podcast and/or webcast the Child "
+                                       "(digitally or otherwise) without charge; and to allow the FAS Outreach Program "
+                                       "to copy, modify and distribute in print and online, those images that include "
+                                       "my child in whatever appropriate way either the FAS Outreach Program and/or "
+                                       "SFU sees fit without having to seek further approval. No names will be used in "
+                                       "association with any images or recordings.",
                                        help_text="Check this box if you agree with the photo waiver.", default=False)
-    participation_waiver = models.BooleanField("I agree to HOLD HARMLESS AND INDEMNIFY the FAS Outreach Program and "
-                                               "SFU for any and all liability to which the University has no legal "
-                                               "obligation, including but not limited to, any damage to the property "
-                                               "of, or personal injury to my child or for injury and/or property "
-                                               "damage suffered by any third party resulting from my child's actions "
-                                               "whilst participating in the program. By signing this consent, I agree "
-                                               "to allow SFU staff to provide or cause to be provided such medical "
-                                               "services as the University or medical personnel consider appropriate. "
-                                               "The FAS Outreach Program reserves the right to refuse further "
-                                               "participation to any participant for rule infractions.",
+    participation_waiver = models.BooleanField("I, the parent or guardian of the Child, agree to HOLD HARMLESS AND "
+                                               "INDEMNIFY the FAS Outreach Program and SFU for any and all liability "
+                                               "to which the University has no legal obligation, including but not "
+                                               "limited to, any damage to the property of, or personal injury to my "
+                                               "child or for injury and/or property damage suffered by any third party "
+                                               "resulting from my child's actions whilst participating in the program. "
+                                               "By signing this consent, I agree to allow SFU staff to provide or "
+                                               "cause to be provided such medical services as the University or "
+                                               "medical personnel consider appropriate. The FAS Outreach Program "
+                                               "reserves the right to refuse further participation to any participant "
+                                               "for rule infractions.",
                                                help_text="Check this box if you agree with the participation waiver.",
                                                default=False)
     previously_attended = models.BooleanField("I have previously attended this event", default=False,

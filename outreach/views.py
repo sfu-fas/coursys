@@ -147,7 +147,6 @@ def view_registration(request, registration_id):
     registration = get_object_or_404(OutreachEventRegistration, pk=registration_id)
     if not _has_unit_role(request.user, registration.event):
         return ForbiddenResponse(request)
-    print registration.extra_questions
     return render(request, 'outreach/view_registration.html', {'registration': registration})
 
 

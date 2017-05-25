@@ -78,7 +78,6 @@ class OutreachEventRegistrationForm(forms.ModelForm):
     def add_extra_questions(self, event):
         if 'extra_questions' in event.config and len(event.config['extra_questions']) > 0:
             for question in event.config['extra_questions']:
-                print question
                 if 'extra_questions' in self.instance.config and question in self.instance.config['extra_questions']:
                     self.fields[question.encode('ascii', 'ignore')] = \
                         forms.CharField(label=question,widget=forms.Textarea,
