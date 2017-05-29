@@ -226,15 +226,15 @@ def deploy_checks(request=None):
     #        passed.append(('Piwik API', 'okay'))
 
     # Backup server
-    if not settings.BACKUP_SERVER or not settings.BACKUP_USER or not settings.BACKUP_PATH or not settings.BACKUP_PASSPHRASE:
-        failed.append(('Backup server', 'Backup server settings not all present'))
-    else:
-        from coredata.management.commands.backup_remote import do_check
-        try:
-            do_check()
-        except RuntimeError as e:
-            failed.append(('Backup server', unicode(e)))
-        passed.append(('Backup server', 'okay'))
+    #if not settings.BACKUP_SERVER or not settings.BACKUP_USER or not settings.BACKUP_PATH or not settings.BACKUP_PASSPHRASE:
+    #    failed.append(('Backup server', 'Backup server settings not all present'))
+    #else:
+    #    from coredata.management.commands.backup_remote import do_check
+    #    try:
+    #        do_check()
+    #    except RuntimeError as e:
+    #        failed.append(('Backup server', unicode(e)))
+    #    passed.append(('Backup server', 'okay'))
 
 
     # certificates
