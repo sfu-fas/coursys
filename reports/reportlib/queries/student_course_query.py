@@ -186,3 +186,58 @@ class SingleCourseStrmQuery(DB2_Query):
         if not include_current:
             query_args['exclude_list'].append(' ')
         super(SingleCourseStrmQuery, self).__init__(query_args)
+
+class SingleCourseStrmGradeQuery(DB2_Query):
+    title = "Single Course Strm Grade Query"
+    description = "Fetch a students grade and STRM for a given course and list of emplids."
+    query = string.Template("""
+    SELECT DISTINCT
+        enrl.emplid,
+        class.STRM,
+        CRSE_GRADE_INPUT
+    FROM
+        ps_stdnt_enrl enrl
+    INNER JOIN
+        ps_class_tbl class
+        ON
+        enrl.class_nbr = class.class_nbr
+        AND enrl.strm = class.strm
+    WHERE
+        enrl.earn_credit = 'Y'
+        AND enrl.stdnt_enrl_status = 'E'
+        AND class.class_type = 'E'
+        AND class.subject = $subject
+        AND class.catalog_nbr LIKE '%$catalog_nbr%'
+        AND enrl.crse_grade_input not in $exclude_list
+        AND enrl.emplid IN $emplids
+    ORDER BY
+        enrl.emplid, class.STRM
+        """)
+    exclude_list = ['AU', 'W', 'WD', 'WE']
+
+    default_arguments = {'subject': 'CMPT', 'catalog_nbr': '120', 'exclude_list': exclude_list,
+                         'emplids': ['301008183']}
+
+    def __init__(self, query_args, include_current=False):
+        """
+        Runs a query to get the grades of specified students in a given class and what strm they took it in.
+
+        :param query_args: The arguments that should contain at least the subject and course number
+        :type query_args: dict
+        :param include_current: A flag to set if you also want to get the students who are currently taking the course.
+        :type include_current: bool
+        :param emplids:  The list of emplids to query
+        :type emplids: list
+        """
+
+        # Add all arguments that are in default_arguments but not in our query_args
+        for arg in SingleCourseStrmGradeQuery.default_arguments.keys():
+            if arg not in query_args:
+                query_args[arg] = SingleCourseStrmGradeQuery.default_arguments[arg]
+        self.title = "Single Course Query - " + query_args["subject"] + " " + query_args['catalog_nbr']
+        query_args['catalog_nbr'] = Unescaped(query_args['catalog_nbr'])
+        # If we passed in the include_current flag, we don't want to exclude people without grades, which are people
+        # currently enrolled.  Otherwise, exclude it.
+        if not include_current:
+            query_args['exclude_list'].append(' ')
+        super(SingleCourseStrmGradeQuery, self).__init__(query_args)
