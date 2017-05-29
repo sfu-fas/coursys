@@ -21,7 +21,7 @@ class CMPT125AfterPlacementTestReport (Report):
         # again, if any of this changes in the form, this report is hooped.
         for s in ss:
             if 'info' in s.field_submissions[0].data and s.field_submissions[0].data['info'] == u'choice_2':
-                passed_students_emplids.add(s.form_submission.initiator.emplid())
+                passed_students_emplids.add(str(s.form_submission.initiator.emplid()))
 
         passed_students_emplids = list(passed_students_emplids)
         cmpt_125_grades_query = SingleCourseStrmGradeQuery({'subject': 'CMPT', 'catalog_nbr': '125',
