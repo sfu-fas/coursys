@@ -44,6 +44,7 @@ forms_patterns = [
     url(r'^manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/field-' + FIELD_SLUG + '$', onlineforms_views.edit_field, name='edit_field'),
 
     url(r'^$', onlineforms_views.index, name='index'),
+    url(r'^login/$', onlineforms_views.login, name='login'),
     url(r'^participated/$', onlineforms_views.participated_in, name='participated_in'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/$', onlineforms_views.view_submission, name='view_submission'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + '(?P<action>\w+)/' + '(?P<file_id>\d+)/$', onlineforms_views.file_field_download, name='file_field_download'),

@@ -879,6 +879,12 @@ def index(request):
 
 
 @login_required()
+def login(request):
+    #  This is a dummy view to put in the email reminders.  This ensures that people are actually logged in
+    #  if they click on the link in the reminder, thus making sure they see their forms.
+    return HttpResponseRedirect(reverse('onlineforms:index'))
+
+@login_required()
 def participated_in(request):
     loggedin_user = get_object_or_404(Person, userid=request.user.username)
     participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user),
