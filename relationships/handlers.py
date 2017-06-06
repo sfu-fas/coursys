@@ -1,4 +1,5 @@
 from django.utils.html import mark_safe
+from django import forms
 
 
 class EventBase(object):
@@ -32,6 +33,12 @@ class EmployerEvent(EventBase):
 class QuoteEvent(CommentEventBase):
     name = 'Quote'
 
+    class EntryForm(forms.Form):
+        content = forms.CharField(required=True)
+
 
 class PhotoEvent(FileEventBase):
     name = 'Photo'
+
+    class EntryForm(forms.Form):
+        file = forms.FileField(required=True)

@@ -1,11 +1,19 @@
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from django.http import Http404
 from courselib.auth import requires_role
 from forms import ContactForm
 from log.models import LogEntry
+from models import Contact, Event, EVENT_CHOICES
 
-from .models import Contact, Event
+
+def _get_handler_or_404(handler_slug):
+    handler_slug = handler_slug.upper()
+    if handler_slug in EVENT_CHOICES:
+        return EVENT_CHOICES[handler_slug]
+    else:
+        raise Http404('Unknown event handler slug')
 
 
 @requires_role('RELA')
@@ -76,3 +84,13 @@ def delete_contact(request, contact_slug):
                      related_object=contact)
         l.save()
     return HttpResponseRedirect(reverse('relationships:index'))
+
+
+@requires_role('RELA')
+def list_events(request, contact_slug):
+    contact = get_object_or_404(Contact, slug=contact_slug, unit__in=request.units)
+    pass
+
+@requires_role('RELA')
+def add_event(request, contact_slug, event_type):
+    pass

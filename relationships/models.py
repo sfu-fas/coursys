@@ -41,10 +41,13 @@ class Contact(models.Model):
 
     @property
     def slug_string(self):
-        return u'%s %s' % (self.first_name, self.last_name)
+        return u'%s %s %s' % (self.first_name, self.last_name, self.unit.label)
 
     def full_name(self):
         return u'%s, %s' % (self.last_name, self.first_name)
+
+    def __unicode__(self):
+        return u'%s, %s' % (self.unit.label.upper(), self.full_name())
 
 class Event(models.Model):
     contact = models.ForeignKey(Contact, null=False, blank=False)

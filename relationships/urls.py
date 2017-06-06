@@ -10,4 +10,5 @@ relationship_patterns = [ # prefix /relationships/
     url(r'^' + CONTACT_SLUG + '/view', rel_views.view_contact, name='view_contact'),
     url(r'^' + CONTACT_SLUG + '/edit$', rel_views.edit_contact, name='edit_contact'),
     url(r'^' + CONTACT_SLUG + '/delete$', rel_views.delete_contact, name='delete_contact'),
+    url(r'^' + CONTACT_SLUG + 'list_events', rel_views.list_events, name='list_events'),
 ]
