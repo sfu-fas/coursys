@@ -764,6 +764,10 @@ div.discside {
   margin-bottom: 0.5em;
   display: none; /* display controlled by JS */
 }
+div.disc-details ul {
+  list-style-type: circle;
+  margin-left: 1em;
+}
 @media(max-width:1280px){
   div.discside {
     width: 10em;
