@@ -15,6 +15,7 @@
     <h2>Actions</h2>
     <ul>
         <li><a href="{% url "relationships:edit_contact" contact_slug=contact.slug %}">Edit Contact</a></li>
+        <li><a href="{% url "relationships:list_events" contact_slug=contact.slug %}">Add Contact Content</a></li>
     </ul>
 </div>
 {% endblock %}

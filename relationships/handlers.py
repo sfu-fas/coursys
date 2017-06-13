@@ -3,6 +3,7 @@ from django import forms
 
 
 class EventBase(object):
+    name = ''
     pass
 
 
@@ -10,6 +11,8 @@ class CommentEventBase(EventBase):
     """
     Base class for events that are mostly a comment box.
     """
+    name = ''
+
     @property
     def form_class(self, event=None):
         return SomeFormClass(initial=event.data_as_dict_or_whatever())
@@ -34,7 +37,7 @@ class QuoteEvent(CommentEventBase):
     name = 'Quote'
 
     class EntryForm(forms.Form):
-        content = forms.CharField(required=True)
+        content = forms.CharField(required=True, widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))
 
 
 class PhotoEvent(FileEventBase):

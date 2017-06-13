@@ -14,7 +14,7 @@ EVENT_HANDLERS = {
     'quote': QuoteEvent,
     'photo': PhotoEvent,
 }
-EVENT_CHOICES = [(key, cls.name) for key, cls in EVENT_HANDLERS.items()]
+EVENT_CHOICES = [(key, cls) for key, cls in EVENT_HANDLERS.items()]
 
 
 class IgnoreDeleted(models.Manager):
@@ -45,6 +45,9 @@ class Contact(models.Model):
 
     def full_name(self):
         return u'%s, %s' % (self.last_name, self.first_name)
+
+    def name(self):
+        return u"%s %s" % (self.first_name, self.last_name)
 
     def __unicode__(self):
         return u'%s, %s' % (self.unit.label.upper(), self.full_name())
