@@ -52,6 +52,7 @@ class Contact(models.Model):
     def __unicode__(self):
         return u'%s, %s' % (self.unit.label.upper(), self.full_name())
 
+
 class Event(models.Model):
     contact = models.ForeignKey(Contact, null=False, blank=False)
     event_type = models.CharField(max_length=10, choices=EVENT_CHOICES)

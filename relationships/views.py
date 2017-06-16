@@ -105,7 +105,15 @@ def add_event(request, contact_slug, event_slug):
     contact = get_object_or_404(Contact, slug=contact_slug, unit__in=request.units)
     handler = _get_handler_or_404(event_slug)
     if request.method == 'POST':
-        form = handler.EntryForm(request.POST)
+        form = handler.EntryForm(data=request.POST)
+        # If the form has a file field, we should put the file data back in there.  Make sure the actual field is called
+        # "files" in the form!
+        if len(request.FILES) != 0:
+            form.files = request.FILES
+        if form.is_valid():
+            event = handler.create_for(contact=contact, form=form)
+            print event
 
-    form = handler.EntryForm()
+    else:
+        form = handler.EntryForm()
     return render(request, 'relationships/add_event.html', {'form': form, 'contact': contact, 'event_slug': event_slug})
