@@ -744,7 +744,10 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
             if slug in ['userid', 'group']:
                 continue
             elif slug == 'the_mark':
-                the_mark = decimal.Decimal(str(markdata[slug]))
+                try:
+                    the_mark = decimal.Decimal(str(markdata[slug]))
+                except decimal.InvalidOperation:
+                    pass
                 continue
             elif slug=="late_percent":
                 try:

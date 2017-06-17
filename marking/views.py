@@ -1463,7 +1463,7 @@ def _export_mark_dict(m):
     Dictionary required for JSON export of ActivityMark (without userid/group identifier)
     """
     mdict = {}
-    comps = ActivityComponentMark.objects.filter(activity_mark=m).select_related('activity_component')
+    comps = ActivityComponentMark.objects.filter(activity_mark=m, activity_component__deleted=False).select_related('activity_component')
     for c in comps:
         mdict[c.activity_component.slug] = {'mark': c.value}
         mdict[c.activity_component.slug]['comment'] = c.comment
