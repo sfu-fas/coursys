@@ -1,5 +1,8 @@
+import collections
+
 from django.utils.html import mark_safe
 from django import forms
+from django.db import models
 from django.template import Context, Template
 
 
@@ -13,14 +16,10 @@ class EventBase(object):
         self.event.event_type = self.event_type
 
         # Figure out what fields are required by the Handler subclass
-        cls.BASE_FIELDS = collections.OrderedDict()
-        cls.CONFIG_FIELDS = collections.OrderedDict()
+        self.CONFIG_FIELDS = collections.OrderedDict()
 
-        for name, field in cls.EntryForm.base_fields.iteritems():
-            if name in BaseEntryForm.base_fields:
-                cls.BASE_FIELDS[name] = field
-            else:
-                cls.CONFIG_FIELDS[name] = field
+        for name, field in self.EntryForm.base_fields.iteritems():
+            self.CONFIG_FIELDS[name] = field
 
     def to_html(self):
         """
@@ -33,6 +32,9 @@ class EventBase(object):
         }
         return template.render(Context(context))
 
+    def save(self):
+        self.event.save(call_from_handler=True)
+
     @classmethod
     def create_for(cls, contact, form=None):
         """
@@ -42,10 +44,43 @@ class EventBase(object):
 
         event = Event(contact=contact, event_type=cls.event_type)
         ret = cls(event)
-        #  Add back if we decided to allow editing.
-        # if form:
-        #    ret.load(form)
+        ret.load(form)
         return ret
+
+    def get_config(self, name, default=None):
+        raw_value = self.event.config.get(name)
+        field = self.CONFIG_FIELDS[name]
+
+        try:
+            if raw_value is None:
+                if field.initial is not None and field.initial != '':
+                    return field.to_python(field.initial)
+                else:
+                    return default
+            else:
+                return field.to_python(raw_value)
+        except forms.ValidationError:
+            # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in
+            #      the config field, then it was most likely valid when the event was created.
+            return raw_value
+
+    def set_config(self, name, value):
+        field = self.CONFIG_FIELDS[name]
+        if value is None:
+            raw_value = None
+        elif isinstance(value, models.Model):
+            raw_value = unicode(value.pk)
+        else:
+            raw_value = unicode(field.prepare_value(value))
+
+        self.event.config[name] = raw_value
+
+    def load(self, form):
+        """
+        Given a valid form, load its data into the handler.
+        """
+        for name in self.CONFIG_FIELDS:
+            self.set_config(name, form.cleaned_data.get(name, None))
 
 
 class CommentEventBase(EventBase):

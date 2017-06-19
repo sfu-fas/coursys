@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import datetime
 
 from django.db import models
 from autoslug import AutoSlugField
@@ -56,12 +57,12 @@ class Contact(models.Model):
 class Event(models.Model):
     contact = models.ForeignKey(Contact, null=False, blank=False)
     event_type = models.CharField(max_length=10, choices=EVENT_CHOICES)
-    slug = AutoSlugField(populate_from='slug_string', unique_with=('contact',),
-                         slugify=make_slug, null=False, editable=False)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    attachment = models.FileField(null=True, max_length=500) # TODO: needs storage and upload_to worked out
+    timestamp = models.DateTimeField(default=datetime.datetime.now, editable=False)
+    attachment = models.FileField(null=True, max_length=500)  # TODO: needs storage and upload_to worked out
     deleted = models.BooleanField(default=False)
     config = JSONField(default=dict)
+    slug = AutoSlugField(populate_from='slug_string', unique_with=('contact',),
+                         slugify=make_slug, null=False, editable=False)
 
     objects = IgnoreDeleted()
 
@@ -72,3 +73,7 @@ class Event(models.Model):
     @property
     def handler_class(self):
         return EVENT_HANDLERS[self.event_type]
+
+    def save(self, call_from_handler=False, *args, **kwargs):
+        assert call_from_handler, "A contact event must be saved through the handler."
+        return super(Event, self).save(*args, **kwargs)

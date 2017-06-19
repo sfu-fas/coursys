@@ -111,8 +111,16 @@ def add_event(request, contact_slug, event_slug):
         if len(request.FILES) != 0:
             form.files = request.FILES
         if form.is_valid():
-            event = handler.create_for(contact=contact, form=form)
-            print event
+            event_handler = handler.create_for(contact=contact, form=form)
+            event_handler.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Contact content was added')
+            l = LogEntry(userid=request.user.username,
+                         description="Added contact content %s" % event_handler.event,
+                         related_object=event_handler.event)
+            l.save()
+            return HttpResponseRedirect(reverse('relationships:view_contact', kwargs={'contact_slug': contact_slug}))
 
     else:
         form = handler.EntryForm()

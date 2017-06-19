@@ -30,4 +30,9 @@
     <dt>Address</dt><dd>{{ contact.address|linebreaks }}</dd>
     <dt>Email</dt><dd><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></dd>
     <dt>Phone</dt><dd>{{ contact.phone }}</dd>
+    {% if events %}
+        {% for event in events %}
+            Something {{ event.event_type }}
+        {% endfor %}
+    {% endif %}
 {% endblock %}
