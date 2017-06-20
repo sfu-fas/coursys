@@ -1,6 +1,5 @@
 import collections
 
-from django.utils.html import mark_safe
 from django import forms
 from django.db import models
 from django.template import Context, Template
@@ -48,8 +47,12 @@ class EventBase(object):
         return ret
 
     def get_config(self, name, default=None):
-        raw_value = self.event.config.get(name)
-        field = self.CONFIG_FIELDS[name]
+        raw_value = self.event.config.get(name, default)
+        field = self.CONFIG_FIELDS.get(name, None)
+
+        # If the handler template is calling the wrong attribute, return None.
+        if not (raw_value and field):
+            return None
 
         try:
             if raw_value is None:
@@ -97,10 +100,6 @@ class CommentEventBase(EventBase):
         return SomeFormClass(initial=event.data_as_dict_or_whatever())
     """
 
-    def as_html(self):
-        html = '<div>Event As HTML</div>'
-        return mark_safe(html)
-
 
 class FileEventBase(EventBase):
     """
@@ -118,8 +117,8 @@ class QuoteEvent(CommentEventBase):
     name = 'Quote'
     event_type = 'quote'
 
-    def as_html(self):
-        return '{{ content|linebreaks }}'
+    TO_HTML_TEMPLATE = """{% load contact_display %}<div>
+    {{ handler|get_event_value:'content' }}</div>"""
 
     class EntryForm(forms.Form):
         content = forms.CharField(required=True, widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))

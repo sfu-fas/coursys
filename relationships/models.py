@@ -77,3 +77,10 @@ class Event(models.Model):
     def save(self, call_from_handler=False, *args, **kwargs):
         assert call_from_handler, "A contact event must be saved through the handler."
         return super(Event, self).save(*args, **kwargs)
+
+    def get_handler(self):
+        # Create and return a handler for ourselves.  If we already created it, use the same one again.
+        if not hasattr(self, 'handler_cache'):
+            self.handler_cache = EVENT_HANDLERS.get(self.event_type, None)(self)
+        return self.handler_cache
+

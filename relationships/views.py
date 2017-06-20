@@ -125,3 +125,28 @@ def add_event(request, contact_slug, event_slug):
     else:
         form = handler.EntryForm()
     return render(request, 'relationships/add_event.html', {'form': form, 'contact': contact, 'event_slug': event_slug})
+
+
+@requires_role('RELA')
+def view_event(request, contact_slug, event_slug):
+    contact = get_object_or_404(Contact, slug=contact_slug, unit__in=request.units)
+    event = get_object_or_404(Event, slug=event_slug, contact=contact)
+    handler = event.get_handler()
+    return render(request, 'relationships/view_event.html', {'contact': contact, 'event': event, 'handler': handler})
+
+
+@requires_role('RELA')
+def delete_event(request, contact_slug, event_slug):
+    contact = get_object_or_404(Contact, slug=contact_slug, unit__in=request.units)
+    event = get_object_or_404(Event, slug=event_slug, contact=contact)
+    if request.method == 'POST':
+        event.deleted = True
+        event.save(call_from_handler=True)
+        messages.add_message(request,
+                             messages.SUCCESS,
+                             u'Contact content was deleted')
+        l = LogEntry(userid=request.user.username,
+                     description="Deleted contact content %s" % event,
+                     related_object=event)
+        l.save()
+        return HttpResponseRedirect(reverse('relationships:view_contact', kwargs={'contact_slug': contact_slug}))
