@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block content %}
-<form action="{% url 'relationships:add_event' contact_slug=contact.slug event_slug=event_slug %}" method="post">
+    <form enctype="multipart/form-data" action="{% url 'relationships:add_event' contact_slug=contact.slug event_slug=event_slug %}" method="post">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>

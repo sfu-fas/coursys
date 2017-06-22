@@ -92,20 +92,33 @@ class CommentEventBase(EventBase):
     """
     name = ''
     event_type = ''
-    TO_HTML_TEMPLATE = ''
 
-    """"
-    @property
-    def form_class(self, event=None):
-        return SomeFormClass(initial=event.data_as_dict_or_whatever())
-    """
+    TO_HTML_TEMPLATE = """{% load contact_display %}<div>
+        {{ handler|get_event_value:'content'|linebreaks }}</div>"""
+
+    class EntryForm(forms.Form):
+        content = forms.CharField(required=True, widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))
 
 
 class FileEventBase(EventBase):
     """
     Base class for events that are mostly a file upload.
     """
-    pass
+    class EntryForm(forms.Form):
+        file = forms.FileField(required=True)
+
+    @classmethod
+    def add_attachment(cls, event, filedata):
+        from models import EventAttachment
+        print "Adding Attachment"
+        upfile = filedata['file']
+        filetype = upfile.content_type
+        if upfile.charset:
+            filetype += "; charset=" + upfile.charset
+        mediatype = filetype
+        attach = EventAttachment(event=event, mediatype=mediatype, contents=upfile)
+        attach.save(call_from_handler=True)
+
 
 
 class EmployerEvent(EventBase):
@@ -117,16 +130,12 @@ class QuoteEvent(CommentEventBase):
     name = 'Quote'
     event_type = 'quote'
 
-    TO_HTML_TEMPLATE = """{% load contact_display %}<div>
-    {{ handler|get_event_value:'content' }}</div>"""
-
-    class EntryForm(forms.Form):
-        content = forms.CharField(required=True, widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))
-
 
 class PhotoEvent(FileEventBase):
     name = 'Photo'
     event_type = 'photo'
 
-    class EntryForm(forms.Form):
-        file = forms.FileField(required=True)
+class ResumeEvent(FileEventBase):
+    name = 'Resume'
+    event_type = 'resume'
+
