@@ -672,6 +672,7 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
     components = ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False)
     components = dict((ac.slug, ac) for ac in components)
     found = set()
+    not_found = set()
     combine = False # are we combining these marks with existing (as opposed to overwriting)?
     if 'combine' in data and bool(data['combine']):
         combine = True
@@ -686,7 +687,8 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
             try:
                 group = Group.objects.get(slug=markdata['group'], courseoffering=activity.offering)
             except Group.DoesNotExist:
-                raise ValidationError(u'Group with id "%s" not found.' % (markdata['group']))
+                not_found.add(markdata['group'])
+                continue
             am = GroupActivityMark(activity_id=activity.id, numeric_activity_id=activity.id, group=group, created_by=userid)
             recordid = markdata['group']
 
@@ -695,7 +697,8 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
             try:
                 member = Member.objects.get(person__userid=markdata['userid'], offering=activity.offering, role="STUD")
             except Member.DoesNotExist:
-                raise ValidationError(u'Userid %s not in course.' % (markdata['userid']))
+                not_found.add(markdata['userid'])
+                continue
             am = StudentActivityMark(activity_id=activity.id, created_by=userid)
             recordid = markdata['userid']
         else:
@@ -889,4 +892,4 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
                 cm.activity_mark = am
                 cm.save()
 
-    return found
+    return found, not_found

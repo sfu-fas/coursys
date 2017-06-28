@@ -1551,9 +1551,15 @@ def import_marks(request, course_slug, activity_slug):
         if request.method == 'POST':
             form = ImportMarkFileForm(data=request.POST, files=request.FILES, activity=activity, userid=request.user.username)
             if form.is_valid():
-                found = activity_marks_from_JSON(activity, request.user.username, form.cleaned_data['file'], save=True)
+                found, not_found = activity_marks_from_JSON(activity, request.user.username, form.cleaned_data['file'], save=True)
 
                 messages.add_message(request, messages.SUCCESS, "Successfully imported %i marks." % (len(found)))
+
+                if len(not_found) > 0:
+                    for n in not_found:
+                        messages.add_message(request, messages.WARNING,
+                                             "The following group/userid was not found in the class list and was "
+                                             "ignored: %s." % n)
                 
                 return _redirct_response(request, course_slug, activity_slug)
         else:
