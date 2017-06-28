@@ -36,6 +36,7 @@ class Contact(models.Model):
     first_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField("Preferred First Name", max_length=32, null=True, blank=True)
+    company_name = models.CharField(max_length=128, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=15, null=True, blank=True)
