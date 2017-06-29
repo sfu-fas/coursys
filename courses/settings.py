@@ -87,6 +87,7 @@ INSTALLED_APPS = (
     'outreach',
     'sessionals',
     'inventory',
+    'relationships',
 )
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',

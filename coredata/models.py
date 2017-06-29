@@ -64,6 +64,7 @@ ROLE_CHOICES = (
         ('FACR', 'Faculty Viewer'),
         ('REPV', 'Report Viewer'),
         ('FACA', 'Faculty Administrator'),
+        ('RELA', 'Relationship Database User'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
         )
@@ -93,7 +94,8 @@ ROLE_DESCR = {
         'INV': 'Can manage assets',
         'FACR': 'Can view some faculty data (read-only)',
         'FACA': 'Can manage faculty data',
-              }
+        'RELA': 'Can access relationship database',
+}
 INSTR_ROLES = ["FAC", "SESS", "COOP", 'INST']  # roles that are given to categorize course instructors
 
 
