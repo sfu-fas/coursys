@@ -110,7 +110,6 @@ class FileEventBase(EventBase):
     @classmethod
     def add_attachment(cls, event, filedata):
         from models import EventAttachment
-        print "Adding Attachment"
         upfile = filedata['file']
         filetype = upfile.content_type
         if upfile.charset:
