@@ -121,7 +121,7 @@ class FileEventBase(EventBase):
 
 
 
-class EmployerEvent(EventBase):
+class EmployerEvent(CommentEventBase):
     name = 'Employer/Job'
     event_type = 'employer'
 
