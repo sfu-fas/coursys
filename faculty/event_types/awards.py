@@ -284,7 +284,7 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
     EVENT_TYPE = 'GRANTAPP'
     NAME = "Grant Application"
 
-    IS_INSTANT = True
+    IS_INSTANT = False
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
@@ -296,8 +296,6 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
         <dt>Title of Project</dt><dd>{{ handler|get_display:"title_of_project" }}</dd>
         <dt>Co-Investigator</dt><dd>{{ handler|get_display:"co_investigator" }}</dd>
         <dt>Funding Program</dt><dd>{{ handler|get_display:"funding_program" }}</dd>
-        <dt>Projected Start Date</dt><dd>{{ handler|get_display:"projected_start_date" }}</dd>
-        <dt>Projected End Date</dt><dd>{{ handler|get_display:"projected_end_date" }}</dd>
         {% endblock %}
     """
 
@@ -310,8 +308,6 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
         title_of_project = forms.CharField(label='Title of Project', required=False, max_length=255)
         co_investigator = forms.CharField(label='Co-investigator', required=False, max_length=255)
         funding_program = forms.CharField(label='Funding Program', required=False, max_length=255)
-        projected_start_date = SemesterField(required=False, semester_start=False)
-        projected_end_date = SemesterField(required=False, semester_start=False)
 
     SEARCH_RULES = {
         'funding_agency': StringSearchRule,
