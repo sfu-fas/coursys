@@ -45,9 +45,6 @@ function confirmDelete(url) {
           <a href="{% url 'faculty:status_index' %}"><i class="fa fa-li fa-thumbs-o-up"></i> Event Queue {% if queued_events %}<i class="fa fa-warning infomessage"> {{ queued_events }}</i>{% endif %}</a>
         </li>
         <li>
-          <a href="{% url 'faculty:grant_index' %}"><i class="fa fa-li fa-trophy"></i> Grants</a>
-        </li>
-        <li>
           <a href="{% url 'faculty:list_positions' %}"><i class="fa fa-li fa-sitemap"></i> Positions</a>
         </li>
 
