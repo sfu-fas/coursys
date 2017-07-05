@@ -6,14 +6,14 @@ from django.http import Http404, StreamingHttpResponse
 from courselib.auth import requires_role
 from forms import ContactForm
 from log.models import LogEntry
-from models import Contact, Event, EVENT_CHOICES, EVENT_HANDLERS
+from models import Contact, Event, EVENT_CHOICES, EVENT_HANDLERS, EVENT_TYPES
 from handlers import FileEventBase
 
 
 def _get_handler_or_404(handler_slug):
     handler_slug = handler_slug.lower()
-    if handler_slug in EVENT_HANDLERS:
-        return EVENT_HANDLERS[handler_slug]
+    if handler_slug in EVENT_TYPES:
+        return EVENT_TYPES[handler_slug]
     else:
         raise Http404('Unknown event handler slug')
 

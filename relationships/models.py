@@ -8,18 +8,34 @@ from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 
 from coredata.models import Unit
-from courselib.json_fields import JSONField, config_property
+from courselib.json_fields import JSONField
 from courselib.slugs import make_slug
 
-from .handlers import EmployerEvent, QuoteEvent, PhotoEvent, ResumeEvent
+from .handlers import EmployerEvent, QuoteEvent, PhotoEvent, ResumeEvent, AcknowledgementEvent, AlumnusEvent, \
+    AwardEvent, EACEvent, FacultyConnectionEvent, FieldEvent, FollowUpEvent, FundingEvent, \
+    LinksEvent, NotesEvent, ParticipationEvent, PartnershipEvent, RelationshipEvent
 
-EVENT_HANDLERS = {
-    'employer': EmployerEvent,
-    'quote': QuoteEvent,
-    'photo': PhotoEvent,
-    'resume': ResumeEvent,
-}
-EVENT_CHOICES = [(key, cls) for key, cls in sorted(EVENT_HANDLERS.items())]
+EVENT_HANDLERS = [
+    EmployerEvent,
+    QuoteEvent,
+    PhotoEvent,
+    ResumeEvent,
+    AcknowledgementEvent,
+    AlumnusEvent,
+    AwardEvent,
+    EACEvent,
+    FacultyConnectionEvent,
+    FieldEvent,
+    NotesEvent,
+    FollowUpEvent,
+    FundingEvent,
+    LinksEvent,
+    ParticipationEvent,
+    PartnershipEvent,
+    RelationshipEvent
+]
+EVENT_TYPES = {handler.event_type: handler for handler in EVENT_HANDLERS}
+EVENT_CHOICES = [(cls.event_type, cls) for cls in sorted(EVENT_HANDLERS)]
 
 
 class IgnoreDeleted(models.Manager):
@@ -74,10 +90,6 @@ class Event(models.Model):
     def slug_string(self):
         return u'%s-%s' % (self.timestamp.year, self.event_type)
 
-    @property
-    def handler_class(self):
-        return EVENT_HANDLERS[self.event_type]
-
     def save(self, call_from_handler=False, *args, **kwargs):
         assert call_from_handler, "A contact event must be saved through the handler."
         return super(Event, self).save(*args, **kwargs)
@@ -85,9 +97,11 @@ class Event(models.Model):
     def get_handler(self):
         # Create and return a handler for ourselves.  If we already created it, use the same one again.
         if not hasattr(self, 'handler_cache'):
-            self.handler_cache = EVENT_HANDLERS.get(self.event_type, None)(self)
+            self.handler_cache = EVENT_TYPES.get(self.event_type, None)(self)
         return self.handler_cache
 
+    def get_handler_name(self):
+        return self.get_handler().name
 
 AttachmentSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 

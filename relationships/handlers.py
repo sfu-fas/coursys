@@ -119,7 +119,6 @@ class FileEventBase(EventBase):
         attach.save(call_from_handler=True)
 
 
-
 class EmployerEvent(CommentEventBase):
     name = 'Employer/Job'
     event_type = 'employer'
@@ -134,7 +133,71 @@ class PhotoEvent(FileEventBase):
     name = 'Photo'
     event_type = 'photo'
 
+
 class ResumeEvent(FileEventBase):
     name = 'Resume'
     event_type = 'resume'
 
+
+class RelationshipEvent(CommentEventBase):
+    name = 'Main Relationship Holder(s)'
+    event_type = 'relationship'
+
+
+class FacultyConnectionEvent(CommentEventBase):
+    name = 'Faculty Connection'
+    event_type = 'facultyconnection'
+
+
+class LinksEvent(CommentEventBase):
+    name = 'Links'
+    event_type = 'links'
+
+
+class FollowUpEvent(CommentEventBase):
+    name = 'Follow-Up/Tasks'
+    event_type = 'followups'
+
+
+class AwardEvent(CommentEventBase):
+    name = 'Awards'
+    event_type = 'awards'
+
+
+class FundingEvent(CommentEventBase):
+    name = 'Funding/In-Kind Support'
+    event_type = 'funding'
+
+
+class PartnershipEvent(CommentEventBase):
+    name = 'Partnership Interest'
+    event_type = 'partnership'
+
+
+class ParticipationEvent(CommentEventBase):
+    name = 'Past Participation'
+    event_type = 'participation'
+
+
+class AcknowledgementEvent(CommentEventBase):
+    name = 'Past Acknowledgements'
+    event_type = 'acknowledgement'
+
+
+class EACEvent(CommentEventBase):
+    name = 'EAC Membership'
+    event_type = 'eac'
+
+
+class AlumnusEvent(CommentEventBase):
+    name = 'SFU Alumnus'
+    event_type = 'alumnus'
+
+
+class FieldEvent(CommentEventBase):
+    name = 'Field Background'
+    event_type = 'field'
+
+class NotesEvent(CommentEventBase):
+    name = 'Notes'
+    event_type = 'notes'

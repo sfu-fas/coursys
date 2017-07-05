@@ -8,6 +8,7 @@
 {% block subbreadcrumbs %}
     <li><a href="{% url 'relationships:index' %}">Relationships</a></li>
     <li><a href="{% url 'relationships:view_contact' contact_slug=contact.slug%}">{{ contact.name }}</a></li>
+    <li><a href="{% url 'relationships:list_events' contact_slug=contact.slug %}">Add Event</a></li>
 {% endblock %}
 
 {% block content %}
