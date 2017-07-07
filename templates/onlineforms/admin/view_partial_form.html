@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-{% if is_advisor %}
+{% if is_advisor and form_sub.initiator.sfuFormFiller %}
 <li><a href="{% url "advising:advising" %}">Advising</a></li>
 <li><a href="{% url "advising:student_notes" userid=form_sub.initiator.sfuFormFiller.userid_or_emplid %}">{{ form_sub.initiator.sfuFormFiller.name }}</a></li>
 <li>View {{ form.title }}</li>
