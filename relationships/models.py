@@ -34,6 +34,7 @@ EVENT_HANDLERS = [
     PartnershipEvent,
     RelationshipEvent
 ]
+
 EVENT_TYPES = {handler.event_type: handler for handler in EVENT_HANDLERS}
 EVENT_CHOICES = [(cls.event_type, cls) for cls in sorted(EVENT_HANDLERS)]
 
@@ -77,7 +78,7 @@ class Contact(models.Model):
 
 class Event(models.Model):
     contact = models.ForeignKey(Contact, null=False, blank=False)
-    event_type = models.CharField(max_length=10, choices=EVENT_CHOICES)
+    event_type = models.CharField(max_length=25, choices=EVENT_CHOICES)
     timestamp = models.DateTimeField(default=datetime.datetime.now, editable=False)
     deleted = models.BooleanField(default=False)
     config = JSONField(default=dict)
