@@ -62,7 +62,7 @@ function confirmDelete() {
         {% for event in events %}
             <tr>
                 <td>{{ event.get_handler_name }}</td>
-                <td>{{ event.timestamp }}</td>
+                <td><span class="sort">{{ event.timestamp.isoformat }}</span>{{ event.timestamp }}</td>
                 <td><form class="lineform" method="POST"
                           action="{% url 'relationships:delete_event' contact_slug=contact.slug event_slug=event.slug %}"
                           onsubmit="return confirmDelete()">
