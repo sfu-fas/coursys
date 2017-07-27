@@ -14,7 +14,7 @@
 <ul>
   {% for event in events %}
   <li>
-      <a href="{% url 'relationships:add_event' contact_slug=contact.slug event_slug=event.slug %}">{{ event.name }}</a>
+      <a href="{% url 'relationships:add_event' contact_slug=contact.slug handler_slug=event.slug %}">{{ event.name }}</a>
   </li>
   {% endfor %}
 </ul>

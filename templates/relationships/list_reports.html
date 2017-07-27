@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Content Type Report{% endblock %}
+{% block h1 %}Content Type Report{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url 'relationships:index' %}">Relationships</a></li>
+    <li>Content Type Reports</li>
+{% endblock %}
+
+{% block content %}
+<p>Select the content type for which to see a report:</p>
+<ul>
+  {% for event in events %}
+  <li>
+      <a href="{% url 'relationships:event_report' handler_slug=event.slug %}">{{ event.name }}</a>
+  </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

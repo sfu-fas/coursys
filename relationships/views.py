@@ -100,11 +100,16 @@ def list_events(request, contact_slug):
     events = _get_event_types()
     return render(request, 'relationships/list_events.html', {'contact': contact, 'events': events})
 
+@requires_role('RELA')
+def list_reports(request):
+    events = _get_event_types()
+    return render(request, 'relationships/list_reports.html', {'events': events})
+
 
 @requires_role('RELA')
-def add_event(request, contact_slug, event_slug):
+def add_event(request, contact_slug, handler_slug):
     contact = get_object_or_404(Contact, slug=contact_slug, unit__in=request.units)
-    handler = _get_handler_or_404(event_slug)
+    handler = _get_handler_or_404(handler_slug)
     if request.method == 'POST':
         form = handler.EntryForm(data=request.POST, files=request.FILES)
         # If the form has a file field, we should put the file data back in there. 
@@ -130,7 +135,7 @@ def add_event(request, contact_slug, event_slug):
 
     else:
         form = handler.EntryForm()
-    return render(request, 'relationships/add_event.html', {'form': form, 'contact': contact, 'event_slug': event_slug})
+    return render(request, 'relationships/add_event.html', {'form': form, 'contact': contact, 'handler_slug': handler_slug})
 
 
 @requires_role('RELA')
@@ -167,3 +172,14 @@ def delete_event(request, contact_slug, event_slug):
                      related_object=event)
         l.save()
         return HttpResponseRedirect(reverse('relationships:view_contact', kwargs={'contact_slug': contact_slug}))
+
+
+@requires_role('RELA')
+def event_report(request, handler_slug):
+    handler = _get_handler_or_404(handler_slug)
+    events = Event.objects.filter(event_type=handler_slug, contact__unit__in=request.units).select_related('contact')
+    handler_name = handler.name
+    is_text = handler.text_content
+
+    return render(request, 'relationships/view_event_report.html', {'events': events, 'handler_name': handler_name,
+                                                                    'is_text': is_text})
