@@ -12,6 +12,10 @@ def move_file(model, storage, field_name, field, o):
     fld = getattr(o, field_name)
 
     old_loc = fld.name
+    if not old_loc:
+        # null in optional field: nothing to do.
+        return
+
     new_loc = field.upload_to(o, os.path.split(old_loc)[1])
     old_loc_full = storage.path(old_loc)
     new_loc_full = storage.path(new_loc)
