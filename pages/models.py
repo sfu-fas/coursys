@@ -11,7 +11,7 @@ from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.text import normalize_newlines
 import creoleparser, pytz
-import os, datetime, re, difflib, json
+import os, datetime, re, difflib, json, uuid
 
 WRITE_ACL_CHOICES = [
     ('NONE', 'nobody'),
@@ -51,8 +51,7 @@ def attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
             instance.page.offering.slug,
-            "pagefiles", 
-            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.editor.person.userid),
+            "pagefiles-" + str(uuid.uuid1()),
             filename.encode('ascii', 'ignore'))
     return fullpath
 

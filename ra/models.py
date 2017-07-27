@@ -12,7 +12,7 @@ from django.template import Context
 from django.core.mail import EmailMultiAlternatives
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-import datetime, os
+import datetime, os, uuid
 
 
 HIRING_CATEGORY_CHOICES = (
@@ -408,9 +408,7 @@ def ra_attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
         'raattachments',
-        instance.appointment.person.userid_or_emplid(),
-        str(instance.appointment.id),
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        instance.appointment.person.userid_or_emplid() + '-' + str(uuid.uuid1()),
         filename.encode('ascii', 'ignore'))
     return fullpath
 

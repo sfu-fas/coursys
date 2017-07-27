@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load contact_display %}
+
+{% block title %}{{ handler_name }} Report{% endblock %}
+{% block h1 %}{{ handler_name }} Report{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url 'relationships:index' %}">Relationships</a></li>
+    <li>Content Type Reports</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#events').dataTable({
+        'bPaginate': false,
+        'bInfo': false,
+        'bLengthChange': false,
+        "bJQueryUI": true,
+        'aaSorting': [[2, 'asc']]
+    });
+});
+
+function confirmDelete() {
+  return confirm("Are you sure you want to delete this content?");
+}
+</script>
+{% endblock %}
+
+{% block content %}
+    {% if events %}
+        <table id="events" class="display">
+            <thead>
+                <tr>
+                    <td>Contact</td>
+                    {% if is_text %}
+                        <td>Content</td>
+                    {% endif %}
+                    <td>Added</td>
+                    <td>Actions</td>
+                </tr>
+            </thead>
+        {% for event in events %}
+            <tr>
+                <td><a href = "{% url 'relationships:view_contact' contact_slug=event.contact.slug %}" title='View Contact'>{{ event.contact.name }}</a></td>
+                {% if is_text %}
+                    <td>{{ event|get_event_value_direct:'content'|linebreaks }}</td>
+                {% endif %}
+                <td><span class="sort">{{ event.timestamp.isoformat }}</span>{{ event.timestamp }}</td>
+                <td>
+                    <form class="lineform" method="POST"
+                              action="{% url 'relationships:delete_event' contact_slug=event.contact.slug event_slug=event.slug %}"
+                              onsubmit="return confirmDelete()">
+                            {% csrf_token %}
+                            <button type='submit' class='btn' title="Delete Content">
+                                <i class='fa fa-trash-o'></i>
+                            </button>
+                        </form>
+                        <form class="lineform" method="GET"
+                            action="{% url "relationships:view_event" contact_slug=event.contact.slug event_slug=event.slug %}">
+                            <button type='submit' class='btn' title="View Content">
+                                <i class='fa fa-edit'></i>
+                            </button>
+                        </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <h2>There is no content of that type to display.</h2>
+    {% endif %}
+{% endblock %}

@@ -17,7 +17,7 @@ from django.template import Context
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
 from django.utils import timezone
-import datetime, random, hashlib, itertools, collections
+import datetime, random, hashlib, itertools, collections, uuid
 
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField, DateSelectField
@@ -982,8 +982,7 @@ def attachment_upload_to(instance, filename):
     fullpath = os.path.join(
             'forms',
             instance.field_submission.sheet_submission.form_submission.form.slug,
-            instance.field_submission.sheet_submission.form_submission.slug,
-            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.field_submission_id),
+            str(uuid.uuid1()),
             filename.encode('ascii', 'ignore'))
     return fullpath
 

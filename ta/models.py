@@ -9,7 +9,7 @@ from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
 from autoslug import AutoSlugField
-import decimal, datetime
+import decimal, datetime, uuid
 from numbers import Number
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
@@ -401,31 +401,18 @@ class Skill(models.Model):
         return "%s in %s" % (self.name, self.posting)
 
 
-def _resume_upload_to(instance, filename):
+def _file_upload_to(instance, filename):
     """
     path to upload TA Application resume
     """
     fullpath = os.path.join(
         'ta_applications',
-        instance.person.userid,
-        "_resume",
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        str(uuid.uuid1()),
         filename.encode('ascii', 'ignore'))
     return fullpath
 
-
-def _transcript_upload_to(instance, filename):
-    """
-    path to upload TA Application resume
-    """
-    fullpath = os.path.join(
-        'ta_applications',
-        instance.person.userid,
-        "_transcript",
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
-
+_resume_upload_to = _file_upload_to
+_transcript_upload_to = _file_upload_to
 
 class TAApplication(models.Model):
     """

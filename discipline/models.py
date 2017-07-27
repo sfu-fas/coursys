@@ -13,7 +13,7 @@ from django.utils.text import wrap
 from django.conf import settings
 #from django.shortcuts import get_object_or_404
 from courselib.slugs import make_slug
-import string, os, datetime, json
+import string, os, datetime, json, uuid
 
 CONTACT_CHOICES = (
         ('NONE', 'Not yet contacted'),
@@ -672,9 +672,7 @@ def _disc_upload_to(instance, filename):
     """
     fullpath = os.path.join(
         instance.case.offering.slug,
-        "_discipline",
-        str(instance.case.id),
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        'discipline-' + str(uuid.uuid1()),
         filename.encode('ascii', 'ignore'))
     return fullpath
 

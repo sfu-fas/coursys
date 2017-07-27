@@ -4,6 +4,7 @@ import csv
 import os
 import re
 import copy
+import uuid
 
 from django.db import models
 from django.db.models import Q
@@ -443,9 +444,7 @@ def attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
         'faculty',
-        instance.career_event.person.userid_or_emplid(),
-        instance.career_event.slug,
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        instance.career_event.person.userid_or_emplid() + '-' + str(uuid.uuid1()),
         filename.encode('ascii', 'ignore'))
     return fullpath
 
@@ -456,8 +455,7 @@ def position_attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
         'faculty',
-        str(instance.position.id),
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        'position-' + str(uuid.uuid1()),
         filename.encode('ascii', 'ignore'))
     return fullpath
 

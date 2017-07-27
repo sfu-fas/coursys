@@ -9,6 +9,7 @@ class EventBase(object):
     name = ''
     event_type = ''
     TO_HTML_TEMPLATE = ''
+    text_content = False
 
     def __init__(self, event):
         self.event = event
@@ -92,6 +93,7 @@ class CommentEventBase(EventBase):
     """
     name = ''
     event_type = ''
+    text_content = True
 
     TO_HTML_TEMPLATE = """{% load contact_display %}<div>
         {{ handler|get_event_value:'content'|linebreaks }}</div>"""
