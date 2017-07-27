@@ -15,7 +15,7 @@ class Command(BaseCommand):
         parser.add_argument('field', type=str, help='the FileField in the model')
 
     def handle(self, *args, **options):
-        raise NotImplementedError("This isn't even close to done.")
+        raise NotImplementedError("This needs more testing.")
         app_name = options['app']
         model_name = options['model']
         field_name = options['field']
@@ -24,14 +24,21 @@ class Command(BaseCommand):
         fields = model._meta.get_fields()
         matching_fields = [f for f in fields if isinstance(f, models.FileField) and f.name == field_name]
         field = matching_fields[0]
+        storage = field.storage
 
         for o in model.objects.all():
             fld = getattr(o, field_name)
             old_loc = fld.file.name
             new_loc = field.upload_to(o, filename(old_loc))
+            new_loc_full = storage.path(new_loc)
+            newdir, newfile = os.path.split(new_loc_full)
             if old_loc == new_loc:
                 continue
 
-            print(new_loc)
-            print(os.path.split(new_loc))
+            # link/move/unlink ensures that this can be safely interrupted
+            os.makedirs(newdir)
+            os.link(old_loc, new_loc_full)
+            up = {field_name: new_loc}
+            model.objects.filter(pk=o.pk).update(**up) # avoid any .save() logic
+            os.remove(old_loc)
 
