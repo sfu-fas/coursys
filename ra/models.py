@@ -408,7 +408,7 @@ def ra_attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
         'raattachments',
-        str(uuid.uuid1()),
+        instance.appointment.person.userid_or_emplid() + '-' + str(uuid.uuid1()),
         filename.encode('ascii', 'ignore'))
     return fullpath
 

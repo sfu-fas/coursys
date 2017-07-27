@@ -9,7 +9,7 @@ from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
 from autoslug import AutoSlugField
-import decimal, datetime
+import decimal, datetime, uuid
 from numbers import Number
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
@@ -401,28 +401,13 @@ class Skill(models.Model):
         return "%s in %s" % (self.name, self.posting)
 
 
-def _resume_upload_to(instance, filename):
+def _file_upload_to(instance, filename):
     """
     path to upload TA Application resume
     """
     fullpath = os.path.join(
         'ta_applications',
-        instance.person.userid,
-        "_resume",
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
-
-
-def _transcript_upload_to(instance, filename):
-    """
-    path to upload TA Application resume
-    """
-    fullpath = os.path.join(
-        'ta_applications',
-        instance.person.userid,
-        "_transcript",
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        str(uuid.uuid1()),
         filename.encode('ascii', 'ignore'))
     return fullpath
 
@@ -450,10 +435,10 @@ class TAApplication(models.Model):
     comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
     rank = models.IntegerField(blank=False, default=0) 
     late = models.BooleanField(blank=False, default=False)
-    resume = models.FileField("Curriculum Vitae (CV)", storage=TASystemStorage, upload_to=_resume_upload_to, max_length=500,
+    resume = models.FileField("Curriculum Vitae (CV)", storage=TASystemStorage, upload_to=_file_upload_to, max_length=500,
                               blank=True, null=True, help_text='Please attach your Curriculum Vitae (CV).')
     resume_mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
-    transcript = models.FileField(storage=TASystemStorage, upload_to=_transcript_upload_to, max_length=500, blank=True,
+    transcript = models.FileField(storage=TASystemStorage, upload_to=_file_upload_to, max_length=500, blank=True,
                                   null=True, help_text='Please attach your unofficial transcript.')
     transcript_mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     admin_created = models.BooleanField(blank=False, default=False)

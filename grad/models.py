@@ -9,7 +9,7 @@ from courselib.json_fields import getter_setter
 from courselib.json_fields import JSONField
 from courselib.text import normalize_newlines, many_newlines
 from courselib.conditional_save import ConditionalSaveMixin
-import itertools, datetime, os
+import itertools, datetime, os, uuid
 import coredata.queries
 from django.conf import settings
 import django.db.transaction
@@ -1456,8 +1456,8 @@ def attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
             'gradnotes',
-            datetime.datetime.now().strftime("%Y-%m-%d"),
-                                             filename.encode('ascii', 'ignore'))
+            str(uuid.uuid1()),
+            filename.encode('ascii', 'ignore'))
     return fullpath
 
 

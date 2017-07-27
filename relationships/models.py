@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 import datetime
 import os
+import uuid
 
 from django.db import models
 from django.conf import settings
@@ -113,9 +114,7 @@ def attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
         'relationships',
-        instance.event.contact.unit.label,
-        instance.event.contact.last_name,
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        str(uuid.uuid1()),
         filename.encode('ascii', 'ignore'))
     return fullpath
 

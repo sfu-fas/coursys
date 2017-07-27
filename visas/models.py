@@ -1,5 +1,6 @@
 import os
 import datetime
+import uuid
 
 from autoslug import AutoSlugField
 from django.db import models
@@ -124,9 +125,7 @@ def visa_attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
         'visas',
-        instance.visa.person.userid_or_emplid(),
-        str(instance.visa.id),
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        instance.visa.person.userid_or_emplid() + '-' + str(uuid.uuid1()),
         filename.encode('ascii', 'ignore'))
     return fullpath
 

@@ -13,6 +13,7 @@ from courselib.slugs import make_slug
 from courselib.json_fields import JSONField
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+import uuid
 
 
 CATEGORY_CHOICES = {
@@ -153,8 +154,7 @@ def asset_attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
         'assets',
-        str(instance.asset.id),
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        str(uuid.uuid1()),
         filename.encode('ascii', 'ignore'))
     return fullpath
 

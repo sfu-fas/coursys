@@ -17,7 +17,7 @@ from autoslug import AutoSlugField
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
-import os, decimal, base64
+import os, decimal, base64, uuid
 
 MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
@@ -74,10 +74,9 @@ def attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
             instance.activity.offering.slug,
-            instance.activity.slug + "_marking",
-            datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.created_by),
+            str(uuid.uuid1()),
             filename.encode('ascii', 'ignore'))
-    return fullpath 
+    return fullpath
                 
 class ActivityMark(models.Model):
     """
