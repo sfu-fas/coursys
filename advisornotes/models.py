@@ -1,29 +1,19 @@
 from django.db import models
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 from coredata.models import Person, Unit, Course, CourseOffering
 from courselib.json_fields import JSONField
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines
+from courselib.storage import UploadedFileStorage, upload_path
 from datetime import date
 import datetime
 import os.path
 
-NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 
 def attachment_upload_to(instance, filename):
-    """
-    Take the filename, encode it in ascii, ignoring characters that don't
-    translate, then create a path for it, like: 
-    advisornotes/2011-01-04-12-30-88_advisorid/<filename>
-    """
-    fullpath = os.path.join(
-            'advisornotes',
-            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.advisor.userid),
-            filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('advisornotes', str(datetime.date.today().year), filename)
 
 
 class NonStudent(models.Model):
@@ -82,7 +72,7 @@ class AdvisorNote(models.Model):
                                 help_text='The advisor that created the note',
                                 editable=False)
     created_at = models.DateTimeField(default=datetime.datetime.now)
-    file_attachment = models.FileField(storage=NoteSystemStorage, null=True,
+    file_attachment = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note')
@@ -183,7 +173,7 @@ class ArtifactNote(models.Model):
     advisor = models.ForeignKey(Person, help_text='The advisor that created the note', editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     best_before = models.DateField(help_text='The effective date for this note', null=True, blank=True)
-    file_attachment = models.FileField(storage=NoteSystemStorage, null=True,
+    file_attachment = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note')

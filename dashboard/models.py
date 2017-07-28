@@ -9,8 +9,10 @@ from django.core.urlresolvers import reverse
 from autoslug.settings import slugify
 from courselib.json_fields import JSONField
 from courselib.branding import product_name
+from courselib.storage import UploadedFileStorage, upload_path
 import random, hashlib, os, datetime
 from textile import textile_restricted
+
 
 def _rfc_format(dt):
     """
@@ -202,18 +204,12 @@ class UserConfig(models.Model):
     def __unicode__(self):
         return "%s: %s='%s'" % (self.user.userid, self.key, self.value)
 
-from django.core.files.storage import FileSystemStorage
-SignatureStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 def _sig_upload_to(instance, filename):
     """
     path to upload case attachment
     """
-    fullpath = os.path.join(
-        "signatures",
-        str(instance.user.userid),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('signatures', filename)
 
 
 class Signature(models.Model):
@@ -221,7 +217,7 @@ class Signature(models.Model):
     User's signature (for letters)
     """
     user = models.ForeignKey(Person, null=False)
-    sig = models.FileField(upload_to=_sig_upload_to, storage=SignatureStorage, max_length=500)
+    sig = models.FileField(upload_to=_sig_upload_to, storage=UploadedFileStorage, max_length=500)
     resolution = 200 # expect 200 dpi images
     
     def __unicode__(self):
