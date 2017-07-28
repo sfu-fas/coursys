@@ -11,8 +11,8 @@ from django.db import models
 from django.utils import timezone
 from courselib.slugs import make_slug
 from courselib.json_fields import JSONField
+from courselib.storage import UploadedFileStorage, upload_path
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 import uuid
 
 
@@ -26,7 +26,6 @@ CATEGORY_CHOICES = {
     ('OFF', 'Office Supplies'),
 }
 
-AttachmentSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 class AssetQuerySet(models.QuerySet):
     """
@@ -149,14 +148,7 @@ class AssetChangeRecord(models.Model):
 
 
 def asset_attachment_upload_to(instance, filename):
-    """
-    callback to avoid path in the filename(that we have append folder structure to) being striped
-    """
-    fullpath = os.path.join(
-        'assets',
-        str(uuid.uuid1()),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('assets', filename)
 
 
 class AssetDocumentAttachmentQueryset(models.QuerySet):
@@ -173,7 +165,7 @@ class AssetDocumentAttachment(models.Model):
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('asset',))
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
-    contents = models.FileField(storage=AttachmentSystemStorage, upload_to=asset_attachment_upload_to, max_length=500)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=asset_attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
 

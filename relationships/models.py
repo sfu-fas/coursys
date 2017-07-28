@@ -5,12 +5,12 @@ import uuid
 
 from django.db import models
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 
 from coredata.models import Unit
 from courselib.json_fields import JSONField
 from courselib.slugs import make_slug
+from courselib.storage import UploadedFileStorage, upload_path
 
 from .handlers import EmployerEvent, QuoteEvent, PhotoEvent, ResumeEvent, AcknowledgementEvent, AlumnusEvent, \
     AwardEvent, EACEvent, FacultyConnectionEvent, FieldEvent, FollowUpEvent, FundingEvent, \
@@ -105,18 +105,9 @@ class Event(models.Model):
     def get_handler_name(self):
         return self.get_handler().name
 
-AttachmentSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
-
 
 def attachment_upload_to(instance, filename):
-    """
-    callback to avoid path in the filename(that we have append folder structure to) being striped
-    """
-    fullpath = os.path.join(
-        'relationships',
-        str(uuid.uuid1()),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('relationships', str(instance.event.timestamp.year), filename)
 
 
 class EventAttachmentManagerQuerySet(models.QuerySet):
@@ -132,7 +123,7 @@ class EventAttachment(models.Model):
     event = models.OneToOneField(Event, null=False, blank=False)
     slug = AutoSlugField(populate_from='mediatype', null=False, editable=False, unique_with=('event',))
     created_at = models.DateTimeField(auto_now_add=True)
-    contents = models.FileField(storage=AttachmentSystemStorage, upload_to=attachment_upload_to, max_length=500)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
 

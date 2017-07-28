@@ -9,18 +9,16 @@ from django.db.models import Max
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
 import os.path
-import uuid
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from courselib.slugs import make_slug
+from courselib.storage import upload_path, UploadedFileStorage
 
 STATUS_CHOICES = [
     ('NEW', 'New'),
     ('INP', 'In-Progress'),
     ('DON', 'Marked') ]
 
-from django.core.files.storage import FileSystemStorage
-SubmissionSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 # per-activity models, defined by instructor:
 
@@ -138,16 +136,8 @@ class GroupSubmission(Submission):
                 n.save()
 
 
-# parts of a submission, created as part of a student/group submission
 def submission_upload_path(instance, filename):
-    """
-    Return the filename to upload any submitted file.
-    """
-    fullpath = os.path.join(
-            instance.component.activity.offering.slug,
-            str(uuid.uuid1()),
-            filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path(instance.component.activity.offering.slug, instance.component.activity.slug, filename)
 
 
 class SubmittedComponent(models.Model):

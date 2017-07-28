@@ -9,15 +9,15 @@ from courselib.branding import product_name
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
+from courselib.storage import UploadedFileStorage, upload_path
 from django.db.models import Max
-from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
 from django.utils import timezone
-import datetime, random, hashlib, itertools, collections, uuid
+import datetime, random, hashlib, itertools, collections
 
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField, DateSelectField
@@ -973,24 +973,17 @@ class FieldSubmission(models.Model):
             return None
         
 
-FormSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
-
 def attachment_upload_to(instance, filename):
     """
     callback to avoid path in the filename(that we have append folder structure to) being striped
     """
-    fullpath = os.path.join(
-            'forms',
-            instance.field_submission.sheet_submission.form_submission.form.slug,
-            str(uuid.uuid1()),
-            filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('forms', instance.field_submission.sheet_submission.form_submission.form.slug, filename)
 
     
 class FieldSubmissionFile(models.Model):
     field_submission = models.OneToOneField(FieldSubmission)
     created_at = models.DateTimeField(default=datetime.datetime.now)
-    file_attachment = models.FileField(storage=FormSystemStorage, null=True,
+    file_attachment = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
     

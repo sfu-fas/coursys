@@ -1,5 +1,4 @@
 from django.db import models, transaction
-from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.core.cache import cache
@@ -10,6 +9,7 @@ from grades.models import Activity
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.text import normalize_newlines
+from courselib.storage import UploadedFileStorage, upload_path
 import creoleparser, pytz
 import os, datetime, re, difflib, json, uuid
 
@@ -44,16 +44,9 @@ MACRO_LABEL = 'MACROS' # special page that contain macro expansions for other pa
 label_re = re.compile("^[\w\-_\.]+$")
 macroline_re = re.compile("^(?P<key>\w+):\s*(?P<value>.*)\s*$")
 
-PageFilesStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
+
 def attachment_upload_to(instance, filename):
-    """
-    callback to avoid path in the filename(that we have append folder structure to) being striped 
-    """
-    fullpath = os.path.join(
-            instance.page.offering.slug,
-            "pagefiles-" + str(uuid.uuid1()),
-            filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path(instance.page.offering.slug, '_pagefiles', filename)
 
 
 class Page(models.Model):
@@ -224,7 +217,7 @@ class PageVersion(models.Model):
     wikitext = models.TextField(help_text='WikiCreole-formatted content of the page')
     diff = models.TextField(null=True, blank=True)
     diff_from = models.ForeignKey('PageVersion', null=True)
-    file_attachment = models.FileField(storage=PageFilesStorage, null=False, upload_to=attachment_upload_to, blank=False, max_length=500)
+    file_attachment = models.FileField(storage=UploadedFileStorage, null=False, upload_to=attachment_upload_to, blank=False, max_length=500)
     file_mediatype = models.CharField(null=False, blank=False, max_length=200)
     file_name = models.CharField(null=False, blank=False, max_length=200)
     redirect = models.CharField(null=True, blank=True, max_length=500) # URL to redirect to: may be an absolute URL or relative from the location of self.page

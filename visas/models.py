@@ -6,11 +6,11 @@ from autoslug import AutoSlugField
 from django.db import models
 
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 
 from coredata.models import VISA_STATUSES as REAL_VISA_STATUSES, Person, Unit
 from django.utils import timezone
 from courselib.json_fields import JSONField
+from courselib.storage import UploadedFileStorage, upload_path
 from coredata.models import Semester
 
 # "citizen" isn't truly a visa status, but it's something we want to track here.
@@ -18,8 +18,6 @@ from coredata.models import Semester
 VISA_STATUSES = (('Citizen', 'Citizen'), ('Work', 'Work Visa')) + REAL_VISA_STATUSES
 
 EXPIRY_STATUSES = ['Expired', 'Expiring Soon', 'Valid']
-
-NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 
 def timezone_today():
@@ -120,14 +118,7 @@ class Visa (models.Model):
 
 
 def visa_attachment_upload_to(instance, filename):
-    """
-    callback to avoid path in the filename(that we have append folder structure to) being striped
-    """
-    fullpath = os.path.join(
-        'visas',
-        instance.visa.person.userid_or_emplid() + '-' + str(uuid.uuid1()),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('visas', str(instance.visa.start_date.year), filename)
 
 
 class VisaDocumentAttachmentQueryset(models.QuerySet):
@@ -144,7 +135,7 @@ class VisaDocumentAttachment(models.Model):
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('visa',))
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
-    contents = models.FileField(storage=NoteSystemStorage, upload_to=visa_attachment_upload_to, max_length=500)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=visa_attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
 
