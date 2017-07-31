@@ -9,6 +9,17 @@
     <li>Content Type Reports</li>
 {% endblock %}
 
+{% block actions %}
+    {% if events %}
+    <div id="actions">
+        <h2>Actions</h2>
+        <ul>
+            <li><a href="{% url "relationships:event_report_download" handler_slug=handler_slug %}">Download CSV</a></li>
+        </ul>
+    </div>
+    {% endif %}
+{% endblock %}
+
 {% block headextra %}
 <script type="text/javascript">
 $(document).ready(function() {
