@@ -105,6 +105,12 @@ class Event(models.Model):
     def get_handler_name(self):
         return self.get_handler().name
 
+    def get_config_value(self, field):
+        if field in self.config:
+            return self.config.get(field)
+        else:
+            return None
+
 
 def attachment_upload_to(instance, filename):
     return upload_path('relationships', str(instance.event.timestamp.year), filename)

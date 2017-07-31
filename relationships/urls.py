@@ -19,5 +19,5 @@ relationship_patterns = [ # prefix /relationships/
     url(r'^' + CONTACT_SLUG + '/' + EVENT_SLUG + '/delete/', rel_views.delete_event, name='delete_event'),
     url(r'^list_reports$', rel_views.list_reports, name='list_reports'),
     url(r'^' + HANDLER_SLUG + '/report/', rel_views.event_report, name='event_report'),
-
+    url(r'^' + HANDLER_SLUG + '/report_csv/', rel_views.event_report_download, name='event_report_download'),
 ]
