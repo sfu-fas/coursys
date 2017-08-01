@@ -1,15 +1,16 @@
 from __future__ import unicode_literals
 import datetime
 import os
+import uuid
 
 from django.db import models
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 
 from coredata.models import Unit
 from courselib.json_fields import JSONField
 from courselib.slugs import make_slug
+from courselib.storage import UploadedFileStorage, upload_path
 
 from .handlers import EmployerEvent, QuoteEvent, PhotoEvent, ResumeEvent, AcknowledgementEvent, AlumnusEvent, \
     AwardEvent, EACEvent, FacultyConnectionEvent, FieldEvent, FollowUpEvent, FundingEvent, \
@@ -34,6 +35,7 @@ EVENT_HANDLERS = [
     PartnershipEvent,
     RelationshipEvent
 ]
+
 EVENT_TYPES = {handler.event_type: handler for handler in EVENT_HANDLERS}
 EVENT_CHOICES = [(cls.event_type, cls) for cls in sorted(EVENT_HANDLERS)]
 
@@ -77,7 +79,7 @@ class Contact(models.Model):
 
 class Event(models.Model):
     contact = models.ForeignKey(Contact, null=False, blank=False)
-    event_type = models.CharField(max_length=10, choices=EVENT_CHOICES)
+    event_type = models.CharField(max_length=25, choices=EVENT_CHOICES)
     timestamp = models.DateTimeField(default=datetime.datetime.now, editable=False)
     deleted = models.BooleanField(default=False)
     config = JSONField(default=dict)
@@ -103,20 +105,15 @@ class Event(models.Model):
     def get_handler_name(self):
         return self.get_handler().name
 
-AttachmentSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
+    def get_config_value(self, field):
+        if field in self.config:
+            return self.config.get(field)
+        else:
+            return None
 
 
 def attachment_upload_to(instance, filename):
-    """
-    callback to avoid path in the filename(that we have append folder structure to) being striped
-    """
-    fullpath = os.path.join(
-        'relationships',
-        instance.event.contact.unit.label,
-        instance.event.contact.last_name,
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('relationships', str(instance.event.timestamp.year), filename)
 
 
 class EventAttachmentManagerQuerySet(models.QuerySet):
@@ -132,7 +129,7 @@ class EventAttachment(models.Model):
     event = models.OneToOneField(Event, null=False, blank=False)
     slug = AutoSlugField(populate_from='mediatype', null=False, editable=False, unique_with=('event',))
     created_at = models.DateTimeField(auto_now_add=True)
-    contents = models.FileField(storage=AttachmentSystemStorage, upload_to=attachment_upload_to, max_length=500)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
 

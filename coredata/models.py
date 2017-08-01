@@ -1619,9 +1619,9 @@ class Role(models.Model):
 
         mail = EmailMessage(
             subject=product_name(hint='admin') + ' roles expiring',
-            message=message,
+            body=message,
             from_email=help_email(hint='admin'),
-            recipient_list=recipients,
+            to=recipients,
             cc=cc,
         )
         mail.send()

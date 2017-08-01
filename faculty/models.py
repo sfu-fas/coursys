@@ -4,6 +4,7 @@ import csv
 import os
 import re
 import copy
+import uuid
 
 from django.db import models
 from django.db.models import Q
@@ -19,6 +20,7 @@ from coredata.models import Unit, Person, Semester, Role, AnyPerson
 from courselib.json_fields import config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
+from courselib.storage import UploadedFileStorage, upload_path
 from cache_utils.decorators import cached
 
 from faculty.event_types.awards import FellowshipEventHandler
@@ -434,32 +436,13 @@ class CareerEvent(models.Model):
     def has_attachments(self):
         return DocumentAttachment.objects.filter(career_event=self, hidden=False).count() > 0
 
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
-NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
+
 def attachment_upload_to(instance, filename):
-    """
-    callback to avoid path in the filename(that we have append folder structure to) being striped
-    """
-    fullpath = os.path.join(
-        'faculty',
-        instance.career_event.person.userid_or_emplid(),
-        instance.career_event.slug,
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('faculty', str(instance.career_event.start_date.year), filename)
 
 
 def position_attachment_upload_to(instance, filename):
-    """
-    callback to avoid path in the filename(that we have append folder structure to) being striped
-    """
-    fullpath = os.path.join(
-        'faculty',
-        str(instance.position.id),
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('faculty', 'positions', filename)
 
 
 class DocumentAttachmentManager(models.Manager):
@@ -477,7 +460,7 @@ class DocumentAttachment(models.Model):
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('career_event',))
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
-    contents = models.FileField(storage=NoteSystemStorage, upload_to=attachment_upload_to, max_length=500)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
 
@@ -932,7 +915,7 @@ class PositionDocumentAttachment(models.Model):
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('position',))
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
-    contents = models.FileField(storage=NoteSystemStorage, upload_to=position_attachment_upload_to, max_length=500)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=position_attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
 

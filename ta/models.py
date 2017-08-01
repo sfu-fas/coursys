@@ -3,19 +3,19 @@ from django.db import models
 from django.db.models import Sum
 from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from ra.models import Account
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
 from autoslug import AutoSlugField
-import decimal, datetime
+import decimal, datetime, uuid
 from numbers import Number
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from creoleparser import text2html
+from courselib.storage import UploadedFileStorage, upload_path
 
 import bu_rules
 
@@ -26,7 +26,6 @@ LAB_PREP_HOURS = 13 # min hours of prep for courses with tutorials/labs
 
 HOLIDAY_HOURS_PER_BU = decimal.Decimal('1.1')
 
-TASystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 def _round_hours(val):
     "Round to two decimal places because... come on."
@@ -401,31 +400,15 @@ class Skill(models.Model):
         return "%s in %s" % (self.name, self.posting)
 
 
-def _resume_upload_to(instance, filename):
+def _file_upload_to(instance, filename):
     """
     path to upload TA Application resume
     """
-    fullpath = os.path.join(
-        'ta_applications',
-        instance.person.userid,
-        "_resume",
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('ta_applications', instance.posting.semester.name, filename)
 
 
-def _transcript_upload_to(instance, filename):
-    """
-    path to upload TA Application resume
-    """
-    fullpath = os.path.join(
-        'ta_applications',
-        instance.person.userid,
-        "_transcript",
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
-
+_resume_upload_to = _file_upload_to
+_transcript_upload_to = _file_upload_to
 
 class TAApplication(models.Model):
     """
@@ -450,10 +433,10 @@ class TAApplication(models.Model):
     comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
     rank = models.IntegerField(blank=False, default=0) 
     late = models.BooleanField(blank=False, default=False)
-    resume = models.FileField("Curriculum Vitae (CV)", storage=TASystemStorage, upload_to=_resume_upload_to, max_length=500,
+    resume = models.FileField("Curriculum Vitae (CV)", storage=UploadedFileStorage, upload_to=_resume_upload_to, max_length=500,
                               blank=True, null=True, help_text='Please attach your Curriculum Vitae (CV).')
     resume_mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
-    transcript = models.FileField(storage=TASystemStorage, upload_to=_transcript_upload_to, max_length=500, blank=True,
+    transcript = models.FileField(storage=UploadedFileStorage, upload_to=_transcript_upload_to, max_length=500, blank=True,
                                   null=True, help_text='Please attach your unofficial transcript.')
     transcript_mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     admin_created = models.BooleanField(blank=False, default=False)

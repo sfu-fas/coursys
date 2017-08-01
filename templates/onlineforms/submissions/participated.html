@@ -42,9 +42,9 @@ $(document).ready(function() {
                 <td>{{ sheet_sub.form_submission.form.unit }}</td>
                 <td><a href="{% url "onlineforms:sheet_submission_subsequent" form_slug=sheet_sub.form_submission.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheet_slug=sheet_sub.sheet.slug sheetsubmit_slug=sheet_sub.slug %}">{{ sheet_sub.sheet.title }}</a></td>
                 <td>{{ sheet_sub.form_submission.initiator }}</td>
-                <td>{{ sheet_sub.form_submission.last_sheet_completion }}</td>
-                <td>{{ sheet_sub.given_at }}</td>
-                <td>{{ sheet_sub.completed_at }}</td>
+                <td><span class="sort">{{ sheet_sub.form_submission.last_sheet_completion.isoformat }}</span>{{ sheet_sub.form_submission.last_sheet_completion }}</td>
+                <td><span class="sort">{{ sheet_sub.given_at.isoformat }}</span>{{ sheet_sub.given_at }}</td>
+                <td><span class="sort">{{ sheet_sub.completed_at.isoformat }}</span>{{ sheet_sub.completed_at }}</td>
             </tr>
         {% endfor %}
         </tbody>

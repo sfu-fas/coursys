@@ -1,18 +1,16 @@
 from django.db import models
 from coredata.models import Person, Member, CourseOffering, Role
 from grades.models import Activity
-#from django.http import Http404
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.core.urlresolvers import reverse
 from django.template.loader import render_to_string
 from autoslug import AutoSlugField
-from django.core.files.storage import FileSystemStorage
 from django.utils.text import wrap
 from django.conf import settings
-#from django.shortcuts import get_object_or_404
 from courselib.slugs import make_slug
+from courselib.storage import UploadedFileStorage, upload_path
 import string, os, datetime, json
 
 CONTACT_CHOICES = (
@@ -57,7 +55,6 @@ SS_STATE_CHOICES = (
         )
 PRE_LETTER_STEPS = ['related', 'attach', 'notes', 'contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'penalty'] # These fields affect the letter: if they are changed, letter must be re-reviewed; after letter sent, can't be changed.
 
-DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 STEP_VIEW = { # map of field/form -> view function ("edit_foo") that is used to edit it.
         'notes': 'notes',
@@ -670,13 +667,8 @@ def _disc_upload_to(instance, filename):
     """
     path to upload case attachment
     """
-    fullpath = os.path.join(
-        instance.case.offering.slug,
-        "_discipline",
-        str(instance.case.id),
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path(instance.case.offering.slug, '_discipline', filename)
+
 
 class CaseAttachment(models.Model):
     """
@@ -685,7 +677,7 @@ class CaseAttachment(models.Model):
 
     case = models.ForeignKey(DisciplineCaseBase)
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name", help_text="Identifying name for the attachment")
-    attachment = models.FileField(upload_to=_disc_upload_to, max_length=500, verbose_name="File", storage=DisciplineSystemStorage)
+    attachment = models.FileField(upload_to=_disc_upload_to, max_length=500, verbose_name="File", storage=UploadedFileStorage)
     mediatype = models.CharField(null=True, blank=True, max_length=200)
     public = models.BooleanField(default=True, verbose_name="Public?", 
             help_text='Public files will be included in correspondence with student. Private files will be retained as information about the case.')

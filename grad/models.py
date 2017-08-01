@@ -1,7 +1,6 @@
 from django.db import models
 from django.core.cache import cache
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, Member
-from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 from cache_utils.decorators import cached
 from courselib.slugs import make_slug
@@ -9,7 +8,8 @@ from courselib.json_fields import getter_setter
 from courselib.json_fields import JSONField
 from courselib.text import normalize_newlines, many_newlines
 from courselib.conditional_save import ConditionalSaveMixin
-import itertools, datetime, os
+from courselib.storage import UploadedFileStorage, upload_path
+import itertools, datetime, os, uuid
 import coredata.queries
 from django.conf import settings
 import django.db.transaction
@@ -1444,28 +1444,15 @@ class ProgressReport(models.Model):
                                              self.get_result_display())
 
 
-GradSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, 
-                                      base_url=None)
-
-
 def attachment_upload_to(instance, filename):
-    """
-    Take the filename, encode it in ascii, ignoring characters that don't
-    translate, then create a path for it, like: 
-    gradnotes/2011-01-04/<filename>
-    """
-    fullpath = os.path.join(
-            'gradnotes',
-            datetime.datetime.now().strftime("%Y-%m-%d"),
-                                             filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('gradnotes', str(datetime.date.today().year), filename)
 
 
 class ExternalDocument(models.Model):
     student = models.ForeignKey(GradStudent)
     name = models.CharField(max_length=100, null=False,
                             help_text="A short description of what this file contains.")
-    file_attachment = models.FileField(storage=GradSystemStorage, 
+    file_attachment = models.FileField(storage=UploadedFileStorage,
                                        upload_to=attachment_upload_to,
                                        max_length=500)
     file_mediatype = models.CharField(max_length=200, 

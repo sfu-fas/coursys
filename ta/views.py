@@ -1596,6 +1596,16 @@ def _by_start_semester(gradstudent):
 
 @requires_role("TAAD")
 def generate_csv(request, post_slug):
+    # An even shorter Campus name, for smaller columns in the CSV.
+    CAMPUS_CHOICES_SHORTENED = (
+        ('BRNBY', 'BBY'),
+        ('SURRY', 'SRY'),
+        ('VANCR', 'VCR'),
+        ('OFFST', 'OFF'),
+        ('GNWC', 'GNW'),
+        ('METRO', 'OTHR'),
+    )
+    CAMPUSES_SHORTENED = dict(CAMPUS_CHOICES_SHORTENED)
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).exclude(component='CAN').select_related('course')
@@ -1624,7 +1634,7 @@ def generate_csv(request, post_slug):
     csvWriter.writerow(off)
     
     # next row: campuses
-    off = ['']*11 + [str(o.campus) for o in offerings]
+    off = ['']*12 + [str(CAMPUSES_SHORTENED[o.campus]) for o in offerings]
     csvWriter.writerow(off)
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')

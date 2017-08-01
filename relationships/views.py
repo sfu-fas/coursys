@@ -2,12 +2,14 @@ import operator
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-from django.http import Http404, StreamingHttpResponse
+from django.http import Http404, StreamingHttpResponse, HttpResponse
 from courselib.auth import requires_role
 from forms import ContactForm
 from log.models import LogEntry
 from models import Contact, Event, EVENT_CHOICES, EVENT_HANDLERS, EVENT_TYPES
 from handlers import FileEventBase
+import unicodecsv as csv
+from datetime import datetime
 
 
 def _get_handler_or_404(handler_slug):
@@ -100,11 +102,16 @@ def list_events(request, contact_slug):
     events = _get_event_types()
     return render(request, 'relationships/list_events.html', {'contact': contact, 'events': events})
 
+@requires_role('RELA')
+def list_reports(request):
+    events = _get_event_types()
+    return render(request, 'relationships/list_reports.html', {'events': events})
+
 
 @requires_role('RELA')
-def add_event(request, contact_slug, event_slug):
+def add_event(request, contact_slug, handler_slug):
     contact = get_object_or_404(Contact, slug=contact_slug, unit__in=request.units)
-    handler = _get_handler_or_404(event_slug)
+    handler = _get_handler_or_404(handler_slug)
     if request.method == 'POST':
         form = handler.EntryForm(data=request.POST, files=request.FILES)
         # If the form has a file field, we should put the file data back in there. 
@@ -130,7 +137,7 @@ def add_event(request, contact_slug, event_slug):
 
     else:
         form = handler.EntryForm()
-    return render(request, 'relationships/add_event.html', {'form': form, 'contact': contact, 'event_slug': event_slug})
+    return render(request, 'relationships/add_event.html', {'form': form, 'contact': contact, 'handler_slug': handler_slug})
 
 
 @requires_role('RELA')
@@ -167,3 +174,44 @@ def delete_event(request, contact_slug, event_slug):
                      related_object=event)
         l.save()
         return HttpResponseRedirect(reverse('relationships:view_contact', kwargs={'contact_slug': contact_slug}))
+
+
+@requires_role('RELA')
+def event_report(request, handler_slug):
+    handler = _get_handler_or_404(handler_slug)
+    events = Event.objects.filter(event_type=handler_slug, contact__unit__in=request.units).select_related('contact')
+    handler_name = handler.name
+    is_text = handler.text_content
+    return render(request, 'relationships/view_event_report.html', {'events': events, 'handler_name': handler_name,
+                                                                    'is_text': is_text, 'handler_slug': handler_slug})
+
+
+@requires_role('RELA')
+def event_report_download(request, handler_slug):
+    handler = _get_handler_or_404(handler_slug)
+    events = Event.objects.filter(event_type=handler_slug, contact__unit__in=request.units).select_related('contact')
+    is_text = handler.text_content
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="content_report-%s-%s.csv"' % (handler.event_type,
+                                                                                       datetime.now().strftime('%Y%m%d'))
+    writer = csv.writer(response)
+    row = ['Contact']
+    if is_text:
+        row.append('Content')
+    else:
+        row.append('Link to content')
+    row.append('Date')
+    writer.writerow(row)
+    for e in events:
+        row = [e.contact.name()]
+        if is_text:
+            row.append(e.get_config_value('content'))
+        else:
+            row.append(request.build_absolute_uri(reverse('relationships:view_event',
+                                                          kwargs={'contact_slug': e.contact.slug,
+                                                                  'event_slug': e.slug})))
+        row.append(e.timestamp)
+        writer.writerow(row)
+
+    return response
+

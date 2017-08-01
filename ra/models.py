@@ -7,12 +7,12 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from grad.models import Scholarship
 from courselib.text import normalize_newlines
+from courselib.storage import UploadedFileStorage, upload_path
 from django.template.loader import get_template
 from django.template import Context
 from django.core.mail import EmailMultiAlternatives
-from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-import datetime, os
+import datetime, os, uuid
 
 
 HIRING_CATEGORY_CHOICES = (
@@ -49,8 +49,6 @@ PAY_FREQUENCY_CHOICES = (
 # the Summer semester from being split into two equal-pay
 # chunks. 
 SEMESTER_SLIDE = 15
-
-NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 
 class ProgramQueryset(models.QuerySet):
@@ -403,16 +401,7 @@ class RAAppointment(models.Model):
 
 
 def ra_attachment_upload_to(instance, filename):
-    """
-    callback to avoid path in the filename(that we have append folder structure to) being striped
-    """
-    fullpath = os.path.join(
-        'raattachments',
-        instance.appointment.person.userid_or_emplid(),
-        str(instance.appointment.id),
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('raattachments', str(instance.appointment.start_date.year), filename)
 
 
 class RAAppointmentAttachmentQueryset(models.QuerySet):
@@ -429,7 +418,7 @@ class RAAppointmentAttachment(models.Model):
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('appointment',))
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
-    contents = models.FileField(storage=NoteSystemStorage, upload_to=ra_attachment_upload_to, max_length=500)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=ra_attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
 

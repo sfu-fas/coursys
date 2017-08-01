@@ -12,14 +12,13 @@ import os.path
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from courselib.slugs import make_slug
+from courselib.storage import upload_path, UploadedFileStorage
 
 STATUS_CHOICES = [
     ('NEW', 'New'),
     ('INP', 'In-Progress'),
     ('DON', 'Marked') ]
 
-from django.core.files.storage import FileSystemStorage
-SubmissionSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 # per-activity models, defined by instructor:
 
@@ -137,20 +136,8 @@ class GroupSubmission(Submission):
                 n.save()
 
 
-# parts of a submission, created as part of a student/group submission
-
 def submission_upload_path(instance, filename):
-    """
-    Return the filename to upload any submitted file.
-    """
-    fullpath = os.path.join(
-            instance.component.activity.offering.slug,
-            instance.component.activity.slug,
-            instance.submission.file_slug(),
-            instance.submission.created_at.strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.submission.id),
-            instance.component.slug,
-            filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path(instance.component.activity.offering.slug, instance.component.activity.slug, filename)
 
 
 class SubmittedComponent(models.Model):

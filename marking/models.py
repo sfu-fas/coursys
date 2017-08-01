@@ -12,14 +12,13 @@ from datetime import datetime
 from django.db.models import Q
 from submission.models import select_all_components
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
-import os, decimal, base64
+from courselib.storage import UploadedFileStorage, upload_path
+import os, decimal, base64, uuid
 
-MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 class ActivityComponent(models.Model):
     """    
@@ -69,16 +68,9 @@ class CommonProblem(models.Model):
 
 
 def attachment_upload_to(instance, filename):
-    """
-    callback to avoid path in the filename(that we have append folder structure to) being striped 
-    """
-    fullpath = os.path.join(
-            instance.activity.offering.slug,
-            instance.activity.slug + "_marking",
-            datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.created_by),
-            filename.encode('ascii', 'ignore'))
-    return fullpath 
-                
+    return upload_path(instance.activity.offering.slug, '_marking', filename)
+
+
 class ActivityMark(models.Model):
     """
     General Marking class for one numeric activity 
@@ -87,7 +79,7 @@ class ActivityMark(models.Model):
     late_penalty = models.DecimalField(max_digits=5, decimal_places=2, null=True, default=0, blank=True, help_text='Percentage to deduct from the total due to late submission')
     mark_adjustment = models.DecimalField(max_digits=8, decimal_places=2, null=True, default=0, blank=True, verbose_name="Mark Penalty", help_text='Points to deduct for any special reasons (may be negative for bonus)')
     mark_adjustment_reason = models.TextField(null=True, max_length=COMMENT_LENGTH, blank=True, verbose_name="Mark Penalty Reason")
-    file_attachment = models.FileField(storage=MarkingSystemStorage, null=True, upload_to=attachment_upload_to, blank=True, max_length=500)
+    file_attachment = models.FileField(storage=UploadedFileStorage, null=True, upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200)
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
     created_at = models.DateTimeField(auto_now_add=True)
