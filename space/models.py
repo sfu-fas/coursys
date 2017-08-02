@@ -65,6 +65,8 @@ class Location(models.Model):
     comments = models.CharField(max_length=400, null=True, blank=True)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
 
+    objects = LocationManager.as_manager()
+    
     def autoslug(self):
         return make_slug(self.unit.slug + '-' + self.campus + '-' + self.building + '-' + str(self.floor) + '-' +
                          self.room_number)
@@ -73,3 +75,21 @@ class Location(models.Model):
     def __unicode__(self):
         return u"%s - %s - %s - %s - %s" % (self.unit.label, self.campus, self.building, str(self.floor),
                                             self.room_number)
+
+class RoomTypeManager(models.QuerySet):
+    def visible(self, units):
+        """
+        Only see visible items, in this case also limited by accessible units.
+        """
+        return self.filter(hidden=False, unit__in=units)
+
+class RoomType(models.Model):
+    unit = models.ForeignKey(Unit, null=False)
+    long_description = models.CharField(max_length=256, null=False, blank=False, help_text='e.g. "General Store"')
+    code = models.CharField(max_length=50, null=False, blank=False, help_text='e.g. "STOR_GEN"')
+    COU_code_description(max_length=256, null=False, blank=False, help_text='e.g. "Academic Office Support Space"')
+    COU_code_value = models.DecimalField(max_digits=4, decimal_places=1, help_text='e.g. 10.1')
+    hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
+
+    objects = RoomTypeManager.as_manager()
+
