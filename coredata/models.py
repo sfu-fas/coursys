@@ -65,13 +65,14 @@ ROLE_CHOICES = (
         ('REPV', 'Report Viewer'),
         ('FACA', 'Faculty Administrator'),
         ('RELA', 'Relationship Database User'),
+        ('SPAC', 'Space Administrator')
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
 UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'GRPD',
-              'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR', 'FACA', 'RELA']
+              'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR', 'FACA', 'RELA', 'SPAC']
 # help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
@@ -95,6 +96,7 @@ ROLE_DESCR = {
         'FACR': 'Can view some faculty data (read-only)',
         'FACA': 'Can manage faculty data',
         'RELA': 'Can access relationship database',
+        'SPAC': 'Can manage spaces',
 }
 INSTR_ROLES = ["FAC", "SESS", "COOP", 'INST']  # roles that are given to categorize course instructors
 
