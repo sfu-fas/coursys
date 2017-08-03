@@ -65,7 +65,7 @@ ROLE_CHOICES = (
         ('REPV', 'Report Viewer'),
         ('FACA', 'Faculty Administrator'),
         ('RELA', 'Relationship Database User'),
-        ('SPAC', 'Space Administrator')
+        ('SPAC', 'Space Administrator'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
         )
