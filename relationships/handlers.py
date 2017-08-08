@@ -32,8 +32,8 @@ class EventBase(object):
         }
         return template.render(Context(context))
 
-    def save(self):
-        self.event.save(call_from_handler=True)
+    def save(self, editor=None):
+        self.event.save(call_from_handler=True, editor=editor)
 
     @classmethod
     def create_for(cls, contact, form=None):
@@ -85,6 +85,11 @@ class EventBase(object):
         """
         for name in self.CONFIG_FIELDS:
             self.set_config(name, form.cleaned_data.get(name, None))
+
+    def load_initial(self, form):
+        # Load the data from the event into the form for editing
+        for name in self.CONFIG_FIELDS:
+            form.initial[name] = self.get_config(name, None)
 
 
 class CommentEventBase(EventBase):

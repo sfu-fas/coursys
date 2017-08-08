@@ -12,4 +12,7 @@
 
 {% block content %}
 {{ handler.to_html }}
+    {% if event.last_modified %}
+        <p class="logentry">Last modified on {{ event.last_modified }} {% if event.last_modified_by %} by {{ event.last_modified_by }} {% endif %}</p>
+    {% endif %}
 {% endblock %}

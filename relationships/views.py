@@ -10,6 +10,7 @@ from models import Contact, Event, EVENT_CHOICES, EVENT_HANDLERS, EVENT_TYPES
 from handlers import FileEventBase
 import unicodecsv as csv
 from datetime import datetime
+from coredata.models import Person
 
 
 def _get_handler_or_404(handler_slug):
@@ -137,7 +138,40 @@ def add_event(request, contact_slug, handler_slug):
 
     else:
         form = handler.EntryForm()
-    return render(request, 'relationships/add_event.html', {'form': form, 'contact': contact, 'handler_slug': handler_slug})
+    return render(request, 'relationships/add_event.html', {'form': form, 'contact': contact,
+                                                            'handler_slug': handler_slug})
+
+
+@requires_role('RELA')
+def edit_event(request, contact_slug, event_slug):
+    editor = get_object_or_404(Person, userid=request.user.username)
+    contact = get_object_or_404(Contact, slug=contact_slug, unit__in=request.units)
+    event = get_object_or_404(Event, slug=event_slug, contact=contact)
+    handler = event.get_handler()
+    event_name = handler.name
+    if request.method == 'POST':
+        form = handler.EntryForm(data=request.POST)
+        if form.is_valid():
+            # Set the config variables in the event to the form content
+            handler.load(form)
+            handler.save(editor=editor)
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Contact content was modified')
+            l = LogEntry(userid=request.user.username,
+                         description="Modified contact %s for %s" % (handler.name,
+                                                                     handler.event.contact.full_name()),
+                         related_object=handler.event)
+            l.save()
+            return HttpResponseRedirect(reverse('relationships:view_contact', kwargs={'contact_slug': contact_slug}))
+
+    else:
+        # Get a form from the handler and pass in the config data from the event.
+        form = handler.EntryForm()
+        handler.load_initial(form)
+
+    return render(request, 'relationships/edit_event.html', {'form': form, 'contact': contact,
+                                                            'event_slug': event.slug, 'event_name': event_name})
 
 
 @requires_role('RELA')
@@ -200,7 +234,7 @@ def event_report_download(request, handler_slug):
         row.append('Content')
     else:
         row.append('Link to content')
-    row.append('Date')
+    row.append('Last Modified')
     writer.writerow(row)
     for e in events:
         row = [e.contact.name()]
@@ -210,7 +244,7 @@ def event_report_download(request, handler_slug):
             row.append(request.build_absolute_uri(reverse('relationships:view_event',
                                                           kwargs={'contact_slug': e.contact.slug,
                                                                   'event_slug': e.slug})))
-        row.append(e.timestamp)
+        row.append(e.last_modified)
         writer.writerow(row)
 
     return response
