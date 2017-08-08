@@ -40,10 +40,3 @@ fieldset div.explanation_block ul>li {
 fieldset label.sublabel {
 	width: auto;
 }
-
-p.formlogentry {
-  font-size: 80%;
-  margin: 0;
-  font-style: italic;
-  line-height: 1.25em;
-}

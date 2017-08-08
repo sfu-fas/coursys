@@ -47,7 +47,7 @@ function confirmDelete() {
                     {% if is_text %}
                         <td>Content</td>
                     {% endif %}
-                    <td>Added</td>
+                    <td>Last Modified</td>
                     <td>Actions</td>
                 </tr>
             </thead>
@@ -57,7 +57,7 @@ function confirmDelete() {
                 {% if is_text %}
                     <td>{{ event|get_event_value_direct:'content'|linebreaks }}</td>
                 {% endif %}
-                <td><span class="sort">{{ event.timestamp.isoformat }}</span>{{ event.timestamp }}</td>
+                <td><span class="sort">{{ event.last_modified.isoformat }}</span>{{ event.last_modified }}</td>
                 <td>
                     <form class="lineform" method="POST"
                               action="{% url 'relationships:delete_event' contact_slug=event.contact.slug event_slug=event.slug %}"

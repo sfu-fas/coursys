@@ -57,7 +57,7 @@ function confirmDelete() {
                 <tr>
                     <td>Content Type</td>
                     <td>Content</td>
-                    <td>Added</td>
+                    <td>Last Modified</td>
                     <td>Actions</td>
                 </tr>
             </thead>
@@ -65,7 +65,7 @@ function confirmDelete() {
             <tr>
                 <td>{{ event.get_handler_name }}</td>
                 <td>{{ event|get_event_value_direct:'content'|linebreaks }}</td>
-                <td><span class="sort">{{ event.timestamp.isoformat }}</span>{{ event.timestamp }}</td>
+                <td><span class="sort">{{ event.last_modified.isoformat }}</span>{{ event.last_modified }}</td>
                 <td><form class="lineform" method="POST"
                           action="{% url 'relationships:delete_event' contact_slug=contact.slug event_slug=event.slug %}"
                           onsubmit="return confirmDelete()">
@@ -74,6 +74,14 @@ function confirmDelete() {
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>
+                    {% if event.is_text_based %}
+                        <form class="lineform" method="GET"
+                        action="{% url 'relationships:edit_event' contact_slug=contact.slug event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="Edit Content">
+                            <i class='fa fa-edit'></i>
+                        </button>
+                        </form>
+                    {% endif %}
                     <form class="lineform" method="GET"
                         action="{% url "relationships:view_event" contact_slug=contact.slug event_slug=event.slug %}">
                         <button type='submit' class='btn' title="View Content">
