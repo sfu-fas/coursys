@@ -1,0 +1,11 @@
+This VM image can be used to re-build the docker image that we use for tests on Travis. First, bring up the VM:
+  vagrant up
+  vagrant ssh
+
+Then in the VM, you can build and upload the docker image:
+  cd courses
+  ./machines/docker/build.sh
+  ./machines/docker/run.sh      # runs the tests as Travis does
+  ./machines/docker/upload.sh   # requires the username/password for the Docker hub account
+
+The image can be uploaded to any Docker hub account, if you also change .travis.yml to point to it.
