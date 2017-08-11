@@ -12,6 +12,7 @@
                 <th>Category</th>
                 <th>Total</th>
                 <th>Status</th>
+                <th>Course(s)</th>
             </tr>
         </thead>
         <tbody>
@@ -43,6 +44,9 @@
                         <i class='fa fa-check'></i>
                     {% endif %}
                 </td>
+                <td>
+                    {{ contract.course_list_string }}
+                </td>
             </tr>
     {% endfor %}
     {% for contract in oldcontracts %}
@@ -69,6 +73,9 @@
                 </td>
                 <td>
                     {{contract.get_status_display}}
+                </td>
+                <td>
+                    {{ contract.course_list_string }}
                 </td>
             </tr>
     {% endfor %}
