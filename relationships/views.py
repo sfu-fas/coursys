@@ -85,8 +85,7 @@ def edit_contact(request, contact_slug):
 def delete_contact(request, contact_slug):
     contact = get_object_or_404(Contact, slug=contact_slug, unit__in=request.units)
     if request.method == 'POST':
-        contact.deleted = True
-        contact.save()
+        contact.delete()
         messages.add_message(request,
                              messages.SUCCESS,
                              u'Contact was deleted')

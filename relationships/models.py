@@ -76,6 +76,17 @@ class Contact(models.Model):
     def __unicode__(self):
         return u'%s, %s' % (self.unit.label.upper(), self.full_name())
 
+    def delete(self):
+        self.deleted = True
+        self.save()
+        for e in self.event_set.all():
+            e.deleted = True
+            e.save(call_from_handler=True)
+
+
+class IgnoreEventDeleted(models.Manager):
+    def get_queryset(self):
+        return super(IgnoreEventDeleted, self).get_queryset().filter(deleted=False, contact__deleted=False)
 
 class Event(models.Model):
     contact = models.ForeignKey(Contact, null=False, blank=False)
@@ -88,7 +99,7 @@ class Event(models.Model):
     slug = AutoSlugField(populate_from='slug_string', unique_with=('contact',),
                          slugify=make_slug, null=False, editable=False)
 
-    objects = IgnoreDeleted()
+    objects = IgnoreEventDeleted()
 
     @property
     def slug_string(self):
