@@ -67,10 +67,18 @@ function confirmDelete() {
                                 <i class='fa fa-trash-o'></i>
                             </button>
                         </form>
+                        {% if event.is_text_based %}
+                            <form class="lineform" method="GET"
+                            action="{% url 'relationships:edit_event' contact_slug=event.contact.slug event_slug=event.slug %}">
+                            <button type='submit' class='btn' title="Edit Content">
+                                <i class='fa fa-edit'></i>
+                            </button>
+                            </form>
+                        {% endif %}
                         <form class="lineform" method="GET"
                             action="{% url "relationships:view_event" contact_slug=event.contact.slug event_slug=event.slug %}">
                             <button type='submit' class='btn' title="View Content">
-                                <i class='fa fa-edit'></i>
+                                <i class='fa fa-eye'></i>
                             </button>
                         </form>
                 </td>
