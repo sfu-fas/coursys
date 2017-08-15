@@ -818,7 +818,8 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
 
                 if old_am:
                     old_cm = ActivityComponentMark.objects.get(activity_mark=old_am, activity_component=components[slug])
-                    mark_total += float(old_cm.value)
+                    if old_cm.value is not None:
+                        mark_total += float(old_cm.value)
                     cm.value = old_cm.value
                     cm.comment = old_cm.comment
                     cm.set_display_raw(old_cm.display_raw())
