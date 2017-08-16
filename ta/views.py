@@ -1078,6 +1078,29 @@ def all_contracts(request, post_slug):
     return render(request, 'ta/all_contracts.html',
                   {'contracts':contracts, 'posting':posting, 'applications':applications, 'form': form})
 
+
+@requires_role("TAAD")
+def contracts_table_csv(request, post_slug):
+    # The contracts_csv view is actually a payroll upload file, with way more fields.  This one is basically
+    # the exact same as all_contracts, but in CSV format.
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    contracts = TAContract.objects.filter(posting=posting)
+    for contract in contracts:
+        crs_list = ''
+        courses = TACourse.objects.filter(contract=contract)
+        for course in courses:
+            crs_list += course.course.subject+" "+course.course.number+" "+course.course.section+" ("+str(course.total_bu)+")\n"
+        contract.crs_list = crs_list
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-table.csv"' % (posting.slug)
+    writer = csv.writer(response)
+    writer.writerow(['Person', 'Appt Category', 'Rank', 'Status', 'Total BU', 'TA Courses', 'Deadline'])
+    for c in contracts:
+        writer.writerow([c.application.person, c.get_appt_category_display() + '(' + c.appt_category + ')',
+                         c.application.rank, c.get_status_display(), c.total_bu(), c.crs_list, c.deadline])
+    return response
+
+
 @requires_role("TAAD")
 def contracts_csv(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
