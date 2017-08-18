@@ -491,7 +491,6 @@ def calendar_ical(request, token, userid):
         cal.add_component(e)
 
     resp = HttpResponse(cal.to_ical(), content_type="text/calendar")
-    print resp.reason_phrase
     return resp
 
 
