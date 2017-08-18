@@ -1,0 +1,29 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/xenial64"
+  config.vm.network "forwarded_port", guest:3307, host:3307
+
+  # Share an additional folder to the guest VM. The first argument is
+  # an identifier, the second is the path on the guest to mount the
+  # folder, and the third is the path on the host to the actual folder.
+  config.vm.synced_folder "../..", "/home/ubuntu/courses", 
+      id: "vagrant-root", 
+      owner: "ubuntu",
+      group: "www-data",
+      mount_options: ["dmode=777,fmode=777"]
+
+  config.vm.provider "virtualbox" do |v|
+      v.customize ["modifyvm", :id, "--memory", "2048"]
+      v.customize ["modifyvm", :id, "--cpus", "2"]
+      v.customize ["modifyvm", :id, "--uartmode1", "disconnected"] # speed up boot https://bugs.launchpad.net/cloud-images/+bug/1627844
+  end
+
+  config.vm.provision :chef_solo do |chef|
+     chef.cookbooks_path = "../chef/cookbooks"
+     chef.add_recipe "apt"
+     chef.add_recipe "db_server"
+  end
+
+end
