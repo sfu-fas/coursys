@@ -553,7 +553,7 @@ def copy_setup_activities(course_copy_from, course_copy_to):
 
 def copy_setup_pages(course_copy_from, course_copy_to):
         # copy the Pages
-        from pages.models import Page, PageFilesStorage, attachment_upload_to
+        from pages.models import Page, UploadedFileStorage, attachment_upload_to
         copy_pages = Page.objects.filter(offering=course_copy_from).exclude(can_read='NONE', can_write='NONE')
         copy_pages = (p for p in copy_pages if not p.current_version().redirect)
         for p in copy_pages:
@@ -606,7 +606,7 @@ def copy_setup_pages(course_copy_from, course_copy_to):
                 # files without leaving bad path reference)
                 src = v.file_attachment.path
                 path = attachment_upload_to(new_v, new_v.file_name)
-                dst = PageFilesStorage.path(path)
+                dst = UploadedFileStorage.path(path)
                 dstpath, dstfile = os.path.split(dst)
                 while os.path.exists(os.path.join(dstpath, dstfile)):
                     # handle duplicates by mangling the directory name
