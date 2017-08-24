@@ -44,14 +44,14 @@ function confirmDelete() {
             <td>Name</td>
             <td>Unit</td>
             <td>Course</td>
-            <td>Semester Code</td>
+            <td>Semester</td>
             <td>Actions</td>
         </tr>
     </thead>
     {% for contract in sessionals %}
         <tr>
             <td>{{ contract.sessional.get_person }}</td>
-            <td>{{ contract.unit }}</td>
+            <td>{{ contract.unit.name }}</td>
             <td>{{ contract.offering }}</td>
             <td>{{ contract.offering.semester.name }}</td>
             <td>
