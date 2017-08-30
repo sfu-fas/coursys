@@ -32,6 +32,7 @@ ta_patterns = [ # prefix /ta/
     url(r'^' + POST_SLUG + '/contact', ta_views.contact_tas, name='contact_tas'),
     #url(r'^contracts', ta_views.all_contracts, name='all_contracts'),
     url(r'^' + POST_SLUG + '/contracts/$', ta_views.all_contracts, name='all_contracts'),
+    url(r'^' + POST_SLUG + '/contracts/table_csv$', ta_views.contracts_table_csv, name='contracts_table_csv'),
     url(r'^' + POST_SLUG + '/contracts/csv$', ta_views.contracts_csv, name='contracts_csv'),
     url(r'^' + POST_SLUG + '/contracts/new$', ta_views.new_contract, name='new_contract'),
     url(r'^' + POST_SLUG + '/contracts/forms$', ta_views.contracts_forms, name='contracts_forms'),

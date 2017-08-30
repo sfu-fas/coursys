@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load contact_display %}
 
 {% block title %}View Contact{% endblock %}
 {% block h1 %}View Contact{% endblock %}
@@ -18,7 +19,7 @@ $(document).ready(function() {
         'bInfo': false,
         'bLengthChange': false,
         "bJQueryUI": true,
-        'aaSorting': [[1, 'asc']]
+        'aaSorting': [[2, 'asc']]
     });
 });
 
@@ -44,7 +45,6 @@ function confirmDelete() {
     <dt>First Name</dt><dd>{{ contact.first_name }}</dd>
     <dt>Middle Name</dt><dd>{{ contact.middle_name }}</dd>
     <dt>Preferred First Name</dt><dd>{{ contact.pref_first_name }}</dd>
-    <dt>Last Name</dt><dd>{{ contact.last_name }}</dd>
     <dt>Company Name</dt><dd>{{ contact.company_name }}</dd>
     <dt>Address</dt><dd>{{ contact.address|linebreaks }}</dd>
     <dt>Email</dt><dd><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></dd>
@@ -55,14 +55,16 @@ function confirmDelete() {
             <thead>
                 <tr>
                     <td>Content Type</td>
-                    <td>Added</td>
+                    <td>Content</td>
+                    <td>Last Modified</td>
                     <td>Actions</td>
                 </tr>
             </thead>
         {% for event in events %}
             <tr>
                 <td>{{ event.get_handler_name }}</td>
-                <td><span class="sort">{{ event.timestamp.isoformat }}</span>{{ event.timestamp }}</td>
+                <td>{{ event|get_event_value_direct:'content'|linebreaks }}</td>
+                <td><span class="sort">{{ event.last_modified.isoformat }}</span>{{ event.last_modified }}</td>
                 <td><form class="lineform" method="POST"
                           action="{% url 'relationships:delete_event' contact_slug=contact.slug event_slug=event.slug %}"
                           onsubmit="return confirmDelete()">
@@ -71,10 +73,18 @@ function confirmDelete() {
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>
+                    {% if event.is_text_based %}
+                        <form class="lineform" method="GET"
+                        action="{% url 'relationships:edit_event' contact_slug=contact.slug event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="Edit Content">
+                            <i class='fa fa-edit'></i>
+                        </button>
+                        </form>
+                    {% endif %}
                     <form class="lineform" method="GET"
                         action="{% url "relationships:view_event" contact_slug=contact.slug event_slug=event.slug %}">
                         <button type='submit' class='btn' title="View Content">
-                            <i class='fa fa-edit'></i>
+                            <i class='fa fa-eye'></i>
                         </button>
                     </form>
                 </td>

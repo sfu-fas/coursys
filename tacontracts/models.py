@@ -531,6 +531,11 @@ class TAContract(models.Model):
         """
         TAContract.update_ta_members(self.person, self.category.hiring_semester.semester_id)
 
+    def course_list_string(self):
+        # Build a string of all course offerings tied to this contract for CSV downloads and grad student views.
+        course_list_string = ', '.join([unicode.encode(ta_course.course.name()) for ta_course in self.course.all()])
+        return course_list_string
+
 
 class CourseDescription(models.Model):
     """

@@ -1163,3 +1163,11 @@ table#groups .groupaction ul li {
     display: inline;
     width: 30px;
 }
+
+/* FormLogEntry and some other log-type objects that show up for users */
+p.logentry {
+  font-size: 80%;
+  margin: 0;
+  font-style: italic;
+  line-height: 1.25em;
+}

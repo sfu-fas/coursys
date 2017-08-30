@@ -3,7 +3,7 @@
 {% for sheet_sub, fields in formsub_activity %}
 {% if fields == 'FormLogEntry' %}{# it's a FormLogEntry, not a SheetSubmission #}
     {% with logentry=sheet_sub %}
-    <p class="formlogentry">
+    <p class="logentry">
         {{ logentry.timestamp }} by {{ logentry.identifier }}: {{ logentry.description }}
         {% if logentry.sheet_submission %}
         (sheet <a href="#sheetsub-{{ logentry.sheet_submission.id }}">{{ logentry.sheet_submission.sheet.title }}</a>)

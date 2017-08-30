@@ -26,7 +26,7 @@ $(document).ready(function() {
     'bInfo': false,
     'bLengthChange': false,
     "bJQueryUI": true,
-    'aaSorting': [[1, 'asc']]
+    'aaSorting': [[3, 'desc']]
   } );
 } );
 
@@ -44,14 +44,16 @@ function confirmDelete() {
             <td>Name</td>
             <td>Unit</td>
             <td>Course</td>
+            <td>Semester</td>
             <td>Actions</td>
         </tr>
     </thead>
     {% for contract in sessionals %}
         <tr>
             <td>{{ contract.sessional.get_person }}</td>
-            <td>{{ contract.unit }}</td>
+            <td>{{ contract.unit.name }}</td>
             <td>{{ contract.offering }}</td>
+            <td>{{ contract.offering.semester.name }}</td>
             <td>
                 <form class="lineform" method="POST"
                       action="{% url "sessionals:delete_contract" contract_id=contract.id %}"

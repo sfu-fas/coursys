@@ -7,7 +7,7 @@ from django.db import models
 from django.conf import settings
 from autoslug import AutoSlugField
 
-from coredata.models import Unit
+from coredata.models import Unit, Person
 from courselib.json_fields import JSONField
 from courselib.slugs import make_slug
 from courselib.storage import UploadedFileStorage, upload_path
@@ -76,24 +76,39 @@ class Contact(models.Model):
     def __unicode__(self):
         return u'%s, %s' % (self.unit.label.upper(), self.full_name())
 
+    def delete(self):
+        self.deleted = True
+        self.save()
+        for e in self.event_set.all():
+            e.deleted = True
+            e.save(call_from_handler=True)
+
+
+class IgnoreEventDeleted(models.Manager):
+    def get_queryset(self):
+        return super(IgnoreEventDeleted, self).get_queryset().filter(deleted=False, contact__deleted=False)
 
 class Event(models.Model):
     contact = models.ForeignKey(Contact, null=False, blank=False)
     event_type = models.CharField(max_length=25, choices=EVENT_CHOICES)
     timestamp = models.DateTimeField(default=datetime.datetime.now, editable=False)
+    last_modified = models.DateTimeField(null=True, blank=True, editable=False)
+    last_modified_by = models.ForeignKey(Person, null=True, blank=True)
     deleted = models.BooleanField(default=False)
     config = JSONField(default=dict)
     slug = AutoSlugField(populate_from='slug_string', unique_with=('contact',),
                          slugify=make_slug, null=False, editable=False)
 
-    objects = IgnoreDeleted()
+    objects = IgnoreEventDeleted()
 
     @property
     def slug_string(self):
         return u'%s-%s' % (self.timestamp.year, self.event_type)
 
-    def save(self, call_from_handler=False, *args, **kwargs):
+    def save(self, call_from_handler=False, editor=None, *args, **kwargs):
         assert call_from_handler, "A contact event must be saved through the handler."
+        self.last_modified = datetime.datetime.now()
+        self.last_modified_by = editor
         return super(Event, self).save(*args, **kwargs)
 
     def get_handler(self):
@@ -110,6 +125,9 @@ class Event(models.Model):
             return self.config.get(field)
         else:
             return None
+
+    def is_text_based(self):
+        return self.get_handler().text_content
 
 
 def attachment_upload_to(instance, filename):

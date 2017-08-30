@@ -747,8 +747,8 @@ def contracts_csv(request, unit_slug, semester):
             prep_units = ''
 
         # Build a string of all course offerings tied to this contract to add to the results.
-        course_list_string = ', '.join([unicode.encode(ta_course.course.name()) for ta_course in c.course.all()])
-        
+        course_list_string = c.course_list_string()
+
         row = []
         #Batch ID
         row.append(batchid)
