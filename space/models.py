@@ -1,6 +1,6 @@
 import datetime
 from django.db import models
-from coredata.models import Unit
+from coredata.models import Unit, JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from coredata.models import CAMPUS_CHOICES, Person
@@ -58,6 +58,7 @@ class RoomType(models.Model):
     COU_code_description = models.CharField(max_length=256, null=False, blank=False, help_text='e.g. "Academic Office Support Space"')
     COU_code_value = models.DecimalField(max_digits=4, decimal_places=1, help_text='e.g. 10.1')
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
 
     objects = RoomTypeManager.as_manager()
 
@@ -93,6 +94,7 @@ class Location(models.Model):
     own_or_lease = models.CharField("SFU Owned or Leased", max_length=5, choices=OWN_CHOICES, null=True, blank=True)
     comments = models.CharField(max_length=400, null=True, blank=True)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
 
     objects = LocationManager.as_manager()
     
@@ -127,6 +129,7 @@ class BookingRecord(models.QuerySet):
     start_time = models.DateTimeField(default=datetime.datetime.now())
     end_time = models.DateTimeField(null=True, blank=True)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
 
     objects = BookingRecordManager.as_manager()
 
