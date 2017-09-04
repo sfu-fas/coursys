@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load discuss_paginate %}
 {% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 {% block headextra %}
 <link rel="stylesheet" href="{{STATIC_URL}}style/discuss.css" media="all" />
@@ -35,7 +34,7 @@
 <p class="empty">There are currently no topics</p>
 {% endif %}
 {% if topics.object_list|length > 0 %}
-{{ topics|create_pagination }}
+{% include 'discuss/pagination.html' with paginator=paginator page=page %}
 {% for topic in topics.object_list %}
 {% if topic.status != 'HID' or view == 'staff' %}
 <div class="discussion-topic{% if topic.status == 'HID' %} fade-out{% endif %}" id="topic-{{ topic.pk }}">
@@ -58,7 +57,7 @@
 </div>
 {% endif %}
 {% endfor %}
-{{ topics|create_pagination }}
+{% include 'discuss/pagination.html' with paginator=paginator page=page %}
 {% endif %}
 {% endblock %}
 
