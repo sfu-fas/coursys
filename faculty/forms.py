@@ -90,6 +90,14 @@ class AttachmentForm(forms.ModelForm):
         model = DocumentAttachment
         exclude = ("career_event", "created_by")
 
+        widgets = {
+            'contents': forms.ClearableFileInput(attrs={'multiple': True})
+        }
+        help_texts = {
+            'contents': "You can enter one or multiple files.  Please note that multiple files will "
+                        "have the same title."
+        }
+
 
 class PositionAttachmentForm(forms.ModelForm):
     class Meta:
