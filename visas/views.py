@@ -9,7 +9,7 @@ from django.db import transaction
 from log.models import LogEntry
 from datetime import datetime
 from courselib.search import find_userid_or_emplid
-from coredata.models import Person
+from coredata.models import Person, Unit
 import unicodecsv as csv
 
 
@@ -20,7 +20,7 @@ def list_all_visas(request, emplid=None):
         visa_list = Visa.objects.visible_given_user(person)
     else:
         person = None
-        visa_list = Visa.objects.visible_by_unit(request.units)
+        visa_list = Visa.objects.visible_by_unit(Unit.sub_units(request.units))
     context = {'visa_list': visa_list, 'person': person}
     return render(request, 'visas/view_visas.html', context)
 
@@ -104,7 +104,7 @@ def delete_visa(request, visa_id):
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def download_visas_csv(request):
-    visas = Visa.objects.visible_by_unit(request.units)
+    visas = Visa.objects.visible_by_unit(Unit.sub_units(request.units))
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="visas-%s.csv"' % datetime.now().strftime('%Y%m%d')
     writer = csv.writer(response)
