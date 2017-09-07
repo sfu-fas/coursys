@@ -5,7 +5,7 @@ from autoslug import AutoSlugField
 from cache_utils.decorators import cached
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
-from courselib.json_fields import JSONField
+from courselib.json_fields import JSONField, config_property
 from courselib.text import normalize_newlines, many_newlines
 from courselib.conditional_save import ConditionalSaveMixin
 from courselib.storage import UploadedFileStorage, upload_path
@@ -307,6 +307,11 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         statuses = GradStatus.objects.filter(student=self, hidden=False) \
                     .filter(timely_status | application_status) \
                     .order_by('-start__name', '-start_date').select_related('start')
+
+        # Only keep the statuses that don't have the ignore_status flag set, which should be all of them in almost all
+        # cases, as the flag was introduced for a particular edge case.
+
+        statuses = [s for s in statuses if not s.ignore_status]
 
         if not statuses:
             return None
@@ -1194,6 +1199,9 @@ class GradStatus(models.Model, ConditionalSaveMixin):
         # 'sims_source': key indicating the SIMS record that imported to this, so we don't duplicate
         # 'in_from': for status=='TRIN', a Unit.slug where the student came from
         # 'out_to': for status=='TROU', a Unit.slug where the student went
+
+    # If this is set to true, this status is not used in the calculation of the "status as of" logic.
+    ignore_status = config_property('ignore_status', False)
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
