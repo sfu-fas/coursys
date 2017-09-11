@@ -861,8 +861,7 @@ def index(request):
         # get all the form groups the logged in user is a part of
         form_groups = FormGroup.objects.filter(members=loggedin_user)
         # If the user is authenticated, see if they have forms that are done in which they participated.
-        participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user),
-                                                      form_submission__status='DONE')\
+        participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user))\
             .exclude(form_submission__initiator=_userToFormFiller(loggedin_user)).count() > 0
 
     else:
@@ -884,11 +883,11 @@ def login(request):
     #  if they click on the link in the reminder, thus making sure they see their forms.
     return HttpResponseRedirect(reverse('onlineforms:index'))
 
+
 @login_required()
 def participated_in(request):
     loggedin_user = get_object_or_404(Person, userid=request.user.username)
-    participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user),
-                                                  form_submission__status='DONE')\
+    participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user))\
         .exclude(form_submission__initiator=_userToFormFiller(loggedin_user))
     return render(request, 'onlineforms/submissions/participated.html', {'participated': participated})
 
