@@ -1,4 +1,4 @@
-import datetime
+from django.utils import timezone
 from django.db import models
 from coredata.models import Unit, JSONField
 from autoslug import AutoSlugField
@@ -41,6 +41,14 @@ CATEGORY_CHOICES = (
     ('GRAD', 'Grad Student'),
     ('URA', 'URA')
 )
+
+
+def timezone_today():
+    """
+    Return the timezone-aware version of datetime.date.today()
+    """
+    # field default must be a callable (so it's the "today" of the request, not the "today" of the server startup)
+    return timezone.now()
 
 
 class RoomTypeManager(models.QuerySet):
@@ -123,10 +131,10 @@ class BookingRecordManager(models.QuerySet):
         return self.filter(hidden=False, unit__in=units)
 
 
-class BookingRecord(models.QuerySet):
+class BookingRecord(models.Model):
     location = models.ForeignKey(Location, related_name='bookings')
     person = models.ForeignKey(Person)
-    start_time = models.DateTimeField(default=datetime.datetime.now())
+    start_time = models.DateTimeField(default=timezone_today)
     end_time = models.DateTimeField(null=True, blank=True)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     config = JSONField(null=False, blank=False, editable=False, default=dict)
