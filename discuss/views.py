@@ -59,7 +59,8 @@ def discussion_index(request, course_slug):
         topics = paginator.page(page)
     except (EmptyPage, InvalidPage):
         topics = paginator.page(paginator.num_pages)
-    return render(request, 'discuss/index.html', {'course': course, 'topics': topics, 'view': view})
+    context = {'course': course, 'topics': topics, 'view': view, 'paginator': paginator, 'page': page}
+    return render(request, 'discuss/index.html', context)
     
 @uses_feature('discuss')
 @login_required
