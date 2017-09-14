@@ -863,7 +863,8 @@ def assign_position_person(request, position_id):
                 position.save()
                 # Let's see if this person already has a faculty role for this unit, otherwise, add it:
                 if not Role.objects.filter(role='FAC', unit=position.unit, person=person).exists():
-                    new_role = Role(role='FAC', unit=position.unit, person=person)
+                    expiry = datetime.date.today() + datetime.timedelta(days=365)
+                    new_role = Role(role='FAC', unit=position.unit, person=person, expiry=expiry)
                     new_role.save()
                     messages.add_message(request, messages.SUCCESS, u'Added faculty role for %s' % person)
                 messages.add_message(request,
