@@ -133,11 +133,13 @@ class BookingRecordManager(models.QuerySet):
 
 class BookingRecord(models.Model):
     location = models.ForeignKey(Location, related_name='bookings')
-    person = models.ForeignKey(Person)
+    person = models.ForeignKey(Person, related_name='+')
     start_time = models.DateTimeField(default=timezone_today)
     end_time = models.DateTimeField(null=True, blank=True)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     config = JSONField(null=False, blank=False, editable=False, default=dict)
+    last_modified = models.DateTimeField(blank=False, null=False, editable=False)
+    last_modified_by = models.ForeignKey(Person, null=True, blank=True, editable=False, related_name='+')
 
     objects = BookingRecordManager.as_manager()
 
@@ -147,3 +149,10 @@ class BookingRecord(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
+    def save(self, editor=None, *args, **kwargs):
+        self.last_modified = timezone_today()
+        if editor:
+            self.last_modified_by = editor
+        else:
+            self.last_modified_by = None
+        super(BookingRecord, self).save(*args, **kwargs)
