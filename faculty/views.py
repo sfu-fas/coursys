@@ -1732,13 +1732,14 @@ def faculty_wizard(request, userid, position=None):
             # has been assigned to a real faculty member, meaning we most likely can delete this individual.
             if position:
                 position = get_object_or_404(Position, pk=position)
-                a = position.any_person
-                a.person = person
-                a.save()
-                if a.future_person:
-                    f = a.future_person
-                    f.set_assigned(True)
-                    f.save()
+                if position.any_person:
+                    a = position.any_person
+                    a.person = person
+                    a.save()
+                    if a.future_person:
+                        f = a.future_person
+                        f.set_assigned(True)
+                        f.save()
             return HttpResponseRedirect(reverse('faculty:summary', kwargs={'userid':userid}))
         else:
             form_list = [form_appoint, form_salary, form_load]
