@@ -7,4 +7,9 @@ $(document).ready(function() {
     $('input[type=submit]').click(function() {
        $submitButton = $(this)
     });
+
 });
+
+function confirmDelete() {
+        return confirm("Are you sure you want to mark this form done?  This will prevent any more interaction with this form.");
+}

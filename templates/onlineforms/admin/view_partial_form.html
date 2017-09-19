@@ -52,7 +52,7 @@ The initiator {% if form_sub.emailed %}<strong>was</strong>{% else %}was <strong
     </form>
 </div>
 <div class="form_container" id="completed">
-    <form action="#completed" method="post" enctype="multipart/form-data">{% csrf_token %}
+    <form action="#completed" method="post" enctype="multipart/form-data" onsubmit="return confirmDelete()">{% csrf_token %}
     <fieldset><legend>Mark Completed</legend>
     {% if close_form.used %}{{ close_form|as_dl }}{% endif %}
     <p><input class="submit" type="submit" value="Mark as done" /></p>
