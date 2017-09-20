@@ -330,13 +330,13 @@ class Form(models.Model, _FormCoherenceMixin):
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
         # 'loginprompt': should the "log in with your account" prompt be displayed for non-logged-in? (default True)
         # 'unlisted':  Form can be filled out, but doesn't show up in the index
-        # 'js':  Extra Javascript to be executed with this form.  USE THIS CAREFULLY.  There is no validation here, and
+        # 'jsfile':  Extra Javascript file included with this form.  USE THIS CAREFULLY.  There is no validation here, and
         # this should be used extremely rarely by sysadmins only.  There should never be any UI to modify this by users.
 
-    defaults = {'loginprompt': True, 'unlisted': False, 'js': None}
+    defaults = {'loginprompt': True, 'unlisted': False, 'jsfile': None}
     loginprompt, set_loginprompt = getter_setter('loginprompt')
     unlisted, set_unlisted = getter_setter('unlisted')
-    js, set_js = getter_setter('js')
+    jsfile, set_jsfile = getter_setter('jsfile')
 
     def __unicode__(self):
         return u"%s [%s]" % (self.title, self.id)

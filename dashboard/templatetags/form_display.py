@@ -6,6 +6,8 @@ from django.utils.html import conditional_escape as escape
 from django.utils.functional import Promise
 from django.forms.widgets import RadioSelect
 from grad.forms import SupervisorWidget
+from django.contrib.staticfiles.templatetags.staticfiles import static
+
 
 required_icon = '<i class="reqicon fa fa-star-o"></i>'
 
@@ -148,3 +150,12 @@ def as_dl_noreq(form):
 @register.filter
 def as_dl_inline(form):
     return as_dl(form, formclass='dlform inline', reqmessage=False)
+
+
+@register.filter
+def get_js_path(file):
+    """
+    Get the correct path for the js file to include in the form.
+    """
+    path = ''.join(['js/', file])
+    return static(path)
