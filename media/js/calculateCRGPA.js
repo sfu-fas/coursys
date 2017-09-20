@@ -13,6 +13,9 @@ $(document).ready(function() {
     output.prop('disabled', true);
     // Every time we change a dropdown, recalculate the CRGPA
     $( "select" ).change(function () { calculateCRGPA(); })
+    // Run it once so the value is there, just in the ridiculously low possibility that the defaults are correct
+    // for some student.
+    calculateCRGPA();
 })
 
 
