@@ -26,6 +26,10 @@ end
 
 
 # reconfigure NGINX with end-user properties
+cookbook_file "nginx_base.conf" do
+    path "/etc/nginx/sites-available/nginx_base.conf"
+    action :create
+end
 cookbook_file "nginx_default.conf" do
     path "/etc/nginx/sites-available/default"
     action :create
