@@ -25,6 +25,17 @@ service "postfix" do
 end
 
 
+# certbot config
+apt_repository 'certbot' do
+  uri          'http://ppa.launchpad.net/certbot/certbot/ubuntu'
+  distribution 'xenial'
+  components   ['main']
+  keyserver    'keyserver.ubuntu.com'
+  key '75BCA694'
+  deb_src      false
+end
+package 'python-certbot-nginx'
+
 # reconfigure NGINX with end-user properties
 cookbook_file "nginx_base.conf" do
     path "/etc/nginx/sites-available/nginx_base.conf"
