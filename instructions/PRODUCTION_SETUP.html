@@ -114,6 +114,13 @@ sudo ./manage.py install_secrets
         <blockquote><pre>./manage.py rebuild_index</pre></blockquote>
 
     </dd>
+    <dt>Root crontab</dt>
+    <dd>
+        <p>Add a couple of lines to the root crontabe (<code>sudo crontab -e</code>):</p>
+        <blockquote><pre>58 6 * * * /etc/init.d/celeryd restart
+0 4 * * 0 certbot renew</pre></blockquote>
+
+    </dd>
 </dl>
 
 <h2 id="data">Data Files</h2>
