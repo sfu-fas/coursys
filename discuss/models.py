@@ -277,7 +277,7 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
                               help_text='Action to take when a new topic is posted')
 
     def notify(self, topic):
-        if self.status == 'NONE':
+        if self.status == 'NONE' or self.member.role == 'DROP':
             pass
         elif self.status in ['MAIL', 'ALLM']:
             url = settings.BASE_ABS_URL + topic.get_absolute_url()
@@ -292,7 +292,7 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
 
     def notify_message(self, message):
         "Called when a reply is posted anywhere for this course."
-        if self.status in ['NONE', 'MAIL']:
+        if self.status in ['NONE', 'MAIL'] or self.member.role == 'DROP':
             pass
         elif self.status == 'ALLM':
             url = settings.BASE_ABS_URL + message.get_absolute_url()
@@ -319,7 +319,7 @@ class TopicSubscription(models.Model, _DiscussionEmailMixin):
         unique_together = (('topic', 'member'),)
 
     def notify(self, message):
-        if self.status == 'NONE':
+        if self.status == 'NONE' or self.member.role == 'DROP':
             pass
         elif self.status == 'MAIL':
             url = settings.BASE_ABS_URL + message.get_absolute_url()
