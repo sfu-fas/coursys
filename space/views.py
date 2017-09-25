@@ -54,7 +54,7 @@ def edit_location(request, location_slug):
             return HttpResponseRedirect(reverse('space:index'))
     else:
         form = LocationForm(request, instance=location)
-    return render(request, 'space/edit_location.html', {'form': form})
+    return render(request, 'space/edit_location.html', {'form': form, 'location': location})
 
 
 @requires_role('SPAC')
@@ -123,7 +123,7 @@ def edit_roomtype(request, roomtype_slug):
             return HttpResponseRedirect(reverse('space:list_roomtypes'))
     else:
         form = RoomTypeForm(request, instance=roomtype)
-    return render(request, 'space/edit_roomtype.html', {'form': form})
+    return render(request, 'space/edit_roomtype.html', {'form': form, 'roomtype': roomtype})
 
 
 @requires_role('SPAC')

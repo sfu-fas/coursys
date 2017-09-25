@@ -76,7 +76,7 @@ class RoomType(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     def __unicode__(self):
-        return u"%s-%s-%s-%s" % (self.unit.label, self.code, str(self.COU_code_value))
+        return u"%s-%s-%s" % (self.unit.label, self.code, str(self.COU_code_value))
 
 
 class LocationManager(models.QuerySet):
@@ -116,11 +116,14 @@ class Location(models.Model):
                                             self.room_number)
 
     def get_current_booking(self):
-        latest_booking = self.bookings.filter(start_date__lte=datetime.datetime.now(), hidden=False).\
-            order_by('start_date').last()
-        if latest_booking and (not latest_booking.end_date or latest_booking.end_date > datetime.datetime.now()):
+        latest_booking = self.bookings.filter(start_time__lte=timezone_today(), hidden=False).\
+            order_by('start_time').last()
+        if latest_booking and (not latest_booking.end_time or latest_booking.end_time > timezone_today()):
             return latest_booking
         return None
+
+    def has_bookings(self):
+        return self.bookings.filter(hidden=False).count() > 0
 
 
 class BookingRecordManager(models.QuerySet):

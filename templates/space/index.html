@@ -14,7 +14,7 @@ $(document).ready(function() {
     'bInfo': false,
     'bLengthChange': false,
     "bJQueryUI": true,
-    'aaSorting': [[0, 'asc']]
+    'aaSorting': [[0, 'asc'], [1, 'asc']]
   } );
 } );
 function confirmDelete() {
@@ -41,14 +41,44 @@ function confirmDelete() {
             <table id="locations">
                 <thead>
                     <tr>
-                        <td></td>
+                        <td>Building</td>
+                        <td>Room Number</td>
+                        <td>Current Booking</td>
+                        <td>Actions</td>
                     </tr>
                 </thead>
                 <tbody>
                     {% for l in locations %}
                     <tr>
-                        <td></td>
+                        <td>{{ l.get_building_display }}</td>
+                        <td>{{ l.room_number }}</td>
+                            {% if l.has_bookings %} &nbsp; <i class="fa fa-book" title="Booking(s)"></i>{% endif %}
+                        <td>{{ l.get_current_booking }}</td>
+                        <td>
+                            <form class="lineform" method="POST"
+                              action="{% url "space:delete_location" location_id=l.id %}"
+                              onsubmit="return confirmDelete()">
+                            {% csrf_token %}
+                            <button type='submit' class='btn' title="Delete Location">
+                                <i class='fa fa-trash-o'></i>
+                            </button>
+                        </form>
+                        <form class="lineform" method="GET"
+                            action="{% url "space:edit_location" location_slug=l.slug %}">
+                            <button type='submit' class='btn' title="Edit Location">
+                                <i class='fa fa-edit'></i>
+                            </button>
+                        </form>
+                        <form class="lineform" method="GET"
+                            action="{% url "space:view_location" location_slug=l.slug %}">
+                            <button type='submit' class='btn' title="View Location">
+                                <i class='fa fa-eye'></i>
+                            </button>
+                        </form>
+
+                        </td>
                     </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         {% else %}

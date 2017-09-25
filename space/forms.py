@@ -9,8 +9,11 @@ class LocationForm(forms.ModelForm):
         super(LocationForm, self).__init__(*args, **kwargs)
         unit_ids = [unit.id for unit in request.units]
         units = Unit.objects.filter(id__in=unit_ids)
+        roomtypes = RoomType.objects.visible(units)
         self.fields['unit'].queryset = units
         self.fields['unit'].empty_label = None
+        self.fields['room_type'].queryset = roomtypes
+        self.fields['room_type'].empty_label = None
 
     class Meta:
         exclude = []
