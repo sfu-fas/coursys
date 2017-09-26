@@ -1,4 +1,4 @@
-{% if index and can_edit %}<p class="manage_link"><a href="{% url "grad:manage_letters" grad_slug=grad.slug  %}">Manage Letters</a></p>{% endif %}
+{% if can_edit %}<p class="manage_link"><a href="{% url "grad:manage_letters" grad_slug=grad.slug  %}">Manage Letters</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-1">
 		<thead>
@@ -19,7 +19,7 @@
 				<td> {{ l.from_person }} </td>
 				<td><a href="{% url "grad:get_letter" grad_slug=grad.slug letter_slug=l.slug %}">Get PDF</a>
 					| <a href="{% url "grad:view_letter" grad_slug=grad.slug letter_slug=l.slug %}">View Body</a>
-				{% if not index %}	| <a href="{% url "grad:copy_letter" grad_slug=grad.slug letter_slug=l.slug %}">Copy Letter</a></td>{% endif %}
+				{% if can_edit %}	| <a href="{% url "grad:copy_letter" grad_slug=grad.slug letter_slug=l.slug %}">Copy Letter</a></td>{% endif %}
 			</tr>
 			{% endfor %}
 		</tbody>

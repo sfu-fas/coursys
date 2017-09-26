@@ -1,4 +1,4 @@
-{% if index %}
+{% if can_edit %}
     <p class="manage_link">
         <a href="{% url "grad:manage_financialcomments" grad_slug=grad.slug  %}">Manage Financial Comments</a>
     </p>
@@ -13,7 +13,7 @@
 				<th>Created</th>
                 <th>By</th>
                 <th>Comment</th>
-				{% if not index %}
+				{% if can_edit %}
                     <th>Actions</th>
                 {% endif %}
 			</tr>
@@ -42,7 +42,7 @@
                     {{ f.comment|linebreaksbr }} 
                 </td>
 
-				{% if not index %}
+				{% if can_edit %}
                 <td class='miniaction'>
                     <form action="{% url "grad:remove_financialcomment" grad_slug=grad.slug f_id=f.id %}" method="post">
                         {% csrf_token %}

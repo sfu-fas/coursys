@@ -1,4 +1,4 @@
-{% if index and can_edit %}
+{% if can_edit %}
     <p class="manage_link">
         <a href="{% url "grad:manage_otherfunding" grad_slug=grad.slug  %}">Manage Other Funding</a>
     </p>
@@ -11,7 +11,7 @@
 				<th>Description</th>
 				<th>Amount</th>
 				<th>Semester</th>
-				{% if not index %}
+				{% if can_edit %}
                     <th>Actions</th>
                 {% endif %}
 			</tr>
@@ -38,7 +38,7 @@
                         {{ f.semester.name }} ({{ f.semester }})
                     {% if f.removed %}</del>{% endif %}
                 </td>
-				{% if not index %}
+				{% if can_edit %}
                 <td class='miniaction'>
                     {% if not p.removed %}
                         <form action="{% url "grad:remove_otherfunding" grad_slug=grad.slug o_id=f.id %}" method="post">
