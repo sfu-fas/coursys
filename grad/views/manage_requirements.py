@@ -8,7 +8,7 @@ from log.models import LogEntry
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_requirements(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)    
     
@@ -42,5 +42,6 @@ def manage_requirements(request, grad_slug):
                 'form': form,
                 'completed_req': completed_req,
                 'missing_req': missing_req,
+                'can_edit': True,
               }
     return render(request, 'grad/manage_requirements.html', context)

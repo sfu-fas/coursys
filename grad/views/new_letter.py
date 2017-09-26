@@ -9,7 +9,7 @@ import datetime
 from django.core.urlresolvers import reverse
 from coredata.models import Role
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def new_letter(request, grad_slug, letter_template_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
 

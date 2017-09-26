@@ -8,7 +8,7 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.db import transaction
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_defence(request, grad_slug):
     """
     Page for managing all defence-related stuff.

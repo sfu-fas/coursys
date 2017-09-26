@@ -9,7 +9,7 @@ from django.forms.utils import ErrorList
 from coredata.models import Semester
 from log.models import LogEntry
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_promises(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug = grad_slug)
     promises = Promise.objects.filter(student=grad).order_by('start_semester__name')
@@ -42,6 +42,7 @@ def manage_promises(request, grad_slug):
                 'grad':grad,
                 'form': form,
                 'promises': promises,
+                'can_edit': True,
               }
     return render(request, 'grad/manage_promises.html', context)
 

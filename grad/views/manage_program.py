@@ -8,7 +8,7 @@ from log.models import LogEntry
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_program(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     programs = GradProgram.objects.filter(unit__in=request.units)

@@ -7,7 +7,7 @@ from log.models import LogEntry
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     supervisors = Supervisor.objects.filter(student=grad).select_related('supervisor')
@@ -35,6 +35,7 @@ def manage_supervisors(request, grad_slug):
     context = {
                'form': form,
                'supervisors': supervisors,
-               'grad' : grad,
+               'grad': grad,
+               'can_edit': True,
                }
     return render(request, 'grad/manage_supervisors.html', context)

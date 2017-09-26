@@ -7,7 +7,7 @@ from grad.forms import ProgressReportForm
 from django.core.urlresolvers import reverse
 from log.models import LogEntry
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_progress(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug = grad_slug)
     progress_reports = ProgressReport.objects.filter(student=grad).order_by('date')
@@ -32,6 +32,7 @@ def manage_progress(request, grad_slug):
                 'grad':grad,
                 'form': form,
                 'progress_reports': progress_reports,
+                'can_edit': True,
               }
     return render(request, 'grad/manage_progress.html', context)
 
