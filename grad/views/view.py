@@ -72,12 +72,13 @@ def view(request, grad_slug, section=None):
     
     context = {
         'grad': grad, 
-        'index': True, 
-        'can_edit': True, 
+        'index': False,
+        'can_edit': True,
         'authtype': authtype }
 
     if authtype in ['supervisor', 'graddir']:
         context['can_edit'] = False
+        context['index'] = True
     
     for s in all_sections:
         context[s+'_content'] = ''
