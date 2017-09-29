@@ -271,7 +271,7 @@ if DEPLOY_MODE == 'production':
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SUBMISSION_PATH = '/data/submitted_files'
-    BASE_ABS_URL = "https://courses.cs.sfu.ca"
+    BASE_ABS_URL = "https://coursys.sfu.ca"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
     SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS'),
             'db': 'coursesvn', 'port': 4000}
@@ -331,7 +331,7 @@ MAX_SUBMISSION_SIZE = 30000 # kB
 CAS_SERVER_URL = "https://cas.sfu.ca/cas/"
 CAS_VERSION = '2'
 EMAIL_HOST = 'localhost'
-DEFAULT_FROM_EMAIL = 'CourSys <nobody@courses.cs.sfu.ca>'
+DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
 SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')
