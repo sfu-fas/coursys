@@ -18,6 +18,9 @@ class LocationForm(forms.ModelForm):
     class Meta:
         exclude = []
         model = Location
+        widgets = {
+            'comments': forms.Textarea
+        }
 
 
 class BookingRecordForm(forms.ModelForm):

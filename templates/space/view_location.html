@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}View Location{% endblock %}
+{% block h1 %}View Room Type{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "space:index" %}">Locations</a></li>
+    <li>View Location</li>
+{% endblock %}
+
+{% block actions %}
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "space:edit_location" location_slug=location.slug %}">Edit</a></li>
+        <li><a href="{% url "space:add_booking" location_slug=location.slug %}">Add Booking</a></li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <dt>Campus</dt><dd>{{ location.get_campus_display }}</dd>
+    <dt>Building</dt><dd>{{ location.get_building_display }}</dd>
+    <dt>Floor</dt><dd>{{ location.floor }}</dd>
+    <dt>Room Number</dt><dd>{{ location.room_number }}</dd>
+    <dt>Square Meters</dt><dd>{{ location.square_meters }}</dd>
+    <dt>Room Type</dt><dd>{{ location.room_type }}</dd>
+    <dt>Infrastructure</dt><dd>{{ location.get_infrastructure_display }}</dd>
+    <dt>Room Capacity</dt><dd>{{ location.room_capacity }}</dd>
+    <dt>Category</dt><dd>{{ location.get_category_display }}</dd>
+    <dt>Occupancy</dt><dd>{{ location.occupancy_count }}</dd>
+    <dt>Own/Leased</dt><dd>{{ location.get_own_or_lease_display }}</dd>
+    <dt>Comments</dt><dd>{{ location.comments|linebreaks }}</dd>
+
+    {% if location.bookings.count > 0 %}
+        <h2>Bookings</h2>
+
+
+    {% endif %}
+{% endblock %}
