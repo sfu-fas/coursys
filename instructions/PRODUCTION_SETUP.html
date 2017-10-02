@@ -67,13 +67,17 @@ sudo chef-solo -c ~/courses/machines/chef/solo.rb -j ~/courses/machines/chef/run
 <dl>
     <dt>Certificates</dt>
     <dd>
-        <p>Put these certificates in place:</p>
+        <p>Put these certificates in place for the *.cs.sfu.ca stuff:</p>
         <ul>
             <li><code class="file">/etc/stunnel/stunnel.pem</code></li>
             <li><code class="file">/etc/nginx/cert.pem</code></li>
             <li><code class="file">/etc/nginx/cert.key</code></li>
         </ul>
         <p>&hellip; and <code>chmod 0400</code> each of them.</p>
+        <p>For the Let's Encrypt *.sfu.ca domains:</p>
+        <blockquote><pre>
+sudo certbot --nginx -d coursys.sfu.ca certonly
+sudo certbot --nginx -d fasit.sfu.ca certonly</pre></blockquote>
     </dd>
     <dt>Secrets</dt>
     <dd>
@@ -108,6 +112,13 @@ sudo ./manage.py install_secrets
         <p>The haystack indices (in elasticsearch) need to be there. They could be copied from an old server, but can also be rebuilt easily enough.
             [This will take a while. Maybe run it in a <code>screen</code> session.]</p>
         <blockquote><pre>./manage.py rebuild_index</pre></blockquote>
+
+    </dd>
+    <dt>Root crontab</dt>
+    <dd>
+        <p>Add a couple of lines to the root crontabe (<code>sudo crontab -e</code>):</p>
+        <blockquote><pre>58 6 * * * /etc/init.d/celeryd restart
+0 4 * * 0 certbot renew</pre></blockquote>
 
     </dd>
 </dl>

@@ -69,16 +69,15 @@ def view(request, grad_slug, section=None):
               related_object=grad )
         l.save()
         return redirect("https://cortez.cs.sfu.ca/grad/scripts/grabcurrent.asp?Identifier=" + grad.config['cortezid'])
-    
+
+    # Only an authtype ruled as "admin" by _can_view_student should be allowed to edit anything here.
+    can_edit = authtype == 'admin'
     context = {
         'grad': grad, 
-        'index': True, 
-        'can_edit': True, 
-        'authtype': authtype }
+        'can_edit': can_edit,
+        'authtype': authtype,
+    }
 
-    if authtype in ['supervisor', 'graddir']:
-        context['can_edit'] = False
-    
     for s in all_sections:
         context[s+'_content'] = ''
     

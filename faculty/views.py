@@ -863,7 +863,8 @@ def assign_position_person(request, position_id):
                 position.save()
                 # Let's see if this person already has a faculty role for this unit, otherwise, add it:
                 if not Role.objects.filter(role='FAC', unit=position.unit, person=person).exists():
-                    new_role = Role(role='FAC', unit=position.unit, person=person)
+                    expiry = datetime.date.today() + datetime.timedelta(days=365)
+                    new_role = Role(role='FAC', unit=position.unit, person=person, expiry=expiry)
                     new_role.save()
                     messages.add_message(request, messages.SUCCESS, u'Added faculty role for %s' % person)
                 messages.add_message(request,
@@ -1731,13 +1732,14 @@ def faculty_wizard(request, userid, position=None):
             # has been assigned to a real faculty member, meaning we most likely can delete this individual.
             if position:
                 position = get_object_or_404(Position, pk=position)
-                a = position.any_person
-                a.person = person
-                a.save()
-                if a.future_person:
-                    f = a.future_person
-                    f.set_assigned(True)
-                    f.save()
+                if position.any_person:
+                    a = position.any_person
+                    a.person = person
+                    a.save()
+                    if a.future_person:
+                        f = a.future_person
+                        f.set_assigned(True)
+                        f.save()
             return HttpResponseRedirect(reverse('faculty:summary', kwargs={'userid':userid}))
         else:
             form_list = [form_appoint, form_salary, form_load]

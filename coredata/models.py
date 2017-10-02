@@ -849,6 +849,7 @@ COMPONENT_CHOICES = (
         ('STL', 'STL'), # ???
         ('CNV', 'CNV'), # converted from SIMON?
         ('OPL', 'Open Lab'), # ???
+        ('EXM', 'Exam'),  # First showed up 2017/09/20 with descr "PhD Oral Candidacy Exam"
         ('CAN', 'Cancelled')
         )
 COMPONENTS = dict(COMPONENT_CHOICES)
@@ -1636,7 +1637,8 @@ class Role(models.Model):
         today = datetime.date.today()
         cutoff = datetime.date.today() + datetime.timedelta(days=14)
 
-        expiring_roles = Role.objects.filter(expiry__gte=today, expiry__lte=cutoff).select_related('person', 'unit')
+        expiring_roles = Role.objects.filter(expiry__gte=today, expiry__lte=cutoff).exclude(role__in=LONG_LIVED_ROLES)\
+            .select_related('person', 'unit')
         unit_roles = {} # who do we remind about what?
         global_roles = []
 

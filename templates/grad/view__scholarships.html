@@ -1,4 +1,4 @@
-{% if index and can_edit %}<p class="manage_link"><a href="{% url "grad:manage_scholarships" grad_slug=grad.slug  %}">Manage Scholarships</a></p>{% endif %}
+{% if can_edit %}<p class="manage_link"><a href="{% url "grad:manage_scholarships" grad_slug=grad.slug  %}">Manage Scholarships</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-2">
 		<thead>
@@ -7,7 +7,7 @@
 				<th>Amount</th>
 				<th>Start Semester</th>
 				<th>End Semester</th>
-				{% if not index %}
+				{% if can_edit %}
                     <th>Actions</th>
                 {% endif %}
 			</tr>
@@ -36,7 +36,7 @@
                         {{ s.end_semester.name }} ({{ s.end_semester }}) 
                     {% if s.removed %}</del>{% endif %}
                 </td>
-				{% if not index %}
+				{% if can_edit %}
                 <td class='miniaction'>
                     {% if not s.removed %}
                         <form action="{% url "grad:remove_scholarship" grad_slug=grad.slug s_id=s.id %}" method="post">

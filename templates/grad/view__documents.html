@@ -1,4 +1,4 @@
-{% if index and can_edit %}
+{% if can_edit %}
 <p class="manage_link">
     <a href="{% url "grad:manage_documents" grad_slug=grad.slug  %}">
     Manage Documents
@@ -12,7 +12,7 @@
                 <th>Name</th>
                 <th>Document</th>
 
-				{% if not index %}
+				{% if can_edit %}
                     <th>Actions</th>
                 {% endif %}
 			</tr>
@@ -49,7 +49,7 @@
                     {% endif %}
                 </td>
         
-				{% if not index %}
+				{% if can_edit %}
                 <td class='miniaction'>
                     {% if not d.removed %}
                         <form action="{% url "grad:remove_document" grad_slug=grad.slug d_id=d.id %}" method="post">

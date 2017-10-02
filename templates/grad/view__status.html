@@ -1,12 +1,12 @@
 {% load sims_check %}
-{% if index and can_edit %}<p class="manage_link"><a href="{% url "grad:manage_status" grad_slug=grad.slug  %}">Manage Status</a></p>{% endif %}
+{% if can_edit %}<p class="manage_link"><a href="{% url "grad:manage_status" grad_slug=grad.slug  %}">Manage Status</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-1">
 		<thead>
 			<tr>
 				<th>Status</th>
 				<th>As Of</th>
-				{% if not index %}
+				{% if can_edit %}
                     <th>Actions</th>
                 {% endif %}
 			</tr>
@@ -33,7 +33,7 @@
                     {% if s.hidden %}</del>{% endif %}
                 </td>
 
-				{% if not index %}
+				{% if can_edit %}
                 <td class='miniaction'>
                     {% if not s.hidden %}
                         <form action="{% url "grad:remove_status" grad_slug=grad.slug s_id=s.id %}" method="post">

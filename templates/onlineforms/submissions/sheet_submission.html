@@ -13,6 +13,9 @@
 {% block headextra %}
 <link rel="stylesheet" href="{% static 'style/onlineforms.css' %}" media="all" />
 <script type="text/javascript" src="{% static 'js/onlineforms.js' %}"></script>
+{% if owner_form.jsfile %}
+    <script type="text/javascript" src={{owner_form.jsfile|get_js_path }}></script>
+{% endif %}
 {% endblock %}
 
 {% block content %}

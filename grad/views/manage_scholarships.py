@@ -10,7 +10,7 @@ from log.models import LogEntry
 
 get_semester = Semester.get_semester
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_scholarships(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug = grad_slug)
     scholarship_type_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False).order_by('unit__slug', 'name')]
@@ -40,6 +40,7 @@ def manage_scholarships(request, grad_slug):
                 'grad':grad,
                 'form': form,
                 'scholarships': scholarships,
-                'scholarship_comments': comments
+                'scholarship_comments': comments,
+                'can_edit': True,
     }
     return render(request, 'grad/manage_scholarships.html', context)

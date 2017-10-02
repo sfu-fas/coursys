@@ -151,7 +151,7 @@ if 'test' in sys.argv[1:]:
     MIGRATION_MODULES = DisableMigrations()
 
 # security-related settings
-ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca'])
+ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca', 'coursys.sfu.ca', 'fasit.sfu.ca'])
 if DEBUG:
     ALLOWED_HOSTS.append('localhost')
 
