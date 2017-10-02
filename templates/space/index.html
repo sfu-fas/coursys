@@ -51,8 +51,8 @@ function confirmDelete() {
                     {% for l in locations %}
                     <tr>
                         <td>{{ l.get_building_display }}</td>
-                        <td>{{ l.room_number }}</td>
-                            {% if l.has_bookings %} &nbsp; <i class="fa fa-book" title="Booking(s)"></i>{% endif %}
+                        <td>{{ l.room_number }}
+                            {% if l.has_bookings %} &nbsp; <i class="fa fa-book" title="Booking(s)"></i>{% endif %}</td>
                         <td>{{ l.get_current_booking }}</td>
                         <td>
                             <form class="lineform" method="POST"

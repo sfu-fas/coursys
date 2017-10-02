@@ -2,11 +2,28 @@
 {% load staticfiles %}
 
 {% block title %}View Location{% endblock %}
-{% block h1 %}View Room Type{% endblock %}
+{% block h1 %}View Location{% endblock %}
 
 {% block subbreadcrumbs %}
     <li><a href="{% url "space:index" %}">Locations</a></li>
     <li>View Location</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#bookings').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']]
+  } );
+} );
+function confirmDelete() {
+  return confirm("Are you sure you want to delete this booking?");
+}
+</script>
 {% endblock %}
 
 {% block actions %}
@@ -33,7 +50,46 @@
 
     {% if location.bookings.count > 0 %}
         <h2>Bookings</h2>
-
-
+        <table id="bookings">
+            <thead>
+                <tr>
+                    <th>Person</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in location.get_bookings %}
+                    <tr>
+                        <td>{{ b.person.name }}</td>
+                        <td>{{ b.start_time }}</td>
+                        <td>{{ b.end_time }}</td>
+                        <td>
+                            <form class="lineform" method="POST"
+                                  action="{% url "space:delete_booking" booking_id=b.id %}"
+                                  onsubmit="return confirmDelete()">
+                                {% csrf_token %}
+                                <button type='submit' class='btn' title="Delete Booking">
+                                    <i class='fa fa-trash-o'></i>
+                                </button>
+                            </form>
+                            <form class="lineform" method="GET"
+                                action="{% url "space:edit_booking" booking_slug=b.slug %}">
+                                <button type='submit' class='btn' title="Edit Booking">
+                                    <i class='fa fa-edit'></i>
+                                </button>
+                            </form>
+                            <form class="lineform" method="GET"
+                                action="{% url "space:view_booking" booking_slug=b.slug %}">
+                                <button type='submit' class='btn' title="View Booking">
+                                    <i class='fa fa-eye'></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% endif %}
 {% endblock %}

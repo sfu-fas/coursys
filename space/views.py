@@ -153,7 +153,7 @@ def add_booking(request, location_slug):
     location = get_object_or_404(Location, slug=location_slug, unit__in=request.units)
     editor = get_object_or_404(Person, userid=request.user.username)
     if request.method == 'POST':
-        form = BookingRecordForm(request, request.POST)
+        form = BookingRecordForm(request.POST)
         if form.is_valid():
             booking = form.save(commit=False)
             booking.location = location
@@ -162,13 +162,19 @@ def add_booking(request, location_slug):
                                  messages.SUCCESS,
                                  u'Booking was created')
             l = LogEntry(userid=request.user.username,
-                         description="Added booking" % booking,
+                         description="Added booking %s for location %s" % (booking, location),
                          related_object=booking)
             l.save()
             return HttpResponseRedirect(reverse('space:index'))
+        else:
+            form.fields['start_time'].help_text = "Any previous bookings without an end time will also get its " \
+                                                  "end time set to this."
     else:
-        form = BookingRecordForm(request)
-    return render(request, 'space/new_booking.html', {'form': form})
+        form = BookingRecordForm()
+        form.fields['start_time'].help_text = "Any previous bookings without an end time will also get its " \
+                                              "end time set to this."
+
+    return render(request, 'space/new_booking.html', {'form': form, 'location': location})
 
 
 @requires_role('SPAC')
@@ -176,7 +182,7 @@ def edit_booking(request, booking_slug):
     booking = get_object_or_404(BookingRecord, slug=booking_slug, unit__in=request.units)
     editor = get_object_or_404(Person, userid=request.user.username)
     if request.method == 'POST':
-        form = BookingRecordForm(request, request.POST, instance=booking)
+        form = BookingRecordForm(request.POST, instance=booking)
         if form.is_valid():
             booking = form.save(commit=False)
             booking.save(editor=editor)
@@ -189,7 +195,7 @@ def edit_booking(request, booking_slug):
             l.save()
             return HttpResponseRedirect(reverse('space:list_bookings'))
     else:
-        form = BookingRecordForm(request, instance=booking)
+        form = BookingRecordForm(instance=booking)
     return render(request, 'space/edit_booking.html', {'form': form})
 
 

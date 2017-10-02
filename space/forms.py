@@ -1,3 +1,5 @@
+from django.contrib.admin import widgets
+
 from .models import BookingRecord, Location, RoomType
 from django import forms
 from coredata.models import Unit
@@ -29,10 +31,29 @@ class BookingRecordForm(forms.ModelForm):
     class Meta:
         exclude = ['location']
         model = BookingRecord
+        field_classes = {
+            'start_time': forms.SplitDateTimeField,
+            'end_time': forms.SplitDateTimeField,
+        }
+        widgets = {
+            'start_time': forms.SplitDateTimeWidget,
+            'end_time': forms.SplitDateTimeWidget,
+        }
+
+    def clean(self):
+        cleaned_data = super(BookingRecordForm, self).clean()
+        start_time = cleaned_data.get("start_time")
+        end_time = cleaned_data.get("end_time")
+        if end_time is not None and end_time < start_time:
+            raise forms.ValidationError({'end_date': "End date/time cannot be before start date.",
+                                         'start_date': "End date/time cannot be before start date."})
 
     def is_valid(self, *args, **kwargs):
+        print "In valid."
         PersonField.person_data_prep(self)
+        print "end of our validation"
         return super(BookingRecordForm, self).is_valid(*args, **kwargs)
+
 
 
 class RoomTypeForm(forms.ModelForm):

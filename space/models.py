@@ -116,8 +116,7 @@ class Location(models.Model):
                                             self.room_number)
 
     def get_current_booking(self):
-        latest_booking = self.bookings.filter(start_time__lte=timezone_today(), hidden=False).\
-            order_by('start_time').last()
+        latest_booking = self.bookings.visible().filter(start_time__lte=timezone_today()).order_by('start_time').last()
         if latest_booking and (not latest_booking.end_time or latest_booking.end_time > timezone_today()):
             return latest_booking
         return None
@@ -125,13 +124,16 @@ class Location(models.Model):
     def has_bookings(self):
         return self.bookings.filter(hidden=False).count() > 0
 
+    def get_bookings(self):
+        return self.bookings.filter(hidden=False)
+
 
 class BookingRecordManager(models.QuerySet):
-    def visible(self, units):
+    def visible(self):
         """
         Only see visible items, in this case also limited by accessible units.
         """
-        return self.filter(hidden=False, unit__in=units)
+        return self.filter(hidden=False)
 
 
 class BookingRecord(models.Model):
@@ -152,6 +154,9 @@ class BookingRecord(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
+    def __unicode__(self):
+        return u"%s - %s" % (self.person.name(), self.start_time)
+
     def save(self, editor=None, *args, **kwargs):
         self.last_modified = timezone_today()
         if editor:
@@ -159,3 +164,12 @@ class BookingRecord(models.Model):
         else:
             self.last_modified_by = None
         super(BookingRecord, self).save(*args, **kwargs)
+        self.end_date_others()
+
+    # If we have other bookings without and end-date, apply the new one's start date as the end-date.
+    def end_date_others(self):
+        for b in BookingRecord.objects.visible().filter(location=self.location, end_time__isnull=True,
+                                                        start_time__lt=self.start_time).exclude(id=self.id):
+            b.end_time = self.start_time
+            b.save()
+
