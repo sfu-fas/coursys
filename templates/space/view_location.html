@@ -62,7 +62,7 @@ function confirmDelete() {
             <tbody>
                 {% for b in location.get_bookings %}
                     <tr>
-                        <td>{{ b.person.name }}</td>
+                        <td>{{ b.person.name }} {% if b.conflict %} <span style="color: darkorange"><i class="fa fa-warning" title="This booking conflicts with others"></i></span>{% endif %}</td>
                         <td>{{ b.start_time }}</td>
                         <td>{{ b.end_time }}</td>
                         <td>

@@ -1,6 +1,6 @@
 from django.utils import timezone
 from django.db import models
-from coredata.models import Unit, JSONField
+from coredata.models import Unit, JSONField, config_property
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from coredata.models import CAMPUS_CHOICES, Person
@@ -105,7 +105,7 @@ class Location(models.Model):
     config = JSONField(null=False, blank=False, editable=False, default=dict)
 
     objects = LocationManager.as_manager()
-    
+
     def autoslug(self):
         return make_slug(self.unit.slug + '-' + self.campus + '-' + self.building + '-' + str(self.floor) + '-' +
                          self.room_number)
@@ -126,6 +126,23 @@ class Location(models.Model):
 
     def get_bookings(self):
         return self.bookings.filter(hidden=False)
+
+    def mark_conflicts(self):
+        # A stupid nested loop to see if there are any conflicts within the bookings for this location
+        self.conflicts = False
+        for a in self.get_bookings():
+            a.conflict = False
+            for b in self.get_bookings().exclude(id=a.id):
+                if a.end_time is None and a.start_time < b.end_time:
+                    a.conflict = True
+                    break
+                if b.end_time is None and ((a.start_time > b.start_time) or (a.end_time > b.start_time)):
+                    a.conflict = True
+                    break
+                if a.end_time is not None and b.end_time is not None and a.start_time < b.end_time \
+                        and a.end_time > b.start_time:
+                    a.conflict = True
+            a.save()
 
 
 class BookingRecordManager(models.QuerySet):
@@ -148,6 +165,9 @@ class BookingRecord(models.Model):
 
     objects = BookingRecordManager.as_manager()
 
+    # A property to mark if this booking conflicts with any others.
+    conflict = config_property('conflict', False)
+
     def autoslug(self):
         return make_slug(self.location.slug + '-' + self.person.userid + '-' +
                          str(self.start_time.date()))
@@ -158,11 +178,11 @@ class BookingRecord(models.Model):
         return u"%s - %s" % (self.person.name(), self.start_time)
 
     def save(self, editor=None, *args, **kwargs):
-        self.last_modified = timezone_today()
+        # Only note the last modified things if we have an editor.  Otherwise, the object is being changed
+        # by the conflict checking code or the code end-dating it automagically.
         if editor:
+            self.last_modified = timezone_today()
             self.last_modified_by = editor
-        else:
-            self.last_modified_by = None
         super(BookingRecord, self).save(*args, **kwargs)
         self.end_date_others()
 

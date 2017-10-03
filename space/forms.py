@@ -45,13 +45,11 @@ class BookingRecordForm(forms.ModelForm):
         start_time = cleaned_data.get("start_time")
         end_time = cleaned_data.get("end_time")
         if end_time is not None and end_time < start_time:
-            raise forms.ValidationError({'end_date': "End date/time cannot be before start date.",
-                                         'start_date': "End date/time cannot be before start date."})
+            raise forms.ValidationError({'end_time': "End date/time cannot be before start date.",
+                                         'start_time': "End date/time cannot be before start date."})
 
     def is_valid(self, *args, **kwargs):
-        print "In valid."
         PersonField.person_data_prep(self)
-        print "end of our validation"
         return super(BookingRecordForm, self).is_valid(*args, **kwargs)
 
 

@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block content %}
-<form action="{% url 'space:edit_location' location_slug=location.slug%}" method="post">
+<form action="{% url 'space:edit_location' location_slug=location.slug from_index=from_index %}" method="post">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>

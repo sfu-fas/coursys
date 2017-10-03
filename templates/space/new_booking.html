@@ -32,7 +32,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-<form action="{% url 'space:add_booking' location_slug=location.slug %}" method="post">
+<form action="{% url 'space:add_booking' location_slug=location.slug from_index=from_index %}" method="post">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>

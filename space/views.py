@@ -38,7 +38,7 @@ def add_location(request):
 
 
 @requires_role('SPAC')
-def edit_location(request, location_slug):
+def edit_location(request, location_slug, from_index=0):
     location = get_object_or_404(Location, slug=location_slug, unit__in=request.units)
     if request.method == 'POST':
         form = LocationForm(request, request.POST, instance=location)
@@ -51,10 +51,12 @@ def edit_location(request, location_slug):
                          description="Edited location %s" % location,
                          related_object=location)
             l.save()
-            return HttpResponseRedirect(reverse('space:index'))
+            if from_index:
+                return HttpResponseRedirect(reverse('space:index'))
+            return view_location(request, location.slug)
     else:
         form = LocationForm(request, instance=location)
-    return render(request, 'space/edit_location.html', {'form': form, 'location': location})
+    return render(request, 'space/edit_location.html', {'form': form, 'location': location, 'from_index': from_index})
 
 
 @requires_role('SPAC')
@@ -149,7 +151,7 @@ def delete_roomtype(request, roomtype_id):
 
 
 @requires_role('SPAC')
-def add_booking(request, location_slug):
+def add_booking(request, location_slug, from_index=0):
     location = get_object_or_404(Location, slug=location_slug, unit__in=request.units)
     editor = get_object_or_404(Person, userid=request.user.username)
     if request.method == 'POST':
@@ -158,6 +160,7 @@ def add_booking(request, location_slug):
             booking = form.save(commit=False)
             booking.location = location
             booking.save(editor=editor)
+            location.mark_conflicts()
             messages.add_message(request,
                                  messages.SUCCESS,
                                  u'Booking was created')
@@ -165,6 +168,8 @@ def add_booking(request, location_slug):
                          description="Added booking %s for location %s" % (booking, location),
                          related_object=booking)
             l.save()
+            if from_index:
+                return view_location(request, location_slug)
             return HttpResponseRedirect(reverse('space:index'))
         else:
             form.fields['start_time'].help_text = "Any previous bookings without an end time will also get its " \
@@ -174,50 +179,53 @@ def add_booking(request, location_slug):
         form.fields['start_time'].help_text = "Any previous bookings without an end time will also get its " \
                                               "end time set to this."
 
-    return render(request, 'space/new_booking.html', {'form': form, 'location': location})
+    return render(request, 'space/new_booking.html', {'form': form, 'location': location, 'from_index': from_index})
 
 
 @requires_role('SPAC')
 def edit_booking(request, booking_slug):
-    booking = get_object_or_404(BookingRecord, slug=booking_slug, unit__in=request.units)
+    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=request.units)
     editor = get_object_or_404(Person, userid=request.user.username)
     if request.method == 'POST':
         form = BookingRecordForm(request.POST, instance=booking)
         if form.is_valid():
             booking = form.save(commit=False)
             booking.save(editor=editor)
+            booking.location.mark_conflicts()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Room type was edited')
+                                 u'Booking was edited')
             l = LogEntry(userid=request.user.username,
                          description="Edited booking %s" % booking,
                          related_object=booking)
             l.save()
-            return HttpResponseRedirect(reverse('space:list_bookings'))
+            return view_location(request, booking.location.slug)
     else:
-        form = BookingRecordForm(instance=booking)
-    return render(request, 'space/edit_booking.html', {'form': form})
+        form = BookingRecordForm(instance=booking, initial={'person': booking.person.emplid})
+    return render(request, 'space/edit_booking.html', {'form': form, 'booking_slug': booking_slug,
+                                                       'location': booking.location })
 
 
 @requires_role('SPAC')
 def view_booking(request, booking_slug):
-    booking = get_object_or_404(BookingRecord, slug=booking_slug, unit__in=request.units)
+    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=request.units)
     return render(request, 'space/view_booking.html', {'booking': booking})
 
 
 @requires_role('SPAC')
 def delete_booking(request, booking_id):
-    booking = get_object_or_404(BookingRecord, pk=booking_id, unit__in=request.units)
+    booking = get_object_or_404(BookingRecord, pk=booking_id, location__unit__in=request.units)
     editor = get_object_or_404(Person, userid=request.user.username)
     if request.method == 'POST':
         booking.hidden = True
         booking.save(editor=editor)
+        booking.location.mark_conflicts()
         messages.add_message(request,
                              messages.SUCCESS,
-                             u'Room type was deleted')
+                             u'Booking was deleted')
         l = LogEntry(userid=request.user.username,
                      description="Deleted booking %s" % booking,
                      related_object=booking)
         l.save()
-    return HttpResponseRedirect(reverse('space:list_bookings'))
+    return view_location(request, booking.location.slug)
 

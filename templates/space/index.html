@@ -53,28 +53,35 @@ function confirmDelete() {
                         <td>{{ l.get_building_display }}</td>
                         <td>{{ l.room_number }}
                             {% if l.has_bookings %} &nbsp; <i class="fa fa-book" title="Booking(s)"></i>{% endif %}</td>
-                        <td>{{ l.get_current_booking }}</td>
+                        <td>{{ l.get_current_booking }}
+                            {% if l.get_current_booking and l.get_current_booking.conflict %} <span style="color: darkorange"><i class="fa fa-warning" title="This booking conflicts with others"></i></span> {% endif %}</td>
                         <td>
                             <form class="lineform" method="POST"
-                              action="{% url "space:delete_location" location_id=l.id %}"
-                              onsubmit="return confirmDelete()">
-                            {% csrf_token %}
-                            <button type='submit' class='btn' title="Delete Location">
-                                <i class='fa fa-trash-o'></i>
-                            </button>
-                        </form>
-                        <form class="lineform" method="GET"
-                            action="{% url "space:edit_location" location_slug=l.slug %}">
-                            <button type='submit' class='btn' title="Edit Location">
-                                <i class='fa fa-edit'></i>
-                            </button>
-                        </form>
-                        <form class="lineform" method="GET"
-                            action="{% url "space:view_location" location_slug=l.slug %}">
-                            <button type='submit' class='btn' title="View Location">
-                                <i class='fa fa-eye'></i>
-                            </button>
-                        </form>
+                                action="{% url "space:delete_location" location_id=l.id %}"
+                                onsubmit="return confirmDelete()">
+                                {% csrf_token %}
+                                <button type='submit' class='btn' title="Delete Location">
+                                    <i class='fa fa-trash-o'></i>
+                                </button>
+                            </form>
+                            <form class="lineform" method="GET"
+                                action="{% url "space:add_booking" location_slug=l.slug %}">
+                                <button type='submit' class='btn' title="Add Booking">
+                                    <i class='fa fa-book'></i>
+                                </button>
+                            </form>
+                            <form class="lineform" method="GET"
+                                action="{% url "space:edit_location" location_slug=l.slug from_index=1 %}">
+                                <button type='submit' class='btn' title="Edit Location">
+                                    <i class='fa fa-edit'></i>
+                                </button>
+                            </form>
+                            <form class="lineform" method="GET"
+                                action="{% url "space:view_location" location_slug=l.slug %}">
+                                <button type='submit' class='btn' title="View Location">
+                                    <i class='fa fa-eye'></i>
+                                </button>
+                            </form>
 
                         </td>
                     </tr>
