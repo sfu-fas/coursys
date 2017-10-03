@@ -21,6 +21,7 @@ from outreach.urls import outreach_pattern
 from sessionals.urls import sessionals_patterns
 from inventory.urls import inventory_pattern
 from relationships.urls import relationship_patterns
+from space.urls import space_patterns
 from api.urls import api_patterns
 from otp.urls import otp_patterns
 
@@ -74,6 +75,12 @@ urlpatterns = [
     url(r'^forms/', include(forms_patterns, namespace='onlineforms')),
     url(r'^reports/', include(report_patterns, namespace='reports')),
     url(r'^relationships/', include(relationship_patterns, namespace='relationships')),
+    url(r'^visas/', include(visas_pattern, namespace='visas')),
+    url(r'^outreach/', include(outreach_pattern, namespace='outreach')),
+    url(r'^sessionals/', include(sessionals_patterns, namespace='sessionals')),
+    url(r'^inventory/', include(inventory_pattern, namespace='inventory')),
+    url(r'^space/', include(space_patterns, namespace='space')),
+
 
     # graduate student-related apps
     url(r'^grad/', include(grad_patterns, namespace='grad')),
@@ -81,10 +88,7 @@ urlpatterns = [
     url(r'^ta/', include(ta_patterns, namespace='ta')),
     url(r'^tacontracts/', include(tacontract_patterns, namespace='tacontracts')),
     url(r'^tugs/', include(tug_patterns, namespace='tugs')),
-    url(r'^visas/', include(visas_pattern, namespace='visas')),
-    url(r'^outreach/', include(outreach_pattern, namespace='outreach')),
-    url(r'^sessionals/', include(sessionals_patterns, namespace='sessionals')),
-    url(r'^inventory/', include(inventory_pattern, namespace='inventory')),
+
 
     # redirect old mobile URLs to rightful locations
     url(r'^m/(?P<urltail>.*)$',  RedirectView.as_view(url='/%(urltail)s/', permanent=True)),
