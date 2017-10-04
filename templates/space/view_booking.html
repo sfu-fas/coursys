@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load form_display %}
+
+{% block title %}View Booking{% endblock %}
+{% block h1 %}View Booking{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "space:index" %}">Locations</a></li>
+    <li><a href="{% url "space:view_location" location_slug=booking.location.slug %}">View Location</a></li>
+    <li>View Booking</li>
+{% endblock %}
+
+{% block content %}
+    <dt>Person</dt><dd>{{ booking.person.name }}</dd>
+    <dt>Start Time</dt><dd>{{ booking.start_time }}</dd>
+    <dt>End Time</dt><dd>{{ booking.end_time }}</dd>
+    <dt>Last Modified</dt><dd>{{ booking.last_modified }}</dd>
+    <dt>Last Modified By</dt><dd>{{ booking.last_modified_by.name }}</dd>
+{% endblock %}

@@ -65,7 +65,7 @@ function confirmDelete() {
                                 </button>
                             </form>
                             <form class="lineform" method="GET"
-                                action="{% url "space:add_booking" location_slug=l.slug %}">
+                                action="{% url "space:add_booking" location_slug=l.slug from_index=1 %}">
                                 <button type='submit' class='btn' title="Add Booking">
                                     <i class='fa fa-book'></i>
                                 </button>
