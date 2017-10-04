@@ -6,8 +6,8 @@ import string
 
 class GPAs_Query(DB2_Query):
     query = string.Template("""
-        SELECT plan.acad_plan, term.cum_gpa
-            FROM ps_acad_prog prog, ps_acad_plan plan, ps_stdnt_car_term term
+        SELECT plan.acad_plan, term.cum_gpa, plantbl.descr, plantbl.trnscr_descr
+            FROM ps_acad_prog prog, ps_acad_plan plan, ps_stdnt_car_term term, ps_acad_plan_tbl AS plantbl
             WHERE prog.emplid=plan.emplid AND prog.acad_career=plan.acad_career AND prog.stdnt_car_nbr=plan.stdnt_car_nbr AND prog.effdt=plan.effdt AND prog.effseq=plan.effseq
               AND prog.effdt=(SELECT MAX(effdt) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt <= current date)
               AND prog.effseq=(SELECT MAX(effseq) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt=prog.effdt)
@@ -15,6 +15,9 @@ class GPAs_Query(DB2_Query):
               AND plan.acad_plan IN (SELECT acad_plan FROM ps_acad_plan_tbl WHERE eff_status='A' AND acad_plan IN
                 (SELECT DISTINCT acad_plan FROM ps_acad_plan_owner WHERE acad_org=$acad_org))
               AND prog.emplid=term.emplid AND term.unt_taken_prgrss>0 AND term.strm in $strms
+              AND plantbl.acad_plan=plan.acad_plan
+              AND plantbl.effdt=(SELECT MAX(effdt) FROM ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
+              AND prog.prog_status='AC' AND plantbl.eff_status='A'
               AND term.tot_taken_gpa>15 AND term.withdraw_code='NWD'
               AND term.strm=(SELECT MAX(strm) FROM ps_stdnt_car_term WHERE emplid=prog.emplid)
             ORDER BY prog.emplid, plan.plan_sequence
