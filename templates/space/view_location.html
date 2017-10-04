@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}View Location{% endblock %}
+{% block h1 %}View Location{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "space:index" %}">Locations</a></li>
+    <li>View Location</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#bookings').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']]
+  } );
+} );
+function confirmDelete() {
+  return confirm("Are you sure you want to delete this booking?");
+}
+</script>
+{% endblock %}
+
+{% block actions %}
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "space:edit_location" location_slug=location.slug %}">Edit</a></li>
+        <li><a href="{% url "space:add_booking" location_slug=location.slug %}">Add Booking</a></li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <dt>Campus</dt><dd>{{ location.get_campus_display }}</dd>
+    <dt>Building</dt><dd>{{ location.get_building_display }}</dd>
+    <dt>Floor</dt><dd>{{ location.floor }}</dd>
+    <dt>Room Number</dt><dd>{{ location.room_number }}</dd>
+    <dt>Square Meters</dt><dd>{{ location.square_meters }}</dd>
+    <dt>Room Type</dt><dd>{{ location.room_type }}</dd>
+    <dt>Infrastructure</dt><dd>{{ location.get_infrastructure_display }}</dd>
+    <dt>Room Capacity</dt><dd>{{ location.room_capacity }}</dd>
+    <dt>Category</dt><dd>{{ location.get_category_display }}</dd>
+    <dt>Occupancy</dt><dd>{{ location.occupancy_count }}</dd>
+    <dt>Own/Leased</dt><dd>{{ location.get_own_or_lease_display }}</dd>
+    <dt>Comments</dt><dd>{{ location.comments|linebreaks }}</dd>
+
+    {% if location.bookings.count > 0 %}
+        <h2>Bookings</h2>
+        <table id="bookings">
+            <thead>
+                <tr>
+                    <th>Person</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in location.get_bookings %}
+                    <tr>
+                        <td>{{ b.person.name }} {% if b.conflict %} <span style="color: darkorange"><i class="fa fa-warning" title="This booking conflicts with others"></i></span>{% endif %}</td>
+                        <td>{{ b.start_time }}</td>
+                        <td>{{ b.end_time }}</td>
+                        <td>
+                            <form class="lineform" method="POST"
+                                  action="{% url "space:delete_booking" booking_id=b.id %}"
+                                  onsubmit="return confirmDelete()">
+                                {% csrf_token %}
+                                <button type='submit' class='btn' title="Delete Booking">
+                                    <i class='fa fa-trash-o'></i>
+                                </button>
+                            </form>
+                            <form class="lineform" method="GET"
+                                action="{% url "space:edit_booking" booking_slug=b.slug %}">
+                                <button type='submit' class='btn' title="Edit Booking">
+                                    <i class='fa fa-edit'></i>
+                                </button>
+                            </form>
+                            <form class="lineform" method="GET"
+                                action="{% url "space:view_booking" booking_slug=b.slug %}">
+                                <button type='submit' class='btn' title="View Booking">
+                                    <i class='fa fa-eye'></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

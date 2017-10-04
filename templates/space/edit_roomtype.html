@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load form_display %}
+
+{% block title %}Edit Room Type{% endblock %}
+{% block h1 %}Edit Room Type{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "space:index" %}">Locations</a></li>
+    <li><a href="{% url "space:list_roomtypes" %}">Room Types</a></li>
+    <li>New Room Type</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'space:edit_roomtype' roomtype_slug=roomtype.slug %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Room Type" />
+    </p>
+</form>
+{% endblock %}

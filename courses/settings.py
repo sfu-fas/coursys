@@ -88,6 +88,7 @@ INSTALLED_APPS = (
     'sessionals',
     'inventory',
     'relationships',
+    'space',
 )
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
