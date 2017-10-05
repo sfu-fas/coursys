@@ -1,6 +1,7 @@
 from reports.reportlib.report import Report
 from reports.reportlib.table import Table
 from coredata.models import Semester, Unit, CourseOffering, CAMPUSES_SHORT, WEEKDAYS
+from faculty.models import CareerEvent
 
 
 class CMPTCourseHistoryReport(Report):
@@ -21,6 +22,7 @@ class CMPTCourseHistoryReport(Report):
         course_history.append_column('Campus')
         course_history.append_column('Joint With')
         course_history.append_column('Lecture Times')
+        course_history.append_column('Instructor(s) Rank(s)')
         for course in courses:
             semester = course.semester.label()
             label = course.name()
@@ -38,7 +40,8 @@ class CMPTCourseHistoryReport(Report):
             mt = [t for t in course.meeting_time.all() if t.meeting_type == 'LEC']
             if mt:
                 meeting_times = ', '.join(str("%s %s-%s" % (WEEKDAYS[t.weekday], t.start_time, t.end_time)) for t in mt)
-            course_history.append_row([semester, label, instr, enrl, campus, joint, meeting_times])
+            ranks = u"; ".join(CareerEvent.ranks_as_of_semester(p.id, course.semester) for p in course.instructors())
+            course_history.append_row([semester, label, instr, enrl, campus, joint, meeting_times, ranks])
         self.artifacts.append(course_history)
 
 

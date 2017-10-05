@@ -293,6 +293,19 @@ class CareerEvent(models.Model):
         return ', '.join(ranks)
 
     @classmethod
+    @cached(6 * 3600)
+    def ranks_as_of_semester(cls, person_id, semester):
+        """
+        Return a string representing the rank(s) for this person as of the beginning of a given semester.
+        """
+        salaries = CareerEvent.objects.filter(person__id=person_id, event_type='SALARY').effective_date(semester.start)
+        if not salaries:
+            return 'unknown'
+
+        ranks = set(s.get_handler().get_rank_display() for s in salaries)
+        return ', '.join(ranks)
+
+    @classmethod
     @cached(6*3600)
     def current_base_salary(cls, person):
         """
