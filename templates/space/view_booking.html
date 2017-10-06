@@ -6,7 +6,7 @@
 {% block h1 %}View Booking{% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "space:index" %}">Locations</a></li>
+    <li><a href="{% url "space:index" %}">Space Management</a></li>
     <li><a href="{% url "space:view_location" location_slug=booking.location.slug %}">View Location</a></li>
     <li>View Booking</li>
 {% endblock %}
@@ -15,6 +15,9 @@
     <dt>Person</dt><dd>{{ booking.person.name }}</dd>
     <dt>Start Time</dt><dd>{{ booking.start_time }}</dd>
     <dt>End Time</dt><dd>{{ booking.end_time }}</dd>
+    {% if booking.form_submission_URL %}
+    <dt>Form Submission URL</dt><dd><a href="{{ booking.form_submission_URL }}">{{ booking.form_submission_URL }}</a></dd>
+    {% endif %}
     <dt>Last Modified</dt><dd>{{ booking.last_modified }}</dd>
     <dt>Last Modified By</dt><dd>{{ booking.last_modified_by.name }}</dd>
 {% endblock %}

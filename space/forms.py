@@ -9,7 +9,7 @@ from coredata.forms import PersonField
 class LocationForm(forms.ModelForm):
     def __init__(self, request, *args, **kwargs):
         super(LocationForm, self).__init__(*args, **kwargs)
-        unit_ids = [unit.id for unit in request.units]
+        unit_ids = [unit.id for unit in Unit.sub_units(request.units)]
         units = Unit.objects.filter(id__in=unit_ids)
         roomtypes = RoomType.objects.visible(units)
         self.fields['unit'].queryset = units
@@ -57,7 +57,7 @@ class BookingRecordForm(forms.ModelForm):
 class RoomTypeForm(forms.ModelForm):
     def __init__(self, request, *args, **kwargs):
         super(RoomTypeForm, self).__init__(*args, **kwargs)
-        unit_ids = [unit.id for unit in request.units]
+        unit_ids = [unit.id for unit in Unit.sub_units(request.units)]
         units = Unit.objects.filter(id__in=unit_ids)
         self.fields['unit'].queryset = units
         self.fields['unit'].empty_label = None

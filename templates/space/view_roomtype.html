@@ -6,7 +6,7 @@
 {% block h1 %}View Room Type{% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "space:index" %}">Locations</a></li>
+    <li><a href="{% url "space:index" %}">Space Management</a></li>
     <li><a href="{% url "space:list_roomtypes" %}">Room Types</a></li>
     <li>View Room Type</li>
 {% endblock %}
@@ -16,5 +16,6 @@
     <dt>Description</dt><dd>{{ roomtype.long_description }}</dd>
     <dt>Code</dt><dd>{{ roomtype.code }}</dd>
     <dt>COU Code Description</dt><dd>{{ roomtype.COU_code_description }}</dd>
+    <dt>Space Factor</dt><dd>{{ roomtype.space_factor }}</dd>
     <dt>COU Code Value</dt><dd>{{ roomtype.COU_code_value }}</dd>
 {% endblock %}

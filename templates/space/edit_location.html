@@ -6,7 +6,7 @@
 {% block h1 %}Edit Room Type{% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "space:index" %}">Locations</a></li>
+    <li><a href="{% url "space:index" %}">Space Management</a></li>
     {% ifnotequal from_index '1' %}
         <li><a href="{% url "space:view_location" location_slug=location.slug %}">View Location</a></li>
     {% endifnotequal %}

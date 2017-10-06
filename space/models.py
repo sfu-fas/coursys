@@ -64,7 +64,8 @@ class RoomType(models.Model):
     long_description = models.CharField(max_length=256, null=False, blank=False, help_text='e.g. "General Store"')
     code = models.CharField(max_length=50, null=False, blank=False, help_text='e.g. "STOR_GEN"')
     COU_code_description = models.CharField(max_length=256, null=False, blank=False, help_text='e.g. "Academic Office Support Space"')
-    COU_code_value = models.DecimalField(max_digits=4, decimal_places=1, help_text='e.g. 10.1')
+    space_factor = models.DecimalField(max_digits=3, decimal_places=1, blank=True, default=0.0)
+    COU_code_value = models.DecimalField(max_digits=4, decimal_places=1, help_text='e.g. 10.1', blank=True, null=True)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     config = JSONField(null=False, blank=False, editable=False, default=dict)
 
@@ -158,6 +159,9 @@ class BookingRecord(models.Model):
     person = models.ForeignKey(Person, related_name='+')
     start_time = models.DateTimeField(default=timezone_today)
     end_time = models.DateTimeField(null=True, blank=True)
+    form_submission_URL = models.CharField(null=True, blank=True, max_length=1000,
+                                           help_text="If the user filled in a form to get this booking created, put "
+                                                     "its URL here.")
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     config = JSONField(null=False, blank=False, editable=False, default=dict)
     last_modified = models.DateTimeField(blank=False, null=False, editable=False)

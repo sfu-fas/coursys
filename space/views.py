@@ -11,8 +11,7 @@ from courselib.auth import ForbiddenResponse
 
 @requires_role('SPAC')
 def index(request):
-    unit_ids = [unit.id for unit in request.units]
-    units = Unit.objects.filter(id__in=unit_ids)
+    units = Unit.sub_units(request.units)
     locations = Location.objects.visible(units)
     room_types = RoomType.objects.visible(units)
     return render(request, 'space/index.html', {'locations': locations, 'room_types': room_types})
@@ -39,7 +38,7 @@ def add_location(request):
 
 @requires_role('SPAC')
 def edit_location(request, location_slug, from_index=0):
-    location = get_object_or_404(Location, slug=location_slug, unit__in=request.units)
+    location = get_object_or_404(Location, slug=location_slug, unit__in=Unit.sub_units(request.units))
     if request.method == 'POST':
         form = LocationForm(request, request.POST, instance=location)
         if form.is_valid():
@@ -61,13 +60,13 @@ def edit_location(request, location_slug, from_index=0):
 
 @requires_role('SPAC')
 def view_location(request, location_slug):
-    location = get_object_or_404(Location, slug=location_slug, unit__in=request.units)
+    location = get_object_or_404(Location, slug=location_slug, unit__in=Unit.sub_units(request.units))
     return render(request, 'space/view_location.html', {'location': location})
 
 
 @requires_role('SPAC')
 def delete_location(request, location_id):
-    location = get_object_or_404(Location, pk=location_id, unit__in=request.units)
+    location = get_object_or_404(Location, pk=location_id, unit__in=Unit.sub_units(request.units))
     if request.method == 'POST':
         location.hidden = True
         location.save()
@@ -83,9 +82,7 @@ def delete_location(request, location_id):
 
 @requires_role('SPAC')
 def list_roomtypes(request):
-    unit_ids = [unit.id for unit in request.units]
-    units = Unit.objects.filter(id__in=unit_ids)
-    roomtypes = RoomType.objects.visible(units)
+    roomtypes = RoomType.objects.visible(Unit.sub_units(request.units))
     return render(request, 'space/list_roomtypes.html', {'roomtypes': roomtypes})
 
 
@@ -110,7 +107,7 @@ def add_roomtype(request):
 
 @requires_role('SPAC')
 def edit_roomtype(request, roomtype_slug):
-    roomtype = get_object_or_404(RoomType, slug=roomtype_slug, unit__in=request.units)
+    roomtype = get_object_or_404(RoomType, slug=roomtype_slug, unit__in=Unit.sub_units(request.units))
     if request.method == 'POST':
         form = RoomTypeForm(request, request.POST, instance=roomtype)
         if form.is_valid():
@@ -130,13 +127,13 @@ def edit_roomtype(request, roomtype_slug):
 
 @requires_role('SPAC')
 def view_roomtype(request, roomtype_slug):
-    roomtype = get_object_or_404(RoomType, slug=roomtype_slug, unit__in=request.units)
+    roomtype = get_object_or_404(RoomType, slug=roomtype_slug, unit__in=Unit.sub_units(request.units))
     return render(request, 'space/view_roomtype.html', {'roomtype': roomtype})
 
 
 @requires_role('SPAC')
 def delete_roomtype(request, roomtype_id):
-    roomtype = get_object_or_404(RoomType, pk=roomtype_id, unit__in=request.units)
+    roomtype = get_object_or_404(RoomType, pk=roomtype_id, unit__in=Unit.sub_units(request.units))
     if request.method == 'POST':
         roomtype.hidden = True
         roomtype.save()
@@ -152,7 +149,7 @@ def delete_roomtype(request, roomtype_id):
 
 @requires_role('SPAC')
 def add_booking(request, location_slug, from_index=0):
-    location = get_object_or_404(Location, slug=location_slug, unit__in=request.units)
+    location = get_object_or_404(Location, slug=location_slug, unit__in=Unit.sub_units(request.units))
     editor = get_object_or_404(Person, userid=request.user.username)
     if request.method == 'POST':
         form = BookingRecordForm(request.POST)
@@ -184,7 +181,7 @@ def add_booking(request, location_slug, from_index=0):
 
 @requires_role('SPAC')
 def edit_booking(request, booking_slug):
-    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=request.units)
+    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=Unit.sub_units(request.units))
     editor = get_object_or_404(Person, userid=request.user.username)
     if request.method == 'POST':
         form = BookingRecordForm(request.POST, instance=booking)
@@ -208,13 +205,13 @@ def edit_booking(request, booking_slug):
 
 @requires_role('SPAC')
 def view_booking(request, booking_slug):
-    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=request.units)
+    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=Unit.sub_units(request.units))
     return render(request, 'space/view_booking.html', {'booking': booking})
 
 
 @requires_role('SPAC')
 def delete_booking(request, booking_id):
-    booking = get_object_or_404(BookingRecord, pk=booking_id, location__unit__in=request.units)
+    booking = get_object_or_404(BookingRecord, pk=booking_id, location__unit__in=Unit.sub_units(request.units))
     editor = get_object_or_404(Person, userid=request.user.username)
     if request.method == 'POST':
         booking.hidden = True

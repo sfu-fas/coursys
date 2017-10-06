@@ -5,7 +5,7 @@
 {% block h1 %}View Location{% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "space:index" %}">Locations</a></li>
+    <li><a href="{% url "space:index" %}">Space Management</a></li>
     <li>View Location</li>
 {% endblock %}
 
@@ -35,6 +35,7 @@ function confirmDelete() {
 {% endblock %}
 
 {% block content %}
+    <dt>Unit</dt><dd>{{ location.unit }}</dd>
     <dt>Campus</dt><dd>{{ location.get_campus_display }}</dd>
     <dt>Building</dt><dd>{{ location.get_building_display }}</dd>
     <dt>Floor</dt><dd>{{ location.floor }}</dd>
