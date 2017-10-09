@@ -13,7 +13,7 @@ def all_promises(request, semester_name=None):
     else:
         semester = get_object_or_404(Semester, name=semester_name)
     promises = Promise.objects.filter(end_semester=semester, 
-                                      student__program__unit__in=request.units)
+                                      student__program__unit__in=request.units, removed=False)
     context = {'promises': promises, 'semester': semester}
     return render(request, 'grad/all_promises.html', context)
 
