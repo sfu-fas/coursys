@@ -9,8 +9,7 @@ import datetime
 class OutreachTestCase(TestCase):
     fixtures = ['basedata', 'coredata', 'outreach']
 
-
-    def test_unaccessible_pages(self):
+    def test_inaccessible_pages(self):
         client = Client()
         # First, without logging in:
         url = reverse('outreach:outreach_index')
@@ -21,7 +20,6 @@ class OutreachTestCase(TestCase):
         client.login_user('pba7')
         response = client.get(url)
         self.assertEquals(response.status_code, 403)
-
 
     def test_pages(self):
         client = Client()
@@ -45,8 +43,3 @@ class OutreachTestCase(TestCase):
         url=reverse('outreach:toggle_registration_attendance', kwargs={'registration_id': registration.id})
         response = client.post(url, follow=True)
         self.assertEquals(response.status_code, 200)
-
-
-
-
-

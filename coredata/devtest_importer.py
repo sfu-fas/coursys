@@ -228,6 +228,8 @@ def create_coredata():
     r4.save()
     r5 = Role(person=d, role='OUTR', unit=u, expiry=role_expiry)
     r5.save()
+    r6 = Role(person=d, role='SPAC', unit=u, expiry=role_expiry)
+    r6.save()
 
     # ensures course appears in menu for students
     a = NumericActivity(offering=o, name=u'Assignmenț 1', short_name='A1', status='URLS', position=1, percent=10,
@@ -712,6 +714,8 @@ def create_outreach():
         OutreachEvent.objects.all(),
         OutreachEventRegistration.objects.all(),
     )
+
+
 def create_sessionals():
     from sessionals.models import SessionalAccount, SessionalContract
     from coredata.models import AnyPerson, Person
@@ -745,6 +749,29 @@ def create_inventory():
         Asset.objects.all(),
     )
 
+
+def create_space():
+    from space.models import RoomType, Location, BookingRecord
+    unit = Unit.objects.get(slug='cmpt')
+    rt = RoomType(unit=unit, long_description='A room type', code='RMM_TYP',
+                  COU_code_description='Magical Room Type Space', space_factor=0.5, COU_code_value=12.2)
+    rt.save()
+    loc = Location(unit=unit, campus='BRNBY', building='ASB', floor=9, room_number='9971', square_meters=6,
+                   room_type=rt, infrastructure='STD', room_capacity=10, category='STAFF', occupancy_count=3,
+                   own_or_lease='OWN', comments='This is the room with the thing')
+    loc.save()
+    p = Person.objects.get(userid='0ggg1')
+    start = datetime.datetime(2010,01,01,00,00,00)
+    end = datetime.datetime(2099,01,01,23,59,59)
+    book = BookingRecord(person=p, location=loc, start_time=start, end_time=end)
+    book.save()
+    return itertools.chain(
+        RoomType.objects.all(),
+        Location.objects.all(),
+        BookingRecord.objects.all()
+    )
+
+
 def serialize_result(data_func, filename):
     print "creating %s.json" % (filename)
     start = time.time()
@@ -771,6 +798,7 @@ def main():
     serialize_result(create_outreach, 'outreach')
     serialize_result(create_sessionals, 'sessionals')
     serialize_result(create_inventory, 'inventory')
+    serialize_result(create_space, 'space')
 
 if __name__ == "__main__":
     hostname = socket.gethostname()

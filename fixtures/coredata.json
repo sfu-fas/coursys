@@ -2222,6 +2222,17 @@
 {
  "fields": {
   "config": "{}",
+  "expiry": "2019-12-22",
+  "person": 5,
+  "role": "SPAC",
+  "unit": 5
+},
+ "model": "coredata.role",
+ "pk": 7
+},
+{
+ "fields": {
+  "config": "{}",
   "deleted": false,
   "due_date": "2017-07-07T00:00:00",
   "group": false,

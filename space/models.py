@@ -187,6 +187,10 @@ class BookingRecord(models.Model):
         if editor:
             self.last_modified = timezone_today()
             self.last_modified_by = editor
+        # In remote cases, we could have created the object without an editor automagically, like when creating
+        # the fixtures.  In that case, only if we don't have a previous last_modified, create it.
+        elif not self.last_modified:
+            self.last_modified = timezone_today()
         super(BookingRecord, self).save(*args, **kwargs)
         self.end_date_others()
 
