@@ -56,15 +56,15 @@ def requires_report_access():
 
 def view_reports(request):
     if has_role('SYSA', request):
-        reports = Report.objects.filter(hidden=False)
+        reports = Report.objects.filter(hidden=False).order_by('name')
         readonly = False
     elif has_role('REPV', request):
-        reports = Report.objects.filter(hidden=False)
+        reports = Report.objects.filter(hidden=False).order_by('name')
         readonly = True
     else:
         readonly = True
-        access_rules = AccessRule.objects.filter(person__userid=request.user.username)
-        reports = [rule.report for rule in access_rules if rule.report.hidden == False]
+        access_rules = AccessRule.objects.filter(person__userid=request.user.username).order_by('report__name')
+        reports = [rule.report for rule in access_rules if not rule.report.hidden]
 
     return render(request, 'reports/view_reports.html', {'readonly':readonly, 'reports':reports})
 

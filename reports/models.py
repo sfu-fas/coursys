@@ -93,9 +93,9 @@ def all_reports():
     """
         Get a list of all of the available python hardcoded reports. 
     """
-    return [(thing, thing) for thing in os.listdir(REPORT_LOCATION) 
+    return sorted([(thing, thing) for thing in os.listdir(REPORT_LOCATION)
                                         if thing.endswith(".py") and 
-                                        not thing.startswith("__")]
+                                        not thing.startswith("__")])
 
 
 class ReportLoadingException( Exception ):
