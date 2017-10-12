@@ -198,7 +198,7 @@ def _program_start_end_semesters_display(pk):
     if history.count() > 1:
         currentprog = history.first()
         if not currentprog.start_semester == self.start_semester:
-            res += ' (%s start semester: %s)' % (currentprog.program.label, currentprog.start_semester.name)
+            res += '  &nbsp;(%s start semester: %s)' % (currentprog.program.label, currentprog.start_semester.name)
     return res
 
 
