@@ -194,12 +194,13 @@ def _program_start_end_semesters_display(pk):
     end = self.end_semester.name if self.end_semester else "present"
     history = GradProgramHistory.objects.filter(student=self).order_by('-starting', '-start_semester').select_related(
         'program')
-    res = u"%s - %s" % (start, end)
+    res = u"%s &ndash; %s" % (start, end)
     if history.count() > 1:
         currentprog = history.first()
         if not currentprog.start_semester == self.start_semester:
-            res += '(%s start semester: %s)' % (currentprog.program.label, currentprog.start_semester.name)
+            res += ' (%s start semester: %s)' % (currentprog.program.label, currentprog.start_semester.name)
     return res
+
 
 class GradStudentManager(models.Manager):
     # never return deleted GradStudent objects
