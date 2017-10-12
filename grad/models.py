@@ -187,6 +187,20 @@ def _active_semesters_display(pk):
     return res
 
 
+@cached(24*3600)
+def _program_start_end_semesters_display(pk):
+    self = GradStudent.objects.get(pk=pk)
+    start = self.start_semester.name if self.start_semester else "???"
+    end = self.end_semester.name if self.end_semester else "present"
+    history = GradProgramHistory.objects.filter(student=self).order_by('-starting', '-start_semester').select_related(
+        'program')
+    res = u"%s - %s" % (start, end)
+    if history.count() > 1:
+        currentprog = history.first()
+        if not currentprog.start_semester == self.start_semester:
+            res += '(%s start semester: %s)' % (currentprog.program.label, currentprog.start_semester.name)
+    return res
+
 class GradStudentManager(models.Manager):
     # never return deleted GradStudent objects
     def get_queryset(self):
@@ -437,6 +451,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             self.save()
             _active_semesters.invalidate(self.pk)
             _active_semesters_display.invalidate(self.pk)
+            _program_start_end_semesters_display.invalidate(self.pk)
 
 
     def active_semesters(self, program=None):
@@ -481,6 +496,16 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         Cache is invalidated by self.update_status_fields.
         """
         return _active_semesters_display(self.pk)
+
+    def program_start_end_semesters_display(self):
+        """
+        Format the start/end semesters including the current program ones if they are different than the
+        GradStudent ones, which can happen in the case of program changes within the same career.
+
+        Cache is invalidated by self.update_status_fields.
+        """
+        return _program_start_end_semesters_display(self.pk)
+
 
     def program_as_of(self, semester=None, future_if_necessary=False):
         if semester == None:

@@ -133,17 +133,7 @@ $(document).ready(function() {
     <tr>
         <th>Start/End Semesters</th>
         <td>
-            {% if grad.start_semester %}
-                {{ grad.start_semester.name }}
-            {% else %}
-                ???
-            {% endif %}
-            &ndash;
-            {% if grad.end_semester %}
-                {{ grad.end_semester.name }}
-            {% else %}
-                present
-            {% endif %}
+            {{ grad.program_start_end_semesters_display }}
         </td>
     </tr>
     <tr>
