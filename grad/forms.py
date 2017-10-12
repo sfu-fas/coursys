@@ -497,6 +497,8 @@ def getattribute(value, arg, html=True):
             return value.person.email_mailto()
         else:
             return value.person.email()
+    elif arg == 'notes':
+        return value.notes()
     elif arg == 'appemail':
         if 'applic_email' in value.config:
             email = value.config['applic_email']
@@ -560,6 +562,7 @@ COLUMN_CHOICES = (
         ('gender',                  'Gender'),
         ('scholarships',            'Scholarships'),
         ('unit',                    'Unit'),
+        ('notes',                   'Notes'),
         )
 COLUMN_WIDTHS_DATA = (
         # column widths for Excel export
@@ -588,6 +591,7 @@ COLUMN_WIDTHS_DATA = (
         ('gender',                  2000),
         ('scholarships',            10000),
         ('unit',                    3000),
+        ('notes',                   3000),
         )
 COLUMN_WIDTHS = dict(COLUMN_WIDTHS_DATA)
 
@@ -904,7 +908,11 @@ class UploadApplicantsForm(forms.Form):
             raise forms.ValidationError(u"Only .csv files are permitted")
         
         return csvfile
-    
+
+
+class GradNotesForm(forms.Form):
+    notes = forms.CharField(max_length=400, widget=forms.Textarea)
+
 
 PCS_COLUMNS = [ # (key, header)
                ('appid', 'ID'),

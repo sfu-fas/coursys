@@ -276,10 +276,12 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         'masters_cgpa':'',
         'qualifying_exam_date':'',
         'qualifying_exam_location':'',
-        'progress':''}
+        'progress':'',
+        'notes':''}
 
     #sin, set_sin = getter_setter('sin')
     applic_email, set_applic_email = getter_setter('applic_email')
+    notes, set_notes = getter_setter('notes')
     
     tacked_on_fields = [
         ('place_of_birth', "Place of Birth"),

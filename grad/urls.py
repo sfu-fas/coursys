@@ -26,6 +26,8 @@ grad_patterns = [ # prefix /grad/
     url(r'^funding/(?P<semester_name>\d{4})$', grad_views.funding_report, name='funding_report'),
 
     url(r'^' + GRAD_SLUG + '/$', grad_views.view, name='view'),
+    url(r'^' + GRAD_SLUG + '/add_note$', grad_views.add_note, name='add_note'),
+    url(r'^' + GRAD_SLUG + '/delete_note$', grad_views.delete_note, name='delete_note'),
     url(r'^' + GRAD_SLUG + '/moreinfo$', grad_views.grad_more_info, name='grad_more_info'),
     url(r'^' + GRAD_SLUG + '/general$', grad_views.manage_general, name='manage_general'),
     url(r'^' + GRAD_SLUG + '/program', grad_views.manage_program, name='manage_program'),
