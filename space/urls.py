@@ -14,6 +14,7 @@ FROM_INDEX = '(?P<from_index>' + ID_RE + ')'
 
 space_patterns = [  # prefix /space/
     url('^$', views.index, name='index'),
+    url('^download/$', views.download_locations, name='download_locations'),
     url(r'^new_location/$', views.add_location, name='add_location'),
     url(r'^' + LOCATION_SLUG + '/edit$', views.edit_location, name='edit_location'),
     url(r'^' + LOCATION_SLUG + '/edit/' + FROM_INDEX + '/$', views.edit_location, name='edit_location'),

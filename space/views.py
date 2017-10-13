@@ -1,12 +1,14 @@
-from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
+from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from .models import Location, RoomType, BookingRecord
 from .forms import LocationForm, RoomTypeForm, BookingRecordForm
 from courselib.auth import requires_role
 from log.models import LogEntry
-from coredata.models import Unit, Role, Person
-from courselib.auth import ForbiddenResponse
+from coredata.models import Unit, Person
+import datetime
+import unicodecsv as csv
+
 
 
 @requires_role('SPAC')
@@ -15,6 +17,27 @@ def index(request):
     locations = Location.objects.visible(units)
     room_types = RoomType.objects.visible(units)
     return render(request, 'space/index.html', {'locations': locations, 'room_types': room_types})
+
+
+@requires_role('SPAC')
+def download_locations(request):
+    units = Unit.sub_units(request.units)
+    locations = Location.objects.visible(units)
+    response = HttpResponse(content_type='text/csv')
+
+    response['Content-Disposition'] = 'inline; filename="locations-%s.csv"' % \
+                                      (datetime.datetime.now().strftime('%Y%m%d'))
+    writer = csv.writer(response)
+    writer.writerow(['Unit', 'Campus', 'Building', 'Floor', 'Room Number', 'Square Meters', 'Room Type Description',
+                     'Room Type Code', 'COU Code Description', 'Space Factor', 'COU Code Value', 'Infrastructure',
+                     'Room Capacity', 'Category', 'Occupancy', 'Own/Leased', 'Comments'])
+    for l in locations:
+        writer.writerow([l.unit.name, l.get_campus_display(), l.get_building_display(), l.floor, l.room_number,
+                         l.square_meters, l.room_type.long_description, l.room_type.code,
+                         l.room_type.COU_code_description, l.room_type.space_factor, l.room_type.COU_code_value,
+                         l.get_infrastructure_display(), l.room_capacity, l.get_category_display(), l.occupancy_count,
+                         l.get_own_or_lease_display(), l.comments])
+    return response
 
 
 @requires_role('SPAC')

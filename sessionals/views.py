@@ -5,7 +5,6 @@ from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, Ht
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from log.models import LogEntry
-from courselib.auth import ForbiddenResponse
 from coredata.models import AnyPerson, Role
 from dashboard.letters import sessional_form
 
