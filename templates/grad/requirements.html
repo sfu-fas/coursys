@@ -11,7 +11,6 @@
 			"aaSorting" : [[1, "asc"], [2, "asc"]],
 		});
 	});
-
 </script>
 {% endblock %}
 
@@ -45,6 +44,8 @@
 				<th scope="col">Department</th>
 				<th scope="col">Program</th>
 				<th scope="col">Description</th>
+                <th scope="col">Hidden</th>
+                <th scope="col">Actions</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -53,6 +54,23 @@
 				<td>{{s.program.unit.label}}</td>
 				<td>{{s.program}}</td>
 				<td>{{s.description}}</td>
+                <td>{{ s.hidden|yesno }}</td>
+                <td>
+                    <form class="lineform" method="POST"
+                          action="{% url "grad:toggle_requirement" requirement_id=s.id %}">
+                        {% csrf_token %}
+                        {% if s.hidden %}
+                            <button type='submit' class='btn' title="Restore Requirement">
+                                <i class='fa fa-history'></i>
+                            </button>
+                        {% else %}
+                            <button type='submit' class='btn' title="Hide Requirement">
+                                <i class='fa fa-trash-o'></i>
+                            </button>
+                        {% endif %}
+                    </form>
+                </td>
+
 			</tr>
 			{% endfor %}
 		</tbody>

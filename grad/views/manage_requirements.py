@@ -45,3 +45,5 @@ def manage_requirements(request, grad_slug):
                 'can_edit': True,
               }
     return render(request, 'grad/manage_requirements.html', context)
+
+

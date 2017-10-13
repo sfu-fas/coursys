@@ -15,6 +15,7 @@ grad_patterns = [ # prefix /grad/
     url(r'^program/$', grad_views.programs, name='programs'),
     url(r'^requirement/$', grad_views.requirements, name='requirements'),
     url(r'^requirement/new$', grad_views.new_requirement, name='new_requirement'),
+    url(r'^requirement/(?P<requirement_id>\d+)/toggle$', grad_views.toggle_requirement, name='toggle_requirement'),
 
     url(r'^letterTemplates/$', grad_views.letter_templates, name='letter_templates'),
     url(r'^letterTemplates/new', grad_views.new_letter_template, name='new_letter_template'),
