@@ -11,12 +11,6 @@ from django.db import transaction
 from django.http import StreamingHttpResponse
 
 
-def _has_unit_role(user, asset):
-    """
-    A quick method to check that the person has the Inventory Admin role for the given asset's unit.
-    """
-    return Role.objects_fresh.filter(person__userid=user.username, role='INV', unit=asset.unit).count() > 0
-
 @requires_role('INV')
 def inventory_index(request):
     unit_ids = [unit.id for unit in request.units]
@@ -46,9 +40,7 @@ def new_asset(request):
 
 @requires_role('INV')
 def edit_asset(request, asset_slug):
-    asset = get_object_or_404(Asset, slug=asset_slug)
-    if not _has_unit_role(request.user, asset):
-        return ForbiddenResponse(request)
+    asset = get_object_or_404(Asset, slug=asset_slug, unit__in=request.units)
     if request.method == 'POST':
         form = AssetForm(request, request.POST, instance=asset)
         if form.is_valid():
@@ -68,17 +60,13 @@ def edit_asset(request, asset_slug):
 
 @requires_role('INV')
 def view_asset(request, asset_slug):
-    asset = get_object_or_404(Asset, slug=asset_slug)
-    if not _has_unit_role(request.user, asset):
-        return ForbiddenResponse(request)
+    asset = get_object_or_404(Asset, slug=asset_slug, unit__in=request.units)
     return render(request, 'inventory/view_asset.html', {'asset': asset})
 
 
 @requires_role('INV')
 def delete_asset(request, asset_id):
-    asset = get_object_or_404(Asset, pk=asset_id)
-    if not _has_unit_role(request.user, asset):
-        return ForbiddenResponse(request)
+    asset = get_object_or_404(Asset, pk=asset_id, unit__in=request.units)
     if request.method == 'POST':
         asset.delete()
         messages.success(request, 'Hid asset %s' % asset)
@@ -92,7 +80,7 @@ def delete_asset(request, asset_id):
 @requires_role('INV')
 @transaction.atomic
 def new_attachment(request, asset_id):
-    asset = get_object_or_404(Asset, pk=asset_id)
+    asset = get_object_or_404(Asset, pk=asset_id, unit__in=request.units)
     editor = get_object_or_404(Person, userid=request.user.username)
 
     form = AssetAttachmentForm()
@@ -120,7 +108,7 @@ def new_attachment(request, asset_id):
 
 @requires_role('INV')
 def view_attachment(request, asset_id, attach_slug):
-    asset = get_object_or_404(Asset, pk=asset_id)
+    asset = get_object_or_404(Asset, pk=asset_id, unit__in=request.units)
     attachment = get_object_or_404(asset.attachments.all(), slug=attach_slug)
     filename = attachment.contents.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
@@ -131,7 +119,7 @@ def view_attachment(request, asset_id, attach_slug):
 
 @requires_role('INV')
 def download_attachment(request, asset_id, attach_slug):
-    asset = get_object_or_404(Asset, pk=asset_id)
+    asset = get_object_or_404(Asset, pk=asset_id, unit__in=request.units)
     attachment = get_object_or_404(asset.attachments.all(), slug=attach_slug)
     filename = attachment.contents.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
@@ -142,7 +130,7 @@ def download_attachment(request, asset_id, attach_slug):
 
 @requires_role('INV')
 def delete_attachment(request, asset_id, attach_slug):
-    asset = get_object_or_404(Asset, pk=asset_id)
+    asset = get_object_or_404(Asset, pk=asset_id, unit__in=request.units)
     attachment = get_object_or_404(asset.attachments.all(), slug=attach_slug)
     attachment.hide()
     messages.add_message(request,
@@ -156,7 +144,7 @@ def delete_attachment(request, asset_id, attach_slug):
 
 @requires_role('INV')
 def add_change_record(request, asset_slug):
-    asset = get_object_or_404(Asset, slug=asset_slug)
+    asset = get_object_or_404(Asset, slug=asset_slug, unit__in=request.units)
     if request.method == 'POST':
         form = AssetChangeForm(request, request.POST)
         if form.is_valid():
@@ -173,7 +161,6 @@ def add_change_record(request, asset_slug):
             else:
                 asset.quantity += qty
             asset.save()
-            print request.user.username
             change.save(request.user.username)
             messages.add_message(request, messages.SUCCESS, u'Asset change record added')
             l = LogEntry(userid=request.user.username, description="Added change record %s for asset %s" %
@@ -188,10 +175,8 @@ def add_change_record(request, asset_slug):
 
 @requires_role('INV')
 def delete_change_record(request, record_id):
-    record = get_object_or_404(AssetChangeRecord, pk=record_id)
+    record = get_object_or_404(AssetChangeRecord, pk=record_id, asset__unit__in=request.units)
     asset = record.asset
-    if not _has_unit_role(request.user, asset):
-        return ForbiddenResponse(request)
     record.delete(request.user.username)
     messages.success(request, 'Successfully hid record')
     l = LogEntry(userid=request.user.username,

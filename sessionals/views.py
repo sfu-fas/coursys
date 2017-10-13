@@ -9,14 +9,6 @@ from courselib.auth import ForbiddenResponse
 from coredata.models import AnyPerson, Role
 from dashboard.letters import sessional_form
 
-def _has_unit_role(user, account_or_contract):
-    """
-    A quick method to check that the person has a sessional Admin role for the given unit.  Since both SessionalAccounts
-    and SessionalContracts have a unit attribute, we can just use this same method for both.
-    """
-    sessional_admin_roles=["TAAD", "GRAD", "ADMN"]
-    return Role.objects_fresh.filter(person__userid=user.username, role__in=sessional_admin_roles,
-                               unit=account_or_contract.unit).count() > 0
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
 def sessionals_index(request):
@@ -55,9 +47,7 @@ def new_account(request):
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
 def edit_account(request, account_slug):
-    account = get_object_or_404(SessionalAccount, slug=account_slug)
-    if not _has_unit_role(request.user, account):
-        return ForbiddenResponse(request)
+    account = get_object_or_404(SessionalAccount, slug=account_slug, unit__in=request.units)
     if request.method == 'POST':
         form = SessionalAccountForm(request, request.POST, instance=account)
         if form.is_valid():
@@ -80,9 +70,7 @@ def edit_account(request, account_slug):
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
 def delete_account(request, account_id):
-    account = get_object_or_404(SessionalAccount, id=account_id)
-    if not _has_unit_role(request.user, account):
-        return ForbiddenResponse(request)
+    account = get_object_or_404(SessionalAccount, id=account_id, unit__in=request.units)
     if request.method == 'POST':
         account.delete()
         messages.add_message(request,
@@ -99,9 +87,7 @@ def delete_account(request, account_id):
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
 def view_account(request, account_slug):
-    account = get_object_or_404(SessionalAccount, slug=account_slug)
-    if not _has_unit_role(request.user, account):
-        return ForbiddenResponse(request)
+    account = get_object_or_404(SessionalAccount, slug=account_slug, unit__in=request.units)
     return render(request, 'sessionals/view_account.html', {'account': account})
 
 
@@ -140,9 +126,7 @@ def new_config(request):
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
 def edit_config(request, config_slug):
-    config = get_object_or_404(SessionalConfig, slug=config_slug)
-    if not _has_unit_role(request.user, config):
-        return ForbiddenResponse(request)
+    config = get_object_or_404(SessionalConfig, slug=config_slug, unit__in=request.units)
     if request.method == 'POST':
         form = SessionalConfigForm(request, request.POST, instance=config)
         if form.is_valid():
@@ -200,9 +184,7 @@ def new_contract(request):
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
 def edit_contract(request, contract_slug):
-    contract = get_object_or_404(SessionalContract, slug=contract_slug)
-    if not _has_unit_role(request.user, contract):
-        return ForbiddenResponse(request)
+    contract = get_object_or_404(SessionalContract, slug=contract_slug, unit__in=request.units)
     if request.method == 'POST':
         form = SessionalContractForm(request, request.POST, instance=contract)
         if form.is_valid():
@@ -230,9 +212,7 @@ def edit_contract(request, contract_slug):
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
 def delete_contract(request, contract_id):
-    contract = get_object_or_404(SessionalContract, pk=contract_id)
-    if not _has_unit_role(request.user, contract):
-        return ForbiddenResponse(request)
+    contract = get_object_or_404(SessionalContract, pk=contract_id, unit__in=request.units)
     if request.method == 'POST':
         contract.delete()
         messages.add_message(request,
@@ -249,12 +229,10 @@ def delete_contract(request, contract_id):
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
 def print_contract(request, contract_slug):
-    contract = get_object_or_404(SessionalContract, slug=contract_slug)
-    if not _has_unit_role(request.user, contract):
-        return ForbiddenResponse(request)
-        # If no one has ever checked the 'I've verified the visa info for this person'
-        # box, let's stop them from printing.  We don't want to send this anywhere, but
-        # it's just for our own peace of mind.
+    contract = get_object_or_404(SessionalContract, slug=contract_slug, unit__in=request.units)
+    # If no one has ever checked the 'I've verified the visa info for this person'
+    # box, let's stop them from printing.  We don't want to send this anywhere, but
+    # it's just for our own peace of mind.
     if not contract.visa_verified:
             messages.error(request, 'You must verify the sessional\'s visa information before printing')
             return HttpResponseRedirect(reverse('sessionals:view_contract',
@@ -267,7 +245,5 @@ def print_contract(request, contract_slug):
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
 def view_contract(request, contract_slug):
-    contract = get_object_or_404(SessionalContract, slug=contract_slug)
-    if not _has_unit_role(request.user, contract):
-        return ForbiddenResponse(request)
+    contract = get_object_or_404(SessionalContract, slug=contract_slug, unit__in=request.units)
     return render(request, 'sessionals/view_contract.html', {'contract': contract})

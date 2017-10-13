@@ -11,13 +11,6 @@ import unicodecsv as csv
 from datetime import datetime
 
 
-
-def _has_unit_role(user, event):
-    """
-    A quick method to check that the person has the Outreach Admin role for the given event's unit.
-    """
-    return Role.objects_fresh.filter(person__userid=user.username, role='OUTR', unit=event.unit).count() > 0
-
 @requires_role('OUTR')
 def outreach_index(request):
     unit_ids = [unit.id for unit in request.units]
@@ -48,18 +41,14 @@ def new_event(request):
 
 @requires_role('OUTR')
 def view_event(request, event_slug):
-    event = get_object_or_404(OutreachEvent, slug=event_slug)
-    if not _has_unit_role(request.user, event):
-        return ForbiddenResponse(request)
+    event = get_object_or_404(OutreachEvent, slug=event_slug, unit__in=request.units)
     register_url = request.build_absolute_uri(reverse('outreach:register', kwargs={'event_slug': event.slug}))
     return render(request, 'outreach/view_event.html', {'event': event, 'register_url': register_url})
 
 
 @requires_role('OUTR')
 def edit_event(request, event_slug):
-    event = get_object_or_404(OutreachEvent, slug=event_slug)
-    if not _has_unit_role(request.user, event):
-        return ForbiddenResponse(request)
+    event = get_object_or_404(OutreachEvent, slug=event_slug, unit__in=request.units)
     if request.method == 'POST':
         form = OutreachEventForm(request, request.POST, instance=event)
         if form.is_valid():
@@ -79,9 +68,7 @@ def edit_event(request, event_slug):
 
 @requires_role('OUTR')
 def delete_event(request, event_id):
-    event = get_object_or_404(OutreachEvent, pk=event_id)
-    if not _has_unit_role(request.user, event):
-        return ForbiddenResponse(request)
+    event = get_object_or_404(OutreachEvent, pk=event_id, unit__in=request.units)
     if request.method == 'POST':
         event.delete()
         messages.success(request, 'Hid event %s' % event)
@@ -144,17 +131,13 @@ def view_all_registrations(request):
 
 @requires_role('OUTR')
 def view_registration(request, registration_id):
-    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id)
-    if not _has_unit_role(request.user, registration.event):
-        return ForbiddenResponse(request)
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, unit__in=request.units)
     return render(request, 'outreach/view_registration.html', {'registration': registration})
 
 
 @requires_role('OUTR')
 def edit_registration(request, registration_id, event_slug=None):
-    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id)
-    if not _has_unit_role(request.user, registration.event):
-        return ForbiddenResponse(request)
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, unit__in=request.units)
     if request.method == 'POST':
         form = OutreachEventRegistrationForm(request.POST, instance=registration)
         form.add_extra_questions(registration.event)
@@ -185,9 +168,7 @@ def edit_registration(request, registration_id, event_slug=None):
 
 @requires_role('OUTR')
 def delete_registration(request, registration_id, event_slug=None):
-    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id)
-    if not _has_unit_role(request.user, registration.event):
-        return ForbiddenResponse(request)
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, unit__in=request.units)
     if request.method == 'POST':
         registration.delete()
         messages.success(request, 'Hid registration %s' % registration)
@@ -201,9 +182,7 @@ def delete_registration(request, registration_id, event_slug=None):
 
 @requires_role('OUTR')
 def toggle_registration_attendance(request, registration_id, event_slug=None):
-    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id)
-    if not _has_unit_role(request.user, registration.event):
-        return ForbiddenResponse(request)
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, unit__in=request.units)
     if request.method == 'POST':
         registration.attended = not registration.attended
         registration.save()
@@ -219,9 +198,7 @@ def toggle_registration_attendance(request, registration_id, event_slug=None):
 
 @requires_role('OUTR')
 def view_event_registrations(request, event_slug):
-    event = get_object_or_404(OutreachEvent, slug=event_slug)
-    if not _has_unit_role(request.user, event):
-        return ForbiddenResponse(request)
+    event = get_object_or_404(OutreachEvent, slug=event_slug, unit__in=request.units)
     registrations = OutreachEventRegistration.objects.filter(event=event, hidden=False)
     return render(request, 'outreach/event_registrations.html', {'event': event, 'registrations': registrations})
 
@@ -259,7 +236,7 @@ def download_registrations(request, event_slug=None, past=None):
     have a flag set for current or past registrations.
     """
     if event_slug:
-        event = get_object_or_404(OutreachEvent, slug=event_slug)
+        event = get_object_or_404(OutreachEvent, slug=event_slug, unit__in=request.units)
         registrations = OutreachEventRegistration.objects.by_event(event)
         filestring = event.slug
         #  If you're just getting one event's worth, you probably don't want the event name in every row.
