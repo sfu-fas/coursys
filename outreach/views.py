@@ -5,8 +5,7 @@ from .models import OutreachEvent, OutreachEventRegistration
 from .forms import OutreachEventForm, OutreachEventRegistrationForm
 from courselib.auth import requires_role
 from log.models import LogEntry
-from coredata.models import Unit, Role
-from courselib.auth import ForbiddenResponse
+from coredata.models import Unit
 import unicodecsv as csv
 from datetime import datetime
 
@@ -131,13 +130,13 @@ def view_all_registrations(request):
 
 @requires_role('OUTR')
 def view_registration(request, registration_id):
-    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, unit__in=request.units)
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, event__unit__in=request.units)
     return render(request, 'outreach/view_registration.html', {'registration': registration})
 
 
 @requires_role('OUTR')
 def edit_registration(request, registration_id, event_slug=None):
-    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, unit__in=request.units)
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, event__unit__in=request.units)
     if request.method == 'POST':
         form = OutreachEventRegistrationForm(request.POST, instance=registration)
         form.add_extra_questions(registration.event)
@@ -168,7 +167,7 @@ def edit_registration(request, registration_id, event_slug=None):
 
 @requires_role('OUTR')
 def delete_registration(request, registration_id, event_slug=None):
-    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, unit__in=request.units)
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, event__unit__in=request.units)
     if request.method == 'POST':
         registration.delete()
         messages.success(request, 'Hid registration %s' % registration)
@@ -182,7 +181,7 @@ def delete_registration(request, registration_id, event_slug=None):
 
 @requires_role('OUTR')
 def toggle_registration_attendance(request, registration_id, event_slug=None):
-    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, unit__in=request.units)
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, event__unit__in=request.units)
     if request.method == 'POST':
         registration.attended = not registration.attended
         registration.save()
