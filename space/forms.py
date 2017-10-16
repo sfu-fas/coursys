@@ -1,6 +1,6 @@
 from django.contrib.admin import widgets
 
-from .models import BookingRecord, Location, RoomType
+from .models import BookingRecord, Location, RoomType, BookingRecordAttachment
 from django import forms
 from coredata.models import Unit
 from coredata.forms import PersonField
@@ -53,7 +53,6 @@ class BookingRecordForm(forms.ModelForm):
         return super(BookingRecordForm, self).is_valid(*args, **kwargs)
 
 
-
 class RoomTypeForm(forms.ModelForm):
     def __init__(self, request, *args, **kwargs):
         super(RoomTypeForm, self).__init__(*args, **kwargs)
@@ -65,3 +64,9 @@ class RoomTypeForm(forms.ModelForm):
     class Meta:
         exclude = []
         model = RoomType
+
+
+class BookingRecordAttachmentForm(forms.ModelForm):
+    class Meta:
+        exclude = ['booking_record', 'created_by']
+        model = BookingRecordAttachment

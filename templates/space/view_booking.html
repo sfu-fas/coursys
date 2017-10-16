@@ -11,6 +11,15 @@
     <li>View Booking</li>
 {% endblock %}
 
+{% block actions %}
+    <div id="actions">
+        <h2>Actions</h2>
+        <ul>
+            <li><a href="{% url "space:add_booking_attachment" booking_slug=booking.slug %}">Add Attachment</a></li>
+        </ul>
+    </div>
+{% endblock %}
+
 {% block content %}
     <dt>Person</dt><dd>{{ booking.person.name }}</dd>
     <dt>Start Time</dt><dd>{{ booking.start_time }}</dd>

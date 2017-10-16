@@ -1,8 +1,8 @@
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-from .models import Location, RoomType, BookingRecord
-from .forms import LocationForm, RoomTypeForm, BookingRecordForm
+from .models import Location, RoomType, BookingRecord, BookingRecordAttachment
+from .forms import LocationForm, RoomTypeForm, BookingRecordForm, BookingRecordAttachmentForm
 from courselib.auth import requires_role
 from log.models import LogEntry
 from coredata.models import Unit, Person
@@ -249,3 +249,29 @@ def delete_booking(request, booking_id):
         l.save()
     return view_location(request, booking.location.slug)
 
+
+@requires_role('SPAC')
+def add_booking_attachment(request, booking_slug):
+    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=Unit.sub_units(request.units))
+    editor = get_object_or_404(Person, userid=request.user.username)
+    form = BookingRecordAttachmentForm()
+    context = {"booking": booking,
+               "attachment_form": form}
+
+    if request.method == "POST":
+        form = BookingRecordAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.booking_record = booking
+            attachment.created_by = editor
+            upfile = request.FILES['contents']
+            filetype = upfile.content_type
+            if upfile.charset:
+                filetype += "; charset=" + upfile.charset
+            attachment.mediatype = filetype
+            attachment.save()
+            return HttpResponseRedirect(reverse('space:view_booking', kwargs={'booking_slug': booking.slug}))
+        else:
+            context.update({"attachment_form": form})
+
+    return render(request, 'space/add_booking_record_attachment.html', context)

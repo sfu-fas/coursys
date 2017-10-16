@@ -4,6 +4,8 @@ from coredata.models import Unit, JSONField, config_property
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from coredata.models import CAMPUS_CHOICES, Person
+from courselib.storage import UploadedFileStorage, upload_path
+import os
 
 
 BUILDING_CHOICES = (
@@ -63,7 +65,8 @@ class RoomType(models.Model):
     unit = models.ForeignKey(Unit, null=False)
     long_description = models.CharField(max_length=256, null=False, blank=False, help_text='e.g. "General Store"')
     code = models.CharField(max_length=50, null=False, blank=False, help_text='e.g. "STOR_GEN"')
-    COU_code_description = models.CharField(max_length=256, null=False, blank=False, help_text='e.g. "Academic Office Support Space"')
+    COU_code_description = models.CharField(max_length=256, null=False, blank=False,
+                                            help_text='e.g. "Academic Office Support Space"')
     space_factor = models.DecimalField(max_digits=3, decimal_places=1, blank=True, default=0.0)
     COU_code_value = models.DecimalField(max_digits=4, decimal_places=1, help_text='e.g. 10.1', blank=True, null=True)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
@@ -201,3 +204,38 @@ class BookingRecord(models.Model):
             b.end_time = self.start_time
             b.save()
 
+
+def space_attachment_upload_to(instance, filename):
+    return upload_path('space', str(instance.booking_record.start_time.year), filename)
+
+
+class BookingRecordAttachmentQueryset(models.QuerySet):
+    def visible(self):
+        return self.filter(hidden=False)
+
+
+class BookingRecordAttachment(models.Model):
+    booking_record = models.ForeignKey(BookingRecord, related_name='attachments')
+    title = models.CharField(max_length=250, null=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('booking_record',))
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=space_attachment_upload_to, max_length=500)
+    mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = BookingRecordAttachmentQueryset.as_manager()
+
+    def __unicode__(self):
+        return self.contents.name
+
+    class Meta:
+        ordering = ("created_at",)
+        unique_together = (("booking_record", "slug"),)
+
+    def contents_filename(self):
+        return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()
