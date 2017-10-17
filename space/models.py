@@ -1,10 +1,15 @@
 from django.utils import timezone
 from django.db import models
+from django.template.loader import get_template
+from django.template import Context
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 from coredata.models import Unit, JSONField, config_property
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from coredata.models import CAMPUS_CHOICES, Person
 from courselib.storage import UploadedFileStorage, upload_path
+from courselib.branding import product_name
 import os
 
 
@@ -204,6 +209,17 @@ class BookingRecord(models.Model):
             b.end_time = self.start_time
             b.save()
 
+    def has_attachments(self):
+        return self.attachments.visible().count() > 0
+
+    def get_attachments(self):
+        return self.attachments.visible().order_by('created_at')
+
+    def has_memos(self):
+        return self.memos.count() > 0
+
+    def get_memos(self):
+        return self.memos.objects.all().order_by('created_at')
 
 def space_attachment_upload_to(instance, filename):
     return upload_path('space', str(instance.booking_record.start_time.year), filename)
@@ -239,3 +255,21 @@ class BookingRecordAttachment(models.Model):
     def hide(self):
         self.hidden = True
         self.save()
+
+
+class BookingMemo(models.Model):
+    booking_record = models.ForeignKey(BookingRecord, related_name='memos')
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person)
+
+    def email_memo(self):
+        """
+        Emails the person to whom the booking is assigned.
+        """
+        subject = 'Booking notification'
+        from_email = settings.DEFAULT_FROM_EMAIL
+        template = get_template('space/emails/memo.txt')
+        context = Context({'booking': self.booking_record, 'CourSys': product_name(hint='admin')})
+        msg = EmailMultiAlternatives(subject, template.render(context), from_email,
+                                     [self.booking_record.person.email()], headers={'X-coursys-topic': 'space'})
+        msg.send()

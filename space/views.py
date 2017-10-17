@@ -1,14 +1,13 @@
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-from .models import Location, RoomType, BookingRecord, BookingRecordAttachment
+from .models import Location, RoomType, BookingRecord, BookingMemo
 from .forms import LocationForm, RoomTypeForm, BookingRecordForm, BookingRecordAttachmentForm
 from courselib.auth import requires_role
 from log.models import LogEntry
 from coredata.models import Unit, Person
 import datetime
 import unicodecsv as csv
-
 
 
 @requires_role('SPAC')
@@ -275,3 +274,21 @@ def add_booking_attachment(request, booking_slug):
             context.update({"attachment_form": form})
 
     return render(request, 'space/add_booking_record_attachment.html', context)
+
+
+@requires_role('SPAC')
+def send_memo(request, booking_slug):
+    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=Unit.sub_units(request.units))
+    editor = get_object_or_404(Person, userid=request.user.username)
+    booking_memo = BookingMemo(booking_record=booking, created_by=editor)
+    booking_memo.email_memo()
+    booking_memo.save()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         u'Memo was sent')
+    l = LogEntry(userid=request.user.username,
+                 description="Send memo to %s" % booking.person,
+                 related_object=booking_memo)
+    l.save()
+    return HttpResponseRedirect(reverse('space:view_booking', kwargs={'booking_slug': booking.slug}))
+

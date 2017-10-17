@@ -1,0 +1,9 @@
+Hello, {{ booking.person.name }},
+
+This is a memo to inform you that a booking has been made for you in {{ CourSys }}.
+
+Your booking is in room: {{ booking.location.room_number }}
+Building:  {{ booking.location.get_building_display }}
+
+From:  {{ booking.start_time }}
+{% if booking.end_time %}To: {{ booking.end_time }}{% endif %}

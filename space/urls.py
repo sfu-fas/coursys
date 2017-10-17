@@ -31,5 +31,5 @@ space_patterns = [  # prefix /space/
     url(r'^bookings/' + BOOKING_SLUG + '/view$', views.view_booking, name='view_booking'),
     url(r'^bookings/' + BOOKING_ID + '/delete$', views.delete_booking, name='delete_booking'),
     url(r'^bookings/' + BOOKING_SLUG + '/attach$', views.add_booking_attachment, name='add_booking_attachment'),
-
+    url(r'^bookings/' + BOOKING_SLUG + '/send_memo$', views.send_memo, name='send_booking_memo'),
 ]
