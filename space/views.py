@@ -1,7 +1,8 @@
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-from .models import Location, RoomType, BookingRecord, BookingMemo
+from django.http import StreamingHttpResponse
+from .models import Location, RoomType, BookingRecord, BookingMemo, BookingRecordAttachment
 from .forms import LocationForm, RoomTypeForm, BookingRecordForm, BookingRecordAttachmentForm
 from courselib.auth import requires_role
 from log.models import LogEntry
@@ -277,7 +278,44 @@ def add_booking_attachment(request, booking_slug):
 
 
 @requires_role('SPAC')
-def send_memo(request, booking_slug):
+def view_booking_attachment(request, booking_slug, attachment_id):
+    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=Unit.sub_units(request.units))
+    attachment = get_object_or_404(BookingRecordAttachment, booking_record=booking, pk=attachment_id)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role('SPAC')
+def download_booking_attachment(request, booking_slug, attachment_id):
+    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=Unit.sub_units(request.units))
+    attachment = get_object_or_404(BookingRecordAttachment, booking_record=booking, pk=attachment_id)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role('SPAC')
+def delete_booking_attachment(request, booking_slug, attachment_id):
+    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=Unit.sub_units(request.units))
+    attachment = get_object_or_404(BookingRecordAttachment, booking_record=booking, pk=attachment_id)
+    attachment.hide()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         u'Attachment was deleted')
+    l = LogEntry(userid=request.user.username,
+                 description="Deleted attachment in booking %s" % booking,
+                 related_object=attachment)
+    l.save()
+    return HttpResponseRedirect(reverse('space:view_booking', kwargs={'booking_slug': booking.slug}))
+
+
+@requires_role('SPAC')
+def send_memo(request, booking_slug, from_index=0):
     booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=Unit.sub_units(request.units))
     editor = get_object_or_404(Person, userid=request.user.username)
     booking_memo = BookingMemo(booking_record=booking, created_by=editor)
@@ -290,5 +328,7 @@ def send_memo(request, booking_slug):
                  description="Send memo to %s" % booking.person,
                  related_object=booking_memo)
     l.save()
+    if from_index:
+        return HttpResponseRedirect(reverse('space:view_location', kwargs={'location_slug': booking.location.slug}))
     return HttpResponseRedirect(reverse('space:view_booking', kwargs={'booking_slug': booking.slug}))
 

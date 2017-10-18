@@ -50,7 +50,7 @@ class SpaceTestCase(TestCase):
         test_views(self, client, 'space:', ['index', 'list_roomtypes', 'add_roomtype'], {})
         test_views(self, client, 'space:', ['view_location', 'edit_location', 'add_booking'], {'location_slug': self.location.slug})
         test_views(self, client, 'space:', ['view_roomtype', 'edit_roomtype'], {'roomtype_slug': self.roomtype.slug})
-        test_views(self, client, 'space:', ['view_booking', 'edit_booking'], {'booking_slug': self.booking.slug})
+        test_views(self, client, 'space:', ['view_booking', 'edit_booking', 'add_booking_attachment'], {'booking_slug': self.booking.slug})
 
         # Now, we should be able to delete stuff properly.
         url = reverse('space:delete_booking', kwargs={'booking_id': self.booking.id})

@@ -10,6 +10,7 @@ ROOMTYPE_SLUG = '(?P<roomtype_slug>' + SLUG_RE + ')'
 BOOKING_ID = '(?P<booking_id>' + ID_RE + ')'
 ROOMTYPE_ID = '(?P<roomtype_id>' + ID_RE + ')'
 FROM_INDEX = '(?P<from_index>' + ID_RE + ')'
+ATTACHMENT_ID = '(?P<attachment_id>' + ID_RE + ')'
 
 
 space_patterns = [  # prefix /space/
@@ -31,5 +32,12 @@ space_patterns = [  # prefix /space/
     url(r'^bookings/' + BOOKING_SLUG + '/view$', views.view_booking, name='view_booking'),
     url(r'^bookings/' + BOOKING_ID + '/delete$', views.delete_booking, name='delete_booking'),
     url(r'^bookings/' + BOOKING_SLUG + '/attach$', views.add_booking_attachment, name='add_booking_attachment'),
+    url(r'^bookings/' + BOOKING_SLUG + '/attachment/' + ATTACHMENT_ID + '/view$', views.view_booking_attachment,
+        name='view_booking_attachment'),
+    url(r'^bookings/' + BOOKING_SLUG + '/attachment/' + ATTACHMENT_ID + '/download', views.download_booking_attachment,
+        name='download_booking_attachment'),
+    url(r'^bookings/' + BOOKING_SLUG + '/attachment/' + ATTACHMENT_ID + '/delete$', views.delete_booking_attachment,
+        name='delete_booking_attachment'),
     url(r'^bookings/' + BOOKING_SLUG + '/send_memo$', views.send_memo, name='send_booking_memo'),
+    url(r'^bookings/' + BOOKING_SLUG + '/send_memo/' + FROM_INDEX + '/$', views.send_memo, name='send_booking_memo'),
 ]

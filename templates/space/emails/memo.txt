@@ -7,3 +7,5 @@ Building:  {{ booking.location.get_building_display }}
 
 From:  {{ booking.start_time }}
 {% if booking.end_time %}To: {{ booking.end_time }}{% endif %}
+
+Please do not reply to this email, as this it is not coming from a real monitored email address.
