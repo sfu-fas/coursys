@@ -896,7 +896,7 @@ class Position(models.Model):
         Called if you're going to insert this in another AnnualTeachingCreditField,
         like when we populate the onboarding wizard with this value.
         """
-        if 'teaching_load' in self.config:
+        if 'teaching_load' in self.config and not self.config['teaching_load'] == 'None':
             return unicode(Fraction(self.config['teaching_load']))
 
         else:
@@ -906,7 +906,8 @@ class Position(models.Model):
         """
         Called if you're purely going to display the value, as when displaying the contents of the position.
         """
-        if 'teaching_load' in self.config:
+        if 'teaching_load' in self.config and not self.config['teaching_load'] == 'None':
+            print self.config['teaching_load']
             return unicode(Fraction(self.config['teaching_load'])*3)
 
         else:
