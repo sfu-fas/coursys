@@ -34,6 +34,7 @@ from letter_templates import letter_templates
 from new_letter_template import new_letter_template
 from manage_letter_template import manage_letter_template
 from manage_letters import manage_letters
+from remove_letter import remove_letter
 from new_letter import new_letter
 from get_letter_text import get_letter_text
 from get_addresses import get_addresses

@@ -1311,6 +1311,8 @@ class Letter(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Letter generation requseted by.')
+    removed = models.BooleanField(default=False)
+
     config = JSONField(default=dict) # addition configuration for within the letter
         # data returned by grad.letter_info() is stored here.
         # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)

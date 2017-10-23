@@ -62,6 +62,7 @@ grad_patterns = [ # prefix /grad/
     url(r'^' + GRAD_SLUG + '/letters/' + LETTER_SLUG + '$', grad_views.get_letter, name='get_letter'),
     url(r'^' + GRAD_SLUG + '/letters/' + LETTER_SLUG + '/view$', grad_views.view_letter, name='view_letter'),
     url(r'^' + GRAD_SLUG + '/letters/' + LETTER_SLUG + '/copy', grad_views.copy_letter, name='copy_letter'),
+    url(r'^' + GRAD_SLUG + '/letters/' + LETTER_SLUG + '/delete$', grad_views.remove_letter, name='remove_letter'),
     url(r'^get_addresses$', grad_views.get_addresses, name='get_addresses'),
     url(r'^scholarship_types$', grad_views.manage_scholarshipType, name='manage_scholarshipType'),
     url(r'^financial_summary$', grad_views.student_financials, name='student_financials'),

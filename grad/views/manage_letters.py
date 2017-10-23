@@ -6,7 +6,7 @@ from grad.models import Letter,LetterTemplate
 @requires_role("GRAD")
 def manage_letters(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
-    letters = Letter.objects.filter(student=grad)
+    letters = Letter.objects.filter(student=grad, removed=False)
     templates = LetterTemplate.objects.filter(unit=grad.program.unit, hidden=False)
 
 
