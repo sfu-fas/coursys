@@ -18,6 +18,7 @@
     <tr><th scope="row">Course Load</th><td>{{ application.course_load|linebreaksbr }}</td></tr>
     <tr><th scope="row">Other Support</th><td>{{ application.other_support|linebreaksbr }}</td></tr>
     <tr><th scope="row">Comments</th><td>{{ application.comments|linebreaksbr }}</td></tr>
+    <tr><th score="row">Attended New Workers Training</th><td>{{ application.new_workers_training|yesno }}</td></tr>
   </table>
 
   {% if application.config.extra_questions %}

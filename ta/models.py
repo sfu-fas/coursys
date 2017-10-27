@@ -440,6 +440,15 @@ class TAApplication(models.Model):
                                   null=True, help_text='Please attach your unofficial transcript.')
     transcript_mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     admin_created = models.BooleanField(blank=False, default=False)
+    new_workers_training = models.BooleanField('I have completed the mandatory SFU Safety Orientation training',
+                                               default=False,
+                                               help_text='WorkSafe BC requires all new employees to take a safety '
+                                                         'orientation.  SFU has a short online module you can take here'
+                                                         ' <https://canvas.sfu.ca/enroll/RR8WDW> and periodically '
+                                                         'offers classroom sessions of the same material.  Some '
+                                                         'research and instructional laboratories may require '
+                                                         'additional training, contact the faculty member in charge of '
+                                                         'your lab(s) for details.')
     config = JSONField(null=False, blank=False, default={})
         # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'} 
  
