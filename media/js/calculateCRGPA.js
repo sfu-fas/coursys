@@ -10,7 +10,7 @@ about that.  People receiving this form will have to be vigilant.
 $(document).ready(function() {
     var output = $("#id_10");
     // First thing to do is to disable this input to stop students from changing it.
-    output.prop("disabled", true);
+    output.prop("readonly", true);
     // Every time we change a dropdown, recalculate the CRGPA
     $("select").change(function () { calculateCRGPA(); });
     // Run it once so the value is there, just in the ridiculously low possibility that the defaults are correct
