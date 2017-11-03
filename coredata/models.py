@@ -275,6 +275,12 @@ class Person(models.Model, ConditionalSaveMixin):
         else:
             return self.email()
 
+    def get_visas_summary(self):
+        from visas.models import Visa
+        visas = Visa.get_visas([self])
+        return '; '.join(u"%s (%s)" % (v.status, v.get_validity()) for v in visas)
+
+
     @staticmethod
     def next_available_temp_emplid():
         p = Person.objects.filter(temporary=True).order_by('-emplid')

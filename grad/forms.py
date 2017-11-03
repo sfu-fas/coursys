@@ -487,7 +487,7 @@ def getattribute(value, arg, html=True):
     elif arg == 'gender':
         return value.person.gender()
     elif arg == 'visa':
-        return value.person.visa()
+        return value.person.get_visas_summary()
     elif arg == 'citizen':
         return value.person.citizen() or 'unknown'
     elif arg == 'person.emplid':
