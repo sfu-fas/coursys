@@ -714,7 +714,7 @@ class FormSubmission(models.Model):
         html = get_template('onlineforms/emails/notify_completed.html')
 
         email_context = Context({'formsub': self, 'admin': admin})
-        subject = '%s submission complete' % (self.form.title)
+        subject = '%s for %s submission complete' % (self.form.title, self.initiator.name())
         from_email = FormFiller.form_full_email(admin)
         to = self.initiator.full_email()
         msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
@@ -912,7 +912,8 @@ class SheetSubmission(models.Model):
     def email_assigned(self, request, admin, assignee):
         full_url = request.build_absolute_uri(self.get_submission_url())
         context = {'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url, 'sheetsub': self}
-        subject = '%s: You have been assigned a sheet.' % (product_name(hint='forms'),)
+        subject = '%s: You have been assigned a sheet in a form submitted by %s.' % (product_name(hint='forms'),
+                                                                                     self.form_submission.initiator.name())
         self._send_email(request, 'sheet_assigned', subject, FormFiller.form_full_email(admin),
                          [assignee.full_email()], context)
 
