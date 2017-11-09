@@ -630,7 +630,7 @@ class TACourse(models.Model):
 
     @property
     def scholarship_pay(self):
-        return self.total_bu * self.contract.scholarship_per_bu
+        return self.bu * self.contract.scholarship_per_bu
 
     @property
     def total(self):
