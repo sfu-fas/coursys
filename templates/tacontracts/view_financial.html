@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Summary for TA Appointments for {{ hiring_semester }} {% endblock %}
+{% block h1 %}Financial Summary for TA Appointments {% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url 'tacontracts:list_all_semesters' %}">Hiring Semesters</a></li>
+    <li><a href="{% url 'tacontracts:list_all_contracts' unit_slug=hiring_semester.unit.label semester=hiring_semester.semester.name%}">{{ hiring_semester }}</a></li>
+    <li>Financial</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+	$(function() {
+		$('#offerings').dataTable({
+			"bJQueryUI": true,
+			"bPaginate": false,
+			"aaSorting": [[3, "desc"]],
+		});
+	});
+</script>
+
+{% endblock %}
+
+{% block content %}
+<div class="table_container">
+    <table class="info">
+        <tbody>
+	    <tr>
+	    	<th>Semester</th>
+            <td>{{ hiring_semester }}</td>
+        </tr>
+	    <tr>
+            <th>Unit</th>
+            <td>{{ hiring_semester.unit }}</td>
+        </tr>
+	    <tr>
+            <th>Number of courses </th>
+            <td>{{ info.course_total }}</td>
+        </tr>
+        <tr>
+            <th>Number of TAs</th>
+            <td>{{ info.ta_count }}</td>
+        </tr>
+	    <tr>
+            <th>BUs Assigned</th>
+            <td>{{ info.bu_total }}</td>
+        </tr>
+	    <tr>
+            <th>Total Payments</th>
+            <td>{{ info.pay_total }}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="datatable_container">
+<table class="display" id="offerings">
+<thead>
+	<tr>
+		<th scope="col">Offering</th>
+		<th scope="col">Campus</th>
+		<th scope="col">Number of TAs</th>
+		<th scope="col">Assigned BU</th>
+		<th scope="col">Total Amount</th>
+	</tr>
+</thead>
+<tbody>
+{% for o in offerings %}
+<tr>
+  <td scope="row">{{o.name}}</td>
+  <td class="num">{{o.get_campus_display}}</td>
+  <td class="num">{{ o.tas }}</td>
+  <td class="num">{{ o.total_bus }}</td>
+  <td class="num">{{ o.total_pay }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+{% endblock %}

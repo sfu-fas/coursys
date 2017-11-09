@@ -49,6 +49,7 @@ function confirmDelete() {
         <li><a href="{% url "tacontracts:contracts_csv" unit_slug=unit_slug semester=semester %}">Generate CSV</a></li>
         <li><a href="{% url "tacontracts:bulk_email" unit_slug=unit_slug semester=semester %}">Bulk Email</a></li>
         <li><a href="{% url "tacontracts:list_all_contracts_by_course" unit_slug=unit_slug semester=semester %}">All Contracts by Course</a></li>
+        <li><a href="{% url "tacontracts:view_financials" unit_slug=unit_slug semester=semester %}">View Course Financials</a></li>
         {% endif %}
     </ul>
 </div>

@@ -29,6 +29,7 @@ tacontract_patterns = [ # prefix /tacontract/
     url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/copy_categories$', tacontracts_views.copy_categories, name='copy_categories'),
     url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/csv$', tacontracts_views.contracts_csv, name='contracts_csv'),
     url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/bulk_email$', tacontracts_views.bulk_email, name='bulk_email'),
+    url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/financials$', tacontracts_views.view_financial_summary, name='view_financials'),
     url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/category/'+CATEGORY_SLUG+'/edit$', tacontracts_views.edit_category, name='edit_category'),
     url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/category/'+CATEGORY_SLUG+'/delete$', tacontracts_views.hide_category, name='hide_category'),
     url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/new_contract$', tacontracts_views.new_contract, name='new_contract'),

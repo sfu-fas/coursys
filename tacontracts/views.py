@@ -1,5 +1,5 @@
 # Python
-import datetime
+import datetime, locale, decimal
 # Third-Party
 import unicodecsv as csv
 # Django
@@ -883,3 +883,44 @@ def delete_description(request, description_id):
                      related_object=description)
         l.save()
     return HttpResponseRedirect(reverse('tacontracts:descriptions'))
+
+
+@requires_role(["TAAD", "GRAD"])
+def view_financial_summary(request, unit_slug, semester,):
+    hiring_semester = get_object_or_404(HiringSemester,
+                                        semester__name=semester,
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contracts = TAContract.objects.signed(hiring_semester).filter(category__account__unit__in=request.units)
+    pay = 0
+    bus = 0
+    tac = contracts.count()
+    tacourses = TACourse.objects.filter(contract__in=contracts)
+    course_offerings = set()
+    for course in tacourses:
+        pay += course.total
+        bus += course.total_bu
+        course_offerings.add(course.course)
+    pay = locale.currency(float(pay))
+    pay = '%s' % (pay)
+    offerings = []
+    for o in course_offerings:
+        courses = tacourses.filter(course=o)
+        total_pay = 0
+        total_bus = decimal.Decimal(0)
+        for c in courses:
+            total_pay += c.total
+            total_bus += c.total_bu
+
+        total_pay = '%s' % (locale.currency(float(total_pay)))
+        total_bus = "%.2f" % total_bus
+        tas = courses.count()
+        o.total_pay = total_pay
+        o.total_bus = total_bus
+        o.tas = tas
+        offerings.append(o)
+    info = {'course_total': len(tacourses), 'bu_total': bus, 'pay_total': pay, 'ta_count': tac}
+    context = {'hiring_semester': hiring_semester, 'info': info, 'offerings': offerings}
+    return render(request, 'tacontracts/view_financial.html', context)
+
+
