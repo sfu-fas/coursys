@@ -21,6 +21,7 @@ $(document).ready(function() {
     });
     // Run it once so the value is there, just in the ridiculously low possibility that the defaults are correct
     // for some student.
+    disableDuplicates()
     calculateCRGPA();
 });
 
