@@ -72,14 +72,14 @@ function disableDuplicates() {
     // disabled.
 
     // Re-enable every option...
-    $("#id_4 option").removeAttr("disabled")
+    $("#id_4 option").removeAttr("disabled");
     // Then find the one that is selected in the other drop-down and disabled that.
     $("#id_4 option").filter(function() {
         return checkEquivalency($(this).text().trim()) == checkEquivalency($('#id_6').children(":selected").text().trim());}).attr('disabled','disabled');
     // Lather, rinse, repeat for the other one.
-    $("#id_6 option").removeAttr("disabled")
+    $("#id_6 option").removeAttr("disabled");
     $("#id_6 option").filter(function() {
-        return $(this).text().trim() == $('#id_4').children(":selected").text().trim();}).attr('disabled','disabled');
+        return checkEquivalency($(this).text().trim()) == check($('#id_4').children(":selected").text().trim());}).attr('disabled','disabled');
 }
 
 
