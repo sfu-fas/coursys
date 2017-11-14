@@ -79,7 +79,7 @@ function disableDuplicates() {
     // Lather, rinse, repeat for the other one.
     $("#id_6 option").removeAttr("disabled");
     $("#id_6 option").filter(function() {
-        return checkEquivalency($(this).text().trim()) == check($('#id_4').children(":selected").text().trim());}).attr('disabled','disabled');
+        return checkEquivalency($(this).text().trim()) == checkEquivalency($('#id_4').children(":selected").text().trim());}).attr('disabled','disabled');
 }
 
 
