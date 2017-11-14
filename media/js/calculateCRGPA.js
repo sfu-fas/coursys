@@ -43,6 +43,30 @@ function getGPAValue(selector) {
     return parseFloat(selector.val());
 }
 
+function checkEquivalency(val) {
+    // In addition to duplicates, some courses are considered equivalent.  If you select one in one dropdown, you
+    // should not be able to select any equivalents in the other.
+
+    switch (val) {
+        case "CMPT 125":
+        case "CMPT 128":
+        case "CMPT 129":
+        case "CMPT 135":
+            return "CMPT 125";
+        case "CMPT 275":
+        case "CMPT 276":
+            return "CMPT 275";
+        case "CMPT 295":
+        case "CMPT 150":
+        case "ENSC 150":
+        case "CMPT 250":
+        case "ENSC 250":
+            return "CMPT 150";
+        default:
+            return val;
+    }
+}
+
 function disableDuplicates() {
     // Some CMPT courses are in both the dropdowns.  Every time we change the values, make sure the duplicates are
     // disabled.
@@ -51,12 +75,13 @@ function disableDuplicates() {
     $("#id_4 option").removeAttr("disabled")
     // Then find the one that is selected in the other drop-down and disabled that.
     $("#id_4 option").filter(function() {
-        return $(this).text().trim() == $('#id_6').children(":selected").text().trim();}).attr('disabled','disabled');
+        return checkEquivalency($(this).text().trim()) == checkEquivalency($('#id_6').children(":selected").text().trim());}).attr('disabled','disabled');
     // Lather, rinse, repeat for the other one.
     $("#id_6 option").removeAttr("disabled")
     $("#id_6 option").filter(function() {
         return $(this).text().trim() == $('#id_4').children(":selected").text().trim();}).attr('disabled','disabled');
 }
+
 
 function calculateCRGPA() {
     var courseInputs = [$("#id_4"), $("#id_6"), $("#id_8")];
