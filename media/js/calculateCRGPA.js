@@ -21,6 +21,8 @@ $(document).ready(function() {
     // After we disabled duplicates the first time, take the second drop down and set its value to the first
     // non-disabled selection.
     $('#id_6').find('option:enabled:first').prop('selected',true);
+    // Disable duplicates once more so the one selected in for the second dropdown in the last step is disabled in the first dropdown.
+    disableDuplicates();
     // Finally, calculate the CRGPA after making these changes the first time we load.  After that, the change handler
     // should take care of this.
     calculateCRGPA();
