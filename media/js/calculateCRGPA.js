@@ -57,10 +57,8 @@ function checkEquivalency(val) {
         case "CMPT 276":
             return "CMPT 275";
         case "CMPT 295":
-        case "CMPT 150":
-        case "ENSC 150":
-        case "CMPT 250":
-        case "ENSC 250":
+        case "CMPT 150/ENSC 150":
+        case "CMPT 250/ENSC 250":
             return "CMPT 150";
         default:
             return val;
