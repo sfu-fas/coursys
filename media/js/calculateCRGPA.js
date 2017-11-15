@@ -11,17 +11,18 @@ $(document).ready(function() {
     var output = $("#id_10");
     // First thing to do is to disable this input to stop students from changing it.
     output.prop("readonly", true);
-    // The very first time we load, change the second drop-down selected value to the second one.  This will make sense
-    // when looking at disableDuplicates.
-    $("#id_6").val("choice_2")
     // Every time we change a dropdown, disable duplicates in CMPT cousres and recalculate the CRGPA
     $("select").change(function () {
         disableDuplicates();
         calculateCRGPA();
     });
-    // Run it once so the value is there, just in the ridiculously low possibility that the defaults are correct
-    // for some student.
+    // Disable duplicates the first time we load.
     disableDuplicates()
+    // After we disabled duplicates the first time, take the second drop down and set its value to the first
+    // non-disabled selection.
+    $('#id_6').find('option:enabled:first').prop('selected',true);
+    // Finally, calculate the CRGPA after making these changes the first time we load.  After that, the change handler
+    // should take care of this.
     calculateCRGPA();
 });
 
