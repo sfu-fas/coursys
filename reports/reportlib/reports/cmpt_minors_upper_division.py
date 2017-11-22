@@ -28,6 +28,7 @@ class GPASumByEmplidQuery(DB2_Query):
             AND enrl.stdnt_enrl_status = 'E'
             AND class.class_type = 'E'
             AND class.subject = 'CMPT'
+            AND enrl.UNITS_ATTEMPTED = 'Y'
             AND (class.catalog_nbr LIKE ' 3%' OR class.CATALOG_NBR LIKE ' 4%')
             AND enrl.crse_grade_input not in ('AU', 'W', 'WD', 'WE')
             AND data.EMPLID in $emplids)
