@@ -707,6 +707,11 @@ class FormSubmission(models.Model):
             # use the one annotated in here by .annotate(last_sheet_dt=Max('sheetsubmission__completed_at'))
             return self.last_sheet_dt
 
+        # In the case of closed forms, we probably care about when the form was actually closed. Finding the last
+        # FormLogEntry with category 'ADMN' should hopefully tell us that.
+        if self.status == 'DONE' and self.formlogentry_set.filter(category='ADMN').count() > 0:
+            return self.formlogentry_set.filter(category='ADMN').last().timestamp
+
         return self.sheetsubmission_set.all().aggregate(Max('completed_at'))['completed_at__max']
 
     def email_notify_completed(self, request, admin):
