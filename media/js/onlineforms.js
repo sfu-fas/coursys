@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    $('.date-input').datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
+    $('.date-input').datepicker({ buttonImageOnly: true, buttonImage: '/static/images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'both'});
 
