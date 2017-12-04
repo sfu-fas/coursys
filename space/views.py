@@ -81,7 +81,7 @@ def edit_location(request, location_slug, from_index=0):
                          description="Edited location %s" % location,
                          related_object=location)
             l.save()
-            if from_index:
+            if from_index == '1':
                 return HttpResponseRedirect(reverse('space:index'))
             return view_location(request, location.slug)
     else:
@@ -196,9 +196,10 @@ def add_booking(request, location_slug, from_index=0):
                          description="Added booking %s for location %s" % (booking, location),
                          related_object=booking)
             l.save()
-            if from_index:
-                return view_location(request, location_slug)
-            return HttpResponseRedirect(reverse('space:index'))
+            if from_index == '1':
+                return HttpResponseRedirect(reverse('space:index'))
+            return view_location(request, location_slug)
+
         else:
             form.fields['start_time'].help_text = "Any previous bookings without an end time will also get its " \
                                                   "end time set to this."
@@ -336,7 +337,7 @@ def send_memo(request, booking_slug, from_index=0):
                  description="Send memo to %s" % booking.person,
                  related_object=booking_memo)
     l.save()
-    if from_index:
+    if from_index == '1':
         return HttpResponseRedirect(reverse('space:view_location', kwargs={'location_slug': booking.location.slug}))
     return HttpResponseRedirect(reverse('space:view_booking', kwargs={'booking_slug': booking.slug}))
 
