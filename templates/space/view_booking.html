@@ -28,6 +28,9 @@
     {% if booking.form_submission_URL %}
     <dt>Form Submission URL</dt><dd><a href="{{ booking.form_submission_URL }}">{{ booking.form_submission_URL }}</a></dd>
     {% endif %}
+    {% if booking.notes %}
+    <dt>Notes</dt><dd>{{ booking.notes|linebreaks }}</dd>
+    {% endif %}
     <dt>Last Modified</dt><dd>{{ booking.last_modified }}</dd>
     <dt>Last Modified By</dt><dd>{{ booking.last_modified_by.name }}</dd>
 

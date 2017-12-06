@@ -38,6 +38,7 @@ class BookingRecordForm(forms.ModelForm):
         widgets = {
             'start_time': forms.SplitDateTimeWidget,
             'end_time': forms.SplitDateTimeWidget,
+            'notes': forms.Textarea,
         }
 
     def clean(self):

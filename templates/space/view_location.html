@@ -75,6 +75,7 @@ function confirmMemo() {
                                 <i class="fa fa-envelope" title="Sent {{ m.created_at }} by {{ m.created_by.name }}"></i>
                                 {% endfor %}
                             {% endif %}
+                            {% if b.notes %} <i class="fa fa-pencil" title="This booking has notes"></i>{% endif %}
                         </td>
                         <td>{{ b.start_time }}</td>
                         <td>{{ b.end_time }}</td>
