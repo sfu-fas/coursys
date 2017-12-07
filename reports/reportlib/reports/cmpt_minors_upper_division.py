@@ -1,5 +1,7 @@
 from ..report import Report
-from ..queries import ActivePlanQuery, DB2_Query
+from ..table import Table
+from ..queries import ActivePlanQuery, DB2_Query, NameQuery
+from coredata.models import Person
 import string
 
 
@@ -37,6 +39,22 @@ class GPASumByEmplidQuery(DB2_Query):
     default_arguments = {'emplids': ['301008183']}
 
 
+def get_userids_from_emplids(emplids):
+    userids = Table()
+    userids.append_column('EMPLID')
+    userids.append_column('USERID')
+    for e in emplids:
+        userid = ''
+        try:
+            p = Person.objects.get(emplid=e)
+        except Person.DoesNotExist:
+            p = None
+        if p:
+            userid = p.userid or ''
+        userids.append_row([e, userid])
+    return userids
+
+
 class CMPTMinorsUpperDivisionReport(Report):
     """
     Contact:  Brad Bart
@@ -52,4 +70,9 @@ class CMPTMinorsUpperDivisionReport(Report):
         emplids = students.column_as_list('EMPLID')
         credits_earned = GPASumByEmplidQuery({'emplids': emplids})
         results = credits_earned.result()
+        name_query = NameQuery()
+        names = name_query.result()
+        results.left_join(names, 'EMPLID')
+        userids = get_userids_from_emplids(emplids)
+        results.left_join(userids, 'EMPLID')
         self.artifacts.append(results)
