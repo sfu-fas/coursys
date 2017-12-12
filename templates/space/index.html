@@ -44,6 +44,7 @@ function confirmDelete() {
                     <tr>
                         <td>Building</td>
                         <td>Room Number</td>
+                        <td>Room Type</td>
                         <td>Current Booking</td>
                         <td>Actions</td>
                     </tr>
@@ -54,6 +55,7 @@ function confirmDelete() {
                         <td>{{ l.get_building_display }}</td>
                         <td>{{ l.room_number }}
                             {% if l.has_bookings %} &nbsp; <i class="fa fa-book" title="Booking(s)"></i>{% endif %}</td>
+                        <td>{{ l.room_type.long_description }}</td>
                         <td>{{ l.get_current_booking }}
                             {% if l.get_current_booking and l.get_current_booking.conflict %} <span style="color: darkorange"><i class="fa fa-warning" title="This booking conflicts with others"></i></span> {% endif %}</td>
                         <td>
