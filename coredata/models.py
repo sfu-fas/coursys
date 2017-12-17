@@ -937,6 +937,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         # 'url': URL of course home page
         # 'department': department responsible for course (used by discipline module)
         # 'taemail': TAs' contact email (if not their personal email)
+        # 'contact_url': URL used for TA contact (e.g. Slack chat)
         # 'labtut': are there lab sections? (default False)
         # 'labtas': TAs get the LAB_BONUS lab/tutorial bonus (default False)
         # 'labtut_use': the instructor cares about labs/tutorials and wants them displayed more
@@ -956,12 +957,14 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
                 'instr_rw_svn': False, 'joint_with': (), 'group_min': None, 'group_max': None,
-                'maillist': None, 'labtut_use': False, 'group_span_activities': True}
+                'maillist': None, 'labtut_use': False, 'group_span_activities': True,
+                'contact_url': None}
     labtut, set_labtut = getter_setter('labtut')
     labtut_use, set_labtut_use = getter_setter('labtut_use')
     _, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
+    contact_url, set_contact_url = getter_setter('contact_url')
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
     instr_rw_svn, set_instr_rw_svn = getter_setter('instr_rw_svn')
     extra_bu_str, set_extra_bu_str = getter_setter('extra_bu')
@@ -973,8 +976,10 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     group_max, set_group_max = getter_setter('group_max')
     group_span_activities, set_group_span_activities = getter_setter('group_span_activities')
     _, set_maillist = getter_setter('maillist')
-    copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn', 'instr_rw_svn',
-                          'group_min', 'group_max', 'group_span_activities'] # fields that should be copied when instructor does "copy course setup"
+    copy_config_fields = [ # fields that should be copied when instructor does "copy course setup"
+            'url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn', 'instr_rw_svn',
+            'group_min', 'group_max', 'group_span_activities', 'contact_url'
+    ] 
     
     def autoslug(self):
         # changed slug format for fall 2011
