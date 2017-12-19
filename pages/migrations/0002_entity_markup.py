@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 
 from django.db import models, migrations
 
-from pages.models import HTMLEntity
+from courselib.markup import HTMLEntity
 import re
 
 regex = re.compile(HTMLEntity().re_string())

@@ -5,7 +5,7 @@ from django.forms.fields import MultipleChoiceField
 from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
-from pages.models import ParserFor
+from courselib.markup import ParserFor
 from django.forms.utils import ErrorList
 
 class DividerFieldWidget(forms.TextInput):

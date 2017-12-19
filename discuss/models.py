@@ -9,7 +9,7 @@ from django.conf import settings
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.branding import product_name
-from pages.models import ParserFor
+from courselib.markup import ParserFor
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 import datetime

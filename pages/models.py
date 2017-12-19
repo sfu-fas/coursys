@@ -10,7 +10,8 @@ from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.text import normalize_newlines
 from courselib.storage import UploadedFileStorage, upload_path
-import creoleparser, pytz
+from courselib.markup import markup_to_html
+import pytz
 import os, datetime, re, difflib, json, uuid
 
 WRITE_ACL_CHOICES = [
@@ -249,15 +250,7 @@ class PageVersion(models.Model):
 
     def __init__(self, *args, **kwargs):
         super(PageVersion, self).__init__(*args, **kwargs)
-        self.Creole = None
-    
-    def get_creole(self, offering=None):
-        if not self.Creole:
-            if offering:
-                self.Creole = ParserFor(offering, self)
-            else:
-                self.Creole = ParserFor(self.page.offering, self)
-    
+
     def previous_version(self):
         """
         Return the version before this one, or None
@@ -410,7 +403,7 @@ class PageVersion(models.Model):
         """
         if not self.page:
             return {}
-        offering = self.Creole.offering
+        offering = self.page.offering
         key = self.page.macro_cache_key()
         macros = cache.get(key)
         if macros is not None:
@@ -443,20 +436,8 @@ class PageVersion(models.Model):
         if html:
             return mark_safe(html)
         else:
-            if self.markup() == 'creole':
-                self.get_creole(offering=offering)
-                wikitext = self.get_wikitext()
-                html = self.Creole.text2html(self.substitute_macros(wikitext))
-            elif self.markup() == 'markdown':
-                import subprocess
-                sub = subprocess.Popen(['./courselib/markdown2html.rb'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-                markdown = self.get_wikitext()
-                stdoutdata, stderrdata = sub.communicate(input=markdown)
-                ret = sub.wait()
-                print(ret)
-                html = stdoutdata
-
-
+            markup_content = self.substitute_macros(self.get_wikitext())
+            html = markup_to_html(markup_content, self.markup(), pageversion=self)
             cache.set(key, html, 24*3600) # expired if activities are changed (in signal below), or by saving a PageVersion in this offering
             return mark_safe(html)
 
@@ -495,202 +476,3 @@ class PagePermission(models.Model):
     class Meta:
         unique_together = (('offering', 'person'), )
 
-
-# custom creoleparser Parser class:
-
-import genshi
-from genshi.core import Markup
-
-brushre = r"[\w\-#]+"
-
-class AbbrAcronym(creoleparser.elements.InlineElement):
-    # handles a subset of the abbreviation/acronym extension
-    # http://www.wikicreole.org/wiki/AbbreviationAndAcronyms
-    def __init__(self):
-        super(AbbrAcronym,self).__init__('abbr', ['^','^'])
-
-    def _build(self,mo,element_store, environ):
-        try:
-            abbr, title = mo.group(1).split(":", 1)
-        except ValueError:
-            abbr = mo.group(1)
-            title = None
-        return creoleparser.core.bldr.tag.__getattr__('abbr')(
-                   creoleparser.core.fragmentize(abbr,
-                       self.child_elements,
-                       element_store, environ), title=title)
-
-class HTMLEntity(creoleparser.elements.InlineElement):
-    # Allows HTML elements to be passed through
-    def __init__(self):
-        super(HTMLEntity, self).__init__('span', ['&',';'])
-        self.regexp = re.compile(self.re_string())
-
-    def re_string(self):
-        return '&([A-Za-z]\w{1,24}|#\d{2,7}|#[Xx][0-9a-zA-Z]{2,6});'
-
-    def _build(self,mo,element_store, environ):
-        content = mo.group(1)
-        return creoleparser.core.bldr.tag.__getattr__('span')(Markup('&' + content + ';'))
-
-
-class CodeBlock(creoleparser.elements.BlockElement):
-    """
-    A block of code that gets syntax-highlited
-    """
-    def __init__(self):
-        super(CodeBlock,self).__init__('pre', ['{{{','}}}'])
-        self.regexp = re.compile(self.re_string(), re.DOTALL+re.MULTILINE)
-        self.regexp2 = re.compile(self.re_string2(), re.MULTILINE)
-
-    def re_string(self):
-        start = '^\{\{\{\s*\[(' + brushre + ')\]\s*\n'
-        content = r'(.+?\n)'
-        end = r'\}\}\}\s*?$'
-        return start + content + end
-
-    def re_string2(self):
-        """Finds a closing token with a space at the start of the line."""
-        return r'^ (\s*?\}\]\s*?\n)'
-
-    def _build(self,mo,element_store, environ):
-        lang = mo.group(1)
-        code = mo.group(2).rstrip()
-        
-        return creoleparser.core.bldr.tag.__getattr__(self.tag)(
-            creoleparser.core.fragmentize(code, self.child_elements,
-                        element_store, environ, remove_escapes=False),
-            class_="highlight lang-"+lang)
-
-def _find_activity(offering, arg_string):
-    """
-    Find activity from the arg_string from a macro. Return error message string if it can't be found.
-    """
-    act_name = arg_string.strip()
-    attrs = {}
-    acts = Activity.objects.filter(offering=offering, deleted=False).filter(models.Q(name=act_name) | models.Q(short_name=act_name))
-    if len(acts) == 0:
-        return u'[No activity "%s"]' % (act_name)
-    elif len(acts) > 1:
-        return u'[There is both a name and short name "%s"]' % (act_name)
-    else:
-        return acts[0]
-        due = act.due_date
-
-local_tz = pytz.timezone(settings.TIME_ZONE)
-def _duedate(offering, dateformat, macro, environ, *act_name):
-    """
-    creoleparser macro for due datetimes
-    
-    Must be created in a closure by ParserFor with offering set (since that
-    doesn't come from the parser).
-    """
-    act = _find_activity(offering, macro['arg_string'])
-    attrs = {}
-    if isinstance(act, Activity):
-        due = act.due_date
-        if due:
-            iso8601 = local_tz.localize(due).isoformat()
-            text = act.due_date.strftime(dateformat)
-            attrs['title'] = iso8601
-        else:
-            text = u'["%s" has no due date specified]' % (act.name)
-            attrs['class'] = 'empty'
-    else:
-        # error
-        text = act
-        attrs['class'] = 'empty'
-
-    return creoleparser.core.bldr.tag.__getattr__('span')(text, **attrs)
-
-def _activitylink(offering, macro, environ, *act_name):
-    act = _find_activity(offering, macro['arg_string'])
-    attrs = {}
-    if isinstance(act, Activity):
-        text = act.name
-        attrs['href'] = act.get_absolute_url()
-    else:
-        # error
-        text = act
-        attrs['class'] = 'empty'
-
-    return creoleparser.core.bldr.tag.__getattr__('a')(text, **attrs)
-
-def _pagelist(offering, pageversion, macro, environ, prefix=None):
-    # all pages [with the given prefix] for this offering
-    if prefix:
-        pages = Page.objects.filter(offering=offering, label__startswith=prefix)
-    else:
-        pages = Page.objects.filter(offering=offering)
-
-    # ... except this page (if known)
-    if pageversion:
-        pages = pages.exclude(id=pageversion.page_id)
-
-    elements = []
-    for p in pages:
-        link = creoleparser.core.bldr.tag.__getattr__('a')(p.current_version().title or p.label, href=p.label)
-        li = creoleparser.core.bldr.tag.__getattr__('li')(link)
-        elements.append(li)
-    return creoleparser.core.bldr.tag.__getattr__('ul')(elements, **{'class': 'filelist'})
-
-
-class ParserFor(object):
-    """
-    Class to hold the creoleparser objects for a particular CourseOffering.
-    
-    (Needs to be specific to the offering so we can select the right activities/pages in macros.)
-    """
-    def __init__(self, offering, pageversion=None):
-        self.offering = offering
-        self.pageversion = pageversion
-        
-        def duedate_macro(macro, environ, *act_name):
-            return _duedate(self.offering, '%A %B %d %Y', macro, environ, *act_name)
-
-        def duedatetime_macro(macro, environ, *act_name):
-            return _duedate(self.offering, '%A %B %d %Y, %H:%M', macro, environ, *act_name)
-
-        def activitylink_macro(macro, environ, *act_name):
-            return _activitylink(self.offering, macro, environ, *act_name)
-
-        def pagelist_macro(macro, environ, prefix=None):
-            return _pagelist(self.offering, self.pageversion, macro, environ, prefix)
-
-        if self.offering:
-            nb_macros = {
-                     'duedate': duedate_macro,
-                     'duedatetime': duedatetime_macro,
-                     'pagelist': pagelist_macro,
-                     'activitylink': activitylink_macro,
-                     }
-        else:
-            nb_macros = None
-        CreoleBase = creoleparser.creole11_base(non_bodied_macros=nb_macros, add_heading_ids='h-')
-
-        class CreoleDialect(CreoleBase):
-            codeblock = CodeBlock()
-            abbracronym = AbbrAcronym()
-            htmlentity = HTMLEntity()
-            strikethrough = creoleparser.elements.InlineElement('del','--')
-            
-            def __init__(self):
-                self.custom_elements = [self.abbracronym, self.strikethrough]
-                super(CreoleDialect,self).__init__()
-                
-            @property
-            def inline_elements(self):
-                inline = super(CreoleDialect, self).inline_elements
-                inline.append(self.abbracronym)
-                inline.append(self.strikethrough)
-                inline.append(self.htmlentity)
-                return inline
-
-            @property
-            def block_elements(self):
-                blocks = super(CreoleDialect, self).block_elements
-                blocks.insert(0, self.codeblock)
-                return blocks
-        
-        self.parser = creoleparser.core.Parser(CreoleDialect)
-        self.text2html = self.parser.render

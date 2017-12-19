@@ -3,7 +3,7 @@ from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 from django.template.defaultfilters import linebreaksbr
-from pages.models import ParserFor
+from courselib.markup import ParserFor
 from courselib.text import normalize_newlines
 
 MAX_TEXT_LEN = 50 # longest text to output in CSV (for medium/long text)

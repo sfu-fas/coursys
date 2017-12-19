@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
 from django.core.urlresolvers import reverse
-from pages.models import Page, PageVersion, MACRO_LABEL, ParserFor, PagePermission
+from pages.models import Page, PageVersion, MACRO_LABEL, PagePermission
 from coredata.models import CourseOffering, Member, Person
 from grades.models import Activity
 from courselib.testing import TEST_COURSE_SLUG, Client, test_views
+from courselib.markup import ParserFor
 import re
 
 wikitext = """Some Python code:
@@ -83,8 +84,7 @@ class PagesTest(TestCase):
         p = Page(offering=crs, label="Foo")
         p.save()
         pv = PageVersion(page=p)
-        pv.get_creole()
-        return pv.Creole
+        return ParserFor(crs, pv)
     
     def test_wiki_formatting(self):
         Creole = self._get_creole()
@@ -107,7 +107,7 @@ class PagesTest(TestCase):
         #self.assertEqual(brushes, set(['shBrushJScript.js', 'shBrushPython.js']))
         
         html = Creole.text2html(wikitext)
-        self.assertIn('class="highlight python">for i', html)
+        self.assertIn('class="highlight lang-python">for i', html)
         self.assertIn('print i</pre>', html)
         self.assertIn('i=1; i&lt;4; i++', html)
 
