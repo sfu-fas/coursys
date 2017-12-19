@@ -2,6 +2,7 @@ from django import forms
 from django.db import transaction
 from pages.models import Page, PageVersion, READ_ACL_CHOICES, WRITE_ACL_CHOICES
 from importer import HTMLWiki
+from courselib.markup import MARKUP_CHOICES
 import urllib2, urlparse
 
 
@@ -39,6 +40,7 @@ class EditPageFileForm(forms.ModelForm):
         if self.instance.id:
             self.initial['title'] = self.instance.current_version().title
             self.initial['wikitext'] = self.instance.current_version().wikitext
+            self.initial['markup'] = self.instance.current_version().markup()
             self.initial['math'] = self.instance.current_version().math()
             self.initial['releasedate'] = self.instance.releasedate()
             self.initial['editdate'] = self.instance.editdate()
@@ -91,8 +93,9 @@ class EditPageFileForm(forms.ModelForm):
 
 class EditPageForm(EditPageFileForm):
     title = forms.CharField(max_length=60, widget=forms.TextInput(attrs={'size':50}))
-    wikitext = WikiField()
+    wikitext = WikiField(label='Content')
     comment = CommentField()
+    markup = forms.ChoiceField(label='Markup Language', choices=MARKUP_CHOICES)
     
     math = forms.BooleanField(required=False, help_text='Will this page use <a href="http://www.mathjax.org/">MathJax</a> for displaying TeX or MathML formulas?')
 
@@ -104,6 +107,8 @@ class EditPageForm(EditPageFileForm):
         title = self.cleaned_data['title']
         pv = PageVersion(title=title, wikitext=wikitext, comment=comment, editor=editor)
         # set config data
+        if 'math' in self.cleaned_data:
+            pv.set_markup(self.cleaned_data['markup'])
         if 'math' in self.cleaned_data:
             pv.set_math(self.cleaned_data['math'])
 

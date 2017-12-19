@@ -152,28 +152,6 @@ class Page(models.Model):
             cache.set(key, v, 24*3600) # expired when a PageVersion is saved
             return v
 
-    def XXX_safely_delete(self):
-        """
-        Delete this page (and by "delete", we mean "don't really delete").
-
-        No longer used since redirects are now left in place of deleted pages.
-        """
-        with transaction.atomic():
-            # mangle name and short-name so instructors can delete and replace
-            i = 1
-            while True:
-                suffix = "__%04i" % (i)
-                existing = Page.objects.filter(offering=self.offering, label=self.label+suffix).count()
-                if existing == 0:
-                    break
-                i += 1
-
-            new_label = self.label+suffix
-            self.label = new_label
-            self.can_read = 'NONE'
-            self.can_write = 'NONE'
-            self.save()
-
     @staticmethod
     def adjust_acl_release(acl_value, date):
         """
@@ -214,7 +192,7 @@ class PageVersion(models.Model):
     """
     page = models.ForeignKey(Page, blank=True, null=True)
     title = models.CharField(max_length=60, help_text="The title for the page")
-    wikitext = models.TextField(help_text='WikiCreole-formatted content of the page')
+    wikitext = models.TextField(help_text='Markup content of the page', verbose_name='Content')
     diff = models.TextField(null=True, blank=True)
     diff_from = models.ForeignKey('PageVersion', null=True)
     file_attachment = models.FileField(storage=UploadedFileStorage, null=False, upload_to=attachment_upload_to, blank=False, max_length=500)
@@ -251,7 +229,7 @@ class PageVersion(models.Model):
 
     def get_wikitext(self):
         """
-        Return this version's wikitext (reconstructing from diffs if necessary).
+        Return this version's markup (reconstructing from diffs if necessary).
         
         Caches when reconstructing from diffs
         """
@@ -465,9 +443,20 @@ class PageVersion(models.Model):
         if html:
             return mark_safe(html)
         else:
-            self.get_creole(offering=offering)
-            wikitext = self.get_wikitext()
-            html = self.Creole.text2html(self.substitute_macros(wikitext))
+            if self.markup() == 'creole':
+                self.get_creole(offering=offering)
+                wikitext = self.get_wikitext()
+                html = self.Creole.text2html(self.substitute_macros(wikitext))
+            elif self.markup() == 'markdown':
+                import subprocess
+                sub = subprocess.Popen(['./courselib/markdown2html.rb'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                markdown = self.get_wikitext()
+                stdoutdata, stderrdata = sub.communicate(input=markdown)
+                ret = sub.wait()
+                print(ret)
+                html = stdoutdata
+
+
             cache.set(key, html, 24*3600) # expired if activities are changed (in signal below), or by saving a PageVersion in this offering
             return mark_safe(html)
 
