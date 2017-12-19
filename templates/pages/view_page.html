@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{version.title}}{% endblock %}
 {% block h1 %}{{version.title}}{% endblock %}
@@ -15,18 +16,9 @@ MathJax.Hub.Config({
 </script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 {% endif %}
-{% if version.syntax %}
-<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shCore.js"></script>
-{% for b in version.brushes %}
-<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/{{b}}"></script>
-{% endfor %}
-<link href="{{STATIC_URL}}syntaxhighlighter/styles/shCore.css" rel="stylesheet" type="text/css" />
-<link href="{{STATIC_URL}}syntaxhighlighter/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
-<script type="text/javascript">
-  SyntaxHighlighter.defaults['light'] = true;
-  SyntaxHighlighter.all()
-</script>
-{% endif %}
+<script src="{% static 'highlightjs/highlight.pack.js' %}"></script>
+<script src="{% static 'js/highlighting.js' %}"></script>
+<link rel="stylesheet" href="{% static 'highlightjs/vs.css' %}" />
 {% endblock %}
 
 
@@ -52,7 +44,7 @@ MathJax.Hub.Config({
 {% if version.is_filepage %}
 <p>View file <a href="{% url "offering:pages:view_file" course_slug=offering.slug page_label=page.label %}">{{version.file_name}}</a> ({{version.file_attachment.size|filesizeformat}}), or <a href="{% url "offering:pages:download_file" course_slug=offering.slug page_label=page.label %}">download</a>.</p>
 {% else %}
-<div class="wikicontents">{{ version.html_contents }}</div>
+<div class="wikicontents {{ version.markup }}">{{ version.html_contents }}</div>
 {% endif %}
 <div class="updateinfo">Updated {{ version.created_at }} by {{version.editor.person.userid }}.
 {% if can_edit and page.can_read != 'ALL' %}<br /><span class="infomessage">This page is visible only to {{ page.get_can_read_display }}.</span>{% endif %}

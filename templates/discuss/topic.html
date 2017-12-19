@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Discussion: {{ topic.title }}{% endblock %}
 {% block h1 %}Discussion: {{ topic.title }}
 	{% if topic.pinned %}<i class="fa fa-tag"></i>{% endif %}
@@ -6,19 +8,11 @@
 {% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{STATIC_URL}}style/discuss.css" media="all" />
-{% if brushes %}
-	<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shCore.js"></script>
-	{% for b in brushes %}
-	<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/{{b}}"></script>
-	{% endfor %}
-	<link href="{{STATIC_URL}}syntaxhighlighter/styles/shCore.css" rel="stylesheet" type="text/css" />
-	<link href="{{STATIC_URL}}syntaxhighlighter/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-	SyntaxHighlighter.defaults['light'] = true;
-	SyntaxHighlighter.all()
-	</script>
-{% endif %}
+<script src="{% static 'highlightjs/highlight.pack.js' %}"></script>
+<script src="{% static 'js/highlighting.js' %}"></script>
+<link rel="stylesheet" href="{% static 'highlightjs/vs.css' %}" />
+<link rel="stylesheet" href="{% static 'style/discuss.css' %}" media="all" />
+
 {% if any_math %}
 	<script type="text/x-mathjax-config">
 	MathJax.Hub.Config({
@@ -28,9 +22,9 @@
 	elements: {{need_mathjax|safe}},
 	});
 	</script>
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMMLL"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMMLL"></script>
 {% endif %}
-<script type="text/javascript">
+<script>
 	$(document).ready(function() {
 		{% if not form.errors %}
 			$("#discussion-topic-reply-form").hide();

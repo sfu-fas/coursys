@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
 from django.core.urlresolvers import reverse
-from pages.models import Page, PageVersion, brushes_used, MACRO_LABEL, ParserFor, PagePermission
+from pages.models import Page, PageVersion, MACRO_LABEL, ParserFor, PagePermission
 from coredata.models import CourseOffering, Member, Person
 from grades.models import Activity
 from courselib.testing import TEST_COURSE_SLUG, Client, test_views
@@ -103,11 +103,11 @@ class PagesTest(TestCase):
         
     def test_codeblock(self):
         Creole = self._get_creole()
-        brushes = brushes_used(Creole.parser.parse(wikitext))
-        self.assertEqual(brushes, set(['shBrushJScript.js', 'shBrushPython.js']))
+        #brushes = brushes_used(Creole.parser.parse(wikitext))
+        #self.assertEqual(brushes, set(['shBrushJScript.js', 'shBrushPython.js']))
         
         html = Creole.text2html(wikitext)
-        self.assertIn('class="brush: python">for i', html)
+        self.assertIn('class="highlight python">for i', html)
         self.assertIn('print i</pre>', html)
         self.assertIn('i=1; i&lt;4; i++', html)
 

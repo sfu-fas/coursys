@@ -893,7 +893,7 @@ td.miniaction input {
 
 
 /* pages module styles */
-div.syntaxhighlighter {
+pre.highlight {
   padding: 0.1em 0.1em 0.1em 2em;
   clear: right;
 }

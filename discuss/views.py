@@ -129,8 +129,6 @@ def view_topic(request, course_slug, topic_slug):
         raise Http404
     replies = DiscussionMessage.objects.filter(topic=topic).order_by('created_at')
 
-    # syntaxhighlighter brushes needed
-    brushes = set(itertools.chain(topic.brushes(), *(r.brushes() for r in replies)))
     # who needs mathjax activated?
     need_mathjax = ['reply-content-%i' % (r.id) for r in replies if r.math()]
     if topic.math():
@@ -153,7 +151,7 @@ def view_topic(request, course_slug, topic_slug):
     else:
         form = DiscussionMessageForm(creole=None)
     context = {'course': course, 'topic': topic, 'replies': replies, 'view': view, 'form': form,
-               'brushes': brushes, 'need_mathjax': need_mathjax, 'any_math': any_math, 'username': request.user.username}
+               'need_mathjax': need_mathjax, 'any_math': any_math, 'username': request.user.username}
     return render(request, 'discuss/topic.html', context)
 
 @uses_feature('discuss')

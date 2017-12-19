@@ -9,7 +9,7 @@ from django.conf import settings
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.branding import product_name
-from pages.models import ParserFor, brushes_used
+from pages.models import ParserFor
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 import datetime
@@ -62,11 +62,11 @@ class DiscussionTopic(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=['offering'])
     config = JSONField(null=False, blank=False, default={})
         # p.config['math']: content uses MathJax? (boolean)
-        # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)
+        # p.config['brushes']: used SyntaxHighlighter brushes (list of strings) -- no longer used with highlight.js
     
-    defaults = {'math': False, 'brushes': []}
+    defaults = {'math': False,}
     math, set_math = getter_setter('math')
-    brushes, set_brushes = getter_setter('brushes')
+    #brushes, set_brushes = getter_setter('brushes')
     
     def save(self, *args, **kwargs):
         if self.status not in [status[0] for status in TOPIC_STATUSES]:
@@ -74,8 +74,6 @@ class DiscussionTopic(models.Model):
 
         # update the metainfo about creole display        
         self.get_creole()
-        brushes = brushes_used(self.Creole.parser.parse(self.content))
-        self.set_brushes(list(brushes))
         # TODO: nobody sets config.math to True, but it is honoured if it is set magically. UI for that?
 
         new_topic = self.id is None
@@ -164,11 +162,11 @@ class DiscussionMessage(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=['topic'])
     config = JSONField(null=False, blank=False, default={})
         # p.config['math']: content uses MathJax? (boolean)
-        # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)
+        # p.config['brushes']: used SyntaxHighlighter brushes (list of strings) -- no longer used with highlight.js
     
-    defaults = {'math': False, 'brushes': []}
+    defaults = {'math': False}
     math, set_math = getter_setter('math')
-    brushes, set_brushes = getter_setter('brushes')
+    #brushes, set_brushes = getter_setter('brushes')
 
     def save(self, *args, **kwargs):
         if self.status not in [status[0] for status in MESSAGE_STATUSES]:
@@ -178,8 +176,6 @@ class DiscussionMessage(models.Model):
 
         # update the metainfo about creole display        
         self.topic.get_creole()
-        brushes = brushes_used(self.topic.Creole.parser.parse(self.content))
-        self.set_brushes(list(brushes))
         
         new_message = self.id is None
         

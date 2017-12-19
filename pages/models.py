@@ -227,16 +227,20 @@ class PageVersion(models.Model):
     comment = models.TextField()
 
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+        # p.config['markup']: markup language used: 'creole', 'markdown'
         # p.config['math']: page uses MathJax? (boolean)
-        # p.config['syntax']: page uses SyntaxHighlighter? (boolean)
-        # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)
+        # p.config['syntax']: page uses SyntaxHighlighter? (boolean) -- no longer used with highlight.js
+        # p.config['brushes']: used SyntaxHighlighter brushes (list of strings) -- no longer used with highlight.js
         # p.config['depth']: max depth of diff pages below me (to keep it within reason)
         # p.config['redirect_reason']: if present, how this redirect got here: 'rename' or 'delete'.
 
-    defaults = {'math': False, 'syntax': False, 'brushes': [], 'depth': 0, 'redirect_reason': None}
+    defaults = {
+        'math': False, 'depth': 0, 'redirect_reason': None, 'markup': 'creole',
+    }
+    markup, set_markup = getter_setter('markup')
     math, set_math = getter_setter('math')
-    syntax, set_syntax = getter_setter('syntax')
-    brushes, set_brushes = getter_setter('brushes')
+    #syntax, set_syntax = getter_setter('syntax')
+    #brushes, set_brushes = getter_setter('brushes')
     depth, set_depth = getter_setter('depth')
     redirect_reason, set_redirect_reason = getter_setter('redirect_reason')
 
@@ -386,15 +390,6 @@ class PageVersion(models.Model):
         
             # normalize newlines so our diffs are consistent later
             self.wikitext = normalize_newlines(self.wikitext)
-        
-            # set the SyntaxHighlighter brushes used on this page.
-            self.set_brushes([])
-            wikitext = self.get_wikitext()
-            if wikitext:
-                self.get_creole()
-                brushes = brushes_used(self.Creole.parser.parse(wikitext))
-                self.set_brushes(list(brushes))
-                self.set_syntax(bool(brushes))
 
         super(PageVersion, self).save(*args, **kwargs)
         # update the *previous* PageVersion so it's a diff instead of storing full text
@@ -515,11 +510,9 @@ class PagePermission(models.Model):
 # custom creoleparser Parser class:
 
 import genshi
-from brush_map import brush_code
 from genshi.core import Markup
 
 brushre = r"[\w\-#]+"
-brush_class_re = re.compile(r'brush:\s+(' + brushre + ')')
 
 class AbbrAcronym(creoleparser.elements.InlineElement):
     # handles a subset of the abbreviation/acronym extension
@@ -578,7 +571,7 @@ class CodeBlock(creoleparser.elements.BlockElement):
         return creoleparser.core.bldr.tag.__getattr__(self.tag)(
             creoleparser.core.fragmentize(code, self.child_elements,
                         element_store, environ, remove_escapes=False),
-            class_="brush: "+lang)
+            class_="highlight lang-"+lang)
 
 def _find_activity(offering, arg_string):
     """
@@ -712,29 +705,3 @@ class ParserFor(object):
         
         self.parser = creoleparser.core.Parser(CreoleDialect)
         self.text2html = self.parser.render
-
-
-def brushes_used(parse):
-    """
-    All SyntaxHighlighter brush code files used in this wikitext.
-    """
-    res = set()
-    if hasattr(parse, 'children'):
-        # recurse
-        for c in parse.children:
-            res |= brushes_used(c)
-
-    if isinstance(parse, genshi.builder.Element) and parse.tag == 'pre':
-        cls = parse.attrib.get('class')
-        if cls:
-            m = brush_class_re.match(cls)
-            if m:
-                b = m.group(1)
-                if b in brush_code:
-                    res.add(brush_code[b])
-
-    return res
-
-
-
-
