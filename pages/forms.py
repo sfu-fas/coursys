@@ -64,13 +64,6 @@ class EditPageFileForm(forms.ModelForm):
             raise forms.ValidationError(error)
         return label
 
-    def clean_wikitext(self):
-        markup = self.data['markup']
-        if markup == 'html':
-            # clean HTML before it hits the DB
-            return sanitize_html(self.data['wikitext'])
-        return self.data['wikitext']
-
     class Meta:
         model = Page
         exclude = ('config',)

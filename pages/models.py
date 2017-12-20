@@ -10,7 +10,7 @@ from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.text import normalize_newlines
 from courselib.storage import UploadedFileStorage, upload_path
-from courselib.markup import markup_to_html
+from courselib.markup import markup_to_html, sanitize_html
 import pytz
 import os, datetime, re, difflib, json, uuid
 
@@ -361,6 +361,9 @@ class PageVersion(models.Model):
         
             # normalize newlines so our diffs are consistent later
             self.wikitext = normalize_newlines(self.wikitext)
+
+        if self.markup() == 'html':
+            self.wikitext = sanitize_html(self.wikitext)
 
         super(PageVersion, self).save(*args, **kwargs)
         # update the *previous* PageVersion so it's a diff instead of storing full text

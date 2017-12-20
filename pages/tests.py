@@ -469,3 +469,29 @@ class PagesTest(TestCase):
         """
         highlighted_code = markup_to_html('```python\ni=1\n```', 'markdown')
         self.assertEqual(highlighted_code, '<pre lang="python"><code>i=1\n</code></pre>')
+
+    def test_html_safety(self):
+        """
+        Check that we're handling HTML in a safe way
+        """
+        html = markup_to_html('<p>Foo</em>', 'html')
+        self.assertEqual(html, '<p>Foo</p>')
+
+        html = markup_to_html('Foo<script>alert()</script>', 'html')
+        self.assertEqual(html, 'Foo&lt;script&gt;alert()&lt;/script&gt;')
+
+        # unsafe if we ask for it
+        html = markup_to_html('Foo<script>alert()</script>', 'html', html_already_safe=True)
+        self.assertEqual(html, 'Foo<script>alert()</script>')
+
+        # PageVersions should be saved only with safe HTML
+        offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.get(offering=offering, person__userid="ggbaker")
+
+        p = Page(offering=offering, label="Test")
+        p.save()
+        v1 = PageVersion(page=p, title="T1", wikitext='<em>Some</em> <script>HTML</script>', editor=memb)
+        v1.set_markup('html')
+        v1.save()
+
+        self.assertEqual(v1.wikitext, '<em>Some</em> &lt;script&gt;HTML&lt;/script&gt;')

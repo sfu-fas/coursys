@@ -18,7 +18,7 @@ MARKUP_CHOICES = [
 ]
 
 
-allowed_tags = bleach.sanitizer.ALLOWED_TAGS + ['pre']
+allowed_tags = bleach.sanitizer.ALLOWED_TAGS + ['pre', 'p']
 allowed_attributes = bleach.sanitizer.ALLOWED_ATTRIBUTES
 allowed_attributes['pre'] = ['lang']
 

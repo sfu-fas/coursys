@@ -509,7 +509,7 @@ def _pages_from_json(request, offering, data):
         try:
             user = Person.objects.get(userid=data['userid'])
             member = Member.objects.exclude(role='DROP').get(person=user, offering=offering)
-        except Person.DoesNotExist, Member.DoesNotExist:
+        except (Person.DoesNotExist, Member.DoesNotExist):
             raise ValidationError(u'Person with that userid does not exist.')
         
         if 'pages-token' not in user.config or user.config['pages-token'] != data['token']:
@@ -601,8 +601,14 @@ def _pages_from_json(request, offering, data):
             if 'use_math' in pdata:
                 if type(pdata['use_math']) != bool:
                     raise ValidationError(u'Page #%i "comment" value must be a boolean.' % (i))
-                
+
                 ver.set_math(pdata['use_math'])
+
+            if 'markup' in pdata:
+                if isinstance(pdata['markup'], basestring):
+                    raise ValidationError(u'Page #%i "markup" value must be a string.' % (i))
+
+                ver.set_markup(pdata['markup'])
 
             if 'wikitext-base64' in pdata:
                 if type(pdata['wikitext-base64']) != unicode:
