@@ -2,7 +2,7 @@ from django import forms
 from django.db import transaction
 from pages.models import Page, PageVersion, READ_ACL_CHOICES, WRITE_ACL_CHOICES
 from importer import HTMLWiki
-from courselib.markup import MARKUP_CHOICES, sanitize_html
+from courselib.markup import MARKUP_CHOICES, sanitize_html, MarkupOptionsField
 import urllib2, urlparse
 
 
@@ -37,10 +37,10 @@ class EditPageFileForm(forms.ModelForm):
         
         # existing data for other fields
         if self.instance.id:
-            self.initial['title'] = self.instance.current_version().title
-            self.initial['wikitext'] = self.instance.current_version().wikitext
-            self.initial['markup'] = self.instance.current_version().markup()
-            self.initial['math'] = self.instance.current_version().math()
+            version = self.instance.current_version()
+            self.initial['title'] = version.title
+            self.initial['wikitext'] = version.wikitext
+            self.initial['markup_options'] = [version.markup(), version.math()]
             self.initial['releasedate'] = self.instance.releasedate()
             self.initial['editdate'] = self.instance.editdate()
         
@@ -74,21 +74,11 @@ class EditPageFileForm(forms.ModelForm):
         }
 
 
-
 class EditPageForm(EditPageFileForm):
     title = forms.CharField(max_length=60, widget=forms.TextInput(attrs={'size':50}))
-    markup = forms.ChoiceField(label='Markup Language', choices=MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')])
     wikitext = WikiField(label='Content')
+    markup_options = MarkupOptionsField(with_wysiwyg=True)
     comment = CommentField()
-
-    math = forms.BooleanField(required=False, help_text='Will this page use <a href="http://www.mathjax.org/">MathJax</a> for displaying TeX or MathML formulas?')
-
-    def clean_markup(self):
-        markup = self.cleaned_data['markup']
-        if markup == 'html-wysiwyg':
-            # the editor is a UI nicety only
-            return 'html'
-        return markup
 
     @transaction.atomic
     def save(self, editor, *args, **kwargs):
@@ -98,10 +88,9 @@ class EditPageForm(EditPageFileForm):
         title = self.cleaned_data['title']
         pv = PageVersion(title=title, wikitext=wikitext, comment=comment, editor=editor)
         # set config data
-        if 'math' in self.cleaned_data:
-            pv.set_markup(self.cleaned_data['markup'])
-        if 'math' in self.cleaned_data:
-            pv.set_math(self.cleaned_data['math'])
+        markup, math = self.cleaned_data['markup_options']
+        pv.set_markup(markup)
+        pv.set_math(math)
 
         self.instance.offering = self.offering
         pg = super(EditPageForm, self).save(*args, **kwargs)
@@ -126,6 +115,7 @@ class EditPageFormRestricted(EditPageForm):
             del self.fields['editdate']
 
 EditPageForm.restricted_form = EditPageFormRestricted
+
 
 class EditFileForm(EditPageFileForm):
     file_attachment = forms.FileField(label="File")
@@ -155,6 +145,7 @@ class EditFileFormRestricted(EditFileForm):
         del self.fields['can_write']
 
 EditFileForm.restricted_form = EditFileFormRestricted
+
 
 class SiteImportForm(forms.Form):
     url = forms.URLField(required=True, label='URL', widget=forms.TextInput(attrs={'size':70}))

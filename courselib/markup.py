@@ -16,7 +16,7 @@ MARKUP_CHOICES = [
     ('markdown', 'Markdown'),
     ('html', 'HTML'),
 ]
-
+MARKUP_CHOICES_WYSIWYG = MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')]
 
 allowed_tags = bleach.sanitizer.ALLOWED_TAGS + [
     'h2', 'h3', 'h4', 'pre', 'p', 'dl', 'dt', 'dd', 'dfn', 'img', 'q', 'del', 'ins', 'sub', 'sup',
@@ -68,6 +68,58 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
         raise NotImplementedError()
 
     return mark_safe(html.strip())
+
+
+
+
+# custom form field
+
+from django import forms
+
+
+class MarkupOptionsWidget(forms.MultiWidget):
+    def __init__(self):
+        widgets = (
+            forms.Select(),
+            forms.CheckboxInput(),
+        )
+        super(MarkupOptionsWidget, self).__init__(widgets)
+
+    def format_output(self, rendered_widgets):
+        return 'Markup language: %s Use MathJax? %s' % tuple(rendered_widgets)
+
+    def decompress(self, value):
+        if value is None:
+            return ['creole', False]
+        return value
+
+
+class MarkupOptionsField(forms.MultiValueField):
+    widget = MarkupOptionsWidget
+
+    def __init__(self, with_wysiwyg=False, *args, **kwargs):
+        choices = MARKUP_CHOICES_WYSIWYG if with_wysiwyg else MARKUP_CHOICES
+        fields = [
+            forms.ChoiceField(choices=choices, required=True),
+            forms.BooleanField(required=False),
+        ]
+        super(MarkupOptionsField, self).__init__(fields, required=False,
+            help_text=mark_safe('Markup language used in the content and will <a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas?'),
+            *args, **kwargs)
+
+        self.widget.widgets[0].choices = choices
+        self.fields[0].required = True
+
+    def compress(self, data_list):
+        return data_list
+
+    def clean(self, value):
+        markup, math = super(MarkupOptionsField, self).clean(value)
+        if markup == 'html-wysiwyg':
+            # the editor is a UI nicety only
+            markup = 'html'
+        return markup, math
+
 
 
 # custom creoleparser Parser class

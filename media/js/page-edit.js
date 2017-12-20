@@ -1,5 +1,5 @@
 function wysiwyg_switcher(ev) {
-    if ( $('#id_markup').val() == 'html-wysiwyg' ) {
+    if ( $('#id_markup_options_0').val() == 'html-wysiwyg' ) {
         tinymce.init({
             selector: '#id_wikitext',
             plugins: ['charmap', 'code', 'codesample', 'image', 'link', 'lists', 'table'],
@@ -13,6 +13,6 @@ $(document).ready(function() {
 	$('#id_releasedate').datepicker({'dateFormat': 'yy-mm-dd'});
 	$('#id_editdate').datepicker({'dateFormat': 'yy-mm-dd'});
 
-	$('#id_markup').change(wysiwyg_switcher);
+	$('#id_markup_options_0').change(wysiwyg_switcher);
     wysiwyg_switcher();
 } );
