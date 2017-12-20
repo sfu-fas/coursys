@@ -2,7 +2,7 @@ from django import forms
 from django.db import transaction
 from pages.models import Page, PageVersion, READ_ACL_CHOICES, WRITE_ACL_CHOICES
 from importer import HTMLWiki
-from courselib.markup import MARKUP_CHOICES
+from courselib.markup import MARKUP_CHOICES, sanitize_html
 import urllib2, urlparse
 
 
@@ -24,7 +24,6 @@ class CommentField(forms.CharField):
 
 
 class EditPageFileForm(forms.ModelForm):
-    markup = forms.CharField(initial="wiki", widget=forms.HiddenInput())
     releasedate = forms.DateField(initial=None, required=False, label="Release Date",
                 help_text='Date the "can read" permissions take effect. Leave blank for no timed-release. Pages can always be viewed by instructors and TAs.')
     # disabling editing-release UI on the basis that probably nobody needs it
@@ -67,18 +66,10 @@ class EditPageFileForm(forms.ModelForm):
 
     def clean_wikitext(self):
         markup = self.data['markup']
-        if markup != 'html':
-            # not HTML input: it's okay as-is
-            return self.data['wikitext']
-        
-        html = self.data['wikitext']
-        converter = HTMLWiki([])
-        try:
-            wiki = converter.from_html(html)
-        except converter.ParseError:
-            raise forms.ValidationError("Could not parse the HTML file.")
-
-        return wiki
+        if markup == 'html':
+            # clean HTML before it hits the DB
+            return sanitize_html(self.data['wikitext'])
+        return self.data['wikitext']
 
     class Meta:
         model = Page
@@ -93,10 +84,10 @@ class EditPageFileForm(forms.ModelForm):
 
 class EditPageForm(EditPageFileForm):
     title = forms.CharField(max_length=60, widget=forms.TextInput(attrs={'size':50}))
+    markup = forms.ChoiceField(label='Markup Language', choices=MARKUP_CHOICES)
     wikitext = WikiField(label='Content')
     comment = CommentField()
-    markup = forms.ChoiceField(label='Markup Language', choices=MARKUP_CHOICES)
-    
+
     math = forms.BooleanField(required=False, help_text='Will this page use <a href="http://www.mathjax.org/">MathJax</a> for displaying TeX or MathML formulas?')
 
     @transaction.atomic

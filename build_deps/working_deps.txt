@@ -1,4 +1,3 @@
-BeautifulSoup==3.2.1
 #Creoleparser==0.7.4  Replaced with version below that incorporates our fix for null headings
 git+git://github.com/garrison/creoleparser.git@78aab98896a05185997ca5da0859a8448fa35cc9
 Django==1.10.5
@@ -18,6 +17,7 @@ pytz>=2016.10
 textile==2.3.6
 unicodecsv==0.14.1
 html5lib==0.999999999
+bleach==2.1.2
 reportlab==3.3.0
 pillow>=4.0.0 # let reportlab choose the version
 icalendar==3.11.1

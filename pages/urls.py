@@ -8,7 +8,6 @@ pages_patterns = [ # prefix /COURSE_SLUG/pages/
     url(r'^_new$', pages_views.new_page, name='new_page'),
     url(r'^_import$', pages_views.import_site, name='import_site'),
     url(r'^_newfile$', pages_views.new_file, name='new_file'),
-    url(r'^_convert$', pages_views.convert_content, name='convert_content'),
     url(r'^_push$', pages_views.api_import, name='api_import'),
     url(r'^' + PAGE_LABEL + '$', pages_views.view_page, name='view_page'),
     url(r'^' + PAGE_LABEL + '/view$', pages_views.view_file, name='view_file'),
@@ -17,5 +16,4 @@ pages_patterns = [ # prefix /COURSE_SLUG/pages/
     url(r'^' + PAGE_LABEL + '/import$', pages_views.import_page, name='import_page'),
     url(r'^' + PAGE_LABEL + '/history$', pages_views.page_history, name='page_history'),
     url(r'^' + PAGE_LABEL + '/version/(?P<version_id>\d+)$', pages_views.page_version, name='page_version'),
-    url(r'^' + PAGE_LABEL + '/_convert$', pages_views.convert_content, name='convert_content'),
 ]

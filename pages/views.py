@@ -14,7 +14,6 @@ from pages.forms import EditPageForm, EditFileForm, PageImportForm, SiteImportFo
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import NotFoundResponse, ForbiddenResponse, HttpError
-from importer import HTMLWiki
 from urlparse import urljoin
 import json, datetime
 
@@ -424,46 +423,6 @@ def _delete_pagefile(request, course_slug, page_label, kind):
 
         messages.success(request, "Page deleted and will redirect to this location.")
         return HttpResponseRedirect(urljoin(page.get_absolute_url(), redirect))
-
-
-def convert_content(request, course_slug, page_label=None):
-    """
-    Convert between wikicreole and HTML (AJAX called in editor when switching editing modes)
-    """
-    if request.method != 'POST':
-        return ForbiddenResponse(request, 'POST only')
-    if 'to' not in request.POST:
-        return ForbiddenResponse(request, 'must send "to" language')
-    if 'data' not in request.POST:
-        return ForbiddenResponse(request, 'must sent source "data"')
-
-    offering = get_object_or_404(CourseOffering, slug=course_slug)
-    
-    to = request.POST['to']
-    data = request.POST['data']
-    if to == 'html':
-        # convert wikitext to HTML
-        # temporarily change the current version to get the result (but don't save)
-        if page_label:
-            page = get_object_or_404(Page, offering=offering, label=page_label)
-            pv = page.current_version()
-        else:
-            # create temporary Page for conversion during creation
-            pv = PageVersion()
-        
-        pv.wikitext = data
-        pv.diff_from = None
-        result = {'data': pv.html_contents(offering=offering)}
-        return HttpResponse(json.dumps(result), content_type="application/json")
-    else:
-        # convert HTML to wikitext
-        converter = HTMLWiki([])
-        try:
-            wiki = converter.from_html(data)
-        except converter.ParseError:
-            wiki = ''
-        result = {'data': wiki}
-        return HttpResponse(json.dumps(result), content_type="application/json")
 
 
 @login_required

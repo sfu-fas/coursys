@@ -8,12 +8,27 @@ from grades.models import Activity
 import re, os, subprocess
 import pytz
 import creoleparser
+import bleach
 
 
 MARKUP_CHOICES = [
     ('creole', 'WikiCreole'),
     ('markdown', 'Markdown'),
+    ('html', 'HTML'),
 ]
+
+
+allowed_tags = bleach.sanitizer.ALLOWED_TAGS + ['pre']
+allowed_attributes = bleach.sanitizer.ALLOWED_ATTRIBUTES
+allowed_attributes['pre'] = ['lang']
+
+
+def sanitize_html(html):
+    """
+    Sanitize HTML we got from the user so it's safe to include in the page
+    """
+    # TODO: document the HTML subset allowed (particularly <pre lang="python">)
+    return bleach.clean(html, tags=allowed_tags, attributes=allowed_attributes)
 
 
 def markdown_to_html(markup):
@@ -26,23 +41,34 @@ def markdown_to_html(markup):
     return stdoutdata
 
 
-def markup_to_html(markup, markuplang, offering=None, pageversion=None):
+def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_already_safe=False):
     if markuplang == 'creole':
         if offering:
             Creole = ParserFor(offering, pageversion)
         else:
             Creole = ParserFor(pageversion.page.offering, pageversion)
         html = Creole.text2html(markup)
+
     elif markuplang == 'markdown':
         # TODO: the due_date etc tricks that are available in wikicreole
         html = markdown_to_html(markup)
+
+    elif markuplang == 'html':
+        # TODO: the due_date etc tricks that are available in wikicreole
+        if html_already_safe:
+            # caller promises sanitize_html() has already been called on the input
+            html = markup
+        else:
+            html = sanitize_html(markup)
+
+    else:
+        raise NotImplementedError()
 
     return mark_safe(html.strip())
 
 
 # custom creoleparser Parser class
 
-import genshi
 from genshi.core import Markup
 
 brushre = r"[\w\-#]+"
