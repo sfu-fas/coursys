@@ -10,7 +10,7 @@ from coredata.models import Semester, Unit
 from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_update
 from dashboard.photos import do_photo_fetch
 
-import celery
+import celery, kombu
 import random, socket, subprocess, urllib2, os, stat, time, copy, pprint
 
 
@@ -107,13 +107,17 @@ def deploy_checks(request=None):
             except ImportError:
                 failed.append(('Celery task', "Couldn't import task: probably missing MySQLdb module"))
             else:
-                t = ping.apply_async()
-                res = t.get(timeout=5)
-                if res == True:
-                    passed.append(('Celery task', 'okay'))
-                    celery_okay = True
+                try:
+                    t = ping.apply_async()
+                except kombu.exceptions.OperationalError:
+                    failed.append(('Celery task', 'Kombu error. Probably RabbitMQ not running.'))
                 else:
-                    failed.append(('Celery task', 'got incorrect result from task'))
+                    res = t.get(timeout=5)
+                    if res == True:
+                        passed.append(('Celery task', 'okay'))
+                        celery_okay = True
+                    else:
+                        failed.append(('Celery task', 'got incorrect result from task'))
         else:
             failed.append(('Celery task', 'celery disabled in settings'))
     except celery.exceptions.TimeoutError:
@@ -336,6 +340,20 @@ def deploy_checks(request=None):
             failed.append(('Library sanity', 'django cache: ' + err))
         else:
             passed.append(('Library sanity', 'okay'))
+
+
+    # github-flavoured markdown subprocess
+    from courselib.markup import markdown_to_html
+    try:
+        html = markdown_to_html('test *markup*')
+        if html.strip() == '<p>test <em>markup</em></p>':
+            passed.append(('Markdown subprocess', 'okay'))
+        else:
+            failed.append(('Markdown subprocess', 'markdown script returned incorrect markup'))
+    except OSError:
+        failed.append(('Markdown subprocess', 'failed to start ruby command: ruby package probably not installed'))
+    except RuntimeError:
+        failed.append(('Markdown subprocess', 'markdown script failed'))
 
 
     return passed, failed

@@ -33,3 +33,9 @@ end
 execute "build_locale" do
     command "locale-gen en_CA.UTF-8"
 end
+
+package ['ruby', 'ruby-dev']
+execute "github-markdown" do
+    command "gem install commonmarker github-markup"
+    not_if "ls /usr/local/bin/github-markup"
+end

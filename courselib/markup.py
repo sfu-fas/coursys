@@ -5,7 +5,8 @@ from django.conf import settings
 
 from grades.models import Activity
 
-import hashlib, re, pytz
+import re, os, subprocess
+import pytz
 import creoleparser
 
 
@@ -13,6 +14,16 @@ MARKUP_CHOICES = [
     ('creole', 'WikiCreole'),
     ('markdown', 'Markdown'),
 ]
+
+
+def markdown_to_html(markup):
+    sub = subprocess.Popen([os.path.join(settings.BASE_DIR, 'courselib', 'markdown2html.rb')], stdin=subprocess.PIPE,
+                           stdout=subprocess.PIPE)
+    stdoutdata, stderrdata = sub.communicate(input=markup)
+    ret = sub.wait()
+    if ret != 0:
+        raise RuntimeError('markdown2html.rb did not return successfully')
+    return stdoutdata
 
 
 def markup_to_html(markup, markuplang, offering=None, pageversion=None):
@@ -23,11 +34,8 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None):
             Creole = ParserFor(pageversion.page.offering, pageversion)
         html = Creole.text2html(markup)
     elif markuplang == 'markdown':
-        import subprocess
-        sub = subprocess.Popen(['./courselib/markdown2html.rb'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        stdoutdata, stderrdata = sub.communicate(input=markup)
-        ret = sub.wait()
-        html = stdoutdata
+        # TODO: the due_date etc tricks that are available in wikicreole
+        html = markdown_to_html(markup)
 
     return mark_safe(html)
 
