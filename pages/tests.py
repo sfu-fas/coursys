@@ -5,7 +5,7 @@ from pages.models import Page, PageVersion, MACRO_LABEL, PagePermission
 from coredata.models import CourseOffering, Member, Person
 from grades.models import Activity
 from courselib.testing import TEST_COURSE_SLUG, Client, test_views
-from courselib.markup import ParserFor
+from courselib.markup import ParserFor, markup_to_html
 import re
 
 wikitext = """Some Python code:
@@ -444,3 +444,28 @@ class PagesTest(TestCase):
         html = p.text2html(u'one <<activitylink A1>> two')
         link = u'<a href="%s">%s' % (a1.get_absolute_url(), a1.name)
         self.assertIn(link.encode('utf-8'), html)
+
+    def test_markup_choice(self):
+        """
+        Check the distinction between Creole and Markdown pages
+        """
+        offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.get(offering=offering, person__userid="ggbaker")
+
+        p = Page(offering=offering, label="Test")
+        p.save()
+        v1 = PageVersion(page=p, title="T1", wikitext='A //test//.', editor=memb, comment="original page")
+        v1.save()
+        self.assertEqual(v1.html_contents(), '<p>A <em>test</em>.</p>')
+
+        v2 = PageVersion(page=p, title="T1", wikitext='A *test*.', editor=memb, comment="original page")
+        v2.set_markup('markdown')
+        v2.save()
+        self.assertEqual(v2.html_contents(), '<p>A <em>test</em>.</p>')
+
+    def test_github_markdown(self):
+        """
+        Check that we're getting the Github markdown flavour.
+        """
+        highlighted_code = markup_to_html('```python\ni=1\n```', 'markdown')
+        self.assertEqual(highlighted_code, '<pre lang="python"><code>i=1\n</code></pre>')

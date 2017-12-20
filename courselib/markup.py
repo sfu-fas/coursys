@@ -37,7 +37,7 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None):
         # TODO: the due_date etc tricks that are available in wikicreole
         html = markdown_to_html(markup)
 
-    return mark_safe(html)
+    return mark_safe(html.strip())
 
 
 # custom creoleparser Parser class
