@@ -77,11 +77,18 @@ class EditPageFileForm(forms.ModelForm):
 
 class EditPageForm(EditPageFileForm):
     title = forms.CharField(max_length=60, widget=forms.TextInput(attrs={'size':50}))
-    markup = forms.ChoiceField(label='Markup Language', choices=MARKUP_CHOICES)
+    markup = forms.ChoiceField(label='Markup Language', choices=MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')])
     wikitext = WikiField(label='Content')
     comment = CommentField()
 
     math = forms.BooleanField(required=False, help_text='Will this page use <a href="http://www.mathjax.org/">MathJax</a> for displaying TeX or MathML formulas?')
+
+    def clean_markup(self):
+        markup = self.cleaned_data['markup']
+        if markup == 'html-wysiwyg':
+            # the editor is a UI nicety only
+            return 'html'
+        return markup
 
     @transaction.atomic
     def save(self, editor, *args, **kwargs):
