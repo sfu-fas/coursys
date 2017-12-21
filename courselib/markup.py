@@ -18,20 +18,24 @@ MARKUP_CHOICES = [
 ]
 MARKUP_CHOICES_WYSIWYG = MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')]
 
-allowed_tags = bleach.sanitizer.ALLOWED_TAGS + [
-    'h2', 'h3', 'h4', 'pre', 'p', 'dl', 'dt', 'dd', 'dfn', 'img', 'q', 'del', 'ins', 'sub', 'sup',
+allowed_tags_restricted = bleach.sanitizer.ALLOWED_TAGS + [ # allowed in discussion
+    'h3', 'h4', 'pre', 'p', 'dl', 'dt', 'dd', 'dfn', 'q', 'del', 'ins', 'sub', 'sup',
+]
+allowed_tags = allowed_tags_restricted + [ # allowed on pages
+    'h2', 'img',
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
 ]
 allowed_attributes = bleach.sanitizer.ALLOWED_ATTRIBUTES
 allowed_attributes['pre'] = ['lang']
 
 
-def sanitize_html(html):
+def sanitize_html(html, restricted=False):
     """
     Sanitize HTML we got from the user so it's safe to include in the page
     """
     # TODO: document the HTML subset allowed (particularly <pre lang="python">)
-    return bleach.clean(html, tags=allowed_tags, attributes=allowed_attributes)
+    allowed = allowed_tags_restricted if restricted else allowed_tags
+    return bleach.clean(html, tags=allowed, attributes=allowed_attributes, strip=True)
 
 
 def markdown_to_html(markup):
@@ -44,17 +48,32 @@ def markdown_to_html(markup):
     return stdoutdata
 
 
-def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_already_safe=False):
+def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_already_safe=False, restricted=False):
+    """
+    Master function to convert one of our markup languages to HTML (safely).
+
+    :param markup: the markup code
+    :param markuplang: the markup language, from MARKUP_CHOICES
+    :param offering: the course offering we're converting for
+    :param pageversion: the PageVersion we're converting for
+    :param html_already_safe: markuplang=='html' and markup has already been through sanitize_html()
+    :param restricted: use the restricted HTML subset for discussion (preventing format bombs)
+    :return: HTML markup
+    """
     if markuplang == 'creole':
         if offering:
             Creole = ParserFor(offering, pageversion)
         else:
             Creole = ParserFor(pageversion.page.offering, pageversion)
         html = Creole.text2html(markup)
+        if restricted:
+            html = sanitize_html(html, restricted=True)
 
     elif markuplang == 'markdown':
         # TODO: the due_date etc tricks that are available in wikicreole
         html = markdown_to_html(markup)
+        if restricted:
+            html = sanitize_html(html, restricted=True)
 
     elif markuplang == 'html':
         # TODO: the due_date etc tricks that are available in wikicreole
@@ -62,7 +81,7 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
             # caller promises sanitize_html() has already been called on the input
             html = markup
         else:
-            html = sanitize_html(markup)
+            html = sanitize_html(markup, restricted=restricted)
 
     else:
         raise NotImplementedError()
@@ -80,14 +99,14 @@ from django import forms
 class MarkupContentWidget(forms.MultiWidget):
     def __init__(self):
         widgets = (
-            forms.Textarea(attrs={'cols': 70, 'rows': 20, 'class': 'markup-entry'}),
+            forms.Textarea(attrs={'cols': 70, 'rows': 20}),
             forms.Select(),
             forms.CheckboxInput(),
         )
         super(MarkupContentWidget, self).__init__(widgets)
 
     def format_output(self, rendered_widgets):
-        return '%s<br/>Markup language: %s Use MathJax? %s' % tuple(rendered_widgets)
+        return '<div class="markup-content">%s<br/>Markup language: %s Use MathJax? %s</div>' % tuple(rendered_widgets)
 
     def decompress(self, value):
         if value is None:
@@ -106,7 +125,7 @@ class MarkupContentField(forms.MultiValueField):
             forms.BooleanField(required=False),
         ]
         super(MarkupContentField, self).__init__(fields, required=False,
-            help_text=mark_safe('Markup language used in the content, and will <a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas?'),
+            help_text=mark_safe('Markup language used in the content, and should <a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas?'),
             *args, **kwargs)
 
         self.fields[0].required = True

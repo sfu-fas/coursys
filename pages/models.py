@@ -206,7 +206,7 @@ class PageVersion(models.Model):
     comment = models.TextField()
 
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
-        # p.config['markup']: markup language used: 'creole', 'markdown'
+        # p.config['markup']: markup language used: see courselib/markup.py
         # p.config['math']: page uses MathJax? (boolean)
         # p.config['syntax']: page uses SyntaxHighlighter? (boolean) -- no longer used with highlight.js
         # p.config['brushes']: used SyntaxHighlighter brushes (list of strings) -- no longer used with highlight.js

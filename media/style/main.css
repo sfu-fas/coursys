@@ -73,7 +73,7 @@ ul.bulleted li, .wikicontents ul>li, table.info ul li {
 .wikicontents div.table table {
     width: auto;
 }
-.markup-entry {
+div.markup-content textarea {
     font-family: "Consolas", "Bitstream Vera Sans Mono", "Courier New", "Courier", monospace;
     font-size: 90%;
     max-width: 100%;

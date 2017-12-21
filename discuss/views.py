@@ -128,13 +128,6 @@ def view_topic(request, course_slug, topic_slug):
     if view == 'student' and topic.status == 'HID':
         raise Http404
     replies = DiscussionMessage.objects.filter(topic=topic).order_by('created_at')
-
-    # who needs mathjax activated?
-    need_mathjax = ['reply-content-%i' % (r.id) for r in replies if r.math()]
-    if topic.math():
-        need_mathjax.append('topic-content')
-    any_math = bool(need_mathjax)
-    need_mathjax = json.dumps(need_mathjax)
     
     if request.method == 'POST':
         if topic.status == 'CLO' and not view  == 'staff':
@@ -151,7 +144,7 @@ def view_topic(request, course_slug, topic_slug):
     else:
         form = DiscussionMessageForm(creole=None)
     context = {'course': course, 'topic': topic, 'replies': replies, 'view': view, 'form': form,
-               'need_mathjax': need_mathjax, 'any_math': any_math, 'username': request.user.username}
+               'username': request.user.username}
     return render(request, 'discuss/topic.html', context)
 
 @uses_feature('discuss')

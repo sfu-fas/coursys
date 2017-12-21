@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static %}{% load compress %}
 
 {% block title %}Discussion: {{ topic.title }}{% endblock %}
 {% block h1 %}Discussion: {{ topic.title }}
@@ -8,22 +8,24 @@
 {% endblock %}
 
 {% block headextra %}
-<script src="{% static 'highlightjs/highlight.pack.js' %}"></script>
-<script src="{% static 'js/highlighting.js' %}"></script>
 <link rel="stylesheet" href="{% static 'highlightjs/vs.css' %}" />
 <link rel="stylesheet" href="{% static 'style/discuss.css' %}" media="all" />
 
-{% if any_math %}
-	<script type="text/x-mathjax-config">
-	MathJax.Hub.Config({
-	displayAlign: "left",
-	displayIndent: "2em",
-	"HTML-CSS": { scale: 100 }
-	elements: {{need_mathjax|safe}},
-	});
-	</script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMMLL"></script>
-{% endif %}
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+displayAlign: "left",
+displayIndent: "2em",
+"HTML-CSS": { scale: 100 },
+});
+</script>
+{% compress js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script src="{% static 'highlightjs/highlight.pack.js' %}"></script>
+<script src="{% static 'js/highlighting.js' %}"></script>
+{% endcompress %}
+<script src="{% static 'tinymce/tinymce.min.js' %}"></script>
+<script src="{% static 'js/page-edit.js' %}"></script>
+
 <script>
 	$(document).ready(function() {
 		{% if not form.errors %}
@@ -84,7 +86,7 @@
 <div class="topic-body">
 <p class="discussion-author"><span class="author">{{ topic.author.person.name_pref }} ({{ topic.author.person.userid }})</span>, {{ topic.created_at_delta }}.</p>
 
-<div class="discussion-content" id="topic-content">
+<div class="discussion-content {% if topic.math %}tex2jax_process{% else %}tex2jax_ignore{% endif %}" id="topic-content">
 {{ topic.html_content }}
 </div>
 </div>
@@ -96,7 +98,7 @@
 	{% endif %}
 	{% if replies|length > 0 %}
 	{% for reply in replies %}
-        <div class="discussion-reply{% if reply.status == 'HID' %} fade-out{% endif %}" id="reply-content-{{reply.id}}">
+        <div class="discussion-reply{% if reply.status == 'HID' %} fade-out{% endif %} {% if reply.math %}tex2jax_process{% else %}tex2jax_ignore{% endif %}" id="reply-content-{{reply.id}}">
             <p class="reply-author ">
                 <span class="author">{{ reply.author.person.name_pref }} ({{reply.author.person.userid}})</span>, {{ reply.create_at_delta }}
 				{% if reply.was_edited %}*{% endif %}
@@ -139,7 +141,7 @@
 			    <span>{{ error }}</span><br />
 			{% endfor %}
 		</div>
-		<p>{{ form.content }}</p><p class="helptext">{{form.content.help_text}}</p>
+		{{ form.content }}<p class="helptext">{{form.content.help_text}}</p>
 		<div><input type="submit" value="Reply" /></div>
 	</form>
 </div>

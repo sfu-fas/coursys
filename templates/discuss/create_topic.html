@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 {% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 {% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
+
+{% block headextra %}
+<script src="{% static 'tinymce/tinymce.min.js' %}"></script>
+<script src="{% static 'js/page-edit.js' %}"></script>
+{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>

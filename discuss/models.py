@@ -9,7 +9,7 @@ from django.conf import settings
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.branding import product_name
-from courselib.markup import ParserFor
+from courselib.markup import ParserFor, sanitize_html, markup_to_html
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 import datetime
@@ -50,7 +50,7 @@ class DiscussionTopic(models.Model):
     """
     offering = models.ForeignKey(CourseOffering, null=False)
     title = models.CharField(max_length=140, help_text="A brief description of the topic")
-    content = models.TextField(help_text='The inital message for the topic, <a href="http://www.wikicreole.org/wiki/Creole1.0">WikiCreole-formatted</a>')
+    content = models.TextField(help_text='The inital message for the topic.')
     created_at = models.DateTimeField(auto_now_add=True)
     last_activity_at = models.DateTimeField(auto_now_add=True)
     message_count = models.IntegerField(default=0)
@@ -61,20 +61,23 @@ class DiscussionTopic(models.Model):
         return make_slug(self.title)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=['offering'])
     config = JSONField(null=False, blank=False, default={})
+        # p.config['markup']:  markup language used: see courselib/markup.py
         # p.config['math']: content uses MathJax? (boolean)
         # p.config['brushes']: used SyntaxHighlighter brushes (list of strings) -- no longer used with highlight.js
     
-    defaults = {'math': False,}
+    defaults = {'markup': 'creole', 'math': False,}
+    markup, set_markup = getter_setter('markup')
     math, set_math = getter_setter('math')
-    #brushes, set_brushes = getter_setter('brushes')
-    
+
     def save(self, *args, **kwargs):
         if self.status not in [status[0] for status in TOPIC_STATUSES]:
             raise ValueError('Invalid topic status')
 
         # update the metainfo about creole display        
         self.get_creole()
-        # TODO: nobody sets config.math to True, but it is honoured if it is set magically. UI for that?
+
+        if self.markup() == 'html':
+            self.content = sanitize_html(self.content, restricted=True)
 
         new_topic = self.id is None
         super(DiscussionTopic, self).save(*args, **kwargs)
@@ -114,9 +117,8 @@ class DiscussionTopic(models.Model):
 
     def html_content(self):
         "Convert self.content to HTML"
-        creole = self.get_creole()
-        html = creole.text2html(self.content)
-        return mark_safe(html)
+        return markup_to_html(self.content, self.markup(), offering=self.offering, html_already_safe=True,
+                              restricted=True)
     
     def still_editable(self):
         td = datetime.datetime.now() - self.created_at
@@ -161,11 +163,13 @@ class DiscussionMessage(models.Model):
         return make_slug(self.author.person.userid)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=['topic'])
     config = JSONField(null=False, blank=False, default={})
+        # p.config['markup']:  markup language used: see courselib/markup.py
         # p.config['math']: content uses MathJax? (boolean)
         # p.config['brushes']: used SyntaxHighlighter brushes (list of strings) -- no longer used with highlight.js
     
-    defaults = {'math': False}
+    defaults = {'math': False, 'markup': 'creole'}
     math, set_math = getter_setter('math')
+    markup, set_markup = getter_setter('markup')
     #brushes, set_brushes = getter_setter('brushes')
 
     def save(self, *args, **kwargs):
@@ -176,9 +180,11 @@ class DiscussionMessage(models.Model):
 
         # update the metainfo about creole display        
         self.topic.get_creole()
-        
+
+        if self.markup() == 'html':
+            self.content = sanitize_html(self.content, restricted=True)
+
         new_message = self.id is None
-        
         super(DiscussionMessage, self).save(*args, **kwargs)
 
         # handle subscriptions
@@ -192,9 +198,8 @@ class DiscussionMessage(models.Model):
 
     def html_content(self):
         "Convert self.content to HTML"
-        creole = self.topic.get_creole()
-        html = creole.text2html(self.content)
-        return mark_safe(html)
+        return markup_to_html(self.content, self.markup(), offering=self.topic.offering, html_already_safe=True,
+                              restricted=True)
     
     def get_absolute_url(self):
         return self.topic.get_absolute_url() + '#reply-' + str(self.id)

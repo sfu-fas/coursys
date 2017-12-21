@@ -478,7 +478,7 @@ class PagesTest(TestCase):
         self.assertEqual(html, '<p>Foo</p>')
 
         html = markup_to_html('Foo<script>alert()</script>', 'html')
-        self.assertEqual(html, 'Foo&lt;script&gt;alert()&lt;/script&gt;')
+        self.assertEqual(html, 'Fooalert()')
 
         # unsafe if we ask for it
         html = markup_to_html('Foo<script>alert()</script>', 'html', html_already_safe=True)
@@ -494,4 +494,4 @@ class PagesTest(TestCase):
         v1.set_markup('html')
         v1.save()
 
-        self.assertEqual(v1.wikitext, '<em>Some</em> &lt;script&gt;HTML&lt;/script&gt;')
+        self.assertEqual(v1.wikitext, '<em>Some</em> HTML')
