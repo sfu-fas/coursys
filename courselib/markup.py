@@ -77,49 +77,52 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
 from django import forms
 
 
-class MarkupOptionsWidget(forms.MultiWidget):
+class MarkupContentWidget(forms.MultiWidget):
     def __init__(self):
         widgets = (
+            forms.Textarea(attrs={'cols': 70, 'rows': 20, 'class': 'markup-entry'}),
             forms.Select(),
             forms.CheckboxInput(),
         )
-        super(MarkupOptionsWidget, self).__init__(widgets)
+        super(MarkupContentWidget, self).__init__(widgets)
 
     def format_output(self, rendered_widgets):
-        return 'Markup language: %s Use MathJax? %s' % tuple(rendered_widgets)
+        return '%s<br/>Markup language: %s Use MathJax? %s' % tuple(rendered_widgets)
 
     def decompress(self, value):
         if value is None:
-            return ['creole', False]
+            return ['', 'creole', False]
         return value
 
 
-class MarkupOptionsField(forms.MultiValueField):
-    widget = MarkupOptionsWidget
+class MarkupContentField(forms.MultiValueField):
+    widget = MarkupContentWidget
 
-    def __init__(self, with_wysiwyg=False, *args, **kwargs):
+    def __init__(self, with_wysiwyg=False, rows=20, *args, **kwargs):
         choices = MARKUP_CHOICES_WYSIWYG if with_wysiwyg else MARKUP_CHOICES
         fields = [
+            forms.CharField(required=True),
             forms.ChoiceField(choices=choices, required=True),
             forms.BooleanField(required=False),
         ]
-        super(MarkupOptionsField, self).__init__(fields, required=False,
-            help_text=mark_safe('Markup language used in the content and will <a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas?'),
+        super(MarkupContentField, self).__init__(fields, required=False,
+            help_text=mark_safe('Markup language used in the content, and will <a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas?'),
             *args, **kwargs)
 
-        self.widget.widgets[0].choices = choices
         self.fields[0].required = True
+        self.widget.widgets[0].attrs['rows'] = rows
+        self.fields[1].required = True
+        self.widget.widgets[1].choices = choices
 
     def compress(self, data_list):
         return data_list
 
     def clean(self, value):
-        markup, math = super(MarkupOptionsField, self).clean(value)
+        content, markup, math = super(MarkupContentField, self).clean(value)
         if markup == 'html-wysiwyg':
             # the editor is a UI nicety only
             markup = 'html'
-        return markup, math
-
+        return content, markup, math
 
 
 # custom creoleparser Parser class

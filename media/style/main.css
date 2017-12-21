@@ -70,6 +70,14 @@ ul.bulleted li, .wikicontents ul>li, table.info ul li {
 .wikicontents pre {
   overflow-x: auto;
 }
+.wikicontents div.table table {
+    width: auto;
+}
+.markup-entry {
+    font-family: "Consolas", "Bitstream Vera Sans Mono", "Courier New", "Courier", monospace;
+    font-size: 90%;
+    max-width: 100%;
+}
 a img {
     border-style: none;
 }

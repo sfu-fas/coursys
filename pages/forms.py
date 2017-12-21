@@ -2,11 +2,12 @@ from django import forms
 from django.db import transaction
 from pages.models import Page, PageVersion, READ_ACL_CHOICES, WRITE_ACL_CHOICES
 from importer import HTMLWiki
-from courselib.markup import MARKUP_CHOICES, sanitize_html, MarkupOptionsField
+from courselib.markup import MarkupContentField
 import urllib2, urlparse
 
 
 class WikiField(forms.CharField):
+    # TODO: search and destroy other usages
     def __init__(self, *args, **kwargs):
         self.widget = forms.Textarea(attrs={'cols': 70, 'rows': 20})
         if 'help_text' not in kwargs:
@@ -39,8 +40,7 @@ class EditPageFileForm(forms.ModelForm):
         if self.instance.id:
             version = self.instance.current_version()
             self.initial['title'] = version.title
-            self.initial['wikitext'] = version.wikitext
-            self.initial['markup_options'] = [version.markup(), version.math()]
+            self.initial['markup_content'] = [version.wikitext, version.markup(), version.math()]
             self.initial['releasedate'] = self.instance.releasedate()
             self.initial['editdate'] = self.instance.editdate()
         
@@ -76,19 +76,17 @@ class EditPageFileForm(forms.ModelForm):
 
 class EditPageForm(EditPageFileForm):
     title = forms.CharField(max_length=60, widget=forms.TextInput(attrs={'size':50}))
-    wikitext = WikiField(label='Content')
-    markup_options = MarkupOptionsField(with_wysiwyg=True)
+    markup_content = MarkupContentField(label='Content', with_wysiwyg=True)
     comment = CommentField()
 
     @transaction.atomic
     def save(self, editor, *args, **kwargs):
         # also create the PageVersion object.
-        wikitext = self.cleaned_data['wikitext']
+        wikitext, markup, math = self.cleaned_data['markup_content']
         comment = self.cleaned_data['comment']
         title = self.cleaned_data['title']
         pv = PageVersion(title=title, wikitext=wikitext, comment=comment, editor=editor)
         # set config data
-        markup, math = self.cleaned_data['markup_options']
         pv.set_markup(markup)
         pv.set_math(math)
 
