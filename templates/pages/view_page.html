@@ -6,15 +6,8 @@
 {% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>Pages</li>{% else %}<li><a href="{% url "offering:pages:index_page" course_slug=offering.slug %}">Pages</a></li>{% if is_old %}<li><a href="{% url "offering:pages:view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>Previous Version</li>{% else %}<li>{{page.label}}</li>{% endif %}{% endif %}{% endblock %}
 
 {% block headextra %}
-<script type="text/x-mathjax-config">
-MathJax.Hub.Config({
-  displayAlign: "left",
-  displayIndent: "2em",
-  "HTML-CSS": { scale: 100 }
-});
-</script>
 {% compress js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script src="{% static 'mathjax/MathJax.js' %}?config=TeX-AMS-MML_SVG,Safe,local/coursys"></script>
 <script src="{% static 'highlightjs/highlight.pack.js' %}"></script>
 <script src="{% static 'js/highlighting.js' %}"></script>
 {% endcompress %}

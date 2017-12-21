@@ -1,6 +1,5 @@
 function wysiwyg_switcher(ev) {
     /* This probably fails if there is >1 .markup-content on page. */
-    console.log( $('.markup-content select'))
     if ( $('.markup-content select').val() == 'html-wysiwyg' ) {
         tinymce.init({
             selector: '.markup-content textarea',
