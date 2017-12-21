@@ -1,6 +1,8 @@
 // hard-coded URL
 var onlineJSON = "/media/sfu/js/online.json"; 
 
+var $ = jQuery;
+
 function confirmSubmit(action) {
   return confirm("Are you sure you wish to " + action + "?");
 }

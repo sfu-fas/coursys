@@ -7,8 +7,7 @@
 {% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li><li><a href="{% url "offering:pages:index_page" course_slug=offering.slug %}">Pages</a></li>{% if page %}<li><a href="{% url "offering:pages:view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>Edit</li>{% else %}<li>New Page</li>{% endif %}{% endblock %}
 
 {% block headextra %}
-<script src="{% static 'tinymce/tinymce.min.js' %}"></script>
-<script src="{% static 'js/page-edit.js' %}"></script>
+{% include 'pages/markup_edit_head.html' %}
 {% endblock %}
 
 {% block actions %}

@@ -8,18 +8,11 @@
 {% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{% static 'highlightjs/vs.css' %}" />
+{% include 'pages/markup_view_head.html' %}
+{% include 'pages/markup_edit_head.html' %}
 <link rel="stylesheet" href="{% static 'style/discuss.css' %}" media="all" />
 
-{% compress js %}
-<script src="{% static 'mathjax/MathJax.js' %}?config=TeX-AMS-MML_SVG,Safe,local/coursys"></script>
-<script src="{% static 'highlightjs/highlight.pack.js' %}"></script>
-<script src="{% static 'js/highlighting.js' %}"></script>
-{% endcompress %}
-<script src="{% static 'tinymce/tinymce.min.js' %}"></script>
-<script src="{% static 'js/page-edit.js' %}"></script>
-
-<script>
+<script nonce="{{ CSP_NONCE }}">
 	$(document).ready(function() {
 		{% if not form.errors %}
 			$("#discussion-topic-reply-form").hide();

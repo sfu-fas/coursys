@@ -6,12 +6,7 @@
 {% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>Pages</li>{% else %}<li><a href="{% url "offering:pages:index_page" course_slug=offering.slug %}">Pages</a></li>{% if is_old %}<li><a href="{% url "offering:pages:view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>Previous Version</li>{% else %}<li>{{page.label}}</li>{% endif %}{% endif %}{% endblock %}
 
 {% block headextra %}
-{% compress js %}
-<script src="{% static 'mathjax/MathJax.js' %}?config=TeX-AMS-MML_SVG,Safe,local/coursys"></script>
-<script src="{% static 'highlightjs/highlight.pack.js' %}"></script>
-<script src="{% static 'js/highlighting.js' %}"></script>
-{% endcompress %}
-<link rel="stylesheet" href="{% static 'highlightjs/vs.css' %}" />
+{% include 'pages/markup_view_head.html' %}
 {% endblock %}
 
 
