@@ -19,11 +19,13 @@ import re, os, subprocess
 import pytz
 import creoleparser
 import bleach
+from textile import textile_restricted
 
 
 MARKUP_CHOICES = [
     ('creole', 'WikiCreole'),
     ('markdown', 'Markdown'),
+    ('textile', 'Textile'), # TODO: don't allow new textile content?
     ('html', 'HTML'),
 ]
 MARKUP_CHOICES_WYSIWYG = MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')]
@@ -73,8 +75,10 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
     if markuplang == 'creole':
         if offering:
             Creole = ParserFor(offering, pageversion)
-        else:
+        elif pageversion:
             Creole = ParserFor(pageversion.page.offering, pageversion)
+        else:
+            Creole = ParserFor(offering, pageversion)
         html = Creole.text2html(markup)
         if restricted:
             html = sanitize_html(html, restricted=True)
@@ -82,6 +86,11 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
     elif markuplang == 'markdown':
         # TODO: the due_date etc tricks that are available in wikicreole
         html = markdown_to_html(markup)
+        if restricted:
+            html = sanitize_html(html, restricted=True)
+
+    elif markuplang == 'textile':
+        html = textile_restricted(markup, lite=False)
         if restricted:
             html = sanitize_html(html, restricted=True)
 
