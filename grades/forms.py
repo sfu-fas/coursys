@@ -1,17 +1,14 @@
 from django import forms
-from django.conf import settings
 from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, LetterActivity, CalNumericActivity, Activity, NumericGrade, LetterGrade,ACTIVITY_TYPES, LETTER_GRADE_CHOICES
 from coredata.models import CourseOffering
 from groups.models import GroupMember
 from django.utils.safestring import mark_safe
 import pickle
-from grades.formulas import parse, activities_dictionary, cols_used
-from pyparsing import ParseException
-from django.forms.utils import ErrorList
-import datetime, decimal
+import datetime
 from grades.utils import parse_and_validate_formula, ValidationError
 from submission.models import Submission
 from dashboard.models import NewsItem
+from courselib.markup import MarkupContentField, MarkupContentMixin
 
 FORMTYPE = {'add': 'add', 'edit': 'edit'}
 GROUP_STATUS_CHOICES = [
@@ -452,11 +449,14 @@ class CutoffForm(forms.Form):
         return d
 
 
-class MessageForm(forms.ModelForm):
+class MessageForm(MarkupContentMixin(), forms.ModelForm):
+    content = MarkupContentField(rows=10, with_wysiwyg=False, default_markup='textile', allow_math=False,
+                                 restricted=True)
+
     class Meta:
         model = NewsItem
         # these fields are decided from the request at the time the form is submitted
-        exclude = ['user', 'author', 'published','updated','source_app','course', 'read']
+        exclude = ['user', 'author', 'published','updated','source_app','course', 'read', 'config']
 
 
 

@@ -21,7 +21,6 @@ def config_property(field, default):
     return property(getter, setter)
 
 
-
 from jsonfield.fields import JSONField as JSONFieldOriginal
 import json
 

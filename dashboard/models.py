@@ -3,15 +3,13 @@ from coredata.models import Person, CourseOffering, Member
 from django.utils.safestring import mark_safe
 from pytz import timezone
 from django.conf import settings
-from django.core.cache import cache
 from django.core.mail import EmailMultiAlternatives
 from django.core.urlresolvers import reverse
 from autoslug.settings import slugify
-from courselib.json_fields import JSONField
+from courselib.json_fields import JSONField, config_property
 from courselib.branding import product_name
 from courselib.storage import UploadedFileStorage, upload_path
 import random, hashlib, os, datetime
-from textile import textile_restricted
 
 
 def _rfc_format(dt):
@@ -40,13 +38,19 @@ class NewsItem(models.Model):
     source_app = models.CharField(max_length=20, null=False, help_text="Application that created the story")
 
     title = models.CharField(max_length=100, null=False, help_text="Story title (plain text)")
-    content = models.TextField(help_text=mark_safe('Main story content (<a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a>)'))
+    content = models.TextField(help_text=mark_safe('Main story content'))
     published = models.DateTimeField(default=datetime.datetime.now)
     updated = models.DateTimeField(auto_now=True)
     url = models.URLField(blank=True, verbose_name="URL", help_text='absolute URL for the item: starts with "http://" or "/"')
     
     read = models.BooleanField(default=False, help_text="The user has marked the story read")
-    
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
+        # 'markup': markup language used: see courselib/markup.py
+        # 'math': page uses MathJax? (boolean)
+
+    markup = config_property('markup', 'creole')
+    math = config_property('math', False)
+
     def __unicode__(self):
         return '"%s" for %s' % (self.title, self.user.userid)
     
@@ -135,18 +139,9 @@ class NewsItem(models.Model):
     def content_xhtml(self):
         """
         Render content field as XHTML.
-        
-        Memoized in the cache: textile is expensive.
         """
-        key = "news-content-" + hashlib.md5(self.content.encode("utf-8")).hexdigest()
-        val = cache.get(key)
-        if val:
-            return mark_safe(val)
-
-        markup = mark_safe(textile_restricted(unicode(self.content)))
-
-        cache.set(key, markup, 86400)
-        return markup
+        from courselib.markup import markup_to_html
+        return markup_to_html(self.content, self.markup, html_already_safe=False, restricted=True)
 
     def rfc_updated(self):
         """
@@ -185,9 +180,11 @@ class NewsItem(models.Model):
         members = Member.objects.exclude(role="DROP").exclude(role="APPR").filter(**member_kwargs)
         members = list(members)
         random.shuffle(members)
-        
+
+        markup = newsitem_kwargs.pop('markup')
         for m in members:
             n = NewsItem(user=m.person, **newsitem_kwargs)
+            n.markup = markup
             n.save()
 
 

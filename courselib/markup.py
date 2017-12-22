@@ -125,24 +125,28 @@ class MarkupContentWidget(forms.MultiWidget):
         super(MarkupContentWidget, self).__init__(widgets)
 
     def format_output(self, rendered_widgets):
-        return '<div class="markup-content">%s<br/>Markup language: %s Use MathJax? %s</div>' % tuple(rendered_widgets)
+        if self.allow_math:
+            return '<div class="markup-content">%s<br/>Markup language: %s Use MathJax? %s</div>' % tuple(rendered_widgets)
+        else:
+            return '<div class="markup-content">%s<br/>Markup language: %s</div>' % tuple(rendered_widgets[0:2])
 
     def decompress(self, value):
         if value is None:
-            return ['', 'creole', False]
+            return ['', self.default_markup, False]
         return value
 
 
 class MarkupContentField(forms.MultiValueField):
     widget = MarkupContentWidget
 
-    def __init__(self, with_wysiwyg=False, rows=20, *args, **kwargs):
+    def __init__(self, with_wysiwyg=False, rows=20, default_markup='creole', allow_math=True, restricted=False, *args, **kwargs):
         choices = MARKUP_CHOICES_WYSIWYG if with_wysiwyg else MARKUP_CHOICES
         fields = [
             forms.CharField(required=True),
             forms.ChoiceField(choices=choices, required=True),
             forms.BooleanField(required=False),
         ]
+
         super(MarkupContentField, self).__init__(fields, required=False,
             help_text=mark_safe('Markup language used in the content, and should <a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas?'),
             *args, **kwargs)
@@ -152,15 +156,66 @@ class MarkupContentField(forms.MultiValueField):
         self.fields[1].required = True
         self.widget.widgets[1].choices = choices
 
+        self.widget.allow_math = allow_math
+        self.restricted = restricted
+        self.widget.default_markup = default_markup
+
     def compress(self, data_list):
         return data_list
 
     def clean(self, value):
         content, markup, math = super(MarkupContentField, self).clean(value)
+
         if markup == 'html-wysiwyg':
             # the editor is a UI nicety only
             markup = 'html'
+
+        if markup == 'html':
+            content = sanitize_html(content, restricted=self.restricted)
+
+        math = math and self.widget.allow_math
+
         return content, markup, math
+
+
+def MarkupContentMixin(field_name='content'):
+    """
+    Mixin for a model that uses MarkupContentField. Usage should be something like:
+        class MessageForm(MarkupContentMixin(field_name='content'), forms.ModelForm):
+            content = MarkupContentField()
+
+    Assumes model objects with content in o.field_name and o.config['markup'] and o.config['math'] to specify the
+    markup language and math status.
+    """
+    class _MarkupContentMixin(object):
+        def __init__(self, instance=None, *args, **kwargs):
+            super(_MarkupContentMixin, self).__init__(instance=instance, *args, **kwargs)
+            self.field_name = field_name
+            if instance:
+                try:
+                    self.initial[self.field_name] = [instance.content, instance.markup(), instance.math()]
+                except TypeError:
+                    self.initial[self.field_name] = [instance.content, instance.markup, instance.math]
+            else:
+                self.initial[self.field_name] = ['', self[self.field_name].field.widget.default_markup, False]
+
+        def clean(self):
+            content, markup, math = self.cleaned_data['content']
+            self.cleaned_data[self.field_name] = content
+            self.cleaned_data['_markup'] = markup
+            self.cleaned_data['_math'] = math
+            return self.cleaned_data
+
+        def save(self, commit=True, *args, **kwargs):
+            instance = super(_MarkupContentMixin, self).save(commit=False, *args, **kwargs)
+            setattr(instance, self.field_name, self.cleaned_data[self.field_name])
+            instance.set_markup(self.cleaned_data['_markup'])
+            instance.set_math(self.cleaned_data['_math'])
+            if commit:
+                instance.save()
+            return instance
+
+    return _MarkupContentMixin
 
 
 # custom creoleparser Parser class

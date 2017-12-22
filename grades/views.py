@@ -1315,12 +1315,12 @@ def new_message(request, course_slug):
     staff = get_object_or_404(Person, userid=request.user.username)
     default_message = NewsItem(user=staff, author=staff, course=offering, source_app="dashboard")
     if request.method =='POST':
-        form = MessageForm(request.POST, instance=default_message)
+        form = MessageForm(data=request.POST, instance=default_message)
         if form.is_valid()==True:
             NewsItem.for_members(member_kwargs={'offering': offering}, newsitem_kwargs={
                     'author': staff, 'course': offering, 'source_app': 'dashboard',
                     'title': form.cleaned_data['title'], 'content': form.cleaned_data['content'],
-                    'url': form.cleaned_data['url']})
+                    'url': form.cleaned_data['url'], 'markup': form.cleaned_data['_markup']})
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
@@ -1330,7 +1330,7 @@ def new_message(request, course_slug):
             messages.add_message(request, messages.SUCCESS, 'News item created.')
             return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': offering.slug}))
     else:
-        form = MessageForm()    
+        form = MessageForm()
     return render(request, "grades/new_message.html", {"form" : form,'course': offering})
 
 
