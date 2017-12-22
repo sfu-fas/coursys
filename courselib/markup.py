@@ -1,17 +1,16 @@
 # TODO: documentation for the markup flavours available
-# TODO: write better help_text
+# TODO: write better help_text (incl allow_math=False case)
 # TODO: onlineforms ExplanationTextField is creole only
 # TODO: the way discuss/models.py and discuss/forms.py uses the creole object should be purged/simplified
 # TODO: ta module uses creole for offer_text
 # TODO: discipline module uses textile
 # TODO: ta TAContactForm uses textile
-# TODO: dashboard NewsItem uses textile
-# TODO: cache markup_to_html intelligently
+# TODO: customize tinymce invocation so UI matches allowed_tags
 
-from django.core.cache import cache
 from django.db import models
-from django.utils.safestring import mark_safe
+from django.utils.safestring import mark_safe, SafeString
 from django.conf import settings
+from cache_utils.decorators import cached
 
 from grades.models import Activity
 
@@ -30,7 +29,7 @@ MARKUP_CHOICES = [
 ]
 MARKUP_CHOICES_WYSIWYG = MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')]
 
-allowed_tags_restricted = bleach.sanitizer.ALLOWED_TAGS + [ # allowed in discussion
+allowed_tags_restricted = bleach.sanitizer.ALLOWED_TAGS + [ # allowed in discussion, etc
     'h3', 'h4', 'pre', 'p', 'dl', 'dt', 'dd', 'dfn', 'q', 'del', 'ins', 'sub', 'sup',
 ]
 allowed_tags = allowed_tags_restricted + [ # allowed on pages
@@ -47,7 +46,23 @@ def sanitize_html(html, restricted=False):
     """
     # TODO: document the HTML subset allowed (particularly <pre lang="python">)
     allowed = allowed_tags_restricted if restricted else allowed_tags
-    return bleach.clean(html, tags=allowed, attributes=allowed_attributes, strip=True)
+    return mark_safe(bleach.clean(html, tags=allowed, attributes=allowed_attributes, strip=True))
+
+
+def ensure_sanitary_markup(markup, markuplang, restricted=False):
+    """
+    Double-check that the markup we're about to store is safe.
+    :param html: markup
+    :param markuplang: markup language contained in markup argument
+    :param restricted: use the restricted HTML subset?
+    :return: sanitary markup
+    """
+    if markuplang == 'html' and not isinstance(markup, SafeString):
+        # HTML input, but not a SafeString (which comes from sanitize_html)
+        return sanitize_html(markup, restricted=restricted)
+
+    # otherwise, we trust the markup language processor to safe output.
+    return markup
 
 
 def markdown_to_html(markup):
@@ -60,6 +75,7 @@ def markdown_to_html(markup):
     return stdoutdata
 
 
+@cached(36000)
 def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_already_safe=False, restricted=False):
     """
     Master function to convert one of our markup languages to HTML (safely).

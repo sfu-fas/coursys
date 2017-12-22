@@ -9,7 +9,7 @@ from django.conf import settings
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.branding import product_name
-from courselib.markup import ParserFor, sanitize_html, markup_to_html
+from courselib.markup import ParserFor, ensure_sanitary_markup, markup_to_html
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 import datetime
@@ -76,8 +76,7 @@ class DiscussionTopic(models.Model):
         # update the metainfo about creole display        
         self.get_creole()
 
-        if self.markup() == 'html':
-            self.content = sanitize_html(self.content, restricted=True)
+        self.content = ensure_sanitary_markup(self.content, self.markup(), restricted=True)
 
         new_topic = self.id is None
         super(DiscussionTopic, self).save(*args, **kwargs)
@@ -181,8 +180,7 @@ class DiscussionMessage(models.Model):
         # update the metainfo about creole display        
         self.topic.get_creole()
 
-        if self.markup() == 'html':
-            self.content = sanitize_html(self.content, restricted=True)
+        self.content = ensure_sanitary_markup(self.content, self.markup(), restricted=True)
 
         new_message = self.id is None
         super(DiscussionMessage, self).save(*args, **kwargs)
