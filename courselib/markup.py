@@ -5,7 +5,6 @@
 # TODO: ta module uses creole for offer_text
 # TODO: discipline module uses textile
 # TODO: ta TAContactForm uses textile
-# TODO: customize tinymce invocation so UI matches allowed_tags
 
 from django.db import models
 from django.utils.safestring import mark_safe, SafeString
@@ -30,7 +29,8 @@ MARKUP_CHOICES = [
 MARKUP_CHOICES_WYSIWYG = MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')]
 
 allowed_tags_restricted = bleach.sanitizer.ALLOWED_TAGS + [ # allowed in discussion, etc
-    'h3', 'h4', 'pre', 'p', 'dl', 'dt', 'dd', 'dfn', 'q', 'del', 'ins', 'sub', 'sup',
+    'h3', 'h4', 'pre', 'p', 'dl', 'dt', 'dd',
+    'dfn', 'q', 'del', 'ins', 's', 'sub', 'sup', 'u',
 ]
 allowed_tags = allowed_tags_restricted + [ # allowed on pages
     'h2', 'img',
