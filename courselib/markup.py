@@ -1,6 +1,5 @@
 # TODO: documentation for the markup flavours available
 # TODO: write better help_text (incl allow_math=False case)
-# TODO: the way discuss/models.py and discuss/forms.py uses the creole object should be purged/simplified
 # TODO: ta module uses creole for offer_text
 # TODO: discipline module uses textile
 # TODO: ta TAContactForm uses textile
