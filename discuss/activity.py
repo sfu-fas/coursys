@@ -13,6 +13,7 @@ def recent_activity(member):
         latest_activity = datetime.datetime.fromtimestamp(0)
     return datetime.datetime.fromtimestamp(member.last_discuss()) < latest_activity
 
+
 def update_last_viewed(member):
     """
     Updates the last discussion view attribute for a member

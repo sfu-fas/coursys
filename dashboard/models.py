@@ -181,7 +181,7 @@ class NewsItem(models.Model):
         members = list(members)
         random.shuffle(members)
 
-        markup = newsitem_kwargs.pop('markup')
+        markup = newsitem_kwargs.pop('markup', 'textile')
         for m in members:
             n = NewsItem(user=m.person, **newsitem_kwargs)
             n.markup = markup

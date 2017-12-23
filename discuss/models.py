@@ -73,9 +73,6 @@ class DiscussionTopic(models.Model):
         if self.status not in [status[0] for status in TOPIC_STATUSES]:
             raise ValueError('Invalid topic status')
 
-        # update the metainfo about creole display        
-        self.get_creole()
-
         self.content = ensure_sanitary_markup(self.content, self.markup(), restricted=True)
 
         new_topic = self.id is None
@@ -103,16 +100,6 @@ class DiscussionTopic(models.Model):
         
     def __unicode___(self):
         return self.title
-    
-    def __init__(self, *args, **kwargs):
-        super(DiscussionTopic, self).__init__(*args, **kwargs)
-        self.Creole = None
-    
-    def get_creole(self):
-        "Only build the creole parser on-demand."
-        if not self.Creole:
-            self.Creole = ParserFor(self.offering)
-        return self.Creole
 
     def html_content(self):
         "Convert self.content to HTML"
@@ -153,7 +140,7 @@ class DiscussionMessage(models.Model):
     A message (post) associated with a Discussion Topic
     """
     topic = models.ForeignKey(DiscussionTopic)
-    content = models.TextField(blank=False, help_text=mark_safe('Reply to topic, <a href="http://www.wikicreole.org/wiki/Creole1.0">WikiCreole-formatted</a>'))
+    content = models.TextField(blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=3, choices=MESSAGE_STATUSES, default='VIS')
@@ -176,9 +163,6 @@ class DiscussionMessage(models.Model):
             raise ValueError('Invalid topic status')
         if not self.pk:
             self.topic.new_message_update()
-
-        # update the metainfo about creole display        
-        self.topic.get_creole()
 
         self.content = ensure_sanitary_markup(self.content, self.markup(), restricted=True)
 

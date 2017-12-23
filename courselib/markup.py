@@ -6,6 +6,7 @@
 # TODO: ta TAContactForm uses textile
 # TODO: just a "text with line breaks" markup
 # TODO: ... and then use for grade/marking comments?
+# TODO: the markup choice dropdown is going to be confusing for some people: simplify or something?
 
 from django.db import models
 from django.utils.safestring import mark_safe, SafeString
@@ -24,7 +25,7 @@ from textile import textile_restricted
 MARKUP_CHOICES = [
     ('creole', 'WikiCreole'),
     ('markdown', 'Markdown'),
-    ('textile', 'Textile'), # TODO: don't allow new textile content?
+    ('textile', 'Textile'),
     ('html', 'HTML'),
 ]
 MARKUP_CHOICES_WYSIWYG = MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')]
