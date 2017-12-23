@@ -4,6 +4,7 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 
 {% block headextra %}
+{% include 'pages/markup_edit_head.html' %}
 <link rel="stylesheet" href="{{STATIC_URL}}style/discuss.css" media="all" />
 {% endblock %}
 

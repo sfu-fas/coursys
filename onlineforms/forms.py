@@ -5,18 +5,12 @@ from django.forms.fields import MultipleChoiceField
 from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
-from courselib.markup import ParserFor
 from django.forms.utils import ErrorList
 
 class DividerFieldWidget(forms.TextInput):
     def render(self, name, value, attrs=None):
         return mark_safe('<hr />')
 
-
-class ExplanationFieldWidget(forms.Textarea):
-    def render(self, name, value, attrs=None):
-        parser = ParserFor(offering=None)
-        return mark_safe('<div class="explanation_block">%s</div>' % parser.text2html(self.explanation))
 
 # Manage groups
 class GroupForm(ModelForm):

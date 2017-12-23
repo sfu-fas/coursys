@@ -113,7 +113,7 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
         if restricted:
             html = sanitize_html(html, restricted=True)
 
-    elif markuplang == 'html':
+    elif markuplang == 'html' or markuplang == 'html-wysiwyg':
         # TODO: the due_date etc tricks that are available in wikicreole
         if html_already_safe:
             # caller promises sanitize_html() has already been called on the input
@@ -158,16 +158,20 @@ class MarkupContentWidget(forms.MultiWidget):
 class MarkupContentField(forms.MultiValueField):
     widget = MarkupContentWidget
 
-    def __init__(self, with_wysiwyg=False, rows=20, default_markup='creole', allow_math=True, restricted=False, *args, **kwargs):
+    def __init__(self, with_wysiwyg=False, rows=20, default_markup='creole', allow_math=True, restricted=False,
+                 max_length=10000, *args, **kwargs):
         choices = MARKUP_CHOICES_WYSIWYG if with_wysiwyg else MARKUP_CHOICES
         fields = [
-            forms.CharField(required=True),
+            forms.CharField(required=True, max_length=max_length),
             forms.ChoiceField(choices=choices, required=True),
             forms.BooleanField(required=False),
         ]
 
+        help_text = kwargs.pop('help_text', mark_safe('Markup language used in the content, and should <a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas?'))
+
+
         super(MarkupContentField, self).__init__(fields, required=False,
-            help_text=mark_safe('Markup language used in the content, and should <a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas?'),
+            help_text=help_text,
             *args, **kwargs)
 
         self.fields[0].required = True

@@ -6,8 +6,9 @@
 
 {% block headextra %}
     <!-- Changes must also be applied to new_field.html -->
+    {% if field.fieldtype == 'TEXT' %}{% include 'pages/markup_edit_head.html' %}{% endif %}
     {% if choices %}
-        <script type="text/javascript">
+        <script>
             $(document).ready(function () {
 
 

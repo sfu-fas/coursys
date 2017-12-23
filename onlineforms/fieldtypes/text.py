@@ -3,7 +3,7 @@ from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 from django.template.defaultfilters import linebreaksbr
-from courselib.markup import ParserFor
+from courselib.markup import MarkupContentField, markup_to_html
 from courselib.text import normalize_newlines
 
 MAX_TEXT_LEN = 50 # longest text to output in CSV (for medium/long text)
@@ -197,31 +197,36 @@ class EmailTextField(FieldBase):
         return fieldsubmission.data['info']
 
 
+class _ExplanationFieldWidget(forms.Textarea):
+    """
+    A non-widget widget that generates explanation text and not a form input.
+    """
+    def render(self, name, value, attrs=None):
+        return mark_safe('<div class="explanation_block">%s</div>' % (markup_to_html(self.explanation, self.markup)))
+
+
 class ExplanationTextField(FieldBase):
     in_summary = False
     class ExplanationTextConfigForm(FieldConfigForm):
-        text_explanation = forms.CharField(required=True, max_length=10000,
-            widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}),
-            help_text='Text to display to the user; formatted in <a href="/docs/pages">WikiCreole markup</a>.')
+        text_explanation = MarkupContentField(with_wysiwyg=True, allow_math=False, help_text='Text to display to the user.')
+
         def __init__(self, *args, **kwargs):
             super(self.__class__, self).__init__(*args, **kwargs)
             del self.fields['help_text']
-
 
     def make_config_form(self):
         return self.ExplanationTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        from onlineforms.forms import ExplanationFieldWidget
-
-        w = ExplanationFieldWidget(attrs={'class': 'disabled', 'readonly': 'readonly'})
+        w = _ExplanationFieldWidget(attrs={'class': 'disabled', 'readonly': 'readonly'})
         c = forms.CharField(required=False,
             label=self.config['label'],
             help_text='',
             widget=w)
 
-        if 'text_explanation' in self.config:
-            w.explanation = self.config['text_explanation']
+        # before MarkupContentField, text_explanation held the contents; now text_explanation_0.
+        w.explanation = self.config.get('text_explanation_0', self.config.get('text_explanation', ''))
+        w.markup = self.config.get('text_explanation_1', 'creole')
 
         return c
 
