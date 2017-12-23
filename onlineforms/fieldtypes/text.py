@@ -234,6 +234,8 @@ class ExplanationTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        parser = ParserFor(offering=None)
-        return mark_safe('<div class="explanation_block">' + parser.text2html(self.config['text_explanation']) + '</div>')
+        # before MarkupContentField, text_explanation held the contents; now text_explanation_0.
+        explanation = self.config.get('text_explanation_0', self.config.get('text_explanation', ''))
+        markup = self.config.get('text_explanation_1', 'creole')
+        return mark_safe('<div class="explanation_block">%s</div>' % (markup_to_html(explanation, markup)))
 
