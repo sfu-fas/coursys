@@ -456,30 +456,6 @@ def import_page(request, course_slug, page_label):
         return render(request, 'pages/import_page.html', context)
 
 
-@login_required
-def import_site(request, course_slug):
-    with django.db.transaction.atomic():
-        offering = get_object_or_404(CourseOffering, slug=course_slug)
-        member = _check_allowed(request, offering, 'STAF') # only staff can import
-        if not member:
-            return ForbiddenResponse(request, 'Not allowed to edit/create pages.')
-        
-        if request.method == 'POST':
-            form = SiteImportForm(offering=offering, editor=member, data=request.POST, files=request.FILES)
-            if form.is_valid():
-                pages, errors = form.cleaned_data['url']
-                for label in pages:
-                    page, pv = pages[label]
-                    page.save()
-                    pv.page_id = page.id
-                    pv.save()
-        else:
-            form = SiteImportForm(offering=offering, editor=member)
-        
-        context = {'offering': offering, 'form': form}
-        return render(request, 'pages/import_site.html', context)
-
-
 from django.forms import ValidationError
 from coredata.models import Person
 from pages.models import ACL_DESC, WRITE_ACL_DESC

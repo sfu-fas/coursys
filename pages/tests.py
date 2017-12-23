@@ -235,7 +235,7 @@ class PagesTest(TestCase):
         c.login_user('ggbaker')
         
         # test the basic rendering of the core pages
-        test_views(self, c, 'offering:pages:', ['index_page', 'all_pages', 'new_page', 'new_file', 'import_site'],
+        test_views(self, c, 'offering:pages:', ['index_page', 'all_pages', 'new_page', 'new_file'],
                 {'course_slug': crs.slug})
 
         test_views(self, c, 'offering:pages:', ['view_page', 'page_history', 'edit_page', 'import_page'],
@@ -408,7 +408,6 @@ class PagesTest(TestCase):
         p.save()
         resp = c.get(url)
         self.assertEqual(resp.status_code, 200)
-
 
     def test_entity(self):
         """

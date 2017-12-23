@@ -6,7 +6,6 @@ pages_patterns = [ # prefix /COURSE_SLUG/pages/
     url(r'^$', pages_views.index_page, name='index_page'),
     url(r'^_all$', pages_views.all_pages, name='all_pages'),
     url(r'^_new$', pages_views.new_page, name='new_page'),
-    url(r'^_import$', pages_views.import_site, name='import_site'),
     url(r'^_newfile$', pages_views.new_file, name='new_file'),
     url(r'^_push$', pages_views.api_import, name='api_import'),
     url(r'^' + PAGE_LABEL + '$', pages_views.view_page, name='view_page'),
