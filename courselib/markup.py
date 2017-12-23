@@ -5,6 +5,8 @@
 # TODO: ta module uses creole for offer_text
 # TODO: discipline module uses textile
 # TODO: ta TAContactForm uses textile
+# TODO: just a "text with line breaks" markup
+# TODO: ... and then use for grade/marking comments?
 
 from django.db import models
 from django.utils.safestring import mark_safe, SafeString
@@ -209,14 +211,14 @@ def MarkupContentMixin(field_name='content'):
             self.field_name = field_name
             if instance:
                 try:
-                    self.initial[self.field_name] = [instance.content, instance.markup(), instance.math()]
+                    self.initial[self.field_name] = [getattr(instance, self.field_name), instance.markup(), instance.math()]
                 except TypeError:
-                    self.initial[self.field_name] = [instance.content, instance.markup, instance.math]
+                    self.initial[self.field_name] = [getattr(instance, self.field_name), instance.markup, instance.math]
             else:
                 self.initial[self.field_name] = ['', self[self.field_name].field.widget.default_markup, False]
 
         def clean(self):
-            content, markup, math = self.cleaned_data['content']
+            content, markup, math = self.cleaned_data.get(self.field_name, ['', '', False])
             self.cleaned_data[self.field_name] = content
             self.cleaned_data['_markup'] = markup
             self.cleaned_data['_math'] = math
@@ -225,8 +227,13 @@ def MarkupContentMixin(field_name='content'):
         def save(self, commit=True, *args, **kwargs):
             instance = super(_MarkupContentMixin, self).save(commit=False, *args, **kwargs)
             setattr(instance, self.field_name, self.cleaned_data[self.field_name])
-            instance.set_markup(self.cleaned_data['_markup'])
-            instance.set_math(self.cleaned_data['_math'])
+            try:
+                instance.set_markup(self.cleaned_data['_markup'])
+                instance.set_math(self.cleaned_data['_math'])
+            except AttributeError:
+                instance.markup = self.cleaned_data['_markup']
+                instance.math = self.cleaned_data['_math']
+
             if commit:
                 instance.save()
             return instance

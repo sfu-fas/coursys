@@ -1,8 +1,7 @@
 from django import forms
 from django.db import transaction
 from pages.models import Page, PageVersion, READ_ACL_CHOICES, WRITE_ACL_CHOICES
-from importer import HTMLWiki
-from courselib.markup import MarkupContentField
+from courselib.markup import MarkupContentField, MarkupContentMixin
 import urllib2, urlparse
 
 
@@ -40,7 +39,7 @@ class EditPageFileForm(forms.ModelForm):
         if self.instance.id:
             version = self.instance.current_version()
             self.initial['title'] = version.title
-            self.initial['markup_content'] = [version.wikitext, version.markup(), version.math()]
+            #self.initial['markup_content'] = [version.wikitext, version.markup(), version.math()]
             self.initial['releasedate'] = self.instance.releasedate()
             self.initial['editdate'] = self.instance.editdate()
         
@@ -74,21 +73,29 @@ class EditPageFileForm(forms.ModelForm):
         }
 
 
-class EditPageForm(EditPageFileForm):
+class EditPageForm(MarkupContentMixin(field_name='markup_content'), EditPageFileForm):
     title = forms.CharField(max_length=60, widget=forms.TextInput(attrs={'size':50}))
     markup_content = MarkupContentField(label='Content', with_wysiwyg=True)
     comment = CommentField()
 
+    def __init__(self, instance=None, *args, **kwargs):
+        if instance:
+            # push the initial values into the page object, to make MarkupContentMixin happy
+            version = instance.current_version()
+            instance.markup_content = version.wikitext
+            instance.markup = version.markup()
+            instance.math = version.math()
+        super(EditPageForm, self).__init__(instance=instance, *args, **kwargs)
+
     @transaction.atomic
     def save(self, editor, *args, **kwargs):
-        # also create the PageVersion object.
-        wikitext, markup, math = self.cleaned_data['markup_content']
+        # create the PageVersion object: distribute the self.cleaned_data values appropriately
+        wikitext = self.cleaned_data['markup_content']
         comment = self.cleaned_data['comment']
         title = self.cleaned_data['title']
         pv = PageVersion(title=title, wikitext=wikitext, comment=comment, editor=editor)
-        # set config data
-        pv.set_markup(markup)
-        pv.set_math(math)
+        pv.set_markup(self.cleaned_data['_markup'])
+        pv.set_math(self.cleaned_data['_math'])
 
         self.instance.offering = self.offering
         pg = super(EditPageForm, self).save(*args, **kwargs)

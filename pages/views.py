@@ -10,7 +10,7 @@ from django.utils.html import conditional_escape
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from pages.models import Page, PageVersion, PagePermission, MEMBER_ROLES, ACL_ROLES, MACRO_LABEL
-from pages.forms import EditPageForm, EditFileForm, PageImportForm, SiteImportForm
+from pages.forms import EditPageForm, EditFileForm, PageImportForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import NotFoundResponse, ForbiddenResponse, HttpError

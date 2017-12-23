@@ -312,6 +312,46 @@ class PagesTest(TestCase):
         response = c.get(url)
         self.assertEqual(response.status_code, 403)
 
+    def test_form_submission(self):
+        """
+        Check that submitting the page editing form results in the objects we expect.
+        """
+        crs = self._sample_setup()
+        c = Client()
+        c.login_user('ggbaker')
+
+        pg = Page.objects.get(offering=crs, label="Index")
+
+        url = reverse('offering:pages:edit_page', kwargs={'course_slug': crs.slug, 'page_label': pg.label})
+        form_data = {
+            'offering': crs.id,
+            'label': 'NewIndex',
+            'can_read': 'ALL',
+            'can_write': 'INST',
+            'releasedate': '',
+            'title': 'New Index',
+            'markup_content_0': 'Unsafe <script>HTML</script>',
+            'markup_content_1': 'html',
+            'markup_content_2': 'on',
+            'comment': 'the comment',
+        }
+
+        # bad submission: redisplay form
+        resp = c.post(url, {})
+        self.assertEqual(resp.status_code, 200)
+
+        # good submission: save and redirect
+        resp = c.post(url, form_data)
+        self.assertEqual(resp.status_code, 302)
+
+        pg = Page.objects.get(offering=crs, label="NewIndex")
+        vr = pg.current_version()
+
+        self.assertEqual(pg.can_write, 'INST')
+        self.assertEqual(vr.title, 'New Index')
+        self.assertEqual(vr.wikitext, 'Unsafe HTML') # should be cleaned on the way in
+        self.assertEqual(vr.config['markup'], 'html')
+        self.assertEqual(vr.config['math'], True)
 
     def test_macros(self):
         """
