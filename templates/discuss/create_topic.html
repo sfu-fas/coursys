@@ -5,8 +5,7 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 
 {% block headextra %}
-<script src="{% static 'tinymce/tinymce.min.js' %}"></script>
-<script src="{% static 'js/page-edit.js' %}"></script>
+{% include 'pages/markup_edit_head.html' %}
 {% endblock %}
 
 {% block subbreadcrumbs %}

@@ -29,6 +29,7 @@ MARKUP_CHOICES = [
     ('html', 'HTML'),
 ]
 MARKUP_CHOICES_WYSIWYG = MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')]
+MARKUPS = dict(MARKUP_CHOICES)
 
 allowed_tags_restricted = bleach.sanitizer.ALLOWED_TAGS + [ # allowed in discussion, etc
     'h3', 'h4', 'pre', 'p', 'dl', 'dt', 'dd',
@@ -219,6 +220,8 @@ def MarkupContentMixin(field_name='content'):
 
         def clean(self):
             content, markup, math = self.cleaned_data.get(self.field_name, ['', '', False])
+            if markup not in MARKUPS:
+                raise forms.ValidationError('Invalid markup choice')
             self.cleaned_data[self.field_name] = content
             self.cleaned_data['_markup'] = markup
             self.cleaned_data['_math'] = math

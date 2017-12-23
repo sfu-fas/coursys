@@ -1,7 +1,7 @@
 from discuss.models import DiscussionTopic, DiscussionMessage, DiscussionSubscription, TopicSubscription
 from django import forms
-from django.forms.widgets import Textarea, TextInput
-from courselib.markup import MarkupContentField
+from django.forms.widgets import TextInput
+from courselib.markup import MarkupContentField, MarkupContentMixin
 import genshi
 
 
@@ -16,9 +16,9 @@ def discussion_topic_form_factory(view_type, creole, data=None, instance=None):
     Return the current form for a discussion topic based on the view_type (student/staff)
     """
     if view_type == 'student':
-        return _DiscussionTopicForm(data, creole=creole, instance=instance)
+        return _DiscussionTopicForm(data=data, creole=creole, instance=instance)
     elif view_type == 'staff':
-        return _DiscussionTopicFormStaff(data, creole=creole, instance=instance)
+        return _DiscussionTopicFormStaff(data=data, creole=creole, instance=instance)
     else:
         raise ValueError()
 
@@ -57,32 +57,18 @@ def _creole_content_okay(creole, content):
         raise forms.ValidationError("Cannot use images ({{...}}) in discussions).")
 
 
-class _DiscussionTopicForm(forms.ModelForm):
+class _DiscussionTopicForm(MarkupContentMixin(field_name='content'), forms.ModelForm):
     title = forms.CharField(widget=TextInput(attrs={'size': 60}), help_text="What is this topic about?")
-    content = MarkupContentField(label='Content', with_wysiwyg=True, rows=10)
+    content = MarkupContentField(label='Content', with_wysiwyg=True, restricted=True, rows=10)
 
     class Meta:
         model = DiscussionTopic
         exclude = ('offering', 'last_activity_at', 'created_at', 'message_count', 'author', 'config', 'status', 'pinned')
     
-    def __init__(self, data, creole, instance=None, *args, **kwargs):
+    def __init__(self, data, creole, *args, **kwargs):
         # creole can be None if no validation will happen with this instance.
-        super(_DiscussionTopicForm, self).__init__(data, instance=instance, *args, **kwargs)
-        if instance:
-            self.initial['content'] = [instance.content, instance.markup(), instance.math()]
-        else:
-            self.initial['content'] = ['', 'creole', False]
+        super(_DiscussionTopicForm, self).__init__(data=data, *args, **kwargs)
         self.creole = creole
-
-    def save(self, commit=True, *args, **kwargs):
-        content, markup, math = self.cleaned_data['content']
-        t = super(_DiscussionTopicForm, self).save(commit=False, *args, **kwargs)
-        t.content = content
-        t.set_markup(markup)
-        t.set_math(math)
-        if commit:
-            t.save()
-        return t
 
 
 class _DiscussionTopicFormStaff(_DiscussionTopicForm):
@@ -96,30 +82,16 @@ class DiscussionTopicStatusForm(forms.ModelForm):
         exclude = ('title', 'content', 'offering', 'last_activity_at', 'message_count', 'author', 'config')
 
 
-class DiscussionMessageForm(forms.ModelForm):
-    content = MarkupContentField(label='Content', with_wysiwyg=True, rows=10)
+class DiscussionMessageForm(MarkupContentMixin(field_name='content'), forms.ModelForm):
+    content = MarkupContentField(label='Content', with_wysiwyg=True, restricted=True, rows=10)
     class Meta:
         model = DiscussionMessage
         exclude = ('topic', 'created_at', 'modified_at', 'status', 'author', 'config')
 
-    def __init__(self, creole, instance=None, *args, **kwargs):
+    def __init__(self, creole, *args, **kwargs):
         # creole can be None if no validation will happen with this instance.
-        super(DiscussionMessageForm, self).__init__(instance=instance, *args, **kwargs)
-        if instance:
-            self.initial['content'] = [instance.content, instance.markup(), instance.math()]
-        else:
-            self.initial['content'] = ['', 'creole', False]
+        super(DiscussionMessageForm, self).__init__(*args, **kwargs)
         self.creole = creole
-
-    def save(self, commit=True, *args, **kwargs):
-        content, markup, math = self.cleaned_data['content']
-        m = super(DiscussionMessageForm, self).save(commit=False, *args, **kwargs)
-        m.content = content
-        m.set_markup(markup)
-        m.set_math(math)
-        if commit:
-            m.save()
-        return m
 
 
 class DiscussionSubscriptionForm(forms.ModelForm):
