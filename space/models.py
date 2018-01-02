@@ -142,6 +142,9 @@ class Location(models.Model):
         for a in self.get_bookings():
             a.conflict = False
             for b in self.get_bookings().exclude(id=a.id):
+                if a.end_time is None and b.end_time is None:
+                    a.conflict = True
+                    break
                 if a.end_time is None and a.start_time < b.end_time:
                     a.conflict = True
                     break
