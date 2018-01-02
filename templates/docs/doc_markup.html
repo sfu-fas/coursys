@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Markup in {{ CourSys }}{% endblock %}
+{% block h1 %}Markup in {{ CourSys }}{% endblock %}
+
+{% block subbreadcrumbs %}<li><a href="{% url "docs:list_docs" %}">Docs</a></li><li>Markup</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+
+<h2 id="creole">WikiCreole</h2>
+<h2 id="markdown">Markdown</h2>
+<h2 id="textile">Textile</h2>
+<h2 id="html">HTML</h2>
+<h2 id="html-wysiwyg">HTML Editor</h2>
+
+
+
+
+{% endblock %}

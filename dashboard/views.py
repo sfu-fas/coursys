@@ -750,6 +750,7 @@ def list_docs(request):
     context = {}
     return render(request, "docs/index.html", context)
 
+
 def view_doc(request, doc_slug):
     context = {'BASE_ABS_URL': settings.BASE_ABS_URL}
     

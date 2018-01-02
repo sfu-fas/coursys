@@ -22,4 +22,6 @@ $(document).ready(function() {
 
 	$('.markup-content select').change(wysiwyg_switcher);
     wysiwyg_switcher();
+
+
 } );

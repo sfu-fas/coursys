@@ -166,8 +166,10 @@ class MarkupContentField(forms.MultiValueField):
             forms.BooleanField(required=False),
         ]
 
-        help_text = kwargs.pop('help_text', mark_safe('Markup language used in the content, and should <a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas?'))
-
+        help_url = '/docs/markup' # hard-coded URL because lazy-evaluating them is hard
+        default_help = '<a href="' + help_url + '">Markup language</a> used in the content, and should ' \
+                '<a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas?'
+        help_text = kwargs.pop('help_text', mark_safe(default_help))
 
         super(MarkupContentField, self).__init__(fields, required=False,
             help_text=help_text,

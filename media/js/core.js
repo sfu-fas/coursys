@@ -272,6 +272,9 @@ $(document).ready(function(){
     })
   });
 
+  /* open help links in a new tab */
+  $('div.helptext a').attr('target', '_blank');
+
   // Prevent double-clicking of submissions in all our forms
   $('form[method=post]').preventDoubleSubmit()
 
