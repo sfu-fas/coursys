@@ -1,6 +1,15 @@
+var help_url = '/docs/markup'; // hard-coded URL
+var markup_choices = {
+    'creole': 'WikiCreole',
+    'markdown': 'Markdown',
+    'textile': 'Textile',
+    'html': 'HTML',
+    'html-wysiwyg': 'HTML editor',
+};
 function wysiwyg_switcher(ev) {
     /* This probably fails if there is >1 .markup-content on page. */
-    if ( $('.markup-content select').val() == 'html-wysiwyg' ) {
+    var val = $('.markup-content select').val();
+    if ( val == 'html-wysiwyg' ) {
         tinymce.init({
             selector: '.markup-content textarea',
             plugins: ['charmap', 'code', 'codesample', 'image', 'link', 'lists', 'table'],
@@ -15,6 +24,9 @@ function wysiwyg_switcher(ev) {
     } else {
         tinymce.remove('.markup-content textarea')
     }
+
+    /* update help link if  */
+    $('span#markup-help').html('<a href="' + help_url + '#' + val + '">' + markup_choices[val] + ' help</a>')
 }
 $(document).ready(function() {
 	$('#id_releasedate').datepicker({'dateFormat': 'yy-mm-dd'});

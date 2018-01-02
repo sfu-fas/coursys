@@ -10,13 +10,98 @@
 
 {% block content %}
 
+<p>There are several places in {{ CourSys }} where you can create formatted content, and several options of how to specify the formatting.</p>
+<p>These should all work the same wherever the option is presented&hellip;</p>
 
 <h2 id="creole">WikiCreole</h2>
+
+
+<p>This options interprets your content as <a href="http://www.wikicreole.org/wiki/Elements">Wiki Creole Markup</a> (list of <a href="http://www.wikicreole.org/wiki/AllMarkup">Wiki Creole markup reference</a>).
+Most <a href="http://www.wikicreole.org/wiki/CreoleAdditions">Creole Additions</a> also work.</p>
+
+<p>Some additions have been made to Creole markup that might be useful for course web pages&hellip;</p>
+
+<h3 id="creole-duedate">Due Dates</h3>
+
+<p>You can automatically insert the due date of an activity like this:</p>
+<blockquote><pre>Assignment 1 is due &lt;&lt;duedate Assignment 1>>.</pre></blockquote>
+<p>As long as you spell the activity name correctly, the page will display the due date assigned for the activity and will update if you change it.
+If you'd like to include the date and the time, it is done like this:</p>
+<blockquote><pre>Assignment 2 is due at //exactly// &lt;&lt;duedatetime Assignment 2>>.</pre></blockquote>
+
+
+<h3 id="creole-pagelist">Page Lists</h3>
+
+<p>You can insert a list of all pages on your course site like this:</p>
+<blockquote><pre>&lt;&lt;pagelist>></pre></blockquote>
+<p>Or, a list of all pages whose label starts with &ldquo;Assign&rdquo; (e.g. pages &ldquo;Assignment 1&rdquo;, &ldquo;Assignment 2&rdquo;) like this:</p>
+<blockquote><pre>&lt;&lt;pagelist Assign>></pre></blockquote>
+
+
+
+<h3 id="creole-code">Hilighted Code</h3>
+
+<p>Code samples can be <a href="#highlight">syntax highlighted</a> if you specify the language of the code in question.
+	Here is an example of Python code that will be highlighted when displayed:</p>
+<blockquote><pre>{{{ [python]
+for i in range(10):
+    print i
+}}}</pre></blockquote>
+
+
+
+
+
+
+
 <h2 id="markdown">Markdown</h2>
+
+<p>The &ldquo;Markdown&rdquo; option interprets your content as <a href="https://guides.github.com/features/mastering-markdown/">GitHub Flavoured Markdown</a>.</p>
+<p>In particular, <a href="#highlight">code syntax highlighting</a> work as on GitHub:</p>
+
+<blockquote><pre>```python
+for i in range(10):
+    print i
+```</pre></blockquote>
+
+
+
+
+
 <h2 id="textile">Textile</h2>
+
+<p>Textile markup is supported as a legacy feature: we suggest you move to Markdown for new content.</p>
+
+
+
+
 <h2 id="html">HTML</h2>
+
+<p>A subset of HTML markup is supported directly. Unsafe markup will be stripped for security reasons.</p>
+<p><a href="#highlight">Code syntax highlighting</a> is supported with <code>&lt;pre lang=""></code> like this:</p>
+
+<blockquote><pre>&lt;pre lang="python">
+for i in range(10):
+    print i
+&lt;/pre></pre></blockquote>
+
+
 <h2 id="html-wysiwyg">HTML Editor</h2>
 
+<p>The &ldquo;HTML Editor&rdquo; option lets you edit HTML markup with a nice point-and-click editor.
+    Restrictions and details are the same as hand-entered HTML, as described above.</p>
+
+
+<h2 id="mathjax">Formulas and MathJax</h2>
+
+<p>If you enable the &ldquo;Use MathJax?&rdquo; option, your content will be processed with <a href="https://www.mathjax.org/">MathJax</a> to allow TeX math-mode formulas.
+</p>
+<p>When integrating MathJax with one of the above markup languages, it can take some effort to escape things properly: backslashes are special in Markdown and carets in Creole. HTML may be the easiest option if you're writing math-heavy content.</p>
+
+
+<h2 id="highlight">Code Syntax Highlighting</h2>
+
+<p>Most common programming languages should be available as described above. If you need support for one that isn't, ask <a href="mailto:{{ help_email }}">{{ help_email }}</a>.</p>
 
 
 

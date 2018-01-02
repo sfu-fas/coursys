@@ -29,6 +29,7 @@ MARKUP_CHOICES = [
 ]
 MARKUP_CHOICES_WYSIWYG = MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')]
 MARKUPS = dict(MARKUP_CHOICES)
+# must be in-sync with object in markup-edit.js
 
 allowed_tags_restricted = bleach.sanitizer.ALLOWED_TAGS + [ # allowed in discussion, etc
     'h3', 'h4', 'pre', 'p', 'dl', 'dt', 'dd',
@@ -168,7 +169,8 @@ class MarkupContentField(forms.MultiValueField):
 
         help_url = '/docs/markup' # hard-coded URL because lazy-evaluating them is hard
         default_help = '<a href="' + help_url + '">Markup language</a> used in the content, and should ' \
-                '<a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas?'
+            '<a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas? ' \
+            '<span id="markup-help"></span>'
         help_text = kwargs.pop('help_text', mark_safe(default_help))
 
         super(MarkupContentField, self).__init__(fields, required=False,
