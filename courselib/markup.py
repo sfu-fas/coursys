@@ -1,4 +1,3 @@
-# TODO: documentation for the markup flavours available
 # TODO: write better help_text (incl allow_math=False case)
 # TODO: ta module uses creole for offer_text
 # TODO: discipline module uses textile
