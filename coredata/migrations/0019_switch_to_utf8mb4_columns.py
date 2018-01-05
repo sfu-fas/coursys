@@ -17,6 +17,9 @@ def forwards_func(apps, schema_editor):
 
     tables = schema_editor.connection.introspection.table_names()
     for t in tables:
+        if t in ['celery_taskmeta', 'celery_tasksetmeta', 'django_celery_beat_periodictask', 'djcelery_periodictask',
+                 'djcelery_taskstate', 'djcelery_workerstate', 'djkombu_queue']:
+            continue
         print('Altering %s' % (t,))
         query = TABLE_QUERY_TEMPLATE % (t,)
         schema_editor.execute(query)
