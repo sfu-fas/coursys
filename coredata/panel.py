@@ -9,6 +9,7 @@ from django.utils.html import conditional_escape as escape
 from coredata.models import Semester, Unit
 from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_update
 from dashboard.photos import do_photo_fetch
+from log.models import LogEntry
 
 import celery, kombu
 import random, socket, subprocess, urllib2, os, stat, time, copy, pprint
@@ -97,6 +98,18 @@ def deploy_checks(request=None):
         failed.append(('Main database connection', "can't connect to database"))
     except django.db.utils.ProgrammingError:
         failed.append(('Main database connection', "database tables missing"))
+
+    # non-BMP Unicode in database
+    try:
+        l = LogEntry.objects.create(userid='ggbaker', description=u'Test Unicode \U0001F600', related_object=Semester.objects.first())
+    except OperationalError:
+        failed.append(('Unicode handling in database', 'non-BMP character not supported by connection'))
+    else:
+        l = LogEntry.objects.get(id=l.id)
+        if u'\U0001F600' in l.description:
+            passed.append(('Unicode handling in database', 'okay'))
+        else:
+            failed.append(('Unicode handling in database', 'non-BMP character not stored correctly'))
 
     # Celery tasks
     celery_okay = False
