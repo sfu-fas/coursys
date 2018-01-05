@@ -10,17 +10,6 @@
 {% include 'pages/markup_edit_head.html' %}
 {% endblock %}
 
-{% block actions %}
-{% if not import and page %}
-<div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-    <li><a href="{% url "offering:pages:import_page" course_slug=offering.slug page_label=page.label %}">Import Content</a></li>
-    </ul>
-</div>
-{% endif %}
-{% endblock %}
-
 {% block content %}
 
 {% if is_macro_page %}

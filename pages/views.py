@@ -10,7 +10,7 @@ from django.utils.html import conditional_escape
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from pages.models import Page, PageVersion, PagePermission, MEMBER_ROLES, ACL_ROLES, MACRO_LABEL
-from pages.forms import EditPageForm, EditFileForm, PageImportForm
+from pages.forms import EditPageForm, EditFileForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import NotFoundResponse, ForbiddenResponse, HttpError
@@ -423,37 +423,6 @@ def _delete_pagefile(request, course_slug, page_label, kind):
 
         messages.success(request, "Page deleted and will redirect to this location.")
         return HttpResponseRedirect(urljoin(page.get_absolute_url(), redirect))
-
-
-@login_required
-def import_page(request, course_slug, page_label):
-    with django.db.transaction.atomic():
-        offering = get_object_or_404(CourseOffering, slug=course_slug)
-        page = get_object_or_404(Page, offering=offering, label=page_label)
-        version = page.current_version()
-        member = _check_allowed(request, offering, page.can_write)
-        if not member:
-            return ForbiddenResponse(request, 'Not allowed to edit/create this page.')
-        
-        if request.method == 'POST':
-            form = PageImportForm(data=request.POST, files=request.FILES)
-            if form.is_valid():
-                wiki = form.cleaned_data['file'] or form.cleaned_data['url']
-
-                # create Page editing form for preview-before-save
-                pageform = EditPageForm(instance=page, offering=offering)
-                pageform.initial['wikitext'] = wiki
-                
-                # URL for submitting that form
-                url = reverse('offering:pages:edit_page', kwargs={'course_slug': offering.slug, 'page_label': page.label})
-                messages.warning(request, "Page has not yet been saved, but your HTML has been imported below.")
-                context = {'offering': offering, 'page': page, 'form': pageform, 'kind': 'Page', 'import': True, 'url': url}
-                return render(request, 'pages/edit_page.html', context)
-        else:
-            form = PageImportForm()
-        
-        context = {'offering': offering, 'page': page, 'version': version, 'form': form}
-        return render(request, 'pages/import_page.html', context)
 
 
 from django.forms import ValidationError

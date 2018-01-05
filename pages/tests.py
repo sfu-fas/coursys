@@ -238,7 +238,7 @@ class PagesTest(TestCase):
         test_views(self, c, 'offering:pages:', ['index_page', 'all_pages', 'new_page', 'new_file'],
                 {'course_slug': crs.slug})
 
-        test_views(self, c, 'offering:pages:', ['view_page', 'page_history', 'edit_page', 'import_page'],
+        test_views(self, c, 'offering:pages:', ['view_page', 'page_history', 'edit_page'],
                 {'course_slug': crs.slug, 'page_label': 'OtherPage'})
 
     def test_permissions(self):
