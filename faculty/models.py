@@ -499,7 +499,7 @@ class MemoTemplate(models.Model):
     A template for memos.
     """
     unit = models.ForeignKey(Unit, null=False, blank=False)
-    label = models.CharField(max_length=250, null=False, verbose_name='Template Name',
+    label = models.CharField(max_length=150, null=False, verbose_name='Template Name',
                              help_text='The name for this template (that you select it by when using it)')
     event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES,
                                   help_text='The type of event that this memo applies to')
@@ -694,7 +694,7 @@ class TempGrantManager(models.Manager):
 
 
 class TempGrant(models.Model):
-    label = models.CharField(max_length=255, help_text="for identification from FAST import")
+    label = models.CharField(max_length=150, help_text="for identification from FAST import")
     initial = models.DecimalField(verbose_name="initial balance", max_digits=12, decimal_places=2)
     project_code = models.CharField(max_length=32, help_text="The fund and project code, like '13-123456'")
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
@@ -738,7 +738,7 @@ class Grant(models.Model):
     )
     title = models.CharField(max_length=64, help_text='Label for the grant within this system')
     slug = AutoSlugField(populate_from='title', unique_with=("unit",), null=False, editable=False)
-    label = models.CharField(max_length=255, help_text="for identification from FAST import", db_index=True)
+    label = models.CharField(max_length=150, help_text="for identification from FAST import", db_index=True)
     owners = models.ManyToManyField(Person, through='GrantOwner', blank=False, help_text='Who owns/controls this grant?')
     project_code = models.CharField(max_length=32, db_index=True, help_text="The fund and project code, like '13-123456'")
     start_date = models.DateField(null=False, blank=False)

@@ -676,7 +676,7 @@ class CaseAttachment(models.Model):
     """
 
     case = models.ForeignKey(DisciplineCaseBase)
-    name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name", help_text="Identifying name for the attachment")
+    name = models.CharField(max_length=150, blank=True, null=True, verbose_name="Name", help_text="Identifying name for the attachment")
     attachment = models.FileField(upload_to=_disc_upload_to, max_length=500, verbose_name="File", storage=UploadedFileStorage)
     mediatype = models.CharField(null=True, blank=True, max_length=200)
     public = models.BooleanField(default=True, verbose_name="Public?", 

@@ -1279,7 +1279,7 @@ Letters
 
 class LetterTemplate(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
-    label = models.CharField(max_length=250, null=False)
+    label = models.CharField(max_length=150, null=False)
         # likely choices: visa, international, msc offer, phd offer, special student offer, qualifying student offer
     content = models.TextField(help_text="I.e. 'This is to confirm {{title}} {{last_name}} ... '")
     created_at = models.DateTimeField(auto_now_add=True)
