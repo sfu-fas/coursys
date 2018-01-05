@@ -3,18 +3,15 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-from  django.db.backends.mysql.base import DatabaseWrapper as MySQLDatabaseWrapper
 
 DATABASE_QUERY_TEMPLATE = "ALTER DATABASE %s CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;"
 TABLE_QUERY_TEMPLATE = "ALTER TABLE %s CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
 
 def forwards_func(apps, schema_editor):
     if schema_editor.connection.vendor != 'mysql':
         # this only makes sense on mysql where Unicode handling is more... amusing.
         return
-
-    db_name = schema_editor.connection.settings_dict['NAME']
-    schema_editor.execute(DATABASE_QUERY_TEMPLATE % (db_name,))
 
     schema_editor.connection.disable_constraint_checking()
 
@@ -25,6 +22,9 @@ def forwards_func(apps, schema_editor):
         schema_editor.execute(query)
 
     schema_editor.connection.enable_constraint_checking()
+
+    db_name = schema_editor.connection.settings_dict['NAME']
+    schema_editor.execute(DATABASE_QUERY_TEMPLATE % (db_name,))
 
 
 def reverse_func(apps, schema_editor):
