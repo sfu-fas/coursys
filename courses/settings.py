@@ -171,7 +171,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'ENGINE': 'django.db.backends.mysql',
             #'CONN_MAX_AGE': 360,
             'OPTIONS': {
-                "init_command": "SET default_storage_engine=INNODB;",  # actually needed only for initial table creation
+                "init_command": "SET default_storage_engine=INNODB, character_set_client=utf8mb4, character_set_connection=utf8mb4, character_set_results=utf8mb4, collation_connection=utf8mb4_unicode_ci, collation_server=utf8mb4_unicode_ci;",
                 'charset': 'utf8mb4',
             }
         }
