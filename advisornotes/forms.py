@@ -5,7 +5,7 @@ from django import forms
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.forms.models import ModelForm
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 import datetime
 
@@ -65,7 +65,7 @@ class StudentSelect(forms.Select):
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
         if value != '':
             # Only add the 'value' attribute if a value is non-empty.
-            final_attrs['value'] = force_unicode(value)
+            final_attrs['value'] = force_text(value)
         return mark_safe('<input%s />' % forms.widgets.flatatt(final_attrs))
 
 

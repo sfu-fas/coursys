@@ -4,7 +4,7 @@ from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, 
 from coredata.queries import find_person, add_person, SIMSProblem, userid_to_emplid
 from cache_utils.decorators import cached
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from localflavor.ca.forms import CAPhoneNumberField
 from coredata.widgets import CalendarWidget
 
@@ -20,7 +20,7 @@ class OfferingSelect(forms.Select):
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
         if value != '':
             # Only add the 'value' attribute if a value is non-empty.
-            final_attrs['value'] = force_unicode(value)
+            final_attrs['value'] = force_text(value)
         return mark_safe('<input%s />' % forms.widgets.flatatt(final_attrs))
 
 class OfferingField(forms.ModelChoiceField):
@@ -492,7 +492,7 @@ class CheckboxSelectTerse(forms.CheckboxSelectMultiple):
         final_attrs = self.build_attrs(attrs, name=name)
         output = []
         # Normalize to strings
-        str_values = set([force_unicode(v) for v in value])
+        str_values = set([force_text(v) for v in value])
         for i, (option_value, option_label) in enumerate(chain(self.choices, choices)):
             # If an ID attribute was given, add a numeric index as a suffix,
             # so that the checkboxes don't all have the same ID attribute.
@@ -503,9 +503,9 @@ class CheckboxSelectTerse(forms.CheckboxSelectMultiple):
                 label_for = ''
 
             cb = forms.CheckboxInput(final_attrs, check_test=lambda value: value in str_values)
-            option_value = force_unicode(option_value)
+            option_value = force_text(option_value)
             rendered_cb = cb.render(name, option_value)
-            option_label = conditional_escape(force_unicode(option_label))
+            option_label = conditional_escape(force_text(option_label))
             output.append('<label%s>%s %s</label>' % (label_for, rendered_cb, option_label))
         return mark_safe('\n'.join(output))
 

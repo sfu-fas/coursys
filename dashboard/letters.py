@@ -454,7 +454,7 @@ class MemoContents(LetterContents):
 
 
 
-class RAForm(object, SFUMediaMixin):
+class RAForm(SFUMediaMixin):
     MAIN_WIDTH = 8*inch # size of the main box
     ENTRY_FONT = "Helvetica-Bold"
     NOTE_STYLE = ParagraphStyle(name='Normal',

@@ -1,6 +1,6 @@
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_text
 import urllib.parse
 
 class QuickURLValidator(URLValidator):
@@ -14,7 +14,7 @@ class QuickURLValidator(URLValidator):
         except ValidationError as e:
             # Trivial case failed. Try for possible IDN domain
             if value:
-                value = smart_unicode(value)
+                value = smart_text(value)
                 scheme, netloc, path, query, fragment = urllib.parse.urlsplit(value)
                 try:
                     netloc = netloc.encode('idna') # IDN -> ACE
