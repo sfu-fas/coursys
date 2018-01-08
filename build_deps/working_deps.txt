@@ -1,8 +1,7 @@
-#Creoleparser==0.7.4  Replaced with version below that incorporates our fix for null headings
-git+git://github.com/garrison/creoleparser.git@78aab98896a05185997ca5da0859a8448fa35cc9
 Django==1.10.5
+#Creoleparser==0.7.4  Replaced with version below that incorporates our fix for null headings, and python3 support
+git+git://github.com/gregbaker/creoleparser.git@758cdf69b84c85b56c988df3712736ec5d271679
 Genshi==0.7
-#South==1.0.1
 Unidecode>=0.04.19
 #django-autoslug==1.9.4  -- Not released yet but our change will be in it.  In the mean time:
 git+git://github.com/neithere/django-autoslug.git@a16fd5e83063e533e709238522fe1321e24349e1
