@@ -595,7 +595,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         tas = TAContract.objects.filter(application__person=self.person).order_by('-posting__semester__name')
         ras = RAAppointment.objects.filter(person=self.person, deleted=False).order_by('-start_date')
-        schols = Scholarship.objects.filter(student=self).order_by('start_semester__name').select_related('start_semester')
+        schols = Scholarship.objects.filter(student=self, removed=False).order_by('start_semester__name').select_related('start_semester')
         if tas and ras:
             if tas[0].application.posting.semester.name > ras[0].start_semester().name:
                 recent_empl = 'teaching assistant'
