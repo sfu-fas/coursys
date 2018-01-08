@@ -12,7 +12,14 @@
 		<tbody>
 			{% for r in completed_req %}
 			<tr>
-				<td>{% if r.removed %}<del>{% endif %}{{r.requirement.description}} ({{r.requirement.program.label}}){% if r.removed %}</del>{% endif %}</td>
+				<td>{% if r.removed %}<del>{% endif %}{{r.requirement.description}} ({{r.requirement.program.label}})
+                        {% if r.notes %}
+                        <i class="fa fa-info-circle collapsiblecomment"></i>
+                        <p class="hiddencomment">
+                            {{r.notes}}
+                        </p>
+                    {% endif %}
+                    {% if r.removed %}</del>{% endif %}</td>
 				<td>{% if r.removed %}<del>{% endif %}{{r.semester.name}} ({{r.semester}}){% if r.removed %}</del>{% endif %}</td>
 				<td>{% if r.date %}{% if r.removed %}<del>{% endif %}{{r.date|date:GRAD_DATE_FORMAT}}{% if r.removed %}</del>{% endif %}{% endif %}</td>
 				{% if can_edit %}
