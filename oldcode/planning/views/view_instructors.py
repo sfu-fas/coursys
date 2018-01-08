@@ -1,5 +1,5 @@
 from planning.models import SemesterPlan, PlannedOffering, TeachingIntention, TeachingCapability
-from update_plan import update_plan
+from .update_plan import update_plan
 from courselib.auth import requires_role
 from coredata.models import Person
 from django.shortcuts import get_object_or_404

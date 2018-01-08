@@ -42,14 +42,14 @@ class SessionalAccount(models.Model):
 
     def autoslug(self):
         """As usual, create a unique slug for each object"""
-        return make_slug(self.unit.label + '-' + unicode(self.account_number) + '-' + unicode(self.title))
+        return make_slug(self.unit.label + '-' + str(self.account_number) + '-' + str(self.title))
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     hidden = models.BooleanField(null=False, default=False, editable=False)
     objects = SessionalAccountQuerySet.as_manager()
 
     def __unicode__(self):
-        return u"%s - %s" % (self.unit, self.title)
+        return "%s - %s" % (self.unit, self.title)
 
     def delete(self):
         """Like most of our objects, we don't want to ever really delete it."""
@@ -107,12 +107,12 @@ class SessionalContract(models.Model):
 
     def autoslug(self):
         """As usual, create a unique slug for each object"""
-        return make_slug(unicode(self.sessional) + "-" + unicode(self.offering))
+        return make_slug(str(self.sessional) + "-" + str(self.offering))
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     def __unicode__(self):
-        return u"%s - %s" % (unicode(self.sessional), unicode(self.offering))
+        return "%s - %s" % (str(self.sessional), str(self.offering))
 
     def delete(self):
         """Like most of our objects, we don't want to ever really delete it."""
@@ -145,7 +145,7 @@ class SessionalConfig(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     def __unicode__(self):
-        return u"%s - %s" % (self.unit.label, "default configuration for sessional contracts")
+        return "%s - %s" % (self.unit.label, "default configuration for sessional contracts")
 
     def delete(self):
         raise NotImplementedError("This object cannot be deleted")

@@ -48,7 +48,7 @@ class CourseHistoryByInstructorReport(Report):
             mt = [t for t in course.meeting_time.all() if t.meeting_type == 'LEC']
             if mt:
                 meeting_times = ', '.join(str("%s %s-%s" % (WEEKDAYS[t.weekday], t.start_time, t.end_time)) for t in mt)
-            grads = u"; ".join(unicode(Supervisor.objects.filter(supervisor__userid=p.userid, supervisor_type='SEN', removed=False).count()) for p in course.instructors())
-            ranks = u"; ".join(CareerEvent.ranks_as_of_semester(p.id, course.semester) for p in course.instructors())
+            grads = "; ".join(str(Supervisor.objects.filter(supervisor__userid=p.userid, supervisor_type='SEN', removed=False).count()) for p in course.instructors())
+            ranks = "; ".join(CareerEvent.ranks_as_of_semester(p.id, course.semester) for p in course.instructors())
             course_history.append_row([instr, ranks, unit, grads, semester, label, enrl, campus, joint, meeting_times, credits])
         self.artifacts.append(course_history)

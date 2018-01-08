@@ -14,7 +14,7 @@ from pages.forms import EditPageForm, EditFileForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import NotFoundResponse, ForbiddenResponse, HttpError
-from urlparse import urljoin
+from urllib.parse import urljoin
 import json, datetime
 
 
@@ -370,7 +370,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
                 label = request.GET['label']
                 if label == 'Index':
                     form.initial['title'] = offering.name()
-                    form.fields['label'].help_text += u'\u2014the label "Index" indicates the front page for this course.'
+                    form.fields['label'].help_text += '\u2014the label "Index" indicates the front page for this course.'
                 elif label == MACRO_LABEL:
                     form.initial['can_read'] = 'INST'
                     form.initial['can_write'] = 'INST'
@@ -435,30 +435,30 @@ def _pages_from_json(request, offering, data):
         try:
             data = data.decode('utf-8-sig')
         except UnicodeDecodeError:
-            raise ValidationError(u"Bad UTF-8 data in file.")
+            raise ValidationError("Bad UTF-8 data in file.")
             
         try:
             data = json.loads(data)
         except ValueError as e:
-            raise ValidationError(u'JSON decoding error.  Exception was: "' + str(e) + '"')
+            raise ValidationError('JSON decoding error.  Exception was: "' + str(e) + '"')
         
         if not isinstance(data, dict):
-            raise ValidationError(u'Outer JSON data structure must be an object.')
+            raise ValidationError('Outer JSON data structure must be an object.')
         if 'userid' not in data or 'token' not in data:
-            raise ValidationError(u'Outer JSON data object must contain keys "userid" and "token".')
+            raise ValidationError('Outer JSON data object must contain keys "userid" and "token".')
         if 'pages' not in data:
-            raise ValidationError(u'Outer JSON data object must contain keys "pages".')
+            raise ValidationError('Outer JSON data object must contain keys "pages".')
         if not isinstance(data['pages'], list):
-            raise ValidationError(u'Value for "pages" must be a list.')
+            raise ValidationError('Value for "pages" must be a list.')
         
         try:
             user = Person.objects.get(userid=data['userid'])
             member = Member.objects.exclude(role='DROP').get(person=user, offering=offering)
         except (Person.DoesNotExist, Member.DoesNotExist):
-            raise ValidationError(u'Person with that userid does not exist.')
+            raise ValidationError('Person with that userid does not exist.')
         
         if 'pages-token' not in user.config or user.config['pages-token'] != data['token']:
-            e = ValidationError(u'Could not validate authentication token.')
+            e = ValidationError('Could not validate authentication token.')
             e.status = 403
             raise e
         
@@ -466,9 +466,9 @@ def _pages_from_json(request, offering, data):
         
         for i, pdata in enumerate(data['pages']):
             if not isinstance(pdata, dict):
-                raise ValidationError(u'Page #%i entry structure must be an object.' % (i))
+                raise ValidationError('Page #%i entry structure must be an object.' % (i))
             if 'label' not in pdata:
-                raise ValidationError(u'Page #%i entry does not have a "label".' % (i))
+                raise ValidationError('Page #%i entry does not have a "label".' % (i))
             
             # handle changes to the Page object
             pages = Page.objects.filter(offering=offering, label=pdata['label'])
@@ -494,31 +494,31 @@ def _pages_from_json(request, offering, data):
             else:
                 m = _check_allowed(fake_request, offering, offering.page_creators())
             if not m:
-                raise ValidationError(u'You can\'t edit page #%i.' % (i))
+                raise ValidationError('You can\'t edit page #%i.' % (i))
             
             # handle Page attributes
             if 'can_read' in pdata:
-                if type(pdata['can_read']) != unicode or pdata['can_read'] not in ACL_DESC:
-                    raise ValidationError(u'Page #%i "can_read" value must be one of %s.'
-                                          % (i, ','.join(ACL_DESC.keys())))
+                if type(pdata['can_read']) != str or pdata['can_read'] not in ACL_DESC:
+                    raise ValidationError('Page #%i "can_read" value must be one of %s.'
+                                          % (i, ','.join(list(ACL_DESC.keys()))))
                 
                 page.can_read = pdata['can_read']
 
             if 'can_write' in pdata:
-                if type(pdata['can_write']) != unicode or pdata['can_write'] not in WRITE_ACL_DESC:
-                    raise ValidationError(u'Page #%i "can_write" value must be one of %s.'
-                                          % (i, ','.join(WRITE_ACL_DESC.keys())))
+                if type(pdata['can_write']) != str or pdata['can_write'] not in WRITE_ACL_DESC:
+                    raise ValidationError('Page #%i "can_write" value must be one of %s.'
+                                          % (i, ','.join(list(WRITE_ACL_DESC.keys()))))
                 if m.role == 'STUD':
-                    raise ValidationError(u'Page #%i: students can\'t change can_write value.' % (i))
+                    raise ValidationError('Page #%i: students can\'t change can_write value.' % (i))
                 page.can_write = pdata['can_write']
             
             if 'new_label' in pdata:
-                if type(pdata['new_label']) != unicode:
-                    raise ValidationError(u'Page #%i "new_label" value must be a string.' % (i))
+                if type(pdata['new_label']) != str:
+                    raise ValidationError('Page #%i "new_label" value must be a string.' % (i))
                 if m.role == 'STUD':
-                    raise ValidationError(u'Page #%i: students can\'t change label value.' % (i))
+                    raise ValidationError('Page #%i: students can\'t change label value.' % (i))
                 if Page.objects.filter(offering=offering, label=pdata['new_label']):
-                    raise ValidationError(u'Page #%i: there is already a page with that "new_label".' % (i))
+                    raise ValidationError('Page #%i: there is already a page with that "new_label".' % (i))
 
                 page.label = pdata['new_label']
 
@@ -528,51 +528,51 @@ def _pages_from_json(request, offering, data):
             ver = PageVersion(page=page, editor=member)
             
             if 'title' in pdata:
-                if type(pdata['title']) != unicode:
-                    raise ValidationError(u'Page #%i "title" value must be a string.' % (i))
+                if type(pdata['title']) != str:
+                    raise ValidationError('Page #%i "title" value must be a string.' % (i))
                 
                 ver.title = pdata['title']
             elif old_ver:
                 ver.title = old_ver.title
             else:
-                raise ValidationError(u'Page #%i has no "title" for new page.' % (i))
+                raise ValidationError('Page #%i has no "title" for new page.' % (i))
 
             if 'comment' in pdata:
-                if type(pdata['comment']) != unicode:
-                    raise ValidationError(u'Page #%i "comment" value must be a string.' % (i))
+                if type(pdata['comment']) != str:
+                    raise ValidationError('Page #%i "comment" value must be a string.' % (i))
                 
                 ver.comment = pdata['comment']
 
             if 'use_math' in pdata:
                 if type(pdata['use_math']) != bool:
-                    raise ValidationError(u'Page #%i "comment" value must be a boolean.' % (i))
+                    raise ValidationError('Page #%i "comment" value must be a boolean.' % (i))
 
                 ver.set_math(pdata['use_math'])
 
             if 'markup' in pdata:
-                if isinstance(pdata['markup'], basestring):
-                    raise ValidationError(u'Page #%i "markup" value must be a string.' % (i))
+                if isinstance(pdata['markup'], str):
+                    raise ValidationError('Page #%i "markup" value must be a string.' % (i))
 
                 ver.set_markup(pdata['markup'])
 
             if 'wikitext-base64' in pdata:
-                if type(pdata['wikitext-base64']) != unicode:
-                    raise ValidationError(u'Page #%i "wikitext-base64" value must be a string.' % (i))
+                if type(pdata['wikitext-base64']) != str:
+                    raise ValidationError('Page #%i "wikitext-base64" value must be a string.' % (i))
                 try:
                     wikitext = base64.b64decode(pdata['wikitext-base64'])
                 except TypeError:
-                    raise ValidationError(u'Page #%i "wikitext-base64" contains bad base BASE64 data.' % (i))
+                    raise ValidationError('Page #%i "wikitext-base64" contains bad base BASE64 data.' % (i))
                 
                 ver.wikitext = wikitext
             elif 'wikitext' in pdata:
-                if type(pdata['wikitext']) != unicode:
-                    raise ValidationError(u'Page #%i "wikitext" value must be a string.' % (i))
+                if type(pdata['wikitext']) != str:
+                    raise ValidationError('Page #%i "wikitext" value must be a string.' % (i))
                 
                 ver.wikitext = pdata['wikitext']
             elif old_ver:
                 ver.wikitext = old_ver.wikitext
             else:
-                raise ValidationError(u'Page #%i has no wikitext for new page.' % (i))
+                raise ValidationError('Page #%i has no wikitext for new page.' % (i))
             
             ver.save()
         

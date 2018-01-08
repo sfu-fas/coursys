@@ -1,5 +1,5 @@
 from planning.models import TeachingCapability, Course
-from edit_capability import edit_capability
+from .edit_capability import edit_capability
 from courselib.auth import requires_instructor
 from coredata.models import Person
 from django.http import  HttpResponseRedirect

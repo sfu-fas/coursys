@@ -17,7 +17,7 @@ def manage_requirements(request, grad_slug):
     completed_gradreq_id = [cr.requirement_id for cr in completed_req if cr.removed==False]
     req = GradRequirement.objects.filter(program=grad.program, hidden=False)
     missing_req = req.exclude(id__in=completed_gradreq_id)
-    req_choices = [(u'', u'\u2014')] + [(r.id, r.description) for r in missing_req]
+    req_choices = [('', '\u2014')] + [(r.id, r.description) for r in missing_req]
     
     if request.method == 'POST':
         form = CompletedRequirementForm(request.POST)

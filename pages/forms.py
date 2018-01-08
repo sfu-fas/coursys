@@ -2,7 +2,7 @@ from django import forms
 from django.db import transaction
 from pages.models import Page, PageVersion, READ_ACL_CHOICES, WRITE_ACL_CHOICES
 from courselib.markup import MarkupContentField, MarkupContentMixin
-import urllib2, urlparse
+import urllib.request, urllib.error, urllib.parse, urllib.parse
 
 
 class WikiField(forms.CharField):

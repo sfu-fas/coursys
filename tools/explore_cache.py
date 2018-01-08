@@ -36,8 +36,8 @@ for slab in slabs:
 
 keys = list(keys)
 for i,k in enumerate(keys):
-    print i,k
+    print(i,k)
 
-n = int(raw_input("Key: "))
-print ">>>", keys[n]
-print mc.get(keys[n])
+n = int(input("Key: "))
+print(">>>", keys[n])
+print(mc.get(keys[n]))

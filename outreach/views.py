@@ -27,7 +27,7 @@ def new_event(request):
             event = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Event was created')
+                                 'Event was created')
             l = LogEntry(userid=request.user.username,
                          description="Added event %s" % event,
                          related_object=event)
@@ -54,7 +54,7 @@ def edit_event(request, event_slug):
             event = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Event was saved')
+                                 'Event was saved')
             l = LogEntry(userid=request.user.username,
                          description="Edited event %s" % event,
                          related_object=event)
@@ -97,7 +97,7 @@ def register(request, event_slug):
             registration.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Successfully registered')
+                                 'Successfully registered')
             l = LogEntry(userid='',
                          description="Registered %s for event %s" % (registration.fullname(), registration.event.title),
                          related_object=registration
@@ -150,7 +150,7 @@ def edit_registration(request, registration_id, event_slug=None):
             registration.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Registration was edited')
+                                 'Registration was edited')
             l = LogEntry(userid=request.user.username,
                          description="Edited registration for %s" % registration,
                          related_object=registration)

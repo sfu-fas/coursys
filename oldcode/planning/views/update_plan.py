@@ -72,8 +72,8 @@ def update_plan(request, semester, plan_slug):
 
     planned_offerings_list = PlannedOffering.objects.filter(plan=plan)
     meeting_time_list = [(MeetingTime.objects.filter(offering=p)) for p in planned_offerings_list]
-    offerings_list = zip(planned_offerings_list, meeting_time_list)
+    offerings_list = list(zip(planned_offerings_list, meeting_time_list))
 
     return render(request, "planning/update_plan.html",
-        {'form': form, 'formset': formset, 'plan': plan, 'offerings_list': offerings_list, 'range': range(7)},
+        {'form': form, 'formset': formset, 'plan': plan, 'offerings_list': offerings_list, 'range': list(range(7))},
         context_instance=RequestContext(request))

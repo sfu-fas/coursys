@@ -8,7 +8,7 @@ from django.db.models import Q
 from coredata.models import Role, CourseOffering, Member, Semester
 from onlineforms.models import FormGroup, Form
 from privacy.models import needs_privacy_signature, privacy_redirect
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import datetime
 
 try:
@@ -59,7 +59,7 @@ def HttpError(request, status=404, title="Not Found", error="The requested resou
 def ForbiddenResponse(request, errormsg=None):
     error = mark_safe("You do not have permission to access this resource.")
     if not request.user.is_authenticated():
-        login_url = settings.LOGIN_URL + '?' + urllib.urlencode({'next': request.get_full_path()})
+        login_url = settings.LOGIN_URL + '?' + urllib.parse.urlencode({'next': request.get_full_path()})
         error += mark_safe(' You are <strong>not logged in</strong>, so maybe <a href="%s">logging in</a> would help.' % (login_url))
     return HttpError(request, status=403, title="Forbidden", error=error, errormsg=errormsg)
 

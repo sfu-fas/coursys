@@ -21,7 +21,7 @@ from log.models import LogEntry
 from onlineforms.models import FormSubmission
 import datetime
 import json
-import rest
+from . import rest
 from timeit import itertools
 import unicodecsv as csv
 
@@ -82,7 +82,7 @@ def sims_search(request):
             try:
                 data = find_person(emplid)
             except SIMSProblem as e:
-                data = {'error': unicode(e)}
+                data = {'error': str(e)}
         except ValueError:
             # not an integer, so not an emplid to search for
             data = None
@@ -108,10 +108,10 @@ def sims_add_person(request):
             if isinstance(p, Person):
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                       description=(u"added %s (%s) from SIMS") % (p.name(), p.emplid),
+                       description=("added %s (%s) from SIMS") % (p.name(), p.emplid),
                       related_object=p)
                 l.save()
-                messages.add_message(request, messages.SUCCESS, u'Record for %s created.' % (p.name()))
+                messages.add_message(request, messages.SUCCESS, 'Record for %s created.' % (p.name()))
                 return _redirect_to_notes(p)
 
     return HttpResponseRedirect(reverse('advising:advising', kwargs={}))
@@ -144,7 +144,7 @@ def new_note(request, userid):
         student = Person.objects.get(find_userid_or_emplid(userid))
     except Person.DoesNotExist:
         student = get_object_or_404(NonStudent, slug=userid)
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, str(u)) for u in request.units]
 
     if request.method == 'POST':
         form = advisor_note_factory(student, request.POST, request.FILES)
@@ -168,7 +168,7 @@ def new_note(request, userid):
             note.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=(u"new note for %s by %s") % (form.instance.student, request.user.username),
+                  description=("new note for %s by %s") % (form.instance.student, request.user.username),
                   related_object=form.instance)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Note created.')
@@ -183,7 +183,7 @@ def new_note(request, userid):
 @requires_role('ADVS')
 @transaction.atomic
 def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact_slug=None):
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, str(u)) for u in request.units]
     related = course = offering = artifact = None
 
     if unit_course_slug != None:
@@ -215,10 +215,10 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=(u"new note for %s by %s") % (related, request.user.username),
+                  description=("new note for %s by %s") % (related, request.user.username),
                   related_object=form.instance)
             l.save()
-            messages.add_message(request, messages.SUCCESS, u'Note for %s created.' % related)
+            messages.add_message(request, messages.SUCCESS, 'Note for %s created.' % related)
 
             if course:
                 return HttpResponseRedirect(reverse('advising:view_course_notes', kwargs={'unit_course_slug': course.slug}))
@@ -258,10 +258,10 @@ def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=(u"edit note for %s by %s") % (related, request.user.username),
+                  description=("edit note for %s by %s") % (related, request.user.username),
                   related_object=form.instance)
             l.save()
-            messages.add_message(request, messages.SUCCESS, u'Note for %s edited.' % related)
+            messages.add_message(request, messages.SUCCESS, 'Note for %s edited.' % related)
 
             if course:
                 return HttpResponseRedirect(reverse('advising:view_course_notes', kwargs={'unit_course_slug': course.slug}))
@@ -350,7 +350,7 @@ def student_more_info(request, userid):
     try:
         data = more_personal_info(student.emplid)
     except SIMSProblem as e:
-        data = {'error': unicode(e)}
+        data = {'error': str(e)}
 
     response = HttpResponse(content_type='application/json')
     json.dump(data, response)
@@ -378,7 +378,7 @@ def student_courses_data(request, userid):
     try:
         data = course_data(student.emplid)
     except SIMSProblem as e:
-        data = {'error': unicode(e)}
+        data = {'error': str(e)}
 
     #data = {'error': 'Feature temporarily disabled.'} # disable while privacy concerns are worked out
     response = HttpResponse(content_type='application/json;charset=utf-8')
@@ -392,7 +392,7 @@ def student_courses_download(request, userid):
     try:
         data = classes_data(student.emplid)
     except SIMSProblem as e:
-        data = {'error': unicode(e)}
+        data = {'error': str(e)}
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s-%s-courses.csv"' % (userid,
@@ -426,7 +426,7 @@ def student_transfers_data(request, userid):
     try:
         data = transfer_data(student.emplid)
     except SIMSProblem as e:
-        data = {'error': unicode(e)}
+        data = {'error': str(e)}
 
     response = HttpResponse(content_type='application/json;charset=utf-8')
     json.dump(data, response, encoding='utf-8', indent=1)
@@ -453,7 +453,7 @@ def student_transfers_download(request, userid):
     try:
         data = transfer_data(student.emplid)
     except SIMSProblem as e:
-        data = {'error': unicode(e)}
+        data = {'error': str(e)}
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s-%s-transfers.csv"' % (userid,
@@ -503,7 +503,7 @@ def record_advisor_visit(request, userid, unit_slug):
     av = AdvisorVisit(student=student, nonstudent=nonstudent, program=None, advisor=advisor, unit=unit)
     av.save()
 
-    messages.add_message(request, messages.SUCCESS, u'%s advisor visit recorded on %s.' % (unit.informal_name(), datetime.date.today()))
+    messages.add_message(request, messages.SUCCESS, '%s advisor visit recorded on %s.' % (unit.informal_name(), datetime.date.today()))
     return HttpResponseRedirect(reverse('advising:student_notes', kwargs={'userid': userid}))
 
 
@@ -520,7 +520,7 @@ def new_nonstudent(request):
     """
     View to create a new non-student
     """
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, str(u)) for u in request.units]
     if request.POST:
         form = NonStudentForm(request.POST)
         form.fields['unit'].choices = unit_choices
@@ -539,7 +539,7 @@ def new_artifact(request):
     """
     View to create a new artifact
     """
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, str(u)) for u in request.units]
     if request.POST:
         form = ArtifactForm(request.POST)
         form.fields['unit'].choices = unit_choices
@@ -548,10 +548,10 @@ def new_artifact(request):
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=(u"new artifact %s by %s") % (artifact, request.user.username),
+                  description=("new artifact %s by %s") % (artifact, request.user.username),
                   related_object=form.instance)
             l.save()
-            messages.add_message(request, messages.SUCCESS, u'Artifact "%s" created.' % artifact)
+            messages.add_message(request, messages.SUCCESS, 'Artifact "%s" created.' % artifact)
             return HttpResponseRedirect(reverse('advising:view_artifacts', kwargs={}))
     else:
         form = ArtifactForm()
@@ -566,7 +566,7 @@ def edit_artifact(request, artifact_slug):
     View to edit a new artifact
     """
     artifact = get_object_or_404(Artifact, slug=artifact_slug)
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, str(u)) for u in request.units]
     if request.POST:
         form = ArtifactForm(request.POST, instance=artifact)
         form.fields['unit'].choices = unit_choices
@@ -575,10 +575,10 @@ def edit_artifact(request, artifact_slug):
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=(u"edited artifact %s by %s") % (artifact, request.user.username),
+                  description=("edited artifact %s by %s") % (artifact, request.user.username),
                   related_object=form.instance)
             l.save()
-            messages.add_message(request, messages.SUCCESS, u'Artifact "%s" edited.' % artifact)
+            messages.add_message(request, messages.SUCCESS, 'Artifact "%s" edited.' % artifact)
             return HttpResponseRedirect(reverse('advising:view_artifacts', kwargs={}))
     else:
         form = ArtifactForm(instance=artifact)
@@ -688,7 +688,7 @@ def course_more_info(request, unit_course_slug):
         if not data:
             data = {'error': 'Could not find course to fetch more info.'}
     except SIMSProblem as e:
-        data = {'error': unicode(e)}
+        data = {'error': str(e)}
 
     response = HttpResponse(content_type='application/json')
     json.dump(data, response)
@@ -795,7 +795,7 @@ def merge_nonstudent(request, nonstudent_slug):
             nonstudent.delete()
             student.save()
             l = LogEntry(userid=request.user.username,
-                  description=(u"Nonstudent (%s, %s) has been merged with emplid #%s by %s") % (nonstudent.last_name, nonstudent.first_name, student.emplid, request.user),
+                  description=("Nonstudent (%s, %s) has been merged with emplid #%s by %s") % (nonstudent.last_name, nonstudent.first_name, student.emplid, request.user),
                   related_object=student)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Advisor notes successfully merged.')

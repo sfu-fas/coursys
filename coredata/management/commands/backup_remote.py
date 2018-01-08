@@ -99,25 +99,25 @@ class Command(BaseCommand):
 
         if options['ssh_command']:
             # command to SSH to the backup server, for testing
-            print(_shell(['ssh', ssh_dest()]))
+            print((_shell(['ssh', ssh_dest()])))
             return
 
         if options['backup_commands']:
             # duplicity commands to create an incremental backup
             for cmd in backup_commands(method=method):
-                print('PASSPHRASE=%s ' % (pipes.quote(passphrase)) + _shell(cmd))
+                print(('PASSPHRASE=%s ' % (pipes.quote(passphrase)) + _shell(cmd)))
             return
 
         if options['retrieve_commands']:
             # duplicity commands to retrieve the backup files
             for cmd in retrieve_commands():
-                print('PASSPHRASE=%s ' % (pipes.quote(passphrase)) + _shell(cmd))
+                print(('PASSPHRASE=%s ' % (pipes.quote(passphrase)) + _shell(cmd)))
             return
 
         if options['cleanup_commands']:
             # duplicity commands to clean out old full backups
             for cmd in clean_commands():
-                print(' '.join(map(pipes.quote, cmd)))
+                print((' '.join(map(pipes.quote, cmd))))
             return
 
         # do the backup

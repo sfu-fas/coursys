@@ -77,7 +77,7 @@ class Visa (models.Model):
         return "Unknown"  # We'll hit this if the end_date is null.
 
     def __unicode__(self):
-        return u"%s, %s, %s" % (self.person, self.status, self.start_date)
+        return "%s, %s, %s" % (self.person, self.status, self.start_date)
 
     def hide(self):
         self.hidden = True
@@ -100,9 +100,9 @@ class Visa (models.Model):
             visatype = d[5]
             if country == 'CAN':
                 # Canadian citizen and be done with it.
-                print emplid, 'Citizen'
+                print(emplid, 'Citizen')
             elif visatype:
-                print emplid, visas.get(visatype, None)
+                print(emplid, visas.get(visatype, None))
 
     @staticmethod
     def get_visas(people):

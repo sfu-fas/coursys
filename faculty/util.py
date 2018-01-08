@@ -31,7 +31,7 @@ class ReportingSemester(object):
     """
 
     def __init__(self, data):
-        if isinstance(data, (str, unicode)):
+        if isinstance(data, str):
             # It's a semester code!
             self.code = data
         elif isinstance(data, datetime.date):
@@ -57,9 +57,9 @@ class ReportingSemester(object):
         return repr("<ReportingSemester('{}')>".format(self.code))
 
     def __unicode__(self):
-        return unicode(self.full_label)
+        return str(self.full_label)
 
-    def next(self):
+    def __next__(self):
         """Returns the next chronological semester."""
         new_month = ((self.start_date.month - 1) + 4) % 12 + 1
 
@@ -95,7 +95,7 @@ class ReportingSemester(object):
 
         while current <= end:
             yield current
-            current = current.next()
+            current = next(current)
 
     @staticmethod
     def make_full_label(code):

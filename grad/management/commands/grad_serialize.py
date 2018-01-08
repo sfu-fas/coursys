@@ -62,6 +62,6 @@ class Command(BaseCommand):
             objs.extend(Role.objects.filter(person__userid='ggbaker', unit=unit))
 
         data = serializers.serialize("json", objs, sort_keys=True, indent=1)
-        print data
+        print(data)
 
 

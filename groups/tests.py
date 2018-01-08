@@ -146,17 +146,17 @@ class GroupTest(TestCase):
         # submit group create
         url = reverse('offering:groups:submit', kwargs={'course_slug': c.slug})
         response = client.post(url, {"GroupName": "Test Group", "a1-selected": True, "a2-selected": False})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         
         gs =  Group.objects.filter(courseoffering=c)
-        self.assertEquals(len(gs), 1)
-        self.assertEquals(gs[0].name, "Test Group")
-        self.assertEquals(gs[0].manager.person.userid, userid1)
+        self.assertEqual(len(gs), 1)
+        self.assertEqual(gs[0].name, "Test Group")
+        self.assertEqual(gs[0].manager.person.userid, userid1)
 
         gms = GroupMember.objects.filter(group__courseoffering=c)
-        self.assertEquals(len(gms), 1)
-        self.assertEquals(gms[0].student.person.userid, userid1)
-        self.assertEquals(gms[0].confirmed, True)
+        self.assertEqual(len(gms), 1)
+        self.assertEqual(gms[0].student.person.userid, userid1)
+        self.assertEqual(gms[0].confirmed, True)
         
         # member invite form
         url = reverse('offering:groups:invite', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
@@ -165,11 +165,11 @@ class GroupTest(TestCase):
         # submit invite form: invite userid2 and userid3
         response = client.post(url, {"name": userid2})
         response = client.post(url, {"name": userid3})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         gms = GroupMember.objects.filter(group__courseoffering=c, student__person__userid__in=[userid2,userid3])
-        self.assertEquals(len(gms), 2)
-        self.assertEquals(gms[0].confirmed, False)
-        self.assertEquals(gms[1].confirmed, False)
+        self.assertEqual(len(gms), 2)
+        self.assertEqual(gms[0].confirmed, False)
+        self.assertEqual(gms[1].confirmed, False)
         
         # log in as userid2 and confirm
         client.login_user(userid2)
@@ -180,20 +180,20 @@ class GroupTest(TestCase):
         
         url = reverse('offering:groups:join', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
         response = client.post(url)
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         
         gms = GroupMember.objects.filter(group__courseoffering=c, student__person__userid=userid2)
-        self.assertEquals(len(gms), 1)
-        self.assertEquals(gms[0].confirmed, True)
+        self.assertEqual(len(gms), 1)
+        self.assertEqual(gms[0].confirmed, True)
         
         # log in as userid3 and reject
         client.login_user(userid3)
         url = reverse('offering:groups:reject', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
         response = client.post(url)
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         
         gms = GroupMember.objects.filter(group__courseoffering=c, student__person__userid=userid3)
-        self.assertEquals(len(gms), 0)
+        self.assertEqual(len(gms), 0)
 
         # inviting userid4 shouldn't work if already in a group
         m = Member.objects.get(person__userid=userid4, offering=c)
@@ -249,18 +249,18 @@ class GroupTest(TestCase):
         url = reverse('offering:groups:submit', kwargs={'course_slug': c.slug})
         response = client.post(url, {"GroupName": "Test Group", "a1-selected": True, "a2-selected": False, 
                 '0aaa6-selected': False, '0aaa0-selected': True, '0aaa1-selected': True})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
 
         gs =  Group.objects.filter(courseoffering=c)
-        self.assertEquals(len(gs), 1)
-        self.assertEquals(gs[0].name, "Test Group")
-        self.assertEquals(gs[0].slug, "g-test-group")
+        self.assertEqual(len(gs), 1)
+        self.assertEqual(gs[0].name, "Test Group")
+        self.assertEqual(gs[0].slug, "g-test-group")
 
         gms = GroupMember.objects.filter(group__courseoffering=c, group=gs[0])
-        self.assertEquals(len(gms), 2)
-        self.assertEquals(gms[0].confirmed, True)
-        self.assertEquals(gms[1].confirmed, True)
-        self.assertEquals(set(gm.student.person.userid for gm in gms), set([userid2,userid3]))
+        self.assertEqual(len(gms), 2)
+        self.assertEqual(gms[0].confirmed, True)
+        self.assertEqual(gms[1].confirmed, True)
+        self.assertEqual(set(gm.student.person.userid for gm in gms), set([userid2,userid3]))
         
         # check group management screen again
         url = reverse('offering:groups:groupmanage', kwargs={'course_slug': c.slug})
@@ -273,13 +273,13 @@ class GroupTest(TestCase):
         # submit add membership
         response = client.post(url, {"a1-selected": True, "a2-selected": True, 
                 '0aaa6-selected': False, '0aaa0-selected': False, '0aaa1-selected': True})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         # both still in for A1
         gms = GroupMember.objects.filter(group__courseoffering=c, group=gs[0], activity__slug="a1")
-        self.assertEquals(set(gm.student.person.userid for gm in gms), set([userid2,userid3]))
+        self.assertEqual(set(gm.student.person.userid for gm in gms), set([userid2,userid3]))
         # 0aaa1 added for A2
         gms = GroupMember.objects.filter(group__courseoffering=c, group=gs[0], activity__slug="a2")
-        self.assertEquals(set(gm.student.person.userid for gm in gms), set([userid3]))
+        self.assertEqual(set(gm.student.person.userid for gm in gms), set([userid3]))
         
         # remove member form
         url = reverse('offering:groups:remove_student', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
@@ -287,13 +287,13 @@ class GroupTest(TestCase):
         
         # submit remove member
         response = client.post(url, {'0aaa6_a1-selected': True, '0aaa0_a1-selected': False, '0aaa1_a1-selected': True})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         # 0aaa1 gone for A1
         gms = GroupMember.objects.filter(group__courseoffering=c, group=gs[0], activity__slug="a1")
-        self.assertEquals(set(gm.student.person.userid for gm in gms), set([userid2]))
+        self.assertEqual(set(gm.student.person.userid for gm in gms), set([userid2]))
         # 0aaa1 still there for A2
         gms = GroupMember.objects.filter(group__courseoffering=c, group=gs[0], activity__slug="a2")
-        self.assertEquals(set(gm.student.person.userid for gm in gms), set([userid3]))
+        self.assertEqual(set(gm.student.person.userid for gm in gms), set([userid3]))
 
         # rename group form
         url = reverse('offering:groups:change_name', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
@@ -301,10 +301,10 @@ class GroupTest(TestCase):
         
         # submit change name
         response = client.post(url, {'name': 'otherName'})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         g = Group.objects.get(courseoffering=c)
-        self.assertEquals(g.name, 'otherName')
-        self.assertEquals(g.slug, 'g-test-group')
+        self.assertEqual(g.name, 'otherName')
+        self.assertEqual(g.slug, 'g-test-group')
 
         # recheck basic view with more data        
         url = reverse('offering:groups:groupmanage', kwargs={'course_slug': c.slug})

@@ -20,7 +20,7 @@
 #   ./manage.py rebuild_index
 
 import string, socket, random
-from importer import create_semesters, import_offering_members, import_offerings
+from .importer import create_semesters, import_offering_members, import_offerings
 from coredata.models import Member, Person, CourseOffering, Semester, SemesterWeek, Unit, Role, CAMPUSES
 from courselib.testing import create_fake_semester
 import datetime, itertools
@@ -106,9 +106,9 @@ def fill_courses():
         m.save()
 
 def create_classes():
-    print "creating fake students"
+    print("creating fake students")
     create_fake_students()
-    print "filling classes with students"
+    print("filling classes with students")
     fill_courses()
 
 
@@ -314,7 +314,7 @@ def create_more_data():
                   "text": "{{FNAME}} copied the work of another student on {{ACTIVITIES}} without his/her knowledge.  Both students submitted the work as their own."},
                  {"field": "meeting_summary",
                   "label": "admitted",
-                  "text": u"The student admitted academic dishonesty as described below in \u201cfacts of the case\u201d."},
+                  "text": "The student admitted academic dishonesty as described below in \u201cfacts of the case\u201d."},
                  {"field": "meeting_summary",
                   "label": "quote email",
                   "text": "The student explained the situation in his/her email:\r\n\r\nbq. PASTE QUOTE HERE"},
@@ -601,7 +601,7 @@ def create_more_data():
                   "text": "{{FNAME}} copied the work of another student on {{ACTIVITIES}} without his/her knowledge.  Both students submitted the work as their own."},
                  {"field": "meeting_summary",
                   "label": "admitted",
-                  "text": u"The student admitted academic dishonesty as described below in \u201cfacts of the case\u201d."},
+                  "text": "The student admitted academic dishonesty as described below in \u201cfacts of the case\u201d."},
                  {"field": "meeting_summary",
                   "label": "quote email",
                   "text": "The student explained the situation in his/her email:\r\n\r\nbq. PASTE QUOTE HERE"},
@@ -711,12 +711,12 @@ def realdata_import():
         create_fake_semester(strm)
     Unit.objects.get_or_create(label='UNIV', name='Simon Fraser University')
 
-    print "importing course offerings"
+    print("importing course offerings")
     offerings = import_offerings(import_semesters=import_semesters, create_units=True) # extra_where="ct.subject='CMPT' or ct.subject='ENSC'"
     offerings = list(offerings)
     offerings.sort()
 
-    print "importing course members"
+    print("importing course members")
     for o in offerings:
         import_offering_members(o, students=False)
     
@@ -724,11 +724,11 @@ def realdata_import():
     fake_emplids()
 
 def fakestudent_import():
-    print "creating fake classes"
+    print("creating fake classes")
     create_classes()
 
 def fakedata_import():
-    print "creating other data"
+    print("creating other data")
     create_others()
     create_grads()
     create_grad_templ()
@@ -737,7 +737,7 @@ def fakedata_import():
     create_ta_data()
     create_ra_data()
 
-    print "giving sysadmin permissions"
+    print("giving sysadmin permissions")
     p=Person(userid='sysa', first_name='System', last_name='Admin', emplid='000054312')
     p.save()
     Role.objects.get_or_create(person=p, role='SYSA', unit=Unit.objects.get(slug='univ'))
@@ -751,5 +751,5 @@ def main():
 if __name__ == "__main__":
     hostname = socket.gethostname()
     if hostname == 'courses':
-        raise NotImplementedError, "Don't do that."
+        raise NotImplementedError("Don't do that.")
     main()

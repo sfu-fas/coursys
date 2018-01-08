@@ -42,7 +42,7 @@ class APIConsumerPermissions(permissions.BasePermission):
             return set(required_permissions) <= set(allowed_perms)
 
         else:
-            raise ValueError, "Unknown authentication method."
+            raise ValueError("Unknown authentication method.")
 
 
 class IsOfferingMember(permissions.BasePermission):
@@ -175,7 +175,7 @@ class CacheMixin(object):
             'data': response.data,
             'status': response.status_code,
             'template_name': response.template_name,
-            'headers': dict(response._headers.values()),
+            'headers': dict(list(response._headers.values())),
             'exception': response.exception,
             'content_type': response.content_type,
         }

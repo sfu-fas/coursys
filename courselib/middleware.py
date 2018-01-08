@@ -41,7 +41,7 @@ class ExceptionIgnorer(MiddlewareMixin):
         import traceback
         exc_info = sys.exc_info()
         format = traceback.format_exc(exc_info[2])
-        message = unicode(exception)
+        message = str(exception)
         if (isinstance(exception, IOError) and '_verify(ticket, service)' in format
             and ('Connection reset by peer' in message
                  or 'Name or service not known' in message

@@ -255,7 +255,7 @@ class CareerEvent(models.Model):
         unique_together = (("person", "slug"),)
 
     def __unicode__(self):
-        return u"%s from %s to %s" % (self.get_event_type_display(), self.start_date, self.end_date)
+        return "%s from %s to %s" % (self.get_event_type_display(), self.start_date, self.end_date)
 
     def save(self, editor, call_from_handler=False, *args, **kwargs):
         # we're doing to so we can add an audit trail later.
@@ -274,7 +274,7 @@ class CareerEvent(models.Model):
 
     @property
     def slug_string(self):
-        return u'{} {}'.format(self.start_date.year, self.get_event_type_display())
+        return '{} {}'.format(self.start_date.year, self.get_event_type_display())
 
     def handler_type_name(self):
         return self.get_handler().NAME
@@ -415,7 +415,7 @@ class CareerEvent(models.Model):
         config_data = copy.deepcopy(self.config)
         for key in config_data:
             try:
-                config_data[key] = unicode(handler.get_display(key))
+                config_data[key] = str(handler.get_display(key))
             except AttributeError:
                 pass
 
@@ -440,7 +440,7 @@ class CareerEvent(models.Model):
                 'current_base_salary': CareerEvent.current_base_salary(self.person),
                 'current_market_diff': CareerEvent.current_market_diff(self.person),
               }
-        ls = dict(ls.items() + config_data.items())
+        ls = dict(list(ls.items()) + list(config_data.items()))
         return ls
 
     def has_memos(self):
@@ -521,7 +521,7 @@ class MemoTemplate(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     def __unicode__(self):
-        return u"%s in %s" % (self.label, self.unit)
+        return "%s in %s" % (self.label, self.unit)
 
     class Meta:
         unique_together = ('unit', 'label')
@@ -577,7 +577,7 @@ class Memo(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=('career_event',))
 
     def __unicode__(self):
-        return u"%s memo for %s" % (self.subject, self.career_event)
+        return "%s memo for %s" % (self.subject, self.career_event)
 
     def hide(self):
         self.hidden = True
@@ -650,21 +650,21 @@ class TempGrantManager(models.Manager):
         created = []
         for row in reader:
             try:
-                fund = unicode(row[0].strip(), errors='ignore')
+                fund = str(row[0].strip(), errors='ignore')
             except IndexError:
                 continue
             if re.match('[0-9]{2} ?-? ?[0-9]{6}$', fund):
                 try:
-                    label = unicode(row[1].strip(), errors='ignore')
+                    label = str(row[1].strip(), errors='ignore')
                 except IndexError:
                     failed.append(row)
                     continue
                 try:
                     # Grab things from the CSV
-                    balance = Decimal(unicode(row[4].strip(), errors='ignore'))
-                    cur_month = Decimal(unicode(row[5].strip(), errors='ignore'))
-                    ytd_actual = Decimal(unicode(row[6].strip(), errors='ignore'))
-                    cur_balance = Decimal(unicode(row[8].strip(), errors='ignore'))
+                    balance = Decimal(str(row[4].strip(), errors='ignore'))
+                    cur_month = Decimal(str(row[5].strip(), errors='ignore'))
+                    ytd_actual = Decimal(str(row[6].strip(), errors='ignore'))
+                    cur_balance = Decimal(str(row[8].strip(), errors='ignore'))
                 except (IndexError, InvalidOperation):
                     failed.append(row)
                     continue
@@ -757,7 +757,7 @@ class Grant(models.Model):
         ordering = ['title']
 
     def __unicode__(self):
-        return u"%s" % self.title
+        return "%s" % self.title
 
     def get_absolute_url(self):
         return reverse("faculty:view_grant", kwargs={'unit_slug': self.unit.slug, 'grant_slug': self.slug})
@@ -806,7 +806,7 @@ class GrantBalance(models.Model):
     config = JSONField(blank=True, null=True, default={})  # addition configuration within the memo
 
     def __unicode__(self):
-        return u"%s balance as of %s" % (self.grant, self.date)
+        return "%s balance as of %s" % (self.grant, self.date)
 
     class Meta:
         ordering = ['date']
@@ -825,7 +825,7 @@ class FacultyMemberInfo(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'<FacultyMemberInfo({})>'.format(self.person)
+        return '<FacultyMemberInfo({})>'.format(self.person)
 
     def get_absolute_url(self):
         return reverse('faculty:faculty_member_info',
@@ -897,7 +897,7 @@ class Position(models.Model):
         like when we populate the onboarding wizard with this value.
         """
         if 'teaching_load' in self.config and not self.config['teaching_load'] == 'None':
-            return unicode(Fraction(self.config['teaching_load']))
+            return str(Fraction(self.config['teaching_load']))
 
         else:
             return 0
@@ -907,8 +907,8 @@ class Position(models.Model):
         Called if you're purely going to display the value, as when displaying the contents of the position.
         """
         if 'teaching_load' in self.config and not self.config['teaching_load'] == 'None':
-            print self.config['teaching_load']
-            return unicode(Fraction(self.config['teaching_load'])*3)
+            print(self.config['teaching_load'])
+            return str(Fraction(self.config['teaching_load'])*3)
 
         else:
             return 0

@@ -27,7 +27,7 @@ class RadioSelectField(FieldBase):
         return self.RadioSelectConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = [(k, v) for k, v in self.config.items() if k.startswith("choice_") and self.config[k]]
         the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
 
         c = forms.ChoiceField(required=self.config['required'],
@@ -80,7 +80,7 @@ class DropdownSelectField(FieldBase):
         return config
 
     def get_choices(self):
-        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = [(k, v) for k, v in self.config.items() if k.startswith("choice_") and self.config[k]]
         the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
         return the_choices
 
@@ -97,7 +97,7 @@ class DropdownSelectField(FieldBase):
             c.initial=initial
 
         if not self.config['required']:
-            c.choices.insert(0, ('', u'\u2014'))
+            c.choices.insert(0, ('', '\u2014'))
 
         return c
 
@@ -165,7 +165,7 @@ class MultipleSelectField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
 
-        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = [(k, v) for k, v in self.config.items() if k.startswith("choice_") and self.config[k]]
         the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
 
         initial = []
@@ -191,7 +191,7 @@ class MultipleSelectField(FieldBase):
 
     def to_html(self, fieldsubmission=None):
 
-        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = [(k, v) for k, v in self.config.items() if k.startswith("choice_") and self.config[k]]
         the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
 
         initial = []
@@ -214,7 +214,7 @@ class MultipleSelectField(FieldBase):
 
     def to_text(self, fieldsubmission=None):
 
-        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = [(k, v) for k, v in self.config.items() if k.startswith("choice_") and self.config[k]]
         the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
 
         initial = []

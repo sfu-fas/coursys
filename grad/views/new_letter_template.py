@@ -30,7 +30,7 @@ def new_letter_template(request):
 
     page_title = 'New Letter Template'  
     crumb = 'New'
-    lt = sorted(LETTER_TAGS.iteritems()) 
+    lt = sorted(LETTER_TAGS.items()) 
     context = {
                'form': form,
                'page_title' : page_title,

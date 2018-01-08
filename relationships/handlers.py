@@ -18,7 +18,7 @@ class EventBase(object):
         # Figure out what fields are required by the Handler subclass
         self.CONFIG_FIELDS = collections.OrderedDict()
 
-        for name, field in self.EntryForm.base_fields.iteritems():
+        for name, field in self.EntryForm.base_fields.items():
             self.CONFIG_FIELDS[name] = field
 
     def to_html(self):
@@ -40,7 +40,7 @@ class EventBase(object):
         """
         Given a contact, create a new instance of the handler for them.
         """
-        from models import Event
+        from .models import Event
 
         event = Event(contact=contact, event_type=cls.event_type)
         ret = cls(event)
@@ -73,9 +73,9 @@ class EventBase(object):
         if value is None:
             raw_value = None
         elif isinstance(value, models.Model):
-            raw_value = unicode(value.pk)
+            raw_value = str(value.pk)
         else:
-            raw_value = unicode(field.prepare_value(value))
+            raw_value = str(field.prepare_value(value))
 
         self.event.config[name] = raw_value
 
@@ -116,7 +116,7 @@ class FileEventBase(EventBase):
 
     @classmethod
     def add_attachment(cls, event, filedata):
-        from models import EventAttachment
+        from .models import EventAttachment
         upfile = filedata['file']
         filetype = upfile.content_type
         if upfile.charset:

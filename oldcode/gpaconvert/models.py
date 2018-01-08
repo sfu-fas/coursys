@@ -111,7 +111,7 @@ class GradeSource(models.Model):
         return rules
 
     def all_discrete_grades_str(self):
-        return u', '.join(r.lookup_value for r in self.all_discrete_grades())
+        return ', '.join(r.lookup_value for r in self.all_discrete_grades())
 
 
 class Rule(models.Model):

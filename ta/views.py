@@ -33,7 +33,7 @@ import datetime, decimal, locale
 import unicodecsv as csv
 from ta.templatetags import ta_display
 import json
-import bu_rules
+from . import bu_rules
 
 locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' ) #fiddle with this if you cant get the following function to work
 def _format_currency(i):
@@ -54,13 +54,13 @@ def _create_news(person, url, from_user, accept_deadline):
             supervisor = supervisors[0].supervisor
             n = NewsItem(user=supervisor,
                          source_app="ta_contract",
-                         title=u"TA Contract Offer for %s" % person,
+                         title="TA Contract Offer for %s" % person,
                          author=from_user,
-                         content=u"Your student %s has been offered a TA contract." % person
+                         content="Your student %s has been offered a TA contract." % person
                          )
             n.save()
 
-    n = NewsItem(user=person, source_app="ta_contract", title=u"TA Contract Offer for %s" % (person),
+    n = NewsItem(user=person, source_app="ta_contract", title="TA Contract Offer for %s" % (person),
                  url=url, author=from_user, content="You have been offered a TA contract. You must log in and accept or reject it by %s."%(accept_deadline))
     n.save()
 
@@ -187,7 +187,7 @@ def view_tug(request, course_slug, userid):
         return ForbiddenResponse(request)
     else:
         tug = get_object_or_404(TUG, member=member)
-        iterable_fields = [(_, params) for _, params in tug.config.iteritems() if hasattr(params, '__iter__') ]
+        iterable_fields = [(_, params) for _, params in tug.config.items() if hasattr(params, '__iter__') ]
         total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in iterable_fields if params.get('total',0) is not None)
         total_hours = round(total_hours, 2)
 
@@ -330,7 +330,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
         else:
             return ForbiddenResponse(request)
 
-    course_choices = [(c.id, unicode(c) + " (" + c.title + ")") for c in posting.selectable_courses()]
+    course_choices = [(c.id, str(c) + " (" + c.title + ")") for c in posting.selectable_courses()]
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
     skills = Skill.objects.filter(posting=posting)    
     max_courses = posting.max_courses()
@@ -363,7 +363,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
 
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
         if not userid and existing_app.count() > 0: 
-            messages.success(request, u"You have already applied for the %s %s posting." % (posting.unit, posting.semester))
+            messages.success(request, "You have already applied for the %s %s posting." % (posting.unit, posting.semester))
             return HttpResponseRedirect(reverse('ta:view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
 
         if person.sin() != person.defaults['sin']:
@@ -377,13 +377,13 @@ def _new_application(request, post_slug, manual=False, userid=None):
                 person = get_object_or_404(Person, emplid=int(request.POST['search']))
             except ValueError:
                 search_form = StudentSearchForm(request.POST['search'])
-                messages.error(request, u"Invalid emplid %s for person." % (request.POST['search']))
+                messages.error(request, "Invalid emplid %s for person." % (request.POST['search']))
                 return HttpResponseRedirect(reverse('ta:new_application_manual', args=(post_slug,)))
             
             #Check to see if an application already exists for the person 
             existing_app = TAApplication.objects.filter(person=person, posting=posting)
             if existing_app.count() > 0: 
-                messages.success(request, u"%s has already applied for the %s %s posting." % (person, posting.unit, posting.semester))
+                messages.success(request, "%s has already applied for the %s %s posting." % (person, posting.unit, posting.semester))
                 return HttpResponseRedirect(reverse('ta:view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
         
         if editing:
@@ -1033,7 +1033,7 @@ def all_contracts(request, post_slug):
         ccount = 0
         from_user = posting.contact()
         for contract in contracts:
-            cname = u'contract_%s' % contract.id
+            cname = 'contract_%s' % contract.id
             if cname in request.POST:
                 app = contract.application.person
                 offer_url = reverse('ta:accept_contract', kwargs={'post_slug': post_slug, 'userid': app.userid})
@@ -1057,9 +1057,9 @@ def all_contracts(request, post_slug):
                     contract = contracts[0]
                     contract.status = 'SGN'
                     contract.save()
-                    messages.success(request, u"Contract for %s signed." % (contract.application.person.name()))
+                    messages.success(request, "Contract for %s signed." % (contract.application.person.name()))
                     l = LogEntry(userid=request.user.username,
-                        description=u"Set contract for %s to signed." % (contract.application.person.name()),
+                        description="Set contract for %s to signed." % (contract.application.person.name()),
                         related_object=contract)
                     l.save()
                 return HttpResponseRedirect(reverse('ta:all_contracts', kwargs={'post_slug': posting.slug}))
@@ -1200,7 +1200,7 @@ def accept_contract(request, post_slug, userid, preview=False):
             elif "accept" in request.POST:
                 contract.status = 'ACC'
             contract.save()
-            messages.success(request, u"Successfully %s the offer." % (contract.get_status_display()))
+            messages.success(request, "Successfully %s the offer." % (contract.get_status_display()))
             ##not sure where to redirect to...so currently redirects to itself
             return HttpResponseRedirect(reverse('ta:accept_contract', args=(post_slug,userid)))
     else:   
@@ -1320,7 +1320,7 @@ def edit_contract(request, post_slug, userid):
         ForbiddenResponse(request, 'You cannot access this page')
         
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
-    position_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit, hidden=False)]
+    position_choices = [(a.id, "%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit, hidden=False)]
     description_choices = [('', '---------')] + [(d.id, d.description + _lab_or_tutorial(d) ) 
                                 for d in CourseDescription.objects.filter(unit=posting.unit, hidden=False)]
     
@@ -1403,15 +1403,15 @@ def edit_contract(request, post_slug, userid):
                 contract.save()
 
                 if not editing:
-                    messages.success(request, u"Created TA Contract for %s for %s." % (contract.application.person, posting))
+                    messages.success(request, "Created TA Contract for %s for %s." % (contract.application.person, posting))
                 else:
-                    messages.success(request, u"Edited TA Contract for %s for %s." % (contract.application.person, posting))
+                    messages.success(request, "Edited TA Contract for %s for %s." % (contract.application.person, posting))
                 return HttpResponseRedirect(reverse('ta:all_contracts', args=(post_slug,)))
     else:
         form = TAContractForm(instance=contract) 
         formset = TACourseFormset(instance=contract)
         if not editing:
-            print "Not editing loop"
+            print("Not editing loop")
             initial={'sin': application.sin,
                      'appt_category': application.category,
                      'position_number': posting.accounts()[posting.cat_index(application.category)],
@@ -1451,17 +1451,17 @@ def _copy_posting_defaults(source, destination):
 
 @requires_role("TAAD")
 def edit_posting(request, post_slug=None):
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
-    account_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units, hidden=False).order_by('title')]
+    unit_choices = [(u.id, str(u)) for u in request.units]
+    account_choices = [(a.id, "%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units, hidden=False).order_by('title')]
 
     today = datetime.date.today()
     if post_slug:
-        semester_choices = [(s.id, unicode(s)) for s in Semester.objects.all().order_by('start')]
+        semester_choices = [(s.id, str(s)) for s in Semester.objects.all().order_by('start')]
     else:
-        semester_choices = [(s.id, unicode(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
+        semester_choices = [(s.id, str(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
     # TODO: display only relevant semester/unit offerings (with AJAX magic)
     offerings = CourseOffering.objects.filter(owner__in=request.units, semester__end__gte=datetime.date.today()).select_related('course')
-    excluded_choices = list(set(((u"%s (%s)" % (o.course,  o.title), o.course_id) for o in offerings)))
+    excluded_choices = list(set((("%s (%s)" % (o.course,  o.title), o.course_id) for o in offerings)))
     excluded_choices.sort()
     excluded_choices = [(cid,label) for label,cid in excluded_choices]
 
@@ -1518,13 +1518,13 @@ def edit_posting(request, post_slug=None):
             Skill.objects.filter(posting=form.instance).exclude(id__in=found_skills).delete()
             
             l = LogEntry(userid=request.user.username,
-                  description=u"Edited TAPosting for %s in %s." % (form.instance.unit, form.instance.semester),
+                  description="Edited TAPosting for %s in %s." % (form.instance.unit, form.instance.semester),
                   related_object=form.instance)
             l.save()
             if editing:
-                messages.success(request, u"Edited TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
+                messages.success(request, "Edited TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
             else:
-                messages.success(request, u"Created TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
+                messages.success(request, "Created TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
             return HttpResponseRedirect(reverse('ta:view_postings', kwargs={}))
     else:
         form = TAPostingForm(instance=posting)
@@ -1599,10 +1599,10 @@ def edit_bu(request, post_slug):
                 posting.save()
                 
                 l = LogEntry(userid=request.user.username,
-                  description=u"Edited BU defaults for %s, level %s." % (posting, level),
+                  description="Edited BU defaults for %s, level %s." % (posting, level),
                   related_object=posting)
                 l.save()
-                messages.success(request, u"Updated BU defaults for %s, %s-level." % (posting, level))
+                messages.success(request, "Updated BU defaults for %s, %s-level." % (posting, level))
     else:
         form = TAPostingBUForm()
 
@@ -1859,7 +1859,7 @@ def descriptions(request):
 
 @requires_role("TAAD")
 def new_description(request):
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, str(u)) for u in request.units]
     if request.method == 'POST':
         form = CourseDescriptionForm(request.POST)
         form.fields['unit'].choices = unit_choices
@@ -1870,7 +1870,7 @@ def new_description(request):
             
             messages.success(request, "Created course description '%s'." % (desc.description))
             l = LogEntry(userid=request.user.username,
-                  description=u"Created contract description '%s' in %s." % (desc.description, desc.unit.label),
+                  description="Created contract description '%s' in %s." % (desc.description, desc.unit.label),
                   related_object=desc)
             l.save()
             return HttpResponseRedirect(reverse('ta:descriptions', kwargs={}))
@@ -1891,7 +1891,7 @@ def edit_description(request, description_id):
             description = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Description was modified')
+                                 'Description was modified')
             l = LogEntry(userid=request.user.username,
                          description="Modified description %s" % description.description,
                          related_object=description)

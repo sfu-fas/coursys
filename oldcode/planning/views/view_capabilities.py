@@ -12,13 +12,13 @@ def view_capabilities(request):
     capabilities = []
     for i in instructors:
         capabilities.append(TeachingCapability.objects.filter(instructor=i))
-    capabilities_list = zip(instructors, capabilities)
+    capabilities_list = list(zip(instructors, capabilities))
 
     courses = PlanningCourse.objects.filter(owner__in=request.units)
     capabilities = []
     for c in courses:
         capabilities.append(TeachingCapability.objects.filter(course=c))
-    course_capabilities_list = zip(courses, capabilities)
+    course_capabilities_list = list(zip(courses, capabilities))
 
     return render(request, "planning/view_capabilities.html",
                               {'capabilities_list': capabilities_list,

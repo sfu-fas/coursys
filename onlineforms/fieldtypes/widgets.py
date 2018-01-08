@@ -85,7 +85,7 @@ class CustomMultipleInputWidget(forms.MultiWidget):
         self.max = max
         self.min = min
 
-        widgets = [forms.TextInput() for _ in xrange(int(self.max))]
+        widgets = [forms.TextInput() for _ in range(int(self.max))]
 
         super(CustomMultipleInputWidget, self).__init__(widgets, attrs=attrs)
 
@@ -100,7 +100,7 @@ class CustomMultipleInputWidget(forms.MultiWidget):
     def format_output(self, rendered_widgets):
         output = rendered_widgets[0]
         for widget in rendered_widgets[1:]:
-            output += u'<dt style="visibility:hidden"> <label>{0}</label></dt><dd><div class="field">{1}</div</dd>'.format(
+            output += '<dt style="visibility:hidden"> <label>{0}</label></dt><dd><div class="field">{1}</div</dd>'.format(
                 self.name, widget)
         output += mark_safe(self.WIDGET_JAVASCRIPT) % {'max': self.max, 'min': self.min, 'name': self.name}
         return output

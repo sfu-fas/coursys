@@ -31,15 +31,15 @@ INSTR_PENALTY_CHOICES = (
         ('WARN', 'give the student a written warning'),
         ('REDO', 'require the student to redo the work, or to do supplementary work'),
         ('MARK', 'assign a low grade for the work'),
-        ('ZERO', u'assign a grade of \u201CF\u201D or zero for the work'),
+        ('ZERO', 'assign a grade of \u201CF\u201D or zero for the work'),
         )
 CHAIR_PENALTY_CHOICES = (
         ('WAIT', 'penalty not yet assigned'),
         ('NONE', 'no further penalty assigned'),
         ('REPR', 'formal reprimand to the student'),
         ('GRAD', 'grade penalty less severe than failure'),
-        ('F', u'grade of \u201CF\u201D in the course'),
-        ('FD', u'grade of \u201CFD\u201D in the course'),
+        ('F', 'grade of \u201CF\u201D in the course'),
+        ('FD', 'grade of \u201CFD\u201D in the course'),
         ('OTHE', 'other penalty: see rationale'),
         )
 LETTER_CHOICES = (
@@ -217,7 +217,7 @@ class DisciplineCaseBase(models.Model):
     
 
     contact_email_text = models.TextField(blank=True, null=True, verbose_name="Contact Email Text",
-            help_text=u'The initial email sent to the student regarding the case. Please also note the date of the email. ('+TEXTILEONLYNOTE+'.)')
+            help_text='The initial email sent to the student regarding the case. Please also note the date of the email. ('+TEXTILEONLYNOTE+'.)')
     contacted = models.CharField(max_length=4, choices=CONTACT_CHOICES, default="NONE", verbose_name="Student Contacted?",
             help_text='Has the student been informed of the case?')
     contact_date = models.DateField(blank=True, null=True, verbose_name="Initial Contact Date", help_text='Date of initial contact with student regarding the case.')
@@ -695,7 +695,7 @@ class DisciplineTemplate(models.Model):
     """
     A text template to help fill in a field in this app.
     """
-    field = models.CharField(max_length=30, null=False, choices=TEMPLATE_FIELDS.items(),
+    field = models.CharField(max_length=30, null=False, choices=list(TEMPLATE_FIELDS.items()),
             verbose_name="Field", help_text="The field this template applies to")
     label = models.CharField(max_length=50, null=False,
             verbose_name="Label", help_text="A short label for the menu of templates")

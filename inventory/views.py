@@ -27,7 +27,7 @@ def new_asset(request):
             asset = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Asset was created')
+                                 'Asset was created')
             l = LogEntry(userid=request.user.username,
                          description="Added asset %s" % asset.name,
                          related_object=asset)
@@ -47,7 +47,7 @@ def edit_asset(request, asset_slug):
             asset = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Asset was modified')
+                                 'Asset was modified')
             l = LogEntry(userid=request.user.username,
                          description="Modified asset %s" % asset.name,
                          related_object=asset)
@@ -135,7 +135,7 @@ def delete_attachment(request, asset_id, attach_slug):
     attachment.hide()
     messages.add_message(request,
                          messages.SUCCESS,
-                         u'Attachment deleted.'
+                         'Attachment deleted.'
                          )
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
@@ -155,14 +155,14 @@ def add_change_record(request, asset_slug):
             if not asset.quantity:
                 asset.quantity = 0
             if qty + asset.quantity < 0:
-                messages.add_message(request, messages.WARNING, u'You tried to remove more of this asset than you '
-                                                                u'originally had.  Asset quantity set to zero.')
+                messages.add_message(request, messages.WARNING, 'You tried to remove more of this asset than you '
+                                                                'originally had.  Asset quantity set to zero.')
                 asset.quantity = 0
             else:
                 asset.quantity += qty
             asset.save()
             change.save(request.user.username)
-            messages.add_message(request, messages.SUCCESS, u'Asset change record added')
+            messages.add_message(request, messages.SUCCESS, 'Asset change record added')
             l = LogEntry(userid=request.user.username, description="Added change record %s for asset %s" %
                                                                    (change, asset), related_object=change)
             l.save()

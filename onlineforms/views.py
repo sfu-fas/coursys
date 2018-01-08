@@ -43,7 +43,7 @@ def manage_groups(request):
 @requires_role('ADMN')
 def new_group(request):
     with django.db.transaction.atomic():
-        unit_choices = [(u.id, unicode(u)) for u in Unit.sub_units(request.units)]
+        unit_choices = [(u.id, str(u)) for u in Unit.sub_units(request.units)]
         if request.method == 'POST':
             form = GroupForm(request.POST)
             form.fields['unit'].choices = unit_choices
@@ -53,7 +53,7 @@ def new_group(request):
                 formgroup = FormGroup.objects.get(name=name)
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                      description=(u"created form group %s (%i)") % (formgroup, formgroup.id),
+                      description=("created form group %s (%i)") % (formgroup, formgroup.id),
                       related_object=formgroup)
                 l.save()
                 return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup.slug }))
@@ -79,7 +79,7 @@ def manage_group(request, formgroup_slug):
                 form.save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                      description=(u"edited form group %s (%i)") % (group, group.id),
+                      description=("edited form group %s (%i)") % (group, group.id),
                       related_object=group)
                 l.save()
                 return HttpResponseRedirect(reverse('onlineforms:manage_groups'))
@@ -113,10 +113,10 @@ def add_group_member(request, formgroup_slug):
                     member.set_email(email)
                     member.save()
                     l = LogEntry(userid=request.user.username,
-                         description=(u"added %s to form group %s (%i)") % (person.userid_or_emplid(), group, group.id),
+                         description=("added %s to form group %s (%i)") % (person.userid_or_emplid(), group, group.id),
                          related_object=member)
                     l.save()
-                    messages.success(request, u"%s added to this Form Group." % person)
+                    messages.success(request, "%s added to this Form Group." % person)
                     return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup_slug}))
             else: # if accidentally don't search for anybody
                 return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup_slug }))
@@ -138,7 +138,7 @@ def remove_group_member(request, formgroup_slug, userid):
                     member.delete()
                     #LOG EVENT#
                     l = LogEntry(userid=request.user.username,
-                        description=(u"Removed %s from form group %s (%i)") % (person.userid_or_emplid(), group, group.id),
+                        description=("Removed %s from form group %s (%i)") % (person.userid_or_emplid(), group, group.id),
                         related_object=group)
                     l.save()
                     return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup_slug}))
@@ -239,7 +239,7 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
             sheet_submission.save()
 
             FormLogEntry.create(sheet_submission=sheet_submission, user=admin, category='ADMN',
-                    description=u'Assigned sheet to %s.' % (formFiller.full_email()))
+                    description='Assigned sheet to %s.' % (formFiller.full_email()))
 
             # create an alternate URL, if necessary
             if not assign_to_sfu_account:
@@ -250,7 +250,7 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                description=(u"Assigned form sheet %s (%i) to %s") % (sheet_submission.sheet, sheet_submission.sheet_id, sheet_submission.filler.identifier()),
+                description=("Assigned form sheet %s (%i) to %s") % (sheet_submission.sheet, sheet_submission.sheet_id, sheet_submission.filler.identifier()),
                 related_object=sheet_submission)
             l.save()
             messages.success(request, 'Sheet assigned.')
@@ -314,7 +314,7 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
                 filler=formFiller)
 
             FormLogEntry.create(sheet_submission=sheet_submission, user=admin, category='ADMN',
-                    description=u'Assigned initial sheet to %s.' % (formFiller.full_email()))
+                    description='Assigned initial sheet to %s.' % (formFiller.full_email()))
 
             # create an alternate URL, if necessary
             if not assign_to_sfu_account:
@@ -324,7 +324,7 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
                 sheet_submission.email_assigned(request, admin, formFiller)
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                description=(u"Assigned form %s to %s") % (form, sheet_submission.filler.identifier()),
+                description=("Assigned form %s to %s") % (form, sheet_submission.filler.identifier()),
                 related_object=sheet_submission)
             l.save()
             messages.success(request, 'Form assigned.')
@@ -354,14 +354,14 @@ def admin_change_owner(request, form_slug, formsubmit_slug):
                 form_submission.save()
 
                 FormLogEntry.create(form_submission=form_submission, user=admin, category='ADMN',
-                    description=u'Gave ownership to group "%s".' % (new_g.name,))
+                    description='Gave ownership to group "%s".' % (new_g.name,))
 
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=(u"Gave ownership of form sub %s; %s to %s" % (form_submission.form.slug, form_submission.slug, new_g.name)),
+                    description=("Gave ownership of form sub %s; %s to %s" % (form_submission.form.slug, form_submission.slug, new_g.name)),
                     related_object=form_submission)
                 l.save()
-                messages.success(request, u'Form given to group "%s".' % (new_g.name))
+                messages.success(request, 'Form given to group "%s".' % (new_g.name))
                 return HttpResponseRedirect(reverse('onlineforms:admin_list_all'))
 
         else:
@@ -384,7 +384,7 @@ def admin_return_sheet(request, form_slug, formsubmit_slug, sheetsubmit_slug):
         # This caused problems with the auto-cleanup code where there were suddenly open initial sheets that
         # where older than our cutoff period:
         if sheet_submission.sheet.is_initial:
-            messages.error(request, u'You cannot return the initial sheet.')
+            messages.error(request, 'You cannot return the initial sheet.')
             return HttpResponseRedirect(reverse('onlineforms:view_submission',
                                                 kwargs={'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}))
 
@@ -397,16 +397,16 @@ def admin_return_sheet(request, form_slug, formsubmit_slug, sheetsubmit_slug):
                 sheet_submission.save()
 
                 FormLogEntry.create(sheet_submission=sheet_submission, user=admin, category='ADMN',
-                    description=u'Returned sheet to %s.' % (sheet_submission.filler.full_email(),))
+                    description='Returned sheet to %s.' % (sheet_submission.filler.full_email(),))
 
                 sheet_submission.email_returned(request, admin)
 
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=(u"Returned sheet submission %s to %s" % (sheet_submission, sheet_submission.filler)),
+                    description=("Returned sheet submission %s to %s" % (sheet_submission, sheet_submission.filler)),
                     related_object=sheet_submission)
                 l.save()
-                messages.success(request, u'Sheet returned to %s.' % (sheet_submission.filler.name()))
+                messages.success(request, 'Sheet returned to %s.' % (sheet_submission.filler.name()))
                 return HttpResponseRedirect(reverse('onlineforms:view_submission', kwargs={'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}))
 
         else:
@@ -468,7 +468,7 @@ def list_all(request):
                 form.delete()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=(u"Deleted form %s.") % (form,),
+                    description=("Deleted form %s.") % (form,),
                     related_object=form)
                 l.save()
                 messages.success(request, 'Removed the Form')
@@ -482,7 +482,7 @@ def list_all(request):
 @requires_formgroup()
 def new_form(request):
     with django.db.transaction.atomic():
-        group_choices = [(fg.id, unicode(fg)) for fg in request.formgroups]
+        group_choices = [(fg.id, str(fg)) for fg in request.formgroups]
         if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'add':
             form = NewFormForm(request.POST)
             form.fields['owner'].choices = group_choices
@@ -493,7 +493,7 @@ def new_form(request):
                 f.save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=(u"Created form %s.") % (f,),
+                    description=("Created form %s.") % (f,),
                     related_object=f)
                 l.save()
                 return HttpResponseRedirect(reverse('onlineforms:view_form', kwargs={'form_slug':f.slug }))
@@ -513,7 +513,7 @@ def view_form(request, form_slug):
         if sheets:
             sheet = sheets[0]
             sheet.delete()
-            messages.success(request, u'Removed the sheet "%s".' % (sheet.title))
+            messages.success(request, 'Removed the sheet "%s".' % (sheet.title))
            
         return HttpResponseRedirect(
             reverse('onlineforms:view_form', kwargs={'form_slug':form.slug }))
@@ -526,7 +526,7 @@ def view_form(request, form_slug):
 def edit_form(request, form_slug):
     with django.db.transaction.atomic():
         owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
-        group_choices = [(fg.id, unicode(fg)) for fg in request.formgroups]
+        group_choices = [(fg.id, str(fg)) for fg in request.formgroups]
 
         if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
             form = FormForm(request.POST, instance=owner_form)
@@ -538,7 +538,7 @@ def edit_form(request, form_slug):
                 f.save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=(u"Edited form %s.") % (f,),
+                    description=("Edited form %s.") % (f,),
                     related_object=f)
                 l.save()
                 return HttpResponseRedirect(reverse('onlineforms:view_form', kwargs={'form_slug': owner_form.slug}))
@@ -560,10 +560,10 @@ def new_sheet(request, form_slug):
                 sheet = Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=(u"Created form sheet %s.") % (sheet,),
+                    description=("Created form sheet %s.") % (sheet,),
                     related_object=sheet)
                 l.save()
-                messages.success(request, u'Successfully created the new sheet "%s' % form.cleaned_data['title'])
+                messages.success(request, 'Successfully created the new sheet "%s' % form.cleaned_data['title'])
                 return HttpResponseRedirect(
                     reverse('onlineforms:edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug': sheet.slug}))
         else:
@@ -612,9 +612,9 @@ def edit_sheet(request, form_slug, sheet_slug):
         # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
         order = None
         field_slug = None
-        if request.GET.has_key('order'):
+        if 'order' in request.GET:
             order = request.GET['order']
-        if request.GET.has_key('field_slug'):
+        if 'field_slug' in request.GET:
             field_slug = request.GET['field_slug']
         if order and field_slug:
             reorder_sheet_fields(fields, field_slug, order)
@@ -634,10 +634,10 @@ def edit_sheet(request, form_slug, sheet_slug):
                 field.save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=(u"Removed form field %s.") % (field,),
+                    description=("Removed form field %s.") % (field,),
                     related_object=field)
                 l.save()
-                messages.success(request, u'Removed the field %s.' % (field.label))
+                messages.success(request, 'Removed the field %s.' % (field.label))
             return HttpResponseRedirect(
                 reverse('onlineforms:edit_sheet', kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
 
@@ -697,7 +697,7 @@ def edit_sheet_info(request, form_slug, sheet_slug):
                 new_sheet = owner_sheet.safe_save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=(u"Edited form sheet %s.") % (new_sheet,),
+                    description=("Edited form sheet %s.") % (new_sheet,),
                     related_object=new_sheet)
                 l.save()
                 return HttpResponseRedirect(reverse('onlineforms:edit_sheet',
@@ -734,7 +734,7 @@ def new_field(request, form_slug, sheet_slug):
                         original=None, )
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=(u"Created form field %s.") % (f,),
+                    description=("Created form field %s.") % (f,),
                     related_object=f)
                 l.save()
                 messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['label'])
@@ -769,7 +769,7 @@ def new_field(request, form_slug, sheet_slug):
                     original=None, )
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=(u"Created form field %s.") % (f,),
+                    description=("Created form field %s.") % (f,),
                     related_object=f)
                 l.save()
                 messages.success(request, 'Successfully created a new field')
@@ -789,7 +789,7 @@ def new_field(request, form_slug, sheet_slug):
 
 def _clean_config(config):
     irrelevant_fields = ['csrfmiddlewaretoken', 'next_section', 'type_name']
-    clean_config = dict((key, value) for (key, value) in config.iteritems() if key not in irrelevant_fields)
+    clean_config = dict((key, value) for (key, value) in config.items() if key not in irrelevant_fields)
     clean_config['required'] = 'required' in clean_config
 
     return clean_config
@@ -824,10 +824,10 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
                     original=field.original)
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=(u"Edited form field %s.") % (new_field,),
+                    description=("Edited form field %s.") % (new_field,),
                     related_object=new_field)
                 l.save()
-                messages.success(request, u'Successfully updated the field "%s"' % form.cleaned_data['label'])
+                messages.success(request, 'Successfully updated the field "%s"' % form.cleaned_data['label'])
 
                 return HttpResponseRedirect(
                     reverse('onlineforms:edit_sheet', args=(new_sheet.form.slug, new_sheet.slug)))
@@ -1047,7 +1047,7 @@ def view_submission(request, form_slug, formsubmit_slug):
 
                 for ss in waiting_sheets:
                     ss.status = 'REJE'
-                    ss.set_reject_reason(u'Withdrawn when form was closed by %s.' % (admin.userid))
+                    ss.set_reject_reason('Withdrawn when form was closed by %s.' % (admin.userid))
                     ss.save()
                 
                 form_submission.set_closer(admin.id)
@@ -1058,15 +1058,15 @@ def view_submission(request, form_slug, formsubmit_slug):
                     form_submission.email_notify_completed(request, admin)
                     messages.success(request, 'Form submission marked as completed; initiator informed by email.')
                     FormLogEntry.create(form_submission=form_submission, user=admin, category='ADMN',
-                        description=u'Marked form completed (and emailed to notify user).')
+                        description='Marked form completed (and emailed to notify user).')
                 else:
                     messages.success(request, 'Form submission marked as completed.')
                     FormLogEntry.create(form_submission=form_submission, user=admin, category='ADMN',
-                        description=u'Marked form completed (but user was not emailed through system).')
+                        description='Marked form completed (but user was not emailed through system).')
 
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=(u"Marked form submission %s done.") % (form_submission,),
+                    description=("Marked form submission %s done.") % (form_submission,),
                     related_object=form_submission)
                 l.save()
                 return HttpResponseRedirect(reverse('onlineforms:admin_list_all'))
@@ -1124,17 +1124,17 @@ def _reject_sheet(request, sheetsub):
 
         if sheetsub.sheet.is_initial:
             FormLogEntry.create(sheet_submission=sheetsub, filler=sheetsub.filler, category='FILL',
-                    description=u'Discarded initial sheet.')
+                    description='Discarded initial sheet.')
             fs = sheetsub.form_submission
             fs.status = 'REJE'
             fs.save()
         else:
             FormLogEntry.create(sheet_submission=sheetsub, filler=sheetsub.filler, category='FILL',
-                    description=u'Returned sheet without completing.')
+                    description='Returned sheet without completing.')
             sheetsub.email_submitted(request, rejected=True)
 
         l = LogEntry(userid=request.user.username,
-            description=(u"Rejected sheet %s") % (sheetsub),
+            description=("Rejected sheet %s") % (sheetsub),
             related_object=sheetsub)
         l.save()
         if sheetsub.sheet.is_initial:
@@ -1206,7 +1206,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                 return HttpResponseRedirect(reverse('onlineforms:index'))
 
             if loggedin_user is None:
-                return ForbiddenResponse(request, u"The userid '%s' isn't known to this system. If this is a 'role' account, please log in under your primary SFU userid. Otherwise, please contact %s for assistance." % (request.user.username, help_email(request)))
+                return ForbiddenResponse(request, "The userid '%s' isn't known to this system. If this is a 'role' account, please log in under your primary SFU userid. Otherwise, please contact %s for assistance." % (request.user.username, help_email(request)))
             logentry_userid = loggedin_user.userid
             nonSFUFormFillerForm = None
         else:
@@ -1228,7 +1228,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
             sheet = sheet_submission.sheet # revert to the old version that the user was working with.
             # check if this sheet has already been filled
             if sheet_submission.status in ["DONE", "REJE"]:
-                messages.info(request, u'That form sheet has already been completed and submitted. It cannot be edited further.')
+                messages.info(request, 'That form sheet has already been completed and submitted. It cannot be edited further.')
                 filled_sheets = _readonly_sheets(form_submission, sheet_submission)
                 # Set correct flags.  Don't set the sheet to None, as we need it in the template for some info.
                 # instead, set the readonly flag.
@@ -1292,7 +1292,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                 nonSFUFormFiller = nonSFUFormFillerForm.save()
                                 #LOG EVENT#
                                 l = LogEntry(userid=logentry_userid,
-                                    description=(u"Non SFU Form Filler created with email %s to submit form %s") % (nonSFUFormFiller.email_address, owner_form.title),
+                                    description=("Non SFU Form Filler created with email %s to submit form %s") % (nonSFUFormFiller.email_address, owner_form.title),
                                     related_object=nonSFUFormFiller)
                                 l.save()
                                 formFiller = FormFiller(nonSFUFormFiller=nonSFUFormFiller)
@@ -1316,7 +1316,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             form_submission.save()
                             #LOG EVENT#
                             l = LogEntry(userid=logentry_userid,
-                                description=(u"Form submission created for form %s by %s") % (owner_form.title, formFiller.email()),
+                                description=("Form submission created for form %s by %s") % (owner_form.title, formFiller.email()),
                                 related_object=form_submission)
                             l.save()
                         if not(sheet_submission):
@@ -1325,12 +1325,12 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             sheet_submission.save()
                             #LOG EVENT#
                             l = LogEntry(userid=logentry_userid,
-                                description=(u"Sheet submission created for sheet %s of form %s by %s") % (sheet.title, owner_form.title, formFiller.email()),
+                                description=("Sheet submission created for sheet %s of form %s by %s") % (sheet.title, owner_form.title, formFiller.email()),
                                 related_object=sheet_submission)
                             l.save()
 
                         # save the data from the fields
-                        for name, field in form.fields.items():
+                        for name, field in list(form.fields.items()):
                             # a field can be skipped if we are saving (not submitting) the form, and it is not in the cleaned data
                             if not('submit' in request.POST) or str(name) in form.cleaned_data:
                                 cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
@@ -1380,7 +1380,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                 secret_url.save()
                                 #LOG EVENT#
                                 l = LogEntry(userid=logentry_userid,
-                                    description=(u"Secret URL created for sheet submission %s of sheet %s of form %s by %s") % (sheet_submission, sheet.title, owner_form.title, formFiller.email()),
+                                    description=("Secret URL created for sheet submission %s of sheet %s of form %s by %s") % (sheet_submission, sheet.title, owner_form.title, formFiller.email()),
                                     related_object=secret_url)
                                 l.save()
                                 # email them the URL
@@ -1395,7 +1395,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                     'sheetsubmit_slug': sheet_submission.slug})
 
                             FormLogEntry.create(sheet_submission=sheet_submission, filler=formFiller, category='SAVE',
-                                    description=u'Saved sheet without submitting.')
+                                    description='Saved sheet without submitting.')
 
                             messages.success(request, 'All fields without errors were saved. Use this page\'s URL to edit this submission in the future.')
                             return HttpResponseRedirect(access_url)
@@ -1404,16 +1404,16 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             sheet_submission.status = 'DONE'
                             sheet_submission.save()
                             l = LogEntry(userid=logentry_userid,
-                                description=(u"Sheet submission %s completed by %s") % (sheet_submission.slug, formFiller.email()),
+                                description=("Sheet submission %s completed by %s") % (sheet_submission.slug, formFiller.email()),
                                 related_object=sheet_submission)
                             l.save()
                             
                             sheet_submission.email_submitted(request)
 
                             FormLogEntry.create(sheet_submission=sheet_submission, filler=formFiller, category='FILL',
-                                    description=u'Submitted sheet.')
+                                    description='Submitted sheet.')
 
-                            messages.success(request, u'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
+                            messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
                             return HttpResponseRedirect(reverse('onlineforms:index'))
                     else:
                         messages.error(request, "Error in user data.")

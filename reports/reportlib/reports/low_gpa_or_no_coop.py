@@ -66,7 +66,7 @@ class LowGPAOrNoCoOpReport(Report):
             try:
                 return float(row_map["CREDITS"]) > LowGPAOrNoCoOpReport.MIN_ALLOWABLE_CREDITS
             except ValueError:
-                print "Could not convert credit value to float"
+                print("Could not convert credit value to float")
 
         ensc_students.filter(too_few_credits)
         ensc_students.compute_column('AT_LEAST_ONE_CO_OP', lambda x: x['EMPLID'] in students_in_ensc_195_emplids
@@ -83,7 +83,7 @@ class LowGPAOrNoCoOpReport(Report):
                 else:
                     return True
             except ValueError:
-                print "Could not convert GPA to float"
+                print("Could not convert GPA to float")
 
         ensc_students.filter(no_coop_or_low_gpa)
 

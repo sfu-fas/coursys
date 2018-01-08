@@ -162,7 +162,7 @@ class PagesTest(TestCase):
         from dashboard.models import new_feed_token
         token = new_feed_token()
         
-        updata = u"""{
+        updata = """{
             "userid": "ggbaker",
             "token": "%s",
             "pages": [
@@ -189,16 +189,16 @@ class PagesTest(TestCase):
         c = Client()
         url = reverse('offering:pages:api_import', kwargs={'course_slug': crs.slug})
         response = c.post(url, data=updata.encode('utf8'), content_type="application/json")
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
         
         # create token and try again
         person.config['pages-token'] = token
         person.save()
         response = c.post(url, data=updata.encode('utf8'), content_type="application/json")
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         
         # make sure the data arrived
-        self.assertEquals(Page.objects.filter(offering=crs, label="PageExists").count(), 0)
+        self.assertEqual(Page.objects.filter(offering=crs, label="PageExists").count(), 0)
         p = Page.objects.get(offering=crs, label="PageChanged")
         v = p.current_version()
         self.assertEqual(v.title, "Another Page")
@@ -206,9 +206,9 @@ class PagesTest(TestCase):
         
         p = Page.objects.get(offering=crs, label="Index")
         v = p.current_version()
-        self.assertEqual(v.title, u"The Cours\u00e9 Page")
+        self.assertEqual(v.title, "The Cours\u00e9 Page")
         self.assertEqual(v.get_wikitext(), 'This page is special in **some** way. \\(x~^2+1 = \\frac{1}{2}\\).\n\nGoodbye world!')
-        self.assert_('math' in v.config)
+        self.assertTrue('math' in v.config)
         self.assertEqual(v.config['math'], True)
 
     def _sample_setup(self):
@@ -366,7 +366,7 @@ class PagesTest(TestCase):
         v.save()
 
         # no macros defined: rendered as-is
-        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), "<p>one +two+ three +four+</p>")
 
         mp = Page(offering=crs, label=MACRO_LABEL)
         mp.save()
@@ -374,13 +374,13 @@ class PagesTest(TestCase):
         mv.save()
 
         # macros defined: should be substituted
-        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one 22 three 4444</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), "<p>one 22 three 4444</p>")
 
         mp.label = 'NOT_MACROS'
         mp.save()
 
         # macros disappear: back to original
-        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), "<p>one +two+ three +four+</p>")
 
 
     def test_redirect(self):
@@ -457,14 +457,14 @@ class PagesTest(TestCase):
         p = ParserFor(crs)
 
         # things that should be entities
-        inp = u'&amp; &NotRightTriangle; &#8935; &#x1D54B;'
-        outp = u'<p><span>&amp;</span> <span>&NotRightTriangle;</span> <span>&#8935;</span> <span>&#x1D54B;</span></p>'
-        self.assertEquals(p.text2html(inp).strip(), outp)
+        inp = '&amp; &NotRightTriangle; &#8935; &#x1D54B;'
+        outp = '<p><span>&amp;</span> <span>&NotRightTriangle;</span> <span>&#8935;</span> <span>&#x1D54B;</span></p>'
+        self.assertEqual(p.text2html(inp).strip(), outp)
 
         # things that should NOT be entities
-        inp = u'&hello world; &#000000000123; &#x000000000123; &ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;'
-        outp = u'<p>&amp;hello world; &amp;#000000000123; &amp;#x000000000123; &amp;ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;</p>'
-        self.assertEquals(p.text2html(inp).strip(), outp)
+        inp = '&hello world; &#000000000123; &#x000000000123; &ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;'
+        outp = '<p>&amp;hello world; &amp;#000000000123; &amp;#x000000000123; &amp;ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;</p>'
+        self.assertEqual(p.text2html(inp).strip(), outp)
 
     def test_extensions(self):
         """
@@ -480,8 +480,8 @@ class PagesTest(TestCase):
         html = p.text2html('one <<duedatetime A1>> two')
         self.assertIn('>' + a1.due_date.strftime('%A %B %d %Y, %H:%M') + '<', html)
 
-        html = p.text2html(u'one <<activitylink A1>> two')
-        link = u'<a href="%s">%s' % (a1.get_absolute_url(), a1.name)
+        html = p.text2html('one <<activitylink A1>> two')
+        link = '<a href="%s">%s' % (a1.get_absolute_url(), a1.name)
         self.assertIn(link.encode('utf-8'), html)
 
     def test_markup_choice(self):

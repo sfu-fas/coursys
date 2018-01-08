@@ -21,8 +21,8 @@ def display_visas(person):
         visa = visas[0]
 
         result = ['<a href="', reverse('visas:edit_visa', kwargs={'visa_id': visa.id}), '" ',
-                  e(add_visa_display_class(visa)),'>', e(visa.status),' valid from ', e(unicode(visa.start_date)), ' until ',
-                  e(unicode(visa.end_date)), ' -- ', e(visa.get_validity()), '</a>']
+                  e(add_visa_display_class(visa)),'>', e(visa.status),' valid from ', e(str(visa.start_date)), ' until ',
+                  e(str(visa.end_date)), ' -- ', e(visa.get_validity()), '</a>']
         return mark_safe(''.join(result))
 
     else:

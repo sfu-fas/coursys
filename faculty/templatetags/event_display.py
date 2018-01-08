@@ -97,7 +97,7 @@ def fraction_display(val):
         whole = abs(n)/d*(n/abs(n)) # in case val is negative
     else:
         whole = 0
-    res = unicode(whole)
+    res = str(whole)
     # only have a negative fraction if whole is 0
     if val<0 and whole==0:
         remainder = val + whole
@@ -105,9 +105,9 @@ def fraction_display(val):
         remainder = abs(val - whole)
     if remainder != 0:
         if whole == 0:
-            res = unicode(remainder)
+            res = str(remainder)
         else:
-            res += ' ' + unicode(remainder)
+            res += ' ' + str(remainder)
 
     return res
 

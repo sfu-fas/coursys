@@ -238,15 +238,15 @@ class PageVersion(models.Model):
             key = self.wikitext_cache_key()
             wikitext = cache.get(key)
             if wikitext:
-                return unicode(wikitext)
+                return str(wikitext)
             else:
                 src = self.diff_from
                 diff = json.loads(self.diff)
                 wikitext = src.apply_changes(diff)
                 cache.set(key, wikitext, 24*3600) # no need to expire: shouldn't change for a version
-                return unicode(wikitext)
+                return str(wikitext)
 
-        return unicode(self.wikitext)
+        return str(self.wikitext)
 
     def __init__(self, *args, **kwargs):
         super(PageVersion, self).__init__(*args, **kwargs)
@@ -314,7 +314,7 @@ class PageVersion(models.Model):
             else:
                 raise ValueError
 
-        return u"\n".join(lines)
+        return "\n".join(lines)
 
     def diff_to(self, other):
         """
@@ -374,7 +374,7 @@ class PageVersion(models.Model):
         self.page.expire_offering_cache()
 
     def __unicode__(self):
-        return unicode(self.page) + '@' + unicode(self.created_at)
+        return str(self.page) + '@' + str(self.created_at)
 
     def is_filepage(self):
         """
@@ -421,7 +421,7 @@ class PageVersion(models.Model):
         """
         macros = self.offering_macros()
         if macros:
-            for macro, replacement in macros.iteritems():
+            for macro, replacement in macros.items():
                 wikitext = wikitext.replace('+' + macro + '+', replacement)
         return wikitext
 

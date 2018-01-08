@@ -1,4 +1,4 @@
-from models import Contact
+from .models import Contact
 from django import forms
 from coredata.models import Unit
 

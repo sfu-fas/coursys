@@ -13,7 +13,7 @@ def do_select_grade(parser, token):
         # split_contents() knows not to split quoted strings.
         tag_name, dictionary, aslug, userid = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, "%r tag requires a three arguments: dictionary, activity slug, userid" % token.contents.split()[0]
+        raise template.TemplateSyntaxError("%r tag requires a three arguments: dictionary, activity slug, userid" % token.contents.split()[0])
 
 
     return SelectGradeNode(dictionary, aslug, userid)

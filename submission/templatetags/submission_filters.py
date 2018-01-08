@@ -1,6 +1,7 @@
 from django import template
 from django.utils.safestring import mark_safe
 from django.forms import ChoiceField, FileField
+import collections
 
 register = template.Library()
 
@@ -31,7 +32,7 @@ def field_value(field):
 			val = field.data 
 	else:
 		val = field.form.initial.get(field.name, field.field.initial)
-		if callable(val):
+		if isinstance(val, collections.Callable):
 			val = val()
 	if val is None:
 		val = ''

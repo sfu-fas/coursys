@@ -1,5 +1,5 @@
 from planning.models import SemesterPlan
-from admin_index import admin_index
+from .admin_index import admin_index
 from courselib.auth import requires_role
 from log.models import LogEntry
 from django.http import  HttpResponseRedirect

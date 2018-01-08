@@ -170,7 +170,7 @@ class GradCareer(object):
                 if multiple_okay:
                     return by_selector[-1]
                 else:
-                    raise ValueError, "Multiple records found by %s for %s." % (method, self)
+                    raise ValueError("Multiple records found by %s for %s." % (method, self))
 
         if GradCareer.program_map[self.last_program].unit.slug == 'cmpt' and self.admit_term < CMPT_CUTOFF:
             # Don't try to probe the depths of history for CMPT. You'll hurt yourself.
@@ -178,7 +178,7 @@ class GradCareer(object):
             return
 
         if verbosity:
-            print "New grad student career found: %s/%s in %s starting %s." % (self.emplid, self.unit.slug, self.last_program, self.admit_term)
+            print("New grad student career found: %s/%s in %s starting %s." % (self.emplid, self.unit.slug, self.last_program, self.admit_term))
 
         # can't find anything in database: create new
         gs = GradStudent(person=add_person(self.emplid, commit=(not dry_run)))
@@ -195,7 +195,7 @@ class GradCareer(object):
         units = set(GradProgramHistory.objects.filter(student=gs).values_list('program__unit', flat=True))
         if len(units) > 1:
             if verbosity:
-                raise ValueError, "Grad Student %s (%i) has programs in multiple units: that shouldn't be." % (gs.slug, gs.id)
+                raise ValueError("Grad Student %s (%i) has programs in multiple units: that shouldn't be." % (gs.slug, gs.id))
         self.gradstudent = gs
 
     def get_student_info(self):
@@ -239,7 +239,7 @@ class GradCareer(object):
             r = ' | '.join(self.research_areas)
             self.gradstudent.research_area = r + ' (from application)'
             if verbosity > 1:
-                print "* Setting research area for %s/%s." % (self.emplid, self.unit.slug)
+                print("* Setting research area for %s/%s." % (self.emplid, self.unit.slug))
 
         # are there any GradProgramHistory objects happening before the student actually started (because they
         # deferred)? If so, defer them too.
@@ -248,7 +248,7 @@ class GradCareer(object):
         for gph in premature_gph:
             gph.start_semester = STRM_MAP[self.admit_term]
             if verbosity:
-                print "Deferring program start for %s/%s to %s." % (self.emplid, self.unit.slug, self.admit_term)
+                print("Deferring program start for %s/%s to %s." % (self.emplid, self.unit.slug, self.admit_term))
             if not dry_run:
                 gph.save()
 
@@ -272,9 +272,9 @@ class GradCareer(object):
 
         if verbosity:
             for s in extra_statuses:
-                print "Rogue grad status: %s was %s in %s" % (self.emplid, SHORT_STATUSES[s.status], s.start.name)
+                print("Rogue grad status: %s was %s in %s" % (self.emplid, SHORT_STATUSES[s.status], s.start.name))
             for p in extra_programs:
-                print "Rogue program change: %s in %s as of %s." % (self.emplid, p.program.slug, p.start_semester.name)
+                print("Rogue program change: %s in %s as of %s." % (self.emplid, p.program.slug, p.start_semester.name))
             for c in extra_committee:
-                print "Rogue committee member: %s is a %s for %s" % (c.sortname(), SUPERVISOR_TYPE[c.supervisor_type], self.emplid)
+                print("Rogue committee member: %s is a %s for %s" % (c.sortname(), SUPERVISOR_TYPE[c.supervisor_type], self.emplid))
 

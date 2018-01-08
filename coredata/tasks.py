@@ -92,7 +92,7 @@ def _grouper(iterable, n):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
-    groups = itertools.izip_longest(fillvalue=None, *args)
+    groups = itertools.zip_longest(fillvalue=None, *args)
     return ((v for v in grp if v is not None) for grp in groups)
 
 

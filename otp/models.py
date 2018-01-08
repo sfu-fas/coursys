@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 from . import auth_checks
 from django.db import models
 from django.contrib.sessions.models import Session

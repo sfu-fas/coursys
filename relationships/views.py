@@ -4,10 +4,10 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.http import Http404, StreamingHttpResponse, HttpResponse
 from courselib.auth import requires_role
-from forms import ContactForm
+from .forms import ContactForm
 from log.models import LogEntry
-from models import Contact, Event, EVENT_CHOICES, EVENT_HANDLERS, EVENT_TYPES
-from handlers import FileEventBase
+from .models import Contact, Event, EVENT_CHOICES, EVENT_HANDLERS, EVENT_TYPES
+from .handlers import FileEventBase
 import unicodecsv as csv
 from datetime import datetime
 from coredata.models import Person
@@ -48,7 +48,7 @@ def download_contacts_csv(request):
         notes = []
         for e in c.event_set.filter(event_type='notes'):
             notes.append(e.get_config_value('content'))
-        notes = u'\n'.join(notes)
+        notes = '\n'.join(notes)
         writer.writerow([c.title, c.last_name, c.first_name, c.middle_name, c.pref_first_name, c.company_name,
                          c.address, c.email, c.phone, notes])
 
@@ -70,7 +70,7 @@ def new_contact(request):
             contact = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Contact was created')
+                                 'Contact was created')
             l = LogEntry(userid=request.user.username,
                          description="Added contact %s" % contact,
                          related_object=contact)
@@ -90,7 +90,7 @@ def edit_contact(request, contact_slug):
             contact = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Contact was edited')
+                                 'Contact was edited')
             l = LogEntry(userid=request.user.username,
                          description="Edited contact %s" % contact,
                          related_object=contact)
@@ -108,7 +108,7 @@ def delete_contact(request, contact_slug):
         contact.delete()
         messages.add_message(request,
                              messages.SUCCESS,
-                             u'Contact was deleted')
+                             'Contact was deleted')
         l = LogEntry(userid=request.user.username,
                      description="Deleted contact %s" % contact,
                      related_object=contact)
@@ -148,7 +148,7 @@ def add_event(request, contact_slug, handler_slug):
                 FileEventBase.add_attachment(event=event_handler.event, filedata=request.FILES)
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Contact content was added')
+                                 'Contact content was added')
             l = LogEntry(userid=request.user.username,
                          description="Added contact %s for %s" % (event_handler.name,
                                                                   event_handler.event.contact.full_name()),
@@ -177,7 +177,7 @@ def edit_event(request, contact_slug, event_slug):
             handler.save(editor=editor)
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Contact content was modified')
+                                 'Contact content was modified')
             l = LogEntry(userid=request.user.username,
                          description="Modified contact %s for %s" % (handler.name,
                                                                      handler.event.contact.full_name()),
@@ -222,7 +222,7 @@ def delete_event(request, contact_slug, event_slug):
         event.save(call_from_handler=True)
         messages.add_message(request,
                              messages.SUCCESS,
-                             u'Contact content was deleted')
+                             'Contact content was deleted')
         l = LogEntry(userid=request.user.username,
                      description="Deleted contact %s for %s" % (event.event_type, event.contact.full_name()),
                      related_object=event)

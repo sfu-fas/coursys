@@ -95,14 +95,14 @@ class CoredataTest(TestCase):
         p1.save()
         p2.save()
         
-        self.assertEquals(str(p1), "Lname, Fname")
-        self.assertEquals(p1.name(), "Fname Lname")
-        self.assertEquals(p1.email(), "test1@sfu.ca")
+        self.assertEqual(str(p1), "Lname, Fname")
+        self.assertEqual(p1.name(), "Fname Lname")
+        self.assertEqual(p1.email(), "test1@sfu.ca")
         people = Person.objects.filter(userid__startswith="test")
         # check sorting
-        self.assertEquals(p1, people[0])
-        self.assertEquals(p2, people[1])
-        self.assertEquals(p3, people[2])
+        self.assertEqual(p1, people[0])
+        self.assertEqual(p2, people[1])
+        self.assertEqual(p3, people[2])
         
         # uniqueness checking for emplid and userid
         px = Person(emplid=210012345, userid="test4")
@@ -138,8 +138,8 @@ class CoredataTest(TestCase):
         wk = SemesterWeek(semester=s, week=5, monday=date(2007,10,8)) # pretend there is a Oct 1-5 break
         wk.save()
         
-        self.assertEquals(s.label(), "Fall 2007")
-        self.assertEquals(str(wk), "1077 week 5")
+        self.assertEqual(s.label(), "Fall 2007")
+        self.assertEqual(str(wk), "1077 week 5")
 
         # test semester arithmetic
         s = Semester.objects.get(name='1131')
@@ -207,10 +207,10 @@ class CoredataTest(TestCase):
         
         # should have a get_absolute_url
         url = c.get_absolute_url()
-        self.assertEquals(url, str(url))
-        self.assertEquals(url[0], '/')
-        self.assertEquals(str(c), "CMPT 120 D100 (Fall 2007)")
-        self.assertEquals(c.name(), "CMPT 120 D1")
+        self.assertEqual(url, str(url))
+        self.assertEqual(url[0], '/')
+        self.assertEqual(str(c), "CMPT 120 D100 (Fall 2007)")
+        self.assertEqual(c.name(), "CMPT 120 D1")
 
         # check uniqueness criteria
         c2 = CourseOffering(subject="CMPT", number="120", section="D100", semester=s, component="LAB",
@@ -281,7 +281,7 @@ class CoredataTest(TestCase):
         response = basic_page_tests(self, client, url)
         
         response = client.post(url, {'person':'33333333', 'role':'FAC', 'unit': 2})
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         validate_content(self, response.content, url)
         self.assertTrue("could not import DB2 module" in response.content
                         or "could not connect to reporting database" in response.content
@@ -290,10 +290,10 @@ class CoredataTest(TestCase):
                         or "Could not communicate with reporting database" in response.content)
 
         response = client.post(url, {'person':p1.emplid, 'role':'FAC', 'unit':unit.id, 'expiry': str(TEST_ROLE_EXPIRY)})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         
         # make sure the role is now there
-        self.assertEquals( Role.objects.filter(role='FAC').count(), oldcount+1)
+        self.assertEqual( Role.objects.filter(role='FAC').count(), oldcount+1)
 
     def test_role_access(self):
         r = Role.objects.filter(role='SYSA')[0]
@@ -332,7 +332,7 @@ class SlowCoredataTest(TestCase):
         url += '?tabledata=yes&data_type=json&iDisplayStart=0&iDisplayLength=10&iSortingCols=0'
         response = client.get(url)
         data = json.loads(response.content)
-        self.assertEquals(len(data['aaData']), 10)
+        self.assertEqual(len(data['aaData']), 10)
 
         # courseoffering detail page
         url = reverse('browse:browse_courses_info', kwargs={'course_slug': TEST_COURSE_SLUG})

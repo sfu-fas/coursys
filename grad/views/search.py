@@ -21,7 +21,7 @@ def _get_cleaned_get(request):
     """
     cleaned_get = copy.copy(request.GET)
     for parameter, parameter_values in request.GET.iterlists():
-        if len(filter(lambda x:len(x) > 0, parameter_values)) == 0:
+        if len([x for x in parameter_values if len(x) > 0]) == 0:
             del cleaned_get[parameter]
     return cleaned_get
 
@@ -71,7 +71,7 @@ def _generate_excel(response, columns, headers, grads):
     oddstyle = xlwt.easyxf('pattern: pattern sparse_dots, fore_colour grey25')
     
     # header row
-    sheet.write(0, 0, u'Graduate Student Search Results', xlwt.easyxf('font: bold on, height 320'))
+    sheet.write(0, 0, 'Graduate Student Search Results', xlwt.easyxf('font: bold on, height 320'))
     sheet.row(0).height = 400
     for i,hdr in enumerate(headers):
         sheet.write(1, i, hdr, hdrstyle)

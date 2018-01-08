@@ -8,7 +8,7 @@ from dashboard.models import NewsItem
 from django.conf import settings
 from courselib.slugs import make_slug
 from courselib.svn import update_group_repository
-import datetime, urlparse
+import datetime, urllib.parse
 
 
 class Group(models.Model):
@@ -31,7 +31,7 @@ class Group(models.Model):
         return '%s' % (self.name)
 
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
 
     def __cmp__(self, other):
         return cmp(self.name, other.name)
@@ -45,7 +45,7 @@ class Group(models.Model):
 
     def svn_url(self):
         "SVN URL for this member (assuming offering.uses_svn())"
-        return urlparse.urljoin(settings.SVN_URL_BASE, repo_name(self.courseoffering, self.svn_slug))
+        return urllib.parse.urljoin(settings.SVN_URL_BASE, repo_name(self.courseoffering, self.svn_slug))
 
     class Meta:
         unique_together = (("name", "courseoffering"), ("slug", "courseoffering"), ("svn_slug", "courseoffering"))

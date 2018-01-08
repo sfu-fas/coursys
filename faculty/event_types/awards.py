@@ -56,9 +56,9 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
                                          event_type=FellowshipEventHandler.EVENT_TYPE)
         choices = itertools.chain(*[ec.config.get('fellowships', []) for ec in ecs])
         if only_active:
-            choices = ((short,long) for short,long,status in choices if status == 'ACTIVE')
+            choices = ((short,int) for short,int,status in choices if status == 'ACTIVE')
         else:
-            choices = ((short,long) for short,long,status in choices)
+            choices = ((short,int) for short,int,status in choices)
         return choices
 
     class EntryForm(BaseEntryForm):
@@ -79,7 +79,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
             choices = FellowshipEventHandler.get_fellowship_choices([data['unit']], only_active=True)
 
-            found = [short for short,long in choices if short == data['position']]
+            found = [short for short,int in choices if short == data['position']]
             if not found:
                 raise forms.ValidationError("That fellowship is not owned by the selected unit.")
 
@@ -143,7 +143,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         def get_long_position_name(key, unit):
             "A cacheable version: seems like a lot of work for a frequently-used string"
             choices = FellowshipEventHandler.get_fellowship_choices([unit], only_active=False)
-            found = [long for short,long in choices if short == key]
+            found = [int for short,int in choices if short == key]
             if found:
                 return found[0]
             else:
@@ -273,7 +273,7 @@ class AwardEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         award = self.get_display('award')
-        return u'Received award \u201c{0}\u201d'.format(award)
+        return 'Received award \u201c{0}\u201d'.format(award)
 
 
 class GrantApplicationEventHandler(CareerEventHandlerBase):

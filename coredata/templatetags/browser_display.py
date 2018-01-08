@@ -10,7 +10,7 @@ def browser_field(field):
     context = {
         'id': field.id_for_label,
         'label': escape(field.label),
-        'field': unicode(field),
+        'field': str(field),
         }
     return mark_safe(TEMPLATE.format(**context))
 

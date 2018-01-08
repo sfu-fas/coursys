@@ -56,13 +56,13 @@ def catalogue_resolver(resolver, ns=()):
     #index_full = get_callable('dashboard:index_full')
     view_names = initial_view_names
     resolver._populate()
-    for fn in resolver.reverse_dict.keys():
+    for fn in list(resolver.reverse_dict.keys()):
         if isinstance(fn, str) or fn.__name__ in ['RedirectView']:
             continue
         new_name = ':'.join(ns + (fn.__name__,))
         view_names[fn] = new_name
 
-    for n,v in resolver.namespace_dict.values():
+    for n,v in list(resolver.namespace_dict.values()):
         this_ns = ns + (v.namespace,)
         #print this_ns, v
         vns = catalogue_resolver(v, ns=this_ns)
@@ -86,11 +86,11 @@ def fix_references(fn, view_names):
 
             m = function_reverse_re.search(line)
             if m:
-                print "function reference reverse() in ", fn
+                print("function reference reverse() in ", fn)
 
             m = no_namespace_tag_re.search(line)
             if m:
-                print "no namespace on {% url %} in ", fn
+                print("no namespace on {% url %} in ", fn)
 
     with open(fn, 'w') as py:
         py.write(''.join(new_content))

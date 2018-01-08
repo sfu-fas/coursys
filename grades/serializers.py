@@ -48,7 +48,7 @@ class GradeMarkSerializer(serializers.Serializer):
     def get_grade(self, a):
         self._get_grade(a)
         if a.grade:
-            return unicode(a.grade.grade)
+            return str(a.grade.grade)
         else:
             return None
 
@@ -70,7 +70,7 @@ class StudentSerializer(serializers.ModelSerializer):
         fields = ('emplid', 'userid', 'first_name', 'last_name', 'pref_first_name', 'email')
 
     def get_emplid(self, p):
-        return unicode(p.emplid)
+        return str(p.emplid)
 
 
 

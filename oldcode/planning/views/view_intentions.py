@@ -23,5 +23,5 @@ def view_intentions(request):
 
     semesters = Semester.objects.all()
 
-    plans = zip(semester_list, intentions)
+    plans = list(zip(semester_list, intentions))
     return render(request, "planning/view_intentions.html", {'plans': plans, 'semesters': semesters})

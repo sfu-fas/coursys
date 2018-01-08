@@ -117,9 +117,9 @@ class SubmissionForm(ModelForm):
         # check that real file type is allowed
         allowed_types = self.instance.Type.Component.allowed_types
         if not ftype:
-            raise forms.ValidationError('Unable to determine file type.  Allowed file types are: %s.' % (", ".join(allowed_types.keys())))
+            raise forms.ValidationError('Unable to determine file type.  Allowed file types are: %s.' % (", ".join(list(allowed_types.keys()))))
         if ftype not in allowed_types:
-            raise forms.ValidationError('Incorrect file type.  File contents appear to be %s.  Allowed file types are: %s.' % (ftype, ", ".join(allowed_types.keys())))
+            raise forms.ValidationError('Incorrect file type.  File contents appear to be %s.  Allowed file types are: %s.' % (ftype, ", ".join(list(allowed_types.keys()))))
 
         # check that extension matches
         extensions = allowed_types[ftype]

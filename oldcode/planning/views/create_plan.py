@@ -11,7 +11,7 @@ from django.template import RequestContext
 
 @requires_role('PLAN')
 def create_plan(request):
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, str(u)) for u in request.units]
 
     if request.method == 'POST':
         form = PlanBasicsForm(request.POST)

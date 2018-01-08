@@ -145,7 +145,7 @@ class GradTest(TestCase):
                 response = client.get(url, {'section': section})
                 self.assertEqual(response.status_code, 200)
             except:
-                print "with section==" + repr(section)
+                print("with section==" + repr(section))
                 raise
 
             # check section in page
@@ -153,7 +153,7 @@ class GradTest(TestCase):
                 response = basic_page_tests(self, client, url + '?_escaped_fragment_=' + section)
                 self.assertEqual(response.status_code, 200)
             except:
-                print "with section==" + repr(section)
+                print("with section==" + repr(section))
                 raise
         
         # check all sections together
@@ -182,7 +182,7 @@ class GradTest(TestCase):
                 response = basic_page_tests(self, client, url)
                 self.assertEqual(response.status_code, 200)
             except:
-                print "with view==" + repr(view)
+                print("with view==" + repr(view))
                 raise
 
         for style in STYLES:
@@ -230,7 +230,7 @@ class GradTest(TestCase):
         
         cols = set(k for k,v in COLUMN_CHOICES)
         widths = set(k for k,v in COLUMN_WIDTHS_DATA)
-        self.assertEquals(cols, widths)
+        self.assertEqual(cols, widths)
         
         gs = self.__make_test_grad()
         for key in cols:

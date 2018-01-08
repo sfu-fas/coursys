@@ -56,7 +56,7 @@ def add_location(request):
             location = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Location was created')
+                                 'Location was created')
             l = LogEntry(userid=request.user.username,
                          description="Added location %s" % location,
                          related_object=location)
@@ -76,7 +76,7 @@ def edit_location(request, location_slug, from_index=0):
             location = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Location was edited')
+                                 'Location was edited')
             l = LogEntry(userid=request.user.username,
                          description="Edited location %s" % location,
                          related_object=location)
@@ -103,7 +103,7 @@ def delete_location(request, location_id):
         location.save()
         messages.add_message(request,
                              messages.SUCCESS,
-                             u'Location was deleted')
+                             'Location was deleted')
         l = LogEntry(userid=request.user.username,
                      description="Deleted location %s" % location,
                      related_object=location)
@@ -125,7 +125,7 @@ def add_roomtype(request):
             roomtype = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Room type was created')
+                                 'Room type was created')
             l = LogEntry(userid=request.user.username,
                          description="Added roomtype %s" % roomtype,
                          related_object=roomtype)
@@ -145,7 +145,7 @@ def edit_roomtype(request, roomtype_slug):
             roomtype = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Room type was edited')
+                                 'Room type was edited')
             l = LogEntry(userid=request.user.username,
                          description="Edited roomtype %s" % roomtype,
                          related_object=roomtype)
@@ -170,7 +170,7 @@ def delete_roomtype(request, roomtype_id):
         roomtype.save()
         messages.add_message(request,
                              messages.SUCCESS,
-                             u'Room type was deleted')
+                             'Room type was deleted')
         l = LogEntry(userid=request.user.username,
                      description="Deleted roomtype %s" % roomtype,
                      related_object=roomtype)
@@ -191,7 +191,7 @@ def add_booking(request, location_slug, from_index=0):
             location.mark_conflicts()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Booking was created')
+                                 'Booking was created')
             l = LogEntry(userid=request.user.username,
                          description="Added booking %s for location %s" % (booking, location),
                          related_object=booking)
@@ -223,7 +223,7 @@ def edit_booking(request, booking_slug):
             booking.location.mark_conflicts()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Booking was edited')
+                                 'Booking was edited')
             l = LogEntry(userid=request.user.username,
                          description="Edited booking %s" % booking,
                          related_object=booking)
@@ -251,7 +251,7 @@ def delete_booking(request, booking_id):
         booking.location.mark_conflicts()
         messages.add_message(request,
                              messages.SUCCESS,
-                             u'Booking was deleted')
+                             'Booking was deleted')
         l = LogEntry(userid=request.user.username,
                      description="Deleted booking %s" % booking,
                      related_object=booking)
@@ -315,7 +315,7 @@ def delete_booking_attachment(request, booking_slug, attachment_id):
     attachment.hide()
     messages.add_message(request,
                          messages.SUCCESS,
-                         u'Attachment was deleted')
+                         'Attachment was deleted')
     l = LogEntry(userid=request.user.username,
                  description="Deleted attachment in booking %s" % booking,
                  related_object=attachment)
@@ -332,7 +332,7 @@ def send_memo(request, booking_slug, from_index=0):
     booking_memo.save()
     messages.add_message(request,
                          messages.SUCCESS,
-                         u'Memo was sent')
+                         'Memo was sent')
     l = LogEntry(userid=request.user.username,
                  description="Send memo to %s" % booking.person,
                  related_object=booking_memo)

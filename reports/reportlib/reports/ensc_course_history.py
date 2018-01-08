@@ -40,7 +40,7 @@ class ENSCCourseHistoryReport(Report):
             mt = [t for t in course.meeting_time.all() if t.meeting_type == 'LEC']
             if mt:
                 meeting_times = ', '.join(str("%s %s-%s" % (WEEKDAYS[t.weekday], t.start_time, t.end_time)) for t in mt)
-            ranks = u"; ".join(CareerEvent.ranks_as_of_semester(p.id, course.semester) for p in course.instructors())
+            ranks = "; ".join(CareerEvent.ranks_as_of_semester(p.id, course.semester) for p in course.instructors())
             course_history.append_row([semester, label, instr, enrl, campus, joint, meeting_times, ranks])
         self.artifacts.append(course_history)
 

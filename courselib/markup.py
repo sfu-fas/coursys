@@ -328,9 +328,9 @@ def _find_activity(offering, arg_string):
     acts = Activity.objects.filter(offering=offering, deleted=False).filter(
         models.Q(name=act_name) | models.Q(short_name=act_name))
     if len(acts) == 0:
-        return u'[No activity "%s"]' % (act_name)
+        return '[No activity "%s"]' % (act_name)
     elif len(acts) > 1:
-        return u'[There is both a name and short name "%s"]' % (act_name)
+        return '[There is both a name and short name "%s"]' % (act_name)
     else:
         return acts[0]
         due = act.due_date
@@ -355,7 +355,7 @@ def _duedate(offering, dateformat, macro, environ, *act_name):
             text = act.due_date.strftime(dateformat)
             attrs['title'] = iso8601
         else:
-            text = u'["%s" has no due date specified]' % (act.name)
+            text = '["%s" has no due date specified]' % (act.name)
             attrs['class'] = 'empty'
     else:
         # error

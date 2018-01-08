@@ -170,7 +170,7 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__visas.html', context)
 
         else:
-            raise ValueError, "Not all sections handled by view code: " + repr(section)
+            raise ValueError("Not all sections handled by view code: " + repr(section))
 
     elif '_escaped_fragment_' in request.GET:
         # Implement google-suggested hash-bang workaround. Not terribly efficient, but probably uncommon.

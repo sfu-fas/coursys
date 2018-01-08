@@ -5,7 +5,7 @@ import django.db.transaction
 from django.core.cache import cache
 from django.utils.html import conditional_escape as e
 from featureflags.flags import feature_disabled
-import re, hashlib, datetime, string, urllib, urllib2, httplib, time, json
+import re, hashlib, datetime, string, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, http.client, time, json
 import socket
 
 multiple_breaks = re.compile(r'\n\n+')
@@ -41,7 +41,7 @@ class DBConn(object):
         clean_args = tuple((self.escape_arg(a) for a in args))
         real_query = query % clean_args
         if self.verbose:
-            print ">>>", real_query
+            print(">>>", real_query)
         self.query = real_query
         return self.db.execute(real_query)
 
@@ -103,13 +103,13 @@ class SIMSConn(DBConn):
         Escape argument for DB2
         """
         # Based on description of PHP's db2_escape_string
-        if type(a) in (int,long):
+        if type(a) in (int,int):
             return str(a)
         if type(a) in (tuple, list, set):
             return '(' + ', '.join((self.escape_arg(v) for v in a)) + ')'
         
         # assume it's a string if we don't know any better
-        a = unicode(a).encode('utf8')
+        a = str(a).encode('utf8')
         a = a.replace("\\", "\\\\")
         a = a.replace("'", "\\'")
         a = a.replace('"', '\\"')
@@ -123,7 +123,7 @@ class SIMSConn(DBConn):
         """
         get DB2 value into a useful format
         """
-        if isinstance(v, basestring):
+        if isinstance(v, str):
             # First try decoding it as UTF-8.  If that fails, decode it with Windows-1250 encoding, as that
             # seems to be the other case we get.
             try:
@@ -163,8 +163,8 @@ def SIMS_problem_handler(func):
 def _args_to_key(args, kwargs):
     "Hash arguments to get a cache key"
     h = hashlib.new('md5')
-    h.update(unicode(args))
-    h.update(unicode(kwargs))
+    h.update(str(args))
+    h.update(str(kwargs))
     return h.hexdigest()
     
 def cache_by_args(func, seconds=38800): # 8 hours by default
@@ -520,7 +520,7 @@ def crse_id_info(crse_id):
     db.execute(offering_query, (crse_id,))
     fields = ['subject', 'catalog_nbr', 'descr']
     for row in db:
-        cdata = dict(zip(fields, row))
+        cdata = dict(list(zip(fields, row)))
         cdata['crse_found'] = True
         return cdata
     return {'subject': '?', 'catalog_nbr': '?', 'descr': '?', 'crse_found': False}
@@ -535,7 +535,7 @@ def ext_org_info(ext_org_id):
     db.execute(ext_org_query, (ext_org_id,))
     fields = ['ext_org']
     for row in db:
-        cdata = dict(zip(fields, row))
+        cdata = dict(list(zip(fields, row)))
         return cdata
     return {'ext_org': '?'}
 
@@ -611,7 +611,7 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     data['transfers'] = transfers
     fields = ['crse_id', 'grade', 'units', 'repeat', 'strm', 'reqdes', 'ext_org_id', 'src_org']
     for row in list(db):
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         crse_id = rdata['crse_id']
         ext_org_id = rdata['ext_org_id']
         
@@ -652,7 +652,7 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     data['semesters'] = semesters
     fields = ['strm', 'career', 'units_passed', 'tgpa', 'cgpa', 'standing', 'udgpa']
     for row in db:
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         strm = rdata['strm']
         if strm in found:
             # handle multiple rows from ps_acad_stdng_actn
@@ -676,7 +676,7 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     fields = ['strm', 'class_nbr', 'unit_taken', 'repeat', 'grade', 'reqdes', 'subject', 'number', 'descr']
     
     for row in db:
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         strm = rdata['strm']
         if rdata['reqdes']:
             rdata['req'] = req_map[rdata['reqdes']]
@@ -723,7 +723,7 @@ def transfer_data(emplid):
     data = {}
     transfers = []
     for row in list(db):
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         transfers.append(rdata)
     data['transfers'] = transfers
     return data
@@ -751,7 +751,7 @@ def classes_data(emplid):
     data = {}
     courses = []
     for row in list(db):
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         courses.append(rdata)
     data['courses'] = courses
     return data
@@ -782,7 +782,7 @@ def acad_plan_count(acad_plan, strm):
 @cache_by_args
 @SIMS_problem_handler
 def get_or_create_semester(strm):
-    if not (isinstance(strm, basestring) and strm.isdigit() and len(strm)==4):
+    if not (isinstance(strm, str) and strm.isdigit() and len(strm)==4):
         raise ValueError("Bad strm: " + repr(strm))
     oldsem = Semester.objects.filter(name=strm)
     if oldsem:
@@ -854,7 +854,7 @@ def offset_semester_string(semester, offset=1):
 
 def pairs( lst ):
     if len(lst) > 1:
-        for i in xrange(1, len(lst)):
+        for i in range(1, len(lst)):
             yield (lst[i-1], lst[i])
 
 #@cache_by_args
@@ -870,9 +870,9 @@ def get_timeline(emplid, verbose=False):
     programs = get_student_programs(emplid) 
     
     if verbose:
-        print "----------"
+        print("----------")
         for program in programs:
-            print program
+            print(program)
 
     # calculate start and end date for programs
     prog_dict = {}
@@ -887,15 +887,15 @@ def get_timeline(emplid, verbose=False):
             prog_dict[program_code]['not_on_leave'].append(strm)
 
     if verbose:
-        print "----------"
-        for key, val in prog_dict.iteritems():
-            print key, val
+        print("----------")
+        for key, val in prog_dict.items():
+            print(key, val)
 
     # calculate on-leave semesters
     on_leave_semesters = [strm for strm, reason in get_on_leave_semesters(emplid)]
 
     try:
-        for program_code, program_object in prog_dict.iteritems():
+        for program_code, program_object in prog_dict.items():
             prog_dict[program_code]['on_leave'] = []
             semesters = Semester.range( program_object['start'], program_object['end'] )
             for semester in semesters:
@@ -905,21 +905,21 @@ def get_timeline(emplid, verbose=False):
                     prog_dict[program_code]['on_leave'].append(semester)
             prog_dict[program_code]['on_leave'].sort()
     except Semester.DoesNotExist:
-        print "Semester out of range", program_object['start'], program_object['end']
+        print("Semester out of range", program_object['start'], program_object['end'])
         return {}
 
     # put the programs in a list, sorted by start date
     programs = []
-    for program_code, program_object in prog_dict.iteritems():
+    for program_code, program_object in prog_dict.items():
         del program_object['not_on_leave']
         program_object['program_code'] = program_code
         programs.append(program_object) 
     programs = sorted( programs, key= lambda x : int(x['start']) )
 
     if verbose: 
-        print "----------"
+        print("----------")
         for program in programs:
-            print program
+            print(program)
 
     # how did it end?
     for program in programs:
@@ -1069,7 +1069,7 @@ def get_end_of_degree(emplid, acad_prog, start_semester):
     db.execute(query, (str(emplid),str(acad_prog),str(start_semester)))
     result = [(x[0], x[1], x[2]) for x in list(db)]
     if len(result) > 1:
-        print "\t Recoverable Error: More than one end of degree ", result
+        print("\t Recoverable Error: More than one end of degree ", result)
         return result[0]
     elif len(result) > 0:
         return result[0]
@@ -1344,7 +1344,7 @@ def outlines_api_url(offering):
     """
     The URL for info in the API.
     """
-    from urllib import quote_plus as q
+    from urllib.parse import quote_plus as q
 
     args = {
         'year': q(str(int(offering.semester.name[0:3]) + 1900)),
@@ -1360,12 +1360,12 @@ def outlines_api_url(offering):
 def outlines_data_json(offering):
     url = outlines_api_url(offering)
     try:
-        req = urllib2.urlopen(url, timeout=30)
+        req = urllib.request.urlopen(url, timeout=30)
         jsondata = req.read()
         data = json.loads(jsondata)
     except ValueError:
         data = {'internal_error': 'could not decode JSON'}
-    except (urllib2.HTTPError, urllib2.URLError, socket.timeout, socket.error):
+    except (urllib.error.HTTPError, urllib.error.URLError, socket.timeout, socket.error):
         data = {'internal_error': 'could not retrieve outline data from API'}
 
     if 'info' in data and 'outlinePath' in data['info']:
@@ -1388,16 +1388,16 @@ def userid_to_emplid(userid):
 
     Admin contact for the API is George Lee in the Learning & Community Platforms Group
     """
-    qs = urllib.urlencode({'art': EMPLID_SECRET, 'username': userid})
+    qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'username': userid})
     url = EMPLID_BASE_URL + qs
     try:
-        req = urllib2.urlopen(url, timeout=30)
+        req = urllib.request.urlopen(url, timeout=30)
         jsondata = req.read()
         data = json.loads(jsondata)
     except ValueError:
         # can't decode JSON
         return None
-    except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException, socket.timeout, socket.error):
+    except (urllib.error.HTTPError, urllib.error.URLError, http.client.HTTPException, socket.timeout, socket.error):
         # network problem, or 404 (if userid doesn't exist)
         return None
 
@@ -1412,16 +1412,16 @@ def emplid_to_userid(emplid):
 
     Admin contact for the API is George Lee in the Learning & Community Platforms Group
     """
-    qs = urllib.urlencode({'art': EMPLID_SECRET, 'sfuid': str(emplid)})
+    qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'sfuid': str(emplid)})
     url = USERID_BASE_URL + qs
     try:
-        req = urllib2.urlopen(url, timeout=30)
+        req = urllib.request.urlopen(url, timeout=30)
         jsondata = req.read()
         data = json.loads(jsondata)
     except ValueError:
         # can't decode JSON
         return None
-    except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException):
+    except (urllib.error.HTTPError, urllib.error.URLError, http.client.HTTPException):
         # network problem, or 404 (if userid doesn't exist)
         return None
 

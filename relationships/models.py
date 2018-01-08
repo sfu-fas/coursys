@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import datetime
 import os
 import uuid
@@ -65,16 +65,16 @@ class Contact(models.Model):
 
     @property
     def slug_string(self):
-        return u'%s %s %s' % (self.first_name, self.last_name, self.unit.label)
+        return '%s %s %s' % (self.first_name, self.last_name, self.unit.label)
 
     def full_name(self):
-        return u'%s, %s' % (self.last_name, self.first_name)
+        return '%s, %s' % (self.last_name, self.first_name)
 
     def name(self):
-        return u"%s %s" % (self.first_name, self.last_name)
+        return "%s %s" % (self.first_name, self.last_name)
 
     def __unicode__(self):
-        return u'%s, %s' % (self.unit.label.upper(), self.full_name())
+        return '%s, %s' % (self.unit.label.upper(), self.full_name())
 
     def delete(self):
         self.deleted = True
@@ -103,7 +103,7 @@ class Event(models.Model):
 
     @property
     def slug_string(self):
-        return u'%s-%s' % (self.timestamp.year, self.event_type)
+        return '%s-%s' % (self.timestamp.year, self.event_type)
 
     def save(self, call_from_handler=False, editor=None, *args, **kwargs):
         assert call_from_handler, "A contact event must be saved through the handler."

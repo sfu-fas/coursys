@@ -12,7 +12,7 @@ def memoize(obj):
 
     @functools.wraps(obj)
     def memoizer(*args, **kwargs):
-        key = obj.func_name + '|' + str(args) + '|' + str(kwargs)
+        key = obj.__name__ + '|' + str(args) + '|' + str(kwargs)
         if key not in cache:
             cache[key] = obj(*args, **kwargs)
         return cache[key]
@@ -77,15 +77,15 @@ def semester_students(out, strm):
     query_date = (datetime.datetime.strptime(sem_start, '%Y-%m-%d') + datetime.timedelta(days=21)).date()
     programs_seen = set()
     for subject, catalog_nbr, class_section, class_nbr, campus, term_begin_dt in courses:
-        print strm, subject, catalog_nbr, class_section
+        print(strm, subject, catalog_nbr, class_section)
         members = course_members(class_nbr, strm)
         plans = dict(plans_as_of(query_date, members))
         #rows = [[subject, catalog_nbr, class_section, campus, emplid, ','.join(plans[emplid])] for emplid in members]
         #out.writerows(rows)
-        counts = collections.Counter(itertools.chain(*plans.values()))
+        counts = collections.Counter(itertools.chain(*list(plans.values())))
         progs_str = " + ".join("%i*%s" % (count, prog) for prog, count in counts.most_common())
         out.writerow([strm, subject, catalog_nbr, class_section, campus, len(members), progs_str])
-        programs_seen |= set(itertools.chain(*plans.values()))
+        programs_seen |= set(itertools.chain(*list(plans.values())))
     
     return programs_seen
 

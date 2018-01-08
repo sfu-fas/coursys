@@ -31,7 +31,7 @@ class CustomSplitDateTimeWidget(forms.SplitDateTimeWidget):
         (Original problem: SplitDateTimeField can not display the field data into the seperated
         DateInput and TimeInput)
         """
-        if data.has_key(name):
+        if name in data:
             # need to manually split the datetime into date and time for later data retrieval
             if isinstance(data[name], datetime.datetime):
                 if isinstance(self.widgets[0], forms.DateInput) and isinstance(self.widgets[1], forms.TimeInput):
@@ -40,7 +40,7 @@ class CustomSplitDateTimeWidget(forms.SplitDateTimeWidget):
         return [widget.value_from_datadict(data, files, name + '_%s' % i) for i, widget in enumerate(self.widgets)]
         
     def format_output(self, rendered_widgets):
-        return mark_safe(u'<div class="datetime">%s %s<br />%s %s</div>' % \
+        return mark_safe('<div class="datetime">%s %s<br />%s %s</div>' % \
             (('Date:'), rendered_widgets[0], ('Time:'), rendered_widgets[1]))
 
 class ActivityForm(forms.Form):
@@ -76,10 +76,10 @@ class ActivityForm(forms.Form):
         if name:
             if self._addform_validate:
                 if Activity.objects.filter(offering__slug=self._course_slug, name=name).count() > 0:
-                    raise forms.ValidationError(u'Activity with the same name already exists')
+                    raise forms.ValidationError('Activity with the same name already exists')
             if self._editform_validate:
                 if Activity.objects.filter(offering__slug=self._course_slug, name=name).exclude(slug=self._activity_slug).count() > 0:
-                    raise forms.ValidationError(u'Activity with the same name already exists')
+                    raise forms.ValidationError('Activity with the same name already exists')
         
         return name
     
@@ -88,10 +88,10 @@ class ActivityForm(forms.Form):
         if short_name:
             if self._addform_validate:
                 if Activity.objects.filter(offering__slug=self._course_slug, short_name=short_name).count() > 0:
-                    raise forms.ValidationError(u'Activity with the same short name already exists')
+                    raise forms.ValidationError('Activity with the same short name already exists')
             if self._editform_validate:
                 if Activity.objects.filter(offering__slug=self._course_slug, short_name=short_name).exclude(slug=self._activity_slug).count() > 0:
-                    raise forms.ValidationError(u'Activity with the same short name already exists')
+                    raise forms.ValidationError('Activity with the same short name already exists')
         
         return short_name
 

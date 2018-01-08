@@ -16,11 +16,11 @@ class VisaTestCase(TestCase):
     def testApplication(self):
         p = Person.objects.get(emplid=210012345)
         # Create three visas, one that should be expired, one that will soon, and one that is valid.
-        v1 = Visa(person=p, status=VISA_STATUSES[0][0], start_date=date(2000,01,01), end_date=date(2000,01,01))
-        v2 = Visa(person=p, status=VISA_STATUSES[0][0], start_date=date(2000,01,01), end_date=date(2099,01,01))
+        v1 = Visa(person=p, status=VISA_STATUSES[0][0], start_date=date(2000,0o1,0o1), end_date=date(2000,0o1,0o1))
+        v2 = Visa(person=p, status=VISA_STATUSES[0][0], start_date=date(2000,0o1,0o1), end_date=date(2099,0o1,0o1))
         next_semester = Semester.next_starting()
         almost_expired_date = next_semester.end - timedelta(days=5)
-        v3 = Visa(person=p, status=VISA_STATUSES[0][0], start_date=date(2000,01,01), end_date=almost_expired_date)
+        v3 = Visa(person=p, status=VISA_STATUSES[0][0], start_date=date(2000,0o1,0o1), end_date=almost_expired_date)
 
         self.assertEqual(v1.is_valid(), False)
         self.assertEqual(v1.is_expired(), True)

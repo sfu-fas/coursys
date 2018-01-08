@@ -26,7 +26,7 @@ def toggle_requirement(request, requirement_id):
         requirement.save()
         messages.add_message(request,
                              messages.SUCCESS,
-                             u'Requirement visibility was changed')
+                             'Requirement visibility was changed')
         l = LogEntry(userid=request.user.username,
                      description="Changed requirement visibility",
                      related_object=requirement)

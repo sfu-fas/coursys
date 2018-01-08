@@ -11,6 +11,7 @@ from django.db import (
         connections, DEFAULT_DB_ALIAS,
         DatabaseError, ProgrammingError)
 from django.utils.decorators import available_attrs
+import collections
 
 
 is_fake = True
@@ -245,7 +246,7 @@ class Atomic(object):
 def atomic(using=None, savepoint=True):
     # Bare decorator: @atomic -- although the first argument is called
     # `using`, it's actually the function being decorated.
-    if callable(using):
+    if isinstance(using, collections.Callable):
         return Atomic(DEFAULT_DB_ALIAS, savepoint)(using)
     # Decorator: @atomic(...) or context manager: with atomic(...): ...
     else:
@@ -261,7 +262,7 @@ def _non_atomic_requests(view, using):
 
 
 def non_atomic_requests(using=None):
-    if callable(using):
+    if isinstance(using, collections.Callable):
         return _non_atomic_requests(using, DEFAULT_DB_ALIAS)
     else:
         if using is None:
@@ -317,7 +318,7 @@ def _transaction_func(entering, exiting, using):
     # are both allowed forms.
     if using is None:
         using = DEFAULT_DB_ALIAS
-    if callable(using):
+    if isinstance(using, collections.Callable):
         return Transaction(entering, exiting, DEFAULT_DB_ALIAS)(using)
     return Transaction(entering, exiting, using)
 

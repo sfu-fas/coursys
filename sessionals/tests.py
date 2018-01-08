@@ -11,15 +11,15 @@ class SessionalTestCase(TestCase):
         contract_id = 1
         url = reverse('sessionals:sessionals_index')
         response = client.get(url)
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
 
         # Now log in but without the correct role
         client.login_user('foo')
         response = client.get(url)
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
         url = reverse('sessionals:delete_contract', kwargs={'contract_id': contract_id})
         response = client.post(url, follow=True)
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
 
     def test_pages(self):
         client = Client()
@@ -35,4 +35,4 @@ class SessionalTestCase(TestCase):
         test_views(self, client, 'sessionals:', ['view_contract', 'edit_contract'], {'contract_slug': contract_slug})
         url = reverse('sessionals:delete_contract', kwargs={'contract_id': contract_id})
         response = client.post(url, follow=True)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)

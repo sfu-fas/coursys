@@ -12,7 +12,7 @@ import math
 import decimal
 
 ORDER_TYPE = {'UP': 'up', 'DN': 'down'}
-_NO_GRADE = u'\u2014'
+_NO_GRADE = '\u2014'
 _DECIMAL_PLACE = 2
 _SUPPORTED_GRADE_RANGE = [10]
 
@@ -70,7 +70,7 @@ class StudentActivityInfo:
         if self.activity.status == 'URLS':
             return _NO_GRADE
         elif self.activity.status=="INVI":
-            raise RuntimeError, "Can't display invisible grade status."
+            raise RuntimeError("Can't display invisible grade status.")
         else:
             return self.grade_status
         
@@ -81,7 +81,7 @@ class StudentActivityInfo:
         if self.activity.status == 'URLS':
             return _NO_GRADE
         elif self.activity.status=="INVI":
-            raise RuntimeError, "Can't display invisible grade."
+            raise RuntimeError("Can't display invisible grade.")
         else:
             if self.grade_status == FLAGS['NOGR']:
                 return _NO_GRADE
@@ -98,7 +98,7 @@ class StudentActivityInfo:
         if self.activity.status == 'URLS':
             return _NO_GRADE
         elif self.activity.status=="INVI":
-            raise RuntimeError, "Can't display invisible grade."
+            raise RuntimeError("Can't display invisible grade.")
         else:
             if self.grade_status == FLAGS['NOGR']:
                 return _NO_GRADE
@@ -163,7 +163,7 @@ def reorder_course_activities(ordered_activities, activity_slug, order):
     """
     for activity in ordered_activities:
         if not isinstance(activity, Activity):
-            raise TypeError(u'ordered_activities should be list of Activity')
+            raise TypeError('ordered_activities should be list of Activity')
     for i in range(0, len(ordered_activities)):
         if ordered_activities[i].slug == activity_slug:
             if (order == ORDER_TYPE['UP']) and (not i == 0):
@@ -192,16 +192,16 @@ def create_StudentActivityInfo_list(course, activity, student=None):
     if not course or not activity:
         return
     if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
-        raise TypeError(u'Activity type is required')
+        raise TypeError('Activity type is required')
     if not isinstance(course, CourseOffering):
-        raise TypeError(u'CourseOffering type is required')
+        raise TypeError('CourseOffering type is required')
     # verify if the course contains the activity
     if not Activity.objects.filter(slug=activity.slug, offering=course):
         return
     student_list = Member.objects.filter(offering=course, role='STUD')
     if student:
         if not isinstance(student, Member):
-            raise TypeError(u'Member type is required')
+            raise TypeError('Member type is required')
         if student in student_list:
             student_list = [student]
         else:
@@ -350,9 +350,9 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
         return
     EPS = 1e-6
     
-    stats = [GradeRangeStat(u"<0%", 0)] \
-            + [GradeRangeStat(u"%i\u2013%i%%" % (i*grade_range,(i+1)*grade_range), 0) for i in range(grade_range)] \
-            + [GradeRangeStat(u">100%", 0)]
+    stats = [GradeRangeStat("<0%", 0)] \
+            + [GradeRangeStat("%i\u2013%i%%" % (i*grade_range,(i+1)*grade_range), 0) for i in range(grade_range)] \
+            + [GradeRangeStat(">100%", 0)]
     for g in student_grade_list:
         # extreme cases:
         if g < 0:
@@ -553,9 +553,9 @@ def format_number(value, decimal_places):
     """
     if isinstance(value, decimal.Decimal):
         context = decimal.getcontext().copy()
-        return u'%s' % str(value.quantize(decimal.Decimal(".1") ** decimal_places, context=context))
+        return '%s' % str(value.quantize(decimal.Decimal(".1") ** decimal_places, context=context))
     else:
-        return u"%.*f" % (decimal_places, value)
+        return "%.*f" % (decimal_places, value)
 
 
 
@@ -572,7 +572,7 @@ def parse_and_validate_formula(formula, course, activity, numeric_activities):
     """
     for a in numeric_activities:
         if not isinstance(a, NumericActivity):
-            raise TypeError(u'NumericActivity list is required')
+            raise TypeError('NumericActivity list is required')
     try:
         parsed_expr = parse(formula, course, activity)
         activities_dict = activities_dictionary(numeric_activities)
@@ -580,9 +580,9 @@ def parse_and_validate_formula(formula, course, activity, numeric_activities):
         cols = cols_used(parsed_expr)
         for col in cols:
             if not col in activities_dict:
-                raise ValidationError(u'Invalid activity reference')
+                raise ValidationError('Invalid activity reference')
     except ParseException:
-        raise ValidationError(u'Incorrect formula syntax')
+        raise ValidationError('Incorrect formula syntax')
     return parsed_expr
 
 def calculate_numeric_grade(course, activity, student=None):

@@ -1,5 +1,5 @@
-from models import Alert, AlertType, AlertUpdate, AlertEmailTemplate
-from forms import EmailForm, ResolutionForm, AlertUpdateForm, EmailResolutionForm
+from .models import Alert, AlertType, AlertUpdate, AlertEmailTemplate
+from .forms import EmailForm, ResolutionForm, AlertUpdateForm, EmailResolutionForm
 from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
 
@@ -15,7 +15,7 @@ from log.models import LogEntry
 from django.forms.utils import ErrorList
 from django.template import Template, Context
 from django.core.mail import send_mail
-import rest
+from . import rest
 import datetime
 import json
 
@@ -60,12 +60,12 @@ def view_alert_types(request):
 
 def regularize_keys( alert, most_recent_alert ):
     """ As it turns out, alerts may not have the same key/value pairs as the most recent alert. """
-    for key, value in most_recent_alert.details.iteritems():
+    for key, value in most_recent_alert.details.items():
         if key not in alert.details:
             alert.details[key] = ""
 
     delete_keys = []
-    for key, value in alert.details.iteritems():
+    for key, value in alert.details.items():
         if key not in most_recent_alert.details:
             delete_keys.append(key)
 
@@ -198,7 +198,7 @@ def new_automation(request, alert_type):
         if form.is_valid():
             if AlertEmailTemplate.objects.filter(alerttype=alert_type, hidden=False, threshold=form.cleaned_data['threshold']).count() > 0:
                 errors = form._errors.setdefault("threshold", ErrorList())
-                errors.append(u'An e-mail with this threshold already exists.' )
+                errors.append('An e-mail with this threshold already exists.' )
             else:
                 f = form.save(commit=False)
                 f.alerttype = alert_type
@@ -226,7 +226,7 @@ def new_automation(request, alert_type):
         ("description","The description of the alert.")
     ]
     
-    for k, v in sample_alert.details.iteritems():
+    for k, v in sample_alert.details.items():
         email_tags.append( ("details."+k, "For example, (" + str(v) + ")") )
     
     return render(request, 'alerts/new_automation.html', { 'alert_type':alert_type, 'form': form, 'email_tags':email_tags })
@@ -270,7 +270,7 @@ def view_email_preview(request, alert_type, alert_id, automation_id):
 
     email_context = build_context( alert )    
     email_context['details'] = {}
-    for k, v in alert.details.iteritems():
+    for k, v in alert.details.items():
         email_context['details'][k] = str(v)
 
     rendered_text = t.render( Context(email_context) ) 
@@ -420,7 +420,7 @@ def send_emails( request, alert_type ):
 
             email_context = build_context( alert )    
             email_context['details'] = {}
-            for k, v in alert.details.iteritems():
+            for k, v in alert.details.items():
                 email_context['details'][k] = str(v)
 
             rendered_text = t.render( Context(email_context) ) 

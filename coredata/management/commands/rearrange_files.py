@@ -27,7 +27,7 @@ def move_file(model, storage, field_name, field, o):
         return
 
     # link/move/unlink ensures that this can be safely interrupted
-    print('%s > %s' % (old_loc, new_loc))
+    print(('%s > %s' % (old_loc, new_loc)))
     os.makedirs(new_dir)
     os.link(old_loc_full, new_loc_full)
     up = {field_name: new_loc}

@@ -54,7 +54,7 @@ def randname(l):
     """
     n = random.choice(string.ascii_uppercase)
     for _ in range(l-1):
-        n = n + random.choice(string.ascii_lowercase + u'àêïõú')
+        n = n + random.choice(string.ascii_lowercase + 'àêïõú')
     return n
 
 randnullbool = lambda:random.choice((False, True, None))
@@ -104,7 +104,7 @@ def create_true_core():
     import_semester_info(dry_run=False, verbose=False, long_long_ago=True, bootstrap=True)
     p = find_person('ggbaker')
     p.emplid = '200000100'
-    p.first_name = u'Gregorʏ'
+    p.first_name = 'Gregorʏ'
     p.pref_first_name = 'Greg'
     p.save()
     u = Unit(label='UNIV', name='Simon Fraser University')
@@ -167,7 +167,7 @@ def create_coredata():
     if not CourseOffering.objects.filter(slug=TEST_COURSE_SLUG):
         o = CourseOffering.objects.filter(subject='CMPT', semester__name=import_strms()[0]) \
             .order_by('number', 'section').first()
-        raise ValueError, "courselib.testing.TEST_COURSE_SLUG isn't an offering we have. Maybe use '%s'." % (o.slug)
+        raise ValueError("courselib.testing.TEST_COURSE_SLUG isn't an offering we have. Maybe use '%s'." % (o.slug))
 
     # import instructors
     for o in offerings:
@@ -232,7 +232,7 @@ def create_coredata():
     r6.save()
 
     # ensures course appears in menu for students
-    a = NumericActivity(offering=o, name=u'Assignmenț 1', short_name='A1', status='URLS', position=1, percent=10,
+    a = NumericActivity(offering=o, name='Assignmenț 1', short_name='A1', status='URLS', position=1, percent=10,
         max_grade=10, due_date=(o.semester.start + datetime.timedelta(days=60)))
     a.save()
 
@@ -288,14 +288,14 @@ def create_test_offering():
     to.save()
 
     # make A1 submittable and markable
-    s = CodeComponent(activity=a1, title=u"Cöde File", description="The code you're submitting.",
+    s = CodeComponent(activity=a1, title="Cöde File", description="The code you're submitting.",
         allowed=".py,.java")
     s.save()
     s = PDFComponent(activity=a1, title="Report", description="Report on what you did.",
         specified_filename="report.pdf")
     s.save()
 
-    m = ActivityComponent(numeric_activity=a1, max_mark=5, title=u"Part ➀", description="Part ➀ was done well and seems to work.", position=1, slug='part-1')
+    m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part ➀", description="Part ➀ was done well and seems to work.", position=1, slug='part-1')
     m.save()
     m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part 2", description="Part 2 was done well and seems to work.", position=2)
     m.save()
@@ -393,7 +393,7 @@ def create_grad():
     templates = [
                  {"unit": cmpt,
                   "label": "offer",
-                  "content": u"Congratulations, {{first_name}}, we would like to offer you admission to the {{program}} program in Computing Science at SFU.\r\n\r\nThis is gööd news. Really."
+                  "content": "Congratulations, {{first_name}}, we would like to offer you admission to the {{program}} program in Computing Science at SFU.\r\n\r\nThis is gööd news. Really."
                   },
                  {"unit": cmpt,
                   "label": "visa",
@@ -681,7 +681,7 @@ def create_onlineforms():
     fld4.save()
     fld4 = Field(label='Reasons', sheet=s2, fieldtype='LGTX', config={"min_length": 1, "required": True, "max_length": "1000", 'label': 'Reasons', "help_text":'Why do you think you deserve it?'})
     fld4.save()
-    fld5 = Field(label='Prediction', sheet=s2, fieldtype='RADI', config={"required": False, 'label': u'Predictiŏn', "help_text":"Do you think it's likely this will be approved?", "choice_1": "Yes", "choice_2": "No", "choice_3": "Huh?"})
+    fld5 = Field(label='Prediction', sheet=s2, fieldtype='RADI', config={"required": False, 'label': 'Predictiŏn', "help_text":"Do you think it's likely this will be approved?", "choice_1": "Yes", "choice_2": "No", "choice_3": "Huh?"})
     fld5.save()
     s3 = Sheet(form=f2, title="Decision", can_view="ALL")
     s3.save()
@@ -702,7 +702,7 @@ def create_onlineforms():
 def create_outreach():
     from outreach.models import OutreachEvent, OutreachEventRegistration
     unit = Unit.objects.get(slug='cmpt')
-    start = datetime.datetime(2099,01,01,00,00,00) # Start a long time from now so the tests are always valid
+    start = datetime.datetime(2099,0o1,0o1,00,00,00) # Start a long time from now so the tests are always valid
     end = start + datetime.timedelta(days=2)
     e = OutreachEvent(title='A Test Event', start_date=start, end_date=end, unit=unit, notes='Here are some notes',
                       description='An event to test', slug='devtest_a_test_event')
@@ -761,8 +761,8 @@ def create_space():
                    own_or_lease='OWN', comments='This is the room with the thing')
     loc.save()
     p = Person.objects.get(userid='0ggg1')
-    start = datetime.datetime(2010,01,01,00,00,00)
-    end = datetime.datetime(2099,01,01,23,59,59)
+    start = datetime.datetime(2010,0o1,0o1,00,00,00)
+    end = datetime.datetime(2099,0o1,0o1,23,59,59)
     book = BookingRecord(person=p, location=loc, start_time=start, end_time=end)
     book.save()
     return itertools.chain(
@@ -773,7 +773,7 @@ def create_space():
 
 
 def serialize_result(data_func, filename):
-    print "creating %s.json" % (filename)
+    print("creating %s.json" % (filename))
     start = time.time()
     objs = data_func()
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
@@ -803,5 +803,5 @@ def main():
 if __name__ == "__main__":
     hostname = socket.gethostname()
     if hostname == 'courses':
-        raise NotImplementedError, "Don't do that."
+        raise NotImplementedError("Don't do that.")
     main()

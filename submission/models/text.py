@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.forms.widgets import Textarea, TextInput
 from django import forms
 
-from base import SubmissionComponent, SubmittedComponent, FileSizeField
+from .base import SubmissionComponent, SubmittedComponent, FileSizeField
 from submission.forms import ComponentForm as BaseComponentForm, SubmissionForm as BaseSubmissionForm
 
 import os

@@ -82,10 +82,10 @@ class AdvisorNote(models.Model):
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     def __unicode__(self):
-        return unicode(self.student) + "@" + unicode(self.created_at)
+        return str(self.student) + "@" + str(self.created_at)
 
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
+        raise NotImplementedError("This object cannot be deleted, set the hidden flag instead.")
 
     class Meta:
         ordering = ['student', 'created_at']
@@ -93,7 +93,7 @@ class AdvisorNote(models.Model):
     def save(self, *args, **kwargs):
         # make sure one of student and nonstudent is there
         if not self.student and not self.nonstudent:
-            raise ValueError, "AdvisorNote must have either student or non-student specified."
+            raise ValueError("AdvisorNote must have either student or non-student specified.")
         super(AdvisorNote, self).save(*args, **kwargs)
 
     def attachment_filename(self):
@@ -117,9 +117,9 @@ class AdvisorNote(models.Model):
         lines = text.split('\n')
         text = lines[0]
         if len(text) > 70:
-            text = text[:100] + u' \u2026'
+            text = text[:100] + ' \u2026'
         elif len(lines) > 1:
-            text += u' \u2026'
+            text += ' \u2026'
         return text
 
 
@@ -146,7 +146,7 @@ class Artifact(models.Model):
         unique_together = [('name', 'unit')]
 
     def __unicode__(self):
-        return unicode(self.name) + ' (' + unicode(self.get_category_display()) + ')'
+        return str(self.name) + ' (' + str(self.get_category_display()) + ')'
 
 
 NOTE_STATUSES = (
@@ -182,14 +182,14 @@ class ArtifactNote(models.Model):
 
     def __unicode__(self):
         if self.course:
-            return unicode(self.course) + "@" + unicode(self.created_at)
+            return str(self.course) + "@" + str(self.created_at)
         elif self.course_offering:
-            return unicode(self.course_offering) + "@" + unicode(self.created_at)
+            return str(self.course_offering) + "@" + str(self.created_at)
         else:
-            return unicode(self.artifact) + "@" + unicode(self.created_at)
+            return str(self.artifact) + "@" + str(self.created_at)
 
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
+        raise NotImplementedError("This object cannot be deleted, set the hidden flag instead.")
 
     class Meta:
         ordering = ['created_at']
@@ -197,11 +197,11 @@ class ArtifactNote(models.Model):
     def save(self, *args, **kwargs):
         # make sure one of course, course_offering or artifact is there
         if not self.course and not self.course_offering and not self.artifact:
-            raise ValueError, "Artifact note must have either course, course offering or artifact specified."
+            raise ValueError("Artifact note must have either course, course offering or artifact specified.")
 
         # make sure only one course, course_offering or artifact is related
         if (self.course and self.course_offering) or (self.course and self.artifact) or (self.course_offering and self.artifact):
-            raise ValueError, "Artifact cannot have more than one related course, course offering or artifact."
+            raise ValueError("Artifact cannot have more than one related course, course offering or artifact.")
         super(ArtifactNote, self).save(*args, **kwargs)
 
     def attachment_filename(self):

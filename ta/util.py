@@ -13,14 +13,14 @@ def html_output_alt(self, normal_row, error_row, row_ender, help_text_html, erro
     top_errors = self.non_field_errors() # Errors that should be displayed above all fields.
     output, hidden_fields = [], []
 
-    for name, field in self.fields.items():
+    for name, field in list(self.fields.items()):
         html_class_attr = ''
         bf = BoundField(self, field, name)
         bf_errors = self.error_class([conditional_escape(error) for error in bf.errors]) # Escape and cache in local variable.
         if bf.is_hidden:
             if bf_errors:
-                top_errors.extend([u'(Hidden field %s) extra_css_class_attr%s' % (name, force_unicode(e)) for e in bf_errors])
-            hidden_fields.append(unicode(bf))
+                top_errors.extend(['(Hidden field %s) extra_css_class_attr%s' % (name, force_unicode(e)) for e in bf_errors])
+            hidden_fields.append(str(bf))
         else:
             # Create a 'class="..."' atribute if the row should have any
             # CSS classes applied.
@@ -45,12 +45,12 @@ def html_output_alt(self, normal_row, error_row, row_ender, help_text_html, erro
             if field.help_text:
                 help_text = help_text_html % force_unicode(field.help_text)
             else:
-                help_text = u''
+                help_text = ''
 
             output.append(normal_row % {
                 'errors': force_unicode(bf_errors),
                 'label': force_unicode(label),
-                'field': unicode(bf),
+                'field': str(bf),
                 'help_text': help_text,
                 'html_class_attr': html_class_attr
             })
@@ -59,7 +59,7 @@ def html_output_alt(self, normal_row, error_row, row_ender, help_text_html, erro
     #    output.insert(0, error_row % force_unicode(top_errors))
 
     if hidden_fields: # Insert any hidden fields in the last row.
-        str_hidden = u''.join(hidden_fields)
+        str_hidden = ''.join(hidden_fields)
         if output:
             last_row = output[-1]
             # Chop off the trailing row_ender (e.g. '</td></tr>') and
@@ -78,7 +78,7 @@ def html_output_alt(self, normal_row, error_row, row_ender, help_text_html, erro
             # If there aren't any rows in the output, just append the
             # hidden fields.
             output.append(str_hidden)
-    return mark_safe(u'\n'.join(output))
+    return mark_safe('\n'.join(output))
 # this function could be moved into some utility module
 def table_row__Form(klass):
     #assert(issubclass(klass, forms.BaseForm))
@@ -86,10 +86,10 @@ def table_row__Form(klass):
     def as_table_row(self):
         "Returns this form rendered as HTML <td>s -- excluding the <tr></tr>."
         return html_output_alt(self,
-            normal_row = u'<td%(html_class_attr)s>%(field)s%(errors)s%(help_text)s</td>',
-            error_row = u'',
-            row_ender = u'</td>',
-            help_text_html = u'<br /><span class="helptext">%s</span>',
+            normal_row = '<td%(html_class_attr)s>%(field)s%(errors)s%(help_text)s</td>',
+            error_row = '',
+            row_ender = '</td>',
+            help_text_html = '<br /><span class="helptext">%s</span>',
             errors_on_separate_row = False)
     klass.as_table_row = as_table_row
     return klass

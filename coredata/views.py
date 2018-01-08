@@ -20,6 +20,7 @@ from django.contrib import messages
 from cache_utils.decorators import cached
 from haystack.query import SearchQuerySet
 import socket, json, datetime, os
+from functools import reduce
 
 @requires_global_role("SYSA")
 def sysadmin(request):
@@ -443,7 +444,7 @@ def list_anypersons(request):
 def delete_anyperson(request, anyperson_id):
     anyperson = get_object_or_404(AnyPerson, pk=anyperson_id)
     anyperson.delete()
-    messages.success(request, u'Deleted anyperson for %s' % anyperson)
+    messages.success(request, 'Deleted anyperson for %s' % anyperson)
     l = LogEntry(userid=request.user.username,
                  description="deleted anyperson: %s" % anyperson,
                  related_object=anyperson)
@@ -460,7 +461,7 @@ def add_anyperson(request):
             ap = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'AnyPerson %s was created.' % ap
+                                 'AnyPerson %s was created.' % ap
                                  )
             l = LogEntry(userid=request.user.username,
                          description="added anyperson: %s" % ap,
@@ -484,7 +485,7 @@ def edit_anyperson(request, anyperson_id):
             ap = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'AnyPerson for %s was edited.' % ap
+                                 'AnyPerson for %s was edited.' % ap
                                  )
             l = LogEntry(userid=request.user.username,
                          description="edited anyperson: %s" % ap,
@@ -511,7 +512,7 @@ def delete_empty_anypersons(request):
         res = AnyPerson.delete_empty_anypersons()
         messages.add_message(request,
                              messages.SUCCESS,
-                             u'Deleted %s empty AnyPersonn(s).' % unicode(res)
+                             'Deleted %s empty AnyPersonn(s).' % str(res)
                              )
 
         return HttpResponseRedirect(reverse('sysadmin:list_anypersons'))
@@ -534,7 +535,7 @@ def edit_futureperson(request, futureperson_id):
 def delete_futureperson(request, futureperson_id):
     futureperson = FuturePerson.objects.get(pk=futureperson_id)
     futureperson.delete()
-    messages.success(request, u'Deleted futureperson %s' % futureperson)
+    messages.success(request, 'Deleted futureperson %s' % futureperson)
     l = LogEntry(userid=request.user.username,
                  description="deleted futureperson: %s" % futureperson,
                  related_object=futureperson)
@@ -554,7 +555,7 @@ def add_futureperson(request):
             new_future_person.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'FuturePerson %s was edited.' % new_future_person
+                                 'FuturePerson %s was edited.' % new_future_person
                                  )
             l = LogEntry(userid=request.user.username,
                          description="Added FuturePerson: %s" % new_future_person,
@@ -582,7 +583,7 @@ def list_roleaccounts(request):
 def delete_roleaccount(request, roleaccount_id):
     roleaccount = RoleAccount.objects.get(pk=roleaccount_id)
     roleaccount.delete()
-    messages.success(request, u'Deleted roleaccount %s' % roleaccount)
+    messages.success(request, 'Deleted roleaccount %s' % roleaccount)
     l = LogEntry(userid=request.user.username,
                  description="deleted roleaccount: %s" % roleaccount,
                  related_object=roleaccount)
@@ -598,7 +599,7 @@ def edit_roleaccount(request, roleaccount_id):
             ra = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Role Account %s was edited.' % ra
+                                 'Role Account %s was edited.' % ra
                                  )
             l = LogEntry(userid=request.user.username,
                          description="edited roleaccount: %s" % ra,
@@ -620,7 +621,7 @@ def add_roleaccount(request):
             ra = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'added roleaccount %s' % ra
+                                 'added roleaccount %s' % ra
                                  )
             l = LogEntry(userid=request.user.username,
                          description="added roleaccount: %s" % ra,
@@ -724,7 +725,7 @@ def unit_role_list(request):
 @requires_role("ADMN")
 def new_unit_role(request, role=None):
     role_choices = [(r,ROLES[r]) for r in UNIT_ROLES]
-    unit_choices = [(u.id, unicode(u)) for u in Unit.sub_units(request.units)]
+    unit_choices = [(u.id, str(u)) for u in Unit.sub_units(request.units)]
     if request.method == 'POST':
         form = UnitRoleForm(request.POST)
         form.fields['role'].choices = role_choices
@@ -934,13 +935,13 @@ def student_search(request):
     # experimentally, score >= 1 seems to correspond to useful things
     student_qs = SearchQuerySet().models(Person).filter(text=term)[:20]
     data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs
-            if r and r.score >= 1 and unicode(r.emplid) not in EXCLUDE_EMPLIDS]
+            if r and r.score >= 1 and str(r.emplid) not in EXCLUDE_EMPLIDS]
     
     # non-haystack version of the above query
     if len(student_qs) == 0:
         studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
         students = Person.objects.filter(studentQuery)[:20]
-        data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
+        data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if str(s.emplid) not in EXCLUDE_EMPLIDS]
 
     if 'nonstudent' in request.GET and 'ADVS' in roles:
         nonStudentQuery = get_query(term, ['first_name', 'last_name', 'pref_first_name'])
@@ -1048,7 +1049,7 @@ class OfferingDataJson(BaseDatatableView):
 
     def render_column(self, offering, column):
         if column == 'coursecode':
-            txt = u'%s\u00a0%s\u00a0%s' % (offering.subject, offering.number, offering.section) # those are nbsps
+            txt = '%s\u00a0%s\u00a0%s' % (offering.subject, offering.number, offering.section) # those are nbsps
             url = reverse('browse:browse_courses_info', kwargs={'course_slug': offering.slug})
             col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
         elif column == 'instructors':
@@ -1060,12 +1061,12 @@ class OfferingDataJson(BaseDatatableView):
             if offering.wait_tot:
                 col += ' (+%i)' % (offering.wait_tot,)
         elif column == 'semester':
-            col = unicode(offering.semester).replace(u' ', u'\u00a0') # nbsp
+            col = str(offering.semester).replace(' ', '\u00a0') # nbsp
         elif hasattr(offering, 'get_%s_display' % column):
             # it's a choice field
             col = getattr(offering, 'get_%s_display' % column)()
         else:
-            col = unicode(getattr(offering, column))
+            col = str(getattr(offering, column))
         
         return conditional_escape(col)
 

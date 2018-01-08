@@ -14,9 +14,9 @@ def manage_program(request, grad_slug):
     programs = GradProgram.objects.filter(unit__in=request.units)
     # If you have access to programs from different units, display them.
     if len(request.units) > 1:
-        program_choices = [(p.id, unicode(p) + " (" + p.unit.label + ")") for p in programs]
+        program_choices = [(p.id, str(p) + " (" + p.unit.label + ")") for p in programs]
     else:
-        program_choices = [(p.id, unicode(p)) for p in programs]
+        program_choices = [(p.id, str(p)) for p in programs]
     programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=request.units).order_by('starting')
     
     if request.method == 'POST':

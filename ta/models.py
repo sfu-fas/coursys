@@ -17,7 +17,7 @@ from django.utils.safestring import mark_safe
 from creoleparser import text2html
 from courselib.storage import UploadedFileStorage, upload_path
 
-import bu_rules
+from . import bu_rules
 
 LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
 LAB_BONUS = float(LAB_BONUS_DECIMAL)
@@ -77,7 +77,7 @@ class TUG(models.Model):
     other2 = property(*getter_setter('other2'))
     
     def iterothers(self):
-        return (other for key, other in self.config.iteritems() 
+        return (other for key, other in self.config.items() 
                 if key.startswith('other')
                 and other.get('total',0) > 0)
 
@@ -105,17 +105,17 @@ class TUG(models.Model):
             'lectures':{'label':'Attendance at lectures', 
                     'help':'3. Attendance at lectures'}, 
             'tutorials':{'label':'Attendance at labs/tutorials', 
-                    'help':u'4. Attendance at labs/tutorials'}, 
+                    'help':'4. Attendance at labs/tutorials'}, 
             'office_hours':{'label':'Office hours', 
-                    'help':u'5. Office hours/student consultation/electronic communication'}, 
+                    'help':'5. Office hours/student consultation/electronic communication'}, 
             'grading':{'label':'Grading', 
-                    'help':u'6. Grading\u2020',
-                    'extra':u'\u2020Includes grading of all assignments, reports and examinations.'}, 
+                    'help':'6. Grading\u2020',
+                    'extra':'\u2020Includes grading of all assignments, reports and examinations.'}, 
             'test_prep':{'label':'Quiz/exam preparation and invigilation', 
-                    'help':u'7. Quiz preparation/assist in exam preparation/Invigilation of exams'}, 
+                    'help':'7. Quiz preparation/assist in exam preparation/Invigilation of exams'}, 
             'holiday':{'label':'Holiday compensation', 
-                    'help':u'8. Statutory Holiday Compensation\u2021',
-                    'extra':u'''\u2021To compensate for all statutory holidays which  
+                    'help':'8. Statutory Holiday Compensation\u2021',
+                    'extra':'''\u2021To compensate for all statutory holidays which  
 may occur in a semester, the total workload required will be reduced by %s
 hour(s) for each base unit assigned excluding the additional %s B.U. for
 preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOURS_PER_BU, LAB_BONUS, 4.4, 4+LAB_BONUS)}}
@@ -245,7 +245,7 @@ class TAPosting(models.Model):
     def short_str(self):
         return "%s %s" % (self.unit.label, self.semester)
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
     
     def contact(self):
         if 'contact' in self.config:
@@ -557,7 +557,7 @@ class TAContract(models.Model):
         unique_together = (('posting', 'application'),)
         
     def __unicode__(self):
-        return u"%s" % self.application.person
+        return "%s" % self.application.person
 
     def save(self, *args, **kwargs):
         super(TAContract, self).save(*args, **kwargs)
@@ -642,7 +642,7 @@ class TAContract(models.Model):
 
     def course_list_string(self):
         # Build a string of all course offerings tied to this contract for CSV downloads and grad student views.
-        course_list_string = ', '.join([unicode.encode(ta_course.course.name()) for ta_course in
+        course_list_string = ', '.join([str.encode(ta_course.course.name()) for ta_course in
                                         self.tacourse_set.all()])
         return course_list_string
 
@@ -740,7 +740,7 @@ class TACourse(models.Model):
         if descs:
             return descs[0]
         else:
-            raise ValueError, "No appropriate CourseDescription found"
+            raise ValueError("No appropriate CourseDescription found")
     
     def pay(self):
         contract = self.contract

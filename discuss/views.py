@@ -11,7 +11,7 @@ from featureflags.flags import uses_feature
 from discuss.forms import discussion_topic_form_factory,\
     DiscussionTopicStatusForm, DiscussionMessageForm, DiscussionSubscriptionForm, TopicSubscriptionForm
 import datetime, itertools, json
-import activity
+from . import activity
 
 def _get_course_and_view(request, course_slug):
     """

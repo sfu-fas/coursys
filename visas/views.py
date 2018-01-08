@@ -34,7 +34,7 @@ def new_visa(request, emplid=None):
             visa.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Visa was created.'
+                                 'Visa was created.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="added visa: %s" % (visa),
@@ -63,7 +63,7 @@ def edit_visa(request, visa_id):
             visa.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Visa was successfully modified.'
+                                 'Visa was successfully modified.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="edited visa: %s" % (visa),
@@ -177,7 +177,7 @@ def delete_attachment(request, visa_id, attach_slug):
     attachment.hide()
     messages.add_message(request,
                          messages.SUCCESS,
-                         u'Attachment deleted.'
+                         'Attachment deleted.'
                          )
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()

@@ -20,7 +20,7 @@ class DashboardTest(TestCase):
         client.login_user(userid)
 
         response = client.get("/")
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         
         # this student is in this course: check for a link to its page (but it only appears after start of semester)
         c = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
@@ -39,7 +39,7 @@ class DashboardTest(TestCase):
         client = Client()
         # not logged in: should be redirected to login page
         response = client.get(c.get_absolute_url())
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
 
         # log in as student "0aaa0"
         client.login_user("0aaa0")
@@ -47,20 +47,20 @@ class DashboardTest(TestCase):
 
         # not in the course: should get 403 Forbidden
         response = client.get(c.get_absolute_url())
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
         
         # add to course and try again
         m = Member(person=p, offering=c, role="STUD", credits=3, career="UGRD", added_reason="UNK")
         m.save()
         response = client.get(c.get_absolute_url())
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         validate_content(self, response.content, c.get_absolute_url())
 
         # dropped students should be forbidden
         m.role="DROP"
         m.save()
         response = client.get(c.get_absolute_url())
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
 
     def test_staff_page(self):
         """
@@ -77,24 +77,24 @@ class DashboardTest(TestCase):
 
         # try without logging in
         response = client.get(url)
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         # try as instructor
         client.login_user(instr)
         response = client.get(url)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         validate_content(self, response.content, url)
         # try as TA.
         client.login_user(ta)
         response = client.get(url)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         # try as student
         client.login_user(student)
         response = client.get(url)
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
         # try as non-member
         client.login_user(nobody)
         response = client.get(url)
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
         # try again as TA, but cheat by changing the semester for the course first.  We also have to change something
         # else, in this case, the section, in order to avoid violating unique constraints when saving it.
         c = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
@@ -103,7 +103,7 @@ class DashboardTest(TestCase):
         c.save()
         client.login_user(ta)
         response = client.get(url)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         
     def test_impersonation(self):
         """
@@ -116,47 +116,47 @@ class DashboardTest(TestCase):
         client.login_user('pba7')
         # not instructor, so can't really access
         response = client.get(url)
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
         # ...but can impersonate instructor
         response = client.get(url, {"__impersonate": "ggbaker"})
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Logged in as ggbaker')
 
         # login as student
         client.login_user("0aaa0")
         # can access normally
         response = client.get(url)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Logged in as 0aaa0')
         # try to impersonate anybody: not allowed
         response = client.get(url, {"__impersonate": "0aaa1"})
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
         response = client.get(url, {"__impersonate": "ggbaker"})
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
 
         # login as instructor
         client.login_user("ggbaker")
         # can access course page
         response = client.get(url)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Logged in as ggbaker')
         # try to impersonate non-student: not allowed
         response = client.get(url, {"__impersonate": "dzhao"})
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
         # try to impersonate student: should be them
         response = client.get(url, {"__impersonate": "0aaa0"})
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Logged in as 0aaa0')
         
         # try some other course: shouldn't be able to impersonate
         url = reverse('offering:groups:groupmanage', kwargs={'course_slug': '1114-cmpt-310-d100'})
         response = client.get(url, {"__impersonate": "0aaa0"})
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
         # try non-course URL as non-admin: shouldn't be able to impersonate
         client.login_user("diana")
         url = reverse('dashboard:index', kwargs={})
         response = client.get(url, {"__impersonate": "0aaa0"})
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
 
     def test_userconfig(self):
         """
@@ -169,52 +169,52 @@ class DashboardTest(TestCase):
         client.login_user(userid)
         configurl = reverse('config:config', kwargs={})
         response = client.get(configurl)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "You do not currently have the external news feed")
         self.assertContains(response, "You do not currently have the external calendar")
         
         # activate calendar
         url = reverse('config:create_calendar_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
 
         response = client.get(configurl)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "You do not currently have the external news feed")
         self.assertContains(response, "You can get your calendar as iCalendar")
         
         confs = UserConfig.objects.filter(user__userid=userid, key='calendar-config')
-        self.assertEquals(len(confs), 1)
+        self.assertEqual(len(confs), 1)
         uc = confs[0]
         token = uc.value['token']
         self.assertIsNotNone(tokenre.match(token))
         
         url = reverse('calendar:calendar_ical', kwargs={'token': token, 'userid': userid})
         response = client.get(url)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "BEGIN:VCALENDAR")
         self.assertContains(response, "END:VCALENDAR")
         
         # change calendar URL
         url = reverse('config:create_calendar_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         confs = UserConfig.objects.filter(user__userid=userid, key='calendar-config')
-        self.assertEquals(len(confs), 1)
+        self.assertEqual(len(confs), 1)
         self.assertNotEqual(token, confs[0].value['token'])
         
         # disable and re-enable calendar URL
         url = reverse('config:disable_calendar_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         confs = UserConfig.objects.filter(user__userid=userid, key='calendar-config')
-        self.assertEquals(len(confs), 1)
+        self.assertEqual(len(confs), 1)
         self.assertTrue('token' not in confs[0].value)
         
         url = reverse('config:create_calendar_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
         confs = UserConfig.objects.filter(user__userid=userid, key='calendar-config')
-        self.assertEquals(len(confs), 1)
+        self.assertEqual(len(confs), 1)
         self.assertIsNotNone(tokenre.match(confs[0].value['token']))
         
 
@@ -222,43 +222,43 @@ class DashboardTest(TestCase):
         # activate feed
         url = reverse('config:create_news_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
 
         response = client.get(configurl)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Your external news feed is currently enabled")
         self.assertContains(response, "You can get your calendar as iCalendar")
         
         confs = UserConfig.objects.filter(user__userid=userid, key='feed-token')
-        self.assertEquals(len(confs), 1)
+        self.assertEqual(len(confs), 1)
         uc = confs[0]
         token = uc.value['token']
         self.assertIsNotNone(tokenre.match(token))
         
         url = reverse('news:atom_feed', kwargs={'token': token, 'userid': userid})
         response = client.get(url)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<feed xmlns="http://www.w3.org/2005/Atom">')
         
         # change feed URL
         url = reverse('config:create_news_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         confs = UserConfig.objects.filter(user__userid=userid, key='feed-token')
-        self.assertEquals(len(confs), 1)
+        self.assertEqual(len(confs), 1)
         self.assertNotEqual(token, confs[0].value['token'])
         
         # disable and re-enable feed URL
         url = reverse('config:disable_news_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         confs = UserConfig.objects.filter(user__userid=userid, key='feed-token')
-        self.assertEquals(len(confs), 0)
+        self.assertEqual(len(confs), 0)
         
         url = reverse('config:create_news_url', kwargs={})
         response = client.post(url, {'agree': 'on'})
         confs = UserConfig.objects.filter(user__userid=userid, key='feed-token')
-        self.assertEquals(len(confs), 1)
+        self.assertEqual(len(confs), 1)
         self.assertIsNotNone(tokenre.match(confs[0].value['token']))
 
     def test_pages(self):
@@ -333,7 +333,7 @@ class FulltextTest(TestCase):
 
         res = SearchQuerySet().models(CourseOffering).filter(text='Babbling')
         self.assertEqual(len(res), 1)
-        self.assertEquals(res[0].object, self.offering)
+        self.assertEqual(res[0].object, self.offering)
 
         # don't expect CourseOfferings to update automatically
         self.offering.title = 'Something Else'

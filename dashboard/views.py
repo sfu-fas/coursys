@@ -23,7 +23,7 @@ from onlineforms.models import FormGroup
 from pages.models import Page, ACL_ROLES
 from ra.models import RAAppointment
 from log.models import LogEntry
-import datetime, json, urlparse
+import datetime, json, urllib.parse
 from courselib.auth import requires_role
 from icalendar import Calendar, Event
 from featureflags.flags import uses_feature
@@ -33,7 +33,7 @@ from xml.etree.ElementTree import ParseError
 from ipware import ip
 import pytz
 import itertools
-from urllib import urlencode
+from urllib.parse import urlencode
 
 
 @login_required
@@ -155,7 +155,7 @@ def login(request, next_page=None, required=False):
             if e.errno in [104, 110, 'socket error']:
                 user = None
             else:
-                raise IOError, "The errno is %r: %s." % (e.errno, unicode(e))
+                raise IOError("The errno is %r: %s." % (e.errno, str(e)))
         except ParseError:
             user = None
 
@@ -377,7 +377,7 @@ def _offerings_calendar_data(offerings, labsecs, start, end, local_tz, dt_string
                 'location': mt.offering.get_campus_display() + " " + mt.room,
                 'allDay': False,
                 #'className': "ev-" + mt.meeting_type,
-                'url': urlparse.urljoin(settings.BASE_ABS_URL, _meeting_url(mt)),
+                'url': urllib.parse.urljoin(settings.BASE_ABS_URL, _meeting_url(mt)),
                 'category': mt.meeting_type,
                 }
             if colour:
@@ -424,7 +424,7 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
                 'end': en,
                 'allDay': False,
                 #'className': 'ev-due',
-                'url': urlparse.urljoin(settings.BASE_ABS_URL, _activity_url(a)),
+                'url': urllib.parse.urljoin(settings.BASE_ABS_URL, _activity_url(a)),
                 'category': 'DUE',
                 }
             if colour:

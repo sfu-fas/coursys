@@ -1,5 +1,5 @@
 from django import forms
-from models import TeachingEquivalent
+from .models import TeachingEquivalent
 from django.forms.widgets import TextInput, Textarea
 from django.core import validators
 from django.core.exceptions import ValidationError

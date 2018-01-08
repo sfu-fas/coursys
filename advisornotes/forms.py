@@ -66,7 +66,7 @@ class StudentSelect(forms.Select):
         if value != '':
             # Only add the 'value' attribute if a value is non-empty.
             final_attrs['value'] = force_unicode(value)
-        return mark_safe(u'<input%s />' % forms.widgets.flatatt(final_attrs))
+        return mark_safe('<input%s />' % forms.widgets.flatatt(final_attrs))
 
 
 class StudentField(forms.ModelChoiceField):

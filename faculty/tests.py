@@ -40,9 +40,9 @@ class EventTypesTest(TestCase):
                                                       unit=fac_role.unit))
 
         # tests below assume these permission settings for this event type
-        self.assertEquals(handler.VIEWABLE_BY, 'MEMB')
-        self.assertEquals(handler.EDITABLE_BY, 'DEPT')
-        self.assertEquals(handler.APPROVAL_BY, 'FAC')
+        self.assertEqual(handler.VIEWABLE_BY, 'MEMB')
+        self.assertEqual(handler.EDITABLE_BY, 'DEPT')
+        self.assertEqual(handler.APPROVAL_BY, 'FAC')
 
         self.assertFalse(handler.can_edit(fac_member))
         self.assertTrue(handler.can_edit(dept_admin))
@@ -94,13 +94,13 @@ class EventTypesTest(TestCase):
 
                 # display methods that each handler must implement
                 shortsummary = handler.short_summary()
-                self.assertIsInstance(shortsummary, basestring)
+                self.assertIsInstance(shortsummary, str)
                 self.assertNotIn('%s', shortsummary) # find these cases that shouldn't exist
                 html = handler.to_html()
                 self.assertIsInstance(html, (safestring.SafeString, safestring.SafeText, safestring.SafeUnicode))
 
             except:
-                print "failure with Handler==%s" % (Handler)
+                print("failure with Handler==%s" % (Handler))
                 raise
 
     def test_annual_teaching(self):
@@ -123,7 +123,7 @@ class EventTypesTest(TestCase):
         resp = c.get(url)
         inputs = [l for l in resp.content.split('\n') if 'name="load"' in l]
         inputs_correct_value = [l for l in inputs if 'value="6"' in l]
-        self.assertEquals(len(inputs_correct_value), 1)
+        self.assertEqual(len(inputs_correct_value), 1)
 
         # POST a change and make sure the right value ends up in the DB
         data = {
@@ -135,7 +135,7 @@ class EventTypesTest(TestCase):
         }
         c.post(url, data)
         new_ce = CareerEvent.objects.filter(unit=unit, person=person, event_type=etype)[0]
-        self.assertEquals(new_ce.config['load'], '5/3')
+        self.assertEqual(new_ce.config['load'], '5/3')
 
 
 
@@ -315,5 +315,5 @@ class PagesTest(TestCase):
                 test_views(self, c, 'faculty:', ['search_events'],
                     {'event_type': slug}, qs='only_current=on')
             except:
-                print "failure with Handler==%s" % (Handler)
+                print("failure with Handler==%s" % (Handler))
                 raise

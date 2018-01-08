@@ -67,7 +67,7 @@ class FormForm(ModelForm):
         initiators = self.cleaned_data['initiators']
         form = self._get()
         if initiators != 'NON' and not Sheet.objects.filter(form=form, is_initial=True, active=True):
-            raise forms.ValidationError, "Can't activate until you have created at least one sheet to be filled out."
+            raise forms.ValidationError("Can't activate until you have created at least one sheet to be filled out.")
         return initiators
 
 class NewFormForm(FormForm):
@@ -222,11 +222,11 @@ class DynamicForm(forms.Form):
 
     def fromPostData(self, post_data, files_data, ignore_required=False):
         self.cleaned_data = {}
-        for name, field in self.fields.items():
+        for name, field in list(self.fields.items()):
             try:
                 if isinstance(field, forms.MultiValueField):
-                    relevant_data = dict([(k,v) for k,v in post_data.items() if k.startswith(str(name)+"_")])
-                    relevant_data[str(name)] = u''
+                    relevant_data = dict([(k,v) for k,v in list(post_data.items()) if k.startswith(str(name)+"_")])
+                    relevant_data[str(name)] = ''
                     relevant_data['required'] = ignore_required
                     cleaned_data = field.compress(relevant_data)
                 elif isinstance(field, forms.FileField):
@@ -258,13 +258,13 @@ class DynamicForm(forms.Form):
                         cleaned_data = field.clean("")
                 self.cleaned_data[str(name)] = cleaned_data
                 field.initial = cleaned_data
-            except forms.ValidationError, e:
+            except forms.ValidationError as e:
                 #self.errors[name] = ", ".join(e.messages)
                 self.errors[name] = ErrorList(e.messages)
                 if str(name) in post_data:
                     field.initial = post_data[str(name)]
                 else:
-                    initial_data = [v for k,v in post_data.items() if k.startswith(str(name)+"_") and v != '']
+                    initial_data = [v for k,v in list(post_data.items()) if k.startswith(str(name)+"_") and v != '']
                     field.initial = initial_data
 
     def is_valid(self):
@@ -275,8 +275,8 @@ class DynamicForm(forms.Form):
         """
         Validate the contents of the form
         """
-        for name, field in self.fields.items():
+        for name, field in list(self.fields.items()):
             try:
                 field.clean(post[str(name)])
-            except Exception, e:
+            except Exception as e:
                 self.errors[name] = e.message

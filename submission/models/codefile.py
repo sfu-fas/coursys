@@ -1,4 +1,4 @@
-from base import *
+from .base import *
 import submission.forms
 from django.forms.widgets import Textarea, TextInput, FileInput, SelectMultiple
 from django import forms
@@ -121,8 +121,8 @@ class Codefile(object):
                 try:
                     re.compile(filename)
                 except re.error as e:
-                    msg = unicode(e)
-                    raise forms.ValidationError(u'Given filename is not a valid regular expression. Error: "%s".' % (msg))
+                    msg = str(e)
+                    raise forms.ValidationError('Given filename is not a valid regular expression. Error: "%s".' % (msg))
             return filename_type
      
 
@@ -145,23 +145,23 @@ class Codefile(object):
 
             elif self.component.filename_type == 'INS':
                 if self.component.filename.lower() != data.name.lower():
-                    raise forms.ValidationError(u'File name must be "%s".' % (self.component.filename))
+                    raise forms.ValidationError('File name must be "%s".' % (self.component.filename))
 
             elif self.component.filename_type == 'MAT':
                 if self.component.filename != data.name:
-                    raise forms.ValidationError(u'File name must be "%s".' % (self.component.filename))
+                    raise forms.ValidationError('File name must be "%s".' % (self.component.filename))
 
             elif self.component.filename_type == 'EXT':
                 if not data.name.endswith(self.component.filename):
-                    raise forms.ValidationError(u'File name must have extension "%s".' % (self.component.filename))
+                    raise forms.ValidationError('File name must have extension "%s".' % (self.component.filename))
 
             elif self.component.filename_type == 'REX':
                 regex = re.compile(self.component.filename)
                 if not regex.match(data.name):
-                    raise forms.ValidationError(u'The filename is not in the correct format. It must match the regular expression "%s".' % (self.component.filename))
+                    raise forms.ValidationError('The filename is not in the correct format. It must match the regular expression "%s".' % (self.component.filename))
 
             else:
-                raise ValueError, "Unexpected filename_type for submission component."
+                raise ValueError("Unexpected filename_type for submission component.")
 
             return data
 

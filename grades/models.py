@@ -105,7 +105,7 @@ class Activity(models.Model):
     calculation_leak, set_calculation_leak = getter_setter('calculation_leak')
 
     def __unicode__(self):
-        return u"%s - %s" % (self.offering, self.name)
+        return "%s - %s" % (self.offering, self.name)
     def short_str(self):
         return self.name
     def __cmp__(self, other):
@@ -113,7 +113,7 @@ class Activity(models.Model):
     def get_absolute_url(self):
         return reverse('offering:activity_info', kwargs={'course_slug': self.offering.slug, 'activity_slug': self.slug})
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
     def is_numeric(self):
         return False
     class Meta:
@@ -263,11 +263,11 @@ class Activity(models.Model):
         Produce pretty string for "in how long is this due"
         """
         if not self.due_date:
-            return u"\u2014"
+            return "\u2014"
         due_in = self.due_date - datetime.now()
         seconds = (due_in.microseconds + (due_in.seconds + due_in.days * 24 * 3600.0) * 10**6) / 10**6
         if due_in < timedelta(seconds=0):
-            return u'\u2014'
+            return '\u2014'
         elif due_in > timedelta(days=2):
             return "%i days" % (due_in.days)
         elif due_in > timedelta(days=1):
@@ -317,7 +317,7 @@ class NumericActivity(Activity):
     def get_grade(self, student, role):
         if role == 'STUD':
             if self.status == 'INVI':
-                raise RuntimeError, "Can't display invisible grade."
+                raise RuntimeError("Can't display invisible grade.")
             elif self.status == 'URLS':
                 return None
 
@@ -332,7 +332,7 @@ class NumericActivity(Activity):
         if grade:
             return "%s/%s" % (grade.value, self.max_grade)
         else:
-            return u'\u2014'
+            return '\u2014'
 
 
 
@@ -355,7 +355,7 @@ class LetterActivity(Activity):
     def get_grade(self, student, role):
         if role == 'STUD':
             if self.status == 'INVI':
-                raise RuntimeError, "Can't display invisible grade."
+                raise RuntimeError("Can't display invisible grade.")
             elif self.status == 'URLS':
                 return None
 
@@ -368,9 +368,9 @@ class LetterActivity(Activity):
     def display_grade_visible(self, student, role):
         grade = self.get_grade(student, role)
         if grade:
-            return unicode(grade.letter_grade)
+            return str(grade.letter_grade)
         else:
-            return u'\u2014'
+            return '\u2014'
 
 
 class CalNumericActivity(NumericActivity):
@@ -429,12 +429,12 @@ class CalLetterActivity(LetterActivity):
         Set the grade cutoffs. List must be 10 values, lower-bounds for A+, A, A-, B+, ...
         """
         if len(cutoffs) != 10:
-            raise ValueError, "Must provide 10 cutoffs."
+            raise ValueError("Must provide 10 cutoffs.")
         cut_copy = cutoffs[:]
         cut_copy.sort()
         cut_copy.reverse()
         if cutoffs != cut_copy:
-            raise ValueError, "Cutoffs must be in decending order."
+            raise ValueError("Cutoffs must be in decending order.")
 
         self.letter_cutoffs = json.dumps([str(g) for g in cutoffs])
     
@@ -444,7 +444,7 @@ class CalLetterActivity(LetterActivity):
             disp.append(' <span class="letter">')
             disp.append(l)
             disp.append('</span> ')
-            disp.append(unicode(c))
+            disp.append(str(c))
         disp.append('&nbsp;<span class="letter">F</span> ')
 
         return mark_safe(''.join(disp))
@@ -510,7 +510,7 @@ class NumericGrade(models.Model):
 
     def display_staff(self):
         if self.flag == 'NOGR':
-            return u'\u2014'
+            return '\u2014'
         else:
             return "%s/%s" % (self.value, self.activity.max_grade)
 
@@ -525,11 +525,11 @@ class NumericGrade(models.Model):
         Display student grade with percentage from student view, e.g 12/15 (80.00%)
         """
         if self.activity.status == 'URLS':
-            return u'\u2014'
+            return '\u2014'
         elif self.activity.status == "INVI":
-            raise RuntimeError, "Can't display invisible grade."
+            raise RuntimeError("Can't display invisible grade.")
         elif self.flag == "NOGR":
-            return u'\u2014'
+            return '\u2014'
         elif self.activity.max_grade == 0:
             return '%s/%s' % (self.value, self.activity.max_grade)
         else:
@@ -555,7 +555,7 @@ class NumericGrade(models.Model):
 
         entered_by = get_entry_person(entered_by)
         if bool(mark) and not mark.id:
-            raise ValueError, "ActivityMark must be saved before calling setMark."
+            raise ValueError("ActivityMark must be saved before calling setMark.")
 
         if entered_by:
             gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
@@ -567,8 +567,8 @@ class NumericGrade(models.Model):
         if self.activity.status == "RLS" and newsitem and self.flag not in ["NOGR", "CALC"]:
             # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
-                source_app="grades", title=u"%s grade available" % (self.activity.name),
-                content=u'A new grade for %s in %s is available.'
+                source_app="grades", title="%s grade available" % (self.activity.name),
+                content='A new grade for %s in %s is available.'
                   % (self.activity.name, self.activity.offering.name()),
                 url=self.activity.get_absolute_url())
             n.save()
@@ -609,9 +609,9 @@ class LetterGrade(models.Model):
 
     def display_staff(self):
         if self.flag == 'NOGR':
-            return u'\u2014'
+            return '\u2014'
         else:
-            return u"%s" % (self.letter_grade)
+            return "%s" % (self.letter_grade)
     display_staff_short = display_staff
 
     def display_with_percentage_student(self):
@@ -619,13 +619,13 @@ class LetterGrade(models.Model):
         Display student grade with percentage from student view, e.g 12/15 (80.00%)
         """
         if self.activity.status == 'URLS':
-            return u'\u2014'
+            return '\u2014'
         elif self.activity.status == "INVI":
-            raise RuntimeError, "Can't display invisible grade."
+            raise RuntimeError("Can't display invisible grade.")
         elif self.flag == "NOGR":
-            return u'\u2014'
+            return '\u2014'
         else:
-            return u'%s' % (self.letter_grade)
+            return '%s' % (self.letter_grade)
     
     def save(self, entered_by, group=None, newsitem=True):
         """Save the grade.
@@ -738,7 +738,7 @@ def median_letters(sorted_grades):
     """
     l = len(sorted_grades)
     if l == 0:
-        return u"\u2014"
+        return "\u2014"
     elif l%2 == 1:
         return sorted_grades[(l-1)/2]
     else:
@@ -758,7 +758,7 @@ def max_letters(sorted_grades):
     """
     l = len(sorted_grades)
     if l == 0:
-        return u"\u2014"
+        return "\u2014"
     else:
         return sorted_grades[0]
 
@@ -770,7 +770,7 @@ def min_letters(sorted_grades):
     grades_s = [g for g in sorted_grades if LETTER_POSITION[g] <= 11]
     l = len(grades_s)
     if l == 0:
-        return u"\u2014"
+        return "\u2014"
     else:
         return grades_s[l-1]
 
@@ -811,7 +811,7 @@ class GradeHistory(models.Model):
         ordering = ['-timestamp']
 
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it's job is to exist."
+        raise NotImplementedError("This object cannot be deleted because it's job is to exist.")
 
     def grade(self):
         return self.letter_grade or self.numeric_grade 

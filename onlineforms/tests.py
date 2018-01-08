@@ -372,7 +372,7 @@ class ViewTestCase(TestCase):
                 response = basic_page_tests(self, self.client, url)
                 self.assertEqual(response.status_code, 200)
             except:
-                print "with view==" + repr(view)
+                print("with view==" + repr(view))
                 raise
 
     def test_returning_initial_sheet(self):
@@ -383,9 +383,9 @@ class ViewTestCase(TestCase):
         try:
             url = reverse('onlineforms:admin_return_sheet', kwargs=args)
             response = self.client.get(url)
-            self.assertEquals(response.status_code, 302)
+            self.assertEqual(response.status_code, 302)
         except:
-            print "with view == views.admin_return_sheet"
+            print("with view == views.admin_return_sheet")
             raise
 
 
@@ -439,7 +439,7 @@ class FieldTestCase(TestCase):
         self.client.login_user(logged_in_person.userid)
 
     def test_make_config_form(self):
-        for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
+        for (name, field_model) in FIELD_TYPE_MODELS.items():
             instance = field_model(self.standard_config)
             config_form = instance.make_config_form()
             # looks like a divider will return a bool false here, look into that
@@ -448,12 +448,12 @@ class FieldTestCase(TestCase):
                 self.assertTrue(isinstance(config_form, DjangoForm))
 
     def test_make_entry_field(self):
-        for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
+        for (name, field_model) in FIELD_TYPE_MODELS.items():
             instance = field_model(self.standard_config)
             self.assertTrue(isinstance(instance.make_entry_field(), DjangoFormsField))
 
     def test_serialize_field(self):
-        for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
+        for (name, field_model) in FIELD_TYPE_MODELS.items():
             instance = field_model(self.standard_config)
             self.assertTrue(isinstance(instance.serialize_field("test data"), dict))
 

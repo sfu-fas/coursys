@@ -34,7 +34,7 @@ class Command(BaseCommand):
             return filepath
         else:
             if self.verbosity > 0:
-                print u"Missing file %s." % (filename,)
+                print("Missing file %s." % (filename,))
 
     def get_advisornote(self, key, person, advisor, created, delete_old_file=False, offset=0):
         """
@@ -83,8 +83,8 @@ class Command(BaseCommand):
             row.get('Files2', None),
             row.get('Files3', None),
         ]
-        files = map(self.get_filepath, files)
-        files = filter(bool, files)
+        files = list(map(self.get_filepath, files))
+        files = list(filter(bool, files))
 
         # fix mis-typed emplids we found
         # Lindsay
@@ -106,17 +106,17 @@ class Command(BaseCommand):
 
         if not emplid or emplid == '0':
             if self.verbosity > 0:
-                print 'No emplid on row %i' % (i+2)
+                print('No emplid on row %i' % (i+2))
             return
 
         p = add_person(emplid, commit=self.commit)
         if not p:
             if self.verbosity > 0:
-                print u"Can't find person on row %i (emplid %s)" % (i+2, emplid)
+                print("Can't find person on row %i (emplid %s)" % (i+2, emplid))
             return
 
         if self.verbosity > 1:
-            print u"Importing %s with %i file(s)." % (emplid, len(files))
+            print("Importing %s with %i file(s)." % (emplid, len(files)))
 
         try:
             date = datetime.datetime.strptime(date_str, '%m-%d-%Y').date()

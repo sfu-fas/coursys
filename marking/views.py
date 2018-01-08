@@ -14,10 +14,10 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
-from models import ActivityComponent, CommonProblem, ActivityComponentMark
-from models import GroupActivityMark, GroupActivityMark_LetterGrade, StudentActivityMark
-from models import get_activity_mark_by_id, get_activity_mark_for_student, get_group_mark_by_id, get_group_mark
-from models import copyCourseSetup, neaten_activity_positions, activity_marks_from_JSON
+from .models import ActivityComponent, CommonProblem, ActivityComponentMark
+from .models import GroupActivityMark, GroupActivityMark_LetterGrade, StudentActivityMark
+from .models import get_activity_mark_by_id, get_activity_mark_for_student, get_group_mark_by_id, get_group_mark
+from .models import copyCourseSetup, neaten_activity_positions, activity_marks_from_JSON
 from coredata.models import Person, CourseOffering, Member
 from grades.models import FLAGS, Activity, NumericActivity, NumericGrade
 from grades.models import LetterActivity, LetterGrade, LETTER_GRADE_CHOICES_IN, get_entry_person
@@ -110,7 +110,7 @@ def _check_and_save_renamed_activities(all_activities, conflicting_activities, r
         act.save()
         #LOG EVENT
         l = LogEntry(userid=user,
-              description=(u"renamed %s(%s) to %s(%s) in course %s") % 
+              description=("renamed %s(%s) to %s(%s) in course %s") % 
                           (old_name, old_short, act.name, act.short_name, act.offering),
               related_object=act)
         l.save()
@@ -172,7 +172,7 @@ def copy_course_setup(request, course_slug):
                     neaten_activity_positions(course)
                     #LOG EVENT
                     l = LogEntry(userid=request.user.username,
-                          description=(u"copied course setup from %s to %s") % 
+                          description=("copied course setup from %s to %s") % 
                                       (source_course, course),
                           related_object=course)
                     l.save()                         
@@ -186,7 +186,7 @@ def copy_course_setup(request, course_slug):
             return render(request, "marking/copy_course_setup.html",
                     {'course' : course, 'source_course' : source_course, "source_pages": source_pages,
                      'page_form': page_form,
-                    'source_setup' : source_setup, 'conflicting_activities' : zip(conflicting_acts, rename_forms)})
+                    'source_setup' : source_setup, 'conflicting_activities' : list(zip(conflicting_acts, rename_forms))})
                 
         else: # for GET request
             select_form = CourseSourceForm(prefix = "select-form")   
@@ -211,7 +211,7 @@ def _save_common_problems(formset, activity, user):
                 action = 'deleted'                                          
             #LOG EVENT#
             l = LogEntry(userid=user,
-                  description=(u"%s common problem %s for %s" % 
+                  description=("%s common problem %s for %s" % 
                               (action, instance, activity)),
                   related_object=instance)
             l.save()
@@ -235,7 +235,7 @@ def _save_components(formset, activity, user):
                 action = 'deleted'                           
             #LOG EVENT#
             l = LogEntry(userid=user,
-                  description=(u"%s marking component %s of %s") % 
+                  description=("%s marking component %s of %s") % 
                               (action, instance, activity),
                   related_object=instance)  
             l.save()         
@@ -342,7 +342,7 @@ def manage_component_positions(request, course_slug, activity_slug):
                 
                 #LOG EVENT
                 l = LogEntry(userid=request.user.username,
-                      description=(u"updated positions of marking components in %s") % activity,
+                      description=("updated positions of marking components in %s") % activity,
                       related_object=activity)
                 l.save()        
                     
@@ -397,7 +397,7 @@ def _change_grade_status_numeric(request, course, activity, userid):
 
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                      description=(u"changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
+                      description=("changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
                                   (userid, numeric_grade.value, FLAGS[numeric_grade.flag], activity, numeric_grade.comment),
                       related_object=numeric_grade)
                 l.save()
@@ -438,7 +438,7 @@ def _change_grade_status_letter(request, course, activity, userid):
 
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                      description=(u"changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
+                      description=("changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
                                   (userid, letter_grade.letter_grade, FLAGS[letter_grade.flag], activity, letter_grade.comment),
                       related_object=letter_grade)
                 l.save()
@@ -578,12 +578,12 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                     entry['form'].save_m2m()
 
                 if groupmark:
-                    messages.add_message(request, messages.SUCCESS, u'Mark for group "%s" on %s saved: %s/%s.' % (group.name, activity.name, mark, activity.max_grade))
+                    messages.add_message(request, messages.SUCCESS, 'Mark for group "%s" on %s saved: %s/%s.' % (group.name, activity.name, mark, activity.max_grade))
                 else:
-                    messages.add_message(request, messages.SUCCESS, u'Mark for %s on %s saved: %s/%s.' % (student.name(), activity.name, mark, activity.max_grade))
+                    messages.add_message(request, messages.SUCCESS, 'Mark for %s on %s saved: %s/%s.' % (student.name(), activity.name, mark, activity.max_grade))
                 #LOG EVENT
                 l = LogEntry(userid=request.user.username,
-                      description=(u"marked %s for %s: %s/%s") % (activity, userid, mark, activity.max_grade),
+                      description=("marked %s for %s: %s/%s") % (activity, userid, mark, activity.max_grade),
                       related_object=am)
                 l.save()
 
@@ -982,18 +982,18 @@ def _mark_all_groups_numeric(request, course, activity):
 
                     updated += 1
                     if new_value < 0:
-                        warning_info.append(u"Negative mark given to group %s" % group.name)
+                        warning_info.append("Negative mark given to group %s" % group.name)
                     elif new_value > activity.max_grade:
-                        warning_info.append(u"Bonus mark given to group %s" % group.name)  
+                        warning_info.append("Bonus mark given to group %s" % group.name)  
 
                     #LOG EVENT
                     l = LogEntry(userid=request.user.username,
-                         description=(u"bulk marked %s for group '%s': %s/%s") % (activity, group.name, new_value, activity.max_grade),
+                         description=("bulk marked %s for group '%s': %s/%s") % (activity, group.name, new_value, activity.max_grade),
                          related_object=act_mark)
                     l.save()                  
                      
                 if updated > 0:
-                    messages.add_message(request, messages.SUCCESS, u"Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
+                    messages.add_message(request, messages.SUCCESS, "Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
                 for warning in warning_info:
                     messages.add_message(request, messages.WARNING, warning)                    
                 return _redirct_response(request, course.slug, activity.slug)   
@@ -1064,7 +1064,7 @@ def _mark_all_groups_letter(request, course, activity):
 
                     #LOG EVENT
                     l = LogEntry(userid=request.user.username,
-                         description=(u"bulk marked %s for group '%s': %s") % (activity, group.name, new_value),
+                         description=("bulk marked %s for group '%s': %s") % (activity, group.name, new_value),
                          related_object=act_mark)
                     l.save()                  
                      
@@ -1145,12 +1145,12 @@ def _mark_all_students_letter(request, course, activity):
 
                     # LOG EVENT
                     l = LogEntry(userid=request.user.username,
-                                 description=(u"bulk marked %s for %s: %s") % (activity, student.userid, new_value),
+                                 description=("bulk marked %s for %s: %s") % (activity, student.userid, new_value),
                                  related_object=lgrade)
                     l.save()                  
                
                 if updated > 0:
-                    messages.add_message(request, messages.SUCCESS, u"Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
+                    messages.add_message(request, messages.SUCCESS, "Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
                 
                 return _redirct_response(request, course.slug, activity.slug)
         
@@ -1163,7 +1163,7 @@ def _mark_all_students_letter(request, course, activity):
                                                                activity)
                     if not error_info:
                         messages.add_message(request, messages.SUCCESS,\
-                                    "%s students' grades imported. Please review before submitting." % len(imported_data.keys()))
+                                    "%s students' grades imported. Please review before submitting." % len(list(imported_data.keys())))
             # may use the imported file data to fill in the forms       
             for member in memberships: 
                 student = member.person              
@@ -1289,13 +1289,13 @@ def _mark_all_students_numeric(request, course, activity):
                     
                     updated += 1     
                     if new_value < 0:
-                        warning_info.append(u"Negative mark given to %s on %s" %(student.userid, activity.name))
+                        warning_info.append("Negative mark given to %s on %s" %(student.userid, activity.name))
                     elif new_value > activity.max_grade:
-                        warning_info.append(u"Bonus mark given to %s on %s" %(student.userid, activity.name))
+                        warning_info.append("Bonus mark given to %s on %s" %(student.userid, activity.name))
                    
                     #LOG EVENT
                     l = LogEntry(userid=request.user.username,
-                          description=(u"bulk marked %s for %s: %s/%s") % (activity, student.userid, new_value, activity.max_grade),
+                          description=("bulk marked %s for %s: %s/%s") % (activity, student.userid, new_value, activity.max_grade),
                           related_object=ngrade)
                     l.save()                  
                
@@ -1314,7 +1314,7 @@ def _mark_all_students_numeric(request, course, activity):
                     error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data, activity)
                     if not error_info:
                         messages.add_message(request, messages.SUCCESS,\
-                                    "%s students' grades imported. Please review before submitting." % len(imported_data.keys()))
+                                    "%s students' grades imported. Please review before submitting." % len(list(imported_data.keys())))
             # may use the imported file data to fill in the forms       
             for member in memberships: 
                 student = member.person              
@@ -1350,7 +1350,7 @@ def _compose_imported_grades(file, students_qset, data_to_return, activity):
     else:
         fcopy = io.StringIO(fh.getvalue(), newline=None)
         try:
-            first_line = csv.reader(fcopy).next()
+            first_line = next(csv.reader(fcopy))
             (error_string, userid_col, activity_col) = _CMS_header(first_line, Person.userid_header(), activity.short_name)
         except UnicodeEncodeError:
             error_string = "File cannot be encoded as UTF-8 data: make sure it contains legal Unicode characters."
@@ -1396,7 +1396,7 @@ def _strip_email_userid(s):
 
 def _import_CMS_output(fh, students_qset, data_to_return, userid_col, activity_col):
     reader = csv.reader(fh)
-    reader.next() # Skip header line
+    next(reader) # Skip header line
     error_info = []
     #print userid_col, activity_col #AEK
     for row_num, row in enumerate(reader):
@@ -1405,11 +1405,11 @@ def _import_CMS_output(fh, students_qset, data_to_return, userid_col, activity_c
         target = students_qset.filter(userid = userid)
         if target.count() == 0:
             #data_to_return.clear()
-            error_info.append(u"Error found in file (row %s): Unmatched userid (%s)." % (row_num, row[userid_col]))
+            error_info.append("Error found in file (row %s): Unmatched userid (%s)." % (row_num, row[userid_col]))
             continue
-        if data_to_return.has_key(target[0].userid):
+        if target[0].userid in data_to_return:
             #data_to_return.clear()
-            error_info.append(u"Error found in file (row %s): Second entry found for student (%s)."
+            error_info.append("Error found in file (row %s): Second entry found for student (%s)."
                               % (row_num, row[userid_col]))
             continue
         try:
@@ -1435,12 +1435,12 @@ def _import_specific_file(fh, students_qset, data_to_return):
                 target = students_qset.filter(Q(userid=userid) | Q(emplid=num))
             if target.count() == 0:                
                 #data_to_return.clear()
-                error_info.append(u"Error found in the file (row %s): Unmatched student number or user-id (%s)."
+                error_info.append("Error found in the file (row %s): Unmatched student number or user-id (%s)."
                                   % (read, row[0],))
                 continue
-            if data_to_return.has_key(target[0].userid):
+            if target[0].userid in data_to_return:
                 #data_to_return.clear()
-                error_info.append(u"Error found in the file (row %s): Second entry found for student (%s)."
+                error_info.append("Error found in the file (row %s): Second entry found for student (%s)."
                                   % (read, row[0],))
                 continue
             data_to_return[target[0].userid] = row[1]

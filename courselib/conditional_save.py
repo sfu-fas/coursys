@@ -28,7 +28,7 @@ class DirtyFieldsMixin(object):
         new_state = self._as_dict()
 
         return dict([(key, value)
-                     for key, value in self._original_state.items()
+                     for key, value in list(self._original_state.items())
                      if value != new_state[key]])
 
     def is_dirty(self):

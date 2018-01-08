@@ -58,7 +58,7 @@ class Mse410LessThan3CoopsReport (Report):
                 try:
                     return float(row_map["CREDITS"]) > Mse410LessThan3CoopsReport.MAX_ALLOWABLE_CREDITS
                 except ValueError:
-                    print "Could not convert credit value to float"
+                    print("Could not convert credit value to float")
 
             def did_3_coops(row_map):
                 try:
@@ -66,13 +66,13 @@ class Mse410LessThan3CoopsReport (Report):
                                 students_in_mse_494.contains("EMPLID", row_map["EMPLID"]) or
                                 students_in_ensc_395.contains("EMPLID", row_map["EMPLID"]))
                 except KeyError:
-                    print "No emplid in the given row."
+                    print("No emplid in the given row.")
 
             def graduated(row_map):
                 try:
                     return not students_graduated.contains("EMPLID", row_map["EMPLID"])
                 except KeyError:
-                    print "No emplid in the given row."
+                    print("No emplid in the given row.")
 
             # We want to remove all people in 410 who have ever taken 493 or 494.
             students_in_mse_410.filter(did_3_coops)

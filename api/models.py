@@ -74,6 +74,6 @@ def create_consumer(name, description, owner_userid, admin_contact, permissions)
     i.permissions = list(permissions)
     i.save()
 
-    print "Consumer key:", c.key
-    print "Consumer secret:", c.secret
+    print("Consumer key:", c.key)
+    print("Consumer secret:", c.secret)
 

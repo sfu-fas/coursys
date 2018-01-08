@@ -81,7 +81,7 @@ class StudentSelect(forms.Select):
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
         if value != '':
             final_attrs['value'] = force_unicode(value)
-        return mark_safe(u'<input%s />' % forms.widgets.flatatt(final_attrs))
+        return mark_safe('<input%s />' % forms.widgets.flatatt(final_attrs))
 
 class StudentField(forms.ModelChoiceField):
     def __init__(self, *args, **kwargs):

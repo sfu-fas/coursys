@@ -1,4 +1,4 @@
-from models import DiscussionTopic
+from .models import DiscussionTopic
 from django.db.models.aggregates import Max
 import datetime
 import time

@@ -1,7 +1,7 @@
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from django.utils.encoding import smart_unicode
-import urlparse
+import urllib.parse
 
 class QuickURLValidator(URLValidator):
     """
@@ -11,16 +11,16 @@ class QuickURLValidator(URLValidator):
     def __call__(self, value):
         try:
             super(QuickURLValidator, self).__call__(value)
-        except ValidationError, e:
+        except ValidationError as e:
             # Trivial case failed. Try for possible IDN domain
             if value:
                 value = smart_unicode(value)
-                scheme, netloc, path, query, fragment = urlparse.urlsplit(value)
+                scheme, netloc, path, query, fragment = urllib.parse.urlsplit(value)
                 try:
                     netloc = netloc.encode('idna') # IDN -> ACE
                 except UnicodeError: # invalid domain part
                     raise e
-                url = urlparse.urlunsplit((scheme, netloc, path, query, fragment))
+                url = urllib.parse.urlunsplit((scheme, netloc, path, query, fragment))
                 super(URLValidator, self).__call__(url)
             else:
                 raise
@@ -28,7 +28,7 @@ class QuickURLValidator(URLValidator):
             url = value
 
         if True: # self.verify_exists no longer exists, but we're doing it anyway.
-            import urllib2
+            import urllib.request, urllib.error, urllib.parse
             headers = {
                 "Accept": "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5",
                 "Accept-Language": "en-us,en;q=0.5",
@@ -37,10 +37,10 @@ class QuickURLValidator(URLValidator):
                 "User-Agent": 'CourSys',
             }
             try:
-                req = urllib2.Request(url, None, headers)
-                u = urllib2.urlopen(req, timeout=2)
+                req = urllib.request.Request(url, None, headers)
+                u = urllib.request.urlopen(req, timeout=2)
             except ValueError:
-                raise ValidationError(u'Enter a valid URL.', code='invalid')
+                raise ValidationError('Enter a valid URL.', code='invalid')
             except: # urllib2.URLError, httplib.InvalidURL, etc.
-                raise ValidationError(u'This URL appears to be a broken link.', code='invalid_link')
+                raise ValidationError('This URL appears to be a broken link.', code='invalid_link')
 

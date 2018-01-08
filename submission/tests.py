@@ -12,7 +12,7 @@ from django.core.urlresolvers import reverse
 from courselib.testing import Client, test_views, basic_page_tests, TEST_COURSE_SLUG
 import datetime, tempfile, os
 
-import base64, StringIO
+import base64, io
 TGZ_FILE = base64.b64decode('H4sIAI7Wr0sAA+3OuxHCMBAE0CtFJUjoVw8BODfQP3bgGSKIcPResjO3G9w9/i9vRmt7ltnzZx6ilNrr7PVS9vscbUTKJ/wWr8fzuqYUy3pbvu1+9QAAAAAAAAAAAHCiNyHUDpAAKAAA')
 GZ_FILE = base64.b64decode('H4sICIjWr0sAA2YAAwAAAAAAAAAAAA==')
 ZIP_FILE = base64.b64decode('UEsDBAoAAAAAAMB6fDwAAAAAAAAAAAAAAAABABwAZlVUCQADiNavSzTYr0t1eAsAAQToAwAABOgDAABQSwECHgMKAAAAAADAenw8AAAAAAAAAAAAAAAAAQAYAAAAAAAAAAAApIEAAAAAZlVUBQADiNavS3V4CwABBOgDAAAE6AMAAFBLBQYAAAAAAQABAEcAAAA7AAAAAAA=')
@@ -139,27 +139,27 @@ class SubmissionTest(TestCase):
         """
         Test file type inference function
         """
-        fh = StringIO.StringIO(TGZ_FILE)
+        fh = io.StringIO(TGZ_FILE)
         fh.name = "something.tar.gz"
         ftype = filetype(fh)
         self.assertEqual(ftype, "TGZ")
         
-        fh = StringIO.StringIO(GZ_FILE)
+        fh = io.StringIO(GZ_FILE)
         fh.name = "something.gz"
         ftype = filetype(fh)
         self.assertEqual(ftype, "GZIP")
         
-        fh = StringIO.StringIO(ZIP_FILE)
+        fh = io.StringIO(ZIP_FILE)
         fh.name = "something.zip"
         ftype = filetype(fh)
         self.assertEqual(ftype, "ZIP")
         
-        fh = StringIO.StringIO(RAR_FILE)
+        fh = io.StringIO(RAR_FILE)
         fh.name = "something.rar"
         ftype = filetype(fh)
         self.assertEqual(ftype, "RAR")
         
-        fh = StringIO.StringIO(PDF_FILE)
+        fh = io.StringIO(PDF_FILE)
         fh.name = "something.pdf"
         ftype = filetype(fh)
         self.assertEqual(ftype, "PDF")
@@ -272,22 +272,22 @@ class SubmissionTest(TestCase):
             fh = open(tmpf.name, "r")
             data = {"%i-code" % (c.id): fh}
             response = client.post(url, data)
-            self.assertEquals(response.status_code, 302)
+            self.assertEqual(response.status_code, 302)
             
         finally:
             os.unlink(tmpf.name)
 
         # make sure it's there and correct
         subs = StudentSubmission.objects.all()
-        self.assertEquals(len(subs), 1)
+        self.assertEqual(len(subs), 1)
         sub = subs[0]
-        self.assertEquals(sub.member.person.userid, '0aaa0')
+        self.assertEqual(sub.member.person.userid, '0aaa0')
             
         codes = SubmittedCode.objects.all()
-        self.assertEquals(len(codes), 1)
+        self.assertEqual(len(codes), 1)
         code = codes[0]
         code.code.open()
-        self.assertEquals(code.code.read(), codecontents)
+        self.assertEqual(code.code.read(), codecontents)
             
     def test_pages(self):
         "Test a bunch of page views"
@@ -311,7 +311,7 @@ class SubmissionTest(TestCase):
                    {'course_slug': offering.slug, 'activity_slug': activity.slug})
 
         url = reverse('offering:submission:edit_single', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug}) \
-                + '?id=' + unicode(component1.id)
+                + '?id=' + str(component1.id)
         basic_page_tests(self, client, url)
 
         url = reverse('offering:submission:add_component', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug}) \
