@@ -237,8 +237,8 @@ class Person(models.Model, ConditionalSaveMixin):
         "userid if possible or emplid if not: inverse of find_userid_or_emplid searching"
         return self.userid or str(self.emplid)
 
-    def __cmp__(self, other):
-        return cmp((self.last_name, self.first_name, self.userid), (other.last_name, other.first_name, other.userid))
+    def __lt__(self, other):
+        return (self.last_name, self.first_name, self.userid) < (other.last_name, other.first_name, other.userid)
 
     class Meta:
         verbose_name_plural = "People"
@@ -528,8 +528,8 @@ class Semester(models.Model):
 
     class Meta:
         ordering = ['name']
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
+    def __lt__(self, other):
+        return self.name < other.name
     def sem_number(self):
         "number of semesters since spring 1900 (for subtraction)"
         yr = int(self.name[0:3])
@@ -779,7 +779,7 @@ class SemesterWeek(models.Model):
     week = models.PositiveSmallIntegerField(null=False, help_text="Week of the semester (typically 1-13)")
     monday = models.DateField(help_text='Monday of this week.')
     
-    def __unicode__(self):
+    def __str__(self):
         return "%s week %i" % (self.semester.name, self.week)
     class Meta:
         ordering = ['semester', 'week']
@@ -829,8 +829,8 @@ class Course(models.Model, ConditionalSaveMixin):
         ordering = ('subject', 'number')
     def __unicode__(self):
         return "%s %s" % (self.subject, self.number)
-    def __cmp__(self, other):
-        return cmp(self.subject, other.subject) or cmp(self.number, other.number)
+    def __lt__(self, other):
+        return (self.subject, self.number) < (other.subject, other.number)
     def delete(self, *args, **kwargs):
         raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
     def full_name(self):
@@ -1170,11 +1170,9 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     def delete(self, *args, **kwargs):
         raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
 
-    def __cmp__(self, other):
-        return cmp(other.semester.name, self.semester.name) \
-            or cmp(self.subject, other.subject) \
-            or cmp(self.number, other.number) \
-            or cmp(self.section, other.section)
+    def __lt__(self, other):
+        return (other.semester.name, self.subject, self.number, self.section) \
+               < (self.semester.name, other.subject, other.number, other.section)
     def search_label_value(self):
         return "%s (%s)" % (self.name(), self.semester.label())
         

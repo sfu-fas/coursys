@@ -38,8 +38,8 @@ class SubmissionComponent(models.Model):
 
     error_messages = {}
 
-    def __cmp__(self, other):
-        return cmp(self.position, other.position)
+    def __lt__(self, other):
+        return self.position < other.position
     class Meta:
         ordering = ['position']
         app_label = 'submission'
@@ -73,8 +73,8 @@ class Submission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Member, null=True, help_text = "TA or instructor that will mark this submission")
     status = models.CharField(max_length=3, null=False,choices=STATUS_CHOICES, default = "NEW")
-    def __cmp__(self, other):
-        return cmp(other.created_at, self.created_at)
+    def __lt__(self, other):
+        return other.created_at < self.created_at
     class Meta:
         ordering = ['-created_at']
         app_label = 'submission'
@@ -158,8 +158,8 @@ class SubmittedComponent(models.Model):
             return time
     def delete(self, *args, **kwargs):
         raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
-    def __cmp__(self, other):
-        return cmp(other.submit_time, self.submit_time)
+    def __lt__(self, other):
+        return other.submit_time < self.submit_time
     class Meta:
         ordering = ['submit_time']
         app_label = 'submission'

@@ -33,8 +33,8 @@ class Group(models.Model):
     def delete(self, *args, **kwargs):
         raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
 
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
+    def __lt__(self, other):
+        return self.name < other.name
 
     def get_absolute_url(self):
         return reverse('offering:groups:view_group', kwargs={'course_slug': self.courseoffering.slug,

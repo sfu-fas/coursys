@@ -108,8 +108,8 @@ class Activity(models.Model):
         return "%s - %s" % (self.offering, self.name)
     def short_str(self):
         return self.name
-    def __cmp__(self, other):
-        return cmp(self.position, other.position)
+    def __lt__(self, other):
+        return self.position < other.position
     def get_absolute_url(self):
         return reverse('offering:activity_info', kwargs={'course_slug': self.offering.slug, 'activity_slug': self.slug})
     def delete(self, *args, **kwargs):
