@@ -210,9 +210,13 @@ class ExplanationTextField(FieldBase):
     class ExplanationTextConfigForm(FieldConfigForm):
         text_explanation = MarkupContentField(with_wysiwyg=True, allow_math=False, help_text='Text to display to the user.')
 
-        def __init__(self, *args, **kwargs):
-            super(self.__class__, self).__init__(*args, **kwargs)
+        def __init__(self, config, *args, **kwargs):
+            super(self.__class__, self).__init__(config, *args, **kwargs)
             del self.fields['help_text']
+            # handle transition to markup-with-language-choice field
+            if 'text_explanation' in config and 'text_explanation_0' not in config:
+                config['text_explanation_0'] = config['text_explanation']
+                config['text_explanation_1'] = 'creole'
 
     def make_config_form(self):
         return self.ExplanationTextConfigForm(self.config)
