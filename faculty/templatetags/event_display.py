@@ -3,7 +3,6 @@ register = template.Library()
 
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.constants import PERMISSION_CHOICES
-from faculty.models import EVENT_TYPES
 import fractions
 
 @register.filter
@@ -47,6 +46,7 @@ class HandlerPermNode(template.Node):
         self.varname = varname
 
     def get_permission(self, context):
+        from faculty.models import EVENT_TYPES
         Handler = EVENT_TYPES.get(self.handler.resolve(context).upper())
         editor = self.editor.resolve(context)
         person = self.person.resolve(context)

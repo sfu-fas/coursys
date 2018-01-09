@@ -7,6 +7,7 @@ from django.utils.safestring import mark_safe, SafeText
 from django.utils.html import conditional_escape as escape
 from django.core.urlresolvers import reverse
 from django.utils.functional import lazy
+from django.utils.functional import SimpleLazyObject
 
 from coredata.models import Unit
 
@@ -188,7 +189,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
             ec.save()
             CommitteeMemberHandler._committee_lookup.invalidate()
 
-    DISPLAY_TEMPLATE = Template("""
+    DISPLAY_TEMPLATE = SimpleLazyObject(lambda: Template("""
         <h2 id="config">Configured Committees</h2>
         <table class="display" id="config_table">
         <thead><tr><th scope="col">Committee Name</th><th scope="col">Committee Unit</th><th scope="col">Member Unit</th><!--<th scope="col">Action</th>--></tr></thead>
@@ -204,7 +205,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
             {% endif %}
             {% endfor %}
         </tbody>
-        </table>""")
+        </table>"""))
 
     @classmethod
     def config_display(cls, units):

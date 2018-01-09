@@ -87,15 +87,13 @@ class TUG(models.Model):
         return ((field, self.config[field]) for field in self.all_fields 
                  if field in self.config)
     
-    regular_default = {'weekly': 0, 'total': 0, 'comment': ''}
-    regular_fields = ['prep', 'meetings', 'lectures', 'tutorials', 
+    regular_fields = ['prep', 'meetings', 'lectures', 'tutorials',
             'office_hours', 'grading', 'test_prep', 'holiday']
-    other_default = {'label': '', 'weekly': 0, 'total': 0, 'comment': ''}
     other_fields = ['other1', 'other2']
     all_fields = regular_fields + other_fields
-    
-    defaults = dict([(field, regular_default) for field in regular_fields] + 
-        [(field, other_default) for field in other_fields])
+
+    defaults = dict([(field, {'weekly': 0, 'total': 0, 'comment': ''}) for field in regular_fields] +
+        [(field, {'label': '', 'weekly': 0, 'total': 0, 'comment': ''}) for field in other_fields])
     
     # depicts the above comment in code
     config_meta = {'prep':{'label':'Preparation', 

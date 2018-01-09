@@ -2,6 +2,7 @@ import itertools
 
 from django import forms
 from django.template import Context, Template
+from django.utils.functional import SimpleLazyObject
 from cache_utils.decorators import cached
 from coredata.models import Unit
 
@@ -105,7 +106,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
             ec.config['fellowships'] = fellows
             ec.save()
 
-    DISPLAY_TEMPLATE = Template("""
+    DISPLAY_TEMPLATE = SimpleLazyObject(lambda: Template("""
         <h2 id="config">Configured Fellowships</h2>
         <table class="display" id="config_table">
         <thead><tr><th scope="col">Fellowship Name</th><th scope="col">Unit</th><!--<th scope="col">Action</th>--></tr></thead>
@@ -120,7 +121,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
             {% endif %}
             {% endfor %}
         </tbody>
-        </table>""")
+        </table>"""))
 
     @classmethod
     def config_display(cls, units):

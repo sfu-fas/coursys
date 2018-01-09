@@ -37,7 +37,7 @@ EVENT_HANDLERS = [
 ]
 
 EVENT_TYPES = {handler.event_type: handler for handler in EVENT_HANDLERS}
-EVENT_CHOICES = [(cls.event_type, cls) for cls in sorted(EVENT_HANDLERS)]
+EVENT_CHOICES = [(cls.event_type, cls) for cls in sorted(EVENT_HANDLERS, key=lambda h: h.name)]
 
 
 class IgnoreDeleted(models.Manager):

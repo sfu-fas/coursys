@@ -11,7 +11,6 @@ from featureflags.flags import uses_feature
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
     AnyPerson, FuturePerson, RoleAccount, CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
-from faculty.forms import FuturePersonForm
 from coredata import panel
 from advisornotes.models import NonStudent
 from log.models import LogEntry
@@ -544,6 +543,7 @@ def delete_futureperson(request, futureperson_id):
 
 @requires_global_role("SYSA")
 def add_futureperson(request):
+    from faculty.forms import FuturePersonForm
     if request.method == 'POST':
         form = FuturePersonForm(request.POST)
         if form.is_valid():

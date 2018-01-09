@@ -23,6 +23,7 @@ from courselib.text import normalize_newlines, many_newlines
 from courselib.storage import UploadedFileStorage, upload_path
 from cache_utils.decorators import cached
 
+from faculty.event_types.constants import EVENT_FLAGS
 from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.awards import GrantApplicationEventHandler
 from faculty.event_types.awards import AwardEventHandler
@@ -36,8 +37,7 @@ from faculty.event_types.career import StudyLeaveEventHandler
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import PromotionApplicationEventHandler
 from faculty.event_types.career import SalaryReviewEventHandler
-from faculty.event_types.career import ContractReviewEventHandler 
-from faculty.event_types.constants import EVENT_FLAGS
+from faculty.event_types.career import ContractReviewEventHandler
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
 from faculty.event_types.info import ExternalServiceHandler
@@ -131,8 +131,7 @@ ADD_TAGS = {
 FACULTY_ROLE_EXPIRY = datetime.date.today() + datetime.timedelta(days = 100*365)
 
 
-# adapted from https://djangosnippets.org/snippets/562/
-class CareerQuerySet(models.query.QuerySet):
+class CareerQuerySet(models.QuerySet):
     def not_deleted(self):
         """
         All Career Events that have not been deleted.
@@ -206,19 +205,6 @@ class CareerQuerySet(models.query.QuerySet):
         return self.filter(unit__id__in=subunit_ids)
 
 
-# adapted from https://djangosnippets.org/snippets/562/
-class CareerEventManager(models.Manager):
-    def get_queryset(self):
-        model = apps.get_model('faculty', 'CareerEvent')
-        return CareerQuerySet(model)
-
-    def __getattr__(self, attr, *args):
-        try:
-            return getattr(self.__class__, attr, *args)
-        except AttributeError:
-            return getattr(self.get_queryset(), attr, *args)
-
-
 class CareerEvent(models.Model):
     STATUS_CHOICES = (
         ('NA', 'Needs Approval'),
@@ -244,7 +230,7 @@ class CareerEvent(models.Model):
     import_key = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    objects = CareerEventManager()
+    objects = CareerQuerySet.as_manager()
 
     class Meta:
         ordering = (
@@ -907,7 +893,6 @@ class Position(models.Model):
         Called if you're purely going to display the value, as when displaying the contents of the position.
         """
         if 'teaching_load' in self.config and not self.config['teaching_load'] == 'None':
-            print(self.config['teaching_load'])
             return str(Fraction(self.config['teaching_load'])*3)
 
         else:
