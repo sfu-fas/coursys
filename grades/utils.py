@@ -264,10 +264,10 @@ def generate_numeric_activity_stat(activity, role):
     average = float(average) / student_grade_list_count
 
     if student_grade_list_count % 2 == 0:
-        median = (student_grade_list[(student_grade_list_count - 1) / 2] +
-                    student_grade_list[(student_grade_list_count) / 2]) / 2
+        median = (student_grade_list[(student_grade_list_count - 1) // 2] +
+                    student_grade_list[(student_grade_list_count) // 2]) / 2
     else:
-        median = student_grade_list[(student_grade_list_count - 1) / 2]
+        median = student_grade_list[(student_grade_list_count - 1) // 2]
 
     stddev = math.sqrt(sum([(float(student_grade) - average) ** 2 for student_grade in student_grade_list]) / student_grade_list_count)
 

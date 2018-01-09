@@ -84,7 +84,7 @@ class IsOfferingStaff(permissions.BasePermission):
         return bool(view.member)
 
 from django.core.cache import caches
-from django.utils.encoding import force_bytes, iri_to_uri
+from django.utils.encoding import force_text, iri_to_uri
 from django.utils.cache import patch_response_headers, patch_cache_control
 from rest_framework.response import Response
 import hashlib
@@ -125,7 +125,7 @@ class CacheMixin(object):
             username = request.user.username
 
         # URL path
-        url = force_bytes(iri_to_uri(request.get_full_path()))
+        url = force_text(iri_to_uri(request.get_full_path()))
 
         # build a cache key out of that
         key = '#'.join(('CacheMixin', self.key_prefix, username, method, url))

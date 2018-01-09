@@ -1,5 +1,5 @@
 import io
-import unicodecsv as csv
+import csv
 import json
 import decimal
 

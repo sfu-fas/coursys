@@ -4,7 +4,7 @@
 """
 
 import re
-import unicodecsv as csv
+import csv
 from decimal import Decimal, ROUND_HALF_EVEN
 from datetime import datetime
 from django.core.urlresolvers import reverse
@@ -369,7 +369,7 @@ class TestImportFunctionsNumeric(TestCase):
         inName = 'marking/testfiles/oldformat_noprob.csv'
         self.get_test_file(inName)
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
@@ -380,7 +380,7 @@ class TestImportFunctionsNumeric(TestCase):
         self.get_test_file(inName)
         bad_id = [n for n,_ in self.values if n not in self.userids] [0]
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, ['Error found in the file (row 2): Unmatched student number '
             'or user-id ({0}).'. format(bad_id)])
@@ -391,7 +391,7 @@ class TestImportFunctionsNumeric(TestCase):
         self.get_test_file(inName)
         bad_emplid = [e for e,_ in self.values if int(e) not in self.emplids] [0]
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertIn('Error found in the file (row 1): Unmatched student number '
                       'or user-id ({0}).'. format(bad_emplid), err)
@@ -402,7 +402,7 @@ class TestImportFunctionsNumeric(TestCase):
         self.get_test_file(inName)
         del self.values[0] # Delete header row
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
              err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
@@ -413,7 +413,7 @@ class TestImportFunctionsNumeric(TestCase):
         self.get_test_file(inName)
         del self.values[0] # Delete header row
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
              err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values)-1)
@@ -425,7 +425,7 @@ class TestImportFunctionsNumeric(TestCase):
         for i, row in enumerate(self.values):
             self.values[i] = [self.values[i][3], self.values[i][1]]
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
              err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
@@ -443,7 +443,7 @@ class TestImportFunctionsNumeric(TestCase):
         '''
         inName = 'marking/testfiles/newformat_missing_uid_col.csv'
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertIn('Error found in the file (row 1): Unmatched student number or user-id (Junk1).', err)
         self.assertIn('Error found in the file (row 2): Unmatched student number or user-id (w1).', err)
@@ -454,7 +454,7 @@ class TestImportFunctionsNumeric(TestCase):
     def test_import_grades_new_format_missing_act_col(self):
         inName = 'marking/testfiles/newformat_missing_act_col.csv'
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
              err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertIn('Error in file header line:  No '
             'column labelled for activity {0}.'.format(self.a1.short_name), err)
@@ -463,7 +463,7 @@ class TestImportFunctionsNumeric(TestCase):
     def test_import_grades_new_format_dup_act_col(self):
         inName = 'marking/testfiles/newformat_dup_act_col.csv'
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertIn('Error in file header line:  Two columns '
             'labelled {0}.'.format(self.a1.short_name), err)
@@ -477,7 +477,7 @@ class TestImportFunctionsNumeric(TestCase):
         for i, row in enumerate(self.values):
             self.values[i] = [self.values[i][6], self.values[i][1]]
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
@@ -486,7 +486,7 @@ class TestImportFunctionsNumeric(TestCase):
     def test_import_grades_new_format_bad_utf8(self):
         inName = 'marking/testfiles/newformat_bad_utf8.csv'
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertIn('File cannot be decoded as UTF-8 data: make sure it has been saved as UTF-8 text.', err)
         self.assertEqual(len(data_to_return), 0)
@@ -494,10 +494,9 @@ class TestImportFunctionsNumeric(TestCase):
     def test_import_grades_new_format_utf8_bom(self):
         inName = 'marking/testfiles/newformat_utf8_bom.csv'
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertIn('File contains bad UTF-8 data: make sure it has been saved as UTF-8 text.', err)
-        self.assertEqual(len(data_to_return), 0)
+        self.assertEqual(err, [])
 
 
 class TestImportFunctionsLetter(TestCase):
@@ -532,7 +531,7 @@ class TestImportFunctionsLetter(TestCase):
         self.get_test_file(inName)
         del self.values[0] # Delete header row
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
@@ -542,7 +541,7 @@ class TestImportFunctionsLetter(TestCase):
         inName = 'marking/testfiles/oldformat_noprob_let.csv'
         self.get_test_file(inName)
         data_to_return = {}
-        with open(inName, 'r') as inp:
+        with open(inName, 'rb') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
@@ -579,8 +578,8 @@ class TestImportViews(TestCase):
         stud2 = Member.objects.get(person = Person.objects.get(userid = '0aaa1'), offering = self.c)
         STUD1_GRADE = '88'
         STUD2_GRADE = '15'
-        self.assertTrue(re.search(STUD1_GRADE, response.content))
-        self.assertTrue(re.search(STUD2_GRADE, response.content))
+        self.assertContains(response, b'value="%b"' % (STUD1_GRADE.encode('utf8'),))
+        self.assertContains(response, b'value="%b"' % (STUD2_GRADE.encode('utf8'),))
 
         # Submit the grades, check that they were added to DB
         post_data={'0aaa0-value':STUD1_GRADE, '0aaa1-value':STUD2_GRADE}
@@ -622,8 +621,8 @@ class TestImportViewsLet(TestCase):
         stud2 = Member.objects.get(person = Person.objects.get(userid = '0aaa1'), offering = self.c)
         STUD1_GRADE = 'A'
         STUD2_GRADE = 'C-'
-        self.assertTrue(re.search(STUD1_GRADE, response.content))
-        self.assertTrue(re.search(STUD2_GRADE, response.content))
+        self.assertContains(response, b'value="%b"' % (STUD1_GRADE.encode('utf8'),))
+        self.assertContains(response, b'value="%b"' % (STUD2_GRADE.encode('utf8'),))
 
         # Submit the grades, check that they were added to DB
         post_data={'0aaa0-value':STUD1_GRADE, '0aaa1-value':STUD2_GRADE}
@@ -720,6 +719,6 @@ class TestMarkingImport(TestCase):
         self.assertEqual(m.file_mediatype, 'text/plain')
         m.file_attachment.open()
         data = m.file_attachment.read()
-        self.assertEqual(data, 'Hello world!\n')
+        self.assertEqual(data, b'Hello world!\n')
         self.assertEqual(m.attachment_filename(), 'hello.txt')
 

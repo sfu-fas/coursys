@@ -94,8 +94,8 @@ class SubmissionTest(TestCase):
         comps = select_all_components(a1)
         self.assertEqual(len(comps), 3)
         self.assertEqual(comps[0].title, 'Archive File') # make sure position=1 is first
-        self.assertEqual(str(comps[1].Type), "submission.models.code.Code")
-        self.assertEqual(str(comps[2].Type), "submission.models.url.URL")
+        self.assertEqual(str(comps[1].Type.name), "Code")
+        self.assertEqual(str(comps[2].Type.name), "URL")
 
     def test_component_view_page(self):
         _, course = create_offering()
@@ -139,27 +139,27 @@ class SubmissionTest(TestCase):
         """
         Test file type inference function
         """
-        fh = io.StringIO(TGZ_FILE)
+        fh = io.BytesIO(TGZ_FILE)
         fh.name = "something.tar.gz"
         ftype = filetype(fh)
         self.assertEqual(ftype, "TGZ")
         
-        fh = io.StringIO(GZ_FILE)
+        fh = io.BytesIO(GZ_FILE)
         fh.name = "something.gz"
         ftype = filetype(fh)
         self.assertEqual(ftype, "GZIP")
         
-        fh = io.StringIO(ZIP_FILE)
+        fh = io.BytesIO(ZIP_FILE)
         fh.name = "something.zip"
         ftype = filetype(fh)
         self.assertEqual(ftype, "ZIP")
         
-        fh = io.StringIO(RAR_FILE)
+        fh = io.BytesIO(RAR_FILE)
         fh.name = "something.rar"
         ftype = filetype(fh)
         self.assertEqual(ftype, "RAR")
         
-        fh = io.StringIO(PDF_FILE)
+        fh = io.BytesIO(PDF_FILE)
         fh.name = "something.pdf"
         ftype = filetype(fh)
         self.assertEqual(ftype, "PDF")
@@ -180,7 +180,7 @@ class SubmissionTest(TestCase):
                 ]
         
         for fn, ftype in testfiles:
-            fh = open(os.path.join("submission", "testfiles", fn))
+            fh = open(os.path.join("submission", "testfiles", fn), 'rb')
             ftypem = filetype(fh)
             self.assertEqual(ftype, ftypem)
 
@@ -264,7 +264,7 @@ class SubmissionTest(TestCase):
 
         # submit a file
         tmpf = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
-        codecontents = 'print "Hello World!"\n'
+        codecontents = b'print "Hello World!"\n'
         tmpf.write(codecontents)
         tmpf.close()
 

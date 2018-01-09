@@ -14,5 +14,7 @@ def upload_path(*path_components):
     filename = path_components[-1]
     path_components = list(path_components[:-1])
     uu = uuid.uuid1(uuid.getnode())
-    components = path_components + [str(uu), filename.encode('ascii', 'ignore')]
+    components = path_components + [str(uu), filename]
+    # make sure filenames are entirely ASCII
+    components = [c.encode('ascii', 'ignore').decode('ascii') for c in components]
     return os.path.join(*components)

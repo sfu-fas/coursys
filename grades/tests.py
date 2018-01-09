@@ -293,7 +293,8 @@ class GradesTest(TestCase):
         self.assertEqual(a.get_status_display(), ACTIVITY_STATUS["URLS"])
         # the special case: unreleased, before the due date
         a.due_date = now + datetime.timedelta(hours=1)
-        self.assertEqual(a.get_status_display(), "no grades: due date not passed")
+        st = a.get_status_display()
+        self.assertEqual(st, "no grades: due date not passed")
         
     def test_group_change(self):
         """
@@ -683,7 +684,7 @@ class APITests(TestCase):
             la.status = 'INVI'
             la.save(entered_by=instr.person)
             resp = client.get(grades_url)
-            data = json.loads(resp.content)
+            data = json.loads(resp.content.decode('utf8'))
             self.assertIsNone(self._get_by_slug(data, 'a1'))
             self.assertIsNone(self._get_by_slug(data, 'rep'))
 
@@ -693,14 +694,14 @@ class APITests(TestCase):
             la.status = 'URLS'
             la.save(entered_by=instr.person)
             resp = client.get(grades_url)
-            data = json.loads(resp.content)
+            data = json.loads(resp.content.decode('utf8'))
             self.assertFalse(self._get_by_slug(data, 'a1')['grade'])
             self.assertFalse(self._get_by_slug(data, 'rep')['grade'])
             self.assertFalse(self._get_by_slug(data, 'a1')['details'])
             self.assertFalse(self._get_by_slug(data, 'rep')['details'])
 
             resp = client.get(stats_url)
-            data = json.loads(resp.content)
+            data = json.loads(resp.content.decode('utf8'))
             self.assertIn('unreleased activities', self._get_by_slug(data, 'a1')['missing_reason'])
             self.assertIn('unreleased activities', self._get_by_slug(data, 'rep')['missing_reason'])
             self.assertIsNone(self._get_by_slug(data, 'a1')['count'])
@@ -721,7 +722,7 @@ class APITests(TestCase):
             lg = LetterGrade(activity=la, member=student, letter_grade='A', flag='GRAD', comment='Foo')
             lg.save(entered_by=instr.person)
             resp = client.get(grades_url)
-            data = json.loads(resp.content)
+            data = json.loads(resp.content.decode('utf8'))
             self.assertFalse(self._get_by_slug(data, 'a1')['grade'])
             self.assertFalse(self._get_by_slug(data, 'rep')['grade'])
             self.assertFalse(self._get_by_slug(data, 'a1')['details'])
@@ -733,14 +734,14 @@ class APITests(TestCase):
             la.status = 'RLS'
             la.save(entered_by=instr.person)
             resp = client.get(grades_url)
-            data = json.loads(resp.content)
+            data = json.loads(resp.content.decode('utf8'))
             self.assertEqual(self._get_by_slug(data, 'a1')['grade'], '2.00')
             self.assertEqual(self._get_by_slug(data, 'rep')['grade'], 'A')
             self.assertEqual(self._get_by_slug(data, 'a1')['details']['overall_comment'], 'thecomment')
             self.assertIsNone(self._get_by_slug(data, 'rep')['details']) # letter grades have no marking
 
             resp = client.get(stats_url)
-            data = json.loads(resp.content)
+            data = json.loads(resp.content.decode('utf8'))
             self.assertIn('small classes', self._get_by_slug(data, 'a1')['missing_reason'])
             self.assertIn('small classes', self._get_by_slug(data, 'rep')['missing_reason'])
 

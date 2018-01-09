@@ -740,10 +740,10 @@ def median_letters(sorted_grades):
     if l == 0:
         return "\u2014"
     elif l%2 == 1:
-        return sorted_grades[(l-1)/2]
+        return sorted_grades[(l-1)//2]
     else:
-        g1 = sorted_grades[l/2-1]      
-        g2 = sorted_grades[l/2]
+        g1 = sorted_grades[l//2-1]
+        g2 = sorted_grades[l//2]
         if g1 == g2:
             return g1
         else:

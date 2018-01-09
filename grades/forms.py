@@ -352,7 +352,7 @@ class CourseConfigForm(forms.Form):
         if 'group_min' in self.cleaned_data and 'group_max' in self.cleaned_data:
             gmin =  self.cleaned_data['group_min']
             gmax =  self.cleaned_data['group_max']
-            if gmin > gmax:
+            if gmin and gmax and gmin > gmax:
                 raise forms.ValidationError("Minimum group size can't be larger than maximum size.")
         return self.cleaned_data
 
