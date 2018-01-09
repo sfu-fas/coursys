@@ -135,7 +135,7 @@ class Page(models.Model):
         if not m:
             return "Labels can contain only letters, numbers, underscores, dashes, and periods."
     
-    def __unicode__(self):
+    def __str__(self):
         return self.offering.name() + '/' + self.label
     
     def current_version(self):
@@ -373,7 +373,7 @@ class PageVersion(models.Model):
 
         self.page.expire_offering_cache()
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.page) + '@' + str(self.created_at)
 
     def is_filepage(self):

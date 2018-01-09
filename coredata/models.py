@@ -171,7 +171,7 @@ class Person(models.Model, ConditionalSaveMixin):
     def userid_header():
         return "Userid"
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, %s" % (self.last_name, self.first_name)
 
     def name(self):
@@ -320,7 +320,7 @@ class FuturePerson(models.Model):
 
     objects = FuturePersonManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, %s" % (self.last_name, self.first_name)
 
     def name(self):
@@ -382,11 +382,11 @@ class RoleAccount(models.Model):
     class Meta:
         unique_together = (('userid', 'type'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.userid, self.type)
 
     def name(self):
-        return self.__unicode__()
+        return self.__str__()
 
 
     def is_anyperson(self):
@@ -413,7 +413,7 @@ class AnyPerson(models.Model):
     def get_person(self):
         return self.person or self.role_account or self.future_person
 
-    def __unicode__(self):
+    def __str__(self):
         if not self.get_person():
             return "None"
         return self.get_person().name()
@@ -574,7 +574,7 @@ class Semester(models.Model):
         semester = self.slug_lookup[name[3]]
         return str(year) + semester
 
-    def __unicode__(self):
+    def __str__(self):
         return self.label()
     
     def timely(self):
@@ -801,7 +801,7 @@ class Holiday(models.Model):
     description = models.CharField(max_length=30, null=False, blank=False, help_text='Description of holiday, e.g. "Canada Day"')
     holiday_type = models.CharField(max_length=4, null=False, choices=HOLIDAY_TYPE_CHOICES,
         help_text='Type of holiday: how does it affect schedules?')
-    def __unicode__(self):
+    def __str__(self):
         return "%s on %s" % (self.description, self.date)
     class Meta:
         ordering = ['date']
@@ -827,7 +827,7 @@ class Course(models.Model, ConditionalSaveMixin):
     class Meta:
         unique_together = (('subject', 'number'),)
         ordering = ('subject', 'number')
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.subject, self.number)
     def __lt__(self, other):
         return (self.subject, self.number) < (other.subject, other.number)
@@ -1001,7 +1001,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
             ('semester', 'crse_id', 'section'),
             ('semester', 'class_nbr'))
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s %s (%s)" % (self.subject, self.number, self.section, self.semester.label())
     def name(self):
         if self.graded and self.section[2:4] == '00':
@@ -1234,7 +1234,7 @@ class Member(models.Model, ConditionalSaveMixin):
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     sched_print_instr, set_sched_print_instr = getter_setter('sched_print_instr')
     
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s) in %s" % (self.person.userid, self.person.emplid, self.offering,)
     def short_str(self):
         return "%s (%s)" % (self.person.name(), self.person.userid)
@@ -1436,7 +1436,7 @@ class MeetingTime(models.Model):
     meeting_type = models.CharField(max_length=4, choices=MEETINGTYPE_CHOICES, default="LEC")
     labtut_section = models.CharField(max_length=4, null=True, blank=True,
         help_text='Section should be in the form "C101" or "D103".  None/blank for the non lab/tutorial events.')
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s %s-%s" % (str(self.offering), WEEKDAYS[self.weekday], self.start_time, self.end_time)
 
     class Meta:
@@ -1499,7 +1499,7 @@ class Unit(models.Model):
     class Meta:
         ordering = ['label']
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (self.name, self.label)
 
     def delete(self, *args, **kwargs):
@@ -1600,7 +1600,7 @@ class Role(models.Model):
     objects = models.Manager()
     objects_fresh = RoleNonExpiredManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s, %s)" % (self.person, self.ROLES[str(self.role)], self.unit.label)
     class Meta:
         unique_together = (('person', 'role', 'unit'),)
@@ -1794,7 +1794,7 @@ class EnrolmentHistory(models.Model):
     class Meta:
         unique_together = (('offering', 'date'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s@%s (%i, %i, %i)' % (self.offering.slug, self.date, self.enrl_cap, self.enrl_tot, self.wait_tot)
 
     @classmethod

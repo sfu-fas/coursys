@@ -182,7 +182,7 @@ class DisciplineGroup(models.Model):
         return make_slug(self.name)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='offering')
     
-    def __unicode__(self):
+    def __str__(self):
         return "%s in %s" % (self.name, self.offering)
     def get_absolute_url(self):
         return reverse('offering:discipline:showgroup', kwargs={'course_slug': self.offering.slug, 'group_slug': self.slug})
@@ -283,7 +283,7 @@ class DisciplineCaseBase(models.Model):
             help_text="Student Services' notes about the case (private notes, "+TEXTILENOTE+')')
     """
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id)
 
     def get_absolute_url(self):
@@ -704,7 +704,7 @@ class DisciplineTemplate(models.Model):
     class Meta:
         unique_together = (("field", "label"),)
         ordering = ('field', 'label')
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s" % (self.field, self.label)
     def JSON_data(self):
         """

@@ -116,7 +116,7 @@ class NonSFUFormFiller(models.Model):
     email_address = models.EmailField(max_length=254)
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, %s" % (self.last_name, self.first_name)
     def name(self):
         return "%s %s" % (self.first_name, self.last_name)
@@ -167,7 +167,7 @@ class FormFiller(models.Model):
     def isSFUPerson(self):
         return bool(self.sfuFormFiller)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.sfuFormFiller:
             return "%s (%s)" % (self.sfuFormFiller.name(), self.sfuFormFiller.emplid)
         else:
@@ -237,7 +237,7 @@ class FormGroup(models.Model):
     class Meta:
         unique_together = (("unit", "name"),)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, %s" % (self.name, self.unit.label)
     def delete(self, *args, **kwargs):
         raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
@@ -269,7 +269,7 @@ class FormGroupMember(models.Model):
         db_table = 'onlineforms_formgroup_members' # to make it Just Work with the FormGroup.members without "through=" that existed previously
         unique_together = (("person", "formgroup"),)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s in %s" % (self.person.name(), self.formgroup.name)
 
 
@@ -338,7 +338,7 @@ class Form(models.Model, _FormCoherenceMixin):
     unlisted, set_unlisted = getter_setter('unlisted')
     jsfile, set_jsfile = getter_setter('jsfile')
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s [%s]" % (self.title, self.id)
     
     def delete(self, *args, **kwargs):
@@ -545,7 +545,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
     #class Meta:
     #    unique_together = (('form', 'order'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, %s [%i]" % (self.form, self.title, self.id)
 
     def delete(self, *args, **kwargs):
@@ -621,7 +621,7 @@ class Field(models.Model, _FormCoherenceMixin):
         return make_slug(self.label)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='sheet')
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, %s" % (self.sheet, self.label)
 
     def delete(self, *args, **kwargs):
@@ -690,7 +690,7 @@ class FormSubmission(models.Model):
 
         self.save()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s for %s" % (self.form, self.initiator)
 
     def get_absolute_url(self):
@@ -778,7 +778,7 @@ class SheetSubmission(models.Model):
             super(SheetSubmission, self).save(*args, **kwargs)
             self.form_submission.update_status()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s by %s" % (self.sheet, self.filler.identifier())
     
     defaults = {'assigner': None, 'assign_comment': None, 'assign_note': None, 'reject_reason': None, 'return_reason': None}
@@ -1089,7 +1089,7 @@ class FormLogEntry(models.Model):
         le.save()
         return le
 
-    def __unicode__(self):
+    def __str__(self):
         return 'Log %s formsub %s sheetsub %s by %s: "%s"' % (self.category, self.form_submission_id,
                 self.sheet_submission_id, self.identifier(), self.description)
 

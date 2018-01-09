@@ -77,7 +77,7 @@ class Program(models.Model):
     class Meta:
         ordering = ['program_number']
 
-    def __unicode__(self):
+    def __str__(self):
         return "%05d, %s" % (self.program_number, self.title)
 
     def delete(self, *args, **kwargs):
@@ -106,7 +106,7 @@ class Project(models.Model):
     class Meta:
         ordering = ['project_number']
 
-    def __unicode__(self):
+    def __str__(self):
         return "%06i (%s) - %s" % (self.department_code, self.fund_number, self.project_number)
 
     def delete(self, *args, **kwargs):
@@ -135,7 +135,7 @@ class Account(models.Model):
     class Meta:
         ordering = ['account_number']
 
-    def __unicode__(self):
+    def __str__(self):
         return "%06i (%s)" % (self.account_number, self.title)
 
     def delete(self, *args, **kwargs):
@@ -235,7 +235,7 @@ class RAAppointment(models.Model):
     defaults = {'use_hourly': False}
     use_hourly, set_use_hourly = getter_setter('use_hourly')
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.person) + "@" + str(self.created_at)
 
     class Meta:
@@ -427,7 +427,7 @@ class RAAppointmentAttachment(models.Model):
 
     objects = RAAppointmentAttachmentQueryset.as_manager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:

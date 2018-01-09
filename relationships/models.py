@@ -73,7 +73,7 @@ class Contact(models.Model):
     def name(self):
         return "%s %s" % (self.first_name, self.last_name)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s, %s' % (self.unit.label.upper(), self.full_name())
 
     def delete(self):
@@ -153,7 +153,7 @@ class EventAttachment(models.Model):
 
     objects = EventAttachmentManagerQuerySet.as_manager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:

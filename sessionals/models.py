@@ -48,7 +48,7 @@ class SessionalAccount(models.Model):
     hidden = models.BooleanField(null=False, default=False, editable=False)
     objects = SessionalAccountQuerySet.as_manager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.unit, self.title)
 
     def delete(self):
@@ -111,7 +111,7 @@ class SessionalContract(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (str(self.sessional), str(self.offering))
 
     def delete(self):
@@ -144,7 +144,7 @@ class SessionalConfig(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.unit.label, "default configuration for sessional contracts")
 
     def delete(self):

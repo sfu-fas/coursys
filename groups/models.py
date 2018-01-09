@@ -27,7 +27,7 @@ class Group(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='courseoffering')
     svn_slug = AutoSlugField(max_length=17, populate_from='slug', null=True, editable=False, unique_with='courseoffering')
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.name)
 
     def delete(self, *args, **kwargs):
@@ -60,7 +60,7 @@ class GroupMember(models.Model):
     confirmed = models.BooleanField(default = False)
     activity = models.ForeignKey(Activity)
 
-    def __unicode__(self):
+    def __str__(self):
 	    return '%s@%s/%s' % (self.student.person, self.group, self.activity.short_name)
     class Meta:
         unique_together = ("student", "activity")

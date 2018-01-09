@@ -51,7 +51,7 @@ class NewsItem(models.Model):
     markup = config_property('markup', 'creole')
     math = config_property('math', False)
 
-    def __unicode__(self):
+    def __str__(self):
         return '"%s" for %s' % (self.title, self.user.userid)
     
     def save(self, *args, **kwargs):
@@ -198,7 +198,7 @@ class UserConfig(models.Model):
     class Meta:
         unique_together = (("user", "key"),)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s='%s'" % (self.user.userid, self.key, self.value)
 
 
@@ -217,5 +217,5 @@ class Signature(models.Model):
     sig = models.FileField(upload_to=_sig_upload_to, storage=UploadedFileStorage, max_length=500)
     resolution = 200 # expect 200 dpi images
     
-    def __unicode__(self):
+    def __str__(self):
         return "Signature of %s" % (self.user.name())

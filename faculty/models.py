@@ -240,7 +240,7 @@ class CareerEvent(models.Model):
         )
         unique_together = (("person", "slug"),)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s from %s to %s" % (self.get_event_type_display(), self.start_date, self.end_date)
 
     def save(self, editor, call_from_handler=False, *args, **kwargs):
@@ -465,7 +465,7 @@ class DocumentAttachment(models.Model):
 
     objects = DocumentAttachmentManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:
@@ -506,7 +506,7 @@ class MemoTemplate(models.Model):
         return make_slug(self.unit.label + "-" + self.label)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s in %s" % (self.label, self.unit)
 
     class Meta:
@@ -562,7 +562,7 @@ class Memo(models.Model):
             return make_slug(self.career_event.slug + "-memo")
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=('career_event',))
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s memo for %s" % (self.subject, self.career_event)
 
     def hide(self):
@@ -742,7 +742,7 @@ class Grant(models.Model):
         unique_together = (('label', 'unit'),)
         ordering = ['title']
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.title
 
     def get_absolute_url(self):
@@ -791,7 +791,7 @@ class GrantBalance(models.Model):
     month = models.DecimalField(verbose_name="current month", max_digits=12, decimal_places=2)
     config = JSONField(blank=True, null=True, default={})  # addition configuration within the memo
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s balance as of %s" % (self.grant, self.date)
 
     class Meta:
@@ -810,7 +810,7 @@ class FacultyMemberInfo(models.Model):
 
     last_updated = models.DateTimeField(auto_now=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return '<FacultyMemberInfo({})>'.format(self.person)
 
     def get_absolute_url(self):
@@ -868,7 +868,7 @@ class Position(models.Model):
 
     objects = PositionManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.position_number, self.title)
 
     def hide(self):
@@ -920,7 +920,7 @@ class PositionDocumentAttachment(models.Model):
 
     objects = PositionDocumentAttachmentManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:

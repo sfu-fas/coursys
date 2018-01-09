@@ -43,7 +43,7 @@ class SubmissionComponent(models.Model):
     class Meta:
         ordering = ['position']
         app_label = 'submission'
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s"%(self.title, self.description)
     def visible_type(self):
         "Should this componet type be visible to allow creation of new components (or soft-deleted)?"
@@ -95,7 +95,7 @@ class StudentSubmission(Submission):
         app_label = 'submission'
     def get_userid(self):
         return self.member.person.userid
-    def __unicode__(self):
+    def __str__(self):
         return "%s->%s@%s" % (self.member.person.userid, self.activity, self.created_at)
     def short_str(self):
         return "%s submission by %s at %s" % (self.activity.short_str(), self.member.person.userid, self.created_at.strftime("%Y-%m-%d %H:%M"))
@@ -112,7 +112,7 @@ class GroupSubmission(Submission):
         app_label = 'submission'
     def get_userid(self):
         return self.group.manager.person.userid
-    def __unicode__(self):
+    def __str__(self):
         return "%s->%s@%s" % (self.group.manager.person.userid, self.activity, self.created_at)
     def short_str(self):
         return "%s submission by %s for group %s at %s" % (self.activity.short_str(), self.creator.person.userid, self.group.name, self.created_at.strftime("%Y-%m-%d %H:%M"))
@@ -172,7 +172,7 @@ class SubmittedComponent(models.Model):
             student = StudentSubmission.objects.filter(id=self.submission.id)
             return student.member.person
         return group[0].creator.person
-    def __unicode__(self):
+    def __str__(self):
         return "%s@%s" % (self.submission.activity, self.submission.created_at)
 
     def sendfile(self, upfile, response):

@@ -37,7 +37,7 @@ class NonStudent(models.Model):
 
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, %s" % (self.last_name, self.first_name)
 
     def name(self):
@@ -81,7 +81,7 @@ class AdvisorNote(models.Model):
     emailed = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.student) + "@" + str(self.created_at)
 
     def delete(self, *args, **kwargs):
@@ -145,7 +145,7 @@ class Artifact(models.Model):
         ordering = ['name']
         unique_together = [('name', 'unit')]
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.name) + ' (' + str(self.get_category_display()) + ')'
 
 
@@ -180,7 +180,7 @@ class ArtifactNote(models.Model):
     # Set this flag if the note is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.course:
             return str(self.course) + "@" + str(self.created_at)
         elif self.course_offering:

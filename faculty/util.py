@@ -56,7 +56,7 @@ class ReportingSemester(object):
     def __repr__(self):
         return repr("<ReportingSemester('{}')>".format(self.code))
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.full_label)
 
     def __next__(self):

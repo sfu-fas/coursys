@@ -134,7 +134,7 @@ class SessionInfo(models.Model):
         si.save()
         return si
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s@%s' % (self.session_id, self.created)
 
     def okay_auth(self, request, user):

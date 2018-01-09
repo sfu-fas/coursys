@@ -35,7 +35,7 @@ class ActivityComponent(models.Model):
         return make_slug(self.title)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='numeric_activity')
     
-    def __unicode__(self):        
+    def __str__(self):        
         return self.title
     def delete(self, *args, **kwargs):
         raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
@@ -63,7 +63,7 @@ class CommonProblem(models.Model):
     penalty = models.DecimalField(max_digits=8, decimal_places=2)
     description = models.TextField(max_length=COMMENT_LENGTH, null=True, blank=True)
     deleted = models.BooleanField(null=False, db_index=True, default=False)
-    def __unicode__(self):
+    def __str__(self):
         return "common problem %s for %s" % (self.title, self.activity_component)
 
 
@@ -89,7 +89,7 @@ class ActivityMark(models.Model):
     mark = models.DecimalField(max_digits=8, decimal_places=2, null=True)
     activity = models.ForeignKey(NumericActivity, null=True) # null=True to keep south happy
     
-    def __unicode__(self):
+    def __str__(self):
         return "Super object containing additional info for marking"
     def delete(self, *args, **kwargs):
         raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
@@ -147,7 +147,7 @@ class StudentActivityMark(ActivityMark):
     """        
     numeric_grade = models.ForeignKey(NumericGrade, null=False)
        
-    def __unicode__(self):
+    def __str__(self):
         # get the student and the activity
         student = self.numeric_grade.member.person
         activity = self.numeric_grade.activity      
@@ -176,7 +176,7 @@ class GroupActivityMark(ActivityMark):
     group = models.ForeignKey(Group, null=False)
     numeric_activity = models.ForeignKey(NumericActivity, null=False)
          
-    def __unicode__(self):
+    def __str__(self):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.numeric_activity)
     def get_absolute_url(self):
         return reverse('offering:marking:mark_history_group', kwargs={'course_slug': self.numeric_activity.offering.slug, 'activity_slug': self.numeric_activity.slug, 'group_slug': self.group.slug})
@@ -222,7 +222,7 @@ class ActivityComponentMark(models.Model):
     defaults = {'display_raw': False}
     display_raw, set_display_raw = getter_setter('display_raw')
 
-    def __unicode__(self):
+    def __str__(self):
         # get the student and the activity
         return "Marking for [%s]" %(self.activity_component,)
     def delete(self, *args, **kwargs):
@@ -246,7 +246,7 @@ class ActivityMark_LetterGrade(models.Model):
     mark = models.CharField(max_length=2, null=False,choices=LETTER_GRADE_CHOICES)
     activity = models.ForeignKey(LetterActivity, null=True) # null=True to keep south happy
     
-    def __unicode__(self):
+    def __str__(self):
         return "Super object containing additional info for marking"
     def delete(self, *args, **kwargs):
         raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
@@ -275,7 +275,7 @@ class StudentActivityMark_LetterGrade(ActivityMark_LetterGrade):
     """        
     letter_grade = models.ForeignKey(LetterGrade, null=False, choices=LETTER_GRADE_CHOICES)
        
-    def __unicode__(self):
+    def __str__(self):
         # get the student and the activity
         student = self.letter_grade.member.person
         activity = self.letter_grade.activity      
@@ -300,7 +300,7 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
     letter_activity = models.ForeignKey(LetterActivity, null = False)
     letter_grade = models.CharField(max_length=2, choices=LETTER_GRADE_CHOICES)
          
-    def __unicode__(self):
+    def __str__(self):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.letter_activity)
     def get_absolute_url(self):
         return reverse('offering:marking:mark_history_group', kwargs={'course_slug': self.letter_activity.offering.slug, 'activity_slug': self.letter_activity.slug, 'group_slug': self.group.slug})

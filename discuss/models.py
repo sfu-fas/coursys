@@ -98,7 +98,7 @@ class DiscussionTopic(models.Model):
     def created_at_delta(self):
         return _time_delta_to_string(self.created_at)
         
-    def __unicode___(self):
+    def __str___(self):
         return self.title
 
     def html_content(self):

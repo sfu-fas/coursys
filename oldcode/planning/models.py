@@ -24,13 +24,13 @@ class PlanningCourse(models.Model):
     title = models.CharField(max_length=30, help_text='The course title.')
     owner = models.ForeignKey(Unit, null=False)
     status = models.CharField(max_length=4, choices=COURSE_STATUS_CHOICES, default="OPEN", help_text="Status of this course")
-    slug = AutoSlugField(populate_from=('__unicode__'), null=False, editable=False, unique_with='id')
+    slug = AutoSlugField(populate_from=('__str__'), null=False, editable=False, unique_with='id')
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff
 
     class Meta:
         ordering = ('subject', 'number')
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.subject, self.number)
 
     def __cmp__(self, other):
@@ -71,7 +71,7 @@ class TeachingCapability(models.Model):
         ordering = ['instructor', 'course']
         unique_together = (('instructor', 'course'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.instructor, self.course)
     
     @classmethod
@@ -107,7 +107,7 @@ class TeachingIntention(models.Model):
         ordering = ['-semester', 'instructor']
         unique_together = (('instructor', 'semester'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %d (%s)" % (self.instructor, self.count, self.semester.label())
 
     def is_full(self, semester_plan):
@@ -155,7 +155,7 @@ class PlannedOffering(models.Model):
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, null=False)
     enrl_cap = models.PositiveSmallIntegerField(null=True, blank=True)
     instructor = models.ForeignKey(Person, null=True, blank=True)
-    slug = AutoSlugField(populate_from='__unicode__', null=False, editable=False, unique_with='section')
+    slug = AutoSlugField(populate_from='__str__', null=False, editable=False, unique_with='section')
     notes = models.TextField(null=True, blank=True, default="", help_text="Additional information for cross-listing or other notes")
     config = JSONField(null=False, blank=False, default={})
 
@@ -163,7 +163,7 @@ class PlannedOffering(models.Model):
         ordering = ['plan', 'course', 'campus']
         unique_together = ('plan', 'course', 'section')
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s %s" % (self.course.subject, self.course.number, self.section)
 
 

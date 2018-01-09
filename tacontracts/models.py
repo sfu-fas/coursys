@@ -113,7 +113,7 @@ class HiringSemester(models.Model):
     class Meta:
         unique_together = (('semester', 'unit'),)
     
-    def __unicode__(self):
+    def __str__(self):
         return str(self.semester.name)
 
     def copy_categories_from_previous_semester(self, unit):
@@ -213,7 +213,7 @@ class TACategory(models.Model):
 
     objects = TACategoryManager()
     
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s %s - %s" % (self.account.unit.label, str(self.code), 
                                   str(self.title), str(self.account))
 
@@ -307,7 +307,7 @@ class TAContract(models.Model):
     
     objects = TAContractManager()
    
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % (self.person,)
 
     @property
@@ -547,7 +547,7 @@ class CourseDescription(models.Model):
     hidden = models.BooleanField(default=False)
     config = JSONField(null=False, blank=False, default={})
 
-    def __unicode__(self):
+    def __str__(self):
         return self.description
 
 class TACourse(models.Model):
@@ -584,7 +584,7 @@ class TACourse(models.Model):
     class Meta:
         unique_together = (('contract', 'course'),)
     
-    def __unicode__(self):
+    def __str__(self):
         return "Course: %s  TA: %s" % (self.course, self.contract)
 
     @property

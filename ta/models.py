@@ -118,7 +118,7 @@ may occur in a semester, the total workload required will be reduced by %s
 hour(s) for each base unit assigned excluding the additional %s B.U. for
 preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOURS_PER_BU, LAB_BONUS, 4.4, 4+LAB_BONUS)}}
     
-    def __unicode__(self):
+    def __str__(self):
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
     
     def save(self, newsitem=True, newsitem_author=None, *args, **kwargs):
@@ -233,7 +233,7 @@ class TAPosting(models.Model):
     
     class Meta:
         unique_together = (('unit', 'semester'),)
-    def __unicode__(self): 
+    def __str__(self): 
         return "%s, %s" % (self.unit.name, self.semester)
     def save(self, *args, **kwargs):
         super(TAPosting, self).save(*args, **kwargs)
@@ -394,7 +394,7 @@ class Skill(models.Model):
     class Meta:
         ordering = ['position']
         unique_together = (('posting', 'position'))
-    def __unicode__(self):
+    def __str__(self):
         return "%s in %s" % (self.name, self.posting)
 
 
@@ -452,7 +452,7 @@ class TAApplication(models.Model):
  
     class Meta:
         unique_together = (('person', 'posting'),)
-    def __unicode__(self):
+    def __str__(self):
         return "%s  Posting: %s" % (self.person, self.posting)
     
     def course_pref_display(self):
@@ -554,7 +554,7 @@ class TAContract(models.Model):
     class Meta:
         unique_together = (('posting', 'application'),)
         
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.application.person
 
     def save(self, *args, **kwargs):
@@ -654,7 +654,7 @@ class CourseDescription(models.Model):
     hidden = models.BooleanField(default=False)
     config = JSONField(null=False, blank=False, default={})
     
-    def __unicode__(self):
+    def __str__(self):
         return self.description
 
 
@@ -667,7 +667,7 @@ class TACourse(models.Model):
     class Meta:
         unique_together = (('contract', 'course'),)
     
-    def __unicode__(self):
+    def __str__(self):
         return "Course: %s  TA: %s" % (self.course, self.contract)
 
     @property
@@ -769,7 +769,7 @@ class CoursePreference(models.Model):
     #class Meta:
     #    unique_together = (('app', 'course'),)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.app_id and self.course_id:
             return "%s's pref for %s" % (self.app.person, self.course)
         else:

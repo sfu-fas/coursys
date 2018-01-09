@@ -104,7 +104,7 @@ class Activity(models.Model):
     multisubmit, set_multisubmit = getter_setter('multisubmit')
     calculation_leak, set_calculation_leak = getter_setter('calculation_leak')
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.offering, self.name)
     def short_str(self):
         return self.name
@@ -500,7 +500,7 @@ class NumericGrade(models.Model):
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
     comment = models.TextField(null=True, max_length=COMMENT_LENGTH)
     
-    def __unicode__(self):
+    def __str__(self):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
 
     @property
@@ -599,7 +599,7 @@ class LetterGrade(models.Model):
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
     comment = models.TextField(null=True, max_length=COMMENT_LENGTH)
     
-    def __unicode__(self):
+    def __str__(self):
         return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.activity)
 
     @property

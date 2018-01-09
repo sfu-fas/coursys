@@ -68,7 +68,7 @@ class Asset(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.name, self.unit.label)
 
     def save(self, *args, **kwargs):
@@ -171,7 +171,7 @@ class AssetDocumentAttachment(models.Model):
 
     objects = AssetChangeRecordQuerySet.as_manager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:

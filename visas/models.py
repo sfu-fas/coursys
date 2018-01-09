@@ -76,7 +76,7 @@ class Visa (models.Model):
             return EXPIRY_STATUSES[2]
         return "Unknown"  # We'll hit this if the end_date is null.
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, %s, %s" % (self.person, self.status, self.start_date)
 
     def hide(self):
@@ -141,7 +141,7 @@ class VisaDocumentAttachment(models.Model):
 
     objects = VisaDocumentAttachmentQueryset.as_manager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:

@@ -78,7 +78,7 @@ class OutreachEvent(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s - %s" % (self.title, self.unit.label, self.start_date)
 
     def delete(self):
@@ -179,7 +179,7 @@ class OutreachEventRegistration(models.Model):
 
     extra_questions = config_property('extra_questions', [])
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, %s = %s" % (self.last_name, self.first_name, self.event)
 
     def delete(self):
