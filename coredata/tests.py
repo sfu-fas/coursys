@@ -283,11 +283,11 @@ class CoredataTest(TestCase):
         response = client.post(url, {'person':'33333333', 'role':'FAC', 'unit': 2})
         self.assertEqual(response.status_code, 200)
         validate_content(self, response.content, url)
-        self.assertTrue("could not import DB2 module" in response.content
-                        or "could not connect to reporting database" in response.content
-                        or "Could not find this emplid." in response.content
-                        or "Reporting database access has been disabled" in response.content
-                        or "Could not communicate with reporting database" in response.content)
+        self.assertTrue(b"could not import DB2 module" in response.content
+                        or b"could not connect to reporting database" in response.content
+                        or b"Could not find this emplid." in response.content
+                        or b"Reporting database access has been disabled" in response.content
+                        or b"Could not communicate with reporting database" in response.content)
 
         response = client.post(url, {'person':p1.emplid, 'role':'FAC', 'unit':unit.id, 'expiry': str(TEST_ROLE_EXPIRY)})
         self.assertEqual(response.status_code, 302)
@@ -331,7 +331,7 @@ class SlowCoredataTest(TestCase):
         # AJAX request for table data
         url += '?tabledata=yes&data_type=json&iDisplayStart=0&iDisplayLength=10&iSortingCols=0'
         response = client.get(url)
-        data = json.loads(response.content)
+        data = json.loads(response.content.decode('utf8'))
         self.assertEqual(len(data['aaData']), 10)
 
         # courseoffering detail page
@@ -350,7 +350,7 @@ class SlowCoredataTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'application/json')
         # should find this person
-        data = json.loads(response.content)
+        data = json.loads(response.content.decode('utf8'))
         emplids = [str(d['value']) for d in data]
         self.assertIn(str(p.emplid), emplids)
 

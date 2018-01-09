@@ -99,7 +99,7 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
             Creole = ParserFor(offering, pageversion)
         html = Creole.text2html(markup)
         if restricted:
-            html = sanitize_html(html, restricted=True)
+            html = sanitize_html(html.decode('utf8'), restricted=True)
 
     elif markuplang == 'markdown':
         # TODO: the due_date etc tricks that are available in wikicreole

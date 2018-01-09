@@ -75,8 +75,8 @@ class SIMSConn(DBConn):
     sims_db = settings.SIMS_DB_NAME
     schema = settings.SIMS_DB_SCHEMA
     
-    DatabaseError = None
-    DB2Error = None
+    DatabaseError = ReferenceError # placeholder until we have the DB2 module
+    DB2Error = ReferenceError
 
     def get_connection(self):
         if settings.DISABLE_REPORTING_DB:
@@ -163,8 +163,8 @@ def SIMS_problem_handler(func):
 def _args_to_key(args, kwargs):
     "Hash arguments to get a cache key"
     h = hashlib.new('md5')
-    h.update(str(args))
-    h.update(str(kwargs))
+    h.update(str(args).encode('utf8'))
+    h.update(str(kwargs).encode('utf8'))
     return h.hexdigest()
     
 def cache_by_args(func, seconds=38800): # 8 hours by default
