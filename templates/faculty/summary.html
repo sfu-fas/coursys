@@ -88,7 +88,7 @@ $(document).ready(function() {
         {% if e.has_memos %} &nbsp;<i class="fa fa-envelope-o" title="Memo(s)"></i>{% endif %}
         {% if e.has_attachments %} &nbsp;<i class="fa fa-paperclip" title="Attachment(s)"></i>{% endif %}
     </a></td>
-    <td>{{ e.get_event_type_display_ }}</td>
+    <td>{{ e.get_event_type_display }}</td>
     <td><span class="sort">{{ e.start_date.isoformat }}</span>{{ e.start_date }}</td>
     <td>{% if e.end_date %}<span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}{% else %}&mdash;{% endif %}</td>
     <td>{{ e.get_status_display }}</td>

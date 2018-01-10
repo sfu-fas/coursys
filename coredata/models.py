@@ -1045,7 +1045,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     def set_combined(self, val):
         self.flags.combined = val
 
-    def get_campus_display(self):
+    def get_campus_display_(self):
         # override to handle the distance ed special case
         if self.instr_mode == 'DE':
             return 'Distance Education'
@@ -1175,7 +1175,11 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
                < (self.semester.name, other.subject, other.number, other.section)
     def search_label_value(self):
         return "%s (%s)" % (self.name(), self.semester.label())
-        
+
+
+# https://stackoverflow.com/a/47817197/6871666
+CourseOffering.get_campus_display = CourseOffering.get_campus_display_
+
 
 class Member(models.Model, ConditionalSaveMixin):
     """

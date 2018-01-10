@@ -39,7 +39,7 @@
       {% for s in templates %}
       <tr>
         <td>{{s.label}}</td>
-        <td>{{s.get_event_type_display_}}</td>
+        <td>{{s.get_event_type_display}}</td>
         <td>{{s.template_text|truncatechars:50}}</td>
         <td>{{s.created_at}}</td>
         <td><a href="{% url 'faculty:manage_memo_template' event_type=event_type_slug slug=s.slug %}">Edit</a></td>

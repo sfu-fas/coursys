@@ -283,7 +283,8 @@ class GradesTest(TestCase):
         """
         # check the get_status_display override
         now = datetime.datetime.now()
-        a = NumericActivity(name="Assign 1", short_name="A1", status="INVI", max_grade=10)
+        s, c = create_offering()
+        a = NumericActivity(offering=c, name="Assign 1", short_name="A1", status="INVI", max_grade=10)
         self.assertEqual(a.get_status_display(), ACTIVITY_STATUS["INVI"])
         a.status="RLS"
         self.assertEqual(a.get_status_display(), ACTIVITY_STATUS["RLS"])
@@ -293,8 +294,7 @@ class GradesTest(TestCase):
         self.assertEqual(a.get_status_display(), ACTIVITY_STATUS["URLS"])
         # the special case: unreleased, before the due date
         a.due_date = now + datetime.timedelta(hours=1)
-        st = a.get_status_display()
-        self.assertEqual(st, "no grades: due date not passed")
+        self.assertEqual(a.get_status_display(), "no grades: due date not passed")
         
     def test_group_change(self):
         """

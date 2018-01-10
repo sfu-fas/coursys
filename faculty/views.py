@@ -1105,9 +1105,9 @@ def _teaching_events_data(person, semester):
     for event in teaching_events:
         credits, load_decrease = FacultySummary(person).teaching_event_info(event)
         if load_decrease:
-            e += [(semester.code, event.get_event_type_display_(), event.get_handler().short_summary(), load_decrease, '', '', event)]
+            e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), load_decrease, '', '', event)]
         if credits:
-            e += [(semester.code, event.get_event_type_display_(), event.get_handler().short_summary(), credits, '', '', event)]
+            e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), credits, '', '', event)]
         cb += credits + load_decrease
 
     return cb, e
@@ -1259,7 +1259,7 @@ def _study_credit_events_data(units, person, semester, show_in_table, running_to
             credits, load_decrease = FacultySummary(person).teaching_event_info(event)
             running_total += credits
             if show_in_table and credits:
-                    e += [(semester.code, event.get_event_type_display_(), credits, credits, running_total)]
+                    e += [(semester.code, event.get_event_type_display(), credits, credits, running_total)]
 
     return e, running_total
 

@@ -190,7 +190,7 @@ class Activity(models.Model):
         """
         return self.display_grade_visible(student, 'INST')
 
-    def get_status_display(self):
+    def get_status_display_(self):
         """
         Override to provide better string for not-yet-due case.
         """
@@ -294,6 +294,10 @@ class Activity(models.Model):
             return "due_soon"
         else:
             return "due_far"
+
+
+# https://stackoverflow.com/a/47817197/6871666
+Activity.get_status_display = Activity.get_status_display_
 
 
 class NumericActivity(Activity):
@@ -448,7 +452,6 @@ class CalLetterActivity(LetterActivity):
         disp.append('&nbsp;<span class="letter">F</span> ')
 
         return mark_safe(''.join(disp))
-
 
 
 # list of all subclasses of Activity:
@@ -670,8 +673,10 @@ class LetterGrade(models.Model):
     class Meta:
         unique_together = (('activity', 'member'), )
 
+
 NumericActivity.GradeClass = NumericGrade
 LetterActivity.GradeClass = LetterGrade
+
 
 def neaten_activity_positions(course):
     """

@@ -241,7 +241,7 @@ class CareerEvent(models.Model):
         unique_together = (("person", "slug"),)
 
     def __str__(self):
-        return "%s from %s to %s" % (self.get_event_type_display_(), self.start_date, self.end_date)
+        return "%s from %s to %s" % (self.get_event_type_display(), self.start_date, self.end_date)
 
     def save(self, editor, call_from_handler=False, *args, **kwargs):
         # we're doing to so we can add an audit trail later.
@@ -260,7 +260,7 @@ class CareerEvent(models.Model):
 
     @property
     def slug_string(self):
-        return '{} {}'.format(self.start_date.year, self.get_event_type_display_())
+        return '{} {}'.format(self.start_date.year, self.get_event_type_display())
 
     def handler_type_name(self):
         return self.get_handler().NAME
@@ -436,6 +436,10 @@ class CareerEvent(models.Model):
         return DocumentAttachment.objects.filter(career_event=self, hidden=False).count() > 0
 
 
+# https://stackoverflow.com/a/47817197/6871666
+CareerEvent.get_event_type_display = CareerEvent.get_event_type_display_
+
+
 def attachment_upload_to(instance, filename):
     return upload_path('faculty', str(instance.career_event.start_date.year), filename)
 
@@ -519,6 +523,10 @@ class MemoTemplate(models.Model):
     def get_event_type_display_(self):
         "Override to display nicely"
         return EVENT_TYPES[self.event_type].NAME
+
+
+# https://stackoverflow.com/a/47817197/6871666
+MemoTemplate.get_event_type_display = MemoTemplate.get_event_type_display_
 
 
 class Memo(models.Model):
