@@ -46,7 +46,7 @@ def totpauth_url(totp_dev):
         ('digits', totp_dev.digits),
         ('issuer', issuer)
     ]
-    return b'otpauth://totp/%s?%s' % (label, urlencode(query))
+    return b'otpauth://totp/%s?%s' % (label, urlencode(query).encode('ascii'))
 
 
 # based on http://stackoverflow.com/a/4631504/1236542

@@ -14,7 +14,7 @@ from onlineforms.models import FIELD_TYPE_MODELS
 
 # repeats a string to exactly the length we want
 def repeat_to_length(string_to_expand, length):
-    return (string_to_expand * ((length / len(string_to_expand)) + 1))[:length]
+    return (string_to_expand * ((length // len(string_to_expand)) + 1))[:length]
 
 
 class ModelTests(TestCase):

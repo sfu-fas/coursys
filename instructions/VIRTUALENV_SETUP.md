@@ -62,4 +62,4 @@ And then take your browser to http://localhost:8000
 If you need to be able to use the Github-flavoured markup functionality:
 
     sudo apt-get install ruby ruby-dev
-    gem install commonmarker github-markup markdown
+    gem install commonmarker github-markup
