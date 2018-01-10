@@ -296,6 +296,9 @@ class GradStudent(models.Model, ConditionalSaveMixin):
     def __str__(self):
         return "%s, %s" % (self.person, self.program.label)
 
+    def __lt__(self, other):
+        return self.person.sortname() < other.person.sortname()
+
     def save(self, *args, **kwargs):
         # rebuild slug in case something changes
         self.slug = None
@@ -702,7 +705,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         committee_3_name, committee_3_email, x, y, z = supervisor_details('COM', 3)
 
         all_supervisors = [x for x in Supervisor.objects.filter(student=self, removed=False)]
-        all_supervisors.sort(cmp=lambda x,y: cmp(x.type_order(), y.type_order()))
+        all_supervisors.sort(key=lambda s: s.type_order())
         committee = ""
         for supervisor in all_supervisors:
             if supervisor.supervisor:

@@ -530,6 +530,8 @@ class Semester(models.Model):
         ordering = ['name']
     def __lt__(self, other):
         return self.name < other.name
+    def __le__(self, other):
+        return self.name <= other.name
     def sem_number(self):
         "number of semesters since spring 1900 (for subtraction)"
         yr = int(self.name[0:3])

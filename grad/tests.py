@@ -35,7 +35,7 @@ class GradTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'application/json')
         # get this grad's slug from the search
-        autocomplete = json.loads(response.content)
+        autocomplete = json.loads(response.content.decode('utf8'))
         grad_slug = [d['value'] for d in autocomplete if d['value'].startswith(self.gs_userid)][0]
         
         # search submit with gradstudent slug redirects to page
@@ -130,7 +130,7 @@ class GradTest(TestCase):
         lt.save()
 
         url = reverse('grad:get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
-        content = client.get(url).content
+        content = client.get(url).content.decode('utf8')
         Letter(student=gs, template=lt, date=datetime.date.today(), content=content).save()
         
         url = reverse('grad:view', kwargs={'grad_slug': gs.slug})

@@ -25,7 +25,7 @@ def _build_funding_totals(semester, programs, units):
     Returns list of programs annotated with the totals
     """
     # build mapping of Person.id to most-likely-currently-interesting GradProgram they're in
-    gradstudents = GradStudent.objects.filter(program__unit__in=units).select_related('start_semester')
+    gradstudents = GradStudent.objects.filter(program__unit__in=units).select_related('start_semester', 'person')
     # decorate so most-interesting sorts last
     gradstudents = [(-ACTIVE_STATUS_ORDER[gs.current_status], __startsem_name(gs), gs) for gs in gradstudents]
     gradstudents.sort()
