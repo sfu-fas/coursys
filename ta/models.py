@@ -659,6 +659,11 @@ class CourseDescription(models.Model):
     def __unicode__(self):
         return self.description
 
+    def delete(self):
+        """Like most of our objects, we don't want to ever really delete it."""
+        self.hidden = True
+        self.save()
+
 
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering, blank=False, null=False)
