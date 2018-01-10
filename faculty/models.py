@@ -241,7 +241,7 @@ class CareerEvent(models.Model):
         unique_together = (("person", "slug"),)
 
     def __str__(self):
-        return "%s from %s to %s" % (self.get_event_type_display(), self.start_date, self.end_date)
+        return "%s from %s to %s" % (self.get_event_type_display_(), self.start_date, self.end_date)
 
     def save(self, editor, call_from_handler=False, *args, **kwargs):
         # we're doing to so we can add an audit trail later.
@@ -260,7 +260,7 @@ class CareerEvent(models.Model):
 
     @property
     def slug_string(self):
-        return '{} {}'.format(self.start_date.year, self.get_event_type_display())
+        return '{} {}'.format(self.start_date.year, self.get_event_type_display_())
 
     def handler_type_name(self):
         return self.get_handler().NAME
@@ -335,7 +335,7 @@ class CareerEvent(models.Model):
             return 'unknown'
 
 
-    def get_event_type_display(self):
+    def get_event_type_display_(self):
         "Override to display nicely"
         return EVENT_TYPES[self.event_type].NAME
 
@@ -516,7 +516,7 @@ class MemoTemplate(models.Model):
         self.template_text = normalize_newlines(self.template_text.rstrip())
         super(MemoTemplate, self).save(*args, **kwargs)
 
-    def get_event_type_display(self):
+    def get_event_type_display_(self):
         "Override to display nicely"
         return EVENT_TYPES[self.event_type].NAME
 

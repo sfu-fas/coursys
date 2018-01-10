@@ -97,7 +97,7 @@ class EventTypesTest(TestCase):
                 self.assertIsInstance(shortsummary, str)
                 self.assertNotIn('%s', shortsummary) # find these cases that shouldn't exist
                 html = handler.to_html()
-                self.assertIsInstance(html, (safestring.SafeString, safestring.SafeText, safestring.SafeUnicode))
+                self.assertIsInstance(html, (safestring.SafeString, safestring.SafeText))
 
             except:
                 print("failure with Handler==%s" % (Handler))
@@ -121,8 +121,8 @@ class EventTypesTest(TestCase):
         # make sure the form renders with value="6"
         url = reverse('faculty:change_event', kwargs={'userid': person.userid, 'event_slug': event.slug})
         resp = c.get(url)
-        inputs = [l for l in resp.content.split('\n') if 'name="load"' in l]
-        inputs_correct_value = [l for l in inputs if 'value="6"' in l]
+        inputs = [l for l in resp.content.split(b'\n') if b'name="load"' in l]
+        inputs_correct_value = [l for l in inputs if b'value="6"' in l]
         self.assertEqual(len(inputs_correct_value), 1)
 
         # POST a change and make sure the right value ends up in the DB
