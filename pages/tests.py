@@ -74,7 +74,7 @@ Line that was inserted
 
 contents3 = "This is just totally different content."
 
-whitespace = re.compile(r"\s+")
+whitespace = re.compile(rb"\s+")
 
 class PagesTest(TestCase):
     fixtures = ['basedata', 'coredata']
@@ -90,16 +90,16 @@ class PagesTest(TestCase):
         Creole = self._get_creole()
 
         html = Creole.text2html("# one\n#two")
-        html_strip = whitespace.sub('', html)
-        self.assertEqual(html_strip, '<ol><li>one</li><li>two</li></ol>')
+        html_strip = whitespace.sub(b'', html)
+        self.assertEqual(html_strip, b'<ol><li>one</li><li>two</li></ol>')
 
         html = Creole.text2html("good **times**")
-        self.assertEqual(html, '<p>good <strong>times</strong></p>\n')
+        self.assertEqual(html, b'<p>good <strong>times</strong></p>\n')
 
         # a WikiCreole "addition"
         html = Creole.text2html("; A\n: B\n; C: D")
-        html_strip = whitespace.sub('', html)
-        self.assertEqual(html_strip, '<dl><dt>A</dt><dd>B</dd><dt>C</dt><dd>D</dd></dl>')
+        html_strip = whitespace.sub(b'', html)
+        self.assertEqual(html_strip, b'<dl><dt>A</dt><dd>B</dd><dt>C</dt><dd>D</dd></dl>')
         
     def test_codeblock(self):
         Creole = self._get_creole()
@@ -107,9 +107,9 @@ class PagesTest(TestCase):
         #self.assertEqual(brushes, set(['shBrushJScript.js', 'shBrushPython.js']))
         
         html = Creole.text2html(wikitext)
-        self.assertIn('class="highlight lang-python">for i', html)
-        self.assertIn('print i</pre>', html)
-        self.assertIn('i=1; i&lt;4; i++', html)
+        self.assertIn(b'class="highlight lang-python">for i', html)
+        self.assertIn(b'print i</pre>', html)
+        self.assertIn(b'i=1; i&lt;4; i++', html)
 
     def test_version_diffs(self):
         "Test the old version diffing."
@@ -366,7 +366,7 @@ class PagesTest(TestCase):
         v.save()
 
         # no macros defined: rendered as-is
-        self.assertEqual(p.current_version().html_contents().strip(), "<p>one +two+ three +four+</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), b"<p>one +two+ three +four+</p>")
 
         mp = Page(offering=crs, label=MACRO_LABEL)
         mp.save()
@@ -374,13 +374,13 @@ class PagesTest(TestCase):
         mv.save()
 
         # macros defined: should be substituted
-        self.assertEqual(p.current_version().html_contents().strip(), "<p>one 22 three 4444</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), b"<p>one 22 three 4444</p>")
 
         mp.label = 'NOT_MACROS'
         mp.save()
 
         # macros disappear: back to original
-        self.assertEqual(p.current_version().html_contents().strip(), "<p>one +two+ three +four+</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), b"<p>one +two+ three +four+</p>")
 
 
     def test_redirect(self):
@@ -458,12 +458,12 @@ class PagesTest(TestCase):
 
         # things that should be entities
         inp = '&amp; &NotRightTriangle; &#8935; &#x1D54B;'
-        outp = '<p><span>&amp;</span> <span>&NotRightTriangle;</span> <span>&#8935;</span> <span>&#x1D54B;</span></p>'
+        outp = b'<p><span>&amp;</span> <span>&NotRightTriangle;</span> <span>&#8935;</span> <span>&#x1D54B;</span></p>'
         self.assertEqual(p.text2html(inp).strip(), outp)
 
         # things that should NOT be entities
         inp = '&hello world; &#000000000123; &#x000000000123; &ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;'
-        outp = '<p>&amp;hello world; &amp;#000000000123; &amp;#x000000000123; &amp;ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;</p>'
+        outp = b'<p>&amp;hello world; &amp;#000000000123; &amp;#x000000000123; &amp;ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;</p>'
         self.assertEqual(p.text2html(inp).strip(), outp)
 
     def test_extensions(self):
@@ -475,10 +475,10 @@ class PagesTest(TestCase):
         a1 = Activity.objects.get(offering=crs, slug='a1')
 
         html = p.text2html('one <<duedate A1>> two')
-        self.assertIn('>' + a1.due_date.strftime('%A %B %d %Y') + '<', html)
+        self.assertIn(b'>' + a1.due_date.strftime('%A %B %d %Y').encode('utf8') + b'<', html)
 
         html = p.text2html('one <<duedatetime A1>> two')
-        self.assertIn('>' + a1.due_date.strftime('%A %B %d %Y, %H:%M') + '<', html)
+        self.assertIn(b'>' + a1.due_date.strftime('%A %B %d %Y, %H:%M').encode('utf8') + b'<', html)
 
         html = p.text2html('one <<activitylink A1>> two')
         link = '<a href="%s">%s' % (a1.get_absolute_url(), a1.name)
@@ -495,19 +495,19 @@ class PagesTest(TestCase):
         p.save()
         v1 = PageVersion(page=p, title="T1", wikitext='A //test//.', editor=memb, comment="original page")
         v1.save()
-        self.assertEqual(v1.html_contents(), '<p>A <em>test</em>.</p>')
+        self.assertEqual(v1.html_contents(), b'<p>A <em>test</em>.</p>')
 
         v2 = PageVersion(page=p, title="T1", wikitext='A *test*.', editor=memb, comment="original page")
         v2.set_markup('markdown')
         v2.save()
-        self.assertEqual(v2.html_contents(), '<p>A <em>test</em>.</p>')
+        self.assertEqual(v2.html_contents(), b'<p>A <em>test</em>.</p>')
 
     def test_github_markdown(self):
         """
         Check that we're getting the Github markdown flavour.
         """
         highlighted_code = markup_to_html('```python\ni=1\n```', 'markdown')
-        self.assertEqual(highlighted_code, '<pre lang="python"><code>i=1\n</code></pre>')
+        self.assertEqual(highlighted_code, b'<pre lang="python"><code>i=1\n</code></pre>')
 
     def test_html_safety(self):
         """

@@ -298,7 +298,7 @@ class PageVersion(models.Model):
         """
         lines = self.get_wikitext().split("\n")
         # sort by reverse linenumber: make sure we make changes in the right place
-        changes.sort(cmp=lambda x,y: cmp(y[1], x[1]))
+        changes.sort(key=lambda x: -x[1])
         
         for change in changes:
             c = change[0]

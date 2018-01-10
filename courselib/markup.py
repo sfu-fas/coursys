@@ -70,7 +70,7 @@ def ensure_sanitary_markup(markup, markuplang, restricted=False):
 def markdown_to_html(markup):
     sub = subprocess.Popen([os.path.join(settings.BASE_DIR, 'courselib', 'markdown2html.rb')], stdin=subprocess.PIPE,
                            stdout=subprocess.PIPE)
-    stdoutdata, stderrdata = sub.communicate(input=markup)
+    stdoutdata, stderrdata = sub.communicate(input=markup.encode('utf8'))
     ret = sub.wait()
     if ret != 0:
         raise RuntimeError('markdown2html.rb did not return successfully')

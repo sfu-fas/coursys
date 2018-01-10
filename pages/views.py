@@ -559,7 +559,7 @@ def _pages_from_json(request, offering, data):
                 if type(pdata['wikitext-base64']) != str:
                     raise ValidationError('Page #%i "wikitext-base64" value must be a string.' % (i))
                 try:
-                    wikitext = base64.b64decode(pdata['wikitext-base64'])
+                    wikitext = base64.b64decode(pdata['wikitext-base64']).decode('utf8')
                 except TypeError:
                     raise ValidationError('Page #%i "wikitext-base64" contains bad base BASE64 data.' % (i))
                 
@@ -573,7 +573,7 @@ def _pages_from_json(request, offering, data):
                 ver.wikitext = old_ver.wikitext
             else:
                 raise ValidationError('Page #%i has no wikitext for new page.' % (i))
-            
+
             ver.save()
         
         return user
