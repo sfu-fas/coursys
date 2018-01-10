@@ -214,7 +214,7 @@ class ExplanationTextField(FieldBase):
             super(self.__class__, self).__init__(config, *args, **kwargs)
             del self.fields['help_text']
             # handle transition to markup-with-language-choice field
-            if 'text_explanation' in config and 'text_explanation_0' not in config:
+            if config and 'text_explanation' in config and 'text_explanation_0' not in config:
                 config['text_explanation_0'] = config['text_explanation']
                 config['text_explanation_1'] = 'creole'
 
