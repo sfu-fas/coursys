@@ -85,14 +85,14 @@ class SIMSConn(DBConn):
             raise SIMSProblem("Reporting database access has been temporarily disabled due to server maintenance or load.")
 
         try:
-            import DB2
+            import ibm_db_dbi
         except ImportError:
             raise SIMSProblem("could not import DB2 module")
-        SIMSConn.DatabaseError = DB2.DatabaseError
-        SIMSConn.DB2Error = DB2.Error
+        SIMSConn.DatabaseError = ibm_db_dbi.DatabaseError
+        SIMSConn.DB2Error = ibm_db_dbi.Error
         try:
-            dbconn = DB2.connect(dsn=self.sims_db, uid=self.sims_user, pwd=self.sims_passwd)
-        except DB2._db2.DatabaseError:
+            dbconn = ibm_db_dbi.connect(self.sims_db, self.sims_user, self.sims_passwd)
+        except ibm_db_dbi.OperationalError:
             raise SIMSProblem("Could not communicate with reporting database.")
         cursor = dbconn.cursor()
         cursor.execute("SET SCHEMA "+self.schema)
@@ -124,12 +124,7 @@ class SIMSConn(DBConn):
         get DB2 value into a useful format
         """
         if isinstance(v, str):
-            # First try decoding it as UTF-8.  If that fails, decode it with Windows-1250 encoding, as that
-            # seems to be the other case we get.
-            try:
-                return v.strip().decode('utf8')
-            except UnicodeDecodeError:
-                return v.strip().decode('windows-1250')
+            return v.strip()
         else:
             return v
 
