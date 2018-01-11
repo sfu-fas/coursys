@@ -561,7 +561,7 @@ class Table():
         Jonathan | Lassam
         
         """
-        writer = csv.writer( open(location, 'wb') )
+        writer = csv.writer( open(location, 'wt', encoding='utf8') )
         writer.writerow( self.headers )
         for row in self.rows:
             writer.writerow( [Table.utf8(x) for x in row] )
@@ -569,8 +569,7 @@ class Table():
     @staticmethod
     def from_csv(location):
         """ Load the table from a csv file. """
-        #reader = unicode_csv.UnicodeCsvReader( open(location, 'rb') )
-        reader = csv.reader( open(location, 'rb') )
+        reader = csv.reader( open(location, 'rt', encoding='utf8') )
         
         new_table = Table()
         

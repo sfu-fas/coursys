@@ -45,9 +45,9 @@ class DB2_Query(Query):
         sims_passwd = settings.SIMS_PASSWORD
         sims_db_name = settings.SIMS_DB_NAME
         sims_db_schema = settings.SIMS_DB_SCHEMA
-        
-        import DB2
-        dbconn = DB2.connect(dsn=sims_db_name, uid=sims_user, pwd=sims_passwd)
+
+        import ibm_db_dbi
+        dbconn = ibm_db_dbi.connect(sims_db_name, sims_user, sims_passwd)
         cursor = dbconn.cursor()
         cursor.execute("SET SCHEMA "+sims_db_schema)
         DB2_Query.db = dbconn
@@ -98,7 +98,7 @@ class DB2_Query(Query):
     @staticmethod
     def clean_output(argument):
         if type( argument ) is str: 
-            return str(argument.strip(), 'utf-8', 'replace')
+            return argument.strip()
         else:
             return argument
 
