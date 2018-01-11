@@ -173,12 +173,18 @@ def deploy_checks(request=None):
     # Reporting DB connection
     try:
         db = SIMSConn()
-        db.execute("SELECT last_name FROM ps_names WHERE emplid=200133427", ())
-        n = len(list(db))
-        if n > 0:
-            passed.append(('Reporting DB connection', 'okay'))
-        else:
+        db.execute("SELECT last_name FROM ps_names WHERE emplid=301355288", ())
+        result = list(db)
+        # whoever this is, they have non-ASCII in their name: let's hope they don't change it.
+        lname = result[0][0]
+        if not isinstance(lname, str):
+            failed.append(('Reporting DB connection', 'string result not a string: check Unicode decoding'))
+        elif lname[1] != u'\u00e4':
+            failed.append(('Reporting DB connection', 'returned incorrectly-decoded Unicode'))
+        elif len(result) == 0:
             failed.append(('Reporting DB connection', 'query inexplicably returned nothing'))
+        else:
+            passed.append(('Reporting DB connection', 'okay'))
     except SIMSProblem as e:
         failed.append(('Reporting DB connection', 'SIMSProblem, %s' % (str(e))))
     except ImportError:
