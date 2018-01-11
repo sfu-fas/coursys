@@ -28,7 +28,7 @@ def ping(): # used to check that celery is alive
 # (checked by ping_celery management command)
 @periodic_task(run_every=crontab(minute='*/5', hour='*'))
 def beat_test():
-    with file(BEAT_TEST_FILE, 'w') as fh:
+    with open(BEAT_TEST_FILE, 'w') as fh:
         fh.write('Celery beat did things on %s.\n' % (datetime.datetime.now()))
 
 

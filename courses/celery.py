@@ -2,12 +2,15 @@
 
 
 import os
+import datetime
 from celery import Celery
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'courses.settings')
 
 app = Celery('courses')
+# https://github.com/celery/django-celery-beat/issues/80#issuecomment-329448732
+app.now = datetime.datetime.now
 
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.

@@ -1,10 +1,10 @@
 package "git"
 package "libxslt1-dev"
-package "python"
-#package "python-pip"
-package "python-setuptools"
-package "python-dev"
-package "python-lxml"
+package "python3"
+#package "python3-pip"
+package "python3-setuptools"
+package "python3-dev"
+package "python3-lxml"
 package "sqlite3"
 package "zlib1g-dev"
 package "libjpeg8-dev" # for pillow build
@@ -14,19 +14,19 @@ package "build-essential"
 
 #install the proper pip
 execute "install_proper_pip" do
-    command "easy_install pip"
+    command "easy_install3 pip"
 end
 
 # pip install any listed requirements
 execute "install_pip_requirements" do
     cwd "/home/ubuntu/"
-    command "pip install -r /home/ubuntu/courses/build_deps/working_deps.txt"
+    command "pip3 install -r /home/ubuntu/courses/build_deps/working_deps.txt"
 end
 
 # throw ipython in there: we know it works on the VM
 execute "install_ipython" do
     cwd "/home/ubuntu/"
-    command "pip install ipython"
+    command "pip3 install ipython"
 end
 
 # build the locale that a few bits of the system rely on

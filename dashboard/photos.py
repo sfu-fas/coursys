@@ -163,7 +163,7 @@ def _get_photo_token():
     """
     Get auth token from photo service
     """
-    token_data = urllib.parse.urlencode({'AccountName': ACCOUNT_NAME, 'Password': get_photo_password()})
+    token_data = urllib.parse.urlencode({'AccountName': ACCOUNT_NAME, 'Password': get_photo_password()}).encode('utf8')
     try:
         token_request = urllib.request.urlopen(TOKEN_URL, data=token_data)
     except IOError:
