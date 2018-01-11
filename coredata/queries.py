@@ -1392,7 +1392,7 @@ def userid_to_emplid(userid):
     url = EMPLID_BASE_URL + qs
     try:
         req = urllib.request.urlopen(url, timeout=30)
-        jsondata = req.read()
+        jsondata = req.read().decode('utf8')
         data = json.loads(jsondata)
     except ValueError:
         # can't decode JSON

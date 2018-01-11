@@ -157,7 +157,7 @@ def deploy_checks(request=None):
 
     # Django cache
     # (has a subprocess do something to make sure we're in a persistent shared cache, not DummyCache)
-    subprocess.call(['python', 'manage.py', 'check_things', '--cache_subcall'])
+    subprocess.call(['python3', 'manage.py', 'check_things', '--cache_subcall'])
     cache_okay = False
     res = cache.get('check_things_cache_test')
     if res == randval:
@@ -359,7 +359,7 @@ def deploy_checks(request=None):
     from courselib.markup import markdown_to_html
     try:
         html = markdown_to_html('test *markup*')
-        if html.strip() == '<p>test <em>markup</em></p>':
+        if html.strip() == b'<p>test <em>markup</em></p>':
             passed.append(('Markdown subprocess', 'okay'))
         else:
             failed.append(('Markdown subprocess', 'markdown script returned incorrect markup'))
