@@ -68,7 +68,7 @@ class APIEndpointTester(object):
         url = reverse(view, kwargs=view_kwargs)
         resp = self.client.get(url)
         self.testcase.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content.decode('utf8'))
 
         self.find_views_in(data)
         self.checked_views.add(self.link_to_view(url))
@@ -180,7 +180,7 @@ class APITest(TestCase):
         url = reverse('api:OfferingStudents', kwargs={'course_slug': TEST_COURSE_SLUG})
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 403)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content.decode('utf8'))
         self.assertIsInstance(data, dict)
         self.assertEqual(list(data.keys()), ['detail'])
 
@@ -189,7 +189,7 @@ class APITest(TestCase):
         url = reverse('api:OfferingStudents', kwargs={'course_slug': TEST_COURSE_SLUG})
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content.decode('utf8'))
         self.assertIsInstance(data, list)
         self.assertEqual([d['userid'] for d in data],
                          [m.person.userid for m in Member.objects.filter(offering__slug=TEST_COURSE_SLUG, role='STUD')
@@ -200,6 +200,6 @@ class APITest(TestCase):
         url = reverse('api:OfferingStudents', kwargs={'course_slug': TEST_COURSE_SLUG})
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 403)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content.decode('utf8'))
         self.assertIsInstance(data, dict)
         self.assertEqual(list(data.keys()), ['detail'])
