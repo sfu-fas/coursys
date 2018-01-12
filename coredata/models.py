@@ -16,7 +16,7 @@ from courselib.branding import product_name, help_email
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from bitfield import BitField
-import fractions
+import fractions, itertools
 
 def repo_name(offering, slug):
     """
@@ -1816,6 +1816,30 @@ class EnrolmentHistory(models.Model):
 
         if save:
             eh.save_or_replace()
+
+    @property
+    def enrl_vals(self):
+        return self.enrl_cap, self.enrl_tot, self.wait_tot
+
+    def is_dup(self, other):
+        "Close enough that other can be deleted?"
+        assert self.date < other.date
+        return self.enrl_vals == other.enrl_vals
+
+    @classmethod
+    def deduplicate(cls):
+        """
+        Remove any EnrolmentHistory objects that aren't adding any new information.
+        """
+        all_ehs = EnrolmentHistory.objects.order_by('offering', 'date')
+        for off_id, ehs in itertools.groupby(all_ehs, key=lambda eh: eh.offering_id):
+            # iterate through EnrolmentHistory for this offering and purge any "same as yesterday" entries
+            current = next(ehs)
+            for eh in ehs:
+                if current.is_dup(eh):
+                    eh.delete()
+                else:
+                    current = eh
 
     def save_or_replace(self):
         """
