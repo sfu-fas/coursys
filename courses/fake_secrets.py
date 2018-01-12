@@ -20,7 +20,6 @@ INITIAL_PHOTO_PASSWORD = '' # will be injected into database by 'manage.py insta
 SIMS_USER = 'ggbaker'
 SIMS_PASSWORD = ''
 
-#BACKUP_SERVER = 'backups.cs.sfu.ca'
-#BACKUP_USER = 'coursys'
-#BACKUP_PATH = '/backups/coursys'
-#BACKUP_PASSPHRASE = 'abc123'
+#BACKUP_REMOTE_URL = 'scp://userid@backups.cs.sfu.ca//backups/coursys'
+#BACKUP_KEY_ID = 'coursys-help@sfu.ca'
+#BACKUP_KEY_PASSPHRASE = 'abc123'

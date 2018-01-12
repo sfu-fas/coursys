@@ -352,10 +352,9 @@ EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 #PIWIK_FAIL_SILENTLY = True
 #PIWIK_FORCE_HOST = 'courses.cs.sfu.ca'
 
-BACKUP_SERVER = getattr(secrets, 'BACKUP_SERVER', None)
-BACKUP_USER = getattr(secrets, 'BACKUP_USER', None)
-BACKUP_PATH = getattr(secrets, 'BACKUP_PATH', None)
-BACKUP_PASSPHRASE = getattr(secrets, 'BACKUP_PASSPHRASE', None)
+BACKUP_REMOTE_URL = getattr(secrets, 'BACKUP_REMOTE_URL', None)
+BACKUP_KEY_ID = getattr(secrets, 'BACKUP_KEY_ID', None)
+BACKUP_KEY_PASSPHRASE = getattr(secrets, 'BACKUP_KEY_PASSPHRASE', None)
 
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
