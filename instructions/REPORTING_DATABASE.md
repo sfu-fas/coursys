@@ -48,23 +48,12 @@ I usually start every session with this, to avoid having to prefix the name of e
 
 ## Python DB2 Library
 
-You will need the [PyDB2 module](http://sourceforge.net/projects/pydb2/) installed. Fetch and unpack (and fix the stupidly-broken file permissions in the download).
-Edit `setup.py` so the line at the top reads:
+You will need the [ibm_db package](https://github.com/ibmdb/python-ibmdb) installed:
 
-    DB2_ROOT = os.environ['HOME'] + "/sqllib"
-    
-And install:
-
-    sudo apt-get install python-dev
-    python setup.py build
-    sudo python setup.py install
+    sudo apt-get install python3-dev
+    pip install ibm_db==2.0.7        # 2.0.8 has an installation bug
 
 ## CourSys setup
-
-If you're working in a VirtualEnv, you probably have to fake the DB2 libraries into place:
-
-    ln -s /usr/local/lib/python2.7/dist-packages/DB2.py ../lib/python2.7/site-packages/
-    ln -s /usr/local/lib/python2.7/dist-packages/_db2.so ../lib/python2.7/site-packages/
 
 In `courses/localsettings.py`, make sure the reporting database is turned on (obviously don't do this for demos or other places non-trusted users will be accessing things freely):
 
