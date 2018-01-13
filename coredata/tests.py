@@ -1,6 +1,6 @@
 from django.test import TestCase
 from coredata.models import CourseOffering, Semester, Person, SemesterWeek, \
-                            Member, Role, Unit, ROLE_CHOICES
+                            Member, Role, Unit, EnrolmentHistory, ROLE_CHOICES
 
 from django.core.urlresolvers import reverse
 from django.core.management import call_command
@@ -353,6 +353,57 @@ class SlowCoredataTest(TestCase):
         data = json.loads(response.content.decode('utf8'))
         emplids = [str(d['value']) for d in data]
         self.assertIn(str(p.emplid), emplids)
+
+
+class EnrolmentHistoryTest(TestCase):
+    fixtures = ['basedata', 'coredata']
+
+    def setUp(self):
+        offerings = CourseOffering.objects.all()
+        o1 = offerings[0]
+        o2 = offerings[1]
+        self.o1 = o1
+        self.o2 = o2
+
+        o1.enrl_cap = 10
+        o1.enrl_tot = 15
+        o1.wait_tot = 2
+        EnrolmentHistory.from_offering(o1, date='2017-01-01')
+        EnrolmentHistory.from_offering(o1, date='2017-01-02')
+        o1.enrl_cap = 13
+        EnrolmentHistory.from_offering(o1, date='2017-01-03')
+        EnrolmentHistory.from_offering(o1, date='2017-01-05')
+        o1.wait_tot = 3
+        EnrolmentHistory.from_offering(o1, date='2017-01-07')
+
+        o2.enrl_cap = 20
+        o2.enrl_tot = 25
+        o2.wait_tot = 7
+        EnrolmentHistory.from_offering(o2, date='2017-01-01')
+        EnrolmentHistory.from_offering(o2, date='2017-01-02')
+        EnrolmentHistory.from_offering(o2, date='2017-01-03')
+        EnrolmentHistory.from_offering(o2, date='2017-01-04')
+        o2.enrl_tot = 30
+        EnrolmentHistory.from_offering(o2, date='2017-01-05')
+        EnrolmentHistory.from_offering(o2, date='2017-01-06')
+
+    def test_dedupe(self):
+        EnrolmentHistory.deduplicate()
+        eh1 = EnrolmentHistory.objects.filter(offering=self.o1).order_by('date')
+        self.assertEqual(eh1.count(), 3)
+        self.assertEqual(eh1[0].date, date(2017, 1, 1))
+        self.assertEqual(eh1[0].enrl_vals, (10, 15, 2))
+        self.assertEqual(eh1[1].date, date(2017, 1, 3))
+        self.assertEqual(eh1[1].enrl_vals, (13, 15, 2))
+        self.assertEqual(eh1[2].date, date(2017, 1, 7))
+        self.assertEqual(eh1[2].enrl_vals, (13, 15, 3))
+
+        eh2 = EnrolmentHistory.objects.filter(offering=self.o2).order_by('date')
+        self.assertEqual(eh2.count(), 2)
+        self.assertEqual(eh2[0].date, date(2017, 1, 1))
+        self.assertEqual(eh2[0].enrl_vals, (20, 25, 7))
+        self.assertEqual(eh2[1].date, date(2017, 1, 5))
+        self.assertEqual(eh2[1].enrl_vals, (20, 30, 7))
 
 
 class DependencyTest(TestCase):
