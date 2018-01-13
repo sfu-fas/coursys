@@ -1827,19 +1827,28 @@ class EnrolmentHistory(models.Model):
         return self.enrl_vals == other.enrl_vals
 
     @classmethod
-    def deduplicate(cls):
+    def deduplicate(cls, start_date=None, end_date=None, dry_run=False):
         """
         Remove any EnrolmentHistory objects that aren't adding any new information.
         """
         all_ehs = EnrolmentHistory.objects.order_by('offering', 'date')
+        if start_date:
+            all_ehs = all_ehs.filter(date__gte=start_date)
+        if end_date:
+            all_ehs = all_ehs.filter(date__lte=end_date)
+
         for off_id, ehs in itertools.groupby(all_ehs, key=lambda eh: eh.offering_id):
             # iterate through EnrolmentHistory for this offering and purge any "same as yesterday" entries
-            current = next(ehs)
-            for eh in ehs:
-                if current.is_dup(eh):
-                    eh.delete()
-                else:
-                    current = eh
+            with transaction.atomic():
+                current = next(ehs)
+                for eh in ehs:
+                    if current.is_dup(eh):
+                        if not dry_run:
+                            eh.delete()
+                        else:
+                            print('delete', eh)
+                    else:
+                        current = eh
 
     def save_or_replace(self):
         """
