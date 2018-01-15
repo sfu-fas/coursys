@@ -18,24 +18,28 @@
 {% endblock %}
 
 {% block content %}
-<dt>Title</dt><dd>{{ event.title }}</dd>
-<dt>Start Date</dt><dd>{{ event.start_date }}</dd>
-<dt>End Date</dt><dd>{{ event.end_date }}</dd>
-<dt>Description</dt><dd>{{ event.description|linebreaks }}</dd>
-<dt>Location</dt><dd>{{ event.location|linebreaks }}</dd>
-<dt>Unit</dt><dd>{{ event.unit }}</dd>
-<dt>Resources</dt><dd>{{ event.resources|linebreaks }}</dd>
-<dt>Cost</dt><dd>${{ event.cost }}</dd>
-<dt>Notes</dt><dd>{{ event.notes|linebreaks }}</dd>
-<dt>Contact Email</dt><dd>{{ event.email }}</dd>
-<dt>Registration Closed</dt><dd>{{ event.closed|yesno }}</dd>
-{% if event.current %}
-    <h4>Registration</h4>
-    {% if event.closed %}
-    You have closed registration for this event.  If you want people to be able to register, edit this event and un-check the "Close Registration" box.
-    {% else %}
-    The registration link for this event is:
-    <a href="{% url "outreach:register" event_slug=event.slug %}"> {{ register_url }}</a>
-    {% endif %}
+    <dt>Title</dt><dd>{{ event.title }}</dd>
+    <dt>Start Date</dt><dd>{{ event.start_date }}</dd>
+    <dt>End Date</dt><dd>{{ event.end_date }}</dd>
+    <dt>Description</dt><dd>{{ event.description|linebreaks }}</dd>
+    <dt>Location</dt><dd>{{ event.location|linebreaks }}</dd>
+    <dt>Unit</dt><dd>{{ event.unit }}</dd>
+    <dt>Resources</dt><dd>{{ event.resources|linebreaks }}</dd>
+    <dt>Cost</dt><dd>${{ event.cost }}</dd>
+    <dt>Notes</dt><dd>{{ event.notes|linebreaks }}</dd>
+    <dt>Contact Email</dt><dd>{{ event.email }}</dd>
+    <dt>Registration Closed</dt><dd>{{ event.closed|yesno }}</dd>
+    <dt>Registration Cap</dt><dd>{{ event.registration_cap }}</dd>
+    <dt>Registration Count (only includes registrations marked as 'Attending')</dt><dd>{{ event.registration_count }}</dd>
+    {% if event.current %}
+        <h4>Registration</h4>
+        {% if event.closed %}
+        You have closed registration for this event.  If you want people to be able to register, edit this event and un-check the "Close Registration" box.
+        {% elif event.registration_cap and event.registration_count >= event.registration_cap %}
+        You have set a registration cap for this event and it has been reached.  You can either edit the registration cap or delete registrants or mark them as not attending.
+        {% else %}
+        The registration link for this event is:
+        <a href="{% url "outreach:register" event_slug=event.slug %}"> {{ register_url }}</a>
+        {% endif %}
 {% endif %}
 {% endblock %}
