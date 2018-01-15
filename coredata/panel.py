@@ -365,7 +365,7 @@ def deploy_checks(request=None):
     from courselib.markup import markdown_to_html
     try:
         # checks that script runs; does github-flavour correctly; does Unicode correctly.
-        html = markdown_to_html('test *markup*\n\n```python\nprint(1)\n```\n\u2605\U0001F600').decode('utf8')
+        html = markdown_to_html('test *markup*\n\n```python\nprint(1)\n```\n\u2605\U0001F600')
         if html.strip() == '<p>test <em>markup</em></p>\n<pre lang="python"><code>print(1)\n</code></pre>\n<p>\u2605\U0001F600</p>':
             passed.append(('Markdown subprocess', 'okay'))
         else:
