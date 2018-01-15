@@ -707,7 +707,8 @@ def create_outreach():
     e = OutreachEvent(title='A Test Event', start_date=start, end_date=end, unit=unit, notes='Here are some notes',
                       description='An event to test', slug='devtest_a_test_event')
     e.save()
-    r = OutreachEventRegistration(event=e, parent_name='Joe Smith Sr.', last_name='SomePerson', first_name='Bob',
+    dob = datetime.date(1800,01,01)
+    r = OutreachEventRegistration(event=e, birthdate=dob, parent_name='Joe Smith Sr.', last_name='SomePerson', first_name='Bob',
                                   school='Little Lord Fauntleroy School for Albino Hemophiliacs', grade=2)
     r.save()
     return itertools.chain(
