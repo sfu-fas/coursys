@@ -1,9 +1,10 @@
 # per http://celery.readthedocs.org/en/latest/django/first-steps-with-django.html
-
-
 import os
 import datetime
 from celery import Celery
+
+import sys
+assert sys.version_info >= (3, 5)
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'courses.settings')

@@ -6,3 +6,4 @@ lxml==3.7.1
 gunicorn==19.6.0
 mysqlclient==1.3.12
 paramiko>=2.1.1
+ibm_db==2.0.7
