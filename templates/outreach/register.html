@@ -6,7 +6,7 @@
 
 
 {% block content %}
-    {% if event.current and not event.closed %}
+    {% if event.can_register %}
     This is the registration form for {{ event.title }}.
     <dt>Event description</dt><dd>{{ event.description|linebreaks }}</dd>
     <dt>Start date</dt><dd>{{ event.start_date }}</dd>

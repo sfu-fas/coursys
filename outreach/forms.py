@@ -2,6 +2,7 @@ from models import OutreachEvent, OutreachEventRegistration
 from django import forms
 from coredata.models import Unit
 from faculty.event_types.fields import DollarInput
+from coredata.widgets import CalendarWidget
 
 
 class OutreachEventForm(forms.ModelForm):
@@ -59,8 +60,9 @@ class OutreachEventRegistrationForm(forms.ModelForm):
         widgets = {
             'notes': forms.Textarea,
             'contact': forms.Textarea,
+            'birthdate': CalendarWidget,
         }
-        fields = ['last_name', 'first_name', 'middle_name', 'age', 'parent_name', 'parent_phone', 'email',
+        fields = ['last_name', 'first_name', 'middle_name', 'birthdate', 'parent_name', 'parent_phone', 'email',
                   'confirm_email', 'photo_waiver', 'participation_waiver', 'previously_attended', 'school', 'grade',
                   'notes']
 

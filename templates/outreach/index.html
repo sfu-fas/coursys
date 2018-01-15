@@ -75,7 +75,7 @@ function togglePast() {
                 <td>{{ event.end_date }}</td>
                 <td>{{ event.unit }}</td>
                 <td>{{ event.registration_count }}</td>
-                <td>
+                <td style="min-width: 130px">
                     <form class="lineform" method="POST"
                           action="{% url "outreach:delete_event" event_id=event.id %}"
                           onsubmit="return confirmDelete()">

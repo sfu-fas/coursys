@@ -95,6 +95,7 @@ def register(request, event_slug):
                     temp[question] = form.cleaned_data[question.encode('ascii', 'ignore')]
                 registration.config['extra_questions'] = temp
             registration.save()
+            registration.email_memo()
             messages.add_message(request,
                                  messages.SUCCESS,
                                  u'Successfully registered')
@@ -263,7 +264,7 @@ def download_registrations(request, event_slug=None, past=None):
                                       (datetime.now().strftime('%Y%m%d'), filestring)
     writer = csv.writer(response)
     if registrations:
-        header_row = header_row_initial + ['Last Name', 'First Name', 'Middle Name', 'Age', 'Parent Name',
+        header_row = header_row_initial + ['Last Name', 'First Name', 'Middle Name', 'Birthdate', 'Parent Name',
                                            'Parent Phone', 'Email', 'Photo Waiver', 'Previously Attended', 'School',
                                            'Grade', 'Notes', 'Attended(ing)', 'Registered at', 'Last Modified'] + \
                      header_row_extras
@@ -282,7 +283,7 @@ def download_registrations(request, event_slug=None, past=None):
             else:
                 initial_registration_row = [r.event.title]
                 extra_questions_row = []
-            registration_row = initial_registration_row + [r.last_name, r.first_name, r.middle_name, r.age,
+            registration_row = initial_registration_row + [r.last_name, r.first_name, r.middle_name, r.birthdate,
                                                           r.parent_name, r.parent_phone, r.email, r.photo_waiver,
                                                           r.previously_attended, r.school, r.grade, r.notes, r.attended,
                                                           r.created_at, r.last_modified] + extra_questions_row
