@@ -7,7 +7,7 @@
 # TODO: the markup choice dropdown is going to be confusing for some people: simplify or something?
 
 from django.db import models
-from django.utils.safestring import mark_safe, SafeString
+from django.utils.safestring import mark_safe, SafeText
 from django.conf import settings
 from cache_utils.decorators import cached
 
@@ -59,8 +59,8 @@ def ensure_sanitary_markup(markup, markuplang, restricted=False):
     :param restricted: use the restricted HTML subset?
     :return: sanitary markup
     """
-    if markuplang == 'html' and not isinstance(markup, SafeString):
-        # HTML input, but not a SafeString (which comes from sanitize_html)
+    if markuplang == 'html' and not isinstance(markup, SafeText):
+        # HTML input, but not a SafeText (which comes from sanitize_html)
         return sanitize_html(markup, restricted=restricted)
 
     # otherwise, we trust the markup language processor to safe output.
@@ -74,7 +74,7 @@ def markdown_to_html(markup):
     ret = sub.wait()
     if ret != 0:
         raise RuntimeError('markdown2html.rb did not return successfully')
-    return stdoutdata
+    return stdoutdata.decode('utf8')
 
 
 @cached(36000)
@@ -90,6 +90,7 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
     :param restricted: use the restricted HTML subset for discussion (preventing format bombs)
     :return: HTML markup
     """
+    assert isinstance(markup, str)
     if markuplang == 'creole':
         if offering:
             Creole = ParserFor(offering, pageversion)
@@ -97,9 +98,10 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
             Creole = ParserFor(pageversion.page.offering, pageversion)
         else:
             Creole = ParserFor(offering, pageversion)
-        html = Creole.text2html(markup)
+        # Creole.text2html returns utf-8 bytes: standardize all output to unicode
+        html = Creole.text2html(markup).decode('utf8')
         if restricted:
-            html = sanitize_html(html.decode('utf8'), restricted=True)
+            html = sanitize_html(html, restricted=True)
 
     elif markuplang == 'markdown':
         # TODO: the due_date etc tricks that are available in wikicreole
@@ -123,6 +125,7 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
     else:
         raise NotImplementedError()
 
+    assert isinstance(html, str)
     return mark_safe(html.strip())
 
 

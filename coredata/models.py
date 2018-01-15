@@ -958,7 +958,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
 
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
-                'instr_rw_svn': False, 'joint_with': (), 'group_min': 1, 'group_max': 100,
+                'instr_rw_svn': False, 'joint_with': (), 'group_min': 1, 'group_max': 50,
                 'maillist': None, 'labtut_use': False, 'group_span_activities': True,
                 'contact_url': None}
     labtut, set_labtut = getter_setter('labtut')
