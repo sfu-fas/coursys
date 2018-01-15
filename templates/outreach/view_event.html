@@ -31,6 +31,7 @@
     <dt>Registration Closed</dt><dd>{{ event.closed|yesno }}</dd>
     <dt>Registration Cap</dt><dd>{{ event.registration_cap }}</dd>
     <dt>Registration Count (only includes registrations marked as 'Attending')</dt><dd>{{ event.registration_count }}</dd>
+    <dt>Registration Email Confirmation</dt><dd>{{ event.registration_email_text|linebreaks }}</dd>
     {% if event.current %}
         <h4>Registration</h4>
         {% if event.closed %}
