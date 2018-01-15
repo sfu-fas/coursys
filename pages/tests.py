@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
 from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe, SafeText
 from pages.models import Page, PageVersion, MACRO_LABEL, PagePermission
 from coredata.models import CourseOffering, Member, Person
 from grades.models import Activity
@@ -366,7 +367,7 @@ class PagesTest(TestCase):
         v.save()
 
         # no macros defined: rendered as-is
-        self.assertEqual(p.current_version().html_contents().strip(), b"<p>one +two+ three +four+</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), "<p>one +two+ three +four+</p>")
 
         mp = Page(offering=crs, label=MACRO_LABEL)
         mp.save()
@@ -374,13 +375,13 @@ class PagesTest(TestCase):
         mv.save()
 
         # macros defined: should be substituted
-        self.assertEqual(p.current_version().html_contents().strip(), b"<p>one 22 three 4444</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), "<p>one 22 three 4444</p>")
 
         mp.label = 'NOT_MACROS'
         mp.save()
 
         # macros disappear: back to original
-        self.assertEqual(p.current_version().html_contents().strip(), b"<p>one +two+ three +four+</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), "<p>one +two+ three +four+</p>")
 
 
     def test_redirect(self):
@@ -495,19 +496,35 @@ class PagesTest(TestCase):
         p.save()
         v1 = PageVersion(page=p, title="T1", wikitext='A //test//.', editor=memb, comment="original page")
         v1.save()
-        self.assertEqual(v1.html_contents(), b'<p>A <em>test</em>.</p>')
+        self.assertEqual(v1.html_contents(), '<p>A <em>test</em>.</p>')
 
         v2 = PageVersion(page=p, title="T1", wikitext='A *test*.', editor=memb, comment="original page")
         v2.set_markup('markdown')
         v2.save()
-        self.assertEqual(v2.html_contents(), b'<p>A <em>test</em>.</p>')
+        self.assertEqual(v2.html_contents(), '<p>A <em>test</em>.</p>')
 
     def test_github_markdown(self):
         """
         Check that we're getting the Github markdown flavour.
         """
         highlighted_code = markup_to_html('```python\ni=1\n```', 'markdown')
-        self.assertEqual(highlighted_code, b'<pre lang="python"><code>i=1\n</code></pre>')
+        self.assertEqual(highlighted_code, '<pre lang="python"><code>i=1\n</code></pre>')
+
+    def test_all_markup_langs(self):
+        """
+        Make sure each markup option returns the same way.
+        """
+        correct = '<p>Paragraph <strong>1</strong></p>'
+        markup_samples = [
+            ('creole', '''Paragraph **1**'''),
+            ('markdown', '''Paragraph **1**'''),
+            ('html', '''<p>Paragraph <strong>1'''),
+            ('textile', '''Paragraph *1*'''),
+        ]
+        for lang, markup in markup_samples:
+            result = markup_to_html(markup, lang)
+            self.assertIsInstance(result, SafeText)
+            self.assertEqual(result.strip(), correct)
 
     def test_html_safety(self):
         """
