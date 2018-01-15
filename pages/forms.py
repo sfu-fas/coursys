@@ -61,6 +61,13 @@ class EditPageFileForm(forms.ModelForm):
         error = self.instance.label_okay(label)
         if error:
             raise forms.ValidationError(error)
+
+        otherpages = Page.objects.filter(label=label, offering=self.offering)
+        if self.instance:
+            otherpages = otherpages.exclude(id=self.instance.id)
+        if otherpages.exists():
+            raise forms.ValidationError('A page with that label already exists')
+
         return label
 
     class Meta:
