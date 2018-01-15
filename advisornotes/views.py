@@ -382,7 +382,7 @@ def student_courses_data(request, userid):
 
     #data = {'error': 'Feature temporarily disabled.'} # disable while privacy concerns are worked out
     response = HttpResponse(content_type='application/json;charset=utf-8')
-    json.dump(data, response, encoding='utf-8', indent=1)
+    json.dump(data, response, indent=1)
     return response
 
 
@@ -429,7 +429,7 @@ def student_transfers_data(request, userid):
         data = {'error': str(e)}
 
     response = HttpResponse(content_type='application/json;charset=utf-8')
-    json.dump(data, response, encoding='utf-8', indent=1)
+    json.dump(data, response, indent=1)
     return response
 
 
