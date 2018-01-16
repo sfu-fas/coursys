@@ -10,11 +10,11 @@ from django.db import transaction
 import itertools
 from grad.models import GradStatus
 
-all_statuses = GradStatus.objects.all().order_by('student_id')
+all_statuses = GradStatus.objects.filter(hidden=False).order_by('student_id')
 for gs_id, statuses in itertools.groupby(all_statuses, key=lambda s: s.student_id):
     statuses = list(statuses)
     statuses = [s for s in statuses if 'sims_source' in s.config]
-    statuses.sort(key=lambda s: (s.config['sims_source'], s.created_at))
+    statuses.sort(key=lambda s: (hash(tuple(s.config['sims_source'])), s.created_at))
     with transaction.atomic():
         for sims_source, sts in itertools.groupby(statuses, key=lambda s: s.config['sims_source']):
             sts = list(sts)
