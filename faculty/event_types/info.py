@@ -7,6 +7,7 @@ from django.utils.safestring import mark_safe, SafeText
 from django.utils.html import conditional_escape as escape
 from django.core.urlresolvers import reverse
 from django.utils.functional import lazy
+from django.utils.functional import SimpleLazyObject
 
 from coredata.models import Unit
 
@@ -77,7 +78,7 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
 def _committee_helptext():
     "Lazily generate the helptext so reverse isn't called until it is possible."
     url = reverse('faculty:event_config', kwargs={'event_type': 'committee'})
-    h = mark_safe(u'More committees can be added on the <a href="%s">configuration</a> page' % (escape(url)))
+    h = mark_safe('More committees can be added on the <a href="%s">configuration</a> page' % (escape(url)))
     return h
 committee_helptext = lazy(_committee_helptext, SafeText)
 
@@ -115,7 +116,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
                                          event_type=CommitteeMemberHandler.EVENT_TYPE)
         choices = itertools.chain(*[ec.config.get('committees', []) for ec in ecs])
         choices = (c for c in choices if c[-1] == 'ACTIVE')
-        choices = ((short, CommitteeMemberHandler.get_committee_display_for(short)) for short,long,unit,status in choices)
+        choices = ((short, CommitteeMemberHandler.get_committee_display_for(short)) for short,int,unit,status in choices)
         return choices
 
     class CommitteeSearchRule(search.ChoiceSearchRule):
@@ -188,7 +189,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
             ec.save()
             CommitteeMemberHandler._committee_lookup.invalidate()
 
-    DISPLAY_TEMPLATE = Template("""
+    DISPLAY_TEMPLATE = SimpleLazyObject(lambda: Template("""
         <h2 id="config">Configured Committees</h2>
         <table class="display" id="config_table">
         <thead><tr><th scope="col">Committee Name</th><th scope="col">Committee Unit</th><th scope="col">Member Unit</th><!--<th scope="col">Action</th>--></tr></thead>
@@ -204,7 +205,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
             {% endif %}
             {% endfor %}
         </tbody>
-        </table>""")
+        </table>"""))
 
     @classmethod
     def config_display(cls, units):

@@ -1,8 +1,9 @@
-from base import *
+from .base import *
 import submission.forms
 from django.forms.widgets import Textarea, TextInput, FileInput, SelectMultiple
 from django import forms
 from django.http import HttpResponse
+from django.utils.functional import SimpleLazyObject
 from os.path import splitext
 from django.conf import settings
 MEDIA_URL = settings.MEDIA_URL
@@ -87,15 +88,15 @@ class SubmittedCodefile(SubmittedComponent):
         filename = self.file_filename(self.code, prefix)
         zipfile.write(self.code.path, filename)
 
-FIELD_TEMPLATE = Template('''<li>
+FIELD_TEMPLATE = SimpleLazyObject(lambda: Template('''<li>
                     {{ field.label_tag }}
                     <div class="inputfield">
                         {{ field }}
             {% if field.errors %}<div class="errortext">{{field.errors.0}}</div>{% endif %}
             <div class="helptext">{{field.help_text}}</div>
                 </div>
-                </li>''')
-                        
+                </li>'''))
+
 class Codefile(object):
     label = "codefile"
     name = "Code file"
@@ -121,8 +122,8 @@ class Codefile(object):
                 try:
                     re.compile(filename)
                 except re.error as e:
-                    msg = unicode(e)
-                    raise forms.ValidationError(u'Given filename is not a valid regular expression. Error: "%s".' % (msg))
+                    msg = str(e)
+                    raise forms.ValidationError('Given filename is not a valid regular expression. Error: "%s".' % (msg))
             return filename_type
      
 
@@ -145,23 +146,23 @@ class Codefile(object):
 
             elif self.component.filename_type == 'INS':
                 if self.component.filename.lower() != data.name.lower():
-                    raise forms.ValidationError(u'File name must be "%s".' % (self.component.filename))
+                    raise forms.ValidationError('File name must be "%s".' % (self.component.filename))
 
             elif self.component.filename_type == 'MAT':
                 if self.component.filename != data.name:
-                    raise forms.ValidationError(u'File name must be "%s".' % (self.component.filename))
+                    raise forms.ValidationError('File name must be "%s".' % (self.component.filename))
 
             elif self.component.filename_type == 'EXT':
                 if not data.name.endswith(self.component.filename):
-                    raise forms.ValidationError(u'File name must have extension "%s".' % (self.component.filename))
+                    raise forms.ValidationError('File name must have extension "%s".' % (self.component.filename))
 
             elif self.component.filename_type == 'REX':
                 regex = re.compile(self.component.filename)
                 if not regex.match(data.name):
-                    raise forms.ValidationError(u'The filename is not in the correct format. It must match the regular expression "%s".' % (self.component.filename))
+                    raise forms.ValidationError('The filename is not in the correct format. It must match the regular expression "%s".' % (self.component.filename))
 
             else:
-                raise ValueError, "Unexpected filename_type for submission component."
+                raise ValueError("Unexpected filename_type for submission component.")
 
             return data
 

@@ -49,7 +49,7 @@ class AnnualOrBiweeklySalary(forms.widgets.MultiWidget):
 
     def format_output(self, rendered_widgets):
         # Add our help text right in the rendering so we don't have to add it to every field or do some other magic.
-        return mark_safe('$ ' + u' '.join(rendered_widgets) + '<br/>' +
+        return mark_safe('$ ' + ' '.join(rendered_widgets) + '<br/>' +
                          "<span class=helptext>Enter annual salary on the left <strong>or</strong> biweekly salary "
                          "on the right.</span>")
 
@@ -90,7 +90,7 @@ class SemesterDateInput(forms.widgets.MultiWidget):
         return [None, None]
 
     def format_output(self, rendered_widgets):
-        return u' '.join(rendered_widgets)
+        return ' '.join(rendered_widgets)
 
     def get_semester(self, code):
         try:
@@ -196,7 +196,7 @@ class SemesterToDateField(forms.CharField):
         pass
 
     def prepare_value(self, value):
-        if isinstance(value, (unicode, str)):
+        if isinstance(value, str):
             return value
         elif value is None:
             return ''
@@ -265,9 +265,9 @@ class AddPayField(forms.DecimalField):
 class FractionField(forms.Field):
     # adapted from forms.fields.DecimalField
     default_error_messages = {
-        'invalid': _(u'Enter a number.'),
-        'max_value': _(u'Ensure this value is less than or equal to %(limit_value)s.'),
-        'min_value': _(u'Ensure this value is greater than or equal to %(limit_value)s.'),
+        'invalid': _('Enter a number.'),
+        'max_value': _('Ensure this value is less than or equal to %(limit_value)s.'),
+        'min_value': _('Ensure this value is greater than or equal to %(limit_value)s.'),
     }
 
     def __init__(self, max_value=None, min_value=None, choices=None, *args, **kwargs):
@@ -342,7 +342,7 @@ class AnnualTeachingInput(forms.widgets.TextInput):
         try:
             f = Fraction(value).limit_denominator(50)
         except ValueError:
-            return unicode(value)
+            return str(value)
 
         return str(f*3)
 

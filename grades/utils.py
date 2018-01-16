@@ -12,7 +12,7 @@ import math
 import decimal
 
 ORDER_TYPE = {'UP': 'up', 'DN': 'down'}
-_NO_GRADE = u'\u2014'
+_NO_GRADE = '\u2014'
 _DECIMAL_PLACE = 2
 _SUPPORTED_GRADE_RANGE = [10]
 
@@ -51,7 +51,7 @@ class ActivityStatlettergrade:
         self.min = min
         self.max = max
 
-        
+
 class StudentActivityInfo:
     """
     Object holding student activity info, used as context object in template
@@ -62,7 +62,7 @@ class StudentActivityInfo:
         self.grade_status = grade_status
         self.numeric_grade = numeric_grade
         self.letter_grade = letter_grade
-        
+
     def display_grade_status_student(self):
         """
         Display student grade status from student view
@@ -70,10 +70,10 @@ class StudentActivityInfo:
         if self.activity.status == 'URLS':
             return _NO_GRADE
         elif self.activity.status=="INVI":
-            raise RuntimeError, "Can't display invisible grade status."
+            raise RuntimeError("Can't display invisible grade status.")
         else:
             return self.grade_status
-        
+
     def display_grade_student(self):
         """
         Display student grade from student view
@@ -81,7 +81,7 @@ class StudentActivityInfo:
         if self.activity.status == 'URLS':
             return _NO_GRADE
         elif self.activity.status=="INVI":
-            raise RuntimeError, "Can't display invisible grade."
+            raise RuntimeError("Can't display invisible grade.")
         else:
             if self.grade_status == FLAGS['NOGR']:
                 return _NO_GRADE
@@ -90,7 +90,7 @@ class StudentActivityInfo:
                     return '%s/%s' % (self.numeric_grade, self.activity.max_grade)
                 elif isinstance(self.activity, LetterActivity):
                     return self.letter_grade
-    
+
     def display_grade_with_percentage_student(self):
         """
         Display student grade with percentage from student view, e.g 12/15 (80.00%)
@@ -98,7 +98,7 @@ class StudentActivityInfo:
         if self.activity.status == 'URLS':
             return _NO_GRADE
         elif self.activity.status=="INVI":
-            raise RuntimeError, "Can't display invisible grade."
+            raise RuntimeError("Can't display invisible grade.")
         else:
             if self.grade_status == FLAGS['NOGR']:
                 return _NO_GRADE
@@ -108,7 +108,7 @@ class StudentActivityInfo:
                                            format_number(float(self.numeric_grade)/float(self.activity.max_grade)*100, 2))
                 elif isinstance(self.activity, LetterActivity):
                     return self.letter_grade
-    
+
     def display_grade_staff(self):
         """
         Display student grade from staff view
@@ -126,7 +126,7 @@ class FormulaTesterActivityEntry:
     def __init__(self, activity, activity_form_entry):
         self.activity = activity
         self.activity_form_entry = activity_form_entry
-        
+
 
 # The following fake objects are used in the formula tester
 class FakeGrade(object):
@@ -163,7 +163,7 @@ def reorder_course_activities(ordered_activities, activity_slug, order):
     """
     for activity in ordered_activities:
         if not isinstance(activity, Activity):
-            raise TypeError(u'ordered_activities should be list of Activity')
+            raise TypeError('ordered_activities should be list of Activity')
     for i in range(0, len(ordered_activities)):
         if ordered_activities[i].slug == activity_slug:
             if (order == ORDER_TYPE['UP']) and (not i == 0):
@@ -192,23 +192,23 @@ def create_StudentActivityInfo_list(course, activity, student=None):
     if not course or not activity:
         return
     if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
-        raise TypeError(u'Activity type is required')
+        raise TypeError('Activity type is required')
     if not isinstance(course, CourseOffering):
-        raise TypeError(u'CourseOffering type is required')
+        raise TypeError('CourseOffering type is required')
     # verify if the course contains the activity
     if not Activity.objects.filter(slug=activity.slug, offering=course):
         return
     student_list = Member.objects.filter(offering=course, role='STUD')
     if student:
         if not isinstance(student, Member):
-            raise TypeError(u'Member type is required')
+            raise TypeError('Member type is required')
         if student in student_list:
             student_list = [student]
         else:
             return
-    
+
     student_activity_info_list = []
-    
+
     if isinstance(activity, NumericActivity):
         # select_ralated field for fast template rendering
         #numeric_grade_list = NumericGrade.objects.filter(activity=activity).select_related('member', 'member__person')
@@ -262,15 +262,15 @@ def generate_numeric_activity_stat(activity, role):
     student_grade_list_count = len(student_grade_list)
     average = sum(student_grade_list)
     average = float(average) / student_grade_list_count
-    
+
     if student_grade_list_count % 2 == 0:
-        median = (student_grade_list[(student_grade_list_count - 1) / 2] +
-                    student_grade_list[(student_grade_list_count) / 2]) / 2
+        median = (student_grade_list[(student_grade_list_count - 1) // 2] +
+                    student_grade_list[(student_grade_list_count) // 2]) / 2
     else:
-        median = student_grade_list[(student_grade_list_count - 1) / 2]
+        median = student_grade_list[(student_grade_list_count - 1) // 2]
 
     stddev = math.sqrt(sum([(float(student_grade) - average) ** 2 for student_grade in student_grade_list]) / student_grade_list_count)
-    
+
     # normalize the grade into 100 based in order to generate the grade range stat
     if activity.max_grade == 0:
         normalized_student_grade_list = [100 for student_grade in student_grade_list]
@@ -331,8 +331,8 @@ def generate_letter_activity_stat(activity, role):
     return stats, reason_msg
 
 
-   
-    
+
+
 ############################################################################################################################    
 def generate_grade_range_stat(student_grade_list, grade_range=10):
     """
@@ -349,10 +349,10 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
     if not grade_range in _SUPPORTED_GRADE_RANGE:
         return
     EPS = 1e-6
-    
-    stats = [GradeRangeStat(u"<0%", 0)] \
-            + [GradeRangeStat(u"%i\u2013%i%%" % (i*grade_range,(i+1)*grade_range), 0) for i in range(grade_range)] \
-            + [GradeRangeStat(u">100%", 0)]
+
+    stats = [GradeRangeStat("<0%", 0)] \
+            + [GradeRangeStat("%i\u2013%i%%" % (i*grade_range,(i+1)*grade_range), 0) for i in range(grade_range)] \
+            + [GradeRangeStat(">100%", 0)]
     for g in student_grade_list:
         # extreme cases:
         if g < 0:
@@ -366,54 +366,54 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
                 # move 100% down into x-100 bin
                 bin -= 1
             stats[bin+1].stud_count += 1
-    
+
     # remove extreme bins if not used
     if stats[0].stud_count == 0:
         stats = stats[1:]
     if stats[-1].stud_count == 0:
         stats = stats[:-1]
-    
+
     return stats
 
-    
+
 def generate_grade_range_stat_lettergrade(student_lettergrade_list,grade_range=11):
-	if grade_range ==11:
-            grade_range_stat_list = [GradeRangeStat('other', 0), GradeRangeStat('F', 0), GradeRangeStat('D', 0), GradeRangeStat('C-', 0),
-                             GradeRangeStat('C', 0), GradeRangeStat('C+', 0), GradeRangeStat('B-', 0),
-                             GradeRangeStat('B', 0), GradeRangeStat('B+', 0), GradeRangeStat('A-', 0),
-                             GradeRangeStat('A', 0),GradeRangeStat('A+', 0)]
+    if grade_range ==11:
+        grade_range_stat_list = [GradeRangeStat('other', 0), GradeRangeStat('F', 0), GradeRangeStat('D', 0), GradeRangeStat('C-', 0),
+                         GradeRangeStat('C', 0), GradeRangeStat('C+', 0), GradeRangeStat('B-', 0),
+                         GradeRangeStat('B', 0), GradeRangeStat('B+', 0), GradeRangeStat('A-', 0),
+                         GradeRangeStat('A', 0),GradeRangeStat('A+', 0)]
 
-        for student_grade in student_lettergrade_list:
-            if student_grade == 'A+':
-                grade_range_stat_list[11].stud_count += 1
-            elif student_grade == 'A':
-                grade_range_stat_list[10].stud_count += 1
-            elif student_grade == 'A-':
-                grade_range_stat_list[9].stud_count += 1
-            elif student_grade == 'B+':
-                grade_range_stat_list[8].stud_count += 1
-            elif student_grade == 'B':
-                grade_range_stat_list[7].stud_count += 1
-            elif student_grade == 'B-':
-                grade_range_stat_list[6].stud_count += 1
-            elif student_grade == 'C+':
-                grade_range_stat_list[5].stud_count += 1
-            elif student_grade == 'C':
-                grade_range_stat_list[4].stud_count += 1
-            elif student_grade == 'C-':
-                grade_range_stat_list[3].stud_count += 1
-            elif student_grade == 'D':
-                grade_range_stat_list[2].stud_count += 1
-            elif student_grade == 'F':
-                grade_range_stat_list[1].stud_count += 1
-            else:
-                grade_range_stat_list[0].stud_count += 1
+    for student_grade in student_lettergrade_list:
+        if student_grade == 'A+':
+            grade_range_stat_list[11].stud_count += 1
+        elif student_grade == 'A':
+            grade_range_stat_list[10].stud_count += 1
+        elif student_grade == 'A-':
+            grade_range_stat_list[9].stud_count += 1
+        elif student_grade == 'B+':
+            grade_range_stat_list[8].stud_count += 1
+        elif student_grade == 'B':
+            grade_range_stat_list[7].stud_count += 1
+        elif student_grade == 'B-':
+            grade_range_stat_list[6].stud_count += 1
+        elif student_grade == 'C+':
+            grade_range_stat_list[5].stud_count += 1
+        elif student_grade == 'C':
+            grade_range_stat_list[4].stud_count += 1
+        elif student_grade == 'C-':
+            grade_range_stat_list[3].stud_count += 1
+        elif student_grade == 'D':
+            grade_range_stat_list[2].stud_count += 1
+        elif student_grade == 'F':
+            grade_range_stat_list[1].stud_count += 1
+        else:
+            grade_range_stat_list[0].stud_count += 1
 
-        if grade_range_stat_list[0].stud_count == 0:
-            # no "other": don't display
-            grade_range_stat_list = grade_range_stat_list[1:]
+    if grade_range_stat_list[0].stud_count == 0:
+        # no "other": don't display
+        grade_range_stat_list = grade_range_stat_list[1:]
 
-        return grade_range_stat_list
+    return grade_range_stat_list
 
 def fetch_students_numeric_grade(activity):
     """
@@ -422,18 +422,18 @@ def fetch_students_numeric_grade(activity):
     student_list = activity.offering.members.filter(person__role='STUD')
     grade_list = NumericGrade.objects.filter(activity=activity).exclude(flag="NOGR")\
                         .select_related('member','member__person') 
-    
+
     student_grade_list = []
     for student in student_list:
-        #student_found = False
+    #student_found = False
         for grade in grade_list:
             if grade.member.person == student:
-                #student_found = True
+            #student_found = True
                 student_grade_list.append(grade.value)
                 break
         #if not student_found:
         #    student_grade_list.append(_DEFAULT_NUMERIC_GRADE)
-    
+
     return student_grade_list
 
 def fetch_students_letter_grade(activity):
@@ -446,7 +446,7 @@ def fetch_students_letter_grade(activity):
     student_list = activity.offering.members.filter(person__role='STUD')
     grade_list = LetterGrade.objects.filter(activity=activity).exclude(flag="NOGR")\
                         .select_related('member','member__person') 
-    
+
     student_grade_list = []
     for student in student_list:
         #student_found = False
@@ -457,7 +457,7 @@ def fetch_students_letter_grade(activity):
                 break
         #if not student_found:
         #    student_grade_list.append(_DEFAULT_NUMERIC_GRADE)
-    
+
     return student_grade_list
 
 def calculate_letter_grade(course, activity):
@@ -475,7 +475,7 @@ def calculate_letter_grade(course, activity):
     # calculate for all student
     student_list = Member.objects.filter(offering=course, role='STUD')
     letter_grade_list = LetterGrade.objects.filter(activity = activity).select_related('member') 
-   
+
     ignored = 0
     for s in student_list:
         # calculate grade
@@ -502,11 +502,11 @@ def calculate_letter_grade(course, activity):
     return ignored
 
 def generate_lettergrades(s,activity):
-    
+
     cutoffs=activity.get_cutoffs()
     numeric_source = activity.numeric_activity
     exam_activity=activity.exam_activity
-    
+
     if exam_activity:
         # handle the N and DE logic from the exam activity
         exam_grades = NumericGrade.objects.filter(activity=exam_activity, member=s) or LetterGrade.objects.filter(activity=exam_activity, member=s)
@@ -543,7 +543,7 @@ def generate_lettergrades(s,activity):
         letter_grade='D'
     else:
         letter_grade='F'
-    
+
     return letter_grade
 
 ###############################################################################################################   
@@ -553,9 +553,9 @@ def format_number(value, decimal_places):
     """
     if isinstance(value, decimal.Decimal):
         context = decimal.getcontext().copy()
-        return u'%s' % str(value.quantize(decimal.Decimal(".1") ** decimal_places, context=context))
+        return '%s' % str(value.quantize(decimal.Decimal(".1") ** decimal_places, context=context))
     else:
-        return u"%.*f" % (decimal_places, value)
+        return "%.*f" % (decimal_places, value)
 
 
 
@@ -567,12 +567,12 @@ def parse_and_validate_formula(formula, course, activity, numeric_activities):
     Handy function to parse the formula and validate if the activity references
     in the formula are in the numeric_activities list
     Return the parsed formula if no exception raised
-    
+
     May raise exception: ParseException, ValidateError
     """
     for a in numeric_activities:
         if not isinstance(a, NumericActivity):
-            raise TypeError(u'NumericActivity list is required')
+            raise TypeError('NumericActivity list is required')
     try:
         parsed_expr = parse(formula, course, activity)
         activities_dict = activities_dictionary(numeric_activities)
@@ -580,9 +580,9 @@ def parse_and_validate_formula(formula, course, activity, numeric_activities):
         cols = cols_used(parsed_expr)
         for col in cols:
             if not col in activities_dict:
-                raise ValidationError(u'Invalid activity reference')
+                raise ValidationError('Invalid activity reference')
     except ParseException:
-        raise ValidationError(u'Incorrect formula syntax')
+        raise ValidationError('Incorrect formula syntax')
     return parsed_expr
 
 def calculate_numeric_grade(course, activity, student=None):
@@ -603,7 +603,7 @@ def calculate_numeric_grade(course, activity, student=None):
         parsed_expr = parse_and_validate_formula(activity.formula, activity.offering, activity, numeric_activities)
     except ValidationError as e:
         raise ValidationError('Formula Error: ' + e.args[0])
-        
+
     if student != None: # calculate for one student
         if not isinstance(student, Member):
             raise TypeError('Member type is required')
@@ -612,7 +612,7 @@ def calculate_numeric_grade(course, activity, student=None):
     else: # calculate for all student
         student_list = Member.objects.filter(offering=course, role='STUD')
         numeric_grade_list = NumericGrade.objects.filter(activity = activity).select_related('member')
-    
+
     ignored = 0
     visible = activity.status=="RLS"
     for s in student_list:
@@ -622,7 +622,7 @@ def calculate_numeric_grade(course, activity, student=None):
             result = decimal.Decimal(str(result)) # convert to decimal
         except EvalException:
             raise EvalException("Formula Error: Can not evaluate formula for student: '%s'" % s.person.name())
-        
+
         # save grade
         member_found = False
         for numeric_grade in numeric_grade_list:

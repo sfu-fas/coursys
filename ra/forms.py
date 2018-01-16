@@ -3,7 +3,7 @@ from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED,
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 
 
 class RAForm(forms.ModelForm):
@@ -80,8 +80,8 @@ class StudentSelect(forms.Select):
             value = ''
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
         if value != '':
-            final_attrs['value'] = force_unicode(value)
-        return mark_safe(u'<input%s />' % forms.widgets.flatatt(final_attrs))
+            final_attrs['value'] = force_text(value)
+        return mark_safe('<input%s />' % forms.widgets.flatatt(final_attrs))
 
 class StudentField(forms.ModelChoiceField):
     def __init__(self, *args, **kwargs):

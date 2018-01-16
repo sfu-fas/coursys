@@ -19,7 +19,7 @@ class SmallTextField(FieldBase):
                 min_r = int(self.data['min_length'])
                 max_r = int(self.data['max_length'])
                 if min_r > max_r:
-                    raise forms.ValidationError, "Minimum length cannot be more than the maximum."
+                    raise forms.ValidationError("Minimum length cannot be more than the maximum.")
             except (ValueError, KeyError):
                 pass # let somebody else worry about that
 
@@ -72,7 +72,7 @@ class MediumTextField(FieldBase):
                 min_r = int(self.data['min_length'])
                 max_r = int(self.data['max_length'])
                 if min_r > max_r:
-                    raise forms.ValidationError, "Minimum length cannot be more than the maximum."
+                    raise forms.ValidationError("Minimum length cannot be more than the maximum.")
             except (ValueError, KeyError):
                 pass # let somebody else worry about that
 
@@ -126,7 +126,7 @@ class LargeTextField(FieldBase):
                 min_r = int(self.data['min_length'])
                 max_r = int(self.data['max_length'])
                 if min_r > max_r:
-                    raise forms.ValidationError, "Minimum length cannot be more than the maximum."
+                    raise forms.ValidationError("Minimum length cannot be more than the maximum.")
             except (ValueError, KeyError):
                 pass # let somebody else worry about that
 

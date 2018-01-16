@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404, HttpResponse
 from coredata.models import Semester
 from grad.models import Promise
 from datetime import datetime
-import unicodecsv as csv
+import csv
 
 
 @requires_role("GRAD", get_only=["GRPD"])

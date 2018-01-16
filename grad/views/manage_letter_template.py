@@ -6,7 +6,7 @@ from log.models import LogEntry
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import LetterTemplateForm
 from django.core.urlresolvers import reverse
-from letter_templates import letter_templates
+from .letter_templates import letter_templates
 
 @requires_role("GRAD", get_only=["GRPD"])
 def manage_letter_template(request, letter_template_slug):
@@ -30,7 +30,7 @@ def manage_letter_template(request, letter_template_slug):
 
     page_title = 'Manage Letter Template'  
     crumb = 'Manage' 
-    lt = sorted(LETTER_TAGS.iteritems())
+    lt = sorted(LETTER_TAGS.items())
     context = {
                'form': form,
                'page_title' : page_title,

@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from models import Alert, AlertType 
+from .models import Alert, AlertType 
 from coredata.models import Role, Person, Unit
 import coredata.queries
 from coredata.queries import SIMSProblem
@@ -52,7 +52,7 @@ import datetime
 #    }
 
 def _create_alerts(data, person, unit):
-    print "Creating alerts!"
+    print("Creating alerts!")
     try:
         alerts = data['alerts']
         if not isinstance(alerts, (list, tuple)):
@@ -85,7 +85,7 @@ def _create_alerts(data, person, unit):
                 except IOError:
                     raise ValidationError("Person %s could not be found; SIMS not working." % str(emplid) )
             
-            if not isinstance(code, basestring) or not isinstance(description, basestring):
+            if not isinstance(code, str) or not isinstance(description, str):
                 raise ValidationError("Alert code & description must be strings")
             if len(code) >= 30:
                 raise ValidationError("Alert code must be less than or equal to 30 characters")
@@ -116,7 +116,7 @@ def _create_alerts(data, person, unit):
             alert.safe_create(unique_id)
 
         except ValidationError as e:
-            print e
+            print(e)
             errors.append(str(e))
     return errors
 

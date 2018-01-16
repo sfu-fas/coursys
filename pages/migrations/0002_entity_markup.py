@@ -4,7 +4,7 @@ Replace any entities in all PageVersions with an escaped version (so it displays
 change)
 """
 
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 

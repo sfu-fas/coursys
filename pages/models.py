@@ -135,7 +135,7 @@ class Page(models.Model):
         if not m:
             return "Labels can contain only letters, numbers, underscores, dashes, and periods."
     
-    def __unicode__(self):
+    def __str__(self):
         return self.offering.name() + '/' + self.label
     
     def current_version(self):
@@ -238,15 +238,15 @@ class PageVersion(models.Model):
             key = self.wikitext_cache_key()
             wikitext = cache.get(key)
             if wikitext:
-                return unicode(wikitext)
+                return str(wikitext)
             else:
                 src = self.diff_from
                 diff = json.loads(self.diff)
                 wikitext = src.apply_changes(diff)
                 cache.set(key, wikitext, 24*3600) # no need to expire: shouldn't change for a version
-                return unicode(wikitext)
+                return str(wikitext)
 
-        return unicode(self.wikitext)
+        return str(self.wikitext)
 
     def __init__(self, *args, **kwargs):
         super(PageVersion, self).__init__(*args, **kwargs)
@@ -298,7 +298,7 @@ class PageVersion(models.Model):
         """
         lines = self.get_wikitext().split("\n")
         # sort by reverse linenumber: make sure we make changes in the right place
-        changes.sort(cmp=lambda x,y: cmp(y[1], x[1]))
+        changes.sort(key=lambda x: -x[1])
         
         for change in changes:
             c = change[0]
@@ -314,7 +314,7 @@ class PageVersion(models.Model):
             else:
                 raise ValueError
 
-        return u"\n".join(lines)
+        return "\n".join(lines)
 
     def diff_to(self, other):
         """
@@ -373,8 +373,8 @@ class PageVersion(models.Model):
 
         self.page.expire_offering_cache()
 
-    def __unicode__(self):
-        return unicode(self.page) + '@' + unicode(self.created_at)
+    def __str__(self):
+        return str(self.page) + '@' + str(self.created_at)
 
     def is_filepage(self):
         """
@@ -421,7 +421,7 @@ class PageVersion(models.Model):
         """
         macros = self.offering_macros()
         if macros:
-            for macro, replacement in macros.iteritems():
+            for macro, replacement in macros.items():
                 wikitext = wikitext.replace('+' + macro + '+', replacement)
         return wikitext
 

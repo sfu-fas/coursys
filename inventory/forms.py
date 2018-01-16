@@ -1,4 +1,4 @@
-from models import Asset, AssetDocumentAttachment, AssetChangeRecord
+from .models import Asset, AssetDocumentAttachment, AssetChangeRecord
 from outreach.models import OutreachEvent
 from django import forms
 from coredata.models import Unit

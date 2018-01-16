@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
 from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe, SafeText
 from pages.models import Page, PageVersion, MACRO_LABEL, PagePermission
 from coredata.models import CourseOffering, Member, Person
 from grades.models import Activity
@@ -74,7 +75,7 @@ Line that was inserted
 
 contents3 = "This is just totally different content."
 
-whitespace = re.compile(r"\s+")
+whitespace = re.compile(rb"\s+")
 
 class PagesTest(TestCase):
     fixtures = ['basedata', 'coredata']
@@ -90,16 +91,16 @@ class PagesTest(TestCase):
         Creole = self._get_creole()
 
         html = Creole.text2html("# one\n#two")
-        html_strip = whitespace.sub('', html)
-        self.assertEqual(html_strip, '<ol><li>one</li><li>two</li></ol>')
+        html_strip = whitespace.sub(b'', html)
+        self.assertEqual(html_strip, b'<ol><li>one</li><li>two</li></ol>')
 
         html = Creole.text2html("good **times**")
-        self.assertEqual(html, '<p>good <strong>times</strong></p>\n')
+        self.assertEqual(html, b'<p>good <strong>times</strong></p>\n')
 
         # a WikiCreole "addition"
         html = Creole.text2html("; A\n: B\n; C: D")
-        html_strip = whitespace.sub('', html)
-        self.assertEqual(html_strip, '<dl><dt>A</dt><dd>B</dd><dt>C</dt><dd>D</dd></dl>')
+        html_strip = whitespace.sub(b'', html)
+        self.assertEqual(html_strip, b'<dl><dt>A</dt><dd>B</dd><dt>C</dt><dd>D</dd></dl>')
         
     def test_codeblock(self):
         Creole = self._get_creole()
@@ -107,9 +108,9 @@ class PagesTest(TestCase):
         #self.assertEqual(brushes, set(['shBrushJScript.js', 'shBrushPython.js']))
         
         html = Creole.text2html(wikitext)
-        self.assertIn('class="highlight lang-python">for i', html)
-        self.assertIn('print i</pre>', html)
-        self.assertIn('i=1; i&lt;4; i++', html)
+        self.assertIn(b'class="highlight lang-python">for i', html)
+        self.assertIn(b'print i</pre>', html)
+        self.assertIn(b'i=1; i&lt;4; i++', html)
 
     def test_version_diffs(self):
         "Test the old version diffing."
@@ -162,7 +163,7 @@ class PagesTest(TestCase):
         from dashboard.models import new_feed_token
         token = new_feed_token()
         
-        updata = u"""{
+        updata = """{
             "userid": "ggbaker",
             "token": "%s",
             "pages": [
@@ -189,16 +190,16 @@ class PagesTest(TestCase):
         c = Client()
         url = reverse('offering:pages:api_import', kwargs={'course_slug': crs.slug})
         response = c.post(url, data=updata.encode('utf8'), content_type="application/json")
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
         
         # create token and try again
         person.config['pages-token'] = token
         person.save()
         response = c.post(url, data=updata.encode('utf8'), content_type="application/json")
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         
         # make sure the data arrived
-        self.assertEquals(Page.objects.filter(offering=crs, label="PageExists").count(), 0)
+        self.assertEqual(Page.objects.filter(offering=crs, label="PageExists").count(), 0)
         p = Page.objects.get(offering=crs, label="PageChanged")
         v = p.current_version()
         self.assertEqual(v.title, "Another Page")
@@ -206,9 +207,9 @@ class PagesTest(TestCase):
         
         p = Page.objects.get(offering=crs, label="Index")
         v = p.current_version()
-        self.assertEqual(v.title, u"The Cours\u00e9 Page")
+        self.assertEqual(v.title, "The Cours\u00e9 Page")
         self.assertEqual(v.get_wikitext(), 'This page is special in **some** way. \\(x~^2+1 = \\frac{1}{2}\\).\n\nGoodbye world!')
-        self.assert_('math' in v.config)
+        self.assertTrue('math' in v.config)
         self.assertEqual(v.config['math'], True)
 
     def _sample_setup(self):
@@ -366,7 +367,7 @@ class PagesTest(TestCase):
         v.save()
 
         # no macros defined: rendered as-is
-        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), "<p>one +two+ three +four+</p>")
 
         mp = Page(offering=crs, label=MACRO_LABEL)
         mp.save()
@@ -374,13 +375,13 @@ class PagesTest(TestCase):
         mv.save()
 
         # macros defined: should be substituted
-        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one 22 three 4444</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), "<p>one 22 three 4444</p>")
 
         mp.label = 'NOT_MACROS'
         mp.save()
 
         # macros disappear: back to original
-        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), "<p>one +two+ three +four+</p>")
 
 
     def test_redirect(self):
@@ -457,14 +458,14 @@ class PagesTest(TestCase):
         p = ParserFor(crs)
 
         # things that should be entities
-        inp = u'&amp; &NotRightTriangle; &#8935; &#x1D54B;'
-        outp = u'<p><span>&amp;</span> <span>&NotRightTriangle;</span> <span>&#8935;</span> <span>&#x1D54B;</span></p>'
-        self.assertEquals(p.text2html(inp).strip(), outp)
+        inp = '&amp; &NotRightTriangle; &#8935; &#x1D54B;'
+        outp = b'<p><span>&amp;</span> <span>&NotRightTriangle;</span> <span>&#8935;</span> <span>&#x1D54B;</span></p>'
+        self.assertEqual(p.text2html(inp).strip(), outp)
 
         # things that should NOT be entities
-        inp = u'&hello world; &#000000000123; &#x000000000123; &ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;'
-        outp = u'<p>&amp;hello world; &amp;#000000000123; &amp;#x000000000123; &amp;ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;</p>'
-        self.assertEquals(p.text2html(inp).strip(), outp)
+        inp = '&hello world; &#000000000123; &#x000000000123; &ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;'
+        outp = b'<p>&amp;hello world; &amp;#000000000123; &amp;#x000000000123; &amp;ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;</p>'
+        self.assertEqual(p.text2html(inp).strip(), outp)
 
     def test_extensions(self):
         """
@@ -475,13 +476,13 @@ class PagesTest(TestCase):
         a1 = Activity.objects.get(offering=crs, slug='a1')
 
         html = p.text2html('one <<duedate A1>> two')
-        self.assertIn('>' + a1.due_date.strftime('%A %B %d %Y') + '<', html)
+        self.assertIn(b'>' + a1.due_date.strftime('%A %B %d %Y').encode('utf8') + b'<', html)
 
         html = p.text2html('one <<duedatetime A1>> two')
-        self.assertIn('>' + a1.due_date.strftime('%A %B %d %Y, %H:%M') + '<', html)
+        self.assertIn(b'>' + a1.due_date.strftime('%A %B %d %Y, %H:%M').encode('utf8') + b'<', html)
 
-        html = p.text2html(u'one <<activitylink A1>> two')
-        link = u'<a href="%s">%s' % (a1.get_absolute_url(), a1.name)
+        html = p.text2html('one <<activitylink A1>> two')
+        link = '<a href="%s">%s' % (a1.get_absolute_url(), a1.name)
         self.assertIn(link.encode('utf-8'), html)
 
     def test_markup_choice(self):
@@ -508,6 +509,22 @@ class PagesTest(TestCase):
         """
         highlighted_code = markup_to_html('```python\ni=1\n```', 'markdown')
         self.assertEqual(highlighted_code, '<pre lang="python"><code>i=1\n</code></pre>')
+
+    def test_all_markup_langs(self):
+        """
+        Make sure each markup option returns the same way.
+        """
+        correct = '<p>Paragraph <strong>1</strong> \u2605\U0001F600</p>'
+        markup_samples = [
+            ('creole', '''Paragraph **1** \u2605\U0001F600'''),
+            ('markdown', '''Paragraph **1** \u2605\U0001F600'''),
+            ('html', '''<p>Paragraph <strong>1</strong> \u2605\U0001F600'''),
+            ('textile', '''Paragraph *1* \u2605\U0001F600'''),
+        ]
+        for lang, markup in markup_samples:
+            result = markup_to_html(markup, lang)
+            self.assertIsInstance(result, SafeText)
+            self.assertEqual(result.strip(), correct)
 
     def test_html_safety(self):
         """

@@ -6,5 +6,5 @@ sys.path.append('external')
 from grad.models import GradStudent
 
 for gs in GradStudent.objects.all():
-    print gs
+    print(gs)
     gs.update_status_fields()

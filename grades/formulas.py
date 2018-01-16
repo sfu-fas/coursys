@@ -58,7 +58,7 @@ def create_parser():
             # dependant activity True is a flag meaning "everything": fixed later.
             return ("flag", set([True]), flag)
     
-        raise ParseException, "Unknown flag ([[...]])."
+        raise ParseException("Unknown flag ([[...]]).")
 
     def real_parse(toks):
         return ("num", set(), float(''.join(toks)))
@@ -80,7 +80,7 @@ def create_parser():
             cols.update(*(t[1] for t in ts[0::2]))
             return ("expr", cols, ts[0]) + tuple(ts[1:])
         else:
-            raise ParseException, "Unknown expression parsed."
+            raise ParseException("Unknown expression parsed.")
 
     sign = Literal("+") | Literal("-")
     real = (Word( nums ) + "." + Optional( Word(nums) ) +  # whole/decimal part
@@ -232,7 +232,7 @@ def eval_parse(tree, activity, act_dict, member, visible):
                 else:
                     val /= operand
             else:
-                raise EvalException, "Unknown operator in parse tree: %s"%(operator,)
+                raise EvalException("Unknown operator in parse tree: %s"%(operator,))
         return val
     elif t == 'func':
         func = tree[2]
@@ -253,14 +253,14 @@ def eval_parse(tree, activity, act_dict, member, visible):
             # round first argument to an int: it's the number of best items to pick
             n = int(round( eval_parse(tree[3], activity, act_dict, member, visible) ) + 0.1)
             if n < 1:
-                raise EvalException, 'Bad number of "best" selected, %i.'%(n,)
+                raise EvalException('Bad number of "best" selected, %i.'%(n,))
             if n > len(tree)-4:
-                raise EvalException, "Not enough arguments to choose %i best."%(n,)
+                raise EvalException("Not enough arguments to choose %i best."%(n,))
             marks = [eval_parse(t, activity, act_dict, member, visible) for t in tree[4:]]
             marks.sort()
             return sum(marks[-n:])
         else:
-            raise EvalException, "Unknown function in parse tree: %s"%(func,)
+            raise EvalException("Unknown function in parse tree: %s"%(func,))
     elif t == 'flag':
         flag = tree[2]
         if flag == 'activitytotal':
@@ -275,14 +275,14 @@ def eval_parse(tree, activity, act_dict, member, visible):
                     total += grade/max_grade * float(act.percent)
             return total
         else:
-            raise EvalException, "Unknown flag in parse tree: %s" % (flag,)
+            raise EvalException("Unknown flag in parse tree: %s" % (flag,))
     else:
-        raise EvalException, "Unknown element in parse tree: %s" % (tree,)
+        raise EvalException("Unknown element in parse tree: %s" % (tree,))
     
 
 def create_display(tree, act_dict):
-    if isinstance(tree, basestring):
-        return unicode(tree)
+    if isinstance(tree, str):
+        return str(tree)
         
     t = tree[0]
     if t == 'sign' and tree[2] == '+':
@@ -295,10 +295,10 @@ def create_display(tree, act_dict):
         if part=="val":
             return '[' + act.name + ']'
         elif part=="max":
-            return unicode(act.max_grade)
+            return str(act.max_grade)
         elif part=="per":
             if act.percent:
-                return unicode(act.percent)
+                return str(act.percent)
             else:
                 return "0.0"
         elif part=="fin":
@@ -308,7 +308,7 @@ def create_display(tree, act_dict):
                 return "0"
     
     elif t == 'num':
-        return unicode(tree[2])
+        return str(tree[2])
     elif t == 'expr':
         return '('  + ' '.join((create_display(e, act_dict) for e in tree[2:])) + ')'
     elif t == 'func':
@@ -321,9 +321,9 @@ def create_display(tree, act_dict):
         if flag == 'activitytotal':
             return "ATOTAL"
         else:
-            raise EvalException, "Unknown flag in parse tree: %s" % (flag,)
+            raise EvalException("Unknown flag in parse tree: %s" % (flag,))
     else:
-        raise EvalException, "Unknown element in parse tree: %s"%(tree,)
+        raise EvalException("Unknown element in parse tree: %s"%(tree,))
 
 
 def display_formula(activity, activities):
@@ -332,6 +332,6 @@ def display_formula(activity, activities):
     """
     tree = parse(activity.formula, activity.offering, activity)
     act_dict = activities_dictionary(activities)
-    return unicode(create_display(tree, act_dict))
+    return str(create_display(tree, act_dict))
 
 

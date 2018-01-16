@@ -29,11 +29,11 @@ def cmpt_grad_students():
     return grad_students
 
 def print_student(student, list_of_status_semester_pairs):
-    print student
-    print "https://courses.cs.sfu.ca/grad/" + student.slug
+    print(student)
+    print("https://courses.cs.sfu.ca/grad/" + student.slug)
     for status, semester in list_of_status_semester_pairs:
-        print "\t",status, semester
-    print "----------------------------------------------------------"
+        print("\t",status, semester)
+    print("----------------------------------------------------------")
     
 
 def graduated_students_who_are_not_graduated():
@@ -48,7 +48,7 @@ def graduated_students_who_are_not_graduated():
                 results.append( student )
         except ValueError:
             continue
-    print len(results)
+    print(len(results))
 
 def declined_offer_before_active_status():
     results = []
@@ -62,7 +62,7 @@ def declined_offer_before_active_status():
                 results.append( student )
         except ValueError:
             continue
-    print len(results)
+    print(len(results))
 
 def withdrawn_before_active_status():
     results = []
@@ -76,4 +76,4 @@ def withdrawn_before_active_status():
                 results.append( student )
         except ValueError:
             continue
-    print len(results)
+    print(len(results))

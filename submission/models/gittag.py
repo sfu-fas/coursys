@@ -41,7 +41,7 @@ class GitURLValidator(URLValidator):
 
         # or try to validate it as a git scp-style URL
         if not self.ssh_regex.match(value):
-            raise ValidationError, 'Enter a valid "http://", "https://", or "user@host:path" URL.'
+            raise ValidationError('Enter a valid "http://", "https://", or "user@host:path" URL.')
 
 
 class GitURLField(TextField):
@@ -84,14 +84,14 @@ class SubmittedGitTag(SubmittedComponent):
             dirname = 'repo'
 
         content = []
-        content.append(u"# Submitted Git tag can be retrieved with the command below.")
-        content.append(u"git clone %s %s && cd %s && git checkout tags/%s" % (
+        content.append("# Submitted Git tag can be retrieved with the command below.")
+        content.append("git clone %s %s && cd %s && git checkout tags/%s" % (
             pipes.quote(self.url),
             pipes.quote(dirname), pipes.quote(dirname),
             pipes.quote(self.tag),
         ))
-        content.append(u"# url:%s" % (self.url,))
-        content.append(u"# tag:%s" % (self.tag,))
+        content.append("# url:%s" % (self.url,))
+        content.append("# tag:%s" % (self.tag,))
         return '\n'.join(content)
 
     def download_response(self, slug=None, **kwargs):

@@ -23,6 +23,7 @@ from courselib.text import normalize_newlines, many_newlines
 from courselib.storage import UploadedFileStorage, upload_path
 from cache_utils.decorators import cached
 
+from faculty.event_types.constants import EVENT_FLAGS
 from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.awards import GrantApplicationEventHandler
 from faculty.event_types.awards import AwardEventHandler
@@ -36,8 +37,7 @@ from faculty.event_types.career import StudyLeaveEventHandler
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import PromotionApplicationEventHandler
 from faculty.event_types.career import SalaryReviewEventHandler
-from faculty.event_types.career import ContractReviewEventHandler 
-from faculty.event_types.constants import EVENT_FLAGS
+from faculty.event_types.career import ContractReviewEventHandler
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
 from faculty.event_types.info import ExternalServiceHandler
@@ -131,8 +131,7 @@ ADD_TAGS = {
 FACULTY_ROLE_EXPIRY = datetime.date.today() + datetime.timedelta(days = 100*365)
 
 
-# adapted from https://djangosnippets.org/snippets/562/
-class CareerQuerySet(models.query.QuerySet):
+class CareerQuerySet(models.QuerySet):
     def not_deleted(self):
         """
         All Career Events that have not been deleted.
@@ -206,19 +205,6 @@ class CareerQuerySet(models.query.QuerySet):
         return self.filter(unit__id__in=subunit_ids)
 
 
-# adapted from https://djangosnippets.org/snippets/562/
-class CareerEventManager(models.Manager):
-    def get_queryset(self):
-        model = apps.get_model('faculty', 'CareerEvent')
-        return CareerQuerySet(model)
-
-    def __getattr__(self, attr, *args):
-        try:
-            return getattr(self.__class__, attr, *args)
-        except AttributeError:
-            return getattr(self.get_queryset(), attr, *args)
-
-
 class CareerEvent(models.Model):
     STATUS_CHOICES = (
         ('NA', 'Needs Approval'),
@@ -244,7 +230,7 @@ class CareerEvent(models.Model):
     import_key = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    objects = CareerEventManager()
+    objects = CareerQuerySet.as_manager()
 
     class Meta:
         ordering = (
@@ -254,8 +240,8 @@ class CareerEvent(models.Model):
         )
         unique_together = (("person", "slug"),)
 
-    def __unicode__(self):
-        return u"%s from %s to %s" % (self.get_event_type_display(), self.start_date, self.end_date)
+    def __str__(self):
+        return "%s from %s to %s" % (self.get_event_type_display(), self.start_date, self.end_date)
 
     def save(self, editor, call_from_handler=False, *args, **kwargs):
         # we're doing to so we can add an audit trail later.
@@ -274,7 +260,7 @@ class CareerEvent(models.Model):
 
     @property
     def slug_string(self):
-        return u'{} {}'.format(self.start_date.year, self.get_event_type_display())
+        return '{} {}'.format(self.start_date.year, self.get_event_type_display())
 
     def handler_type_name(self):
         return self.get_handler().NAME
@@ -349,7 +335,7 @@ class CareerEvent(models.Model):
             return 'unknown'
 
 
-    def get_event_type_display(self):
+    def get_event_type_display_(self):
         "Override to display nicely"
         return EVENT_TYPES[self.event_type].NAME
 
@@ -415,7 +401,7 @@ class CareerEvent(models.Model):
         config_data = copy.deepcopy(self.config)
         for key in config_data:
             try:
-                config_data[key] = unicode(handler.get_display(key))
+                config_data[key] = str(handler.get_display(key))
             except AttributeError:
                 pass
 
@@ -440,7 +426,7 @@ class CareerEvent(models.Model):
                 'current_base_salary': CareerEvent.current_base_salary(self.person),
                 'current_market_diff': CareerEvent.current_market_diff(self.person),
               }
-        ls = dict(ls.items() + config_data.items())
+        ls = dict(list(ls.items()) + list(config_data.items()))
         return ls
 
     def has_memos(self):
@@ -448,6 +434,10 @@ class CareerEvent(models.Model):
 
     def has_attachments(self):
         return DocumentAttachment.objects.filter(career_event=self, hidden=False).count() > 0
+
+
+# https://stackoverflow.com/a/47817197/6871666
+CareerEvent.get_event_type_display = CareerEvent.get_event_type_display_
 
 
 def attachment_upload_to(instance, filename):
@@ -479,7 +469,7 @@ class DocumentAttachment(models.Model):
 
     objects = DocumentAttachmentManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:
@@ -520,8 +510,8 @@ class MemoTemplate(models.Model):
         return make_slug(self.unit.label + "-" + self.label)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def __unicode__(self):
-        return u"%s in %s" % (self.label, self.unit)
+    def __str__(self):
+        return "%s in %s" % (self.label, self.unit)
 
     class Meta:
         unique_together = ('unit', 'label')
@@ -530,9 +520,13 @@ class MemoTemplate(models.Model):
         self.template_text = normalize_newlines(self.template_text.rstrip())
         super(MemoTemplate, self).save(*args, **kwargs)
 
-    def get_event_type_display(self):
+    def get_event_type_display_(self):
         "Override to display nicely"
         return EVENT_TYPES[self.event_type].NAME
+
+
+# https://stackoverflow.com/a/47817197/6871666
+MemoTemplate.get_event_type_display = MemoTemplate.get_event_type_display_
 
 
 class Memo(models.Model):
@@ -576,8 +570,8 @@ class Memo(models.Model):
             return make_slug(self.career_event.slug + "-memo")
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=('career_event',))
 
-    def __unicode__(self):
-        return u"%s memo for %s" % (self.subject, self.career_event)
+    def __str__(self):
+        return "%s memo for %s" % (self.subject, self.career_event)
 
     def hide(self):
         self.hidden = True
@@ -650,21 +644,21 @@ class TempGrantManager(models.Manager):
         created = []
         for row in reader:
             try:
-                fund = unicode(row[0].strip(), errors='ignore')
+                fund = str(row[0].strip(), errors='ignore')
             except IndexError:
                 continue
             if re.match('[0-9]{2} ?-? ?[0-9]{6}$', fund):
                 try:
-                    label = unicode(row[1].strip(), errors='ignore')
+                    label = str(row[1].strip(), errors='ignore')
                 except IndexError:
                     failed.append(row)
                     continue
                 try:
                     # Grab things from the CSV
-                    balance = Decimal(unicode(row[4].strip(), errors='ignore'))
-                    cur_month = Decimal(unicode(row[5].strip(), errors='ignore'))
-                    ytd_actual = Decimal(unicode(row[6].strip(), errors='ignore'))
-                    cur_balance = Decimal(unicode(row[8].strip(), errors='ignore'))
+                    balance = Decimal(str(row[4].strip(), errors='ignore'))
+                    cur_month = Decimal(str(row[5].strip(), errors='ignore'))
+                    ytd_actual = Decimal(str(row[6].strip(), errors='ignore'))
+                    cur_balance = Decimal(str(row[8].strip(), errors='ignore'))
                 except (IndexError, InvalidOperation):
                     failed.append(row)
                     continue
@@ -756,8 +750,8 @@ class Grant(models.Model):
         unique_together = (('label', 'unit'),)
         ordering = ['title']
 
-    def __unicode__(self):
-        return u"%s" % self.title
+    def __str__(self):
+        return "%s" % self.title
 
     def get_absolute_url(self):
         return reverse("faculty:view_grant", kwargs={'unit_slug': self.unit.slug, 'grant_slug': self.slug})
@@ -805,8 +799,8 @@ class GrantBalance(models.Model):
     month = models.DecimalField(verbose_name="current month", max_digits=12, decimal_places=2)
     config = JSONField(blank=True, null=True, default={})  # addition configuration within the memo
 
-    def __unicode__(self):
-        return u"%s balance as of %s" % (self.grant, self.date)
+    def __str__(self):
+        return "%s balance as of %s" % (self.grant, self.date)
 
     class Meta:
         ordering = ['date']
@@ -824,8 +818,8 @@ class FacultyMemberInfo(models.Model):
 
     last_updated = models.DateTimeField(auto_now=True)
 
-    def __unicode__(self):
-        return u'<FacultyMemberInfo({})>'.format(self.person)
+    def __str__(self):
+        return '<FacultyMemberInfo({})>'.format(self.person)
 
     def get_absolute_url(self):
         return reverse('faculty:faculty_member_info',
@@ -882,7 +876,7 @@ class Position(models.Model):
 
     objects = PositionManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.position_number, self.title)
 
     def hide(self):
@@ -897,7 +891,7 @@ class Position(models.Model):
         like when we populate the onboarding wizard with this value.
         """
         if 'teaching_load' in self.config and not self.config['teaching_load'] == 'None':
-            return unicode(Fraction(self.config['teaching_load']))
+            return str(Fraction(self.config['teaching_load']))
 
         else:
             return 0
@@ -907,8 +901,7 @@ class Position(models.Model):
         Called if you're purely going to display the value, as when displaying the contents of the position.
         """
         if 'teaching_load' in self.config and not self.config['teaching_load'] == 'None':
-            print self.config['teaching_load']
-            return unicode(Fraction(self.config['teaching_load'])*3)
+            return str(Fraction(self.config['teaching_load'])*3)
 
         else:
             return 0
@@ -935,7 +928,7 @@ class PositionDocumentAttachment(models.Model):
 
     objects = PositionDocumentAttachmentManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:

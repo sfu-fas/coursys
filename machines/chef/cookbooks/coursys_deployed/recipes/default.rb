@@ -88,7 +88,7 @@ package "dos2unix"
 # pip install any listed requirements
 execute "install_pip_requirements" do
     cwd "/home/ubuntu/"
-    command "pip install -r /home/ubuntu/courses/build_deps/deployed_deps.txt"
+    command "pip3 install -r /home/ubuntu/courses/build_deps/deployed_deps.txt"
 end
 
 # collect static files

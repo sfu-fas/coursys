@@ -69,7 +69,7 @@ class Program(models.Model):
     objects = ProgramQueryset.as_manager()
 
     def autoslug(self):
-        return make_slug(self.unit.label + '-' + unicode(self.program_number).zfill(5))
+        return make_slug(self.unit.label + '-' + str(self.program_number).zfill(5))
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     hidden = models.BooleanField(null=False, default=False)
@@ -77,7 +77,7 @@ class Program(models.Model):
     class Meta:
         ordering = ['program_number']
 
-    def __unicode__(self):
+    def __str__(self):
         return "%05d, %s" % (self.program_number, self.title)
 
     def delete(self, *args, **kwargs):
@@ -99,14 +99,14 @@ class Project(models.Model):
     project_number = models.PositiveIntegerField(null=True, blank=True)
     fund_number = models.PositiveIntegerField()
     def autoslug(self):
-        return make_slug(self.unit.label + '-' + unicode(self.project_number))
+        return make_slug(self.unit.label + '-' + str(self.project_number))
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     hidden = models.BooleanField(null=False, default=False)
     
     class Meta:
         ordering = ['project_number']
 
-    def __unicode__(self):
+    def __str__(self):
         return "%06i (%s) - %s" % (self.department_code, self.fund_number, self.project_number)
 
     def delete(self, *args, **kwargs):
@@ -128,14 +128,14 @@ class Account(models.Model):
     position_number = models.PositiveIntegerField()
     title = models.CharField(max_length=60)
     def autoslug(self):
-        return make_slug(self.unit.label + '-' + unicode(self.account_number) + '-' + unicode(self.title))
+        return make_slug(self.unit.label + '-' + str(self.account_number) + '-' + str(self.title))
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     hidden = models.BooleanField(null=False, default=False)
 
     class Meta:
         ordering = ['account_number']
 
-    def __unicode__(self):
+    def __str__(self):
         return "%06i (%s)" % (self.account_number, self.title)
 
     def delete(self, *args, **kwargs):
@@ -226,8 +226,8 @@ class RAAppointment(models.Model):
         if self.person.userid:
             ident = self.person.userid
         else:
-            ident = unicode(self.person.emplid)
-        return make_slug(self.unit.label + '-' + unicode(self.start_date.year) + '-' + ident)
+            ident = str(self.person.emplid)
+        return make_slug(self.unit.label + '-' + str(self.start_date.year) + '-' + ident)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     deleted = models.BooleanField(null=False, default=False)
@@ -235,8 +235,8 @@ class RAAppointment(models.Model):
     defaults = {'use_hourly': False}
     use_hourly, set_use_hourly = getter_setter('use_hourly')
 
-    def __unicode__(self):
-        return unicode(self.person) + "@" + unicode(self.created_at)
+    def __str__(self):
+        return str(self.person) + "@" + str(self.created_at)
 
     class Meta:
         ordering = ['person', 'created_at']
@@ -262,7 +262,7 @@ class RAAppointment(models.Model):
 
         Ignores the units for now: we want to allow configurability later.
         """
-        return [(key, label) for (key, (label, _, _)) in DEFAULT_LETTERS.items()]
+        return [(key, label) for (key, (label, _, _)) in list(DEFAULT_LETTERS.items())]
 
     def build_letter_text(self, selection):
         """
@@ -427,7 +427,7 @@ class RAAppointmentAttachment(models.Model):
 
     objects = RAAppointmentAttachmentQueryset.as_manager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:

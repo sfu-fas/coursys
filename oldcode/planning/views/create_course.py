@@ -10,7 +10,7 @@ from django.template import RequestContext
 
 @requires_role('PLAN')
 def create_course(request):
-    units = [(u.id, unicode(u)) for u in request.units]
+    units = [(u.id, str(u)) for u in request.units]
     if request.method == 'POST':
         form = CourseForm(request.POST)
         form.fields['owner'].choices = units

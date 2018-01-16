@@ -113,8 +113,8 @@ class HiringSemester(models.Model):
     class Meta:
         unique_together = (('semester', 'unit'),)
     
-    def __unicode__(self):
-        return unicode(self.semester.name)
+    def __str__(self):
+        return str(self.semester.name)
 
     def copy_categories_from_previous_semester(self, unit):
         prev_semester = self.semester.previous_semester()
@@ -201,7 +201,7 @@ class TACategory(models.Model):
 
     # ensc-gta2
     def autoslug(self):
-        return make_slug(self.account.unit.label + '-' + unicode(self.code))
+        return make_slug(self.account.unit.label + '-' + str(self.code))
     slug = AutoSlugField(populate_from='autoslug',
                          null=False, 
                          editable=False, 
@@ -213,9 +213,9 @@ class TACategory(models.Model):
 
     objects = TACategoryManager()
     
-    def __unicode__(self):
-        return "%s %s %s - %s" % (self.account.unit.label, unicode(self.code), 
-                                  unicode(self.title), unicode(self.account))
+    def __str__(self):
+        return "%s %s %s - %s" % (self.account.unit.label, str(self.code), 
+                                  str(self.title), str(self.account))
 
     @property
     def frozen(self):
@@ -295,7 +295,7 @@ class TAContract(models.Model):
     # curtis-lassam-2014-09-01 
     def autoslug(self):
         return make_slug(self.person.first_name + '-' + self.person.last_name \
-                            + "-" + unicode(self.pay_start))
+                            + "-" + str(self.pay_start))
     slug = AutoSlugField(populate_from='autoslug',
                          null=False, 
                          editable=False, 
@@ -307,8 +307,8 @@ class TAContract(models.Model):
     
     objects = TAContractManager()
    
-    def __unicode__(self):
-        return u"%s" % (self.person,)
+    def __str__(self):
+        return "%s" % (self.person,)
 
     @property
     def frozen(self):
@@ -533,7 +533,7 @@ class TAContract(models.Model):
 
     def course_list_string(self):
         # Build a string of all course offerings tied to this contract for CSV downloads and grad student views.
-        course_list_string = ', '.join([unicode.encode(ta_course.course.name()) for ta_course in self.course.all()])
+        course_list_string = ', '.join([str.encode(ta_course.course.name()) for ta_course in self.course.all()])
         return course_list_string
 
 
@@ -547,7 +547,7 @@ class CourseDescription(models.Model):
     hidden = models.BooleanField(default=False)
     config = JSONField(null=False, blank=False, default={})
 
-    def __unicode__(self):
+    def __str__(self):
         return self.description
 
 class TACourse(models.Model):
@@ -584,7 +584,7 @@ class TACourse(models.Model):
     class Meta:
         unique_together = (('contract', 'course'),)
     
-    def __unicode__(self):
+    def __str__(self):
         return "Course: %s  TA: %s" % (self.course, self.contract)
 
     @property

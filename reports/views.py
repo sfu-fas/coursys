@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 
 # Third-Party
-import unicodecsv as csv
+import csv
 
 # Local
 from privacy.models import needs_privacy_signature, privacy_redirect
@@ -16,11 +16,11 @@ from courselib.auth import requires_role, has_role, HttpResponseRedirect, \
                     ForbiddenResponse
 
 # App
-from models import Report, HardcodedReport, Result, Run, RunLine, \
+from .models import Report, HardcodedReport, Result, Run, RunLine, \
                     Query, AccessRule, ScheduleRule
-from forms import ReportForm, HardcodedReportForm, QueryForm, \
+from .forms import ReportForm, HardcodedReportForm, QueryForm, \
                     AccessRuleForm, ScheduleRuleForm
-from cache import clear_cache
+from .cache import clear_cache
 
 def _has_access(request, report):
     try:

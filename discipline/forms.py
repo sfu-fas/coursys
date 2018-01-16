@@ -168,7 +168,7 @@ class CaseLetterReviewForm(forms.ModelForm):
 
             # cannot set to true if too many attachments
             if case.public_attachments_size() > MAX_ATTACHMENTS:
-                raise forms.ValidationError, 'Total size of public attachments must be at most %s because of email limitations. Please make some of the attachments private.' % (MAX_ATTACHMENTS_TEXT)
+                raise forms.ValidationError('Total size of public attachments must be at most %s because of email limitations. Please make some of the attachments private.' % (MAX_ATTACHMENTS_TEXT))
 
 
         return review

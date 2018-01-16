@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand, CommandError
 from coredata.models import Person, Unit, Role, Semester
 from grad.models import GradStudent, GradProgram, GradStatus, GradProgramHistory
 from django.conf import settings
-from new_grad_students import * 
+from .new_grad_students import * 
 
 import coredata.queries
 from django.db import transaction
@@ -149,14 +149,14 @@ def import_student( emplid, gradprogram, semester_string, dryrun=True ):
     """
     person = find_or_generate_person(emplid)
     program = gradprogram
-    print person, program
+    print(person, program)
     
     english_fluency = ""
     mother_tongue = get_mother_tongue( emplid )
-    print mother_tongue
+    print(mother_tongue)
 
     passport_issued_by = get_passport_issued_by( emplid )
-    print passport_issued_by
+    print(passport_issued_by)
 
     if passport_issued_by == "Canada":
         is_canadian = True
@@ -164,10 +164,10 @@ def import_student( emplid, gradprogram, semester_string, dryrun=True ):
         is_canadian = True
     else:
         is_canadian = False
-    print "Canadian: ", is_canadian
+    print("Canadian: ", is_canadian)
     
     research_area = get_research_area( emplid, program.unit.acad_org )
-    print research_area
+    print(research_area)
 
     grad = GradStudent( person=person,
                         program=program,
@@ -181,15 +181,15 @@ def import_student( emplid, gradprogram, semester_string, dryrun=True ):
     email = get_email(emplid)
     if email:
         grad.config['applic_email'] = email
-    print "Creating new Grad Student"
-    print grad
+    print("Creating new Grad Student")
+    print(grad)
 
     if not dryrun:
         grad.save()
     
     # Personal data 
     personal_info = coredata.queries.grad_student_info(emplid) 
-    print personal_info
+    print(personal_info)
     if 'visa' in personal_info:
         person.config['visa'] = personal_info['visa']
     if 'citizen' in personal_info:
@@ -204,7 +204,7 @@ def import_student( emplid, gradprogram, semester_string, dryrun=True ):
     try: 
         semester_object = Semester.objects.get(name=semester_string)
     except Semester.DoesNotExist:
-        print "Semester " + name + " does not exist"
+        print("Semester " + name + " does not exist")
         return
 
     # GradProgramHistory
@@ -212,10 +212,10 @@ def import_student( emplid, gradprogram, semester_string, dryrun=True ):
                                     program=program,
                                     start_semester=semester_object,
                                     starting=semester_object.start )
-    print history
+    print(history)
   
     status = GradStatus(student=grad, status='ACTI', start=semester_object)
-    print status
+    print(status)
 
     # Save all of the actual data. 
     if not dryrun:
@@ -223,6 +223,6 @@ def import_student( emplid, gradprogram, semester_string, dryrun=True ):
         history.save() 
         status.save()
 
-    print "------------------"
+    print("------------------")
 
 

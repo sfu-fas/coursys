@@ -1,7 +1,7 @@
 # Python
 import datetime, locale, decimal
 # Third-Party
-import unicodecsv as csv
+import csv
 # Django
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
@@ -27,7 +27,7 @@ def _home_redirect():
 
 
 def _contracts_redirect(unit_slug, semester):
-    if not isinstance(semester, basestring):
+    if not isinstance(semester, str):
         raise ValueError("Semester must be a four-character string - 1141")
     return HttpResponseRedirect(reverse('tacontracts:list_all_contracts', 
                                         kwargs={'unit_slug':unit_slug,
@@ -35,7 +35,7 @@ def _contracts_redirect(unit_slug, semester):
 
 
 def _category_redirect(unit_slug, semester):
-    if not isinstance(semester, basestring):
+    if not isinstance(semester, str):
         raise ValueError("Semester must be a four-character string - 1141")
     return HttpResponseRedirect(reverse('tacontracts:view_categories',
                                         kwargs={'unit_slug':unit_slug,
@@ -43,7 +43,7 @@ def _category_redirect(unit_slug, semester):
 
 
 def _contract_redirect(unit_slug, semester, contract_slug):
-    if not isinstance(semester, basestring):
+    if not isinstance(semester, str):
         raise ValueError("Semester must be a four-character string - 1141")
     return HttpResponseRedirect(reverse('tacontracts:view_contract',
                                         kwargs={'unit_slug':unit_slug,
@@ -104,9 +104,9 @@ def new_semester(request):
             sem.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Semester %s created.' % unicode(sem))
+                                 'Semester %s created.' % str(sem))
             l = LogEntry(userid=request.user.username,
-                         description=u"Added new semester '%s'." % unicode(sem),
+                         description="Added new semester '%s'." % str(sem),
                          related_object=sem)
             l.save()
             return _contracts_redirect(sem.unit.label, sem.semester.name)
@@ -147,9 +147,9 @@ def edit_semester(request, unit_slug, semester):
             sem.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Semester %s updated.' % unicode(sem))
+                                 'Semester %s updated.' % str(sem))
             l = LogEntry(userid=request.user.username,
-                         description=u"Edited semester %s." % unicode(sem),
+                         description="Edited semester %s." % str(sem),
                          related_object=sem)
             l.save()
             return _home_redirect()
@@ -236,17 +236,17 @@ def copy_categories(request, unit_slug, semester):
             hiring_semester.config['copied_categories']):
         messages.add_message(request,
                              messages.ERROR,
-                             u'TA Categories have already been copied.')
+                             'TA Categories have already been copied.')
     try:
         hiring_semester.copy_categories_from_previous_semester(unit=unit)
         hiring_semester.config['copied_categories'] = True
         messages.add_message(request, 
                              messages.SUCCESS, 
-                             u'TA Categories copied.')
+                             'TA Categories copied.')
     except NoPreviousSemesterException:
         messages.add_message(request,
                              messages.ERROR,
-                             u'No previous semester to copy from.')
+                             'No previous semester to copy from.')
 
     return _category_redirect(unit_slug, hiring_semester.semester.name)
 
@@ -279,9 +279,9 @@ def new_category(request, unit_slug, semester):
             category.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Category %s created.' % unicode(category))
+                                 'Category %s created.' % str(category))
             l = LogEntry(userid=request.user.username,
-                         description=u"Created category %s." % unicode(category),
+                         description="Created category %s." % str(category),
                          related_object=category)
             l.save()
             return _category_redirect(unit_slug, semester)
@@ -310,9 +310,9 @@ def edit_category(request, unit_slug, semester, category_slug):
             category.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Category %s updated.' % unicode(category))
+                                 'Category %s updated.' % str(category))
             l = LogEntry(userid=request.user.username,
-                         description=u"Edited category %s." % unicode(category),
+                         description="Edited category %s." % str(category),
                          related_object=category)
             l.save()
             return _category_redirect(unit_slug, semester)
@@ -339,9 +339,9 @@ def hide_category(request, unit_slug, semester, category_slug):
         category.hide()
         messages.add_message(request, 
                              messages.SUCCESS, 
-                             u'Category %s hidden.' % unicode(category))
+                             'Category %s hidden.' % str(category))
         l = LogEntry(userid=request.user.username,
-                     description=u"Hid category %s." % unicode(category),
+                     description="Hid category %s." % str(category),
                      related_object=category)
         l.save()
     return _category_redirect(unit_slug, semester)
@@ -365,9 +365,9 @@ def new_contract(request, unit_slug, semester):
                                      'You have entered 0 pay periods.  This TA will never get paid.')
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Contract %s created.' % unicode(contract))
+                                 'Contract %s created.' % str(contract))
             l = LogEntry(userid=request.user.username,
-                         description=u"Created contract %s." % unicode(contract),
+                         description="Created contract %s." % str(contract),
                          related_object=contract)
             l.save()
             return _contract_redirect(unit_slug, semester, contract.slug)
@@ -434,9 +434,9 @@ def edit_contract(request, unit_slug, semester, contract_slug):
                                      'You have entered 0 pay periods.  This TA will never get paid.')
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Contract %s updated.' % unicode(contract))
+                                 'Contract %s updated.' % str(contract))
             l = LogEntry(userid=request.user.username,
-                         description=u"Edited contract %s." % unicode(contract),
+                         description="Edited contract %s." % str(contract),
                          related_object=contract)
             l.save()
             return _contract_redirect(unit_slug, semester, contract.slug)
@@ -464,9 +464,9 @@ def sign_contract(request, unit_slug, semester, contract_slug):
         contract.sign()
         messages.add_message(request, 
                              messages.SUCCESS, 
-                             u'Contract signed!')
+                             'Contract signed!')
         l = LogEntry(userid=request.user.username,
-                     description=u"Signed contract %s." % unicode(contract),
+                     description="Signed contract %s." % str(contract),
                      related_object=contract)
         l.save()
         return _contract_redirect(unit_slug, semester, contract_slug)
@@ -489,9 +489,9 @@ def cancel_contract(request, unit_slug, semester, contract_slug):
             contract.cancel()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Contract Deleted!')
+                                 'Contract Deleted!')
             l = LogEntry(userid=request.user.username,
-                         description=u"Deleted contract %s." % unicode(contract),
+                         description="Deleted contract %s." % str(contract),
                          related_object=contract)
             l.save()
             return _contracts_redirect(unit_slug, semester)
@@ -500,9 +500,9 @@ def cancel_contract(request, unit_slug, semester, contract_slug):
             contract.cancel()
             messages.add_message(request, 
                                  messages.SUCCESS,
-                                 u'Contract Cancelled!')
+                                 'Contract Cancelled!')
             l = LogEntry(userid=request.user.username,
-                         description=u"Cancelled contract %s." % unicode(contract),
+                         description="Cancelled contract %s." % str(contract),
                          related_object=contract)
             l.save()
             return _contract_redirect(unit_slug, semester, contract.slug)
@@ -525,9 +525,9 @@ def copy_contract(request, unit_slug, semester, contract_slug):
         newcontract = contract.copy(request.user.username)
         messages.add_message(request, 
                              messages.SUCCESS, 
-                             u'Contract copied!')
+                             'Contract copied!')
         l = LogEntry(userid=request.user.username,
-                     description=u"Copied contract %s." % unicode(contract),
+                     description="Copied contract %s." % str(contract),
                      related_object=contract)
         l.save()
         return _contract_redirect(unit_slug, semester, newcontract.slug)
@@ -585,13 +585,13 @@ def new_course(request, unit_slug, semester, contract_slug):
             except IntegrityError:
                 messages.add_message(request, 
                                      messages.ERROR, 
-                                     u'This contract already has %s.' % unicode(course))
+                                     'This contract already has %s.' % str(course))
                 return _contract_redirect(unit_slug, semester, contract.slug)
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Course %s created.' % unicode(course))
+                                 'Course %s created.' % str(course))
             l = LogEntry(userid=request.user.username,
-                         description=u"Created course %s." % unicode(course),
+                         description="Created course %s." % str(course),
                          related_object=course)
             l.save()
             return _contract_redirect(unit_slug, semester, contract.slug)
@@ -621,9 +621,9 @@ def delete_course(request, unit_slug, semester, contract_slug, course_slug):
                                      contract=contract,
                                      slug=course_slug)
         course.delete()
-        messages.add_message(request, messages.SUCCESS, u'Course deleted.')
+        messages.add_message(request, messages.SUCCESS, 'Course deleted.')
         l = LogEntry(userid=request.user.username,
-                     description=u"Deleted course %s." % unicode(course),
+                     description="Deleted course %s." % str(course),
                      related_object=course)
         l.save()
         return _contract_redirect(unit_slug, semester, contract_slug)
@@ -660,7 +660,7 @@ def bulk_email(request, unit_slug, semester):
                 e = EmailReceipt(contract=contract, 
                                  content=n)
                 e.save()
-            messages.add_message(request, messages.SUCCESS, u'Email sent.')
+            messages.add_message(request, messages.SUCCESS, 'Email sent.')
             return _contracts_redirect(unit_slug, semester)
     else:
         form = EmailForm()
@@ -693,9 +693,9 @@ def accept_contract(request, semester, contract_slug):
         contract.save()
         messages.add_message(request, 
                              messages.SUCCESS, 
-                             u'Contract Accepted.')
+                             'Contract Accepted.')
         l = LogEntry(userid=request.user.username,
-                     description=u"Accepted contract %s." % unicode(contract),
+                     description="Accepted contract %s." % str(contract),
                      related_object=contract)
         l.save()
     return HttpResponseRedirect(reverse('tacontracts:student_contract',
@@ -828,7 +828,7 @@ def descriptions(request):
 
 @requires_role("TAAD")
 def new_description(request):
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, str(u)) for u in request.units]
     if request.method == 'POST':
         form = CourseDescriptionForm(request.POST)
         form.fields['unit'].choices = unit_choices
@@ -839,7 +839,7 @@ def new_description(request):
 
             messages.success(request, "Created contract description '%s'." % (desc.description))
             l = LogEntry(userid=request.user.username,
-                         description=u"Created course description '%s' in %s." % (desc.description, desc.unit.label),
+                         description="Created course description '%s' in %s." % (desc.description, desc.unit.label),
                          related_object=desc)
             l.save()
             return HttpResponseRedirect(reverse('tacontracts:descriptions', kwargs={}))
@@ -860,7 +860,7 @@ def edit_description(request, description_id):
             description = form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Description was modified')
+                                 'Description was modified')
             l = LogEntry(userid=request.user.username,
                          description="Modified description %s" % description.description,
                          related_object=description)

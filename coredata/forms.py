@@ -4,7 +4,7 @@ from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, 
 from coredata.queries import find_person, add_person, SIMSProblem, userid_to_emplid
 from cache_utils.decorators import cached
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from localflavor.ca.forms import CAPhoneNumberField
 from coredata.widgets import CalendarWidget
 
@@ -20,8 +20,8 @@ class OfferingSelect(forms.Select):
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
         if value != '':
             # Only add the 'value' attribute if a value is non-empty.
-            final_attrs['value'] = force_unicode(value)
-        return mark_safe(u'<input%s />' % forms.widgets.flatatt(final_attrs))
+            final_attrs['value'] = force_text(value)
+        return mark_safe('<input%s />' % forms.widgets.flatatt(final_attrs))
 
 class OfferingField(forms.ModelChoiceField):
     """
@@ -157,7 +157,7 @@ class PersonField(forms.CharField):
             return p
 
         if not p.userid and 'email' not in p.config:
-            raise forms.ValidationError, "No email address is known for this person: we need an email here."
+            raise forms.ValidationError("No email address is known for this person: we need an email here.")
 
         return p
     
@@ -174,7 +174,7 @@ class PersonField(forms.CharField):
             except (ValueError, Person.DoesNotExist):
                 # try to find the emplid in SIMS if they are missing from our DB
                 if not value:
-                    raise forms.ValidationError, "Could not find this emplid."
+                    raise forms.ValidationError("Could not find this emplid.")
 
                 if not value.isdigit(): # doesn't look like an emplid: try it as a userid
                     try:
@@ -182,14 +182,14 @@ class PersonField(forms.CharField):
                     except Person.DoesNotExist:
                         value = userid_to_emplid(value)
                         if not value:
-                            raise forms.ValidationError, "Could not find this emplid."
+                            raise forms.ValidationError("Could not find this emplid.")
 
                 try:
                     persondata = find_person(value)
-                except SIMSProblem, e:
-                    raise forms.ValidationError, "Problem locating person in SIMS: " + unicode(e)
+                except SIMSProblem as e:
+                    raise forms.ValidationError("Problem locating person in SIMS: " + str(e))
                 if not persondata:
-                    raise forms.ValidationError, "Could not find this emplid."
+                    raise forms.ValidationError("Could not find this emplid.")
                 
                 # we found this emplid in SIMS: raise validation error, but offer to add next time.
                 confirm = self.fieldname+'_confirm'
@@ -201,7 +201,7 @@ class PersonField(forms.CharField):
                 else:
                     self.widget.found_sims = True
                     self.widget.sims_data = persondata
-                    raise forms.ValidationError, "Person is new to this system: please confirm their import."
+                    raise forms.ValidationError("Person is new to this system: please confirm their import.")
     
     @classmethod
     def person_data_prep(cls, form):
@@ -274,7 +274,7 @@ class UnitRoleForm(RoleForm):
 
 class InstrRoleForm(forms.Form):
     ROLE_CHOICES = [
-            ('NONE', u'\u2014'),
+            ('NONE', '\u2014'),
             ('FAC', 'Faculty Member'),
             ('SESS', 'Sessional Instructor'),
             ('COOP', 'Co-op Staff'),
@@ -309,21 +309,21 @@ class TAForm(forms.Form):
 
         people = Person.objects.filter(userid=cleaned_data['userid'])
         if len(people)==0 and (not cleaned_data['fname'] or not cleaned_data['lname']):
-            raise forms.ValidationError, "Userid isn't known to the system: please give more info so this person can be added. Please double-check their userid to make sure it is correct before submitting."
+            raise forms.ValidationError("Userid isn't known to the system: please give more info so this person can be added. Please double-check their userid to make sure it is correct before submitting.")
         return cleaned_data
     
     def clean_userid(self):
         userid = self.cleaned_data['userid']
         if len(userid)<1:
-            raise forms.ValidationError, "Userid must not be empty."
+            raise forms.ValidationError("Userid must not be empty.")
 
         # make sure not already a member somehow.
         ms = Member.objects.filter(person__userid=userid, offering=self.offering)
         for m in ms:
             if m.role == "TA":
-                raise forms.ValidationError, "That user is already a TA."
+                raise forms.ValidationError("That user is already a TA.")
             elif m.role != "DROP":
-                raise forms.ValidationError, "That user already has role %s in this course." % (m.get_role_display())
+                raise forms.ValidationError("That user already has role %s in this course." % (m.get_role_display()))
 
         return userid
 
@@ -492,22 +492,22 @@ class CheckboxSelectTerse(forms.CheckboxSelectMultiple):
         final_attrs = self.build_attrs(attrs, name=name)
         output = []
         # Normalize to strings
-        str_values = set([force_unicode(v) for v in value])
+        str_values = set([force_text(v) for v in value])
         for i, (option_value, option_label) in enumerate(chain(self.choices, choices)):
             # If an ID attribute was given, add a numeric index as a suffix,
             # so that the checkboxes don't all have the same ID attribute.
             if has_id:
                 final_attrs = dict(final_attrs, id='%s_%s' % (attrs['id'], i))
-                label_for = u' for="%s"' % final_attrs['id']
+                label_for = ' for="%s"' % final_attrs['id']
             else:
                 label_for = ''
 
             cb = forms.CheckboxInput(final_attrs, check_test=lambda value: value in str_values)
-            option_value = force_unicode(option_value)
+            option_value = force_text(option_value)
             rendered_cb = cb.render(name, option_value)
-            option_label = conditional_escape(force_unicode(option_label))
-            output.append(u'<label%s>%s %s</label>' % (label_for, rendered_cb, option_label))
-        return mark_safe(u'\n'.join(output))
+            option_label = conditional_escape(force_text(option_label))
+            output.append('<label%s>%s %s</label>' % (label_for, rendered_cb, option_label))
+        return mark_safe('\n'.join(output))
 
 FLAG_DICT = dict(WQB_FLAGS)
 #UNIVERSAL_COLUMNS = ['semester', 'coursecode'] # always display these Just Because.
@@ -527,7 +527,7 @@ class OfferingFilterForm(forms.Form):
     number = forms.CharField(widget=forms.TextInput(attrs={'size': '3'}), label='Course Number')
     section = forms.CharField(widget=forms.TextInput(attrs={'size': '3'}))
     instructor = forms.CharField(widget=forms.TextInput(attrs={'size': '12'}), label='Instructor Userid')
-    campus = forms.ChoiceField(choices=([('', u'all')] + list(CAMPUS_CHOICES_SHORT)))
+    campus = forms.ChoiceField(choices=([('', 'all')] + list(CAMPUS_CHOICES_SHORT)))
     semester = forms.ChoiceField()
     crstitle = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Title Contains')
     wqb = forms.MultipleChoiceField(choices=WQB_FLAGS, initial=[], label='WQB',
@@ -553,10 +553,10 @@ class OfferingFilterForm(forms.Form):
         super(OfferingFilterForm, self).__init__(*args, **kwargs)
         # semester choices
         semesters = self.allowed_semesters()
-        self.fields['semester'].choices = [('', u'all')] + [(s.name, s.label()) for s in semesters]
+        self.fields['semester'].choices = [('', 'all')] + [(s.name, s.label()) for s in semesters]
         # subject choices: all that exist in allowed semesters
         subjects = self.all_subjects(semesters)
-        self.fields['subject'].choices = [('', u'all')] + [(s,s) for s in subjects]
+        self.fields['subject'].choices = [('', 'all')] + [(s,s) for s in subjects]
 
 class TemporaryPersonForm(forms.Form):
     first_name = forms.CharField(max_length=32, required=True)

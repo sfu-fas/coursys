@@ -68,8 +68,8 @@ class Asset(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def __unicode__(self):
-        return u"%s - %s" % (self.name, self.unit.label)
+    def __str__(self):
+        return "%s - %s" % (self.name, self.unit.label)
 
     def save(self, *args, **kwargs):
         self.last_modified = timezone.now()
@@ -128,7 +128,7 @@ class AssetChangeRecord(models.Model):
             change_string=" added "
         else:
             change_string=" removed "
-        return make_slug(self.person.userid_or_emplid() + change_string + str(self.qty) + ' ' + unicode(self.asset))
+        return make_slug(self.person.userid_or_emplid() + change_string + str(self.qty) + ' ' + str(self.asset))
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
@@ -171,7 +171,7 @@ class AssetDocumentAttachment(models.Model):
 
     objects = AssetChangeRecordQuerySet.as_manager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:

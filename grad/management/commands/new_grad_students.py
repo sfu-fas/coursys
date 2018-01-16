@@ -82,7 +82,7 @@ class Command(BaseCommand):
             }
 
         if semester == None:
-            print "You must provide a target semester (i.e. 1134) using the --semester argument." 
+            print("You must provide a target semester (i.e. 1134) using the --semester argument.") 
             exit()
 
         semester_object = Semester.objects.get(name=semester)
@@ -91,10 +91,10 @@ class Command(BaseCommand):
             errors, adm_appl_nbrs = import_student( program_map, semester_object, dryrun, skip_duplicates, unit, emplid, adm_appl_nbr, acad_prog, errors, adm_appl_nbrs )
 
         if len(errors) > 0:
-            print "----------------------------------------"
-            print "Errors: "
+            print("----------------------------------------")
+            print("Errors: ")
             for error in errors:
-                print error
+                print(error)
 
 
 def import_student( program_map, semester_object, dryrun, skip_duplicates, unit, emplid, adm_appl_nbr, acad_prog, errors, adm_appl_nbrs ):
@@ -109,7 +109,7 @@ def import_student( program_map, semester_object, dryrun, skip_duplicates, unit,
         errors - array containing any errors encountered by the system so far
         adm_appl_nbrs - array containing any adm_appl_nbrs encountered by the system so far. 
     """
-    print emplid, adm_appl_nbr
+    print(emplid, adm_appl_nbr)
     
     # Find or generate a Person object for this student
     person = find_or_generate_person(emplid)
@@ -117,25 +117,25 @@ def import_student( program_map, semester_object, dryrun, skip_duplicates, unit,
     # Do we already have this student? 
 
     if is_already_imported( person, adm_appl_nbr ) or adm_appl_nbr in adm_appl_nbrs: 
-        print "This GradStudent record already exists in coursys"
-        print " -------------------------------- "
+        print("This GradStudent record already exists in coursys")
+        print(" -------------------------------- ")
         return errors, adm_appl_nbrs
     
     # This additional check shouldn't be necessary, a year or so from now. 
     grad_student_records = GradStudent.objects.filter(person=person)
     
     if len(grad_student_records) > 0: 
-        print "This GradStudent record may already exist in coursys: "
+        print("This GradStudent record may already exist in coursys: ")
         if skip_duplicates:
-            print ".. so we're not dealing with it for now." 
+            print(".. so we're not dealing with it for now.") 
             return errors, adm_appl_nbrs
         else:
-            print "Please select: "
-            for i in xrange(0, len(grad_student_records)):
+            print("Please select: ")
+            for i in range(0, len(grad_student_records)):
                 student = grad_student_records[i]
-                print i, "--", student, "--", "http://courses.cs.sfu.ca/grad/"+student.slug
-            print "N -- None of these are correct; Proceed with import."
-            n = get_number_or_n( range(0, len(grad_student_records)) )
+                print(i, "--", student, "--", "http://courses.cs.sfu.ca/grad/"+student.slug)
+            print("N -- None of these are correct; Proceed with import.")
+            n = get_number_or_n( list(range(0, len(grad_student_records))) )
             if n != 'n':
                 correct_record = grad_student_records[n]
                 correct_record.config['adm_appl_nbr'] = adm_appl_nbr
@@ -153,15 +153,15 @@ def import_student( program_map, semester_object, dryrun, skip_duplicates, unit,
         errors.append("\tThe program for " + acad_prog + " could not be found. This is a Bad Thing. Fix the program map.") 
         return errors, adm_appl_nbrs
 
-    print acad_prog
-    print program
+    print(acad_prog)
+    print(program)
 
     english_fluency = ""
     mother_tongue = get_mother_tongue( emplid )
-    print mother_tongue
+    print(mother_tongue)
 
     passport_issued_by = get_passport_issued_by( emplid )
-    print passport_issued_by
+    print(passport_issued_by)
 
     if passport_issued_by == "Canada":
         is_canadian = True
@@ -169,10 +169,10 @@ def import_student( program_map, semester_object, dryrun, skip_duplicates, unit,
         is_canadian = True
     else:
         is_canadian = False
-    print is_canadian
+    print(is_canadian)
     
     research_area = get_research_area( emplid, program.unit.acad_org )
-    print research_area
+    print(research_area)
     
 
     grad = GradStudent( person=person,
@@ -188,15 +188,15 @@ def import_student( program_map, semester_object, dryrun, skip_duplicates, unit,
     email = get_email(emplid)
     if email:
         grad.config['applic_email'] = email
-    print "Creating new Grad Student"
-    print grad
+    print("Creating new Grad Student")
+    print(grad)
 
     if not dryrun:
         grad.save()
     
     # Personal data 
     personal_info = coredata.queries.grad_student_info(emplid) 
-    print personal_info
+    print(personal_info)
     if 'visa' in personal_info:
         person.config['visa'] = personal_info['visa']
     if 'citizen' in personal_info:
@@ -235,11 +235,11 @@ def import_student( program_map, semester_object, dryrun, skip_duplicates, unit,
             else:
                 status_code = "EXPI"
         else:
-            print "Status " + event + " cannot be converted into a status." 
+            print("Status " + event + " cannot be converted into a status.") 
             continue
         start_semester = Semester.objects.get(name=semester)
         status = GradStatus( student=grad, status=status_code, start=start_semester, start_date=date )
-        print status
+        print(status)
         grad_statuses.append( status )
 
     # Save all of the actual data. 
@@ -249,21 +249,21 @@ def import_student( program_map, semester_object, dryrun, skip_duplicates, unit,
         for status in grad_statuses:
             status.save()
 
-    print "------------------"
+    print("------------------")
     return errors, adm_appl_nbrs
 
 
 def get_number_or_n( valid_numbers ):
-    response = raw_input( "==> " )
+    response = input( "==> " )
     if response.strip().lower() != "n":
         try:
             response = int(response.strip())
             if not response in valid_numbers:
-                print response, "is not a valid number in this context." 
+                print(response, "is not a valid number in this context.") 
                 return get_number_or_n( valid_numbers )
             return response
         except ValueError:
-            print response, "could not be parsed as an integer."
+            print(response, "could not be parsed as an integer.")
             return get_number_or_n( valid_numbers )
     else:
         return 'n'
@@ -384,16 +384,16 @@ def find_or_generate_person( emplid ):
     # return a Person object, either a student who exists in the system:
     try:
         p = Person.objects.get(emplid=emplid)
-        print "Person " + str(p) + " found: " + str(p.id) 
+        print("Person " + str(p) + " found: " + str(p.id)) 
         return p
     except Person.DoesNotExist:
         try:
-            print "Fetching " + str(emplid) + " from SIMS" 
+            print("Fetching " + str(emplid) + " from SIMS") 
             p = coredata.queries.add_person( emplid )
-            print str(p) + " fetched from SIMS"  
+            print(str(p) + " fetched from SIMS")  
             return p
         except IntegrityError:
-            print " Integrity error! " + str(emplid) + " 's userid already exists in the system." 
+            print(" Integrity error! " + str(emplid) + " 's userid already exists in the system.") 
             return None
 
 def get_email( emplid ):

@@ -45,7 +45,7 @@ def build_reverse_program_map():
     """
     program_map = build_program_map()
     rev_program_map = defaultdict(list)
-    for acad_prog, gradprog in program_map.items():
+    for acad_prog, gradprog in list(program_map.items()):
         rev_program_map[gradprog].append(acad_prog)
 
     cmptunit = Unit.objects.get(label="CMPT")
@@ -234,7 +234,7 @@ class ProgramStatusChange(GradHappening):
         elif st_ac == ('CM', 'COMP'):
             return 'GRAD'
 
-        raise KeyError, str((self.emplid, self.prog_status, self.prog_action, self.prog_reason, self.degr_chkout_stat))
+        raise KeyError(str((self.emplid, self.prog_status, self.prog_action, self.prog_reason, self.degr_chkout_stat)))
 
     def import_key(self):
         return self.key
@@ -254,9 +254,9 @@ class ProgramStatusChange(GradHappening):
                 if 'appl_key' in s.config and s.config['appl_key'] == self.appl_key()]
         if same_appl_key:
             if len(same_appl_key) > 1:
-                print self.appl_key()
-                print same_appl_key
-                raise ValueError, str(key)
+                print(self.appl_key())
+                print(same_appl_key)
+                raise ValueError(str(key))
             s = same_appl_key[0]
             s.config[SIMS_SOURCE] = key
             assert s.status == self.status
@@ -308,7 +308,7 @@ class ProgramStatusChange(GradHappening):
                 and not hasattr(s, 'found_in_import')]
         if close_enough:
             if verbosity > 2:
-                print "* Found similar (but imperfect) status for %s/%s is %s in %s" % (self.emplid, self.unit.slug, self.status, self.strm)
+                print("* Found similar (but imperfect) status for %s/%s is %s in %s" % (self.emplid, self.unit.slug, self.status, self.strm))
             return close_enough[0]
 
 
@@ -352,7 +352,7 @@ class ProgramStatusChange(GradHappening):
                 st = GradStatus(student=student_info['student'], status=self.status)
                 statuses.append(st)
                 if verbosity:
-                    print "Adding grad status: %s/%s is '%s' as of %s." % (self.emplid, self.unit.slug, SHORT_STATUSES[self.status], self.strm)
+                    print("Adding grad status: %s/%s is '%s' as of %s." % (self.emplid, self.unit.slug, SHORT_STATUSES[self.status], self.strm))
 
         self.gradstatus = st
         self.gradstatus.found_in_import = True
@@ -402,8 +402,8 @@ class ProgramStatusChange(GradHappening):
                     #  to show the correct current program.
                     if ph.starting != self.effdt:
                         if verbosity > 1:
-                            print "Changing start of similar program %s/%s in %s from %s to %s" % \
-                                  (self.emplid, self.unit.slug, self.grad_program.slug, ph.starting, self.effdt)
+                            print("Changing start of similar program %s/%s in %s from %s to %s" % \
+                                  (self.emplid, self.unit.slug, self.grad_program.slug, ph.starting, self.effdt))
                         ph.starting = self.effdt
                         if not dry_run:
                             ph.save()
@@ -416,7 +416,7 @@ class ProgramStatusChange(GradHappening):
             next_history = [p for p in programs if p.start_semester.name > strm]
             if next_history and next_history[0].program == self.grad_program:
                 if verbosity > 1:
-                    print "* Adjusting program change start: %s/%s in %s as of %s." % (self.emplid, self.unit.slug, self.grad_program.slug, strm)
+                    print("* Adjusting program change start: %s/%s in %s as of %s." % (self.emplid, self.unit.slug, self.grad_program.slug, strm))
                 ph = next_history[0]
                 ph.start_semester = STRM_MAP[strm]
                 ph.starting = self.effdt
@@ -434,7 +434,7 @@ class ProgramStatusChange(GradHappening):
         if need_ph:
             if (verbosity and previous_history) or verbosity > 1:
                 # don't usually report first ever ProgramHistory because those are boring
-                print "Adding program change: %s/%s in %s as of %s." % (self.emplid, self.unit.slug, self.grad_program.slug, strm)
+                print("Adding program change: %s/%s in %s as of %s." % (self.emplid, self.unit.slug, self.grad_program.slug, strm))
             ph = GradProgramHistory(student=student_info['student'], program=self.grad_program,
                     start_semester=STRM_MAP[strm], starting=self.effdt)
             ph.config[SIMS_SOURCE] = key
@@ -527,7 +527,7 @@ class GradSemester(GradHappening):
                 # Kick it to make it effective for this semester, but don't bother reporting it.
                 effdt = effdt + datetime.timedelta(days=1)
             elif verbosity > 1:
-                print "* Adjusting date of grad status: %s/%s is '%s' as of %s (was taking courses)." % (self.emplid, self.unit.slug, SHORT_STATUSES['ACTI'], self.strm)
+                print("* Adjusting date of grad status: %s/%s is '%s' as of %s (was taking courses)." % (self.emplid, self.unit.slug, SHORT_STATUSES['ACTI'], self.strm))
 
             st.start_date = effdt
             st.config[SIMS_SOURCE] = key
@@ -536,7 +536,7 @@ class GradSemester(GradHappening):
         else:
             # Option 3: need to add an active status
             if verbosity:
-                print "Adding grad status: %s/%s is '%s' as of %s (was taking courses)." % (self.emplid, self.unit.slug, SHORT_STATUSES['ACTI'], self.strm)
+                print("Adding grad status: %s/%s is '%s' as of %s (was taking courses)." % (self.emplid, self.unit.slug, SHORT_STATUSES['ACTI'], self.strm))
             st = GradStatus(student=student_info['student'], status='ACTI', start=semester,
                     start_date=effdt)
             st.config[SIMS_SOURCE] = key
@@ -609,11 +609,11 @@ class CommitteeMembership(GradHappening):
             similar = [m for m in local_committee if m.supervisor == p]
             if len(similar) > 0:
                 if verbosity > 2:
-                    print "* Found similar (but imperfect) committee member for %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug)
+                    print("* Found similar (but imperfect) committee member for %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
                 member = similar[0]
             else:
                 if verbosity:
-                    print "Adding committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug)
+                    print("Adding committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
                 member = Supervisor(student=student_info['student'], supervisor=p, supervisor_type=sup_type)
                 member.created_at = self.effdt
                 local_committee.append(member)
@@ -778,7 +778,7 @@ class GradMetadata(GradHappening):
 
         if changed:
             if verbosity > 1:
-                print "* Changed personal info for %s/%s: %s" % (self.emplid, gs.program.unit.slug, ', '.join(changed))
+                print("* Changed personal info for %s/%s: %s" % (self.emplid, gs.program.unit.slug, ', '.join(changed)))
             if not dry_run:
                 gs.save()
                 if 'visa' in changed:

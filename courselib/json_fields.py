@@ -33,7 +33,7 @@ class JSONField(JSONFieldOriginal):
             return {}
         res = super(JSONField, self).pre_init(value, obj)
         # hack around https://github.com/bradjasper/django-jsonfield/issues/106 until fixed properly
-        if isinstance(res, basestring):
+        if isinstance(res, str):
             return json.loads(res)
         return res
 

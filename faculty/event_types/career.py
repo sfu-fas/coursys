@@ -76,7 +76,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     class EntryForm(BaseEntryForm):
 
         LEAVING_CHOICES = Choices(
-            ('HERE', u'\u2014'),  # hasn't left yet
+            ('HERE', '\u2014'),  # hasn't left yet
             ('RETI', 'Retired'),
             ('END', 'Limited-term contract ended'),
             ('UNIV', 'Left: job at another University'),

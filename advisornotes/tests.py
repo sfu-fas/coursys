@@ -129,5 +129,5 @@ class AdvisorNotestest(TestCase):
                 response = basic_page_tests(self, client, url)
                 self.assertEqual(response.status_code, 200)
             except:
-                print "with view==" + repr(view)
+                print("with view==" + repr(view))
                 raise

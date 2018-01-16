@@ -8,4 +8,4 @@ class Command(BaseCommand):
         gs_ids = [gs.id for gs in gss]
 
         for Model in [CompletedRequirement, Letter, Scholarship, OtherFunding, Promise, FinancialComment, GradFlagValue, ProgressReport, ExternalDocument]:
-            print Model.objects.filter(student_id__in=gs_ids)
+            print(Model.objects.filter(student_id__in=gs_ids))

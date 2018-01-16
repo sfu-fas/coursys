@@ -115,7 +115,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
                 submitted_comp.append(sub)
             else:
                 # hack to replace the "required" message to something more appropriate
-                for k,v in form.errors.items():
+                for k,v in list(form.errors.items()):
                     for i,e in enumerate(v):
                         if e == "This field is required.":
                             v[i] = "Nothing submitted."
@@ -134,7 +134,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             for s in submitted_comp:
                 d[s.component] = s.get_filename()
             # a list holding all file names
-            file_name_list = [a[1] for a in d.items() if a[1] is not None]
+            file_name_list = [a[1] for a in list(d.items()) if a[1] is not None]
             to_be_removed = []
             for (i, s) in enumerate(submitted_comp):
                 if file_name_list.count(s.get_filename()) > 1:
@@ -145,8 +145,8 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
                     for data in component_form_list:
                         if s.component == data['comp']:
                             # assume we have only one field for submission form
-                            field_name = data['form'].fields.keys()[0]
-                            data['form']._errors[field_name] = ErrorList([u"This file has the same name as another file in your submission."])
+                            field_name = list(data['form'].fields.keys())[0]
+                            data['form']._errors[field_name] = ErrorList(["This file has the same name as another file in your submission."])
             # remove those has errors in submitted_comp
             to_be_removed.reverse()
             for t in to_be_removed:
@@ -164,7 +164,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             else:
                 group_str = ""
             l = LogEntry(userid=request.user.username,
-                  description=u"submitted for %s %s%s" % (activity, sub.component.title, group_str),
+                  description="submitted for %s %s%s" % (activity, sub.component.title, group_str),
                   related_object=sub)
             l.save()
 
@@ -258,7 +258,7 @@ def edit_single(request, course_slug, activity_slug):
             new_component.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=(u"edited component %s of %s") % (component.title, activity),
+                  description=("edited component %s of %s") % (component.title, activity),
                   related_object=new_component)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Component "' + new_component.title + '" successfully updated.')
@@ -295,7 +295,7 @@ def add_component(request, course_slug, activity_slug):
             new_component.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=(u"added %s component %s for %s") % (Type.name, new_component.title, activity),
+                  description=("added %s component %s for %s") % (Type.name, new_component.title, activity),
                   related_object=new_component)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'New component "' + new_component.title + '" successfully added.')
@@ -378,7 +378,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
     # get the urlencode
     qDict = request.GET
     urlencode = ''
-    if qDict.items():
+    if list(qDict.items()):
         urlencode = '?' +  qDict.urlencode()
 
     if userid:
@@ -407,7 +407,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         else:
             str = ""
         l = LogEntry(userid=request.user.username,
-              description=(u"took ownership on %s" + str + " by %s") % (activity, userid),
+              description=("took ownership on %s" + str + " by %s") % (activity, userid),
               related_object=student)
         l.save()
 
@@ -434,7 +434,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         else:
             str = ""
         l = LogEntry(userid=request.user.username,
-          description=(u"took ownership on %s"+str+ " by group %s") % (activity, group.name),
+          description=("took ownership on %s"+str+ " by group %s") % (activity, group.name),
           related_object=group)
         l.save()
         return response

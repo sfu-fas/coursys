@@ -51,7 +51,7 @@ def _batch_call(func, args, batchsize=500):
     """
     Call func(args), but breaking up args into manageable chunks.
     """
-    for i in xrange(0, len(args), batchsize):
+    for i in range(0, len(args), batchsize):
         batch = args[i:i+batchsize]
         yield func(batch)
 
@@ -63,7 +63,7 @@ def check_environment():
     from coredata.models import VISA_STATUSES
     _, _, visas = metadata_translation_tables()
     const = set(dict(VISA_STATUSES).keys())
-    sims = set([v for _,v in visas.values()])
+    sims = set([v for _,v in list(visas.values())])
     assert const == sims, "coredata.models.VISA_STATUSES doesn't match the possible visa values from SIMS"
 
 
@@ -73,7 +73,7 @@ def get_timelines(verbosity, import_emplids=None):
     """
     prog_map = build_program_map()
     import_units = Unit.objects.filter(slug__in=IMPORT_UNIT_SLUGS)
-    acad_progs = [acad_prog for acad_prog, program in prog_map.iteritems() if program.unit in import_units]
+    acad_progs = [acad_prog for acad_prog, program in prog_map.items() if program.unit in import_units]
 
     check_environment()
 
@@ -143,7 +143,7 @@ def build_timeline(emplid, data):
         elif d[0] == 'GradResearchArea':
             h = GradResearchArea(*(d[1:]))
         else:
-            raise ValueError, d[0]
+            raise ValueError(d[0])
 
         timeline.add(h)
 
@@ -167,7 +167,7 @@ def import_timelines(timeline_data, dry_run, verbosity):
     """
     Process the timeline data into our database.
     """
-    for emplid, data in timeline_data.iteritems():
+    for emplid, data in timeline_data.items():
         timeline = build_timeline(emplid, data)
         import_timeline(timeline, dry_run=dry_run, verbosity=verbosity)
 

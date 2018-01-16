@@ -1,4 +1,4 @@
-from db2_query import DB2_Query
+from .db2_query import DB2_Query
 
 class Report():
     """ The base class from which Report objects are derived. 

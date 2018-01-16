@@ -3,7 +3,7 @@ import datetime
 import itertools
 import json
 import operator
-import StringIO
+import io
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
 
@@ -40,7 +40,7 @@ from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportFor
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm, PositionAttachmentForm
 from faculty.processing import FacultySummary
-from templatetags.event_display import fraction_display
+from .templatetags.event_display import fraction_display
 from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.choices import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
@@ -147,7 +147,7 @@ def search_events(request, event_type):
     Handler = _get_Handler_or_404(event_type)
     viewer = get_object_or_404(Person, userid=request.user.username)
     member_units = Unit.sub_units(request.units)
-    unit_choices = [('', u'\u2012',)] + [(u.id, u.name) for u in Unit.sub_units(request.units)]
+    unit_choices = [('', '\u2012',)] + [(u.id, u.name) for u in Unit.sub_units(request.units)]
     filterform = UnitFilterForm(Unit.sub_units(request.units))
 
     results = []
@@ -762,7 +762,7 @@ def new_position(request):
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Position was created.'
+                                 'Position was created.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="added position: %s" % position,
@@ -805,7 +805,7 @@ def edit_position(request, position_id):
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Successfully edited position.'
+                                 'Successfully edited position.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="Edited position: %s" % position,
@@ -824,7 +824,7 @@ def delete_position(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     position.hide()
     position.save()
-    messages.add_message(request, messages.SUCCESS, u'Succesfully hid position.')
+    messages.add_message(request, messages.SUCCESS, 'Succesfully hid position.')
     l = LogEntry(userid=request.user.username, description="Hid position %s" % position, related_object=position)
     l.save()
     return HttpResponseRedirect(reverse('faculty:list_positions'))
@@ -866,10 +866,10 @@ def assign_position_person(request, position_id):
                     expiry = datetime.date.today() + datetime.timedelta(days=365)
                     new_role = Role(role='FAC', unit=position.unit, person=person, expiry=expiry)
                     new_role.save()
-                    messages.add_message(request, messages.SUCCESS, u'Added faculty role for %s' % person)
+                    messages.add_message(request, messages.SUCCESS, 'Added faculty role for %s' % person)
                 messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Successfully assigned person to position.'
+                                 'Successfully assigned person to position.'
                                  )
                 l = LogEntry(userid=request.user.username,
                              description="Edited position: %s" % position,
@@ -892,7 +892,7 @@ def position_add_credentials(request, position_id):
             form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Successfully added credentials to position.'
+                                 'Successfully added credentials to position.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="Added credentials for position: %s" % position,
@@ -923,7 +923,7 @@ def assign_position_futureperson(request, position_id):
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Successfully assigned person to position.'
+                                 'Successfully assigned person to position.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="Edited position: %s" % position,
@@ -980,7 +980,7 @@ def edit_futureperson(request, futureperson_id, from_admin=0):
             future_person.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Successfully edited faculty member.'
+                                 'Successfully edited faculty member.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="Edited future person: %s" % future_person,
@@ -1005,7 +1005,7 @@ def delete_futureperson(request, futureperson_id):
     fp = get_object_or_404(FuturePerson, pk=futureperson_id)
     fp.hide()
     fp.save()
-    messages.add_message(request, messages.SUCCESS, u'Succesfully hid future person.')
+    messages.add_message(request, messages.SUCCESS, 'Succesfully hid future person.')
     l = LogEntry(userid=request.user.username, description="Hid future person %s" % fp, related_object=fp)
     l.save()
     return HttpResponseRedirect(reverse('faculty:index'))
@@ -1069,7 +1069,7 @@ def teaching_summary(request, userid):
         cb, event = _teaching_events_data(person, curr_semester)
         credit_balance += cb
         events.extend(event)
-        curr_semester = curr_semester.next()
+        curr_semester = next(curr_semester)
 
     start = start_semester.code
     end = end_semester.code
@@ -1139,7 +1139,7 @@ def teaching_summary_csv(request, userid):
     while curr_semester <= end_semester:
         cb, event = _teaching_events_data(person, curr_semester)
         events.extend(event)
-        curr_semester = curr_semester.next()
+        curr_semester = next(curr_semester)
 
     start = start_semester.code
     end = end_semester.code
@@ -1220,7 +1220,7 @@ def study_leave_credits(request, userid):
 
 
 def _csvfrac(f):
-    if isinstance(f, basestring):
+    if isinstance(f, str):
         return f
     else:
         return "%.3f" % (f)
@@ -1279,7 +1279,7 @@ def _all_study_events(units, person, start_semester, end_semester):
             events += [('', 'Study Leave Credits prior to '+start_semester.code, '', slc_total , slc_total)]
 
         events += event
-        curr_semester = curr_semester.next()
+        curr_semester = next(curr_semester)
 
     return slc_total, events, finish_semester
 
@@ -1439,7 +1439,7 @@ def timeline_json(request, userid):
             blurb = {
                 'startDate': '{:%Y,%m,%d}'.format(handler.event.start_date),
                 'headline': handler.short_summary(),
-                'text': u'<a href="{}">more information</a>'.format(handler.event.get_absolute_url()),
+                'text': '<a href="{}">more information</a>'.format(handler.event.get_absolute_url()),
             }
 
             if handler.event.end_date is not None:
@@ -1838,7 +1838,7 @@ def new_attachment(request, userid, event_slug):
                     filetype += "; charset=" + upfile.charset
                 attachment.mediatype = filetype
                 attachment.save()
-            messages.add_message(request, messages.SUCCESS, (u'Uploaded %s attachment(s)' % len(files)))
+            messages.add_message(request, messages.SUCCESS, ('Uploaded %s attachment(s)' % len(files)))
             return HttpResponseRedirect(event.get_absolute_url())
         else:
             context.update({"attachment_form": form})
@@ -1865,7 +1865,7 @@ def new_text_attachment(request, userid, event_slug):
             attachment.career_event = event
             attachment.created_by = editor
             content = form.cleaned_data['text_contents'].encode('utf-8')
-            contentio = StringIO.StringIO(content)
+            contentio = io.StringIO(content)
             contentio.size = len(content)
             attachment.contents.save('attachment.txt', contentio, save=True)
             attachment.mediatype = 'text/plain; charset=utf-8'
@@ -1925,7 +1925,7 @@ def delete_attachment(request, userid, event_slug, attach_slug):
     attachment.hide()
     messages.add_message(request,
                          messages.SUCCESS,
-                         u'Attachment deleted.'
+                         'Attachment deleted.'
                          )
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
@@ -1989,7 +1989,7 @@ def delete_position_attachment(request, position_id, attach_slug):
     attachment.hide()
     messages.add_message(request,
                          messages.SUCCESS,
-                         u'Attachment deleted.'
+                         'Attachment deleted.'
                          )
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
@@ -2088,7 +2088,7 @@ def new_memo_template(request, event_type):
         form = MemoTemplateForm(initial={'unit': in_unit})
         form.fields['unit'].choices = unit_choices
 
-    tags = sorted(EVENT_TAGS.iteritems())
+    tags = sorted(EVENT_TAGS.items())
     event_handler = event_type_object[1].CONFIG_FIELDS
     #get additional tags for specific event
     add_tags = {}
@@ -2098,7 +2098,7 @@ def new_memo_template(request, event_type):
         except KeyError:
             add_tags[tag] = tag.replace("_", " ")
 
-    add = sorted(add_tags.iteritems())
+    add = sorted(add_tags.items())
     lt = tags + add
 
     context = {
@@ -2130,7 +2130,7 @@ def manage_memo_template(request, event_type, slug):
         form = MemoTemplateForm(instance=memo_template)
         form.fields['unit'].choices = unit_choices
 
-    tags = sorted(EVENT_TAGS.iteritems())
+    tags = sorted(EVENT_TAGS.items())
     event_handler = event_type_object[1].CONFIG_FIELDS
     #get additional tags for specific event
     add_tags = {}
@@ -2140,7 +2140,7 @@ def manage_memo_template(request, event_type, slug):
         except KeyError:
             add_tags[tag] = tag.replace("_", " ")
 
-    add = sorted(add_tags.iteritems())
+    add = sorted(add_tags.items())
     lt = tags + add
 
     context = {
@@ -2331,7 +2331,7 @@ def delete_memo(request, userid, event_slug, memo_slug):
 
     messages.add_message(request,
                          messages.SUCCESS,
-                         u'Memo deleted.'
+                         'Memo deleted.'
                          )
     l = LogEntry(userid=request.user.username, description="Hid memo %s" % memo, related_object=memo)
     l.save()

@@ -20,16 +20,16 @@ class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
     def prepare_text(self, o):
         fields = [o.subject, o.number, o.section, o.title, o.instructors_str(), o.semester.name,
                   o.semester.label(), o.get_campus_display()]
-        return u'\n'.join(fields)
+        return '\n'.join(fields)
 
     def prepare_name(self, o):
-        return u' '.join([o.subject, o.number, o.section])
+        return ' '.join([o.subject, o.number, o.section])
 
     def prepare_url(self, o):
         return o.get_absolute_url()
 
     def prepare_search_display(self, o):
-        return u"%s %s" % (o.name(), o.semester.label())
+        return "%s %s" % (o.name(), o.semester.label())
 
 
 class PersonIndex(indexes.SearchIndex, indexes.Indexable):
@@ -45,7 +45,7 @@ class PersonIndex(indexes.SearchIndex, indexes.Indexable):
         return self.get_model().objects.all()
 
     def prepare_text(self, o):
-        fields = [unicode(o.emplid), o.first_name, o.last_name]
+        fields = [str(o.emplid), o.first_name, o.last_name]
         if o.real_pref_first() != o.first_name:
             fields.append(o.real_pref_first())
         if o.userid:
@@ -75,7 +75,7 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
 
     def prepare_text(self, m):
         fields = [m.offering.semester.label(), m.offering.semester.name, m.offering.name(),
-                  unicode(m.person.emplid), m.person.first_name, m.person.last_name]
+                  str(m.person.emplid), m.person.first_name, m.person.last_name]
         if m.person.real_pref_first().lower() != m.person.first_name.lower():
             fields.append(m.person.real_pref_first())
         if m.person.userid:
@@ -94,4 +94,4 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
             return None
 
     def prepare_search_display(self, m):
-        return u" %s (%s) in %s (%s)" % (m.person.name(), m.person.userid_or_emplid(), m.offering.name(), m.offering.semester.label())
+        return " %s (%s) in %s (%s)" % (m.person.name(), m.person.userid_or_emplid(), m.offering.name(), m.offering.semester.label())

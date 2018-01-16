@@ -1,5 +1,5 @@
 from planning.models import TeachingIntention
-from planner_create_intention import planner_create_intention
+from .planner_create_intention import planner_create_intention
 from courselib.auth import requires_instructor
 from coredata.models import Person, Semester
 from django.shortcuts import get_object_or_404

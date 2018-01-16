@@ -8,7 +8,7 @@ from courselib.auth import has_global_role
 from log.models import LogEntry
 
 from coredata.models import Member
-from urlparts import COURSE_SLUG
+from .urlparts import COURSE_SLUG
 import re
 
 course_path_re = re.compile("^/" + COURSE_SLUG + "/")

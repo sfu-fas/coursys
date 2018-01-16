@@ -28,7 +28,7 @@ def ping(): # used to check that celery is alive
 # (checked by ping_celery management command)
 @periodic_task(run_every=crontab(minute='*/5', hour='*'))
 def beat_test():
-    with file(BEAT_TEST_FILE, 'w') as fh:
+    with open(BEAT_TEST_FILE, 'w') as fh:
         fh.write('Celery beat did things on %s.\n' % (datetime.datetime.now()))
 
 
@@ -92,7 +92,7 @@ def _grouper(iterable, n):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
-    groups = itertools.izip_longest(fillvalue=None, *args)
+    groups = itertools.zip_longest(fillvalue=None, *args)
     return ((v for v in grp if v is not None) for grp in groups)
 
 

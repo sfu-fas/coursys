@@ -20,6 +20,6 @@ newer_status_students = set(s.student for s in GradStatus.objects
 students -= newer_status_students
 
 for gs in students:
-    print gs
+    print(gs)
     s = GradStatus(student=gs, status='ACTI', start=sem, start_date=datetime.date(2014, 9, 2))
     s.save()

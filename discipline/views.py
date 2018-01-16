@@ -74,7 +74,7 @@ def new(request, course_slug):
                "%s (%s, %s)" % (m.person.sortname(), m.person.emplid, m.person.userid))
             for m in
             Member.objects.filter(offering=course, role="STUD").select_related('person')]
-    group_choices = [('', u'\u2014')] + [(g.id, g.name) for g in DisciplineGroup.objects.filter(offering=course)]
+    group_choices = [('', '\u2014')] + [(g.id, g.name) for g in DisciplineGroup.objects.filter(offering=course)]
 
     if request.method == 'POST':
         form = DisciplineCaseForm(offering=course, data=request.POST)
@@ -106,7 +106,7 @@ def new(request, course_slug):
 @requires_discipline_user
 def new_nonstudent(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    group_choices = [('', u'\u2014')] + [(g.id, g.name) for g in DisciplineGroup.objects.filter(offering=course)]
+    group_choices = [('', '\u2014')] + [(g.id, g.name) for g in DisciplineGroup.objects.filter(offering=course)]
     
     if request.method == 'POST':
         form = DisciplineInstrNonStudentCaseForm(data=request.POST)
@@ -264,7 +264,7 @@ def edit_case_info(request, course_slug, case_slug, field):
     else:
         form = FormClass(instance=case)
     
-    templates = DisciplineTemplate.objects.filter(field__in=form.fields.keys())
+    templates = DisciplineTemplate.objects.filter(field__in=list(form.fields.keys()))
     tempaltesJSON = json.dumps([t.JSON_data() for t in templates])
     groupmembersJSON = case.groupmembersJSON()
     hasRelAct = len(case.related_activities())>0

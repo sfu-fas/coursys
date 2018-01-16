@@ -14,7 +14,7 @@ from django.template import RequestContext
 def edit_course(request, course_slug):
     course = get_object_or_404(PlanningCourse, slug=course_slug)
 
-    units = [(u.id, unicode(u)) for u in request.units]
+    units = [(u.id, str(u)) for u in request.units]
     if request.method == 'POST':
         form = CourseForm(request.POST, instance=course)
         form.fields['owner'].choices = units

@@ -1,5 +1,5 @@
 import os
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import html5lib
 import datetime
 from django.core.urlresolvers import reverse
@@ -35,7 +35,7 @@ class CachedFixtureTestCase(TestCase):
             if (hasattr(self, 'fixtures') and 
                       self.fixtures and 
                       self.fixtures != CachedFixtureTestCase.current_fixtures):
-                print self.fixtures
+                print(self.fixtures)
                 CachedFixtureTestCase.current_fixture = self.fixtures
                 self._remove_fixture()
                 call_command('loaddata', *self.fixtures,
@@ -44,7 +44,7 @@ class CachedFixtureTestCase(TestCase):
                 self._remove_fixture()
 
     def _fixture_teardown(self):
-        print "teardown pass"
+        print("teardown pass")
         pass
 
 
@@ -59,7 +59,7 @@ def validate_content_xhtml(testcase, data, page_descr="unknown page"):
     # force use of local copy of DTD
     dtdpath = os.path.join(os.getcwd(), "courselib", "dtd", "xhtml1-strict.dtd")
     dtdpath = dtdpath.replace("\\", "/")
-    dtdpath = urllib.quote(dtdpath)
+    dtdpath = urllib.parse.quote(dtdpath)
     
     dtd = '<!DOCTYPE html SYSTEM "%s">' % dtdpath
     data_system = data.replace('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', dtd, 1)
@@ -100,7 +100,7 @@ def basic_page_tests(testcase, client, url, check_valid=True):
     Run basic tests on the page: 200 OK, validity.
     """
     response = client.get(url)
-    testcase.assertEquals(response.status_code, 200)
+    testcase.assertEqual(response.status_code, 200)
     if check_valid:
         validate_content(testcase, response.content, url)
     return response
@@ -118,7 +118,7 @@ def test_views(testcase, client, view_prefix, views, url_args, qs=None):
                 url += '?' + qs
             response = basic_page_tests(testcase, client, url)
         except Exception as e:
-            print "failing with view=%s; kwargs=%s" % (view, url_args)
+            print("failing with view=%s; kwargs=%s" % (view, url_args))
             raise
 
 

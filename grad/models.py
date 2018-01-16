@@ -32,8 +32,8 @@ class GradProgram(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=('unit',))
     class Meta:
         unique_together = (('unit', 'label'),)
-    def __unicode__ (self):
-        return u"%s" % (self.label)
+    def __str__ (self):
+        return "%s" % (self.label)
     
     def cmpt_program_type(self):
         """
@@ -176,7 +176,7 @@ def _active_semesters(pk, program=None):
 def _active_semesters_display(pk):
     self = GradStudent.objects.get(pk=pk)
     active, total = self.active_semesters()
-    res = u"%i/%i" % (active, total)
+    res = "%i/%i" % (active, total)
 
     history = GradProgramHistory.objects.filter(student=self).order_by('-starting', '-start_semester').select_related('program')
     if history.count() > 1:
@@ -194,7 +194,7 @@ def _program_start_end_semesters_display(pk):
     end = self.end_semester.name if self.end_semester else "present"
     history = GradProgramHistory.objects.filter(student=self).order_by('-starting', '-start_semester').select_related(
         'program')
-    res = u"%s - %s" % (start, end)
+    res = "%s - %s" % (start, end)
     if history.count() > 1:
         currentprog = history.first()
         if not currentprog.start_semester == self.start_semester:
@@ -293,8 +293,11 @@ class GradStudent(models.Model, ConditionalSaveMixin):
     ]
 
 
-    def __unicode__(self):
-        return u"%s, %s" % (self.person, self.program.label)
+    def __str__(self):
+        return "%s, %s" % (self.person, self.program.label)
+
+    def __lt__(self, other):
+        return self.person.sortname() < other.person.sortname()
 
     def save(self, *args, **kwargs):
         # rebuild slug in case something changes
@@ -589,9 +592,9 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             try:
                 promise = "${:,f}".format(promises[0].amount)
             except ValueError: # handle Python <2.7
-                promise = '$' + unicode(promises[0].amount)
+                promise = '$' + str(promises[0].amount)
         else:
-            promise = u'$0'
+            promise = '$0'
 
         tas = TAContract.objects.filter(application__person=self.person).order_by('-posting__semester__name')
         ras = RAAppointment.objects.filter(person=self.person, deleted=False).order_by('-start_date')
@@ -657,7 +660,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         # starting info
         startsem = self.start_semester
         if startsem:
-            startyear = unicode(startsem.start.year)
+            startyear = str(startsem.start.year)
             startsem = startsem.label()
         else:
             startyear = 'UNKNOWN'
@@ -702,7 +705,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         committee_3_name, committee_3_email, x, y, z = supervisor_details('COM', 3)
 
         all_supervisors = [x for x in Supervisor.objects.filter(student=self, removed=False)]
-        all_supervisors.sort(cmp=lambda x,y: cmp(x.type_order(), y.type_order()))
+        all_supervisors.sort(key=lambda s: s.type_order())
         committee = ""
         for supervisor in all_supervisors:
             if supervisor.supervisor:
@@ -953,7 +956,7 @@ class GradProgramHistory(models.Model, ConditionalSaveMixin):
     class Meta:
         ordering = ('-starting',)
     
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s/%s" % (self.student.person, self.program, self.start_semester.name)
 
 
@@ -1067,8 +1070,8 @@ class Supervisor(models.Model, ConditionalSaveMixin):
         #unique_together = ("student", "position")
         pass
     
-    def __unicode__(self):
-        return u"%s (%s) for %s" % (self.supervisor or self.external, self.supervisor_type, self.student.person)
+    def __str__(self):
+        return "%s (%s) for %s" % (self.supervisor or self.external, self.supervisor_type, self.student.person)
 
     def sortname(self):
         if self.supervisor:
@@ -1087,9 +1090,9 @@ class Supervisor(models.Model, ConditionalSaveMixin):
         is_person = bool(self.supervisor)
         is_ext = bool(self.external)
         if is_person and is_ext:
-            raise ValueError, "Cannot be both an SFU user and external"
+            raise ValueError("Cannot be both an SFU user and external")
         if not is_person and not is_ext:
-            raise ValueError, "Must be either an SFU user or external"
+            raise ValueError("Must be either an SFU user or external")
         
         super(Supervisor, self).save(*args, **kwargs)
         self.student.clear_has_committee()
@@ -1128,8 +1131,8 @@ class GradRequirement(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     hidden = models.BooleanField(default=False)
 
-    def __unicode__(self):
-        return u"%s" % (self.description)
+    def __str__(self):
+        return "%s" % (self.description)
     class Meta:
         unique_together = (('program', 'description'),)
 
@@ -1173,8 +1176,8 @@ class CompletedRequirement(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')    
     #class meta:
     #    unique_together = (("requirement", "student"),)
-    def __unicode__(self):
-        return u"%s" % (self.requirement)
+    def __str__(self):
+        return "%s" % (self.requirement)
 
 
 STATUS_ORDER = {
@@ -1232,7 +1235,7 @@ class GradStatus(models.Model, ConditionalSaveMixin):
     ignore_status = config_property('ignore_status', False)
 
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
+        raise NotImplementedError("This object cannot be deleted, set the hidden flag instead.")
 
     def save(self, close_others=True, *args, **kwargs):
         if not self.start_date and self.status in STATUS_APPLICANT:
@@ -1251,8 +1254,8 @@ class GradStatus(models.Model, ConditionalSaveMixin):
             self.student.update_status_fields()
 
     
-    def __unicode__(self):
-        return u"Grad Status: %s %s in %s" % (self.student, self.status, self.start.name)
+    def __str__(self):
+        return "Grad Status: %s %s in %s" % (self.student, self.status, self.start.name)
     
     def get_short_status_display(self):
         return SHORT_STATUSES[self.status]
@@ -1296,8 +1299,8 @@ class LetterTemplate(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     class Meta:
         unique_together = ('unit', 'label')      
-    def __unicode__(self):
-        return u"%s in %s" % (self.label, self.unit)
+    def __str__(self):
+        return "%s in %s" % (self.label, self.unit)
     
 class Letter(models.Model):
     student = models.ForeignKey(GradStudent, null=False, blank=False)
@@ -1324,8 +1327,8 @@ class Letter(models.Model):
     def autoslug(self):
         return make_slug(self.student.slug + "-" + self.template.label)     
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
-    def __unicode__(self):
-        return u"%s letter for %s" % (self.template.label, self.student)
+    def __str__(self):
+        return "%s letter for %s" % (self.template.label, self.student)
     def save(self, *args, **kwargs):
         # normalize text so it's easy to work with
         if not self.to_lines:
@@ -1348,8 +1351,8 @@ class ScholarshipType(models.Model):
     hidden = models.BooleanField(default=False)
     class meta:
         unique_together = (("unit", "name"),)
-    def __unicode__(self):
-        return u"%s - %s" % (self.unit.label, self.name)
+    def __str__(self):
+        return "%s - %s" % (self.unit.label, self.name)
 
 class Scholarship(models.Model):
     scholarship_type = models.ForeignKey(ScholarshipType)
@@ -1359,8 +1362,8 @@ class Scholarship(models.Model):
     end_semester = models.ForeignKey(Semester, related_name="scholarship_end")
     comments = models.TextField(blank=True, null=True)
     removed = models.BooleanField(default=False)
-    def __unicode__(self):
-        return u"%s (%s)" % (self.scholarship_type, self.amount)
+    def __str__(self):
+        return "%s (%s)" % (self.scholarship_type, self.amount)
     
     
 class OtherFunding(models.Model):
@@ -1379,8 +1382,8 @@ class Promise(models.Model):
     end_semester = models.ForeignKey(Semester, related_name="promise_end")
     comments = models.TextField(blank=True, null=True)
     removed = models.BooleanField(default=False)
-    def __unicode__(self):
-        return u"%s promise for %s %s-%s" % (self.amount, self.student.person, self.start_semester.name, self.end_semester.name)
+    def __str__(self):
+        return "%s promise for %s %s-%s" % (self.amount, self.student.person, self.start_semester.name, self.end_semester.name)
 
     def semester_length(self):
         return self.end_semester - self.start_semester + 1
@@ -1434,14 +1437,14 @@ class FinancialComment(models.Model):
     created_at = models.DateTimeField(default=datetime.datetime.now)
     removed = models.BooleanField(default=False)
     
-    def __unicode__(self):
+    def __str__(self):
         return "Comment for %s by %s" % (self.student.person.emplid, self.created_by)
 
 class GradFlag(models.Model):
     unit = models.ForeignKey(Unit)
     label = models.CharField(max_length=100, blank=False, null=False)
     
-    def __unicode__(self):
+    def __str__(self):
         return self.label
     class Meta:
         unique_together = (('unit', 'label'),)
@@ -1451,7 +1454,7 @@ class GradFlagValue(models.Model):
     flag = models.ForeignKey(GradFlag)
     value = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s" % (self.flag.label, self.value)
 
 class SavedSearch(models.Model):
@@ -1477,8 +1480,8 @@ class ProgressReport(models.Model):
     config = JSONField(null=False, blank=False, default=dict)
     comments = models.TextField(blank=True, null=True)
 
-    def __unicode__(self):
-        return u"(%s) %s Progress Report" % (str(self.date), 
+    def __str__(self):
+        return "(%s) %s Progress Report" % (str(self.date), 
                                              self.get_result_display())
 
 
@@ -1500,14 +1503,14 @@ class ExternalDocument(models.Model):
     config = JSONField(null=False, blank=False, default=dict)
     comments = models.TextField(blank=True, null=True)
     
-    def __unicode__(self):
-        return u"(%s) %s" % (str(self.date), self.name)
+    def __str__(self):
+        return "(%s) %s" % (str(self.date), self.name)
     
     def attachment_filename(self):
         """
         Return the filename only (no path) for the attachment.
         """
         _, filename = os.path.split(self.file_attachment.name)
-        print "FILENAME:", filename
+        print("FILENAME:", filename)
         return filename
 

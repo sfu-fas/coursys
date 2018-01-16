@@ -23,7 +23,7 @@ class AcceptedQuery(DB2_Query):
     default_arguments = {'strm': current_semester().increment(1), 'acad_plans': plans_list}
 
     def __init__(self, query_args):
-        for arg in AcceptedQuery.default_arguments.keys():
+        for arg in list(AcceptedQuery.default_arguments.keys()):
             if arg not in query_args:
                 query_args[arg] = AcceptedQuery.default_arguments[arg]
         self.title = "Accepted Students and Genders - " + Semester(query_args["strm"]).long_form()
@@ -47,7 +47,7 @@ class EnrolledQuery(DB2_Query):
     default_arguments = {'strm': str(current_semester().increment(1)), 'acad_progrs': progs_list}
 
     def __init__(self, query_args):
-        for arg in EnrolledQuery.default_arguments.keys():
+        for arg in list(EnrolledQuery.default_arguments.keys()):
             if arg not in query_args:
                 query_args[arg] = EnrolledQuery.default_arguments[arg]
         self.title = "Enrolled Students and Genders - " + Semester(query_args["strm"]).long_form()

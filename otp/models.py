@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 from . import auth_checks
 from django.db import models
 from django.contrib.sessions.models import Session
@@ -46,7 +46,7 @@ def totpauth_url(totp_dev):
         ('digits', totp_dev.digits),
         ('issuer', issuer)
     ]
-    return b'otpauth://totp/%s?%s' % (label, urlencode(query))
+    return b'otpauth://totp/%s?%s' % (label, urlencode(query).encode('ascii'))
 
 
 # based on http://stackoverflow.com/a/4631504/1236542
@@ -134,7 +134,7 @@ class SessionInfo(models.Model):
         si.save()
         return si
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s@%s' % (self.session_id, self.created)
 
     def okay_auth(self, request, user):

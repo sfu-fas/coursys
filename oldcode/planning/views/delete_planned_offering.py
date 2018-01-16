@@ -1,5 +1,5 @@
 from planning.models import PlannedOffering
-from update_plan import update_plan
+from .update_plan import update_plan
 from courselib.auth import requires_role
 from django.http import  HttpResponseRedirect
 from django.contrib import messages

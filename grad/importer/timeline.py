@@ -56,7 +56,7 @@ class GradTimeline(object):
             if h.adm_appl_nbr and h.unit:
                 cs = [c for c in self.careers if c.unit == h.unit and c.adm_appl_nbr == h.adm_appl_nbr]
                 if len(cs) > 1:
-                    raise ValueError, str(cs)
+                    raise ValueError(str(cs))
                 elif len(cs) == 1:
                     c = cs[0]
                 elif not isinstance(h, GradResearchArea): # don't let research area entries create careers: just toss.
@@ -95,7 +95,7 @@ class GradTimeline(object):
                         # these aren't really carrying info, so drop
                         h.in_career = True
                     else:
-                        raise ValueError, "Multiple career options for happening %s for %s. %s" % (h, self.emplid, possible_careers)
+                        raise ValueError("Multiple career options for happening %s for %s. %s" % (h, self.emplid, possible_careers))
                 else:
                     # make sure that "active program" filter didn't cause an inappropriate new career
                     assert h.prog_action not in ['LEAV', 'RLOA', 'DISC', 'COMP']
@@ -172,7 +172,7 @@ class GradTimeline(object):
 
         dropped = [h for h in happenings if not h.in_career]
         if dropped:
-            raise ValueError, 'Some happenings got dropped for %s! %s' % (self.emplid, dropped)
+            raise ValueError('Some happenings got dropped for %s! %s' % (self.emplid, dropped))
 
         for c in self.careers:
             c.sort_happenings()
@@ -240,4 +240,4 @@ class GradTimeline(object):
                 if SIMS_SOURCE in gs.config:
                     # trust us-from-the-past
                     continue
-                print 'Rogue grad student: %s in %s starting %s' % (self.emplid, gs.program.slug, gs.start_semester.name if gs.start_semester else '???')
+                print('Rogue grad student: %s in %s starting %s' % (self.emplid, gs.program.slug, gs.start_semester.name if gs.start_semester else '???'))

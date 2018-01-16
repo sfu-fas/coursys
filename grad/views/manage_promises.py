@@ -23,7 +23,7 @@ def manage_promises(request, grad_slug):
                 promise = None
 
             if promise != None:
-                form._errors['end_semester'] = ErrorList([u"A Promise for this semester already exists."])
+                form._errors['end_semester'] = ErrorList(["A Promise for this semester already exists."])
             else:
                 promise = form.save(commit=False)
                 promise.student = grad

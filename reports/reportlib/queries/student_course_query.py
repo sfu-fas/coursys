@@ -46,7 +46,7 @@ class StudentCourseQuery(DB2_Query):
     default_arguments = { 'semester': current_semester() }
     
     def __init__(self, query_args):
-        for arg in StudentCourseQuery.default_arguments.keys():
+        for arg in list(StudentCourseQuery.default_arguments.keys()):
             if arg not in query_args:
                 query_args[arg] = StudentCourseQuery.default_arguments[arg]
         self.title = "Student Course Query - " + Semester(query_args["semester"]).long_form()
@@ -92,7 +92,7 @@ class SingleCourseQuery(DB2_Query):
         :type include_current: bool
         """
 
-        for arg in SingleCourseQuery.default_arguments.keys():
+        for arg in list(SingleCourseQuery.default_arguments.keys()):
             if arg not in query_args:
                 query_args[arg] = SingleCourseQuery.default_arguments[arg]
         self.title = "Single Course Query - " + query_args["subject"] + " " + query_args['catalog_nbr']
@@ -127,7 +127,7 @@ class SingleTransferCourseQuery(DB2_Query):
     default_arguments = { 'subject': 'CMPT', 'catalog_nbr': '120' }
     
     def __init__(self, query_args):
-        for arg in SingleTransferCourseQuery.default_arguments.keys():
+        for arg in list(SingleTransferCourseQuery.default_arguments.keys()):
             if arg not in query_args:
                 query_args[arg] = SingleTransferCourseQuery.default_arguments[arg]
         self.title = "Single Transfer Course Query - " + query_args["subject"] + " " + query_args['catalog_nbr'] 
@@ -176,7 +176,7 @@ class SingleCourseStrmQuery(DB2_Query):
         """
 
         # Add all arguments that are in default_arguments but not in our query_args
-        for arg in SingleCourseStrmQuery.default_arguments.keys():
+        for arg in list(SingleCourseStrmQuery.default_arguments.keys()):
             if arg not in query_args:
                 query_args[arg] = SingleCourseStrmQuery.default_arguments[arg]
         self.title = "Single Course Query - " + query_args["subject"] + " " + query_args['catalog_nbr']
@@ -231,7 +231,7 @@ class SingleCourseStrmGradeQuery(DB2_Query):
         """
 
         # Add all arguments that are in default_arguments but not in our query_args
-        for arg in SingleCourseStrmGradeQuery.default_arguments.keys():
+        for arg in list(SingleCourseStrmGradeQuery.default_arguments.keys()):
             if arg not in query_args:
                 query_args[arg] = SingleCourseStrmGradeQuery.default_arguments[arg]
         self.title = "Single Course Query - " + query_args["subject"] + " " + query_args['catalog_nbr']

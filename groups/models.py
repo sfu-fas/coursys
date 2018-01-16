@@ -8,7 +8,7 @@ from dashboard.models import NewsItem
 from django.conf import settings
 from courselib.slugs import make_slug
 from courselib.svn import update_group_repository
-import datetime, urlparse
+import datetime, urllib.parse
 
 
 class Group(models.Model):
@@ -27,14 +27,14 @@ class Group(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='courseoffering')
     svn_slug = AutoSlugField(max_length=17, populate_from='slug', null=True, editable=False, unique_with='courseoffering')
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.name)
 
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
 
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
+    def __lt__(self, other):
+        return self.name < other.name
 
     def get_absolute_url(self):
         return reverse('offering:groups:view_group', kwargs={'course_slug': self.courseoffering.slug,
@@ -45,7 +45,7 @@ class Group(models.Model):
 
     def svn_url(self):
         "SVN URL for this member (assuming offering.uses_svn())"
-        return urlparse.urljoin(settings.SVN_URL_BASE, repo_name(self.courseoffering, self.svn_slug))
+        return urllib.parse.urljoin(settings.SVN_URL_BASE, repo_name(self.courseoffering, self.svn_slug))
 
     class Meta:
         unique_together = (("name", "courseoffering"), ("slug", "courseoffering"), ("svn_slug", "courseoffering"))
@@ -60,7 +60,7 @@ class GroupMember(models.Model):
     confirmed = models.BooleanField(default = False)
     activity = models.ForeignKey(Activity)
 
-    def __unicode__(self):
+    def __str__(self):
 	    return '%s@%s/%s' % (self.student.person, self.group, self.activity.short_name)
     class Meta:
         unique_together = ("student", "activity")

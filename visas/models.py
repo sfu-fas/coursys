@@ -76,8 +76,8 @@ class Visa (models.Model):
             return EXPIRY_STATUSES[2]
         return "Unknown"  # We'll hit this if the end_date is null.
 
-    def __unicode__(self):
-        return u"%s, %s, %s" % (self.person, self.status, self.start_date)
+    def __str__(self):
+        return "%s, %s, %s" % (self.person, self.status, self.start_date)
 
     def hide(self):
         self.hidden = True
@@ -100,9 +100,9 @@ class Visa (models.Model):
             visatype = d[5]
             if country == 'CAN':
                 # Canadian citizen and be done with it.
-                print emplid, 'Citizen'
+                print(emplid, 'Citizen')
             elif visatype:
-                print emplid, visas.get(visatype, None)
+                print(emplid, visas.get(visatype, None))
 
     @staticmethod
     def get_visas(people):
@@ -141,7 +141,7 @@ class VisaDocumentAttachment(models.Model):
 
     objects = VisaDocumentAttachmentQueryset.as_manager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:

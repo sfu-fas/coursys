@@ -129,7 +129,7 @@ class MemoTemplateForm(forms.ModelForm):
         try:
             Template(template_text)
         except TemplateSyntaxError as e:
-            raise forms.ValidationError('Syntax error in template: ' + unicode(e))
+            raise forms.ValidationError('Syntax error in template: ' + str(e))
         return template_text
 
 class MemoForm(forms.ModelForm):
@@ -151,7 +151,7 @@ class MemoForm(forms.ModelForm):
         # reorder the fields to the order of the printed memo
         assert isinstance(self.fields, OrderedDict)
         keys = ['to_lines', 'from_lines', 'subject', 'sent_date', 'memo_text', 'cc_lines']
-        keys.extend([k for k in self.fields.keys() if k not in keys])
+        keys.extend([k for k in list(self.fields.keys()) if k not in keys])
 
         field_data = [(k,self.fields[k]) for k in keys]
         self.fields.clear()
@@ -197,7 +197,7 @@ class UnitFilterForm(forms.Form):
     def __init__(self, units, *args, **kwargs):
         super(UnitFilterForm, self).__init__(*args, **kwargs)
         self.multiple_units = len(units) > 1
-        all_units = [(unicode(u.label), unicode(u.informal_name())) for u in units]
+        all_units = [(str(u.label), str(u.informal_name())) for u in units]
         self.fields['category'].choices = [('all', 'All Units')] + all_units
 
 
@@ -216,7 +216,7 @@ class GrantForm(forms.ModelForm):
         self.units = units
         super(GrantForm, self).__init__(*args, **kwargs)
         self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
-        self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
+        self.fields['unit'].choices = [(str(u.id), str(u)) for u in units]
         owners = Person.objects.filter(role__role__in=["ADMN", "FAC", "FUND"], role__unit__in=units).distinct()
         self.fields['owners'].queryset = owners
 

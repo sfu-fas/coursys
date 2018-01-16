@@ -16,25 +16,25 @@ class CustomMultipleInputField(fields.MultiValueField):
         self.max = max
         self.required = other_required
         kwargs['widget'] = CustomMultipleInputWidget(name=name, max=max, min=min)
-        self.field_set = [fields.CharField() for _ in xrange(int(max))]
+        self.field_set = [fields.CharField() for _ in range(int(max))]
 
         super(CustomMultipleInputField, self).__init__(fields=self.field_set, *args, **kwargs)
 
 
     def compress(self, data_list):
         if data_list:
-            name = data_list.items()[1][0][0]
+            name = list(data_list.items())[1][0][0]
             count = 0
             data = []
 
-            for k, v in sorted(data_list.iteritems(), key=lambda (k,v): (k,v)):
+            for k, v in sorted(iter(data_list.items()), key=lambda k_v: (k_v[0],k_v[1])):
                 if str(k).startswith(str(name) + '_'):
                     if len(str(v)) > 0:
                         data.append(v)
                         count += 1
 
             if self.required and count < int(self.min):
-                raise ValidationError, 'Enter at least '+self.min+' responses'
+                raise ValidationError('Enter at least '+self.min+' responses')
 
             return data
         return None
@@ -51,7 +51,7 @@ class ListField(FieldBase):
                 min_r = int(self.data['min_responses'])
                 max_r = int(self.data['max_responses'])
                 if min_r > max_r:
-                    raise forms.ValidationError, "Minimum number of responses cannot be more than the maximum."
+                    raise forms.ValidationError("Minimum number of responses cannot be more than the maximum.")
             except (ValueError, KeyError):
                 pass # let somebody else worry about that
 
@@ -89,23 +89,23 @@ class ListField(FieldBase):
 
 
 class _ClearableFileInput(forms.ClearableFileInput):
-    template_with_initial = u'<div class="formfileinput">Current file: %(initial)s %(clear_template)s<br />Upload file: %(input)s</div>'
-    template_with_clear = u'<br /><label class="sublabel" for="%(clear_checkbox_id)s">Remove current file:</label> %(clear)s'
+    template_with_initial = '<div class="formfileinput">Current file: %(initial)s %(clear_template)s<br />Upload file: %(input)s</div>'
+    template_with_clear = '<br /><label class="sublabel" for="%(clear_checkbox_id)s">Remove current file:</label> %(clear)s'
 
     def render(self, name, value, attrs=None):
-        name = unicode(name)
+        name = str(name)
         substitutions = {
             'initial_text': self.initial_text,
             'input_text': self.input_text,
             'clear_template': '',
             'clear_checkbox_label': self.clear_checkbox_label,
         }
-        template = u'%(input)s'
+        template = '%(input)s'
         substitutions['input'] = super(forms.ClearableFileInput, self).render(name, value, attrs)
 
         if value and hasattr(value, "url"):
             template = self.template_with_initial
-            substitutions['initial'] = (u'<a href="%s">%s</a>'
+            substitutions['initial'] = ('<a href="%s">%s</a>'
                                         % (escape(value.file_sub.get_file_url()),
                                            escape(value.file_sub.display_filename())))
             if not self.is_required:
@@ -245,7 +245,7 @@ class SemesterField(FieldBase):
             c.initial = fieldsubmission.data['info']
 
         if not self.config['required']:
-            c.choices.insert(0, ('', u'\u2014'))
+            c.choices.insert(0, ('', '\u2014'))
 
         return c
 

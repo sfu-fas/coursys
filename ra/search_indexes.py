@@ -19,11 +19,11 @@ class RAIndex(indexes.SearchIndex, indexes.Indexable):
         pieces = [
             ra.person.name_with_pref(),
             ra.hiring_faculty.name_with_pref(),
-            unicode(ra.project.project_number),
-            unicode(ra.project.fund_number),
-            unicode(ra.account.account_number),
-            unicode(ra.account.position_number),
-            unicode(ra.lump_sum_pay),
+            str(ra.project.project_number),
+            str(ra.project.fund_number),
+            str(ra.account.account_number),
+            str(ra.account.position_number),
+            str(ra.lump_sum_pay),
             ra.unit.label,
             ra.unit.name,
         ]

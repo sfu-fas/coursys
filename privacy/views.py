@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from django.contrib import messages
-from forms import PrivacyForm
+from .forms import PrivacyForm
 from courselib.auth import HttpResponseRedirect, requires_role
 from coredata.models import Person
-from models import set_privacy_signed, PRIVACY_VERSION
+from .models import set_privacy_signed, PRIVACY_VERSION
 
 def privacy(request):
     """

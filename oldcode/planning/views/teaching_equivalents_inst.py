@@ -11,9 +11,9 @@ from django.core.urlresolvers import reverse
 def _fraction_display(f):
     whole = int(f)
     remainder = f - int(f)
-    s = unicode(whole)
+    s = str(whole)
     if remainder > 0:
-        s += ' ' + unicode(remainder)
+        s += ' ' + str(remainder)
     return s
 
 def _get_teaching_credits_by_semester(instructor):
@@ -50,7 +50,7 @@ def _get_teaching_credits_by_semester(instructor):
             semesters[semester.label()]['courses'].append(course)
     
     semester_list = []
-    for _, semester in semesters.items():
+    for _, semester in list(semesters.items()):
         credit_count = 0
         confirmed = True
         for course in semester['courses']:

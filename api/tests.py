@@ -43,7 +43,7 @@ class APIEndpointTester(object):
             if 'link' in data:
                 yield data['link']
             if 'links' in data:
-                for u in data['links'].values():
+                for u in list(data['links'].values()):
                     yield u
         elif isinstance(data, (list, tuple)):
             for d in data:
@@ -55,7 +55,7 @@ class APIEndpointTester(object):
         return resolve(url).func
 
     def links_to_views(self, urls):
-        return map(self.link_to_view, urls)
+        return list(map(self.link_to_view, urls))
 
     def find_views_in(self, data):
         found = set(self.links_to_views(self.all_links(data)))
@@ -68,7 +68,7 @@ class APIEndpointTester(object):
         url = reverse(view, kwargs=view_kwargs)
         resp = self.client.get(url)
         self.testcase.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content.decode('utf8'))
 
         self.find_views_in(data)
         self.checked_views.add(self.link_to_view(url))
@@ -180,16 +180,16 @@ class APITest(TestCase):
         url = reverse('api:OfferingStudents', kwargs={'course_slug': TEST_COURSE_SLUG})
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 403)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content.decode('utf8'))
         self.assertIsInstance(data, dict)
-        self.assertEqual(data.keys(), ['detail'])
+        self.assertEqual(list(data.keys()), ['detail'])
 
         # as instructor: should return class list
         client.login_user("ggbaker")
         url = reverse('api:OfferingStudents', kwargs={'course_slug': TEST_COURSE_SLUG})
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content.decode('utf8'))
         self.assertIsInstance(data, list)
         self.assertEqual([d['userid'] for d in data],
                          [m.person.userid for m in Member.objects.filter(offering__slug=TEST_COURSE_SLUG, role='STUD')
@@ -200,6 +200,6 @@ class APITest(TestCase):
         url = reverse('api:OfferingStudents', kwargs={'course_slug': TEST_COURSE_SLUG})
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 403)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content.decode('utf8'))
         self.assertIsInstance(data, dict)
-        self.assertEqual(data.keys(), ['detail'])
+        self.assertEqual(list(data.keys()), ['detail'])

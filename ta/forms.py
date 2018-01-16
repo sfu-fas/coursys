@@ -26,7 +26,7 @@ class LabelledHidden(forms.HiddenInput):
     def render(self, name, value, attrs=None):
         res = super(LabelledHidden, self).render(name, value, attrs=attrs) 
         if value:
-            res += unicode(value)
+            res += str(value)
         return res
 
 @table_row__Form
@@ -38,21 +38,21 @@ class TUGDutyForm(forms.Form):
         self.label = label
     
     weekly = forms.DecimalField(label="Weekly hours", required=False)
-    weekly.widget.attrs['class'] = u'weekly'
-    weekly.manual_css_classes = [u'weekly']
+    weekly.widget.attrs['class'] = 'weekly'
+    weekly.manual_css_classes = ['weekly']
     total = forms.DecimalField(label="Total hours", 
-            error_messages={'required':u'Number of hours is required.'})
-    total.widget.attrs['class'] = u'total'
-    total.manual_css_classes = [u'total']
+            error_messages={'required':'Number of hours is required.'})
+    total.widget.attrs['class'] = 'total'
+    total.manual_css_classes = ['total']
     comment = forms.CharField(label="Comment", required=False)
-    comment.widget.attrs['class'] = u'comment'
-    comment.manual_css_classes = [u'comment']
+    comment.widget.attrs['class'] = 'comment'
+    comment.manual_css_classes = ['comment']
 
 
 class TUGDutyLabelForm(forms.Form):
     label = forms.CharField(label="Other:", 
             error_messages={'required': 'Please specify'})
-    label.widget.attrs['class'] = u'label-field'
+    label.widget.attrs['class'] = 'label-field'
 
 # doesn't simply subclass TUGDutyForm so that the label will be listed first
 class TUGDutyOtherForm(TUGDutyLabelForm, TUGDutyForm):
@@ -157,10 +157,10 @@ class TUGForm(forms.ModelForm):
             raise forms.ValidationError("Wrong member")
         return self.cleaned_data['member']
     def is_valid(self):
-        return (all(form.is_valid() for form in self.subforms.itervalues())
+        return (all(form.is_valid() for form in self.subforms.values())
                 and super(TUGForm, self).is_valid())
     def full_clean(self):
-        for form in self.subforms.itervalues():
+        for form in self.subforms.values():
             form.full_clean()
         return super(TUGForm, self).full_clean()
     def clean(self):
@@ -352,7 +352,7 @@ class BaseTACourseFormSet(BaseInlineFormSet):
             except AttributeError:
                 pass
         if count < 1:
-            raise forms.ValidationError(u"Please select at least one course")
+            raise forms.ValidationError("Please select at least one course")
         
         #check no duplicate course selection
         courses = []
@@ -360,7 +360,7 @@ class BaseTACourseFormSet(BaseInlineFormSet):
             if form.cleaned_data and form.cleaned_data['course']:
                 course = form.cleaned_data['course']
                 if(course in courses):
-                        raise forms.ValidationError(u"Duplicate course selection")
+                        raise forms.ValidationError("Duplicate course selection")
                 courses.append(course)  
         
 # helpers for the TAPostingForm
@@ -505,7 +505,7 @@ class TAPostingForm(forms.ModelForm):
 
     def clean_start(self):
         start = self.cleaned_data['start']
-        self.instance.config['start'] = unicode(start)
+        self.instance.config['start'] = str(start)
         return start
 
     def clean_end(self):
@@ -514,13 +514,13 @@ class TAPostingForm(forms.ModelForm):
             start = self.cleaned_data['start']
             if start >= end:
                 raise forms.ValidationError("Contracts must end after they start")
-        self.instance.config['end'] = unicode(end)
+        self.instance.config['end'] = str(end)
         return end
 
     def clean_payroll_start(self):
         payroll_start = self.cleaned_data['payroll_start']
         if payroll_start:
-            self.instance.config['payroll_start'] = unicode(payroll_start)
+            self.instance.config['payroll_start'] = str(payroll_start)
         return payroll_start
 
     def clean_payroll_end(self):
@@ -531,12 +531,12 @@ class TAPostingForm(forms.ModelForm):
                 if not payroll_end or payroll_start >= payroll_end:
                     raise forms.ValidationError("Payroll periods must end after they start")
         if payroll_end:
-            self.instance.config['payroll_end'] = unicode(payroll_end)
+            self.instance.config['payroll_end'] = str(payroll_end)
         return payroll_end
 
     def clean_deadline(self):
         deadline = self.cleaned_data['deadline']
-        self.instance.config['deadline'] = unicode(deadline)
+        self.instance.config['deadline'] = str(deadline)
         return deadline
         
     def clean_opens(self):
@@ -657,7 +657,7 @@ class AssignBUForm(forms.Form):
     rank = forms.IntegerField(min_value=0, label="rank", widget=forms.TextInput(attrs={'class': 'smallnumberinput'}))
     rank.widget.attrs['size'] = '2'
     bu = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2, required=False, widget=forms.TextInput(attrs={'class': 'smallnumberinput'}))
-    bu.widget.attrs['class'] = u'bu_inp'
+    bu.widget.attrs['class'] = 'bu_inp'
     bu.widget.attrs['size'] = '3'
 
 # fake contract statuses to allow selecting applicants in the form

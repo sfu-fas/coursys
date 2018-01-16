@@ -13,7 +13,7 @@ class StaffSemesterField(forms.CharField):
     
     def prepare_value(self, semester):
         "Convert to semester name for display in widget"
-        if isinstance(semester, basestring):
+        if isinstance(semester, str):
             return semester
         elif isinstance(semester, int):
             return Semester.objects.get(id=semester).name
@@ -30,4 +30,4 @@ class StaffSemesterField(forms.CharField):
         try:
             return Semester.objects.get(name=val)
         except Semester.DoesNotExist:
-            raise forms.ValidationError, "Cannot find a semester with that label"
+            raise forms.ValidationError("Cannot find a semester with that label")

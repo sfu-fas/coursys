@@ -6,7 +6,7 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
-from cache import clear_cache
+from .cache import clear_cache
 
 import datetime
 import os
@@ -16,8 +16,8 @@ import traceback
 import string
 import importlib
 
-from reportlib import DB2_Query
-from reportlib.table import Table
+from .reportlib import DB2_Query
+from .reportlib.table import Table
 
 REPORT_LOCATION = os.path.join( settings.BASE_DIR, 'reports', 'reportlib', 'reports' )
 

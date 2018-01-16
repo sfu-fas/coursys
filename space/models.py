@@ -84,8 +84,8 @@ class RoomType(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def __unicode__(self):
-        return u"%s-%s-%s" % (self.unit.label, self.code, str(self.COU_code_value))
+    def __str__(self):
+        return "%s-%s-%s" % (self.unit.label, self.code, str(self.COU_code_value))
 
 
 class LocationManager(models.QuerySet):
@@ -120,8 +120,8 @@ class Location(models.Model):
                          self.room_number)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def __unicode__(self):
-        return u"%s - %s - %s - %s - %s" % (self.unit.label, self.campus, self.building, str(self.floor),
+    def __str__(self):
+        return "%s - %s - %s - %s - %s" % (self.unit.label, self.campus, self.building, str(self.floor),
                                             self.room_number)
 
     def get_current_booking(self):
@@ -190,8 +190,8 @@ class BookingRecord(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def __unicode__(self):
-        return u"%s - %s" % (self.person.name(), self.start_time)
+    def __str__(self):
+        return "%s - %s" % (self.person.name(), self.start_time)
 
     def save(self, editor=None, *args, **kwargs):
         # Only note the last modified things if we have an editor.  Otherwise, the object is being changed
@@ -246,7 +246,7 @@ class BookingRecordAttachment(models.Model):
 
     objects = BookingRecordAttachmentQueryset.as_manager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:

@@ -2,7 +2,7 @@ from piwikapi.tracking import PiwikTracker
 from piwikapi.tests.request import FakeRequest
 from ipware.ip import get_real_ip
 from socket import error as SocketError
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import time, datetime, pytz
 import hashlib
 
@@ -25,7 +25,7 @@ except ValueError:
 USE_CELERY = track_page_view_task and settings.PIWIK_CELERY
 
 # errors that might be thrown by the API call that variously mean "bad network thing".
-urllib_errors = (urllib2.URLError, urllib2.HTTPError, SocketError, IOError)
+urllib_errors = (urllib.error.URLError, urllib.error.HTTPError, SocketError, IOError)
 
 
 class PiwikTrackerLogic(object):
@@ -43,8 +43,8 @@ class PiwikTrackerLogic(object):
         # copy the META members that might actually be HTTP headers
         headers = dict(
             (k, v.decode('cp1250')) # There have been some wacky bytes in headers. Make sure they can be JSON serialized
-            for k,v in request.META.iteritems()
-            if isinstance(k, basestring) and isinstance(v, basestring)
+            for k,v in request.META.items()
+            if isinstance(k, str) and isinstance(v, str)
         )
         headers['HTTPS'] = request.is_secure()
 

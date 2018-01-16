@@ -1,8 +1,7 @@
-#Creoleparser==0.7.4  Replaced with version below that incorporates our fix for null headings
-git+git://github.com/garrison/creoleparser.git@78aab98896a05185997ca5da0859a8448fa35cc9
 Django==1.10.5
+#Creoleparser==0.7.4  Replaced with version below that incorporates our fix for null headings, and python3 support
+git+git://github.com/gregbaker/creoleparser.git@f2d9ba65a0cd435f5b25347414902b21826999dd
 Genshi==0.7
-#South==1.0.1
 Unidecode>=0.04.19
 #django-autoslug==1.9.4  -- Not released yet but our change will be in it.  In the mean time:
 git+git://github.com/neithere/django-autoslug.git@a16fd5e83063e533e709238522fe1321e24349e1
@@ -15,7 +14,6 @@ jsonfield==1.0.3
 pyparsing==2.1.10
 pytz>=2016.10
 textile==2.3.6
-unicodecsv==0.14.1
 html5lib==0.999999999
 bleach==2.1.2
 reportlab==3.3.0
@@ -28,7 +26,8 @@ git+git://github.com/disqus/django-bitfield@306ba5cb193fe444719d4286cd1d6296628e
 django-localflavor==1.4
 django-countries==4.0
 django-compressor==2.1
-django-cache-utils==0.7.2
+#django-cache-utils==0.7.2
+hg+https://bitbucket.org/ggbaker/django-cache-utils/@fc63e52 # python 3 compatibility
 celery==4.0.2
 django-celery-email==1.1.5
 django_celery_beat==1.0.1
@@ -40,8 +39,7 @@ whoosh==2.7.4
 djangorestframework==3.5.3
 djangorestframework-oauth==1.1.0
 #django-oauth-plus==2.2.9
-hg+https://bitbucket.org/kerrermanisNL/django-oauth-plus/@5c17c4c5cecba4ce221a3e834bfc78eb1d21e73b # django 1.10 compatibility
-#hg+https://bitbucket.org/coagulant/django-oauth-plus/@c18d240#egg=django-oauth-plus # includes pull request https://bitbucket.org/david/django-oauth-plus/pull-request/15/remove-south-from-package-dependencies/diff
+hg+https://bitbucket.org/ggbaker/django-oauth-plus/@0ab4319 # django 1.10 and python3 compatibility
 markdown # for API docs
 django-rest-swagger==2.1.0
 #git+git://github.com/gregbaker/django-rest-swagger@develop# includes help_text in docs, and choices field support

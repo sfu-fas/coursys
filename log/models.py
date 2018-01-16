@@ -37,5 +37,5 @@ class LogEntry(models.Model):
     def display(self):
         return "%s - %s - %s" % (self.userid, self.description, self.comment)
 
-    __unicode__ = display
+    __str__ = display
 

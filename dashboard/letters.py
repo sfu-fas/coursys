@@ -54,7 +54,7 @@ class SFUMediaMixin():
         # translate digits to old-style numerals (in their Bembo character positions)
         self.digit_trans = {}
         for d in range(10):
-            self.digit_trans[48+d] = unichr(0xF643 + d)
+            self.digit_trans[48+d] = chr(0xF643 + d)
 
         self.sc_trans_bembo = {}
         # translate letters to smallcaps characters (in their [strange] Bembo character positions)
@@ -67,8 +67,8 @@ class SFUMediaMixin():
                 offset = d+3
             else: # V-Z
                 offset = d+4
-            self.sc_trans_bembo[65+d] = unichr(0xE004 + offset)
-            self.sc_trans_bembo[97+d] = unichr(0xE004 + offset)
+            self.sc_trans_bembo[65+d] = chr(0xE004 + offset)
+            self.sc_trans_bembo[97+d] = chr(0xE004 + offset)
 
     def _drawStringLeading(self, canvas, x, y, text, charspace=0, mode=None):
         """
@@ -107,7 +107,7 @@ class LetterPageTemplate(PageTemplate, SFUMediaMixin):
         """
         ypos = y
         for line in lines:
-            line = unicode(line).translate(doc.digit_trans)
+            line = str(line).translate(doc.digit_trans)
             p = Paragraph(line, style)
             _,h = p.wrap(width, 1*inch)
             p.drawOn(canvas, x, ypos-h)
@@ -124,10 +124,10 @@ class LetterPageTemplate(PageTemplate, SFUMediaMixin):
         """
         c.setFont('BemboMTPro', 12)
         c.setFillColor(doc.sfu_red)
-        self._drawStringLeading(c, self.lr_margin + 6, 0.5*inch, u'Simon Fraser University'.translate(doc.sc_trans_bembo), charspace=1.4)
+        self._drawStringLeading(c, self.lr_margin + 6, 0.5*inch, 'Simon Fraser University'.translate(doc.sc_trans_bembo), charspace=1.4)
         c.setFont('DINPro', 6)
         c.setFillColor(doc.sfu_grey)
-        self._drawStringLeading(c, 3.15*inch, 0.5*inch, u'Engaging the World'.upper(), charspace=2)
+        self._drawStringLeading(c, 3.15*inch, 0.5*inch, 'Engaging the World'.upper(), charspace=2)
 
 
 class LetterheadTemplate(LetterPageTemplate):
@@ -174,9 +174,9 @@ class LetterheadTemplate(LetterPageTemplate):
         self._put_lines(doc, c, self.unit.address(), 2*inch, self.pg_h - self.top_margin - 0.75*inch, 2.25*inch, addr_style, 8, 1.5)
 
         # phone numbers block
-        lines = [u'Tel'.translate(doc.sc_trans_bembo) + ' ' + self.unit.tel().replace('-', '.')]
+        lines = ['Tel'.translate(doc.sc_trans_bembo) + ' ' + self.unit.tel().replace('-', '.')]
         if self.unit.fax():
-            lines.append(u'Fax'.translate(doc.sc_trans_bembo) + ' ' + self.unit.fax().replace('-', '.'))
+            lines.append('Fax'.translate(doc.sc_trans_bembo) + ' ' + self.unit.fax().replace('-', '.'))
         self._put_lines(doc, c, lines, 4.5*inch, self.pg_h - self.top_margin - 0.75*inch, 1.5*inch, addr_style, 8, 1.5)
 
         # web and email block
@@ -454,7 +454,7 @@ class MemoContents(LetterContents):
 
 
 
-class RAForm(object, SFUMediaMixin):
+class RAForm(SFUMediaMixin):
     MAIN_WIDTH = 8*inch # size of the main box
     ENTRY_FONT = "Helvetica-Bold"
     NOTE_STYLE = ParagraphStyle(name='Normal',
@@ -495,10 +495,10 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawImage(logofile, x=0, y=247*mm, width=20*mm, height=10*mm)
         self.c.setFont('BemboMTPro', 10)
         self.c.setFillColor(self.sfu_red)
-        self._drawStringLeading(self.c, 23*mm, 250*mm, u'Simon Fraser University'.translate(self.sc_trans_bembo), charspace=1.4)
+        self._drawStringLeading(self.c, 23*mm, 250*mm, 'Simon Fraser University'.translate(self.sc_trans_bembo), charspace=1.4)
         self.c.setFont('DINPro', 5)
         self.c.setFillColor(self.sfu_grey)
-        self._drawStringLeading(self.c, 23*mm, 247.5*mm, u'Engaging the World'.upper(), charspace=2)
+        self._drawStringLeading(self.c, 23*mm, 247.5*mm, 'Engaging the World'.upper(), charspace=2)
         self.c.setFillColor(black)
 
         # form header
@@ -545,8 +545,8 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(52*mm, 190*mm, "Social Insurance")
         self.c.drawString(137*mm, 190*mm, "SFUID")
 
-        self._box_entry(83*mm, 188*mm, 51*mm, 6.5*mm, content=unicode(self.ra.sin or ''))
-        self._box_entry(148*mm, 188*mm, 55*mm, 6.5*mm, content=unicode(self.ra.person.emplid))
+        self._box_entry(83*mm, 188*mm, 51*mm, 6.5*mm, content=str(self.ra.sin or ''))
+        self._box_entry(148*mm, 188*mm, 55*mm, 6.5*mm, content=str(self.ra.person.emplid))
 
         self.c.setLineWidth(1)
         self.c.line(0, 181*mm, self.MAIN_WIDTH, 181*mm)
@@ -556,8 +556,8 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(3*mm, 176*mm, "Last Name")
         self.c.drawString(94*mm, 176*mm, "First Name")
         self.c.drawString(185*mm, 176*mm, "Initial")
-        self._box_entry(1.5*mm, 165*mm, 87*mm, 7.5*mm, content=unicode(self.ra.person.last_name))
-        self._box_entry(92*mm, 165*mm, 86*mm, 7.5*mm, content=unicode(self.ra.person.first_name))
+        self._box_entry(1.5*mm, 165*mm, 87*mm, 7.5*mm, content=str(self.ra.person.last_name))
+        self._box_entry(92*mm, 165*mm, 86*mm, 7.5*mm, content=str(self.ra.person.first_name))
         mi = None
         if self.ra.person.middle_name:
             mi = self.ra.person.middle_name[0]
@@ -567,7 +567,7 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(2.5*mm, 158*mm, "Department")
         self.c.drawString(117*mm, 158*mm, "Position Title")
         self._box_entry(30*mm, 156*mm, 83*mm, 6.5*mm, content=self.ra.unit.informal_name())
-        self._box_entry(136*mm, 156*mm, 66*mm, 6.5*mm, content=unicode(self.ra.account.title))
+        self._box_entry(136*mm, 156*mm, 66*mm, 6.5*mm, content=str(self.ra.account.title))
 
         # position numbers
         self.c.setFont("Helvetica", 7)
@@ -586,7 +586,7 @@ class RAForm(object, SFUMediaMixin):
         self._box_entry(1.5*mm, 139*mm, 40*mm,  6.5*mm, content=self.ra.project.get_full_project_number())
         self._box_entry(45*mm, 139*mm, 23*mm, 6.5 * mm, content="%04i" % (self.ra.account.account_number))
         self._box_entry(71*mm, 139*mm, 11.5*mm, 6.5*mm, content="%i" % (self.ra.project.fund_number))
-        self._box_entry(85*mm, 139*mm, 25*mm, 6.5*mm, content=unicode(self.ra.project.department_code))
+        self._box_entry(85*mm, 139*mm, 25*mm, 6.5*mm, content=str(self.ra.project.department_code))
         self._box_entry(112*mm, 139*mm, 31*mm, 6.5*mm, content=self.ra.get_program_display())
 
         self._box_entry(150*mm, 139*mm, 46*mm, 6.5*mm, content='')
@@ -595,8 +595,8 @@ class RAForm(object, SFUMediaMixin):
         self.c.setFont("Helvetica", 8)
         self.c.drawString(1.5*mm, 133*mm, "Start Date")
         self.c.drawString(73*mm, 133*mm, "End Date")
-        self._box_entry(21.5*mm, 131.5*mm, 42*mm, 5.5*mm, content=unicode(self.ra.start_date).replace('-', '/'))
-        self._box_entry(92.5*mm, 131.5*mm, 42*mm, 5.5*mm, content=unicode(self.ra.end_date).replace('-', '/'))
+        self._box_entry(21.5*mm, 131.5*mm, 42*mm, 5.5*mm, content=str(self.ra.start_date).replace('-', '/'))
+        self._box_entry(92.5*mm, 131.5*mm, 42*mm, 5.5*mm, content=str(self.ra.end_date).replace('-', '/'))
 
         # money
         if self.ra.pay_frequency == 'L':
@@ -604,7 +604,7 @@ class RAForm(object, SFUMediaMixin):
             biweekly = ''
             biweekhours = ''
             if self.ra.lump_sum_hours and self.ra.use_hourly():
-                lumphours = unicode(self.ra.lump_sum_hours)
+                lumphours = str(self.ra.lump_sum_hours)
             else:
                 lumphours = ''
             lumpsum = "$%.2f" % (self.ra.lump_sum_pay)
@@ -802,7 +802,7 @@ class RAForm_old(object):
         self._draw_box_left(0, self.MAIN_HEIGHT, width=3.125*inch, label="SOCIAL INSURANCE NUMBER (SIN)", content=sin)
 
         # emplid
-        emplid = unicode(self.ra.person.emplid)
+        emplid = str(self.ra.person.emplid)
         emplid = emplid[:5] + '-' + emplid[5:]
         self._draw_box_right(0, self.MAIN_HEIGHT, width=3.375*inch, label="SFU ID #", content=emplid)
 
@@ -815,7 +815,7 @@ class RAForm_old(object):
 
         # position
         self._draw_box_left(0, height, width=3.125*inch, label="POSITION NUMBER", content='') # to be filled by HR
-        self._draw_box_right(0, height, width=3.75*inch, label="POSITION TITLE", content=unicode(self.ra.account.title))
+        self._draw_box_right(0, height, width=3.75*inch, label="POSITION TITLE", content=str(self.ra.account.title))
 
         # department
         dept = self.ra.unit.informal_name()
@@ -834,8 +834,8 @@ class RAForm_old(object):
         self._rule(height)
 
         # dates
-        self._draw_box_left(0, height, width=2.125*inch, label="START DATE (yyyy/mm/dd)", content=unicode(self.ra.start_date).replace('-', '/'))
-        self._draw_box_left(3*inch, height, width=1.5*inch, label="END DATE (yyyy/mm/dd)", content=unicode(self.ra.end_date).replace('-', '/'))
+        self._draw_box_left(0, height, width=2.125*inch, label="START DATE (yyyy/mm/dd)", content=str(self.ra.start_date).replace('-', '/'))
+        self._draw_box_left(3*inch, height, width=1.5*inch, label="END DATE (yyyy/mm/dd)", content=str(self.ra.end_date).replace('-', '/'))
 
         # health benefit check boxes
         self.c.setLineWidth(1)
@@ -1071,7 +1071,7 @@ class TAForm(object):
                 if crs.labtut:
                     description = "Office/Marking/Lab"
             else:
-                description = unicode(crs.description)
+                description = str(crs.description)
 
             courses.append((
                 crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],
@@ -1142,29 +1142,29 @@ class TAForm(object):
         self.c.drawPath(p, stroke=1, fill=0)
 
         # personal info
-        self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=unicode(emplid))
-        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=unicode(sin))
-        self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=unicode(last_name))
-        self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=unicode(first_name))
+        self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=str(emplid))
+        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=str(sin))
+        self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=str(last_name))
+        self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=str(first_name))
 
         self.c.setFont("Helvetica", self.LABEL_SIZE)
         self.c.drawString(35*mm, 205*mm, "THE DEPARTMENT HAS CONFIRMED THAT THE ABOVE APPOINTEE IS ELIGIBLE TO WORK IN CANADA")
         self.c.rect(150*mm, 203*mm, 5*mm, 5*mm, fill=True)
 
         self.c.translate(0, -7*mm) # translate to make room for the new employment eligibility line
-        self._draw_box(15*mm, 202*mm, 160*mm, content="c/o " + unicode(unit_name)) # ADDRESS
+        self._draw_box(15*mm, 202*mm, 160*mm, content="c/o " + str(unit_name)) # ADDRESS
         self.c.setFont("Helvetica", self.LABEL_SIZE)
         self.c.drawString(2, 206*mm, "HOME")
         self.c.drawString(2, 203*mm, "ADDRESS")
 
         # appointment basic info
         self.c.drawString(2, 194*mm, "DEPARTMENT")
-        dept = unicode(unicode(unit_name))
+        dept = str(str(unit_name))
         if deptid:
             dept += " (%s)" % (deptid)
         self._draw_box(20*mm, 193*mm, 78*mm, content=dept) # DEPARTMENT
-        self._draw_box(102*mm, 193*mm, 32*mm, label="APPOINTMENT START DATE", content=unicode(appointment_start))
-        self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=unicode(appointment_end))
+        self._draw_box(102*mm, 193*mm, 32*mm, label="APPOINTMENT START DATE", content=str(appointment_start))
+        self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=str(appointment_end))
 
         # initial appointment boxes
         self.c.rect(14*mm, 185*mm, 5*mm, 5*mm, fill=initial_appointment_fill)
@@ -1177,9 +1177,9 @@ class TAForm(object):
         self.c.drawString(21*mm, 177*mm, "NUMBER OR REVISION TO APPOINTMENT")
 
         # position info
-        self._draw_box(60*mm, 176*mm, 37*mm, label="POSITION NUMBER", content=unicode(position_number))
-        self._draw_box(102*mm, 176*mm, 32*mm, label="PAYROLL START DATE", content=unicode(pay_start))
-        self._draw_box(139*mm, 176*mm, 32*mm, label="PAYROLL END DATE", content=unicode(pay_end))
+        self._draw_box(60*mm, 176*mm, 37*mm, label="POSITION NUMBER", content=str(position_number))
+        self._draw_box(102*mm, 176*mm, 32*mm, label="PAYROLL START DATE", content=str(pay_start))
+        self._draw_box(139*mm, 176*mm, 32*mm, label="PAYROLL END DATE", content=str(pay_end))
 
 
         # course assignment headers
@@ -1197,7 +1197,7 @@ class TAForm(object):
 
         # course assignments
         total_bu = 0
-        for i, crs in zip(range(5), list(courses)+[None]*5):
+        for i, crs in zip(list(range(5)), list(courses)+[None]*5):
             h = 162*mm - i*6*mm # bottom of this row
             self.c.rect(24*mm, h, 27*mm, 6*mm)
             self.c.rect(51*mm, h, 74*mm, 6*mm)
@@ -1230,7 +1230,7 @@ class TAForm(object):
         self._draw_box(33*mm, 111*mm, 32*mm, label="BIWEEKLY RATE", right=True, content="%.2f" % (biweek_schol))
         self._draw_box(79*mm, 111*mm, 32*mm, label="SEMESTER RATE", right=True, content="%.2f" % (total_schol))
 
-        self._draw_box(139*mm, 122*mm, 32*mm, label="EFF. DATE FOR RATE CHANGES", content=unicode(pay_start))
+        self._draw_box(139*mm, 122*mm, 32*mm, label="EFF. DATE FOR RATE CHANGES", content=str(pay_start))
         self.c.setFont("Helvetica", 5)
         self.c.drawString(114*mm, 125*mm, "THESE RATES INCLUDE 4%")
         self.c.drawString(114*mm, 123*mm, "VACATION PAY")
@@ -1285,7 +1285,7 @@ class TAForm(object):
 
         self.c.setFont("Helvetica", self.CONTENT_SIZE)
         date = datetime.date.today()
-        self.c.drawString(10*mm, 2*mm, unicode(date))
+        self.c.drawString(10*mm, 2*mm, str(date))
 
         # footer
         self.c.setFont("Helvetica", self.LABEL_SIZE)
@@ -1367,26 +1367,26 @@ class GradeChangeForm(SFUMediaMixin):
         # header
         self.c.drawImage(logofile, x=0, y=224*mm, width=1*inch, height=0.5*inch)
         self.c.setFont("BemboMTPro", 11)
-        self.c.drawString(43*mm, 228*mm, u"RECORDS AND REGISTRATION".translate(self.sc_trans_bembo))
-        self.c.drawString(43*mm, 223*mm, u"STUDENT SERVICES".translate(self.sc_trans_bembo))
+        self.c.drawString(43*mm, 228*mm, "RECORDS AND REGISTRATION".translate(self.sc_trans_bembo))
+        self.c.drawString(43*mm, 223*mm, "STUDENT SERVICES".translate(self.sc_trans_bembo))
         self.title_font()
-        self.c.drawString(121*mm, 228*mm, u"CHANGE OF GRADE NOTIFICATION")
-        self.c.drawString(121*mm, 224*mm, u'AND/OR EXTENSION OF "DE" GRADE')
+        self.c.drawString(121*mm, 228*mm, "CHANGE OF GRADE NOTIFICATION")
+        self.c.drawString(121*mm, 224*mm, 'AND/OR EXTENSION OF "DE" GRADE')
 
         # student info
         self.title_font()
-        self.c.drawString(0, 210*mm, u"SFU STUDENT NUMBER")
+        self.c.drawString(0, 210*mm, "SFU STUDENT NUMBER")
         self.c.rect(35*mm, 207*mm, 92*mm, 8*mm, fill=0)
         self.entry_font()
-        self.c.drawString(40*mm, 209*mm, unicode(member.person.emplid))
+        self.c.drawString(40*mm, 209*mm, str(member.person.emplid))
 
         self.title_font()
-        self.c.drawString(0, 203*mm, u"STUDENT NAME (PLEASE PRINT CLEARLY)")
+        self.c.drawString(0, 203*mm, "STUDENT NAME (PLEASE PRINT CLEARLY)")
 
         self.label_font()
-        self.c.drawString(0, 195*mm, u"Surname")
+        self.c.drawString(0, 195*mm, "Surname")
         self.c.line(12*mm, 195*mm, 91*mm, 195*mm)
-        self.c.drawString(93*mm, 195*mm, u"Given Names")
+        self.c.drawString(93*mm, 195*mm, "Given Names")
         self.c.line(112*mm, 195*mm, main_width, 195*mm)
         self.entry_font()
         self.c.drawString(15*mm, 196*mm, member.person.last_name)
@@ -1402,9 +1402,9 @@ class GradeChangeForm(SFUMediaMixin):
         year = 1900 + int(name[0:3])
         semester = name[3]
         self.title_font()
-        self.c.drawString(0, 189*mm, u"TERM")
+        self.c.drawString(0, 189*mm, "TERM")
         self.label_font()
-        self.c.drawString(0, 183*mm, u"Year")
+        self.c.drawString(0, 183*mm, "Year")
         self.c.line(6*mm, 183*mm, 30*mm, 183*mm)
         self.check_label(36*mm, 183*mm, 'Fall', fill=semester=='7')
         self.check_label(50*mm, 183*mm, 'Spring', fill=semester=='1')
@@ -1412,26 +1412,26 @@ class GradeChangeForm(SFUMediaMixin):
         self.check_label(86*mm, 183*mm, 'Intersession', fill=0)
         self.check_label(110*mm, 183*mm, 'Summer Session', fill=0)
         self.c.rect(140*mm, 183*mm, 40*mm, 8*mm, fill=0)
-        self.c.drawString(148*mm, 178*mm, u"4-digit term number")
+        self.c.drawString(148*mm, 178*mm, "4-digit term number")
         self.entry_font()
-        self.c.drawString(10*mm, 184*mm, unicode(year))
-        self.c.drawString(148*mm, 185*mm, unicode(name))
+        self.c.drawString(10*mm, 184*mm, str(year))
+        self.c.drawString(148*mm, 185*mm, str(name))
 
         # course info
         self.title_font()
-        self.c.drawString(0, 175*mm, u"COURSE")
+        self.c.drawString(0, 175*mm, "COURSE")
         self.label_font()
-        self.c.drawString(0, 169*mm, u"Course subject (e.g. CHEM)")
+        self.c.drawString(0, 169*mm, "Course subject (e.g. CHEM)")
         self.c.rect(36*mm, 168*mm, 41*mm, 8*mm, fill=0)
-        self.c.drawString(81*mm, 169*mm, u"Course number")
+        self.c.drawString(81*mm, 169*mm, "Course number")
         self.c.rect(102*mm, 168*mm, 41*mm, 8*mm, fill=0)
         self.entry_font()
         self.c.drawString(40*mm, 170*mm, member.offering.subject)
         self.c.drawString(110*mm, 170*mm, member.offering.number)
         self.label_font()
-        self.c.drawString(0, 159*mm, u"Class number/section")
+        self.c.drawString(0, 159*mm, "Class number/section")
         self.c.rect(28*mm, 157*mm, 51*mm, 8*mm, fill=0)
-        self.c.drawString(82*mm, 159*mm, u"Course title")
+        self.c.drawString(82*mm, 159*mm, "Course title")
         self.c.line(97*mm, 159*mm, main_width, 159*mm)
         self.entry_font()
         self.c.drawString(35*mm, 159*mm, member.offering.section)
@@ -1440,47 +1440,47 @@ class GradeChangeForm(SFUMediaMixin):
 
         # grade change
         self.title_font()
-        self.c.drawString(0, 149*mm, u"IF CHANGE OF GRADE:")
+        self.c.drawString(0, 149*mm, "IF CHANGE OF GRADE:")
         self.label_font()
-        self.c.drawString(0, 141*mm, u"Original grade")
+        self.c.drawString(0, 141*mm, "Original grade")
         self.c.rect(20*mm, 139*mm, 21*mm, 8*mm, fill=0)
-        self.c.drawString(45*mm, 141*mm, u"Revised grade")
+        self.c.drawString(45*mm, 141*mm, "Revised grade")
         self.c.rect(64*mm, 139*mm, 21*mm, 8*mm, fill=0)
         self.entry_font()
         if oldgrade:
             old = oldgrade
         else:
-            old = u''
+            old = ''
         if newgrade:
             new = newgrade
         else:
-            new = u''
+            new = ''
         self.c.drawString(25*mm, 141*mm, old)
         self.c.drawString(69*mm, 141*mm, new)
 
         # DE extension
         self.title_font()
-        self.c.drawString(0, 132*mm, u"IF EXTENSION OF \u201CDE\u201D GRADE:")
+        self.c.drawString(0, 132*mm, "IF EXTENSION OF \u201CDE\u201D GRADE:")
         self.label_font()
-        self.c.drawString(0, 127*mm, u"Extension due date:")
-        self.c.drawString(30*mm, 127*mm, u"Year (YYYY)")
+        self.c.drawString(0, 127*mm, "Extension due date:")
+        self.c.drawString(30*mm, 127*mm, "Year (YYYY)")
         self.c.line(47*mm, 127*mm, 67*mm, 127*mm)
-        self.c.drawString(69*mm, 127*mm, u"Month (MM)")
+        self.c.drawString(69*mm, 127*mm, "Month (MM)")
         self.c.line(86*mm, 127*mm, 103*mm, 127*mm)
-        self.c.drawString(105*mm, 127*mm, u"Day (DD)")
+        self.c.drawString(105*mm, 127*mm, "Day (DD)")
         self.c.line(118*mm, 127*mm, 136*mm, 127*mm)
 
         # reasons
         self.title_font()
-        self.c.drawString(0, 120*mm, u"REASON FOR CHANGE OF GRADE/EXTENION OF \u201CDE\u201D GRADE")
-        self.c.drawString(0, 116*mm, u"(NOTE: WHEN ASSIGNING A GRADE OF \u201CFD\u201D AN ACADEMIC DISHONESTY REPORT NEEDS TO BE FILED.)")
+        self.c.drawString(0, 120*mm, "REASON FOR CHANGE OF GRADE/EXTENION OF \u201CDE\u201D GRADE")
+        self.c.drawString(0, 116*mm, "(NOTE: WHEN ASSIGNING A GRADE OF \u201CFD\u201D AN ACADEMIC DISHONESTY REPORT NEEDS TO BE FILED.)")
         self.c.line(0*mm, 109*mm, main_width, 109*mm)
         self.c.line(0*mm, 101*mm, main_width, 101*mm)
         self.c.line(0*mm, 93*mm, main_width, 93*mm)
 
         self.label_font()
-        self.c.drawString(0, 86*mm, u"Has the student applied to graduate this term?")
-        self.c.drawString(0, 80*mm, u"Is this student's academic standing currently RTW or PW?")
+        self.c.drawString(0, 86*mm, "Has the student applied to graduate this term?")
+        self.c.drawString(0, 80*mm, "Is this student's academic standing currently RTW or PW?")
         self.check_label(76*mm, 86*mm, 'Yes', fill=0)
         self.check_label(95*mm, 86*mm, 'No', fill=0)
         self.check_label(76*mm, 80*mm, 'Yes', fill=0)
@@ -1488,50 +1488,50 @@ class GradeChangeForm(SFUMediaMixin):
 
         # approvals
         self.title_font()
-        self.c.drawString(0, 72*mm, u"APPROVALS")
+        self.c.drawString(0, 72*mm, "APPROVALS")
         self.label_font()
-        self.c.drawString(0, 67*mm, u"Instructor signature")
+        self.c.drawString(0, 67*mm, "Instructor signature")
         self.c.line(25*mm, 67*mm, 108*mm, 67*mm)
-        self.c.drawString(110*mm, 67*mm, u"Date")
+        self.c.drawString(110*mm, 67*mm, "Date")
         self.c.line(117*mm, 67*mm, main_width, 67*mm)
-        self.c.drawString(0, 59*mm, u"Instructor name (PLEASE PRINT)")
+        self.c.drawString(0, 59*mm, "Instructor name (PLEASE PRINT)")
         self.c.line(44*mm, 59*mm, main_width, 59*mm)
         self.entry_font()
         self.c.drawString(46*mm, 60*mm, user.name())
-        self.c.drawString(120*mm, 68*mm, unicode(datetime.date.today().strftime('%B %d, %Y')))
+        self.c.drawString(120*mm, 68*mm, str(datetime.date.today().strftime('%B %d, %Y')))
 
         self.label_font()
-        self.c.drawString(0, 51*mm, u"Chair signature")
+        self.c.drawString(0, 51*mm, "Chair signature")
         self.c.line(20*mm, 51*mm, 108*mm, 51*mm)
-        self.c.drawString(110*mm, 51*mm, u"Date")
+        self.c.drawString(110*mm, 51*mm, "Date")
         self.c.line(117*mm, 51*mm, main_width, 51*mm)
-        self.c.drawString(0, 43*mm, u"Chair name (PLEASE PRINT)")
+        self.c.drawString(0, 43*mm, "Chair name (PLEASE PRINT)")
         self.c.line(38*mm, 43*mm, main_width, 43*mm)
         self.entry_font()
 
         # FOIPOP
         self.title_font()
-        self.c.drawString(0, 35*mm, u"FREEDOM OF INFORMATION AND PROTECTION OF PRIVACY")
+        self.c.drawString(0, 35*mm, "FREEDOM OF INFORMATION AND PROTECTION OF PRIVACY")
         self.label_font()
-        self.c.drawString(0, 31*mm, u"The information on this form is collected under the authority of the University Act (RSBC 1996 c468 s.27[4a]). This information is needed, and")
-        self.c.drawString(0, 27*mm, u"will be used, to update the student's record. If you have any questions about the collection and use of this information contact the Associate Registrar,")
-        self.c.drawString(0, 23*mm, u"Information, Records and Registration, 778.782.3198.")
+        self.c.drawString(0, 31*mm, "The information on this form is collected under the authority of the University Act (RSBC 1996 c468 s.27[4a]). This information is needed, and")
+        self.c.drawString(0, 27*mm, "will be used, to update the student's record. If you have any questions about the collection and use of this information contact the Associate Registrar,")
+        self.c.drawString(0, 23*mm, "Information, Records and Registration, 778.782.3198.")
 
-        self.c.drawString(0, 15*mm, u"Accepted (for the Registrar)")
+        self.c.drawString(0, 15*mm, "Accepted (for the Registrar)")
         self.c.line(35*mm, 15*mm, 122*mm, 15*mm)
-        self.c.drawString(124*mm, 15*mm, u"Date")
+        self.c.drawString(124*mm, 15*mm, "Date")
         self.c.line(131*mm, 15*mm, main_width, 15*mm)
 
         # footer
         self.c.setFont("BemboMTPro", 7.5)
-        self.c.drawString(43*mm, 6*mm, u"Information, Records and Registration, MBC 3200")
-        self.c.drawString(43*mm, 3*mm, u"8888 University Drive, Burnaby BC Canada V5A 1S6")
-        self.c.drawString(43*mm, 0*mm, u"students.sfu.ca/records")
-        self.c.drawString(122*mm, 6*mm, u"FAX: 778.782.4969")
-        self.c.drawString(122*mm, 3*mm, u"urecords@sfu.ca")
-        self.c.drawString(154*mm, 6*mm, u"NOVEMBER".translate(self.sc_trans_bembo) + u" " + u"2009".translate(self.digit_trans))
-        self.c.drawString(154*mm, 3*mm, u"(produced by %s" % (product_name(hint='course'),))
-        self.c.drawString(154*mm, 0*mm, u"GradeChangeForm)")
+        self.c.drawString(43*mm, 6*mm, "Information, Records and Registration, MBC 3200")
+        self.c.drawString(43*mm, 3*mm, "8888 University Drive, Burnaby BC Canada V5A 1S6")
+        self.c.drawString(43*mm, 0*mm, "students.sfu.ca/records")
+        self.c.drawString(122*mm, 6*mm, "FAX: 778.782.4969")
+        self.c.drawString(122*mm, 3*mm, "urecords@sfu.ca")
+        self.c.drawString(154*mm, 6*mm, "NOVEMBER".translate(self.sc_trans_bembo) + " " + "2009".translate(self.digit_trans))
+        self.c.drawString(154*mm, 3*mm, "(produced by %s" % (product_name(hint='course'),))
+        self.c.drawString(154*mm, 0*mm, "GradeChangeForm)")
 
 
 
@@ -1605,9 +1605,9 @@ class CardReqForm(object):
         # personal info
         self._header_line(213*mm, 'CARD/FOB/KEYHOLDER DETAILS (Please type or print)')
         self._line_entry(0*mm, 208*mm, 'Last Name', 22*mm, 58*mm, grad.person.last_name)
-        self._line_entry(86*mm, 208*mm, 'SFU ID', 30*mm, 45*mm, unicode(grad.person.emplid))
+        self._line_entry(86*mm, 208*mm, 'SFU ID', 30*mm, 45*mm, str(grad.person.emplid))
         self._line_entry(0*mm, 204*mm, 'Given Name', 22*mm, 58*mm, grad.person.first_name)
-        self._line_entry(86*mm, 204*mm, 'email or phone #', 30*mm, 45*mm, unicode(grad.person.email()))
+        self._line_entry(86*mm, 204*mm, 'email or phone #', 30*mm, 45*mm, str(grad.person.email()))
 
         self._checkbox(0*mm, 197*mm, 'Faculty', offset=1*mm)
         self._checkbox(22*mm, 197*mm, 'Staff', offset=1*mm)
@@ -1772,7 +1772,7 @@ class CardReqForm(object):
         self._checkbox(111*mm, 66.5*mm, 'Individual', offset=0.5*mm, boxheight=3.5*mm, fontsize=8)
 
         self.c.setFont("Helvetica-Bold", 8)
-        self._line_entry(1*mm, 63*mm, 'Account Code:', 21*mm, 36*mm, entry_text=unicode(grad.program.unit.config.get('card_account', '')))
+        self._line_entry(1*mm, 63*mm, 'Account Code:', 21*mm, 36*mm, entry_text=str(grad.program.unit.config.get('card_account', '')))
 
         # find a sensible person to sign the form
         signers = list(Role.objects_fresh.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) + list(Role.objects_fresh.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
@@ -1816,10 +1816,10 @@ class CardReqForm(object):
         self.c.setFont("Helvetica-Bold", 8)
         self.c.drawString(1*mm, 20*mm, 'Please read the following before signing:')
         self.c.setFont("Helvetica", 7)
-        self.c.drawString(1*mm, 17.5*mm, u'\u2022 I acknowledge that cards, fobs and keys are the property of SFU and are issued for my own use.')
-        self.c.drawString(1*mm, 15*mm, u'\u2022 Items issued will not be passed on to another person and will be returned to this office ONLY')
-        self.c.drawString(1*mm, 12.5*mm, u'\u2022 Lost or Found cards/fobs/keys must be reported or returned to Campus Security TC 050 (778-782-3100).')
-        self.c.drawString(1*mm, 10*mm, u'\u2022 Policy AD 1-4 applies')
+        self.c.drawString(1*mm, 17.5*mm, '\u2022 I acknowledge that cards, fobs and keys are the property of SFU and are issued for my own use.')
+        self.c.drawString(1*mm, 15*mm, '\u2022 Items issued will not be passed on to another person and will be returned to this office ONLY')
+        self.c.drawString(1*mm, 12.5*mm, '\u2022 Lost or Found cards/fobs/keys must be reported or returned to Campus Security TC 050 (778-782-3100).')
+        self.c.drawString(1*mm, 10*mm, '\u2022 Policy AD 1-4 applies')
         self.c.setLineWidth(2)
         self.c.line(45*mm, 2*mm, 90*mm, 2*mm)
         self.c.line(94*mm, 2*mm, 116*mm, 2*mm)
@@ -1874,14 +1874,14 @@ class CardReqForm_old(object):
 
         # top header
         self.title_font()
-        self.c.drawString(0*mm, 251*mm, u"SIMON FRASER UNIVERSITY")
-        self.c.drawString(0*mm, 246*mm, u"CARD REQUISITION")
-        self.c.drawString(118*mm, 258*mm, u"CARD NO.")
+        self.c.drawString(0*mm, 251*mm, "SIMON FRASER UNIVERSITY")
+        self.c.drawString(0*mm, 246*mm, "CARD REQUISITION")
+        self.c.drawString(118*mm, 258*mm, "CARD NO.")
         self.c.rect(118*mm, 250*mm, 47*mm, 6.5*mm, fill=0)
         for i in range(1,6):
             self.c.line(118*mm + i*47.0/6*mm, 250*mm, 118*mm + i*47.0/6*mm, 256.5*mm)
-        self.check_label(118*mm, 244*mm, u'New Issue', fill=True)
-        self.check_label(118*mm, 238*mm, u'Addendum')
+        self.check_label(118*mm, 244*mm, 'New Issue', fill=True)
+        self.check_label(118*mm, 238*mm, 'Addendum')
 
         # basic info
         self.label_font()
@@ -1898,7 +1898,7 @@ class CardReqForm_old(object):
         self.c.drawString(29*mm, 236*mm, grad.program.unit.informal_name())
         self.c.drawString(29*mm, 224*mm, grad.person.last_name)
         self.c.drawString(29*mm, 218.5*mm, grad.person.first_name)
-        self.c.drawString(29*mm, 213*mm, unicode(grad.person.emplid))
+        self.c.drawString(29*mm, 213*mm, str(grad.person.emplid))
 
         # traffic and security use box
         self.title_font()
@@ -1925,12 +1925,12 @@ class CardReqForm_old(object):
         self.c.drawString(50*mm, 190*mm, 'Department')
         self.c.drawString(110*mm, 196.5*mm, 'REFUND:')
 
-        self.check_label(0*mm, 182*mm, u'Deposit', fill=True)
-        self.check_label(0*mm, 174.5*mm, u'Service Charge')
-        self.check_label(50*mm, 182*mm, u'Deposit')
-        self.check_label(50*mm, 174.5*mm, u'Service Charge', fill=True)
-        self.check_label(110*mm, 182*mm, u'Individual', fill=True)
-        self.check_label(110*mm, 174.5*mm, u'Department')
+        self.check_label(0*mm, 182*mm, 'Deposit', fill=True)
+        self.check_label(0*mm, 174.5*mm, 'Service Charge')
+        self.check_label(50*mm, 182*mm, 'Deposit')
+        self.check_label(50*mm, 174.5*mm, 'Service Charge', fill=True)
+        self.check_label(110*mm, 182*mm, 'Individual', fill=True)
+        self.check_label(110*mm, 174.5*mm, 'Department')
 
         # account code
         self.title_font()
@@ -1945,7 +1945,7 @@ class CardReqForm_old(object):
 
         self.entry_font()
         acct = grad.program.unit.config.get('card_account', '')
-        for i,c in enumerate(unicode(acct)):
+        for i,c in enumerate(str(acct)):
             x = 32*mm + i*68.0/12*mm
             self.c.drawString(x, 163*mm, c)
 
@@ -1954,23 +1954,23 @@ class CardReqForm_old(object):
         # classification
         self.title_font()
         self.c.drawString(0*mm, 148*mm, 'CLASSIFICATION')
-        self.check_label(13*mm, 140*mm, u'Staff')
-        self.check_label(51*mm, 140*mm, u'Faculty')
-        self.check_label(89*mm, 140*mm, u'RA')
-        self.check_label(128*mm, 140*mm, u'Visitor')
-        self.check_label(13*mm, 133*mm, u'Undergrad')
-        self.check_label(51*mm, 133*mm, u'Graduate', fill=True)
-        self.check_label(89*mm, 133*mm, u'_____________')
+        self.check_label(13*mm, 140*mm, 'Staff')
+        self.check_label(51*mm, 140*mm, 'Faculty')
+        self.check_label(89*mm, 140*mm, 'RA')
+        self.check_label(128*mm, 140*mm, 'Visitor')
+        self.check_label(13*mm, 133*mm, 'Undergrad')
+        self.check_label(51*mm, 133*mm, 'Graduate', fill=True)
+        self.check_label(89*mm, 133*mm, '_____________')
 
         self.c.drawString(0*mm, 123*mm, 'EMPLOYEE GROUP')
-        self.check_label(13*mm, 115*mm, u'CUPE')
-        self.check_label(51*mm, 115*mm, u'APSA')
-        self.check_label(89*mm, 115*mm, u'Student', fill=True)
-        self.check_label(128*mm, 115*mm, u'Polyparty')
-        self.check_label(13*mm, 108*mm, u'Contract')
-        self.check_label(51*mm, 108*mm, u'TSSU')
-        self.check_label(89*mm, 108*mm, u'SFUFA')
-        self.check_label(128*mm, 108*mm, u'____________')
+        self.check_label(13*mm, 115*mm, 'CUPE')
+        self.check_label(51*mm, 115*mm, 'APSA')
+        self.check_label(89*mm, 115*mm, 'Student', fill=True)
+        self.check_label(128*mm, 115*mm, 'Polyparty')
+        self.check_label(13*mm, 108*mm, 'Contract')
+        self.check_label(51*mm, 108*mm, 'TSSU')
+        self.check_label(89*mm, 108*mm, 'SFUFA')
+        self.check_label(128*mm, 108*mm, '____________')
 
         self.c.line(0, 102*mm, main_width, 102*mm)
 
@@ -2040,16 +2040,16 @@ class CardReqForm_old(object):
         self.c.setFont("Helvetica-Bold", 10)
         self.c.drawString(0*mm, 40*mm, "Please read the following before signing:")
         self.c.setFont("Helvetica", 10)
-        self.c.drawString(0*mm, 35*mm, u"\u2022 THIS CARD IS FOR MY OWN USE.")
-        self.c.drawString(0*mm, 30*mm, u"\u2022 IT REMAINS THE POPERTY OF SFU.")
-        self.c.drawString(0*mm, 25*mm, u"\u2022 IT WILL NOT BE PASSED ON TO ANOTHER PERSON")
-        self.c.drawString(0*mm, 20*mm, u"\u2022 IT WILL BE RETURNED TO THIS OFFICE ONLY, WHEN NO LONGER OF USE TO MYSELF.")
+        self.c.drawString(0*mm, 35*mm, "\u2022 THIS CARD IS FOR MY OWN USE.")
+        self.c.drawString(0*mm, 30*mm, "\u2022 IT REMAINS THE POPERTY OF SFU.")
+        self.c.drawString(0*mm, 25*mm, "\u2022 IT WILL NOT BE PASSED ON TO ANOTHER PERSON")
+        self.c.drawString(0*mm, 20*mm, "\u2022 IT WILL BE RETURNED TO THIS OFFICE ONLY, WHEN NO LONGER OF USE TO MYSELF.")
 
         self.c.setDash(1)
         self.c.line(0, 5*mm, 62*mm, 5*mm)
         self.c.line(69*mm, 5*mm, 136*mm, 5*mm)
-        self.c.drawString(0*mm, 0*mm, u"SIGNATURE")
-        self.c.drawString(69*mm, 0*mm, u"DATE")
+        self.c.drawString(0*mm, 0*mm, "SIGNATURE")
+        self.c.drawString(69*mm, 0*mm, "DATE")
 
         self.c.showPage()
 
@@ -2134,7 +2134,7 @@ class FASnetForm(object):
         self.label_blank(0*mm, base_y, 'Campus Userid', grad.person.userid or '')
         self.label_blank(0*mm, base_y - 1*self.ENTRY_HEIGHT, 'Family Name', grad.person.last_name)
         self.label_blank(0*mm, base_y - 2*self.ENTRY_HEIGHT, 'Given Name(s)', grad.person.first_name)
-        self.label_blank(0*mm, base_y - 3*self.ENTRY_HEIGHT, 'Student Number', unicode(grad.person.emplid))
+        self.label_blank(0*mm, base_y - 3*self.ENTRY_HEIGHT, 'Student Number', str(grad.person.emplid))
 
         self.label_blank(0*mm, base_y - 5*self.ENTRY_HEIGHT, 'Account Type', 'Graduate Student')
         self.label_blank(0*mm, base_y - 6*self.ENTRY_HEIGHT, 'Department', grad.program.unit.informal_name())
@@ -2607,7 +2607,7 @@ class YellowFormTenure(FormMixin):
         self.label(101.5, 10, 'km')
         self.header_label(110.5, 10, 'X')
         self.label(117, 10, 'rate')
-        self.label(134, 10, u'\xa2')
+        self.label(134, 10, '\xa2')
         self.header_label(137, 10, '=')
         self.label(140, 10, '$')
         self.c.line(82.5*mm,9*mm, 101*mm, 9*mm)
@@ -2921,7 +2921,7 @@ class YellowFormLimited(FormMixin):
         self.label(102.5, 19.5, 'km')
         self.header_label(111.5, 19.5, 'X')
         self.label(117.5, 19.5, 'rate(')
-        self.label(135, 19.5, u'\xa2')
+        self.label(135, 19.5, '\xa2')
         self.label(136.5, 19.5, ')')
         self.header_label(138.5, 19.5, '=')
         self.label(141, 19.5, '$')
@@ -3144,11 +3144,11 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         self.c.drawImage(logofile, x=0, y=247 * mm, width=15 * mm, height=8 * mm)
         self.c.setFont('BemboMTPro', 10)
         self.c.setFillColor(self.sfu_red)
-        self._drawStringLeading(self.c, 17 * mm, 250 * mm, u'Simon Fraser University'.translate(self.sc_trans_bembo),
+        self._drawStringLeading(self.c, 17 * mm, 250 * mm, 'Simon Fraser University'.translate(self.sc_trans_bembo),
                                 charspace=1.4)
         self.c.setFont('DINPro', 5)
         self.c.setFillColor(self.sfu_grey)
-        self._drawStringLeading(self.c, 17 * mm, 247.5 * mm, u'Engaging the World'.upper(), charspace=2)
+        self._drawStringLeading(self.c, 17 * mm, 247.5 * mm, 'Engaging the World'.upper(), charspace=2)
         self.c.setFillColor(black)
 
         # Header

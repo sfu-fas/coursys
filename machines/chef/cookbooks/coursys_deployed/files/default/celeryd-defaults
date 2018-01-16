@@ -5,7 +5,7 @@ CELERYD_NODES="batch fast email photo sims"
 CELERY_APP="courses"
 
 # Absolute or relative path to the 'celery' command:
-CELERY_BIN="/usr/local/bin/celery"
+CELERY_BIN="python3 /usr/local/bin/celery"
 
 # Where to chdir at start.
 CELERYD_CHDIR="/home/coursys/courses"

@@ -26,6 +26,6 @@ def save_search(request):
     else:
         messages.add_message(request, messages.ERROR, saveform.errors.as_text())
         if True or 'query' in saveform.data:
-            return HttpResponseRedirect(reverse('grad:search') + u'?' + saveform.data['query'])
+            return HttpResponseRedirect(reverse('grad:search') + '?' + saveform.data['query'])
         else:
             return HttpResponseRedirect(reverse('grad:search'))

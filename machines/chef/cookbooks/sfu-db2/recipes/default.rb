@@ -67,23 +67,10 @@ end
 
 # Python DB2 libraries
 
-package 'python-dev'
+package 'python3-dev'
 
-cookbook_file "/opt/pydb2.tar.gz" do
-    source "PyDB2_1.1.1-1.tar.gz"
+execute "pip3 install ibm_db==2.0.7" do
+    creates "/usr/local/lib/python3.5/dist-packages/ibm_db_dbi.py"
 end
 
-execute "tar -xvzf pydb2.tar.gz" do
-    cwd "/opt/"
-    creates "PyDB2_1.1.1"
-end
 
-execute "chmod u+x -R /opt/PyDB2_1.1.1"
-
-execute "ln -s /opt/ibm/db2/V9.7/lib64 /opt/ibm/db2/V9.7/lib" do
-    creates "/opt/ibm/db2/V9.7/lib"
-end
-
-execute "python setup.py install" do
-    cwd "/opt/PyDB2_1.1.1"
-end

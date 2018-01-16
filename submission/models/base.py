@@ -38,18 +38,18 @@ class SubmissionComponent(models.Model):
 
     error_messages = {}
 
-    def __cmp__(self, other):
-        return cmp(self.position, other.position)
+    def __lt__(self, other):
+        return self.position < other.position
     class Meta:
         ordering = ['position']
         app_label = 'submission'
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s"%(self.title, self.description)
     def visible_type(self):
         "Should this componet type be visible to allow creation of new components (or soft-deleted)?"
         return True
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
         
     def save(self, **kwargs):
         if self.position is None:
@@ -73,13 +73,13 @@ class Submission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Member, null=True, help_text = "TA or instructor that will mark this submission")
     status = models.CharField(max_length=3, null=False,choices=STATUS_CHOICES, default = "NEW")
-    def __cmp__(self, other):
-        return cmp(other.created_at, self.created_at)
+    def __lt__(self, other):
+        return other.created_at < self.created_at
     class Meta:
         ordering = ['-created_at']
         app_label = 'submission'
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
 
     "Set ownership, and make state = in progree "
     def set_owner(self, course, userid):
@@ -95,7 +95,7 @@ class StudentSubmission(Submission):
         app_label = 'submission'
     def get_userid(self):
         return self.member.person.userid
-    def __unicode__(self):
+    def __str__(self):
         return "%s->%s@%s" % (self.member.person.userid, self.activity, self.created_at)
     def short_str(self):
         return "%s submission by %s at %s" % (self.activity.short_str(), self.member.person.userid, self.created_at.strftime("%Y-%m-%d %H:%M"))
@@ -112,7 +112,7 @@ class GroupSubmission(Submission):
         app_label = 'submission'
     def get_userid(self):
         return self.group.manager.person.userid
-    def __unicode__(self):
+    def __str__(self):
         return "%s->%s@%s" % (self.group.manager.person.userid, self.activity, self.created_at)
     def short_str(self):
         return "%s submission by %s for group %s at %s" % (self.activity.short_str(), self.creator.person.userid, self.group.name, self.created_at.strftime("%Y-%m-%d %H:%M"))
@@ -157,9 +157,9 @@ class SubmittedComponent(models.Model):
         else:
             return time
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
-    def __cmp__(self, other):
-        return cmp(other.submit_time, self.submit_time)
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
+    def __lt__(self, other):
+        return other.submit_time < self.submit_time
     class Meta:
         ordering = ['submit_time']
         app_label = 'submission'
@@ -172,7 +172,7 @@ class SubmittedComponent(models.Model):
             student = StudentSubmission.objects.filter(id=self.submission.id)
             return student.member.person
         return group[0].creator.person
-    def __unicode__(self):
+    def __str__(self):
         return "%s@%s" % (self.submission.activity, self.submission.created_at)
 
     def sendfile(self, upfile, response):

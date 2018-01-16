@@ -1,8 +1,8 @@
-import unicodecsv as csv
+import csv
 import pickle
 import datetime
 import os
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
@@ -102,9 +102,9 @@ def _course_info_staff(request, course_slug):
     # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
     order = None  
     act = None  
-    if request.GET.has_key('order'):  
+    if 'order' in request.GET:  
         order = request.GET['order']  
-    if request.GET.has_key('act'):  
+    if 'act' in request.GET:  
         act = request.GET['act']  
     if order and act:  
         reorder_course_activities(activities, act, order)  
@@ -342,7 +342,7 @@ def activity_info_with_groups(request, course_slug, activity_slug):
         grouped_students += 1
         group = member.group
         student = member.student
-        if not groups_found.has_key(group.id):
+        if group.id not in groups_found:
             # a new group discovered by its first member
             # get the current grade of the group 
             current_mark = get_group_mark(activity, group)
@@ -374,7 +374,7 @@ def activity_info_with_groups(request, course_slug, activity_slug):
     context = {'course': course, 'activity_type': activity_type, 
                'activity': activity, 'ungrouped_students': ungrouped_students,
                'activity_view_type': 'group',
-               'group_grade_info_list': groups_found.values(), 'from_page': FROMPAGE['activityinfo_group'],
+               'group_grade_info_list': list(groups_found.values()), 'from_page': FROMPAGE['activityinfo_group'],
                'sub_comps': sub_comps, 'mark_comps': mark_comps,
                'submitted': submitted}
     return render(request, 'grades/activity_info_with_groups.html', context)
@@ -551,7 +551,7 @@ def grade_change(request, course_slug, activity_slug, userid):
 def add_numeric_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
 
-    activities_list = [(None, u'\u2014'),]
+    activities_list = [(None, '\u2014'),]
     activities = all_activities_filter(course)
     for a in activities:
         if a.group == True:
@@ -653,7 +653,7 @@ def add_cal_letter_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     letter_activities = LetterActivity.objects.filter(offering=course)
     numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course, deleted=False)]
-    examact_choices = [(0, u'\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course, deleted=False)]
+    examact_choices = [(0, '\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course, deleted=False)]
 
     if request.method == 'POST': # If the form has been submitted...
         form = CalLetterActivityForm(request.POST) # A form bound to the POST data
@@ -843,7 +843,7 @@ def _create_activity_formdatadict(activity):
     if 'calculation_leak' in activity.config:
         data['calculation_leak'] = activity.config['calculation_leak']
 
-    for (k, v) in GROUP_STATUS_MAP.items():
+    for (k, v) in list(GROUP_STATUS_MAP.items()):
         if activity.group == v:
             data['group'] = k
     if isinstance(activity, NumericActivity):
@@ -860,33 +860,33 @@ def _create_activity_formdatadict(activity):
 def _populate_activity_from_formdata(activity, data):
     if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
         return
-    if data.has_key('name'):
+    if 'name' in data:
         activity.name = data['name']
-    if data.has_key('short_name'):
+    if 'short_name' in data:
         activity.short_name = data['short_name']
-    if data.has_key('status'):
+    if 'status' in data:
         activity.status = data['status']
-    if data.has_key('due_date'):
+    if 'due_date' in data:
         activity.due_date = data['due_date']
-    if data.has_key('percent'):
+    if 'percent' in data:
         activity.percent = data['percent']
-    if data.has_key('group'):
+    if 'group' in data:
         activity.group = GROUP_STATUS_MAP[data['group']]
-    if data.has_key('max_grade'):
+    if 'max_grade' in data:
         activity.max_grade = data['max_grade']
-    if data.has_key('formula'):
+    if 'formula' in data:
         activity.formula = data['formula']
-    if data.has_key('url'):
+    if 'url' in data:
         activity.config['url'] = data['url']
-    if data.has_key('showstats'):
+    if 'showstats' in data:
         activity.config['showstats'] = data['showstats']
-    if data.has_key('showhisto'):
+    if 'showhisto' in data:
         activity.config['showhisto'] = data['showhisto']
-    if data.has_key('calculation_leak'):
+    if 'calculation_leak' in data:
         activity.config['calculation_leak'] = data['calculation_leak']
-    if data.has_key('numeric_activity'):
+    if 'numeric_activity' in data:
         activity.numeric_activity = NumericActivity.objects.get(pk=data['numeric_activity'])
-    if data.has_key('exam_activity'):
+    if 'exam_activity' in data:
         try:
             activity.exam_activity = Activity.objects.get(pk=data['exam_activity'])
         except Activity.DoesNotExist:
@@ -914,12 +914,12 @@ def edit_activity(request, course_slug, activity_slug):
     activities = all_activities_filter(slug=activity_slug, offering=course)
 
     numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course, deleted=False)]
-    examact_choices = [(0, u'\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course, deleted=False)]
+    examact_choices = [(0, '\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course, deleted=False)]
     if (len(activities) == 1):
         activity = activities[0]
 
         # extend group options
-        activities_list = [(None, u'\u2014'),]
+        activities_list = [(None, '\u2014'),]
         activities = all_activities_filter(offering=course)
         for a in activities:
             if a.group == True and a.id != activity.id:
@@ -1069,7 +1069,7 @@ def release_activity(request, course_slug, activity_slug):
 def add_letter_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     
-    activities_list = [(None, u'\u2014'),]
+    activities_list = [(None, '\u2014'),]
     activities = all_activities_filter(course)
     for a in activities:
         if a.group == True:
@@ -1257,7 +1257,7 @@ def photo_list(request, course_slug, style='horiz'):
         raise Http404
     user = get_object_or_404(Person, userid=request.user.username)
     if not _has_photo_agreement(user):
-        url = reverse('config:photo_agreement') + '?return=' + urllib.quote(request.path)
+        url = reverse('config:photo_agreement') + '?return=' + urllib.parse.quote(request.path)
         return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
     
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -1280,7 +1280,7 @@ def student_photo(request, emplid):
         can_access = True
     else:
         if not _has_photo_agreement(user):
-            url = reverse('config:photo_agreement') + '?return=' + urllib.quote(request.path)
+            url = reverse('config:photo_agreement') + '?return=' + urllib.parse.quote(request.path)
             return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
 
         # confirm user is an instructor of this student (within the last two years)
@@ -1430,7 +1430,7 @@ def export_all(request, course_slug):
     """
     Export everything we can about this offering
     """
-    import StringIO, tempfile, zipfile, os, json
+    import io, tempfile, zipfile, os, json
     from django.http import StreamingHttpResponse
     from wsgiref.util import FileWrapper
     from marking.views import _mark_export_data, _DecimalEncoder
@@ -1443,7 +1443,7 @@ def export_all(request, course_slug):
     z = zipfile.ZipFile(filename, 'w')
 
     # add all grades CSV
-    allgrades = StringIO.StringIO()
+    allgrades = io.StringIO()
     _all_grades_output(allgrades, course)    
     z.writestr("grades.csv", allgrades.getvalue())
     allgrades.close()
@@ -1453,7 +1453,7 @@ def export_all(request, course_slug):
     for a in acts:
         if ActivityComponent.objects.filter(numeric_activity_id=a.id):
             markingdata = _mark_export_data(a)
-            markout = StringIO.StringIO()
+            markout = io.StringIO()
             json.dump({'marks': markingdata}, markout, cls=_DecimalEncoder, indent=1)
             z.writestr(a.slug + "-marking.json", markout.getvalue())
             del markout, markingdata
@@ -1469,7 +1469,7 @@ def export_all(request, course_slug):
     if course.discussion():
         topics = DiscussionTopic.objects.filter(offering=course).order_by('-pinned', '-last_activity_at')
         discussion_data = [t.exportable() for t in topics]
-        discussout = StringIO.StringIO()
+        discussout = io.StringIO()
         json.dump(discussion_data, discussout, indent=1)
         z.writestr("discussion.json", discussout.getvalue())
         del discussion_data, discussout
