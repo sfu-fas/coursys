@@ -640,8 +640,7 @@ class TAContract(models.Model):
 
     def course_list_string(self):
         # Build a string of all course offerings tied to this contract for CSV downloads and grad student views.
-        course_list_string = ', '.join([str.encode(ta_course.course.name()) for ta_course in
-                                        self.tacourse_set.all()])
+        course_list_string = ', '.join(ta_course.course.name() for ta_course in self.tacourse_set.all())
         return course_list_string
 
 class CourseDescription(models.Model):
