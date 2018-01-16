@@ -15,7 +15,7 @@ def backup_commands(db_only=False, method=['incremental']):
         '--encrypt-key', settings.BACKUP_KEY_ID,
         '--file-prefix', 'files-',
         settings.SUBMISSION_PATH, settings.BACKUP_REMOTE_URL]
-    return [db, submissions]
+    return [db, submissions] + clean_commands()
 
 
 def retrieve_commands():
@@ -92,7 +92,7 @@ class Command(BaseCommand):
         passphrase = settings.BACKUP_KEY_PASSPHRASE
         full = options['full']
         dry_run = options['dry_run']
-        method = ['full' if full else 'incremental']
+        method = ['full'] if full else ['--full-if-older-than', '1M']
         if dry_run:
             method += ['--dry-run']
 
