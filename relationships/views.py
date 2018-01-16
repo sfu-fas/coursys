@@ -8,7 +8,7 @@ from .forms import ContactForm
 from log.models import LogEntry
 from .models import Contact, Event, EVENT_CHOICES, EVENT_HANDLERS, EVENT_TYPES
 from .handlers import FileEventBase
-import unicodecsv as csv
+import csv
 from datetime import datetime
 from coredata.models import Person
 

@@ -3,7 +3,7 @@ import tempfile
 import os
 import errno
 import io
-import unicodecsv as csv
+import csv
 from pipes import quote
 from datetime import datetime
 

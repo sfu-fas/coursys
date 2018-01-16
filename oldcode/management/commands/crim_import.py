@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.core.files import File
 from optparse import make_option
-import unicodecsv as csv
+import csv
 import datetime
 import os.path
 import mimetypes

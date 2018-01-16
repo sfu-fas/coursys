@@ -10,7 +10,7 @@ from log.models import LogEntry
 from datetime import datetime
 from courselib.search import find_userid_or_emplid
 from coredata.models import Person, Unit
-import unicodecsv as csv
+import csv
 
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])

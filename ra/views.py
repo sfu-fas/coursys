@@ -17,7 +17,7 @@ from log.models import LogEntry
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
 from django.db import transaction
-import unicodecsv as csv
+import csv
 
 
 from django_datatables_view.base_datatable_view import BaseDatatableView

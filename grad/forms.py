@@ -16,7 +16,7 @@ from django.forms.models import BaseModelFormSet
 from django.forms.widgets import HiddenInput
 from django.template import Template, TemplateSyntaxError
 from itertools import chain
-import unicodecsv as csv
+import csv
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 from django.core.validators import EMPTY_VALUES

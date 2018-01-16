@@ -6,7 +6,7 @@ from .forms import OutreachEventForm, OutreachEventRegistrationForm
 from courselib.auth import requires_role
 from log.models import LogEntry
 from coredata.models import Unit
-import unicodecsv as csv
+import csv
 from datetime import datetime
 
 

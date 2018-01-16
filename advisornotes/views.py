@@ -23,7 +23,7 @@ import datetime
 import json
 from . import rest
 from timeit import itertools
-import unicodecsv as csv
+import csv
 
 
 

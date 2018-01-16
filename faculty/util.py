@@ -2,7 +2,7 @@ import datetime
 
 from django.http import HttpResponse
 
-import unicodecsv
+import csv
 
 from coredata.models import Semester
 
@@ -10,7 +10,7 @@ from coredata.models import Semester
 def make_csv_writer_response(filename, *args, **kwargs):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
-    return unicodecsv.writer(response), response
+    return csv.writer(response), response
 
 
 class ReportingSemester(object):

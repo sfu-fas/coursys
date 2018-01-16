@@ -9,7 +9,7 @@ from log.models import LogEntry
 from coredata.models import Unit, Person
 from grad.models import Supervisor
 import datetime
-import unicodecsv as csv
+import csv
 
 
 @requires_role('SPAC')

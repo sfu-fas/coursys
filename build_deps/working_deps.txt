@@ -14,7 +14,6 @@ jsonfield==1.0.3
 pyparsing==2.1.10
 pytz>=2016.10
 textile==2.3.6
-unicodecsv==0.14.1
 html5lib==0.999999999
 bleach==2.1.2
 reportlab==3.3.0

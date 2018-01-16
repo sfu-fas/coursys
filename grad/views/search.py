@@ -8,7 +8,7 @@ from django.contrib import messages
 from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES, COLUMN_WIDTHS
 from django.core.urlresolvers import reverse
 from coredata.models import Person
-import unicodecsv as csv
+import csv
 import copy, datetime, json
 from grad.templatetags.getattribute import getattribute
 from dashboard.letters import card_req_forms, fasnet_forms

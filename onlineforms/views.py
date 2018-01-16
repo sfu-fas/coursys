@@ -26,7 +26,7 @@ from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, FormLogEntr
 from coredata.models import Person, Role, Unit
 from coredata.queries import ensure_person_from_userid, SIMSProblem
 from log.models import LogEntry
-import unicodecsv as csv
+import csv
 import json
 import os
 

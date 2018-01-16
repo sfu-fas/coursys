@@ -30,7 +30,7 @@ from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 import datetime, decimal, locale 
-import unicodecsv as csv
+import csv
 from ta.templatetags import ta_display
 import json
 from . import bu_rules

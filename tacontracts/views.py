@@ -1,7 +1,7 @@
 # Python
 import datetime, locale, decimal
 # Third-Party
-import unicodecsv as csv
+import csv
 # Django
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages

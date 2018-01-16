@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 
 # Third-Party
-import unicodecsv as csv
+import csv
 
 # Local
 from privacy.models import needs_privacy_signature, privacy_redirect

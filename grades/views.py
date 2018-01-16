@@ -1,4 +1,4 @@
-import unicodecsv as csv
+import csv
 import pickle
 import datetime
 import os
