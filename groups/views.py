@@ -9,7 +9,8 @@ from groups.forms import ActivityForm, GroupForSemesterForm, StudentForm, GroupN
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-from courselib.auth import is_course_staff_by_slug, is_course_student_by_slug, requires_course_by_slug, requires_course_staff_by_slug
+from courselib.auth import is_course_staff_by_slug, is_course_student_by_slug, requires_course_by_slug, \
+    requires_course_staff_by_slug, ForbiddenResponse
 from marking.models import GroupActivityMark, GroupActivityMark_LetterGrade
 from log.models import LogEntry
 from dashboard.models import NewsItem
@@ -22,7 +23,7 @@ def groupmanage(request, course_slug, activity_slug=None):
     elif is_course_student_by_slug(request, course_slug):
         return _groupmanage_student(request, course_slug)
     else:
-        return HttpResponseForbidden()
+        return ForbiddenResponse(request)
 
 def _groupmanage_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
