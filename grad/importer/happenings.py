@@ -149,9 +149,9 @@ class ProgramStatusChange(GradHappening):
         self.effdt_to_strm()
 
         # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
-        self.oldkey = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog,
+        self.oldkey = ['ps_acad_prog', emplid, effdt.isoformat(), self.prog_status, self.prog_reason, self.acad_prog,
                        self.prog_action]
-        self.key = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog,
+        self.key = ['ps_acad_prog', emplid, effdt.isoformat(), self.prog_status, self.prog_reason, self.acad_prog,
                     self.prog_action, self.degr_chkout_stat]
 
         self.in_career = False
@@ -585,7 +585,7 @@ class CommitteeMembership(GradHappening):
         pass
 
     def import_key(self):
-        return [self.committee_id, self.effdt, self.committee_type, self.sup_emplid, self.committee_role]
+        return [self.committee_id, self.effdt.isoformat(), self.committee_type, self.sup_emplid, self.committee_role]
 
     def update_local_data(self, student_info, verbosity, dry_run):
         # if self.grad_program.unit.slug == 'cmpt':
@@ -666,7 +666,7 @@ class CareerUnitChangeOut(ProgramStatusChange):
     def inout(self):
         return 'out'
     def import_key(self):
-        return ['unit_change_'+self.inout(), self.emplid, self.adm_appl_nbr, str(self.effdt), self.unit.slug, self.otherunit.slug]
+        return ['unit_change_'+self.inout(), self.emplid, self.adm_appl_nbr, self.effdt.isoformat(), self.unit.slug, self.otherunit.slug]
 
     def status_config(self):
         "Additional entries for GradStatus.config when updating"
