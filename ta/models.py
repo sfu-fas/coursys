@@ -79,7 +79,8 @@ class TUG(models.Model):
     def iterothers(self):
         return (other for key, other in self.config.items() 
                 if key.startswith('other')
-                and other.get('total',0) > 0)
+                and isinstance(other.get('total'), float)
+                and other.get('total', 0) > 0)
 
     others = lambda self:list(self.iterothers())
     
