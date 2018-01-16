@@ -135,7 +135,7 @@ class ProgramStatusChange(GradHappening):
         self.app_stdnt_car_nbr = stdnt_car_nbr
         self.adm_appl_nbr = adm_appl_nbr
         self.acad_prog = acad_prog
-        self.effdt = datetime.datetime.strptime(effdt, '%Y-%m-%d').date()
+        self.effdt = effdt
         self.admit_term = admit_term
         self.exp_grad_term = exp_grad_term
 
@@ -558,7 +558,7 @@ class CommitteeMembership(GradHappening):
         self.stdnt_car_nbr = None
         self.committee_id = committee_id
         self.acad_prog = acad_prog
-        self.effdt = datetime.datetime.strptime(effdt, '%Y-%m-%d').date()
+        self.effdt = effdt
         self.sup_emplid = sup_emplid
         self.committee_type = committee_type
         self.committee_role = committee_role

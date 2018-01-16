@@ -806,8 +806,6 @@ def get_or_create_semester(strm):
     strm, st, en = row
     
     # create Semester object
-    st = datetime.datetime.strptime(st, "%Y-%m-%d").date()
-    en = datetime.datetime.strptime(en, "%Y-%m-%d").date()
     sem = Semester(name=strm, start=st, end=en)
     sem.save()
     
