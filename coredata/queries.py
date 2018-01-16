@@ -448,9 +448,9 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
         data['gpa'] = 0.0
         data['ccredits'] = 0
         for gpa, cred in db:
-            data['gpa'] = gpa
-            data['ccredits'] = cred
-    
+            data['gpa'] = float(gpa)
+            data['ccredits'] = int(cred)
+
     return data
 
 
