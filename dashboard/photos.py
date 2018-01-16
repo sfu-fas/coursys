@@ -169,7 +169,7 @@ def _get_photo_token():
     except IOError:
         return ''
     else:
-        token_response = json.load(token_request)
+        token_response = json.loads(token_request.read().decode('utf8'))
         token = token_response['ServiceToken']
         return token
 
@@ -180,7 +180,7 @@ def possibly_resize(original):
     if Image is None:
         return original
 
-    img = Image.open(io.StringIO(original))
+    img = Image.open(io.BytesIO(original))
     w,h = img.size
     if w <= MAX_PHOTO_SIZE and h <= MAX_PHOTO_SIZE:
         # original is reasonably-sized
@@ -214,7 +214,7 @@ def _get_photos(emplids):
     except IOError:
         return {}
 
-    photo_response = json.load(photo_request)
+    photo_response = json.loads(photo_request.read().decode('utf8'))
     photos = {}
     for data in photo_response:
         if 'SfuId' not in data or 'PictureIdentification' not in data or not data['PictureIdentification']:
