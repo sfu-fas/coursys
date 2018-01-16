@@ -109,7 +109,7 @@ class SIMSConn(DBConn):
             return '(' + ', '.join((self.escape_arg(v) for v in a)) + ')'
         
         # assume it's a string if we don't know any better
-        a = str(a).encode('utf8')
+        a = str(a)
         a = a.replace("\\", "\\\\")
         a = a.replace("'", "\\'")
         a = a.replace('"', '\\"')
@@ -117,7 +117,7 @@ class SIMSConn(DBConn):
         a = a.replace("\n", "\\n")
         a = a.replace("\x00", "\\\x00")
         a = a.replace("\x1a", "\\\x1a")
-        return "'"+a+"'"
+        return "'" + a + "'"
 
     def prep_value(self, v):
         """
@@ -1357,7 +1357,7 @@ def outlines_data_json(offering):
     try:
         req = urllib.request.urlopen(url, timeout=30)
         jsondata = req.read()
-        data = json.loads(jsondata)
+        data = json.loads(jsondata.decode('utf8'))
     except ValueError:
         data = {'internal_error': 'could not decode JSON'}
     except (urllib.error.HTTPError, urllib.error.URLError, socket.timeout, socket.error):
