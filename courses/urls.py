@@ -98,9 +98,11 @@ urlpatterns = [
 
 if settings.DEPLOY_MODE != 'production':
     # URLs for development only:
+    from courselib.csp import csp_report_view
     urlpatterns += [
         url(r'^fake_login', dashboard_views.fake_login, name='fake_login'),
         url(r'^fake_logout', dashboard_views.fake_logout, name='fake_logout'),
+        url(r'^csp-reports', csp_report_view, name='csp_reports'),
     ]
 
 if settings.DEBUG_TOOLBAR:
