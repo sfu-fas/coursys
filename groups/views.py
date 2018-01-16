@@ -101,7 +101,7 @@ def _group_info(course, group, members):
     elif group_max and headcount > group_max:
         # total size too large
         size_message = 'Has %i members.' % (headcount)
-    else:
+    elif group_min:
         # check size for each activity
         act_count = defaultdict(int)
         for m in group.groupmember_set.all().select_related('activity'):
