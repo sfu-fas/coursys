@@ -40,7 +40,10 @@ class ExceptionIgnorer(MiddlewareMixin):
     def process_exception(self, request, exception):
         import traceback
         exc_info = sys.exc_info()
-        format = traceback.format_exc(exc_info[2])
+        try:
+            format = traceback.format_exc(exc_info[2])
+        except:
+            format = ''
         message = str(exception)
         if (isinstance(exception, IOError) and '_verify(ticket, service)' in format
             and ('Connection reset by peer' in message
