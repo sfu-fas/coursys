@@ -60,7 +60,7 @@ def check_sims_connection():
         raise SIMSProblem("Didn't get any data back from SIMS query.")
 
 
-@periodic_task(run_every=crontab(minute='30', hour='15', day_of_week='mon,thu'))
+@periodic_task(run_every=crontab(minute='30', hour='7', day_of_week='mon,thu'))
 def expiring_roles():
     if settings.DO_IMPORTING_HERE:
         Role.warn_expiring()
@@ -96,7 +96,7 @@ def _grouper(iterable, n):
     return ((v for v in grp if v is not None) for grp in groups)
 
 
-@periodic_task(run_every=crontab(minute='30', hour='16'))
+@periodic_task(run_every=crontab(minute='30', hour='8'))
 def daily_import():
     """
     Start the daily import work.

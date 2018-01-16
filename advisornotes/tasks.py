@@ -28,7 +28,7 @@ def update_program_info(advisor_visit_ids):
         v.save()
 
 
-@periodic_task(run_every=crontab(minute=0, hour='10'))
+@periodic_task(run_every=crontab(minute=0, hour='2'))
 def program_info_for_advisorvisits():
     """
     Find any AdvisorVisits that need their sims_programs filled in; pass a task to do that off to the sims queue.
