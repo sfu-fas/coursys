@@ -303,12 +303,12 @@ class LetterContents(object):
             import PIL
             try:
                 sig = Signature.objects.get(user=self.signer)
-                sig.sig.open()
+                sig.sig.open('rb')
                 img = PIL.Image.open(sig.sig)
                 width, height = img.size
                 wid = width / float(sig.resolution) * inch
                 hei = height / float(sig.resolution) * inch
-                sig.sig.open()
+                sig.sig.open('rb')
                 img = Image(sig.sig, width=wid, height=hei)
                 img.hAlign = 'LEFT'
                 signature.append(Spacer(1, space_height))
@@ -1783,12 +1783,12 @@ class CardReqForm(object):
             import PIL
             try:
                 sig = Signature.objects.get(user=role.person)
-                sig.sig.open()
+                sig.sig.open('rb')
                 img = PIL.Image.open(sig.sig)
                 width, height = img.size
                 hei = 7*mm
                 wid = 1.0*width/height * hei
-                sig.sig.open()
+                sig.sig.open('rb')
                 ir = ImageReader(sig.sig)
                 self.c.drawImage(ir, x=24*mm, y=27*mm, width=wid, height=hei)
                 # info about the person who is signing it (for use below)
@@ -2003,12 +2003,12 @@ class CardReqForm_old(object):
             import PIL
             try:
                 sig = Signature.objects.get(user=role.person)
-                sig.sig.open()
+                sig.sig.open('rb')
                 img = PIL.Image.open(sig.sig)
                 width, height = img.size
                 hei = 7*mm
                 wid = 1.0*width/height * hei
-                sig.sig.open()
+                sig.sig.open('rb')
                 ir = ImageReader(sig.sig)
                 self.c.drawImage(ir, x=114*mm, y=50*mm, width=wid, height=hei)
                 break
@@ -2152,12 +2152,12 @@ class FASnetForm(object):
             import PIL
             try:
                 sig = Signature.objects.get(user=role.person)
-                sig.sig.open()
+                sig.sig.open('rb')
                 img = PIL.Image.open(sig.sig)
                 width, height = img.size
                 hei = 10*mm
                 wid = 1.0*width/height * hei
-                sig.sig.open()
+                sig.sig.open('rb')
                 ir = ImageReader(sig.sig)
                 self.c.drawImage(ir, x=45*mm, y=base_y - 15*self.ENTRY_HEIGHT, width=wid, height=hei)
                 self.entry_font()
