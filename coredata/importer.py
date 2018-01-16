@@ -353,8 +353,6 @@ def import_meeting_times(offering):
     
     for start,end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt,end_dt, stnd_mtg_pat, class_section in db:
         # dates come in as strings from DB2/reporting DB
-        start_dt = datetime.datetime.strptime(start_dt, "%Y-%m-%d").date()
-        end_dt = datetime.datetime.strptime(end_dt, "%Y-%m-%d").date()
         if not start or not end:
             # some meeting times exist with no start/end time
             continue        
@@ -584,9 +582,6 @@ def import_all_meeting_times(strm, extra_where='1=1', offering_map=None):
         except KeyError:
             continue
 
-        # dates come in as strings from DB2/reporting DB
-        start_dt = datetime.datetime.strptime(start_dt, "%Y-%m-%d").date()
-        end_dt = datetime.datetime.strptime(end_dt, "%Y-%m-%d").date()
         if not start or not end:
             # some meeting times exist with no start/end time
             continue
@@ -742,7 +737,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, boot
     output = []
     semester_start = semester_first_day()
     semester_end = semester_last_day()
-    sims_holidays = [(datetime.datetime.strptime(d, "%Y-%m-%d").date(), h) for d,h in all_holidays()]
+    sims_holidays = all_holidays()
 
     if not bootstrap:
         # we want semesters 5 years into the future: that's a realistic max horizon for grad promises
@@ -778,7 +773,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, boot
 
         # class start and end dates
         try:
-            start = datetime.datetime.strptime(semester_start[strm], "%Y-%m-%d").date()
+            start = semester_start[strm]
         except KeyError:
             # No data found about this semester: if there's a date already around, honour it
             # Otherwise, guess "same day as this semester last year" which is probably wrong but close.
@@ -789,7 +784,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, boot
                 output.append("Guessing start date for %s." % (strm,))
 
         try:
-            end = datetime.datetime.strptime(semester_end[strm], "%Y-%m-%d").date()
+            end = semester_end[strm]
         except KeyError:
             # no classes scheduled yet? Assume 13 weeks exactly
             end = start + datetime.timedelta(days=91)

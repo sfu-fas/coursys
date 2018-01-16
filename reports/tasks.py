@@ -3,7 +3,7 @@ from celery.schedules import crontab
 
 from reports.models import Report, schedule_ping
 
-@periodic_task(run_every=crontab(hour=17, minute=15))
+@periodic_task(run_every=crontab(hour=9, minute=15))
 def run_regular_reports():
     schedule_ping()
 

@@ -6,9 +6,11 @@ from django.core.cache import cache
 from django.utils.html import conditional_escape as e
 from featureflags.flags import feature_disabled
 import re, hashlib, datetime, string, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, http.client, time, json
-import socket
+import socket, decimal
+
 
 multiple_breaks = re.compile(r'\n\n+')
+
 
 class DBConn(object):
     """
@@ -65,6 +67,7 @@ class DBConn(object):
         if row is None:
             return row
         return tuple((self.prep_value(v) for v in row))
+
 
 class SIMSConn(DBConn):
     """
@@ -125,6 +128,8 @@ class SIMSConn(DBConn):
         """
         if isinstance(v, str):
             return v.strip()
+        elif isinstance(v, decimal.Decimal):
+            return float(v)
         else:
             return v
 
@@ -134,6 +139,7 @@ class SIMSProblem(Exception):
     Class used to pass back problems with the SIMS connection.
     """
     pass
+
 
 def SIMS_problem_handler(func):
     """
@@ -155,13 +161,15 @@ def SIMS_problem_handler(func):
     wrapped.__name__ = func.__name__
     return wrapped
 
+
 def _args_to_key(args, kwargs):
     "Hash arguments to get a cache key"
     h = hashlib.new('md5')
     h.update(str(args).encode('utf8'))
     h.update(str(kwargs).encode('utf8'))
     return h.hexdigest()
-    
+
+
 def cache_by_args(func, seconds=38800): # 8 hours by default
     """
     Decorator to cache query results from SIMS (if successful: no SIMSProblem).
@@ -185,6 +193,7 @@ def cache_by_args(func, seconds=38800): # 8 hours by default
     wrapped.__name__ = func.__name__
     return wrapped
 
+
 @cache_by_args
 def userid_from_sims(emplid):
     """
@@ -199,6 +208,7 @@ def userid_from_sims(emplid):
         if userid and len(userid) > 8:
             userid = None
     return userid
+
 
 @cache_by_args
 @SIMS_problem_handler
@@ -217,6 +227,7 @@ def find_person(emplid, get_userid=True):
         else:
             userid = None
         return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name, 'userid': userid}
+
 
 @cache_by_args
 @SIMS_problem_handler
@@ -262,9 +273,11 @@ def add_person(emplid, commit=True, get_userid=True, external_email=False):
             p.save()
     return p
 
+
 @cache_by_args
 def get_person_by_userid(userid):
     return ensure_person_from_userid(userid)
+
 
 @cache_by_args
 @SIMS_problem_handler
@@ -323,6 +336,7 @@ PLAN_QUERY = string.Template("""
               AND $where
             ORDER BY prog.emplid, plan.plan_sequence""")
 
+
 SUBPLAN_QUERY = string.Template("""
             SELECT prog.emplid, plantbl.acad_sub_plan, plantbl.descr, plantbl.trnscr_descr
             FROM ps_acad_prog prog, ps_acad_subplan plan, ps_acad_subpln_tbl AS plantbl
@@ -334,6 +348,7 @@ SUBPLAN_QUERY = string.Template("""
               AND prog.prog_status='AC' AND plantbl.eff_status='A'
               AND $where
             ORDER BY prog.emplid""")
+
 
 ALLFIELDS = 'alldata'
 @cache_by_args
@@ -448,8 +463,8 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
         data['gpa'] = 0.0
         data['ccredits'] = 0
         for gpa, cred in db:
-            data['gpa'] = float(gpa)
-            data['ccredits'] = int(cred)
+            data['gpa'] = gpa
+            data['ccredits'] = cred
 
     return data
 
@@ -791,8 +806,6 @@ def get_or_create_semester(strm):
     strm, st, en = row
     
     # create Semester object
-    st = datetime.datetime.strptime(st, "%Y-%m-%d").date()
-    en = datetime.datetime.strptime(en, "%Y-%m-%d").date()
     sem = Semester(name=strm, start=st, end=en)
     sem.save()
     
@@ -1411,7 +1424,7 @@ def emplid_to_userid(emplid):
     url = USERID_BASE_URL + qs
     try:
         req = urllib.request.urlopen(url, timeout=30)
-        jsondata = req.read()
+        jsondata = req.read().decode('utf8')
         data = json.loads(jsondata)
     except ValueError:
         # can't decode JSON

@@ -344,7 +344,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                                  st.start_date or st.created_at.date() or datetime.date(1970, 1, 1),
                                  st)
                              for st in statuses if st.start == status_sem]
-        semester_statuses.sort()
+        semester_statuses.sort(key=lambda tup: (tup[0], tup[1]))
         return semester_statuses[-1][2].status
 
 
