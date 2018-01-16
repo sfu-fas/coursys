@@ -74,8 +74,8 @@ def _group_info(course, group, members):
     """
     Collect all info about a group we need for display
     """
-    group_min = course.group_min()
-    group_max = course.group_max()
+    group_min = course.group_min() or 1
+    group_max = course.group_max() or 50
 
     gmembers = members.filter(group=group)
     all_act = all_activities(gmembers)
