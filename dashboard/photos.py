@@ -98,7 +98,7 @@ def photo_for_view(emplid):
     if not data:
         # whatever happened above failed: use a no-photo placeholder
         logger.debug('using dummy image for %s' % (emplid))
-        data = open(DUMMY_IMAGE_FILE, 'r').read()
+        data = open(DUMMY_IMAGE_FILE, 'rb').read()
         data = possibly_resize(data)
         status = 404
 

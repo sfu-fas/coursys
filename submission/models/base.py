@@ -182,13 +182,13 @@ class SubmittedComponent(models.Model):
         path, filename = os.path.split(upfile.name)
         response['Content-Disposition'] = 'inline; filename="' + filename + '"'
         try:
-            fh = open(upfile.path, "rb")
+            upfile.open('rb')
         except IOError:
             response['Content-type'] = "text/plain"
             response.write("File missing. It has likely been archived.")
             return
 
-        for data in fh:
+        for data in upfile:
             response.write(data)
 
     def file_filename(self, upfile, prefix=None):
