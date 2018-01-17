@@ -4,7 +4,7 @@
 {% block h1 %}Course Offerings{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(function() {
   $('.courses').dataTable( {
     'bPaginate': false,

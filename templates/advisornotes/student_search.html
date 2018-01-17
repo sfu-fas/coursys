@@ -5,8 +5,7 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
-<script type="text/javascript">
-//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">
 $(function() {
     $("#id_search").focus();
     student_autocomplete('id_search', true);
@@ -18,7 +17,6 @@ $(function() {
     );
     {% endif %}
 });
-//]]>
 </script>
 {% endblock %}
 

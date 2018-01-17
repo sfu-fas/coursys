@@ -974,8 +974,8 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     discussion, set_discussion = getter_setter('discussion')
     _, set_sessional_pay = getter_setter('sessional_pay')
     joint_with, set_joint_with = getter_setter('joint_with')
-    group_min, set_group_min = getter_setter('group_min')
-    group_max, set_group_max = getter_setter('group_max')
+    _, set_group_min = getter_setter('group_min')
+    _, set_group_max = getter_setter('group_max')
     group_span_activities, set_group_span_activities = getter_setter('group_span_activities')
     _, set_maillist = getter_setter('maillist')
     copy_config_fields = [ # fields that should be copied when instructor does "copy course setup"
@@ -1084,7 +1084,18 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
 
         return _maillist(self.pk)
 
-    
+    def group_min(self):
+        if 'group_min' in self.config and self.config['group_min'] is not None:
+            return self.config['group_min']
+        else:
+            return self.defaults['group_min']
+
+    def group_max(self):
+        if 'group_max' in self.config and self.config['group_max'] is not None:
+            return self.config['group_max']
+        else:
+            return self.defaults['group_max']
+
     def get_wqb_display(self):
         flags = [WQB_DICT[f] for f,v in self.flags.items() if v and f in WQB_KEYS]
         if flags:

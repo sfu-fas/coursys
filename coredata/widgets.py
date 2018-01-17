@@ -21,18 +21,6 @@ class AutocompletePersonWidget(forms.TextInput):
         else:
             attrs['class'] = attrs['class'] + " autocomplete_person"
         html = super(AutocompletePersonWidget, self).render(name, value, attrs)
-        # This javascript moved to core.js instead
-        # html += "<script type='application/javascript'>"
-        # html += "$('.autocomplete_person').each(function(){"
-        # html += "  $(this).autocomplete({"
-        # html += "    source: '/data/students',"
-        # html += "    minLength: 2,"
-        # html += "    select: function(event, ui){"
-        # html += "      $(this).data('val', ui.item.value);"
-        # html += "    }"
-        # html += "  });"
-        # html += "});"
-        # html += "</script>"
         return html
 
 class PersonField(forms.CharField):

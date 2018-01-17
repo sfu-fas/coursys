@@ -9,8 +9,7 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
-<script type="text/javascript">
-//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">
     var show_deleted = false;
     $(document).ready(function() {
         $('.delete').click(function(){
@@ -49,7 +48,6 @@
             return false;
         });
 	});
-//]]>
 </script>
 {% endblock %}
 

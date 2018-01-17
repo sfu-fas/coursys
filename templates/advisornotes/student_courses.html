@@ -21,7 +21,7 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
-<script type="text/javascript">//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">
 	function show_titles() {
 		$('.coursetitle').show();
 		$('.showtitle').hide();
@@ -93,7 +93,7 @@
 
    		});
  	});
-//]]></script>
+</script>
 <style type="text/css">
 table.courses, table.courses td, table.courses th {
 	border: none;
