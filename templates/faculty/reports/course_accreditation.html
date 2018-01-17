@@ -68,7 +68,7 @@ $(document).ready(function() {
     <th>Flags</th>
   </tr></thead>
   <tbody>
-  {% for course, matches in courses.iteritems %}
+  {% for course, matches in courses.items %}
   {% for offering, instructor, flags in matches %}
     <tr class="{{ offering.owner.label }}">
       <td>{{ offering.owner.label }}</td>
