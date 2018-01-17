@@ -33,7 +33,7 @@
 <dt>Registered at</dt><dd>{{ registration.created_at }}</dd>
 <dt>Last Modified</dt><dd>{{ registration.last_modified }}</dd>
 <dt>Email sent</dt><dd>{{ registration.email_sent|default:"None"|linebreaks }}</dd>
-{% for k, v in registration.extra_questions.iteritems %}
+{% for k, v in registration.extra_questions.items %}
     <dt>{{ k }}</dt><dd>{{ v }}</dd>
 {% endfor %}
 {% endblock %}

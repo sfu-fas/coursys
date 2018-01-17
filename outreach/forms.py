@@ -45,7 +45,7 @@ class OutreachEventForm(forms.ModelForm):
 
     def clean_extra_questions(self):
         extra_questions = self.cleaned_data['extra_questions']
-        extra_questions = [q.strip().encode('utf-8', 'ignore') for q in extra_questions.split('\n') if
+        extra_questions = [q.strip() for q in extra_questions.split('\n') if
                            len(q.strip()) > 0]
         self.instance.extra_questions = extra_questions
         return extra_questions
@@ -81,9 +81,8 @@ class OutreachEventRegistrationForm(forms.ModelForm):
         if 'extra_questions' in event.config and len(event.config['extra_questions']) > 0:
             for question in event.config['extra_questions']:
                 if 'extra_questions' in self.instance.config and question in self.instance.config['extra_questions']:
-                    self.fields[question.encode('ascii', 'ignore')] = \
+                    self.fields[question] = \
                         forms.CharField(label=question,widget=forms.Textarea,
                                         initial=self.instance.config['extra_questions'][question])
                 else:
-                    self.fields[question.encode('ascii', 'ignore')] = forms.CharField(label=question,
-                                                                                      widget=forms.Textarea)
+                    self.fields[question] = forms.CharField(label=question, widget=forms.Textarea)
