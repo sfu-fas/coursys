@@ -4,7 +4,7 @@
 {% block h1 %}Notes for {{ artifact }}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(function() {
     $('.artifact-notes').delegate('.artifact-note-header', 'click', function() {
         $(this).parent().toggleClass('collapsed');

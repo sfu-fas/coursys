@@ -11,7 +11,7 @@
 
 
 {% block headextra %}
-<script type="text/javascript">//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">
 
 	var course_data;
 
@@ -77,8 +77,7 @@
 
    		});
  	});
-
-//]]></script>
+</script>
 
 {% endblock %}
 

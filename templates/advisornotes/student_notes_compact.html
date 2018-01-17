@@ -9,8 +9,7 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
-<script type="text/javascript">
-//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   	table = $('.display').dataTable({
         "bPaginate": false,
@@ -19,7 +18,6 @@ $(document).ready(function() {
 		//"aoColumns": [],
 	});
 });
-//]]>
 </script>
 {% endblock %}
 

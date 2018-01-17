@@ -3,7 +3,7 @@
 {% block h1 %}All Visits{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(function() {
   $('.display').dataTable( {
     'bPaginate': false,

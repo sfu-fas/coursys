@@ -4,9 +4,8 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Course Information{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{STATIC_URL}}js/grades.js"></script>
-<script type="text/javascript">
-//<![CDATA[
+<script src="{{STATIC_URL}}js/grades.js"></script>
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
 	var oTable = $('#activities').dataTable({
 		"bJQueryUI": true,
@@ -42,7 +41,6 @@ $(document).ready(function() {
         reorder_activities(reorder_url, csrf_token, oTable, this_tr, next_tr);
 	});
 });
-//]]>
 </script>
 {% endblock %}
 
