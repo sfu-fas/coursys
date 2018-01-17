@@ -17,7 +17,7 @@ Create a virtualenv for the project and install the Python dependencies:
     . bin/activate
     git clone git@github.com:sfu-fas/coursys.git coursys
     cd coursys
-    pip install -r build_deps/working_deps.txt
+    pip install -r requirements.txt
 
 Adding the `--upgrade` option might solve some problems if your system is
 complaining because it is already packing some of these libraries from a
