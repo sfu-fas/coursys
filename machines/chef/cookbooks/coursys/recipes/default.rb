@@ -20,7 +20,7 @@ end
 # pip install any listed requirements
 execute "install_pip_requirements" do
     cwd "/home/ubuntu/"
-    command "pip3 install -r /home/ubuntu/courses/build_deps/working_deps.txt"
+    command "pip3 install -r /home/ubuntu/courses/requirements.txt"
 end
 
 # throw ipython in there: we know it works on the VM

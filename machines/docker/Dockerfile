@@ -7,8 +7,8 @@ RUN apt-get update \
     git mercurial ruby ruby-dev \
   && rm -rf /var/lib/apt/lists/*
 RUN locale-gen en_CA.UTF-8
-RUN pip3 install -r build_deps/working_deps.txt
+RUN pip3 install -r requirements.txt
 RUN gem install commonmarker github-markup
 
 # duplicate 'pip3 install' when running, so Travis tests don't fail on every tiny library update
-CMD pip3 install -r build_deps/working_deps.txt && python3 manage.py test
+CMD pip3 install -r requirements.txt && python3 manage.py test
