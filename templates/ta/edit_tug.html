@@ -28,7 +28,7 @@ $(document).ready(function() {
 <th>Duties and Responsibilities</th><th>Average hrs/week</th><th>Total hrs/semester</th><th>Comment</th>
 </tr>
 
-{% for form in form.subforms.itervalues %}
+{% for form in form.subforms.values %}
 <tr>
 <th>
 {{form.non_field_errors}}
