@@ -92,7 +92,7 @@ def register(request, event_slug):
             if 'extra_questions' in registration.event.config and len(registration.event.config['extra_questions']) > 0:
                 temp = {}
                 for question in registration.event.config['extra_questions']:
-                    temp[question] = form.cleaned_data[question.encode('ascii', 'ignore')]
+                    temp[question] = form.cleaned_data[question]
                 registration.config['extra_questions'] = temp
             registration.save()
             registration.email_memo()

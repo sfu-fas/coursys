@@ -584,12 +584,15 @@ class RAForm(SFUMediaMixin):
         self.c.drawString(85*mm, 147*mm, "If no project")
         self.c.drawString(112*mm, 147*mm, "If no project")
         self._box_entry(1.5*mm, 139*mm, 40*mm,  6.5*mm, content=self.ra.project.get_full_project_number())
-        self._box_entry(45*mm, 139*mm, 23*mm, 6.5 * mm, content="%04i" % (self.ra.account.account_number))
-        self._box_entry(71*mm, 139*mm, 11.5*mm, 6.5*mm, content="%i" % (self.ra.project.fund_number))
+        self._box_entry(45*mm, 139*mm, 23*mm, 6.5 * mm, content="%04i" % self.ra.account.account_number)
+        self._box_entry(71*mm, 139*mm, 11.5*mm, 6.5*mm, content="%i" % self.ra.project.fund_number)
         self._box_entry(85*mm, 139*mm, 25*mm, 6.5*mm, content=str(self.ra.project.department_code))
         self._box_entry(112*mm, 139*mm, 31*mm, 6.5*mm, content=self.ra.get_program_display())
-
-        self._box_entry(150*mm, 139*mm, 46*mm, 6.5*mm, content='')
+        if self.ra.account.position_number <= 1:
+            position_number = ''
+        else:
+            position_number = str(self.ra.account.position_number).zfill(9)
+        self._box_entry(150*mm, 139*mm, 46*mm, 6.5*mm, content=position_number)
 
         # dates
         self.c.setFont("Helvetica", 8)
