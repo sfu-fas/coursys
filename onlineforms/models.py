@@ -1020,7 +1020,7 @@ class SheetSubmissionSecretUrl(models.Model):
         attempt = str(random.randint(1000,900000000))
         while not(generated):
             old_attempt = attempt
-            attempt = hashlib.sha1(attempt).hexdigest()
+            attempt = hashlib.sha1(attempt.encode('utf8')).hexdigest()
             if len(SheetSubmissionSecretUrl.objects.filter(key=attempt)) == 0:
                 generated = True
             elif old_attempt == attempt:

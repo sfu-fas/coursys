@@ -182,6 +182,7 @@ class TUGForm(forms.ModelForm):
         self.instance.config = self.cleaned_data['config']
         return super(TUGForm, self).save(*args, **kwargs)
 
+
 class TAApplicationForm(forms.ModelForm):
     sin_default = '000000000'
     class Meta:
