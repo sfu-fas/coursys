@@ -1,21 +1,5 @@
-package "git"
-package "libxslt1-dev"
-package "python3"
-#package "python3-pip"
-package "python3-setuptools"
-package "python3-dev"
-package "python3-lxml"
-package "sqlite3"
-package "zlib1g-dev"
-package "libjpeg8-dev" # for pillow build
-package "mercurial"
-package "build-essential"
-
-
-#install the proper pip
-execute "install_proper_pip" do
-    command "easy_install3 pip"
-end
+package ["git", "libxslt1-dev", "sqlite3", "zlib1g-dev", "libjpeg8-dev", "mercurial", "build-essential", "libmysqlclient-dev"]
+package ["python3", "python3-pip", "python3-setuptools", "python3-dev", "python3-lxml"]
 
 # pip install any listed requirements
 execute "install_pip_requirements" do
