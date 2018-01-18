@@ -210,9 +210,9 @@ class TAApplicationForm(forms.ModelForm):
         if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
             for question in posting.config['extra_questions']:
                 if 'extra_questions' in self.instance.config and question in self.instance.config['extra_questions']:
-                    self.fields[question.encode('ascii', 'ignore')] = forms.CharField(label="Question", help_text=question, widget=forms.Textarea, initial=self.instance.config['extra_questions'][question])
+                    self.fields[question] = forms.CharField(label="Question", help_text=question, widget=forms.Textarea, initial=self.instance.config['extra_questions'][question])
                 else:
-                    self.fields[question.encode('ascii', 'ignore')] = forms.CharField(label="Question", help_text=question, widget=forms.Textarea)
+                    self.fields[question] = forms.CharField(label="Question", help_text=question, widget=forms.Textarea)
 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
@@ -626,7 +626,7 @@ class TAPostingForm(forms.ModelForm):
 
     def clean_extra_questions(self):
         extra_questions = self.cleaned_data['extra_questions']
-        extra_questions = [q.strip().encode('ascii', 'ignore') for q in extra_questions.split('\n') if len(q.strip()) > 0 ]
+        extra_questions = [q.strip() for q in extra_questions.split('\n') if len(q.strip()) > 0 ]
         self.instance.config['extra_questions'] = extra_questions
         return extra_questions
 
