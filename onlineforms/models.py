@@ -908,10 +908,9 @@ class SheetSubmission(models.Model):
         sheeturl = request.build_absolute_uri(self.get_submission_url())
         context['sheeturl'] = sheeturl
         context['CourSys'] = product_name(hint='forms')
-        email_context = Context(context)
-        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), mail_from, mail_to,
+        msg = EmailMultiAlternatives(subject, plaintext.render(context), mail_from, mail_to,
                 headers={'X-coursys-topic': 'onlineforms'})
-        msg.attach_alternative(html.render(email_context), "text/html")
+        msg.attach_alternative(html.render(context), "text/html")
         msg.send()
 
     def email_assigned(self, request, admin, assignee):
