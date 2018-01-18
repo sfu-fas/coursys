@@ -180,9 +180,9 @@ class SubmissionTest(TestCase):
                 ]
         
         for fn, ftype in testfiles:
-            fh = open(os.path.join("submission", "testfiles", fn), 'rb')
-            ftypem = filetype(fh)
-            self.assertEqual(ftype, ftypem)
+            with open(os.path.join("submission", "testfiles", fn), 'rb') as fh:
+                ftypem = filetype(fh)
+                self.assertEqual(ftype, ftypem)
 
     def test_group_submission_view(self):
         """
