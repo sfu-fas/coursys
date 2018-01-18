@@ -134,7 +134,7 @@ class HardcodedReport(models.Model):
         Represents a report that exists as a python file in 
         courses/reports/reportlib/reports
     """
-    report = models.ForeignKey(Report)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
     file_location = models.CharField(help_text="The location of this report, on disk.", 
         max_length=80, choices=all_reports(), null=False)
 
@@ -168,7 +168,7 @@ class Query(models.Model):
     """ 
         A custom query developed by the user. 
     """
-    report = models.ForeignKey(Report)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
     name = models.CharField(max_length=150, null=False)
     query = models.TextField()
     
@@ -201,8 +201,8 @@ class AccessRule(models.Model):
     """
         This person can see this report. 
     """
-    report = models.ForeignKey(Report)
-    person = models.ForeignKey(Person)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
     notify = models.BooleanField(null=False, default=False, 
         help_text="Email this person when a report completes.")
 
@@ -284,7 +284,7 @@ class ScheduleRule(models.Model):
     """
     Run this Report at this time. 
     """
-    report = models.ForeignKey(Report)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
     schedule_type = models.CharField(max_length=3, 
                                      choices=SCHEDULE_TYPE_CHOICES,
                                      null=False,
@@ -321,7 +321,7 @@ def schedule_ping():
 
 
 class Run(models.Model): 
-    report = models.ForeignKey(Report)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=150, null=False)
     success = models.BooleanField(default=False)
@@ -353,12 +353,12 @@ class RunLineLogger(object):
         self.run.addLine(x)
 
 class RunLine(models.Model):
-    run = models.ForeignKey(Run)
+    run = models.ForeignKey(Run, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     description = models.TextField()
 
 class Result(models.Model):
-    run = models.ForeignKey(Run)
+    run = models.ForeignKey(Run, on_delete=models.CASCADE)
     name = models.CharField(max_length=150)
     created_at = models.DateTimeField(auto_now_add=True)
     table = JSONField(null=False, blank=False, default={})

@@ -808,7 +808,7 @@ class GrantBalance(models.Model):
 
 class FacultyMemberInfo(models.Model):
     #person = models.ForeignKey(Person, unique=True, related_name='+')
-    person = models.OneToOneField(Person, related_name='+')
+    person = models.OneToOneField(Person, related_name='+', on_delete=models.PROTECT)
     title = models.CharField(max_length=50)
     birthday = models.DateField(verbose_name="Birthdate", null=True, blank=True)
     office_number = models.CharField('Office', max_length=20, null=True, blank=True)

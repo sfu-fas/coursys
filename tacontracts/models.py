@@ -101,8 +101,8 @@ class HiringSemester(models.Model):
     This is subject to change on a contract-by-contract basis, 
     so these are only defaults. 
     """
-    semester = models.ForeignKey(Semester)
-    unit = models.ForeignKey(Unit)
+    semester = models.ForeignKey(Semester, on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     deadline_for_acceptance = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
@@ -169,9 +169,9 @@ class TACategory(models.Model):
     It's only valid for a single semester, but we offer the ability 
     to copy all of the TACategories from the last semester to the next semester.
     """
-    account = models.ForeignKey(Account)
+    account = models.ForeignKey(Account, on_delete=models.PROTECT)
     # the account already FKs to a Unit, so we don't need one. 
-    hiring_semester = models.ForeignKey(HiringSemester, editable=False)
+    hiring_semester = models.ForeignKey(HiringSemester, editable=False, on_delete=models.PROTECT)
     code = models.CharField(max_length=5, 
                         help_text="Category Choice Code - for example 'GTA2'")
     title = models.CharField(max_length=50,
@@ -258,8 +258,8 @@ class TAContract(models.Model):
     """    
     TA Contract, filled in by TA Administrator
     """
-    person = models.ForeignKey(Person)
-    category = models.ForeignKey(TACategory, 
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
+    category = models.ForeignKey(TACategory, on_delete=models.PROTECT,
                                  related_name="contract")
     status = models.CharField(max_length=4,
                               choices=CONTRACT_STATUS_CHOICES,
@@ -541,7 +541,7 @@ class CourseDescription(models.Model):
     """
     Description of the work for a TA contract
     """
-    unit = models.ForeignKey(Unit, related_name='description_unit')
+    unit = models.ForeignKey(Unit, related_name='description_unit', on_delete=models.PROTECT)
     description = models.CharField(max_length=60, blank=False, null=False,
                                    help_text="Description of the work for a course, as it will appear on the contract. (e.g. 'Office/marking')")
     hidden = models.BooleanField(default=False)
@@ -556,11 +556,11 @@ class CourseDescription(models.Model):
         self.save()
 
 class TACourse(models.Model):
-    course = models.ForeignKey(CourseOffering,
+    course = models.ForeignKey(CourseOffering, on_delete=models.PROTECT,
                                blank=False, 
                                null=False,
                                related_name="+")
-    contract = models.ForeignKey(TAContract, 
+    contract = models.ForeignKey(TAContract, on_delete=models.PROTECT,
                                  blank=False, 
                                  null=False, 
                                  editable=False,
@@ -572,8 +572,8 @@ class TACourse(models.Model):
     labtut = models.BooleanField(default=False, 
                                  verbose_name="Lab/Tutorial?", 
                                  help_text="Does this course have a lab or tutorial?")
-    description = models.ForeignKey(CourseDescription, null=True, blank=True)
-    member = models.ForeignKey(Member, null=True, editable=False, related_name="tacourse")
+    description = models.ForeignKey(CourseDescription, null=True, blank=True, on_delete=models.PROTECT)
+    member = models.ForeignKey(Member, null=True, editable=False, related_name="tacourse", on_delete=models.PROTECT)
 
     def autoslug(self):
         """
@@ -674,12 +674,12 @@ class EmailReceipt(models.Model):
     This object serves as a record that this has occurred, which we can consult
     later. 
     """
-    contract = models.ForeignKey(TAContract, 
+    contract = models.ForeignKey(TAContract, on_delete=models.PROTECT,
                                  blank=False, 
                                  null=False, 
                                  editable=False,
                                  related_name="email_receipt")
-    content = models.ForeignKey(NewsItem,
+    content = models.ForeignKey(NewsItem, on_delete=models.PROTECT,
                                  blank=False,
                                  null=False,
                                  editable=False)

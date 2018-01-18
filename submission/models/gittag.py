@@ -58,7 +58,7 @@ class GitTagComponent(SubmissionComponent):
         app_label = 'submission'
 
 class SubmittedGitTag(SubmittedComponent):
-    component = models.ForeignKey(GitTagComponent, null=False)
+    component = models.ForeignKey(GitTagComponent, null=False, on_delete=models.PROTECT)
     url = GitURLField(null=False, blank=False, max_length=500, verbose_name='Repository URL', help_text='Clone URL for your repository, like "https://server/user/repo.git" or "git@server:user/repo.git".')
     tag = models.CharField(blank=False, null=False, max_length=200, verbose_name='Tag name', help_text='The tag you\'re submitting: created like "git tag submitted_code; git push origin --tags"')
 

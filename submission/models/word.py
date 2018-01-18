@@ -25,7 +25,7 @@ class WordComponent(SubmissionComponent):
 
 
 class SubmittedWord(SubmittedComponent):
-    component = models.ForeignKey(WordComponent, null=False)
+    component = models.ForeignKey(WordComponent, null=False, on_delete=models.PROTECT)
     word = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=UploadedFileStorage,
                             verbose_name='Word document submission')
         

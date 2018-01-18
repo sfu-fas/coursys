@@ -46,7 +46,7 @@ class IgnoreDeleted(models.Manager):
 
 
 class Contact(models.Model):
-    unit = models.ForeignKey(Unit, null=False, blank=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
     slug = AutoSlugField(populate_from='slug_string', unique_with=('unit',),
                          slugify=make_slug, null=False, editable=False)
     title = models.CharField(max_length=4, null=True, blank=True)
@@ -89,11 +89,11 @@ class IgnoreEventDeleted(models.Manager):
         return super(IgnoreEventDeleted, self).get_queryset().filter(deleted=False, contact__deleted=False)
 
 class Event(models.Model):
-    contact = models.ForeignKey(Contact, null=False, blank=False)
+    contact = models.ForeignKey(Contact, null=False, blank=False, on_delete=models.PROTECT)
     event_type = models.CharField(max_length=25, choices=EVENT_CHOICES)
     timestamp = models.DateTimeField(default=datetime.datetime.now, editable=False)
     last_modified = models.DateTimeField(null=True, blank=True, editable=False)
-    last_modified_by = models.ForeignKey(Person, null=True, blank=True)
+    last_modified_by = models.ForeignKey(Person, null=True, blank=True, on_delete=models.PROTECT)
     deleted = models.BooleanField(default=False)
     config = JSONField(default=dict)
     slug = AutoSlugField(populate_from='slug_string', unique_with=('contact',),
@@ -144,7 +144,7 @@ class EventAttachment(models.Model):
     Document attached to an Event. Let's assume that each event has exactly one attachment at most.
     These attachments will be created by our views if we add an event from the FileEventBase handler or its subclasses.
     """
-    event = models.OneToOneField(Event, null=False, blank=False)
+    event = models.OneToOneField(Event, null=False, blank=False, on_delete=models.PROTECT)
     slug = AutoSlugField(populate_from='mediatype', null=False, editable=False, unique_with=('event',))
     created_at = models.DateTimeField(auto_now_add=True)
     contents = models.FileField(storage=UploadedFileStorage, upload_to=attachment_upload_to, max_length=500)

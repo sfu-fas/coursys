@@ -16,7 +16,7 @@ class URLComponent(SubmissionComponent):
         app_label = 'submission'
 
 class SubmittedURL(SubmittedComponent):
-    component = models.ForeignKey(URLComponent, null=False)
+    component = models.ForeignKey(URLComponent, null=False, on_delete=models.PROTECT)
     url = models.URLField(null=False, blank=False, max_length=500, verbose_name="URL submission")
     class Meta:
         app_label = 'submission'
