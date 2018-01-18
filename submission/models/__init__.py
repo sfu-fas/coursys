@@ -300,7 +300,7 @@ class SubmissionInfo(object):
         assert self.submissions is not None
         from courselib.auth import is_course_staff_by_slug
 
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             return False
 
         elif is_course_staff_by_slug(request, self.activity.offering.slug):

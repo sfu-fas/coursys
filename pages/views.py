@@ -66,7 +66,7 @@ def _check_allowed(request, offering, acl_value, date=None):
     """
     acl_value = Page.adjust_acl_release(acl_value, date)
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         userid = request.user.username
     else:
         userid = '!'
@@ -88,7 +88,7 @@ def _forbidden_response(request, visible_to):
     error = 'Not allowed to view this page. It is visible only to %s in this course.' % (visible_to,)
     errormsg_template = '<strong>You are not currently logged in</strong>. You may be able to view this page if you <a href="%s">log in</a>'
     errormsg = None
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         url = conditional_escape(settings.LOGIN_URL + '?next=' + request.get_full_path())
         errormsg = mark_safe(errormsg_template % (url))
 
@@ -145,7 +145,7 @@ def view_page(request, course_slug, page_label):
 
         return _forbidden_response(request, page.get_can_read_display())
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         editor = _check_allowed(request, offering, page.can_write, page.editdate())
         can_edit = bool(editor)
     else:
@@ -483,8 +483,7 @@ def _pages_from_json(request, offering, data):
             
             # mock the request object enough to satisfy _check_allowed()
             class FakeRequest(object):
-                def is_authenticated(self):
-                    return True
+                is_authenticated = True
             fake_request = FakeRequest()
             fake_request.user = FakeRequest()
             fake_request.user.username = user.userid

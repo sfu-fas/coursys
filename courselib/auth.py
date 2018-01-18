@@ -36,7 +36,7 @@ def user_passes_test(test_func, login_url=None,
                     return privacy_redirect(request)
                 else:
                     return view_func(request, *args, **kwargs)
-            elif request.user.is_authenticated():
+            elif request.user.is_authenticated:
                 return ForbiddenResponse(request)
             else:
                 path = '%s?%s=%s' % (login_url, redirect_field_name,
@@ -58,7 +58,7 @@ def HttpError(request, status=404, title="Not Found", error="The requested resou
 
 def ForbiddenResponse(request, errormsg=None):
     error = mark_safe("You do not have permission to access this resource.")
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         login_url = settings.LOGIN_URL + '?' + urllib.parse.urlencode({'next': request.get_full_path()})
         error += mark_safe(' You are <strong>not logged in</strong>, so maybe <a href="%s">logging in</a> would help.' % (login_url))
     return HttpError(request, status=403, title="Forbidden", error=error, errormsg=errormsg)

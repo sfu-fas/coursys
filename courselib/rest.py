@@ -18,7 +18,7 @@ class APIConsumerPermissions(permissions.BasePermission):
     they authorized.
     """
     def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated():
+        if not request.user or not request.user.is_authenticated:
             # must be authenticated one way or another
             return False
 
@@ -58,7 +58,7 @@ class IsOfferingMember(permissions.BasePermission):
             view.offering = offering
 
         if not hasattr(view, 'member'):
-            assert request.user.is_authenticated()
+            assert request.user.is_authenticated
             member = Member.objects.exclude(role='DROP').filter(offering=offering, person__userid=request.user.username).first()
             view.member = member
 
@@ -77,7 +77,7 @@ class IsOfferingStaff(permissions.BasePermission):
             view.offering = offering
 
         if not hasattr(view, 'member'):
-            assert request.user.is_authenticated()
+            assert request.user.is_authenticated
             member = Member.objects.filter(role__in=['INST', 'TA', 'APPR']).filter(offering=offering, person__userid=request.user.username).first()
             view.member = member
 
@@ -119,7 +119,7 @@ class CacheMixin(object):
         method = request.method
 
         # Authenticated username
-        if not request.user.is_authenticated() or self.cache_ignore_auth:
+        if not request.user.is_authenticated or self.cache_ignore_auth:
             username = '*'
         else:
             username = request.user.username

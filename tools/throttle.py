@@ -15,7 +15,7 @@ class CacheThrottler(object):
     """
     def request_key(self, request):
         # logged-in users throtted by userid; anonymous by IP address
-        if hasattr(request, 'user') and not request.user.is_anonymous():
+        if hasattr(request, 'user') and not request.user.is_anonymous:
             userid = request.user.username
             return "throttle-"+userid
         else:

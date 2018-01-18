@@ -33,7 +33,7 @@ def _setup_view(request, next_page):
     if not next_page:
         next_page = _redirect_url(request)
 
-    if not request.maybe_stale_user.is_authenticated():
+    if not request.maybe_stale_user.is_authenticated:
         # Not authenticated at all. Force standard-Django auth.
         return next_page, False, False
 

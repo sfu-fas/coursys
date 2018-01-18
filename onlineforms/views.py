@@ -851,7 +851,7 @@ def index(request):
     form_groups = None
     sheet_submissions = None
     participated = None
-    if(request.user.is_authenticated()):
+    if request.user.is_authenticated:
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
         forms = [form for form in forms if not form.unlisted()]
@@ -1193,7 +1193,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
             sheet = owner_form.initial_sheet
 
         # get their info if they are logged in
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             try:
                 loggedin_user = ensure_person_from_userid(request.user.username)
                 
@@ -1239,7 +1239,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
             formFiller = sheet_submission.filler
             if sheet_submission.filler.isSFUPerson():
                 if not(formFiller.sfuFormFiller) or loggedin_user != formFiller.sfuFormFiller:
-                    if request.user.is_authenticated():
+                    if request.user.is_authenticated:
                         return ForbiddenResponse(request)
                     else:
                         # not logged in: maybe they really are the filler and we need to know.
