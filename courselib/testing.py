@@ -88,7 +88,7 @@ def validate_content(testcase, data, page_descr="unknown page"):
     parser = html5lib.HTMLParser(tree=html5lib.treebuilders.getTreeBuilder("dom"))
     parser.parse(data)
     if parser.errors:
-        fh = open("tmp-validation.html", "w")
+        fh = open("tmp-validation.html", "wb")
         fh.write(data)
         fh.close()
         testcase.fail("Invalid HTML5 produced in %s:\n  %s" % (page_descr, str(parser.errors)))
