@@ -24,7 +24,7 @@ class ActivityComponent(models.Model):
     """    
     Markable Component of a numeric activity   
     """
-    numeric_activity = models.ForeignKey(NumericActivity, null=False)
+    numeric_activity = models.ForeignKey(NumericActivity, null=False, on_delete=models.PROTECT)
     max_mark = models.DecimalField(max_digits=8, decimal_places=2, null=False)
     title = models.CharField(max_length=30, null=False)
     description = models.TextField(max_length=COMMENT_LENGTH, null=True, blank=True)
@@ -58,7 +58,7 @@ class CommonProblem(models.Model):
     """
     Common problem of a activity component. One activity component can have several common problems.
     """
-    activity_component = models.ForeignKey(ActivityComponent, null=False)
+    activity_component = models.ForeignKey(ActivityComponent, null=False, on_delete=models.CASCADE)
     title = models.CharField(max_length=30, null=False)
     penalty = models.DecimalField(max_digits=8, decimal_places=2)
     description = models.TextField(max_length=COMMENT_LENGTH, null=True, blank=True)
@@ -87,7 +87,7 @@ class ActivityMark(models.Model):
     # need the copy of the mark here in case that 
     # the 'value' field in the related numeric grades gets overridden
     mark = models.DecimalField(max_digits=8, decimal_places=2, null=True)
-    activity = models.ForeignKey(NumericActivity, null=True) # null=True to keep south happy
+    activity = models.ForeignKey(NumericActivity, null=True, on_delete=models.PROTECT) # null=True to keep south happy
     
     def __str__(self):
         return "Super object containing additional info for marking"
@@ -145,7 +145,7 @@ class StudentActivityMark(ActivityMark):
     """
     Marking of one student on one numeric activity 
     """        
-    numeric_grade = models.ForeignKey(NumericGrade, null=False)
+    numeric_grade = models.ForeignKey(NumericGrade, null=False, on_delete=models.PROTECT)
        
     def __str__(self):
         # get the student and the activity
@@ -173,8 +173,8 @@ class GroupActivityMark(ActivityMark):
     """
     Marking of one group on one numeric activity
     """
-    group = models.ForeignKey(Group, null=False)
-    numeric_activity = models.ForeignKey(NumericActivity, null=False)
+    group = models.ForeignKey(Group, null=False, on_delete=models.PROTECT)
+    numeric_activity = models.ForeignKey(NumericActivity, null=False, on_delete=models.PROTECT)
          
     def __str__(self):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.numeric_activity)
@@ -211,11 +211,11 @@ class ActivityComponentMark(models.Model):
     Marking of one particular component of an activity for one student  
     Stores the mark the student gets for the component
     """
-    activity_mark = models.ForeignKey(ActivityMark, null = False)    
-    activity_component = models.ForeignKey(ActivityComponent, null = False)
+    activity_mark = models.ForeignKey(ActivityMark, null=False, on_delete=models.PROTECT)
+    activity_component = models.ForeignKey(ActivityComponent, null=False, on_delete=models.PROTECT)
     value = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Mark', null=True, blank=True)
     comment = models.TextField(null = True, max_length=1000, blank=True)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
         # 'display_raw': Whether the comment should be displayed in a <pre> tag instead of using the
         # linebreaks filter.  Useful for comments with blocks of code.
 
@@ -244,7 +244,7 @@ class ActivityMark_LetterGrade(models.Model):
     # need the copy of the mark here in case that 
     # the 'value' field in the related numeric grades gets overridden
     mark = models.CharField(max_length=2, null=False,choices=LETTER_GRADE_CHOICES)
-    activity = models.ForeignKey(LetterActivity, null=True) # null=True to keep south happy
+    activity = models.ForeignKey(LetterActivity, null=True, on_delete=models.PROTECT) # null=True to keep south happy
     
     def __str__(self):
         return "Super object containing additional info for marking"
@@ -273,7 +273,7 @@ class StudentActivityMark_LetterGrade(ActivityMark_LetterGrade):
     """
     Marking of one student on one letter activity 
     """        
-    letter_grade = models.ForeignKey(LetterGrade, null=False, choices=LETTER_GRADE_CHOICES)
+    letter_grade = models.ForeignKey(LetterGrade, null=False, choices=LETTER_GRADE_CHOICES, on_delete=models.PROTECT)
        
     def __str__(self):
         # get the student and the activity
@@ -296,8 +296,8 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
     """
     Marking of one group on one letter activity
     """
-    group = models.ForeignKey(Group, null = False) 
-    letter_activity = models.ForeignKey(LetterActivity, null = False)
+    group = models.ForeignKey(Group, null=False, on_delete=models.PROTECT)
+    letter_activity = models.ForeignKey(LetterActivity, null=False, on_delete=models.PROTECT)
     letter_grade = models.CharField(max_length=2, choices=LETTER_GRADE_CHOICES)
          
     def __str__(self):

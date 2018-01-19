@@ -54,7 +54,7 @@ class GradeSource(models.Model):
     )
     country = CountryField()
     institution = models.CharField(max_length=128, verbose_name="Institution/Scale Name")
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     status = models.CharField(max_length=4, choices=STATUS_CHOICES, default='ACTI')
     scale = models.CharField(max_length=4, choices=SCALE_CHOICES, default='DISC')
 
@@ -204,7 +204,7 @@ class UserArchive(models.Model):
     """
     grade_source = models.ForeignKey(GradeSource)
     slug = models.SlugField(max_length=64, unique=True)
-    data = JSONField(blank=False, null=False, default={})
+    data = JSONField(blank=False, null=False, default=dict)
     # Defaults
     # data field should store the raw data dump from the RuleFormSet.
     # Then the form can be repopulated with ease.

@@ -32,7 +32,7 @@ class Report(models.Model):
                                    null=True, blank=True)
 
     hidden = models.BooleanField(null=False, default=False)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def autoslug(self):
@@ -138,7 +138,7 @@ class HardcodedReport(models.Model):
     file_location = models.CharField(help_text="The location of this report, on disk.", 
         max_length=80, choices=all_reports(), null=False)
 
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def run(self, manual=False):
@@ -172,7 +172,7 @@ class Query(models.Model):
     name = models.CharField(max_length=150, null=False)
     query = models.TextField()
     
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def run(self, manual=False):
@@ -206,7 +206,7 @@ class AccessRule(models.Model):
     notify = models.BooleanField(null=False, default=False, 
         help_text="Email this person when a report completes.")
 
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def send_notification(self, run):
@@ -292,7 +292,7 @@ class ScheduleRule(models.Model):
     last_run = models.DateTimeField(null=True) # the last time this ScheduleRule was run
     next_run = models.DateTimeField() # the next time to run this ScheduleRule
 
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def set_next_run(self):
@@ -361,8 +361,8 @@ class Result(models.Model):
     run = models.ForeignKey(Run, on_delete=models.CASCADE)
     name = models.CharField(max_length=150)
     created_at = models.DateTimeField(auto_now_add=True)
-    table = JSONField(null=False, blank=False, default={})
-    config = JSONField(null=False, blank=False, default={})
+    table = JSONField(null=False, blank=False, default=dict)
+    config = JSONField(null=False, blank=False, default=dict)
 
     def autoslug(self):
         if self.name: 

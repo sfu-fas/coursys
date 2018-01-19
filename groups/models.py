@@ -16,8 +16,8 @@ class Group(models.Model):
     General group information in the courses
     """
     name = models.CharField(max_length=30, help_text='Group name')
-    manager = models.ForeignKey(Member, blank=False, null=False)
-    courseoffering = models.ForeignKey(CourseOffering)
+    manager = models.ForeignKey(Member, blank=False, null=False, on_delete=models.PROTECT)
+    courseoffering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     #if this bool value is true, then when a new group activity is created, it will call the add_activity_to_group_auto function to create corresponding GroupMembers for that activity.
     groupForSemester = models.BooleanField(default = True)
 
@@ -55,10 +55,10 @@ class GroupMember(models.Model):
     """
     Member information of each group
     """
-    group = models.ForeignKey(Group)
-    student = models.ForeignKey(Member)
+    group = models.ForeignKey(Group, on_delete=models.PROTECT)
+    student = models.ForeignKey(Member, on_delete=models.PROTECT)
     confirmed = models.BooleanField(default = False)
-    activity = models.ForeignKey(Activity)
+    activity = models.ForeignKey(Activity, on_delete=models.PROTECT)
 
     def __str__(self):
 	    return '%s@%s/%s' % (self.student.person, self.group, self.activity.short_name)

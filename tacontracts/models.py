@@ -108,7 +108,7 @@ class HiringSemester(models.Model):
     pay_end = models.DateField()
     payperiods = models.DecimalField(max_digits=4, decimal_places=2,
                                      verbose_name= "During the contract, how many bi-weekly pay periods?")
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
     
     class Meta:
         unique_together = (('semester', 'unit'),)
@@ -545,7 +545,7 @@ class CourseDescription(models.Model):
     description = models.CharField(max_length=60, blank=False, null=False,
                                    help_text="Description of the work for a course, as it will appear on the contract. (e.g. 'Office/marking')")
     hidden = models.BooleanField(default=False)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
 
     def __str__(self):
         return self.description

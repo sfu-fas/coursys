@@ -177,7 +177,7 @@ class DisciplineGroup(models.Model):
     """
     name = models.CharField(max_length=60, blank=False, null=False, verbose_name="Cluster Name",
             help_text='An arbitrary "name" for this cluster of cases')
-    offering = models.ForeignKey(CourseOffering, help_text="The course this cluster is associated with")
+    offering = models.ForeignKey(CourseOffering, help_text="The course this cluster is associated with", on_delete=models.PROTECT)
     def autoslug(self):
         return make_slug(self.name)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='offering')
@@ -206,14 +206,14 @@ class DisciplineCaseBase(models.Model):
 
         return self
     
-    owner = models.ForeignKey(Person, help_text="The person who created/owns this case.")
-    offering = models.ForeignKey(CourseOffering)
+    owner = models.ForeignKey(Person, help_text="The person who created/owns this case.", on_delete=models.PROTECT)
+    offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     notes = models.TextField(blank=True, null=True, verbose_name="Private Notes", help_text='Notes about the case (private notes, '+TEXTILENOTE+').')
     notes_public = models.TextField(blank=True, null=True, verbose_name="Public Notes", help_text='Notes about the case (public notes, '+TEXTILENOTE+').')
     def autoslug(self):
         return self.student.userid
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='offering')
-    group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Cluster this case belongs to (if any).")
+    group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Cluster this case belongs to (if any).", on_delete=models.PROTECT)
     
 
     contact_email_text = models.TextField(blank=True, null=True, verbose_name="Contact Email Text",
@@ -517,7 +517,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         email.send(fail_silently=False)
 
 class DisciplineCaseInstrStudent(DisciplineCaseInstr):
-    student = models.ForeignKey(Person, help_text="The student this case concerns.")
+    student = models.ForeignKey(Person, help_text="The student this case concerns.", on_delete=models.PROTECT)
     def is_in_course(self):
         return True
     
@@ -607,10 +607,10 @@ class DisciplineCaseChair(DisciplineCaseBase):
     """
     An chair's case
     """
-    instr_case = models.ForeignKey(DisciplineCaseInstr, help_text="The instructor's case that triggered this case")
+    instr_case = models.ForeignKey(DisciplineCaseInstr, help_text="The instructor's case that triggered this case", on_delete=models.PROTECT)
 
 class DisciplineCaseChairStudent(DisciplineCaseChair):
-    student = models.ForeignKey(Person, help_text="The student this case concerns.")
+    student = models.ForeignKey(Person, help_text="The student this case concerns.", on_delete=models.PROTECT)
     def is_in_course(self):
         return True
     def student_userid(self):
@@ -652,11 +652,11 @@ class RelatedObject(models.Model):
     """
     Another object within the system that is related to this case: private for instructor
     """
-    case = models.ForeignKey(DisciplineCaseBase)
+    case = models.ForeignKey(DisciplineCaseBase, on_delete=models.PROTECT)
     name = models.CharField(max_length=255, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     # front-end handles adding some types of content_object, but can handle
@@ -675,7 +675,7 @@ class CaseAttachment(models.Model):
     A piece of evidence to attach to a case
     """
 
-    case = models.ForeignKey(DisciplineCaseBase)
+    case = models.ForeignKey(DisciplineCaseBase, on_delete=models.PROTECT)
     name = models.CharField(max_length=150, blank=True, null=True, verbose_name="Name", help_text="Identifying name for the attachment")
     attachment = models.FileField(upload_to=_disc_upload_to, max_length=500, verbose_name="File", storage=UploadedFileStorage)
     mediatype = models.CharField(null=True, blank=True, max_length=200)

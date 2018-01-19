@@ -26,7 +26,7 @@ class AlertType(models.Model):
     description = models.TextField(help_text="A longer, more in-depth explanation of what this alert is for.", null=True, blank=True)
     unit = models.ForeignKey(Unit, help_text="Only people in this unit can manage this Alert", null=False)
     hidden = models.BooleanField(null=False, default=False)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
 
     def autoslug(self):
         return make_slug( self.code )
@@ -39,7 +39,7 @@ class Alert(models.Model):
     person = models.ForeignKey(Person)
     alerttype = models.ForeignKey(AlertType)
     description = models.TextField(help_text="Specific details of alert", null=True, blank=True)
-    details = JSONField(null=False, blank=False, default={})
+    details = JSONField(null=False, blank=False, default=dict)
     hidden = models.BooleanField(null=False, default=False)
 
     # Uniqueness of an alert is complicated. In some cases, the 
@@ -219,4 +219,4 @@ class AlertEmailTemplate(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Email template created by.')
     hidden = models.BooleanField(default=False)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)

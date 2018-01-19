@@ -46,7 +46,7 @@ class TUG(models.Model):
     member = models.OneToOneField(Member, null=False, on_delete=models.PROTECT)
     base_units = models.DecimalField(max_digits=4, decimal_places=2, blank=False, null=False)
     last_update = models.DateField(auto_now=True)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # t.config['prep']: Preparation for labs/tutorials
         # t.config['meetings']: Attendance at planning meetings with instructor
         # t.config['lectures']: Attendance at lectures
@@ -448,7 +448,7 @@ class TAApplication(models.Model):
                                                          'research and instructional laboratories may require '
                                                          'additional training, contact the faculty member in charge of '
                                                          'your lab(s) for details.')
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
         # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'} 
  
     class Meta:
@@ -652,7 +652,7 @@ class CourseDescription(models.Model):
     description = models.CharField(max_length=60, blank=False, null=False, help_text="Description of the work for a course, as it will appear on the contract. (e.g. 'Office/marking')")
     labtut = models.BooleanField(default=False, verbose_name="Lab/Tutorial?", help_text="Does this description get the %s BU bonus?"%(LAB_BONUS))
     hidden = models.BooleanField(default=False)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     
     def __str__(self):
         return self.description

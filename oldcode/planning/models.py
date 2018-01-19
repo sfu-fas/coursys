@@ -25,7 +25,7 @@ class PlanningCourse(models.Model):
     owner = models.ForeignKey(Unit, null=False)
     status = models.CharField(max_length=4, choices=COURSE_STATUS_CHOICES, default="OPEN", help_text="Status of this course")
     slug = AutoSlugField(populate_from=('__str__'), null=False, editable=False, unique_with='id')
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff
 
     class Meta:
         ordering = ('subject', 'number')
@@ -129,7 +129,7 @@ class SemesterPlan(models.Model):
     visibility = models.CharField(max_length=4, choices=VISIBILITY_CHOICES, default="ADMI", help_text="Who can see this plan?")
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='semester')
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this course plan')
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
 
     def get_absolute_url(self):
         return reverse('planning.views.view_plan', kwargs={'semester': self.semester.name})
@@ -157,7 +157,7 @@ class PlannedOffering(models.Model):
     instructor = models.ForeignKey(Person, null=True, blank=True)
     slug = AutoSlugField(populate_from='__str__', null=False, editable=False, unique_with='section')
     notes = models.TextField(null=True, blank=True, default="", help_text="Additional information for cross-listing or other notes")
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
 
     class Meta:
         ordering = ['plan', 'course', 'campus']

@@ -48,7 +48,7 @@ class DiscussionTopic(models.Model):
     """
     A topic (thread) associated with a CourseOffering
     """
-    offering = models.ForeignKey(CourseOffering, null=False)
+    offering = models.ForeignKey(CourseOffering, null=False, on_delete=models.PROTECT)
     title = models.CharField(max_length=140, help_text="A brief description of the topic")
     content = models.TextField(help_text='The inital message for the topic.')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -56,11 +56,11 @@ class DiscussionTopic(models.Model):
     message_count = models.IntegerField(default=0)
     status = models.CharField(max_length=3, choices=TOPIC_STATUSES, default='OPN', help_text="The topic status: Closed: no replies allowed, Hidden: cannot be seen")
     pinned = models.BooleanField(default=False, help_text="Should this topic be pinned to bring attention?")
-    author = models.ForeignKey(Member)
+    author = models.ForeignKey(Member, on_delete=models.PROTECT)
     def autoslug(self):
         return make_slug(self.title)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=['offering'])
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
         # p.config['markup']:  markup language used: see courselib/markup.py
         # p.config['math']: content uses MathJax? (boolean)
         # p.config['brushes']: used SyntaxHighlighter brushes (list of strings) -- no longer used with highlight.js
@@ -139,16 +139,16 @@ class DiscussionMessage(models.Model):
     """
     A message (post) associated with a Discussion Topic
     """
-    topic = models.ForeignKey(DiscussionTopic)
+    topic = models.ForeignKey(DiscussionTopic, on_delete=models.CASCADE)
     content = models.TextField(blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=3, choices=MESSAGE_STATUSES, default='VIS')
-    author = models.ForeignKey(Member)
+    author = models.ForeignKey(Member, on_delete=models.PROTECT)
     def autoslug(self):
         return make_slug(self.author.person.userid)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=['topic'])
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
         # p.config['markup']:  markup language used: see courselib/markup.py
         # p.config['math']: content uses MathJax? (boolean)
         # p.config['brushes']: used SyntaxHighlighter brushes (list of strings) -- no longer used with highlight.js
@@ -254,7 +254,7 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
     """
     A member's subscription to their offering's discussion
     """
-    member = models.ForeignKey(Member)
+    member = models.ForeignKey(Member, on_delete=models.PROTECT)
     status = models.CharField(max_length=4, choices=DISCUSSION_SUB_STATUSES, default='NONE',
                               verbose_name='Notification',
                               help_text='Action to take when a new topic is posted')
@@ -293,8 +293,8 @@ class TopicSubscription(models.Model, _DiscussionEmailMixin):
     """
     A member's subscription to a single discussion topic
     """
-    topic = models.ForeignKey(DiscussionTopic)
-    member = models.ForeignKey(Member)
+    topic = models.ForeignKey(DiscussionTopic, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=models.PROTECT)
     status = models.CharField(max_length=4, choices=TOPIC_SUB_STATUSES, default='MAIL',
                               verbose_name='Notification',
                               help_text='Action to take when a new message is posted to this topic')

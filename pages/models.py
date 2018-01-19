@@ -60,7 +60,7 @@ class Page(models.Model):
         help_text="Who should be able to view this page?")
     can_write = models.CharField(max_length=4, choices=WRITE_ACL_CHOICES, default="STAF",
         verbose_name="Can change", help_text="Who should be able to edit this page?")
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # p.config['releasedate']: date after which is page is visible
         # p.config['editdate']: date after which is page is editable
         # p.config['migrated_to']: if this page was migrated to a new location, the new (offering.slug, page.label)
@@ -205,7 +205,7 @@ class PageVersion(models.Model):
     editor = models.ForeignKey(Member, on_delete=models.PROTECT)
     comment = models.TextField()
 
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # p.config['markup']: markup language used: see courselib/markup.py
         # p.config['math']: page uses MathJax? (boolean)
         # p.config['syntax']: page uses SyntaxHighlighter? (boolean) -- no longer used with highlight.js
@@ -471,7 +471,7 @@ class PagePermission(models.Model):
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
     role = models.CharField(max_length=4, choices=PERMISSION_ACL_CHOICES, default="STUD",
         help_text="What level of access should this person have for the course?")
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
 
     defaults = {}
 

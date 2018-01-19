@@ -448,7 +448,7 @@ class SemesterConfig(models.Model):
     """
     unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
     semester = models.ForeignKey(Semester, null=False, blank=False, on_delete=models.PROTECT)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff
     defaults = {'start_date': None, 'end_date': None}
     # 'start_date': default first day of contracts that semester, 'YYYY-MM-DD'
     # 'end_date': default last day of contracts that semester, 'YYYY-MM-DD'

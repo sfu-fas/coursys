@@ -37,7 +37,7 @@ class AssetQuerySet(models.QuerySet):
 
 class Asset(models.Model):
     name = models.CharField(max_length=150, null=False, blank=False)
-    unit = models.ForeignKey(Unit, blank=False, null=False, help_text='Unit to which this asset belongs')
+    unit = models.ForeignKey(Unit, blank=False, null=False, help_text='Unit to which this asset belongs', on_delete=models.PROTECT)
     brand = models.CharField(max_length=60, null=True, blank=True)
     description = models.CharField(max_length=400, blank=True, null=True)
     serial = models.CharField("Serial Number", max_length=60, null=True, blank=True)
@@ -108,13 +108,13 @@ class AssetChangeRecordQuerySet(models.QuerySet):
 
 
 class AssetChangeRecord(models.Model):
-    asset = models.ForeignKey(Asset, null=False, blank=False, related_name='records')
-    person = models.ForeignKey(Person, null=False, blank=False)
+    asset = models.ForeignKey(Asset, null=False, blank=False, related_name='records', on_delete=models.PROTECT)
+    person = models.ForeignKey(Person, null=False, blank=False, on_delete=models.PROTECT)
     qty = models.IntegerField("Quantity adjustment", null=False, blank=False,
                               help_text="The change in quantity.  For removal of item, make it a negative number. "
                                         "For adding items, make it a positive.  e.g. '-2' if someone removed two of"
                                         "this item for something")
-    event = models.ForeignKey(OutreachEvent, null=True, blank=True, help_text="The event it was for, if any")
+    event = models.ForeignKey(OutreachEvent, null=True, blank=True, help_text="The event it was for, if any", on_delete=models.PROTECT)
     date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
@@ -160,11 +160,11 @@ class AssetDocumentAttachment(models.Model):
     """
     Document attached to a CareerEvent.
     """
-    asset = models.ForeignKey(Asset, null=False, blank=False, related_name="attachments")
+    asset = models.ForeignKey(Asset, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
     title = models.CharField(max_length=250, null=False)
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('asset',))
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.', on_delete=models.PROTECT)
     contents = models.FileField(storage=UploadedFileStorage, upload_to=asset_attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
