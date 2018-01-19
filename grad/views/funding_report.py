@@ -11,7 +11,7 @@ def __startsem_name(gs):
     if gs.start_semester:
         return gs.start_semester.name
     else:
-        return None
+        return '0000'
 
 class _FakeProgram(object):
     # just enough like a GradProgram to display other totals
@@ -26,11 +26,10 @@ def _build_funding_totals(semester, programs, units):
     """
     # build mapping of Person.id to most-likely-currently-interesting GradProgram they're in
     gradstudents = GradStudent.objects.filter(program__unit__in=units).select_related('start_semester', 'person')
-    # decorate so most-interesting sorts last
-    gradstudents = [(-ACTIVE_STATUS_ORDER[gs.current_status], __startsem_name(gs), gs) for gs in gradstudents]
-    gradstudents.sort()
+    gradstudents = list(gradstudents)
+    gradstudents.sort(key=lambda gs: (-ACTIVE_STATUS_ORDER[gs.current_status], __startsem_name(gs)))
     student_programs = {}
-    for _,_,gs in gradstudents:
+    for gs in gradstudents:
         student_programs[gs.person_id] = gs.program_id
     del gradstudents
 

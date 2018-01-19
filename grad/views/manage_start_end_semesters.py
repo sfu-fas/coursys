@@ -38,8 +38,9 @@ def manage_start_end_semesters(request, grad_slug):
 
             messages.success(request, "Updated start/end semester info for %s." % (grad.person))
             l = LogEntry(userid=request.user.username,
-                  description="Updated start/end semester for %s." % (grad),
-                  related_object=grad)
+                         description="Updated start/end semester for %s to Start: %s, "
+                                     "End: %s" % (grad, grad.config['start_semester'], grad.config['end_semester']),
+                         related_object=grad)
             l.save()    
             return HttpResponseRedirect(reverse('grad:view', kwargs={'grad_slug':grad.slug}))
     else:

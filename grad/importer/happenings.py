@@ -26,6 +26,7 @@ def build_program_map():
         'CPGQL': GradProgram.objects.get(label="Qualifying", unit=cmptunit),
         'CPMCW': GradProgram.objects.get(label="MSc Course", unit=cmptunit),
         'CPGND': GradProgram.objects.get(label="Special", unit=cmptunit),
+        'PMSCS': GradProgram.objects.get(label="Prof MSc", unit=cmptunit),
     }
     engunit = Unit.objects.get(label="ENSC")
     mechunit = Unit.objects.get(label="MSE")

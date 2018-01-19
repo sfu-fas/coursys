@@ -440,17 +440,20 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 self.start_semester = rejected_application_statuses[-1].start
 
         # end_semester
-        # Modified to ignore the cases where people had 'end_semester': None in their config.
+        # First, assume there is no end semester.
+        self.end_semester = None
+        # If the users manually added an end semester at some time, use that.
         if 'end_semester' in self.config and self.config['end_semester']:
                 self.end_semester = Semester.objects.get(name=self.config['end_semester'])
-        else:
-            if self.current_status in STATUS_DONE:
-                ends = [status for status in all_gs if status.status in STATUS_DONE]
-                if len(ends) > 0:
-                    end_status = ends[-1]
-                    self.end_semester = end_status.start
-            else:
-                self.end_semester = None
+        # However, if either the users or SIMS created a current status that means the student is done
+        # then the semester for that status should really be the end semester.
+        if self.current_status in STATUS_DONE:
+            ends = [status for status in all_gs if status.status in STATUS_DONE]
+            if len(ends) > 0:
+                end_status = ends[-1]
+                self.end_semester = end_status.start
+
+
 
         current = (self.start_semester_id, self.end_semester_id, self.current_status, self.program_id)
         if old != current:

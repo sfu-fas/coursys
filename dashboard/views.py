@@ -202,8 +202,11 @@ def config(request):
     
     # news config
     configs = UserConfig.objects.filter(user=user, key="newsitems")
+    # By default, users get emails for news items unless they specifically opted-out.  The value here doesn't
+    # change any data, it just displays the same thing as if someone had a UserConfig where they specifically set
+    # email to True.
     if not configs:
-        newsconfig = {'email': False}
+        newsconfig = {'email': True}
     else:
         newsconfig = configs[0].value
     
