@@ -961,7 +961,7 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
         try:
             p = add_person(emplid)
         except SIMSProblem as e:
-            return e.message
+            return str(e)
 
     ident = 'for "%s"' % (p.name())
 

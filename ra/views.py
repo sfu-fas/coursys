@@ -637,7 +637,7 @@ def person_info(request):
             otherinfo = more_personal_info(emplid, needed=['citizen', 'visa'])
             result.update(otherinfo)
         except SIMSProblem as e:
-            result['error'] = e.message
+            result['error'] = str(e)
 
     return HttpResponse(json.dumps(result), content_type='application/json;charset=utf-8')
 
