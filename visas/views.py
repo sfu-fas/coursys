@@ -3,7 +3,7 @@ from .models import Visa
 from .forms import VisaForm, VisaAttachmentForm
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
 from django.http import StreamingHttpResponse
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from django.db import transaction
 from log.models import LogEntry

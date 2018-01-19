@@ -5,7 +5,7 @@ from django.db.models import Max
 from django.forms.fields import FileField
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import django.db.transaction
 from django.db.models import Q, Count
 from django.utils.html import conditional_escape

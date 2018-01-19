@@ -14,7 +14,7 @@ from coredata.models import Person, Semester, CourseOffering, Course, Member, Ro
 from coredata import panel
 from advisornotes.models import NonStudent
 from log.models import LogEntry
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from cache_utils.decorators import cached
 from haystack.query import SearchQuerySet

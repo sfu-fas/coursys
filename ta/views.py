@@ -1,6 +1,6 @@
 from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Q
 from django.db import transaction
 from django.contrib import messages

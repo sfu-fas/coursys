@@ -2,7 +2,7 @@ from django.db import models
 from coredata.models import Person, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES, \
         Unit, Course, CourseOffering, Member
 from autoslug import AutoSlugField
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from courselib.json_fields import JSONField
 from fractions import Fraction
 import datetime

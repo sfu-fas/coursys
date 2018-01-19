@@ -4,7 +4,7 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from django.conf import settings
 import datetime, urllib.parse, decimal
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.core.cache import cache
 from django.core.mail import send_mail

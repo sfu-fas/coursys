@@ -1,7 +1,7 @@
 import copy
 import django
 from django.db import models, IntegrityError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.files.base import ContentFile
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
 from grades.models import all_activities_filter, neaten_activity_positions, get_entry_person, COMMENT_LENGTH

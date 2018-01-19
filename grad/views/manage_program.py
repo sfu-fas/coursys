@@ -6,7 +6,7 @@ from grad.forms import GradProgramHistoryForm
 from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 @requires_role("GRAD")
 def manage_program(request, grad_slug):

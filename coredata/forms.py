@@ -5,8 +5,29 @@ from coredata.queries import find_person, add_person, SIMSProblem, userid_to_emp
 from cache_utils.decorators import cached
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
-from localflavor.ca.forms import CAPhoneNumberField
 from coredata.widgets import CalendarWidget
+
+
+# deprecated code from django-localflavor: https://github.com/django/django-localflavor/blob/1.4.x/localflavor/ca/forms.py
+import re
+from django.core.validators import EMPTY_VALUES
+phone_digits_re = re.compile(r'^(?:1-?)?(\d{3})[-\.]?(\d{3})[-\.]?(\d{4})$')
+class CAPhoneNumberField(forms.Field):
+    """Canadian phone number form field."""
+
+    default_error_messages = {
+        'invalid': 'Phone numbers must be in XXX-XXX-XXXX format.',
+    }
+
+    def clean(self, value):
+        super(CAPhoneNumberField, self).clean(value)
+        if value in EMPTY_VALUES:
+            return ''
+        value = re.sub('(\(|\)|\s+)', '', force_text(value))
+        m = phone_digits_re.search(value)
+        if m:
+            return '%s-%s-%s' % (m.group(1), m.group(2), m.group(3))
+        raise forms.ValidationError(self.error_messages['invalid'])
 
 
 class OfferingSelect(forms.TextInput):
@@ -96,9 +117,9 @@ class PersonWidget(forms.TextInput):
     """
     def __init__(self, *args, **kwargs):
         self.found_sims = False
-        return super(PersonWidget, self).__init__(*args, **kwargs)
+        super(PersonWidget, self).__init__(*args, **kwargs)
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if self.found_sims:
             textwidget = super(PersonWidget, self).render(name, value, attrs)
             confirmwidget = ' Import %s %s (%s) from SIMS: ' % (self.sims_data['first_name'], self.sims_data['last_name'], self.sims_data['emplid'])
@@ -106,7 +127,7 @@ class PersonWidget(forms.TextInput):
             confirmwidget += '<input type="hidden" name="%s_emplid" value="%s" />' % (name, self.sims_data['emplid'])
             return textwidget + confirmwidget
         else:
-            return super(PersonWidget, self).render(name, value, attrs)
+            return super(PersonWidget, self).render(name, value, attrs=attrs, renderer=renderer)
 
 
 class PersonField(forms.CharField):

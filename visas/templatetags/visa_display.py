@@ -1,6 +1,6 @@
 from django import template
 from visas.models import Visa
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as e
 register = template.Library()

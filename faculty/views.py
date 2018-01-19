@@ -21,7 +21,7 @@ from django.core.exceptions import PermissionDenied
 
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template.base import Template
 from django.template.context import Context
 from courselib.search import find_userid_or_emplid

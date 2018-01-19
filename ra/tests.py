@@ -1,7 +1,7 @@
 from django.test import TestCase
 from courselib.testing import Client, test_views
 from ra.models import RAAppointment, Account, Project
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 class RATest(TestCase):

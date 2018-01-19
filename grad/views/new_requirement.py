@@ -5,7 +5,7 @@ from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import GradRequirementForm
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 @requires_role("GRAD", get_only=["GRPD"])
 def new_requirement(request):

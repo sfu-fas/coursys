@@ -1,5 +1,5 @@
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from courselib.auth import requires_role, ForbiddenResponse
 from grad.forms import GradNotesForm
 from grad.models import GradStudent

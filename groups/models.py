@@ -3,7 +3,7 @@ from coredata.models import Member, CourseOffering, repo_name
 from autoslug import AutoSlugField
 from grades.models import *
 from django.shortcuts import get_object_or_404
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from dashboard.models import NewsItem
 from django.conf import settings
 from courselib.slugs import make_slug

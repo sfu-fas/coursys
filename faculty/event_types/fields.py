@@ -336,7 +336,7 @@ class TeachingReductionField(FractionField):
 # Adapted from https://djangosnippets.org/snippets/1914/
 
 class AnnualTeachingInput(forms.widgets.TextInput):
-    def _format_value(self, value):
+    def format_value(self, value):
         if value is None:
             return ''
         try:

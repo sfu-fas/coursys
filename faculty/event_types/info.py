@@ -5,7 +5,7 @@ from django import forms
 from django.template import Context, Template
 from django.utils.safestring import mark_safe, SafeText
 from django.utils.html import conditional_escape as escape
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.functional import lazy
 from django.utils.functional import SimpleLazyObject
 

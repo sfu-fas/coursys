@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from coredata.models import Person, Unit, Semester, Role
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter

@@ -4,7 +4,7 @@ from django.utils.safestring import mark_safe
 from pytz import timezone
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from autoslug.settings import slugify
 from courselib.json_fields import JSONField, config_property
 from courselib.branding import product_name

@@ -1,6 +1,6 @@
 import operator
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from django.http import Http404, StreamingHttpResponse, HttpResponse
 from courselib.auth import requires_role

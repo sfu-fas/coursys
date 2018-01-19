@@ -4,7 +4,7 @@ from grades.models import Activity
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.core.mail import EmailMessage, EmailMultiAlternatives
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template.loader import render_to_string
 from autoslug import AutoSlugField
 from django.utils.text import wrap

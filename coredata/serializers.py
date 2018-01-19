@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import serializers
 from courselib.rest import HyperlinkCollectionField
 from coredata.models import CourseOffering

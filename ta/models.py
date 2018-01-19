@@ -11,7 +11,7 @@ from autoslug import AutoSlugField
 import decimal, datetime, uuid
 from numbers import Number
 from dashboard.models import NewsItem
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from creoleparser import text2html

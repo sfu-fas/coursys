@@ -8,7 +8,7 @@ from grades.models import NumericActivity, Activity
 from groups.models import Group, GroupMember
 from coredata.tests import create_offering, validate_content
 from coredata.models import Member, Person, CourseOffering
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from courselib.testing import Client, test_views, basic_page_tests, TEST_COURSE_SLUG
 import datetime, tempfile, os
 

@@ -1,5 +1,5 @@
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import json, datetime
 from coredata.models import Person, Semester, Role
 from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \

@@ -11,7 +11,7 @@ from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
 from courselib.storage import UploadedFileStorage, upload_path
 from django.db.models import Max
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template

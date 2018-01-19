@@ -4,7 +4,7 @@ from coredata.models import Member, CourseOffering, Person
 from dashboard.models import NewsItem
 from django.db import transaction
 from django.db.models import Count
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from datetime import datetime, timedelta, date
 from courselib.json_fields import JSONField
@@ -308,6 +308,7 @@ class NumericActivity(Activity):
 
     class Meta:
         verbose_name_plural = "numeric activities"
+        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Numeric Graded"
@@ -346,6 +347,7 @@ class LetterActivity(Activity):
     """
     class Meta:
         verbose_name_plural = "letter activities"
+        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Letter Graded"
@@ -388,6 +390,7 @@ class CalNumericActivity(NumericActivity):
 
     class Meta:
         verbose_name_plural = "cal numeric activities"
+        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Calculated Numeric Grade"
@@ -415,6 +418,7 @@ class CalLetterActivity(LetterActivity):
     
     class Meta:
         verbose_name_plural = 'cal letter activities'
+        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Calculated Letter Grade"

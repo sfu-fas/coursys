@@ -7,7 +7,7 @@ from datetime import datetime
 from autoslug import AutoSlugField
 from django.db.models import Max
 from dashboard.models import NewsItem
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import os.path
 from django.conf import settings
 from django.utils.safestring import mark_safe

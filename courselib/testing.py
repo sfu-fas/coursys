@@ -2,7 +2,7 @@ import os
 import urllib.request, urllib.parse, urllib.error
 import html5lib
 import datetime
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.management import call_command
 
 from django.test import TestCase

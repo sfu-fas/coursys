@@ -2,7 +2,7 @@ from django.db import models, transaction
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.core.cache import cache
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from coredata.models import CourseOffering, Member, Person
 from grades.models import Activity
 

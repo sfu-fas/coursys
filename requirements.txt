@@ -4,8 +4,12 @@ Django==1.11.9
 git+git://github.com/gregbaker/creoleparser.git@f2d9ba65a0cd435f5b25347414902b21826999dd
 Genshi==0.7
 Unidecode>=0.04.19
+
 #django-autoslug==1.9.4  -- Not released yet but our change will be in it.  In the mean time:
-git+git://github.com/neithere/django-autoslug.git@a16fd5e83063e533e709238522fe1321e24349e1
+#git+git://github.com/neithere/django-autoslug.git@223771076e63c1b50f75fb2a576f2ea4c6bad514
+# django 2.0 support:
+git+git://github.com/jpic/django-autoslug.git@034886dba2dc7a50b68517064fa9244d2d149a0e
+
 #django-cas==2.0.3 # should "pip uninstall django-cas"
 django-otp==0.4.2
 django-dirtyfields==1.3
@@ -16,7 +20,7 @@ jsonfield==1.0.3
 pyparsing==2.1.10
 pytz>=2016.10
 textile==2.3.6
-html5lib==0.999999999
+html5lib==1.0.1
 bleach==2.1.2
 reportlab==3.3.0
 pillow>=4.0.0 # let reportlab choose the version
@@ -25,14 +29,13 @@ xlwt==1.2.0
 django-datatables-view==1.13.2
 #django-bitfield==1.8.0
 git+git://github.com/disqus/django-bitfield@306ba5cb193fe444719d4286cd1d6296628ea339 # django 1.10 compatibility
-django-localflavor==1.4
 django-countries==4.0
 django-compressor==2.1
 #django-cache-utils==0.7.2
-hg+https://bitbucket.org/ggbaker/django-cache-utils/@fc63e52 # python 3 compatibility
+hg+https://bitbucket.org/ggbaker/django-cache-utils/@8a29823  # python 3 compatibility
 celery==4.1.0
-django-celery-email==1.1.5
-django_celery_beat==1.0.1
+django-celery-email==2.0.0
+django_celery_beat==1.1.0
 flower==0.8.2
 kombu==4.1.0
 iso8601==0.1.11
@@ -41,7 +44,7 @@ whoosh==2.7.4
 djangorestframework==3.5.3
 djangorestframework-oauth==1.1.0
 #django-oauth-plus==2.2.9
-hg+https://bitbucket.org/ggbaker/django-oauth-plus/@0ab4319 # django 1.10 and python3 compatibility
+hg+https://bitbucket.org/ggbaker/django-oauth-plus/@c043752 # django 2.0 and python3 compatibility
 markdown # for API docs
 django-rest-swagger==2.1.0
 #git+git://github.com/gregbaker/django-rest-swagger@develop# includes help_text in docs, and choices field support

@@ -5,7 +5,7 @@ from courselib.json_fields import JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from dashboard.models import NewsItem
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from .cache import clear_cache
 
 import datetime

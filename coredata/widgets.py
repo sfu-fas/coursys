@@ -23,6 +23,7 @@ class AutocompletePersonWidget(forms.TextInput):
         html = super(AutocompletePersonWidget, self).render(name, value, attrs)
         return html
 
+
 class PersonField(forms.CharField):
     """
     A field to allow emplid entry of a Person, with autocomplete,
@@ -59,12 +60,13 @@ class PersonField(forms.CharField):
             except ValueError:
                 raise ValidationError("Please enter a 9-digit EMPLID.")
 
+
 class AutocompleteOfferingWidget(forms.TextInput):
     """
     A widget to allow searching for a CourseOffering
     """
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if not attrs:
             attrs={'class':'autocomplete_courseoffering'}
         elif not 'class' in attrs:
@@ -73,7 +75,7 @@ class AutocompleteOfferingWidget(forms.TextInput):
             attrs['class'] = attrs['class'] + " autocomplete_courseoffering"
         
 
-        html = super(AutocompleteOfferingWidget, self).render(name, value, attrs)
+        html = super(AutocompleteOfferingWidget, self).render(name, value, attrs=attrs, renderer=renderer)
         html += "<script type='application/javascript'>"
         html += "$('.autocomplete_courseoffering').each(function(){"
         html += "  $(this).autocomplete({"
@@ -89,6 +91,7 @@ class AutocompleteOfferingWidget(forms.TextInput):
         html += "});"
         html += "</script>"
         return html
+
 
 class OfferingField(forms.CharField):
     def __init__(self, *args, **kwargs):
@@ -125,14 +128,14 @@ class CalendarWidget(forms.TextInput):
     """
     A widget for calendar date-pickin' 
     """
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if not attrs:
             attrs={'class':'datepicker'}
         elif not 'class' in attrs:
             attrs['class'] = 'datepicker'
         else:
             attrs['class'] = attrs['class'] + " datepicker"
-        html = super(CalendarWidget, self).render(name, value, attrs)
+        html = super(CalendarWidget, self).render(name, value, attrs=attrs, renderer=renderer)
         # The Javascript should be done in core.js instead.
         # html += "<script type='application/javascript'>"
         # html += "$('.datepicker').each(function(){"

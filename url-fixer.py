@@ -7,7 +7,7 @@ sys.path.append('.')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 application = get_wsgi_application()
 
-from django.core.urlresolvers import get_resolver, get_callable
+from django.urls import get_resolver, get_callable
 resolver = get_resolver()
 
 dot_ref_re = re.compile(r'(?P<quote>\'|\")(?P<dotted>(?P<app>\w+)\.views\.(?P<view>\w+))\1')

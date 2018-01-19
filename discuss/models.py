@@ -1,6 +1,6 @@
 from coredata.models import Member, CourseOffering
 from django.db import models
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template

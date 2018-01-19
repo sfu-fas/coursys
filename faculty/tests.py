@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from django.test import TestCase
 from django.utils import safestring
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from courselib.testing import Client, test_views, TEST_COURSE_SLUG
 
 from coredata.models import Semester
