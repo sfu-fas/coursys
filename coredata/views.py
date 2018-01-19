@@ -1230,7 +1230,7 @@ def browse_courses_info(request, course_slug):
         try:
             data = more_offering_info(offering, browse_data=True, offering_effdt=True)
         except SIMSProblem as e:
-            data = {'error': e.message}
+            data = {'error': str(e)}
         json.dump(data, response, indent=1)
         return response
 

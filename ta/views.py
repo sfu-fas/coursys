@@ -581,7 +581,7 @@ def get_info(request, post_slug):
     try:
         data = more_personal_info(emplid=p.emplid, needed=['phones'])
     except SIMSProblem as e:
-        data = {'error': e.message}
+        data = {'error': str(e)}
     return HttpResponse(json.dumps(data), content_type='application/json')
 
 @requires_role("TAAD")

@@ -279,4 +279,4 @@ class DynamicForm(forms.Form):
             try:
                 field.clean(post[str(name)])
             except Exception as e:
-                self.errors[name] = e.message
+                self.errors[name] = str(e)
