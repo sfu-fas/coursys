@@ -64,27 +64,27 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='assetdocumentattachment',
             name='asset',
-            field=models.ForeignKey(related_name='attachments', to='inventory.Asset'),
+            field=models.ForeignKey(related_name='attachments', to='inventory.Asset', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='assetdocumentattachment',
             name='created_by',
-            field=models.ForeignKey(help_text=b'Document attachment created by.', to='coredata.Person'),
+            field=models.ForeignKey(help_text=b'Document attachment created by.', to='coredata.Person', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='assetchangerecord',
             name='asset',
-            field=models.ForeignKey(related_name='records', to='inventory.Asset'),
+            field=models.ForeignKey(related_name='records', to='inventory.Asset', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='assetchangerecord',
             name='event',
-            field=models.ForeignKey(blank=True, to='outreach.OutreachEvent', help_text=b'The event it was for, if any', null=True),
+            field=models.ForeignKey(blank=True, to='outreach.OutreachEvent', help_text=b'The event it was for, if any', null=True, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='assetchangerecord',
             name='person',
-            field=models.ForeignKey(to='coredata.Person'),
+            field=models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='assetdocumentattachment',

@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
                 ('contents', models.FileField(storage=django.core.files.storage.FileSystemStorage(base_url=None, location=b'submitted_files'), max_length=500, upload_to=ra.models.ra_attachment_upload_to)),
                 ('mediatype', models.CharField(max_length=200, null=True, editable=False, blank=True)),
                 ('hidden', models.BooleanField(default=False, editable=False)),
-                ('appointment', models.ForeignKey(related_name='attachments', to='ra.RAAppointment')),
-                ('created_by', models.ForeignKey(help_text=b'Document attachment created by.', to='coredata.Person')),
+                ('appointment', models.ForeignKey(related_name='attachments', to='ra.RAAppointment', on_delete=models.CASCADE)),
+                ('created_by', models.ForeignKey(help_text=b'Document attachment created by.', to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('created_at',),

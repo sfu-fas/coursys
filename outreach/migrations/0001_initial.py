@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('notes', models.CharField(help_text=b'Special notes to registrants.  These *will* be displayed on the registration forms.', max_length=400, null=True, blank=True)),
                 ('email', models.EmailField(help_text=b'Contact email.  Address that will be given to registrants on the registration success page in case they have any questions/problems.', max_length=254, null=True, verbose_name=b'Contact e-mail', blank=True)),
                 ('slug', autoslug.fields.AutoSlugField(populate_from=b'autoslug', unique=True, editable=False)),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('last_modified', models.DateTimeField(editable=False)),
                 ('attended', models.BooleanField(default=True, editable=False)),
-                ('event', models.ForeignKey(to='outreach.OutreachEvent')),
+                ('event', models.ForeignKey(to='outreach.OutreachEvent', on_delete=models.CASCADE)),
             ],
         ),
     ]

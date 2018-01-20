@@ -19,8 +19,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('role', models.CharField(default=b'STUD', help_text=b'What level of access should this person have for the course?', max_length=4, choices=[(b'INST', b'instructor'), (b'STAF', b'instructor and TAs'), (b'STUD', b'students, instructor and TAs')])),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('offering', models.ForeignKey(to='coredata.CourseOffering')),
-                ('person', models.ForeignKey(to='coredata.Person')),
+                ('offering', models.ForeignKey(to='coredata.CourseOffering', on_delete=models.CASCADE)),
+                ('person', models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE)),
             ],
         ),
         migrations.AlterUniqueTogether(

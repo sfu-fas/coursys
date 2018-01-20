@@ -42,7 +42,7 @@ whoosh==2.7.4
 djangorestframework==3.7.7
 djangorestframework-oauth==1.1.0
 #django-oauth-plus==2.2.9
-hg+https://bitbucket.org/ggbaker/django-oauth-plus/@c043752 # django 2.0 and python3 compatibility
+hg+https://bitbucket.org/ggbaker/django-oauth-plus/@5865258 # django 2.0 and python3 compatibility
 markdown # for API docs
 django-rest-swagger==2.1.2
 django-ipware==2.0.0

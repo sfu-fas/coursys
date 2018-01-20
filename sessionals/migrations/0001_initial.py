@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('position_number', models.PositiveIntegerField()),
                 ('slug', autoslug.fields.AutoSlugField(populate_from=b'autoslug', unique=True, editable=False)),
                 ('hidden', models.BooleanField(default=False, editable=False)),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                 ('pay_start', models.DateField()),
                 ('pay_end', models.DateField()),
                 ('slug', autoslug.fields.AutoSlugField(populate_from=b'autoslug', unique=True, editable=False)),
-                ('unit', models.OneToOneField(to='coredata.Unit')),
+                ('unit', models.OneToOneField(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -57,10 +57,10 @@ class Migration(migrations.Migration):
                 ('hidden', models.BooleanField(default=False, editable=False)),
                 ('config', courselib.json_fields.JSONField(default=dict, editable=False)),
                 ('slug', autoslug.fields.AutoSlugField(populate_from=b'autoslug', unique=True, editable=False)),
-                ('account', models.ForeignKey(to='sessionals.SessionalAccount')),
-                ('offering', models.ForeignKey(to='coredata.CourseOffering')),
-                ('sessional', models.ForeignKey(to='coredata.AnyPerson')),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('account', models.ForeignKey(to='sessionals.SessionalAccount', on_delete=models.CASCADE)),
+                ('offering', models.ForeignKey(to='coredata.CourseOffering', on_delete=models.CASCADE)),
+                ('sessional', models.ForeignKey(to='coredata.AnyPerson', on_delete=models.CASCADE)),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
         ),
         migrations.AlterUniqueTogether(

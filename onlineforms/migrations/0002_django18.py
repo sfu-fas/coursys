@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldsubmissionfile',
             name='field_submission',
-            field=models.OneToOneField(to='onlineforms.FieldSubmission'),
+            field=models.OneToOneField(to='onlineforms.FieldSubmission', on_delete=models.CASCADE),
         ),
     ]
