@@ -371,7 +371,7 @@ class FuturePersonForm(forms.ModelForm):
     email = forms.EmailField(required=False)
     sin = forms.CharField(required=False, max_length=9, label='SIN')
     birthdate = forms.DateField(required=False, label='Date of Birth')
-    gender = forms.ChoiceField((
+    gender = forms.ChoiceField(choices=(
             ('M', 'Male'),
             ('F', 'Female'),
             ('U', 'Unknown')),

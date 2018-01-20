@@ -166,13 +166,13 @@ class NotClearableFileInput(forms.FileInput):
 
     template_with_initial = '%(initial_text)s: %(initial)s <br />%(input_text)s: %(input)s'
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         substitutions = {
             'initial_text': self.initial_text,
             'input_text': self.input_text,
         }
         template = '%(input)s'
-        substitutions['input'] = super(NotClearableFileInput, self).render(name, value, attrs)
+        substitutions['input'] = super(NotClearableFileInput, self).render(name, value, attrs=attrs, renderer=renderer)
 
         if value:
             template = self.template_with_initial

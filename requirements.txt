@@ -1,4 +1,4 @@
-Django==1.11.9
+Django==2.0.1
 
 #Creoleparser==0.7.4  Replaced with version below that incorporates our fix for null headings, and python3 support
 git+git://github.com/gregbaker/creoleparser.git@f2d9ba65a0cd435f5b25347414902b21826999dd
