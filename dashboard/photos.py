@@ -252,7 +252,7 @@ def generate_password(input_seed):
     secret = settings.SECRET_KEY
     seed_str = '_'.join([secret, input_seed, PW_SERIES, secret])
     h = hashlib.new('sha512')
-    h.update(seed_str)
+    h.update(seed_str.encode('utf8'))
     seed = int(h.hexdigest(), 16)
 
     # use seed to pick characters: one letter, one digit, one punctuation, length 6-10
@@ -300,7 +300,7 @@ def change_photo_password():
         'OldPassword': get_photo_password(),
         'NewPassword': newpw,
     })
-    resp = urllib.request.urlopen(PASSWORD_URL, data=token_data)
+    resp = urllib.request.urlopen(PASSWORD_URL, data=token_data.encode('ascii'))
     resp_text = resp.read()
     set_photo_password(newpw)
     return resp_text
