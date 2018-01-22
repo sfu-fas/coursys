@@ -111,12 +111,6 @@ class CalendarWidget(forms.TextInput):
         else:
             attrs['class'] = attrs['class'] + " datepicker"
         html = super(CalendarWidget, self).render(name, value, attrs=attrs, renderer=renderer)
-        # The Javascript should be done in core.js instead.
-        # html += "<script type='application/javascript'>"
-        # html += "$('.datepicker').each(function(){"
-        # html += "  $(this).datepicker({'dateFormat': $.datepicker.ISO_8601}); "
-        # html += "});"
-        # html += "</script>"
         return html
 
 

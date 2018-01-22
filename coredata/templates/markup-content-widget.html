@@ -1,0 +1,6 @@
+<div class="markup-content">
+{% with widget.subwidgets.0 as widget %}{% include widget.template_name %}{% endwith %}
+<br/>Markup language:
+{% with widget.subwidgets.1 as widget %}{% include widget.template_name %}{% endwith %}
+{% if allow_math %}Use MathJax? {% with widget.subwidgets.2 as widget %}{% include widget.template_name %}{% endwith %}{% endif %}
+</div>
