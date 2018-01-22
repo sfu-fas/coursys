@@ -2,7 +2,7 @@ import os
 # Django
 from django import forms
 from django.core.exceptions import ValidationError
-from django.utils.html import format_html
+from django.utils.html import format_html, conditional_escape
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 # App
@@ -149,3 +149,11 @@ class NotClearableFileInput(forms.FileInput):
 
         return mark_safe(template % substitutions)
 
+
+class DollarInput(forms.NumberInput):
+    template_name = 'coredata/dollar_input.html'
+    "A NumberInput, but with a prefix '$'"
+    def __init__(self, **kwargs):
+        defaults = {'attrs': {'size': 8}}
+        defaults.update(**kwargs)
+        super(DollarInput, self).__init__(**defaults)

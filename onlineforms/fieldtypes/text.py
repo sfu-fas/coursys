@@ -201,6 +201,11 @@ class _ExplanationFieldWidget(forms.Textarea):
     """
     A non-widget widget that generates explanation text and not a form input.
     """
+    def __init__(self, explanation, markup, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.explanation = explanation
+        self.markup = markup
+
     def render(self, name, value, attrs=None):
         return mark_safe('<div class="explanation_block">%s</div>' % (markup_to_html(self.explanation, self.markup)))
 
@@ -222,15 +227,16 @@ class ExplanationTextField(FieldBase):
         return self.ExplanationTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        w = _ExplanationFieldWidget(attrs={'class': 'disabled', 'readonly': 'readonly'})
+        # before MarkupContentField, text_explanation held the contents; now text_explanation_0.
+        explanation = self.config.get('text_explanation_0', self.config.get('text_explanation', ''))
+        markup = self.config.get('text_explanation_1', 'creole')
+
+        w = _ExplanationFieldWidget(explanation=explanation, markup=markup,
+                                    attrs={'class': 'disabled', 'readonly': 'readonly'})
         c = forms.CharField(required=False,
             label=self.config['label'],
             help_text='',
             widget=w)
-
-        # before MarkupContentField, text_explanation held the contents; now text_explanation_0.
-        w.explanation = self.config.get('text_explanation_0', self.config.get('text_explanation', ''))
-        w.markup = self.config.get('text_explanation_1', 'creole')
 
         return c
 

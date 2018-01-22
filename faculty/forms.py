@@ -5,8 +5,9 @@ from django.utils.translation import ugettext as _
 
 from coredata.models import Semester, Unit, Person, Role, FuturePerson
 from coredata.forms import PersonField
+from coredata.widgets import DollarInput
 
-from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput, FractionField, AddSalaryField, AddPayField, AnnualTeachingCreditField
+from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, FractionField, AddSalaryField, AddPayField, AnnualTeachingCreditField
 from faculty.models import CareerEvent
 from faculty.models import DocumentAttachment
 from faculty.models import PositionDocumentAttachment

@@ -192,7 +192,7 @@ class SemesterToDateField(forms.CharField):
         return self.start and semester.start_date or semester.end_date
 
     def run_validators(self, value):
-        # XXX: Validation is already done inside `to_python`.
+        # Validation is already done inside `to_python`.
         pass
 
     def prepare_value(self, value):
@@ -227,17 +227,6 @@ class SemesterCodeField(forms.CharField):
             raise ValidationError(_('Invalid semester code'))
 
         return value
-
-
-class DollarInput(forms.widgets.NumberInput):
-    "A NumberInput, but with a prefix '$'"
-    def __init__(self, **kwargs):
-        defaults = {'attrs': {'size': 8}}
-        defaults.update(**kwargs)
-        super(DollarInput, self).__init__(**defaults)
-
-    def render(self, *args, **kwargs):
-        return mark_safe('$ ' + conditional_escape(super(DollarInput, self).render(*args, **kwargs)))
 
 
 PAY_FIELD_DEFAULTS = {

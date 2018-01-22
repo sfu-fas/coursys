@@ -2,9 +2,8 @@ from .models import Asset, AssetDocumentAttachment, AssetChangeRecord
 from outreach.models import OutreachEvent
 from django import forms
 from coredata.models import Unit
-from coredata.widgets import CalendarWidget
+from coredata.widgets import CalendarWidget, DollarInput
 from coredata.forms import PersonField
-from faculty.event_types.fields import DollarInput
 import datetime
 
 class AssetForm(forms.ModelForm):

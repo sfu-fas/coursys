@@ -10,6 +10,7 @@ from submission.models import Submission
 from dashboard.models import NewsItem
 from courselib.markup import MarkupContentField, MarkupContentMixin
 
+
 FORMTYPE = {'add': 'add', 'edit': 'edit'}
 GROUP_STATUS_CHOICES = [
     ('0', 'Yes'),
@@ -17,31 +18,6 @@ GROUP_STATUS_CHOICES = [
 GROUP_STATUS = dict(GROUP_STATUS_CHOICES)
 GROUP_STATUS_MAP = {'0': True, '1': False}
 
-class CustomSplitDateTimeWidget(forms.SplitDateTimeWidget):
-    """
-    Create a custom SplitDateTimeWidget with custom html output format
-    """
-    def __init__(self, attrs=None, date_format=None, time_format=None):
-        super(CustomSplitDateTimeWidget, self).__init__(attrs, date_format, time_format)
-
-    def value_from_datadict(self, data, files, name):
-        """
-        Quick dirty solution.
-        Fix SplitDateTimeWidget bugs when displaying the form with SplitDateTimeField.
-        (Original problem: SplitDateTimeField can not display the field data into the seperated
-        DateInput and TimeInput)
-        """
-        if name in data:
-            # need to manually split the datetime into date and time for later data retrieval
-            if isinstance(data[name], datetime.datetime):
-                if isinstance(self.widgets[0], forms.DateInput) and isinstance(self.widgets[1], forms.TimeInput):
-                    data[name + '_0'] = data[name].date()
-                    data[name + '_1'] = data[name].time()
-        return [widget.value_from_datadict(data, files, name + '_%s' % i) for i, widget in enumerate(self.widgets)]
-        
-    def format_output(self, rendered_widgets):
-        return mark_safe('<div class="datetime">%s %s<br />%s %s</div>' % \
-            (('Date:'), rendered_widgets[0], ('Time:'), rendered_widgets[1]))
 
 class ActivityForm(forms.Form):
     name = forms.CharField(max_length=30,
@@ -162,8 +138,7 @@ class NumericActivityForm(ActivityForm):
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
             help_text='visibility of grades/activity to students')
     due_date = forms.SplitDateTimeField(required=False,
-            help_text='Time format: HH:MM:SS, 24-hour time',
-            widget=CustomSplitDateTimeWidget())
+            help_text='Time format: HH:MM:SS, 24-hour time')
     max_grade = forms.DecimalField(max_digits=8, decimal_places=2, label='Maximum grade',
             help_text='Maximum grade for the activity',
             widget=forms.NumberInput(attrs={'class': 'gradeinput'}))
@@ -194,8 +169,7 @@ class LetterActivityForm(ActivityForm):
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
                                help_text='Visibility of grades/activity to students')
     due_date = forms.SplitDateTimeField(required=False,
-                                        help_text='Time format: HH:MM:SS',
-                                        widget=CustomSplitDateTimeWidget())
+                                        help_text='Time format: HH:MM:SS')
     group = forms.ChoiceField(label='Group activity', initial='1',
                               choices=GROUP_STATUS_CHOICES,
                               widget=forms.RadioSelect())
