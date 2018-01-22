@@ -30,25 +30,20 @@ class QuickSearchForm(StudentSearchForm):
 #    incl_grad = forms.BooleanField(initial=False)
 #   incl_oldappl = forms.BooleanField(initial=False)
 
-class LabelTextInput(forms.TextInput):
-    "TextInput with a bonus label"
-    def __init__(self, label, *args, **kwargs):
-        self.label = label
-        super(LabelTextInput, self).__init__(*args, **kwargs)
-    def render(self, *args, **kwargs):
-        return " " + self.label + ": " + super(LabelTextInput, self).render(*args, **kwargs)
 
 class SupervisorWidget(forms.MultiWidget):
     "Widget for entering supervisor by choices or userid"
+    template_name = 'grad/_supervisor_widget.html'
     def __init__(self, *args, **kwargs):
-        widgets = [forms.Select(), LabelTextInput(label=" or User ID", attrs={'size': 8, 'maxlength': 8})]
+        widgets = [forms.Select(), forms.TextInput(attrs={'size': 8, 'maxlength': 8})]
         kwargs['widgets'] = widgets
         super(SupervisorWidget, self).__init__(*args, **kwargs)
     
     def decompress(self, value):
         if value:
             return [value, '']
-        return [None,None]
+        return [None, None]
+
 
 class SupervisorField(forms.MultiValueField):
     "Field for entering supervisor by either dropdown or userid"
@@ -94,8 +89,8 @@ class SupervisorForm(ModelForm):
         """
         Set choices for the supervisor
         """
-        self.fields['supervisor'].fields[0].choices = [("","Other")] + choices
-        self.fields['supervisor'].widget.widgets[0].choices = [("","Other")] + choices
+        self.fields['supervisor'].fields[0].choices = choices
+        self.fields['supervisor'].widget.widgets[0].choices = choices
 
     def clean(self):
         data = self.cleaned_data
@@ -115,7 +110,7 @@ class SupervisorForm(ModelForm):
     
     class Meta:
         model = Supervisor
-        exclude = ('student', 'created_by', 'modified_by', 'removed', 'config', 'position')
+        exclude = ('student', 'created_by', 'created_at', 'modified_by', 'removed', 'config', 'position')
         
 class PotentialSupervisorForm(ModelForm): 
     def set_supervisor_choices(self, choices):
