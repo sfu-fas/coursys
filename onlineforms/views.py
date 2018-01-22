@@ -444,7 +444,7 @@ def summary_csv(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     response = HttpResponse(content_type='text/csv;charset=utf-8')
     response['Content-Disposition'] = 'inline; filename="%s-summary.csv"' % (form_slug)
-    writer = csv.writer(response, encoding='utf-8')
+    writer = csv.writer(response)
     headers, data = form.all_submission_summary()
     writer.writerow(headers)
     for row in data:
