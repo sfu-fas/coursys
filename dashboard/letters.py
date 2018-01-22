@@ -591,7 +591,7 @@ class RAForm(SFUMediaMixin):
         if self.ra.account.position_number <= 1:
             position_number = ''
         else:
-            position_number = str(self.ra.account.position_number).zfill(9)
+            position_number = str(self.ra.account.position_number).zfill(8)
         self._box_entry(150*mm, 139*mm, 46*mm, 6.5*mm, content=position_number)
 
         # dates
