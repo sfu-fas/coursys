@@ -9,32 +9,17 @@ from django.utils.safestring import mark_safe
 from coredata.models import Person, CourseOffering, FuturePerson, AnyPerson
  
 
-class AutocompletePersonWidget(forms.TextInput):
-    """
-    A widget to allow searching for a person by name or emplid.
-    """
-    def render(self, name, value, attrs=None):
-        if not attrs:
-            attrs={'class':'autocomplete_person'}
-        elif not 'class' in attrs:
-            attrs['class'] = 'autocomplete_person'
-        else:
-            attrs['class'] = attrs['class'] + " autocomplete_person"
-        html = super(AutocompletePersonWidget, self).render(name, value, attrs)
-        return html
-
-
 class PersonField(forms.CharField):
     """
     A field to allow emplid entry of a Person, with autocomplete,
     but no SIMS integration.
     """
     def __init__(self, *args, **kwargs):
-        widget = AutocompletePersonWidget()
+        widget = forms.TextInput(attrs={'class': 'autocomplete_person'})
         kwargs['widget'] = widget
         if 'initial' in kwargs:
             kwargs['initial'] = Person.objects.get(id=kwargs['initial']).emplid
-        return super(PersonField, self).__init__(*args, **kwargs)
+        super(PersonField, self).__init__(*args, **kwargs)
 
     def prepare_value(self, value):
         if value:
@@ -73,23 +58,13 @@ class AutocompleteOfferingWidget(forms.TextInput):
             attrs['class'] = 'autocomplete_courseoffering'
         else:
             attrs['class'] = attrs['class'] + " autocomplete_courseoffering"
-        
 
-        html = super(AutocompleteOfferingWidget, self).render(name, value, attrs=attrs, renderer=renderer)
-        html += "<script type='application/javascript'>"
-        html += "$('.autocomplete_courseoffering').each(function(){"
-        html += "  $(this).autocomplete({"
         try:
-            html += "    source: '/data/offerings_slug/"+self.semester+"',"
+            attrs['data-semester'] = self.semester
         except AttributeError:
-            html += "    source: '/data/offerings_slug',"
-        html += "    minLength: 2,"
-        html += "    select: function(event, ui){"
-        html += "      $(this).data('val', ui.item.value);"
-        html += "    }"
-        html += "  });"
-        html += "});"
-        html += "</script>"
+            pass
+
+        html = super().render(name, value, attrs=attrs, renderer=renderer)
         return html
 
 
@@ -97,7 +72,7 @@ class OfferingField(forms.CharField):
     def __init__(self, *args, **kwargs):
         widget = AutocompleteOfferingWidget()
         kwargs['widget'] = widget
-        return super(OfferingField, self).__init__(*args, **kwargs)
+        super(OfferingField, self).__init__(*args, **kwargs)
     
     def prepare_value(self, value):
         if value:
