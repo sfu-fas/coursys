@@ -9,7 +9,6 @@ from grad.models import Scholarship
 from courselib.text import normalize_newlines
 from courselib.storage import UploadedFileStorage, upload_path
 from django.template.loader import get_template
-from django.template import Context
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 import datetime, os, uuid
@@ -377,7 +376,7 @@ class RAAppointment(models.Model):
 
         for raappt in expiring_ras:
             supervisor = raappt.hiring_faculty
-            context = Context({'supervisor': supervisor, 'raappt': raappt})
+            context = {'supervisor': supervisor, 'raappt': raappt}
             # Let's see if we have any Funding CC supervisors that should also get the reminder.
             cc = None
             fund_cc_roles = Role.objects_fresh.filter(unit=raappt.unit, role='FDCC')

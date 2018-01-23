@@ -1,7 +1,6 @@
 from django.utils import timezone
 from django.db import models
 from django.template.loader import get_template
-from django.template import Context
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from coredata.models import Unit, JSONField, config_property
@@ -273,7 +272,7 @@ class BookingMemo(models.Model):
         subject = 'Booking notification'
         from_email = settings.DEFAULT_FROM_EMAIL
         template = get_template('space/emails/memo.txt')
-        context = Context({'booking': self.booking_record, 'CourSys': product_name(hint='admin')})
+        context = {'booking': self.booking_record, 'CourSys': product_name(hint='admin')}
         msg = EmailMultiAlternatives(subject, template.render(context), from_email,
                                      [self.booking_record.person.email()], headers={'X-coursys-topic': 'space'})
         msg.send()

@@ -13,7 +13,6 @@ from courselib.storage import UploadedFileStorage, upload_path
 from django.db.models import Max
 from django.urls import reverse
 from django.conf import settings
-from django.template import Context
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
 from django.utils import timezone
@@ -718,7 +717,7 @@ class FormSubmission(models.Model):
         plaintext = get_template('onlineforms/emails/notify_completed.txt')
         html = get_template('onlineforms/emails/notify_completed.html')
 
-        email_context = Context({'formsub': self, 'admin': admin})
+        email_context = {'formsub': self, 'admin': admin}
         subject = '%s for %s submission complete' % (self.form.title, self.initiator.name())
         from_email = FormFiller.form_full_email(admin)
         to = self.initiator.full_email()
@@ -739,7 +738,7 @@ class FormSubmission(models.Model):
         full_url = request.build_absolute_uri(reverse('onlineforms:view_submission',
                                     kwargs={'form_slug': self.form.slug,
                                             'formsubmit_slug': self.slug}))
-        email_context = Context({'formsub': self, 'admin': admin, 'adminurl': full_url})
+        email_context = {'formsub': self, 'admin': admin, 'adminurl': full_url}
         subject = '%s submission transferred' % (self.form.title)
         from_email = FormFiller.form_full_email(admin)
         to = self.owner.notify_emails()
@@ -891,9 +890,9 @@ class SheetSubmission(models.Model):
                 FormLogEntry.create(sheet_submission=s, category='MAIL',
                         description='Reminded %s of waiting sheet.' % (filler.email()))
 
-            context = Context({'full_url': full_url,
+            context = {'full_url': full_url,
                     'filler': filler, 'sheets': list(sheets), 'BASE_ABS_URL': settings.BASE_ABS_URL,
-                    'CourSys': product_name(hint='forms')})
+                    'CourSys': product_name(hint='forms')}
             msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()],
                     headers={'X-coursys-topic': 'onlineforms'})
             msg.send()

@@ -4,7 +4,6 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
-from django.template.context import Context
 from django.conf import settings
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
@@ -232,8 +231,8 @@ class _DiscussionEmailMixin(object):
             from_email = "%s <%s>" % (offering.name(), offering.taemail())
         else:
             from_email = settings.DEFAULT_SENDER_EMAIL
-        text_content = get_template(text_template).render(Context(context))
-        html_content = get_template(html_template).render(Context(context))
+        text_content = get_template(text_template).render(context)
+        html_content = get_template(html_template).render(context)
         
         msg = EmailMultiAlternatives(context['subject'], text_content, from_email, [to_email], headers=headers)
         msg.attach_alternative(html_content, "text/html")
