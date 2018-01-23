@@ -7,7 +7,6 @@ from coredata.widgets import CalendarWidget
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
         CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES
 from ta.util import table_row__Form
-#from django.core.exceptions import ValidationError
 import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
 from django.forms.models import BaseInlineFormSet

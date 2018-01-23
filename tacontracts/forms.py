@@ -6,7 +6,15 @@ from coredata.models import Unit, Semester
 from ra.models import Account
 # App
 from .models import HiringSemester, TACategory, TAContract, TACourse, CourseDescription
-from .widgets import GuessPayperiodsWidget
+
+
+class GuessPayperiodsWidget(forms.TextInput):
+    """
+    A widget to guess at pay-periods.
+    Assumes that you have fields named "pay_start", "pay_end", and "payperiods"
+    """
+    class Media:
+        js = ('moment.min.js', 'js/tacontracts.js')
 
 
 class HiringSemesterForm(forms.ModelForm):
@@ -32,6 +40,7 @@ class HiringSemesterForm(forms.ModelForm):
                     'payperiods': GuessPayperiodsWidget,
                 }
 
+
 class TACategoryForm(forms.ModelForm):
     def __init__(self, unit, *args, **kwargs):
         super(TACategoryForm, self).__init__(*args, **kwargs)
@@ -41,6 +50,7 @@ class TACategoryForm(forms.ModelForm):
     class Meta:
         model = TACategory
         exclude = []
+
 
 class TAContractForm(forms.ModelForm):
     def __init__(self, hiring_semester, *args, **kwargs):
@@ -59,6 +69,7 @@ class TAContractForm(forms.ModelForm):
             'deadline_for_acceptance': CalendarWidget,
             'payperiods': GuessPayperiodsWidget,
         }
+
 
 class TACourseForm(forms.ModelForm):
     def __init__(self, semester, *args, **kwargs):
