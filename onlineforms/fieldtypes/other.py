@@ -11,30 +11,28 @@ from coredata.models import Semester
 import datetime, os
 
 class CustomMultipleInputField(fields.MultiValueField):
-    def __init__(self, name="", max=20, min=2, other_required=False, *args, **kwargs):
-        self.min = min
-        self.max = max
+    def __init__(self, max=20, min=2, other_required=False, *args, **kwargs):
+        self.min = int(min)
+        self.max = int(max)
         self.required = other_required
-        kwargs['widget'] = CustomMultipleInputWidget(name=name, max=max, min=min)
+        kwargs['widget'] = CustomMultipleInputWidget(max=max, min=min)
         self.field_set = [fields.CharField() for _ in range(int(max))]
 
         super(CustomMultipleInputField, self).__init__(fields=self.field_set, *args, **kwargs)
 
-
     def compress(self, data_list):
         if data_list:
-            name = list(data_list.items())[1][0][0]
             count = 0
             data = []
 
             for k, v in sorted(iter(data_list.items()), key=lambda k_v: (k_v[0],k_v[1])):
-                if str(k).startswith(str(name) + '_'):
+                if '_' in str(k):
                     if len(str(v)) > 0:
                         data.append(v)
                         count += 1
 
-            if self.required and count < int(self.min):
-                raise ValidationError('Enter at least '+self.min+' responses')
+            if self.required and count < self.min:
+                raise ValidationError('Enter at least %i responses' % (self.min,))
 
             return data
         return None
@@ -57,7 +55,6 @@ class ListField(FieldBase):
 
             return super(self.__class__, self).clean()
 
-
     def make_config_form(self):
         return self.ListConfigForm(self.config)
 
@@ -67,9 +64,7 @@ class ListField(FieldBase):
             help_text=self.config['help_text'],
             min=self.config['min_responses'],
             max=self.config['max_responses'],
-            name=self.config['label'],
             other_required=self.config['required'])
-
 
     def serialize_field(self, cleaned_data):
         return{'info': cleaned_data}
