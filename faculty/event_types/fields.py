@@ -47,11 +47,9 @@ class AnnualOrBiweeklySalary(forms.widgets.MultiWidget):
             return [value, None]
         return [None, None]
 
-    def format_output(self, rendered_widgets):
-        # Add our help text right in the rendering so we don't have to add it to every field or do some other magic.
-        return mark_safe('$ ' + ' '.join(rendered_widgets) + '<br/>' +
-                         "<span class=helptext>Enter annual salary on the left <strong>or</strong> biweekly salary "
-                         "on the right.</span>")
+    def render(self, name, value, attrs=None, renderer=None):
+        markup = super().render(name, value, attrs=attrs, renderer=renderer)
+        return '$ ' + markup
 
     def value_from_datadict(self, data, files, name):
         salarylist = [w.value_from_datadict(data, files, "%s_%s" % (name, i)) for i, w, in enumerate(self.widgets)]
@@ -88,9 +86,6 @@ class SemesterDateInput(forms.widgets.MultiWidget):
         if value:
             return [value, None]
         return [None, None]
-
-    def format_output(self, rendered_widgets):
-        return ' '.join(rendered_widgets)
 
     def get_semester(self, code):
         try:
