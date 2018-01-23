@@ -255,7 +255,8 @@ def edit_letter(request, ra_slug):
 @requires_role("FUND")
 def select_letter(request, ra_slug, print_only=None):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
-    letter_choices = RAAppointment.letter_choices(request.units)
+    # Forcing sorting of the letter choices so the Standard template is first.
+    letter_choices = sorted(RAAppointment.letter_choices(request.units))
     if request.method == 'POST':
         filled_form = LetterSelectForm(data=request.POST, choices=letter_choices)
         if filled_form.is_valid():
