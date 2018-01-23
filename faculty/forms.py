@@ -243,6 +243,7 @@ class AvailableCapacityForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(AvailableCapacityForm, self).__init__(*args, **kwargs)
+        self.data = dict(self.data)
         if 'start_semester' not in self.data:
             self.data['start_semester'] = ReportingSemester.current().prev().prev().code
         if 'end_semester' not in self.data:
@@ -266,7 +267,7 @@ class CourseAccreditationForm(forms.Form):
     def __init__(self, *args, **kwargs):
         flags = kwargs.pop('flags', [])
         super(CourseAccreditationForm, self).__init__(*args, **kwargs)
-
+        self.data = dict(self.data)
         if 'start_semester' not in self.data:
             self.data['start_semester'] = Semester.current().name
         if 'end_semester' not in self.data:

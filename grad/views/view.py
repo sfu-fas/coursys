@@ -178,7 +178,7 @@ def view(request, grad_slug, section=None):
         sections = request.GET['_escaped_fragment_'].split(',')
         for s in sections:
             resp = view(request, grad_slug, section=s)
-            context[s+'_content'] = mark_safe(resp.content)
+            context[s+'_content'] = mark_safe(resp.content.decode('utf8'))
 
     other_grad = GradStudent.objects \
                  .filter(program__unit__in=units, person=grad.person) \
