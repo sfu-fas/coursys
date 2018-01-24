@@ -320,7 +320,9 @@ def _activity_info_student(request, course_slug, activity_slug):
 
     context = {'course': course, 'activity': activity, 'grade': grade,
                'activity_stat': activity_stat, 'reason_msg': reason_msg}
-    return render(request, 'grades/activity_info_student.html', context)
+    resp = render(request, 'grades/activity_info_student.html', context)
+    resp.allow_gstatic_csp = True
+    return resp
 
 
 @requires_course_staff_by_slug
@@ -434,13 +436,17 @@ def activity_stat(request, course_slug, activity_slug):
 
 
     context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary, 'submark_stat': submark_stat, 'sub_comp_rows': sub_comp_rows}
-    return render(request, 'grades/activity_stat.html', context)
+    resp = render(request, 'grades/activity_stat.html', context)
+    resp.allow_gstatic_csp = True
+    return resp
+
 
 @requires_course_staff_by_slug
 def activity_choice(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     context = {'course': course}
     return render(request, 'grades/activity_choice.html', context)
+
 
 @requires_course_staff_by_slug
 def edit_cutoffs(request, course_slug, activity_slug):
@@ -483,7 +489,10 @@ def edit_cutoffs(request, course_slug, activity_slug):
     source_grades = '[' + ", ".join(["%.2f" % (g.value) for g in source_grades]) + ']'
 
     context = {'course': course, 'activity': activity, 'cutoff':form, 'source_grades': source_grades}
-    return render(request, 'grades/edit_cutoffs.html', context)
+    resp = render(request, 'grades/edit_cutoffs.html', context)
+    resp.allow_gstatic_csp = True
+    return resp
+
 
 def _cutoffsdict(cutoff):
     data = dict()

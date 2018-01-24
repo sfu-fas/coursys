@@ -25,15 +25,21 @@ class CSPMiddleware(object):
         if not settings.DEBUG:
             return response
 
+        extra_script_src = ''
+        extra_style_src = ''
+        if hasattr(response, 'allow_gstatic_csp') and response.allow_gstatic_csp:
+            # pages that use Google charts need to load/run that code...
+            extra_script_src = " https://www.gstatic.com https://www.google.com 'unsafe-eval'"
+            extra_style_src = ' https://www.gstatic.com https://ajax.googleapis.com https://www.google.com'
+
         #header = 'Content-Security-Policy'
         header = 'Content-Security-Policy-Report-Only'
         value = "default-src 'self' * ; " \
-                "style-src 'self' 'unsafe-inline' ; " \
+                "style-src 'self' 'unsafe-inline'%s ; " \
                 "img-src 'self' www.sfu.ca data: ; " \
                 "font-src 'self' www.sfu.ca ; " \
-                "script-src 'self' 'nonce-%s' ; " \
-                "report-uri /csp-reports ; " \
-                % (token,)
+                "script-src 'self' 'nonce-%s'%s ; " % (extra_style_src, token, extra_script_src)
+        value += "report-uri /csp-reports ; "
 
         if header in response:
             # if the view set the Content-Security-Policy, honour it

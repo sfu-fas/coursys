@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load staticfiles %}
 
 {% block title %}Configure Semester {{semester.name}}{% endblock %}
 {% block h1 %}Configure Semester {{semester.name}}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="/media/js/ra.js"></script>
-<link rel="stylesheet" type="text/css" href="/media/ra/ra.css" />
+<script src="{% static 'js/ra.js' %}"></script>
+<link rel="stylesheet" href="{% static 'ra/ra.css' %}" />
 {% endblock %}
 
 {% block subbreadcrumbs %}

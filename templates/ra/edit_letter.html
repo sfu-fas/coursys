@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load staticfiles %}
 
 {% block headextra %}
-<script type="text/javascript" src="/media/js/ra.js"></script>
-<link rel="stylesheet" type="text/css" href="/media/ra/ra.css" />
+<script src="{% static 'js/ra.js' %}"></script>
+<link rel="stylesheet" href="{% static 'ra/ra.css' %}" />
 {% endblock %}
 
 {% block title %}Edit RA Letter for {{ appointment.person.name }}{% endblock %}

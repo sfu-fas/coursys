@@ -8,7 +8,7 @@ Edit Cutoffs of {{ activity.name }}
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
 <script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
 /**
@@ -38,9 +38,8 @@ if (!Array.prototype.filter) {
 }
 
 
-
-  google.load('visualization', '1.0', {'packages':['corechart']});
-  google.setOnLoadCallback(drawChart);
+  google.charts.load('current', {'packages':['corechart']});
+  google.charts.setOnLoadCallback(drawChart);
   
   var chart, data, rangetitle;
   function drawChart() {
