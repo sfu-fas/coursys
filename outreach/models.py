@@ -55,7 +55,7 @@ class OutreachEvent(models.Model):
     description = models.CharField(max_length=800, blank=True, null=True)
     score = models.DecimalField(max_digits=2, decimal_places=0, max_length=2, null=True, blank=True,
                                 help_text='The score according to the event score matrix')
-    unit = models.ForeignKey(Unit, blank=False, null=False)
+    unit = models.ForeignKey(Unit, blank=False, null=False, on_delete=models.PROTECT)
     resources = models.CharField(max_length=400, blank=True, null=True, help_text="Resources needed for this event.")
     cost = models.DecimalField(blank=True, null=True, max_digits=8, decimal_places=2, help_text="Cost of this event")
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
@@ -158,7 +158,7 @@ class OutreachEventRegistration(models.Model):
     parent_name = models.CharField(max_length=100, blank=False, null=False)
     parent_phone = models.CharField(max_length=15, blank=False, null=False)
     email = models.EmailField("Contact E-mail")
-    event = models.ForeignKey(OutreachEvent, blank=False, null=False)
+    event = models.ForeignKey(OutreachEvent, blank=False, null=False, on_delete=models.PROTECT)
     photo_waiver = models.BooleanField("I, the parent or guardian of the Child, hereby authorize the Faculty of "
                                        "Applied Sciences (FAS) Outreach program of Simon Fraser University to "
                                        "photograph, audio record, video record, podcast and/or webcast the Child "
@@ -191,7 +191,7 @@ class OutreachEventRegistration(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
     attended = models.BooleanField(default=True, editable=False, blank=False, null=False)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'}
 
     extra_questions = config_property('extra_questions', [])

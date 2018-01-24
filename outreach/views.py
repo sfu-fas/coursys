@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from .models import OutreachEvent, OutreachEventRegistration
 from .forms import OutreachEventForm, OutreachEventRegistrationForm

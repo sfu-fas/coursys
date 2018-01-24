@@ -4,7 +4,7 @@ from discuss.models import DiscussionTopic, DiscussionMessage, DiscussionSubscri
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from featureflags.flags import uses_feature

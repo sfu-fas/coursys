@@ -4,7 +4,7 @@ from courselib.auth import requires_role, ForbiddenResponse
 from courselib.search import get_query
 from grad.models import STATUS_CHOICES 
 import json, urllib.request, urllib.parse, urllib.error
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 def _get_query(term):
 

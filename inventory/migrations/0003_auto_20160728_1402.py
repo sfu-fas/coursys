@@ -14,12 +14,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='category',
-            field=models.CharField(default=b'GEN', max_length=4, null=True, blank=True, choices=[(b'BANN', b'Banners'), (b'DISP', b'Display'), (b'BROC', b'Brochures'), (b'SWAG', b'Swag'), (b'GEN', b'General'), (b'EVEN', b'Events')]),
+            field=models.CharField(default='GEN', max_length=4, null=True, blank=True, choices=[('BANN', 'Banners'), ('DISP', 'Display'), ('BROC', 'Brochures'), ('SWAG', 'Swag'), ('GEN', 'General'), ('EVEN', 'Events')]),
         ),
         migrations.AddField(
             model_name='asset',
             name='min_qty',
-            field=models.PositiveIntegerField(help_text=b'The minimum quantity that should be in stock before having to re-order', null=True, verbose_name=b'Minimum re-order quantity', blank=True),
+            field=models.PositiveIntegerField(help_text='The minimum quantity that should be in stock before having to re-order', null=True, verbose_name='Minimum re-order quantity', blank=True),
         ),
         migrations.AddField(
             model_name='asset',
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='qty_ordered',
-            field=models.PositiveIntegerField(null=True, verbose_name=b'Quantity on order', blank=True),
+            field=models.PositiveIntegerField(null=True, verbose_name='Quantity on order', blank=True),
         ),
         migrations.AddField(
             model_name='asset',

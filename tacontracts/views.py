@@ -6,7 +6,7 @@ import csv
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import transaction, IntegrityError
 from django.contrib.auth.decorators import login_required
 # Local

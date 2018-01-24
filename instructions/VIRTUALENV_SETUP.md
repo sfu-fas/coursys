@@ -6,7 +6,7 @@ For this, you'll need to be on a Linux-ish machine.
 
 In order to install the coursys deps, you're going to need some packages.
 
-    sudo apt-get install git python3 python3-pip python3-dev python-lxml libxslt1-dev sqlite3 zlib1g-dev virtualenv libjpeg-dev
+    sudo apt-get install git python3 python3-pip python3-dev python-lxml libxslt1-dev sqlite3 zlib1g-dev virtualenv libjpeg-dev libmysqlclient-dev
 
 ## Create the VirtualEnv
 

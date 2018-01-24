@@ -30,25 +30,20 @@ class QuickSearchForm(StudentSearchForm):
 #    incl_grad = forms.BooleanField(initial=False)
 #   incl_oldappl = forms.BooleanField(initial=False)
 
-class LabelTextInput(forms.TextInput):
-    "TextInput with a bonus label"
-    def __init__(self, label, *args, **kwargs):
-        self.label = label
-        super(LabelTextInput, self).__init__(*args, **kwargs)
-    def render(self, *args, **kwargs):
-        return " " + self.label + ": " + super(LabelTextInput, self).render(*args, **kwargs)
 
 class SupervisorWidget(forms.MultiWidget):
     "Widget for entering supervisor by choices or userid"
+    template_name = 'grad/_supervisor_widget.html'
     def __init__(self, *args, **kwargs):
-        widgets = [forms.Select(), LabelTextInput(label=" or User ID", attrs={'size': 8, 'maxlength': 8})]
+        widgets = [forms.Select(), forms.TextInput(attrs={'size': 8, 'maxlength': 8})]
         kwargs['widgets'] = widgets
         super(SupervisorWidget, self).__init__(*args, **kwargs)
     
     def decompress(self, value):
         if value:
             return [value, '']
-        return [None,None]
+        return [None, None]
+
 
 class SupervisorField(forms.MultiValueField):
     "Field for entering supervisor by either dropdown or userid"
@@ -94,8 +89,8 @@ class SupervisorForm(ModelForm):
         """
         Set choices for the supervisor
         """
-        self.fields['supervisor'].fields[0].choices = [("","Other")] + choices
-        self.fields['supervisor'].widget.widgets[0].choices = [("","Other")] + choices
+        self.fields['supervisor'].fields[0].choices = choices
+        self.fields['supervisor'].widget.widgets[0].choices = choices
 
     def clean(self):
         data = self.cleaned_data
@@ -115,7 +110,7 @@ class SupervisorForm(ModelForm):
     
     class Meta:
         model = Supervisor
-        exclude = ('student', 'created_by', 'modified_by', 'removed', 'config', 'position')
+        exclude = ('student', 'created_by', 'created_at', 'modified_by', 'removed', 'config', 'position')
         
 class PotentialSupervisorForm(ModelForm): 
     def set_supervisor_choices(self, choices):
@@ -395,12 +390,12 @@ class NullBooleanSearchSelect(forms.widgets.Select):
         choices = (('', '---------'), ('2', 'Yes'), ('3', 'No'), ('1', 'Unknown'))
         super(NullBooleanSearchSelect, self).__init__(attrs, choices)
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         try:
             value = {Unknown: '1', True: '2', False: '3', '1':'1', '2': '2', '3': '3'}[value]
         except KeyError:
             value = ''
-        return super(NullBooleanSearchSelect, self).render(name, value, attrs)
+        return super(NullBooleanSearchSelect, self).render(name, value, attrs=attrs, renderer=renderer)
 
     def value_from_datadict(self, data, files, name):
         value = data.get(name, None)
@@ -620,7 +615,7 @@ class SearchForm(forms.Form):
             help_text='Semester in which the student completed/left their program.  To get only a single semester, '
                       'put in the same value in both boxes.')
     
-    student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES + (('', 'None'),),
+    student_status = forms.MultipleChoiceField(choices=gradmodels.STATUS_CHOICES + (('', 'None'),),
             required=False, help_text="Student's current status"
             ) # choices updated in views/search.py
     status_asof = StaffSemesterField(label='Status as of', required=False, initial='')
@@ -629,22 +624,22 @@ class SearchForm(forms.Form):
     program_asof = StaffSemesterField(label='Program as of', required=False, initial='')
     grad_flags = forms.MultipleChoiceField(choices=[],
             label='Program Options', required=False)
-    campus = forms.MultipleChoiceField(GRAD_CAMPUS_CHOICES, required=False)
-    supervisor = forms.MultipleChoiceField([], required=False, label='Senior Supervisor')
+    campus = forms.MultipleChoiceField(choices=GRAD_CAMPUS_CHOICES, required=False)
+    supervisor = forms.MultipleChoiceField(choices=[], required=False, label='Senior Supervisor')
     
     requirements = forms.MultipleChoiceField(choices=[],
             label='Completed requirements', required=False)
-    requirements_st = forms.ChoiceField((
+    requirements_st = forms.ChoiceField(choices=(
             ('AND',mark_safe('Student must have completed <em>all</em> of these requirements')),
             ('OR',mark_safe('Student must have completed <em>any</em> of these requirements'))),
             label='Requirements search type', required=False, initial='AND',
             widget=forms.RadioSelect)
-    incomplete_requirements = forms.MultipleChoiceField([],
+    incomplete_requirements = forms.MultipleChoiceField(choices=[],
             label='Incomplete requirements', required=False)
 
     is_canadian = NullBooleanSearchField(required=False)
     
-    financial_support = forms.MultipleChoiceField((
+    financial_support = forms.MultipleChoiceField(choices=(
             ('N','None'),
             ('S','Scholarship'),
             ('O','Other Funding'),
@@ -653,15 +648,16 @@ class SearchForm(forms.Form):
     
     gpa_min = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
     gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
-    gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','Unknown')),
+    gender = forms.ChoiceField(choices=(('','---------'), ('M','Male'), ('F','Female'), ('U','Unknown')),
             required=False)
-    visa = forms.MultipleChoiceField(VISA_STATUSES, required=False,)
-    scholarship_sem = forms.ModelMultipleChoiceField(Semester.objects.all(),
-            label='Scholarship Semester Received',required=False)
-    scholarshiptype = forms.ModelMultipleChoiceField(ScholarshipType.objects.all(),
+    visa = forms.MultipleChoiceField(choices=VISA_STATUSES, required=False,)
+    scholarship_sem = forms.ModelMultipleChoiceField(queryset=Semester.objects.all(),
+            label='Scholarship Semester Received', required=False)
+    scholarshiptype = forms.ModelMultipleChoiceField(queryset=ScholarshipType.objects.all(),
             label='Received Scholarship', required=False)
 
-    columns = forms.MultipleChoiceField(COLUMN_CHOICES, initial=('person.last_name', 'person.first_name', 'person.emplid', 'person.userid', 'program', 'current_status', ),
+    columns = forms.MultipleChoiceField(choices=COLUMN_CHOICES,
+            initial=('person.last_name', 'person.first_name', 'person.emplid', 'person.userid', 'program', 'current_status', ),
             help_text='Columns to display in the search results.')
 
     sort = forms.CharField(required=False, widget=forms.HiddenInput()) # used to persist table sorting across "modify search" workflow

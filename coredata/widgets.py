@@ -2,26 +2,12 @@ import os
 # Django
 from django import forms
 from django.core.exceptions import ValidationError
-from django.utils.html import format_html
+from django.utils.html import format_html, conditional_escape
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 # App
 from coredata.models import Person, CourseOffering, FuturePerson, AnyPerson
  
-
-class AutocompletePersonWidget(forms.TextInput):
-    """
-    A widget to allow searching for a person by name or emplid.
-    """
-    def render(self, name, value, attrs=None):
-        if not attrs:
-            attrs={'class':'autocomplete_person'}
-        elif not 'class' in attrs:
-            attrs['class'] = 'autocomplete_person'
-        else:
-            attrs['class'] = attrs['class'] + " autocomplete_person"
-        html = super(AutocompletePersonWidget, self).render(name, value, attrs)
-        return html
 
 class PersonField(forms.CharField):
     """
@@ -29,11 +15,11 @@ class PersonField(forms.CharField):
     but no SIMS integration.
     """
     def __init__(self, *args, **kwargs):
-        widget = AutocompletePersonWidget()
+        widget = forms.TextInput(attrs={'class': 'autocomplete_person'})
         kwargs['widget'] = widget
         if 'initial' in kwargs:
             kwargs['initial'] = Person.objects.get(id=kwargs['initial']).emplid
-        return super(PersonField, self).__init__(*args, **kwargs)
+        super(PersonField, self).__init__(*args, **kwargs)
 
     def prepare_value(self, value):
         if value:
@@ -59,42 +45,34 @@ class PersonField(forms.CharField):
             except ValueError:
                 raise ValidationError("Please enter a 9-digit EMPLID.")
 
+
 class AutocompleteOfferingWidget(forms.TextInput):
     """
     A widget to allow searching for a CourseOffering
     """
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if not attrs:
             attrs={'class':'autocomplete_courseoffering'}
         elif not 'class' in attrs:
             attrs['class'] = 'autocomplete_courseoffering'
         else:
             attrs['class'] = attrs['class'] + " autocomplete_courseoffering"
-        
 
-        html = super(AutocompleteOfferingWidget, self).render(name, value, attrs)
-        html += "<script type='application/javascript'>"
-        html += "$('.autocomplete_courseoffering').each(function(){"
-        html += "  $(this).autocomplete({"
         try:
-            html += "    source: '/data/offerings_slug/"+self.semester+"',"
+            attrs['data-semester'] = self.semester
         except AttributeError:
-            html += "    source: '/data/offerings_slug',"
-        html += "    minLength: 2,"
-        html += "    select: function(event, ui){"
-        html += "      $(this).data('val', ui.item.value);"
-        html += "    }"
-        html += "  });"
-        html += "});"
-        html += "</script>"
+            pass
+
+        html = super().render(name, value, attrs=attrs, renderer=renderer)
         return html
+
 
 class OfferingField(forms.CharField):
     def __init__(self, *args, **kwargs):
         widget = AutocompleteOfferingWidget()
         kwargs['widget'] = widget
-        return super(OfferingField, self).__init__(*args, **kwargs)
+        super(OfferingField, self).__init__(*args, **kwargs)
     
     def prepare_value(self, value):
         if value:
@@ -125,20 +103,14 @@ class CalendarWidget(forms.TextInput):
     """
     A widget for calendar date-pickin' 
     """
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if not attrs:
             attrs={'class':'datepicker'}
         elif not 'class' in attrs:
             attrs['class'] = 'datepicker'
         else:
             attrs['class'] = attrs['class'] + " datepicker"
-        html = super(CalendarWidget, self).render(name, value, attrs)
-        # The Javascript should be done in core.js instead.
-        # html += "<script type='application/javascript'>"
-        # html += "$('.datepicker').each(function(){"
-        # html += "  $(this).datepicker({'dateFormat': $.datepicker.ISO_8601}); "
-        # html += "});"
-        # html += "</script>"
+        html = super(CalendarWidget, self).render(name, value, attrs=attrs, renderer=renderer)
         return html
 
 
@@ -163,13 +135,13 @@ class NotClearableFileInput(forms.FileInput):
 
     template_with_initial = '%(initial_text)s: %(initial)s <br />%(input_text)s: %(input)s'
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         substitutions = {
             'initial_text': self.initial_text,
             'input_text': self.input_text,
         }
         template = '%(input)s'
-        substitutions['input'] = super(NotClearableFileInput, self).render(name, value, attrs)
+        substitutions['input'] = super(NotClearableFileInput, self).render(name, value, attrs=attrs, renderer=renderer)
 
         if value:
             template = self.template_with_initial
@@ -177,3 +149,11 @@ class NotClearableFileInput(forms.FileInput):
 
         return mark_safe(template % substitutions)
 
+
+class DollarInput(forms.NumberInput):
+    template_name = 'coredata/dollar_input.html'
+    "A NumberInput, but with a prefix '$'"
+    def __init__(self, **kwargs):
+        defaults = {'attrs': {'size': 8}}
+        defaults.update(**kwargs)
+        super(DollarInput, self).__init__(**defaults)

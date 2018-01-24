@@ -4,7 +4,7 @@ import json
 #Django
 from django.test import TestCase
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse, resolve
+from django.urls import reverse, resolve
 
 #Third Party
 from oauth_provider.models import Consumer, Token

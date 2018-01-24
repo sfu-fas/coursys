@@ -300,7 +300,7 @@ def change_photo_password():
         'OldPassword': get_photo_password(),
         'NewPassword': newpw,
     })
-    resp = urllib.request.urlopen(PASSWORD_URL, data=token_data)
+    resp = urllib.request.urlopen(PASSWORD_URL, data=token_data.encode('ascii'))
     resp_text = resp.read()
     set_photo_password(newpw)
     return resp_text

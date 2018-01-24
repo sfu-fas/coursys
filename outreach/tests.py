@@ -1,6 +1,6 @@
 from courselib.testing import test_views, Client
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from outreach.models import OutreachEvent, OutreachEventRegistration
 from coredata.models import Unit, Role
 import datetime

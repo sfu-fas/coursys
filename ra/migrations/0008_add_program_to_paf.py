@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('title', models.CharField(max_length=60)),
                 ('slug', autoslug.fields.AutoSlugField(populate_from=b'autoslug', unique=True, editable=False)),
                 ('hidden', models.BooleanField(default=False)),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['program_number'],
@@ -30,11 +30,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='raappointment',
             name='account',
-            field=models.ForeignKey(help_text=b'This is now called "Object" in the new PAF', to='ra.Account'),
+            field=models.ForeignKey(help_text=b'This is now called "Object" in the new PAF', to='ra.Account', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='raappointment',
             name='program',
-            field=models.ForeignKey(blank=True, to='ra.Program', help_text=b'If none is provided,  "00000" will be added in the PAF', null=True),
+            field=models.ForeignKey(blank=True, to='ra.Program', help_text=b'If none is provided,  "00000" will be added in the PAF', null=True, on_delete=models.CASCADE),
         ),
     ]

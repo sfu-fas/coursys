@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='facultymemberinfo',
             name='person',
-            field=models.OneToOneField(related_name='+', to='coredata.Person'),
+            field=models.OneToOneField(related_name='+', to='coredata.Person', on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='grant',

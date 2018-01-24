@@ -5,12 +5,13 @@ from django.template import Context, Template
 from django.utils.functional import SimpleLazyObject
 from cache_utils.decorators import cached
 from coredata.models import Unit
+from coredata.widgets import DollarInput
 
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.choices import Choices
-from faculty.event_types.fields import DollarInput, AddSalaryField, \
+from faculty.event_types.fields import AddSalaryField, \
                                        AddPayField, TeachingCreditField, \
                                        SemesterField
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent

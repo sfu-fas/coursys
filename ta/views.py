@@ -1,6 +1,6 @@
 from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Q
 from django.db import transaction
 from django.contrib import messages
@@ -1005,7 +1005,7 @@ def assign_bus(request, post_slug, course_slug):
 def all_contracts(request, post_slug):
     #name, appointment category, rank, deadline, status. Total BU, Courses TA-ing , view/edit
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
-    contracts = TAContract.objects.filter(posting=posting)
+    contracts = TAContract.objects.filter(posting=posting).order_by('application__person')
     paginator = Paginator(contracts,5)
 
     descrs = CourseDescription.objects.filter(unit=posting.unit)

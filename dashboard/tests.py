@@ -3,7 +3,7 @@ from coredata.models import Person, Member, CourseOffering, Role, Semester
 from dashboard.models import UserConfig, NewsItem
 from courselib.testing import TEST_COURSE_SLUG, Client, validate_content, create_test_offering, test_views
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.management import call_command
 from haystack.query import SearchQuerySet
 from pages.models import Page, PageVersion

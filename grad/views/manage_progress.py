@@ -4,7 +4,7 @@ from grad.models import GradStudent, ProgressReport
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from grad.forms import ProgressReportForm
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from log.models import LogEntry
 
 @requires_role("GRAD")

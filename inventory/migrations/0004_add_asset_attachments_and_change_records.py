@@ -21,14 +21,14 @@ class Migration(migrations.Migration):
             name='AssetChangeRecord',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('qty', models.IntegerField(help_text=b"The change in quantity.  For removal of item, make it a negative number. For adding items, make it a positive.  e.g. '-2' if someone removed two ofthis item for something", verbose_name=b'Quantity adjustment')),
+                ('qty', models.IntegerField(help_text="The change in quantity.  For removal of item, make it a negative number. For adding items, make it a positive.  e.g. '-2' if someone removed two ofthis item for something", verbose_name='Quantity adjustment')),
                 ('date', models.DateField(null=True, blank=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('last_modified', models.DateTimeField(editable=False)),
                 ('hidden', models.BooleanField(default=False, editable=False)),
                 ('saved_by_userid', models.CharField(max_length=8, editable=False)),
                 ('config', courselib.json_fields.JSONField(default=dict, editable=False)),
-                ('slug', autoslug.fields.AutoSlugField(populate_from=b'autoslug', unique=True, editable=False)),
+                ('slug', autoslug.fields.AutoSlugField(populate_from='autoslug', unique=True, editable=False)),
             ],
         ),
         migrations.CreateModel(
@@ -36,9 +36,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('title', models.CharField(max_length=250)),
-                ('slug', autoslug.fields.AutoSlugField(populate_from=b'title', unique_with=(b'asset',), editable=False)),
+                ('slug', autoslug.fields.AutoSlugField(populate_from='title', unique_with=('asset',), editable=False)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('contents', models.FileField(storage=django.core.files.storage.FileSystemStorage(base_url=None, location=b'submitted_files'), max_length=500, upload_to=inventory.models.asset_attachment_upload_to)),
+                ('contents', models.FileField(storage=django.core.files.storage.FileSystemStorage(base_url=None, location='submitted_files'), max_length=500, upload_to=inventory.models.asset_attachment_upload_to)),
                 ('mediatype', models.CharField(max_length=200, null=True, editable=False, blank=True)),
                 ('hidden', models.BooleanField(default=False, editable=False)),
             ],
@@ -59,32 +59,32 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='min_vendor_qty',
-            field=models.PositiveIntegerField(help_text=b'The minimum quantity the vendor will let us order', null=True, verbose_name=b'Minimum vendor order quantity', blank=True),
+            field=models.PositiveIntegerField(help_text='The minimum quantity the vendor will let us order', null=True, verbose_name='Minimum vendor order quantity', blank=True),
         ),
         migrations.AddField(
             model_name='assetdocumentattachment',
             name='asset',
-            field=models.ForeignKey(related_name='attachments', to='inventory.Asset'),
+            field=models.ForeignKey(related_name='attachments', to='inventory.Asset', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='assetdocumentattachment',
             name='created_by',
-            field=models.ForeignKey(help_text=b'Document attachment created by.', to='coredata.Person'),
+            field=models.ForeignKey(help_text='Document attachment created by.', to='coredata.Person', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='assetchangerecord',
             name='asset',
-            field=models.ForeignKey(related_name='records', to='inventory.Asset'),
+            field=models.ForeignKey(related_name='records', to='inventory.Asset', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='assetchangerecord',
             name='event',
-            field=models.ForeignKey(blank=True, to='outreach.OutreachEvent', help_text=b'The event it was for, if any', null=True),
+            field=models.ForeignKey(blank=True, to='outreach.OutreachEvent', help_text='The event it was for, if any', null=True, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='assetchangerecord',
             name='person',
-            field=models.ForeignKey(to='coredata.Person'),
+            field=models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='assetdocumentattachment',

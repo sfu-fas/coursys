@@ -147,8 +147,9 @@ FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
 
 # Disable migrations only when running tests.
 if 'test' in sys.argv[1:]:
-    from courselib.disable_migrations import DisableMigrations
-    MIGRATION_MODULES = DisableMigrations()
+    MIGRATION_MODULES = {}
+    for m in INSTALLED_APPS:
+        MIGRATION_MODULES[m] = None
 
 # security-related settings
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca', 'coursys.sfu.ca', 'fasit.sfu.ca'])

@@ -1,5 +1,5 @@
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from courselib.testing import basic_page_tests
 from discuss.models import DiscussionTopic, DiscussionMessage
 from coredata.models import CourseOffering, Member

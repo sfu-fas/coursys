@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('timestamp', models.IntegerField(default=time.time)),
                 ('config', courselib.json_fields.JSONField(default={})),
                 ('deactivated', models.BooleanField(default=False)),
-                ('consumer', models.ForeignKey(to='oauth_provider.Consumer')),
+                ('consumer', models.ForeignKey(to='oauth_provider.Consumer', on_delete=models.CASCADE)),
             ],
             options={
             },

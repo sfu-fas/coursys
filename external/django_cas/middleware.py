@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.views import login, logout
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from django_cas.views import login as cas_login, logout as cas_logout
 from django.utils.deprecation import MiddlewareMixin
@@ -42,7 +42,7 @@ class CASMiddleware(MiddlewareMixin):
         elif not view_func.__module__.startswith('django.contrib.admin.'):
             return None
 
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             if request.user.is_staff:
                 return None
             else:

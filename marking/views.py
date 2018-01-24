@@ -3,7 +3,7 @@ import csv
 import json
 import decimal
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.forms.models import ModelChoiceField, modelformset_factory
 from django.forms.forms import Form

@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.template import TemplateDoesNotExist
@@ -140,7 +140,7 @@ def login(request, next_page=None, required=False):
         next_page = request.GET['next']
     if not next_page:
         next_page = _redirect_url(request)
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         #message = "You are logged in as %s." % request.user.username
         #messages.success(request, message)
         return HttpResponseRedirect(next_page)

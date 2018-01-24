@@ -6,7 +6,7 @@ from grad.forms import GradSemesterForm
 from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 @requires_role("GRAD", get_only=["GRPD"])
 def manage_start_end_semesters(request, grad_slug):

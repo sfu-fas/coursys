@@ -49,45 +49,45 @@ toplevel_patterns = [
 ]
 
 urlpatterns = [
-    url(r'', include(toplevel_patterns, namespace='dashboard')),
+    url(r'', include((toplevel_patterns, 'dashboard'), namespace='dashboard')),
 
     # top-level paths from dashboard and coredata
-    url(r'^api/', include(api_patterns, namespace='api')),
-    url(r'^admin/', include(admin_patterns, namespace='admin')),
-    url(r'^browse/', include(browse_patterns, namespace='browse')),
-    url(r'^calendar/', include(calendar_patterns, namespace='calendar')),
-    url(r'^config/', include(config_patterns, namespace='config')),
-    url(r'^data/', include(data_patterns, namespace='data')),
-    url(r'^docs/', include(docs_patterns, namespace='docs')),
-    url(r'^news/', include(news_patterns, namespace='news')),
-    url(r'^students/', include(studentsearch_patterns, namespace='students')),
-    url(r'^sysadmin/', include(sysadmin_patterns, namespace='sysadmin')),
-    url(r'^2fa/', include(otp_patterns, namespace='otp')),
+    url(r'^api/', include((api_patterns, 'api'), namespace='api')),
+    url(r'^admin/', include((admin_patterns, 'admin'), namespace='admin')),
+    url(r'^browse/', include((browse_patterns, 'browse'), namespace='browse')),
+    url(r'^calendar/', include((calendar_patterns, 'calendar'), namespace='calendar')),
+    url(r'^config/', include((config_patterns, 'config'), namespace='config')),
+    url(r'^data/', include((data_patterns, 'data'), namespace='data')),
+    url(r'^docs/', include((docs_patterns, 'docs'), namespace='docs')),
+    url(r'^news/', include((news_patterns, 'news'), namespace='news')),
+    url(r'^students/', include((studentsearch_patterns, 'students'), namespace='students')),
+    url(r'^sysadmin/', include((sysadmin_patterns, 'sysadmin'), namespace='sysadmin')),
+    url(r'^2fa/', include((otp_patterns, 'otp'), namespace='otp')),
 
     # course offering URL hierarchy: many apps sub-included there
     # among them: discipline, discuss, groups, marking, pages, submission
-    url(r'^' + COURSE_SLUG + '/', include(offering_patterns, namespace='offering')),
+    url(r'^' + COURSE_SLUG + '/', include((offering_patterns, 'grades'), namespace='offering')),
 
     # nicely self-contained apps
-    url(r'^advising/', include(advisornotes_patterns, namespace='advising')),
-    url(r'^discipline/', include(discipline_patterns, namespace='discipline')),
-    url(r'^faculty/', include(faculty_patterns, namespace='faculty')),
-    url(r'^forms/', include(forms_patterns, namespace='onlineforms')),
-    url(r'^reports/', include(report_patterns, namespace='reports')),
-    url(r'^relationships/', include(relationship_patterns, namespace='relationships')),
-    url(r'^visas/', include(visas_pattern, namespace='visas')),
-    url(r'^outreach/', include(outreach_pattern, namespace='outreach')),
-    url(r'^sessionals/', include(sessionals_patterns, namespace='sessionals')),
-    url(r'^inventory/', include(inventory_pattern, namespace='inventory')),
-    url(r'^space/', include(space_patterns, namespace='space')),
+    url(r'^advising/', include((advisornotes_patterns, 'advisornotes'), namespace='advising')),
+    url(r'^discipline/', include((discipline_patterns, 'discipline'), namespace='discipline')),
+    url(r'^faculty/', include((faculty_patterns, 'faculty'), namespace='faculty')),
+    url(r'^forms/', include((forms_patterns, 'onlineforms'), namespace='onlineforms')),
+    url(r'^reports/', include((report_patterns, 'reports'), namespace='reports')),
+    url(r'^relationships/', include((relationship_patterns, 'relationships'), namespace='relationships')),
+    url(r'^visas/', include((visas_pattern, 'visas'), namespace='visas')),
+    url(r'^outreach/', include((outreach_pattern, 'outreach'), namespace='outreach')),
+    url(r'^sessionals/', include((sessionals_patterns, 'sessionals'), namespace='sessionals')),
+    url(r'^inventory/', include((inventory_pattern, 'inventory'), namespace='inventory')),
+    url(r'^space/', include((space_patterns, 'space'), namespace='space')),
 
 
     # graduate student-related apps
-    url(r'^grad/', include(grad_patterns, namespace='grad')),
-    url(r'^ra/', include(ra_patterns, namespace='ra')),
-    url(r'^ta/', include(ta_patterns, namespace='ta')),
-    url(r'^tacontracts/', include(tacontract_patterns, namespace='tacontracts')),
-    url(r'^tugs/', include(tug_patterns, namespace='tugs')),
+    url(r'^grad/', include((grad_patterns, 'grad'), namespace='grad')),
+    url(r'^ra/', include((ra_patterns, 'ra'), namespace='ra')),
+    url(r'^ta/', include((ta_patterns, 'ta'), namespace='ta')),
+    url(r'^tacontracts/', include((tacontract_patterns, 'tacontracts'), namespace='tacontracts')),
+    url(r'^tugs/', include((tug_patterns, 'tugs'), namespace='tugs')),
 
 
     # redirect old mobile URLs to rightful locations

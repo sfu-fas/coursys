@@ -4,7 +4,7 @@ from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import UploadApplicantsForm
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from coredata.models import Person, Semester
 from django.conf import settings
 

@@ -3,7 +3,7 @@ from courselib.testing import basic_page_tests, Client, test_views, TEST_COURSE_
 from ta.models import CourseDescription, TAPosting, TAApplication, TAContract, CampusPreference, CoursePreference, TUG
 from coredata.models import Person, Semester, Unit, CourseOffering, Course, Role, Member
 from ra.models import Account
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from datetime import date
 
 class ApplicationTest(TestCase):

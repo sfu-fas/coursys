@@ -89,7 +89,7 @@ package "dos2unix"
 execute "static files" do
     user "coursys"
     cwd "/home/coursys/courses"
-    command "echo 'yes' | ./manage.py collectstatic"
+    command "./manage.py collectstatic --noinput"
 end
 
 # database backup directory

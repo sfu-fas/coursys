@@ -17,7 +17,7 @@ class TextComponent(SubmissionComponent):
         app_label = 'submission'
 
 class SubmittedText(SubmittedComponent):
-    component = models.ForeignKey(TextComponent, null=False)
+    component = models.ForeignKey(TextComponent, null=False, on_delete=models.PROTECT)
     text = models.TextField(null=False, blank=False, max_length=MAX_TEXT_LENGTH)
     class Meta:
         app_label = 'submission'

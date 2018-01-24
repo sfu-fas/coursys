@@ -8,7 +8,7 @@ from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import StudentSubmission, GroupSubmission, SubmissionComponent
 from submission.models import select_all_components, SubmissionInfo, get_component, find_type_by_label, ALL_TYPE_CLASSES
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from groups.models import Group, GroupMember
 from log.models import LogEntry

@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.safestring import mark_safe
 from django.contrib import messages
 from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES, COLUMN_WIDTHS
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from coredata.models import Person
 import csv
 import copy, datetime, json

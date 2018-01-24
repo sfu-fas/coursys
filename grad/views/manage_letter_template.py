@@ -5,7 +5,7 @@ from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import LetterTemplateForm
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from .letter_templates import letter_templates
 
 @requires_role("GRAD", get_only=["GRPD"])

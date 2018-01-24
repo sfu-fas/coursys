@@ -20,14 +20,14 @@ def forwards_func(apps, schema_editor):
         if t in ['celery_taskmeta', 'celery_tasksetmeta', 'django_celery_beat_periodictask', 'djcelery_periodictask',
                  'djcelery_taskstate', 'djcelery_workerstate', 'djkombu_queue']:
             continue
-        print(('Altering %s' % (t,)))
-        query = TABLE_QUERY_TEMPLATE % (t,)
-        schema_editor.execute(query)
+        #print(('Altering %s' % (t,)))
+        #query = TABLE_QUERY_TEMPLATE % (t,)
+        #schema_editor.execute(query)
 
     schema_editor.connection.enable_constraint_checking()
 
     db_name = schema_editor.connection.settings_dict['NAME']
-    schema_editor.execute(DATABASE_QUERY_TEMPLATE % (db_name,))
+    #schema_editor.execute(DATABASE_QUERY_TEMPLATE % (db_name,))
 
 
 def reverse_func(apps, schema_editor):

@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from coredata.models import Person, Unit, Semester, Role
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
@@ -9,7 +9,6 @@ from grad.models import Scholarship
 from courselib.text import normalize_newlines
 from courselib.storage import UploadedFileStorage, upload_path
 from django.template.loader import get_template
-from django.template import Context
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 import datetime, os, uuid
@@ -63,7 +62,7 @@ class Program(models.Model):
     """
     A field required for the new Chart of Accounts
     """
-    unit = models.ForeignKey(Unit)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     program_number = models.PositiveIntegerField()
     title = models.CharField(max_length=60)
     objects = ProgramQueryset.as_manager()
@@ -92,7 +91,7 @@ class Project(models.Model):
     """
     A table to look up the appropriate fund number based on the project number
     """
-    unit = models.ForeignKey(Unit, null=False, blank=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
     department_code = models.PositiveIntegerField(default=0)
     project_prefix = models.CharField("Prefix", max_length=1, null=True, blank=True,
                                       help_text="If the project number has a prefix of 'R', 'X', etc, add it here")
@@ -123,7 +122,7 @@ class Account(models.Model):
     """
     A table to look up the appropriate position number based on the account number.
     """
-    unit = models.ForeignKey(Unit, null=False, blank=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
     account_number = models.PositiveIntegerField()
     position_number = models.PositiveIntegerField()
     title = models.CharField(max_length=60)
@@ -193,17 +192,17 @@ class RAAppointment(models.Model):
     """
     This stores information about a (Research Assistant)s application and pay.
     """
-    person = models.ForeignKey(Person, help_text='The RA who is being appointed.', null=False, blank=False, related_name='ra_person')
+    person = models.ForeignKey(Person, help_text='The RA who is being appointed.', null=False, blank=False, related_name='ra_person', on_delete=models.PROTECT)
     sin = models.PositiveIntegerField(null=True, blank=True)
     # We want do add some sort of accountability for checking visas.
     visa_verified = models.BooleanField(default=False, help_text='I have verified this RA\'s visa information')
-    hiring_faculty = models.ForeignKey(Person, help_text='The manager who is hiring the RA.', related_name='ra_hiring_faculty')
-    unit = models.ForeignKey(Unit, help_text='The unit that owns the appointment', null=False, blank=False)
+    hiring_faculty = models.ForeignKey(Person, help_text='The manager who is hiring the RA.', related_name='ra_hiring_faculty', on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, help_text='The unit that owns the appointment', null=False, blank=False, on_delete=models.PROTECT)
     hiring_category = models.CharField(max_length=4, choices=HIRING_CATEGORY_CHOICES, default='GRA')
-    scholarship = models.ForeignKey(Scholarship, null=True, blank=True, help_text='Scholarship associated with this appointment. Optional.')
-    project = models.ForeignKey(Project, null=False, blank=False)
-    account = models.ForeignKey(Account, null=False, blank=False, help_text='This is now called "Object" in the new PAF')
-    program = models.ForeignKey(Program, null=True, blank=True, help_text='If none is provided,  "00000" will be added in the PAF')
+    scholarship = models.ForeignKey(Scholarship, null=True, blank=True, help_text='Scholarship associated with this appointment. Optional.', on_delete=models.PROTECT)
+    project = models.ForeignKey(Project, null=False, blank=False, on_delete=models.PROTECT)
+    account = models.ForeignKey(Account, null=False, blank=False, help_text='This is now called "Object" in the new PAF', on_delete=models.PROTECT)
+    program = models.ForeignKey(Program, null=True, blank=True, help_text='If none is provided,  "00000" will be added in the PAF', on_delete=models.PROTECT)
     start_date = models.DateField(auto_now=False, auto_now_add=False)
     end_date = models.DateField(auto_now=False, auto_now_add=False)
     pay_frequency = models.CharField(max_length=60, choices=PAY_FREQUENCY_CHOICES, default='B')
@@ -377,7 +376,7 @@ class RAAppointment(models.Model):
 
         for raappt in expiring_ras:
             supervisor = raappt.hiring_faculty
-            context = Context({'supervisor': supervisor, 'raappt': raappt})
+            context = {'supervisor': supervisor, 'raappt': raappt}
             # Let's see if we have any Funding CC supervisors that should also get the reminder.
             cc = None
             fund_cc_roles = Role.objects_fresh.filter(unit=raappt.unit, role='FDCC')
@@ -416,11 +415,11 @@ class RAAppointmentAttachment(models.Model):
     """
     Like most of our contract-based objects, an attachment object that can be attached to them.
     """
-    appointment = models.ForeignKey(RAAppointment, null=False, blank=False, related_name="attachments")
+    appointment = models.ForeignKey(RAAppointment, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
     title = models.CharField(max_length=250, null=False)
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('appointment',))
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.', on_delete=models.PROTECT)
     contents = models.FileField(storage=UploadedFileStorage, upload_to=ra_attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
@@ -446,9 +445,9 @@ class SemesterConfig(models.Model):
     """
     A table for department-specific semester config.
     """
-    unit = models.ForeignKey(Unit, null=False, blank=False)
-    semester = models.ForeignKey(Semester, null=False, blank=False)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
+    semester = models.ForeignKey(Semester, null=False, blank=False, on_delete=models.PROTECT)
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff
     defaults = {'start_date': None, 'end_date': None}
     # 'start_date': default first day of contracts that semester, 'YYYY-MM-DD'
     # 'end_date': default last day of contracts that semester, 'YYYY-MM-DD'

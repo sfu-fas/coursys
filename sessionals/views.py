@@ -2,7 +2,7 @@ from courselib.auth import requires_role
 from .models import SessionalAccount, SessionalContract, SessionalConfig
 from .forms import SessionalAccountForm, SessionalContractForm, SessionalConfigForm
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from log.models import LogEntry
 from coredata.models import AnyPerson, Role

@@ -4,7 +4,7 @@ from django.contrib import messages
 from log.models import LogEntry
 from courselib.auth import requires_role
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 @requires_role("GRAD")
 def remove_completedrequirement(request, grad_slug, cr_id):
