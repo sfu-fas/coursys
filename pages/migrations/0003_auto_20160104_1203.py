@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='pageversion',
             name='page',
-            field=models.ForeignKey(blank=True, to='pages.Page', null=True),
+            field=models.ForeignKey(blank=True, to='pages.Page', null=True, on_delete=models.CASCADE),
         ),
     ]

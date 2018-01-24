@@ -6,7 +6,7 @@ from log.models import LogEntry
 from django.http import HttpResponseRedirect
 from grad.forms import LetterForm
 import datetime
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from coredata.models import Role
 
 @requires_role("GRAD")

@@ -11,9 +11,8 @@ from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
 from courselib.storage import UploadedFileStorage, upload_path
 from django.db.models import Max
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
-from django.template import Context
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
 from django.utils import timezone
@@ -114,7 +113,7 @@ class NonSFUFormFiller(models.Model):
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
     email_address = models.EmailField(max_length=254)
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     def __str__(self):
         return "%s, %s" % (self.last_name, self.first_name)
@@ -135,9 +134,9 @@ class FormFiller(models.Model):
     """
     A wrapper class for filling forms. Is either a SFU account(Person) or a nonSFUFormFiller.
     """
-    sfuFormFiller = models.ForeignKey(Person, null=True)
-    nonSFUFormFiller = models.ForeignKey(NonSFUFormFiller, null=True)
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+    sfuFormFiller = models.ForeignKey(Person, null=True, on_delete=models.PROTECT)
+    nonSFUFormFiller = models.ForeignKey(NonSFUFormFiller, null=True, on_delete=models.PROTECT)
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     @classmethod
     def form_email(cls, person):
@@ -226,7 +225,7 @@ class FormGroup(models.Model):
     """
     A group that owns forms and form submissions.
     """
-    unit = models.ForeignKey(Unit)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     name = models.CharField(max_length=60, null=False, blank=False)
     members = models.ManyToManyField(Person, through='FormGroupMember') #
     def autoslug(self):
@@ -257,9 +256,9 @@ class FormGroupMember(models.Model):
 
     Do not use as a foreign key: is deleted when people leave the FormGroup
     """
-    person = models.ForeignKey(Person)
-    formgroup = models.ForeignKey(FormGroup)
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
+    formgroup = models.ForeignKey(FormGroup, on_delete=models.PROTECT)
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
         # 'email': should this member receive emails on completed sheets?
 
     defaults = {'email': True}
@@ -315,12 +314,12 @@ class _FormCoherenceMixin(object):
 
 class Form(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False, help_text='The name of this form.')
-    owner = models.ForeignKey(FormGroup, help_text='The group of users who own/administrate this form.')
+    owner = models.ForeignKey(FormGroup, help_text='The group of users who own/administrate this form.', on_delete=models.PROTECT)
     description = models.CharField(max_length=500, null=False, blank=False, help_text='A brief description of the form that can be displayed to users.')
     initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="NON", help_text='Who is allowed to fill out the initial sheet? That is, who can initiate a new instance of this form?')
-    unit = models.ForeignKey(Unit)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     active = models.BooleanField(default=True)
-    original = models.ForeignKey('self', null=True, blank=True)
+    original = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     advisor_visible = models.BooleanField(default=False, help_text="Should submissions be visible to advisors in this unit?")
@@ -525,7 +524,7 @@ class Form(models.Model, _FormCoherenceMixin):
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
     # the form this sheet is a part of
-    form = models.ForeignKey(Form)
+    form = models.ForeignKey(Form, on_delete=models.PROTECT)
     # specifies the order within a form
     order = models.PositiveIntegerField()
     # Flag to indicate whether this is the first sheet in the form
@@ -533,7 +532,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
     # indicates whether a person filling a sheet can see the results from all the previous sheets
     can_view = models.CharField(max_length=4, choices=VIEWABLE_CHOICES, default="NON", help_text='When someone is filling out this sheet, what else can they see?')
     active = models.BooleanField(default=True)
-    original = models.ForeignKey('self', null=True, blank=True)
+    original = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
@@ -608,13 +607,13 @@ class Sheet(models.Model, _FormCoherenceMixin):
 class Field(models.Model, _FormCoherenceMixin):
     label = models.CharField(max_length=60, null=False, blank=False)
     # the sheet this field is a part of
-    sheet = models.ForeignKey(Sheet)
+    sheet = models.ForeignKey(Sheet, on_delete=models.PROTECT)
     # specifies the order within a sheet
     order = models.PositiveIntegerField()
     fieldtype = models.CharField(max_length=4, choices=FIELD_TYPE_CHOICES, default="SMTX")
     config = JSONField(null=False, blank=False, default=dict) # configuration as required by the fieldtype. Must include 'required'
     active = models.BooleanField(default=True)
-    original = models.ForeignKey('self', null=True, blank=True)
+    original = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     def autoslug(self):
@@ -657,9 +656,9 @@ def neaten_field_positions(sheet):
         count += 1
 
 class FormSubmission(models.Model):
-    form = models.ForeignKey(Form)
-    initiator = models.ForeignKey(FormFiller)
-    owner = models.ForeignKey(FormGroup)
+    form = models.ForeignKey(Form, on_delete=models.PROTECT)
+    initiator = models.ForeignKey(FormFiller, on_delete=models.PROTECT)
+    owner = models.ForeignKey(FormGroup, on_delete=models.PROTECT)
     status = models.CharField(max_length=4, choices=FORM_SUBMISSION_STATUS, default="PEND")
     def autoslug(self):
         return self.initiator.identifier()
@@ -718,7 +717,7 @@ class FormSubmission(models.Model):
         plaintext = get_template('onlineforms/emails/notify_completed.txt')
         html = get_template('onlineforms/emails/notify_completed.html')
 
-        email_context = Context({'formsub': self, 'admin': admin})
+        email_context = {'formsub': self, 'admin': admin}
         subject = '%s for %s submission complete' % (self.form.title, self.initiator.name())
         from_email = FormFiller.form_full_email(admin)
         to = self.initiator.full_email()
@@ -739,7 +738,7 @@ class FormSubmission(models.Model):
         full_url = request.build_absolute_uri(reverse('onlineforms:view_submission',
                                     kwargs={'form_slug': self.form.slug,
                                             'formsubmit_slug': self.slug}))
-        email_context = Context({'formsub': self, 'admin': admin, 'adminurl': full_url})
+        email_context = {'formsub': self, 'admin': admin, 'adminurl': full_url}
         subject = '%s submission transferred' % (self.form.title)
         from_email = FormFiller.form_full_email(admin)
         to = self.owner.notify_emails()
@@ -755,9 +754,9 @@ class FormSubmission(models.Model):
 
 
 class SheetSubmission(models.Model):
-    form_submission = models.ForeignKey(FormSubmission)
-    sheet = models.ForeignKey(Sheet)
-    filler = models.ForeignKey(FormFiller)
+    form_submission = models.ForeignKey(FormSubmission, on_delete=models.PROTECT)
+    sheet = models.ForeignKey(Sheet, on_delete=models.PROTECT)
+    filler = models.ForeignKey(FormFiller, on_delete=models.PROTECT)
     status = models.CharField(max_length=4, choices=SUBMISSION_STATUS, default="WAIT")
     given_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True)
@@ -891,9 +890,9 @@ class SheetSubmission(models.Model):
                 FormLogEntry.create(sheet_submission=s, category='MAIL',
                         description='Reminded %s of waiting sheet.' % (filler.email()))
 
-            context = Context({'full_url': full_url,
+            context = {'full_url': full_url,
                     'filler': filler, 'sheets': list(sheets), 'BASE_ABS_URL': settings.BASE_ABS_URL,
-                    'CourSys': product_name(hint='forms')})
+                    'CourSys': product_name(hint='forms')}
             msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()],
                     headers={'X-coursys-topic': 'onlineforms'})
             msg.send()
@@ -908,10 +907,9 @@ class SheetSubmission(models.Model):
         sheeturl = request.build_absolute_uri(self.get_submission_url())
         context['sheeturl'] = sheeturl
         context['CourSys'] = product_name(hint='forms')
-        email_context = Context(context)
-        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), mail_from, mail_to,
+        msg = EmailMultiAlternatives(subject, plaintext.render(context), mail_from, mail_to,
                 headers={'X-coursys-topic': 'onlineforms'})
-        msg.attach_alternative(html.render(email_context), "text/html")
+        msg.attach_alternative(html.render(context), "text/html")
         msg.send()
 
     def email_assigned(self, request, admin, assignee):
@@ -959,9 +957,9 @@ class SheetSubmission(models.Model):
 
 
 class FieldSubmission(models.Model):
-    sheet_submission = models.ForeignKey(SheetSubmission)
-    field = models.ForeignKey(Field)
-    data = JSONField(null=False, blank=False, default={})
+    sheet_submission = models.ForeignKey(SheetSubmission, on_delete=models.PROTECT)
+    field = models.ForeignKey(Field, on_delete=models.PROTECT)
+    data = JSONField(null=False, blank=False, default=dict)
     
     __file_sub_cache = None
     def file_sub(self):
@@ -990,7 +988,7 @@ def attachment_upload_to(instance, filename):
 
     
 class FieldSubmissionFile(models.Model):
-    field_submission = models.OneToOneField(FieldSubmission)
+    field_submission = models.OneToOneField(FieldSubmission, on_delete=models.PROTECT)
     created_at = models.DateTimeField(default=datetime.datetime.now)
     file_attachment = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
@@ -1006,7 +1004,7 @@ class FieldSubmissionFile(models.Model):
         return os.path.basename(self.file_attachment.file.name)
 
 class SheetSubmissionSecretUrl(models.Model):
-    sheet_submission = models.ForeignKey(SheetSubmission)
+    sheet_submission = models.ForeignKey(SheetSubmission, on_delete=models.PROTECT)
     key = models.CharField(max_length=128, null=False, editable=False, unique=True)
 
     def save(self, *args, **kwargs):
@@ -1040,12 +1038,12 @@ class FormLogEntry(models.Model):
     """
     Model to represent a thing that happened to FormSubmission, so we can show the user a unified history.
     """
-    form_submission = models.ForeignKey(FormSubmission, null=False)
-    sheet_submission = models.ForeignKey(SheetSubmission, null=True)
+    form_submission = models.ForeignKey(FormSubmission, null=False, on_delete=models.PROTECT)
+    sheet_submission = models.ForeignKey(SheetSubmission, null=True, on_delete=models.PROTECT)
 
     # one of user and externalFiller should always be null; both null == system-caused event.
-    user = models.ForeignKey(Person, null=True, help_text='User who took the action/made the change')
-    externalFiller = models.ForeignKey(NonSFUFormFiller, null=True)
+    user = models.ForeignKey(Person, null=True, help_text='User who took the action/made the change', on_delete=models.PROTECT)
+    externalFiller = models.ForeignKey(NonSFUFormFiller, null=True, on_delete=models.PROTECT)
 
     timestamp = models.DateTimeField(default=timezone.now)
     category = models.CharField(max_length=4, choices=FORMLOG_CATEGORIES)

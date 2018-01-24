@@ -1,6 +1,6 @@
 from courselib.testing import test_views, Client
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from sessionals.models import SessionalContract
 
 class SessionalTestCase(TestCase):

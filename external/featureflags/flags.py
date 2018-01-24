@@ -1,5 +1,5 @@
 import importlib
-from django.core.urlresolvers import get_callable
+from django.urls import get_callable
 from django.core.cache import cache
 from featureflags.conf import settings
 from functools import wraps

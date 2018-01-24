@@ -294,5 +294,21 @@ $(document).ready(function(){
           });
         });
 
+  // add autocomplete to courseoffering fields
+  $('.autocomplete_courseoffering').each(function(){
+        var url = '/data/offerings_slug';
+        var elt = $(this);
+        if(elt.attr('data-semester')) {
+          url += '/' + elt.attr('data-semester');
+        }
+        elt.autocomplete({
+            source: url,
+            minLength: 2,
+            select: function(event, ui){
+              elt.data('val', ui.item.value);
+            }
+          });
+        });
+
 
 });

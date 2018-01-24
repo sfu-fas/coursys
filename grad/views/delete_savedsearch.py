@@ -3,7 +3,7 @@ from coredata.models import Person
 from grad.models import SavedSearch
 from django.contrib import messages
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 @requires_role("GRAD", get_only=["GRPD"])
 def delete_savedsearch(request):

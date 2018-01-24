@@ -11,7 +11,7 @@ from autoslug import AutoSlugField
 import decimal, datetime, uuid
 from numbers import Number
 from dashboard.models import NewsItem
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from creoleparser import text2html
@@ -43,10 +43,10 @@ class TUG(models.Model):
     Based on form in Appendix C (p. 73) of the collective agreement:
     http://www.tssu.ca/wp-content/uploads/2010/01/CA-2004-2010.pdf
     """	
-    member = models.OneToOneField(Member, null=False)
+    member = models.OneToOneField(Member, null=False, on_delete=models.PROTECT)
     base_units = models.DecimalField(max_digits=4, decimal_places=2, blank=False, null=False)
     last_update = models.DateField(auto_now=True)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # t.config['prep']: Preparation for labs/tutorials
         # t.config['meetings']: Attendance at planning meetings with instructor
         # t.config['lectures']: Attendance at lectures
@@ -165,8 +165,8 @@ class TAPosting(models.Model):
     """
     Posting for one unit in one semester
     """
-    semester = models.ForeignKey(Semester)
-    unit = models.ForeignKey(Unit)
+    semester = models.ForeignKey(Semester, on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     opens = models.DateField(help_text='Opening date for the posting')
     closes = models.DateField(help_text='Closing date for the posting')
     def autoslug(self):
@@ -388,7 +388,7 @@ class Skill(models.Model):
     """
     Skills an applicant specifies in their application.  Skills are specific to a posting.
     """
-    posting = models.ForeignKey(TAPosting)
+    posting = models.ForeignKey(TAPosting, on_delete=models.PROTECT)
     name = models.CharField(max_length=30)
     position = models.IntegerField()
     
@@ -413,8 +413,8 @@ class TAApplication(models.Model):
     """
     TA application filled out by students
     """
-    posting = models.ForeignKey(TAPosting)
-    person = models.ForeignKey(Person)
+    posting = models.ForeignKey(TAPosting, on_delete=models.PROTECT)
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
     category = models.CharField(max_length=4, blank=False, null=False, choices=CATEGORY_CHOICES, verbose_name='Program')
     current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Department",
         help_text='In what department are you a student (e.g. "CMPT", "ENSC", if applicable)?')
@@ -448,7 +448,7 @@ class TAApplication(models.Model):
                                                          'research and instructional laboratories may require '
                                                          'additional training, contact the faculty member in charge of '
                                                          'your lab(s) for details.')
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
         # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'} 
  
     class Meta:
@@ -487,7 +487,7 @@ class CampusPreference(models.Model):
     """
     Preference ranking for a campuses
     """
-    app = models.ForeignKey(TAApplication)
+    app = models.ForeignKey(TAApplication, on_delete=models.PROTECT)
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
     pref = models.CharField(max_length=3, choices=PREFERENCE_CHOICES)
     class Meta:
@@ -504,8 +504,8 @@ class SkillLevel(models.Model):
     """
     Skill of an applicant
     """
-    skill = models.ForeignKey(Skill)
-    app = models.ForeignKey(TAApplication)
+    skill = models.ForeignKey(Skill, on_delete=models.PROTECT)
+    app = models.ForeignKey(TAApplication, on_delete=models.PROTECT)
     level = models.CharField(max_length=4, choices=LEVEL_CHOICES)
     #class Meta:
     #    unique_together = (('app', 'skill'),)
@@ -531,15 +531,15 @@ class TAContract(models.Model):
     TA Contract, filled in by TAAD
     """
     status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status", default="NEW")
-    posting = models.ForeignKey(TAPosting)
-    application = models.ForeignKey(TAApplication)
+    posting = models.ForeignKey(TAPosting, on_delete=models.PROTECT)
+    application = models.ForeignKey(TAApplication, on_delete=models.PROTECT)
     sin = models.CharField(max_length=30, verbose_name="SIN",help_text="Social insurance number")
     appointment_start = models.DateField(null=True, blank=True)
     appointment_end = models.DateField(null=True, blank=True)
     pay_start = models.DateField()
     pay_end = models.DateField()
     appt_category = models.CharField(max_length=4, choices=CATEGORY_CHOICES, verbose_name="Appointment Category", default="GTA1")
-    position_number = models.ForeignKey(Account)
+    position_number = models.ForeignKey(Account, on_delete=models.PROTECT)
     appt = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES, verbose_name="Appointment", default="INIT")
     pay_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Pay per Base Unit Semester Rate.",)
     scholarship_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Scholarship per Base Unit Semester Rate.",)
@@ -648,11 +648,11 @@ class CourseDescription(models.Model):
     """
     Description of the work for a TA contract
     """
-    unit = models.ForeignKey(Unit)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     description = models.CharField(max_length=60, blank=False, null=False, help_text="Description of the work for a course, as it will appear on the contract. (e.g. 'Office/marking')")
     labtut = models.BooleanField(default=False, verbose_name="Lab/Tutorial?", help_text="Does this description get the %s BU bonus?"%(LAB_BONUS))
     hidden = models.BooleanField(default=False)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     
     def __str__(self):
         return self.description
@@ -664,9 +664,9 @@ class CourseDescription(models.Model):
 
 
 class TACourse(models.Model):
-    course = models.ForeignKey(CourseOffering, blank=False, null=False)
-    contract = models.ForeignKey(TAContract, blank=False, null=False)
-    description = models.ForeignKey(CourseDescription, blank=False, null=False)
+    course = models.ForeignKey(CourseOffering, blank=False, null=False, on_delete=models.PROTECT)
+    contract = models.ForeignKey(TAContract, blank=False, null=False, on_delete=models.PROTECT)
+    description = models.ForeignKey(CourseDescription, blank=False, null=False, on_delete=models.PROTECT)
     bu = models.DecimalField(max_digits=4, decimal_places=2)
     
     class Meta:
@@ -766,8 +766,8 @@ EXPER_CHOICES = (
         )
     
 class CoursePreference(models.Model):
-    app = models.ForeignKey(TAApplication)
-    course = models.ForeignKey(Course)
+    app = models.ForeignKey(TAApplication, on_delete=models.PROTECT)
+    course = models.ForeignKey(Course, on_delete=models.PROTECT)
     taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=False, null=False)
     exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=False, null=False, verbose_name="Experience")
     rank = models.IntegerField(blank=False)

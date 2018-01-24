@@ -35,7 +35,7 @@ class Authentication2FAMiddleware(OTPMiddleware):
         request.maybe_stale_user = password_user
         request.session_info = SessionInfo.for_request(request, user=password_user)
 
-        if not password_user.is_authenticated():
+        if not password_user.is_authenticated:
             # No user authenticated in any way: we have nothing more to check.
             return
 

@@ -4,7 +4,7 @@ from grad.models import GradStudent, ScholarshipType, Scholarship, FinancialComm
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from grad.forms import ScholarshipForm
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from coredata.models import Semester
 from log.models import LogEntry
 

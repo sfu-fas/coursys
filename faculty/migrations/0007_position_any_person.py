@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='position',
             name='any_person',
-            field=models.ForeignKey(blank=True, to='coredata.AnyPerson', null=True),
+            field=models.ForeignKey(blank=True, to='coredata.AnyPerson', null=True, on_delete=models.CASCADE),
         ),
     ]

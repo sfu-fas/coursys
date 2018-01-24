@@ -7,7 +7,7 @@ from datetime import datetime
 from autoslug import AutoSlugField
 from django.db.models import Max
 from dashboard.models import NewsItem
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import os.path
 from django.conf import settings
 from django.utils.safestring import mark_safe
@@ -26,7 +26,7 @@ class SubmissionComponent(models.Model):
     """
     A component of the activity that will be submitted by students
     """
-    activity = models.ForeignKey(Activity)
+    activity = models.ForeignKey(Activity, on_delete=models.PROTECT)
     title = models.CharField(max_length=100, help_text='Name for this component (e.g. "Part 1" or "Programming Section")')
     description = models.CharField(max_length=1000, help_text="Short explanation for this component.", null=True,blank=True)
     position = models.PositiveSmallIntegerField(help_text="The order of display for listing components.", null=True,blank=True)
@@ -69,9 +69,9 @@ class Submission(models.Model):
     """
     A student's or group's submission for an activity
     """
-    activity = models.ForeignKey(Activity)
+    activity = models.ForeignKey(Activity, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
-    owner = models.ForeignKey(Member, null=True, help_text = "TA or instructor that will mark this submission")
+    owner = models.ForeignKey(Member, null=True, help_text = "TA or instructor that will mark this submission", on_delete=models.PROTECT)
     status = models.CharField(max_length=3, null=False,choices=STATUS_CHOICES, default = "NEW")
     def __lt__(self, other):
         return other.created_at < self.created_at
@@ -90,7 +90,7 @@ class Submission(models.Model):
             self.save()
 
 class StudentSubmission(Submission):
-    member = models.ForeignKey(Member, null=False)
+    member = models.ForeignKey(Member, null=False, on_delete=models.PROTECT)
     class Meta:
         app_label = 'submission'
     def get_userid(self):
@@ -105,8 +105,8 @@ class StudentSubmission(Submission):
         return self.member.person.userid_or_emplid()
 
 class GroupSubmission(Submission):
-    group = models.ForeignKey(Group, null=False)
-    creator = models.ForeignKey(Member, null = False)
+    group = models.ForeignKey(Group, null=False, on_delete=models.PROTECT)
+    creator = models.ForeignKey(Member, null=False, on_delete=models.PROTECT)
 
     class Meta:
         app_label = 'submission'
@@ -144,7 +144,7 @@ class SubmittedComponent(models.Model):
     """
     Part of a student's/group's submission
     """
-    submission = models.ForeignKey(Submission)
+    submission = models.ForeignKey(Submission, on_delete=models.PROTECT)
     submit_time = models.DateTimeField(auto_now_add = True)
     def get_time(self):
         "return the submit time of the component"

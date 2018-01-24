@@ -1,8 +1,7 @@
 from .models import OutreachEvent, OutreachEventRegistration
 from django import forms
 from coredata.models import Unit
-from faculty.event_types.fields import DollarInput
-from coredata.widgets import CalendarWidget
+from coredata.widgets import DollarInput, CalendarWidget
 
 
 class OutreachEventForm(forms.ModelForm):

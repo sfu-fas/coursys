@@ -7,7 +7,7 @@ import re
 import csv
 from decimal import Decimal, ROUND_HALF_EVEN
 from datetime import datetime
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import TestCase
 
 from .models import ActivityComponent, CommonProblem, Group, GroupMember

@@ -5,7 +5,7 @@ import os
 import urllib.request, urllib.parse, urllib.error
 
 from django.core.cache import cache
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.db.models import Q
 from django.db.models.aggregates import Max

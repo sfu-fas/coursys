@@ -7,12 +7,12 @@ from coredata.widgets import CalendarWidget
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
         CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES
 from ta.util import table_row__Form
-#from django.core.exceptions import ValidationError
 import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
 from django.forms.models import BaseInlineFormSet
 from pages.forms import WikiField
 from coredata.widgets import NotClearableFileInput
+from ra.models import Account
 
 
 class LabelledHidden(forms.HiddenInput):
@@ -328,7 +328,8 @@ class TAContractForm(forms.ModelForm):
         if status not in ['REJ', 'CAN'] and deadline < today:
             raise forms.ValidationError("Deadline for acceptance cannot be before today")
         return deadline
-    
+
+
 class TACourseForm(forms.ModelForm):           
     class Meta:
         model = TACourse
@@ -337,6 +338,7 @@ class TACourseForm(forms.ModelForm):
                    'description': forms.Select(attrs={'class': 'desc_select'}),
                    'bu': forms.TextInput(attrs={'class': 'bu_inp'})
                    }
+
 
 class BaseTACourseFormSet(BaseInlineFormSet):    
     def clean(self):
@@ -363,25 +365,30 @@ class BaseTACourseFormSet(BaseInlineFormSet):
                 if(course in courses):
                         raise forms.ValidationError("Duplicate course selection")
                 courses.append(course)  
-        
+
+
 # helpers for the TAPostingForm
-class LabelTextInput(forms.TextInput):
-    "TextInput with a bonus label"
-    def __init__(self, label, *args, **kwargs):
-        self.label = label
-        super(LabelTextInput, self).__init__(*args, **kwargs)
-    def render(self, *args, **kwargs):
-        return " " + self.label + ": " + super(LabelTextInput, self).render(*args, **kwargs)
+
+
 class PayWidget(forms.MultiWidget):
     "Widget for entering salary/scholarship values"
+    template_name = 'ta/pay_widget.html'
+
     def __init__(self, *args, **kwargs):
-        widgets = [LabelTextInput(label=c[0], attrs={'size': 6}) for c in CATEGORY_CHOICES]
+        widgets = [forms.TextInput(attrs={'size': 6}) for _ in CATEGORY_CHOICES]
         kwargs['widgets'] = widgets
         super(PayWidget, self).__init__(*args, **kwargs)
-    
+
+    def get_context(self, name, value, attrs):
+        ctx = super().get_context(name, value, attrs)
+        ctx['label_widgets'] = [(l[0], w) for l, w in zip(CATEGORY_CHOICES, ctx['widget']['subwidgets'])]
+        return ctx
+
     def decompress(self, value):
         # should already be a list: if we get here, have no defaults
         return [0]*len(CATEGORY_CHOICES)
+
+
 class PayField(forms.MultiValueField):
     "Field for entering salary/scholarship values"
     def __init__(self, *args, **kwargs):
@@ -393,24 +400,25 @@ class PayField(forms.MultiValueField):
     def compress(self, values):
         return values
 
-from ra.models import Account
-class LabelSelect(forms.Select):
-    "Select with a bonus label"
-    def __init__(self, label, *args, **kwargs):
-        self.label = label
-        super(LabelSelect, self).__init__(*args, **kwargs)
-    def render(self, *args, **kwargs):
-        return " " + self.label + ": " + super(LabelSelect, self).render(*args, **kwargs)
+
 class AccountsWidget(forms.MultiWidget):
     "Widget for selecting Account values"
+    template_name = 'ta/accounts_widget.html'
     def __init__(self, *args, **kwargs):
-        widgets = [LabelSelect(label=c[0]) for c in CATEGORY_CHOICES]
+        widgets = [forms.Select() for c in CATEGORY_CHOICES]
         kwargs['widgets'] = widgets
         super(AccountsWidget, self).__init__(*args, **kwargs)
     
+    def get_context(self, name, value, attrs):
+        ctx = super().get_context(name, value, attrs)
+        ctx['label_widgets'] = [(l[0], w) for l, w in zip(CATEGORY_CHOICES, ctx['widget']['subwidgets'])]
+        return ctx
+
     def decompress(self, value):
         # should already be a list: if we get here, have no defaults
         return [0]*len(CATEGORY_CHOICES)
+
+
 class AccountsField(forms.MultiValueField):
     "Field for selecting Account values"
     def __init__(self, *args, **kwargs):
@@ -421,6 +429,7 @@ class AccountsField(forms.MultiValueField):
 
     def compress(self, values):
         return values
+
 
 class TAPostingForm(forms.ModelForm):
     deadline = forms.DateField(label="Acceptance Deadline", 

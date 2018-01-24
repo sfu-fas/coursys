@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 from grad.forms import GradStatusForm
 import datetime
 from coredata.models import Semester
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 @requires_role("GRAD")
 def manage_status(request, grad_slug):

@@ -2,7 +2,7 @@ from django.db import models, transaction
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.core.cache import cache
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from coredata.models import CourseOffering, Member, Person
 from grades.models import Activity
 
@@ -54,13 +54,13 @@ class Page(models.Model):
     """
     A page in this courses "web site". Actual data is versioned in PageVersion objects.
     """
-    offering = models.ForeignKey(CourseOffering)
+    offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     label = models.CharField(max_length=30, db_index=True, help_text="The &ldquo;filename&rdquo; for this page")
     can_read = models.CharField(max_length=4, choices=READ_ACL_CHOICES, default="ALL",
         help_text="Who should be able to view this page?")
     can_write = models.CharField(max_length=4, choices=WRITE_ACL_CHOICES, default="STAF",
         verbose_name="Can change", help_text="Who should be able to edit this page?")
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # p.config['releasedate']: date after which is page is visible
         # p.config['editdate']: date after which is page is editable
         # p.config['migrated_to']: if this page was migrated to a new location, the new (offering.slug, page.label)
@@ -191,21 +191,21 @@ class PageVersion(models.Model):
     """
     A particular revision of a Page's contents. Could be either a wiki page or a file attachment.
     """
-    page = models.ForeignKey(Page, blank=True, null=True)
+    page = models.ForeignKey(Page, blank=True, null=True, on_delete=models.PROTECT)
     title = models.CharField(max_length=60, help_text="The title for the page")
     wikitext = models.TextField(help_text='Markup content of the page', verbose_name='Content')
     diff = models.TextField(null=True, blank=True)
-    diff_from = models.ForeignKey('PageVersion', null=True)
+    diff_from = models.ForeignKey('PageVersion', null=True, on_delete=models.PROTECT)
     file_attachment = models.FileField(storage=UploadedFileStorage, null=False, upload_to=attachment_upload_to, blank=False, max_length=500)
     file_mediatype = models.CharField(null=False, blank=False, max_length=200)
     file_name = models.CharField(null=False, blank=False, max_length=200)
     redirect = models.CharField(null=True, blank=True, max_length=500) # URL to redirect to: may be an absolute URL or relative from the location of self.page
 
     created_at = models.DateTimeField(auto_now_add=True)
-    editor = models.ForeignKey(Member)
+    editor = models.ForeignKey(Member, on_delete=models.PROTECT)
     comment = models.TextField()
 
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # p.config['markup']: markup language used: see courselib/markup.py
         # p.config['math']: page uses MathJax? (boolean)
         # p.config['syntax']: page uses SyntaxHighlighter? (boolean) -- no longer used with highlight.js
@@ -467,11 +467,11 @@ class PagePermission(models.Model):
     """
     An additional person who has permission to view pages for this offering
     """
-    offering = models.ForeignKey(CourseOffering)
-    person = models.ForeignKey(Person)
+    offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
     role = models.CharField(max_length=4, choices=PERMISSION_ACL_CHOICES, default="STUD",
         help_text="What level of access should this person have for the course?")
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
 
     defaults = {}
 

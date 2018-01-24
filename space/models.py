@@ -1,7 +1,6 @@
 from django.utils import timezone
 from django.db import models
 from django.template.loader import get_template
-from django.template import Context
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from coredata.models import Unit, JSONField, config_property
@@ -67,7 +66,7 @@ class RoomTypeManager(models.QuerySet):
 
 
 class RoomType(models.Model):
-    unit = models.ForeignKey(Unit, null=False)
+    unit = models.ForeignKey(Unit, null=False, on_delete=models.PROTECT)
     long_description = models.CharField(max_length=256, null=False, blank=False, help_text='e.g. "General Store"')
     code = models.CharField(max_length=50, null=False, blank=False, help_text='e.g. "STOR_GEN"')
     COU_code_description = models.CharField(max_length=256, null=False, blank=False,
@@ -97,13 +96,13 @@ class LocationManager(models.QuerySet):
 
 
 class Location(models.Model):
-    unit = models.ForeignKey(Unit, null=False)
+    unit = models.ForeignKey(Unit, null=False, on_delete=models.PROTECT)
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, null=True, blank=True)
     building = models.CharField(max_length=5, choices=BUILDING_CHOICES, null=True, blank=True)
     floor = models.PositiveIntegerField(null=False, blank=False)
     room_number = models.CharField(max_length=25, null=False, blank=False)
     square_meters = models.DecimalField(max_digits=8, decimal_places=2)
-    room_type = models.ForeignKey(RoomType, null=False)
+    room_type = models.ForeignKey(RoomType, null=False, on_delete=models.PROTECT)
     infrastructure = models.CharField(max_length=3, choices=INFRASTRUCTURE_CHOICES, null=True, blank=True)
     room_capacity = models.PositiveIntegerField(null=True, blank=True)
     category = models.CharField(max_length=5, choices=CATEGORY_CHOICES, null=True, blank=True)
@@ -166,8 +165,8 @@ class BookingRecordManager(models.QuerySet):
 
 
 class BookingRecord(models.Model):
-    location = models.ForeignKey(Location, related_name='bookings')
-    person = models.ForeignKey(Person, related_name='+')
+    location = models.ForeignKey(Location, related_name='bookings', on_delete=models.PROTECT)
+    person = models.ForeignKey(Person, related_name='+', on_delete=models.PROTECT)
     start_time = models.DateTimeField(default=timezone_today)
     end_time = models.DateTimeField(null=True, blank=True)
     form_submission_URL = models.CharField(null=True, blank=True, max_length=1000,
@@ -177,7 +176,7 @@ class BookingRecord(models.Model):
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     config = JSONField(null=False, blank=False, editable=False, default=dict)
     last_modified = models.DateTimeField(blank=False, null=False, editable=False)
-    last_modified_by = models.ForeignKey(Person, null=True, blank=True, editable=False, related_name='+')
+    last_modified_by = models.ForeignKey(Person, null=True, blank=True, editable=False, related_name='+', on_delete=models.PROTECT)
 
     objects = BookingRecordManager.as_manager()
 
@@ -235,11 +234,11 @@ class BookingRecordAttachmentQueryset(models.QuerySet):
 
 
 class BookingRecordAttachment(models.Model):
-    booking_record = models.ForeignKey(BookingRecord, related_name='attachments')
+    booking_record = models.ForeignKey(BookingRecord, related_name='attachments', on_delete=models.PROTECT)
     title = models.CharField(max_length=250, null=False)
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('booking_record',))
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(Person)
+    created_by = models.ForeignKey(Person, on_delete=models.PROTECT)
     contents = models.FileField(storage=UploadedFileStorage, upload_to=space_attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
@@ -262,9 +261,9 @@ class BookingRecordAttachment(models.Model):
 
 
 class BookingMemo(models.Model):
-    booking_record = models.ForeignKey(BookingRecord, related_name='memos')
+    booking_record = models.ForeignKey(BookingRecord, related_name='memos', on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(Person)
+    created_by = models.ForeignKey(Person, on_delete=models.PROTECT)
 
     def email_memo(self):
         """
@@ -273,7 +272,7 @@ class BookingMemo(models.Model):
         subject = 'Booking notification'
         from_email = settings.DEFAULT_FROM_EMAIL
         template = get_template('space/emails/memo.txt')
-        context = Context({'booking': self.booking_record, 'CourSys': product_name(hint='admin')})
+        context = {'booking': self.booking_record, 'CourSys': product_name(hint='admin')}
         msg = EmailMultiAlternatives(subject, template.render(context), from_email,
                                      [self.booking_record.person.email()], headers={'X-coursys-topic': 'space'})
         msg.send()

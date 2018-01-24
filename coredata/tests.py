@@ -2,7 +2,7 @@ from django.test import TestCase
 from coredata.models import CourseOffering, Semester, Person, SemesterWeek, \
                             Member, Role, Unit, EnrolmentHistory, ROLE_CHOICES
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.management import call_command
 
 from courselib.testing import basic_page_tests, validate_content, Client, \

@@ -4,7 +4,7 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from django.conf import settings
 import datetime, urllib.parse, decimal
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.core.cache import cache
 from django.core.mail import send_mail
@@ -121,7 +121,7 @@ class Person(models.Model, ConditionalSaveMixin):
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
     title = models.CharField(max_length=4, null=True, blank=True)
     temporary = models.BooleanField(default=False)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff
         # 'email': email, if not the default userid@sfu.ca
         # 'pref_first_name': really, truly preferred first name (which can be set in DB if necessary)
         # 'phones': dictionary of phone number values. Possible keys: 'pref', 'home', 'cell', 'main'
@@ -307,7 +307,7 @@ class FuturePerson(models.Model):
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
     title = models.CharField(max_length=4, null=True, blank=True)
     hidden = models.BooleanField(default=False, editable=False)
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff
 
     defaults = {'email': None, 'birthdate': None, 'gender': 'U', 'sin': '000000000'}
 
@@ -377,7 +377,7 @@ class RoleAccount(models.Model):
                               help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
     type = models.CharField(max_length=4, choices=ROLE_CHOICES, null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff
 
     class Meta:
         unique_together = (('userid', 'type'),)
@@ -777,7 +777,7 @@ class SemesterWeek(models.Model):
     
     Every semester object needs at least a SemesterWeek for week 1.
     """
-    semester = models.ForeignKey(Semester, null=False)
+    semester = models.ForeignKey(Semester, null=False, on_delete=models.PROTECT)
     week = models.PositiveSmallIntegerField(null=False, help_text="Week of the semester (typically 1-13)")
     monday = models.DateField(help_text='Monday of this week.')
     
@@ -799,7 +799,7 @@ class Holiday(models.Model):
     A holiday to display on the calendar (and possibly exclude classes on that day).
     """
     date = models.DateField(help_text='Date of the holiday', null=False, blank=False, db_index=True)
-    semester = models.ForeignKey(Semester, null=False)
+    semester = models.ForeignKey(Semester, null=False, on_delete=models.PROTECT)
     description = models.CharField(max_length=30, null=False, blank=False, help_text='Description of holiday, e.g. "Canada Day"')
     holiday_type = models.CharField(max_length=4, null=False, choices=HOLIDAY_TYPE_CHOICES,
         help_text='Type of holiday: how does it affect schedules?')
@@ -821,7 +821,7 @@ class Course(models.Model, ConditionalSaveMixin):
     number = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Course number, like "120" or "XX1".')
     title = models.CharField(max_length=30, help_text='The course title.')
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff
     def autoslug(self):
         return make_slug(self.subject + '-' + self.number)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
@@ -912,13 +912,13 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         help_text='Course number, like "120" or "XX1"')
     section = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Section should be in the form "C100" or "D100"')
-    semester = models.ForeignKey(Semester, null=False)
+    semester = models.ForeignKey(Semester, null=False, on_delete=models.PROTECT)
     component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES, db_index=True,
         help_text='Component of the offering, like "LEC" or "LAB"')
     instr_mode = models.CharField(max_length=2, null=False, choices=INSTR_MODE_CHOICES, default='P', db_index=True,
         help_text='The instructional mode of the offering')
     graded = models.BooleanField(default=True)
-    owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering")
+    owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering", on_delete=models.PROTECT)
     # need these to join in the SIMS database: don't care otherwise.
     crse_id = models.PositiveSmallIntegerField(null=True, db_index=True)
     class_nbr = models.PositiveIntegerField(null=True, db_index=True)
@@ -929,13 +929,13 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     enrl_tot = models.PositiveSmallIntegerField()
     wait_tot = models.PositiveSmallIntegerField()
     units = models.PositiveSmallIntegerField(null=True, help_text='The number of credits received by (most?) students in the course')
-    course = models.ForeignKey(Course, null=False)
+    course = models.ForeignKey(Course, null=False, on_delete=models.PROTECT)
 
     # WQB requirement flags
     flags = BitField(flags=OFFERING_FLAG_KEYS, default=0)
     
     members = models.ManyToManyField(Person, related_name="member", through="Member")
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff
         # 'url': URL of course home page
         # 'department': department responsible for course (used by discipline module)
         # 'taemail': TAs' contact email (if not their personal email)
@@ -1225,8 +1225,8 @@ class Member(models.Model, ConditionalSaveMixin):
         ('NONS', 'Non-Student'),
     )
     CAREERS = dict(CAREER_CHOICES)
-    person = models.ForeignKey(Person, related_name="person")
-    offering = models.ForeignKey(CourseOffering)
+    person = models.ForeignKey(Person, related_name="person", on_delete=models.PROTECT)
+    offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     role = models.CharField(max_length=4, choices=ROLE_CHOICES)
     credits = models.PositiveSmallIntegerField(null=False, default=3,
         help_text='Number of credits this course is worth.')
@@ -1235,7 +1235,7 @@ class Member(models.Model, ConditionalSaveMixin):
     labtut_section = models.CharField(max_length=4, null=True, blank=True,
         help_text='Section should be in the form "C101" or "D103".')
     official_grade = models.CharField(max_length=2, null=True, blank=True)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # 'origsection': The originating section (for crosslisted sections combined here)
         #     represented as a CourseOffering.slug
         #     default: self.offering (if accessed by m.get_origsection())
@@ -1441,7 +1441,7 @@ MEETINGTYPES = dict(MEETINGTYPE_CHOICES)
 
 
 class MeetingTime(models.Model):
-    offering = models.ForeignKey(CourseOffering, null=False, related_name='meeting_time')
+    offering = models.ForeignKey(CourseOffering, null=False, related_name='meeting_time', on_delete=models.PROTECT)
     weekday = models.PositiveSmallIntegerField(null=False, choices=WEEKDAY_CHOICES,
         help_text='Day of week of the meeting')
     start_time = models.TimeField(null=False, help_text='Start time of the meeting')
@@ -1484,13 +1484,13 @@ class Unit(models.Model):
             help_text="The unit code, e.g. 'CMPT'.")
     name = models.CharField(max_length=60, null=False, blank=False,
            help_text="The full name of the unit, e.g. 'School of Computing Science'.")
-    parent = models.ForeignKey('Unit', null=True, blank=True,
+    parent = models.ForeignKey('Unit', null=True, blank=True, on_delete=models.PROTECT,
              help_text="Next unit up in the hierarchy.")
     acad_org = models.CharField(max_length=10, null=True, blank=True, db_index=True, unique=True, help_text="ACAD_ORG field from SIMS")
     def autoslug(self):
         return self.label.lower()
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # 'address': list of (3) lines in mailing address (default: SFU main address)
         # 'email': contact email address (may be None)
         # 'web': URL
@@ -1605,11 +1605,11 @@ class Role(models.Model):
 
 
     ROLES = dict(ROLE_CHOICES)
-    person = models.ForeignKey(Person)
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
     role = models.CharField(max_length=4, choices=ROLE_CHOICES)
-    unit = models.ForeignKey(Unit)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     expiry = models.DateField(null=False, blank=False)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # 'gone': used with role='FAC' to indicate this person has left/retired/whatever
 
     gone = config_property('gone', False)
@@ -1713,10 +1713,10 @@ class CombinedOffering(models.Model):
     subject = models.CharField(max_length=4, null=False, blank=False)
     number = models.CharField(max_length=4, null=False, blank=False)
     section = models.CharField(max_length=4, null=False, blank=False)
-    semester = models.ForeignKey(Semester, null=False, blank=False)
+    semester = models.ForeignKey(Semester, null=False, blank=False, on_delete=models.PROTECT)
     component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES)
     instr_mode = models.CharField(max_length=2, null=False, choices=INSTR_MODE_CHOICES, default='P')
-    owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering")
+    owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering", on_delete=models.PROTECT)
     crse_id = models.PositiveSmallIntegerField(null=True)
     class_nbr = models.PositiveIntegerField(null=True) # fake value for DB constraint on CourseOffering
 
@@ -1726,7 +1726,7 @@ class CombinedOffering(models.Model):
     offerings = models.ManyToManyField(CourseOffering)
         # actually a Many-to-One, but don't want to junk CourseOffering up with another ForeignKey
 
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff
 
     def name(self):
         return "%s %s %s" % (self.subject, self.number, self.section)
@@ -1802,7 +1802,7 @@ class EnrolmentHistory(models.Model):
     """
     A model to store daily history of course enrolments, since that isn't kept in SIMS.
     """
-    offering = models.ForeignKey(CourseOffering, null=False, blank=False)
+    offering = models.ForeignKey(CourseOffering, null=False, blank=False, on_delete=models.PROTECT)
     date = models.DateField()
     enrl_cap = models.PositiveSmallIntegerField()
     enrl_tot = models.PositiveSmallIntegerField()

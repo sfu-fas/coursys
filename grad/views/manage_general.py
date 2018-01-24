@@ -5,7 +5,7 @@ from grad.forms import GradAcademicForm, GradFlagValueForm
 from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import copy
 
 @requires_role("GRAD")

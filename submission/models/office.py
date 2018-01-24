@@ -69,7 +69,7 @@ class OfficeComponent(SubmissionComponent):
 
 
 class SubmittedOffice(SubmittedComponent):
-    component = models.ForeignKey(OfficeComponent, null=False)
+    component = models.ForeignKey(OfficeComponent, null=False, on_delete=models.PROTECT)
     office = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500,
                               storage=UploadedFileStorage, verbose_name='Office document submission')
         

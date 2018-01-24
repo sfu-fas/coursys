@@ -1,6 +1,7 @@
 from django import template
 register = template.Library()
 
+
 from django.conf import settings
 STATIC_URL = settings.STATIC_URL
 from django.template import Context, Template
@@ -8,33 +9,12 @@ from django.utils.safestring import mark_safe
 from django.utils.functional import SimpleLazyObject
 
 
-FIELD_TEMPLATE = SimpleLazyObject(lambda: Template('''<li>
-                    {{ field.label_tag }}
-                    <div class="inputfield">
-                        {{ field }}
-            {% if field.errors %}<div class="errortext">{{field.errors.0}}</div>{% endif %}
-            <div class="helptext">{{field.help_text}}</div>
-                    </div>
-                </li>'''))
 ERROR_NOTE_TEMPLATE = SimpleLazyObject(lambda: Template('''
     <p class="errorindicator">
         <img src="''' + STATIC_URL + '''icons/exclamation.png" alt="exclamation" />
         Please correct the error below.
     </p>'''))
 
-@register.filter
-def display_form(form, text="Submit", extrabutton=""):
-    """
-    Convert the form to HTML as we like it.
-    """
-    output = ['<p class="requireindicator"><img src="'+STATIC_URL+'icons/required_star.gif" alt="required" />&nbsp;indicates required field</p>']
-    output.append("<ul>")
-    for field in form:
-        c = Context({"field":field})
-        output.append( FIELD_TEMPLATE.render(c) )
-    
-    output.append('<li><input class="submit" type="submit" value="'+text+'" />' + extrabutton + '</li>\n</ul>')
-    return mark_safe('\n'.join(output))
 
 @register.filter
 def error_note(form):
@@ -76,7 +56,7 @@ def display_form_as_row(form, arg=None):
         c = Context({"field":field})
         output.append( FIELD_AS_TD_TEMPLATE_HIDDEN.render(c))
     
-    output.append("</tr>")    
+    output.append("</tr>")
     
     return mark_safe('\n'.join(output)) 
 

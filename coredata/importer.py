@@ -9,7 +9,7 @@ from coredata.models import CombinedOffering, EnrolmentHistory, CAMPUSES, COMPON
 from django.db import transaction
 from django.conf import settings
 from django.core.cache import cache
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.mail import mail_admins
 from courselib.svn import update_offering_repositories
 from grades.models import LetterActivity

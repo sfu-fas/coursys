@@ -7,7 +7,7 @@ from grades.models import Activity, all_activities_filter
 from django.shortcuts import render, get_object_or_404
 from groups.forms import ActivityForm, GroupForSemesterForm, StudentForm, GroupNameForm
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from courselib.auth import is_course_staff_by_slug, is_course_student_by_slug, requires_course_by_slug, \
     requires_course_staff_by_slug, ForbiddenResponse

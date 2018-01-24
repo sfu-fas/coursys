@@ -137,6 +137,7 @@ from django import forms
 
 
 class MarkupContentWidget(forms.MultiWidget):
+    template_name = 'markup-content-widget.html'
     def __init__(self):
         widgets = (
             forms.Textarea(attrs={'cols': 70, 'rows': 20}),
@@ -145,11 +146,10 @@ class MarkupContentWidget(forms.MultiWidget):
         )
         super(MarkupContentWidget, self).__init__(widgets)
 
-    def format_output(self, rendered_widgets):
-        if self.allow_math:
-            return '<div class="markup-content">%s<br/>Markup language: %s Use MathJax? %s</div>' % tuple(rendered_widgets)
-        else:
-            return '<div class="markup-content">%s<br/>Markup language: %s</div>' % tuple(rendered_widgets[0:2])
+    def get_context(self, *args, **kwargs):
+        context = super().get_context(*args, **kwargs)
+        context['allow_math'] = self.allow_math
+        return context
 
     def decompress(self, value):
         if value is None:
@@ -170,9 +170,10 @@ class MarkupContentField(forms.MultiValueField):
         ]
 
         help_url = '/docs/markup' # hard-coded URL because lazy-evaluating them is hard
-        default_help = '<a href="' + help_url + '">Markup language</a> used in the content, and should ' \
-            '<a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas? ' \
-            '<span id="markup-help"></span>'
+        default_help = '<a href="' + help_url + '">Markup language</a> used in the content'
+        if allow_math:
+            default_help += ', and should <a href="http://www.mathjax.org/">MathJax</a> be used for displaying TeX formulas?'
+        default_help += ' <span id="markup-help"></span>'
         help_text = kwargs.pop('help_text', mark_safe(default_help))
 
         super(MarkupContentField, self).__init__(fields, required=False,

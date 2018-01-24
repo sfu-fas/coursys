@@ -29,7 +29,7 @@ class NonStudent(models.Model):
     college = models.CharField(max_length=32, null=True, blank=True)
     start_year = models.IntegerField(null=True, blank=True, help_text="The predicted/potential start year")
     notes = models.TextField(help_text="Any general information for the student", blank=True)
-    unit = models.ForeignKey(Unit, help_text='The potential academic unit for the student', null=True, blank=True)
+    unit = models.ForeignKey(Unit, help_text='The potential academic unit for the student', null=True, blank=True, on_delete=models.PROTECT)
 
     def autoslug(self):
         return make_slug(self.first_name + ' ' + self.last_name)
@@ -63,19 +63,19 @@ class AdvisorNote(models.Model):
     """
     text = models.TextField(blank=False, null=False, verbose_name="Contents",
                             help_text='Note about a student')
-    student = models.ForeignKey(Person, related_name='student',
+    student = models.ForeignKey(Person, related_name='student', on_delete=models.PROTECT,
                                 help_text='The student that the note is about',
                                 editable=False, null=True)
-    nonstudent = models.ForeignKey(NonStudent, editable=False, null=True,
+    nonstudent = models.ForeignKey(NonStudent, editable=False, null=True, on_delete=models.PROTECT,
                                 help_text='The non-student that the note is about')
-    advisor = models.ForeignKey(Person, related_name='advisor',
+    advisor = models.ForeignKey(Person, related_name='advisor', on_delete=models.PROTECT,
                                 help_text='The advisor that created the note',
                                 editable=False)
     created_at = models.DateTimeField(default=datetime.datetime.now)
     file_attachment = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
-    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note')
+    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note', on_delete=models.PROTECT)
     # Set this flag if the note is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)
     emailed = models.BooleanField(null=False, default=False)
@@ -138,7 +138,7 @@ class Artifact(models.Model):
         return make_slug(self.unit.label + '-' + self.name)
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
-    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False)
+    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False, on_delete=models.PROTECT)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     class Meta:
@@ -163,20 +163,20 @@ NOTE_CATEGORIES = (
 
 
 class ArtifactNote(models.Model):
-    course = models.ForeignKey(Course, help_text='The course that the note is about', null=True, blank=True)
-    course_offering = models.ForeignKey(CourseOffering, help_text='The course offering that the note is about', null=True, blank=True)
-    artifact = models.ForeignKey(Artifact, help_text='The artifact that the note is about', null=True, blank=True)
+    course = models.ForeignKey(Course, help_text='The course that the note is about', null=True, blank=True, on_delete=models.PROTECT)
+    course_offering = models.ForeignKey(CourseOffering, help_text='The course offering that the note is about', null=True, blank=True, on_delete=models.PROTECT)
+    artifact = models.ForeignKey(Artifact, help_text='The artifact that the note is about', null=True, blank=True, on_delete=models.PROTECT)
     important = models.BooleanField(default=False)
     category = models.CharField(max_length=3, choices=NOTE_CATEGORIES)
     text = models.TextField(blank=False, null=False, verbose_name="Contents",
                             help_text='Note about a student')
-    advisor = models.ForeignKey(Person, help_text='The advisor that created the note', editable=False)
+    advisor = models.ForeignKey(Person, help_text='The advisor that created the note', editable=False, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
     best_before = models.DateField(help_text='The effective date for this note', null=True, blank=True)
     file_attachment = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
-    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note')
+    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note', on_delete=models.PROTECT)
     # Set this flag if the note is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)
 
@@ -229,16 +229,16 @@ class AdvisorVisit(models.Model):
 
     Only (1) is implemented in the frontend for now.
     """
-    student = models.ForeignKey(Person, help_text='The student that visited the advisor',
+    student = models.ForeignKey(Person, help_text='The student that visited the advisor', on_delete=models.PROTECT,
                                 blank=True, null=True, related_name='+')
-    nonstudent = models.ForeignKey(NonStudent, blank=True, null=True,
+    nonstudent = models.ForeignKey(NonStudent, blank=True, null=True, on_delete=models.PROTECT,
                                 help_text='The non-student that visited')
-    program = models.ForeignKey(Unit, help_text='The unit of the program the student is in', blank=True, null=True,
+    program = models.ForeignKey(Unit, help_text='The unit of the program the student is in', blank=True, null=True, on_delete=models.PROTECT,
                                 related_name='+')
-    advisor = models.ForeignKey(Person, help_text='The advisor that created the note',
+    advisor = models.ForeignKey(Person, help_text='The advisor that created the note', on_delete=models.PROTECT,
                                 editable=False, related_name='+')
     created_at = models.DateTimeField(default=datetime.datetime.now)
-    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this visit', null=False)
+    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this visit', null=False, on_delete=models.PROTECT)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     def save(self, *args, **kwargs):

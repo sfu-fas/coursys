@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='tug',
             name='member',
-            field=models.OneToOneField(to='coredata.Member'),
+            field=models.OneToOneField(to='coredata.Member', on_delete=models.CASCADE),
         ),
     ]

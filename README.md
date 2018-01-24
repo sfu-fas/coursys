@@ -125,8 +125,8 @@ See `/advisornotes/models.py` for an example:
             return make_slug(self.unit.label + '-' + self.name)
         
         slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
-        unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False)
-        config = JSONField(null=False, blank=False, default={})  # additional configuration stuff:
+        unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False, on_delete=models.PROTECT)
+        config = JSONField(null=False, blank=False, default=dict)  # additional configuration stuff:
 
 Here we're automatically making a slug out of the Artifact's unit (CMPT) 
 and name - "cmpt-thingamajigger".
@@ -246,7 +246,7 @@ a Calendar, rather than just a standard text field.
 We can solve that first problem by adding `editable=False` as one of the arguments
 to config in the Model: 
         
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
 
 With that in place, config won't show up in any ModelFields. 
 

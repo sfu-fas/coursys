@@ -3,7 +3,7 @@ from django.template.defaultfilters import stringfilter
 from django.utils.html import escape
 from django.utils.text import wrap
 from django.utils.safestring import mark_safe
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from discipline.models import STEP_DESC, STEP_VIEW, PRE_LETTER_STEPS
 from textile import textile_restricted
 

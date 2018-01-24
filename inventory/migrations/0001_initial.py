@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('last_modified', models.DateTimeField(editable=False)),
                 ('hidden', models.BooleanField(default=False, editable=False)),
                 ('slug', autoslug.fields.AutoSlugField(populate_from=b'autoslug', unique=True, editable=False)),
-                ('unit', models.ForeignKey(help_text=b'Unit to which this asset belongs', to='coredata.Unit')),
+                ('unit', models.ForeignKey(help_text=b'Unit to which this asset belongs', to='coredata.Unit', on_delete=models.CASCADE)),
             ],
         ),
     ]

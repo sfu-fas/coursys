@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 from django.forms.utils import ErrorList
 
 class DividerFieldWidget(forms.TextInput):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         return mark_safe('<hr />')
 
 
@@ -18,10 +18,12 @@ class GroupForm(ModelForm):
         model = FormGroup
         exclude = ('members', 'config')
 
+
 class EditGroupForm(ModelForm):
     class Meta:
         model = FormGroup
         fields = ('name',)
+
 
 class EmployeeSearchForm(forms.Form):
     search = PersonField(label="Person")

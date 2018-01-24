@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='meetingtime',
             name='offering',
-            field=models.ForeignKey(related_name='meeting_time', to='coredata.CourseOffering'),
+            field=models.ForeignKey(related_name='meeting_time', to='coredata.CourseOffering', on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='role',

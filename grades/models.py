@@ -4,7 +4,7 @@ from coredata.models import Member, CourseOffering, Person
 from dashboard.models import NewsItem
 from django.db import transaction
 from django.db.models import Count
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from datetime import datetime, timedelta, date
 from courselib.json_fields import JSONField
@@ -85,7 +85,7 @@ class Activity(models.Model):
     position = models.PositiveSmallIntegerField(help_text="The order of displaying course activities.")
     group = models.BooleanField(null=False, default=False)
     deleted = models.BooleanField(null = False, db_index = True, default=False)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # a.config['url'] (string, default None): URL for more info
         # a.config['showstats'] (boolean, default True): show students summary stats for this activity?
         # a.config['showhisto'] (boolean, default True): show students histogram for this activity?
@@ -94,7 +94,7 @@ class Activity(models.Model):
         # a.config['calculation_leak'] (boolean, default False): For CalNumericActivity, include unreleased grades when calculating? (Thus possibly leaking URLS values to students)
         # TODO: showformula not actually implemented yet
     
-    offering = models.ForeignKey(CourseOffering)
+    offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     
     defaults = {'url': '', 'showstats': True, 'showhisto': True, 'showformula': False, 'multisubmit': False, 'calculation_leak': False}
     url, set_url = getter_setter('url')
@@ -308,6 +308,7 @@ class NumericActivity(Activity):
 
     class Meta:
         verbose_name_plural = "numeric activities"
+        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Numeric Graded"
@@ -346,6 +347,7 @@ class LetterActivity(Activity):
     """
     class Meta:
         verbose_name_plural = "letter activities"
+        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Letter Graded"
@@ -388,6 +390,7 @@ class CalNumericActivity(NumericActivity):
 
     class Meta:
         verbose_name_plural = "cal numeric activities"
+        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Calculated Numeric Grade"
@@ -401,8 +404,8 @@ class CalLetterActivity(LetterActivity):
     """
     Activity with a calculated letter grade which is the final letter grade of the course offering
     """
-    numeric_activity = models.ForeignKey(NumericActivity, related_name='numeric_source')
-    exam_activity = models.ForeignKey(Activity, null=True, related_name='cal_exam_activity')
+    numeric_activity = models.ForeignKey(NumericActivity, related_name='numeric_source', on_delete=models.PROTECT)
+    exam_activity = models.ForeignKey(Activity, null=True, related_name='cal_exam_activity', on_delete=models.PROTECT)
     letter_cutoffs = models.CharField(max_length=500, help_text='parsed formula to calculate final letter grade', default='[95, 90, 85, 80, 75, 70, 65, 60, 55, 50]')
 
     def is_calculated(self):
@@ -415,6 +418,7 @@ class CalLetterActivity(LetterActivity):
     
     class Meta:
         verbose_name_plural = 'cal letter activities'
+        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Calculated Letter Grade"
@@ -496,8 +500,8 @@ class NumericGrade(models.Model):
     """
     Individual numeric grade for a NumericActivity.
     """
-    activity = models.ForeignKey(NumericActivity, null=False)
-    member = models.ForeignKey(Member, null=False)
+    activity = models.ForeignKey(NumericActivity, null=False, on_delete=models.PROTECT)
+    member = models.ForeignKey(Member, null=False, on_delete=models.PROTECT)
 
     value = models.DecimalField(max_digits=8, decimal_places=2, default=0, null=False)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
@@ -595,8 +599,8 @@ class LetterGrade(models.Model):
     """
     Individual letter grade for a LetterActivity
     """
-    activity = models.ForeignKey(LetterActivity, null=False)
-    member = models.ForeignKey(Member, null=False)
+    activity = models.ForeignKey(LetterActivity, null=False, on_delete=models.PROTECT)
+    member = models.ForeignKey(Member, null=False, on_delete=models.PROTECT)
     
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
@@ -795,9 +799,9 @@ class GradeHistory(models.Model):
     """
     Grade audit history. Created automatically by ActivityMark.save().
     """
-    activity = models.ForeignKey(Activity, null=False)
-    member = models.ForeignKey(Member, null=False)
-    entered_by = models.ForeignKey(Person, null=False, blank=False)
+    activity = models.ForeignKey(Activity, null=False, on_delete=models.PROTECT)
+    member = models.ForeignKey(Member, null=False, on_delete=models.PROTECT)
+    entered_by = models.ForeignKey(Person, null=False, blank=False, on_delete=models.PROTECT)
 
     activity_status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status when grade was entered.')
     numeric_grade = models.DecimalField(max_digits=8, decimal_places=2, default=0, null=False)
@@ -805,8 +809,8 @@ class GradeHistory(models.Model):
     grade_flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
     comment = models.TextField(null=True, max_length=COMMENT_LENGTH)
 
-    mark = models.ForeignKey('marking.ActivityMark', null=True, help_text='The ActivityMark object this grade came from, if applicable.')
-    group = models.ForeignKey('groups.Group', null=True, help_text='If this was a mark for a group, the group.')
+    mark = models.ForeignKey('marking.ActivityMark', null=True, help_text='The ActivityMark object this grade came from, if applicable.', on_delete=models.PROTECT)
+    group = models.ForeignKey('groups.Group', null=True, help_text='If this was a mark for a group, the group.', on_delete=models.PROTECT)
     status_change = models.BooleanField(null=False, default=False)
 
     timestamp = models.DateTimeField(auto_now_add=True)

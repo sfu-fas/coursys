@@ -3,7 +3,7 @@ from .models import SessionalContract, SessionalAccount, SessionalConfig
 from coredata.widgets import CalendarWidget, OfferingField
 from coredata.forms import PersonField
 from coredata.models import Unit
-from faculty.event_types.fields import DollarInput
+from coredata.widgets import DollarInput
 
 
 class SessionalAccountForm(forms.ModelForm):

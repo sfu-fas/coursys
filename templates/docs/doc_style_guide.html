@@ -271,15 +271,15 @@ The units where the use has the role should me used to show them only the data t
            return make_slug(self.unit.label + '-' + self.name)
        
        slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
-       unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False)
-       config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+       unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False, on_delete=models.PROTECT)
+       config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 </pre>
 <p>Here we're automatically making a slug out of the Artifact's unit (CMPT) and name - "cmpt-thingamajigger".</p>
 
 <h3 id="config">Configuration Fields</h3>
 <p>When building models that may change in the future (pro-tip: this is most models) we often include an empty JSON field in the model.</p>
 <pre class="brush: python">
-	config = JSONField(null=False, blank=False, default={})
+	config = JSONField(null=False, blank=False, default=dict)
 </pre>
 <p>When working with the config field, it's considered polite to include any fields that we might be storing in the config field as a comment.</p>
 <pre class="brush: python">

@@ -40,8 +40,8 @@ class VisaQuerySet(models.QuerySet):
 
 
 class Visa (models.Model):
-    person = models.ForeignKey(Person, null=False, blank=False)
-    unit = models.ForeignKey(Unit, null=False, blank=False)
+    person = models.ForeignKey(Person, null=False, blank=False, on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
     status = models.CharField(max_length=50, choices=VISA_STATUSES, default='')
     start_date = models.DateField('Start Date', default=timezone_today, help_text='First day of visa validity')
     end_date = models.DateField('End Date', blank=True, null=True, help_text='Expiry of the visa (if known)')
@@ -130,11 +130,11 @@ class VisaDocumentAttachment(models.Model):
     """
     Document attached to a CareerEvent.
     """
-    visa = models.ForeignKey(Visa, null=False, blank=False, related_name="attachments")
+    visa = models.ForeignKey(Visa, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
     title = models.CharField(max_length=250, null=False)
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('visa',))
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.', on_delete=models.PROTECT)
     contents = models.FileField(storage=UploadedFileStorage, upload_to=visa_attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)

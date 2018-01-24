@@ -6,7 +6,7 @@ from log.models import LogEntry
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import GradProgramForm
 import datetime
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 @requires_role("GRAD", get_only=["GRPD"])
 def new_program(request):

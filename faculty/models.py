@@ -8,7 +8,7 @@ import uuid
 
 from django.db import models
 from django.db.models import Q
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.apps.registry import apps
 from django.utils import timezone
 
@@ -212,8 +212,8 @@ class CareerEvent(models.Model):
         ('D', 'Deleted'),
     )
 
-    person = models.ForeignKey(Person, related_name="career_events")
-    unit = models.ForeignKey(Unit)
+    person = models.ForeignKey(Person, related_name="career_events", on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
 
     slug = AutoSlugField(populate_from='slug_string', unique_with=('person',),
                          slugify=make_slug, null=False, editable=False)
@@ -222,7 +222,7 @@ class CareerEvent(models.Model):
     comments = models.TextField(blank=True)
 
     event_type = models.CharField(max_length=10, choices=EVENT_TYPE_CHOICES)
-    config = JSONField(default={})
+    config = JSONField(default=dict)
 
     flags = BitField(flags=EVENT_FLAGS, default=0)
 
@@ -458,11 +458,11 @@ class DocumentAttachment(models.Model):
     """
     Document attached to a CareerEvent.
     """
-    career_event = models.ForeignKey(CareerEvent, null=False, blank=False, related_name="attachments")
+    career_event = models.ForeignKey(CareerEvent, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
     title = models.CharField(max_length=250, null=False)
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('career_event',))
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.', on_delete=models.PROTECT)
     contents = models.FileField(storage=UploadedFileStorage, upload_to=attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
@@ -488,7 +488,7 @@ class MemoTemplate(models.Model):
     """
     A template for memos.
     """
-    unit = models.ForeignKey(Unit, null=False, blank=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
     label = models.CharField(max_length=150, null=False, verbose_name='Template Name',
                              help_text='The name for this template (that you select it by when using it)')
     event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES,
@@ -503,7 +503,7 @@ class MemoTemplate(models.Model):
                                                "each memo. (i.e. 'Congratulations {{first_name}} on ... ')")
 
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(Person, help_text='Memo template created by.', related_name='+')
+    created_by = models.ForeignKey(Person, help_text='Memo template created by.', related_name='+', on_delete=models.PROTECT)
     hidden = models.BooleanField(default=False)
 
     def autoslug(self):
@@ -533,30 +533,30 @@ class Memo(models.Model):
     """
     A memo created by the system, and attached to a CareerEvent.
     """
-    career_event = models.ForeignKey(CareerEvent, null=False, blank=False)
-    unit = models.ForeignKey(Unit, null=False, blank=False, help_text="The unit producing the memo: will determine the "
+    career_event = models.ForeignKey(CareerEvent, null=False, blank=False, on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT, help_text="The unit producing the memo: will determine the "
                                                                       "letterhead used for the memo.")
 
     sent_date = models.DateField(default=datetime.date.today, help_text="The sending date of the letter")
     to_lines = models.TextField(verbose_name='Attention', help_text='Recipient of the memo', null=True, blank=True)
     cc_lines = models.TextField(verbose_name='CC lines', help_text='Additional recipients of the memo', null=True,
                                 blank=True)
-    from_person = models.ForeignKey(Person, null=True, related_name='+')
+    from_person = models.ForeignKey(Person, null=True, related_name='+', on_delete=models.PROTECT)
     from_lines = models.TextField(verbose_name='From', help_text='Name (and title) of the sender, e.g. "John Smith, '
                                                                  'Applied Sciences, Dean"')
     subject = models.TextField(help_text='The subject of the memo (lines will be formatted separately in the memo '
                                          'header). This will be ignored for letters')
 
-    template = models.ForeignKey(MemoTemplate, null=True)
+    template = models.ForeignKey(MemoTemplate, null=True, on_delete=models.PROTECT)
     is_letter = models.BooleanField(verbose_name="Make it a letter", help_text="Make it a letter with correct "
                                                                                "letterhead instead of a memo.",
                                     default=False)
     memo_text = models.TextField(help_text="I.e. 'Congratulations on ... '")
 
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(Person, help_text='Letter generation requested by.', related_name='+')
+    created_by = models.ForeignKey(Person, help_text='Letter generation requested by.', related_name='+', on_delete=models.PROTECT)
     hidden = models.BooleanField(default=False)
-    config = JSONField(default={})  # addition configuration for the memo
+    config = JSONField(default=dict)  # addition configuration for the memo
     # 'use_sig': use the from_person's signature if it exists?
     #            (Users set False when a real legal signature is required.)
     # 'pdf_generated': set to True if a PDF has ever been created for this memo (used to decide if it's editable)
@@ -629,9 +629,9 @@ class EventConfig(models.Model):
     """
     A unit's configuration for a particular event type
     """
-    unit = models.ForeignKey(Unit, null=False, blank=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
     event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES)
-    config = JSONField(default={})
+    config = JSONField(default=dict)
 
     class Meta:
         unique_together = ('unit', 'event_type')
@@ -692,9 +692,9 @@ class TempGrant(models.Model):
     initial = models.DecimalField(verbose_name="initial balance", max_digits=12, decimal_places=2)
     project_code = models.CharField(max_length=32, help_text="The fund and project code, like '13-123456'")
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
-    creator = models.ForeignKey(Person, blank=True, null=True)
+    creator = models.ForeignKey(Person, blank=True, null=True, on_delete=models.PROTECT)
     created = models.DateTimeField(auto_now_add=True)
-    config = JSONField(default={}) # addition configuration for within the temp grant
+    config = JSONField(default=dict) # addition configuration for within the temp grant
 
     objects = TempGrantManager()
 
@@ -741,8 +741,8 @@ class Grant(models.Model):
     initial = models.DecimalField(verbose_name="Initial balance", max_digits=12, decimal_places=2)
     overhead = models.DecimalField(verbose_name="Annual overhead", max_digits=12, decimal_places=2, help_text="Annual overhead returned to Faculty budget")
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
-    unit = models.ForeignKey(Unit, null=False, blank=False, help_text="Unit who owns the grant")
-    config = JSONField(blank=True, null=True, default={})  # addition configuration for within the grant
+    unit = models.ForeignKey(Unit, null=False, blank=False, help_text="Unit who owns the grant", on_delete=models.PROTECT)
+    config = JSONField(blank=True, null=True, default=dict)  # addition configuration for within the grant
 
     objects = GrantManager()
 
@@ -787,17 +787,17 @@ class Grant(models.Model):
 
 
 class GrantOwner(models.Model):
-    grant = models.ForeignKey(Grant)
-    person = models.ForeignKey(Person)
-    config = JSONField(blank=True, null=True, default={})  # addition configuration
+    grant = models.ForeignKey(Grant, on_delete=models.PROTECT)
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
+    config = JSONField(blank=True, null=True, default=dict)  # addition configuration
 
 class GrantBalance(models.Model):
     date = models.DateField(default=datetime.date.today)
-    grant = models.ForeignKey(Grant, null=False, blank=False)
+    grant = models.ForeignKey(Grant, null=False, blank=False, on_delete=models.PROTECT)
     balance = models.DecimalField(verbose_name="grant balance", max_digits=12, decimal_places=2)
     actual = models.DecimalField(verbose_name="YTD actual", max_digits=12, decimal_places=2)
     month = models.DecimalField(verbose_name="current month", max_digits=12, decimal_places=2)
-    config = JSONField(blank=True, null=True, default={})  # addition configuration within the memo
+    config = JSONField(blank=True, null=True, default=dict)  # addition configuration within the memo
 
     def __str__(self):
         return "%s balance as of %s" % (self.grant, self.date)
@@ -807,14 +807,13 @@ class GrantBalance(models.Model):
 
 
 class FacultyMemberInfo(models.Model):
-    #person = models.ForeignKey(Person, unique=True, related_name='+')
-    person = models.OneToOneField(Person, related_name='+')
+    person = models.OneToOneField(Person, related_name='+', on_delete=models.PROTECT)
     title = models.CharField(max_length=50)
     birthday = models.DateField(verbose_name="Birthdate", null=True, blank=True)
     office_number = models.CharField('Office', max_length=20, null=True, blank=True)
     phone_number = models.CharField('Local Phone Number', max_length=20, null=True, blank=True)
     emergency_contact = models.TextField('Emergency Contact Information', blank=True)
-    config = JSONField(blank=True, null=True, default={})  # addition configuration
+    config = JSONField(blank=True, null=True, default=dict)  # addition configuration
 
     last_updated = models.DateTimeField(auto_now=True)
 
@@ -848,7 +847,7 @@ class PositionManager(models.Manager):
 class Position(models.Model):
     title = models.CharField(max_length=100)
     projected_start_date = models.DateField('Projected Start Date', default=timezone_today)
-    unit = models.ForeignKey(Unit, null=False, blank=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
     position_number = models.CharField(max_length=8)
     rank = models.CharField(choices=RANK_CHOICES, max_length=50, null=True, blank=True)
     step = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
@@ -917,11 +916,11 @@ class PositionDocumentAttachment(models.Model):
     """
     Document attached to a CareerEvent.
     """
-    position = models.ForeignKey(Position, null=False, blank=False, related_name="attachments")
+    position = models.ForeignKey(Position, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
     title = models.CharField(max_length=250, null=False)
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('position',))
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.', on_delete=models.PROTECT)
     contents = models.FileField(storage=UploadedFileStorage, upload_to=position_attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)

@@ -5,7 +5,7 @@ from grad.forms import GradDefenceForm, possible_supervisors
 from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import transaction
 
 @requires_role("GRAD")

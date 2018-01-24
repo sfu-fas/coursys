@@ -72,20 +72,14 @@ class LetterSelectForm(forms.Form):
         self.fields["letter_choice"].choices = choices
 
 
-class StudentSelect(forms.Select):
-    input_type = 'text'
+class StudentSelect(forms.TextInput):
+    # widget to input an emplid; presumably with autocomplete in the frontend
+    pass
 
-    def render(self, name, value, attrs=None):
-        if value is None:
-            value = ''
-        final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
-        if value != '':
-            final_attrs['value'] = force_text(value)
-        return mark_safe('<input%s />' % forms.widgets.flatatt(final_attrs))
 
 class StudentField(forms.ModelChoiceField):
     def __init__(self, *args, **kwargs):
-        super(StudentField, self).__init__(*args, queryset=Person.objects.none(), widget=StudentSelect(attrs={'size': 30}), help_text="Type to search for a student's appointments.", **kwargs)
+        super(StudentField, self).__init__(*args, queryset=Person.objects.none(), widget=StudentSelect(attrs={'size': 20}), help_text="Type to search for a student's appointments.", **kwargs)
 
     def to_python(self, value):
         try:

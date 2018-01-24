@@ -11,7 +11,7 @@ from courselib.search import find_userid_or_emplid, get_query
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.mail.message import EmailMessage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404

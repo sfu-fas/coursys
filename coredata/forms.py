@@ -5,23 +5,34 @@ from coredata.queries import find_person, add_person, SIMSProblem, userid_to_emp
 from cache_utils.decorators import cached
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
-from localflavor.ca.forms import CAPhoneNumberField
 from coredata.widgets import CalendarWidget
 
-class OfferingSelect(forms.Select):
-    input_type = 'text'
 
-    def render(self, name, value, attrs=None):
-        """
-        Render for jQueryUI autocomplete widget
-        """
-        if value is None:
-            value = ''
-        final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
-        if value != '':
-            # Only add the 'value' attribute if a value is non-empty.
-            final_attrs['value'] = force_text(value)
-        return mark_safe('<input%s />' % forms.widgets.flatatt(final_attrs))
+# deprecated code from django-localflavor: https://github.com/django/django-localflavor/blob/1.4.x/localflavor/ca/forms.py
+import re
+from django.core.validators import EMPTY_VALUES
+phone_digits_re = re.compile(r'^(?:1-?)?(\d{3})[-\.]?(\d{3})[-\.]?(\d{4})$')
+class CAPhoneNumberField(forms.Field):
+    """Canadian phone number form field."""
+
+    default_error_messages = {
+        'invalid': 'Phone numbers must be in XXX-XXX-XXXX format.',
+    }
+
+    def clean(self, value):
+        super(CAPhoneNumberField, self).clean(value)
+        if value in EMPTY_VALUES:
+            return ''
+        value = re.sub('(\(|\)|\s+)', '', force_text(value))
+        m = phone_digits_re.search(value)
+        if m:
+            return '%s-%s-%s' % (m.group(1), m.group(2), m.group(3))
+        raise forms.ValidationError(self.error_messages['invalid'])
+
+
+class OfferingSelect(forms.TextInput):
+    pass
+
 
 class OfferingField(forms.ModelChoiceField):
     """
@@ -44,6 +55,7 @@ class OfferingField(forms.ModelChoiceField):
         except (ValueError, CourseOffering.DoesNotExist):
             raise forms.ValidationError("Unknown course offering selectted")
         return co
+
 
 class CourseField(forms.ModelChoiceField):
     """
@@ -105,9 +117,9 @@ class PersonWidget(forms.TextInput):
     """
     def __init__(self, *args, **kwargs):
         self.found_sims = False
-        return super(PersonWidget, self).__init__(*args, **kwargs)
+        super(PersonWidget, self).__init__(*args, **kwargs)
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if self.found_sims:
             textwidget = super(PersonWidget, self).render(name, value, attrs)
             confirmwidget = ' Import %s %s (%s) from SIMS: ' % (self.sims_data['first_name'], self.sims_data['last_name'], self.sims_data['emplid'])
@@ -115,7 +127,7 @@ class PersonWidget(forms.TextInput):
             confirmwidget += '<input type="hidden" name="%s_emplid" value="%s" />' % (name, self.sims_data['emplid'])
             return textwidget + confirmwidget
         else:
-            return super(PersonWidget, self).render(name, value, attrs)
+            return super(PersonWidget, self).render(name, value, attrs=attrs, renderer=renderer)
 
 
 class PersonField(forms.CharField):
@@ -486,28 +498,8 @@ class CheckboxSelectTerse(forms.CheckboxSelectMultiple):
     """
     A CheckboxSelectMultiple, but with a more compact rendering
     """
-    def render(self, name, value, attrs=None, choices=()):
-        if value is None: value = []
-        has_id = attrs and 'id' in attrs
-        final_attrs = self.build_attrs(attrs, name=name)
-        output = []
-        # Normalize to strings
-        str_values = set([force_text(v) for v in value])
-        for i, (option_value, option_label) in enumerate(chain(self.choices, choices)):
-            # If an ID attribute was given, add a numeric index as a suffix,
-            # so that the checkboxes don't all have the same ID attribute.
-            if has_id:
-                final_attrs = dict(final_attrs, id='%s_%s' % (attrs['id'], i))
-                label_for = ' for="%s"' % final_attrs['id']
-            else:
-                label_for = ''
+    template_name = 'coredata/_checkbox_select_terse.html'
 
-            cb = forms.CheckboxInput(final_attrs, check_test=lambda value: value in str_values)
-            option_value = force_text(option_value)
-            rendered_cb = cb.render(name, option_value)
-            option_label = conditional_escape(force_text(option_label))
-            output.append('<label%s>%s %s</label>' % (label_for, rendered_cb, option_label))
-        return mark_safe('\n'.join(output))
 
 FLAG_DICT = dict(WQB_FLAGS)
 #UNIVERSAL_COLUMNS = ['semester', 'coursecode'] # always display these Just Because.

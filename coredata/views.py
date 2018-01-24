@@ -14,7 +14,7 @@ from coredata.models import Person, Semester, CourseOffering, Course, Member, Ro
 from coredata import panel
 from advisornotes.models import NonStudent
 from log.models import LogEntry
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from cache_utils.decorators import cached
 from haystack.query import SearchQuerySet
@@ -1331,7 +1331,7 @@ def course_home_pages_unit(request, unit_slug, semester=None):
         .exclude(component='CAN') \
         .exclude(instr_mode__in=['CO', 'GI'])
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         is_admin = Role.objects_fresh.filter(unit=unit, person__userid=request.user.username, role='ADMN').exists()
     else:
         is_admin = False

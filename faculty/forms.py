@@ -5,8 +5,9 @@ from django.utils.translation import ugettext as _
 
 from coredata.models import Semester, Unit, Person, Role, FuturePerson
 from coredata.forms import PersonField
+from coredata.widgets import DollarInput
 
-from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput, FractionField, AddSalaryField, AddPayField, AnnualTeachingCreditField
+from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, FractionField, AddSalaryField, AddPayField, AnnualTeachingCreditField
 from faculty.models import CareerEvent
 from faculty.models import DocumentAttachment
 from faculty.models import PositionDocumentAttachment
@@ -242,6 +243,7 @@ class AvailableCapacityForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(AvailableCapacityForm, self).__init__(*args, **kwargs)
+        self.data = dict(self.data)
         if 'start_semester' not in self.data:
             self.data['start_semester'] = ReportingSemester.current().prev().prev().code
         if 'end_semester' not in self.data:
@@ -265,7 +267,7 @@ class CourseAccreditationForm(forms.Form):
     def __init__(self, *args, **kwargs):
         flags = kwargs.pop('flags', [])
         super(CourseAccreditationForm, self).__init__(*args, **kwargs)
-
+        self.data = dict(self.data)
         if 'start_semester' not in self.data:
             self.data['start_semester'] = Semester.current().name
         if 'end_semester' not in self.data:
@@ -371,7 +373,7 @@ class FuturePersonForm(forms.ModelForm):
     email = forms.EmailField(required=False)
     sin = forms.CharField(required=False, max_length=9, label='SIN')
     birthdate = forms.DateField(required=False, label='Date of Birth')
-    gender = forms.ChoiceField((
+    gender = forms.ChoiceField(choices=(
             ('M', 'Male'),
             ('F', 'Female'),
             ('U', 'Unknown')),

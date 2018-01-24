@@ -2,7 +2,7 @@ import os
 import urllib.request, urllib.parse, urllib.error
 import html5lib
 import datetime
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.management import call_command
 
 from django.test import TestCase
@@ -88,7 +88,7 @@ def validate_content(testcase, data, page_descr="unknown page"):
     parser = html5lib.HTMLParser(tree=html5lib.treebuilders.getTreeBuilder("dom"))
     parser.parse(data)
     if parser.errors:
-        fh = open("tmp-validation.html", "w")
+        fh = open("tmp-validation.html", "wb")
         fh.write(data)
         fh.close()
         testcase.fail("Invalid HTML5 produced in %s:\n  %s" % (page_descr, str(parser.errors)))
