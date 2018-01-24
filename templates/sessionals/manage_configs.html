@@ -3,7 +3,7 @@
 {% block h1 %}Manage Configurations{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#configs').dataTable( {
     'bPaginate': false,

@@ -13,7 +13,7 @@
 <link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
 <script type="text/javascript" src="{{STATIC_URL}}js/core.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
   $(function() {
   	table = $('#offerings').dataTable({
         "bPaginate": false,

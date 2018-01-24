@@ -1,5 +1,6 @@
 import random
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 
 def new_token():
     """
@@ -21,9 +22,11 @@ class CSPMiddleware(object):
         request.csp_nonce = token
         response = self.get_response(request)
 
+        if not settings.DEBUG:
+            return response
+
         #header = 'Content-Security-Policy'
         header = 'Content-Security-Policy-Report-Only'
-        #value = "default-src 'self' * ; script-src 'self' * 'nonce-%s' 'unsafe-inline'" % (token,)
         value = "default-src 'self' * ; " \
                 "style-src 'self' 'unsafe-inline' ; " \
                 "img-src 'self' www.sfu.ca data: ; " \
@@ -33,9 +36,11 @@ class CSPMiddleware(object):
                 % (token,)
 
         if header in response:
+            # if the view set the Content-Security-Policy, honour it
             return response
 
-        #response[header] = value
+        response[header] = value
+
         return response
 
 

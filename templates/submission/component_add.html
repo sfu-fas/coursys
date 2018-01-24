@@ -4,8 +4,8 @@
 {% block headextra %}
 <link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
 <script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
-<script type="text/javascript">init()</script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">init()</script>
+<script nonce="{{ CSP_NONCE }}">
   $(document).ready(function() {
     $("#id_allowed").multiselect();
     var ftype_help = $('#id_filename_type').parent().nextAll().filter('.helptext').first();

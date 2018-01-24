@@ -3,7 +3,7 @@
 {% block h1 %}Report: {{report.name}}, Running&hellip;{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     var console_url = '{% url "reports:console" report=report.slug %}';
 
     var reload = function(){

@@ -6,7 +6,7 @@
 {% block h1 %}Contact Info: {{ person.name }}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function () {
   $('#id_birthday').datepicker({
     dateFormat: 'yy-mm-dd',

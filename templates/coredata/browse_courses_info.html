@@ -13,7 +13,7 @@
 <script type="text/javascript" src="{% static 'js/browse.js' %}"></script>
 <script type="text/javascript" src="{% static 'jquery-ext/jquery.linkify.min.js' %}"></script>
 {% endcompress %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
 	$('table#maininfo').after('<i class="fa fa-spinner fa-spin" id="fetchwait"></i>');
 	$('h2#outline').after('<i class="fa fa-spinner fa-spin" id="fetchwait-outline"></i>');

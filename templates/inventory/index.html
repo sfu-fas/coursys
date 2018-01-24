@@ -9,7 +9,7 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/inventory.css" %}" type="text/css">
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#assets').dataTable( {
     'bPaginate': false,

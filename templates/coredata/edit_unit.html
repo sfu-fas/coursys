@@ -11,7 +11,7 @@
 
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
   $(document).ready(function() {
     offering_autocomplete('id_offering');

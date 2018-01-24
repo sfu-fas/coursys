@@ -10,7 +10,7 @@
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
 
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(function() {
   $('.contracts_table').dataTable( {
     'bPaginate': false,

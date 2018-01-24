@@ -24,7 +24,7 @@
 
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#currentregistrations').dataTable( {
     'bPaginate': false,

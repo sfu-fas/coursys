@@ -50,7 +50,7 @@ Some guess about how fresh the reporting database is&hellip;
 {% endif %}
 
 {% if psinfo %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#procs').css('font-size', '75%').dataTable( {
     'bPaginate': false,

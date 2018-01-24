@@ -4,7 +4,7 @@
 {% block h1 %}New Schedule Rule{% endblock %}
 
 {% block headextra %}
-<script>
+<script nonce="{{ CSP_NONCE }}">
 $(function(){
     $("#id_next_run").datepicker({ changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd" });
 });

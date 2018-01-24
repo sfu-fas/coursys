@@ -13,7 +13,7 @@
 
 {% block headextra %}
 <script src="{% static 'js/formula.js' %}"></script>
-<script>
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
     $("#id_due_date_0").datepicker({dateFormat: 'yy-mm-dd'});
     document.getElementById('testerlink').setAttribute('target', '_blank');

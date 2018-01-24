@@ -5,7 +5,7 @@
 
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#roleaccounts').dataTable( {
     'bPaginate': false,

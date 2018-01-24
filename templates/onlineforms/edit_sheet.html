@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
     /*store field ids*/  
     var field_ids = new Array();

@@ -3,7 +3,7 @@
 {% block h1 %}Result: {{result.name}} {{ result.created_at }} {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(function() {
   $('.datatable').dataTable( {
     'bPaginate': false,

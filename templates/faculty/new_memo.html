@@ -4,7 +4,7 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
-<script type="text/javascript">//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">//<![CDATA[
     function getData(url) {
       $.ajax({
         type : "GET",

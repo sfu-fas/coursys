@@ -8,7 +8,7 @@
     <!-- Changes must also be applied to edit_field.html -->
     {% if ftype == 'TEXT' %}{% include 'pages/markup_edit_head.html' %}{% endif %}
     {% if choices %}
-        <script>
+        <script nonce="{{ CSP_NONCE }}">
             $(document).ready(function () {
 
                 var choice_count

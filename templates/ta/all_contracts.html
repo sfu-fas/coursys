@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     var application_urls = new Array();
     {% for app in applications %}
     application_urls['{{ app.id }}'] = '{% url "ta:edit_contract" post_slug=posting.slug userid=app.person.userid %}';

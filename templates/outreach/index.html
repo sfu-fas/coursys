@@ -6,7 +6,7 @@
 {% block subbreadcrumbs %}<li>Outreach</li>{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#outreachevents').dataTable( {
     'bPaginate': false,

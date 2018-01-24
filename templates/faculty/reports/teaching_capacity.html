@@ -8,7 +8,7 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#capacity-table').dataTable({
       bPaginate: false,

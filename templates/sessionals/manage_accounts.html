@@ -3,7 +3,7 @@
 {% block h1 %}Manage Accounts{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#accounts').dataTable( {
     'bPaginate': false,

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $("h3.instructions").collapsible();
 });
@@ -126,7 +126,7 @@ factors affecting workload occur:
 </ul>
 
 <script type="text/javascript" src="{{STATIC_URL}}js/ta.js"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 var HOURS_PER_BU = {{HOURS_PER_BU}};
 </script>
 {% block extrascripts %}{% endblock %}

@@ -2,7 +2,7 @@
 {% load form_display %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 var personinfo_url = "{% url "ra:person_info" %}";
 var payperiods_url = "{% url "ra:pay_periods" %}";
 {% if person %}

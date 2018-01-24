@@ -52,7 +52,7 @@
 <script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}jquery-ext/jquery.ba-bbq.min.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}jquery-ext/jquery.cookie.js"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
 $(window).bind( 'hashchange', display_sections);
 $(document).ready(function() {

@@ -8,7 +8,7 @@
 {% block headextra %}
 <link rel='stylesheet' type='text/css' href='{{STATIC_URL}}fullcalendar/fullcalendar.css' />
 <script type='text/javascript' src='{{STATIC_URL}}fullcalendar/fullcalendar.js'></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
 $(document).ready(function() {
   $('#calendar').fullCalendar({

@@ -27,7 +27,7 @@ textarea {
   height: 30px;
 }
 </style>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
 function get_more_info() {
 	$.ajax({
@@ -93,7 +93,7 @@ $(document).ready(function() {
     </span>
 
 </fieldset>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
 	// dynamically append button for no-script compatibility
 	$(function() {

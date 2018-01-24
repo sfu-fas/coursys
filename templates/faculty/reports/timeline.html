@@ -6,7 +6,7 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{% static 'timeline/js/storyjs-embed.js' %}"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   createStoryJS({
     type:       'timeline',

@@ -4,7 +4,7 @@
 {% block h1 %}{{ activity.name }}: Compare Official Grades{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
 	oTable = $('#grades').dataTable({
 	    "bJQueryUI": true,

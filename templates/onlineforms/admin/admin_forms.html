@@ -4,7 +4,7 @@
 {% block title %} Administrate Forms {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
         $('#pend_table').dataTable({
                     "bPaginate": false,

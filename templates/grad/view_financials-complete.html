@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block gradheadextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 	$(document).ready(function() {
 		{% for semester in semesters %}{% for scholarship in semester.scholarship_details.scholarships %}
 		$('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').hide();

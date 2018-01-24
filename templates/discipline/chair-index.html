@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block headextra %}
-<script>
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#casestable').dataTable( {
     'bPaginate': false,

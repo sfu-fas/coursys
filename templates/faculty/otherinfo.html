@@ -3,7 +3,7 @@
 {% block h1 %}Faculty Summary: {{ person.name }}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#coursestable').dataTable( {
     'bPaginate': false,
