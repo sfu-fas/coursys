@@ -20,7 +20,7 @@ pytz>=2017.3
 textile==3.0.0
 html5lib==1.0.1
 bleach==2.1.2
-reportlab==3.4.0
+reportlab==3.3.0
 pillow>=5.0.0
 icalendar==4.0.0
 xlwt==1.2.0
