@@ -511,7 +511,7 @@ def ps_info():
 
 def pip_info():
     pip = subprocess.Popen(['pip', 'freeze'], stdout=subprocess.PIPE)
-    output = pip.stdout.read()
+    output = pip.stdout.read().decode('utf8')
     result = '<pre>' + escape(output) + '</pre>'
     return [('PIP freeze', mark_safe(result))]
 
