@@ -46,7 +46,7 @@ def user_passes_test(test_func, login_url=None,
     return decorator
 
 
-def HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=None, simple=False):
+def HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=None, simple=False, exception=None):
     if simple:
         # this case is intended to produce human-readable HTML for API errors
         template = 'simple-error.html'
@@ -56,14 +56,14 @@ def HttpError(request, status=404, title="Not Found", error="The requested resou
     resp.status_code = status
     return resp
 
-def ForbiddenResponse(request, errormsg=None):
+def ForbiddenResponse(request, errormsg=None, exception=None):
     error = mark_safe("You do not have permission to access this resource.")
     if not request.user.is_authenticated:
         login_url = settings.LOGIN_URL + '?' + urllib.parse.urlencode({'next': request.get_full_path()})
         error += mark_safe(' You are <strong>not logged in</strong>, so maybe <a href="%s">logging in</a> would help.' % (login_url))
     return HttpError(request, status=403, title="Forbidden", error=error, errormsg=errormsg)
 
-def NotFoundResponse(request, errormsg=None):
+def NotFoundResponse(request, errormsg=None, exception=None):
     return HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=errormsg)
 
 def has_global_role(role, request, **kwargs):
