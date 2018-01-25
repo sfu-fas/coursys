@@ -22,7 +22,7 @@
 				{% if can_edit %}	| <a href="{% url "grad:copy_letter" grad_slug=grad.slug letter_slug=l.slug %}">Copy Letter</a>
                     <form class="lineform" action="{% url "grad:remove_letter" grad_slug=grad.slug letter_slug=l.slug %}" method="post">
                         {% csrf_token %}
-                        <input class="actionbutton" type="submit" value="remove" onclick="return confirmSubmit('remove this letter')" />
+                        <input class="actionbutton confirm-submit" type="submit" value="remove" data-submit-action="remove this letter" />
                     </form>
                 {% endif %}
                 </td>

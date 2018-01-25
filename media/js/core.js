@@ -3,10 +3,6 @@ var onlineJSON = "/media/sfu/js/online.json";
 
 var $ = jQuery;
 
-function confirmSubmit(action) {
-  return confirm("Are you sure you wish to " + action + "?");
-}
-
 /* jQuery Datatables sorting by mark (e.g. "4.5/10") */
 function mark_cmp(x,y) {
   xn = parseFloat(x.split("/", 1), 10)
@@ -310,5 +306,10 @@ $(document).ready(function(){
           });
         });
 
+    // enable submit confirmation where necessary
+    $('.confirm-submit').click(function(ev){
+        var action = $(this).attr('data-submit-action');
+        return confirm("Are you sure you wish to " + action + "?");
+    });
 
 });

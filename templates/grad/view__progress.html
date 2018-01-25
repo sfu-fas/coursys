@@ -38,7 +38,7 @@
                         <form action="{% url "grad:remove_progress" grad_slug=grad.slug p_id=p.id %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
-                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this progress report?')" />
+                                    <input type="submit" value="remove" class="confirm-submit" data-submit-action="remove this progress report" />
                                 </p>
                         </form>
                     {% endif %}

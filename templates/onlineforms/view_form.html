@@ -78,7 +78,7 @@
                         <p> 
                             <input type="hidden" name="sheet_id" value="{{sheet.id}}" />
                             <input type="hidden" name="action" value="del" />
-                            <input type="submit" value="Remove" onclick="return confirmSubmit('remove this sheet')" disabled="disabled" />
+                            <input type="submit" value="Remove" class="confirm-submit" data-submit-action="remove this sheet" disabled="disabled" />
                         </p>
                         </form>    
                         {% else %}
@@ -86,7 +86,7 @@
                         <p> 
                             <input type="hidden" name="sheet_id" value="{{sheet.id}}" />
                             <input type="hidden" name="action" value="del" />
-                            <input type="submit" value="Remove" onclick="return confirmSubmit('remove this sheet')" />
+                            <input type="submit" value="Remove" class="confirm-submit" data-submit-action="remove this sheet" />
                         </p>
                         </form>
                         {%  endif %}

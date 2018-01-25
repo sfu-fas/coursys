@@ -53,7 +53,7 @@
                                 <a href="{% url "onlineforms:edit_form" form_slug=form.slug %}">Edit Info</a>
                                 <input type="hidden" name="action" value="del" />
                                 <input type="hidden" name="form_id" value="{{form.id}}" />
-                                <input type="submit" value="Remove" onclick="return confirmSubmit('remove this Form')" />
+                                <input type="submit" value="Remove" class="confirm-submit" data-submit-action="remove this form" />
                             </p>
                         </form>
                     </td>

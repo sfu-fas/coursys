@@ -159,7 +159,7 @@
                         <form action="{% url "ra:delete_ra" ra_slug=appointment.slug %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
-                                    <input type="submit" class="submit" value="Delete Appointment" onclick="return confirmSubmit('delete this appointment')" />
+                                    <input type="submit" class="submit" value="Delete Appointment" class="confirm-submit" data-submit-action="remove this appointment" />
                                 </p>
                         </form>
 
