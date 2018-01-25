@@ -780,7 +780,7 @@ def view_doc(request, doc_slug):
         instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role__in=["INST","TA"])
         offerings = [(Member.objects.filter(offering=m.offering, role="STUD"), m.offering) for m in instructor]
         offerings = [(students.count()>0, course.semester.name, students, course) for students, course in offerings]
-        offerings.sort()
+        offerings.sort(key=lambda x: (x[0], x[1], x[3]))
         offerings.reverse()
         if offerings:
             nonempty, semester, students, course = offerings[0]
