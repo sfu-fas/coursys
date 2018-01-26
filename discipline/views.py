@@ -273,7 +273,9 @@ def edit_case_info(request, course_slug, case_slug, field):
         'templatesJSON': mark_safe(tempaltesJSON), 'groupmembersJSON': mark_safe(groupmembersJSON), 'hasRelAct': hasRelAct}
     if field == 'letter_review':
         context['currentuser'] = _currentuser(request)
-    return render(request, "discipline/edit_"+field+".html", context)
+    resp = render(request, "discipline/edit_"+field+".html", context)
+    resp.has_inline_script = True # popups in help_text
+    return resp
 
 
 def _currentuser(request):
