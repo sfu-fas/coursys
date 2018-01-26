@@ -655,7 +655,9 @@ def add_cal_numeric_activity(request, course_slug):
     else:
         form = CalNumericActivityForm(initial={'formula': '[[activitytotal]]'})
     context = {'course': course, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['add']}
-    return render(request, 'grades/cal_numeric_activity_form.html', context)
+    resp = render(request, 'grades/cal_numeric_activity_form.html', context)
+    resp.has_inline_script = True # insert activity in formula links
+    return resp
 
 @requires_course_staff_by_slug
 def add_cal_letter_activity(request, course_slug):
@@ -997,7 +999,9 @@ def edit_activity(request, course_slug, activity_slug):
         if isinstance(activity, CalNumericActivity):
             numeric_activities = NumericActivity.objects.exclude(slug=activity_slug).filter(offering=course, deleted=False)
             context = {'course': course, 'activity': activity, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
-            return render(request, 'grades/cal_numeric_activity_form.html', context)
+            resp = render(request, 'grades/cal_numeric_activity_form.html', context)
+            resp.has_inline_script = True  # insert activity in formula links
+            return resp
         elif isinstance(activity, NumericActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
             return render(request, 'grades/numeric_activity_form.html', context)

@@ -24,12 +24,7 @@
 	<ul>
 	{% if authtype != 'supervisor' %}
 	<li id="moreinfo">
-    <a href="javascript:void(0)"
-        onclick="
-        //<![CDATA[
-        get_more_info('{% url "grad:grad_more_info" grad_slug=grad.slug %}')
-        //]]>
-        ">Fetch more info</a>
+    <a href="#">Fetch more info</a>
         <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i>
     </li>
 	{% endif %}
@@ -53,7 +48,6 @@
 <script type="text/javascript" src="{{STATIC_URL}}jquery-ext/jquery.ba-bbq.min.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}jquery-ext/jquery.cookie.js"></script>
 <script nonce="{{ CSP_NONCE }}">
-//<![CDATA[
 $(window).bind( 'hashchange', display_sections);
 $(document).ready(function() {
 	if (window.location.search.indexOf('_escaped_fragment_') != -1) {
@@ -73,8 +67,12 @@ $(document).ready(function() {
 		display_sections(null, null);
 	}
 	$('.collapsiblecomment').collapsible();
+
+	$('#moreinfo>a').click(function(){
+	    get_more_info('{% url "grad:grad_more_info" grad_slug=grad.slug %}');
+	});
 });
-//]]></script>
+</script>
 {% endblock %}
 
 {% block content %}

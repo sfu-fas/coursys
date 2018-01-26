@@ -3,6 +3,14 @@
 {% block headextra %}
 <link rel="stylesheet" href="{{STATIC_URL}}ta/css/view-tug-noprint.css" media="all" />
 <link rel="stylesheet" href="{{STATIC_URL}}ta/css/view-tug-print.css" media="print" />
+<script nonce="{{ CSP_NONCE }}">
+	$(document).ready(function() {
+		$('#print-tug').click(function(){
+			print();
+			return false;
+		});
+	});
+</script>
 {% endblock %}
 
 {% block title %}{{course.name}} TUG for {{ta.person}} {% endblock %}
@@ -20,8 +28,6 @@
     {% endif %}
 {% endblock %}
 
-
-
 {% block actions %}
 <div id="actions">
 <h2 class="heading">Actions</h2>
@@ -32,7 +38,7 @@
 {% else %}{% if user_role != "TA" %}
 <li><a href="{% url "offering:edit_tug" course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
 {% endif %}{% endif %}
-<li><a href="javascript:print()">Print TUG</a></li>
+<li><a href="#" id="print-tug">Print TUG</a></li>
 </ul>
 </div>
 {% endblock %}

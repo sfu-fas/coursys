@@ -85,7 +85,7 @@ Column logic:
 	    cal_link = $('#'+fetchUserId(settings.data));
 	    cal_link.parent().children('.ajax_status').text(xhr.status + " " + xhr.statusText);
 	});
-	$('a.calculator').attr('href', 'javascript:').click(function(){
+	$('a.calculator').attr('href', '#').click(function(){
 	    var cal_link = $(this);
 	    var userid = cal_link.attr('id').substring(5);
 	    /* post request */

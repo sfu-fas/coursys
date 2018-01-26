@@ -367,7 +367,9 @@ def student_courses(request, userid):
                'userid': userid,
                'student': student,
                }
-    return render(request, 'advisornotes/student_courses.html', context)
+    resp = render(request, 'advisornotes/student_courses.html', context)
+    resp.has_inline_script = True # show/hide link
+    return resp
 
 @requires_role('ADVS')
 def student_courses_data(request, userid):

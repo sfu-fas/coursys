@@ -5,8 +5,12 @@ from django.conf import settings
 from django.http.response import HttpResponse
 from log.models import LogEntry
 from coredata.models import Unit
-
 generic_related = Unit.objects.get(slug='univ')
+
+
+# TODO: onclick usages
+# TODO: onsubmit usages
+# TODO: onchange usages
 
 
 def new_token():
@@ -47,8 +51,8 @@ class CSPMiddleware(object):
             extra_style_src = ' https://www.gstatic.com https://ajax.googleapis.com https://www.google.com'
 
         if hasattr(response, 'has_inline_script') and response.has_inline_script:
-            # """'unsafe-inline' is ignored if either a hash or nonce value is present in the source list"""
-            extra_script_src = " 'unsafe-inline' 'unsafe-eval'"
+            # 'unsafe-inline' is ignored if a nonce value is present in the source list
+            extra_script_src = " 'unsafe-inline'"
 
         value = "default-src 'self' * ; " \
                 "style-src 'self' 'unsafe-inline'%s ; " \

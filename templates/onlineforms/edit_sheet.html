@@ -45,8 +45,8 @@
     for(var r = 1; r <= {{fields|length}}; r++)
     {
         /* when javascript is enabled, use ajax call to reorder activity */
-        $('#arrow' + r + ' ' + 'a.arrow_up').attr('href', 'javascript:void(0);');
-        $('#arrow' + r + ' ' + 'a.arrow_down').attr('href', 'javascript:void(0);');
+        $('#arrow' + r + ' ' + 'a.arrow_up').attr('href', '#');
+        $('#arrow' + r + ' ' + 'a.arrow_down').attr('href', '#');
         
        /* attach position info to the arrow td */
         $('#arrow' + r).data('pos', r-1);

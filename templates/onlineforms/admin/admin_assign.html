@@ -18,12 +18,18 @@
         $('#id_assignee').val(emplid);
     }
     function update_frequent() {
-        var html = 'Frequent assignees: ';
+        var container = $('#frequent');
         var sheetid = $('#assignform input[name=sheet]:checked').val();
+        var link;
+        container.html('Frequent assignees: ');
         $(frequent_fillers[sheetid]).each(function(i, p) {
-            html += '<a href="javascript:set_assignee(' + p['emplid'] + ')">' + p['name'] + '</a> &nbsp; ';
+            link = $('<a href="#">' + p['name'] + '</a>');
+            link.click(function(){
+                set_assignee(p['emplid']);
+            });
+            container.append(link);
+            container.append(' &nbsp; ');
         });
-        $('#frequent').html(html);
     }
 
     $(document).ready(function() {
