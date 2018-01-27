@@ -274,7 +274,7 @@ def edit_case_info(request, course_slug, case_slug, field):
     if field == 'letter_review':
         context['currentuser'] = _currentuser(request)
     resp = render(request, "discipline/edit_"+field+".html", context)
-    resp.has_inline_script = True # popups in help_text
+    resp.has_inline_script = True # popups in help_text, onchange="" on a few forms
     return resp
 
 

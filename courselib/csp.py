@@ -5,12 +5,11 @@ from django.conf import settings
 from django.http.response import HttpResponse
 from log.models import LogEntry
 from coredata.models import Unit
-generic_related = Unit.objects.get(slug='univ')
+generic_related = None
 
 
 # TODO: onclick usages
 # TODO: onsubmit usages
-# TODO: onchange usages
 
 
 def new_token():
@@ -67,6 +66,7 @@ class CSPMiddleware(object):
 
 @csrf_exempt
 def csp_report_view(request):
+    global generic_related
     report_json = request.body.decode('utf8')
     report = json.loads(report_json)
     resp = HttpResponse()
@@ -75,6 +75,8 @@ def csp_report_view(request):
         # firefox browser plugin injection?
         return resp
 
+    if generic_related is None:
+        generic_related = Unit.objects.get(slug='univ')
     userid = request.user.username if request.user.is_authenticated else '_anon'
     l = LogEntry(userid=userid, description='CSP violation', comment=report_json, related_object=generic_related)
     l.save()
