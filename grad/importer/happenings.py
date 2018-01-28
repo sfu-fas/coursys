@@ -254,10 +254,10 @@ class ProgramStatusChange(GradHappening):
         same_appl_key = [s for s in statuses
                 if 'appl_key' in s.config and s.config['appl_key'] == self.appl_key()]
         if same_appl_key:
-            if len(same_appl_key) > 1:
-                print(self.appl_key())
-                print(same_appl_key)
-                raise ValueError(str(key))
+            #if len(same_appl_key) > 1:
+            #    print(self.appl_key())
+            #    print(same_appl_key)
+            #    raise ValueError(str(key))
             s = same_appl_key[0]
             s.config[SIMS_SOURCE] = key
             assert s.status == self.status
