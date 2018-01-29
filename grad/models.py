@@ -735,19 +735,22 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         if self.program.unit.slug == 'cmpt':
             # get CMPT offer of admission form details
-            from onlineforms.models import SheetSubmission, FieldSubmission
+            from onlineforms.models import FieldSubmission
             emplid = str(self.person.emplid)
             # all emplid entries for all possibly-relevant form submissons:
-            fieldsubs = FieldSubmission.objects.filter(
+            emplid_fieldsubs = FieldSubmission.objects.filter(
                 sheet_submission__form_submission__form__slug='cmpt-offer-of-admission-form',
                 field__slug='student-id-aka-student-number',
                 sheet_submission__completed_at__gte=datetime.datetime.now() - datetime.timedelta(days=120) # limit search to last ~semester
-            ).select_related('sheet_submission__form_submission__form')
+            ).select_related('sheet_submission__form_submission').order_by('-sheet_submission__completed_at')
 
             # field submissions actually about this person:
-            fieldsubs = [fs for fs in fieldsubs if 'info' in fs.data and fs.data['info'] == emplid]
+            emplid_fieldsubs = [fs for fs in emplid_fieldsubs if 'info' in fs.data and fs.data['info'] == emplid]
+            # the sheet submission we actually care about:
+            sheet_sub = emplid_fieldsubs[0].sheet_submission
+            fieldsubs = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
             # TODO: find the data they want and include it below.
-
+    
         ls = { # if changing, also update LETTER_TAGS below with docs!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
                 'todays_date' : todays_date, 
