@@ -268,6 +268,8 @@ $(document).ready(function(){
     })
   });
 
+  $('#page-content table').wrap('<div class="table"></div>'); // for SFU CSS
+
   /* open help links in a new tab */
   $('div.helptext a').attr('target', '_blank');
 
