@@ -4,18 +4,16 @@
 <script nonce="{{ CSP_NONCE }}">
 var tab_url = '{% url "sysadmin:admin_panel" %}';
 $(document).ready(function() {
-  /* http://stackoverflow.com/questions/9288467/jquery-tabs-display-indicator-in-the-container-div-during-ajax-load */
-  $.ajaxSetup({
+  $( "#tabs" ).tabs({
     cache:false,
-    beforeSend: function() {
+    beforeLoad: function() {
        $('#fetchwait').show()
     },
-    complete: function(){
+    load: function(){
        $('#fetchwait').hide()
     },
     success: function() {}
   });
-  $( "#tabs" ).tabs();
 } );
 </script>
 {% endblock %}
