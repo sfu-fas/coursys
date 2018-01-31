@@ -311,6 +311,9 @@ $(document).ready(function(){
     // enable submit confirmation where necessary
     $('.confirm-submit').click(function(ev){
         var action = $(this).attr('data-submit-action');
+        if ( action == null ) {
+            action = 'complete this action'
+        }
         return confirm("Are you sure you wish to " + action + "?");
     });
 

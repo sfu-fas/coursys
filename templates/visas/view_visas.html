@@ -22,10 +22,6 @@ $(document).ready(function() {
     'aaSorting': [[2, 'asc']]
   } );
 } );
-function confirmDelete() {
-  return confirm("Are you sure you want to delete this visa?");
-}
-
 </script>
 {% endblock %}
 
@@ -67,10 +63,9 @@ function confirmDelete() {
                     <td>{{ visa.get_validity }}</td>
                     <td>
                         <form class="lineform" method="POST"
-                              action="{% url "visas:delete_visa" visa_id=visa.id %}"
-                              onsubmit="return confirmDelete()">
+                              action="{% url "visas:delete_visa" visa_id=visa.id %}">
                             {% csrf_token %}
-                            <button type='submit' class='btn' title="Hide Visa">
+                            <button type='submit' class='btn confirm-submit' title="Hide Visa" data-submit-action="delete this visa">
                                 <i class='fa fa-trash-o'></i>
                             </button>
                         </form>
