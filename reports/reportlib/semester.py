@@ -29,6 +29,8 @@ class Semester(int):
         """
         return int(self) % 10
 
+    # The following function may be broken in some cases.  See if you can use offset_name in
+    # coredata.models.Semester instead.
     def increment(self, count=1):
         """ Add one semester to the current semester
         
