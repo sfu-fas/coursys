@@ -746,10 +746,11 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
             # field submissions actually about this person:
             emplid_fieldsubs = [fs for fs in emplid_fieldsubs if 'info' in fs.data and fs.data['info'] == emplid]
-            # the sheet submission we actually care about:
-            sheet_sub = emplid_fieldsubs[0].sheet_submission
-            fieldsubs = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
-            # TODO: find the data they want and include it below.
+            if len(emplid_fieldsubs) > 0:
+                # the sheet submission we actually care about:
+                sheet_sub = emplid_fieldsubs[0].sheet_submission
+                fieldsubs = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
+                # TODO: find the data they want and include it below.
     
         ls = { # if changing, also update LETTER_TAGS below with docs!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
