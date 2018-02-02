@@ -156,7 +156,6 @@ def is_course_staff_by_slug(request, course_slug, expires=True, **kwargs):
     """
     if expires:
         max_semester_name_for_tas = Semester.current().offset_name(-1)
-        print(max_semester_name_for_tas)
         ta_query = Q(role='TA') & Q(offering__semester__name__gte=max_semester_name_for_tas)
     else:
         ta_query = Q(role='TA')
