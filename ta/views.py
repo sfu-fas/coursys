@@ -77,7 +77,7 @@ def _requires_course_staff_or_admin_by_slug(function=None, login_url=None):
     *or* if they are the departmental admin for the course's department
     """
     def test_func(request, **kwargs):
-        return is_course_staff_by_slug(request, **kwargs) or _is_admin_by_slug(request, **kwargs)
+        return is_course_staff_by_slug(request, expires=False, **kwargs) or _is_admin_by_slug(request, **kwargs)
     actual_decorator = user_passes_test(test_func, login_url=login_url)
     if function:
         return actual_decorator(function)

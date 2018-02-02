@@ -149,18 +149,22 @@ def requires_course_student_by_slug(function=None, login_url=None):
     else:
         return actual_decorator
 
-def is_course_staff_by_slug(request, course_slug, **kwargs):
+def is_course_staff_by_slug(request, course_slug, expires=True, **kwargs):
     """
     Return True if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug' keyword.
     TAs should only have access to courses they TAed up to a semester ago.
     """
-    max_semester_name_for_tas = Semester.current().offset_name(-1)
-    memberships = Member.objects.filter(Q(role__in=['INST', 'APPR']) | (Q(role='TA') &
-                                                                        Q(offering__semester__name__gte=
-                                                                        max_semester_name_for_tas)),
-                                        offering__slug=course_slug,
-                                        person__userid=request.user.username, offering__graded=True)\
-        .exclude(offering__component="CAN")
+    if expires:
+        max_semester_name_for_tas = Semester.current().offset_name(1)
+        ta_query = Q(role='TA') & Q(offering__semester__name__gte=max_semester_name_for_tas)
+    else:
+        ta_query = Q(role='TA')
+
+    memberships = Member.objects.filter(
+        Q(role__in=['INST', 'APPR']) | ta_query,
+        offering__slug=course_slug,
+        person__userid=request.user.username, offering__graded=True
+    ).exclude(offering__component="CAN")
     memberships = list(memberships)
     if memberships:
         request.member = memberships[0]
