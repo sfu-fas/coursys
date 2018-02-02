@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Set Email Body{% endblock %}
+{% block h1 %}Set Email Body{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li><a href="{% url "grad:manage_letters" grad_slug=grad.slug%}">Letters</a></li>
+<li>Set Email Body</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+	<form action="{% url "grad:send_letter_email" grad_slug=grad.slug letter_slug=letter.slug %}" method="post">
+		{% csrf_token %}
+		<fieldset>
+			<legend>
+				Email Body
+			</legend>
+			<div style="clear: both"></div>
+            {{form|as_dl}}
+			<p>
+				<input  class="submit"  type="submit" value="Submit" />
+			</p>
+		</fieldset>
+
+	</form>
+</div>
+<p class="gradback"><a class="button" href="{% url "grad:view" grad_slug=grad.slug %}">Return to Profile</a></p>
+{% endblock %}

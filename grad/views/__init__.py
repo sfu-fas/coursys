@@ -37,6 +37,7 @@ from .manage_letters import manage_letters
 from .remove_letter import remove_letter
 from .new_letter import new_letter
 from .get_letter_text import get_letter_text
+from .send_letter_email import send_letter_email
 from .get_addresses import get_addresses
 from .get_letter import get_letter
 from .view_letter import view_letter

@@ -19,6 +19,7 @@
 				<td> {{ l.from_person }} </td>
 				<td class="miniaction"><a href="{% url "grad:get_letter" grad_slug=grad.slug letter_slug=l.slug %}">Get PDF</a>
 					| <a href="{% url "grad:view_letter" grad_slug=grad.slug letter_slug=l.slug %}">View Body</a>
+                    | <a href="{% url "grad:send_letter_email" grad_slug=grad.slug letter_slug=l.slug %}">Send Email</a>
 				{% if can_edit %}	| <a href="{% url "grad:copy_letter" grad_slug=grad.slug letter_slug=l.slug %}">Copy Letter</a>
                     <form class="lineform" action="{% url "grad:remove_letter" grad_slug=grad.slug letter_slug=l.slug %}" method="post">
                         {% csrf_token %}

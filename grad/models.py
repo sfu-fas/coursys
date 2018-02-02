@@ -1312,9 +1312,13 @@ class LetterTemplate(models.Model):
     hidden = models.BooleanField(default=False)
     config = JSONField(default=dict)  # Additional configuration for the template
         # 'body_font_size': the default font size for the letter.
+        # 'email_body': the text to include in the email when sending out this letter
+        # 'email_subject':  the email subject when sending out the letter
 
-    defaults = {'body_font_size': 12}
+    defaults = {'body_font_size': 12, 'email_body': '', 'email_subject': ''}
     body_font_size, set_body_font_size = getter_setter('body_font_size')
+    email_body, set_email_body = getter_setter('email_body')
+    email_subject, set_email_subject = getter_setter('email_subject')
 
     def autoslug(self):
         return make_slug(self.unit.label + "-" + self.label)  
@@ -1323,6 +1327,7 @@ class LetterTemplate(models.Model):
         unique_together = ('unit', 'label')      
     def __str__(self):
         return "%s in %s" % (self.label, self.unit)
+
     
 class Letter(models.Model):
     student = models.ForeignKey(GradStudent, null=False, blank=False, on_delete=models.PROTECT)
@@ -1342,9 +1347,10 @@ class Letter(models.Model):
         # data returned by grad.letter_info() is stored here.
         # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)
 
-    defaults = {'use_sig': True}
+    defaults = {'use_sig': True, 'email_body': '', 'email_subject': 'Letter from CourSys'}
     use_sig, set_use_sig = getter_setter('use_sig')
-
+    email_body, set_email_body = getter_setter('email_body')
+    email_subject, set_email_subject = getter_setter('email_subject')
 
     def autoslug(self):
         return make_slug(self.student.slug + "-" + self.template.label)     

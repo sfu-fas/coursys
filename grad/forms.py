@@ -239,9 +239,20 @@ class GradRequirementForm(ModelForm):
 
 class LetterTemplateForm(ModelForm):
     content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '60'}))
+    email_subject = forms.CharField(widget=forms.TextInput(attrs={'size':'59'}),
+                                    help_text='The subject to be included in the email if this letter is emailed via the system.', required=False)
+    email_body = forms.CharField(widget=forms.Textarea(attrs={'rows': '20', 'cols': '60'}),
+                                 help_text='The text to be included in the body of the email', required=False)
+
     class Meta:
         model = LetterTemplate
         exclude = ('created_by', 'config')
+
+    def __init__(self, *args, **kwargs):
+        super(LetterTemplateForm, self).__init__(*args, **kwargs)
+        if 'instance' in kwargs:
+            self.initial['email_body'] = kwargs['instance'].email_body()
+            self.initial['email_subject'] = kwargs['instance'].email_subject()
     
     def clean_content(self):
         content = self.cleaned_data['content']
@@ -250,6 +261,15 @@ class LetterTemplateForm(ModelForm):
         except TemplateSyntaxError as e:
             raise forms.ValidationError('Syntax error in template: ' + str(e))
         return content
+
+    def clean_email_body(self):
+        if 'email_body' in self.cleaned_data:
+            email_body = self.cleaned_data['email_body']
+            try:
+                Template(email_body)
+            except TemplateSyntaxError as e:
+                raise forms.ValidationError('Syntax error in template: ' + str(e))
+            return email_body
 
 
 class LetterForm(ModelForm):
@@ -274,6 +294,16 @@ class LetterForm(ModelForm):
         use_sig = self.cleaned_data['use_sig']
         self.instance.config['use_sig'] = use_sig
         return use_sig
+
+
+class LetterEmailForm(forms.Form):
+    email_subject = forms.CharField(widget=forms.TextInput(attrs={'size':'59'}),
+                                    help_text='The subject that will be displayed in the email.')
+    email_body = forms.CharField(widget=forms.Textarea(attrs={'rows': '20', 'cols': '60'}),
+                                 help_text='Input the text that will be included as the body of the email.  Note:  '
+                                           'This is NOT the letter that will be sent.  The letter PDF will be attached '
+                                           'as well.')
+
 
 class CompletedRequirementForm(ModelForm):
     semester = StaffSemesterField()
