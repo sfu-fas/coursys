@@ -155,7 +155,8 @@ def is_course_staff_by_slug(request, course_slug, expires=True, **kwargs):
     TAs should only have access to courses they TAed up to a semester ago.
     """
     if expires:
-        max_semester_name_for_tas = Semester.current().offset_name(1)
+        max_semester_name_for_tas = Semester.current().offset_name(-1)
+        print(max_semester_name_for_tas)
         ta_query = Q(role='TA') & Q(offering__semester__name__gte=max_semester_name_for_tas)
     else:
         ta_query = Q(role='TA')
