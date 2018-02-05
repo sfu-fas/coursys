@@ -193,6 +193,10 @@ function offering_autocomplete(id, courses) {
     var hiddenElementID  = formElementName + '_autocomplete_hidden';
     /* change name of orig input */
     $(this).attr('name', formElementName + '_autocomplete_label');
+    /* Hack so we don't insert "undefined" in the input. */
+    if (!formElementValue) {
+      formElementValue = "";
+    }
     /* create new hidden input with name of orig input */
     $(this).after("<input type=\"hidden\" name=\"" + formElementName + "\" id=\"" + hiddenElementID + "\" value = \"" + formElementValue + "\" />");
 
