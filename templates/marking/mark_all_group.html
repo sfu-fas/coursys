@@ -14,6 +14,7 @@ $(document).ready(function() {
 		"bPaginate": false,
 		"aoColumns": [null, { "sType": "by-mark" }, { "bSearchable": false, "bSortable": false }]
 	});
+	$('#grades_form').submit(clear_filter);
 });
 </script>
 {% endblock %}
@@ -27,7 +28,7 @@ $(document).ready(function() {
 
 {% include "marking/mark_all_includes.html" %}
 
-<form id="grades_form" class="subtle" action="" method="post" onsubmit="return clear_filter()">{% csrf_token %}
+<form id="grades_form" class="subtle" action="" method="post">{% csrf_token %}
 <div class="datatable_container">
      <table class="display" id="all_marks">
         <thead class="form_head">
