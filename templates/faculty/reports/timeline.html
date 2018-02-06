@@ -5,26 +5,22 @@
 {% block h1 %}Career Timeline: {{ person.name }}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{% static 'timeline/js/storyjs-embed.js' %}"></script>
+<link title="timeline-styles" rel="stylesheet" href="{% static 'timeline3/css/timeline.css' %}" />
+<script src="{% static 'timeline3/js/timeline.js' %}"></script>
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
-  createStoryJS({
-    type:       'timeline',
-    width:      '100%',
-    height:     '400',
-    start_zoom_adjust: 4,
-    source:     'timeline.json',
-    embed_id:   'timeline-embed'
-  });
+    var options = {
+        width: '100%',
+        height: '30em',
+    };
+    var timeline = new TL.Timeline('timeline-embed', 'timeline.json', options);
 });
 </script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty:index" %}">Faculty</a></li>
-<li>
-  <a href="{% url "faculty:summary" person.userid_or_emplid %}">{{ person.name }}</a>
-</li>
+<li><a href="{% url "faculty:summary" person.userid_or_emplid %}">{{ person.name }}</a></li>
 <li>Career Timeline</li>
 {% endblock %}
 
