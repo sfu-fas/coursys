@@ -24,11 +24,8 @@ $(document).ready(function() {
   } );
   $('#view_past_events').prop('checked', false);
   $('#pastevents').hide();
+  $('#view_past_events').click(togglePast);
 } );
-
-function confirmDelete() {
-  return confirm("Are you sure you want to delete this event?");
-}
 
 function togglePast() {
     $('#pastevents').toggle();
@@ -54,7 +51,7 @@ function togglePast() {
 
 {% block content %}
     {% if past_events %}
-    <div>View past events &nbsp; <input type="checkbox" id="view_past_events" onclick="togglePast()"></div>
+    <div>View past events &nbsp; <input type="checkbox" id="view_past_events"></div>
     {% endif %}
     {% if events %}
         <table id="outreachevents" class="display">
@@ -77,10 +74,9 @@ function togglePast() {
                 <td>{{ event.registration_count }}</td>
                 <td style="min-width: 130px">
                     <form class="lineform" method="POST"
-                          action="{% url "outreach:delete_event" event_id=event.id %}"
-                          onsubmit="return confirmDelete()">
+                          action="{% url "outreach:delete_event" event_id=event.id %}">
                         {% csrf_token %}
-                        <button type='submit' class='btn' title="Hide Event">
+                        <button type='submit' class='btn confirm-submit' title="Hide Event" data-submit-action="remove this event">
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>
@@ -127,10 +123,9 @@ function togglePast() {
                 <td>{{ event.registration_count }}</td>
                 <td>
                     <form class="lineform" method="POST"
-                          action="{% url "outreach:delete_event" event_id=event.id %}"
-                          onsubmit="confirmDelete(this)">
+                          action="{% url "outreach:delete_event" event_id=event.id %}">
                         {% csrf_token %}
-                        <button type='submit' class='btn' title="Hide Event">
+                        <button type='submit' class='btn confirm-submit' title="Hide Event" data-submit-action="remove this event">
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>
