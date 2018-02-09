@@ -430,9 +430,11 @@ class Form(models.Model, _FormCoherenceMixin):
                 }
 
         # find all fields in each of those sheets (in a equally-sensible order)
-        fields = Field.objects.filter(sheet__form__original_id=self.original_id).select_related('sheet').order_by('order', '-created_date')
-        active_fields = [f for f in fields if f.active]
-        inactive_fields = [f for f in fields if not f.active]
+        fields = Field.objects.filter(sheet__form__original_id=self.original_id).select_related('sheet') \
+            .order_by('order', '-created_date').select_related('sheet')
+
+        active_fields = [f for f in fields if f.active and f.sheet.active]
+        inactive_fields = [f for f in fields if not (f.active and f.sheet.active)]
         for f in itertools.chain(active_fields, inactive_fields):
             if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
                 continue
