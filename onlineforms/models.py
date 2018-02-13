@@ -407,9 +407,10 @@ class Form(models.Model, _FormCoherenceMixin):
 
             return newform
 
-    def all_submission_summary(self):
+    def all_submission_summary(self, statuses=['DONE']):
         """
         Generate summary data of each submission for CSV output
+        (with FormSubmission and SheetSubmission statuses in given statuses list).
         """
         DATETIME_FMT = "%Y-%m-%d"
         headers = []
@@ -429,9 +430,11 @@ class Form(models.Model, _FormCoherenceMixin):
                 }
 
         # find all fields in each of those sheets (in a equally-sensible order)
-        fields = Field.objects.filter(sheet__form__original_id=self.original_id).select_related('sheet').order_by('order', '-created_date')
-        active_fields = [f for f in fields if f.active]
-        inactive_fields = [f for f in fields if not f.active]
+        fields = Field.objects.filter(sheet__form__original_id=self.original_id).select_related('sheet') \
+            .order_by('order', '-created_date').select_related('sheet')
+
+        active_fields = [f for f in fields if f.active and f.sheet.active]
+        inactive_fields = [f for f in fields if not (f.active and f.sheet.active)]
         for f in itertools.chain(active_fields, inactive_fields):
             if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
                 continue
@@ -454,12 +457,12 @@ class Form(models.Model, _FormCoherenceMixin):
         headers.append('Link')
 
         # go through FormSubmissions and create a row for each
-        formsubs = FormSubmission.objects.filter(form__original_id=self.original_id, status='DONE') \
+        formsubs = FormSubmission.objects.filter(form__original_id=self.original_id, status__in=statuses) \
                 .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
                 # selecting only fully completed forms: does it make sense to be more liberal and report status?
 
         # choose a winning SheetSubmission: there may be multiples of each sheet but we're only outputting one
-        sheetsubs = SheetSubmission.objects.filter(form_submission__form__original_id=self.original_id, status='DONE') \
+        sheetsubs = SheetSubmission.objects.filter(form_submission__form__original_id=self.original_id, status__in=statuses) \
                 .order_by('given_at').select_related('sheet', 'filler__sfuFormFiller', 'filler__nonSFUFormFiller')
         # Docs for the dict constructor: "If a key occurs more than once, the last value for that key becomes the corresponding value in the new dictionary."
         # Result is that the sheetsub with most recent given_at wins.
