@@ -979,18 +979,18 @@ def edit_activity(request, course_slug, activity_slug):
         else:
             datadict = _create_activity_formdatadict(activity)
             if isinstance(activity, CalNumericActivity):
-                form = CalNumericActivityForm(datadict)
+                form = CalNumericActivityForm(initial=datadict)
             elif isinstance(activity, NumericActivity):
-                form = NumericActivityForm(datadict, previous_activities=activities_list)
+                form = NumericActivityForm(initial=datadict, previous_activities=activities_list)
             elif isinstance(activity, CalLetterActivity):
-                form = CalLetterActivityForm(datadict)
+                form = CalLetterActivityForm(initial=datadict)
                 form.fields['numeric_activity'].choices = numact_choices
                 form.fields['exam_activity'].choices = examact_choices
                 # set initial value in form to current value
             elif isinstance(activity, LetterActivity):
-                form = LetterActivityForm(datadict, previous_activities=activities_list)
+                form = LetterActivityForm(initial=datadict, previous_activities=activities_list)
             elif isinstance(activity, CalLetterActivity):
-                form = CalLetterActivityForm(datadict)
+                form = CalLetterActivityForm(initial=datadict)
                 form.fields['numeric_activity'].choices = numact_choices
                 form.fields['exam_activity'].choices = examact_choices
 
