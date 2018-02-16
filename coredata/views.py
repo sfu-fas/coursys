@@ -56,7 +56,10 @@ def new_role(request, role=None):
     if request.method == 'POST':
         form = RoleForm(request.POST)
         if form.is_valid():
-            form.save()
+            r = form.save(commit=False)
+            r.config['giver'] = request.user.username
+            r.config['given_date'] = datetime.date.today().isoformat()
+            r.save()
             messages.success(request, 'Added role %s for %s.' % (form.instance.get_role_display(), form.instance.person.name()))
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
@@ -731,7 +734,10 @@ def new_unit_role(request, role=None):
         form.fields['role'].choices = role_choices
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
-            form.save()
+            r = form.save(commit=False)
+            r.config['giver'] = request.user.username
+            r.config['given_date'] = datetime.date.today().isoformat()
+            r.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                   description=("new role: %s as %s in %s") % (form.instance.person.userid, form.instance.role, form.instance.unit),

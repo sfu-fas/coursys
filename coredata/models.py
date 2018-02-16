@@ -1605,7 +1605,6 @@ class Role(models.Model):
         def get_queryset(self):
             return super(Role.RoleNonExpiredManager, self).get_queryset().filter(expiry__gte=datetime.date.today())
 
-
     ROLES = dict(ROLE_CHOICES)
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
     role = models.CharField(max_length=4, choices=ROLE_CHOICES)
@@ -1613,6 +1612,8 @@ class Role(models.Model):
     expiry = models.DateField(null=False, blank=False)
     config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # 'gone': used with role='FAC' to indicate this person has left/retired/whatever
+        # 'giver': userid of the user who assigned the role
+        # 'given_date': date the role was assigned
 
     gone = config_property('gone', False)
 
@@ -1630,6 +1631,7 @@ class Role(models.Model):
 
     def expires_far(self):
         return self.expiry - datetime.date.today() < datetime.timedelta(days=182)
+
     def expires_soon(self):
         return self.expiry - datetime.date.today() < datetime.timedelta(days=14)
 

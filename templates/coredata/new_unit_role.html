@@ -8,7 +8,6 @@
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
-//<![CDATA[
   function place_help(r, txt) {
     var inp = $('input[name$="role"][value$=' + r + ']');
     inp.parent().append('<div class="helptext">(' + txt + ')</div>');
@@ -29,7 +28,7 @@
     });  
 
   });
-//]]></script>
+</script>
 {% endblock %}
 
 {% block content %}
@@ -38,6 +37,7 @@
 <form action="{% url "admin:new_unit_role" %}" method="post">{% csrf_token %}
 <fieldset>
 <legend>Role</legend>
+<p>Users should only be given roles here to access/modify data that is necessary for their job, and for the duration of their appointment.</p>
 {{ form|as_dl }}
 <p><input type="submit" class="submit" value="Submit" /></p>
 </fieldset>

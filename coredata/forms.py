@@ -293,6 +293,9 @@ class RoleForm(forms.ModelForm):
 class UnitRoleForm(RoleForm):
     role = forms.ChoiceField(widget=forms.RadioSelect())
 
+    def clean_role(self):
+        return self.cleaned_data['role']
+
 
 class InstrRoleForm(forms.Form):
     ROLE_CHOICES = [
