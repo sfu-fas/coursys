@@ -1,8 +1,10 @@
 from django import forms
+from django.conf import settings
 from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, Semester, SemesterWeek, Holiday, \
-    CombinedOffering, AnyPerson, FuturePerson, RoleAccount, ROLE_MAX_EXPIRY
+    CombinedOffering, AnyPerson, FuturePerson, RoleAccount, ROLE_MAX_EXPIRY, SIMS_ROLES
 from coredata.queries import find_person, add_person, SIMSProblem, userid_to_emplid
 from cache_utils.decorators import cached
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 from coredata.widgets import CalendarWidget
@@ -269,6 +271,14 @@ class RoleForm(forms.ModelForm):
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(RoleForm, self).is_valid(*args, **kwargs)
+
+    def clean_role(self):
+        role = self.cleaned_data['role']
+        if role in SIMS_ROLES:
+            url = reverse('admin:unit_admin')
+            raise forms.ValidationError('Admins cannot assign that role. It must be given by their manager at %s%s' %
+                                        (settings.BASE_ABS_URL, url))
+        return role
 
     def clean_expiry(self):
         expiry = self.cleaned_data['expiry']
