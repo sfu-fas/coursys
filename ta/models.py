@@ -27,6 +27,15 @@ LAB_PREP_HOURS = 13 # min hours of prep for courses with tutorials/labs
 HOLIDAY_HOURS_PER_BU = decimal.Decimal('1.1')
 
 
+DEPT_CHOICES = [
+    ('CMPT', 'CMPT'),
+    ('ENSC', 'ENSC/MSE'),
+    ('MATH', 'MATH/STAT'),
+    ('OTHR', 'Other department'),
+    ('NONS', 'Not a student'),
+]
+
+
 def _round_hours(val):
     "Round to two decimal places because... come on."
     if isinstance(val, decimal.Decimal):
@@ -35,6 +44,7 @@ def _round_hours(val):
         return round(val, 2)
     else:
         return val
+
 
 class TUG(models.Model):
     """
@@ -416,8 +426,8 @@ class TAApplication(models.Model):
     posting = models.ForeignKey(TAPosting, on_delete=models.PROTECT)
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
     category = models.CharField(max_length=4, blank=False, null=False, choices=CATEGORY_CHOICES, verbose_name='Program')
-    current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Department",
-        help_text='In what department are you a student (e.g. "CMPT", "ENSC", if applicable)?')
+    current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Department", choices=DEPT_CHOICES,
+        help_text='In what department are you a student?')
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN",help_text="Social insurance number (required for receiving payments)")
     base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,
             help_text='Maximum number of base units (BU\'s) you would accept. Each BU represents a maximum of 42 hours of work for the semester. TA appointments can consist of 2 to 5 base units and are based on course enrollments and department requirements.')
@@ -430,7 +440,8 @@ class TAApplication(models.Model):
         verbose_name="Other financial support",
         help_text='Do you have a merit based scholarship or fellowship (e.g. FAS Graduate Fellowship) in the semester that you are applying for? ')
     comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
-    rank = models.IntegerField(blank=False, default=0) 
+    preference_comment = models.TextField(verbose_name='Course preference comment', null=True, blank=True)
+    rank = models.IntegerField(blank=False, default=0)
     late = models.BooleanField(blank=False, default=False)
     resume = models.FileField("Curriculum Vitae (CV)", storage=UploadedFileStorage, upload_to=_resume_upload_to, max_length=500,
                               blank=True, null=True, help_text='Please attach your Curriculum Vitae (CV).')
@@ -439,15 +450,15 @@ class TAApplication(models.Model):
                                   null=True, help_text='Please attach your unofficial transcript.')
     transcript_mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     admin_created = models.BooleanField(blank=False, default=False)
-    new_workers_training = models.BooleanField('I have completed the mandatory SFU Safety Orientation training',
+    new_workers_training = models.BooleanField('I have completed the SFU Safety Orientation training',
                                                default=False,
-                                               help_text='WorkSafe BC requires all new employees to take a safety '
-                                                         'orientation.  SFU has a short online module you can take here'
-                                                         ' <https://canvas.sfu.ca/enroll/RR8WDW> and periodically '
+                                               help_text=mark_safe('Have you completed the University\'s safety '
+                                                         'orientation? SFU has a <a href="https://canvas.sfu.ca/enroll/RR8WDW">short online module</a> you can take online'
+                                                         'and periodically '
                                                          'offers classroom sessions of the same material.  Some '
                                                          'research and instructional laboratories may require '
                                                          'additional training, contact the faculty member in charge of '
-                                                         'your lab(s) for details.')
+                                                         'your lab(s) for details.'))
     config = JSONField(null=False, blank=False, default=dict)
         # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'} 
  

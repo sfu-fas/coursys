@@ -28,7 +28,18 @@ textarea {
 }
 </style>
 <script nonce="{{ CSP_NONCE }}">
-//<![CDATA[
+
+var default_pref_descr = 'Unless you indicate otherwise here, graduate students will be <strong>considered for \
+  all other courses</strong> in the School unless you <strong>indicate courses that you do not wish to TA \
+  here</strong>. Undergraduate and external applicants will not be considered for other courses, but may give additional\
+  information on their course preferences here.';
+
+var grad_pref_descr = 'Unless you indicate otherwise here, graduate students will be <strong>considered for \
+  all other courses</strong> in the School unless you <strong>indicate courses that you do not wish to TA \
+  here</strong>.';
+
+var ugrad_pref_descr = 'You may give additional information on your course preferences here.';
+
 function get_more_info() {
 	$.ajax({
 		url: "{% url "ta:get_info" post_slug=posting.slug %}",
@@ -46,15 +57,37 @@ function get_more_info() {
 	})
 }
 
+function update_course_interpretation() {
+    var descr = $('#preference_comment_descr');
+
+    if ( descr.length == 0 ) {
+        descr = $('<p id="preference_comment_descr"></p>');
+        $('#id_ta-preference_comment').before(descr);
+    }
+    var category = $('#id_ta-category').val();
+    //var dept = $('#id_ta-current_program').val();
+    if ( category == 'GTA1' || category == 'GTA2' ) {
+        descr.html(grad_pref_descr);
+    } else if ( category == 'UTA' || category == 'ETA' ) {
+        descr.html(ugrad_pref_descr);
+    } else {
+        descr.html(default_pref_descr);
+    }
+}
+
 $(document).ready(function() {
-  $("id_search").focus();
-  student_autocomplete('id_search');
-  {% if simssearch %}
-  search_sims('{% url "advising:sims_search" %}', '{{simssearch}}', '{% url "advising:sims_add_person" %}', '{% filter escapejs %}{% csrf_token %}{% endfilter %}');
-  {% endif %}
-  get_more_info();
+    $("id_search").focus();
+    student_autocomplete('id_search');
+    {% if simssearch %}
+    search_sims('{% url "advising:sims_search" %}', '{{simssearch}}', '{% url "advising:sims_add_person" %}', '{% filter escapejs %}{% csrf_token %}{% endfilter %}');
+    {% endif %}
+    get_more_info();
+    $('#id_ta-category').change(update_course_interpretation);
+    $('#id_ta-current_program').change(update_course_interpretation);
+    update_course_interpretation();
 });
-//]]></script>{% endblock %}
+
+</script>{% endblock %}
 
 {% block content %}
 
@@ -72,13 +105,13 @@ $(document).ready(function() {
         </div>
     {% endif %}
 
-    {{ ta_form|as_dl_excludefields:"experience,course_load,other_support,comments" }}
+    {{ ta_form|as_dl_excludefields:"preference_comment,experience,course_load,other_support,comments" }}
 
 </fieldset>
 
 {% csrf_token %}
 <fieldset>
-    <legend>Course Preferences: most to least preferred</legend>
+    <legend>Preferred Courses: most to least preferred</legend>
     <div id="course-forms">
     	{{ courses_formset.management_form }}
         {% for form in courses_formset %}
@@ -87,19 +120,19 @@ $(document).ready(function() {
             {{ form|as_dl_inline }}
             </div>
         {% endfor %}
+        <span id="form_btns">
+            Please enable JavaScript to add a new course
+        </span>
+        {{ ta_form|as_dl_includefields:"preference_comment" }}
     </div>
-    <span id="form_btns">
-        Please enable JavaScript to add a new course
-    </span>
 
 </fieldset>
 <script nonce="{{ CSP_NONCE }}">
-//<![CDATA[
 	// dynamically append button for no-script compatibility
 	$(function() {
 		$("#form_btns").html('<input id="add_btn" type="button" value="Add Another" onclick="add_course()"/>')
 	});
-//]]></script>
+</script>
 
 <fieldset>
     <legend>Additional Info</legend>

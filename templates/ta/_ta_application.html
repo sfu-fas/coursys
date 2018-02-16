@@ -8,7 +8,7 @@
     <tr><th scope="row">Semester</th><td>{{ application.posting.semester }}</td></tr>
     <tr><th scope="row">Category</th><td>{{ application.get_category_display }}</td></tr>
     <tr><th scope="row">Base Units</th><td>{{ application.base_units }}</td></tr>
-    <tr><th scope="row">Current Program</th><td>{{ application.current_program|linebreaksbr }}
+    <tr><th scope="row">Current Program</th><td>{{ application.get_current_program_display }}
       {% for g in application.grad_programs %}
       <br />
       <a href="{% url "grad:view" grad_slug=g.slug %}">{{g}} - {{g.get_current_status_display}}</a>
@@ -43,6 +43,9 @@
         </tr>
       {% endfor %}
    </table>
+  {% if application.preference_comment %}
+  <p><strong>Course preference comment:</strong> {{ application.preference_comment }}</p>
+  {% endif %}
 
   {% if campuses %}
   <h3>Campus Preference</h3>

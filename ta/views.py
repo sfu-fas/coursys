@@ -615,7 +615,7 @@ def download_all_applications(request, post_slug):
         writer.writerow(['Person', 'Category', 'Program', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned'])
 
         for a in applications:
-            writer.writerow([a.person.sortname(), a.get_category_display(), a.current_program, a.base_units_assigned(),
+            writer.writerow([a.person.sortname(), a.get_category_display(), a.get_current_program_display(), a.base_units_assigned(),
                              a.base_units, a.course_pref_display(), a.course_assigned_display()])
     return response
 
@@ -1703,7 +1703,7 @@ def generate_csv(request, post_slug):
                 assigned_courses = ', '.join([tacourse.course.name() for tacourse in ta_courses])
                 assigned_bus = sum([t.total_bu for t in ta_courses])
 
-        row = [rank, app.person.sortname(), app.category, app.current_program, system_program, status, unit, startsem,
+        row = [rank, app.person.sortname(), app.category, app.get_current_program_display(), system_program, status, unit, startsem,
                app.base_units, campuspref, assigned_courses, assigned_bus]
         
         for off in offerings:
@@ -1750,7 +1750,7 @@ def generate_csv_by_course(request, post_slug):
             (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
         for app in applications_for_this_offering:
             rank = 'P%d' % app.rank
-            row = [rank, app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.current_program, app.base_units]
+            row = [rank, app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.get_current_program_display(), app.base_units]
             if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:
                 for question in extra_questions:
                     try:

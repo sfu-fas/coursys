@@ -189,7 +189,6 @@ class TAApplicationForm(forms.ModelForm):
         model = TAApplication
         exclude = ('posting', 'course_load', 'person','skills','campus_preferences','rank','late','admin_created', 'config')
         widgets = {'base_units': forms.TextInput(attrs={'size': 5}),
-                   'current_program': forms.TextInput(attrs={'size': 10}),
                    'experience': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
                    'course_load': forms.Textarea(attrs={'cols': 50, 'rows': 2}),
                    'other_support': forms.Textarea(attrs={'cols': 50, 'rows': 2}),
@@ -230,11 +229,11 @@ class TAApplicationForm(forms.ModelForm):
             raise forms.ValidationError("BU amount must be in the range 1-5")
         return bu
 
-    def clean_new_workers_training(self):
-        training = self.cleaned_data['new_workers_training']
-        if not training:
-            raise forms.ValidationError("You must have attended New Workers Training before we can process your application.")
-        return training
+    #def clean_new_workers_training(self):
+    #    training = self.cleaned_data['new_workers_training']
+    #    if not training:
+    #        raise forms.ValidationError("You must have attended New Workers Training before we can process your application.")
+    #    return training
 
 class CoursePreferenceForm(forms.ModelForm):
 
