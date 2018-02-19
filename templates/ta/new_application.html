@@ -29,14 +29,13 @@ textarea {
 </style>
 <script nonce="{{ CSP_NONCE }}">
 
-var default_pref_descr = 'Unless you indicate otherwise here, graduate students will be <strong>considered for \
-  all other courses</strong> in the School, so you can <strong>indicate courses that you do not wish to TA \
-  here</strong>. Undergraduate and external applicants will not be considered for other courses, but may give additional\
-  information on their course preferences here.';
+var default_pref_descr = 'Please indicate your top 5 preferences below.';
 
-var grad_pref_descr = 'Unless you indicate otherwise here, graduate students will be <strong>considered for \
-  all other courses</strong> in the School. Please <strong>indicate any courses that you do not wish to TA \
-  here</strong>.';
+var cs_grad_pref_descr = "According to Article XIII F 4(a) of the TSSU/SFU Collective Agreement, if you ARE a graduate \
+  student in the School of Computing Science, this application will deem you to have applied to all available TA/TM \
+  positions posted by the School this semester.<br/><br/>\
+  You are not required to apply for specific appointments, but may indicate your course preferences (below). Your\
+  preferences will be taken into account per the department's hiring priorities.";
 
 var ugrad_pref_descr = 'You may give additional information on your course preferences here.';
 
@@ -65,11 +64,9 @@ function update_course_interpretation() {
         $('#id_ta-preference_comment').before(descr);
     }
     var category = $('#id_ta-category').val();
-    //var dept = $('#id_ta-current_program').val();
-    if ( category == 'GTA1' || category == 'GTA2' ) {
-        descr.html(grad_pref_descr);
-    } else if ( category == 'UTA' || category == 'ETA' ) {
-        descr.html(ugrad_pref_descr);
+    var dept = $('#id_ta-current_program').val();
+    if ( (category == 'GTA1' || category == 'GTA2') && dept == 'CMPT' ) {
+        descr.html(cs_grad_pref_descr);
     } else {
         descr.html(default_pref_descr);
     }
@@ -112,6 +109,7 @@ $(document).ready(function() {
 {% csrf_token %}
 <fieldset>
     <legend>Preferred Courses: most to least preferred</legend>
+    <p id="preference_comment_descr"></p>
     <div id="course-forms">
     	{{ courses_formset.management_form }}
         {% for form in courses_formset %}

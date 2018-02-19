@@ -28,10 +28,8 @@ HOLIDAY_HOURS_PER_BU = decimal.Decimal('1.1')
 
 
 DEPT_CHOICES = [
-    ('CMPT', 'CMPT'),
-    ('ENSC', 'ENSC/MSE'),
-    ('MATH', 'MATH/STAT'),
-    ('OTHR', 'Other department'),
+    ('CMPT', 'CMPT student'),
+    ('OTHR', 'Other program'),
     ('NONS', 'Not a student'),
 ]
 
