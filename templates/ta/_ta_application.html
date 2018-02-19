@@ -28,18 +28,18 @@
     {% endfor %}
   {% endif %}
 
-  <h3>Courses Applied for</h3>
+  <h3>Preferred Courses</h3>
   <table class="info">
     <tr>
       <th scope="col">Course</th>
-      <th scope="col">Taken</th>
-      <th scope="col">Experience</th>
+      <!--<th scope="col">Taken</th>
+      <th scope="col">Experience</th>-->
     </tr>
       {% for course in application.courses %}
         <tr>
           <td>{{ course.course }}</td>
-          <td>{{ course.get_taken_display }}</td>
-          <td>{{ course.get_exper_display }}</td>
+          <!--<td>{{ course.get_taken_display }}</td>
+          <td>{{ course.get_exper_display }}</td>-->
         </tr>
       {% endfor %}
    </table>

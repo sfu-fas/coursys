@@ -239,7 +239,13 @@ class CoursePreferenceForm(forms.ModelForm):
 
     class Meta:
         model = CoursePreference
-        exclude = ('app','rank') 
+        exclude = ('app', 'rank', 'taken', 'exper')
+
+    def __init__(self, *args, **kwargs):
+        super(CoursePreferenceForm, self).__init__(*args, **kwargs)
+        crs_field = self.fields['course']
+        crs_field.required = False
+
         
 class TAAcceptanceForm(forms.ModelForm):
     sin = forms.CharField(label="SIN", help_text="Social insurance number")

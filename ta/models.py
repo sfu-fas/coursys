@@ -213,7 +213,7 @@ class TAPosting(models.Model):
             'bu_defaults': {},
             'payperiods': 8,
             'max_courses': 10,
-            'min_courses': 5,
+            'min_courses': 0,
             'contact': None,
             'offer_text': '',
             'export_seq': 0,
@@ -777,8 +777,8 @@ EXPER_CHOICES = (
 class CoursePreference(models.Model):
     app = models.ForeignKey(TAApplication, on_delete=models.PROTECT)
     course = models.ForeignKey(Course, on_delete=models.PROTECT)
-    taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=False, null=False)
-    exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=False, null=False, verbose_name="Experience")
+    taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=True, null=True)
+    exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=True, null=True, verbose_name="Experience")
     rank = models.IntegerField(blank=False)
     #class Meta:
     #    unique_together = (('app', 'course'),)

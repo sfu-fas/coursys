@@ -331,20 +331,20 @@ def _new_application(request, post_slug, manual=False, userid=None):
             return ForbiddenResponse(request)
 
     course_choices = [(c.id, str(c) + " (" + c.title + ")") for c in posting.selectable_courses()]
+    course_choices = [(None, '\u2014')] + course_choices
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
     skills = Skill.objects.filter(posting=posting)    
     max_courses = posting.max_courses()
     min_courses = posting.min_courses()
- 
+    CoursesFormSet = formset_factory(CoursePreferenceForm, min_num=max_courses, max_num=max_courses)
+
     sin = None
     # build basic objects, whether new or editing application
     if editing:
         person = Person.objects.get(userid=userid)
         application = get_object_or_404(TAApplication, posting=posting, person__userid=userid)
         old_coursepref = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
-        CoursesFormSet = formset_factory(CoursePreferenceForm, extra=max(0, min_courses-old_coursepref.count()), max_num=max_courses)
     else:
-        CoursesFormSet = formset_factory(CoursePreferenceForm, extra=min_courses, max_num=max_courses)
         application = None
     
     if not manual:
@@ -401,7 +401,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
             # No duplicates allowed
             courses = []
             for (rank,form) in enumerate(courses_formset):
-                if 'course' in form.cleaned_data:
+                if 'course' in form.cleaned_data and form.cleaned_data['course']:
                     courses.append( form.cleaned_data['course'] )
 
             if len(courses) != len(set(courses)):
@@ -481,8 +481,9 @@ def _new_application(request, post_slug, manual=False, userid=None):
                         course = form.save(commit=False)
                     course.app = app
                     course.rank = rank+1
-                    course.save()
-                    used_pref.add(course)
+                    if course.course_id:
+                        course.save()
+                        used_pref.add(course)
                 
                 # any removed courses: set to rank=0, but don't delete (since we assume one exists if it has been assigned already)
                 for course in old_pref - used_pref:

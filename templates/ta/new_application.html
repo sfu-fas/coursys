@@ -75,6 +75,7 @@ function update_course_interpretation() {
 $(document).ready(function() {
     $("id_search").focus();
     student_autocomplete('id_search');
+    init_courses();
     {% if simssearch %}
     search_sims('{% url "advising:sims_search" %}', '{{simssearch}}', '{% url "advising:sims_add_person" %}', '{% filter escapejs %}{% csrf_token %}{% endfilter %}');
     {% endif %}
@@ -113,7 +114,7 @@ $(document).ready(function() {
     <div id="course-forms">
     	{{ courses_formset.management_form }}
         {% for form in courses_formset %}
-            <div id="course-form-{{ forloop.counter0 }}">
+            <div class="course-form" id="course-form-{{ forloop.counter0 }}">
             <h3>Course {{ forloop.counter }}:</h3>
             {{ form|as_dl_inline }}
             </div>
@@ -128,7 +129,8 @@ $(document).ready(function() {
 <script nonce="{{ CSP_NONCE }}">
 	// dynamically append button for no-script compatibility
 	$(function() {
-		$("#form_btns").html('<input id="add_btn" type="button" value="Add Another" onclick="add_course()"/>')
+		$("#form_btns").html('<input id="add_btn" type="button" value="Add Preferred Course" />')
+		$("#add_btn").click(add_course);
 	});
 </script>
 
