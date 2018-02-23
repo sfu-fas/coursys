@@ -82,7 +82,7 @@ class NewFormForm(FormForm):
 
 
 class SheetForm(forms.Form):
-    title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
+    title = forms.CharField(required=True, max_length=60, label=mark_safe('Title'), help_text='Name of the sheet')
     can_view = forms.ChoiceField(required=True, choices=VIEWABLE_CHOICES, label='Can view', help_text='When someone is filling out this sheet, what else can they see?')
 
 class EditSheetForm(ModelForm):
