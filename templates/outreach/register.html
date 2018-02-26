@@ -4,6 +4,13 @@
 {% block title %}Register{% endblock %}
 {% block h1 %}Register{% endblock %}
 
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('#id_birthdate').datepicker("option", "yearRange", "-65:+0");
+});
+</script>
+{% endblock %}
 
 {% block content %}
     {% if event.can_register %}
