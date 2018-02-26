@@ -75,6 +75,10 @@ class OutreachEvent(models.Model):
     registration_email_text = models.TextField(null=True, blank=True,
                                                help_text='If you fill this in, this will be sent as an email to all '
                                                          'all new registrants as a registration confirmation.')
+    enable_waitlist = models.BooleanField(default=False, help_text='If this box is checked and you have a registration'
+                                                                   ' cap which has been met, people will stillbe able '
+                                                                   'to register but will be marked as not attending '
+                                                                   'and waitlisted.')
     config = JSONField(null=False, blank=False, default=dict)
     # 'extra_questions': additional questions to ask registrants
 
@@ -109,9 +113,21 @@ class OutreachEvent(models.Model):
     def can_register(self):
         if self.closed or not self.current():
             return False
+        #  If we allow a waitlist, and the event isn't closed, allow registration regardless of cap.
+        if self.enable_waitlist:
+            return True
         if self.registration_cap and self.registration_cap <= self.registration_count():
             return False
         return True
+
+    def registrations_waitlisted(self):
+        # If the event has passed, or registrations are closed, you're still hooped.
+        if self.closed or not self.current():
+            return False
+        # Otherwise, check to see if we're in waitlisted status.
+        if self.enable_waitlist and self.registration_cap and self.registration_cap <= self.registration_count():
+            return True
+        return False
 
 
 class OutreachEventRegistrationQuerySet(models.QuerySet):
@@ -191,6 +207,7 @@ class OutreachEventRegistration(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
     attended = models.BooleanField(default=True, editable=False, blank=False, null=False)
+    waitlisted = models.BooleanField(default=False, editable=False, blank=False, null=False)
     config = JSONField(null=False, blank=False, default=dict)
     # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'}
 
@@ -217,6 +234,9 @@ class OutreachEventRegistration(models.Model):
         Emails the registration confirmation email if there is one and if none has been emailed for this registration
         before.
         """
+        # If this registration is waitlisted, don't email!
+        if self.waitlisted:
+            return
         if 'email' not in self.config and self.event.registration_email_text:
             subject = 'Registration Confirmation'
             from_email = settings.DEFAULT_FROM_EMAIL

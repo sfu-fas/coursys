@@ -34,6 +34,9 @@ $(document).ready(function() {
                     <td>Registration Date</td>
                     <td>Photo Waiver</td>
                     <td>Attending</td>
+                     {% if event.enable_waitlist %}
+                        <td>Waitlisted</td>
+                     {% endif %}
                     <td>Actions</td>
                 </tr>
             </thead>
@@ -45,7 +48,19 @@ $(document).ready(function() {
                     <td>{{ registration.created_at }}</td>
                     <td>{{ registration.photo_waiver|yesno }}</td>
                     <td>{{ registration.attended|yesno }}</td>
+                    {% if event.enable_waitlist %}
+                        <td>{{ registration.waitlisted|yesno }}</td>
+                    {% endif %}
                     <td>
+                    {% if event.enable_waitlist %}
+                        <form class="lineform" method="POST"
+                            action = "{% url "outreach:toggle_registration_waitlist" registration_id=registration.id event_slug=event.slug %}">
+                            {% csrf_token %}
+                            <button type='submit' class='btn' title="Toggle Waitlist Status">
+                                <i class='fa fa-clock-o'></i>
+                            </button>
+                        </form>
+                    {% endif %}
                     <form class="lineform" method="POST"
                         action = "{% url "outreach:toggle_registration_attendance" registration_id=registration.id event_slug=event.slug %}">
                         {% csrf_token %}

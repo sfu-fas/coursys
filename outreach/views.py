@@ -94,6 +94,9 @@ def register(request, event_slug):
                 for question in registration.event.config['extra_questions']:
                     temp[question] = form.cleaned_data[question]
                 registration.config['extra_questions'] = temp
+            if event.registrations_waitlisted():
+                registration.waitlisted = True
+                registration.attended = False
             registration.save()
             registration.email_memo()
             messages.add_message(request,
@@ -104,7 +107,10 @@ def register(request, event_slug):
                          related_object=registration
                          )
             l.save()
-            return HttpResponseRedirect(reverse('outreach:register_success', kwargs={'event_slug': event_slug}))
+            if registration.waitlisted:
+                return HttpResponseRedirect(reverse('outreach:register_waitlisted', kwargs={'event_slug': event_slug}))
+            else:
+                return HttpResponseRedirect(reverse('outreach:register_success', kwargs={'event_slug': event_slug}))
     else:
         form = OutreachEventRegistrationForm()
         form.add_extra_questions(event)
@@ -117,6 +123,14 @@ def register_success(request, event_slug):
     """
     event = get_object_or_404(OutreachEvent, slug=event_slug)
     return render(request, 'outreach/registered.html', {'event': event})
+
+
+def register_waitlisted(request, event_slug):
+    """
+    CAREFUL, this view is open to the whole world.
+    """
+    event = get_object_or_404(OutreachEvent, slug=event_slug)
+    return render(request, 'outreach/waitlisted.html', {'event': event})
 
 
 @requires_role('OUTR')
@@ -197,6 +211,27 @@ def toggle_registration_attendance(request, registration_id, event_slug=None):
 
 
 @requires_role('OUTR')
+def toggle_registration_waitlist(request, registration_id, event_slug=None):
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id, event__unit__in=request.units)
+    if request.method == 'POST':
+        registration.waitlisted = not registration.waitlisted
+        # since we just manually toggled the waitlist status, it just makes sense that the attendance status should be
+        # the opposite of the waitlist status.  If you're forcing someone off the waitlist, they should be attending,
+        # and vice-versa.
+        registration.attended = not registration.waitlisted
+        registration.save()
+        messages.success(request, 'Toggle waitlist status for %s.  Please note that the attendance status may have '
+                                  'have also been changed accordingly.' % registration)
+        l = LogEntry(userid=request.user.username,
+                     description="Toggled waitlist status for registration: %s" % registration,
+                     related_object=registration)
+        l.save()
+    if event_slug:
+        return HttpResponseRedirect(reverse('outreach:view_event_registrations', kwargs={'event_slug': event_slug}))
+    return HttpResponseRedirect(reverse('outreach:view_all_registrations'))
+
+
+@requires_role('OUTR')
 def view_event_registrations(request, event_slug):
     event = get_object_or_404(OutreachEvent, slug=event_slug, unit__in=request.units)
     registrations = OutreachEventRegistration.objects.filter(event=event, hidden=False)
@@ -266,7 +301,7 @@ def download_registrations(request, event_slug=None, past=None):
     if registrations:
         header_row = header_row_initial + ['Last Name', 'First Name', 'Middle Name', 'Birthdate', 'Parent Name',
                                            'Parent Phone', 'Email', 'Photo Waiver', 'Previously Attended', 'School',
-                                           'Grade', 'Notes', 'Attended(ing)', 'Registered at', 'Last Modified'] + \
+                                           'Grade', 'Notes', 'Attended(ing)', 'Waitlisted', 'Registered at', 'Last Modified'] + \
                      header_row_extras
         writer.writerow(header_row)
         for r in registrations:
@@ -283,9 +318,14 @@ def download_registrations(request, event_slug=None, past=None):
             else:
                 initial_registration_row = [r.event.title]
                 extra_questions_row = []
+            if r.event.enable_waitlist:
+                waitlisted = r.waitlisted
+            else:
+                waitlisted = 'N/A'
             registration_row = initial_registration_row + [r.last_name, r.first_name, r.middle_name, r.birthdate,
                                                           r.parent_name, r.parent_phone, r.email, r.photo_waiver,
                                                           r.previously_attended, r.school, r.grade, r.notes, r.attended,
-                                                          r.created_at, r.last_modified] + extra_questions_row
+                                                          waitlisted, r.created_at,
+                                                          r.last_modified] + extra_questions_row
             writer.writerow(registration_row)
     return response
