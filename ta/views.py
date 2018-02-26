@@ -475,8 +475,8 @@ def _new_application(request, post_slug, manual=False, userid=None):
                     existing_crs = CoursePreference.objects.filter(app=app, course=form.cleaned_data['course'])
                     if existing_crs:
                         course = existing_crs[0]
-                        course.exper = form.cleaned_data['exper']
-                        course.taken = form.cleaned_data['taken']
+                        #course.exper = form.cleaned_data['exper']
+                        #course.taken = form.cleaned_data['taken']
                     else:
                         course = form.save(commit=False)
                     course.app = app
