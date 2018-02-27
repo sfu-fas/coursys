@@ -87,6 +87,12 @@ function togglePast() {
                         </button>
                     </form>
                     <form class="lineform" method="GET"
+                        action="{% url "outreach:download_registrations" event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="Download Registrations">
+                            <i class='fa fa-download'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
                         action="{% url "outreach:view_event_registrations" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="View Registrations">
                             <i class='fa fa-book'></i>
