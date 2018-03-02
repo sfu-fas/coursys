@@ -299,6 +299,9 @@ class LetterForm(ModelForm):
 class LetterEmailForm(forms.Form):
     email_subject = forms.CharField(widget=forms.TextInput(attrs={'size':'59'}),
                                     help_text='The subject that will be displayed in the email.')
+    email_cc = forms.CharField(label='Email CC', required=False, widget=forms.TextInput(),
+                               help_text='You will automatically get CCed on this email. If you want anyone else to be '
+                                         'CCed as well, please add addresses here, separated by commas.')
     email_body = forms.CharField(widget=forms.Textarea(attrs={'rows': '20', 'cols': '60'}),
                                  help_text='Input the text that will be included as the body of the email.  Note:  '
                                            'This is NOT the letter that will be sent.  The letter PDF will be attached '

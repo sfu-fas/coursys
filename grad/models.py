@@ -1344,19 +1344,27 @@ class Letter(models.Model):
     removed = models.BooleanField(default=False)
 
     config = JSONField(default=dict) # addition configuration for within the letter
-        # data returned by grad.letter_info() is stored here.
-        # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)
+    # data returned by grad.letter_info() is stored here.
+    # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is
+    # required.)
+    # 'email_body', 'email_subject', 'email_cc':  Used for sending the letter in an email
+    # 'email_sent': Used to put up an indicator to let us know when this letter was sent as an email.
 
-    defaults = {'use_sig': True, 'email_body': '', 'email_subject': 'Letter from CourSys'}
+    defaults = {'use_sig': True, 'email_body': '', 'email_subject': 'Letter from CourSys', 'email_cc': '',
+                'email_sent': ''}
     use_sig, set_use_sig = getter_setter('use_sig')
     email_body, set_email_body = getter_setter('email_body')
     email_subject, set_email_subject = getter_setter('email_subject')
+    email_cc, set_email_cc = getter_setter('email_cc')
+    email_sent, set_email_sent = getter_setter('email_sent')
 
     def autoslug(self):
         return make_slug(self.student.slug + "-" + self.template.label)     
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+
     def __str__(self):
         return "%s letter for %s" % (self.template.label, self.student)
+
     def save(self, *args, **kwargs):
         # normalize text so it's easy to work with
         if not self.to_lines:

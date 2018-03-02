@@ -7,11 +7,18 @@ from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.utils import timezone
 from grad.forms import LetterEmailForm
 from django.core.mail import EmailMultiAlternatives
 from coredata.models import Person
-from django.conf import settings
 
+
+def timezone_today():
+    """
+    Return the timezone-aware version of datetime.date.today()
+    """
+    # field default must be a callable (so it's the "today" of the request, not the "today" of the server startup)
+    return timezone.now().date().isoformat()
 
 @requires_role("GRAD")
 def send_letter_email(request, grad_slug, letter_slug):
@@ -22,6 +29,9 @@ def send_letter_email(request, grad_slug, letter_slug):
         if form.is_valid():
             letter.set_email_body(form.cleaned_data['email_body'])
             letter.set_email_subject(form.cleaned_data['email_subject'])
+            if 'email_cc' in form.cleaned_data:
+                letter.set_email_cc(form.cleaned_data['email_cc'])
+            letter.set_email_sent(timezone_today())
             letter.save()
             return _send_letter(request, grad_slug, letter)
 
@@ -42,12 +52,16 @@ def _send_letter(request, grad_slug, letter):
     sender = Person.objects.get(userid=request.user.username)
     filename = letter.template.label.replace(' ', '_')
     from_email = sender.email()
+    if letter.email_cc():
+        email_cc = [from_email + ', ' + letter.email_cc()]
+    else:
+        email_cc = [from_email]
     if grad.applic_email():
         to_email = grad.applic_email()
     else:
         to_email = grad.person.email()
     msg = EmailMultiAlternatives(letter.email_subject(), letter.email_body(), from_email,
-                                 [to_email], headers={'X-coursys-topic': 'grad'}, cc=[from_email])
+                                 [to_email], headers={'X-coursys-topic': 'grad'}, cc=email_cc)
     msg.attach(('%s.pdf' % filename), letter_attachment.getvalue(), 'application/pdf')
     msg.send()
     messages.add_message(request,
