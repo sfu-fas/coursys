@@ -146,7 +146,7 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__financialcomments.html', context)
         
         elif section == 'letters':
-            letters = Letter.objects.filter(student=grad).select_related('template').order_by('date')
+            letters = Letter.objects.filter(student=grad, removed=False).select_related('template').order_by('date')
             context['letters'] = letters
             return render(request, 'grad/view__letters.html', context)
         
