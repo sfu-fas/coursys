@@ -596,8 +596,16 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 promise = "${:,f}".format(promises[0].amount)
             except ValueError: # handle Python <2.7
                 promise = '$' + str(promises[0].amount)
+
+            # In addition to the latest promise, also get the earliest one, as requested by grad admins.
+            try:
+                promise_earliest = "${:,f}".format(promises.reverse()[0].amount)
+            except ValueError:  # handle Python <2.7
+                promise_earliest = '$' + str(promises.reverse()[0].amount)
+
         else:
             promise = '$0'
+            promise_earliest = '$0'
 
         tas = TAContract.objects.filter(application__person=self.person).order_by('-posting__semester__name')
         ras = RAAppointment.objects.filter(person=self.person, deleted=False).order_by('-start_date')
@@ -766,6 +774,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 'last_name': self.person.last_name,
                 'emplid': emplid, 
                 'promise': promise,
+                'promise_earliest': promise_earliest,
                 'start_semester': startsem,
                 'start_year': startyear,
                 'program': self.program.description,
@@ -997,6 +1006,7 @@ LETTER_TAGS = {
                'start_semester': 'student\'s first semester (e.g. "Summer 2000")',
                'start_year': 'year of student\'s first semester (e.g. "2000")',
                'promise': 'the amount of the [most recent] funding promise to the student (e.g. "$17,000")',
+               'promise_earliest': 'the amount of the earliest funding promise to the student (e.g. "$17,000")',
                'supervisor_name': "the name of the student's potential supervisor",
                'supervisor_hisher': 'pronoun for the potential supervisor ("his" or "her")',
                'supervisor_heshe': 'pronoun for the potential supervisor ("he" or "she")',
