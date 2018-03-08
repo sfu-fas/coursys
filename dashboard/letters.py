@@ -2213,8 +2213,8 @@ def fasnet_forms(grads, outfile):
 class FormMixin(object):
     def __init__(self, outfile):
         """
-        Create Yellow form in the file object (which could be a Django HttpResponse).
-        This is the base class, there are two subclasses for either the tenure form or the limited term form
+        Create form in the file object (which could be a Django HttpResponse).
+        This is the base class, there are various subclasses for different forms.
         """
         self.c = canvas.Canvas(outfile, pagesize=letter)
 
@@ -2228,48 +2228,59 @@ class FormMixin(object):
         self.c.rect(x*mm, y*mm, width*mm, height*mm, fill=filled)
 
     def header_label(self, x, y, content):
-        self.c.setFont("Helvetica-Bold", 9)
-        self.c.drawString(x*mm, y*mm, content)
+        if content:
+            self.c.setFont("Helvetica-Bold", 9)
+            self.c.drawString(x*mm, y*mm, content)
 
     def header_label_italics(self, x, y, content):
-        self.c.setFont("Helvetica-BoldOblique", 8)
-        self.c.drawString(x*mm, y*mm, content)
+        if content:
+            self.c.setFont("Helvetica-BoldOblique", 8)
+            self.c.drawString(x*mm, y*mm, content)
 
     def header_label_large(self, x, y, content):
-        self.c.setFont("Helvetica-Bold", 12)
-        self.c.drawString(x * mm, y * mm, content)
+        if content:
+            self.c.setFont("Helvetica-Bold", 12)
+            self.c.drawString(x * mm, y * mm, content)
 
     def label(self, x, y, content):
-        self.c.setFont("Helvetica", 9)
-        self.c.drawString(x*mm, y*mm, content)
+        if content:
+            self.c.setFont("Helvetica", 9)
+            self.c.drawString(x*mm, y*mm, content)
 
     def label_mid(self, x, y, content):
-        self.c.setFont("Helvetica", 8)
-        self.c.drawString(x*mm, y*mm, content)
+        if content:
+            self.c.setFont("Helvetica", 8)
+            self.c.drawString(x*mm, y*mm, content)
 
     def label_mid_bold(self, x, y, content):
-        self.c.setFont("Helvetica-Bold", 8)
-        self.c.drawString(x*mm, y*mm, content)
+        if content:
+            self.c.setFont("Helvetica-Bold", 8)
+            self.c.drawString(x*mm, y*mm, content)
 
     def label_small(self, x, y, content):
-        self.c.setFont("Helvetica", 7)
-        self.c.drawString(x*mm, y*mm, content)
+        if content:
+            self.c.setFont("Helvetica", 7)
+            self.c.drawString(x*mm, y*mm, content)
 
     def subscript_label(self, x, y, content):
-        self.c.setFont("Helvetica", 6)
-        self.c.drawString(x*mm, y*mm, content)
+        if content:
+            self.c.setFont("Helvetica", 6)
+            self.c.drawString(x*mm, y*mm, content)
 
     def subscript_small_label(self, x, y, content):
-        self.c.setFont("Helvetica", 5)
-        self.c.drawString(x*mm, y*mm, content)
+        if content:
+            self.c.setFont("Helvetica", 5)
+            self.c.drawString(x*mm, y*mm, content)
 
     def subscript_small_label_bold(self, x, y, content):
-        self.c.setFont("Helvetica-Bold", 5)
-        self.c.drawString(x * mm, y * mm, content)
+        if content:
+            self.c.setFont("Helvetica-Bold", 5)
+            self.c.drawString(x * mm, y * mm, content)
         
     def subscript_tiny_label(self, x, y, content):
-        self.c.setFont("Helvetica", 4)
-        self.c.drawString(x*mm, y*mm, content)
+        if content:
+            self.c.setFont("Helvetica", 4)
+            self.c.drawString(x*mm, y*mm, content)
 
     def hdouble_line(self, x1, x2, y):
         self.c.line(x1*mm, y*mm, x2*mm, y*mm)
@@ -2282,16 +2293,19 @@ class FormMixin(object):
         self.c.line(x*mm, y1*mm, x*mm, y2*mm)
 
     def label_filled(self, x, y, content):
-        self.c.setFont("Courier", 9)
-        self.c.drawString(x*mm, y*mm, content)
+        if content:
+            self.c.setFont("Courier", 9)
+            self.c.drawString(x*mm, y*mm, content)
 
     def label_filled_centred(self, x, y, content):
-        self.c.setFont("Courier", 9)
-        self.c.drawCentredString(x*mm, y*mm, content)
+        if content:
+            self.c.setFont("Courier", 9)
+            self.c.drawCentredString(x*mm, y*mm, content)
 
     def label_filled_small(self, x, y, content):
-        self.c.setFont("Courier", 8)
-        self.c.drawString(x * mm, y * mm, content)
+        if content:
+            self.c.setFont("Courier", 8)
+            self.c.drawString(x * mm, y * mm, content)
 
 
 class YellowFormTenure(FormMixin):
