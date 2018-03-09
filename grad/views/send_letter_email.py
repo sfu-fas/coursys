@@ -53,7 +53,7 @@ def _send_letter(request, grad_slug, letter):
     filename = letter.template.label.replace(' ', '_')
     from_email = sender.email()
     if letter.email_cc():
-        email_cc = [from_email + ', ' + letter.email_cc()]
+        email_cc = [from_email] + [l.strip() for l in letter.email_cc().split(',')]
     else:
         email_cc = [from_email]
     if grad.applic_email():
