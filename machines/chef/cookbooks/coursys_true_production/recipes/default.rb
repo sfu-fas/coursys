@@ -34,7 +34,7 @@ apt_repository 'certbot' do
   key '75BCA694'
   deb_src      false
 end
-#package 'python-certbot-nginx' # currently needs python-acme >=17.0 manually installed https://packages.ubuntu.com/artful/python-acme
+#package 'python-certbot-nginx' # currently needs python3-acme >= 0.21.1 manually installed https://packages.ubuntu.com/bionic/python3-acme
 
 # reconfigure NGINX with end-user properties
 cookbook_file "nginx_base.conf" do
