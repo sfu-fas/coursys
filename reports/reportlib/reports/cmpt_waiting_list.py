@@ -64,7 +64,7 @@ class CMPTWaitingListReport(Report):
 
         waitlist_students.left_join(names, "EMPLID")
         waitlist_students.left_join(email, "EMPLID")
-        waitlist.remove_column("PREF_EMAIL_FLAG")
-        waitlist.remove_column("E_ADDR_TYPE")
+        waitlist_students.remove_column("PREF_EMAIL_FLAG")
+        waitlist_students.remove_column("E_ADDR_TYPE")
 
         self.artifacts.append(waitlist_students)
