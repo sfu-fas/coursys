@@ -56,10 +56,22 @@ def _send_letter(request, grad_slug, letter):
         email_cc = [from_email] + [l.strip() for l in letter.email_cc().split(',')]
     else:
         email_cc = [from_email]
-    if grad.applic_email():
-        to_email = grad.applic_email()
-    else:
+
+    # Prioritize the student's real email address
+    if grad.person.email():
         to_email = grad.person.email()
+    elif grad.applic_email():
+        to_email = grad.applic_email()
+    # We should never not have either of these.  But just in case:
+    else:
+        messages.add_message(request,
+                             messages.ERROR,
+                             'We do not have an email address for this person.')
+        # Don't record that you have sent an email, since you haven't.
+        del letter.config['email_sent']
+        letter.save()
+        return HttpResponseRedirect(reverse('grad:manage_letters', kwargs={'grad_slug': grad_slug}))
+
     msg = EmailMultiAlternatives(letter.email_subject(), letter.email_body(), from_email,
                                  [to_email], headers={'X-coursys-topic': 'grad'}, cc=email_cc)
     msg.attach(('%s.pdf' % filename), letter_attachment.getvalue(), 'application/pdf')
