@@ -1709,7 +1709,7 @@ def generate_csv(request, post_slug):
         
         for off in offerings:
             crs = off.course
-            if crs in course_prefs[app]:
+            if app in course_prefs and crs in course_prefs[app]:
                 pref = course_prefs[app][crs]
                 row.append(pref.rank)
             else:
