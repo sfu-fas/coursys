@@ -14,7 +14,7 @@ from dashboard.models import NewsItem
 from django.urls import reverse
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
-from creoleparser import text2html
+from courselib.markup import markup_to_html
 from courselib.storage import UploadedFileStorage, upload_path
 
 from . import bu_rules
@@ -387,9 +387,9 @@ class TAPosting(models.Model):
         if html:
             return mark_safe(html)
         else:
-            html = text2html(self.offer_text())
+            html = markup_to_html(self.offer_text(), 'creole')
             cache.set(key, html, 24*3600) # expires on self.save() above
-            return mark_safe(html)
+            return html
     
         
 class Skill(models.Model):

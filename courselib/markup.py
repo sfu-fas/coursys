@@ -1,5 +1,5 @@
 # TODO: write better help_text (incl allow_math=False case)
-# TODO: ta module uses creole for offer_text
+# TODO: ta module uses creole for offer_text  ** FIXED, although it calls markup_to_html directly, which isn't great **
 # TODO: discipline module uses textile
 # TODO: ta TAContactForm uses textile
 # TODO: just a "text with line breaks" markup
