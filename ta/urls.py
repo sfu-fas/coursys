@@ -12,6 +12,7 @@ ta_patterns = [ # prefix /ta/
     url(r'^descriptions/new$', ta_views.new_description, name='new_description'),
     url(r'^description/' + DESCRIPTION_ID + '/edit$', ta_views.edit_description, name='edit_description'),
     url(r'^description/' + DESCRIPTION_ID + '/delete$', ta_views.delete_description, name='delete_description'),
+    url(r'^email_text$', ta_views.add_edit_ta_contract_email, name='edit_email'),
     url(r'^' + POST_SLUG + '/$', ta_views.new_application, name='new_application'),
     url(r'^' + POST_SLUG + '/_myinfo$', ta_views.get_info, name='get_info'),
     url(r'^' + POST_SLUG + '/manual$', ta_views.new_application_manual, name='new_application_manual'),

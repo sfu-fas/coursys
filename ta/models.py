@@ -788,3 +788,14 @@ class CoursePreference(models.Model):
             return "%s's pref for %s" % (self.app.person, self.course)
         else:
             return "new CoursePreference"
+
+
+# An object to store the content that will be emailed when the contract automatically gets emailed upon the TA
+# accepting.  There should be only one of these per unit, so that it's only set once per school.  Realistically, only
+# CMPT uses this.
+class TAContractEmailText(models.Model):
+    unit = models.OneToOneField(Unit, editable=False, on_delete=models.PROTECT, related_name='contract_email_text')
+    content = models.TextField(help_text='e.g. "Please find enclosed your TA Contract..."')
+
+    def __str__(self):
+        return "TA contract acceptance text for %s" % self.unit.label.upper()

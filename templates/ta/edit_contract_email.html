@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit Contract Email Text{% endblock %}
+{% block h1 %}Edit Contract Email Text{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
+<li>Edit</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="form_container">
+<form action="{% url "ta:edit_email" %}" method="post">{% csrf_token %}
+<fieldset>
+    {{ form|as_dl }}
+</fieldset>
+<input type="submit" class="submit" value="Save" /></p>
+</fieldset>
+</form>
+</div>
+
+{% endblock %}

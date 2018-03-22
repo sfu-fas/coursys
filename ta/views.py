@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
     CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU, \
-    HOLIDAY_HOURS_PER_BU, LAB_PREP_HOURS
+    HOLIDAY_HOURS_PER_BU, LAB_PREP_HOURS, TAContractEmailText
 from tacontracts.models import TACourse as NewTACourse
 from ra.models import Account
 from grad.models import GradStudent, STATUS_REAL_PROGRAM
@@ -22,7 +22,7 @@ from coredata.queries import more_personal_info, SIMSProblem, ensure_person_from
 from grad.models import GradStatus, GradStudent, Supervisor
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
-    CourseDescriptionForm, LabelledHidden, NewTAContractForm
+    CourseDescriptionForm, LabelledHidden, NewTAContractForm, TAContractEmailTextForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form, ta_forms
@@ -1915,3 +1915,27 @@ def delete_description(request, description_id):
                      related_object=description)
         l.save()
     return HttpResponseRedirect(reverse('ta:descriptions'))
+
+
+@requires_role("TAAD")
+def add_edit_ta_contract_email(request):
+    #  It's probably safe to assume everyone but sysadmins are only TA admins for a single school.  Anyone with more
+    #  than one role most likely won't be actually adding/editing this text.
+    unit = list(request.units)[0]
+    instance = TAContractEmailText.objects.filter(unit=unit).first()
+    if request.method == 'POST':
+        form = TAContractEmailTextForm(request.POST, instance=instance)
+        if form.is_valid():
+            text = form.save(commit=False)
+            text.unit = unit
+            text.save()
+            messages.success(request, 'Email text successfully changed.')
+            l = LogEntry(userid=request.user.username,
+                         description='Added/Modified TA Contract Email Text for %s.' % text.unit.label,
+                         related_object=text)
+            l.save()
+            return HttpResponseRedirect(reverse('ta:view_postings'))
+    else:
+        form = TAContractEmailTextForm(instance=instance)
+    return render(request, 'ta/edit_contract_email.html', {'form': form})
+

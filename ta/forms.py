@@ -5,7 +5,7 @@ from collections import OrderedDict
 from coredata.models import Member
 from coredata.widgets import CalendarWidget
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
-        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES
+        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES, TAContractEmailText
 from ta.util import table_row__Form
 import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
@@ -688,3 +688,13 @@ class CourseDescriptionForm(forms.ModelForm):
     class Meta:
         model = CourseDescription
         exclude = ('config','hidden') 
+
+
+class TAContractEmailTextForm(forms.ModelForm):
+    class Meta:
+        model = TAContractEmailText
+        exclude = ()
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': '20', 'cols': '60'}),
+        }
+
