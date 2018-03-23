@@ -1202,6 +1202,10 @@ def accept_contract(request, post_slug, userid, preview=False):
                 contract.status = 'ACC'
             contract.save()
             messages.success(request, "Successfully %s the offer." % (contract.get_status_display()))
+            # Do this after the save, just in case something went wrong during saving:
+            if "accept" in request.POST:
+                contract.email_contract()
+                messages.info(request, "You should be receiving an email with your contract attached.")
             ##not sure where to redirect to...so currently redirects to itself
             return HttpResponseRedirect(reverse('ta:accept_contract', args=(post_slug,userid)))
     else:   

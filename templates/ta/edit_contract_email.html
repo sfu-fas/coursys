@@ -10,7 +10,8 @@
 {% endblock %}
 
 {% block content %}
-
+<h2>These are the email body and subject that will be included along with an attachment of the actual TA contract.
+    This will be sent automatically once a TA accepts a contract.</h2>
 <div class="form_container">
 <form action="{% url "ta:edit_email" %}" method="post">{% csrf_token %}
 <fieldset>

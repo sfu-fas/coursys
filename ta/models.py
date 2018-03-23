@@ -14,6 +14,9 @@ from dashboard.models import NewsItem
 from django.urls import reverse
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
+from django.http import HttpResponse
+from dashboard.letters import ta_form
+from django.core.mail import EmailMultiAlternatives
 from courselib.markup import markup_to_html
 from courselib.storage import UploadedFileStorage, upload_path
 
@@ -535,6 +538,10 @@ STATUS_CHOICES = (
 STATUS = dict(STATUS_CHOICES)
 STATUSES_NOT_TAING = ['NEW', 'REJ', 'CAN'] # statuses that mean "not actually TAing"
 
+DEFAULT_EMAIL_TEXT = "Please find attached a copy of your TA contract."
+DEFAULT_EMAIL_SUBJECT = "Your TA contract."
+
+
 class TAContract(models.Model):
     """    
     TA Contract, filled in by TAAD
@@ -652,6 +659,32 @@ class TAContract(models.Model):
         # Build a string of all course offerings tied to this contract for CSV downloads and grad student views.
         course_list_string = ', '.join(ta_course.course.name() for ta_course in self.tacourse_set.all())
         return course_list_string
+
+    def email_contract(self):
+        unit = self.posting.unit
+        try:
+            contract_email = unit.contract_email_text
+            content = contract_email.content
+            subject = contract_email.subject
+        except TAContractEmailText.DoesNotExist:
+            content = DEFAULT_EMAIL_TEXT
+            subject = DEFAULT_EMAIL_SUBJECT
+
+        response = HttpResponse(content_type="application/pdf")
+        response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % (self.posting.slug,
+                                                                            self.application.person.userid)
+        ta_form(self, response)
+        to_email = self.application.person.email()
+        if self.posting.contact():
+            from_email = self.posting.contact().email()
+        else:
+            from_email = settings.DEFAULT_FROM_EMAIL
+        msg = EmailMultiAlternatives(subject, content, from_email,
+                                     [to_email], headers={'X-coursys-topic': 'ta'})
+        msg.attach(('"%s-%s.pdf' % (self.posting.slug, self.application.person.userid)), response.getvalue(),
+                   'application/pdf')
+        msg.send()
+
 
 class CourseDescription(models.Model):
     """
@@ -795,6 +828,7 @@ class CoursePreference(models.Model):
 # CMPT uses this.
 class TAContractEmailText(models.Model):
     unit = models.OneToOneField(Unit, editable=False, on_delete=models.PROTECT, related_name='contract_email_text')
+    subject = models.CharField(max_length=250, help_text='e.g. "Your TA Contract"')
     content = models.TextField(help_text='e.g. "Please find enclosed your TA Contract..."')
 
     def __str__(self):
