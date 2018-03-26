@@ -48,7 +48,7 @@ function confirmDelete(url) {
       <td>{{role.unit}}</td>
       <td>
           <a href="{% url 'discipline:permission_admin' %}?delete={{ role.pk }}" class="confirm-submit" data-submit-action="delete this role"><i class="fa fa-trash" title="delete permission"></i><span class="sr-only">delete</span></a>
-          <a href="{% url 'discipline:permission_admin' %}?renew={{ role.pk }}"><i class="fa fa-refresh" title="renew permission" title="renew permission"></i><span class="sr-only">renew</span></a>
+          {% if role.expires_far %}<a href="{% url 'discipline:permission_admin' %}?renew={{ role.pk }}"><i class="fa fa-refresh" title="renew permission" title="renew permission"></i><span class="sr-only">renew</span></a>{% endif %}
       </td>
   </tr>
 
