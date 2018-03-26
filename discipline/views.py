@@ -630,6 +630,18 @@ def permission_admin(request):
 
         messages.add_message(request, messages.SUCCESS, 'Deleted role for %s.' % (r.person.name(),))
         return HttpResponseRedirect(reverse('discipline:permission_admin'))
+    elif 'renew' in request.GET:
+        r = get_object_or_404(Role, role__in=['DISC', 'DICC'], id=request.GET['renew'])
+        new_exp = datetime.date.today() + datetime.timedelta(days=365)
+        r.expiry = new_exp
+        r.save()
+        # LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+                     description=("renewed discipline role %s for %s") % (r.role, r.person.name()),
+                     related_object=r.person)
+        l.save()
+        messages.add_message(request, messages.SUCCESS, 'Renewed role for %s.' % (r.person.name(),))
+        return HttpResponseRedirect(reverse('discipline:permission_admin'))
 
     disc_roles = Role.objects_fresh.filter(role__in=['DISC', 'DICC']).select_related('person', 'unit')
     context = {
