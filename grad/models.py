@@ -1017,7 +1017,7 @@ LETTER_TAGS = {
                'sr_supervisor_hisher': 'pronoun for the senior supervisor ("his" or "her")',
                'sr_supervisor_heshe': 'pronoun for the senior supervisor ("he" or "she")',
                'sr_supervisor_himher': 'pronoun for the senior supervisor ("him" or "her")',
-               'sr_supervisor_email': 'potential supervisor\'s email address',
+               'sr_supervisor_email': 'senior supervisor\'s email address',
                'defence_chair_name': 'the name of the student\'s defence chair', 
                'defence_chair_email': 'the email address of the student\'s defence chair',
                'sfu_examiner_name': 'the name of the student\'s internal (SFU) examiner', 
