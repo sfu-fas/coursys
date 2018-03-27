@@ -86,6 +86,7 @@ def register(request, event_slug):
     if request.method == 'POST':
         form = OutreachEventRegistrationForm(request.POST)
         form.add_extra_questions(event)
+        form.check_dietary_field(event)
         if form.is_valid():
             registration = form.save(commit=False)
             registration.event = event
@@ -114,6 +115,7 @@ def register(request, event_slug):
     else:
         form = OutreachEventRegistrationForm()
         form.add_extra_questions(event)
+        form.check_dietary_field(event)
     return render(request, 'outreach/register.html', {'form': form, 'event': event})
 
 
@@ -155,12 +157,13 @@ def edit_registration(request, registration_id, event_slug=None):
     if request.method == 'POST':
         form = OutreachEventRegistrationForm(request.POST, instance=registration)
         form.add_extra_questions(registration.event)
+        form.check_dietary_field(registration.event)
         if form.is_valid():
             registration = form.save(commit=False)
             if 'extra_questions' in registration.event.config and len(registration.event.config['extra_questions']) > 0:
                 temp = {}
                 for question in registration.event.config['extra_questions']:
-                    temp[question] = form.cleaned_data[question.encode('ascii', 'ignore')]
+                    temp[question] = form.cleaned_data[question]
                 registration.config['extra_questions'] = temp
             registration.save()
             messages.add_message(request,
@@ -176,6 +179,7 @@ def edit_registration(request, registration_id, event_slug=None):
     else:
         form = OutreachEventRegistrationForm(instance=registration, initial={'confirm_email': registration.email})
         form.add_extra_questions(registration.event)
+        form.check_dietary_field(registration.event)
     return render(request, 'outreach/edit_registration.html', {'form': form, 'registration': registration,
                                                                'event_slug': event_slug})
 

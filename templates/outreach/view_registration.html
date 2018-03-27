@@ -29,7 +29,9 @@
 <dt>Previously Attended</dt><dd>{{ registration.previously_attended|yesno }}</dd>
 <dt>School</dt><dd>{{ registration.school|default:"None" }}</dd>
 <dt>Grade</dt><dd>{{ registration.grade }}</dd>
-<dt>Notes</dt><dd>{{ registration.notes|default:"None"|linebreaks }}</dd>
+{% if registration.event.show_dietary_question %}
+    <dt>Notes</dt><dd>{{ registration.notes|default:"None"|linebreaks }}</dd>
+{% endif %}
 <dt>Registered at</dt><dd>{{ registration.created_at }}</dd>
 <dt>Last Modified</dt><dd>{{ registration.last_modified }}</dd>
 <dt>Email sent</dt><dd>{{ registration.email_sent|default:"None"|linebreaks }}</dd>

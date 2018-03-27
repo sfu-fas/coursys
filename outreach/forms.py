@@ -85,3 +85,7 @@ class OutreachEventRegistrationForm(forms.ModelForm):
                                         initial=self.instance.config['extra_questions'][question])
                 else:
                     self.fields[question] = forms.CharField(label=question, widget=forms.Textarea)
+
+    def check_dietary_field(self, event):
+        if not event.show_dietary_question:
+            self.fields.pop('notes')

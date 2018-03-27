@@ -76,9 +76,12 @@ class OutreachEvent(models.Model):
                                                help_text='If you fill this in, this will be sent as an email to all '
                                                          'all new registrants as a registration confirmation.')
     enable_waitlist = models.BooleanField(default=False, help_text='If this box is checked and you have a registration'
-                                                                   ' cap which has been met, people will stillbe able '
+                                                                   ' cap which has been met, people will still be able '
                                                                    'to register but will be marked as not attending '
                                                                    'and waitlisted.')
+    show_dietary_question = models.BooleanField(default=True, help_text='If this box is checked, the registration '
+                                                                        'forms will show the dietary restrictions '
+                                                                        'question.  Otherwise, it\'ll be omitted.')
     config = JSONField(null=False, blank=False, default=dict)
     # 'extra_questions': additional questions to ask registrants
 
