@@ -6,7 +6,8 @@
 
 {% block subbreadcrumbs %}
     <li><a href="{% url 'relationships:index' %}">Relationships</a></li>
-    <li>Content Type Reports</li>
+    <li><a href="{% url "relationships:list_reports" %}">Content Type Reports</a></li>
+    <li>{{ handler_name }} Report</li>
 {% endblock %}
 
 {% block actions %}
