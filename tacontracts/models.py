@@ -679,7 +679,7 @@ class EmailReceipt(models.Model):
                                  null=False, 
                                  editable=False,
                                  related_name="email_receipt")
-    content = models.ForeignKey(NewsItem, on_delete=models.PROTECT,
-                                 blank=False,
-                                 null=False,
-                                 editable=False)
+    content = models.ForeignKey(NewsItem, on_delete=models.CASCADE,
+                                blank=False,
+                                null=False,
+                                editable=False)
