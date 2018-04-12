@@ -48,20 +48,20 @@ def index(request):
     form_groups = FormGroup.objects.filter(members__userid=request.user.username).exists()
     has_ras = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username, deleted=False).exists()
 
-    #messages.add_message(request, messages.SUCCESS, 'Success message.')
-    #messages.add_message(request, messages.WARNING, 'Warning message.')
-    #messages.add_message(request, messages.INFO, 'Info message.')
-    #messages.add_message(request, messages.ERROR, 'Error message.')
+    # Special handling only for CMPT TA admins.  They see only their unique workflow, everyone else sees the other one.
+    # Special handling only for CMPT TA admins.  They see only their unique workflow, everyone else sees the other one.
+    cmpt_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD', unit__label='CMPT').exists()
 
-    context = {'memberships': memberships, 
-                'staff_memberships': staff_memberships, 
-                'news_list': news_list, 
-                'roles': roles, 
-                'is_grad':is_grad,
-                'has_grads': has_grads,
-                'has_ras': has_ras,
-                'excluded': excluded, 
-                'form_groups': form_groups}
+    context = {'memberships': memberships,
+               'staff_memberships': staff_memberships,
+               'news_list': news_list,
+               'roles': roles,
+               'is_grad':is_grad,
+               'has_grads': has_grads,
+               'has_ras': has_ras,
+               'excluded': excluded,
+               'form_groups': form_groups,
+               'cmpt_taadmn': cmpt_taadmn}
     return render(request, "dashboard/index.html", context)
 
 @login_required
