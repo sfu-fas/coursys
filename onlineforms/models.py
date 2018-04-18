@@ -670,11 +670,13 @@ class FormSubmission(models.Model):
         # 'summary': summary of the form entered when closing it
         # 'emailed': True if the initiator was emailed when the form was closed
         # 'closer': coredata.Person.id of the person that marked the formsub as DONE
+        # 'email_cc':  email addresses that got CCed when the student got emailed.
 
-    defaults = {'summary': '', 'emailed': False, 'closer': None}
+    defaults = {'summary': '', 'emailed': False, 'closer': None, 'email_cc': None}
     summary, set_summary = getter_setter('summary')
     emailed, set_emailed = getter_setter('emailed')
     closer_id, set_closer = getter_setter('closer')
+    email_cc, set_email_cc = getter_setter('email_cc')
 
     def update_status(self):
         sheet_submissions = SheetSubmission.objects.filter(form_submission=self)
@@ -716,7 +718,7 @@ class FormSubmission(models.Model):
 
         return self.sheetsubmission_set.all().aggregate(Max('completed_at'))['completed_at__max']
 
-    def email_notify_completed(self, request, admin):
+    def email_notify_completed(self, request, admin, email_cc=None):
         plaintext = get_template('onlineforms/emails/notify_completed.txt')
         html = get_template('onlineforms/emails/notify_completed.html')
 
@@ -724,8 +726,11 @@ class FormSubmission(models.Model):
         subject = '%s for %s submission complete' % (self.form.title, self.initiator.name())
         from_email = FormFiller.form_full_email(admin)
         to = self.initiator.full_email()
+        if email_cc:
+            email_cc = [l.strip() for l in email_cc.split(',')]
+
         msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
-                from_email=from_email, to=[to], bcc=[admin.full_email()],
+                from_email=from_email, to=[to], bcc=[admin.full_email()], cc=email_cc,
                 headers={'X-coursys-topic': 'onlineforms'})
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()

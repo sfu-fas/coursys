@@ -175,7 +175,10 @@ class CloseFormForm(forms.Form):
                 widget=forms.Textarea(attrs={'rows': '5', 'cols': '70'})
                 )
     email = forms.BooleanField(initial=False, required=False, help_text="Would you like to email the summary to the student?")
-    
+    email_cc = forms.CharField(label='Email CC', required=False, widget=forms.TextInput(),
+                               help_text='If you are emailing the student, you can also get others to be '
+                                         'CCed as well. Please add addresses here, separated by commas.')
+
     def __init__(self, advisor_visible, *args, **kwargs):
         super(CloseFormForm, self).__init__(*args, **kwargs)
         self.used = True

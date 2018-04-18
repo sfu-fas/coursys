@@ -1039,11 +1039,16 @@ def view_submission(request, form_slug, formsubmit_slug):
             if close_form.is_valid():
                 admin = Person.objects.get(userid=request.user.username)
                 email = False
+                email_cc = None
                 if 'summary' in close_form.cleaned_data:
                     form_submission.set_summary(close_form.cleaned_data['summary'])
                 if 'email' in close_form.cleaned_data:
                     form_submission.set_emailed(close_form.cleaned_data['email'])
                     email = close_form.cleaned_data['email']
+                if 'email_cc' in close_form.cleaned_data:
+                    form_submission.set_email_cc(close_form.cleaned_data['email_cc'])
+                    email_cc = close_form.cleaned_data['email_cc']
+
 
                 for ss in waiting_sheets:
                     ss.status = 'REJE'
@@ -1055,7 +1060,7 @@ def view_submission(request, form_slug, formsubmit_slug):
                 form_submission.save()
 
                 if email:
-                    form_submission.email_notify_completed(request, admin)
+                    form_submission.email_notify_completed(request, admin, email_cc=email_cc)
                     messages.success(request, 'Form submission marked as completed; initiator informed by email.')
                     FormLogEntry.create(form_submission=form_submission, user=admin, category='ADMN',
                         description='Marked form completed (and emailed to notify user).')
