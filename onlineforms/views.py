@@ -33,14 +33,14 @@ import os
 #######################################################################
 # Group Management
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FORM'])
 def manage_groups(request):
     groups = FormGroup.objects.filter(unit__in=Unit.sub_units(request.units))
     context = {'groups': groups}
     return render(request, 'onlineforms/manage_groups.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FORM'])
 def new_group(request):
     with django.db.transaction.atomic():
         unit_choices = [(u.id, str(u)) for u in Unit.sub_units(request.units)]
@@ -66,7 +66,7 @@ def new_group(request):
         return render(request, 'onlineforms/new_group.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FORM'])
 def manage_group(request, formgroup_slug):
     with django.db.transaction.atomic():
         group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=Unit.sub_units(request.units))
@@ -92,7 +92,7 @@ def manage_group(request, formgroup_slug):
         return render(request, 'onlineforms/manage_group.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FORM'])
 def add_group_member(request, formgroup_slug):
     with django.db.transaction.atomic():
         group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=Unit.sub_units(request.units))
@@ -124,7 +124,7 @@ def add_group_member(request, formgroup_slug):
         return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup_slug}))
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FORM'])
 def remove_group_member(request, formgroup_slug, userid):
     with django.db.transaction.atomic():
         group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=Unit.sub_units(request.units))
@@ -870,10 +870,10 @@ def index(request):
         other_forms = Form.objects.filter(active=True, initiators='LOG')
         other_forms = [form for form in other_forms if not form.unlisted()]
 
-    dept_admin = Role.objects_fresh.filter(role='ADMN', person__userid=request.user.username).count() > 0
+    form_admin = Role.objects_fresh.filter(role__in=['ADMN', 'FORM'], person__userid=request.user.username).count() > 0
 
     context = {'forms': forms, 'other_forms': other_forms, 'sheet_submissions': sheet_submissions,
-               'form_groups': form_groups, 'dept_admin': dept_admin, 'participated': participated}
+               'form_groups': form_groups, 'form_admin': form_admin, 'participated': participated}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
 

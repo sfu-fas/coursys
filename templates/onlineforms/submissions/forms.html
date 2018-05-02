@@ -25,7 +25,7 @@
 {% endblock %}
 
 {% block actions %}
-{% if form_groups or dept_admin %}
+{% if form_groups or form_admin %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
@@ -33,7 +33,7 @@
         <li><a href="{% url "onlineforms:list_all" %}">Create/Edit Forms</a></li>
         <li><a href="{% url "onlineforms:admin_list_all" %}">Manage Submissions</a></li>
         {% endif %}
-    	{% if dept_admin %}
+    	{% if form_admin %}
         <li><a href="{% url "onlineforms:manage_groups" %}">Manage Form Groups</a></li>
         {% endif %}
         {% if participated %}
