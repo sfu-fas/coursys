@@ -1176,7 +1176,7 @@
 },
 {
  "fields": {
-  "config": "{\"privacy_signed\":true,\"privacy_version\":1,\"privacy_date\":\"2017-03-27\"}",
+  "config": "{\"privacy_signed\":true,\"privacy_version\":1,\"privacy_date\":\"2017-03-27\",\"privacy_da_signed\":true,\"privacy_da_version\":1,\"privacy_da_date\":\"2017-03-27\"}",
   "emplid": 200000117,
   "first_name": "Danyu",
   "last_name": "Zhao",

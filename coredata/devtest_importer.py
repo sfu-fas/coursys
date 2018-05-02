@@ -18,7 +18,7 @@ from coredata.models import Person, Unit, Role, Semester, SemesterWeek, Holiday,
 from coredata.importer import import_semester_info, import_offerings, import_offering_members, ensure_member
 from coredata.queries import add_person, SIMSConn, cache_by_args
 from grades.models import NumericActivity
-from privacy.models import set_privacy_signed
+from privacy.models import set_privacy_signed, set_privacy_da_signed
 from courselib.testing import TEST_COURSE_SLUG
 import itertools, random, string
 import datetime, time
@@ -217,6 +217,7 @@ def create_coredata():
 
     d = Person.objects.get(userid='dzhao')
     set_privacy_signed(d)
+    set_privacy_da_signed(d)
     u = Unit.objects.get(slug='cmpt')
     r1 = Role(person=d, role='ADVS', unit=u, expiry=role_expiry)
     r1.save()
@@ -707,7 +708,7 @@ def create_outreach():
     e = OutreachEvent(title='A Test Event', start_date=start, end_date=end, unit=unit, notes='Here are some notes',
                       description='An event to test', slug='devtest_a_test_event')
     e.save()
-    dob = datetime.date(1800,01,01)
+    dob = datetime.date(1800, 1, 1)
     r = OutreachEventRegistration(event=e, birthdate=dob, parent_name='Joe Smith Sr.', last_name='SomePerson', first_name='Bob',
                                   school='Little Lord Fauntleroy School for Albino Hemophiliacs', grade=2)
     r.save()

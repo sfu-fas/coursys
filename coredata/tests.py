@@ -52,7 +52,9 @@ def create_unit():
 def create_greg(unit):
     baker = Person(emplid="123456789", userid="ggbaker", first_name="Greg", last_name="Baker")
     baker.config['privacy_date'] = date(2008,9,9)
-    baker.config['privacy_version'] = 1 
+    baker.config['privacy_version'] = 1
+    baker.config['privacy_da_date'] = date(2008, 9, 9)
+    baker.config['privacy_da_version'] = 1
     baker.save()
     for role_tuple in ROLE_CHOICES:
         role = Role(person=baker, role=role_tuple[0], unit=unit, expiry=date.today())
@@ -299,6 +301,7 @@ class CoredataTest(TestCase):
         r = Role.objects.filter(role='SYSA')[0]
         p = r.person
         p.config['privacy_signed'] = True
+        p.config['privacy_da_signed'] = True
         p.save()
 
         client = Client()

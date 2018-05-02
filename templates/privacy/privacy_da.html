@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Departmental Administrator Privacy Agreement{% endblock %}
+{% block h1 %}Departmental Administrator Privacy Agreement{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "config:config" %}">User Configuration</a></li>
+    <li>Departmental Administrator Privacy Agreement</li>
+{% endblock %}
+
+{% block content %}
+
+{% if good_to_go %}
+    <h2>You're good to go!</h2>
+    <form action="{% url 'dashboard:index' %}" method="get">
+        <p>
+        You've already signed this Privacy Agreement, as of {{privacy_date}}.
+        </p>
+            <p><input type="submit" class="submit" value="Well, then, I'm leaving." /></p>
+    </form>
+{% else %}
+    <div class='warning'>
+    <h2><i class="fa fa-warning"></i>
+        Sorry to bother you, but&hellip;</h2>
+    <p>We need you to agree to our privacy policy before continuing.</p>
+    <p>This agreement is adapted from the University's privacy statement required for access to the Student Information Management System (SIMS)
+        and we are asking you to agree to it since {{ CourSys }} gives you access to some data from SIMS (and other private data that is managed by {{ CourSys }}) as part of your role here.</p>
+    <p>You may have already signed our privacy policy for some other role, this agreement is particular to departmental administrators.</p>
+    </div>
+{% endif %}
+
+<div class='privacy'>
+    <p>
+        As your Faculty’s Departmental Administrator for {{ CourSys }}, you recognize that {{ CourSys }} access will provide
+        you and those you assign a role to with the ability to view and retrieve personal and confidential data. 
+        As such, as an assigned Departmental Administrator in {{ CourSys }}, you are agreeing to the following when assigning
+        individuals in your Faculty to a particular role:
+    </p>
+
+    <ul class="bulleted">
+        <li>
+            No role account will be assigned to an SFU employee who does not already have SIMS access, and who
+            has not completed the SIMS confidentially agreement
+        </li>
+        <li>
+            No role account will be assigned to an SFU employee who does not require the data to perform their work at
+            the University.
+        </li>
+        <li>
+            Data provided via {{ CourSys }} shall not be re-purposed in any way.
+        </li>
+        <li>
+            Roles are to only be assigned to those SFU employees for the length of their contract.  Please note, all
+            roles expire after a maximum of one (1) year. 
+        </li>
+        <li>
+            You are agreeing that you have an exit checklist for each employee in your Faculty, and upon their leaving
+            their position, removal of their {{ CourSys }} access will be completed in a timely manner
+        </li>
+        <li>
+            You recognize that {{ CourSys }} access will provide you and those you assign a role to with the ability to view
+            and retrieve personal data and that you have a legal obligation to protect personal information to which
+            you have access through {{ CourSys }} - and by extension, a subset of the SIMS Reporting Database.
+        </li>
+        <li>
+            In accordance with the Freedom of Information and Protection of Privacy Act , and
+            <a href="http://www.sfu.ca/policies/gazette/information/I10-04.html">University Policy I 10.04</a>,
+            you agree to protect all personal information to which you have access to, and those you provide {{ CourSys }}
+            access to during the term your appointment with the University.
+        </li>
+        <li>
+            You agree to use information contained in {{ CourSys }} only for the purposes for which the personal information
+            was collected and for purposes consistent with your job duties.
+        </li>
+        <li>
+            You agree that you will disclose personal information only as permitted by law.
+        </li>
+    </ul>
+    <p>
+        <h2><i class="fa fa-warning"></i> Please note</h2>The core {{ CourSys }} data is a copy of data contained in
+            the SIMS reporting database, which in its basic form consists of hundreds of tables and complex
+            interrelationships. Frequently, it is not obvious how the data is structured nor is the meaning of
+            individual data elements. All users, including those who only run queries produced by others, should be
+            trained to verify data as results may change as new parameters (user groups, academic plans, etc.) are
+            added/changed/deleted in the database. The impact of such changes on query results may not be obvious and
+            hence the use of such information may result in erroneous or inappropriate actions. The Department
+            recognizes and accepts any and all consequences of the Applicant's use of this data.
+    </p>
+</div>
+
+<div class="form_container">
+    <form method="post">
+        {% csrf_token %}
+            {{ form|as_dl }}
+            <p><input type="submit" class="submit" value="Continue" /></p>
+    </form>
+</div>
+{% endblock %}

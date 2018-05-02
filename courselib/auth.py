@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe
 from django.db.models import Q
 from coredata.models import Role, CourseOffering, Member, Semester
 from onlineforms.models import FormGroup, Form
-from privacy.models import needs_privacy_signature, privacy_redirect
+from privacy.models import needs_privacy_signature, privacy_redirect, needs_privacy_signature_da, privacy_da_redirect
 import urllib.request, urllib.parse, urllib.error
 import datetime
 
@@ -34,6 +34,8 @@ def user_passes_test(test_func, login_url=None,
                     # logic there: usually only check for the admin roles we know have a privacy implication. If we're
                     # passed force_privacy, then views must have the privacy agreement.
                     return privacy_redirect(request)
+                elif needs_privacy_signature_da(request):
+                    return privacy_da_redirect(request)
                 else:
                     return view_func(request, *args, **kwargs)
             elif request.user.is_authenticated:
