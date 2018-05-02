@@ -31,12 +31,12 @@ def needs_privacy_signature(request, only_relevant_roles=False):
     except Person.DoesNotExist:
         return False # non-Person can't have a role to worry about
 
-    if 'privacy_signed' in you.config and you.config['privacy_signed']:
+    if 'privacy_signed' in you.config and you.config['privacy_signed'] and 'privacy_version' in you.config and \
+            you.config['privacy_version'] == PRIVACY_VERSION:
         return False
 
     if only_relevant_roles:
-        roles = Role.objects_fresh.filter(person__userid=request.user.username,
-                                role__in=RELEVANT_ROLES)
+        roles = Role.objects_fresh.filter(person__userid=request.user.username, role__in=RELEVANT_ROLES)
         return roles.exists()
     else:
         return True
@@ -66,7 +66,8 @@ def needs_privacy_signature_da(request):
     except Person.DoesNotExist:
         return False # non-Person can't have a role to worry about
 
-    if 'privacy_da_signed' in you.config and you.config['privacy_da_signed']:
+    if 'privacy_da_signed' in you.config and you.config['privacy_da_signed'] and 'privacy_da_version' in you.config and \
+            you.config['privacy_da_version'] == PRIVACY_DA_VERSION:
         return False
 
     roles = Role.objects_fresh.filter(person__userid=request.user.username, role='ADMN')
