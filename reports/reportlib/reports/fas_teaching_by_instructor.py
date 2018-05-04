@@ -10,13 +10,15 @@ class CourseTeachingByInstructorReport(Report):
     description = "This report summarizes course information for FAS schools, including enrollment, instructors, etc"
 
     def run(self):
-        sems = Semester.objects.filter(name__gte='1101', name__lte=Semester.current().offset(1).name)
+        sems = Semester.objects.filter(name__gte='1101', name__lte=Semester.current().name)
         u = Unit.objects.filter(label__in=['CMPT', 'MSE', 'ENSC'])
         courses = CourseOffering.objects.prefetch_related('meeting_time').filter(semester__in=sems, owner__in=u,
                                                                                  graded=True).exclude(
             flags=CourseOffering.flags.combined).exclude(subject='DDP').order_by('semester', 'subject', 'number')
 
-        instructors = Member.objects.filter(role='INST', added_reason='AUTO', offering__in=courses).order_by('person__last_name', 'person__first_name', 'offering__semester__name')
+        instructors = Member.objects.filter(role='INST', added_reason='AUTO', offering__in=courses) \
+            .exclude(offering__component='CAN') \
+            .order_by('person__last_name', 'person__first_name', 'offering__semester__name')
 
         course_history = Table()
         course_history.append_column('Instructor')
@@ -24,7 +26,7 @@ class CourseTeachingByInstructorReport(Report):
         course_history.append_column('Last Teaching Semester')
         course_history.append_column('Current Rank')
         course_history.append_column('School')
-        course_history.append_column('Course Count')
+        course_history.append_column('Teaching Credits')
         course_history.append_column('Mean Headcount')
         course_history.append_column('Crs per Year')
         course_history.append_column('Crs Levels')
@@ -45,12 +47,12 @@ class CourseTeachingByInstructorReport(Report):
                 continue
 
             offerings = [m.offering for m in memberships]
-            num_offerings = len(offerings)
+            num_offerings = float(sum(m.teaching_credit() for m in memberships))
             headcount = sum(o.enrl_tot for o in offerings)
             duration = last_semester - first_semester + 1
             levels = sorted(list(set(str(o.number)[0] for o in offerings)))
 
-            course_history.append_row([instr, first_semester.name, last_semester.name, rank, unit, num_offerings,
+            course_history.append_row([instr, first_semester.name, last_semester.name, rank, unit, round(num_offerings, 1),
                                        round(headcount/num_offerings, 1), round(num_offerings/duration*3, 1),
                                        ','.join(levels)])
 
