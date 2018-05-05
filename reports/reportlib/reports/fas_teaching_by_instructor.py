@@ -52,7 +52,7 @@ class CourseTeachingByInstructorReport(Report):
             if rank == 'unknown':
                 rank = 'non-faculty'
             if unit == '':
-                unit = ', '.join(m.offering.subject for m in memberships)
+                unit = ', '.join(set(m.offering.subject for m in memberships))
 
             offerings = [m.offering for m in memberships]
             num_offerings = float(sum(m.teaching_credit() for m in memberships))
