@@ -7,7 +7,7 @@ import itertools
 
 class CourseTeachingByInstructorReport(Report):
     title = "Course Teaching by Instructor"
-    description = "This report summarizes course information for FAS schools, including enrollment, instructors, etc"
+    description = "This report summarizes course information for FAS schools by instructor."
 
     def run(self):
         sems = Semester.objects.filter(name__gte='1101', name__lte=Semester.current().name)
@@ -29,6 +29,7 @@ class CourseTeachingByInstructorReport(Report):
         course_history.append_column('Teaching Credits')
         course_history.append_column('Mean Headcount')
         course_history.append_column('Crs per Year')
+        course_history.append_column('Unique Crs')
         course_history.append_column('Crs Levels')
 
         for i, memberships in itertools.groupby(instructors, key=lambda i: i.person):
@@ -43,17 +44,18 @@ class CourseTeachingByInstructorReport(Report):
             roles = Role.objects.filter(person=i, role='FAC').select_related('unit')
             unit = ', '.join(r.unit.label for r in roles)
 
-            if rank == 'unknown' or unit == '':
-                continue
+            #if rank == 'unknown' or unit == '':
+            #    continue
 
             offerings = [m.offering for m in memberships]
             num_offerings = float(sum(m.teaching_credit() for m in memberships))
             headcount = sum(o.enrl_tot for o in offerings)
             duration = last_semester - first_semester + 1
             levels = sorted(list(set(str(o.number)[0] for o in offerings)))
+            unique = len(set(o.course_id for o in offerings))
 
-            course_history.append_row([instr, first_semester.name, last_semester.name, rank, unit, round(num_offerings, 1),
+            course_history.append_row([instr, first_semester.name, last_semester.name, rank, unit, round(num_offerings, 2),
                                        round(headcount/num_offerings, 1), round(num_offerings/duration*3, 1),
-                                       ','.join(levels)])
+                                       unique, ','.join(levels)])
 
         self.artifacts.append(course_history)
