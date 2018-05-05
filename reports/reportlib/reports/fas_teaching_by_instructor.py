@@ -9,6 +9,11 @@ class CourseTeachingByInstructorReport(Report):
     title = "Course Teaching by Instructor"
     description = "This report summarizes course information for FAS schools by instructor."
 
+    def __init__(self, logger):
+        self.artifacts = []
+        self.logger = logger
+        # skip SIMS-related things
+
     def run(self):
         sems = Semester.objects.filter(name__gte='1101', name__lte=Semester.current().name)
         u = Unit.objects.filter(label__in=['CMPT', 'MSE', 'ENSC'])
@@ -44,8 +49,10 @@ class CourseTeachingByInstructorReport(Report):
             roles = Role.objects.filter(person=i, role='FAC').select_related('unit')
             unit = ', '.join(r.unit.label for r in roles)
 
-            #if rank == 'unknown' or unit == '':
-            #    continue
+            if rank == 'unknown':
+                rank = 'non-faculty'
+            if unit == '':
+                unit = ', '.join(m.offering.subject for m in memberships)
 
             offerings = [m.offering for m in memberships]
             num_offerings = float(sum(m.teaching_credit() for m in memberships))
