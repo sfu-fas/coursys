@@ -20,6 +20,7 @@ from cache_utils.decorators import cached
 from haystack.query import SearchQuerySet
 import socket, json, datetime, os
 from functools import reduce
+from operator import itemgetter
 
 @requires_global_role("SYSA")
 def sysadmin(request):
@@ -728,6 +729,8 @@ def unit_role_list(request):
 @requires_role("ADMN")
 def new_unit_role(request, role=None):
     role_choices = [(r,ROLES[r]) for r in UNIT_ROLES]
+    # Make the form more readable by sorting by role long name.
+    role_choices.sort(key=itemgetter(1))
     unit_choices = [(u.id, str(u)) for u in Unit.sub_units(request.units)]
     if request.method == 'POST':
         form = UnitRoleForm(request.POST)
