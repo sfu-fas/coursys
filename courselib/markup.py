@@ -161,7 +161,7 @@ class MarkupContentField(forms.MultiValueField):
     widget = MarkupContentWidget
 
     def __init__(self, with_wysiwyg=False, rows=20, default_markup='creole', allow_math=True, restricted=False,
-                 max_length=10000, *args, **kwargs):
+                 max_length=100000, *args, **kwargs):
         choices = MARKUP_CHOICES_WYSIWYG if with_wysiwyg else MARKUP_CHOICES
         fields = [
             forms.CharField(required=True, max_length=max_length),
