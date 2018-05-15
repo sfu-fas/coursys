@@ -10,13 +10,13 @@ class WaitingListQuery(DB2_Query):
     description = "Everyone enrolled as Waitlisted"
 
     query = string.Template("""
-    SELECT e.emplid, e.ACAD_PROG, e.ENRL_STATUS_REASON, c.subject, c.catalog_nbr, c.CLASS_SECTION, c.descr, e.STATUS_DT
+    SELECT e.emplid, e.ACAD_PROG, c.subject, c.catalog_nbr, c.CLASS_SECTION, c.class_nbr, e.STATUS_DT, e.STDNT_POSITIN
                  FROM ps_stdnt_enrl e
                  JOIN ps_class_tbl c
                    ON e.class_nbr=c.class_nbr AND e.strm=c.strm
                  AND c.class_type='E' AND e.stdnt_enrl_status='W'
                  AND e.strm=$strm AND c.SUBJECT=$subject 
-                 ORDER BY e.strm, c.subject, c.catalog_nbr, e.STATUS_DT, e.emplid;
+                 ORDER BY e.strm, c.subject, c.catalog_nbr, e.STDNT_POSITIN, e.STATUS_DT, e.emplid;
     """)
 
 
