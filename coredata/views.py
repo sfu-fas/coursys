@@ -841,6 +841,7 @@ def missing_instructors(request, unit_slug):
     missing = list(missing)
     missing.sort()
     initial = [{'person': p, 'role': None} for p in missing]
+    new_exp = datetime.date.today() + datetime.timedelta(days=365)
 
     if request.method == 'POST':
         formset = InstrRoleFormSet(request.POST, initial=initial)
@@ -852,7 +853,7 @@ def missing_instructors(request, unit_slug):
                 if r == "NONE" or p not in missing:
                     continue
                 
-                r = Role(person=p, role=r, unit=unit)
+                r = Role(person=p, role=r, unit=unit, expiry=new_exp)
                 r.save()
                 count += 1
 
