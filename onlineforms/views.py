@@ -518,7 +518,8 @@ def view_form(request, form_slug):
         return HttpResponseRedirect(
             reverse('onlineforms:view_form', kwargs={'form_slug':form.slug }))
 
-    context = {'form': form, 'sheets': sheets}
+    form_url = request.build_absolute_uri(reverse('onlineforms:sheet_submission_initial', kwargs={'form_slug': form_slug}))
+    context = {'form': form, 'sheets': sheets, 'form_url': form_url}
     return render(request, "onlineforms/view_form.html", context)       
 
 
