@@ -1607,7 +1607,6 @@ class Role(models.Model):
         def get_queryset(self):
             return super(Role.RoleNonExpiredManager, self).get_queryset().filter(expiry__gte=datetime.date.today())
 
-    ROLES = dict(ROLE_CHOICES)
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
     role = models.CharField(max_length=4, choices=ROLE_CHOICES)
     unit = models.ForeignKey(Unit, on_delete=models.PROTECT)

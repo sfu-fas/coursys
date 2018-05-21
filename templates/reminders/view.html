@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Reminder: {{ reminder.title }}{% endblock %}
+{% block h1 %}Reminder: {{ reminder.title }}{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'reminders:index' %}">Reminders</a></li>
+<li>{{ reminder.title }}</li>
+{% endblock %}
+
+{% block content %}
+
+{{ reminder }}
+
+{% endblock %}
