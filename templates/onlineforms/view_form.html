@@ -99,4 +99,8 @@
     {% endif %}
 </div>
 
+<h2>URL</h2>
+{% if form.unlisted %}This form is unlisted.  {% endif %}
+The URL where people can fill this form out (if it is enabled) is <a href="{{ form_url }}">{{ form_url }}</a>
+
 {% endblock %}
