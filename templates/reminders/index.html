@@ -13,7 +13,7 @@ $(document).ready(function() {
     'bInfo': false,
     'bLengthChange': false,
     "bJQueryUI": true,
-    'aaSorting': [[0, 'asc'], [1, 'asc']]
+    'aaSorting': [[1, 'asc'], [2, 'asc']]
   } );
 } );
 
@@ -23,38 +23,35 @@ $(document).ready(function() {
 {% block actions %}
 <div id="actions">
     <h2>Actions</h2>
-    <ul>
-        <li><a href="{% url 'reminders:create' %}">Create Reminder</a></li>
+    <ul class="fa-ul">
+        <li><i class="fa fa-li fa-plus"></i> <a href="{% url 'reminders:create' %}">Create Reminder</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {% block content %}
 
-<h2 id="pers">Reminders</h2>
 {% if reminders %}
     <table class="reminder-table">
         <thead>
             <tr>
+            <th scope="col">Title</th>
             <th scope="col">When?</th>
             <th scope="col">Who?</th>
-            <th scope="col">Title</th>
-            <th scope="col">Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for rem in reminders %}
             <tr>
+                <td><a href="{% url 'reminders:view' reminder_slug=rem.slug %}">{{ rem.title }}</a></td>
                 <td><span class="sort">{{ rem.date_sort }}</span>{{ rem.date_description }}</td>
                 <td>{{ rem.who_description }}</td>
-                <td>{{ rem.title }}</td>
-                <td>X</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 {% else %}
-    <p class="empty">None defined.</p>
+    <p class="empty">No reminders defined.</p>
 {% endif %}
 
 {% endblock %}

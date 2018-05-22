@@ -1622,7 +1622,7 @@ class Role(models.Model):
     objects_fresh = RoleNonExpiredManager()
 
     def __str__(self):
-        return "%s (%s, %s)" % (self.person, self.ROLES[str(self.role)], self.unit.label)
+        return "%s (%s, %s)" % (self.person, ROLES[str(self.role)], self.unit.label)
     class Meta:
         unique_together = (('person', 'role', 'unit'),)
 
