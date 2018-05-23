@@ -2,24 +2,36 @@ from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+from django.db.models import Q
 
 from courselib.auth import get_person
 from coredata.models import Role
-from .models import Reminder
+from .models import Reminder, ReminderMessage
 from .forms import ReminderForm
 
+import operator
+from functools import reduce
 
 @login_required
 def index(request):
     person = get_person(request.user)
-    user_roles = Role.objects_fresh.filter(person=person)
+
+    # TODO: these should be in tasks, not here.
     Reminder.create_all_reminder_messages()
-    
-    personal_reminders = Reminder.objects.filter(person=person).select_related('course')
-    # TODO: find role reminders
-    role_reminders = Reminder.objects.none().select_related('unit')
-    
-    reminders = list(personal_reminders) + list(role_reminders)
+    ReminderMessage.send_all()
+
+    # PERS, INST reminders for this person
+    personal_reminders = Reminder.objects.filter(reminder_type__in=['PERS','INST'], person=person).select_related('course')
+
+    # ROLE reminders for this person's current roles
+    user_roles = Role.objects_fresh.filter(person=person)
+    role_query = reduce(
+        operator.or_,
+        (Q(role=r.role) & Q(unit=r.unit) for r in user_roles)
+        )
+    role_reminders = Reminder.objects.filter(role_query, reminder_type='ROLE').select_related('unit')
+
+    reminders = set(personal_reminders) | set(role_reminders)
     context = {
         'reminders': reminders,
     }
@@ -45,6 +57,12 @@ def create(request):
         'form': form,
     }
     return render(request, 'reminders/create.html', context)
+
+
+@login_required
+def edit(request, reminder_slug):
+    # TODO
+    raise NotImplementedError()
 
 
 @login_required

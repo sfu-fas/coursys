@@ -10,6 +10,15 @@
 <li>{{ reminder.title }}</li>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul class="fa-ul">
+        <li><i class="fa fa-li fa-edit"></i> <a href="{% url 'reminders:edit' reminder_slug=reminder.slug %}">Edit Reminder</a></li>
+    </ul>
+</div>
+{% endblock %}
+
 {% block content %}
 
 {{ reminder }}

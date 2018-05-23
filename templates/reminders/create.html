@@ -1,8 +1,13 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load staticfiles %}
 
 {% block title %}New Reminder{% endblock %}
 {% block h1 %}New Reminder{% endblock %}
+
+{% block headextra %}
+<script src="{% static 'js/reminders.js' %}"></script>
+{% endblock %}
 
 
 {% block subbreadcrumbs %}
@@ -11,7 +16,7 @@
 {% endblock %}
 
 {% block content %}
-<form action="{% url 'reminders:create' %}" method="post">
+<form action="{% url 'reminders:create' %}" class="reminder-form" method="post">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>

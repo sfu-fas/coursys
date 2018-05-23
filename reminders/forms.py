@@ -13,6 +13,7 @@ class RoleUnitWidget(forms.MultiWidget):
             forms.TextInput()
         ]
         super().__init__(widgets=widgets, *args, **kwargs)
+
     def decompress(self, value):
         if value:
             return value.split(' ')
@@ -34,7 +35,8 @@ class RoleUnitField(forms.MultiValueField):
 
 
 class ReminderForm(MarkupContentMixin(), forms.ModelForm):
-    content = MarkupContentField()
+    content = MarkupContentField(allow_math=False, restricted=True)
+    # TODO: should be able to choose exactly the role/unit pairs the user has in one nice widget
     #role_unit = RoleUnitField()
 
     def __init__(self, person, *args, **kwargs):
@@ -48,6 +50,9 @@ class ReminderForm(MarkupContentMixin(), forms.ModelForm):
         self.fields['reminder_type'].choices = [(k,v) for k,v in self.fields['reminder_type'].choices if k
                                                 and (courses_set or k != 'INST')]
         self.fields['date_type'].choices = [(k,v) for k,v in self.fields['date_type'].choices if k]
+
+    # TODO: clean the field for values/null as implied by the reminder_type and date_type values
+    # TODO: shouldn't be able to select Feb 31
 
     class Meta:
         model = Reminder

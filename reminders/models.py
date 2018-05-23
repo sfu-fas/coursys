@@ -1,10 +1,13 @@
-from django.db import models, IntegrityError
+from django.db import models, transaction, IntegrityError
 from django.utils.dates import WEEKDAYS, MONTHS
+from django.core.mail import send_mail
+
 from courselib.json_fields import JSONField, config_property
 from coredata.models import Person, Unit, Course, Member, Semester, Role, ROLE_CHOICES, ROLES
 
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
+from courselib.markup import markup_to_html
 import datetime
 
 
@@ -41,10 +44,6 @@ ReminderManager = BaseManager.from_queryset(models.QuerySet)
 
 class Reminder(models.Model):
     reminder_type = models.CharField(max_length=4, choices=REMINDER_TYPE_CHOICES, null=False, blank=False, verbose_name='Who gets reminded?')
-    date_type = models.CharField(max_length=4, choices=REMINDER_DATE_CHOICES, null=False, blank=False)
-    title = models.CharField(max_length=100, help_text='Title for the reminder/subject for the reminder email')
-    content = models.TextField(help_text='Text for the reminder', blank=False, null=False)
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='A', blank=False, null=False)
 
     # for reminder_type == 'PERS': the user who created the reminder.
     person = models.ForeignKey(Person, null=False, on_delete=models.CASCADE)
@@ -57,6 +56,8 @@ class Reminder(models.Model):
     course = models.ForeignKey(Course, null=True, blank=True, on_delete=models.CASCADE)
     # also uses .person
 
+    date_type = models.CharField(max_length=4, choices=REMINDER_DATE_CHOICES, null=False, blank=False)
+
     # for date_type == 'YEAR'
     month = models.CharField(max_length=1, null=True, blank=True, choices=MONTH_CHOICES)
     day = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -64,7 +65,12 @@ class Reminder(models.Model):
     # for date_type == 'SEM'
     week = models.PositiveSmallIntegerField(null=True, blank=True)
     weekday = models.CharField(max_length=1, null=True, blank=True, choices=WEEKDAY_CHOICES)
-    
+
+    # used for all reminders
+    title = models.CharField(max_length=100, help_text='Title for the reminder/subject for the reminder email')
+    content = models.TextField(help_text='Text for the reminder', blank=False, null=False)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='A', blank=False, null=False)
+
     def autoslug(self):
         return make_slug(self.reminder_type + '-' + self.date_type + '-' + self.title)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
@@ -141,31 +147,38 @@ class Reminder(models.Model):
         # TODO: this is a pretty unrealistic range
         return today - datetime.timedelta(days=365), today + datetime.timedelta(days=365)
 
-    def create_reminder_on(self, date, startdate, enddate):
-        if startdate > date or date > enddate:
+    def create_reminder_on(self, date, start_date, end_date):
+        if start_date > date or date > end_date:
             # not timely, so ignore
             return
 
-        # TODO: not self.person, but forall relevant people
-        recip = self.person
-        ident = '%s_%s_%s' % (self.slug, recip.userid_or_emplid(), date.isoformat())
-        rm = ReminderMessage(reminder=self, sent=False, date=date, person=recip, ident=ident)
-        print(rm)
-        try:
-            rm.save()
-        except IntegrityError:
-            # already been created because we got IntegrityError on rm.ident
-            pass
+        if self.reminder_type == 'ROLE':
+            roles = Role.objects_fresh.filter(unit=self.unit, role=self.role).select_related('person')
+            recipients = [r.person for r in roles]
+        elif self.reminder_type in ['PERS', 'INST']:
+            recipients = [self.person]
+        else:
+            raise ValueError()
 
-    def create_reminder_messages(self, startdate, enddate):
+        for recip in recipients:
+            ident = '%s_%s_%s' % (self.slug, recip.userid_or_emplid(), date.isoformat())
+            rm = ReminderMessage(reminder=self, sent=False, date=date, person=recip, ident=ident)
+            try:
+                rm.save()
+            except IntegrityError:
+                # already been created because we got IntegrityError on rm.ident
+                pass
+
+    def create_reminder_messages(self, start_date, end_date):
         """
         Create any ReminderMessages that don't already exist, between startdate and enddate.
         """
         if self.date_type == 'YEAR':
-            next1 = datetime.date(year=startdate.year, month=int(self.month), day=self.day)
-            next2 = datetime.date(year=startdate.year+1, month=int(self.month), day=self.day)
-            self.create_reminder_on(next1, startdate, enddate)
-            self.create_reminder_on(next2, startdate, enddate)
+            next1 = datetime.date(year=start_date.year, month=int(self.month), day=self.day)
+            next2 = datetime.date(year=start_date.year+1, month=int(self.month), day=self.day)
+            self.create_reminder_on(next1, start_date, end_date)
+            self.create_reminder_on(next2, start_date, end_date)
+
         elif self.date_type == 'SEM':
             if self.reminder_type == 'INST':
                 # limit to semesters actually teaching
@@ -179,7 +192,8 @@ class Reminder(models.Model):
             for sem in [this_sem.previous_semester(), this_sem, this_sem.next_semester()]:
                 if semesters is None or sem in semesters:
                     next = sem.duedate(self.week, int(self.weekday), datetime.time()).date()
-                    self.create_reminder_on(next, startdate, enddate)
+                    self.create_reminder_on(next, start_date, end_date)
+
         else:
             raise ValueError()
 
@@ -188,8 +202,8 @@ class Reminder(models.Model):
         """
         Create ReminderMessages for all Reminders.
         """
-        startdate, enddate = Reminder.reminder_message_range()
-        for r in Reminder.objects.all():
+        startdate, enddate = cls.reminder_message_range()
+        for r in cls.objects.all():
             r.create_reminder_messages(startdate, enddate)
 
 
@@ -209,3 +223,32 @@ class ReminderMessage(models.Model):
         return 'ReminderMessage(ident=%r, reminder__slug=%r, person__userid=%r, date=%r)' % (
             self.ident, self.reminder.slug, self.person.userid, self.date)
 
+    @classmethod
+    def send_all(cls):
+        """
+        Send all messages that are pending and not yet sent.
+        """
+        today = datetime.date.today()
+        rms = ReminderMessage.objects.filter(sent=False, date__lte=today) \
+            .select_related('person', 'reminder', 'reminder__person', 'reminder__course', 'reminder__unit')
+        for rm in rms:
+            rm.send()
+
+    @transaction.atomic
+    def send(self):
+        """
+        Send email for this ReminderMessage
+        """
+        assert not self.sent
+
+        subject = 'Reminder: ' + self.reminder.title
+        message = self.reminder.content # the creole/markdown is good enough?
+        html_message = markup_to_html(self.reminder.content, self.reminder.markup, restricted=True)
+        # TODO: should be a template with info about editing the reminder, reminder's when/who, etc.
+        from_ = self.reminder.person.full_email()
+        to = self.person.full_email()
+
+        send_mail(subject=subject, message=message, html_message=html_message, from_email=from_, recipient_list=[to])
+
+        self.sent = True
+        self.save()
