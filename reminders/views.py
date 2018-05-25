@@ -18,7 +18,9 @@ def index(request):
 
     # TODO: these should be in tasks, not here.
     Reminder.create_all_reminder_messages()
+    ReminderMessage.objects.all().update(sent=False)
     ReminderMessage.send_all()
+    ReminderMessage.cleanup()
 
     # PERS, INST reminders for this person
     personal_reminders = Reminder.objects.filter(reminder_type__in=['PERS','INST'], person=person).select_related('course')
@@ -61,6 +63,12 @@ def create(request):
 
 @login_required
 def edit(request, reminder_slug):
+    # TODO
+    raise NotImplementedError()
+
+
+@login_required
+def delete(request, reminder_slug):
     # TODO
     raise NotImplementedError()
 

@@ -10,4 +10,5 @@ reminders_patterns = [
     url(r'^create$', views.create, name='create'),
     url(r'^' + REMINDER_SLUG + '/$', views.view, name='view'),
     url(r'^' + REMINDER_SLUG + '/edit$', views.edit, name='edit'),
+    url(r'^' + REMINDER_SLUG + '/delete', views.delete, name='delete'),
 ]

@@ -44,7 +44,7 @@ $(document).ready(function() {
             {% for rem in reminders %}
             <tr>
                 <td><a href="{% url 'reminders:view' reminder_slug=rem.slug %}">{{ rem.title }}</a></td>
-                <td><span class="sort">{{ rem.date_sort }}</span>{{ rem.date_description }}</td>
+                <td><span class="sort">{{ rem.date_sort }}</span>{{ rem.when_description }}</td>
                 <td>{{ rem.who_description }}</td>
             </tr>
             {% endfor %}

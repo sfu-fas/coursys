@@ -28,6 +28,7 @@ def error_note(form):
 
     return mark_safe(output)
 
+
 FIELD_AS_TD_TEMPLATE = SimpleLazyObject(lambda: Template('''<td>
                            {% if field.errors %}
                            <div class="errortext">{{field.errors.0}}</div>
