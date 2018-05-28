@@ -1,4 +1,4 @@
-var reminder_type_fields = ['role', 'unit', 'course'];
+var reminder_type_fields = ['role_unit', 'course'];
 var date_type_fields = ['month', 'day', 'week', 'weekday'];
 
 function hide_input(field) {
@@ -20,8 +20,7 @@ function reminder_type_update() {
     } else if ( value == 'INST' ) {
         show_input('course');
     } else if ( value == 'ROLE' ) {
-        show_input('role');
-        show_input('unit');
+        show_input('role_unit');
     }
 }
 

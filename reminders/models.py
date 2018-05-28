@@ -36,12 +36,9 @@ STATUS_CHOICES = [
 WEEKDAY_CHOICES = [(str(n), w) for n, w in WEEKDAYS.items()]
 MONTH_CHOICES = [(str(n), w) for n, w in MONTHS.items()]
 
-#MAX_LATE = 7 # max days late we'll tolerate sending a reminder in the worst case
-#MESSAGE_EARLY_CREATION = 7 # how many days before the reminder we bother creating the ReminderMessage
-#HISTORY_RETENTION = 365 # number of days to keep record of ReminderMessages that were sent
-MAX_LATE = 365 # max days late we'll tolerate sending a reminder in the worst case
-MESSAGE_EARLY_CREATION = 365 # how many days before the reminder we bother creating the ReminderMessage
-HISTORY_RETENTION = 720 # number of days to keep record of ReminderMessages that were sent
+MAX_LATE = 7 # max days late we'll tolerate sending a reminder in the worst case
+MESSAGE_EARLY_CREATION = 14 # how many days before the reminder we bother creating the ReminderMessage
+HISTORY_RETENTION = 365 # number of days to keep record of ReminderMessages that were sent
 
 
 REMINDER_HTML_TEMPLATE = Template('''
@@ -90,7 +87,7 @@ class Reminder(models.Model):
     date_type = models.CharField(max_length=4, choices=REMINDER_DATE_CHOICES, null=False, blank=False)
 
     # for date_type == 'YEAR'
-    month = models.CharField(max_length=1, null=True, blank=True, choices=MONTH_CHOICES)
+    month = models.CharField(max_length=2, null=True, blank=True, choices=MONTH_CHOICES)
     day = models.PositiveSmallIntegerField(null=True, blank=True)
 
     # for date_type == 'SEM'
@@ -115,9 +112,45 @@ class Reminder(models.Model):
     objects = ReminderManager()
     all_objects = models.Manager()
 
+    def _assert_null(self, fields):
+        for f in fields:
+            assert getattr(self, f) is None
+
+    def _assert_non_null(self, fields):
+        for f in fields:
+            assert bool(getattr(self, f))
+
     def save(self, *args, **kwargs):
-        # TODO assert coherence of the reminder type and other fields
-        return super().save(*args, **kwargs)
+        # assert reminder_type-related fields are null/nonnull as expected
+        if self.reminder_type == 'PERS':
+            self._assert_null(['role', 'unit', 'course'])
+        elif self.reminder_type == 'ROLE':
+            self._assert_null(['course'])
+            self._assert_non_null(['role', 'unit'])
+        elif self.reminder_type == 'INST':
+            self._assert_null(['role', 'unit'])
+            self._assert_non_null(['course'])
+        else:
+            raise ValueError()
+
+        # assert date_type-related fields are null/nonnull as expected
+        if self.date_type == 'SEM':
+            self._assert_null(['month', 'day'])
+            self._assert_non_null(['week', 'weekday'])
+        elif self.date_type == 'YEAR':
+            self._assert_null(['week', 'weekday'])
+            self._assert_non_null(['month', 'day'])
+        else:
+            raise ValueError()
+
+        res = super().save(*args, **kwargs)
+
+        # destroy any unsent ReminderMessages and recreate to reflect changes.
+        with transaction.atomic():
+            ReminderMessage.objects.filter(reminder=self, sent=False).delete()
+            self.create_reminder_messages(allow_stale=False)
+
+        return res
     
     def __str__(self):
         return 'Reminder(slug=%r, person__userid=%r, title=%r)' % (self.slug, self.person.userid, self.title)
@@ -172,13 +205,20 @@ class Reminder(models.Model):
         else:
             raise ValueError()
 
+    def html_content(self):
+        return markup_to_html(self.content, self.markup, restricted=True)
+
     # ReminderMessage-related functionality
 
     @staticmethod
-    def reminder_message_range():
+    def reminder_message_range(allow_stale=True):
         "Date range where we want to maybe create ReminderMessages."
         today = datetime.date.today()
-        return today - datetime.timedelta(days=MAX_LATE), today + datetime.timedelta(days=MESSAGE_EARLY_CREATION)
+        if allow_stale:
+            start = today - datetime.timedelta(days=MAX_LATE)
+        else:
+            start = today
+        return start, today + datetime.timedelta(days=MESSAGE_EARLY_CREATION)
 
     def create_reminder_on(self, date, start_date, end_date):
         if start_date > date or date > end_date:
@@ -203,12 +243,18 @@ class Reminder(models.Model):
                     # already been created because we got IntegrityError on rm.ident
                     pass
 
-    def create_reminder_messages(self, start_date, end_date):
+    def create_reminder_messages(self, start_date=None, end_date=None, allow_stale=True):
         """
         Create any ReminderMessages that don't already exist, between startdate and enddate.
 
         Idempotent.
         """
+        if self.status == 'D':
+            return
+
+        if not start_date or not end_date:
+            start_date, end_date = self.reminder_message_range(allow_stale=allow_stale)
+
         if self.date_type == 'YEAR':
             next1 = datetime.date(year=start_date.year, month=int(self.month), day=self.day)
             next2 = datetime.date(year=start_date.year+1, month=int(self.month), day=self.day)
@@ -227,7 +273,8 @@ class Reminder(models.Model):
             this_sem = Semester.current()
             for sem in [this_sem.previous_semester(), this_sem, this_sem.next_semester()]:
                 if semesters is None or sem in semesters:
-                    next = sem.duedate(self.week, int(self.weekday), datetime.time()).date()
+                    next = sem.duedate(self.week, int(self.weekday), time=None)
+                    print(next)
                     self.create_reminder_on(next, start_date, end_date)
 
         else:
@@ -237,6 +284,8 @@ class Reminder(models.Model):
     def create_all_reminder_messages(cls):
         """
         Create ReminderMessages for all Reminders.
+
+        Idempotent.
         """
         startdate, enddate = cls.reminder_message_range()
         for r in cls.objects.all(): # can we do better than .all()?
@@ -248,8 +297,9 @@ class ReminderMessage(models.Model):
     An instance of a reminder message this needs to be (or has recently been) sent.
     """
     reminder = models.ForeignKey(Reminder, null=False, on_delete=models.CASCADE)
-    sent = models.BooleanField(null=False, default=False)
     date = models.DateField(null=False, blank=False)
+    sent = models.BooleanField(null=False, default=False)
+    sent_at = models.DateTimeField(null=True, blank=True) # actual datetime it was sent
     # reminder recipient
     person = models.ForeignKey(Person, null=False, on_delete=models.CASCADE)
     # identifying string for this reminder message: used to check for duplicates
@@ -290,7 +340,7 @@ class ReminderMessage(models.Model):
         if self.date < today - datetime.timedelta(days=MAX_LATE):
             raise ValueError('ReminderMessage has not been sent, but is alarmingly past-due.')
 
-        content_html = markup_to_html(self.reminder.content, self.reminder.markup, restricted=True)
+        content_html = self.reminder.html_content()
         content_text = self.reminder.content # the creole/markdown is good enough for the plain-text version?
 
         hint = 'admin' if self.reminder.reminder_type == 'ROLE' else 'other'
@@ -311,5 +361,6 @@ class ReminderMessage(models.Model):
 
         send_mail(subject=subject, message=message, html_message=html_message, from_email=from_, recipient_list=[to])
 
+        self.sent_at = datetime.datetime.now()
         self.sent = True
         self.save()

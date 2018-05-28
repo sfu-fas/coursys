@@ -4,7 +4,6 @@
 {% block title %}Reminder: {{ reminder.title }}{% endblock %}
 {% block h1 %}Reminder: {{ reminder.title }}{% endblock %}
 
-
 {% block subbreadcrumbs %}
 <li><a href="{% url 'reminders:index' %}">Reminders</a></li>
 <li>{{ reminder.title }}</li>
@@ -14,13 +13,46 @@
 <div id="actions">
     <h2>Actions</h2>
     <ul class="fa-ul">
-        <li><i class="fa fa-li fa-edit"></i> <a href="{% url 'reminders:edit' reminder_slug=reminder.slug %}">Edit Reminder</a></li>
+        <li><i class="fa fa-li fa-edit"></i> <a href="{% url 'reminders:edit' reminder_slug=reminder.slug %}">Edit/Delete Reminder</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {% block content %}
 
-{{ reminder }}
+<table class="info">
+    <tr>
+        <th scope="row">When?</th>
+        <td>{{ reminder.when_description }}</td>
+    </tr>
+    <tr>
+        <th scope="row">Who?</th>
+        <td>{{ reminder.who_description }}</td>
+    </tr>
+    <tr>
+        <th scope="row">Content</th>
+        <td>{{ reminder.html_content }}</td>
+    </tr>
+</table>
+
+<h2 id="future">Soon-To-Be-Sent Reminders</h2>
+<p class="helptext">Scheduled in the next {{ future_days }} days.</p>
+<ul>
+    {% for rm in future_messages %}
+    <li>{{ rm.person.full_email }} on {{ rm.date }}.</li>
+    {% empty %}
+    <li class="empty">None.</li>
+    {% endfor %}
+</ul>
+
+<h2 id="sent">Recently-Sent Reminders</h2>
+<p class="helptext">Sent in the last {{ sent_days }} days.</p>
+<ul>
+    {% for rm in sent_messages %}
+    <li>{{ rm.person.full_email }} at {{ rm.sent_at }}.</li>
+    {% empty %}
+    <li class="empty">None.</li>
+    {% endfor %}
+</ul>
 
 {% endblock %}
