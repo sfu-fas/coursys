@@ -118,7 +118,7 @@ class Reminder(models.Model):
 
     def _assert_non_null(self, fields):
         for f in fields:
-            assert bool(getattr(self, f))
+            assert getattr(self, f) is not None
 
     def save(self, *args, **kwargs):
         # assert reminder_type-related fields are null/nonnull as expected
@@ -274,7 +274,6 @@ class Reminder(models.Model):
             for sem in [this_sem.previous_semester(), this_sem, this_sem.next_semester()]:
                 if semesters is None or sem in semesters:
                     next = sem.duedate(self.week, int(self.weekday), time=None)
-                    print(next)
                     self.create_reminder_on(next, start_date, end_date)
 
         else:

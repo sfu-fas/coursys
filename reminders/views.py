@@ -69,7 +69,8 @@ def _get_reminder_or_404(request, reminder_slug):
     reminder = get_object_or_404(Reminder, slug=reminder_slug)
     person = get_person(request.user)
     if not reminder.can_be_accessed_by(person):
-        raise get_object_or_404(Reminder, reminder_type='FOO', person=None) # make error same as above
+        get_object_or_404(Reminder, reminder_type='FOO', person=None) # make error same as above
+        raise ValueError() # shouldn't happen, but definitely don't continue error-free from here.
     return reminder, person
 
 
