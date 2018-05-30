@@ -101,7 +101,7 @@ class Reminder(models.Model):
 
     def autoslug(self):
         return make_slug(self.reminder_type + '-' + self.date_type + '-' + self.title)
-    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', max_length=50, null=False, editable=False, unique=True)
 
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff
     # 'markup': markup language used in reminder content: see courselib/markup.py
@@ -235,6 +235,7 @@ class Reminder(models.Model):
 
         for recip in recipients:
             ident = '%s_%s_%s' % (self.slug, recip.userid_or_emplid(), date.isoformat())
+            # ident length: slug (50) + userid/emplid (9) + ISO date (10) + _ (2) <= 71
             rm = ReminderMessage(reminder=self, sent=False, date=date, person=recip, ident=ident)
             with transaction.atomic():
                 try:
@@ -302,7 +303,7 @@ class ReminderMessage(models.Model):
     # reminder recipient
     person = models.ForeignKey(Person, null=False, on_delete=models.CASCADE)
     # identifying string for this reminder message: used to check for duplicates
-    ident = models.CharField(max_length=255, blank=False, null=False, db_index=True, unique=True)
+    ident = models.CharField(max_length=100, blank=False, null=False, db_index=True, unique=True)
 
     def __str__(self):
         return 'ReminderMessage(ident=%r, reminder__slug=%r, person__userid=%r, date=%r)' % (
