@@ -627,7 +627,7 @@ class Semester(models.Model):
         """
         Calculate duedate based on week-of-semester and weekday.  Provided argument time can be either datetime.time or datetime.datetime: time is copied from this to new duedate.
         """
-        # find the "base": first known week before mk
+        # find the "base": first known week before wk
         weeks = list(SemesterWeek.objects.filter(semester=self))
         weeks.reverse()
         base = None
@@ -635,7 +635,7 @@ class Semester(models.Model):
             if w.week <= wk:
                 base = w
                 break
-        
+
         date = base.monday + datetime.timedelta(days=7 * (wk - base.week) + wkday)
         # construct the datetime from date and time.
         if time:
@@ -1607,7 +1607,6 @@ class Role(models.Model):
         def get_queryset(self):
             return super(Role.RoleNonExpiredManager, self).get_queryset().filter(expiry__gte=datetime.date.today())
 
-    ROLES = dict(ROLE_CHOICES)
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
     role = models.CharField(max_length=4, choices=ROLE_CHOICES)
     unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
@@ -1623,7 +1622,7 @@ class Role(models.Model):
     objects_fresh = RoleNonExpiredManager()
 
     def __str__(self):
-        return "%s (%s, %s)" % (self.person, self.ROLES[str(self.role)], self.unit.label)
+        return "%s (%s, %s)" % (self.person, ROLES[str(self.role)], self.unit.label)
     class Meta:
         unique_together = (('person', 'role', 'unit'),)
 

@@ -23,6 +23,7 @@ from sessionals.urls import sessionals_patterns
 from inventory.urls import inventory_pattern
 from relationships.urls import relationship_patterns
 from space.urls import space_patterns
+from reminders.urls import reminders_patterns
 from api.urls import api_patterns
 from otp.urls import otp_patterns
 
@@ -82,6 +83,7 @@ urlpatterns = [
     url(r'^sessionals/', include((sessionals_patterns, 'sessionals'), namespace='sessionals')),
     url(r'^inventory/', include((inventory_pattern, 'inventory'), namespace='inventory')),
     url(r'^space/', include((space_patterns, 'space'), namespace='space')),
+    url(r'^reminders/', include((reminders_patterns, 'reminders'), namespace='reminders')),
 
 
     # graduate student-related apps

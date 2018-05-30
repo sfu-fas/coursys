@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}Edit Reminder: {{ reminder.title }}{% endblock %}
+{% block h1 %}Edit Reminder: {{ reminder.title }}{% endblock %}
+
+{% block headextra %}
+<script src="{% static 'js/reminders.js' %}"></script>
+{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'reminders:index' %}">Reminders</a></li>
+<li><a href="{% url 'reminders:view' reminder_slug=reminder.slug %}">{{ reminder.title }}</a></li>
+<li>Edit</li>
+{% endblock %}
+
+{% block content %}
+
+<form action="{% url 'reminders:edit' reminder_slug=reminder.slug %}" class="reminder-form" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Update Reminder" />
+    </p>
+</form>
+
+<form action="{% url 'reminders:delete' reminder_slug=reminder.slug %}" method="post">
+    {% csrf_token %}
+    <p><input type="submit" class="submit confirm-submit" value="Delete Reminder" data-submit-action="delete this reminder" /></p>
+</form>
+
+{% endblock %}
