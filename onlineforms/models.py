@@ -462,7 +462,7 @@ class Form(models.Model, _FormCoherenceMixin):
                 # selecting only fully completed forms: does it make sense to be more liberal and report status?
 
         # choose a winning SheetSubmission: there may be multiples of each sheet but we're only outputting one
-        sheetsubs = SheetSubmission.objects.filter(form_submission__form__original_id=self.original_id, status__in=statuses) \
+        sheetsubs = SheetSubmission.objects.filter(form_submission__form__original_id=self.original_id, form_submission__status__in=statuses) \
                 .order_by('given_at').select_related('sheet', 'filler__sfuFormFiller', 'filler__nonSFUFormFiller')
         # Docs for the dict constructor: "If a key occurs more than once, the last value for that key becomes the corresponding value in the new dictionary."
         # Result is that the sheetsub with most recent given_at wins.
