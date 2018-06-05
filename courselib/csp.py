@@ -71,7 +71,9 @@ def csp_report_view(request):
     report = json.loads(report_json)
     resp = HttpResponse()
 
-    if 'script-sample' in report['csp-report'] and 'var t=0,e=function(t,e){ret' in report['csp-report']['script-sample']:
+    if ('script-sample' in report['csp-report']
+            and 'var t=0,e=function(t,e){ret' in report['csp-report']['script-sample']) or \
+            ('script-sample' in report['csp-report'] and report['csp-report']['script-sample'] == ';undefined'):
         # firefox browser plugin injection?
         return resp
 

@@ -89,6 +89,7 @@ INSTALLED_APPS = (
     'inventory',
     'relationships',
     'space',
+    'reminders',
 )
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',

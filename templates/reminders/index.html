@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Reminders{% endblock %}
+{% block h1 %}Reminders{% endblock %}
+
+{% block subbreadcrumbs %}<li>Reminders</li>{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('.reminder-table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc'], [2, 'asc']]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul class="fa-ul">
+        <li><i class="fa fa-li fa-plus"></i> <a href="{% url 'reminders:create' %}">Create Reminder</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if reminders %}
+    <table class="reminder-table">
+        <thead>
+            <tr>
+            <th scope="col">Title</th>
+            <th scope="col">When?</th>
+            <th scope="col">Who?</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rem in reminders %}
+            <tr>
+                <td><a href="{% url 'reminders:view' reminder_slug=rem.slug %}">{{ rem.title }}</a></td>
+                <td><span class="sort">{{ rem.date_sort }}</span>{{ rem.when_description }}</td>
+                <td>{{ rem.who_description }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p class="empty">No reminders defined.</p>
+{% endif %}
+
+{% endblock %}
