@@ -14,6 +14,9 @@ from courselib.markup import markup_to_html
 import datetime
 from string import Template
 
+# TODO: honour ROLE_BLACKLIST: no reminders for those roles
+# TODO: date_type='DATE' for one-time reminders
+# TODO: reminder_type='OTHR' allow reminding one individual, possibly controlled by role (e.g. advisors remind role account)
 
 REMINDER_TYPE_CHOICES = [
     ('PERS', 'Me personally'),
@@ -32,6 +35,8 @@ STATUS_CHOICES = [
     ('A', 'Active'),
     ('D', 'Deleted'),
 ]
+
+ROLE_BLACKLIST = ['FAC', 'SESS', 'COOP']
 
 WEEKDAY_CHOICES = [(str(n), w) for n, w in WEEKDAYS.items()]
 MONTH_CHOICES = [(str(n), w) for n, w in MONTHS.items()]
