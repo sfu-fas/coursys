@@ -1,6 +1,6 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
     MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory,\
-    EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm
+    EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm, ArtifactSearchForm
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member, Role
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, transfer_data,\
@@ -55,7 +55,8 @@ def advising(request):
         return _redirect_to_notes(search)
     form = StudentSearchForm()
     note_form = NoteSearchForm(prefix="text")
-    context = {'form': form, 'note_form': note_form}
+    artifact_form = ArtifactSearchForm(prefix="text")
+    context = {'form': form, 'note_form': note_form, 'artifact_form': artifact_form}
     return render(request, 'advisornotes/student_search.html', context)
 
 
@@ -70,6 +71,25 @@ def note_search(request):
     note_form = NoteSearchForm(prefix="text", initial={'search': search})
     context = {'notes': notes, 'note_form': note_form}
     return render(request, 'advisornotes/note_search.html', context)
+
+
+@requires_role('ADVS')
+def artifact_search(request):
+    if 'text-search' not in request.GET:
+        return ForbiddenResponse(request, "must send search query")
+    search = request.GET['text-search']
+    query = get_query(search, ('text',))
+    artifact_notes = ArtifactNote.objects.filter(query, unit__in=request.units).order_by("-created_at")[:100]
+    for a in artifact_notes:
+        if a.course:
+            a.url = reverse('advising:view_course_notes', kwargs={'unit_course_slug': a.course.slug})
+        elif a.course_offering:
+            a.url = reverse('advising:view_offering_notes', kwargs={'course_slug': a.course_offering.slug})
+        else:
+            a.url = reverse('advising:view_artifact_notes', kwargs={'artifact_slug': a.artifact.slug})
+    artifact_form = ArtifactSearchForm(prefix="text", initial={'search': search})
+    context = {'artifact_notes': artifact_notes, 'artifact_form': artifact_form}
+    return render(request, 'advisornotes/artifact_search.html', context)
 
 
 @requires_role('ADVS')
