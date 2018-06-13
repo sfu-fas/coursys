@@ -73,6 +73,17 @@ $(function() {
         </fieldset>
     </form>
 </div>
+
+<h2 id="artifactsearch">Search Content of Artifact Notes</h2>
+<div style="margin-right: 1em;">
+    <form action="{% url "advising:artifact_search" %}" method="get">
+        <fieldset>
+            {{artifact_form.as_p}}
+            <p><input class="submit" type="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+</div>
+
 {% endblock %}
 
 

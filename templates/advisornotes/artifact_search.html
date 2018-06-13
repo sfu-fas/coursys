@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Artifact Note Search{% endblock %}
+{% block h1 %}Artifact Note Search{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+  $(function() {
+  	table = $('#notes').dataTable({
+        "bPaginate": false,
+		"bJQueryUI": true,
+		"aaSorting": [[1, "asc"]],
+		//"aoColumns": [],
+	});
+  });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Notes</a></li>
+<li>Artifact Note Search</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url "advising:artifact_search" %}" method="get">
+{{artifact_form.as_p}}
+<p><input class="submit" type="submit" value="Submit" /></p>
+</form>
+
+<div class="datatable_container">
+<table class="display" id="notes">
+    <thead><tr><th>Artifact/Course/Offering</th><th scope="col">Creation Date</th><th scope="col">Category</th></tr></thead>
+<tbody>
+{% for note in artifact_notes %}
+  <tr>
+    <td><a href="{{ note.url }}">{{ note.artifact }}</a></td>
+    <td>{{ note.created_at }}</td>
+    <td>{{ note.get_category_display }}</td>
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+
+{% endblock content %}

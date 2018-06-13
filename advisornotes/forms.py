@@ -83,6 +83,11 @@ class StudentSearchForm(forms.Form):
 class NoteSearchForm(forms.Form):
     search = forms.CharField()
 
+
+class ArtifactSearchForm(forms.Form):
+    search = forms.CharField()
+
+
 class OfferingSearchForm(forms.Form):
     offering = OfferingField()
 class CourseSearchForm(forms.Form):
