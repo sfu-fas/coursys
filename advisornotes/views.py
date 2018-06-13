@@ -83,10 +83,13 @@ def artifact_search(request):
     for a in artifact_notes:
         if a.course:
             a.url = reverse('advising:view_course_notes', kwargs={'unit_course_slug': a.course.slug})
+            a.description = a.course
         elif a.course_offering:
             a.url = reverse('advising:view_offering_notes', kwargs={'course_slug': a.course_offering.slug})
+            a.description = a.course_offering
         else:
             a.url = reverse('advising:view_artifact_notes', kwargs={'artifact_slug': a.artifact.slug})
+            a.description = a.artifact
     artifact_form = ArtifactSearchForm(prefix="text", initial={'search': search})
     context = {'artifact_notes': artifact_notes, 'artifact_form': artifact_form}
     return render(request, 'advisornotes/artifact_search.html', context)

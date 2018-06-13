@@ -32,7 +32,7 @@
 <tbody>
 {% for note in artifact_notes %}
   <tr>
-    <td><a href="{{ note.url }}">{{ note.artifact }}</a></td>
+    <td><a href="{{ note.url }}">{{ note.description }}</a></td>
     <td>{{ note.created_at }}</td>
     <td>{{ note.get_category_display }}</td>
   </tr>
