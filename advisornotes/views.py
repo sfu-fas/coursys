@@ -79,7 +79,7 @@ def artifact_search(request):
         return ForbiddenResponse(request, "must send search query")
     search = request.GET['text-search']
     query = get_query(search, ('text',))
-    artifact_notes = ArtifactNote.objects.filter(query, unit__in=request.units).order_by("-created_at")[:100]
+    artifact_notes = ArtifactNote.objects.filter(query, unit__in=request.units, hidden=False).order_by("-created_at")[:100]
     for a in artifact_notes:
         if a.course:
             a.url = reverse('advising:view_course_notes', kwargs={'unit_course_slug': a.course.slug})
