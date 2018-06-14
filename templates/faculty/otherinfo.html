@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Faculty Summary: {{ person.name }}{% endblock %}
-{% block h1 %}Faculty Summary: {{ person.name }}{% endblock %}
+{% block title %}Faculty Member Summary: {{ person.name }}{% endblock %}
+{% block h1 %}Faculty Member Summary: {{ person.name }}{% endblock %}
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
@@ -18,6 +18,12 @@ $(document).ready(function() {
     "bJQueryUI": true,
   } );
   $('#ratable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[1, "desc"], [0, "asc"]],
+    "bJQueryUI": true,
+  } );
+  $('#servicetable').dataTable( {
     'bPaginate': false,
     'bInfo': false,
     "aaSorting": [[1, "desc"], [0, "asc"]],
@@ -95,6 +101,34 @@ $(document).ready(function() {
   </tbody>
 </table>
 </div>
+
+{% if services %}
+    <h2 id="service">Service</h2>
+    <div class="datatable_container">
+    <table id="servicetable" class="display">
+        <thead>
+            <tr>
+                <th>Committee</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Unit</th>
+                <th>Comments</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for s in services %}
+            <tr>
+            <td scope="row">{{ s.committee }}</td>
+            <td>{{ s.start_date }}</td>
+            <td>{{ s.end_date }}</td>
+            <td>{{ s.unit.name }}</td>
+            <td>{{ s.comments }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+{% endif %}
 
 
 {% endblock %}
