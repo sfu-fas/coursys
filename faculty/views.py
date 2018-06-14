@@ -1348,11 +1348,19 @@ def otherinfo(request, userid):
     ras = RAAppointment.objects.filter(deleted=False, hiring_faculty=person, unit__in=units) \
             .select_related('person', 'project', 'account')
 
+    services = CareerEvent.objects.not_deleted().filter(event_type='COMMITTEE', person=person,
+                                                        unit__in=Unit.sub_units(request.units))
+    if services:
+        for s in services:
+            handler = s.get_handler()
+            s.committee = handler.get_committee_display()
+
     context = {
         'person': person,
         'instructed': instructed,
         'supervised': supervised,
         'ras': ras,
+        'services': services,
     }
     return render(request, 'faculty/otherinfo.html', context)
 

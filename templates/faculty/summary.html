@@ -49,7 +49,7 @@ $(document).ready(function() {
     <li {% if is_admin %}class="newsec"{% endif %}><a href="{% url 'faculty:teaching_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-book"></i> Teaching Summary</a></li>
     <li><a href="{% url 'faculty:study_leave_credits' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-rocket"></i> Study Leave Credits</a></li>
     {% if is_admin %}<li><a href="{% url 'faculty:salary_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-money"></i> Salary Info</a></li>{% endif %}
-  <li><a href="{% url 'faculty:otherinfo' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-list"></i> View Other Info</a></li>
+  <li><a href="{% url 'faculty:otherinfo' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-list"></i> View Faculty Member Summary</a></li>
     {% if career_events and is_admin %}
     <li class="newsec">
       <a href="{% url 'faculty:timeline' person.userid_or_emplid %}">
