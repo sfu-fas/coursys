@@ -49,6 +49,7 @@ from faculty.event_types.info import ResumeEventHandler
 from coredata.models import AnyPerson
 from dashboard.letters import position_yellow_form_limited, position_yellow_form_tenure
 from log.models import LogEntry
+from space.models import BookingRecord
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -1355,12 +1356,15 @@ def otherinfo(request, userid):
             handler = s.get_handler()
             s.committee = handler.get_committee_display()
 
+    bookings = BookingRecord.objects.current().filter(person=person)
+
     context = {
         'person': person,
         'instructed': instructed,
         'supervised': supervised,
         'ras': ras,
         'services': services,
+        'bookings': bookings,
     }
     return render(request, 'faculty/otherinfo.html', context)
 
