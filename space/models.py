@@ -3,10 +3,11 @@ from django.db import models
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
+from django.db.models import Q
 from coredata.models import Unit, JSONField, config_property
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
-from coredata.models import CAMPUS_CHOICES, Person
+from coredata.models import CAMPUS_CHOICES, CAMPUSES_SHORT, Person
 from courselib.storage import UploadedFileStorage, upload_path
 from courselib.branding import product_name
 import os
@@ -23,6 +24,7 @@ BUILDING_CHOICES = (
     ('NTECH', 'NEUROTECH'),
     ('SMH', 'SMH')
 )
+BUILDINGS = dict(BUILDING_CHOICES)
 
 OWN_CHOICES = (
     ('OWN', 'SFU Owned'),
@@ -120,8 +122,7 @@ class Location(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     def __str__(self):
-        return "%s - %s - %s - %s - %s" % (self.unit.label, self.campus, self.building, str(self.floor),
-                                            self.room_number)
+        return "%s, %s - %s" % (CAMPUSES_SHORT[self.campus], BUILDINGS[self.building], self.room_number)
 
     def get_current_booking(self):
         latest_booking = self.bookings.visible().filter(start_time__lte=timezone_today()).order_by('start_time').last()
@@ -159,9 +160,15 @@ class Location(models.Model):
 class BookingRecordManager(models.QuerySet):
     def visible(self):
         """
-        Only see visible items, in this case also limited by accessible units.
+        Only see visible items.
         """
         return self.filter(hidden=False)
+
+    def current(self):
+        """
+        See only bookings that are currently in use.
+        """
+        return self.visible().exclude(Q(start_time__gt=timezone_today()) | Q(end_time__lt=timezone_today()))
 
 
 class BookingRecord(models.Model):
