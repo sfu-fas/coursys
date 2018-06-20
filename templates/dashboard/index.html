@@ -36,8 +36,8 @@ $(document).ready(function() {
     {% if 'ADMN' in roles or 'TAAD' in roles %}<li><a href="{% url "tugs:all_tugs_admin" %}"><i class="fa fa-li fa-clock-o"></i> Time Use Guidelines</a></li>{% endif %}
 
     <li class='newsec'><a href="{% url "onlineforms:index" %}"><i class="fa fa-li fa-envelope-o"></i> Online Forms</a></li>
-    {% if 'TAAD' in roles and cmpt_taadmn or 'TAAD' in roles and 'SYSA' in roles %}<li><a href="{% url "ta:view_postings" %}"><i class="fa fa-li fa-briefcase"></i> TA Job Postings</a></li>{% endif %}
-    {% if 'TAAD' in roles and not cmpt_taadmn or 'TAAD' in roles and 'SYSA' in roles %}<li><a href="{% url "tacontracts:list_all_semesters" %}"><i class="fa fa-li fa-file-zip-o"></i> TA Contracts</a></li>{% endif %}
+    {% if cmpt_taadmn  %}<li><a href="{% url "ta:view_postings" %}"><i class="fa fa-li fa-briefcase"></i> TA Job Postings</a></li>{% endif %}
+    {% if other_taadmn %}<li><a href="{% url "tacontracts:list_all_semesters" %}"><i class="fa fa-li fa-file-zip-o"></i> TA Contracts</a></li>{% endif %}
     {% if 'ADMN' in roles or 'FACR' in roles or 'FACA' in roles %}
         <li><a href="{% url "faculty:index" %}"><i class="fa fa-li fa-files-o"></i> Faculty Management</a></li>
     {% endif %}
