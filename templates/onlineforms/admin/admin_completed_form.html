@@ -27,7 +27,8 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url "onlineforms:summary_csv" form_slug=form.slug %}">Summary of submissions</a></li>
+        <li><a href="{% url "onlineforms:summary_csv" form_slug=form.slug %}">Summary of completed submissions</a></li>
+        <li><a href="{% url "onlineforms:pending_summary_csv" form_slug=form.slug %}">Summary of pending submissions</a></li>
     </ul>
 </div>{% endblock %}
 

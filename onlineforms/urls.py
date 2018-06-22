@@ -24,6 +24,8 @@ forms_patterns = [
     url(r'^admin/completed/$', onlineforms_views.admin_completed, name='admin_completed'),
     url(r'^admin/completed/' + FORM_SLUG + '/$', onlineforms_views.admin_completed_form, name='admin_completed_form'),
     url(r'^admin/completed/' + FORM_SLUG + '/summary$', onlineforms_views.summary_csv, name='summary_csv'),
+    url(r'^admin/completed/' + FORM_SLUG + '/pending_summary$', onlineforms_views.pending_summary_csv,
+        name='pending_summary_csv'),
 
     url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/assign$', onlineforms_views.admin_assign, name='admin_assign'),
     url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/assign-nonsfu$', onlineforms_views.admin_assign_nonsfu, name='admin_assign_nonsfu'),
