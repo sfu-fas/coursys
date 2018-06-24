@@ -526,6 +526,10 @@ class PagesTest(TestCase):
             self.assertIsInstance(result, SafeText)
             self.assertEqual(result.strip(), correct)
 
+        result = markup_to_html('Paragraph <1> \u2605\U0001F600', 'plain')
+        self.assertIsInstance(result, SafeText)
+        self.assertEqual(result.strip(), '<p>Paragraph &lt;1&gt; \u2605\U0001F600</p>')
+
     def test_html_safety(self):
         """
         Check that we're handling HTML in a safe way

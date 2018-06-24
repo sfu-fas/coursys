@@ -8,6 +8,7 @@
 
 from django.db import models
 from django.utils.safestring import mark_safe, SafeText
+from django.utils.html import linebreaks
 from django.conf import settings
 from cache_utils.decorators import cached
 
@@ -24,6 +25,7 @@ MARKUP_CHOICES = [
     ('creole', 'WikiCreole'),
     ('markdown', 'Markdown'),
     ('textile', 'Textile'),
+    #('plain', 'Plain Text'), # not offered for new content, but honoured for legacy content.
     ('html', 'HTML'),
 ]
 MARKUP_CHOICES_WYSIWYG = MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')]
@@ -121,6 +123,9 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
             html = markup
         else:
             html = sanitize_html(markup, restricted=restricted)
+
+    elif markuplang == 'plain':
+        html = mark_safe(linebreaks(markup, autoescape=True))
 
     else:
         raise NotImplementedError()
