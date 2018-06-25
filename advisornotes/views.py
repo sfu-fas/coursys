@@ -1,5 +1,5 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
-    MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory,\
+    MergeStudentForm, ArtifactNoteForm, ArtifactForm, AdvisorNoteForm,\
     EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm, ArtifactSearchForm
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member, Role
@@ -10,7 +10,7 @@ from courselib.auth import requires_role, HttpResponseRedirect, \
 from courselib.search import find_userid_or_emplid, get_query
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.core.mail.message import EmailMessage
+from django.core.mail.message import EmailMultiAlternatives
 from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponse
@@ -150,13 +150,16 @@ def _email_student_note(note):
         email = note.student.email()
     else:
         email = note.nonstudent.email()
-    content = wrap(note.text, 72)
+    content_html = note.html_content()
+    content_text = note.text  # the creole/markdown is good enough for the plain-text version?
     attach = []
     if note.file_attachment:
         note.file_attachment.open()
         attach = [(note.attachment_filename(), note.file_attachment.read(), note.file_mediatype)]
 
-    mail = EmailMessage(subject, content, from_email, [email], cc=[from_email], attachments=attach)
+    mail = EmailMultiAlternatives(subject=subject, body=content_text, from_email=from_email, to=[email],
+                                  cc=[from_email], attachments=attach)
+    mail.attach_alternative(content_html, 'text/html')
     mail.send()
 
 
@@ -170,7 +173,7 @@ def new_note(request, userid):
     unit_choices = [(u.id, str(u)) for u in request.units]
 
     if request.method == 'POST':
-        form = advisor_note_factory(student, request.POST, request.FILES)
+        form = AdvisorNoteForm(data=request.POST, files=request.FILES, student=student)
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
             note = form.save(commit=False)
@@ -198,7 +201,7 @@ def new_note(request, userid):
 
             return _redirect_to_notes(student)
     else:
-        form = advisor_note_factory(student)
+        form = AdvisorNoteForm(student=student)
         form.fields['unit'].choices = unit_choices
     return render(request, 'advisornotes/new_note.html', {'form': form, 'student': student, 'userid': userid})
 
@@ -339,8 +342,6 @@ def student_notes(request, userid):
     #    show_transcript = True
 
     template = 'advisornotes/student_notes.html'
-    if 'compact' in request.GET:
-        template = 'advisornotes/student_notes_compact.html'
     context = {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent,
                'show_transcript': show_transcript, 'units': request.units}
     return render(request, template, context)

@@ -1,11 +1,11 @@
 from django.db import models
-from django.conf import settings
 from autoslug import AutoSlugField
 from coredata.models import Person, Unit, Course, CourseOffering
-from courselib.json_fields import JSONField
+from courselib.json_fields import JSONField, config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines
 from courselib.storage import UploadedFileStorage, upload_path
+from courselib.markup import markup_to_html
 from datetime import date
 import datetime
 import os.path
@@ -81,6 +81,11 @@ class AdvisorNote(models.Model):
     emailed = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
+    # 'markup': markup language used in reminder content: see courselib/markup.py
+    # 'math': page uses MathJax? (boolean)
+    markup = config_property('markup', 'plain')
+    math = config_property('math', False)
+
     def __str__(self):
         return str(self.student) + "@" + str(self.created_at)
 
@@ -108,20 +113,9 @@ class AdvisorNote(models.Model):
     
     def __hash__(self):
         return self.unique_tuple().__hash__()
-    
-    def text_preview(self):
-        """
-        A max-one-line preview of the note content, for the compact display.
-        """
-        text = normalize_newlines(self.text.rstrip())
-        lines = text.split('\n')
-        text = lines[0]
-        if len(text) > 70:
-            text = text[:100] + ' \u2026'
-        elif len(lines) > 1:
-            text += ' \u2026'
-        return text
 
+    def html_content(self):
+        return markup_to_html(self.text, self.markup, restricted=True)
 
 ARTIFACT_CATEGORIES = (
     ("INS", "Institution"),
