@@ -163,7 +163,7 @@
 <div class="note-box" id="note-box-{{note.id}}">
 
     <div class="note-content">
-        {{note.text|linebreaks}}
+        {{ note.html_content }}
     </div>
     {% if note.file_attachment %}
     <p><a href="{% url "advising:download_file" userid=userid note_id=note.id%}">
