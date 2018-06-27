@@ -169,6 +169,7 @@ class Command(BaseCommand):
         self.file = options['input_file']
         self.unit_label = options['unit']
         self.markup = options['markup'].lower()
+        # Because we call bleach on the content, we can't guarantee anything but plain text and HTML will actually work.
         if self.markup not in MARKUPS:
             if self.verbose:
                 print("Markup choice %s is not a known format.  Your notes probably won't look correct.  Acceptable "
