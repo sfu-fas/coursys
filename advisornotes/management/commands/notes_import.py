@@ -6,6 +6,7 @@ from coredata.queries import add_person
 import argparse
 import csv
 import os
+import bleach
 from datetime import datetime
 from dateutil import parser as dateparser
 from courselib.markup import MARKUPS
@@ -115,7 +116,9 @@ class Command(BaseCommand):
             return
 
         # We checked every possible case, let's create the new note.
-        n = AdvisorNote(student=p, advisor=u, created_at=date_created, unit=self.unit, text=row['notes'])
+        original_text = row['notes']
+        text = bleach.clean(original_text, strip=True)
+        n = AdvisorNote(student=p, advisor=u, created_at=date_created, unit=self.unit, text=text)
         n.config['import_key'] = key
         n.markup=self.markup
         if self.verbose:
