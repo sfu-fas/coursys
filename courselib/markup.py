@@ -36,8 +36,8 @@ allowed_tags_restricted = bleach.sanitizer.ALLOWED_TAGS + [ # allowed in discuss
     'h3', 'h4', 'pre', 'p', 'dl', 'dt', 'dd',
     'dfn', 'q', 'del', 'ins', 's', 'sub', 'sup', 'u',
 ]
-allowed_tags = allowed_tags_restricted + [ # allowed on pages
-    'h2', 'img',
+allowed_tags = allowed_tags_restricted + [ # allowed on pages and advisor notes
+    'h2', 'img', 'div',
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
 ]
 allowed_attributes = bleach.sanitizer.ALLOWED_ATTRIBUTES
@@ -56,7 +56,8 @@ def sanitize_html(html, restricted=False):
 def ensure_sanitary_markup(markup, markuplang, restricted=False):
     """
     Double-check that the markup we're about to store is safe.
-    :param html: markup
+
+    :param markup: markup
     :param markuplang: markup language contained in markup argument
     :param restricted: use the restricted HTML subset?
     :return: sanitary markup
