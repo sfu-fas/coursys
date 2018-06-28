@@ -75,6 +75,18 @@ class Command(BaseCommand):
 
         # Find the recipient of the note:
         student_emplid = row['emplid']
+
+        # See if we can actually cast the emplid to int, since the function we call does so without checking.
+        try:
+            int(student_emplid)
+        except ValueError:
+            if self.verbose:
+                error_msg = "ERROR, emplid is not valid for recipient on row %i (emplid %s). Ignoring" % \
+                            (row_num, student_emplid)
+                self.errors.append(error_msg)
+                print(error_msg)
+            return
+
         p = add_person(student_emplid, commit=self.commit)
         if not p:
             if self.verbose:
@@ -85,6 +97,18 @@ class Command(BaseCommand):
 
         # Find the advisor who entered the note:
         advisor_emplid = row['creator_emplid']
+
+        # Same thing for the advisor
+        try:
+            int(advisor_emplid)
+        except ValueError:
+            if self.verbose:
+                error_msg = "ERROR, emplid is not valid for advisor on row %i (emplid %s). Ignoring" % \
+                            (row_num, advisor_emplid)
+                self.errors.append(error_msg)
+                print(error_msg)
+            return
+
         u = add_person(advisor_emplid, commit=self.commit)
         if not u:
             if self.verbose:
@@ -144,6 +168,15 @@ class Command(BaseCommand):
 
         # We checked every possible case, let's create the new note.
         original_text = row['notes']
+
+        # The file we were given actually has some NULLs for some text content.  No sense importing a null note.
+        if original_text == 'NULL':
+            if self.verbose:
+                error_msg = "No actual note content (NULL) for %s at row %i.  Ignoring." % (student_emplid, row_num)
+                self.errors.append(error_msg)
+                print(error_msg)
+            return
+
         text = ensure_sanitary_markup(original_text, self.markup)
         n = AdvisorNote(student=p, advisor=u, created_at=date_created, unit=self.unit, text=text)
         n.config['import_key'] = key
