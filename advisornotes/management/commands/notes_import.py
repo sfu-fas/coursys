@@ -6,10 +6,9 @@ from coredata.queries import add_person
 import argparse
 import csv
 import os
-import bleach
 from datetime import datetime
 from dateutil import parser as dateparser
-from courselib.markup import MARKUPS
+from courselib.markup import MARKUPS, sanitize_html
 
 def get_markup_choices():
     markup_keys = []
@@ -117,7 +116,7 @@ class Command(BaseCommand):
 
         # We checked every possible case, let's create the new note.
         original_text = row['notes']
-        text = bleach.clean(original_text, strip=True)
+        text = sanitize_html(original_text)
         n = AdvisorNote(student=p, advisor=u, created_at=date_created, unit=self.unit, text=text)
         n.config['import_key'] = key
         n.markup=self.markup
