@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.utils import timezone
 from advisornotes.models import AdvisorNote
 from coredata.models import Unit
 from coredata.queries import add_person
@@ -9,6 +10,14 @@ import os
 from datetime import datetime
 from dateutil import parser as dateparser
 from courselib.markup import MARKUPS, ensure_sanitary_markup
+
+
+def timezone_today():
+    """
+    Return the timezone-aware version of datetime.date.today()
+    """
+    # field default must be a callable (so it's the "today" of the request, not the "today" of the server startup)
+    return timezone.now()
 
 
 def get_markup_choices():
@@ -142,6 +151,14 @@ class Command(BaseCommand):
                     print(error_msg)
                 return
 
+        if date_created > timezone_today():
+            if self.verbose:
+                error_msg = "ERROR:  Creation date %s of note for %s at row %i is in the future. Ignoring. " % \
+                            (read_date, student_emplid, row_num)
+                self.errors.append(error_msg)
+                print(error_msg)
+            return
+
         # Let's check if we've already imported this note (or another which matches):
         matching_notes = AdvisorNote.objects.filter(student=p, advisor=u, created_at=date_created, unit=self.unit)
         key_matching_notes = [n for n in matching_notes if 'import_key' in n.config and n.config['import_key'] == key]
@@ -172,9 +189,10 @@ class Command(BaseCommand):
         original_text = row['notes']
 
         # The file we were given actually has some NULLs for some text content.  No sense importing a null note.
-        if original_text == 'NULL':
+        if not original_text or original_text == 'NULL':
             if self.verbose:
-                error_msg = "No actual note content (NULL) for %s at row %i.  Ignoring." % (student_emplid, row_num)
+                error_msg = "No actual note content (empty string or NULL) for %s at row %i.  Ignoring." % \
+                            (student_emplid, row_num)
                 self.errors.append(error_msg)
                 print(error_msg)
             return
