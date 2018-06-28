@@ -540,6 +540,15 @@ class PagesTest(TestCase):
         html = markup_to_html('Foo<script>alert()</script>', 'html')
         self.assertEqual(html, 'Fooalert()')
 
+        # some junky MSWord-like markup
+        html = markup_to_html('Foo<p class="home"><Span style="font-size: 500%">bar</Span></P>', 'html', restricted=True)
+        self.assertEqual(html, 'Foo<p>bar</p>')
+
+        html = markup_to_html('A&nbsp;&nbsp;<p>&nbsp;</p><table cellpadding="10"><tr><td colspan=4>B</td></tr></table>',
+                              'html', restricted=True)
+        self.assertEqual(html, 'A&nbsp;&nbsp;<p>&nbsp;</p>B')
+
+
         # unsafe if we ask for it
         html = markup_to_html('Foo<script>alert()</script>', 'html', html_already_safe=True)
         self.assertEqual(html, 'Foo<script>alert()</script>')
