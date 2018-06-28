@@ -413,18 +413,30 @@ class DependencyTest(TestCase):
     """
     Tests of dependent libraries, where there have been problems
     """
+    def _flag_filter(self, filters):
+        q = CourseOffering.objects
+        for f in filters:
+            q = q.filter(flags=f)
+        return set(q)
+
     def test_bitfield(self):
-        s, c = create_offering()
+        s, c1 = create_offering()
+        c2 = CourseOffering(subject="CMPT", number="121", section="D100", semester=s, component="LEC",
+                           graded=True, crse_id=11112, class_nbr=22223, campus='BRNBY', title="Other Stuff",
+                           enrl_cap=100, enrl_tot=99, wait_tot=2)
+        c2.save()
 
-        c.flags = CourseOffering.flags.quant
-        c.save()
-        self.assertEqual(CourseOffering.objects.filter(flags=CourseOffering.flags.quant).count(), 1)
-        self.assertEqual(CourseOffering.objects.filter(flags=~CourseOffering.flags.quant).count(), 0)
+        c1.flags = CourseOffering.flags.quant
+        c1.save()
+        self.assertEqual(self._flag_filter([CourseOffering.flags.quant, CourseOffering.flags.bhum]), set())
+        self.assertEqual(self._flag_filter([CourseOffering.flags.quant]), {c1})
+        self.assertEqual(self._flag_filter([~CourseOffering.flags.quant]), {c2})
+        self.assertEqual(self._flag_filter([~CourseOffering.flags.bhum]), {c1, c2})
 
-        c.flags = 0
-        c.save()
-        self.assertEqual(CourseOffering.objects.filter(flags=CourseOffering.flags.quant).count(), 0)
-        self.assertEqual(CourseOffering.objects.filter(flags=~CourseOffering.flags.quant).count(), 1)
+        c1.flags = 0
+        c1.save()
+        self.assertEqual(self._flag_filter([CourseOffering.flags.quant]), set())
+        self.assertEqual(self._flag_filter([~CourseOffering.flags.quant]), {c1, c2})
 
     def test_jsonfield(self):
         from grades.models import CalNumericActivity
