@@ -115,7 +115,7 @@ class AdvisorNote(models.Model):
         return self.unique_tuple().__hash__()
 
     def html_content(self):
-        return markup_to_html(self.text, self.markup, restricted=True)
+        return markup_to_html(self.text, self.markup, restricted=False)
 
 ARTIFACT_CATEGORIES = (
     ("INS", "Institution"),

@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from advisornotes.models import AdvisorNote
-from coredata.models import Person, Unit
+from coredata.models import Unit
 from coredata.queries import add_person
 import argparse
 import csv
@@ -10,11 +10,13 @@ from datetime import datetime
 from dateutil import parser as dateparser
 from courselib.markup import MARKUPS, ensure_sanitary_markup
 
+
 def get_markup_choices():
     markup_keys = []
     for k, v in MARKUPS.items():
         markup_keys.append(k)
     return ', '.join(markup_keys)
+
 
 class Command(BaseCommand):
     help = 'Import CSV advising data from a provided file.'
@@ -57,13 +59,17 @@ class Command(BaseCommand):
         """
         Actually process each individual row
         """
-        row_num = i + 2  #  It's 0 indexed, and we already consumed the header row.
+
+        # It's 0 indexed, and we already consumed the header row.
+        # This is used for error messages so the user can refer to the input file and know the correct line number.
+        row_num = i + 2
         note_id = row['note_id']
+
         # Just in case someone had a bunch of trailing slashes, etc, make sure we get solely the file name for the key.
         file_basename = os.path.basename(os.path.normpath(self.file.name))
 
         # In order for the keys to match (to check for duplicates), they have to have been imported from this importer,
-        # from the filename, and with the same note_id.
+        # with the same filename, and with the same note_id.
         key = "notes_import-%s-%s" % (file_basename, note_id)
 
         # Find the recipient of the note:
@@ -73,12 +79,20 @@ class Command(BaseCommand):
             if self.verbose:
                 print("ERROR: Can't find recipient on row %i (emplid %s). Ignoring." % (row_num, student_emplid))
             return
+
         # Find the advisor who entered the note:
         advisor_emplid = row['creator_emplid']
         u = add_person(advisor_emplid, commit=self.commit)
         if not u:
             if self.verbose:
                 print("ERROR: Can't find advisor %s on row %i (emplid %s). Ignoring." % (advisor_emplid, row_num, student_emplid))
+            return
+
+        advisor_userid = row['creator_computing_id']
+        if u.userid != advisor_userid:
+            if self.verbose:
+                print("ERROR:  The advisor emplid and userid do not match the same person.  Emplid %s, userid %s at "
+                      "row %i.  Ignoring." % (advisor_emplid, advisor_userid, row_num))
             return
 
         read_date = row['date_created']
@@ -91,7 +105,7 @@ class Command(BaseCommand):
                 date_created = dateparser.parse(read_date)
             except ValueError:
                 if self.verbose:
-                    print("ERROR: Cannot deduce the correct date %s at line %i. Ignoring." % (row['date_created'], row_num))
+                    print("ERROR: Cannot deduce the correct date %s at line %i. Ignoring." % (read_date, row_num))
                 return
 
         # Let's check if we've already imported this note (or another which matches):
@@ -119,7 +133,7 @@ class Command(BaseCommand):
         text = ensure_sanitary_markup(original_text, self.markup)
         n = AdvisorNote(student=p, advisor=u, created_at=date_created, unit=self.unit, text=text)
         n.config['import_key'] = key
-        n.markup=self.markup
+        n.markup = self.markup
         if self.verbose:
             print("Creating note for %s from row %i..." % (student_emplid, row_num), end='')
         if self.commit:
