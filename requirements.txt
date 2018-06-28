@@ -25,8 +25,8 @@ pillow>=5.0.0
 icalendar==4.0.0
 xlwt==1.2.0
 django-datatables-view==1.14.0
-#django-bitfield==1.9.3
-git+git://github.com/moggers87/django-bitfield@0910021be2f96cab9687cca2c93a9b612de36a69 # django 2.0 compatibility (PR #81)
+django-bitfield==1.9.3
+#git+git://github.com/moggers87/django-bitfield@0910021be2f96cab9687cca2c93a9b612de36a69 # django 2.0 compatibility (PR #81)
 django-countries==4.0
 django-compressor==2.1
 #django-cache-utils==0.7.2
