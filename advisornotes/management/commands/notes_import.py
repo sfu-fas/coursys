@@ -32,6 +32,7 @@ class Command(BaseCommand):
         self.unit = None
         self.markup = None
         self.saved = 0
+        self.errors = []
         super().__init__(*args, **kwargs)
 
     def add_arguments(self, parser):
@@ -77,7 +78,9 @@ class Command(BaseCommand):
         p = add_person(student_emplid, commit=self.commit)
         if not p:
             if self.verbose:
-                print("ERROR: Can't find recipient on row %i (emplid %s). Ignoring." % (row_num, student_emplid))
+                error_msg = "ERROR: Can't find recipient on row %i (emplid %s). Ignoring." % (row_num, student_emplid)
+                self.errors.append(error_msg)
+                print(error_msg)
             return
 
         # Find the advisor who entered the note:
@@ -85,14 +88,19 @@ class Command(BaseCommand):
         u = add_person(advisor_emplid, commit=self.commit)
         if not u:
             if self.verbose:
-                print("ERROR: Can't find advisor %s on row %i (emplid %s). Ignoring." % (advisor_emplid, row_num, student_emplid))
+                error_msg = "ERROR: Can't find advisor %s on row %i (emplid %s). Ignoring." % \
+                            (advisor_emplid, row_num, student_emplid)
+                self.errors.append(error_msg)
+                print(error_msg)
             return
 
         advisor_userid = row['creator_computing_id']
         if u.userid != advisor_userid:
             if self.verbose:
-                print("ERROR:  The advisor emplid and userid do not match the same person.  Emplid %s, userid %s at "
-                      "row %i.  Ignoring." % (advisor_emplid, advisor_userid, row_num))
+                error_msg = "ERROR:  The advisor emplid and userid do not match the same person.  Emplid %s, userid " \
+                            "%s at row %i.  Ignoring." % (advisor_emplid, advisor_userid, row_num)
+                self.errors.append(error_msg)
+                print(error_msg)
             return
 
         read_date = row['date_created']
@@ -105,7 +113,9 @@ class Command(BaseCommand):
                 date_created = dateparser.parse(read_date)
             except ValueError:
                 if self.verbose:
-                    print("ERROR: Cannot deduce the correct date %s at line %i. Ignoring." % (read_date, row_num))
+                    error_msg = "ERROR: Cannot deduce the correct date %s at line %i. Ignoring." % (read_date, row_num)
+                    self.errors.append(error_msg)
+                    print(error_msg)
                 return
 
         # Let's check if we've already imported this note (or another which matches):
@@ -113,7 +123,10 @@ class Command(BaseCommand):
         key_matching_notes = [n for n in matching_notes if 'import_key' in n.config and n.config['import_key'] == key]
         if key_matching_notes:
             if self.verbose:
-                print("Already imported note from this file with note_id %s on row %i, ignoring." % (note_id, row_num))
+                error_msg = "Already imported note from this file with note_id %s on row %i, ignoring." % \
+                            (note_id, row_num)
+                self.errors.append(error_msg)
+                print(error_msg)
             return
 
         # What if we have notes from the exact same time, from the same advisor, for the same recipient, but without
@@ -122,10 +135,11 @@ class Command(BaseCommand):
         # already imported under another name.
         if matching_notes.count() != len(key_matching_notes):
             if self.verbose:
-                print("Found matching note, but without matching key.  This is fishy.  Note_id %s on row %i. "
-                      "Are you sure this file hasn't been processed already using a different filename?  Ignoring "
-                      "this note."
-                      % (note_id, row_num))
+                error_msg = "Found matching note, but without matching key.  This is fishy.  Note_id %s on row %i. "\
+                            "Are you sure this file hasn't been processed already using a different filename?  " \
+                            "Ignoring this note." % (note_id, row_num)
+                self.errors.append(error_msg)
+                print(error_msg)
             return
 
         # We checked every possible case, let's create the new note.
@@ -201,5 +215,8 @@ class Command(BaseCommand):
         self.process_file()
         if self.verbose:
             print("Closing file...")
+            if self.errors:
+                print("As a recap, the following errors occured.  You may want to check the file and run this again.")
+                print("\n".join(self.errors))
         self.file.close()
         print("Done.")
