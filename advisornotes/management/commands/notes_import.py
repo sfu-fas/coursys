@@ -149,7 +149,9 @@ class Command(BaseCommand):
             if self.verbose:
                 error_msg = "Already imported note from this file with note_id %s on row %i, ignoring." % \
                             (note_id, row_num)
-                self.errors.append(error_msg)
+                #self.errors.append(error_msg)  Don't actually add these to the error log, since these are due to us
+                # running the importer before, as they have the correct key.   Only print for verbose output, but not
+                # in the error recap afterwards.
                 print(error_msg)
             return
 
