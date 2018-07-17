@@ -33,6 +33,7 @@ from xml.etree.ElementTree import ParseError
 from ipware import ip
 import pytz
 import itertools
+import iso8601
 from urllib.parse import urlencode
 
 
@@ -517,15 +518,15 @@ def calendar_data(request):
     AJAX JSON results for the calendar (rendered by dashboard.views.calendar)
     """
     try:
-        int(request.GET['start'])
-        int(request.GET['end'])
-    except (KeyError, ValueError):
+        st = iso8601.parse_date(request.GET['start'])
+        en = iso8601.parse_date(request.GET['end'])
+    except (KeyError, ValueError, iso8601.ParseError):
         return NotFoundResponse(request, errormsg="Bad request")
 
     user = get_object_or_404(Person, userid=request.user.username)
     local_tz = pytz.timezone(settings.TIME_ZONE)
-    start = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['start'])))-datetime.timedelta(days=1)
-    end = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['end'])))+datetime.timedelta(days=1)
+    start = st - datetime.timedelta(days=1)
+    end = en + datetime.timedelta(days=1)
 
     resp = HttpResponse(content_type="application/json")
     events = _calendar_event_data(user, start, end, local_tz, dt_string=True, colour=True,

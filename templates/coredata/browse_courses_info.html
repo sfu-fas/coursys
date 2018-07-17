@@ -6,9 +6,10 @@
 {% block subbreadcrumbs %}<li><a href="{% url "browse:browse_courses" %}">Browse Course Offerings</a></li><li>{{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}</li>{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" type="text/css" href="{% static 'fullcalendar/fullcalendar.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'fullcalendar/fullcalendar.min.css' %}" />
 {% compress js %}
-<script type="text/javascript" src="{% static 'fullcalendar/fullcalendar.js' %}"></script>
+<script type="text/javascript" src="{% static 'moment.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'fullcalendar/fullcalendar.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/advisornotes.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/browse.js' %}"></script>
 <script type="text/javascript" src="{% static 'jquery-ext/jquery.linkify.min.js' %}"></script>
