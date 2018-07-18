@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load staticfiles %}
 {% block title %}Online Forms{% endblock %}
 {% block h1 %}Online Forms{% endblock %}
 
@@ -18,10 +18,10 @@
     <p>If you have the correct permissions, you can find the link to manage form groups off the
         <a href="{% url "onlineforms:index" %}" target="_blank">main online forms page</a>. If not, your local
     Departmental Administrator will have to assign you the <dfn>Form Administrator</dfn> role.</p>
-    <img src="/static/images/forms/formgroups.png"/>
+    <img src="{% static "images/forms/formgroups.png" %}"/>
     <p>Once <a href="{% url "onlineforms:manage_groups" %}" target="_blank">there</a>, you can either add a new form
     group, or edit any of the form groups in the unit(s) you manage.</p>
-    <img src="/static/images/forms/formgroups2.png"/>
+    <img src="{% static "images/forms/formgroups2.png" %}"/>
     <h3>Adding/Removing people to Form Groups</h3>
     <p>You should <em>only</em> add people in the form group which you want to be able to actually manage the forms
     which the group owns.  Regular users who may have <dfn>sheets</dfn> assigned to them do not need to be in the form
@@ -31,7 +31,7 @@
     able to manage all forms owned by the group, but they won't automatically be emailed.  If we contrast this to a
     paper form, only the people who may actually be the first people to receive the form should have the automatic
     email option enabled.</p>
-    <img src="/static/images/forms/formgroups3.png"/>
+    <img src="{% static "images/forms/formgroups3.png" %}"/>
     <h2 id="forms">Forms and Sheets</h2>
     <p><dfn>Forms</dfn> are made up of one or more <dfn>sheets</dfn>.  The only sheet that is a little special is the
     <dfn>initial sheet</dfn>, which is the very first one in the form, and the ones people submitting the form fill
@@ -43,9 +43,9 @@
     <p>Getting there is similar to what we did for Form Groups.  From the
         <a href="{% url "onlineforms:index" %}" target="_blank">main online forms page</a>, you can see the link to
         <a href="{% url "onlineforms:list_all" %}" target="_blank">Create/Edit Forms</a>.
-    <img src="/static/images/forms/manage_forms.png"/>
+    <img src="{% static "images/forms/manage_forms.png" %}"/>
     <p>The options will be similar to the ones for Form Groups.</p>
-    <img src="/static/images/forms/manage_forms2.png"/>
+    <img src="{% static "images/forms/manage_forms2.png" %}"/>
 
 
 {% endblock %}
