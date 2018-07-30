@@ -1,0 +1,25 @@
+img {
+    border: 1px solid #3d3935;
+    margin: 1em;
+    padding: 0.5em;
+}
+#toc {
+    float: right;
+    padding: 0.5em;
+    margin: 1em;
+    background: #3d3935;
+    color: #aaa;
+    opacity: .8;
+}
+
+#toc a:hover {
+    color: #fff;
+}
+
+#toc a {
+    color: #fff;
+}
+
+#toc > ul > ul {
+    margin-left: 1em;
+}

@@ -1,12 +1,34 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %}
 {% block title %}Online Forms{% endblock %}
 {% block h1 %}Online Forms{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "docs:list_docs" %}">Docs</a></li><li>Online Forms</li>{% endblock %}
 
+{% block headextra %}
+    <link rel="stylesheet" href="{% static "style/doc_forms.css" %}"/>
+{% endblock %}
 
 {% block content %}
+    <article>
+    <nav id="toc">
+    <div>Table of contents:</div>
+        <ul>
+            <li><a href="#formgroups">Form Groups</a></li>
+            <ul>
+                <li><a href="#formgroups_create_edit">Creating/Editing</a></li>
+                <li><a hre="#formgroups_add_people">Adding/Removing People</a></li>
+            </ul>
+            <li><a href="#forms">Forms and Sheets</a></li>
+            <ul>
+                <li><a href="#forms_create">Creating/Editing Forms</a></li>
+                <li><a href="#sheets_create">Creating/Editing Sheets</a></li>
+                <li><a href="#fields_add">Adding Fields</a></li>
+                <li><a href="#publishing">Publishing</a></li>
+            </ul>
+            <li><a href="#submissions">Submissions</a></li>
+        </ul>
+    </nav>
     <p>Forms are an extremely powerful tool that allow you to have fairly complicated workflows if needed.  As such,
     there are a few inter-related parts that one needs to know about to use them properly.</p>
 
@@ -14,7 +36,7 @@
     <p>Every form belongs to a <dfn>form group</dfn>. Form groups are made up of specific users.  The people in the
         form group can manage all forms that belong to the form group. A form group may own multiple forms, and a
     person can belong to multiple form groups.</p>
-    <h3>Creating/Editing Form Groups</h3>
+    <h3 id="formgroups_create_edit">Creating/Editing Form Groups</h3>
     <p>If you have the correct permissions, you can find the link to manage form groups off the
         <a href="{% url "onlineforms:index" %}" target="_blank">main online forms page</a>. If not, your local
     Departmental Administrator will have to assign you the <dfn>Form Administrator</dfn> role.</p>
@@ -22,7 +44,7 @@
     <p>Once <a href="{% url "onlineforms:manage_groups" %}" target="_blank">there</a>, you can either add a new form
     group, or edit any of the form groups in the unit(s) you manage.</p>
     <img src="{% static "images/forms/formgroups2.png" %}"/>
-    <h3>Adding/Removing people to Form Groups</h3>
+    <h3 id="formgroups_add_people">Adding/Removing people to Form Groups</h3>
     <p>You should <em>only</em> add people in the form group which you want to be able to actually manage the forms
     which the group owns.  Regular users who may have <dfn>sheets</dfn> assigned to them do not need to be in the form
     group.  More on sheets later.</p>
@@ -39,13 +61,117 @@
     <p>All other sheets can be assigned to other users.  It may be easier to think of them as replacing actual
     sheets of paper.  You can assign a copy of a certain sheet to multiple users, and each one gets their own copy to
     fill out.  You can be waiting for multiple sheets from multiple users, and still be assigning more sheets.</p>
-    <h3>Creating/Editing Forms</h3>
+    <h3 id="forms_create">Creating/Editing Forms</h3>
     <p>Getting there is similar to what we did for Form Groups.  From the
         <a href="{% url "onlineforms:index" %}" target="_blank">main online forms page</a>, you can see the link to
         <a href="{% url "onlineforms:list_all" %}" target="_blank">Create/Edit Forms</a>.
     <img src="{% static "images/forms/manage_forms.png" %}"/>
     <p>The options will be similar to the ones for Form Groups.</p>
     <img src="{% static "images/forms/manage_forms2.png" %}"/>
+    <p>In either case, you will end up with a very similar form.</p>
+    <img src="{% static "images/forms/create_form.png" %}"/>
+    <p>There is only one field (Initiators) that shows up only when editing, and we will get to it when we cover
+        <dfn><a href="#publishing">publishing</a> a form.</dfn></p>
+    <p>Most of the fields are self-explanatory, but there are a few special ones.
+    <dl>
+    <dt>Advisor Visible</dt><dd>If this is selected, advisors in the same unit as the form will see that the initiator
+    has filled in the form along with a summary (once the form is closed) if there is one.</dd>
+    <dt>Login Prompt</dt><dd>If users about to fill in the form aren't logged in, checking this will prompt them to do
+        so.</dd>
+    <dt>Unlisted</dt><dd>If this is checked, the form will not show up on the list of forms that people can fill out.
+    It will still be possible to fill it (depending on the initiator option), but will only be found by people who
+    have the direct link to it.  This can be very useful for internal forms you don't want everyone to know about.</dd>
+    </dl>
+    <p>Once you have created the form, you will end up at a page with virtually no content.</p>
+    <img src="{% static "images/forms/create_form2.png" %}"/>
+    <p> As mentionned above, the <dfn>Initiators</dfn> field can only be modified when editing the form.  This is so you
+    have time to build the entire form the way you want it before anyone is able to find it and/or fill it out. You
+    must now create a sheet.  Either click on the link pointed to by the arrow, or the "New Sheet" link in the action
+    menu on the left.
+    </p>
+    <h3 id="sheets_create">Creating sheets</h3>
+    <p>All sheets are built the same way.  The very first sheet you create will be the <dfn>initiah sheet</dfn>.
+    This is the sheet someone who will actually submit the form fills out.  Think of any other sheet as an optional
+    sheet of paper that can be assigned to someone else to add to the form after it it initially submitted.</p>
+    <p>Before you create a sheet, there is only really one option that matters</p>
+    <img src="{% static "images/forms/create_sheet.png" %}"/>
+    <p>For the initial sheet, the <dfn>Can view</dfn> option really has no effect.  For any other sheet, however,
+    it is important.  This applies only to people to whom you may assign the sheet.  Keep in mind that people in the
+    form group which owns the form can always see all the content, as it is their job to manage the form. The options
+    are:</p>
+    <dl>
+    <dt>Filler can see all info on previous sheets</dt><dd>Anyone who gets assigned this sheet can see everything
+    that came in the form before this point.  All sheets assigned to others, and the initial sheet that was first
+    submitted.</dd>
+    <dt>Filler can't see any info on other sheets</dt><dd>The person who is assigned this sheet cannot see anything
+    else at all, including the initial sheet.  They will only see the name/email of the person who submitted the
+    initial sheet, but none of the fields actually contained in it.</dd>
+    <dt>Filler can see only the initial sheet</dt><dd>As the it implies, anyone assigned this sheet will see the entire
+    initial sheet submission, but none of the other sheets that may have been assigned to others.</dd>
+    </dl>
+    <h3 id="fields_add">Adding Fields</h3>
+    <p>Once you have created a sheet, it will be totally empty.  The only think you can do is to add your first field.
+    </p>
+    <img src="{% static "images/forms/add_fields.png" %}"/>
+    <p>At this point, you will have to choose which type of field you want to add, along with its options.  Most of
+    them should be rather self-explanatory.  Each field has at least the following options:
+        <dl>
+        <dt>A checkbox to mark it required.</dt><dd>If you check this, and the submitter doesn't actually pick/input a value,
+            they will not be able to submit the form.</dd>
+            <dt>A label<dt><dd>The title that will appear above the field when viewing the sheet.</dd>
+            <dt>Help text (optional)<dt><dd>Shows up below the field if needed.</dd>
+        </dl>
+    <p>In addition, other types of fields have specific options.  For example, if you pick a radio button selector,
+    you will have to specify the content for each option.  Same thing with a drop-down box selector, or a multiple
+    values selector.  For a list of short responses, you can add the minimum and maximum allowable number of responses.
+    For a date, you have to select the possible range of dates acceptable (e.g. you may only allow dates in the future
+    or the past, etc.)</p>
+    <p>Please keep in mind that you <em>DO NOT</em> need to add fields for the submitter's name, userid, or
+    email address.  If the form is filled by a logged-in SFU user, that will automatically be recorded.  If it is
+    filled in by a non-logged in user (if allowed), those fields are automatically added.</p>
+    <p>Once you have added all the fields you want to your sheet, you can actually see what it will look like to the
+    user by clicking the "Preview" link:</p>
+    <img src="{% static "images/forms/preview_sheet.png" %}"/>
+    <p>Once you have finished the initial sheet, you can then create any other sheet you think you may need in your
+    workflow in a similar fashion.</p>
+    <p>Once you have done that, you can also go back to the main "Edit Forms" page for the particular form you are
+    editing, and you can see a preview of every sheet you have created in one place, if so desired:</p>
+    <img src="{% static "images/forms/preview_all_sheets.png" %}"/>
+    <h3 id="publishing">Publishing/making it possible to submit in your form</h3>
+    <p><em>Congrtatulations!</em> At this point, you know who can manage your form, what information your initial
+    sheet and any other sheet may gather, what whoever sees the sheets can see, etc.  There is only one minor problem:
+    no one can actually see it and/or fill it in yet.</p>
+    <p>Go to the main "Edit Forms" page for your form, and click "Edit Form Info".</p>
+    <img src="{% static "images/forms/edit_form.png" %}"/>
+    <p>Once you get there, you will see that this is the exact same form as when you initially created your form, with
+    the addition of the <dfn>initiators</dfn> field.</p>
+    <img src="{% static "images/forms/publishing.png" %}"/>
+    <p>This field has three options:</p>
+    <dl>
+        <dt>Nobody</dt><dd>The form is treated as non-existent to users.  It doesn't show up in the list of forms,
+    and even if they have the URL, they cannot fill it in.</dd>
+        <dt>Logged-in SFU users</dt><dd>Only users with valid user accounts who can login through CAS.</dd>
+        <dt>Anyone</dt><dd>Either internal or external users.  If you have previously specified the "Login Prompt"
+        option, users will be reminded to please log in if they can, but anyone can fill it in regardless.</dd>
+    </dl>
+    <p>Once you have selected the correct option, your form is ready to go.</p>
+    <h2 id="submissions">Managing Submissions</h2>
+    <p>Once you have published your form, at some point, someone will presumably fill it out and submit it.  Here is
+    the basic workflow in the life-cycle of a form:</p>
+    <ol>
+        <li>User submits form.</li>
+        <li>If anyone in the form group which owns the form is marked as receiving emails automatically, they will be
+        notified that someone submitted the form.  Regardless, anyone in the form group can see the submissions if
+        they go to the main forms page.</li>
+        <li>Optional: Member(s) of the form group assign other sheets to people, including the original submitted if
+            needed.  Those users then fill in the required information.</li>
+        <li>Member of the form group closes the form.</li>
+    </ol>
+    <p>There are tools to help you along the way. If you go to the
+        <a href="{% url "onlineforms:index" %}" target="_blank">main online forms page</a>, you should find a link to
+    <a href="{% url "onlineforms:admin_list_all" %}" target="_blank">Manage Submissions</a>.</p>
+    <img src="{% static "images/forms/manage_forms_link.png" %}"/>
+    <p>Once there, you will see up to 3 different tables.  </p>
 
-
+    </article>
 {% endblock %}
