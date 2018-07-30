@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}Online Forms{% endblock %}
+{% block h1 %}Online Forms{% endblock %}
+
+{% block subbreadcrumbs %}<li><a href="{% url "docs:list_docs" %}">Docs</a></li><li>Online Forms</li>{% endblock %}
+
+
+{% block content %}
+    <p>Forms are an extremely powerful tool that allow you to have fairly complicated workflows if needed.  As such,
+    there are a few inter-related parts that one needs to know about to use them properly.</p>
+
+    <h2 id="formgroups">Form Groups</h2>
+    <p>Every form belongs to a <dfn>form group</dfn>. Form groups are made up of specific users.  The people in the
+        form group can manage all forms that belong to the form group. A form group may own multiple forms, and a
+    person can belong to multiple form groups.</p>
+    <h3>Creating/Editing Form Groups</h3>
+    <p>If you have the correct permissions, you can find the link to manage form groups off the
+        <a href="{% url "onlineforms:index" %}" target="_blank">main online forms page</a>. If not, your local
+    Departmental Administrator will have to assign you the <dfn>Form Administrator</dfn> role.</p>
+    <img src="{% static "images/forms/formgroups.png" %}"/>
+    <p>Once <a href="{% url "onlineforms:manage_groups" %}" target="_blank">there</a>, you can either add a new form
+    group, or edit any of the form groups in the unit(s) you manage.</p>
+    <img src="{% static "images/forms/formgroups2.png" %}"/>
+    <h3>Adding/Removing people to Form Groups</h3>
+    <p>You should <em>only</em> add people in the form group which you want to be able to actually manage the forms
+    which the group owns.  Regular users who may have <dfn>sheets</dfn> assigned to them do not need to be in the form
+    group.  More on sheets later.</p>
+    <p>Add the person you want (1), then select whether or not you want that person to automatically get an email
+    whenever a form owned by this form group is submitted (2).  If you do not check this box, the person will still be
+    able to manage all forms owned by the group, but they won't automatically be emailed.  If we contrast this to a
+    paper form, only the people who may actually be the first people to receive the form should have the automatic
+    email option enabled.</p>
+    <img src="{% static "images/forms/formgroups3.png" %}"/>
+    <h2 id="forms">Forms and Sheets</h2>
+    <p><dfn>Forms</dfn> are made up of one or more <dfn>sheets</dfn>.  The only sheet that is a little special is the
+    <dfn>initial sheet</dfn>, which is the very first one in the form, and the ones people submitting the form fill
+    out.</p>
+    <p>All other sheets can be assigned to other users.  It may be easier to think of them as replacing actual
+    sheets of paper.  You can assign a copy of a certain sheet to multiple users, and each one gets their own copy to
+    fill out.  You can be waiting for multiple sheets from multiple users, and still be assigning more sheets.</p>
+    <h3>Creating/Editing Forms</h3>
+    <p>Getting there is similar to what we did for Form Groups.  From the
+        <a href="{% url "onlineforms:index" %}" target="_blank">main online forms page</a>, you can see the link to
+        <a href="{% url "onlineforms:list_all" %}" target="_blank">Create/Edit Forms</a>.
+    <img src="{% static "images/forms/manage_forms.png" %}"/>
+    <p>The options will be similar to the ones for Form Groups.</p>
+    <img src="{% static "images/forms/manage_forms2.png" %}"/>
+
+
+{% endblock %}

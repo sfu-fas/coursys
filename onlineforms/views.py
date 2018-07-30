@@ -290,10 +290,10 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
 
         if assign_to_sfu_account:
             form = AdminAssignFormForm(data=request.POST or None,
-                query_set=Form.objects.filter(active=True, owner__in=request.formgroups))
+                query_set=Form.objects.filter(active=True, owner__in=request.formgroups).exclude(initiators='NON'))
         else:
             form = AdminAssignFormForm_nonsfu(data=request.POST or None,
-                query_set=Form.objects.filter(active=True, owner__in=request.formgroups))
+                query_set=Form.objects.filter(active=True, owner__in=request.formgroups, initiators='ANY'))
 
         if request.method == 'POST' and form.is_valid():
             # get the person to assign too
