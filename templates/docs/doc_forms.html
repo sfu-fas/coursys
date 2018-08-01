@@ -14,19 +14,25 @@
     <nav id="toc">
     <div>Table of contents:</div>
         <ul>
-            <li><a href="#formgroups">Form Groups</a></li>
+            <li><a href="#formgroups">Form Groups</a>
             <ul>
                 <li><a href="#formgroups_create_edit">Creating/Editing</a></li>
-                <li><a hre="#formgroups_add_people">Adding/Removing People</a></li>
+                <li><a href="#formgroups_add_people">Adding/Removing People</a></li>
             </ul>
-            <li><a href="#forms">Forms and Sheets</a></li>
+            </li>
+            <li><a href="#forms">Forms and Sheets</a>
             <ul>
                 <li><a href="#forms_create">Creating/Editing Forms</a></li>
                 <li><a href="#sheets_create">Creating/Editing Sheets</a></li>
                 <li><a href="#fields_add">Adding Fields</a></li>
                 <li><a href="#publishing">Publishing</a></li>
             </ul>
-            <li><a href="#submissions">Submissions</a></li>
+            </li>
+            <li><a href="#submissions">Submissions</a>
+            <ul>
+                <li><a href="#summaries">Summaries</a></li>
+            </ul>
+            </li>
         </ul>
     </nav>
     <p>Forms are an extremely powerful tool that allow you to have fairly complicated workflows if needed.  As such,
@@ -84,13 +90,13 @@
     </dl>
     <p>Once you have created the form, you will end up at a page with virtually no content.</p>
     <img src="{% static "images/forms/create_form2.png" %}"/>
-    <p> As mentionned above, the <dfn>Initiators</dfn> field can only be modified when editing the form.  This is so you
+    <p> As mentioned above, the <dfn>Initiators</dfn> field can only be modified when editing the form.  This is so you
     have time to build the entire form the way you want it before anyone is able to find it and/or fill it out. You
     must now create a sheet.  Either click on the link pointed to by the arrow, or the "New Sheet" link in the action
     menu on the left.
     </p>
     <h3 id="sheets_create">Creating sheets</h3>
-    <p>All sheets are built the same way.  The very first sheet you create will be the <dfn>initiah sheet</dfn>.
+    <p>All sheets are built the same way.  The very first sheet you create will be the <dfn>initial sheet</dfn>.
     This is the sheet someone who will actually submit the form fills out.  Think of any other sheet as an optional
     sheet of paper that can be assigned to someone else to add to the form after it it initially submitted.</p>
     <p>Before you create a sheet, there is only really one option that matters</p>
@@ -138,7 +144,7 @@
     editing, and you can see a preview of every sheet you have created in one place, if so desired:</p>
     <img src="{% static "images/forms/preview_all_sheets.png" %}"/>
     <h3 id="publishing">Publishing/making it possible to submit in your form</h3>
-    <p><em>Congrtatulations!</em> At this point, you know who can manage your form, what information your initial
+    <p><em>Congratulations!</em> At this point, you know who can manage your form, what information your initial
     sheet and any other sheet may gather, what whoever sees the sheets can see, etc.  There is only one minor problem:
     no one can actually see it and/or fill it in yet.</p>
     <p>Go to the main "Edit Forms" page for your form, and click "Edit Form Info".</p>
@@ -172,6 +178,41 @@
     <a href="{% url "onlineforms:admin_list_all" %}" target="_blank">Manage Submissions</a>.</p>
     <img src="{% static "images/forms/manage_forms_link.png" %}"/>
     <p>Once there, you will see up to 3 different tables.  </p>
-
+    <img src="{% static "images/forms/manage_forms3.png" %}"/>
+        <ol>
+        <li>Items in the <dfn>Pending Forms</dfn> table have had the initial sheet and all other assigned sheets (if
+        applicable) completed.  They need some sort of interaction from a member of the form group (either assigning
+        another sheet, closing it, or doing what is requested in the form.)</li>
+        <li>Items in the <dfn>Waiting Forms</dfn> table are forms for which you have assigned at least one sheet. You
+        are waiting for those sheets to come back to you.  You can still, of course, close those forms if need be.</li>
+        <li>Items in the <dfn>Unsubmitted Forms</dfn> table are basically inconsequential to you.  They are forms where
+        the submitter has started the initial sheet, and decided to save it for later without submitting (usually because
+        they haven't answered everything in the initial sheet yet.)  If they do not submit the initial sheet within 14
+        days of saving it, the form will get automatically closed by the system.  This table is just there for the
+        occasional case when someone claims to have submitted a form, and we find it was never actually submitted.</li>
+        </ol>
+    <h3 id="summaries">Summaries and Completed Forms</h3>
+    <p>As a convenience, there is a way to download all completed or pending submissions for a given form in CSV
+    format.</p>
+    <p>If you go to the
+        <a href="{% url "onlineforms:admin_list_all" %}" target="_blank">Manage Submissions</a> page,  you should
+        find a link to the <a href="{% url "onlineforms:admin_completed" %}" target="_blank">View Complete Submissions
+        </a> page.
+    </p>
+    <img src="{% static "images/forms/completed_submissions.png" %}"/>
+    <p>Once there, you can select which one of your forms you would like to look at.</p>
+    <p>Once you reach the correct form, you have a few options:</p>
+    <img src="{% static "images/forms/completed_submissions2.png" %}"/>
+    <p>If you click on any individual completed form in the table, you will see that entire submission only.  If you
+    click either of the summaries, you will get either every completed submission (what is show in the table), or every
+    currently pending submission.  In the case of either summary, you will see, for each submission <em>every single
+        possible field for every sheet that is available in the form</em> along with their value, in a CSV format, which
+    can then be viewed in Excel, or manipulated anyway you may want.</p>
+    <img src="{% static "images/forms/completed_submissions3.png" %}"/>
+    <p>The online forms module is a very powerful tool which allows you to replace very complicated workflows that
+    previously required tracking multiple sheets of paper going to multiple people in a more efficient manner.  As such,
+    it also means our solution here is fairly complex in order to allow many possibilities.  Hopefully, this document
+    has helped give you a good start to use the forms.  For any questions, please
+        <a href="mailto:coursys-help@sfu.ca">contact us</a>.</p>
     </article>
 {% endblock %}
