@@ -2,6 +2,8 @@ img {
     border: 1px solid #3d3935;
     margin: 1em;
     padding: 0.5em;
+    max-width: 100%;
+    height: auto;
 }
 #toc {
     float: right;
