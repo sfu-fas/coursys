@@ -20,6 +20,10 @@ img {
     color: #fff;
 }
 
-#toc > ul > ul {
+#toc > ul > li > ul {
     margin-left: 1em;
+}
+
+h3 {
+   color: #777;
 }
