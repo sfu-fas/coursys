@@ -1431,6 +1431,9 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             FormLogEntry.create(sheet_submission=sheet_submission, filler=formFiller, category='FILL',
                                     description='Submitted sheet.')
 
+                            if sheet.is_initial and sheet.form.autoconfirm():
+                                sheet.form.email_confirm(formFiller)
+
                             messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
                             return HttpResponseRedirect(reverse('onlineforms:index'))
                     else:

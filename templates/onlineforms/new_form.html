@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 {% block h1 %} New Form {% endblock %}
 {% block title %} New Form {% endblock %}
 
@@ -7,6 +8,10 @@
 <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
 <li><a href="{% url "onlineforms:list_all" %}">Edit Forms</a></li>
 <li>New Form</li>
+{% endblock %}
+
+{% block headextra %}
+<script src="{% static 'js/forms.js' %}"></script>
 {% endblock %}
 
 {% block content %}

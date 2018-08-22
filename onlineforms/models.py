@@ -327,15 +327,22 @@ class Form(models.Model, _FormCoherenceMixin):
         return make_slug(self.unit.label + ' ' + self.title)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
-        # 'loginprompt': should the "log in with your account" prompt be displayed for non-logged-in? (default True)
-        # 'unlisted':  Form can be filled out, but doesn't show up in the index
-        # 'jsfile':  Extra Javascript file included with this form.  USE THIS CAREFULLY.  There is no validation here, and
-        # this should be used extremely rarely by sysadmins only.  There should never be any UI to modify this by users.
+    # 'loginprompt': should the "log in with your account" prompt be displayed for non-logged-in? (default True)
+    # 'unlisted':  Form can be filled out, but doesn't show up in the index
+    # 'jsfile':  Extra Javascript file included with this form.  USE THIS CAREFULLY.  There is no validation here, and
+    # this should be used extremely rarely by sysadmins only.  There should never be any UI to modify this by users.
+    # 'autoconfirm':  Whether a confirmation should be emailed once someone submits the initial sheet.
+    # 'emailsubject', 'emailbody':  The subject and body for the autoconfirm email if the autoconfirm option is set.
 
-    defaults = {'loginprompt': True, 'unlisted': False, 'jsfile': None}
+
+    defaults = {'loginprompt': True, 'unlisted': False, 'jsfile': None, 'autoconfirm': False, 'emailsubject': '',
+                'emailbody': ''}
     loginprompt, set_loginprompt = getter_setter('loginprompt')
     unlisted, set_unlisted = getter_setter('unlisted')
     jsfile, set_jsfile = getter_setter('jsfile')
+    autoconfirm, set_autoconfirm = getter_setter('autoconfirm')
+    emailsubject, set_emailsubject = getter_setter('emailsubject')
+    emailbody, set_emailbody = getter_setter('emailbody')
 
     def __str__(self):
         return "%s [%s]" % (self.title, self.id)
@@ -523,6 +530,12 @@ class Form(models.Model, _FormCoherenceMixin):
 
         return headers, data
 
+    def email_confirm(self, recipient):
+        msg = EmailMultiAlternatives(subject=self.emailsubject(), body=self.emailbody(),
+                                     from_email=settings.DEFAULT_FROM_EMAIL, to=[recipient.full_email()],
+                                     headers={'X-coursys-topic': 'onlineforms'})
+        msg.send()
+
 
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
@@ -606,6 +619,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
     
     def get_can_view_display_short(self):
         return VIEWABLE_SHORT[self.can_view]
+
 
 class Field(models.Model, _FormCoherenceMixin):
     label = models.CharField(max_length=60, null=False, blank=False)
