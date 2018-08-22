@@ -454,7 +454,9 @@ def copy_activity(source_activity, source_course_offering, target_course_offerin
 
     if 'url' in new_activity.config:
         # if offering slug is in URL, replace it, to heuristically adapt to moved course pages.
-        new_activity.config['url'] = new_activity.config['url'].replace(source_course_offering.slug, target_course_offering.slug)
+        new_activity.config['url'] = new_activity.config['url'] \
+            .replace(source_course_offering.slug, target_course_offering.slug) \
+            .replace('courses.cs.sfu.ca', 'coursys.sfu.ca')
 
     return new_activity
 
@@ -483,7 +485,9 @@ def copy_setup_base(course_copy_from, course_copy_to):
 
         if 'url' in course_copy_to.config:
             # if slug is in URL, replace it, to heuristically adapt to moved course pages.
-            course_copy_to.config['url'] = course_copy_to.config['url'].replace(course_copy_from.slug, course_copy_to.slug)
+            course_copy_to.config['url'] = course_copy_to.config['url'] \
+                .replace(course_copy_from.slug, course_copy_to.slug) \
+                .replace('courses.cs.sfu.ca', 'coursys.sfu.ca')
         course_copy_to.save()
 
 
