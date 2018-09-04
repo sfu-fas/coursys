@@ -178,8 +178,19 @@ def admin_list_all(request):
         # unsubmitted ones.
         unsubmitted_forms = [f for f in wait_submissions if f.is_initial]
         wait_submissions = [f for f in wait_submissions if not f.is_initial]
-    context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'unsubmitted_forms':
-        unsubmitted_forms}
+
+    # Create a quick summary of pending forms to easily see at the top of the page so one doesn't have to scroll
+    # through the whole table to see what needs to be worked on.
+    submission_summary = {}
+    if pend_submissions:
+        for s in pend_submissions:
+            if s.form.title in submission_summary:
+                submission_summary[s.form.title] += 1
+            else:
+                submission_summary[s.form.title] = 1
+    sub_summary = sorted(submission_summary.items(), key=lambda x: x[1], reverse=True)
+    context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions,
+               'unsubmitted_forms': unsubmitted_forms, 'sub_summary': sub_summary}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
 

@@ -21,6 +21,7 @@
                     "bJQueryUI": true,
                     "aaSorting": [[2, "asc"]],
         });
+        $("h3.summary_heading").collapsible();
     });
 </script>
 {% endblock %}
@@ -42,6 +43,15 @@
 
 {% block content %}
 <h2>Pending Forms</h2>
+    {% if sub_summary %}
+        <h3 class="summary_heading">Summary</h3>
+        <div id="summary_content" class="collapse_menu">
+            <span class="helptext">Number of pending submissions per form, from most pending to least:<br/></span>
+        {% for k, v in sub_summary %}
+            {{ k }} ({{ v }})<br/>
+        {% endfor %}
+        </div>
+    {% endif %}
 <p class="helptext">These forms have been completed by the person filling things out. They require administrative action: either giving another sheet to someone else, or marking them completed.</p>
 <div class="datatable_container">
     {% if pend_submissions %}
