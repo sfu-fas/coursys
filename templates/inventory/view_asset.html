@@ -28,6 +28,7 @@
 <dt>Asset Tag Number</dt><dd>{{ asset.tag }}</dd>
 <dt>Quantity</dt><dd>{{ asset.quantity }}</dd>
 <dt>Minimum re-order quantity</dt><dd>{{ asset.min_qty }}</dd>
+<dt>Price</dt><dd>{% if asset.price %}${% endif %}{{ asset.price }}</dd>
 <dt>Category</dt><dd>{{ asset.get_category_display }}</dd>
 <dt>Location</dt><dd>{{  asset.location }}</dd>
 <dt>Notes</dt><dd>{{ asset.notes }}</dd>
