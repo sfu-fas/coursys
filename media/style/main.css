@@ -1176,3 +1176,7 @@ p.logentry {
   font-style: italic;
   line-height: 1.25em;
 }
+
+.form_title:hover {
+    color: #a6192e;
+}
