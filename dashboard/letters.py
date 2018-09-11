@@ -1019,8 +1019,14 @@ class TAForm(object):
             courses.append((
                 crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],
                 crs.description.description,
-                crs.total_bu,
+                crs.bu,
             ))
+            if crs.has_labtut():
+                courses.append((
+                    crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],
+                    "Prep",
+                    crs.prep_bu,
+                ))
             bu += crs.bu
             total_bu += crs.total_bu
 
@@ -1079,8 +1085,14 @@ class TAForm(object):
             courses.append((
                 crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],
                 description,
-                crs.total_bu,
+                crs.bu,
             ))
+            if crs.has_labtut():
+                courses.append((
+                    crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],
+                    "Prep",
+                    crs.prep_bu,
+                ))
 
         return self.draw_form(
             emplid=contract.person.emplid,
