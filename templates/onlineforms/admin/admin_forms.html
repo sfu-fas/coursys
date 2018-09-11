@@ -22,6 +22,10 @@
                     "aaSorting": [[2, "asc"]],
         });
         $("h3.summary_heading").collapsible();
+        $(".form_title").click(function() {
+            $("#pend_table_filter input").val($(this).text());
+            $("#pend_table_filter input").keyup();
+        });
     });
 </script>
 {% endblock %}
@@ -48,7 +52,7 @@
         <div id="summary_content" class="collapse_menu">
             <span class="helptext">Number of pending submissions per form, from most pending to least:<br/></span>
         {% for k, v in sub_summary %}
-            {{ k }} ({{ v }})<br/>
+            <span class="form_title" title="Click to search in the table.">{{ k }}</span> ({{ v }})<br/>
         {% endfor %}
         </div>
     {% endif %}
