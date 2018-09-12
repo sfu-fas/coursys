@@ -24,6 +24,7 @@ CATEGORY_CHOICES = {
     ('EVEN', 'Events'),
     ('GEN', 'General'),
     ('OFF', 'Office Supplies'),
+    ('SURP', 'Surplus'),
 }
 
 
