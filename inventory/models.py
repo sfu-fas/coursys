@@ -25,6 +25,10 @@ CATEGORY_CHOICES = {
     ('GEN', 'General'),
     ('OFF', 'Office Supplies'),
     ('SURP', 'Surplus'),
+    ('TEAC', 'Teaching'),
+    ('RESR', 'Research'),
+    ('ADMN', 'Admin'),
+    ('TECH', 'Tech'),
 }
 
 
