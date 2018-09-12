@@ -42,6 +42,7 @@ def index(request):
     userid = request.user.username
     memberships, excluded = Member.get_memberships(userid)
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
+    is_instructor = len([m for m in memberships if m.role == 'INST']) > 0  # For TUGs link
     news_list = _get_news_list(userid, 5)
     roles = Role.all_roles(userid)
     is_grad = GradStudent.objects.filter(person__userid=userid, current_status__in=STATUS_ACTIVE).exists()
@@ -64,7 +65,8 @@ def index(request):
                'excluded': excluded,
                'form_groups': form_groups,
                'cmpt_taadmn': cmpt_taadmn,
-               'other_taadmn': other_taadmn}
+               'other_taadmn': other_taadmn,
+               'is_instructor': is_instructor}
     return render(request, "dashboard/index.html", context)
 
 @login_required
