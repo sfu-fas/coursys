@@ -1,4 +1,4 @@
-from .models import Asset, AssetDocumentAttachment, AssetChangeRecord
+from .models import Asset, AssetDocumentAttachment, AssetChangeRecord, CATEGORY_CHOICES
 from outreach.models import OutreachEvent
 from django import forms
 from coredata.models import Unit
@@ -13,6 +13,8 @@ class AssetForm(forms.ModelForm):
         units = Unit.objects.filter(id__in=unit_ids)
         self.fields['unit'].queryset = units
         self.fields['unit'].empty_label = None
+        SORTED_CATEGORIES = sorted(CATEGORY_CHOICES, key=lambda x: x[1])
+        self.fields['category'].choices = SORTED_CATEGORIES
 
     class Meta:
         exclude = []
