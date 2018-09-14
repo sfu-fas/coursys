@@ -27,8 +27,8 @@ CATEGORY_CHOICES = {
     ('SURP', 'Surplus'),
     ('TEAC', 'Teaching'),
     ('RESR', 'Research'),
-    ('ADMN', 'Admin'),
-    ('TECH', 'Tech'),
+    ('ADMN', 'Admin Support'),
+    ('TECH', 'Tech Support'),
 }
 
 
