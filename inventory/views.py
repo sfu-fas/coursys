@@ -61,7 +61,8 @@ def edit_asset(request, asset_slug):
 @requires_role('INV')
 def view_asset(request, asset_slug):
     asset = get_object_or_404(Asset, slug=asset_slug, unit__in=request.units)
-    return render(request, 'inventory/view_asset.html', {'asset': asset})
+    asset_url = request.build_absolute_uri(reverse('inventory:view_asset', kwargs={'asset_slug': asset_slug}))
+    return render(request, 'inventory/view_asset.html', {'asset': asset, 'asset_url': asset_url})
 
 
 @requires_role('INV')
