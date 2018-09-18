@@ -27,11 +27,17 @@
 <dt>Serial Number</dt><dd>{{ asset.serial }}</dd>
 <dt>Asset Tag Number</dt><dd>{{ asset.tag }}</dd>
 <dt>Quantity</dt><dd>{{ asset.quantity }}</dd>
-<dt>Minimum re-order quantity</dt><dd>{{ asset.min_qty }}</dd>
+<dt>Minimum Re-Order Quantity</dt><dd>{{ asset.min_qty }}</dd>
+<dt>Quantity Ordered</dt><dd>{{ asset.qty_ordered }}</dd>
+<dt>Vendor Minimum Quantity</dt><dd>{{ asset.min_vendor_qty }}</dd>
+<dt>Last Order Date</dt><dd>{{ asset.last_order_date }}</dd>
 <dt>Price</dt><dd>{% if asset.price %}${% endif %}{{ asset.price }}</dd>
 <dt>Category</dt><dd>{{ asset.get_category_display }}</dd>
 <dt>Location</dt><dd>{{  asset.location }}</dd>
-<dt>Notes</dt><dd>{{ asset.notes }}</dd>
+<dt>PR/PO No.</dt><dd>{{ asset.po }}</dd>
+<dt>Account No.</dt><dd>{{ asset.account }}</dd>
+<dt>Supplied/Vendor</dt><dd>{{ asset.vendor|linebreaks }}</dd>
+<dt>Notes</dt><dd>{{ asset.notes|linebreaks }}</dd>
 <dt>Created at</dt><dd>{{ asset.created_at }}</dd>
 <dt>Last Modified</dt><dd>{{ asset.last_modified }}</dd>
 

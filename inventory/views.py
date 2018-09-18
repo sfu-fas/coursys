@@ -1,14 +1,14 @@
-from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
+from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
 from django.urls import reverse
 from django.contrib import messages
 from .models import Asset, AssetChangeRecord
 from .forms import AssetForm, AssetAttachmentForm, AssetChangeForm
 from courselib.auth import requires_role
 from log.models import LogEntry
-from coredata.models import Unit, Role, Person
-from courselib.auth import ForbiddenResponse
+from coredata.models import Unit, Person
 from django.db import transaction
 from django.http import StreamingHttpResponse
+import csv, datetime
 
 
 @requires_role('INV')
@@ -17,6 +17,27 @@ def inventory_index(request):
     units = Unit.objects.filter(id__in=unit_ids)
     assets = Asset.objects.visible(units)
     return render(request, 'inventory/index.html', {'assets': assets})
+
+
+@requires_role('INV')
+def inventory_download(request):
+    unit_ids = [unit.id for unit in request.units]
+    units = Unit.objects.filter(id__in=unit_ids)
+    assets = Asset.objects.visible(units)
+    response = HttpResponse(content_type='text/csv')
+
+    response['Content-Disposition'] = 'inline; filename="inventory-%s.csv"' % datetime.datetime.now().strftime('%Y%m%d')
+    writer = csv.writer(response)
+    if assets:
+        writer.writerow(['Name', 'Unit', 'Brand', 'Description', 'Serial', 'Asset Tag', 'Quantity',
+                         'Minimum Re-Order Quantity', 'Quantity Ordered', 'Minimum Vendor Quantity', 'Price',
+                         'Category', 'Location', 'PR/PO No.', 'Account No.', 'Supplier/Vendor', 'Notes', 'Attachments',
+                         'Change Records'])
+        for a in assets:
+            writer.writerow([a.name, a.unit, a.brand, a.description, a.serial, a.tag, a.quantity, a.min_qty,
+                             a.qty_ordered, a.min_vendor_qty, a.price, a.get_category_display(), a.location, a.po,
+                             a.account, a.vendor, a.notes, a.has_attachments(), a.has_records()])
+    return response
 
 
 @requires_role('INV')
