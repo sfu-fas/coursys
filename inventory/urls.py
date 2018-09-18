@@ -10,6 +10,7 @@ CHANGE_RECORD_ID = '(?P<record_id>' + ID_RE + ')'
 
 inventory_pattern = [  # prefix /inventory/
     url('^$', views.inventory_index, name='inventory_index'),
+    url('^download$', views.inventory_download, name='inventory_download'),
     url(r'^new_asset/$', views.new_asset, name='new_asset'),
     url(r'^' + ASSET_SLUG + '/edit$', views.edit_asset, name='edit_asset'),
     url(r'^' + ASSET_ID + '/delete$', views.delete_asset, name='delete_asset'),

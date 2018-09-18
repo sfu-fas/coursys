@@ -22,7 +22,8 @@ class AssetForm(forms.ModelForm):
         widgets = {
             'notes': forms.Textarea,
             'price': DollarInput,
-            'last_order_date': CalendarWidget
+            'last_order_date': CalendarWidget,
+            'vendor': forms.Textarea,
         }
 
 

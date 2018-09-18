@@ -2,7 +2,6 @@
 A module written for inventory control of any type of asset we may want.
 """
 
-import datetime
 import os
 from coredata.models import Unit, Person
 from outreach.models import OutreachEvent
@@ -12,8 +11,6 @@ from django.utils import timezone
 from courselib.slugs import make_slug
 from courselib.json_fields import JSONField
 from courselib.storage import UploadedFileStorage, upload_path
-from django.conf import settings
-import uuid
 
 
 CATEGORY_CHOICES = {
@@ -59,6 +56,9 @@ class Asset(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     category = models.CharField(max_length=4, choices=CATEGORY_CHOICES, null=True, blank=True, default='GEN')
     location = models.CharField(max_length=150, null=True, blank=True)
+    po = models.CharField("PR/PO No.", max_length=60, null=True, blank=True)
+    account = models.CharField("Account No.", max_length=60, null=True, blank=True)
+    vendor = models.CharField("Supplier/Vendor", max_length=400, null=True, blank=True)
     notes = models.CharField(max_length=400, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
