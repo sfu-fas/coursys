@@ -84,7 +84,7 @@ class OTPTest(TestCase):
         # now fiddle with the ages of things and check for the right failures
 
         # old password login: should redirect -> login -> password login
-        session_info.last_auth = timezone.now() - datetime.timedelta(days=2)
+        session_info.last_auth = timezone.now() - datetime.timedelta(days=8)
         session_info.save()
         resp = c.get(url, follow=True)
         self.assertEqual(len(resp.redirect_chain), 2)
@@ -92,7 +92,7 @@ class OTPTest(TestCase):
 
         # old 2fa: should redirect -> 2fa login
         session_info.last_auth = timezone.now() - datetime.timedelta(hours=1)
-        session_info.last_2fa = timezone.now() - datetime.timedelta(days=30)
+        session_info.last_2fa = timezone.now() - datetime.timedelta(days=32)
         session_info.save()
 
         resp = c.get(url, follow=True)
