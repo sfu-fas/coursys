@@ -174,7 +174,7 @@ class AssetDocumentAttachment(models.Model):
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
 
-    objects = AssetChangeRecordQuerySet.as_manager()
+    objects = AssetDocumentAttachmentQueryset.as_manager()
 
     def __str__(self):
         return self.contents.name

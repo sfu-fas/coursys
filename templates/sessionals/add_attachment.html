@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load form_display %}{% load staticfiles %}
+{% block title %}Add File Attachment{% endblock %}
+{% block h1 %}Add File Attachment{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'sessionals:sessionals_index' %}">Sessionals</a></li>
+<li><a href="{% url 'sessionals:view_contract' contract_slug=contract.slug %}">View Contract</a></li>
+<li>Add Attachment</li>
+{% endblock %}
+
+
+{% block content %}
+<div class="form_container">
+    <form action="{% url "sessionals:new_attachment" contract_slug=contract.slug  %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset>
+            {{ attachment_form|as_dl }}
+            <p><input type="submit" class="submit" value="Create Attachment" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}
