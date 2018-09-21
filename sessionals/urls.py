@@ -8,6 +8,7 @@ ACCOUNT_SLUG = '(?P<account_slug>' + SLUG_RE + ')'
 CONFIG_SLUG = '(?P<config_slug>' + SLUG_RE + ')'
 CONTRACT_ID = '(?P<contract_id>' + ID_RE + ')'
 CONTRACT_SLUG = '(?P<contract_slug>' + SLUG_RE + ')'
+ATTACH_SLUG = '(?P<attach_slug>' + SLUG_RE + ')'
 
 
 sessionals_patterns = [ # prefix /sessionals/
@@ -25,4 +26,10 @@ sessionals_patterns = [ # prefix /sessionals/
     url(r'^contract/' + CONTRACT_ID + '/delete$', views.delete_contract, name='delete_contract'),
     url(r'^contract/' + CONTRACT_SLUG + '/print$', views.print_contract, name='print_form'),
     url(r'^contract/' + CONTRACT_SLUG + '/view$', views.view_contract, name='view_contract'),
+    url(r'^contract/' + CONTRACT_SLUG + '/new_attach$', views.new_attachment, name='new_attachment'),
+    url(r'^contract/' + CONTRACT_SLUG + '/attach/' + ATTACH_SLUG + '/delete$', views.delete_attachment,
+        name='delete_attachment'),
+    url(r'^contract/' + CONTRACT_SLUG + '/attach/' + ATTACH_SLUG + '/view', views.view_attachment, name='view_attachment'),
+    url(r'^contract/' + CONTRACT_SLUG + '/attach/' + ATTACH_SLUG + '/download$', views.download_attachment,
+        name='download_attachment'),
     ]
