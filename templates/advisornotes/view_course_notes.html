@@ -22,7 +22,7 @@ $(function() {
         var id = $(this).val(),
             ch = 'no';
 
-        if ($(this).attr('checked')) {
+        if ($(this).prop('checked')) {
             ch = 'yes'
             $('#note-'+id).trigger('collapse_slow');
         }
