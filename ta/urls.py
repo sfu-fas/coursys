@@ -30,6 +30,7 @@ ta_patterns = [ # prefix /ta/
     url(r'^' + POST_SLUG + '/print_all_applications_by_course$', ta_views.print_all_applications_by_course, name='print_all_applications_by_course'),
     url(r'^' + POST_SLUG + '/late_apps$', ta_views.view_late_applications, name='view_late_applications'),
     url(r'^' + POST_SLUG + '/financial$', ta_views.view_financial, name='view_financial'),
+    url(r'^' + POST_SLUG + '/download_financial$', ta_views.download_financial, name='download_financial'),
     url(r'^' + POST_SLUG + '/contact', ta_views.contact_tas, name='contact_tas'),
     #url(r'^contracts', ta_views.all_contracts, name='all_contracts'),
     url(r'^' + POST_SLUG + '/contracts/$', ta_views.all_contracts, name='all_contracts'),

@@ -1793,8 +1793,26 @@ def view_financial(request, post_slug):
     info = {'course_total': len(offerings), 'bu_total': bu, 'pay_total': pay, 'ta_count': ta}
     
     context = {'posting': posting, 'offerings': offerings, 'excluded': excluded, 'info': info}
-    return render(request, 'ta/view_financial.html', context) 
+    return render(request, 'ta/view_financial.html', context)
 
+
+@requires_role("TAAD")
+def download_financial(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
+    # ignore excluded courses
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-financials-%s.csv"' % \
+                                      (post_slug, datetime.datetime.now().strftime('%Y%m%d'))
+    writer = csv.writer(response)
+    writer.writerow(['Offering', 'Instructor(s)', 'Enrolment', 'Campus', 'Number of TAs', 'Assigned BU',
+                     'Total Amount'])
+    for o in offerings:
+        writer.writerow([o.name(), o.instructors_str(), '(%s/%s)' % (o.enrl_tot, o.enrl_cap), o.get_campus_display(),
+                         posting.ta_count(o), posting.assigned_bu(o), locale.currency(float(posting.total_pay(o)))])
+    return response
 
 def _contact_people(posting, statuses):
     """
