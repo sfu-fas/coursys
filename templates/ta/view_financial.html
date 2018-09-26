@@ -10,6 +10,15 @@
 <li>Financial</li>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url "ta:download_financial" post_slug=posting.slug %}">Download CSV</a></li>
+    </ul>
+</div>
+{% endblock %}
+
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
 	var total, rows;
