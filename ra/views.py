@@ -534,7 +534,11 @@ class RADataJson(BaseDatatableView):
         elif column == 'person':
             url = ra.get_absolute_url()
             name = ra.person.sortname()
-            return '<a href="%s">%s</a>' % (escape(url), escape(name))
+            if ra.has_attachments():
+                extra_string = '&nbsp; <i class="fa fa-paperclip" title="Attachment(s)"></i>'
+            else:
+                extra_string = ''
+            return '<a href="%s">%s%s</a>' % (escape(url), escape(name), extra_string)
         elif column == 'unit':
             return ra.unit.label
 

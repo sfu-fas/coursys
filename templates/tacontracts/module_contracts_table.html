@@ -21,7 +21,7 @@
     <tr>
                 <td>
                     <a href="{% url "tacontracts:view_contract" unit_slug=unit_slug semester=semester contract_slug=contract.slug %}">
-                        {{contract}}</a>
+                        {{contract}}{% if contract.has_attachments %} &nbsp; <i class="fa fa-paperclip" title="Attachment(s)"></i>{% endif %}</a>
                 </td>
                 <td>
                     <span class="sort">{{ contract.pay_start.isoformat }}</span>

@@ -5,7 +5,7 @@ from coredata.widgets import PersonField, OfferingField, CalendarWidget
 from coredata.models import Unit, Semester
 from ra.models import Account
 # App
-from .models import HiringSemester, TACategory, TAContract, TACourse, CourseDescription
+from .models import HiringSemester, TACategory, TAContract, TACourse, CourseDescription, TAContractAttachment
 
 
 class GuessPayperiodsWidget(forms.TextInput):
@@ -91,3 +91,9 @@ class CourseDescriptionForm(forms.ModelForm):
     class Meta:
         model = CourseDescription
         exclude = ('config','hidden')
+
+
+class TAContracttAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = TAContractAttachment
+        exclude = ('contract', 'created_by')

@@ -33,6 +33,9 @@ class RATest(TestCase):
         ra.save()
         test_views(self, c, 'ra:', ['edit_letter'], {'ra_slug': ra.slug})
 
+        # Make sure we can add attachments
+        test_views(self, c, 'ra:', ['new_attachment'], {'ra_slug': ra.slug})
+
         acct = Account.objects.filter(unit__label='CMPT')[0]
         test_views(self, c, 'ra:', ['edit_account'], {'account_slug': acct.slug})
 

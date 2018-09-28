@@ -1,16 +1,16 @@
 # Python
-# Python
 import datetime
 import decimal
+import os
 # Django
 from django.db import models, transaction
-from django.db.models.query import QuerySet
 # Third Party
 from autoslug import AutoSlugField
 # Local
 from coredata.models import Unit, Person, CourseOffering, Semester, Member
 from courselib.slugs import make_slug
 from courselib.json_fields import JSONField
+from courselib.storage import UploadedFileStorage, upload_path
 from grad.models import GradStudent
 from ra.models import Account
 from dashboard.models import NewsItem
@@ -536,6 +536,9 @@ class TAContract(models.Model):
         course_list_string = ', '.join(ta_course.course.name() for ta_course in self.course.all())
         return course_list_string
 
+    def has_attachments(self):
+        return self.attachments.visible().count() > 0
+
 
 class CourseDescription(models.Model):
     """
@@ -683,3 +686,42 @@ class EmailReceipt(models.Model):
                                 blank=False,
                                 null=False,
                                 editable=False)
+
+
+def tacontracts_attachment_upload_to(instance, filename):
+    return upload_path('taattachments', str(instance.contract.appointment_start.year), filename)
+
+
+class TAContractAttachmentQueryset(models.QuerySet):
+    def visible(self):
+        return self.filter(hidden=False)
+
+
+class TAContractAttachment(models.Model):
+    """
+    Like most of our contract-based objects, an attachment object that can be attached to them.
+    """
+    contract = models.ForeignKey(TAContract, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
+    title = models.CharField(max_length=250, null=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('contract',))
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.', on_delete=models.PROTECT)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=tacontracts_attachment_upload_to, max_length=500)
+    mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = TAContractAttachmentQueryset.as_manager()
+
+    def __str__(self):
+        return self.contents.name
+
+    class Meta:
+        ordering = ("created_at",)
+        unique_together = (("contract", "slug"),)
+
+    def contents_filename(self):
+        return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()
