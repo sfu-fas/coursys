@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+
+
+{% block title %}{{page_title}}{% endblock %}
+{% block h1 %}{{page_title}}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+    <li><a href="{% url "grad:manage_scholarshiptypes" %}">Scholarship Types</a></li>
+    <li>New Scholarship Type</li>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="form_container">
+    <form action="{% url "grad:new_scholarshiptype" %}" method="post">
+    	{% csrf_token %}
+    	<fieldset>
+              {{ form|as_dl }}
+        <p><input  class="submit"  type="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %} 
+
+

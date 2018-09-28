@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Scholarship Types{% endblock %}
+{% block h1 %}Scholarship Types{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li>Scholarship Types</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="{% url "grad:new_scholarshiptype" %}">New Scholarship Type</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+	$(document).ready(function() {
+		$('#sts').dataTable({
+			"bJQueryUI" : true,
+			"bPaginate": false,
+			"bFilter": true,
+			"bInfo": false,
+			"aaSorting" : [[1, "asc"], [2, "asc"]]
+		});
+	});
+</script>
+{% endblock %}
+
+{% block content %}
+    {% if sts %}
+        <div class="datatable_container">
+            <table class="display" id="sts">
+                <thead>
+                    <tr>
+                        <th scope="col">Department</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Eligible</th>
+                        <th scope="col">Hidden</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for s in sts %}
+                <tr>
+                    <td>{{ s.unit.name }}</td>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.eligible|yesno }}</td>
+                    <td>{{ s.hidden|yesno }}</td>
+                    <td>
+                        <form class="lineform" method="POST"
+                          action="{% url "grad:toggle_scholarshiptype" st_id=s.id %}">
+                        {% csrf_token %}
+                        {% if s.hidden %}
+                            <button type='submit' class='btn' title="Restore Scholarship Type">
+                                <i class='fa fa-history'></i>
+                            </button>
+                        {% else %}
+                            <button type='submit' class='btn' title="Hide Scholarship Type">
+                                <i class='fa fa-trash-o'></i>
+                            </button>
+                        {% endif %}
+                        </form>
+                        <form class="lineform" method="GET"
+                            action="{% url "grad:edit_scholarshiptype" st_id=s.id %}">
+                            <button type='submit' class='btn' title="Edit Scholarship Type">
+                                <i class='fa fa-edit'></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+    There are no Scholarship Types to display.
+    {% endif %}
+{% endblock %}

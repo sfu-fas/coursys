@@ -357,7 +357,7 @@ class GradFlagValueForm(ModelForm):
         exclude = ('student','flag')
 
                 
-class new_scholarshipTypeForm(ModelForm):
+class ScholarshipTypeForm(ModelForm):
     class Meta:
         model = ScholarshipType
         exclude = ('hidden',)
