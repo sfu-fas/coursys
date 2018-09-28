@@ -36,6 +36,8 @@ $(document).ready(function() {
     {% endif %}
     <li><a href="{% url "tacontracts:print_contract" unit_slug=unit_slug semester=semester contract_slug=contract.slug %}">
         Print Contract</a></li>
+    <li><a href="{% url "tacontracts:new_attachment" unit_slug=unit_slug semester=semester contract_slug=contract.slug %}">
+        New Attachment</a> </li>
     </ul>
 </div>
 {% endblock %}
@@ -361,7 +363,18 @@ $(document).ready(function() {
 </ul>
 </div>
 {% endif %}
-
-</div>
-
+{% with attachments=contract.attachments.visible %}
+    {% if attachments %}
+    <h2 id="attachments">Attachments</h2>
+    <ul>
+    {% for a in attachments %}
+    <li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
+      <a href="{% url 'tacontracts:view_attachment' unit_slug=unit_slug semester=semester contract_slug=contract.slug attach_slug=a.slug %}">View</a> |
+      <a href="{% url 'tacontracts:download_attachment' unit_slug=unit_slug semester=semester contract_slug=contract.slug attach_slug=a.slug %}">Download</a> |
+      <a href="{% url 'tacontracts:delete_attachment' unit_slug=unit_slug semester=semester contract_slug=contract.slug attach_slug=a.slug  %}">Delete</a>
+    </li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
 {% endblock %}

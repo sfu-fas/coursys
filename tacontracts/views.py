@@ -5,21 +5,21 @@ import csv
 # Django
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
 from django.urls import reverse
 from django.db import transaction, IntegrityError
 from django.contrib.auth.decorators import login_required
 # Local
 from courselib.auth import requires_role
-from coredata.models import Semester, Unit, CourseOffering
+from coredata.models import Semester, Unit, CourseOffering, Person
 from dashboard.models import NewsItem
 from log.models import LogEntry
 
 # App
 from .models import HiringSemester, TACategory, TAContract, TACourse, \
-                    EmailReceipt, NoPreviousSemesterException, CourseDescription
+                    EmailReceipt, NoPreviousSemesterException, CourseDescription, TAContractAttachment
 from .forms import HiringSemesterForm, TACategoryForm, TAContractForm, \
-                    TACourseForm, EmailForm, CourseDescriptionForm
+                    TACourseForm, EmailForm, CourseDescriptionForm, TAContracttAttachmentForm
 from dashboard.letters import tacontract_form
 
 def _home_redirect():
@@ -923,4 +923,107 @@ def view_financial_summary(request, unit_slug, semester,):
     context = {'hiring_semester': hiring_semester, 'info': info, 'offerings': offerings}
     return render(request, 'tacontracts/view_financial.html', context)
 
+
+@requires_role(["TAAD", "GRAD"])
+@transaction.atomic
+def new_attachment(request,  unit_slug, semester, contract_slug):
+    hiring_semester = get_object_or_404(HiringSemester,
+                                        semester__name=semester,
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contract = get_object_or_404(TAContract,
+                                 category__hiring_semester=hiring_semester,
+                                 slug=contract_slug,
+                                 category__account__unit__in=request.units)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    form = TAContracttAttachmentForm()
+    context = {"contract": contract,
+               "attachment_form": form,
+               'unit_slug': unit_slug,
+               'semester': semester,
+               'contract_slug': contract_slug}
+
+    if request.method == "POST":
+        form = TAContracttAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.contract = contract
+            attachment.created_by = editor
+            upfile = request.FILES['contents']
+            filetype = upfile.content_type
+            if upfile.charset:
+                filetype += "; charset=" + upfile.charset
+            attachment.mediatype = filetype
+            attachment.save()
+            return HttpResponseRedirect(reverse('tacontracts:view_contract',
+                                        kwargs={'unit_slug': unit_slug,
+                                                'semester': semester,
+                                                'contract_slug': contract_slug}))
+        else:
+            context.update({"attachment_form": form})
+
+    return render(request, 'tacontracts/new_attachment.html', context)
+
+
+
+
+@requires_role(["TAAD", "GRAD"])
+def view_attachment(request,  unit_slug, semester, contract_slug, attach_slug):
+    hiring_semester = get_object_or_404(HiringSemester,
+                                        semester__name=semester,
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contract = get_object_or_404(TAContract,
+                                 category__hiring_semester=hiring_semester,
+                                 slug=contract_slug,
+                                 category__account__unit__in=request.units)
+    attachment = get_object_or_404(contract.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role(["TAAD", "GRAD"])
+def download_attachment(request,  unit_slug, semester, contract_slug, attach_slug):
+    hiring_semester = get_object_or_404(HiringSemester,
+                                        semester__name=semester,
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contract = get_object_or_404(TAContract,
+                                 category__hiring_semester=hiring_semester,
+                                 slug=contract_slug,
+                                 category__account__unit__in=request.units)
+    attachment = get_object_or_404(contract.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role("FUND")
+def delete_attachment(request,  unit_slug, semester, contract_slug, attach_slug):
+    hiring_semester = get_object_or_404(HiringSemester,
+                                        semester__name=semester,
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contract = get_object_or_404(TAContract,
+                                 category__hiring_semester=hiring_semester,
+                                 slug=contract_slug,
+                                 category__account__unit__in=request.units)
+    attachment = get_object_or_404(contract.attachments.all(), slug=attach_slug)
+    attachment.hide()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         'Attachment deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
+    l.save()
+    return HttpResponseRedirect(reverse('tacontracts:view_contract',
+                                        kwargs={'unit_slug': unit_slug,
+                                                'semester': semester,
+                                                'contract_slug': contract_slug}))
 
