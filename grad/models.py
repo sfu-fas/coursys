@@ -80,10 +80,11 @@ STATUS_CHOICES = (
         ('DEFR', 'Deferred'),
         ('GAPL', 'Applied for Graduation'),
         ('GAPR', 'Graduation Approved'),
+        ('WAIT', 'Waitlisted'),
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV',
-                    'DEFR') # statuses that mean "applicant"
-STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO') # statuses that mean "currently applying"
+                    'DEFR', 'WAIT') # statuses that mean "applicant"
+STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'WAIT') # statuses that mean "currently applying"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_GPA = ('GAPL', 'GAPR',) + STATUS_ACTIVE  # Statuses for which we want to import the GPA
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP', 'GAPL', 'GAPR') # statuses that mean "done"
@@ -116,6 +117,7 @@ SHORT_STATUSES = dict([  # a shorter status description we can use in compact ta
         ('DEFR', 'Deferred'),
         ('GAPL', 'Grad Applied'),
         ('GAPR', 'Grad Approved'),
+        ('WAIT', 'Waitlisted'),
         (None, 'None'),
 ])
 
@@ -1215,6 +1217,7 @@ class CompletedRequirement(models.Model):
 STATUS_ORDER = {
         'INCO': 0,
         'COMP': 0,
+        'WAIT': 0,
         'INRE': 1,
         'HOLD': 1,
         'OFFO': 2,

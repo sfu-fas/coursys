@@ -249,6 +249,13 @@ class ProgramStatusChange(GradHappening):
             # deferred start: probably implies start semester change
             return 'DEFR'
 
+        elif st_ac == ('WT', 'WAIT'):
+            return 'WAIT'
+
+        elif st_ac == ('AP', 'DATA') and self.prog_reason == 'WAIT':
+            # Shows up in SIMS as 'Waitlisted by department', instead of the one above which is just 'Waitlisted'
+            return 'WAIT'
+
         elif self.prog_action == 'DATA':    
             if self.prog_reason == 'APPR':
                 # approved by department: close enough to ('AD', 'COND')
