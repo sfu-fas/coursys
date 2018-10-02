@@ -316,20 +316,20 @@ class GradTest(TestCase):
         leave_now = form.search_results(units)
         self.assertNotIn(gs, leave_now)
 
-        # test status-as-of searching
-        form = SearchForm(QueryDict('student_status=ACTI&status_asof=%s&columns=person.emplid' % (this_sem.offset(-4).name)))
-        active_past = form.search_results(units)
-        self.assertNotIn(gs, active_past)
-        form = SearchForm(QueryDict('student_status=COMP&status_asof=%s&columns=person.emplid' % (this_sem.offset(-4).name)))
-        applic_past = form.search_results(units)
+        # test status-as-of searching  -- DISABLED since we removed this from the form.
+        #form = SearchForm(QueryDict('student_status=ACTI&status_asof=%s&columns=person.emplid' % (this_sem.offset(-4).name)))
+        #active_past = form.search_results(units)
+        #self.assertNotIn(gs, active_past)
+        #form = SearchForm(QueryDict('student_status=COMP&status_asof=%s&columns=person.emplid' % (this_sem.offset(-4).name)))
+        #applic_past = form.search_results(units)
         #self.assertIn(gs, applic_past)
 
-        form = SearchForm(QueryDict('student_status=ACTI&status_asof=%s&columns=person.emplid' % (this_sem.offset(3).name)))
-        active_later = form.search_results(units)
-        self.assertNotIn(gs, active_later)
-        form = SearchForm(QueryDict('student_status=LEAV&status_asof=%s&columns=person.emplid' % (this_sem.offset(3).name)))
-        leave_later = form.search_results(units)
-        self.assertIn(gs, leave_later)
+        #form = SearchForm(QueryDict('student_status=ACTI&status_asof=%s&columns=person.emplid' % (this_sem.offset(3).name)))
+        #active_later = form.search_results(units)
+        #self.assertNotIn(gs, active_later)
+        #form = SearchForm(QueryDict('student_status=LEAV&status_asof=%s&columns=person.emplid' % (this_sem.offset(3).name)))
+        #leave_later = form.search_results(units)
+        #self.assertIn(gs, leave_later)
 
 
 
