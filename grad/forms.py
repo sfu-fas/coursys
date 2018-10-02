@@ -651,7 +651,8 @@ class SearchForm(forms.Form):
     student_status = forms.MultipleChoiceField(choices=gradmodels.STATUS_CHOICES + (('', 'None'),),
             required=False, help_text="Student's current status"
             ) # choices updated in views/search.py
-    status_asof = StaffSemesterField(label='Status as of', required=False, initial='')
+    # The "Status as of" field causes nested queries that time out the DB.  Removing it.
+    # status_asof = StaffSemesterField(label='Status as of', required=False, initial='')
 
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
     program_asof = StaffSemesterField(label='Program as of', required=False, initial='')
