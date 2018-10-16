@@ -5,11 +5,11 @@
 package "mysql-server"
 
 execute "create database" do 
-    command "echo \"create database if not exists coursys_db DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;\" | mysql"
+    command "echo \"create database if not exists coursys_db DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8_general_ci;\" | mysql"
 end
 
 execute "create database" do 
-    command "echo \"create database if not exists test_coursys_db DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;\" | mysql"
+    command "echo \"create database if not exists test_coursys_db DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8_general_ci;\" | mysql"
 end
 
 execute "grant privileges" do 
