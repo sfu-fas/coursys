@@ -414,6 +414,47 @@ class Form(models.Model, _FormCoherenceMixin):
 
             return newform
 
+    def duplicate_sheets(self, destination, ignore_initial=False, dry_run=False):
+        """
+        :param Form destination:  The destination form where the sheets should be copied
+        :param ignore_initial:   Sometimes, you just want sheets that were added after the initial one.
+        :param dry_run:  Set to True if you want to do a dry run first.
+        :return:   Nothing
+
+        Sometimes you've already created forms, and you just want to copy the sheets from one to the other.
+
+        In the use case for which this was written, multiple forms had the initial sheet already defined, but needed
+        the same extra sheets added afterwards. This allows us to only write the sheets once and copy it to all forms.
+
+        WARNING:  If you don't specify "ignore_initial" and your destination form already had an initial sheet,
+        you will end up with two initial sheets.  You'll have to manually mark one not initial in the backend.
+        """
+        assert type(destination) is Form, "the destination must be an onlineforms.Form instance."
+        if dry_run:
+            print("This is a dry-run only.  Nothing will actually get saved.")
+        with django.db.transaction.atomic():
+            sheets = Sheet.objects.filter(form=self, active=True)
+            if ignore_initial:
+                sheets = sheets.exclude(is_initial=True)
+            for s in sheets:
+                newsheet = s.clone()
+                newsheet.form = destination
+                newsheet.original = None
+                newsheet.slug = None
+                if not dry_run:
+                    newsheet.save()
+
+                fields = Field.objects.filter(sheet=s)
+                for f in fields:
+                    newfield = f.clone()
+                    newfield.sheet = newsheet
+                    newfield.original = None
+                    newfield.slug = None
+                    if not dry_run:
+                        newfield.save()
+                print("Copied sheet %s." % s.title)
+            print("Done!")
+
     def all_submission_summary(self, statuses=['DONE']):
         """
         Generate summary data of each submission for CSV output
