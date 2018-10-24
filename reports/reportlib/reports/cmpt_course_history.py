@@ -13,7 +13,8 @@ class CMPTCourseHistoryReport(Report):
         u = Unit.objects.get(label='CMPT')
         courses = CourseOffering.objects.prefetch_related('meeting_time').filter(semester__in=sems, owner=u,
                                                                                  graded=True).exclude(
-            flags=CourseOffering.flags.combined).exclude(subject='DDP').order_by('semester', 'subject', 'number')
+            flags=CourseOffering.flags.combined).exclude(subject='DDP').exclude(component='CAN').order_by(
+            'semester', 'subject', 'number')
         course_history = Table()
         course_history.append_column('Semester')
         course_history.append_column('Course')
