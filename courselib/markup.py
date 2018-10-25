@@ -22,10 +22,10 @@ from textile import textile_restricted
 
 
 MARKUP_CHOICES = [
+    ('plain', 'Plain Text'),
     ('creole', 'WikiCreole'),
     ('markdown', 'Markdown'),
     ('textile', 'Textile'),
-    #('plain', 'Plain Text'), # not offered for new content, but honoured for legacy content.
     ('html', 'HTML'),
 ]
 MARKUP_CHOICES_WYSIWYG = MARKUP_CHOICES + [('html-wysiwyg', 'HTML editor')]

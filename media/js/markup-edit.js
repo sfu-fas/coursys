@@ -4,6 +4,7 @@ var markup_choices = {
     'markdown': 'Markdown',
     'textile': 'Textile',
     'html': 'HTML',
+    'plain': 'Plain Text',
     'html-wysiwyg': 'HTML editor',
 };
 function wysiwyg_switcher(ev) {

@@ -12,7 +12,7 @@ TEXT_WIDTH = 70
 
 
 class AdvisorNoteForm(MarkupContentMixin(field_name='text'), forms.ModelForm):
-    text = MarkupContentField(label="Content", allow_math=False, restricted=False, with_wysiwyg=True)
+    text = MarkupContentField(label="Content", default_markup='plain', allow_math=False, restricted=False, with_wysiwyg=True)
     email_student = forms.BooleanField(required=False,
                                        help_text="Should the student be emailed the contents of this note?")
 
