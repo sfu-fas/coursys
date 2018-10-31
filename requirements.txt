@@ -48,7 +48,7 @@ django-rest-swagger==2.1.2
 django-ipware==2.0.0
 psutil==5.4.3
 intervaltree==2.1.0
-requests==2.18.4
+requests
 ntplib==0.3.3
 
 # actually only needed in production-like environments...
