@@ -418,7 +418,9 @@ def activity_stat(request, course_slug, activity_slug):
             # don't report on deleted components
             continue
         owner = subid_dict[sc.submission_id]
-        subed_comps[sc.component_id].add(owner)
+        # Add a sanity check to fix corrupt data
+        if sc.component_id in subed_comps:
+            subed_comps[sc.component_id].add(owner)
     
     # actual list of components and counts
     sub_comp_rows = []
