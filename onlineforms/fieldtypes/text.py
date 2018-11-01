@@ -4,9 +4,7 @@ from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 from django.template.defaultfilters import linebreaksbr
 from courselib.markup import MarkupContentField, markup_to_html
-from courselib.text import normalize_newlines
 
-MAX_TEXT_LEN = 50 # longest text to output in CSV (for medium/long text)
 
 class SmallTextField(FieldBase):
     more_default_config = {'min_length': 1, 'max_length': 100}
@@ -109,10 +107,7 @@ class MediumTextField(FieldBase):
         return mark_safe('<p>' + linebreaksbr(fieldsubmission.data['info'], autoescape=True) + '</p>')
 
     def to_text(self, fieldsubmission):
-        txt = normalize_newlines(fieldsubmission.data['info'])
-        if len(txt) > MAX_TEXT_LEN:
-            txt = txt[0:MAX_TEXT_LEN] + '...'
-        return txt.replace('\n', '\\\\')
+        return fieldsubmission.data['info']
 
 
 class LargeTextField(FieldBase):
@@ -164,10 +159,7 @@ class LargeTextField(FieldBase):
         return mark_safe('<p>' + linebreaksbr(fieldsubmission.data['info'], autoescape=True) + '</p>')
 
     def to_text(self, fieldsubmission):
-        txt = normalize_newlines(fieldsubmission.data['info'])
-        if len(txt) > MAX_TEXT_LEN:
-            txt = txt[0:MAX_TEXT_LEN] + '...'
-        return txt.replace('\n', '\\\\')
+        return fieldsubmission.data['info']
 
 
 class EmailTextField(FieldBase):
