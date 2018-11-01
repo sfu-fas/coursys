@@ -498,7 +498,7 @@ class Form(models.Model, _FormCoherenceMixin):
             headers.append(None)
             headers.append('ID')
             if info['is_initial']:
-                headers.append('Initiated')
+                headers.append('Submitted')
             for fid, finfo in info['fields'].items():
                 headers.append(finfo['label'])
         headers.append('Last Sheet Completed')
@@ -546,7 +546,7 @@ class Form(models.Model, _FormCoherenceMixin):
 
                 if info['is_initial']:
                     if ss:
-                        row.append(ss.given_at.strftime(DATETIME_FMT))
+                        row.append(ss.completed_at.strftime(DATETIME_FMT))
                     else:
                         row.append(None)
 
