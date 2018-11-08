@@ -37,6 +37,14 @@ def build_program_map():
     program_map['ESMAS'] = GradProgram.objects.get(label="M.A.Sc.", unit=engunit)
     program_map['ESPHD'] = GradProgram.objects.get(label="Ph.D.", unit=engunit)
 
+    psychunit = Unit.objects.get(label='PSYC')
+    program_map['PSGEX'] = GradProgram.objects.get(label="PSGEX", unit=psychunit)
+    program_map['PSGND'] = GradProgram.objects.get(label="PSGND", unit=psychunit)
+    program_map['PSGQL'] = GradProgram.objects.get(label="PSGQL", unit=psychunit)
+    program_map['PSMAC'] = GradProgram.objects.get(label="PSMAC", unit=psychunit)
+    program_map['PSMAP'] = GradProgram.objects.get(label="PSMAP", unit=psychunit)
+    program_map['PSPHC'] = GradProgram.objects.get(label="PSPHC", unit=psychunit)
+    program_map['PSPHP'] = GradProgram.objects.get(label="PSPHP", unit=psychunit)
     return program_map
 
 
@@ -624,7 +632,7 @@ class CommitteeMembership(GradHappening):
             self.sup_emplid = '200011069'
 
     def __repr__(self):
-        return "%s as %s for %s" % (self.sup_emplid, self.committee_role, self.acad_prog)
+        return "%s as %s for %s in %s" % (self.sup_emplid, self.committee_role, self.emplid, self.acad_prog)
 
     def find_local_data(self, student_info, verbosity):
         pass
