@@ -191,7 +191,7 @@ class BookingRecord(models.Model):
     conflict = config_property('conflict', False)
 
     def autoslug(self):
-        return make_slug(self.location.slug + '-' + self.person.userid + '-' +
+        return make_slug(self.location.slug + '-' + self.person.userid_or_emplid() + '-' +
                          str(self.start_time.date()))
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
