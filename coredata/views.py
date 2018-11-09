@@ -928,11 +928,13 @@ def course_search(request):
 # AJAX/JSON for student search autocomplete
 EXCLUDE_EMPLIDS = set(['953022983']) # exclude these from autocomplete
   # 953022983 is an inactive staff account and should not be assigned things
+
+
 @login_required
 def student_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
-    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND', 'SYSA'])
+    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND', 'SYSA', 'FACA'])
     if not(roles & allowed) and not has_formgroup(request) and not has_global_role('DISC', request):
         # doesn't have any allowed roles
         return ForbiddenResponse(request, "Not permitted to do student search.")
