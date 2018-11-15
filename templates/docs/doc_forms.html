@@ -173,7 +173,7 @@
         notified that someone submitted the form.  Regardless, anyone in the form group can see the submissions if
         they go to the main forms page.</li>
         <li>Optional: Member(s) of the form group assign other sheets to people, including the original submitter if
-            needed.  Those users then fill in the required information.</li>
+            needed.  Those users then fill in the required information.<sup>See <a href="#sheet_note">note</a>.</sup></li>
         <li>Member of the form group closes the form.</li>
     </ol>
     <p>There are tools to help you along the way. If you go to the
@@ -194,6 +194,15 @@
         days of saving it, the form will get automatically closed by the system.  This table is just there for the
         occasional case when someone claims to have submitted a form, and we find it was never actually submitted.</li>
         </ol>
+    <h4 id="sheet_note">An important note about assigning sheets</h4>
+        <p>A sheet can be assigned to both an SFU user, or an external user.  In order to assign it to an internal user,
+         simply enter the person in the usual "Person" search box.  However, to assign it to an external user, click
+        the "assign to a non-SFU user" link in the actions menu on the left.  <strong>Do NOT assign a sheet to a
+        temporary person under any circumstance</strong>.  Temporary people are treated as internal users and are
+        created to assign contracts before people have internal IDs. Internal users need to log on to deal with their
+        sheets, but temporary users cannot do so.  External users are instead provided with a secret link to which they
+         can navigate for every sheet that is assigned to them.</p>
+        <img src="{% static "images/forms/assign_sheets.png" %}"/>
     <h3 id="summaries">Summaries and Completed Forms</h3>
     <p>As a convenience, there is a way to download all completed or pending submissions for a given form in CSV
     format.</p>
