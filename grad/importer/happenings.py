@@ -276,7 +276,7 @@ class ProgramStatusChange(GradHappening):
 
         elif st_ac == ('AC', 'ACTV'):
             return 'ACTI'
-        elif st_ac == ('DC', 'DISC'):
+        elif st_ac in [('DC', 'DISC'), ('DE', 'DISC')]:
             return 'WIDR'
         elif st_ac == ('LA', 'LEAV'):
             return 'LEAV'
