@@ -316,7 +316,7 @@ def _activity_colour(a):
 def _holiday_colour(h):
     return "#060680"
 
-ICAL_SEQUENCE = '2' # used to perturb the icalendar idents when the output changes
+ICAL_SEQUENCE = '3' # used to perturb the icalendar idents when the output changes
 def _offerings_calendar_data(offerings, labsecs, start, end, local_tz, dt_string=True, colour=False, browse_titles=False):
     """
     Get calendar data for this set of offerings and lab sections.
