@@ -280,7 +280,7 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
             url = settings.BASE_ABS_URL + message.get_absolute_url()
             editurl = settings.BASE_ABS_URL + reverse('offering:discussion:manage_discussion_subscription',
                     kwargs={'course_slug': self.member.offering.slug})
-            subject = 'New discussion on "%s"' % (message.topic.title)
+            subject = 'New discussion on "%s" in %s' % (message.topic.title, message.topic.offering.name())
             context = {'topic': message.topic, 'message': message, 'url': url, 'editurl': editurl,
                        'offering': message.topic.offering, 'subject': subject,
                        'to': self.member.person, 'author': message.author, 'topic_sub': False,
