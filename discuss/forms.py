@@ -1,4 +1,4 @@
-from discuss.models import DiscussionTopic, DiscussionMessage, DiscussionSubscription, TopicSubscription
+from discuss.models import DiscussionTopic, DiscussionMessage, DiscussionSubscription
 from django import forms
 from django.forms.widgets import TextInput
 from courselib.markup import MarkupContentField, MarkupContentMixin
@@ -72,8 +72,3 @@ class DiscussionSubscriptionForm(forms.ModelForm):
         model = DiscussionSubscription
         exclude = ('member',)
 
-
-class TopicSubscriptionForm(forms.ModelForm):
-    class Meta:
-        model = TopicSubscription
-        exclude = ('member','topic')

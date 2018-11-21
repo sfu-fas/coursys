@@ -1,6 +1,6 @@
 from coredata.models import CourseOffering, Member
 from courselib.auth import is_course_student_by_slug, is_course_staff_by_slug
-from discuss.models import DiscussionTopic, DiscussionMessage, DiscussionSubscription, TopicSubscription
+from discuss.models import DiscussionTopic, DiscussionMessage, DiscussionSubscription
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from featureflags.flags import uses_feature
 from discuss.forms import discussion_topic_form_factory,\
-    DiscussionTopicStatusForm, DiscussionMessageForm, DiscussionSubscriptionForm, TopicSubscriptionForm
+    DiscussionTopicStatusForm, DiscussionMessageForm, DiscussionSubscriptionForm
 import datetime, itertools, json
 from . import activity
 
@@ -226,8 +226,6 @@ def manage_discussion_subscription(request, course_slug):
         return course
     member = get_object_or_404(Member, offering=course, person__userid=request.user.username)
     sub, _ = DiscussionSubscription.objects.get_or_create(member=member)
-    topic_subs = TopicSubscription.objects.filter(member=member, topic__offering=course) \
-                 .exclude(status='NONE').select_related('topic')
     if request.method == 'POST':
         form = DiscussionSubscriptionForm(request.POST, instance=sub)
         if form.is_valid():
@@ -240,36 +238,5 @@ def manage_discussion_subscription(request, course_slug):
     else:
         form = DiscussionSubscriptionForm(instance=sub)
 
-    context = {'course':course, 'form': form, 'topic_subs': topic_subs}
+    context = {'course':course, 'form': form}
     return render(request, 'discuss/manage_discussion_subscription.html', context)
-
-@uses_feature('discuss')
-@login_required()
-def manage_topic_subscription(request, course_slug, topic_slug):
-    course, view = _get_course_and_view(request, course_slug)
-    if view is None:
-        # course is an HttpResponse in this case
-        return course
-    member = get_object_or_404(Member, offering=course, person__userid=request.user.username)
-    topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
-    sub, _ = TopicSubscription.objects.get_or_create(member=member, topic=topic)
-    if request.method == 'POST':
-        form = TopicSubscriptionForm(request.POST, instance=sub)
-        if form.is_valid():
-            sub = form.save(commit=False)
-            sub.member = member
-            sub.topic = topic
-            sub.save()
-            messages.add_message(request, messages.SUCCESS, 'Updated your subscription to "%s".' % (topic.title))
-            return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic_slug}))
-        
-    else:
-        form = TopicSubscriptionForm(instance=sub)
-
-    context = {'course':course, 'topic': topic, 'form': form}
-    return render(request, 'discuss/manage_topic_subscription.html', context)
-
-
-
-
-

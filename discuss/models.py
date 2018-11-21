@@ -173,9 +173,6 @@ class DiscussionMessage(models.Model):
             subs = DiscussionSubscription.objects.filter(member__offering=self.topic.offering).select_related('member__person')
             for s in subs:
                 s.notify_message(self)
-            subs = TopicSubscription.objects.filter(member__offering=self.topic.offering, topic=self.topic).select_related('member__person')
-            for s in subs:
-                s.notify(self)
 
     def html_content(self):
         "Convert self.content to HTML"
@@ -214,7 +211,6 @@ class DiscussionMessage(models.Model):
         return data
 
 
-
 class _DiscussionEmailMixin(object):
     # mixin to avoid copying-and-pasting the email sending logic
     def email_user(self, text_template, html_template, context):
@@ -248,6 +244,7 @@ DISCUSSION_SUB_STATUSES = (
                   ('MAIL', 'Email me when a new topic is started'),
                   ('ALLM', 'Email me for new topics and replies'),
                   )
+
 
 class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
     """
@@ -287,30 +284,3 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
                        'CourSys': product_name(hint='course')}
             if self.member.person != message.author.person:
                 self.email_user('discuss/topic_notify.txt', 'discuss/topic_notify.html', context)
-
-class TopicSubscription(models.Model, _DiscussionEmailMixin):
-    """
-    A member's subscription to a single discussion topic
-    """
-    topic = models.ForeignKey(DiscussionTopic, on_delete=models.CASCADE)
-    member = models.ForeignKey(Member, on_delete=models.PROTECT)
-    status = models.CharField(max_length=4, choices=TOPIC_SUB_STATUSES, default='MAIL',
-                              verbose_name='Notification',
-                              help_text='Action to take when a new message is posted to this topic')
-    class Meta:
-        unique_together = (('topic', 'member'),)
-
-    def notify(self, message):
-        if self.status == 'NONE' or self.member.role == 'DROP':
-            pass
-        elif self.status == 'MAIL':
-            url = settings.BASE_ABS_URL + message.get_absolute_url()
-            editurl = settings.BASE_ABS_URL + reverse('offering:discussion:manage_topic_subscription',
-                    kwargs={'course_slug': self.member.offering.slug, 'topic_slug': self.topic.slug})
-            subject = 'New discussion on "%s"' % (message.topic.title)
-            context = {'topic': self.topic, 'message': message, 'url': url, 'editurl': editurl,
-                       'offering': self.topic.offering, 'subject': subject,
-                       'to': self.member.person, 'author': message.author, 'topic_sub': True}
-            if self.member.person != message.author.person:
-                self.email_user('discuss/topic_notify.txt', 'discuss/topic_notify.html', context)
-
