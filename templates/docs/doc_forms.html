@@ -187,7 +187,8 @@
         applicable) completed.  They need some sort of interaction from a member of the form group (either assigning
         another sheet, closing it, or doing what is requested in the form.)</li>
         <li>Items in the <dfn>Waiting Forms</dfn> table are forms for which you have assigned at least one sheet. You
-        are waiting for those sheets to come back to you.  You can still, of course, close those forms if need be.</li>
+        are waiting for those sheets to come back to you.  You can still, of course, close those forms if need be.
+         <sup>See <a href="#multiple_sheets">note</a>.</sup></li>
         <li>Items in the <dfn>Unsubmitted Forms</dfn> table are basically inconsequential to you.  They are forms where
         the submitter has started the initial sheet, and decided to save it for later without submitting (usually because
         they haven't answered everything in the initial sheet yet.)  If they do not submit the initial sheet within 14
@@ -203,6 +204,13 @@
         sheets, but temporary users cannot do so.  External users are instead provided with a secret link to which they
          can navigate for every sheet that is assigned to them.</p>
         <img src="{% static "images/forms/assign_sheets.png" %}"/>
+    <h4 id="multiple_sheets">Assigning multiple sheets</h4>
+    <p>Think of <a href="#forms">sheets</a> in these forms as similar to physical sheets of paper.  You can assign
+    multiple copies of the same sheet to multiple people (or even multiple copies to the same person.)  They don't get
+    "re-assigned".  If you assign Sheet A to user X, and Sheet A to user Y, you are waiting for <strong>two</strong>
+    sheets to come back, and the system will reflect this.  Once user Y submits Sheet A, the form will still show up
+    in the "Waiting" table as user X has not submitted Sheet A yet.  You can. of course, close the form at anytime
+    regardless.</p>
     <h3 id="summaries">Summaries and Completed Forms</h3>
     <p>As a convenience, there is a way to download all completed or pending submissions for a given form in CSV
     format.</p>
