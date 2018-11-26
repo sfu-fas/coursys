@@ -99,8 +99,8 @@ class LocationManager(models.QuerySet):
 
 class Location(models.Model):
     unit = models.ForeignKey(Unit, null=False, on_delete=models.PROTECT)
-    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, null=True, blank=True)
-    building = models.CharField(max_length=5, choices=BUILDING_CHOICES, null=True, blank=True)
+    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, null=False, blank=False)
+    building = models.CharField(max_length=5, choices=BUILDING_CHOICES, null=False, blank=False)
     floor = models.PositiveIntegerField(null=False, blank=False)
     room_number = models.CharField(max_length=25, null=False, blank=False)
     square_meters = models.DecimalField(max_digits=8, decimal_places=2)
