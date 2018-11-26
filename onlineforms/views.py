@@ -457,10 +457,10 @@ def summary_csv(request, form_slug):
     response['Content-Disposition'] = 'inline; filename="%s-summary.csv"' % (form_slug)
     writer = csv.writer(response)
     # A special case for one particular form, for now.
-    if form_slug == 'mse-mse-ta-application-mse-graduate-students':
-        headers, data = form.all_submission_summary_special(recurring_sheet_slug='instructor-approval-7')
-    else:
-        headers, data = form.all_submission_summary()
+    #if form_slug == 'mse-mse-ta-application-mse-graduate-students':
+    #    headers, data = form.all_submission_summary_special(recurring_sheet_slug='instructor-approval-7')
+    #else:
+    headers, data = form.all_submission_summary()
     writer.writerow(headers)
     for row in data:
         writer.writerow(row)
@@ -474,11 +474,11 @@ def pending_summary_csv(request, form_slug):
     response['Content-Disposition'] = 'inline; filename="%s-pending_summary.csv"' % (form_slug)
     writer = csv.writer(response)
     # A special case for one particular form, for now.
-    if form_slug == 'mse-mse-ta-application-mse-graduate-students':
-        headers, data = form.all_submission_summary_special(statuses=['PEND'],
-                                                            recurring_sheet_slug='instructor-approval-7')
-    else:
-        headers, data = form.all_submission_summary(statuses=['PEND'])
+    #if form_slug == 'mse-mse-ta-application-mse-graduate-students':
+    #    headers, data = form.all_submission_summary_special(statuses=['PEND'],
+    #                                                        recurring_sheet_slug='instructor-approval-7')
+    #else:
+    headers, data = form.all_submission_summary(statuses=['PEND'])
     writer.writerow(headers)
     for row in data:
         writer.writerow(row)
