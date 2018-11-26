@@ -571,6 +571,114 @@ class Form(models.Model, _FormCoherenceMixin):
 
         return headers, data
 
+    def all_submission_summary_special(self, statuses=['DONE'], recurring_sheet_slug=None):
+        """
+        A special case of the summary method, for one particular form which will be obsoleted after the hiring module
+        is done.  The recurring_sheet_slug gives us a sheet for which we want *all* the submissions.  For the purposes
+        of this method, we assume that all others have only one entry, and that this sheet is also the last sheet,
+        order-wise.
+        """
+        DATETIME_FMT = "%Y-%m-%d"
+        headers = []
+        data = []
+
+        # find all sheets (in the correct order.  Ignore deleted ones.)
+        sheets = Sheet.objects.filter(form__original_id=self.original_id, active=True).order_by('order',
+                                                                                                '-created_date')
+        sheet_info = collections.OrderedDict()
+        for s in sheets:
+            if s.original_id not in sheet_info:
+                sheet_info[s.original_id] = {
+                    'title': s.title,
+                    'fields': collections.OrderedDict(),
+                    'is_initial': s.is_initial,
+                    'slug': s.slug,
+                }
+
+        # find all fields in each of those sheets (in a equally-sensible order)
+        fields = Field.objects.filter(sheet__form__original_id=self.original_id, sheet__active=True, active=True)\
+            .select_related('sheet').order_by('order', '-created_date').select_related('sheet')
+        for f in fields:
+            if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
+                continue
+            info = sheet_info[f.sheet.original_id]
+            if f.original_id not in info['fields']:
+                info['fields'][f.original_id] = {
+                    'label': f.label,
+                }
+
+        # go through FormSubmissions and create a row for each
+        formsubs = FormSubmission.objects.filter(form__original_id=self.original_id, status__in=statuses) \
+            .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
+
+        sheetsubs = SheetSubmission.objects.filter(form_submission__form__original_id=self.original_id,
+                                                   form_submission__status__in=statuses, sheet__active=True) \
+            .order_by('given_at').select_related('sheet', 'filler__sfuFormFiller', 'filler__nonSFUFormFiller')
+
+
+        # collect fieldsubs to output
+        fieldsubs = FieldSubmission.objects.filter(sheet_submission__form_submission__form__original_id=self.original_id) \
+                .order_by('sheet_submission__given_at') \
+                .select_related('sheet_submission', 'field')
+        fieldsub_lookup = dict(
+            ((fs.sheet_submission_id, fs.field.original_id), fs)
+            for fs in fieldsubs)
+
+        # A counter to keep track of how many of our relevant sheet we have.
+        max_relevant_count = 0
+
+        for formsub in formsubs:
+            row = []
+            found_anything = False
+            last_completed = None
+            sheets = sheetsubs.filter(form_submission=formsub, sheet__active=True).order_by('sheet__order', 'given_at')\
+                .select_related('sheet', 'filler__sfuFormFiller', 'filler__nonSFUFormFiller')
+            relevant_count = sheetsubs.filter(form_submission=formsub, sheet__active=True,
+                                                      sheet__slug=recurring_sheet_slug).count()
+            if relevant_count > max_relevant_count:
+                max_relevant_count = relevant_count
+            for ss in sheets:
+                row.append(ss.filler.name())
+                row.append(ss.filler.email())
+                row.append(ss.filler.emplid())
+                if not last_completed or ss.completed_at > last_completed:
+                    last_completed = ss.completed_at
+                if ss.sheet.is_initial:
+                    row.append(ss.completed_at.strftime(DATETIME_FMT))
+
+                info = sheet_info[ss.sheet.original_id]
+
+                for fid, finfo in info['fields'].items():
+                    if ss and (ss.id, fid) in fieldsub_lookup:
+                        fs = fieldsub_lookup[(ss.id, fid)]
+                        handler = FIELD_TYPE_MODELS[fs.field.fieldtype](fs.field.config)
+                        row.append(handler.to_text(fs))
+                        found_anything = True
+                    else:
+                        row.append(None)
+
+            if found_anything:
+                data.append(row)
+
+        # build header row
+        for sid, info in sheet_info.items():
+            headers.append(info['title'].upper())
+            headers.append(None)
+            headers.append('ID')
+            if info['is_initial']:
+                headers.append('Submitted')
+            for fid, finfo in info['fields'].items():
+                headers.append(finfo['label'])
+            # Add more multiples for the recurring sheet:
+            if info['slug'] == recurring_sheet_slug:
+                for _ in range(1, max_relevant_count):
+                    headers.append(info['title'].upper())
+                    headers.append(None)
+                    headers.append('ID')
+                    for fid, finfo in info['fields'].items():
+                        headers.append(finfo['label'])
+        return headers, data
+
     def email_confirm(self, recipient):
         msg = EmailMultiAlternatives(subject=self.emailsubject(), body=self.emailbody(),
                                      from_email=settings.DEFAULT_FROM_EMAIL, to=[recipient.full_email()],
