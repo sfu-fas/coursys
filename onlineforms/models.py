@@ -576,27 +576,39 @@ class Form(models.Model, _FormCoherenceMixin):
         A special case of the summary method, for one particular form which will be obsoleted after the hiring module
         is done.  The recurring_sheet_slug gives us a sheet for which we want *all* the submissions.  For the purposes
         of this method, we assume that all others have only one entry, and that this sheet is also the last sheet,
-        order-wise.
+        order-wise.  This is a horrible hack, and very fragile.
         """
         DATETIME_FMT = "%Y-%m-%d"
         headers = []
         data = []
 
-        # find all sheets (in the correct order.  Ignore deleted ones.)
+        recurring_sheet = Sheet.objects.get(form__original_id=self.id, slug=recurring_sheet_slug)
+        # find all currently active sheets (in the correct order.  Ignore deleted ones.)
         sheets = Sheet.objects.filter(form__original_id=self.original_id, active=True).order_by('order',
-                                                                                                '-created_date')
-        sheet_info = collections.OrderedDict()
+                                                                                              '-created_date')
+        #  The problem is there may be other versions of the active sheets.  Find those too.
+        sheets_list = []
         for s in sheets:
+            matching_sheets = Sheet.objects.filter(original_id=s.original_id)
+            for sheet in matching_sheets:
+                sheets_list.append(sheet)
+
+        # Order the sheets in the correct order:  First by order, then newest first, so we get the attributes of the
+        # latest.
+        sheets_list = sorted(sorted(sheets_list, key=lambda s: s.created_date, reverse=True), key=lambda s: s.order)
+
+        sheet_info = collections.OrderedDict()
+        for s in sheets_list:
             if s.original_id not in sheet_info:
                 sheet_info[s.original_id] = {
                     'title': s.title,
                     'fields': collections.OrderedDict(),
                     'is_initial': s.is_initial,
-                    'slug': s.slug,
+                    'recurring': s.original_id == recurring_sheet.original_id,
                 }
 
         # find all fields in each of those sheets (in a equally-sensible order)
-        fields = Field.objects.filter(sheet__form__original_id=self.original_id, sheet__active=True, active=True)\
+        fields = Field.objects.filter(sheet__in=sheets_list, sheet__active=True, active=True)\
             .select_related('sheet').order_by('order', '-created_date').select_related('sheet')
         for f in fields:
             if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
@@ -612,7 +624,7 @@ class Form(models.Model, _FormCoherenceMixin):
             .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
 
         sheetsubs = SheetSubmission.objects.filter(form_submission__form__original_id=self.original_id,
-                                                   form_submission__status__in=statuses, sheet__active=True) \
+                                                   form_submission__status__in=statuses, sheet__in=sheets_list) \
             .order_by('given_at').select_related('sheet', 'filler__sfuFormFiller', 'filler__nonSFUFormFiller')
 
 
@@ -631,10 +643,10 @@ class Form(models.Model, _FormCoherenceMixin):
             row = []
             found_anything = False
             last_completed = None
-            sheets = sheetsubs.filter(form_submission=formsub, sheet__active=True).order_by('sheet__order', 'given_at')\
-                .select_related('sheet', 'filler__sfuFormFiller', 'filler__nonSFUFormFiller')
-            relevant_count = sheetsubs.filter(form_submission=formsub, sheet__active=True,
-                                                      sheet__slug=recurring_sheet_slug).count()
+            sheets = sheetsubs.filter(form_submission=formsub, sheet__in=sheets_list)\
+                .order_by('sheet__order', 'given_at').select_related('sheet', 'filler__sfuFormFiller',
+                                                                     'filler__nonSFUFormFiller')
+            relevant_count = sheets.filter(sheet__original_id=recurring_sheet.original_id).count()
             if relevant_count > max_relevant_count:
                 max_relevant_count = relevant_count
             for ss in sheets:
@@ -670,7 +682,7 @@ class Form(models.Model, _FormCoherenceMixin):
             for fid, finfo in info['fields'].items():
                 headers.append(finfo['label'])
             # Add more multiples for the recurring sheet:
-            if info['slug'] == recurring_sheet_slug:
+            if info['recurring']:
                 for _ in range(1, max_relevant_count):
                     headers.append(info['title'].upper())
                     headers.append(None)
