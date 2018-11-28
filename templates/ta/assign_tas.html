@@ -80,7 +80,7 @@
     {% if o.component == "CAN" %}</del>{% endif %}
     </td>
   <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
-  <td class="num">{{o.enrl_tot}}/{{o.enrl_cap}}</td>
+  <td class="num">{{o.enrl_tot}}/{{o.enrl_cap}}{% if o.wait_tot %} (+{{ o.wait_tot }}) {% endif %}</td>
   <td>{{o.get_campus_display}}</td>
   <td>
   	{% for tacrs in o.assigned %}
