@@ -133,19 +133,42 @@ def remove_group_member(request, formgroup_slug, userid):
 
         # remove m2m relationship
         if request.method == 'POST':
-            if 'action' in request.POST:
-                if request.POST['action'] == 'remove':
-                    member.delete()
-                    #LOG EVENT#
-                    l = LogEntry(userid=request.user.username,
-                        description=("Removed %s from form group %s (%i)") % (person.userid_or_emplid(), group, group.id),
-                        related_object=group)
-                    l.save()
-                    return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+            member.delete()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Removed %s from form group %s (%i)") % (person.userid_or_emplid(), group, group.id),
+                related_object=group)
+            l.save()
+            return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup_slug}))
         
         groups = FormGroup.objects.filter(unit__in=Unit.sub_units(request.units))
         context = {'groups': groups}
         return render(request, 'onlineforms/manage_groups.html', context)
+
+
+@requires_role(['ADMN', 'FORM'])
+def toggle_group_member(request, formgroup_slug, userid):
+    with django.db.transaction.atomic():
+        group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=Unit.sub_units(request.units))
+        person = get_object_or_404(Person, emplid=userid)
+        member = get_object_or_404(FormGroupMember, person=person, formgroup=group)
+
+        # remove m2m relationship
+        if request.method == 'POST':
+            member.set_email(not member.email())
+            member.save()
+            # LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                         description=("Toggled email setting for %s in form group %s (%i)") %
+                                     (person.userid_or_emplid(), group, group.id),
+                         related_object=group)
+            l.save()
+            return HttpResponseRedirect(reverse('onlineforms:manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+
+        groups = FormGroup.objects.filter(unit__in=Unit.sub_units(request.units))
+        context = {'groups': groups}
+        return render(request, 'onlineforms/manage_groups.html', context)
+
 
 
 #######################################################################

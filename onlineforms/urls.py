@@ -15,7 +15,10 @@ forms_patterns = [
     url(r'^groups/new$', onlineforms_views.new_group, name='new_group'),
     url(r'^groups/' + FORMGROUP_SLUG + '/$', onlineforms_views.manage_group, name='manage_group'),
     url(r'^groups/' + FORMGROUP_SLUG + '/add$', onlineforms_views.add_group_member, name='add_group_member'),
-    url(r'^groups/' + FORMGROUP_SLUG + '/remove/' + USERID_OR_EMPLID + '/$', onlineforms_views.remove_group_member, name='remove_group_member'),
+    url(r'^groups/' + FORMGROUP_SLUG + '/remove/' + USERID_OR_EMPLID + '/$', onlineforms_views.remove_group_member,
+        name='remove_group_member'),
+    url(r'^groups/' + FORMGROUP_SLUG + '/toggle/' + USERID_OR_EMPLID + '/$', onlineforms_views.toggle_group_member,
+        name='toggle_group_member'),
 
     url(r'^admin/$', onlineforms_views.admin_list_all, name='admin_list_all'),
     url(r'^admin/assign$', onlineforms_views.admin_assign_any, name='admin_assign_any'),
