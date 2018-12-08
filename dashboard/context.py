@@ -5,27 +5,21 @@ from courselib.branding import product_name, help_email
 
 
 @cached(3600)
-def is_instr_ta(userid):
+def user_has_role(userid, roles):
     if not userid:
         return False
-    members = Member.objects.filter(role__in=['INST', 'TA'])
+    members = Member.objects.filter(role__in=roles)
     return members.exists()
 
-@cached(3600)
-def is_student(userid):
-    if not userid:
-        return False
-    members = Member.objects.filter(role__in=['STUD'])
-    return members.exists()
 
 def media(request):
     """
     Add context things that we need
     """
     # A/B testing: half of instructors and TAs see a different search box
-    instr_ta = is_instr_ta(request.user.username)
+    instr_ta = user_has_role(request.user.username, ['INST', 'TA'])
     instr_ta_ab = instr_ta and request.user.is_authenticated and request.user.id % 2 == 0
-    stud = is_student(request.user.username)
+    stud = user_has_role(request.user.username, ['STUD'])
     # GRAD_DATE(TIME?)_FORMAT for the grad/ra/ta apps
     return {'GRAD_DATE_FORMAT': settings.GRAD_DATE_FORMAT,
             'GRAD_DATETIME_FORMAT': settings.GRAD_DATETIME_FORMAT,
