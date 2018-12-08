@@ -60,8 +60,9 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
           <div class="search">
             <form action="{% url "dashboard:site_search" %}" method="get">
               <fieldset class="search-field">
-                {% if instr_ta_ab %}<span class="searchlabel"><a href="{% url 'docs:view_doc' doc_slug='search' %}">Search</a> for students, courses, discussion, pages:</span>{% endif %}
-                <input type="search" placeholder="{% if instr_ta_ab %}Search for students, discussion, etc.{% else %}Search{% endif %}" name="q">
+                {% if instr_ta_ab %}<span class="searchlabel"><a href="{% url 'docs:view_doc' doc_slug='search' %}">Search</a> for students, courses, discussion, pages:</span>
+                {% elif stud %}<span class="searchlabel"><a href="{% url 'docs:view_doc' doc_slug='search' %}">Search</a> for courses, discussion, pages:</span>{% endif %}
+                <input type="search" placeholder="{% if instr_ta_ab %}Search for students, discussion, etc.{% elif stud %}Search for discussion, etc.{% else %}Search{% endif %}" name="q">
               </fieldset>
 
               <fieldset class="search-scope-set">
