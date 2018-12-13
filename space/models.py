@@ -232,7 +232,7 @@ class BookingRecord(models.Model):
         return self.memos.objects.all().order_by('created_at')
 
 def space_attachment_upload_to(instance, filename):
-    return upload_path('space', str(instance.booking_record.start_time.year), filename)
+    return upload_path('space', filename)
 
 
 class BookingRecordAttachmentQueryset(models.QuerySet):

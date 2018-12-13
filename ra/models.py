@@ -406,7 +406,7 @@ class RAAppointment(models.Model):
 
 
 def ra_attachment_upload_to(instance, filename):
-    return upload_path('raattachments', str(instance.appointment.start_date.year), filename)
+    return upload_path('raattachments', filename)
 
 
 class RAAppointmentAttachmentQueryset(models.QuerySet):

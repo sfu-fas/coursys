@@ -13,7 +13,7 @@ import os.path
 
 
 def attachment_upload_to(instance, filename):
-    return upload_path('advisornotes', str(datetime.date.today().year), filename)
+    return upload_path('advisornotes', filename)
 
 
 class NonStudent(models.Model):

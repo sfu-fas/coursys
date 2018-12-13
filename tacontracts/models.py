@@ -689,7 +689,7 @@ class EmailReceipt(models.Model):
 
 
 def tacontracts_attachment_upload_to(instance, filename):
-    return upload_path('taattachments', str(instance.contract.appointment_start.year), filename)
+    return upload_path('taattachments', filename)
 
 
 class TAContractAttachmentQueryset(models.QuerySet):

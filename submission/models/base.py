@@ -137,7 +137,7 @@ class GroupSubmission(Submission):
 
 
 def submission_upload_path(instance, filename):
-    return upload_path(instance.component.activity.offering.slug, instance.component.activity.slug, filename)
+    return upload_path(instance.component.activity.offering.slug, filename)
 
 
 class SubmittedComponent(models.Model):
