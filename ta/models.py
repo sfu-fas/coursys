@@ -414,7 +414,7 @@ def _file_upload_to(instance, filename):
     """
     path to upload TA Application resume
     """
-    return upload_path('ta_applications', instance.posting.semester.name, filename)
+    return upload_path('ta_applications', filename)
 
 
 _resume_upload_to = _file_upload_to

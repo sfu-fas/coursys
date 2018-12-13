@@ -118,7 +118,7 @@ class Visa (models.Model):
 
 
 def visa_attachment_upload_to(instance, filename):
-    return upload_path('visas', str(instance.visa.start_date.year), filename)
+    return upload_path('visas', filename)
 
 
 class VisaDocumentAttachmentQueryset(models.QuerySet):

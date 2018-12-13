@@ -1535,7 +1535,7 @@ class ProgressReport(models.Model):
 
 
 def attachment_upload_to(instance, filename):
-    return upload_path('gradnotes', str(datetime.date.today().year), filename)
+    return upload_path('gradnotes', filename)
 
 
 class ExternalDocument(models.Model):

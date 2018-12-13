@@ -441,7 +441,7 @@ CareerEvent.get_event_type_display = CareerEvent.get_event_type_display_
 
 
 def attachment_upload_to(instance, filename):
-    return upload_path('faculty', str(instance.career_event.start_date.year), filename)
+    return upload_path('faculty', filename)
 
 
 def position_attachment_upload_to(instance, filename):

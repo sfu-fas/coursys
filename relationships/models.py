@@ -131,7 +131,7 @@ class Event(models.Model):
 
 
 def attachment_upload_to(instance, filename):
-    return upload_path('relationships', str(instance.event.timestamp.year), filename)
+    return upload_path('relationships', filename)
 
 
 class EventAttachmentManagerQuerySet(models.QuerySet):
