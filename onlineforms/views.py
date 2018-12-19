@@ -502,6 +502,9 @@ def pending_summary_csv(request, form_slug):
     if form_slug == 'mse-mse-ta-application-mse-graduate-students':
         headers, data = form.all_submission_summary_special(statuses=['PEND'],
                                                             recurring_sheet_slug='instructor-approval-7')
+    elif form_slug == 'apsc-see-lecturer-engineering-and-design-2':
+        headers, data = form.all_submission_summary_special(statuses=['PEND'],
+                                                            recurring_sheet_slug='initial-scoring')
     else:
         headers, data = form.all_submission_summary(statuses=['PEND'])
     writer.writerow(headers)
