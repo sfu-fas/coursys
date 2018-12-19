@@ -124,11 +124,12 @@ class Location(models.Model):
     def __str__(self):
         return "%s, %s - %s" % (CAMPUSES_SHORT[self.campus], BUILDINGS[self.building], self.room_number)
 
-    def get_current_booking(self):
-        latest_booking = self.bookings.visible().filter(start_time__lte=timezone_today()).order_by('start_time').last()
-        if latest_booking and (not latest_booking.end_time or latest_booking.end_time > timezone_today()):
-            return latest_booking
-        return None
+    def get_current_bookings(self):
+        visible_bookings = self.bookings.visible().filter(start_time__lte=timezone_today()).order_by('start_time')
+        return [b for b in visible_bookings if b.is_current()]
+
+    def get_current_bookings_str(self):
+        return "; ".join([b.person.name() for b in self.get_current_bookings()])
 
     def has_bookings(self):
         return self.bookings.filter(hidden=False).count() > 0
@@ -210,14 +211,6 @@ class BookingRecord(models.Model):
         elif not self.last_modified:
             self.last_modified = timezone_today()
         super(BookingRecord, self).save(*args, **kwargs)
-        self.end_date_others()
-
-    # If we have other bookings without and end-date, apply the new one's start date as the end-date.
-    def end_date_others(self):
-        for b in BookingRecord.objects.visible().filter(location=self.location, end_time__isnull=True,
-                                                        start_time__lt=self.start_time).exclude(id=self.id):
-            b.end_time = self.start_time
-            b.save()
 
     def has_attachments(self):
         return self.attachments.visible().count() > 0
@@ -230,6 +223,9 @@ class BookingRecord(models.Model):
 
     def get_memos(self):
         return self.memos.objects.all().order_by('created_at')
+
+    def is_current(self):
+        return self.start_time <= timezone_today() and (not self.end_time or self.end_time > timezone_today())
 
 def space_attachment_upload_to(instance, filename):
     return upload_path('space', filename)

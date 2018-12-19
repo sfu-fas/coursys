@@ -68,7 +68,8 @@ function confirmMemo() {
                 {% for b in location.get_bookings %}
                     <tr>
                         <td>
-                            {{ b.person.name }} {% if b.conflict %} <span style="color: darkorange"><i class="fa fa-warning" title="This booking conflicts with others"></i></span>{% endif %}
+                            {{ b.person.name }} {% if b.conflict %} <span style="color: darkorange">
+                            <i class="fa fa-warning" title="This booking conflicts with others"></i></span>{% endif %}
                             {% if b.has_attachments %} <i class="fa fa-paperclip" title="This booking has attachments"></i>{% endif %}
                             {% if b.has_memos %}
                                 {% for m in b.memos.all %}
@@ -76,9 +77,11 @@ function confirmMemo() {
                                 {% endfor %}
                             {% endif %}
                             {% if b.notes %} <i class="fa fa-pencil" title="This booking has notes"></i>{% endif %}
+                            {% if b.is_current %} <i class="fa fa-clock-o" title="This booking is current"></i>{% endif %}
                         </td>
                         <td>{{ b.start_time }}</td>
                         <td>{{ b.end_time }}</td>
+                        <td>
                         <td>
                             <form class="lineform" method="POST"
                                   action="{% url "space:delete_booking" booking_id=b.id %}"
