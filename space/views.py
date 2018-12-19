@@ -34,17 +34,21 @@ def download_locations(request):
                      'Room Capacity', 'Category', 'Occupancy', 'Own/Leased', 'Comments', 'Current Booking',
                      'Active Grad Student(s)'])
     for l in locations:
-        booking = l.get_current_booking()
+        bookings = l.get_current_bookings()
         grad_count = None
-        if booking:
-            booker = booking.person
-            grad_count = Supervisor.objects.filter(supervisor=booker, removed=False, student__current_status='ACTI').count()
+        if bookings:
+            grad_count = 0
+            for b in bookings:
+                booker = b.person
+                grad_count += Supervisor.objects.filter(supervisor=booker, removed=False,
+                                                        student__current_status='ACTI').count()
+
 
         writer.writerow([l.unit.name, l.get_campus_display(), l.get_building_display(), l.floor, l.room_number,
                          l.square_meters, l.room_type.long_description, l.room_type.code,
                          l.room_type.COU_code_description, l.room_type.space_factor, l.room_type.COU_code_value,
                          l.get_infrastructure_display(), l.room_capacity, l.get_category_display(), l.occupancy_count,
-                         l.get_own_or_lease_display(), l.comments, booking, grad_count])
+                         l.get_own_or_lease_display(), l.comments, l.get_current_bookings_str(), grad_count])
     return response
 
 
