@@ -1154,12 +1154,12 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         """
         Should students and groups in this course get Subversion repositories created?
         """
-        if 'uses_svn' in self.config and self.config['uses_svn']:
-            return True
-
-        return self.subject == "CMPT" \
-            and ((self.semester.name == "1117" and self.number in ["470", "379", "882"])
-                 or (self.semester.name >= "1121" and self.number >= "200"))
+        return False
+        #if 'uses_svn' in self.config and self.config['uses_svn']:
+        #    return True
+        #return self.subject == "CMPT" \
+        #    and ((self.semester.name == "1117" and self.number in ["470", "379", "882"])
+        #         or (self.semester.name >= "1121" and self.number >= "200"))
 
     def export_dict(self, instructors=None):
         """
