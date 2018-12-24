@@ -278,23 +278,6 @@ def deploy_checks(request=None):
     if bad_cert == 0:
         passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
 
-    # SVN database
-    if settings.SVN_DB_CONNECT:
-        from courselib.svn import SVN_TABLE, _db_conn
-        import MySQLdb
-        try:
-            db = _db_conn()
-            db.execute('SELECT count(*) FROM '+SVN_TABLE, ())
-            n = list(db)[0][0]
-            if n > 0:
-                passed.append(('SVN database', 'okay'))
-            else:
-                failed.append(('SVN database', "couldn't access records"))
-        except MySQLdb.OperationalError:
-            failed.append(('SVN database', "can't connect to database"))
-    else:
-        failed.append(('SVN database', 'SVN_DB_CONNECT not set in secrets.py'))
-
     # file creation in the necessary places
     dirs_to_check = [
         (settings.DB_BACKUP_DIR, 'DB backup dir'),
