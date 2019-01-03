@@ -9,11 +9,12 @@ import datetime
 class SpaceTestCase(TestCase):
     fixtures = ['basedata', 'coredata', 'space']
 
+    unit = Unit.objects.get(slug='cmpt')
     today = datetime.date.today()
     long_start = today - datetime.timedelta(days=5 * 365)
     # Presumably, our booking that starts more than 5 years ago is the one generated in the fixtures.  If there are
     # others that old, it should at least be the first.
-    booking = BookingRecord.objects.filter(start_time__lte=long_start).first()
+    booking = BookingRecord.objects.filter(start_time__lte=long_start, location__unit=unit).first()
     location = booking.location
     roomtype = location.room_type
 
@@ -45,7 +46,7 @@ class SpaceTestCase(TestCase):
     def test_pages(self):
         client = Client()
 
-        userid = Role.objects_fresh.filter(role='SPAC', unit=Unit.objects.get(slug='cmpt'))[0].person.userid
+        userid = Role.objects_fresh.filter(role='SPAC', unit=self.unit)[0].person.userid
         client.login_user(userid)
         test_views(self, client, 'space:', ['index', 'list_roomtypes', 'add_roomtype'], {})
         test_views(self, client, 'space:', ['view_location', 'edit_location', 'add_booking'], {'location_slug': self.location.slug})
