@@ -1007,7 +1007,6 @@ def XXX_sims_person_search(request):
 
 
 @uses_feature('course_browser')
-#@cache_page(60*60*6)
 def browse_courses(request):
     """
     Interactive CourseOffering browser
@@ -1228,7 +1227,6 @@ def _instructor_autocomplete(request):
 
 
 @uses_feature('course_browser')
-@cache_page(60*60)
 def browse_courses_info(request, course_slug):
     """
     Browsing info about a single course offering.
