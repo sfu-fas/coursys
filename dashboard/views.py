@@ -4,7 +4,6 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.template import TemplateDoesNotExist
-from django.views.decorators.cache import cache_page
 from django.views.decorators.gzip import gzip_page
 from django.conf import settings
 from django.contrib import messages
@@ -250,7 +249,6 @@ def _get_news_list(userid, count):
 
 
 @uses_feature('feeds')
-@cache_page(60 * 15)
 def atom_feed(request, token, userid, course_slug=None):
     """
     Return an Atom feed for this user, authenticated by the token in the URL
@@ -447,7 +445,6 @@ def _ical_datetime(utc, dt):
         return dt
 
 @uses_feature('feeds')
-@cache_page(60*60*6)
 def calendar_ical(request, token, userid):
     """
     Return an iCalendar for this user, authenticated by the token in the URL
@@ -837,7 +834,6 @@ def view_doc(request, doc_slug):
 # public data, so no authentication done
 @uses_feature('feeds')
 @gzip_page
-@cache_page(60 * 60 * 6)
 def courses_json(request, semester):
     offerings = CourseOffering.objects.filter(semester__name=semester)\
         .exclude(component="CAN").exclude(flags=CourseOffering.flags.combined) \
