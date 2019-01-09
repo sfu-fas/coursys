@@ -244,7 +244,7 @@ def create_coredata():
         CourseOffering.objects.all(),
         Person.objects.order_by('emplid'),
         Member.objects.all(),
-        [r1, r2, r3, r4, r5, a.activity_ptr, a],
+        [r1, r2, r3, r4, r5, r6, a.activity_ptr, a],
     )
 
 def create_test_offering():
@@ -610,7 +610,8 @@ def create_ta_ra():
     # RAs
     s = Semester.current()
     superv = list(m.person for m in Member.objects.filter(role='INST').select_related('person'))
-    empl = list(itertools.chain(Person.objects.filter(last_name='Grad'), random.sample(Person.objects.filter(last_name='Student'), 10)))
+    empl = list(itertools.chain(Person.objects.filter(last_name='Grad'),
+                                random.sample(list(Person.objects.filter(last_name='Student')), 10)))
     cats = [c for c,d in HIRING_CATEGORY_CHOICES if c not in HIRING_CATEGORY_DISABLED]
     config = SemesterConfig.get_config([unit], s)
 
@@ -763,8 +764,8 @@ def create_space():
                    own_or_lease='OWN', comments='This is the room with the thing')
     loc.save()
     p = Person.objects.get(userid='0ggg1')
-    start = datetime.datetime(2010,0o1,0o1,00,00,00)
-    end = datetime.datetime(2099,0o1,0o1,23,59,59)
+    start = datetime.datetime(2010, 0o1, 0o1, 00, 00, 00)
+    end = datetime.datetime(2099, 0o1, 0o1, 23, 59, 59)
     book = BookingRecord(person=p, location=loc, start_time=start, end_time=end)
     book.save()
     return itertools.chain(
