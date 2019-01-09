@@ -521,6 +521,35 @@ def pending_summary_csv(request, form_slug):
     return response
 
 
+@requires_formgroup()
+def waiting_summary_csv(request, form_slug):
+    form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
+    response = HttpResponse(content_type='text/csv;charset=utf-8')
+    response['Content-Disposition'] = 'inline; filename="%s-waiting_summary.csv"' % form_slug
+    writer = csv.writer(response)
+    # A special case for one particular form, for now.
+    if form_slug == 'mse-mse-ta-application-mse-graduate-students':
+        headers, data = form.all_submission_summary_special(statuses=['WAIT'],
+                                                            recurring_sheet_slug='instructor-approval-7')
+
+    # All the SEE hiring forms are duplicates of one another with a different title.  They all also need
+    # this special handling.  Their recurring sheet is all titled the same.
+    #
+    # If we're going to use this code path any more than this, then a better suggestion would be to store the recurring
+    # sheet in the config of the form, look for said config variable, and just call the alternate method if it exists.
+    elif form_slug in ['apsc-see-lecturer-electrical-and-electronics', 'apsc-see-lecturer-engineering-and-design-2',
+                        'apsc-see-lecturer-writing-ethics-and-economics', 'apsc-see-professor-of-professional-practice',
+                        'apsc-see-researcher-materials-for-energy-systems', 'apsc-see-researcher-thermo-fluids']:
+        headers, data = form.all_submission_summary_special(statuses=['WAIT'],
+                                                            recurring_sheet_slug='initial-scoring')
+    else:
+        headers, data = form.all_submission_summary(statuses=['WAIT'])
+    writer.writerow(headers)
+    for row in data:
+        writer.writerow(row)
+    return response
+
+
 #######################################################################
 # Creating/editing forms
 
