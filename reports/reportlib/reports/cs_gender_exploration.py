@@ -174,8 +174,8 @@ class CSGenderExplorationReport(Report):
 
 
     def run(self):
-        #self.get_transfer_applicants()
-        #self.get_waitlists()
+        self.get_transfer_applicants()
+        self.get_waitlists()
         self.get_bad_gpa()
 
 
