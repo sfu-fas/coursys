@@ -171,11 +171,12 @@ class OutreachEventRegistration(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, null=False)
     last_name = models.CharField("Participant Last Name", max_length=32)
     first_name = models.CharField("Participant First Name", max_length=32)
-    middle_name = models.CharField("Participant Middle Name", max_length=32, null=True, blank=True)
     age = models.DecimalField("Participant Age", null=True, blank=True, max_digits=2, decimal_places=0)
     birthdate = models.DateField("Participant Date of Birth", null=False, blank=False)
-    parent_name = models.CharField(max_length=100, blank=False, null=False)
-    parent_phone = models.CharField(max_length=15, blank=False, null=False)
+    parent_name = models.CharField("Parent/Guardian Name", max_length=100, blank=False, null=False)
+    parent_phone = models.CharField("Parent/Guardian Phone", max_length=15, blank=False, null=False)
+    secondary_name = models.CharField("Secondary Emergency Contact Name", max_length=100, blank=False, null=False)
+    secondary_phone = models.CharField("Secondary Emergency Contact Phone", max_length=15, blank=False, null=False)
     email = models.EmailField("Contact E-mail")
     event = models.ForeignKey(OutreachEvent, blank=False, null=False, on_delete=models.PROTECT)
     photo_waiver = models.BooleanField("I, the parent or guardian of the Child, hereby authorize the Faculty of "
@@ -205,7 +206,11 @@ class OutreachEventRegistration(models.Model):
     school = models.CharField("Participant School", null=False, blank=False, max_length=200)
     grade = models.PositiveSmallIntegerField("Participant Grade", blank=False, null=False)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
-    notes = models.CharField("Allergies/Dietary Restrictions", max_length=400, blank=True, null=True)
+    notes = models.CharField("Allergies/Dietary Restrictions", max_length=400, blank=True, null=True,
+                             help_text="Describe any allergies, dietary restrictions, or medical conditions. Please "
+                                       "include information on severity and whether an Epipen is required. Students "
+                                       "requiring an Epipen must carry it on their person for the entire event and "
+                                       "identify themselves to staff at registration.")
     objects = OutreachEventRegistrationQuerySet.as_manager()
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
@@ -226,7 +231,7 @@ class OutreachEventRegistration(models.Model):
         self.save()
 
     def fullname(self):
-        return "%s, %s %s" % (self.last_name, self.first_name, self.middle_name or '')
+        return "%s, %s" % (self.last_name, self.first_name)
 
     def save(self, *args, **kwargs):
         self.last_modified = timezone.now()
