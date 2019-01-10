@@ -710,8 +710,9 @@ def create_outreach():
                       description='An event to test', slug='devtest_a_test_event')
     e.save()
     dob = datetime.date(1800, 1, 1)
-    r = OutreachEventRegistration(event=e, birthdate=dob, parent_name='Joe Smith Sr.', last_name='SomePerson', first_name='Bob',
-                                  school='Little Lord Fauntleroy School for Albino Hemophiliacs', grade=2)
+    r = OutreachEventRegistration(event=e, birthdate=dob, parent_name='Joe Smith Sr.', last_name='SomePerson',
+                                  first_name='Bob', school='Little Lord Fauntleroy School for Albino Hemophiliacs',
+                                  grade=2, secondary_name='George Smith Jr.', secondary_phone='800-555-1212')
     r.save()
     return itertools.chain(
         OutreachEvent.objects.all(),
