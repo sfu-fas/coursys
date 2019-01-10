@@ -305,8 +305,8 @@ def download_registrations(request, event_slug=None, past=None):
     if registrations:
         header_row = header_row_initial + ['Last Name', 'First Name', 'Birthdate', 'Parent Name', 'Parent Phone',
                                            'Secondary Name', 'Secondary Phone', 'Email', 'Photo Waiver',
-                                           'Previously Attended', 'School', 'Grade', 'Dietary Notes', 'Attended(ing)',
-                                           'Waitlisted', 'Registered at', 'Last Modified'] + \
+                                           'Previously Attended', 'School', 'Grade', 'Dietary Restrictions',
+                                           'Attended(ing)', 'Waitlisted', 'Registered at', 'Last Modified'] + \
                      header_row_extras
         writer.writerow(header_row)
         for r in registrations:
