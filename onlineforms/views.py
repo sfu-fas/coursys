@@ -1204,6 +1204,21 @@ def view_submission(request, form_slug, formsubmit_slug):
         return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 
+@requires_form_admin_by_slug()
+def reject_sheet_admin(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmit_slug):
+    sheetsub = get_object_or_404(SheetSubmission, sheet__form__slug=form_slug,
+                                 form_submission__slug=formsubmit_slug, sheet__slug=sheet_slug, slug=sheetsubmit_slug,
+                                 form_submission__owner__in=request.formgroups)
+    return _reject_sheet(request, sheetsub, from_admin=True)
+
+
+@requires_form_admin_by_slug()
+def reject_sheet_via_url_admin(request, secret_url, form_slug):
+    # It looks like the form_slug parameter is not needed, but it is needed for the decorator
+    secret = get_object_or_404(SheetSubmissionSecretUrl, key=secret_url)
+    return _reject_sheet(request, secret.sheet_submission, from_admin=True)
+
+
 @login_required
 def reject_sheet_subsequent(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmit_slug):
     sheetsub = get_object_or_404(SheetSubmission, sheet__form__slug=form_slug,
@@ -1211,11 +1226,13 @@ def reject_sheet_subsequent(request, form_slug, formsubmit_slug, sheet_slug, she
         filler__sfuFormFiller__userid=request.user.username)
     return _reject_sheet(request, sheetsub)
 
+
 def reject_sheet_via_url(request, secret_url):
     secret = get_object_or_404(SheetSubmissionSecretUrl, key=secret_url)
     return _reject_sheet(request, secret.sheet_submission)
 
-def _reject_sheet(request, sheetsub):
+
+def _reject_sheet(request, sheetsub, from_admin=False):
     with django.db.transaction.atomic():
         if request.method != 'POST':
             return ForbiddenResponse(request)
@@ -1225,7 +1242,12 @@ def _reject_sheet(request, sheetsub):
         sheetsub.status = 'REJE'
         sheetsub.save()
 
-        if sheetsub.sheet.is_initial:
+        if from_admin:
+            admin = get_object_or_404(Person, userid=request.user.username)
+            FormLogEntry.create(sheet_submission=sheetsub, user=admin, category='ADMN',
+                                description='Rejected sheet.')
+
+        elif sheetsub.sheet.is_initial:
             FormLogEntry.create(sheet_submission=sheetsub, filler=sheetsub.filler, category='FILL',
                     description='Discarded initial sheet.')
             fs = sheetsub.form_submission
@@ -1240,7 +1262,9 @@ def _reject_sheet(request, sheetsub):
             description=("Rejected sheet %s") % (sheetsub),
             related_object=sheetsub)
         l.save()
-        if sheetsub.sheet.is_initial:
+        if from_admin:
+            messages.success(request, 'Sheet rejected')
+        elif sheetsub.sheet.is_initial:
             messages.success(request, 'Form discarded.')
         else:
             messages.success(request, 'Sheet rejected and returned to the admins.')
