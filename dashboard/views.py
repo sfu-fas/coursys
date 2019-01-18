@@ -34,6 +34,7 @@ import pytz
 import itertools
 import iso8601
 from urllib.parse import urlencode
+from urllib.error import HTTPError
 
 
 @login_required
@@ -138,7 +139,8 @@ from django_cas.views import _redirect_url, _service_url, _login_url, HttpRespon
 def login(request, next_page=None, required=False):
     """Forwards to CAS login URL or verifies CAS ticket
 
-    Modified locally: honour next=??? in query string, don't deliver a message, catch IOError, generate LogEntry
+    Modified locally: honour next=??? in query string, don't deliver a message, catch HTTPError and IOError,
+    generate LogEntry
     """
     if not next_page and 'next' in request.GET:
         next_page = request.GET['next']
@@ -158,6 +160,15 @@ def login(request, next_page=None, required=False):
             # Here we want to catch only: connection reset, timeouts, name or service unknown
             if e.errno in [104, 110, 'socket error']:
                 user = None
+            # HTTPError is a type of OSError, which IOError is an alias for.
+            # Sometimes, the CAS server seems to just return a 500 internal server error.  Let's handle that the
+            # same way as the above case.
+            elif isinstance(e, HTTPError):
+                if e.code == 500:
+                    user = None
+                else:
+                    # Any other HTTPError should bubble up and let us know something horrible has happened.
+                    raise HTTPError("Got an HTTP Error when authenticating. The error is: {0!s}.".format(e))
             else:
                 raise IOError("The errno is %r: %s." % (e.errno, str(e)))
         except ParseError:
