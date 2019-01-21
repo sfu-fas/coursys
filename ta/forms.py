@@ -365,7 +365,7 @@ class BaseTACourseFormSet(BaseInlineFormSet):
         #check no duplicate course selection
         courses = []
         for form in self.forms:
-            if form.cleaned_data and form.cleaned_data['course']:
+            if form.cleaned_data and 'course' in form.cleaned_data:
                 course = form.cleaned_data['course']
                 if(course in courses):
                         raise forms.ValidationError("Duplicate course selection")
