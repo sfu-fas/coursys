@@ -1418,7 +1418,6 @@ def edit_contract(request, post_slug, userid):
         form = TAContractForm(instance=contract) 
         formset = TACourseFormset(instance=contract)
         if not editing:
-            print("Not editing loop")
             initial={'sin': application.sin,
                      'appt_category': application.category,
                      'position_number': posting.accounts()[posting.cat_index(application.category)],
