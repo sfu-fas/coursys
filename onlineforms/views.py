@@ -482,8 +482,18 @@ def summary_csv(request, form_slug):
     # A special case for one particular form, for now.
     if form_slug == 'mse-mse-ta-application-mse-graduate-students':
         headers, data = form.all_submission_summary_special(recurring_sheet_slug='instructor-approval-7')
-    elif form_slug == 'apsc-see-lecturer-engineering-and-design-2':
+    # All the SEE hiring forms are duplicates of one another with a different title.  They all also need
+    # this special handling.  Their recurring sheet is all titled the same.
+    #
+    # If we're going to use this code path any more than this, then a better suggestion would be to store the recurring
+    # sheet in the config of the form, look for said config variable, and just call the alternate method if it exists.
+    elif form_slug in ['apsc-see-lecturer-electrical-and-electronics', 'apsc-see-lecturer-engineering-and-design-2',
+                       'apsc-see-lecturer-writing-ethics-and-economics',
+                       'apsc-see-researcher-materials-for-energy-systems', 'apsc-see-researcher-thermo-fluids']:
         headers, data = form.all_submission_summary_special(recurring_sheet_slug='initial-scoring')
+    #  This one is just slightly different (the sheet we want to be recurring is named differently.)
+    elif form_slug == 'apsc-see-professor-of-professional-practice':
+        headers, data = form.all_submission_summary_special(recurring_sheet_slug='support-for-interview')
     else:
         headers, data = form.all_submission_summary()
     writer.writerow(headers)
@@ -509,10 +519,14 @@ def pending_summary_csv(request, form_slug):
     # If we're going to use this code path any more than this, then a better suggestion would be to store the recurring
     # sheet in the config of the form, look for said config variable, and just call the alternate method if it exists.
     elif form_slug in ['apsc-see-lecturer-electrical-and-electronics', 'apsc-see-lecturer-engineering-and-design-2',
-                        'apsc-see-lecturer-writing-ethics-and-economics', 'apsc-see-professor-of-professional-practice',
-                        'apsc-see-researcher-materials-for-energy-systems', 'apsc-see-researcher-thermo-fluids']:
+                       'apsc-see-lecturer-writing-ethics-and-economics',
+                       'apsc-see-researcher-materials-for-energy-systems', 'apsc-see-researcher-thermo-fluids']:
         headers, data = form.all_submission_summary_special(statuses=['PEND'],
                                                             recurring_sheet_slug='initial-scoring')
+    #  This one is just slightly different (the sheet we want to be recurring is named differently.)
+    elif form_slug == 'apsc-see-professor-of-professional-practice':
+        headers, data = form.all_submission_summary_special(statuses=['PEND'],
+                                                            recurring_sheet_slug='support-for-interview')
     else:
         headers, data = form.all_submission_summary(statuses=['PEND'])
     writer.writerow(headers)
@@ -538,10 +552,15 @@ def waiting_summary_csv(request, form_slug):
     # If we're going to use this code path any more than this, then a better suggestion would be to store the recurring
     # sheet in the config of the form, look for said config variable, and just call the alternate method if it exists.
     elif form_slug in ['apsc-see-lecturer-electrical-and-electronics', 'apsc-see-lecturer-engineering-and-design-2',
-                        'apsc-see-lecturer-writing-ethics-and-economics', 'apsc-see-professor-of-professional-practice',
-                        'apsc-see-researcher-materials-for-energy-systems', 'apsc-see-researcher-thermo-fluids']:
+                       'apsc-see-lecturer-writing-ethics-and-economics',
+                       'apsc-see-researcher-materials-for-energy-systems', 'apsc-see-researcher-thermo-fluids']:
         headers, data = form.all_submission_summary_special(statuses=['WAIT'],
                                                             recurring_sheet_slug='initial-scoring')
+    #  This one is just slightly different (the sheet we want to be recurring is named differently.)
+    elif form_slug == 'apsc-see-professor-of-professional-practice':
+        headers, data = form.all_submission_summary_special(statuses=['WAIT'],
+                                                            recurring_sheet_slug='support-for-interview')
+
     else:
         headers, data = form.all_submission_summary(statuses=['WAIT'])
     writer.writerow(headers)
