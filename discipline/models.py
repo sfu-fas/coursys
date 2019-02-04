@@ -526,18 +526,6 @@ class DisciplineCaseInstrStudent(DisciplineCaseInstr):
     def membership(self):
         return Member.objects.get(offering=self.offering, person=self.student)
 
-    def create_chair_case(self, userid):
-        """
-        Create and return the Chair's case corresponding to self.
-        """
-        case = DisciplineCaseChairStudent()
-        case.student = self.student
-        case.offering = self.offering
-        case.slug = self.slug
-        case.group = self.group
-        case.owner = Person.objects.get(userid=userid)
-        case.instr_case = self
-        return case
 
 class _FakePerson(object):
     """
