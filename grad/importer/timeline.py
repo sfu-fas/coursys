@@ -160,7 +160,7 @@ class GradTimeline(object):
                         else:
                             # last-ditch effort to find a plausible career for this active semester
                             possible_careers = [c for c in self.careers if c.unit == h.unit and c.admit_term <= h.strm and
-                                                any(h.acad_prog == h0.acad_prog for h0 in c.happenings)]
+                                                any(h.acad_prog == h0.acad_prog for h0 in c.happenings if hasattr(h0, 'acad_prog'))]
                             if possible_careers:
                                 c = possible_careers[-1]
                                 c.add(h)
