@@ -1,16 +1,15 @@
-import unicodecsv as csv
+import csv
 import pickle
 import datetime
 import os
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 from django.core.cache import cache
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.aggregates import Max
-from django.shortcuts import render, render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.html import mark_safe
@@ -25,7 +24,7 @@ from courselib.search import find_member
 from grades.models import all_activities_filter
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, GradeHistory
 from grades.models import NumericGrade, LetterGrade
-from grades.models import CalLetterActivity, ACTIVITY_TYPES
+from grades.models import CalLetterActivity, ACTIVITY_TYPES, FLAGS
 from grades.models import neaten_activity_positions
 from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm, MessageForm
 from grades.forms import ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE
@@ -40,7 +39,7 @@ from marking.models import get_group_mark, StudentActivityMark, GroupActivityMar
 
 from groups.models import GroupMember, add_activity_to_group
 
-from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, get_current_submission, select_all_submitted_components, select_all_components
+from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, SubmissionInfo, select_all_submitted_components, select_all_components
 
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
@@ -103,13 +102,13 @@ def _course_info_staff(request, course_slug):
     # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
     order = None  
     act = None  
-    if request.GET.has_key('order'):  
+    if 'order' in request.GET:  
         order = request.GET['order']  
-    if request.GET.has_key('act'):  
+    if 'act' in request.GET:  
         act = request.GET['act']  
     if order and act:  
         reorder_course_activities(activities, act, order)  
-        return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))  
+        return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))  
 
 
     # Todo: is the activity type necessary?
@@ -132,11 +131,14 @@ def _course_info_staff(request, course_slug):
     discussion_activity = False
     if course.discussion:
         discussion_activity = discuss_activity.recent_activity(member)
+
+    # advertise combined offering if applicable.
+    offer_combined = course.joint_with() and len(activities) == 0
     
     context = {'course': course, 'member': member, 'activities_info': activities_info, 'from_page': FROMPAGE['course'],
-               'order_type': ORDER_TYPE, 'any_group': any_group, 'total_percent': total_percent, 'discussion_activity': discussion_activity}
-    return render_to_response("grades/course_info_staff.html", context,
-                              context_instance=RequestContext(request))
+               'order_type': ORDER_TYPE, 'any_group': any_group, 'total_percent': total_percent, 'discussion_activity': discussion_activity,
+               'offer_combined': offer_combined}
+    return render(request, "grades/course_info_staff.html", context)
 
 
 @requires_course_staff_by_slug
@@ -162,7 +164,7 @@ def course_config(request, course_slug):
                   related_object=course)
             l.save()
 
-            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))
     else:
         form = CourseConfigForm({'url': course.url(), 'taemail': course.taemail(), 'discussion': course.discussion(),
                 'indiv_svn': course.indiv_svn(), 'instr_rw_svn': course.instr_rw_svn(), 'group_min': course.group_min(),'group_max': course.group_max()})
@@ -195,8 +197,7 @@ def _course_info_student(request, course_slug):
     context = {'course': course, 'member': student, 'activity_data': activity_data, 'any_group': any_group, 
                'has_index': has_index, 'from_page': FROMPAGE['course'], 'discussion_activity': discussion_activity}
     
-    return render_to_response("grades/course_info_student.html", context,
-                              context_instance=RequestContext(request))
+    return render(request, "grades/course_info_student.html", context)
 
 @login_required
 def activity_info_oldurl(request, course_slug, activity_slug, tail):
@@ -205,7 +206,7 @@ def activity_info_oldurl(request, course_slug, activity_slug, tail):
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=course)
-    act_url = reverse('grades.views.activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug})
+    act_url = reverse('offering:activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug})
     return HttpResponseRedirect(act_url + tail)
 
 @login_required
@@ -246,21 +247,21 @@ def _activity_info_staff(request, course_slug, activity_slug):
     # collect group membership info
     group_membership = {}
     if activity.group:
-        gms = GroupMember.objects.filter(activity=activity, confirmed=True).select_related('group', 'student__person', 'group__courseoffering')
+        gms = GroupMember.objects.filter(activity_id=activity.id, confirmed=True).select_related('group', 'student__person', 'group__courseoffering')
         for gm in gms:
             group_membership[gm.student.person.userid_or_emplid()] = gm.group
 
     # collect submission status
-    sub_comps = [sc.title for sc in SubmissionComponent.objects.filter(activity=activity, deleted=False)]
+    sub_comps = [sc.title for sc in SubmissionComponent.objects.filter(activity_id=activity.id, deleted=False)]
     submitted = {}
     if activity.group:
-        subs = GroupSubmission.objects.filter(activity=activity).select_related('group')
+        subs = GroupSubmission.objects.filter(activity_id=activity.id).select_related('group')
         for s in subs:
-            members = s.group.groupmember_set.filter(activity=activity)
+            members = s.group.groupmember_set.filter(activity_id=activity.id)
             for m in members:
                 submitted[m.student.person.userid_or_emplid()] = True
     else:
-        subs = StudentSubmission.objects.filter(activity=activity)
+        subs = StudentSubmission.objects.filter(activity_id=activity.id)
         for s in subs:
             submitted[s.member.person.userid_or_emplid()] = True
 
@@ -268,27 +269,26 @@ def _activity_info_staff(request, course_slug, activity_slug):
         messages.warning(request, 'Students will not be able to submit: no due date/time is set.')
 
     # collect marking status
-    mark_comps = [ac.title for ac in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)]
+    mark_comps = [ac.title for ac in ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False)]
     marked = {}
-    marks = StudentActivityMark.objects.filter(activity=activity).select_related('numeric_grade__member__person')
+    marks = StudentActivityMark.objects.filter(activity_id=activity.id).select_related('numeric_grade__member__person')
     for m in marks:
         marked[m.numeric_grade.member.person.userid_or_emplid()] = True
     if activity.group:
         # also collect group marks: attribute to both the group and members
-        marks = GroupActivityMark.objects.filter(activity=activity).select_related('group')
+        marks = GroupActivityMark.objects.filter(activity_id=activity.id).select_related('group')
         for m in marks:
             marked[m.group.slug] = True
-            members = m.group.groupmember_set.filter(activity=activity).select_related('student__person')
+            members = m.group.groupmember_set.filter(activity_id=activity.id).select_related('student__person')
             for m in members:
                 marked[m.student.person.userid_or_emplid()] = True
-            
 
     context = {'course': course, 'activity': activity, 'students': students, 'grades': grades, 'source_grades': source_grades,
                'activity_view_type': 'individual', 'group_membership': group_membership,
                'from_page': FROMPAGE['activityinfo'],
                'sub_comps': sub_comps, 'mark_comps': mark_comps,
                'submitted': submitted, 'marked': marked}
-    return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/activity_info.html', context)
 
 
 def _activity_info_student(request, course_slug, activity_slug):
@@ -303,10 +303,10 @@ def _activity_info_student(request, course_slug, activity_slug):
         return NotFoundResponse(request)
 
     student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
-    grade = (activity.GradeClass).objects.filter(activity=activity, member=student)
+    grade = (activity.GradeClass).objects.filter(activity_id=activity.id, member=student)
     if activity.status != "RLS" or not grade:
         # shouldn't display or nothing in database: create temporary nograde object for the template
-        grade = (activity.GradeClass)(activity=activity, member=student, flag="NOGR")
+        grade = (activity.GradeClass)(activity_id=activity.id, member=student, flag="NOGR")
     else:
         grade = grade[0]
     
@@ -320,7 +320,9 @@ def _activity_info_student(request, course_slug, activity_slug):
 
     context = {'course': course, 'activity': activity, 'grade': grade,
                'activity_stat': activity_stat, 'reason_msg': reason_msg}
-    return render_to_response('grades/activity_info_student.html', context, context_instance=RequestContext(request))
+    resp = render(request, 'grades/activity_info_student.html', context)
+    resp.allow_gstatic_csp = True
+    return resp
 
 
 @requires_course_staff_by_slug
@@ -342,7 +344,7 @@ def activity_info_with_groups(request, course_slug, activity_slug):
         grouped_students += 1
         group = member.group
         student = member.student
-        if not groups_found.has_key(group.id):
+        if group.id not in groups_found:
             # a new group discovered by its first member
             # get the current grade of the group 
             current_mark = get_group_mark(activity, group)
@@ -358,7 +360,7 @@ def activity_info_with_groups(request, course_slug, activity_slug):
 
     # collect submission status
     submitted = {}
-    subs = GroupSubmission.objects.filter(activity=activity).select_related('group')
+    subs = GroupSubmission.objects.filter(activity_id=activity.id).select_related('group')
     for s in subs:
         submitted[s.group.slug] = True
     
@@ -368,16 +370,16 @@ def activity_info_with_groups(request, course_slug, activity_slug):
         activity_type = ACTIVITY_TYPE['LG']
     
     # more activity info for display
-    sub_comps = [sc.title for sc in SubmissionComponent.objects.filter(activity=activity, deleted=False)]
-    mark_comps = [ac.title for ac in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)]
+    sub_comps = [sc.title for sc in SubmissionComponent.objects.filter(activity_id=activity.id, deleted=False)]
+    mark_comps = [ac.title for ac in ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False)]
 
     context = {'course': course, 'activity_type': activity_type, 
                'activity': activity, 'ungrouped_students': ungrouped_students,
                'activity_view_type': 'group',
-               'group_grade_info_list': groups_found.values(), 'from_page': FROMPAGE['activityinfo_group'],
+               'group_grade_info_list': list(groups_found.values()), 'from_page': FROMPAGE['activityinfo_group'],
                'sub_comps': sub_comps, 'mark_comps': mark_comps,
                'submitted': submitted}
-    return render_to_response('grades/activity_info_with_groups.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/activity_info_with_groups.html', context)
 
 @requires_course_staff_by_slug
 def activity_stat(request, course_slug, activity_slug):
@@ -399,24 +401,26 @@ def activity_stat(request, course_slug, activity_slug):
     
     # counts submissions (individual & group)
     submark_stat = {}
-    submark_stat['submittable'] = bool(SubmissionComponent.objects.filter(activity=activity))
-    submark_stat['studentsubmissons'] = len(set((s.member for s in StudentSubmission.objects.filter(activity=activity))))
-    submark_stat['groupsubmissons'] = len(set((s.group for s in GroupSubmission.objects.filter(activity=activity))))
+    submark_stat['submittable'] = bool(SubmissionComponent.objects.filter(activity_id=activity.id))
+    submark_stat['studentsubmissons'] = len(set((s.member for s in StudentSubmission.objects.filter(activity_id=activity.id))))
+    submark_stat['groupsubmissons'] = len(set((s.group for s in GroupSubmission.objects.filter(activity_id=activity.id))))
     
     # build counts of how many times each component has been submitted (by unique members/groups)
     sub_comps = select_all_components(activity)
     subed_comps = dict(((comp.id, set()) for comp in sub_comps))
     # build dictionaries of submisson.id -> owner so we can look up quickly when scanning
-    subid_dict = dict(((s.id, ("s", s.member_id)) for s in StudentSubmission.objects.filter(activity=activity)))
-    subid_dict.update( dict(((s.id, ("g", s.group_id)) for s in GroupSubmission.objects.filter(activity=activity))) )
+    subid_dict = dict(((s.id, ("s", s.member_id)) for s in StudentSubmission.objects.filter(activity_id=activity.id)))
+    subid_dict.update( dict(((s.id, ("g", s.group_id)) for s in GroupSubmission.objects.filter(activity_id=activity.id))) )
     
     # build sets of who has submitted each SubmissionComponent
-    for sc in select_all_submitted_components(activity=activity):
+    for sc in select_all_submitted_components(activity_id=activity.id):
         if sc.component.deleted:
             # don't report on deleted components
             continue
         owner = subid_dict[sc.submission_id]
-        subed_comps[sc.component_id].add(owner)
+        # Add a sanity check to fix corrupt data
+        if sc.component_id in subed_comps:
+            subed_comps[sc.component_id].add(owner)
     
     # actual list of components and counts
     sub_comp_rows = []
@@ -424,23 +428,27 @@ def activity_stat(request, course_slug, activity_slug):
         data = {'comp': comp, 'count': len(subed_comps[comp.id])}
         sub_comp_rows.append(data)
     
-    submark_stat['studentgrades'] = len(set([s.member for s in GradeClass.objects.filter(activity=activity)]))
+    submark_stat['studentgrades'] = len(set([s.member for s in GradeClass.objects.filter(activity_id=activity.id)]))
     if activity.is_numeric():
-        submark_stat['markable'] = bool(ActivityComponent.objects.filter(numeric_activity=activity))
-        submark_stat['studentmarks'] = len(set([s.numeric_grade.member for s in StudentActivityMark.objects.filter(activity=activity)]))
-        submark_stat['groupmarks'] = len(set([s.group for s in GroupActivityMark.objects.filter(activity=activity)]))
+        submark_stat['markable'] = bool(ActivityComponent.objects.filter(numeric_activity_id=activity.id))
+        submark_stat['studentmarks'] = len(set([s.numeric_grade.member for s in StudentActivityMark.objects.filter(activity_id=activity.id)]))
+        submark_stat['groupmarks'] = len(set([s.group for s in GroupActivityMark.objects.filter(activity_id=activity.id)]))
     else:
         submark_stat['markable'] = False
 
 
     context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary, 'submark_stat': submark_stat, 'sub_comp_rows': sub_comp_rows}
-    return render_to_response('grades/activity_stat.html', context, context_instance=RequestContext(request))
+    resp = render(request, 'grades/activity_stat.html', context)
+    resp.allow_gstatic_csp = True
+    return resp
+
 
 @requires_course_staff_by_slug
 def activity_choice(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     context = {'course': course}
-    return render_to_response('grades/activity_choice.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/activity_choice.html', context)
+
 
 @requires_course_staff_by_slug
 def edit_cutoffs(request, course_slug, activity_slug):
@@ -473,7 +481,7 @@ def edit_cutoffs(request, course_slug, activity_slug):
             except NotImplementedError:
                 return NotFoundResponse(request)
 
-            return HttpResponseRedirect(reverse('grades.views.activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
+            return HttpResponseRedirect(reverse('offering:activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
     else:
         cutoff=activity.get_cutoffs()
         cutoffsdict=_cutoffsdict(cutoff)
@@ -483,7 +491,10 @@ def edit_cutoffs(request, course_slug, activity_slug):
     source_grades = '[' + ", ".join(["%.2f" % (g.value) for g in source_grades]) + ']'
 
     context = {'course': course, 'activity': activity, 'cutoff':form, 'source_grades': source_grades}
-    return render_to_response('grades/edit_cutoffs.html', context, context_instance=RequestContext(request))
+    resp = render(request, 'grades/edit_cutoffs.html', context)
+    resp.allow_gstatic_csp = True
+    return resp
+
 
 def _cutoffsdict(cutoff):
     data = dict()
@@ -508,7 +519,7 @@ def compare_official(request, course_slug, activity_slug):
     activity = get_object_or_404(LetterActivity, slug=activity_slug, offering=course, deleted=False)
     
     members = Member.objects.filter(offering=course, role='STUD')
-    grades = dict(((g.member, g.letter_grade)for g in LetterGrade.objects.filter(activity=activity).exclude(flag='NOGR')))
+    grades = dict(((g.member, g.letter_grade)for g in LetterGrade.objects.filter(activity_id=activity.id).exclude(flag='NOGR')))
     data = []
     
     for m in members:
@@ -520,7 +531,7 @@ def compare_official(request, course_slug, activity_slug):
     
     #print data
     context = {'course': course, 'activity': activity, 'data': data}
-    return render_to_response('grades/compare_official.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/compare_official.html', context)
 
 from dashboard.letters import grade_change_form
 @requires_course_staff_by_slug
@@ -532,7 +543,7 @@ def grade_change(request, course_slug, activity_slug, userid):
     activity = get_object_or_404(LetterActivity, slug=activity_slug, offering=course, deleted=False)
     member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
     user = Person.objects.get(userid=request.user.username)
-    grades = LetterGrade.objects.filter(activity=activity, member=member).exclude(flag='NOGR')
+    grades = LetterGrade.objects.filter(activity_id=activity.id, member=member).exclude(flag='NOGR')
     if grades:
         grade = grades[0].letter_grade
     else:
@@ -551,7 +562,7 @@ def grade_change(request, course_slug, activity_slug, userid):
 def add_numeric_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
 
-    activities_list = [(None, u'\u2014'),]
+    activities_list = [(None, '\u2014'),]
     activities = all_activities_filter(course)
     for a in activities:
         if a.group == True:
@@ -597,13 +608,13 @@ def add_numeric_activity(request, course_slug):
             messages.success(request, 'New activity "%s" added' % a.name)
             _semester_date_warning(request, a)
             
-            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))
         else:
             messages.error(request, "Please correct the error below")
     else:
         form = NumericActivityForm(previous_activities=activities_list)
     context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
-    return render_to_response('grades/numeric_activity_form.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/numeric_activity_form.html', context)
     
 @requires_course_staff_by_slug
 def add_cal_numeric_activity(request, course_slug):
@@ -623,6 +634,7 @@ def add_cal_numeric_activity(request, course_slug):
                 config = {
                         'showstats': form.cleaned_data['showstats'],
                         'showhisto': form.cleaned_data['showhisto'],
+                        'calculation_leak': form.cleaned_data['calculation_leak'],
                         'url': form.cleaned_data['url'],
                         }
                 CalNumericActivity.objects.create(name=form.cleaned_data['name'],
@@ -639,20 +651,22 @@ def add_cal_numeric_activity(request, course_slug):
                 return NotFoundResponse(request)
             
             messages.success(request, 'New activity "%s" added' % form.cleaned_data['name'])
-            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))
         else:
             messages.error(request, "Please correct the error below")
     else:
         form = CalNumericActivityForm(initial={'formula': '[[activitytotal]]'})
     context = {'course': course, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['add']}
-    return render_to_response('grades/cal_numeric_activity_form.html', context, context_instance=RequestContext(request))
+    resp = render(request, 'grades/cal_numeric_activity_form.html', context)
+    resp.has_inline_script = True # insert activity in formula links
+    return resp
 
 @requires_course_staff_by_slug
 def add_cal_letter_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     letter_activities = LetterActivity.objects.filter(offering=course)
     numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course, deleted=False)]
-    examact_choices = [(0, u'\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course, deleted=False)]
+    examact_choices = [(0, '\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course, deleted=False)]
 
     if request.method == 'POST': # If the form has been submitted...
         form = CalLetterActivityForm(request.POST) # A form bound to the POST data
@@ -668,9 +682,10 @@ def add_cal_letter_activity(request, course_slug):
                     position = aggr_dict['position__max'] + 1
 
                 if form.cleaned_data['exam_activity'] == '0':
-                    exam_activity = None
+                    exam_activity_id = None
                 else:
                     exam_activity = Activity.objects.get(pk=form.cleaned_data['exam_activity'])
+                    exam_activity_id = exam_activity.id
 
                 config = {
                         'showstats': form.cleaned_data['showstats'],
@@ -678,19 +693,19 @@ def add_cal_letter_activity(request, course_slug):
                         'url': form.cleaned_data['url'],
                         }
                 CalLetterActivity.objects.create(name=form.cleaned_data['name'],
-                                                short_name=form.cleaned_data['short_name'],
-                                                status=form.cleaned_data['status'],
-                                                numeric_activity=NumericActivity.objects.get(pk=form.cleaned_data['numeric_activity']),
-                                                exam_activity=exam_activity,
-                                                offering=course, 
-                                                position=position,
-                                                group=False,
-                                                config=config)
+                                                 short_name=form.cleaned_data['short_name'],
+                                                 status=form.cleaned_data['status'],
+                                                 numeric_activity=NumericActivity.objects.get(pk=form.cleaned_data['numeric_activity']),
+                                                 exam_activity_id=exam_activity_id,
+                                                 offering=course,
+                                                 position=position,
+                                                 group=False,
+                                                 config=config)
             except NotImplementedError:
                 return NotFoundResponse(request)
             
             messages.success(request, 'New activity "%s" added' % form.cleaned_data['name'])
-            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))
         else:
             messages.error(request, "Please correct the error below")
     else:
@@ -698,7 +713,7 @@ def add_cal_letter_activity(request, course_slug):
         form.fields['numeric_activity'].choices = numact_choices
         form.fields['exam_activity'].choices = examact_choices
     context = {'course': course, 'form': form, 'letter_activities': letter_activities, 'form_type': FORMTYPE['add']}
-    return render_to_response('grades/cal_letter_activity_form.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/cal_letter_activity_form.html', context)
 
 
 @requires_course_staff_by_slug
@@ -748,7 +763,7 @@ def formula_tester(request, course_slug):
         formula_form_entry = FormulaFormEntry()
     context = {'course': course, 'activity_entries': activity_entries,
                'formula_form_entry': formula_form_entry, 'result': result}
-    return render_to_response('grades/formula_tester.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/formula_tester.html', context)
     
 @requires_course_staff_by_slug
 def calculate_all(request, course_slug, activity_slug):
@@ -819,6 +834,7 @@ def calculate_individual_ajax(request, course_slug, activity_slug):
         return HttpResponse(displayable_result)
     return ForbiddenResponse(request)
 
+
 def _create_activity_formdatadict(activity):
     if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
         return
@@ -837,8 +853,10 @@ def _create_activity_formdatadict(activity):
     data['showhisto'] = True
     if 'showhisto' in activity.config:
         data['showhisto'] = activity.config['showhisto']
+    if 'calculation_leak' in activity.config:
+        data['calculation_leak'] = activity.config['calculation_leak']
 
-    for (k, v) in GROUP_STATUS_MAP.items():
+    for (k, v) in list(GROUP_STATUS_MAP.items()):
         if activity.group == v:
             data['group'] = k
     if isinstance(activity, NumericActivity):
@@ -855,31 +873,33 @@ def _create_activity_formdatadict(activity):
 def _populate_activity_from_formdata(activity, data):
     if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
         return
-    if data.has_key('name'):
+    if 'name' in data:
         activity.name = data['name']
-    if data.has_key('short_name'):
+    if 'short_name' in data:
         activity.short_name = data['short_name']
-    if data.has_key('status'):
+    if 'status' in data:
         activity.status = data['status']
-    if data.has_key('due_date'):
+    if 'due_date' in data:
         activity.due_date = data['due_date']
-    if data.has_key('percent'):
+    if 'percent' in data:
         activity.percent = data['percent']
-    if data.has_key('group'):
+    if 'group' in data:
         activity.group = GROUP_STATUS_MAP[data['group']]
-    if data.has_key('max_grade'):
+    if 'max_grade' in data:
         activity.max_grade = data['max_grade']
-    if data.has_key('formula'):
+    if 'formula' in data:
         activity.formula = data['formula']
-    if data.has_key('url'):
+    if 'url' in data:
         activity.config['url'] = data['url']
-    if data.has_key('showstats'):
+    if 'showstats' in data:
         activity.config['showstats'] = data['showstats']
-    if data.has_key('showhisto'):
+    if 'showhisto' in data:
         activity.config['showhisto'] = data['showhisto']
-    if data.has_key('numeric_activity'):
+    if 'calculation_leak' in data:
+        activity.config['calculation_leak'] = data['calculation_leak']
+    if 'numeric_activity' in data:
         activity.numeric_activity = NumericActivity.objects.get(pk=data['numeric_activity'])
-    if data.has_key('exam_activity'):
+    if 'exam_activity' in data:
         try:
             activity.exam_activity = Activity.objects.get(pk=data['exam_activity'])
         except Activity.DoesNotExist:
@@ -907,12 +927,12 @@ def edit_activity(request, course_slug, activity_slug):
     activities = all_activities_filter(slug=activity_slug, offering=course)
 
     numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course, deleted=False)]
-    examact_choices = [(0, u'\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course, deleted=False)]
+    examact_choices = [(0, '\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course, deleted=False)]
     if (len(activities) == 1):
         activity = activities[0]
 
         # extend group options
-        activities_list = [(None, u'\u2014'),]
+        activities_list = [(None, '\u2014'),]
         activities = all_activities_filter(offering=course)
         for a in activities:
             if a.group == True and a.id != activity.id:
@@ -952,27 +972,27 @@ def edit_activity(request, course_slug, activity_slug):
                 _semester_date_warning(request, activity)
 
                 if from_page == FROMPAGE['course']:
-                    return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+                    return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))
                 else:
-                    return HttpResponseRedirect(reverse('grades.views.activity_info',
+                    return HttpResponseRedirect(reverse('offering:activity_info',
                                                         kwargs={'course_slug': course_slug, 'activity_slug': activity.slug}))
             else:
                 messages.error(request, "Please correct the error below")
         else:
             datadict = _create_activity_formdatadict(activity)
             if isinstance(activity, CalNumericActivity):
-                form = CalNumericActivityForm(datadict)
+                form = CalNumericActivityForm(initial=datadict)
             elif isinstance(activity, NumericActivity):
-                form = NumericActivityForm(datadict, previous_activities=activities_list)
+                form = NumericActivityForm(initial=datadict, previous_activities=activities_list)
             elif isinstance(activity, CalLetterActivity):
-                form = CalLetterActivityForm(datadict)
+                form = CalLetterActivityForm(initial=datadict)
                 form.fields['numeric_activity'].choices = numact_choices
                 form.fields['exam_activity'].choices = examact_choices
                 # set initial value in form to current value
             elif isinstance(activity, LetterActivity):
-                form = LetterActivityForm(datadict, previous_activities=activities_list)
+                form = LetterActivityForm(initial=datadict, previous_activities=activities_list)
             elif isinstance(activity, CalLetterActivity):
-                form = CalLetterActivityForm(datadict)
+                form = CalLetterActivityForm(initial=datadict)
                 form.fields['numeric_activity'].choices = numact_choices
                 form.fields['exam_activity'].choices = examact_choices
 
@@ -981,16 +1001,18 @@ def edit_activity(request, course_slug, activity_slug):
         if isinstance(activity, CalNumericActivity):
             numeric_activities = NumericActivity.objects.exclude(slug=activity_slug).filter(offering=course, deleted=False)
             context = {'course': course, 'activity': activity, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
-            return render_to_response('grades/cal_numeric_activity_form.html', context, context_instance=RequestContext(request))
+            resp = render(request, 'grades/cal_numeric_activity_form.html', context)
+            resp.has_inline_script = True  # insert activity in formula links
+            return resp
         elif isinstance(activity, NumericActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
-            return render_to_response('grades/numeric_activity_form.html', context, context_instance=RequestContext(request))
+            return render(request, 'grades/numeric_activity_form.html', context)
         elif isinstance(activity, CalLetterActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
-            return render_to_response('grades/cal_letter_activity_form.html', context, context_instance=RequestContext(request))
+            return render(request, 'grades/cal_letter_activity_form.html', context)
         elif isinstance(activity, LetterActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
-            return render_to_response('grades/letter_activity_form.html', context, context_instance=RequestContext(request))       
+            return render(request, 'grades/letter_activity_form.html', context)       
     else:
         return NotFoundResponse(request)
     
@@ -1017,7 +1039,7 @@ def delete_activity(request, course_slug, activity_slug):
               related_object=course)
         l.save()
 
-        return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course.slug}))
+        return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course.slug}))
 
     else:
         return ForbiddenResponse(request)
@@ -1052,7 +1074,7 @@ def release_activity(request, course_slug, activity_slug):
                   related_object=course)
             l.save()
 
-        return HttpResponseRedirect(reverse('grades.views.activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
+        return HttpResponseRedirect(reverse('offering:activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
             
     else:
         return ForbiddenResponse(request)
@@ -1062,7 +1084,7 @@ def release_activity(request, course_slug, activity_slug):
 def add_letter_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     
-    activities_list = [(None, u'\u2014'),]
+    activities_list = [(None, '\u2014'),]
     activities = all_activities_filter(course)
     for a in activities:
         if a.group == True:
@@ -1104,13 +1126,13 @@ def add_letter_activity(request, course_slug):
                 messages.success(request, 'New activity "%s" added' % a.name)
                 _semester_date_warning(request, a)
                 
-                return HttpResponseRedirect(reverse('grades.views.course_info',
+                return HttpResponseRedirect(reverse('offering:course_info',
                                                 kwargs={'course_slug': course_slug}))
     else:
         form = LetterActivityForm(previous_activities=activities_list)
     activities = course.activity_set.all()
     context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
-    return render_to_response('grades/letter_activity_form.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/letter_activity_form.html', context)
 
 @requires_course_staff_by_slug
 def all_grades(request, course_slug):
@@ -1130,7 +1152,7 @@ def all_grades(request, course_slug):
             grades[a.slug][g.member.person.userid] = g
 
     context = {'course': course, 'students': students, 'activities': activities, 'grades': grades}
-    return render_to_response('grades/all_grades.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/all_grades.html', context)
 
 
 def _all_grades_output(response, course):
@@ -1187,6 +1209,36 @@ def all_grades_csv(request, course_slug):
     _all_grades_output(response, course)        
     return response
 
+
+@requires_course_staff_by_slug
+def grade_history(request, course_slug):
+    """
+    Dump all GradeHistory for the offering to a CSV
+    """
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-history.csv"' % (course_slug,)
+    writer = csv.writer(response)
+    writer.writerow(['Date/Time', 'Activity', 'Student', 'Entered By', 'Numeric Grade', 'Letter Grade', 'Status', 'Group'])
+
+    grade_histories = GradeHistory.objects.filter(activity__offering=offering, status_change=False) \
+        .select_related('entered_by', 'activity', 'member__person', 'group')
+    for gh in grade_histories:
+        writer.writerow([
+            gh.timestamp,
+            gh.activity.short_name,
+            gh.member.person.userid_or_emplid(),
+            gh.entered_by.userid_or_emplid(),
+            gh.numeric_grade,
+            gh.letter_grade,
+            FLAGS.get(gh.grade_flag, None),
+            gh.group.slug if gh.group else None,
+        ])
+
+    return response
+
+
 @requires_course_staff_by_slug
 def class_list(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -1205,7 +1257,7 @@ def class_list(request, course_slug):
         rows.append(data)
 
     context = {'course': course, 'rows': rows}
-    return render_to_response('grades/class_list.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/class_list.html', context)
 
 
 def _has_photo_agreement(user):
@@ -1220,7 +1272,7 @@ def photo_list(request, course_slug, style='horiz'):
         raise Http404
     user = get_object_or_404(Person, userid=request.user.username)
     if not _has_photo_agreement(user):
-        url = reverse('dashboard.views.photo_agreement') + '?return=' + urllib.quote(request.path)
+        url = reverse('config:photo_agreement') + '?return=' + urllib.parse.quote(request.path)
         return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
     
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -1239,11 +1291,11 @@ def student_photo(request, emplid):
     user = get_object_or_404(Person, userid=request.user.username)
     can_access = False
 
-    if Role.objects.filter(person=user, role='ADVS'):
+    if Role.objects_fresh.filter(person=user, role='ADVS'):
         can_access = True
     else:
         if not _has_photo_agreement(user):
-            url = reverse('dashboard.views.photo_agreement') + '?return=' + urllib.quote(request.path)
+            url = reverse('config:photo_agreement') + '?return=' + urllib.parse.quote(request.path)
             return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
 
         # confirm user is an instructor of this student (within the last two years)
@@ -1278,12 +1330,12 @@ def new_message(request, course_slug):
     staff = get_object_or_404(Person, userid=request.user.username)
     default_message = NewsItem(user=staff, author=staff, course=offering, source_app="dashboard")
     if request.method =='POST':
-        form = MessageForm(request.POST, instance=default_message)
+        form = MessageForm(data=request.POST, instance=default_message)
         if form.is_valid()==True:
             NewsItem.for_members(member_kwargs={'offering': offering}, newsitem_kwargs={
                     'author': staff, 'course': offering, 'source_app': 'dashboard',
                     'title': form.cleaned_data['title'], 'content': form.cleaned_data['content'],
-                    'url': form.cleaned_data['url']})
+                    'url': form.cleaned_data['url'], 'markup': form.cleaned_data['_markup']})
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
@@ -1291,9 +1343,9 @@ def new_message(request, course_slug):
                   related_object=offering)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'News item created.')
-            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': offering.slug}))
+            return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': offering.slug}))
     else:
-        form = MessageForm()    
+        form = MessageForm()
     return render(request, "grades/new_message.html", {"form" : form,'course': offering})
 
 
@@ -1306,7 +1358,7 @@ def student_search(request, course_slug):
         if not form.is_valid():
             messages.add_message(request, messages.ERROR, 'Invalid search')
             context = {'course': course, 'form': form}
-            return render_to_response('grades/student_search.html', context, context_instance=RequestContext(request))
+            return render(request, 'grades/student_search.html', context)
 
         search = form.cleaned_data['search']
         try:
@@ -1321,16 +1373,16 @@ def student_search(request, course_slug):
             else:
                 messages.add_message(request, messages.ERROR, 'Multiple students found')
             context = {'course': course, 'form': form}
-            return render_to_response('grades/student_search.html', context, context_instance=RequestContext(request))
+            return render(request, 'grades/student_search.html', context)
 
         student = students[0]
-        return HttpResponseRedirect(reverse('grades.views.student_info',
+        return HttpResponseRedirect(reverse('offering:student_info',
                                                 kwargs={'course_slug': course_slug, 'userid': student.person.userid}))
 
 
     form = StudentSearchForm()
     context = {'course': course, 'form': form}
-    return render_to_response('grades/student_search.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/student_search.html', context)
     
 
 @requires_course_staff_by_slug
@@ -1358,20 +1410,20 @@ def student_info(request, course_slug, userid):
             info['grade'] = None
 
         # find most recent submission
-        sub, _ = get_current_submission(member.person, a)
-        info['sub'] = sub
+        sub_info = SubmissionInfo(student=member.person, activity=a)
+        info['sub'] = sub_info.have_submitted()
 
         grade_info.append(info)
         
         # find marking info
         info['marked'] = False
-        if StudentActivityMark.objects.filter(activity=a, numeric_grade__member=member):
+        if StudentActivityMark.objects.filter(activity_id=a.id, numeric_grade__member=member):
             info['marked'] = True
-        gms = GroupMember.objects.filter(activity=a, student=member, confirmed=True)
+        gms = GroupMember.objects.filter(activity_id=a.id, student=member, confirmed=True)
         if gms:
             # in a group
             gm = gms[0]
-            if GroupActivityMark.objects.filter(activity=a, group=gm.group):
+            if GroupActivityMark.objects.filter(activity_id=a.id, group=gm.group):
                 info['marked'] = True
 
     dishonesty_cases = []
@@ -1385,7 +1437,7 @@ def student_info(request, course_slug, userid):
 
     context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships,
                'grade_history': grade_history, 'dishonesty_cases': dishonesty_cases, 'can_photo': _has_photo_agreement(requestor.person)}
-    return render_to_response('grades/student_info.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/student_info.html', context)
 
 
 @requires_course_staff_by_slug
@@ -1393,11 +1445,10 @@ def export_all(request, course_slug):
     """
     Export everything we can about this offering
     """
-    import StringIO, tempfile, zipfile, os, json
+    import io, tempfile, zipfile, os, json
     from django.http import StreamingHttpResponse
-    from django.core.servers.basehttp import FileWrapper
+    from wsgiref.util import FileWrapper
     from marking.views import _mark_export_data, _DecimalEncoder
-    from submission.models import generate_submission_contents
     from discuss.models import DiscussionTopic
 
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -1407,7 +1458,7 @@ def export_all(request, course_slug):
     z = zipfile.ZipFile(filename, 'w')
 
     # add all grades CSV
-    allgrades = StringIO.StringIO()
+    allgrades = io.StringIO()
     _all_grades_output(allgrades, course)    
     z.writestr("grades.csv", allgrades.getvalue())
     allgrades.close()
@@ -1415,9 +1466,9 @@ def export_all(request, course_slug):
     # add marking data
     acts = all_activities_filter(course)
     for a in acts:
-        if ActivityComponent.objects.filter(numeric_activity=a):
+        if ActivityComponent.objects.filter(numeric_activity_id=a.id):
             markingdata = _mark_export_data(a)
-            markout = StringIO.StringIO()
+            markout = io.StringIO()
             json.dump({'marks': markingdata}, markout, cls=_DecimalEncoder, indent=1)
             z.writestr(a.slug + "-marking.json", markout.getvalue())
             del markout, markingdata
@@ -1425,14 +1476,15 @@ def export_all(request, course_slug):
     # add submissions
     acts = all_activities_filter(course)
     for a in acts:
-        if SubmissionComponent.objects.filter(activity=a):
-            generate_submission_contents(a, z, prefix=a.slug+'-submissions' + os.sep)
+        submission_info = SubmissionInfo.for_activity(a)
+        submission_info.get_all_components()
+        submission_info.generate_submission_contents(z, prefix=a.slug+'-submissions' + os.sep, always_summary=False)
 
     # add discussion
     if course.discussion():
         topics = DiscussionTopic.objects.filter(offering=course).order_by('-pinned', '-last_activity_at')
         discussion_data = [t.exportable() for t in topics]
-        discussout = StringIO.StringIO()
+        discussout = io.StringIO()
         json.dump(discussion_data, discussout, indent=1)
         z.writestr("discussion.json", discussout.getvalue())
         del discussion_data, discussout

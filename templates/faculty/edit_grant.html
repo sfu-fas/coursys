@@ -6,7 +6,7 @@
 <link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
 <script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
 <script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
   $(function() {
     $("#id_owners").css("min-height", "180px").multiselect();
   });
@@ -17,14 +17,14 @@
 {% block h1 %}Edit Grant: {{ grant }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
-<li><a href="{% url 'grants_index' %}">Grants</a></li>
+<li><a href="{% url 'faculty:index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty:grant_index' %}">Grants</a></li>
 <li>Edit Grant: {{ grant }}</li>
 {% endblock %}
 
 {% block content %}
 <div class="form_container">
-  <form action="{% url 'edit_grant' grant.unit.slug grant.slug %}" method="post">
+  <form action="{% url 'faculty:edit_grant' grant.unit.slug grant.slug %}" method="post">
     {% csrf_token %}
     <fieldset>
       {{grant_form|as_dl}}

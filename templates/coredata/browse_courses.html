@@ -10,11 +10,11 @@
 
 {% block headextra %}
 {% compress js %}
-<script type="text/javascript" src="{% static "jquery-ext/jquery.ba-bbq.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/browse.js" %}"></script>
-<script type="text/javascript">
+<script src="{% static "jquery-ext/jquery.ba-bbq.min.js" %}"></script>
+<script src="{% static "js/browse.js" %}"></script>
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
-  browser_ready('{% url "coredata.views.browse_courses" %}');
+  browser_ready('{% url "browse:browse_courses" %}');
 } );
 </script>
 {% endcompress %}
@@ -37,7 +37,14 @@ $(document).ready(function() {
 
 <div id="browser_container">
 <table id="courses" class="display">
-  <thead><tr><th scope="col">Semester</th><th scope="col">Course</th><th scope="col">Title</th><th scope="col">Instructor(s)</th><th scope="col">Campus</th></tr></thead>
+  <thead><tr>
+    <th scope="col">Semester</th>
+    <th scope="col">Course</th>
+    <th scope="col">Title</th>
+    <th scope="col">Enroll</th>
+    <th scope="col">Instructor(s)</th>
+    <th scope="col">Campus</th>
+  </tr></thead>
   <tbody>
   </tbody>
 </table>

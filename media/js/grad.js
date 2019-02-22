@@ -259,12 +259,12 @@ function prep_content() {
 				}
 				if(data.addresses.mail !== undefined) {
 					addr = data.addresses.mail;
-					address_map['mail'] = addr;
+					address_map['mail'] = data.full_name !== undefined ? data.full_name + addr : addr;
 					$("#id_address").append('<option value="mail">Mailing address: ' + addr.split('\n').join(', ') + '</option>')
 				}
 				if(data.addresses.home !== undefined) {
 					addr = data.addresses.home;
-					address_map['home'] = addr;
+					address_map['home'] = data.full_name !== undefined ? data.full_name + addr : addr;
 					$("#id_address").append('<option value="home">Home address: ' + addr.split('\n').join(', ') + '</option>')
 				}
 				$("#fetchwait").hide();

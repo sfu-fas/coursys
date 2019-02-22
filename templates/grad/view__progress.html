@@ -1,4 +1,4 @@
-{% if index and can_edit %}<p class="manage_link"><a href="{% url "grad.views.manage_progress" grad_slug=grad.slug  %}">Manage Progress Reports</a></p>{% endif %}
+{% if can_edit %}<p class="manage_link"><a href="{% url "grad:manage_progress" grad_slug=grad.slug  %}">Manage Progress Reports</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display">
 		<thead>
@@ -6,7 +6,7 @@
 				<th>Date</th>
 				<th>Result</th>
 
-				{% if not index %}
+				{% if can_edit %}
                     <th>Actions</th>
                 {% endif %}
 			</tr>
@@ -32,13 +32,13 @@
                     {% endif %}
                 </td>
 
-				{% if not index %}
+				{% if can_edit %}
                 <td class='miniaction'>
                     {% if not p.removed %}
-                        <form action="{% url "grad.views.remove_progress" grad_slug=grad.slug p_id=p.id %}" method="post">
+                        <form action="{% url "grad:remove_progress" grad_slug=grad.slug p_id=p.id %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
-                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this progress report?')" />
+                                    <input type="submit" value="remove" class="confirm-submit" data-submit-action="remove this progress report" />
                                 </p>
                         </form>
                     {% endif %}

@@ -3,14 +3,13 @@
 {% block h1 %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
 <li>{{ student.name }}</li>
 {% endblock %}
 
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
-<script type="text/javascript">
-//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">
     var show_deleted = false;
     $(document).ready(function() {
         $('.delete').click(function(){
@@ -22,7 +21,7 @@
                 $("#note-whole-"+id).hide();
             }
 	
-	        $.post("{% url "advisornotes.views.student_notes" userid=userid%}",
+	        $.post("{% url "advising:student_notes" userid=userid%}",
 			  {'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': 'yes'});
         });
         $('.restore').click(function(){
@@ -31,7 +30,7 @@
             $("#note-box-"+id+" .delete").show();
             $("#note-box-"+id+" .restore").hide();
 	
-	        $.post("{% url "advisornotes.views.student_notes" userid=userid%}",
+	        $.post("{% url "advising:student_notes" userid=userid%}",
 			  {'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': 'no'});
         });
         $('.show_deleted').click(function(){
@@ -48,8 +47,11 @@
             $('.hide_deleted').hide();
             return false;
         });
+
+        $('#moreinfo>a').click(function() {
+            get_more_info('{% url "advising:student_more_info" userid=userid %}');
+        });
 	});
-//]]>
 </script>
 {% endblock %}
 
@@ -57,21 +59,22 @@
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "advisornotes.views.new_note" userid=userid%}">New Note</a></li>
+        <li><a href="{% url "advising:new_note" userid=userid%}">New Note</a></li>
         {% if not nonstudent %}
-        {% if show_transcript %}<li><a href="{% url "advisornotes.views.student_courses" userid=userid%}">View Current Courses</a></li>{% endif %}
+        {% if show_transcript %}<li><a href="{% url "advising:student_courses" userid=userid%}">View Current Courses</a></li>{% endif %}
+        <li><a href="{% url "advising:student_transfers" userid=userid %}">View Transfer Credits</a></li>
         <li id="moreinfo">
-            <a href="javascript:get_more_info('{% url "advisornotes.views.student_more_info" userid=userid %}')">Fetch more info <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></a>
+            <a href="#">Fetch more info <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></a>
         </li>
         {% endif %}
         {% if nonstudent %}
-        <li><a href="{% url "advisornotes.views.merge_nonstudent" nonstudent_slug=student.slug %}">Merge with existing student</a></li>
+        <li><a href="{% url "advising:merge_nonstudent" nonstudent_slug=student.slug %}">Merge with existing student</a></li>
         {% endif %}
         <li><a href="#" class='show_deleted'>Show Deleted Notes</a></li> 
         <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li> 
         <li>
             {% for u in units %}
-            <form method="post" action="{% url "advisornotes.views.record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
+            <form method="post" action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
             {% csrf_token %}<p><input type="submit" value="Record visit" title="Record visit to {{ u.informal_name }} advisor" /></p>
             </form>
             {% endfor %}
@@ -81,7 +84,7 @@
 {% endblock %}
 
 {% block content %}
-{# <div class="idphoto studentinfo"><img src="{% url 'grades.views.student_photo' emplid=student.emplid %}" alt="" /></div>#}
+{# <div class="idphoto studentinfo"><img src="{% url 'data:student_photo' emplid=student.emplid %}" alt="" /></div>#}
     <table class="info">
         <tbody>
             <tr>
@@ -99,7 +102,7 @@
             <tr>
                 <th>Student Number</th>
                 <td> {% if nonstudent %}
-                Not a student (<a href="{% url "advisornotes.views.merge_nonstudent" nonstudent_slug=student.slug %}">Merge with existing student</a>)
+                Not a student (<a href="{% url "advising:merge_nonstudent" nonstudent_slug=student.slug %}">Merge with existing student</a>)
                 {% endif %}
                 {% if not nonstudent %}
                 {{ student.emplid }}
@@ -160,10 +163,10 @@
 <div class="note-box" id="note-box-{{note.id}}">
 
     <div class="note-content">
-        {{note.text|linebreaks}}
+        {{ note.html_content }}
     </div>
     {% if note.file_attachment %}
-    <p><a href="{% url "advisornotes.views.download_file" userid=userid note_id=note.id%}">
+    <p><a href="{% url "advising:download_file" userid=userid note_id=note.id%}">
         <i class="fa fa-download"></i> {{ note.attachment_filename }}</a>
         ({{ note.file_attachment.size|filesizeformat }})
     </p>
@@ -188,7 +191,7 @@
   {% if formsub.emailed %}<i class="fa fa-envelope-o" title="Summary emailed to the student"></i>{% endif %}
   </p><blockquote>{{ formsub.summary|linebreaksbr }}</blockquote>
   {% endif %}
-  <p><a href="{% url "onlineforms.views.view_submission" form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">
+  <p><a href="{% url "onlineforms:view_submission" form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">
       &ldquo;{{formsub.form.title}}&rdquo; submission.</a></p>
   {% if formsub.status != 'DONE' %}<p>Note: form has not yet been completed.</p>{% endif %}
 </div>
@@ -196,36 +199,6 @@
 </div>
 {% endwith %}
 {% endif %}
-
-{% if item.entry_type == 'ALERT' %}
-{% with item as alert %}
-<h2 id="alert-whole-{{alert.id}}" style="padding-left: 15px; line-height: 1.6; color: gray;">
-	{{ alert.created_at }} -
-	<a href="{% url "alerts.views.view_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}" 
-        {% if alert.resolved %}style="color: green;">{% else %}style="color: #B5111B;">{% endif %}
-        Automated Alert: "{{ alert.alerttype.code }}"</a>
-</h2>
-    <div class="note-box" id="alert-box-{{update.id}}">
-    {% if alert.last_resolution %}
-    <h3> Resolution: </h3>
-            <h4>{{alert.last_resolution.get_update_type_display}} - {{alert.last_resolution.created_at|date:"Y/m/d"}}</h3>
-            <div class="note-content">
-                {{alert.last_resolution.comments|linebreaksbr}}
-            </div>
-    {% else %}
-        {% if alert.last_update %}
-        <h3> Last Update: </h3>
-                <h4>{{alert.last_update.get_update_type_display}} - {{alert.last_update.created_at|date:"Y/m/d"}}</h3>
-                <div class="note-content">
-                    {{alert.last_update.comments|linebreaksbr}}
-                </div>
-        {% endif %}
-    {% endif %}
-    </div>
-{% endwith %}
-{% endif %}
-
-
 {% endfor %}
 {% else %}
 <p>

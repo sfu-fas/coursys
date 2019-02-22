@@ -17,10 +17,13 @@ from reportlab.lib.colors import CMYKColor
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT
 from coredata.models import Role
 from django.conf import settings
-import os, datetime
+import os
+import datetime
 from dashboard.models import Signature
-from coredata.models import Semester
+from coredata.models import Semester, Person
 from grad.models import STATUS_APPLICANT
+from courselib.branding import product_name
+
 
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
@@ -51,7 +54,7 @@ class SFUMediaMixin():
         # translate digits to old-style numerals (in their Bembo character positions)
         self.digit_trans = {}
         for d in range(10):
-            self.digit_trans[48+d] = unichr(0xF643 + d)
+            self.digit_trans[48+d] = chr(0xF643 + d)
 
         self.sc_trans_bembo = {}
         # translate letters to smallcaps characters (in their [strange] Bembo character positions)
@@ -64,8 +67,8 @@ class SFUMediaMixin():
                 offset = d+3
             else: # V-Z
                 offset = d+4
-            self.sc_trans_bembo[65+d] = unichr(0xE004 + offset)
-            self.sc_trans_bembo[97+d] = unichr(0xE004 + offset)
+            self.sc_trans_bembo[65+d] = chr(0xE004 + offset)
+            self.sc_trans_bembo[97+d] = chr(0xE004 + offset)
 
     def _drawStringLeading(self, canvas, x, y, text, charspace=0, mode=None):
         """
@@ -104,7 +107,7 @@ class LetterPageTemplate(PageTemplate, SFUMediaMixin):
         """
         ypos = y
         for line in lines:
-            line = unicode(line).translate(doc.digit_trans)
+            line = str(line).translate(doc.digit_trans)
             p = Paragraph(line, style)
             _,h = p.wrap(width, 1*inch)
             p.drawOn(canvas, x, ypos-h)
@@ -121,10 +124,10 @@ class LetterPageTemplate(PageTemplate, SFUMediaMixin):
         """
         c.setFont('BemboMTPro', 12)
         c.setFillColor(doc.sfu_red)
-        self._drawStringLeading(c, self.lr_margin + 6, 0.5*inch, u'Simon Fraser University'.translate(doc.sc_trans_bembo), charspace=1.4)
+        self._drawStringLeading(c, self.lr_margin + 6, 0.5*inch, 'Simon Fraser University'.translate(doc.sc_trans_bembo), charspace=1.4)
         c.setFont('DINPro', 6)
         c.setFillColor(doc.sfu_grey)
-        self._drawStringLeading(c, 3.15*inch, 0.5*inch, u'Engaging the World'.upper(), charspace=2)
+        self._drawStringLeading(c, 3.15*inch, 0.5*inch, 'Engaging the World'.upper(), charspace=2)
 
 
 class LetterheadTemplate(LetterPageTemplate):
@@ -171,9 +174,9 @@ class LetterheadTemplate(LetterPageTemplate):
         self._put_lines(doc, c, self.unit.address(), 2*inch, self.pg_h - self.top_margin - 0.75*inch, 2.25*inch, addr_style, 8, 1.5)
 
         # phone numbers block
-        lines = [u'Tel'.translate(doc.sc_trans_bembo) + ' ' + self.unit.tel().replace('-', '.')]
+        lines = ['Tel'.translate(doc.sc_trans_bembo) + ' ' + self.unit.tel().replace('-', '.')]
         if self.unit.fax():
-            lines.append(u'Fax'.translate(doc.sc_trans_bembo) + ' ' + self.unit.fax().replace('-', '.'))
+            lines.append('Fax'.translate(doc.sc_trans_bembo) + ' ' + self.unit.fax().replace('-', '.'))
         self._put_lines(doc, c, lines, 4.5*inch, self.pg_h - self.top_margin - 0.75*inch, 1.5*inch, addr_style, 8, 1.5)
 
         # web and email block
@@ -223,7 +226,8 @@ class LetterContents(object):
     signer: person signing the letter, if knows (a coredata.models.Person)
     """
     def __init__(self, to_addr_lines, from_name_lines, date=None,
-                 closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None, use_sig=True):
+                 closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None, use_sig=True,
+                 body_font_size=None, cc_lines=None):
         self.date = date or datetime.date.today()
         self.closing = closing
         self.flowables = []
@@ -232,19 +236,23 @@ class LetterContents(object):
         self.cosigner_lines = cosigner_lines
         self.signer = signer
         self.use_sig = use_sig
+        if cc_lines:
+            self.cc_lines = [cc for cc in cc_lines if cc.strip()]
+        else:
+            self.cc_lines = None
         if paragraphs:
             self.add_paragraphs(paragraphs)
 
         # styles
-        self.line_height = 13
+        self.line_height = (body_font_size or 12) + 1
         self.content_style = ParagraphStyle(name='Normal',
-                                      fontName='BemboMTPro',
-                                      fontSize=12,
-                                      leading=self.line_height,
-                                      allowWidows=0,
-                                      allowOrphans=0,
-                                      alignment=TA_JUSTIFY,
-                                      textColor=black)
+                                            fontName='BemboMTPro',
+                                            fontSize=body_font_size or 12,
+                                            leading=self.line_height,
+                                            allowWidows=0,
+                                            allowOrphans=0,
+                                            alignment=TA_JUSTIFY,
+                                            textColor=black)
         self.table_style = TableStyle([
                     ('FONT', (0,0), (-1,-1), 'BemboMTPro', 12, self.line_height),
                     ('TOPPADDING', (0,0), (-1,-1), 0),
@@ -278,7 +286,7 @@ class LetterContents(object):
 
         for line in self.to_addr_lines:
             contents.append(Paragraph(line, style))
-        contents.append(Spacer(1, 2*space_height))
+        contents.append(Spacer(1, space_height))
 
         for f in self.flowables[:-2]:
             # last paragraph is put in the KeepTogether below, to prevent bad page break
@@ -295,12 +303,12 @@ class LetterContents(object):
             import PIL
             try:
                 sig = Signature.objects.get(user=self.signer)
-                sig.sig.open()
+                sig.sig.open('rb')
                 img = PIL.Image.open(sig.sig)
                 width, height = img.size
                 wid = width / float(sig.resolution) * inch
                 hei = height / float(sig.resolution) * inch
-                sig.sig.open()
+                sig.sig.open('rb')
                 img = Image(sig.sig, width=wid, height=hei)
                 img.hAlign = 'LEFT'
                 signature.append(Spacer(1, space_height))
@@ -337,6 +345,26 @@ class LetterContents(object):
             close.append(sig_table)
         else:
             close.extend(signature)
+
+        # the CC lines
+        if self.cc_lines:
+            close.append(Spacer(1, space_height))
+            data = []
+            for cc in self.cc_lines:
+                data.append(['', Paragraph(cc, self.content_style)])
+
+            cc = Paragraph('cc:', self.content_style)
+            data[0][0] = cc
+
+            cc_table = Table(data, colWidths=[0.3 * inch, 5 * inch])
+            cc_table.hAlign = "LEFT"
+            cc_table.setStyle(TableStyle(
+                [('LEFTPADDING', (0, 0), (-1, -1), 0),
+                 ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                 ('TOPPADDING', (0, 0), (-1, -1), 0),
+                 ('BOTTOMPADDING', (0, 0), (-1, -1), 0)]))
+
+            close.append(cc_table)
 
         contents.append(KeepTogether(close))
         contents.append(NextPageTemplate(0)) # next letter starts on letterhead again
@@ -379,9 +407,8 @@ class MemoHead(Flowable, SFUMediaMixin):
         c.drawString(self.xoffset + self.keywidth, 4, self.value)
 
 class MemoContents(LetterContents):
-    def __init__(self, subject, cc_lines, **kwargs):
+    def __init__(self, subject, **kwargs):
         self.subject = subject
-        self.cc_lines = [cc for cc in cc_lines if cc.strip()]
         super(MemoContents, self).__init__(**kwargs)
 
     def _contents(self, memo):
@@ -413,22 +440,21 @@ class MemoContents(LetterContents):
             cc = Paragraph('cc:', self.content_style)
             data[0][0] = cc
 
-            cc_table = Table(data, colWidths=[0.3*inch, 5*inch])
+            cc_table = Table(data, colWidths=[0.3 * inch, 5 * inch])
             cc_table.hAlign = "LEFT"
             cc_table.setStyle(TableStyle(
-                    [('LEFTPADDING', (0,0), (-1,-1), 0),
-                     ('RIGHTPADDING', (0,0), (-1,-1), 0),
-                     ('TOPPADDING', (0,0), (-1,-1), 0),
-                     ('BOTTOMPADDING', (0,0), (-1,-1), 0)]))
+                [('LEFTPADDING', (0, 0), (-1, -1), 0),
+                 ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                 ('TOPPADDING', (0, 0), (-1, -1), 0),
+                 ('BOTTOMPADDING', (0, 0), (-1, -1), 0)]))
 
             contents.append(cc_table)
-
         return contents
 
 
 
 
-class RAForm(object, SFUMediaMixin):
+class RAForm(SFUMediaMixin):
     MAIN_WIDTH = 8*inch # size of the main box
     ENTRY_FONT = "Helvetica-Bold"
     NOTE_STYLE = ParagraphStyle(name='Normal',
@@ -469,10 +495,10 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawImage(logofile, x=0, y=247*mm, width=20*mm, height=10*mm)
         self.c.setFont('BemboMTPro', 10)
         self.c.setFillColor(self.sfu_red)
-        self._drawStringLeading(self.c, 23*mm, 250*mm, u'Simon Fraser University'.translate(self.sc_trans_bembo), charspace=1.4)
+        self._drawStringLeading(self.c, 23*mm, 250*mm, 'Simon Fraser University'.translate(self.sc_trans_bembo), charspace=1.4)
         self.c.setFont('DINPro', 5)
         self.c.setFillColor(self.sfu_grey)
-        self._drawStringLeading(self.c, 23*mm, 247.5*mm, u'Engaging the World'.upper(), charspace=2)
+        self._drawStringLeading(self.c, 23*mm, 247.5*mm, 'Engaging the World'.upper(), charspace=2)
         self.c.setFillColor(black)
 
         # form header
@@ -493,7 +519,7 @@ class RAForm(object, SFUMediaMixin):
 
         cat = self.ra.hiring_category
         self._checkbox(1.5*mm, 216*mm, text="Research Assistant", filled=(cat=='RA'))
-        self._checkbox(1.5*mm, 211*mm, text="Research Services Staff", filled=(cat=='RSS'))
+        self._checkbox(1.5*mm, 211*mm, text="Recreation Services Staff", filled=(cat=='RSS'))
         self._checkbox(1.5*mm, 206*mm, text="Post Doctoral Fellows", filled=(cat=='PDF'))
         self._checkbox(1.5*mm, 201*mm, text="Other Non Continuing", filled=(cat=='ONC'))
         self._checkbox(67*mm, 215.5*mm, text="University Research Assistant (R50.04)", leading=1.5*mm, filled=(cat=='RA2'))
@@ -502,7 +528,7 @@ class RAForm(object, SFUMediaMixin):
         self._checkbox(67*mm, 203*mm, text="University Research Assistant (R50.04)", leading=1.5*mm, filled=(cat=='RAR'))
         self.c.setFont("Helvetica", 5)
         self.c.drawString(72*mm, 202.5*mm, "Renewal after 2 years with Benefits")
-        self._checkbox(142*mm, 215.5*mm, text="Graduate Research Assistant", filled=(cat=='GRA'))
+        self._checkbox(142*mm, 215.5*mm, text="Graduate Research Assistant Scholarship", filled=(cat=='GRA'))
         self._checkbox(142*mm, 203*mm, text="National Scholarship", filled=(cat=='NS'))
 
         # health/numbers
@@ -519,8 +545,8 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(52*mm, 190*mm, "Social Insurance")
         self.c.drawString(137*mm, 190*mm, "SFUID")
 
-        self._box_entry(83*mm, 188*mm, 51*mm, 6.5*mm, content=unicode(self.ra.sin))
-        self._box_entry(148*mm, 188*mm, 55*mm, 6.5*mm, content=unicode(self.ra.person.emplid))
+        self._box_entry(83*mm, 188*mm, 51*mm, 6.5*mm, content=str(self.ra.sin or ''))
+        self._box_entry(148*mm, 188*mm, 55*mm, 6.5*mm, content=str(self.ra.person.emplid))
 
         self.c.setLineWidth(1)
         self.c.line(0, 181*mm, self.MAIN_WIDTH, 181*mm)
@@ -530,8 +556,8 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(3*mm, 176*mm, "Last Name")
         self.c.drawString(94*mm, 176*mm, "First Name")
         self.c.drawString(185*mm, 176*mm, "Initial")
-        self._box_entry(1.5*mm, 165*mm, 87*mm, 7.5*mm, content=unicode(self.ra.person.last_name))
-        self._box_entry(92*mm, 165*mm, 86*mm, 7.5*mm, content=unicode(self.ra.person.first_name))
+        self._box_entry(1.5*mm, 165*mm, 87*mm, 7.5*mm, content=str(self.ra.person.last_name))
+        self._box_entry(92*mm, 165*mm, 86*mm, 7.5*mm, content=str(self.ra.person.first_name))
         mi = None
         if self.ra.person.middle_name:
             mi = self.ra.person.middle_name[0]
@@ -541,27 +567,39 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(2.5*mm, 158*mm, "Department")
         self.c.drawString(117*mm, 158*mm, "Position Title")
         self._box_entry(30*mm, 156*mm, 83*mm, 6.5*mm, content=self.ra.unit.informal_name())
-        self._box_entry(136*mm, 156*mm, 66*mm, 6.5*mm, content=unicode(self.ra.account.title))
+        self._box_entry(136*mm, 156*mm, 66*mm, 6.5*mm, content=str(self.ra.account.title))
 
         # position numbers
         self.c.setFont("Helvetica", 7)
-        self.c.drawString(1.5*mm, 148*mm, "Fund (2 digit)")
-        self.c.drawString(23*mm, 148*mm, "Dept (5 digit)")
-        self.c.drawString(66*mm, 148*mm, "Prjct Num (6 digit)")
-        self.c.drawString(110*mm, 148*mm, "Acct (4 digit)")
+        self.c.drawString(1.5*mm, 150*mm, "Project (6-8)")
+        self.c.drawString(45*mm, 150*mm, "Object (4)")
+        self.c.drawString(71*mm, 150*mm, "Fund (2)")
+        self.c.drawString(85*mm, 150*mm, "Dept (4)")
+        self.c.drawString(112*mm, 150*mm, "Program (5)")
         self.c.drawString(151*mm, 148*mm, "Position Number")
-        self._box_entry(1.5*mm, 139*mm, 16*mm, 6.5*mm, content="%i" % (self.ra.project.fund_number))
-        self._box_entry(23*mm, 139*mm, 38*mm, 6.5*mm, content=unicode(self.ra.unit.deptid()))
-        self._box_entry(66*mm, 139*mm, 38*mm, 6.5*mm, content="%06i" % (self.ra.project.project_number))
-        self._box_entry(110*mm, 139*mm, 29*mm, 6.5*mm, content="%06i" % (self.ra.account.account_number))
-        self._box_entry(150*mm, 139*mm, 48*mm, 6.5*mm, content='')
+        self.c.setFont("Helvetica-Oblique", 7)
+        self.c.drawString(1.5*mm, 147*mm, "if applicable")
+        self.c.drawString(45*mm, 147*mm, "Required")
+        self.c.drawString(71*mm, 147*mm, "Required")
+        self.c.drawString(85*mm, 147*mm, "If no project")
+        self.c.drawString(112*mm, 147*mm, "If no project")
+        self._box_entry(1.5*mm, 139*mm, 40*mm,  6.5*mm, content=self.ra.project.get_full_project_number())
+        self._box_entry(45*mm, 139*mm, 23*mm, 6.5 * mm, content="%04i" % self.ra.account.account_number)
+        self._box_entry(71*mm, 139*mm, 11.5*mm, 6.5*mm, content="%i" % self.ra.project.fund_number)
+        self._box_entry(85*mm, 139*mm, 25*mm, 6.5*mm, content=str(self.ra.project.department_code))
+        self._box_entry(112*mm, 139*mm, 31*mm, 6.5*mm, content=self.ra.get_program_display())
+        if self.ra.account.position_number <= 1:
+            position_number = ''
+        else:
+            position_number = str(self.ra.account.position_number).zfill(8)
+        self._box_entry(150*mm, 139*mm, 46*mm, 6.5*mm, content=position_number)
 
         # dates
         self.c.setFont("Helvetica", 8)
         self.c.drawString(1.5*mm, 133*mm, "Start Date")
         self.c.drawString(73*mm, 133*mm, "End Date")
-        self._box_entry(21.5*mm, 131.5*mm, 42*mm, 5.5*mm, content=unicode(self.ra.start_date).replace('-', '/'))
-        self._box_entry(92.5*mm, 131.5*mm, 42*mm, 5.5*mm, content=unicode(self.ra.end_date).replace('-', '/'))
+        self._box_entry(21.5*mm, 131.5*mm, 42*mm, 5.5*mm, content=str(self.ra.start_date).replace('-', '/'))
+        self._box_entry(92.5*mm, 131.5*mm, 42*mm, 5.5*mm, content=str(self.ra.end_date).replace('-', '/'))
 
         # money
         if self.ra.pay_frequency == 'L':
@@ -569,7 +607,7 @@ class RAForm(object, SFUMediaMixin):
             biweekly = ''
             biweekhours = ''
             if self.ra.lump_sum_hours and self.ra.use_hourly():
-                lumphours = unicode(self.ra.lump_sum_hours)
+                lumphours = str(self.ra.lump_sum_hours)
             else:
                 lumphours = ''
             lumpsum = "$%.2f" % (self.ra.lump_sum_pay)
@@ -610,46 +648,46 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(172*mm, 112*mm, "Hours and")
         self.c.drawString(173*mm, 109.5*mm, "Minutes")
 
-        self._box_entry(103*mm, 101*mm, 15.5*mm, 8*mm, content=biweekhours)
-        self._box_entry(168*mm, 101*mm, 15.5*mm, 8*mm, content=lumphours)
+        self._box_entry(103*mm, 103*mm, 15.5*mm, 6*mm, content=biweekhours)
+        self._box_entry(168*mm, 103*mm, 15.5*mm, 6*mm, content=lumphours)
 
         self.c.setFont("Helvetica", 5)
-        self.c.drawString(1.5*mm, 96*mm, "Notes:")
-        self.c.drawString(23*mm, 96*mm, "Bi-Weekly employment earnings rate must include vacation pay. Hourly rates will automatically have vacation pay added. The employer cost of the statutory benefits will be charged to the account in")
-        self.c.drawString(23*mm, 93*mm, "addition to the earnings rate. Bi-weekly hours must reflect the number of hours worked and must meet legislative requirements for minimum wage.")
+        self.c.drawString(1.5*mm, 100*mm, "Notes:")
+        self.c.drawString(23*mm, 100*mm, "Bi-Weekly employment earnings rate must include vacation pay. Hourly rates will automatically have vacation pay added. The employer cost of the statutory benefits will be charged to the account in")
+        self.c.drawString(23*mm, 97*mm, "addition to the earnings rate. Bi-weekly hours must reflect the number of hours worked and must meet legislative requirements for minimum wage.")
 
         # Commments
         self.c.setFont("Helvetica", 9)
-        self.c.drawString(2*mm, 81.5*mm, "Comments:")
+        self.c.drawString(2*mm, 90.5*mm, "Comments:")
         self.c.setLineWidth(1)
-        self._box_entry(22*mm, 76*mm, 180*mm, 14*mm, content='')
+        self._box_entry(22*mm, 80*mm, 180*mm, 14*mm, content='')
 
-        f = Frame(23*mm, 76*mm, 175*mm, 14*mm)#, showBoundary=1)
+        f = Frame(23*mm, 80*mm, 175*mm, 14*mm, 0, 0, 0, 0)#, showBoundary=1)
         notes = []
         if self.ra.pay_frequency != 'L':
             default_note = "For total amount of $%s over %.1f pay periods." % (self.ra.lump_sum_pay, self.ra.pay_periods)
         else:
             default_note = "Lump sum payment of $%s." % (self.ra.lump_sum_pay,)
         notes.append(Paragraph(default_note, style=self.NOTE_STYLE))
-        notes.append(Spacer(1, 8))
         notes.append(Paragraph(self.ra.notes, style=self.NOTE_STYLE))
         f.addFromList(notes, self.c)
-
-        self.c.setFont("Helvetica", 7.5)
-        self.c.drawString(2.5*mm, 72*mm, "As signing authority, I certify that the appointment and its applicable benefits are eligible and for the purpose of the funding. Furthermore, the appointment is NOT for a")
-        self.c.drawString(2.5*mm, 68.5*mm, "family member of the account holder or signing authority. If a family member relationship exists then additional approvals must be attached in accordance with policies")
-        self.c.drawString(2.5*mm, 65*mm, "GP 37 and R10.01. Please see the procedures contained in GP 37 for more information.")
+        self.c.setFont("Helvetica", 7.3)
+        self.c.drawString(2.5*mm, 76*mm, "As signing authority, I certify that the appointment and its applicable benefits are eligible and for the purpose of the funding. In accordance with the Tri-Agency Financial")
+        self.c.drawString(2.5*mm, 73*mm, "Administration Guide, this appointment is not for any part of compensation: to a grantee or to other persons who status would make them eligible to apply for grants")
+        self.c.drawString(2.5*mm, 70*mm, "related to the Tri-Agency (NSERC, SSHRC,or CIHR); or for any co-applicants and collaborators of the grant regardless of their eligibility to apply for grants. Furthermore, the")
+        self.c.drawString(2.5*mm, 67*mm, "appointment is NOT for a family member of the account holder or signing authority. If a family member relationship exists then additional approvals must be attached in")
+        self.c.drawString(2.5*mm, 64*mm, "accordance with policies GP 37 and R10.01. Please see the procedures contained in GP 37 for more information.")
 
         # signatures
         self.c.setFont("Helvetica", 9)
         self.c.drawString(2*mm, 59*mm, "HIRING DEPARTMENT")
         self.c.drawString(117*mm, 59*mm, "REVIEWED BY")
         self.c.setFont("Helvetica", 7)
-        self.c.drawString(2*mm, 51*mm, "Signing Authority")
+        self.c.drawString(2*mm, 51*mm, "Signature Authority")
         self.c.drawString(2*mm, 43*mm, "Date")
-        self.c.drawString(98*mm, 51*mm, "Signing Authority")
+        self.c.drawString(98*mm, 51*mm, "Signature Authority")
         self.c.drawString(98*mm, 43*mm, "Date")
-        self.c.drawString(2*mm, 32.5*mm, "Prepared by/Conact")
+        self.c.drawString(2*mm, 32.5*mm, "Prepared by/Contact")
         self.c.drawString(2*mm, 29*mm, "Person (Phone no.)")
         self.c.drawString(2*mm, 19*mm, "Date")
 
@@ -669,7 +707,7 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(2*mm, 5*mm, "of BC. The information on this form is used by the University for payroll and benefit plan administration, statistical compilations, and operating programs and activities as required by University policies. The information on this form is disclosed to")
         self.c.drawString(2*mm, 2.5*mm, "government agencies as required by legislation. In accordance with Financial Information Act of BC, your Name, and Remuneration is public information and may be published. If you have any questions about the collection and use of this")
         self.c.drawString(2*mm, 0*mm, "information, please contact the Manager, Payroll.")
-        self.c.drawString(2*mm, -5*mm, "PAYROLL APPOINTMENT FORM (formerly FPP4) - July 2013 (produced by CourSys RAForm)")
+        self.c.drawString(2*mm, -5*mm, "PAYROLL APPOINTMENT FORM (formerly FPP4) - March 2016 (produced by %s RAForm)" % (product_name(hint='admin'),))
 
         self.c.showPage()
         self.c.save()
@@ -767,7 +805,7 @@ class RAForm_old(object):
         self._draw_box_left(0, self.MAIN_HEIGHT, width=3.125*inch, label="SOCIAL INSURANCE NUMBER (SIN)", content=sin)
 
         # emplid
-        emplid = unicode(self.ra.person.emplid)
+        emplid = str(self.ra.person.emplid)
         emplid = emplid[:5] + '-' + emplid[5:]
         self._draw_box_right(0, self.MAIN_HEIGHT, width=3.375*inch, label="SFU ID #", content=emplid)
 
@@ -780,7 +818,7 @@ class RAForm_old(object):
 
         # position
         self._draw_box_left(0, height, width=3.125*inch, label="POSITION NUMBER", content='') # to be filled by HR
-        self._draw_box_right(0, height, width=3.75*inch, label="POSITION TITLE", content=unicode(self.ra.account.title))
+        self._draw_box_right(0, height, width=3.75*inch, label="POSITION TITLE", content=str(self.ra.account.title))
 
         # department
         dept = self.ra.unit.informal_name()
@@ -799,8 +837,8 @@ class RAForm_old(object):
         self._rule(height)
 
         # dates
-        self._draw_box_left(0, height, width=2.125*inch, label="START DATE (yyyy/mm/dd)", content=unicode(self.ra.start_date).replace('-', '/'))
-        self._draw_box_left(3*inch, height, width=1.5*inch, label="END DATE (yyyy/mm/dd)", content=unicode(self.ra.end_date).replace('-', '/'))
+        self._draw_box_left(0, height, width=2.125*inch, label="START DATE (yyyy/mm/dd)", content=str(self.ra.start_date).replace('-', '/'))
+        self._draw_box_left(3*inch, height, width=1.5*inch, label="END DATE (yyyy/mm/dd)", content=str(self.ra.end_date).replace('-', '/'))
 
         # health benefit check boxes
         self.c.setLineWidth(1)
@@ -908,7 +946,7 @@ class RAForm_old(object):
         self.c.drawString(0, height-35, "IF YOU HAVE ANY QUESTIONS ABOUT THE COLLECTION AND USE OF THIS INFORMATION, PLEASE CONTACT THE SIMON FRASER UNIVERSITY PAYROLL SUPERVISOR.")
 
         self.c.setFont("Helvetica-Bold", 6)
-        self.c.drawString(0, height-50, "REVISED Nov 2004 (produced by CourSys RAForm)")
+        self.c.drawString(0, height-50, "REVISED Nov 2004 (produced by %s RAForm)" % (product_name(hint='admin'),))
 
         self.c.showPage()
         self.c.save()
@@ -981,8 +1019,14 @@ class TAForm(object):
             courses.append((
                 crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],
                 crs.description.description,
-                crs.total_bu,
+                crs.bu,
             ))
+            if crs.has_labtut():
+                courses.append((
+                    crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],
+                    "Prep",
+                    crs.prep_bu,
+                ))
             bu += crs.bu
             total_bu += crs.total_bu
 
@@ -1000,6 +1044,8 @@ class TAForm(object):
             first_name=contract.application.person.first_name,
             unit_name=contract.application.posting.unit.informal_name(),
             deptid=contract.application.posting.unit.deptid(),
+            appointment_start=contract.appointment_start,
+            appointment_end=contract.appointment_end,
             pay_start=contract.pay_start,
             pay_end=contract.pay_end,
             initial_appointment_fill=initial_appointment_fill,
@@ -1029,15 +1075,24 @@ class TAForm(object):
 
         courses = []
         for crs in contract.course.filter(bu__gt=0):
-            description = "Office/Marking"
-            if crs.labtut:
-                description = "Office/Marking/Lab"
+            if not crs.description:
+                description = "Office/Marking"
+                if crs.labtut:
+                    description = "Office/Marking/Lab"
+            else:
+                description = str(crs.description)
 
             courses.append((
                 crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],
                 description,
-                crs.total_bu,
+                crs.bu,
             ))
+            if crs.has_labtut():
+                courses.append((
+                    crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],
+                    "Prep",
+                    crs.prep_bu,
+                ))
 
         return self.draw_form(
             emplid=contract.person.emplid,
@@ -1046,6 +1101,8 @@ class TAForm(object):
             first_name=contract.person.first_name,
             unit_name=contract.category.account.unit.informal_name(),
             deptid=contract.category.account.unit.deptid(),
+            appointment_start=contract.appointment_start,
+            appointment_end=contract.appointment_end,
             pay_start=contract.pay_start,
             pay_end=contract.pay_end,
             initial_appointment_fill=initial_appointment_fill,
@@ -1062,12 +1119,20 @@ class TAForm(object):
             sigs=Signature.objects.filter(user__userid=contract.created_by),
         )
 
-    def draw_form(self, emplid, sin, last_name, first_name, unit_name, deptid, pay_start, pay_end,
-                  initial_appointment_fill, reappointment_fill, position_number, courses, appt_category,
-                  appt_cond, total_pay, biweek_pay, total_schol, biweek_schol, remarks, sigs):
+    def draw_form(self, emplid, sin, last_name, first_name, unit_name, deptid, appointment_start, appointment_end,
+                  pay_start, pay_end, initial_appointment_fill, reappointment_fill, position_number, courses,
+                  appt_category, appt_cond, total_pay, biweek_pay, total_schol, biweek_schol, remarks, sigs):
         """
         Generic TA Form drawing method: probably called by one of the above that abstract out the object details.
         """
+
+        # For backwards compatibility to older contracts without their own appoinment start/end dates/
+        if not appointment_start:
+            appointment_start = pay_start
+        if not appointment_end:
+            appointment_end = pay_end
+
+
         self.c.setStrokeColor(black)
         self.c.translate(0.625*inch, 1.25*inch) # origin = lower-left of the main box
         main_width = 7.25*inch
@@ -1092,29 +1157,29 @@ class TAForm(object):
         self.c.drawPath(p, stroke=1, fill=0)
 
         # personal info
-        self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=unicode(emplid))
-        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=unicode(sin))
-        self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=unicode(last_name))
-        self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=unicode(first_name))
+        self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=str(emplid))
+        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=str(sin))
+        self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=str(last_name))
+        self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=str(first_name))
 
         self.c.setFont("Helvetica", self.LABEL_SIZE)
         self.c.drawString(35*mm, 205*mm, "THE DEPARTMENT HAS CONFIRMED THAT THE ABOVE APPOINTEE IS ELIGIBLE TO WORK IN CANADA")
         self.c.rect(150*mm, 203*mm, 5*mm, 5*mm, fill=True)
 
         self.c.translate(0, -7*mm) # translate to make room for the new employment eligibility line
-        self._draw_box(15*mm, 202*mm, 160*mm, content="c/o " + unicode(unit_name)) # ADDRESS
+        self._draw_box(15*mm, 202*mm, 160*mm, content="c/o " + str(unit_name)) # ADDRESS
         self.c.setFont("Helvetica", self.LABEL_SIZE)
         self.c.drawString(2, 206*mm, "HOME")
         self.c.drawString(2, 203*mm, "ADDRESS")
 
         # appointment basic info
         self.c.drawString(2, 194*mm, "DEPARTMENT")
-        dept = unicode(unicode(unit_name))
+        dept = str(str(unit_name))
         if deptid:
             dept += " (%s)" % (deptid)
         self._draw_box(20*mm, 193*mm, 78*mm, content=dept) # DEPARTMENT
-        self._draw_box(102*mm, 193*mm, 32*mm, label="APPOINTMENT START DATE", content=unicode(pay_start))
-        self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=unicode(pay_end))
+        self._draw_box(102*mm, 193*mm, 32*mm, label="APPOINTMENT START DATE", content=str(appointment_start))
+        self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=str(appointment_end))
 
         # initial appointment boxes
         self.c.rect(14*mm, 185*mm, 5*mm, 5*mm, fill=initial_appointment_fill)
@@ -1127,9 +1192,9 @@ class TAForm(object):
         self.c.drawString(21*mm, 177*mm, "NUMBER OR REVISION TO APPOINTMENT")
 
         # position info
-        self._draw_box(60*mm, 176*mm, 37*mm, label="POSITION NUMBER", content=unicode(position_number))
-        self._draw_box(102*mm, 176*mm, 32*mm, label="PAYROLL START DATE", content=unicode(pay_start))
-        self._draw_box(139*mm, 176*mm, 32*mm, label="PAYROLL END DATE", content=unicode(pay_end))
+        self._draw_box(60*mm, 176*mm, 37*mm, label="POSITION NUMBER", content=str(position_number))
+        self._draw_box(102*mm, 176*mm, 32*mm, label="PAYROLL START DATE", content=str(pay_start))
+        self._draw_box(139*mm, 176*mm, 32*mm, label="PAYROLL END DATE", content=str(pay_end))
 
 
         # course assignment headers
@@ -1147,7 +1212,7 @@ class TAForm(object):
 
         # course assignments
         total_bu = 0
-        for i, crs in zip(range(5), list(courses)+[None]*5):
+        for i, crs in zip(list(range(5)), list(courses)+[None]*5):
             h = 162*mm - i*6*mm # bottom of this row
             self.c.rect(24*mm, h, 27*mm, 6*mm)
             self.c.rect(51*mm, h, 74*mm, 6*mm)
@@ -1180,7 +1245,7 @@ class TAForm(object):
         self._draw_box(33*mm, 111*mm, 32*mm, label="BIWEEKLY RATE", right=True, content="%.2f" % (biweek_schol))
         self._draw_box(79*mm, 111*mm, 32*mm, label="SEMESTER RATE", right=True, content="%.2f" % (total_schol))
 
-        self._draw_box(139*mm, 122*mm, 32*mm, label="EFF. DATE FOR RATE CHANGES", content=unicode(pay_start))
+        self._draw_box(139*mm, 122*mm, 32*mm, label="EFF. DATE FOR RATE CHANGES", content=str(pay_start))
         self.c.setFont("Helvetica", 5)
         self.c.drawString(114*mm, 125*mm, "THESE RATES INCLUDE 4%")
         self.c.drawString(114*mm, 123*mm, "VACATION PAY")
@@ -1230,10 +1295,12 @@ class TAForm(object):
         self.c.drawString(61*mm, 16*mm, "APPROVED BY FACULTY")
         self.c.drawString(1*mm, 1*mm, "DATE")
         self.c.drawString(61*mm, 1*mm, "DATE")
+        self.c.drawString(121*mm, 1*mm, "DATE")
+        self.c.drawString(121*mm, 16*mm, "TEACHING ASSISTANT SIGNATURE")
 
         self.c.setFont("Helvetica", self.CONTENT_SIZE)
         date = datetime.date.today()
-        self.c.drawString(10*mm, 2*mm, unicode(date))
+        self.c.drawString(10*mm, 2*mm, str(date))
 
         # footer
         self.c.setFont("Helvetica", self.LABEL_SIZE)
@@ -1246,7 +1313,7 @@ class TAForm(object):
         self.c.drawString(1*mm, -5*mm - 20, "IF YOU HAVE ANY QUESTIONS ABOUT THE COLLECTION AND USE OF THIS INFORMATION, PLEASE CONTACT THE SIMON FRASER UNIVERSITY PAYROLL SUPERVISOR.")
 
         self.c.setFont("Helvetica-Bold", self.LABEL_SIZE)
-        self.c.drawString(1*mm, -18*mm, "Updated October 2014 (produced by CourSys TAForm)")
+        self.c.drawString(1*mm, -18*mm, "Updated April 2016 (produced by %s TAForm)" % (product_name(hint='admin'),))
 
         self.c.showPage()
 
@@ -1315,26 +1382,26 @@ class GradeChangeForm(SFUMediaMixin):
         # header
         self.c.drawImage(logofile, x=0, y=224*mm, width=1*inch, height=0.5*inch)
         self.c.setFont("BemboMTPro", 11)
-        self.c.drawString(43*mm, 228*mm, u"RECORDS AND REGISTRATION".translate(self.sc_trans_bembo))
-        self.c.drawString(43*mm, 223*mm, u"STUDENT SERVICES".translate(self.sc_trans_bembo))
+        self.c.drawString(43*mm, 228*mm, "RECORDS AND REGISTRATION".translate(self.sc_trans_bembo))
+        self.c.drawString(43*mm, 223*mm, "STUDENT SERVICES".translate(self.sc_trans_bembo))
         self.title_font()
-        self.c.drawString(121*mm, 228*mm, u"CHANGE OF GRADE NOTIFICATION")
-        self.c.drawString(121*mm, 224*mm, u'AND/OR EXTENSION OF "DE" GRADE')
+        self.c.drawString(121*mm, 228*mm, "CHANGE OF GRADE NOTIFICATION")
+        self.c.drawString(121*mm, 224*mm, 'AND/OR EXTENSION OF "DE" GRADE')
 
         # student info
         self.title_font()
-        self.c.drawString(0, 210*mm, u"SFU STUDENT NUMBER")
+        self.c.drawString(0, 210*mm, "SFU STUDENT NUMBER")
         self.c.rect(35*mm, 207*mm, 92*mm, 8*mm, fill=0)
         self.entry_font()
-        self.c.drawString(40*mm, 209*mm, unicode(member.person.emplid))
+        self.c.drawString(40*mm, 209*mm, str(member.person.emplid))
 
         self.title_font()
-        self.c.drawString(0, 203*mm, u"STUDENT NAME (PLEASE PRINT CLEARLY)")
+        self.c.drawString(0, 203*mm, "STUDENT NAME (PLEASE PRINT CLEARLY)")
 
         self.label_font()
-        self.c.drawString(0, 195*mm, u"Surname")
+        self.c.drawString(0, 195*mm, "Surname")
         self.c.line(12*mm, 195*mm, 91*mm, 195*mm)
-        self.c.drawString(93*mm, 195*mm, u"Given Names")
+        self.c.drawString(93*mm, 195*mm, "Given Names")
         self.c.line(112*mm, 195*mm, main_width, 195*mm)
         self.entry_font()
         self.c.drawString(15*mm, 196*mm, member.person.last_name)
@@ -1350,9 +1417,9 @@ class GradeChangeForm(SFUMediaMixin):
         year = 1900 + int(name[0:3])
         semester = name[3]
         self.title_font()
-        self.c.drawString(0, 189*mm, u"TERM")
+        self.c.drawString(0, 189*mm, "TERM")
         self.label_font()
-        self.c.drawString(0, 183*mm, u"Year")
+        self.c.drawString(0, 183*mm, "Year")
         self.c.line(6*mm, 183*mm, 30*mm, 183*mm)
         self.check_label(36*mm, 183*mm, 'Fall', fill=semester=='7')
         self.check_label(50*mm, 183*mm, 'Spring', fill=semester=='1')
@@ -1360,26 +1427,26 @@ class GradeChangeForm(SFUMediaMixin):
         self.check_label(86*mm, 183*mm, 'Intersession', fill=0)
         self.check_label(110*mm, 183*mm, 'Summer Session', fill=0)
         self.c.rect(140*mm, 183*mm, 40*mm, 8*mm, fill=0)
-        self.c.drawString(148*mm, 178*mm, u"4-digit term number")
+        self.c.drawString(148*mm, 178*mm, "4-digit term number")
         self.entry_font()
-        self.c.drawString(10*mm, 184*mm, unicode(year))
-        self.c.drawString(148*mm, 185*mm, unicode(name))
+        self.c.drawString(10*mm, 184*mm, str(year))
+        self.c.drawString(148*mm, 185*mm, str(name))
 
         # course info
         self.title_font()
-        self.c.drawString(0, 175*mm, u"COURSE")
+        self.c.drawString(0, 175*mm, "COURSE")
         self.label_font()
-        self.c.drawString(0, 169*mm, u"Course subject (e.g. CHEM)")
+        self.c.drawString(0, 169*mm, "Course subject (e.g. CHEM)")
         self.c.rect(36*mm, 168*mm, 41*mm, 8*mm, fill=0)
-        self.c.drawString(81*mm, 169*mm, u"Course number")
+        self.c.drawString(81*mm, 169*mm, "Course number")
         self.c.rect(102*mm, 168*mm, 41*mm, 8*mm, fill=0)
         self.entry_font()
         self.c.drawString(40*mm, 170*mm, member.offering.subject)
         self.c.drawString(110*mm, 170*mm, member.offering.number)
         self.label_font()
-        self.c.drawString(0, 159*mm, u"Class number/section")
+        self.c.drawString(0, 159*mm, "Class number/section")
         self.c.rect(28*mm, 157*mm, 51*mm, 8*mm, fill=0)
-        self.c.drawString(82*mm, 159*mm, u"Course title")
+        self.c.drawString(82*mm, 159*mm, "Course title")
         self.c.line(97*mm, 159*mm, main_width, 159*mm)
         self.entry_font()
         self.c.drawString(35*mm, 159*mm, member.offering.section)
@@ -1388,47 +1455,47 @@ class GradeChangeForm(SFUMediaMixin):
 
         # grade change
         self.title_font()
-        self.c.drawString(0, 149*mm, u"IF CHANGE OF GRADE:")
+        self.c.drawString(0, 149*mm, "IF CHANGE OF GRADE:")
         self.label_font()
-        self.c.drawString(0, 141*mm, u"Original grade")
+        self.c.drawString(0, 141*mm, "Original grade")
         self.c.rect(20*mm, 139*mm, 21*mm, 8*mm, fill=0)
-        self.c.drawString(45*mm, 141*mm, u"Revised grade")
+        self.c.drawString(45*mm, 141*mm, "Revised grade")
         self.c.rect(64*mm, 139*mm, 21*mm, 8*mm, fill=0)
         self.entry_font()
         if oldgrade:
             old = oldgrade
         else:
-            old = u''
+            old = ''
         if newgrade:
             new = newgrade
         else:
-            new = u''
+            new = ''
         self.c.drawString(25*mm, 141*mm, old)
         self.c.drawString(69*mm, 141*mm, new)
 
         # DE extension
         self.title_font()
-        self.c.drawString(0, 132*mm, u"IF EXTENSION OF \u201CDE\u201D GRADE:")
+        self.c.drawString(0, 132*mm, "IF EXTENSION OF \u201CDE\u201D GRADE:")
         self.label_font()
-        self.c.drawString(0, 127*mm, u"Extension due date:")
-        self.c.drawString(30*mm, 127*mm, u"Year (YYYY)")
+        self.c.drawString(0, 127*mm, "Extension due date:")
+        self.c.drawString(30*mm, 127*mm, "Year (YYYY)")
         self.c.line(47*mm, 127*mm, 67*mm, 127*mm)
-        self.c.drawString(69*mm, 127*mm, u"Month (MM)")
+        self.c.drawString(69*mm, 127*mm, "Month (MM)")
         self.c.line(86*mm, 127*mm, 103*mm, 127*mm)
-        self.c.drawString(105*mm, 127*mm, u"Day (DD)")
+        self.c.drawString(105*mm, 127*mm, "Day (DD)")
         self.c.line(118*mm, 127*mm, 136*mm, 127*mm)
 
         # reasons
         self.title_font()
-        self.c.drawString(0, 120*mm, u"REASON FOR CHANGE OF GRADE/EXTENION OF \u201CDE\u201D GRADE")
-        self.c.drawString(0, 116*mm, u"(NOTE: WHEN ASSIGNING A GRADE OF \u201CFD\u201D AN ACADEMIC DISHONESTY REPORT NEEDS TO BE FILED.)")
+        self.c.drawString(0, 120*mm, "REASON FOR CHANGE OF GRADE/EXTENION OF \u201CDE\u201D GRADE")
+        self.c.drawString(0, 116*mm, "(NOTE: WHEN ASSIGNING A GRADE OF \u201CFD\u201D AN ACADEMIC DISHONESTY REPORT NEEDS TO BE FILED.)")
         self.c.line(0*mm, 109*mm, main_width, 109*mm)
         self.c.line(0*mm, 101*mm, main_width, 101*mm)
         self.c.line(0*mm, 93*mm, main_width, 93*mm)
 
         self.label_font()
-        self.c.drawString(0, 86*mm, u"Has the student applied to graduate this term?")
-        self.c.drawString(0, 80*mm, u"Is this student's academic standing currently RTW or PW?")
+        self.c.drawString(0, 86*mm, "Has the student applied to graduate this term?")
+        self.c.drawString(0, 80*mm, "Is this student's academic standing currently RTW or PW?")
         self.check_label(76*mm, 86*mm, 'Yes', fill=0)
         self.check_label(95*mm, 86*mm, 'No', fill=0)
         self.check_label(76*mm, 80*mm, 'Yes', fill=0)
@@ -1436,50 +1503,50 @@ class GradeChangeForm(SFUMediaMixin):
 
         # approvals
         self.title_font()
-        self.c.drawString(0, 72*mm, u"APPROVALS")
+        self.c.drawString(0, 72*mm, "APPROVALS")
         self.label_font()
-        self.c.drawString(0, 67*mm, u"Instructor signature")
+        self.c.drawString(0, 67*mm, "Instructor signature")
         self.c.line(25*mm, 67*mm, 108*mm, 67*mm)
-        self.c.drawString(110*mm, 67*mm, u"Date")
+        self.c.drawString(110*mm, 67*mm, "Date")
         self.c.line(117*mm, 67*mm, main_width, 67*mm)
-        self.c.drawString(0, 59*mm, u"Instructor name (PLEASE PRINT)")
+        self.c.drawString(0, 59*mm, "Instructor name (PLEASE PRINT)")
         self.c.line(44*mm, 59*mm, main_width, 59*mm)
         self.entry_font()
         self.c.drawString(46*mm, 60*mm, user.name())
-        self.c.drawString(120*mm, 68*mm, unicode(datetime.date.today().strftime('%B %d, %Y')))
+        self.c.drawString(120*mm, 68*mm, str(datetime.date.today().strftime('%B %d, %Y')))
 
         self.label_font()
-        self.c.drawString(0, 51*mm, u"Chair signature")
+        self.c.drawString(0, 51*mm, "Chair signature")
         self.c.line(20*mm, 51*mm, 108*mm, 51*mm)
-        self.c.drawString(110*mm, 51*mm, u"Date")
+        self.c.drawString(110*mm, 51*mm, "Date")
         self.c.line(117*mm, 51*mm, main_width, 51*mm)
-        self.c.drawString(0, 43*mm, u"Chair name (PLEASE PRINT)")
+        self.c.drawString(0, 43*mm, "Chair name (PLEASE PRINT)")
         self.c.line(38*mm, 43*mm, main_width, 43*mm)
         self.entry_font()
 
         # FOIPOP
         self.title_font()
-        self.c.drawString(0, 35*mm, u"FREEDOM OF INFORMATION AND PROTECTION OF PRIVACY")
+        self.c.drawString(0, 35*mm, "FREEDOM OF INFORMATION AND PROTECTION OF PRIVACY")
         self.label_font()
-        self.c.drawString(0, 31*mm, u"The information on this form is collected under the authority of the University Act (RSBC 1996 c468 s.27[4a]). This information is needed, and")
-        self.c.drawString(0, 27*mm, u"will be used, to update the student's record. If you have any questions about the collection and use of this information contact the Associate Registrar,")
-        self.c.drawString(0, 23*mm, u"Information, Records and Registration, 778.782.3198.")
+        self.c.drawString(0, 31*mm, "The information on this form is collected under the authority of the University Act (RSBC 1996 c468 s.27[4a]). This information is needed, and")
+        self.c.drawString(0, 27*mm, "will be used, to update the student's record. If you have any questions about the collection and use of this information contact the Associate Registrar,")
+        self.c.drawString(0, 23*mm, "Information, Records and Registration, 778.782.3198.")
 
-        self.c.drawString(0, 15*mm, u"Accepted (for the Registrar)")
+        self.c.drawString(0, 15*mm, "Accepted (for the Registrar)")
         self.c.line(35*mm, 15*mm, 122*mm, 15*mm)
-        self.c.drawString(124*mm, 15*mm, u"Date")
+        self.c.drawString(124*mm, 15*mm, "Date")
         self.c.line(131*mm, 15*mm, main_width, 15*mm)
 
         # footer
         self.c.setFont("BemboMTPro", 7.5)
-        self.c.drawString(43*mm, 6*mm, u"Information, Records and Registration, MBC 3200")
-        self.c.drawString(43*mm, 3*mm, u"8888 University Drive, Burnaby BC Canada V5A 1S6")
-        self.c.drawString(43*mm, 0*mm, u"students.sfu.ca/records")
-        self.c.drawString(122*mm, 6*mm, u"FAX: 778.782.4969")
-        self.c.drawString(122*mm, 3*mm, u"urecords@sfu.ca")
-        self.c.drawString(154*mm, 6*mm, u"NOVEMBER".translate(self.sc_trans_bembo) + u" " + u"2009".translate(self.digit_trans))
-        self.c.drawString(154*mm, 3*mm, u"(produced by CourSys")
-        self.c.drawString(154*mm, 0*mm, u"GradeChangeForm)")
+        self.c.drawString(43*mm, 6*mm, "Information, Records and Registration, MBC 3200")
+        self.c.drawString(43*mm, 3*mm, "8888 University Drive, Burnaby BC Canada V5A 1S6")
+        self.c.drawString(43*mm, 0*mm, "students.sfu.ca/records")
+        self.c.drawString(122*mm, 6*mm, "FAX: 778.782.4969")
+        self.c.drawString(122*mm, 3*mm, "urecords@sfu.ca")
+        self.c.drawString(154*mm, 6*mm, "NOVEMBER".translate(self.sc_trans_bembo) + " " + "2009".translate(self.digit_trans))
+        self.c.drawString(154*mm, 3*mm, "(produced by %s" % (product_name(hint='course'),))
+        self.c.drawString(154*mm, 0*mm, "GradeChangeForm)")
 
 
 
@@ -1553,9 +1620,9 @@ class CardReqForm(object):
         # personal info
         self._header_line(213*mm, 'CARD/FOB/KEYHOLDER DETAILS (Please type or print)')
         self._line_entry(0*mm, 208*mm, 'Last Name', 22*mm, 58*mm, grad.person.last_name)
-        self._line_entry(86*mm, 208*mm, 'SFU ID', 30*mm, 45*mm, unicode(grad.person.emplid))
+        self._line_entry(86*mm, 208*mm, 'SFU ID', 30*mm, 45*mm, str(grad.person.emplid))
         self._line_entry(0*mm, 204*mm, 'Given Name', 22*mm, 58*mm, grad.person.first_name)
-        self._line_entry(86*mm, 204*mm, 'email or phone #', 30*mm, 45*mm, unicode(grad.person.email()))
+        self._line_entry(86*mm, 204*mm, 'email or phone #', 30*mm, 45*mm, str(grad.person.email()))
 
         self._checkbox(0*mm, 197*mm, 'Faculty', offset=1*mm)
         self._checkbox(22*mm, 197*mm, 'Staff', offset=1*mm)
@@ -1720,10 +1787,10 @@ class CardReqForm(object):
         self._checkbox(111*mm, 66.5*mm, 'Individual', offset=0.5*mm, boxheight=3.5*mm, fontsize=8)
 
         self.c.setFont("Helvetica-Bold", 8)
-        self._line_entry(1*mm, 63*mm, 'Account Code:', 21*mm, 36*mm, entry_text=unicode(grad.program.unit.config.get('card_account', '')))
+        self._line_entry(1*mm, 63*mm, 'Account Code:', 21*mm, 36*mm, entry_text=str(grad.program.unit.config.get('card_account', '')))
 
         # find a sensible person to sign the form
-        signers = list(Role.objects.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) + list(Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
+        signers = list(Role.objects_fresh.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) + list(Role.objects_fresh.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
         sgn_name = ''
         sgn_userid = ''
         sgn_phone = ''
@@ -1731,12 +1798,12 @@ class CardReqForm(object):
             import PIL
             try:
                 sig = Signature.objects.get(user=role.person)
-                sig.sig.open()
+                sig.sig.open('rb')
                 img = PIL.Image.open(sig.sig)
                 width, height = img.size
                 hei = 7*mm
                 wid = 1.0*width/height * hei
-                sig.sig.open()
+                sig.sig.open('rb')
                 ir = ImageReader(sig.sig)
                 self.c.drawImage(ir, x=24*mm, y=27*mm, width=wid, height=hei)
                 # info about the person who is signing it (for use below)
@@ -1764,10 +1831,10 @@ class CardReqForm(object):
         self.c.setFont("Helvetica-Bold", 8)
         self.c.drawString(1*mm, 20*mm, 'Please read the following before signing:')
         self.c.setFont("Helvetica", 7)
-        self.c.drawString(1*mm, 17.5*mm, u'\u2022 I acknowledge that cards, fobs and keys are the property of SFU and are issued for my own use.')
-        self.c.drawString(1*mm, 15*mm, u'\u2022 Items issued will not be passed on to another person and will be returned to this office ONLY')
-        self.c.drawString(1*mm, 12.5*mm, u'\u2022 Lost or Found cards/fobs/keys must be reported or returned to Campus Security TC 050 (778-782-3100).')
-        self.c.drawString(1*mm, 10*mm, u'\u2022 Policy AD 1-4 applies')
+        self.c.drawString(1*mm, 17.5*mm, '\u2022 I acknowledge that cards, fobs and keys are the property of SFU and are issued for my own use.')
+        self.c.drawString(1*mm, 15*mm, '\u2022 Items issued will not be passed on to another person and will be returned to this office ONLY')
+        self.c.drawString(1*mm, 12.5*mm, '\u2022 Lost or Found cards/fobs/keys must be reported or returned to Campus Security TC 050 (778-782-3100).')
+        self.c.drawString(1*mm, 10*mm, '\u2022 Policy AD 1-4 applies')
         self.c.setLineWidth(2)
         self.c.line(45*mm, 2*mm, 90*mm, 2*mm)
         self.c.line(94*mm, 2*mm, 116*mm, 2*mm)
@@ -1822,14 +1889,14 @@ class CardReqForm_old(object):
 
         # top header
         self.title_font()
-        self.c.drawString(0*mm, 251*mm, u"SIMON FRASER UNIVERSITY")
-        self.c.drawString(0*mm, 246*mm, u"CARD REQUISITION")
-        self.c.drawString(118*mm, 258*mm, u"CARD NO.")
+        self.c.drawString(0*mm, 251*mm, "SIMON FRASER UNIVERSITY")
+        self.c.drawString(0*mm, 246*mm, "CARD REQUISITION")
+        self.c.drawString(118*mm, 258*mm, "CARD NO.")
         self.c.rect(118*mm, 250*mm, 47*mm, 6.5*mm, fill=0)
         for i in range(1,6):
             self.c.line(118*mm + i*47.0/6*mm, 250*mm, 118*mm + i*47.0/6*mm, 256.5*mm)
-        self.check_label(118*mm, 244*mm, u'New Issue', fill=True)
-        self.check_label(118*mm, 238*mm, u'Addendum')
+        self.check_label(118*mm, 244*mm, 'New Issue', fill=True)
+        self.check_label(118*mm, 238*mm, 'Addendum')
 
         # basic info
         self.label_font()
@@ -1846,7 +1913,7 @@ class CardReqForm_old(object):
         self.c.drawString(29*mm, 236*mm, grad.program.unit.informal_name())
         self.c.drawString(29*mm, 224*mm, grad.person.last_name)
         self.c.drawString(29*mm, 218.5*mm, grad.person.first_name)
-        self.c.drawString(29*mm, 213*mm, unicode(grad.person.emplid))
+        self.c.drawString(29*mm, 213*mm, str(grad.person.emplid))
 
         # traffic and security use box
         self.title_font()
@@ -1873,12 +1940,12 @@ class CardReqForm_old(object):
         self.c.drawString(50*mm, 190*mm, 'Department')
         self.c.drawString(110*mm, 196.5*mm, 'REFUND:')
 
-        self.check_label(0*mm, 182*mm, u'Deposit', fill=True)
-        self.check_label(0*mm, 174.5*mm, u'Service Charge')
-        self.check_label(50*mm, 182*mm, u'Deposit')
-        self.check_label(50*mm, 174.5*mm, u'Service Charge', fill=True)
-        self.check_label(110*mm, 182*mm, u'Individual', fill=True)
-        self.check_label(110*mm, 174.5*mm, u'Department')
+        self.check_label(0*mm, 182*mm, 'Deposit', fill=True)
+        self.check_label(0*mm, 174.5*mm, 'Service Charge')
+        self.check_label(50*mm, 182*mm, 'Deposit')
+        self.check_label(50*mm, 174.5*mm, 'Service Charge', fill=True)
+        self.check_label(110*mm, 182*mm, 'Individual', fill=True)
+        self.check_label(110*mm, 174.5*mm, 'Department')
 
         # account code
         self.title_font()
@@ -1893,7 +1960,7 @@ class CardReqForm_old(object):
 
         self.entry_font()
         acct = grad.program.unit.config.get('card_account', '')
-        for i,c in enumerate(unicode(acct)):
+        for i,c in enumerate(str(acct)):
             x = 32*mm + i*68.0/12*mm
             self.c.drawString(x, 163*mm, c)
 
@@ -1902,23 +1969,23 @@ class CardReqForm_old(object):
         # classification
         self.title_font()
         self.c.drawString(0*mm, 148*mm, 'CLASSIFICATION')
-        self.check_label(13*mm, 140*mm, u'Staff')
-        self.check_label(51*mm, 140*mm, u'Faculty')
-        self.check_label(89*mm, 140*mm, u'RA')
-        self.check_label(128*mm, 140*mm, u'Visitor')
-        self.check_label(13*mm, 133*mm, u'Undergrad')
-        self.check_label(51*mm, 133*mm, u'Graduate', fill=True)
-        self.check_label(89*mm, 133*mm, u'_____________')
+        self.check_label(13*mm, 140*mm, 'Staff')
+        self.check_label(51*mm, 140*mm, 'Faculty')
+        self.check_label(89*mm, 140*mm, 'RA')
+        self.check_label(128*mm, 140*mm, 'Visitor')
+        self.check_label(13*mm, 133*mm, 'Undergrad')
+        self.check_label(51*mm, 133*mm, 'Graduate', fill=True)
+        self.check_label(89*mm, 133*mm, '_____________')
 
         self.c.drawString(0*mm, 123*mm, 'EMPLOYEE GROUP')
-        self.check_label(13*mm, 115*mm, u'CUPE')
-        self.check_label(51*mm, 115*mm, u'APSA')
-        self.check_label(89*mm, 115*mm, u'Student', fill=True)
-        self.check_label(128*mm, 115*mm, u'Polyparty')
-        self.check_label(13*mm, 108*mm, u'Contract')
-        self.check_label(51*mm, 108*mm, u'TSSU')
-        self.check_label(89*mm, 108*mm, u'SFUFA')
-        self.check_label(128*mm, 108*mm, u'____________')
+        self.check_label(13*mm, 115*mm, 'CUPE')
+        self.check_label(51*mm, 115*mm, 'APSA')
+        self.check_label(89*mm, 115*mm, 'Student', fill=True)
+        self.check_label(128*mm, 115*mm, 'Polyparty')
+        self.check_label(13*mm, 108*mm, 'Contract')
+        self.check_label(51*mm, 108*mm, 'TSSU')
+        self.check_label(89*mm, 108*mm, 'SFUFA')
+        self.check_label(128*mm, 108*mm, '____________')
 
         self.c.line(0, 102*mm, main_width, 102*mm)
 
@@ -1946,17 +2013,17 @@ class CardReqForm_old(object):
             self.c.drawString(1*mm, y, rm)
 
         # find a sensible person to sign the form
-        signers = list(Role.objects.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) + list(Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
+        signers = list(Role.objects_fresh.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) + list(Role.objects_fresh.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
         for role in signers:
             import PIL
             try:
                 sig = Signature.objects.get(user=role.person)
-                sig.sig.open()
+                sig.sig.open('rb')
                 img = PIL.Image.open(sig.sig)
                 width, height = img.size
                 hei = 7*mm
                 wid = 1.0*width/height * hei
-                sig.sig.open()
+                sig.sig.open('rb')
                 ir = ImageReader(sig.sig)
                 self.c.drawImage(ir, x=114*mm, y=50*mm, width=wid, height=hei)
                 break
@@ -1988,16 +2055,16 @@ class CardReqForm_old(object):
         self.c.setFont("Helvetica-Bold", 10)
         self.c.drawString(0*mm, 40*mm, "Please read the following before signing:")
         self.c.setFont("Helvetica", 10)
-        self.c.drawString(0*mm, 35*mm, u"\u2022 THIS CARD IS FOR MY OWN USE.")
-        self.c.drawString(0*mm, 30*mm, u"\u2022 IT REMAINS THE POPERTY OF SFU.")
-        self.c.drawString(0*mm, 25*mm, u"\u2022 IT WILL NOT BE PASSED ON TO ANOTHER PERSON")
-        self.c.drawString(0*mm, 20*mm, u"\u2022 IT WILL BE RETURNED TO THIS OFFICE ONLY, WHEN NO LONGER OF USE TO MYSELF.")
+        self.c.drawString(0*mm, 35*mm, "\u2022 THIS CARD IS FOR MY OWN USE.")
+        self.c.drawString(0*mm, 30*mm, "\u2022 IT REMAINS THE POPERTY OF SFU.")
+        self.c.drawString(0*mm, 25*mm, "\u2022 IT WILL NOT BE PASSED ON TO ANOTHER PERSON")
+        self.c.drawString(0*mm, 20*mm, "\u2022 IT WILL BE RETURNED TO THIS OFFICE ONLY, WHEN NO LONGER OF USE TO MYSELF.")
 
         self.c.setDash(1)
         self.c.line(0, 5*mm, 62*mm, 5*mm)
         self.c.line(69*mm, 5*mm, 136*mm, 5*mm)
-        self.c.drawString(0*mm, 0*mm, u"SIGNATURE")
-        self.c.drawString(69*mm, 0*mm, u"DATE")
+        self.c.drawString(0*mm, 0*mm, "SIGNATURE")
+        self.c.drawString(69*mm, 0*mm, "DATE")
 
         self.c.showPage()
 
@@ -2082,7 +2149,7 @@ class FASnetForm(object):
         self.label_blank(0*mm, base_y, 'Campus Userid', grad.person.userid or '')
         self.label_blank(0*mm, base_y - 1*self.ENTRY_HEIGHT, 'Family Name', grad.person.last_name)
         self.label_blank(0*mm, base_y - 2*self.ENTRY_HEIGHT, 'Given Name(s)', grad.person.first_name)
-        self.label_blank(0*mm, base_y - 3*self.ENTRY_HEIGHT, 'Student Number', unicode(grad.person.emplid))
+        self.label_blank(0*mm, base_y - 3*self.ENTRY_HEIGHT, 'Student Number', str(grad.person.emplid))
 
         self.label_blank(0*mm, base_y - 5*self.ENTRY_HEIGHT, 'Account Type', 'Graduate Student')
         self.label_blank(0*mm, base_y - 6*self.ENTRY_HEIGHT, 'Department', grad.program.unit.informal_name())
@@ -2093,19 +2160,19 @@ class FASnetForm(object):
         self.label_blank(0*mm, base_y - 10*self.ENTRY_HEIGHT, 'Platforms', 'Unix & Windows')
 
         # find a sensible person to sign the form
-        signers = list(Role.objects.filter(unit=grad.program.unit, role='GRAD').order_by('-id')) \
-                  + list(Role.objects.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) \
-                  + list(Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
+        signers = list(Role.objects_fresh.filter(unit=grad.program.unit, role='GRAD').order_by('-id')) \
+                  + list(Role.objects_fresh.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) \
+                  + list(Role.objects_fresh.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
         for role in signers:
             import PIL
             try:
                 sig = Signature.objects.get(user=role.person)
-                sig.sig.open()
+                sig.sig.open('rb')
                 img = PIL.Image.open(sig.sig)
                 width, height = img.size
                 hei = 10*mm
                 wid = 1.0*width/height * hei
-                sig.sig.open()
+                sig.sig.open('rb')
                 ir = ImageReader(sig.sig)
                 self.c.drawImage(ir, x=45*mm, y=base_y - 15*self.ENTRY_HEIGHT, width=wid, height=hei)
                 self.entry_font()
@@ -2155,11 +2222,1171 @@ def fasnet_forms(grads, outfile):
     doc.save()
 
 
+class FormMixin(object):
+    def __init__(self, outfile):
+        """
+        Create form in the file object (which could be a Django HttpResponse).
+        This is the base class, there are various subclasses for different forms.
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+
+    def save(self):
+        self.c.save()
+
+    def checkbox(self, x, y, filled=0):
+        self.c.rect(x*mm, y*mm, 3.1*mm, 3.8*mm, fill=filled)
+
+    def rect(self, x, y, width, height, filled=0):
+        self.c.rect(x*mm, y*mm, width*mm, height*mm, fill=filled)
+
+    def header_label(self, x, y, content):
+        if content:
+            self.c.setFont("Helvetica-Bold", 9)
+            self.c.drawString(x*mm, y*mm, content)
+
+    def header_label_italics(self, x, y, content):
+        if content:
+            self.c.setFont("Helvetica-BoldOblique", 8)
+            self.c.drawString(x*mm, y*mm, content)
+
+    def header_label_large(self, x, y, content):
+        if content:
+            self.c.setFont("Helvetica-Bold", 12)
+            self.c.drawString(x * mm, y * mm, content)
+
+    def label(self, x, y, content):
+        if content:
+            self.c.setFont("Helvetica", 9)
+            self.c.drawString(x*mm, y*mm, content)
+
+    def label_mid(self, x, y, content):
+        if content:
+            self.c.setFont("Helvetica", 8)
+            self.c.drawString(x*mm, y*mm, content)
+
+    def label_mid_bold(self, x, y, content):
+        if content:
+            self.c.setFont("Helvetica-Bold", 8)
+            self.c.drawString(x*mm, y*mm, content)
+
+    def label_small(self, x, y, content):
+        if content:
+            self.c.setFont("Helvetica", 7)
+            self.c.drawString(x*mm, y*mm, content)
+
+    def subscript_label(self, x, y, content):
+        if content:
+            self.c.setFont("Helvetica", 6)
+            self.c.drawString(x*mm, y*mm, content)
+
+    def subscript_small_label(self, x, y, content):
+        if content:
+            self.c.setFont("Helvetica", 5)
+            self.c.drawString(x*mm, y*mm, content)
+
+    def subscript_small_label_bold(self, x, y, content):
+        if content:
+            self.c.setFont("Helvetica-Bold", 5)
+            self.c.drawString(x * mm, y * mm, content)
+        
+    def subscript_tiny_label(self, x, y, content):
+        if content:
+            self.c.setFont("Helvetica", 4)
+            self.c.drawString(x*mm, y*mm, content)
+
+    def hdouble_line(self, x1, x2, y):
+        self.c.line(x1*mm, y*mm, x2*mm, y*mm)
+        self.c.line(x1*mm, y*mm-0.5*mm, x2*mm, y*mm-0.5*mm)
+
+    def hline(self, x1, x2, y):
+        self.c.line(x1*mm, y*mm, x2*mm, y*mm)
+
+    def vline(self, x, y1, y2):
+        self.c.line(x*mm, y1*mm, x*mm, y2*mm)
+
+    def label_filled(self, x, y, content):
+        if content:
+            self.c.setFont("Courier", 9)
+            self.c.drawString(x*mm, y*mm, content)
+
+    def label_filled_centred(self, x, y, content):
+        if content:
+            self.c.setFont("Courier", 9)
+            self.c.drawCentredString(x*mm, y*mm, content)
+
+    def label_filled_small(self, x, y, content):
+        if content:
+            self.c.setFont("Courier", 8)
+            self.c.drawString(x * mm, y * mm, content)
+
+
+class YellowFormTenure(FormMixin):
+
+    def draw_form(self, data):
+
+        x_origin=15*mm
+        y_origin=12*mm
+        x_max=190
+        self.c.translate(x_origin, y_origin) # origin = lower-left of the main box
+        self.c.setStrokeColor(black)
+
+        # Header
+        self.header_label_italics(0, 254, 'UPDATED FORM: JULY 9, 1997')
+        self.header_label_italics(87, 254, 'SUBMIT ORIGINAL (TYPED) YELLOW FORM TO VICE PRESIDENT ACADEMIC')
+        self.c.rect(-2*mm, 245*mm, 194*mm, 5*mm)
+        self.header_label(36, 246.5, 'RECOMMENDATION FOR APPOINTMENT')
+        self.header_label(109, 246.5, 'TENURE TRACK FACULTY')
+
+        # Personal information
+        self.header_label(0, 240, 'PERSONAL INFORMATION:')
+        self.hline(0, 42, 239.5)
+        self.label(0, 235, 'Surname:')
+        self.label(81, 235, 'Given:')
+        self.label(144, 235, 'Preferred:')
+        self.hline(16, 71, 234.5)
+        self.label_filled(17, 235, data.get('last_name'))
+        self.hline(90, 139, 234.5)
+        self.label_filled(91, 235, data.get('first_name'))
+        self.hline(158, x_max, 234.5)
+        self.label_filled(159, 235, data.get('pref_first_name'))
+        self.label(0, 227, 'Canadian SIN:')
+        self.label(81, 227, 'Date of Birth: ')
+        self.label(102, 227, 'Yr')
+        self.label(117, 227, 'Mo')
+        self.label(134, 227, 'Day')
+        self.label(148, 227, 'Gender:')
+        self.label(163.5, 227, 'M')
+        self.label(175, 227, 'F')
+        self.hline(30, 32, 228.5)
+        self.hline(38, 40, 228.5)
+        self.hline(107, 117, 226.5)
+        self.hline(124, 133, 226.5)
+        self.hline(140, 147, 226.5)
+        # Add SIN to the form if it's exactly 9 digits to avoid out-of-range index issues
+        sin = str(data.get('sin'))
+        if len(sin) == 9:
+            self.label_filled(24, 227, sin[0:3])
+            self.label_filled(32.5, 227, sin[3:6])
+            self.label_filled(40.5, 227, sin[6:9])
+        # See if we have a FacultyMemberInfo record for this person so we may have a birthdate.
+        dob = data.get('dob')
+        if dob:
+            self.label_filled(108, 227, str(dob.year))
+            self.label_filled(127, 227, str(dob.month))
+            self.label_filled(143, 227, str(dob.day))
+        self.checkbox(169, 226, data.get('gender') == 'M')
+        self.checkbox(180, 226, data.get('gender') == 'F')
+        self.label(0, 219.5, 'Is the Candidate a Canadian Citizen or Permanent Resident?')
+        self.label(95, 219.5, 'Yes')
+        self.label(111, 219.5, 'No')
+        self.checkbox(104, 219)
+        self.checkbox(120, 219)
+        self.label(0, 214, 'Country of Citizenship:')
+        self.hline(38, x_max, 213.5)
+        self.label(0, 208, 'Mailing Address:')
+        self.hline(38, x_max, 207.5)
+        self.label(0, 203, 'Telephone:')
+        self.label(83, 203, 'HOUSEHOLD moved from:')
+        self.hline(33, 35, 204.5)
+        self.hline(20, 76, 202.5)
+        self.hline(121, x_max, 202.5)
+        self.subscript_label(22, 200.5, '(area code)')
+        self.subscript_label(148.5, 200.5, '(City/Country)')
+        self.label_small(3, 192, 'DEGREES HELD')
+        self.label_small(25, 192, 'YEAR OF DEGREE')
+        self.label_small(75, 192, 'INSTITUTION')
+        self.label_small(100, 192, 'CITY/COUNTRY')
+        self.label_small(153, 192, 'DEGREE VERIFICATION')
+        self.hline(3, 22, 191.5)
+        self.hline(25, 47, 191.5)
+        self.hline(75, 119, 191.5)
+        self.hline(153, 181.5, 191.5)
+        self.subscript_label(5, 188.5, '(or in progress)')
+        self.subscript_small_label(30, 188.5, '(mark "Cand."')
+        self.subscript_small_label(25.5, 186.5, 'if degree not yet complete)')
+        self.label(147, 182, 'Yes')
+        self.label(157, 182, 'No')
+        self.label(170, 182, 'by')
+        self.hline(2, 23.5, 181.5)
+        self.label_filled_centred(12.5, 182, data.get('degree1'))
+        self.hline(25, 47.5, 181.5)
+        self.label_filled_centred(36, 182, data.get('year1'))
+        self.hline(49, 145, 181.5)
+        self.label_filled(49, 182, data.get('institution1'))
+        self.hline(174, 187, 181.5)
+        self.label_filled(100, 182, data.get('location1'))
+        self.subscript_tiny_label(9.5, 180, '(Highest)')
+        self.checkbox(153.5, 181.5)
+        self.checkbox(162.5, 181.5)
+        self.label(147, 176.5, 'Yes')
+        self.label(157, 176.5, 'No')
+        self.label(170, 176.5, 'by')
+        self.hline(2, 23.5, 176)
+        self.hline(25, 47.5, 176)
+        self.hline(49, 145, 176)
+        self.hline(174, 187, 176)
+        self.label_filled_centred(12.5, 176.5, data.get('degree2'))
+        self.label_filled_centred(36, 176.5, data.get('year2'))
+        self.label_filled(49, 176.5, data.get('institution2'))
+        self.label_filled(100, 176.5, data.get('location2'))
+        self.checkbox(153.5, 176)
+        self.checkbox(162.5, 176)
+        self.label(147, 171, 'Yes')
+        self.label(157, 171, 'No')
+        self.label(170, 171, 'by')
+        self.hline(2, 23.5, 170.5)
+        self.hline(25, 47.5, 170.5)
+        self.hline(49, 145, 170.5)
+        self.hline(174, 187, 170.5)
+        self.label_filled_centred(12.5, 171, data.get('degree3'))
+        self.label_filled_centred(36, 171, data.get('year3'))
+        self.label_filled(49, 171, data.get('institution3'))
+        self.label_filled(100, 171, data.get('location3'))
+        self.checkbox(153.5, 170.5)
+        self.checkbox(162.5, 170.5)
+        self.c.rect(0*mm, 168*mm, 190*mm, 29*mm)
+
+        self.label(0, 162, 'Present position:')
+        self.label(134.5, 162, 'Salary: $')
+        self.hline(27, 131, 161.5)
+        self.hline(147, x_max, 161.5)
+        self.label(0, 156, 'Institution:')
+        self.hline(27, x_max, 155.5)
+        self.subscript_tiny_label(155.5, 154, '(City/Country)')
+
+        self.label(0,149, 'Principal subject taught (see Stats Canada codes):')
+        self.label(144, 149, 'Code:')
+        self.hline(74, 139, 148.5)
+        self.hline(153, x_max, 148)
+
+        self.label(0, 142, 'Candidate has held position at SFU before: ')
+        self.label(68.5, 142, 'Yes')
+        self.label(84, 142, 'No')
+        self.label(93.5, 142, 'If yes give details:')
+        self.checkbox(74.5, 141)
+        self.checkbox(88.5, 141)
+        self.hline(123, x_max, 141)
+
+        self.label(0, 136, 'Previous position #:')
+        self.hline(32, 82, 135)
+        self.hline(88, x_max, 135)
+
+        self.hdouble_line(0, x_max, 131.5)
+
+        # Appointment Information
+        self.header_label(0,127.5, 'APPOINTMENT INFORMATION')
+        self.hline(0, 47, 127)
+        self.label(0, 122, 'Dept: (Home):')
+        self.label(101, 122, '(2')
+        self.label(106, 122, 'Dept):')
+        self.subscript_tiny_label(103.7, 123.6, 'nd')
+        self.hline(24, 98, 121.5)
+        self.label_filled(25, 122, data.get('unit'))
+        self.hline(114, x_max, 121.5)
+        self.label_mid(114, 118, 'If start date is not September 1')
+        self.label_mid(153.5, 118, ', which year will be')
+        self.label_mid(114, 115.5, 'considered start date for renewal & tenure?')
+        self.subscript_tiny_label(152.2, 119.2, 'st')
+        self.label(0, 115.5, 'Start Date:')
+        self.label(19, 115.5, 'Yr')
+        self.label(32, 115.5, 'Mo')
+        self.label(44, 115.5, 'Day')
+        self.label(60.5, 115.5, 'End Date: Yr')
+        self.label(89, 115.5, 'Mo')
+        self.label(100.5, 115.5, 'Day')
+        self.hline(22, 31.5, 115)
+        self.hline(36.5, 43, 115)
+        self.hline(49, 57, 115)
+        self.hline(79, 88.5, 115)
+        self.hline(93, 100, 115)
+        self.hline(106, 114, 115)
+        self.hline(180, x_max, 115)
+        # Let's add the start and end dates if we have any
+        start_date = data.get('start_date')
+        if start_date:
+            self.label_filled(23.5, 115.5, str(start_date.year))
+            self.label_filled(38.5, 115.5, str(start_date.month))
+            self.label_filled(51, 115.5, str(start_date.day))
+        end_date = data.get('end_date')
+        if end_date:
+            self.label_filled(80.5, 115.5, str(end_date.year))
+            self.label_filled(95, 115.5, str(end_date.month))
+            self.label_filled(108, 115.5, str(end_date.day))
+        self.label(0, 107.5, 'Full-Time')
+        self.label(20, 107.5, 'Part-time')
+        self.label(52.5, 107.5, '%')
+        self.label(57, 107.5, 'Is this a replacement position?')
+        self.label(104.5, 107.5, 'Yes')
+        self.label(122.5, 107.5, 'CFL Position')
+        self.label(143.5, 107.5, '#(1):')
+        self.label(166, 107.5, 'FTE')
+        self.label(184, 107.5, '%')
+        self.label(143.5, 104, '#(2):')
+        self.label(166, 104, 'FTE')
+        self.label(184, 104, '%')
+        self.checkbox(14.5, 107, True)
+        self.checkbox(35, 107)
+        self.hline(43, 52, 107)
+        self.checkbox(112, 107)
+        self.hline(150, 161, 107)
+        self.hline(172.5, 183.5, 107)
+        self.hline(150, 161, 103.5)
+        self.hline(172.5, 183.5, 103.5)
+        self.label_filled(174, 107.5, '100')
+        self.label_filled(150.5, 107.5, data.get('position_number'))
+
+        self.label(0, 100, 'Rank:')
+        self.label(66, 100, 'Step:')
+        self.label(81, 100, 'Market Dif:  $')
+        self.label(131.5, 100, 'Start-up:  $')
+        self.hline(9.5, 64.5, 99.5)
+        self.hline(73.5, 79.5, 99.5)
+        self.hline(99.5, 130, 99.5)
+        self.hline(148, 182, 99.5)
+
+        if data.get('rank'):
+            self.label_filled(9.5, 100, data.get('rank'))
+        if data.get('step'):
+            self.label_filled_centred(76.5, 100, data.get('step'))
+
+        if data.get('marketdiff'):
+            self.label_filled(101, 100, data.get('marketdiff'))
+
+        self.label(0, 94.5, 'Request appointment be concluded by:')
+        self.label(118, 94.5, 'Number of teaching semesters credit, if any,')
+        self.hline(168, 182, 88.5)
+        self.label_filled_centred(175, 89, data.get('teaching_semester_credits'))
+        self.label(3, 90.5, 'normal route')
+        self.label(32, 90.5, 'or expedited route')
+        self.checkbox(24, 90)
+        self.checkbox(62, 90)
+
+        self.header_label(0, 84.5, 'ATTACHMENTS:')
+        self.hline(0, 25, 84)
+
+        self.label(4.5, 79, 'Detailed recommendation for appointment')
+        self.label(82, 79, 'Search procedures')
+        self.label(144, 79, 'Advertisements')
+        self.checkbox(0.5, 78.5)
+        self.checkbox(78, 78.5)
+        self.checkbox(140, 78.5)
+        self.label(4.5, 73.5, 'CV\'s of shortlisted candidates')
+        self.label(82, 73.5, 'Statement of employment equity')
+        self.checkbox(0.5, 73)
+        self.checkbox(78, 73)
+        self.label(4.5, 68, 'Letter of reference for shortlisted candidates')
+        self.label(82, 68, 'Assessment of teaching competence')
+        self.checkbox(0.5, 67.5)
+        self.checkbox(78, 67.5)
+
+        self.hdouble_line(0, x_max, 64.5)
+
+        # Approval
+        self.header_label(0, 60.5, 'APPROVED BY:')
+        self.hline(0, 24.5, 60)
+        self.label(0.5, 55, 'Chair/Director:')
+        self.label(136, 55, 'Date:')
+        self.hline(38.5, 130, 54.5)
+        self.hline(144, x_max, 54.5)
+        self.label(0.5, 49, 'Dean of Faculty:')
+        self.label(136, 49, 'Date:')
+        self.hline(38.5, 130, 48.5)
+        self.hline(144, x_max, 48.5)
+        self.label(0.5, 43, 'Vice President Academic:')
+        self.label(136, 43, 'Date:')
+        self.hline(38.5, 130, 42.5)
+        self.hline(144, x_max, 42.5)
+        self.label(0.5, 37, 'President:')
+        self.label(136, 37, 'Date:')
+        self.hline(38.5, 130, 36.5)
+        self.hline(144, x_max, 36.5)
+
+        self.hdouble_line(0, x_max, 34)
+
+        # Private use
+
+        self.header_label(0, 30, 'FOR USE BY THE OFFICE OF THE VICE-PRESIDENT, ACADEMIC')
+        self.subscript_label(86.5, 27.5, '(year)')
+        self.label(0, 24, '1. Bi-wk. sal.')
+        self.label(24, 24, '$')
+        self.label(62, 24, '6.  Moving May')
+        self.label(148.5, 24, '7.  Confirmation of offer of')
+        self.hline(27.5, 53, 22.2)
+        self.c.rect(85.5*mm, 23*mm, 8*mm, 3.8*mm)
+        self.checkbox(186.5, 23.5)
+        self.label(0, 19, '2. Ann. sal.')
+        self.label(24, 19, '$')
+        self.label(67, 19, 'a) Allowance')
+        self.label(89.5, 19, '(moving within Canada)')
+        self.label(153, 20.5, 'employment required')
+        self.hline(27.5, 53, 18.5)
+        self.checkbox(85.5, 18.5)
+        self.label(0, 14.5, '3. Salary/Base')
+        self.hline(27.5, 53, 13)
+        self.label(0, 10, '4. Date of scale')
+        self.hline(27.5, 53, 9)
+        self.label(0, 5, '5. Pension:')
+        self.label(29.5, 5, 'Yes')
+        self.label(43, 5, 'No')
+        self.checkbox(37, 4.5)
+        self.checkbox(49, 4.5)
+        self.header_label(62, 19.5, 'or')
+        self.label(67, 14.5, 'b) Reimbursement for expenses')
+        self.label(71, 10, 'distance')
+        self.label(101.5, 10, 'km')
+        self.header_label(110.5, 10, 'X')
+        self.label(117, 10, 'rate')
+        self.label(134, 10, '\xa2')
+        self.header_label(137, 10, '=')
+        self.label(140, 10, '$')
+        self.c.line(82.5*mm,9*mm, 101*mm, 9*mm)
+        self.hline(123.5, 133, 9)
+        self.hline(142.5, 167.5, 9)
+        self.header_label(73, 5, '+')
+        self.label(76, 5, 'base')
+        self.header_label(101.5, 5, '=')
+        self.label(104, 5, 'Maximum $')
+        self.hline(82.5, 101, 4.2)
+        self.hline(122, 153.5, 4.2)
+        self.header_label(62, 0, 'or')
+        self.label(67, 0, 'c) Reimbursement outside North America')
+        self.label(139, 0, 'Amount $')
+        self.hline(153, x_max, -0.5)
+
+        # All done, let's show the form.
+        self.c.showPage()
+
+
+def yellow_form_tenure(careerevent, outfile):
+
+    doc = YellowFormTenure(outfile)
+    data = build_data_from_event(careerevent)
+    doc.draw_form(data)
+    doc.save()
+
+
+class YellowFormLimited(FormMixin):
+
+    def checkbox(self, x, y, filled=0):
+        self.c.circle(x*mm, y*mm + 1*mm, 1*mm, fill=filled)
+
+    def draw_form(self, data):
+
+        x_origin=13*mm
+        y_origin=12*mm
+        x_max=191
+        self.c.translate(x_origin, y_origin)  # origin = lower-left of the main box
+        self.c.setStrokeColor(black)
+
+        # Header
+        self.header_label(0.5, 256.5, '1992-11 OVPA')
+        self.header_label(67, 256.5, 'RECOMMENDATION FOR APPOINTMENT')
+        self.header_label(173, 256.5, 'Form No. 2')
+        self.hline(67, 129.5, 256)
+        self.label_mid_bold(8, 250, 'LECTURER')
+        self.label_mid_bold(37, 250, 'SENIOR LECTURER')
+        self.label_mid_bold(73, 250, 'CONTINUING LANGUAGE INSTRUCTOR')
+        self.label_mid_bold(145.8, 250, 'CLINICAL PROFESSOR')
+        self.checkbox(27.5, 250)
+        self.checkbox(68.5, 250)
+        self.checkbox(131, 250)
+        self.checkbox(181, 250)
+        self.label_mid_bold(0.5, 244, 'LAB INSTRUCTOR I')
+        self.label_mid_bold(40.8, 244, 'LAB INSTRUCTOR II')
+        self.label_mid_bold(81.5, 244, 'VISITING PROFESSOR')
+        self.label_mid_bold(125.5, 244, 'LIMITED TERM')
+        self.label_mid_bold(158.5, 244, 'RESEARCH ASSOC')
+        self.checkbox(31, 244)
+        self.checkbox(72, 244)
+        self.checkbox(116, 244)
+        self.checkbox(149.5, 244)
+        self.checkbox(188.5, 244)
+        self.hdouble_line(-1.5, x_max, 239.5)
+
+        # Personal Information
+        self.header_label(0.5, 236, 'PERSONAL INFORMATION:')
+        self.hline(0.5, 42, 235.5)
+        self.label(0.5, 230.5, 'Surname:')
+        self.label(81, 230.5, 'Given:')
+        self.label(145, 230.5, 'Preferred:')
+        self.hline(16, 76.5, 230)
+        self.label_filled(17, 230.5, data.get('last_name'))
+        self.hline(91, 140, 230)
+        self.label_filled(92, 230.5, data.get('first_name'))
+        self.hline(159, 191, 230)
+        self.label_filled(160, 230.5, data.get('pref_first_name'))
+        self.label(0.5, 223, 'Canadian SIN:')
+        self.label(81.5, 223, 'Date of Birth:')
+        self.label(102.5, 223, 'Yr')
+        self.label(119, 223, 'Mo')
+        self.label(135, 223, 'Day')
+        self.label(149.5, 223, 'Gender:')
+        self.label(163, 223, 'M')
+        self.label(176.5, 223, 'F')
+        self.hline(35, 37, 224)
+        self.hline(47.5, 49.5, 224)
+        self.hline(24, 35, 222.5)
+        self.hline(37, 47.5, 222.5)
+        self.hline(49.5, 60, 222.5)
+        self.hline(108, 117.5, 222.5)
+        self.hline(124.5, 133.5, 222.5)
+        self.hline(141.5, 147.5, 222.5)
+        # Add SIN to the form if it's exactly 9 digits to avoid out-of-range index issues
+        sin = str(data.get('sin'))
+        if len(sin) == 9:
+            self.label_filled(26, 223.5, sin[0:3])
+            self.label_filled(39, 223.5, sin[3:6])
+            self.label_filled(51.5, 223.5, sin[6:9])
+
+        dob = data.get('dob')
+        if dob:
+            self.label_filled(109, 223, str(dob.year))
+            self.label_filled(127, 223, str(dob.month))
+            self.label_filled(143, 223, str(dob.day))
+        self.checkbox(171.5, 223, data.get('gender') == 'M')
+        self.checkbox(183.5, 223, data.get('gender') == 'F')
+        self.label(0.5, 215, 'Is Candidate a Canadian Citizen or Cdn. Permanent Resident?')
+        self.label(94, 215, 'Yes')
+        self.label(111, 215, 'No')
+        self.checkbox(104.5, 215)
+        self.checkbox(121, 215)
+        self.subscript_label(149.5, 216.5, 'VPA USE ONLY')
+        self.label(0.5, 209, 'County of Citizenship:')
+        self.header_label(142.5, 209, '/')
+        self.hline(38, 142.5, 208.5)
+        self.hline(145, 191, 208.5)
+        self.label(0.5, 203.5, 'Address:')
+        self.hline(20, 191, 203)
+        self.label(0.5, 198, 'Telephone')
+        self.label(83, 198, 'HOUSEHOLD moved from:')
+        self.hline(21, 78, 197.5)
+        self.hline(122.5, 191, 197.5)
+        self.hline(33.5, 35, 199)
+        self.subscript_label(22.5, 195, '(area code)')
+        self.subscript_label(150, 195, '(City/Country)')
+        self.label_small(3.5, 187.5, 'DEGREES HELD')
+        self.label_small(26, 187.5, 'YEAR OF DEGREE')
+        self.label_small(67, 187.5, 'INSTITUTION')
+        self.label_small(110.5, 187.5, 'CITY/COUNTRY')
+        self.subscript_label(161, 188, 'VPA USE ONLY')
+        self.hline(3.5, 23, 187)
+        self.hline(26, 48, 187)
+        self.hline(67, 82.5, 187)
+        self.hline(110.5, 129, 187)
+        self.subscript_label(6, 184, '(or in progress)')
+        self.subscript_label(26, 184, '(mark "Cand." if degree')
+        self.subscript_label(29, 181.5, 'not yet complete)')
+        self.label(146, 176.5, '/')
+        self.hline(2, 24, 176)
+        self.hline(26, 48, 176)
+        self.hline(49.5, 146, 176)
+        self.hline(148, 189, 176)
+        self.label_filled_centred(13, 176.5, data.get('degree1'))
+        self.label_filled_centred(36, 176.5, data.get('year1'))
+        self.label_filled(49.5, 176.5, data.get('institution1'))
+        self.label_filled(101, 176.5, data.get('location1'))
+        self.subscript_tiny_label(10, 174.5, '(Highest)')
+        self.label(146, 171, '/')
+        self.hline(2, 24, 170.5)
+        self.hline(26, 48, 170.5)
+        self.hline(49.5, 146, 170.5)
+        self.hline(148, 189, 170.5)
+        self.label_filled_centred(13, 171, data.get('degree2'))
+        self.label_filled_centred(36, 171, data.get('year2'))
+        self.label_filled(49.5, 171, data.get('institution2'))
+        self.label_filled(101, 171, data.get('location2'))
+        self.label(146, 165.5, '/')
+        self.hline(2, 24, 165)
+        self.hline(26, 48, 165)
+        self.hline(49.5, 146, 165)
+        self.hline(148, 189, 165)
+        self.label_filled_centred(13, 165.5, data.get('degree3'))
+        self.label_filled_centred(36, 165.5, data.get('year3'))
+        self.label_filled(49.5, 165.5, data.get('institution3'))
+        self.label_filled(101, 165.5, data.get('location3'))
+        self.label(0.5, 156.5, 'Present position:')
+        self.label(135, 156.5, 'Salary: $')
+        self.hline(27, 132, 156)
+        self.hline(148, 191, 156)
+        self.label(0.5, 151, 'Institution:')
+        self.hline(27, 191, 150.5)
+        self.subscript_tiny_label(157, 149, '(City/Country)')
+        self.hdouble_line(0, 190.5, 145.5)
+
+        # Position Information
+        self.header_label(0.5, 141.5, 'POSITION INFORMATION:')
+        self.hline(0.5, 39.5, 141)
+        self.label(1, 136, 'Dept: (Home):')
+        self.label(106, 136, '2')
+        self.label(110, 136, 'Dept:')
+        self.subscript_tiny_label(107.7, 137.5, 'nd')
+        self.hline(24, 98.5, 135.5)
+        self.label_filled(25, 136, data.get('unit'))
+        self.hline(118, 191, 135.5)
+        self.label(1, 129.5, 'Start Date:')
+        self.label(19.5, 129.5, 'Yr')
+        self.label(33, 129.5, 'Mo')
+        self.label(44.5, 129.5, 'Day')
+        self.label(61, 129.5, 'End Date:')
+        self.label(77, 129.5, 'Yr')
+        self.label(90, 129.5, 'Mo')
+        self.label(105, 129.5, 'Day')
+        self.hline(22.5, 32, 129)
+        self.hline(37, 43.5, 129)
+        self.hline(49.5, 58, 129)
+        self.hline(80, 89, 129)
+        self.hline(94, 100.5, 129)
+        self.hline(110, 118, 129)
+        # Let's add the start and end dates if we have any
+        start_date = data.get('start_date')
+        if start_date:
+            self.label_filled(24, 129.5, str(start_date.year))
+            self.label_filled(39.5, 129.5, str(start_date.month))
+            self.label_filled(52.5, 129.5, str(start_date.day))
+        end_date = data.get('end_date')
+        if end_date:
+            self.label_filled(81.5, 129.5, str(end_date.year))
+            self.label_filled(96.5, 129.5, str(end_date.month))
+            self.label_filled(112.5, 129.5, str(end_date.day))
+        self.label(1,121.5, 'Full-time')
+        self.label(19.5, 121.5, 'Part-Time')
+        self.label(53, 121.5, '%')
+        self.label(61, 121.5, 'Is this a replacement position?')
+        self.label(104.5, 121.5, 'Yes')
+        self.label(129.5, 121.5, 'Position')
+        self.label(144.5, 121.5, '# :')
+        self.checkbox(15.5, 121.5, True)
+        self.checkbox(35.5, 121.5)
+        self.checkbox(113, 121.5)
+        self.hline(43, 52.5, 121)
+        self.hline(151, 191, 121)
+        self.label_filled(44.5, 121.5, '100')
+        self.label_filled(152, 121.5, data.get('position_number'))
+        self.label(1, 114.5, 'New Position ?')
+        self.label(27.5, 114.5, 'Yes')
+        self.label(45, 114.5, 'Fund')
+        self.label(55, 114.5, ':')
+        self.label(104, 114.5, 'Centre :')
+        self.label_mid(142, 114.5, 'Funding source :')
+        self.checkbox(40, 114.5)
+        self.hline(57.5, 103.5, 114)
+        self.hline(116, 141.5, 114)
+        self.hline(163, 191, 114)
+        self.label(1, 105.5, 'Rank:')
+        self.label(120.5, 105.5, 'Step:')
+        self.hline(10, 80, 105)
+        self.hline(130.5, 191, 105)
+        if data.get('rank'):
+            self.label_filled(11, 105.5, data.get('rank'))
+        if data.get('step'):
+            self.label_filled_centred(160, 105.5, data.get('step'))
+
+        self.label(1, 100, 'Principal subject taught (see Stats Canada codes) :')
+        self.subscript_label(165, 102, 'VPA USE ONLY :')
+        self.header_label(153, 99.5, '/')
+        self.hline(75.5, 153, 97.5)
+        self.hline(155.5, 190, 97.5)
+        self.label(1, 90.5, 'Candidate has held position at SFU before :')
+        self.label(76.5, 90.5, 'Yes')
+        self.label(93.5, 90.5, 'No')
+        self.label(109.5, 90.5, 'If yes, give details :')
+        self.checkbox(87, 90.5)
+        self.checkbox(103.5, 90.5)
+        self.hline(140, 191, 90)
+        self.label(115.5, 85, 'Previous position # :')
+        self.hline(1, 115, 81)
+        self.hline(147.5, 191, 81)
+        self.label(1, 76, 'Continuing Language Instructors ONLY :  Number of base units per semester :')
+        self.hline(118, 154.5, 75)
+        self.hdouble_line(0, 191, 70.5)
+
+        # Approved
+        self.header_label(0.5, 66.5, 'APPROVED BY:')
+        self.hline(0.5, 24.5, 66)
+        self.label(1, 60.5, 'Chair/Director:')
+        self.label(137.5, 60.5, 'Date:')
+        self.hline(38.5, 131, 60)
+        self.hline(145, 191, 60)
+        self.label(1, 54.5, 'Dean of Faculty:')
+        self.label(137.5, 54.5, 'Date:')
+        self.hline(38.5, 131, 54)
+        self.hline(145, 191, 54)
+        self.label(1, 48.5, 'Vice President Academic:')
+        self.label(137.5, 48.5, 'Date:')
+        self.hline(38.5, 131, 48)
+        self.hline(145, 191, 48)
+        self.hdouble_line(0, 191, 45.5)
+
+        # Private use
+        self.header_label(0.5, 41.5, 'FOR USE BY THE OFFICE OF THE VICE-PRESIDENT, ACADEMIC:')
+        self.hline(0.5, 99, 41)
+        self.subscript_label(87.5, 38.5, '(year)')
+        self.label(0.5, 35.5, '1. Bi-wk. sal.')
+        self.label(24.5, 35.5, '$')
+        self.label(63, 35.5, '6.')
+        self.label(67.5, 35.5, 'Moving May')
+        self.label(95.5, 35.5, 'scale')
+        self.label(150, 35.5, '7.')
+        self.label(154.5, 35.5, 'Confirmation of offer of')
+        self.checkbox(189, 35.5)
+        self.hline(27.5, 53, 33.2)
+
+        self.label(0.5, 30, '2. Ann. sal.')
+        self.label(24.5, 30, '$')
+        self.label(67.5, 30, 'a) Allowance')
+        self.checkbox(88, 30)
+        self.label(90.5, 30, '(moving within Canada)')
+        self.label(154.5, 32.5, 'employment required')
+        self.hline(27.5, 53, 28.5)
+
+        self.label(0.5, 24.5, '3. Salary/Base')
+        self.header_label(63, 24.5, 'or')
+        self.label(67.5, 24.5, 'b) Reimbursement for expenses')
+        self.checkbox(115, 24.5)
+        self.hline(27.5, 53, 23)
+
+        self.label(0.5, 19.5, '4. Date of scale')
+        self.label(70.5, 19.5, 'distance')
+        self.label(102.5, 19.5, 'km')
+        self.header_label(111.5, 19.5, 'X')
+        self.label(117.5, 19.5, 'rate(')
+        self.label(135, 19.5, '\xa2')
+        self.label(136.5, 19.5, ')')
+        self.header_label(138.5, 19.5, '=')
+        self.label(141, 19.5, '$')
+        self.hline(27.5, 53, 19)
+        self.hline(83, 102, 19)
+        self.hline(124.5, 134, 19)
+        self.hline(143.5, 169, 19)
+
+        self.label(0.5, 15, '5. Pension:')
+        self.label(30, 15, 'Yes')
+        self.label(43.5, 15, 'No')
+        self.header_label(73, 15, '+')
+        self.label(76, 15, 'base')
+        self.header_label(102.5, 15, '=')
+        self.label(105.5, 15, 'Maximum $')
+        self.checkbox(38.5, 15)
+        self.checkbox(51.5, 15)
+        self.hline(83, 102, 14)
+        self.hline(122, 154.5, 14)
+
+        self.header_label(63, 10, 'or')
+        self.label(67.5, 10, 'c) Reimbursement outside North America')
+        self.checkbox(132, 10)
+        self.label(139.5, 10, 'Amount: $')
+        self.hline(154.5, 191, 9)
+        self.label(67.5, 5.5, 'd) Reimbursement : Double return economy')
+        self.checkbox(132, 5.5)
+        self.label(139.5, 5.5, 'Amount: $')
+        self.hline(154.5, 191, 4.5)
+        self.label(94.5, 1, ': Single return economy')
+        self.checkbox(132, 1)
+        self.label(139.5, 1, 'Amount: $')
+        self.hline(154.5, 191, 0)
+
+
+        # All done, show the page
+        self.c.showPage()
+
+
+def yellow_form_limited(careerevent,  outfile):
+    doc = YellowFormLimited(outfile)
+    data = build_data_from_event(careerevent)
+    doc.draw_form(data)
+    doc.save()
+
+
+def build_data_from_event(careerevent):
+    """
+    This builds the correct data object for our Appointment Forms (AKA Yellow Forms) to be generated if coming
+    from a careerevent.
+
+    :param CareerEvent careerevent: The event that called this generation
+    :type: CareerEvent
+    :return: a dict containing all the data necessary for the form generation
+    :rtype: dict
+    """
+    # We have to put this import here to avoid a circular import problem.
+    # This is horrible, but the best solution without refactoring everything.
+    from faculty.models import FacultyMemberInfo, CareerEvent
+    data = {}
+    event = careerevent.event
+    person = event.person
+
+    data['last_name'] = person.last_name or ''
+    data['first_name'] = person.first_name or ''
+    data['pref_first_name'] = person.pref_first_name or ''
+    data['sin'] = person.sin()
+    if(FacultyMemberInfo.objects.filter(person=person)).exists():
+            f = FacultyMemberInfo.objects.get(person=person)
+            dob = f.birthday
+            data['dob'] = dob
+    data['gender'] = person.gender() or ''
+    data['degree1'] = event.config.get('degree1') or ''
+    data['year1'] = event.config.get('year1') or ''
+    data['institution1'] = event.config.get('institution1') or ''
+    data['location1'] = event.config.get('location1') or ''
+    data['degree2'] = event.config.get('degree2') or ''
+    data['year2'] = event.config.get('year2') or ''
+    data['institution2'] = event.config.get('institution2') or ''
+    data['location2'] = event.config.get('location2') or ''
+    data['degree3'] = event.config.get('degree3') or ''
+    data['year3'] = event.config.get('year3') or ''
+    data['institution3'] = event.config.get('institution3') or ''
+    data['location3'] = event.config.get('location3') or ''
+    data['unit'] = event.unit.informal_name()
+    data['start_date'] = event.start_date
+    data['end_date'] = event.end_date
+    data['position_number'] = event.config.get('position_number') or ''
+    # Let's get the current salary event(s) for this person so we can get the rank and step
+    salaries = CareerEvent.objects.filter(person=person, event_type='SALARY', unit=event.unit).effective_now()
+    if salaries:
+        # There should only be one of these effective in this unit, but just in case
+        s = salaries[0]
+        data['rank'] = s.get_handler().get_rank_display() or ''
+        data['step'] = s.config.get('step') or ''
+
+    data['teaching_semester_credits'] = event.config.get('teaching_semester_credits') or ''
+
+    stipends = CareerEvent.objects.filter(person=person, event_type='STIPEND', unit=event.unit).effective_now()
+    for stipend in stipends:
+        if stipend.config.get('source') == 'MARKETDIFF':
+            data['marketdiff'] = stipend.config.get('amount') or ''
+            break
+    return data
+
+
+def build_data_from_position(position):
+    """
+    This builds the correct data object for our Appointment Forms (AKA Yellow Forms) to be generated if coming
+    from a Position with a future candidate already set.
+
+    :param Position position: The position that called this generation
+    :type: Position
+    :return: a dict containing all the data necessary for the form generation
+    :rtype: dict
+    """
+    # We have to put this import here to avoid a circular import problem.
+    # This is horrible, but the best solution without refactoring everything.
+    from faculty.models import FacultyMemberInfo, CareerEvent
+    from faculty.event_types.career import RANK_CHOICES
+
+    data = {}
+    person = position.any_person.get_person()
+    data['last_name'] = person.last_name or ''
+    data['first_name'] = person.first_name or ''
+    data['pref_first_name'] = person.pref_first_name or ''
+    data['sin'] = person.sin()
+
+    # If this is a real Faculty member in our system, he/she may have
+    # a DOB in the FacultyMemberInfo
+    if isinstance(person, Person) and FacultyMemberInfo.objects.filter(person=person).exists():
+            f = FacultyMemberInfo.objects.get(person=person)
+            dob = f.birthday
+            data['dob'] = dob
+
+    # Otherwise, we may have it in that object's config.
+    if not data.get('dob'):
+        if person.birthdate():
+            data['dob'] = datetime.datetime.strptime(person.birthdate(), "%Y-%m-%d")
+    data['gender'] = person.gender() or ''
+    data['degree1'] = position.degree1 or ''
+    data['year1'] = position.year1 or ''
+    data['institution1'] = position.institution1 or ''
+    data['location1'] = position.location1 or ''
+    data['degree2'] = position.degree2 or ''
+    data['year2'] = position.year2 or ''
+    data['institution2'] = position.institution2 or ''
+    data['location2'] = position.location2 or ''
+    data['degree3'] = position.degree3 or ''
+    data['year3'] = position.year3 or ''
+    data['institution3'] = position.institution3 or ''
+    data['location3'] = position.location3 or ''
+    data['unit'] = position.unit.informal_name()
+    data['start_date'] = position.projected_start_date
+    data['end_date'] = ''
+    data['position_number'] = position.position_number
+    data['rank'] = RANK_CHOICES.get(position.rank, '')
+    if position.step:
+        data['step'] = str(position.step)
+    else:
+        data['step'] = ''
+
+    if position.teaching_semester_credits:
+        data['teaching_semester_credits'] = str(position.teaching_semester_credits)
+    else:
+        data['teaching_semester_credits'] = ''
+
+    # For now, we store marketdiffs only for real faculty members, but let's add this here in case.  Either way, if we
+    # call this method from a position where the FuturePerson is now a real Faculty Member, this should still work.
+
+    if isinstance(person, Person):
+        stipends = CareerEvent.objects.filter(person=person, event_type='STIPEND', unit=position.unit).effective_now()
+        for stipend in stipends:
+            if stipend.config.get('source') == 'MARKETDIFF':
+                data['marketdiff'] = stipend.config.get('amount') or ''
+                break
+
+    return data
+
+
+def position_yellow_form_limited(position,  outfile):
+    doc = YellowFormLimited(outfile)
+    data = build_data_from_position(position)
+    doc.draw_form(data)
+    doc.save()
+
+
+def position_yellow_form_tenure(position, outfile):
+
+    doc = YellowFormTenure(outfile)
+    data = build_data_from_position(position)
+    doc.draw_form(data)
+    doc.save()
+
+
+class SessionalForm(FormMixin, SFUMediaMixin):
+    def __init__(self, *args, **kwargs):
+        super(SessionalForm, self).__init__(*args, **kwargs)
+        self._media_setup()
+
+    def checkbox(self, x, y, filled=0):
+        self.c.rect(x * mm, y * mm, 3.1 * mm, 3.1 * mm, fill=filled)
+
+    def label_mid(self, x, y, content):
+        self.c.setFont("Helvetica", 7.5)
+        self.c.drawString(x * mm, y * mm, content)
+
+    def label_mid_small(self, x, y, content):
+        self.c.setFont("Helvetica", 7.25)
+        self.c.drawString(x * mm, y * mm, content)
+
+    def draw_form(self, contract):
+        x_origin = 12 * mm
+        y_origin = 10 * mm
+        x_max = 195
+        self.c.translate(x_origin, y_origin)  # origin = lower-left of the main box
+        self.c.setStrokeColor(black)
+
+        # SFU logo
+        self.c.drawImage(logofile, x=0, y=247 * mm, width=15 * mm, height=8 * mm)
+        self.c.setFont('BemboMTPro', 10)
+        self.c.setFillColor(self.sfu_red)
+        self._drawStringLeading(self.c, 17 * mm, 250 * mm, 'Simon Fraser University'.translate(self.sc_trans_bembo),
+                                charspace=1.4)
+        self.c.setFont('DINPro', 5)
+        self.c.setFillColor(self.sfu_grey)
+        self._drawStringLeading(self.c, 17 * mm, 247.5 * mm, 'Engaging the World'.upper(), charspace=2)
+        self.c.setFillColor(black)
+
+        # Header
+        self.header_label_large(77, 239, 'Sessional Instructor')
+
+        self.label_mid_bold(1, 231.5, 'SFUID')
+
+        # Fill in the emplid
+        if contract.sessional.emplid:
+            emplid = str(contract.sessional.emplid())
+            if len(emplid) == 9:
+                self.label_filled_centred(14.67, 231.5, emplid[0])
+                self.label_filled_centred(20, 231.5, emplid[1])
+                self.label_filled_centred(25.33, 231.5, emplid[2])
+                self.label_filled_centred(30.67, 231.5, emplid[3])
+                self.label_filled_centred(36, 231.5, emplid[4])
+                self.label_filled_centred(41.33, 231.5, emplid[5])
+                self.label_filled_centred(46.67, 231.5, emplid[6])
+                self.label_filled_centred(52, 231.5, emplid[7])
+                self.label_filled_centred(57.33, 231.5, emplid[8])
+
+        self.label_mid_bold(62, 231.5, 'Social Insurance #')
+
+        # Fill in the SIN.  The contract should always have one as it is required, and the length should always
+        # be 9 as the form enforces that, but let's triple-check anyway.
+        if contract.sin and len(contract.sin) == 9:
+            sin = contract.sin
+            self.label_filled_centred(95, 231.5, sin[0])
+            self.label_filled_centred(101, 231.5, sin[1])
+            self.label_filled_centred(107, 231.5, sin[2])
+            self.label_filled_centred(113, 231.5, sin[3])
+            self.label_filled_centred(119, 231.5, sin[4])
+            self.label_filled_centred(125, 231.5, sin[5])
+            self.label_filled_centred(131, 231.5, sin[6])
+            self.label_filled_centred(137, 231.5, sin[7])
+            self.label_filled_centred(143, 231.5, sin[8])
+
+        self.label(157, 231.5, 'Employee Group:  TSSU')
+        self.rect(12, 229, 48, 7)
+        self.rect(92, 229, 54, 7)
+        self.rect(155, 228.8, 40, 8.5)
+        self.vline(17.33, 229, 236)
+        self.vline(22.67, 229, 236)
+        self.vline(28, 229, 236)
+        self.vline(33.33, 229, 236)
+        self.vline(38.67, 229, 236)
+        self.vline(44, 229, 236)
+        self.vline(49.33, 229, 236)
+        self.vline(54.67, 229, 236)
+        self.vline(98, 229, 236)
+        self.vline(104, 229, 236)
+        self.vline(110, 229, 236)
+        self.vline(116, 229, 236)
+        self.vline(122, 229, 236)
+        self.vline(128, 229, 236)
+        self.vline(134, 229, 236)
+        self.vline(140, 229, 236)
+
+        self.label_mid(3, 223.2,'Last Name')
+        self.label_mid(70, 223.2, 'First Name')
+        self.rect(1, 215.5, 65, 6)
+        self.label_filled(2, 217.5, contract.sessional.last_name())
+        self.rect(68, 215.5, 62, 6)
+        self.label_filled(69, 217.5, contract.sessional.first_name())
+        self.label_mid(3, 211.2, 'Department of Employment')
+        self.label_mid(68, 211.2, 'Position Number')
+        self.rect(1, 203.5, 65, 6)
+        self.label_filled(2, 205.5, contract.unit.name)
+        self.rect(68, 203.5, 62, 6)
+        self.vline(74.89, 203.5, 209.5)
+        self.vline(81.78, 203.5, 209.5)
+        self.vline(88.67, 203.5, 209.5)
+        self.vline(95.56, 203.5, 209.5)
+        self.vline(102.44, 203.5, 209.5)
+        self.vline(109.33, 203.5, 209.5)
+        self.vline(116.22, 203.5, 209.5)
+        self.vline(123.11, 203.5, 209.5)
+
+        # We only have 9 spots for position number.  Let's do so me magic to make it print however many digits
+        # we have nicely.
+        posn = str(contract.account.position_number)
+        lp = len(posn)
+        if lp <= 9:
+            #  Center X positions for every possible digit
+            x_positions = [71.44, 78.33, 85.22, 92.11, 99, 105.89, 112.78, 119.67, 126.56]
+            lx = len(x_positions)
+            for i in range(lp):
+                self.label_filled_centred(x_positions[i + lx - lp], 205.5, posn[i])
+
+        self.checkbox(135, 220, contract.appt_guarantee == 'GUAR')
+        self.subscript_small_label_bold(141, 220.5,  'APPOINTMENT GUARANTEED')
+        self.checkbox(135, 214, contract.appt_guarantee == 'COND')
+        self.subscript_small_label_bold(141, 214.5, 'APPOINTMENT CONDITIONAL UPON ENROLMENT')
+        self.checkbox(135, 208, contract.appt_type == 'INIT')
+        self.subscript_small_label_bold(141, 208.5, 'INITIAL APPOINTMENT TO THIS POSITION NUMBER')
+        self.checkbox(135, 202, contract.appt_type == 'REAP')
+        self.subscript_small_label_bold(141, 202.5, 'REAPPOINTMENT TO SAME POSITION NUMBER OR REVISION')
+        self.label_mid(48.5, 193, 'Payroll Start Date')
+        self.label_mid(79, 193, 'Payroll End Date')
+        self.label_mid(115.5, 193, 'Appointment Start Date')
+        self.label_mid(152, 193, 'Appointment End Date')
+        self.rect(46.8, 186, 25.5, 5)
+        self.label_filled_centred(59.55, 187.5, str(contract.pay_start))
+        self.rect(77, 186, 25.5, 5)
+        self.label_filled_centred(89.75, 187.5, str(contract.pay_end))
+        self.rect(114, 186, 31.5, 5)
+        self.label_filled_centred(129.75, 187.5, str(contract.appointment_start))
+        self.rect(150, 186, 31.5, 5)
+        self.label_filled_centred(165.75, 187.5, str(contract.appointment_end))
+        self.header_label(1.5, 179, 'ASSIGNMENT')
+        self.rect(0, 139.5, x_max, 36.5)
+        self.label_mid(25, 173.3, 'Course(s)')
+        self.label_mid(86, 173.3, '1x2HR. Lecture')
+        self.label_mid(112, 173.3, 'Sessional Lecturer')
+        self.label_mid(2.5, 172, 'Dept.')
+        self.label_mid(44, 172, 'No.')
+        self.label_mid(64, 172, '1x3 HR. Lab. Etc.')
+        self.label_mid(140, 172, 'Contact hours')
+        self.label_mid(168.5, 172, 'Salary (from grid)')
+        self.label_mid(112, 170, 'Codes 1 or 2')
+        self.label_filled_centred(20.75, 164.4, contract.offering.subject)
+        self.label_filled_centred(51.15, 164.4, contract.offering.number)
+        self.label_filled_small(64, 164.4, contract.course_hours_breakdown)
+        self.label_filled_centred(151.9, 164.4, str(contract.contact_hours))
+        self.label_filled_centred(180.5, 164.4, str(contract.total_salary))
+        self.hline(0, x_max, 168.7)
+        self.hline(0, x_max, 161.4)
+        self.hline(0, x_max, 154.1)
+        self.hline(0, x_max, 146.8)
+        self.vline(41.5, 139.5, 168.7)
+        self.vline(60.8, 139.5, 176)
+        self.vline(109.8, 139.5, 176)
+        self.vline(137.8, 139.5, 176)
+        self.vline(166, 139.5, 176)
+        self.label_small(27, 136, 'Biweekly Rate')
+        self.label_small(51.8, 136, 'Semester Rate')
+        self.label_small(157, 136, 'Effective date for rate changes')
+        self.label_small(2, 131, 'Total salary incl.')
+        self.label_small(2, 128, 'Vacation pay')
+        self.rect(156, 130, 37.5, 4.5)
+        self.rect(25.5, 127.8, 19.5, 6.5)
+        self.rect(50, 127.8, 19.5, 6.5)
+        self.label_filled_centred(59.75, 130.3, str(contract.total_salary))
+        self.label(2.5, 117, 'Remarks')
+        self.rect(16, 110.5, 177, 16)
+        remarks_mandatory_string = 'Account number: ' + str(contract.account.account_number)
+        self.label_filled(17, 123.5, remarks_mandatory_string)
+        self.label_filled(17, 118.5, contract.notes)
+        self.label_small(158, 106, 'Deadline for acceptance:')
+        self.rect(156, 99, 37.5, 5)
+        self.label_mid_bold(2, 101, 'INSTRUCTIONS TO THE APPOINTEE:')
+        self.label_mid_small(2, 93.5, '1.a) This offer of appointment is conditional upon you accepting this appointment '
+                                  'by signing and dating this appointment form (see bottom right hand corner box) and')
+        self.label_mid_small(2, 90.25, 'returning the signed form to the Dean\'s Office by the deadline for acceptance above.')
+        self.label_mid_small(2, 85.5, '1.b) If this is an initial appointment in the TSSU bargaining unit, then as a '
+                                'condition of employment under the terms of the Collective Agreement you must '
+                                'complete and')
+        self.label_mid_small(2, 82.25, 'sign the first two sections of the attached form entitled "Appendix A to '
+                                       'Article IV Dues and Union Membership or Non Membership" and return it with '
+                                       'this appointment ')
+        self.label_mid_small(2, 79, 'form.')
+
+        self.rect(0, 51.5, x_max, 24)
+        self.hline(0, x_max, 67.5)
+        self.hline(0, x_max, 59.5)
+        self.vline(65, 51.5, 75.5)
+        self.vline(130, 51.5, 75.5)
+        self.label(2, 70, 'Approval by Department')
+        self.label(67, 70, 'Approval by Faculty')
+        self.label(132, 70, 'Accepted by Appointee')
+        self.rect(1, 60.5, 63, 6)
+        self.rect(66, 60.5, 63, 6)
+        self.rect(131, 60.5, 63, 6)
+        self.label(2.5, 54, 'Date')
+        self.label(67.5, 54, 'Date')
+        self.label(132.5, 54, 'Date')
+        self.rect(15, 52.5, 49, 6)
+        self.rect(80, 52.5, 49, 6)
+        self.rect(145, 52.5, 49, 6)
+        self.label_mid_small(1.5, 40, 'The information on this form is collected under the authority of the university '
+                                      'act (RSBC 1996, c.468), the income tax act, the pension plan act, the '
+                                      'employment insurance')
+        self.label_mid_small(1.5, 36.625, 'act, the financial information act of BC, and the workers compensation act '
+                                          'of BC. The information on this form is used by the university for payroll '
+                                          'and benefit plan')
+        self.label_mid_small(1.5, 33.25, 'administration, statistical compilations and operating programs and '
+                                         'activities as required by the university policies. The information on this '
+                                         'form is disclosed to government')
+        self.label_mid_small(1.5, 29.875, 'agencies as required by the government acts. Your banking information is '
+                                          'disclosed to financial institutions for the purpose of direct deposit. '
+                                          'In accordance with the')
+        self.label_mid_small(1.5, 26.5, 'financial information act of BC, your name and remuneration is public '
+                                        'information and may be published.')
+        self.label_small(1.5, 22, 'If you have any questions about the collection and use of this information, please '
+                                  'contact the Simon Fraser University payroll supervisor.')
+        self.label_mid(0.5, 6, 'ORIGINAL: DEAN')
+        self.label_mid(28, 6, 'COPY: EMPLOYEE')
+        self.label_mid(58, 6, 'COPY: PAYROLL')
+        self.label_mid(86, 6, 'COPY: DEPARTMENT')
+
+        self.subscript_small_label_bold(0, 0, 'Sessional instructor TSSU v4 update April 2015 - Generated by ' + product_name(hint='admin'))
 
 
 
+        # All done, show the page
+        self.c.showPage()
 
 
-
-
-
+def sessional_form(contract, outfile):
+    doc = SessionalForm(outfile)
+    doc.draw_form(contract)
+    doc.save()

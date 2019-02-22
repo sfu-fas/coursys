@@ -1,8 +1,9 @@
 from django.conf import settings
 from courselib.svn import update_repository
-from coredata.management.commands import backup_db
-from celery.task import task, periodic_task
+from django.core.management import call_command
+from courselib.celerytasks import task, periodic_task
 from celery.schedules import crontab
+from coredata.models import Role
 
 # file a periodic task will leave, and the maximum age we'd be happy with
 BEAT_TEST_FILE = '/tmp/celery_beat_test'
@@ -12,34 +13,43 @@ BEAT_FILE_MAX_AGE = 1200
 import sys
 sys.setrecursionlimit(10000)
 
-from celery import Celery
-app = Celery()
-app.config_from_object(settings)
-
 @task(rate_limit="30/m", max_retries=2)
 def update_repository_task(*args, **kwargs):
     return update_repository(*args, **kwargs)
 
 
-
 # system tasks
 
-@app.task(bind=True, queue='fast')
-def ping(self): # used to check that celery is alive
+@task(queue='fast')
+def ping(): # used to check that celery is alive
     return True
 
 # a periodic job that has enough of an effect that we can see celerybeat working
 # (checked by ping_celery management command)
 @periodic_task(run_every=crontab(minute='*/5', hour='*'))
 def beat_test():
-    with file(BEAT_TEST_FILE, 'w') as fh:
+    with open(BEAT_TEST_FILE, 'w') as fh:
         fh.write('Celery beat did things on %s.\n' % (datetime.datetime.now()))
 
+
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
-def backup_database():
+def regular_backup():
     if settings.DO_IMPORTING_HERE:
         # if we're not on the "real" database, then don't bother with regular backups
-        backup_db.Command().handle(clean_old=True)
+        (backup_database.si() | backup_to_remote.si()).apply_async()
+
+
+@task()
+def backup_database():
+    call_command('backup_db', clean_old=True)
+
+
+@task()
+def backup_to_remote():
+    return
+    call_command('backup_remote')
+
+
 
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
 def check_sims_connection():
@@ -50,21 +60,21 @@ def check_sims_connection():
         raise SIMSProblem("Didn't get any data back from SIMS query.")
 
 
+@periodic_task(run_every=crontab(minute='30', hour='7', day_of_week='mon,thu'))
+def expiring_roles():
+    if settings.DO_IMPORTING_HERE:
+        Role.warn_expiring()
+    Role.purge_expired()
 
 
 
-
-
-
-
-
+import logging
+logger = logging.getLogger(__name__)
 
 
 # daily import tasks
 
 from django.conf import settings
-from django.core.management import call_command
-from djcelery.models import TaskMeta
 from coredata.models import CourseOffering, Member
 from dashboard.models import NewsItem
 from log.models import LogEntry
@@ -82,11 +92,11 @@ def _grouper(iterable, n):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
-    groups = itertools.izip_longest(fillvalue=None, *args)
+    groups = itertools.zip_longest(fillvalue=None, *args)
     return ((v for v in grp if v is not None) for grp in groups)
 
 
-@periodic_task(run_every=crontab(minute='0', hour='8'))
+@periodic_task(run_every=crontab(minute='30', hour='8'))
 def daily_import():
     """
     Start the daily import work.
@@ -104,7 +114,7 @@ def import_task():
     """
     Enter all of the daily import tasks into the queue, where they can grind away from there.
 
-    The import is broken up into tasks for a few reasons: it can be paused by stopping the sims queue if necssary;
+    The import is broken up into tasks for a few reasons: it can be paused by stopping the sims queue if necessary;
     works around the celery task time limit.
     """
     if not settings.DO_IMPORTING_HERE:
@@ -117,6 +127,8 @@ def import_task():
         import_grads.si(),
         get_update_grads_task(),
         import_offerings.si(continue_import=True),
+        import_semester_info.si(),
+        import_active_grad_gpas.si(),
         #get_import_offerings_task(),
         #import_combined_sections.si(),
         #send_report.si()
@@ -176,6 +188,7 @@ def import_offerings(continue_import=False):
     if continue_import:
         #import_combined_sections.apply_async()
         tasks = tasks | import_combined_sections.si()
+        tasks = tasks | import_joint.si()
 
     logger.info('Starting offering subtasks')
     tasks.apply_async()
@@ -203,7 +216,7 @@ def get_import_offerings_tasks():
     return offering_import_chain
 
 from requests.exceptions import Timeout
-@app.task(bind=True, queue='sims', default_retry_delay=300)
+@task(bind=True, queue='sims', default_retry_delay=300)
 def import_offering_group(self, slugs):
     offerings = CourseOffering.objects.filter(slug__in=slugs)
     for o in offerings:
@@ -221,9 +234,9 @@ def import_combined_sections():
     importer.import_combined()
 
 @task(queue='sims')
-def combine_sections():
-    logger.info('Combining locally-combined sections')
-    importer.combine_sections(importer.get_combined())
+def import_joint():
+    logger.info('Importing joint offerings from SIMS')
+    importer.import_joint()
 
 @task(queue='sims')
 def import_semester_info():
@@ -236,11 +249,13 @@ def daily_cleanup():
     # cleanup sessions table
     call_command('clearsessions')
     # cleanup old news items
-    NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=120)).delete()
+    NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=365)).delete()
     # cleanup old log entries
-    LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=240)).delete()
+    LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=365)).delete()
     # cleanup old official grades
     Member.clear_old_official_grades()
-    # cleanup old celery tasks
-    TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=2)).delete()
 
+@task(queue='sims')
+def import_active_grad_gpas():
+    logger.info('Importing active grad GPAs')
+    importer.import_active_grads_gpas()

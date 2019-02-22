@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ('title', models.CharField(max_length=60)),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
                 ('hidden', models.BooleanField(default=False)),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['account_number'],
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                 ('fund_number', models.PositiveIntegerField()),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
                 ('hidden', models.BooleanField(default=False)),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['project_number'],
@@ -70,12 +70,12 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('deleted', models.BooleanField(default=False)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('account', models.ForeignKey(to='ra.Account')),
-                ('hiring_faculty', models.ForeignKey(related_name='ra_hiring_faculty', to='coredata.Person', help_text=b'The manager who is hiring the RA.')),
-                ('person', models.ForeignKey(related_name='ra_person', to='coredata.Person', help_text=b'The RA who is being appointed.')),
-                ('project', models.ForeignKey(to='ra.Project')),
-                ('scholarship', models.ForeignKey(blank=True, to='grad.Scholarship', help_text=b'Scholarship associated with this appointment. Optional.', null=True)),
-                ('unit', models.ForeignKey(help_text=b'The unit that owns the appointment', to='coredata.Unit')),
+                ('account', models.ForeignKey(to='ra.Account', on_delete=models.CASCADE)),
+                ('hiring_faculty', models.ForeignKey(related_name='ra_hiring_faculty', to='coredata.Person', help_text=b'The manager who is hiring the RA.', on_delete=models.CASCADE)),
+                ('person', models.ForeignKey(related_name='ra_person', to='coredata.Person', help_text=b'The RA who is being appointed.', on_delete=models.CASCADE)),
+                ('project', models.ForeignKey(to='ra.Project', on_delete=models.CASCADE)),
+                ('scholarship', models.ForeignKey(blank=True, to='grad.Scholarship', help_text=b'Scholarship associated with this appointment. Optional.', null=True, on_delete=models.CASCADE)),
+                ('unit', models.ForeignKey(help_text=b'The unit that owns the appointment', to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['person', 'created_at'],
@@ -87,8 +87,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('semester', models.ForeignKey(to='coredata.Semester')),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('semester', models.ForeignKey(to='coredata.Semester', on_delete=models.CASCADE)),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
             },

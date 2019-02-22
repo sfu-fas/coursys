@@ -6,8 +6,9 @@
 
 {% block headextra %}
     <!-- Changes must also be applied to edit_field.html -->
+    {% if ftype == 'TEXT' %}{% include 'pages/markup_edit_head.html' %}{% endif %}
     {% if choices %}
-        <script type="text/javascript">
+        <script nonce="{{ CSP_NONCE }}">
             $(document).ready(function () {
 
                 var choice_count
@@ -61,16 +62,16 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-    <li><a href="{% url "onlineforms.views.list_all" %}">Edit Forms</a></li>
-    <li><a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
-    <li><a href="{% url "onlineforms.views.edit_sheet" form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a></li>
+<li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms:list_all" %}">Edit Forms</a></li>
+    <li><a href="{% url "onlineforms:view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+    <li><a href="{% url "onlineforms:edit_sheet" form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a></li>
     <li>New {{ type_description }}</li>
 {% endblock %}
 
 {% block content %}
     <div class="form_container">
-        <form action="{% url "onlineforms.views.new_field" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}"
+        <form action="{% url "onlineforms:new_field" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}"
               method="post">{% csrf_token %}
             <fieldset>
                 <legend>Field Information</legend>

@@ -1,13 +1,12 @@
 from django.db import models
 from django.conf import settings
 from coredata.models import Role, Person, Unit, ROLE_CHOICES
-from alerts.models import AlertType, Alert
 from courselib.json_fields import JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from dashboard.models import NewsItem
-from django.core.urlresolvers import reverse
-from cache import clear_cache
+from django.urls import reverse
+from .cache import clear_cache
 
 import datetime
 import os
@@ -17,8 +16,8 @@ import traceback
 import string
 import importlib
 
-from reportlib import DB2_Query
-from reportlib.table import Table
+from .reportlib import DB2_Query
+from .reportlib.table import Table
 
 REPORT_LOCATION = os.path.join( settings.BASE_DIR, 'reports', 'reportlib', 'reports' )
 
@@ -32,14 +31,13 @@ class Report(models.Model):
     description = models.TextField(help_text="Description of the report.", 
                                    null=True, blank=True)
 
-    alert = models.ForeignKey(AlertType, null=True)
     hidden = models.BooleanField(null=False, default=False)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def autoslug(self):
         return make_slug( self.name )
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, 
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False,
                          unique=True)
 
     def expired_schedule_rules(self):
@@ -62,16 +60,6 @@ class Report(models.Model):
         for query in queries:
             runs.append(query.run(manual=manual))
         
-        if self.alert:
-            for run in runs: 
-                for result in run.result_set.all():
-                    for row_map in result.table_rendered().row_maps():
-                        if 'EMPLID' in row_map:
-                            # for more complicated Alert handling, we need
-                            # to pass in actual unique_fields
-                            unique_fields = ["EMPLID"]
-                            Alert.create(row_map, self.alert, unique_fields)
-
         for rule in self.expired_schedule_rules():
             rule.set_next_run()
             rule.save()
@@ -92,12 +80,12 @@ class Report(models.Model):
     def failure_notification(self, failed_run):
         if failed_run.manual:
             return
-        every_sysadmin = [role.person for role in Role.objects.filter(role='SYSA')]
+        every_sysadmin = [role.person for role in Role.objects_fresh.filter(role='SYSA')]
         for sysadmin in every_sysadmin:
             n = NewsItem( user=sysadmin,
                             source_app='reports',
                             title="Failed Report: " + self.name, 
-                            url= reverse('reports.views.view_run', kwargs={'report':self.slug, 'run':failed_run.slug}),
+                            url= reverse('reports:can_access_report', kwargs={'report':self.slug, 'run':failed_run.slug}),
                             content= "A run has failed! \n" + self.description );
             n.save()
 
@@ -105,9 +93,9 @@ def all_reports():
     """
         Get a list of all of the available python hardcoded reports. 
     """
-    return [(thing, thing) for thing in os.listdir(REPORT_LOCATION) 
+    return sorted([(thing, thing) for thing in os.listdir(REPORT_LOCATION)
                                         if thing.endswith(".py") and 
-                                        not thing.startswith("__")]
+                                        not thing.startswith("__")])
 
 
 class ReportLoadingException( Exception ):
@@ -146,11 +134,11 @@ class HardcodedReport(models.Model):
         Represents a report that exists as a python file in 
         courses/reports/reportlib/reports
     """
-    report = models.ForeignKey(Report)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
     file_location = models.CharField(help_text="The location of this report, on disk.", 
         max_length=80, choices=all_reports(), null=False)
 
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def run(self, manual=False):
@@ -180,11 +168,11 @@ class Query(models.Model):
     """ 
         A custom query developed by the user. 
     """
-    report = models.ForeignKey(Report)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
     name = models.CharField(max_length=150, null=False)
     query = models.TextField()
     
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def run(self, manual=False):
@@ -213,19 +201,19 @@ class AccessRule(models.Model):
     """
         This person can see this report. 
     """
-    report = models.ForeignKey(Report)
-    person = models.ForeignKey(Person)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
     notify = models.BooleanField(null=False, default=False, 
         help_text="Email this person when a report completes.")
 
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def send_notification(self, run):
         n = NewsItem( user= self.person, 
                         source_app='reports',
                         title="Completed Run: " + self.report.name + " : " + run.slug, 
-                        url= reverse('reports.views.view_run', kwargs={'report':self.report.slug, 'run':run.slug}),
+                        url= reverse('reports:can_access_report', kwargs={'report':self.report.slug, 'run':run.slug}),
                         content= "You have a scheduled report that has completed! \n" + self.report.description );
         n.save()
 
@@ -296,7 +284,7 @@ class ScheduleRule(models.Model):
     """
     Run this Report at this time. 
     """
-    report = models.ForeignKey(Report)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
     schedule_type = models.CharField(max_length=3, 
                                      choices=SCHEDULE_TYPE_CHOICES,
                                      null=False,
@@ -304,7 +292,7 @@ class ScheduleRule(models.Model):
     last_run = models.DateTimeField(null=True) # the last time this ScheduleRule was run
     next_run = models.DateTimeField() # the next time to run this ScheduleRule
 
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def set_next_run(self):
@@ -333,14 +321,14 @@ def schedule_ping():
 
 
 class Run(models.Model): 
-    report = models.ForeignKey(Report)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=150, null=False)
     success = models.BooleanField(default=False)
     manual = models.BooleanField(default=False, help_text="Was this run requested manually (as opposed to scheduled)?")
     def autoslug(self):
         return make_slug( self.created_at )
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     
     def addLine(self, message):
         r = RunLine(run=self, description=message)
@@ -365,16 +353,16 @@ class RunLineLogger(object):
         self.run.addLine(x)
 
 class RunLine(models.Model):
-    run = models.ForeignKey(Run)
+    run = models.ForeignKey(Run, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     description = models.TextField()
 
 class Result(models.Model):
-    run = models.ForeignKey(Run)
+    run = models.ForeignKey(Run, on_delete=models.CASCADE)
     name = models.CharField(max_length=150)
     created_at = models.DateTimeField(auto_now_add=True)
-    table = JSONField(null=False, blank=False, default={})
-    config = JSONField(null=False, blank=False, default={})
+    table = JSONField(null=False, blank=False, default=dict)
+    config = JSONField(null=False, blank=False, default=dict)
 
     def autoslug(self):
         if self.name: 
@@ -382,7 +370,7 @@ class Result(models.Model):
         else: 
             return make_slug( self.id )
     
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     cached_table = None
     cached_summary = None

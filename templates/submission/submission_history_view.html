@@ -4,14 +4,21 @@
 {% block title %}Submission History for {{activity.name}}{% endblock %}
 {% block h1 %}Submission History for {{activity.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{course.name}}</a></li><li><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li><li><a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug %}">Submission</a></li><li>History</li>{% endblock %}
+{% block subbreadcrumbs %}
+<li><a href="{% url 'offering:course_info' course_slug=offering.slug %}">{{offering.name}}</a></li>
+<li><a href="{% url 'offering:activity_info' course_slug=offering.slug activity_slug=activity.slug %}">{{activity.name}}</a></li>
+<li><a href="{% url 'offering:submission:show_components' course_slug=offering.slug activity_slug=activity.slug %}">Submission</a></li>
+<li>History</li>{% endblock %}
 
 
 {% block content %}
+{% if submission_info.is_group %}
+<p class="infomessage">This is a group activity. This history is based on submissions from all group members.</p>
+{% endif %}
 
-<div id="submission_history_view_container">
-    {% for submission in submitted_components %}
-    <h2 id="submission-{{ submission.sub.id }}">Submission at {{submission.sub.created_at|date:"Y-m-d H:i:s"}} {%if activity.group%} by {{submission.sub.creator.person.name}}{%endif%}</h2>
+    {% for submission, subcomps in submission_info.submissions_and_components %}
+    <h2 id="submission-{{ submission.id }}">Submission at {{submission.created_at|date:"Y-m-d H:i:s"}}
+        {% if submission_info.is_group %} by {{submission.creator.person.name}}{% endif %}</h2>
         <table>
         <tbody>
             <tr>
@@ -19,20 +26,20 @@
                 <th>Download</th>
                 <th>Size</th>
             </tr>
-        {% for comp in submission.comp %}
+        {% for comp, subcomp in subcomps %}
             <tr>
-                <th scope="row">{{comp.0.title}}</th>
+                <th scope="row">{{comp.title}}</th>
                 <td>
-                    {% if comp.1 %}
-                        <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug component_slug=comp.0.slug submission_id=submission.sub.id %}">
+                    {% if subcomp %}
+                        <a href="{% url 'offering:submission:download_file' course_slug=offering.slug activity_slug=activity.slug component_slug=comp.slug submission_id=submission.id %}">
                         <i class="fa fa-download"></i> Download</a>
                     {% else %}
                         &mdash;
                     {% endif %}
                 </td>
                 <td>
-                    {% if comp.1.get_size %}
-                        {{comp.1.get_size|filesizeformat}}
+                    {% if subcomp.get_size %}
+                        {{subcomp.get_size|filesizeformat}}
                     {% else %}
                         &mdash;
                     {% endif %}
@@ -42,7 +49,6 @@
         </tbody>
         </table>
     {% endfor %}
-</div>
 
 
 

@@ -1,7 +1,7 @@
-import urlparse
+import urllib.parse
 import oauth2 as oauth
 import requests
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 REQUEST_TOKEN_URL = 'http://localhost:8000/api/oauth/request_token/'
 AUTHORIZE_TOKEN_URL = 'http://localhost:8000/api/oauth/authorize/'
@@ -18,17 +18,17 @@ def get_request_token(with_callback=True):
     oauth_request.sign_request(oauth.SignatureMethod_HMAC_SHA1(), consumer, None)
 
     response = requests.get(REQUEST_TOKEN_URL, headers=oauth_request.to_header())
-    request_token = dict(urlparse.parse_qsl(response.content))
+    request_token = dict(urllib.parse.parse_qsl(response.content))
     return request_token
 
 def authorize_token(request_token):
-    url = AUTHORIZE_TOKEN_URL + '?' + urllib.urlencode({'oauth_token': request_token['oauth_token']})
+    url = AUTHORIZE_TOKEN_URL + '?' + urllib.parse.urlencode({'oauth_token': request_token['oauth_token']})
     return url
 
 req_token = get_request_token(False)
 url = authorize_token(req_token)
 
-print "Please visit:"
-print url
-print "...then use with this request token and secret, and the verifier you are given:"
-print req_token['oauth_token'], req_token['oauth_token_secret']
+print("Please visit:")
+print(url)
+print("...then use with this request token and secret, and the verifier you are given:")
+print(req_token['oauth_token'], req_token['oauth_token_secret'])

@@ -20,9 +20,9 @@ def find_true_home(obj, dry_run):
     old_gs = obj.student
     new_gss = list(GradStudent.objects.filter(person=old_gs.person, program=old_gs.program, config__contains=SIMS_SOURCE))
     if len(new_gss) > 2:
-        raise ValueError, "Multiple matches for %s %s: please fix manually" % (old_gs.slug, obj.__class__.__name__)
+        raise ValueError("Multiple matches for %s %s: please fix manually" % (old_gs.slug, obj.__class__.__name__))
     elif len(new_gss) == 0:
-        raise ValueError, "No match for %s %s: please fix manually" % (old_gs.slug, obj.__class__.__name__)
+        raise ValueError("No match for %s %s: please fix manually" % (old_gs.slug, obj.__class__.__name__))
 
     new_gs = new_gss[0]
     obj.student = new_gs
@@ -48,7 +48,7 @@ def rogue_gradstudents(unit_slug, dry_run, verbosity):
     for GradModel in [GradProgramHistory, GradStatus, Supervisor]:
         res = [s.student.slug for s in GradModel.objects.filter(student__in=gs_unco) if SIMS_SOURCE in s.config]
         if res:
-            raise ValueError, 'Found an unconfirmed %s for %s, who is rogue.' % (GradModel.__name__, s.student.slug)
+            raise ValueError('Found an unconfirmed %s for %s, who is rogue.' % (GradModel.__name__, s.student.slug))
 
     # do they have any other data entered manually?
     for GradModel in [CompletedRequirement, Letter, Scholarship, OtherFunding, Promise, FinancialComment, GradFlagValue, ProgressReport, ExternalDocument]:
@@ -60,7 +60,7 @@ def rogue_gradstudents(unit_slug, dry_run, verbosity):
 
     for gs in gs_unco:
         if verbosity:
-            print "Soft-deleting %s." % (gs.slug)
+            print("Soft-deleting %s." % (gs.slug))
         if not dry_run:
             gs.current_status = 'DELE'
             gs.save()
@@ -82,7 +82,7 @@ def rogue_leaves(unit_slug, dry_run, verbosity):
     students = sorted(list(set([s.student for s in statuses])), key=lambda s: s.slug)
     for gs in students:
         if verbosity:
-            print "Removing on-leave status(es) for %s." % (gs.slug)
+            print("Removing on-leave status(es) for %s." % (gs.slug))
 
         if not dry_run:
             gs.update_status_fields()

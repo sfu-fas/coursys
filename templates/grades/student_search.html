@@ -3,7 +3,7 @@
 {% block title %}Student Search{% endblock %}
 {% block h1 %}Student Search{% endblock %}
 
-{% block headextra %}<script type="text/javascript">
+{% block headextra %}<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   document.getElementById("id_search").focus();
 });

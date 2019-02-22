@@ -12,7 +12,7 @@
       float: right;
     }
 </style>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#teaching_event_table').dataTable( {
     'bPaginate': false,
@@ -29,8 +29,13 @@ $(document).ready(function() {
   <h2>Actions</h2>
   <ul class="fa-ul">
     <li>
-      <a href="{% url 'faculty.views.teaching_summary_csv' userid=person.userid_or_emplid %}?start_semester={{ start_code }}&amp;end_semester={{ end_code }}">
+      <a href="{% url 'faculty:teaching_summary_csv' userid=person.userid_or_emplid %}?start_semester={{ start_code }}&amp;end_semester={{ end_code }}">
         <i class="fa fa-li fa-download"></i> Download CSV
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'faculty:teaching_summary_csv' userid=person.userid_or_emplid %}?start_semester={{ start_code }}&amp;end_semester={{ end_code }}&amp;exclude_events=True">
+        <i class="fa fa-li fa-download"></i> Download CSV without events
       </a>
     </li>
   </ul>
@@ -38,13 +43,13 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
-<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url "faculty:index" %}">Faculty</a></li>
+<li><a href="{% url "faculty:summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
 <li>Teaching Summary</li>
 {% endblock %}
 
 {% block content %}
-<form class="noprint" action="{% url 'faculty.views.teaching_summary' userid=person.userid_or_emplid %}" method="GET">
+<form class="noprint" action="{% url 'faculty:teaching_summary' userid=person.userid_or_emplid %}" method="GET">
   {{ form.as_p }}
   <input type="submit" value="Select" />
 </form>
@@ -60,19 +65,22 @@ $(document).ready(function() {
       <th scope="col">Semester</th>
       <th scope="col">Course/Event</th>
       <th scope="col">Credits</th>
+      <th scope="col">Enrollment</th>
     </tr></thead>
     <tbody>
-    {% for semester, course, summary, credits, reason, event in events %}
+    {% for semester, course, summary, credits, reason, enrl, event in events %}
     <tr>
       <td>{{ semester }}</td>
       {% if event %}
         <td><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</a></td>
         <td>{{ credits }}</td>
+        <td>{{ enrl }}</td>
       {% else %}
         <td>{{ course.offering.name }} ({{summary}})</td>
         <td><span class="sort">{{ credits|floatformat:'3' }}</span>
-          <a title='Edit' href="{% url 'faculty.views.teaching_credit_override' userid=person.userid_or_emplid course_slug=course.offering.slug %}">{{ credits }}</a>
+          <a title='Edit' href="{% url 'faculty:teaching_credit_override' userid=person.userid_or_emplid course_slug=course.offering.slug %}">{{ credits }}</a>
           {% if reason %}({{ reason }}){% endif %}
+        <td>{{ enrl }}</td>
         </td>
       {% endif %}
     </tr>

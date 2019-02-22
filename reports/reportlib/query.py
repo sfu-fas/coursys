@@ -7,7 +7,7 @@ import pytz
 import os
 import string
 
-from table import Table
+from .table import Table
 
 from django.conf import settings
 
@@ -224,7 +224,7 @@ class LocalDBQuery(Query):
         results_table = Table()
         qs = list(self.query_values)
 
-        cols = qs[0].keys()
+        cols = list(qs[0].keys())
         for k in cols:
             results_table.append_column(self.field_map.get(k, k))
 

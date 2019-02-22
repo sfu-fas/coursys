@@ -156,6 +156,33 @@ function get_person_info(emplid) {
 	})
 }
 
+var table;
+
+function handle_form_change() {
+  table.fnDraw();
+}
+
+function ra_browser_setup(my_url) {
+  $('#filterform label[for=id_current]').css('display', 'inline');
+  table = $('#ra_table').dataTable( {
+    'jQueryUI': true,
+    'pagingType': 'full_numbers',
+    'pageLength' : 20,
+    'processing': true,
+    'serverSide': true,
+    'sAjaxSource': my_url + '?tabledata=yes',
+    'fnServerData': function ( sSource, aoData, fnCallback ) {
+      // check and honour the filter flag
+      if ( $('#id_current').is(':checked') ) {
+        aoData.push( { "name": "current", "value": "yes" } );
+      }
+      $.getJSON( sSource, aoData, function (json) {
+        fnCallback(json);
+      } );
+    },
+  } );
+  $('#filterform').change(handle_form_change);
+}
 
 $(document).ready(function() {
   name_label = document.createElement("span");
@@ -176,8 +203,10 @@ $(document).ready(function() {
   $("#id_person").change(update_person);
   $("#id_start_date").change(update_pay_periods);
   $("#id_end_date").change(update_pay_periods);
-  update_pay_periods();
-  if ( emplid ) {
+  if ( typeof payperiods_url !== 'undefined' ) {
+    update_pay_periods();
+  }
+  if ( typeof emplid !== 'undefined' ) {
   	get_person_info(emplid);
   }
 });

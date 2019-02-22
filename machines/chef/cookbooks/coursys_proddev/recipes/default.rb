@@ -5,11 +5,11 @@
 package "mysql-server"
 
 execute "create database" do 
-    command "echo \"create database if not exists coursys_db;\" | mysql"
+    command "echo \"create database if not exists coursys_db DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_bin;\" | mysql"
 end
 
 execute "create database" do 
-    command "echo \"create database if not exists test_coursys_db;\" | mysql"
+    command "echo \"create database if not exists test_coursys_db DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_bin;\" | mysql"
 end
 
 execute "grant privileges" do 
@@ -72,7 +72,7 @@ execute "rabbit add_vhost" do
 end
 
 execute "chown static" do
-    command "chown -R vagrant /home/coursys/static"
+    command "chown -R coursys /home/coursys/static"
 end
 
 execute "rabbit set_permissions" do
@@ -86,6 +86,9 @@ end
 #    command "make create_db"
 #end
 
+service "nginx" do
+  action :restart
+end
 execute "restart gunicorns" do
-    command "restart gunicorn"
+    command "systemctl restart gunicorn"
 end

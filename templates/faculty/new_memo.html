@@ -4,7 +4,7 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
-<script type="text/javascript">//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">//<![CDATA[
     function getData(url) {
       $.ajax({
         type : "GET",
@@ -21,7 +21,7 @@
     });
 
     {% if not notemplate %}
-    url = '{% url "faculty.views.get_memo_text" userid=person.userid_or_emplid event_slug=event.slug memo_template_id=template.id %}'
+    url = '{% url "faculty:get_memo_text" userid=person.userid_or_emplid event_slug=event.slug memo_template_id=template.id %}'
     getData(url);
     {% endif %}
 
@@ -35,9 +35,9 @@
 {% block h1 %}New {{ template.label|title }} Memo{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
-<li><a href="{% url 'faculty.views.summary' userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
-<li><a href="{% url 'faculty.views.view_event' userid=person.userid_or_emplid event_slug=event.slug %}">{{ event.handler_type_name }}</a></li>
+<li><a href="{% url 'faculty:index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty:summary' userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url 'faculty:view_event' userid=person.userid_or_emplid event_slug=event.slug %}">{{ event.handler_type_name }}</a></li>
 <li>New {{ template.label|title }} Memo</li>
 {% endblock %}
 

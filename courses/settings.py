@@ -1,4 +1,5 @@
 from django.conf import global_settings # Django defaults so we can modify them
+from django.urls import reverse_lazy
 import socket, sys, os
 hostname = socket.gethostname()
 
@@ -31,8 +32,6 @@ else:
 #print "DEPLOY_MODE: ", DEPLOY_MODE
 
 DEBUG = DEPLOY_MODE != 'production'
-TEMPLATE_DEBUG = DEBUG
-
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.append( BASE_DIR )
@@ -50,19 +49,20 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.humanize',
     'django.contrib.sessions',
-    #'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'south',
     'compressor',
     'haystack',
-    'djcelery',
     'djcelery_email',
+    'django_celery_beat',
     'featureflags',
-    'django_nose',
     'rest_framework',
     'oauth_provider',
     'rest_framework_swagger',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'django_otp.plugins.otp_static',
+    'otp',
 
     'coredata',
     'dashboard',
@@ -72,39 +72,54 @@ INSTALLED_APPS = (
     'log',
     'groups',
     'submission',
-    #'planning',
     'discipline',
     'ta',
     'pages',
     'ra',
     'advisornotes',
-    'alerts',
     'reports',
     'discuss',
-    #'booking',
-    #'techreq',
     'onlineforms',
     'faculty',
-    'gpaconvert',
     'tacontracts',
     'api',
     'visas',
+    'outreach',
+    'sessionals',
+    'inventory',
+    'relationships',
+    'space',
+    'reminders',
 )
-MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
+MIDDLEWARE = [
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'otp.middleware.Authentication2FAMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'courselib.middleware.ExceptionIgnorer',
     'django_cas.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
-)
-TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR, 'templates'),
-)
-TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
-    'dashboard.context.media',
-)
+    'courselib.csp.CSPMiddleware',
+]
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'dashboard.context.media',
+                'courselib.csp.context_processor']},
+    },
+]
+
 AUTHENTICATION_BACKENDS = (
     'django_cas.backends.CASBackend',
 )
@@ -114,9 +129,8 @@ OAUTH_SIGNATURE_METHODS = ['hmac-sha1',]
 OAUTH_UNSAFE_REDIRECTS = True
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        #'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.OAuthAuthentication',
+        'rest_framework_oauth.authentication.OAuthAuthentication',
     )
 }
 SWAGGER_SETTINGS = { "api_version": '1' }
@@ -131,22 +145,26 @@ USE_I18N = False
 USE_L10N = False
 USE_TZ = False
 FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
-#TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-NOSE_ARGS = ['--exe',
-            '--with-progressive',
-            '--progressive-editor=vim',
-            '--with-timer',
-            '--with-fixture-bundling',
-            '--timer-top-n=10',
-            '--exclude=(test_views|basic_page_tests|get_test_file|test_auth|create_test_offering|field_test)']
+
+# Disable migrations only when running tests.
+if 'test' in sys.argv[1:]:
+    MIGRATION_MODULES = {}
+    for m in INSTALLED_APPS:
+        MIGRATION_MODULES[m] = None
 
 # security-related settings
-ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca'])
-SESSION_COOKIE_AGE = 86400 # 24 hours
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca', 'coursys.sfu.ca', 'fasit.sfu.ca'])
+if DEBUG:
+    ALLOWED_HOSTS.append('localhost')
+
+SESSION_COOKIE_AGE = 1209600 # 2 weeks
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
+
+PASSWORD_AUTH_AGE = 7*24*3600 # 1 week
+TWOFACTOR_AUTH_AGE = 31*24*3600 # 1 month
 
 # database config
 if DEPLOY_MODE in ['production', 'proddev']:
@@ -154,9 +172,18 @@ if DEPLOY_MODE in ['production', 'proddev']:
         'default': {
             'ENGINE': 'django.db.backends.mysql',
             #'CONN_MAX_AGE': 360,
-            'OPTIONS': {"init_command": "SET storage_engine=INNODB;"} # actually needed only for initial table creation
+            'OPTIONS': {
+                "init_command": "SET default_storage_engine=INNODB, character_set_client=utf8mb4, character_set_connection=utf8mb4, character_set_results=utf8mb4, collation_connection=utf8mb4_unicode_ci, collation_server=utf8mb4_unicode_ci;",
+                'charset': 'utf8mb4',
+            }
         }
     }
+
+    # Celery (and other long-idle manage.py tasks) can't have CONN_MAX_AGE set. Only set for gunicorn processes.
+    # See https://code.djangoproject.com/ticket/21597
+    gunicorn_process = 'SERVER_SOFTWARE' in os.environ and os.environ['SERVER_SOFTWARE'].startswith('gunicorn/')
+    if gunicorn_process:
+        DATABASES['default']['CONN_MAX_AGE'] = 3600
 
     if DEPLOY_MODE == 'proddev':
         DATABASES['default'].update({
@@ -169,6 +196,9 @@ if DEPLOY_MODE in ['production', 'proddev']:
 
     DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
     DATABASES['default'].update(getattr(secrets, 'DB_CONNECTION', {}))
+    if getattr(secrets, 'MORE_DATABASES', None):
+        DATABASES.update(secrets.MORE_DATABASES)
+
     INSTALLED_APPS = INSTALLED_APPS + ('dbdump',)
 
 else:
@@ -243,11 +273,11 @@ HAYSTACK_CONNECTIONS = getattr(localsettings, 'HAYSTACK_CONNECTIONS', HAYSTACK_C
 
 # things only relevant to the true production environment
 if DEPLOY_MODE == 'production':
-    MIDDLEWARE_CLASSES = ('courselib.middleware.MonitoringMiddleware',) + MIDDLEWARE_CLASSES
+    MIDDLEWARE = ['courselib.middleware.MonitoringMiddleware'] + MIDDLEWARE
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SUBMISSION_PATH = '/data/submitted_files'
-    BASE_ABS_URL = "https://courses.cs.sfu.ca"
+    BASE_ABS_URL = "https://coursys.sfu.ca"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
     SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS'),
             'db': 'coursesvn', 'port': 4000}
@@ -262,34 +292,33 @@ else:
 
 
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
-USE_CELERY = getattr(localsettings, 'USE_CELERY', True)
+USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
 if USE_CELERY:
-    os.environ["CELERY_LOADER"] = "django"
+    AMPQ_PASSWORD = getattr(secrets, 'AMPQ_PASSWORD', 'supersecretpassword')
     if DEPLOY_MODE != 'devel' or getattr(localsettings, 'DEPLOYED_CELERY_SETTINGS', False):
         # use AMPQ in production, and move email sending to Celery
-        AMPQ_PASSWORD = getattr(secrets, 'AMPQ_PASSWORD', 'supersecretpassword')
-        BROKER_URL = getattr(secrets, 'BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
-        CELERY_RESULT_BACKEND = 'amqp'
+        CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
+        CELERY_RESULT_BACKEND = 'rpc://'
         CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
     else:
-        # use Kombo (aka the Django database) in devel
-        BROKER_URL = getattr(secrets, 'BROKER_URL', "django://")
-        CELERY_RESULT_BACKEND = 'djcelery.backends.database.DatabaseBackend'
-        INSTALLED_APPS = INSTALLED_APPS + ("kombu.transport.django",)
+        CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', "amqp://guest:guest@localhost:5672/")
+        CELERY_RESULT_BACKEND = 'rpc://'
+        CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
 
     CELERY_EMAIL = getattr(localsettings, 'CELERY_EMAIL', DEPLOY_MODE != 'devel')
     if CELERY_EMAIL:
         CELERY_EMAIL_BACKEND = EMAIL_BACKEND
         EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
-    
-    CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
+
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
-    CELERY_BEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+    CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+    CELERYD_TASK_SOFT_TIME_LIMIT = 1200
+    CELERY_ENABLE_UTC = True
 
-    CELERY_DEFAULT_QUEUE = 'batch'
-    CELERY_QUEUES = { # any new queues should be reflected in the /etc/defaults/celery setup
+    CELERY_TASK_DEFAULT_QUEUE = 'batch'
+    CELERY_TASK_QUEUES = { # any new queues should be reflected in the /etc/defaults/celery setup
         'batch': {}, # possibly-slow batch-mode tasks
         'email': {}, # email sending
         'fast': {}, # only jobs that need to run soon, and finish quickly should go in this queue
@@ -303,23 +332,31 @@ if USE_CELERY:
         'serializer': 'pickle', # email objects aren't JSON serializable
     }
 
-if hasattr(localsettings, 'BROKER_URL'):
-    BROKER_URL = localsettings.BROKER_URL
-
 
 MAX_SUBMISSION_SIZE = 30000 # kB
 CAS_SERVER_URL = "https://cas.sfu.ca/cas/"
 CAS_VERSION = '2'
 EMAIL_HOST = 'localhost'
-DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
+DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
 SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')
 SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')
 SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
-AMAINT_DB_PASSWORD = getattr(secrets, 'AMAINT_DB_PASSWORD', '')
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
+
+#PIWIK_URL = getattr(secrets, 'PIWIK_URL', None)
+#PIWIK_TOKEN = getattr(secrets, 'PIWIK_TOKEN', None)
+#PIWIK_SITEID = getattr(secrets, 'PIWIK_SITEID', 1)
+#PIWIK_CELERY = USE_CELERY
+#PIWIK_CELERY_TASK_KWARGS = {'queue': 'batch', 'rate_limit': '5/s', 'max_retries': 6, 'default_retry_delay': 600}
+#PIWIK_FAIL_SILENTLY = True
+#PIWIK_FORCE_HOST = 'courses.cs.sfu.ca'
+
+BACKUP_REMOTE_URL = getattr(secrets, 'BACKUP_REMOTE_URL', None)
+BACKUP_KEY_ID = getattr(secrets, 'BACKUP_KEY_ID', None)
+BACKUP_KEY_PASSPHRASE = getattr(secrets, 'BACKUP_KEY_PASSPHRASE', None)
 
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
@@ -328,9 +365,11 @@ SHORT_DATETIME_FORMAT = "N d Y, H:i"
 GRAD_DATE_FORMAT = "m/d/Y"
 GRAD_DATETIME_FORMAT = "m/d/Y H:i"
 
-LOGIN_URL = "/login/"
-LOGOUT_URL = "/logout/"
+PASSWORD_LOGIN_URL = reverse_lazy('dashboard:login')
+LOGIN_URL = reverse_lazy('otp:login_2fa')
+LOGOUT_URL = reverse_lazy('dashboard:logout')
 LOGIN_REDIRECT_URL = "/"
+
 DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', False)
 DO_IMPORTING_HERE = getattr(localsettings, 'DO_IMPORTING_HERE', False)
 
@@ -346,12 +385,10 @@ LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_logg
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
-if DEPLOY_MODE != 'production' or DEBUG or hostname != 'courses':
+if (DEPLOY_MODE != 'production' or DEBUG) and hostname != 'courses':
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
-    MIDDLEWARE_CLASSES = list(MIDDLEWARE_CLASSES)
-    MIDDLEWARE_CLASSES.remove('django_cas.middleware.CASMiddleware')
-    MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
-    LOGIN_URL = "/fake_login"
+    MIDDLEWARE.remove('django_cas.middleware.CASMiddleware')
+    PASSWORD_LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', True)
 
@@ -363,16 +400,11 @@ if DEPLOY_MODE == 'production':
     REPORT_CACHE_CLEAR = True
 
 
-if getattr(localsettings, 'DEBUG_TOOLBAR', False):
+DEBUG_TOOLBAR = getattr(localsettings, 'DEBUG_TOOLBAR', False)
+if DEBUG_TOOLBAR:
     INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
-    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+    MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    INTERNAL_IPS = getattr(localsettings, 'INTERNAL_IPS', [])
     #DEBUG_TOOLBAR_CONFIG = {
     #    'INTERCEPT_REDIRECTS': False,
     #}
-
-#try:
-#    from local_settings import *
-#except ImportError:
-#    pass
-
-#DEBUG=False

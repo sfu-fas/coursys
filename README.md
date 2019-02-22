@@ -2,6 +2,8 @@
 CourSys
 =======
 
+[![Build Status](https://travis-ci.org/sfu-fas/coursys.svg?branch=master)](https://travis-ci.org/sfu-fas/coursys)
+
 ## Getting Started
 
 See [SETUP.md](instructions/SETUP.md) for instructions to get a development environment set up.
@@ -123,8 +125,8 @@ See `/advisornotes/models.py` for an example:
             return make_slug(self.unit.label + '-' + self.name)
         
         slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
-        unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False)
-        config = JSONField(null=False, blank=False, default={})  # additional configuration stuff:
+        unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False, on_delete=models.PROTECT)
+        config = JSONField(null=False, blank=False, default=dict)  # additional configuration stuff:
 
 Here we're automatically making a slug out of the Artifact's unit (CMPT) 
 and name - "cmpt-thingamajigger".
@@ -244,7 +246,7 @@ a Calendar, rather than just a standard text field.
 We can solve that first problem by adding `editable=False` as one of the arguments
 to config in the Model: 
         
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
 
 With that in place, config won't show up in any ModelFields. 
 
@@ -286,6 +288,31 @@ http://twoscoopspress.com/products/two-scoops-of-django-1-6 :
 
 Wherever possible, test your application in *yourapp*/tests.py
 
+### Code Standards
+
+These are expected of all code in the system:
+
+* All actions that modify the database should be logged with a new `log.models.LogEntry` object.
+* All views should have an appropriate permissions decorator (like `@requires_course_staff_by_slug`). If not, then be very careful when checking permission in the code.
+* Where possible, create unit tests in `app/tests.py`. Check that the unit tests pass before committing changes.
+* Have a look at the [Style Guide for Python](https://www.python.org/dev/peps/pep-0008/) and try to follow it as much as possible.
+    * If you like to use an IDE, [PyCharm](https://www.jetbrains.com/pycharm/), which has free licenses for students/educational staff, it will check for PEP 0008 compliance for you
+
+### Coursys vs Courses
+**CourSys** (the system) is located at courses.cs.sfu.ca
+
+The codebase is located in a folder called 'courses'. Moving it will cause things to break.
+
+It's confusing, I know.
+
+As an attempt to clarify the nomenclature:
+
+**"Coursys"** is the Brand Name of the system. Use it when describing the system. This is the displayed name of the system.
+
+**"courses"** is the name of the codebase and core libraries.
+
+So, you check out and build **courses**, which gives you a running instance of **CourSys**.
+
 Table of Contents
 -----------------
 
@@ -309,10 +336,13 @@ Here is a quick description of what is in the project:
 * discuss: discussion forum for course offerings
 * pages: wiki-like course web pages
 * onlineforms: configurable and fillable online forms
-* alerts: automated student problem alerts
-* planning: planning of courses, assigning instructors, etc.
-* techreq: collection of technical requirements for courses (incomplete and disabled)
-* booking: booking system for advisors (incomplete and disabled)
+* visas: Visa management for grads and whoever else we want to manually manage
+* oldcode:  Dead/unused/unfinished code, including:
+    * alerts: automated student problem alerts (zombie code.  Not used at all anymore)
+    * planning: planning of courses, assigning instructors, etc. (incomplete and disabled).  This one will possibly get finished.
+    * techreq: collection of technical requirements for courses (incomplete and disabled)
+    * booking: booking system for advisors (incomplete and disabled)
+    * gpaconvert: GPA conversion code for grades from other places (incomplete and disabled)
 
 ### OTHER TOP-LEVEL FILES/DIRECTORIES
 * courselib: various library code for the system

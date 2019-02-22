@@ -2,7 +2,7 @@
 {% load course_display %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
 		// activate dataTable ui
 		oTable = $('#group_grades').dataTable({
@@ -51,11 +51,11 @@
   		  {% if mark_comps %}
 			<td class="iconcell">
 			{% ifequal group_grade_info.grade 'no grade'%}
-				<a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?from_page={{from_page}}"><i class="fa fa-edit" title="Mark"></i></a>
+				<a href="{% url "offering:submission:take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?from_page={{from_page}}"><i class="fa fa-edit" title="Mark"></i></a>
 			{% else %}
 			    {{ group_grade_info.grade }}
 			    {% if activity.is_numeric %}
-			    <a href="{% url "marking.views.mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}"><i class="fa fa-search" title="View detail"></i></a>
+			    <a href="{% url "offering:marking:mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}"><i class="fa fa-search" title="View detail"></i></a>
 			    {% endif %}
 			{% endifequal %}
 			</td>
@@ -64,8 +64,8 @@
 		  {% endif %}
 		    {% if sub_comps %}
 			<td class="iconcell">
-			{% if submitted|hash:group.slug %}<a href="{% url "submission.views.show_student_submission_staff" course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><i class="fa fa-search" title="View detail"></i></a>
-                <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><i class="fa fa-download" title="Download"></i></a>{% endif %}
+			{% if submitted|hash:group.slug %}<a href="{% url "offering:submission:show_student_submission_staff" course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><i class="fa fa-search" title="View detail"></i></a>
+                <a href="{% url "offering:submission:download_file" course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><i class="fa fa-download" title="Download"></i></a>{% endif %}
 			</td>
 		    {% else %}
 		    <td class="iconcell disabled"></td>

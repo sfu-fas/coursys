@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}Add Attachment: {{contract}}{% endblock %}
+{% block h1 %}Add Attachment: {{contract}}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'tacontracts:list_all_semesters' %}">Hiring Semesters</a></li>
+<li><a href="{% url 'tacontracts:list_all_contracts' unit_slug=unit_slug semester=semester %}">{{semester}}</a></li>
+<li><a href="{% url 'tacontracts:view_contract' unit_slug=unit_slug semester=semester contract_slug=contract_slug %}">{{contract}}</a></li>
+
+<li>Add Attachment</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+    <form action="{% url 'tacontracts:new_attachment' unit_slug=unit_slug semester=semester contract_slug=contract_slug %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset>
+            {{ attachment_form|as_dl }}
+            <p><input type="submit" class="submit" value="Create Attachment" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

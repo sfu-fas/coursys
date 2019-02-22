@@ -11,8 +11,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
-<li><a href="{% url 'faculty.views.summary' userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url 'faculty:index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty:summary' userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
 <li>{{ event.handler_type_name }}</li>
 {% endblock %}
 
@@ -20,14 +20,21 @@
 <div id="actions">
   <h2>Actions</h2>
   <ul>
-    {% if editor|can_edit:event %}<li><a href="{{ event.get_change_url }}">Edit event</a></li>{% endif %}
-    <li class="newsec"><a href="{% url 'faculty.views.new_attachment' userid=event.person.userid_or_emplid event_slug=event.slug %}">Add File Attachment</a></li>
-    <li><a href="{% url 'faculty.views.new_text_attachment' userid=event.person.userid_or_emplid event_slug=event.slug %}">Add Text Attachment</a></li>
+    {% if editor|can_edit:event %}
+        <li><a href="{{ event.get_change_url }}">Edit event</a></li>
+        <li class="newsec"><a href="{% url 'faculty:new_attachment' userid=event.person.userid_or_emplid event_slug=event.slug %}">Add File Attachment</a></li>
+        <li><a href="{% url 'faculty:new_text_attachment' userid=event.person.userid_or_emplid event_slug=event.slug %}">Add Text Attachment</a></li>
 
-    <li class="newsec"><a href="{% url 'faculty.views.new_memo_no_template' userid=person.userid_or_emplid event_slug=event.slug %}">New Memo (no template)</a></li>
-    {% for t in templates %}
-    <li><a href="{% url 'faculty.views.new_memo' userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=t.slug %}">New {{ t.label|title }} Memo</a></li>
-    {% endfor %}
+        <li class="newsec"><a href="{% url 'faculty:new_memo_no_template' userid=person.userid_or_emplid event_slug=event.slug %}">New Memo (no template)</a></li>
+        {% for t in templates %}
+            <li><a href="{% url 'faculty:new_memo' userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=t.slug %}">New {{ t.label }} Memo</a></li>
+        {% endfor %}
+        {% if handler.PDFS %}
+            {% for k in handler.PDFS %}
+                <li><a href="{% url 'faculty:generate_pdf' userid=person.userid_or_emplid event_slug=event.slug pdf_key=k %}">{{ handler.PDFS|get_item:k }}</a></li>
+            {% endfor %}
+        {% endif %}
+    {% endif %}
     </ul>
 </div>
 {% endblock %}
@@ -36,6 +43,11 @@
 <div class="careerevent">
 {{ handler.to_html }}
 </div>
+{% if handler.EXTRA_LINKS %}
+    {% for k in handler.EXTRA_LINKS %}
+    <li><a href="{% url handler.EXTRA_LINKS|get_item:k userid=person.userid_or_emplid %}">{{ k }}</a></li>
+    {% endfor %}
+    {% endif %}
 <div class="clearfix"></div>
 
 {% if editor|can_approve:event %}
@@ -48,14 +60,15 @@
 <p class="empty">You cannot change the status of this event (as {{ user }})</p>
 {% endif %}
 
-{% with attachments=event.attachments.all %}
+{% with attachments=event.attachments.visible %}
 {% if attachments %}
 <h2 id="attachments">Attachments</h2>
 <ul>
 {% for a in attachments %}
 <li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
-  <a href="{% url 'faculty_view_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">View</a> |
-  <a href="{% url 'faculty_download_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">Download</a>
+  <a href="{% url 'faculty:view_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">View</a> |
+  <a href="{% url 'faculty:download_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">Download</a> {% if editor|can_edit:event %} |
+  <a href="{% url 'faculty:delete_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug  %}">Delete</a>{% endif %}
 </li>
 {% endfor %}
 </ul>
@@ -66,11 +79,14 @@
 <h2 id="memos">Memos</h2>
 <ul>
 {% for l in memos %}
-<li>{{ l.template.label }} ({{ l.sent_date }} from: {{ l.from_lines }})
-  <a href="{% url 'faculty.views.get_memo_pdf' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Get PDF</a> |
-  <a href="{% url 'faculty.views.view_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">View Body</a> |
-  <a href="{% url 'faculty.views.manage_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a>
-</li>
+<li>{% if l.hidden %}<del>{% endif %}
+  {% if l.template %}{{ l.template.label }}{% else %}<span class="empty">No template</span>{% endif %}
+  ({{ l.sent_date }} from: {{ l.from_lines }})
+  <a href="{% url 'faculty:get_memo_pdf' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Get PDF</a> |
+  <a href="{% url 'faculty:view_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">View Body</a>{% if editor|can_edit:event %} |
+  <a href="{% url 'faculty:manage_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a> |
+  <a href="{% url 'faculty:delete_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Delete</a>{% endif %}
+{% if l.hidden %}</del>{% endif %}</li>
 {% endfor %}
 </ul>
 {% endif %}

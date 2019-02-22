@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('description', models.CharField(help_text=b'Description from the system of the change made', max_length=255)),
                 ('comment', models.TextField(help_text=b'Comment from the user (if available)', null=True)),
                 ('object_id', models.PositiveIntegerField(null=True)),
-                ('content_type', models.ForeignKey(related_name='content_type', to='contenttypes.ContentType')),
+                ('content_type', models.ForeignKey(related_name='content_type', to='contenttypes.ContentType', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['-datetime'],

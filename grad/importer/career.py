@@ -170,7 +170,7 @@ class GradCareer(object):
                 if multiple_okay:
                     return by_selector[-1]
                 else:
-                    raise ValueError, "Multiple records found by %s for %s." % (method, self)
+                    raise ValueError("Multiple records found by %s for %s." % (method, self))
 
         if GradCareer.program_map[self.last_program].unit.slug == 'cmpt' and self.admit_term < CMPT_CUTOFF:
             # Don't try to probe the depths of history for CMPT. You'll hurt yourself.
@@ -178,7 +178,7 @@ class GradCareer(object):
             return
 
         if verbosity:
-            print "New grad student career found: %s/%s in %s starting %s." % (self.emplid, self.unit.slug, self.last_program, self.admit_term)
+            print("New grad student career found: %s/%s in %s starting %s." % (self.emplid, self.unit.slug, self.last_program, self.admit_term))
 
         # can't find anything in database: create new
         gs = GradStudent(person=add_person(self.emplid, commit=(not dry_run)))
@@ -195,8 +195,22 @@ class GradCareer(object):
         units = set(GradProgramHistory.objects.filter(student=gs).values_list('program__unit', flat=True))
         if len(units) > 1:
             if verbosity:
-                raise ValueError, "Grad Student %s (%i) has programs in multiple units: that shouldn't be." % (gs.slug, gs.id)
+                raise ValueError("Grad Student %s (%i) has programs in multiple units: that shouldn't be." % (gs.slug, gs.id))
         self.gradstudent = gs
+
+    def get_student_info(self):
+        student_info = {
+            'student': self.gradstudent,
+            'career': self,
+            'statuses': list(GradStatus.objects.filter(student=self.gradstudent, hidden=False)
+                .select_related('start').order_by('start__name', 'start_date')),
+            'programs': list(GradProgramHistory.objects.filter(student=self.gradstudent)
+                .select_related('start_semester', 'program').order_by('start_semester__name', 'starting')),
+            'committee': list(Supervisor.objects.filter(student=self.gradstudent, removed=False) \
+                .exclude(supervisor_type='POT')),
+            'real_admit_term': self.admit_term,
+        }
+        return student_info
 
     def update_local_data(self, verbosity, dry_run):
         """
@@ -210,17 +224,7 @@ class GradCareer(object):
         if self.metadata:
             self.metadata.update_local_data(self.gradstudent, verbosity=verbosity, dry_run=dry_run)
 
-        student_info = {
-            'student': self.gradstudent,
-            'career': self,
-            'statuses': list(GradStatus.objects.filter(student=self.gradstudent)
-                .select_related('start').order_by('start__name', 'start_date')),
-            'programs': list(GradProgramHistory.objects.filter(student=self.gradstudent)
-                .select_related('start_semester', 'program').order_by('start_semester__name', 'starting')),
-            'committee': list(Supervisor.objects.filter(student=self.gradstudent, removed=False) \
-                .exclude(supervisor_type='POT')),
-            'real_admit_term': self.admit_term,
-        }
+        student_info = self.get_student_info()
         self.student_info = student_info
 
         for h in self.happenings:
@@ -235,19 +239,18 @@ class GradCareer(object):
             r = ' | '.join(self.research_areas)
             self.gradstudent.research_area = r + ' (from application)'
             if verbosity > 1:
-                print "* Setting research area for %s/%s." % (self.emplid, self.unit.slug)
+                print("* Setting research area for %s/%s." % (self.emplid, self.unit.slug))
 
         # are there any GradProgramHistory objects happening before the student actually started (because they
         # deferred)? If so, defer them too.
-        if self.unit.slug != 'cmpt':
-            premature_gph = GradProgramHistory.objects.filter(student=self.gradstudent,
-                                                              start_semester__name__lt=self.admit_term)
-            for gph in premature_gph:
-                gph.start_semester = STRM_MAP[self.admit_term]
-                if verbosity:
-                    print "Deferring program start for %s/%s to %s." % (self.emplid, self.unit.slug, self.admit_term)
-                if not dry_run:
-                    gph.save()
+        premature_gph = GradProgramHistory.objects.filter(student=self.gradstudent,
+                                                          start_semester__name__lt=self.admit_term)
+        for gph in premature_gph:
+            gph.start_semester = STRM_MAP[self.admit_term]
+            if verbosity:
+                print("Deferring program start for %s/%s to %s." % (self.emplid, self.unit.slug, self.admit_term))
+            if not dry_run:
+                gph.save()
 
         # TODO: should we set GradStudent.config['start_semester'] here and be done with it?
 
@@ -263,15 +266,15 @@ class GradCareer(object):
         extra_statuses = [s for s in self.student_info['statuses'] if SIMS_SOURCE not in s.config]
         extra_programs = [p for p in self.student_info['programs'] if SIMS_SOURCE not in p.config]
         extra_committee = [c for c in self.student_info['committee'] if SIMS_SOURCE not in c.config]
-        if self.unit.slug == 'cmpt':
-            # doesn't make sense for CMPT, since we're not importing everything else
-            return
+        # if self.unit.slug == 'cmpt':
+        #     # doesn't make sense for CMPT, since we're not importing everything else
+        #     return
 
         if verbosity:
             for s in extra_statuses:
-                print "Rogue grad status: %s was %s in %s" % (self.emplid, SHORT_STATUSES[s.status], s.start.name)
+                print("Rogue grad status: %s was %s in %s" % (self.emplid, SHORT_STATUSES[s.status], s.start.name))
             for p in extra_programs:
-                print "Rogue program change: %s in %s as of %s." % (self.emplid, p.program.slug, p.start_semester.name)
+                print("Rogue program change: %s in %s as of %s." % (self.emplid, p.program.slug, p.start_semester.name))
             for c in extra_committee:
-                print "Rogue committee member: %s is a %s for %s" % (c.sortname(), SUPERVISOR_TYPE[c.supervisor_type], self.emplid)
+                print("Rogue committee member: %s is a %s for %s" % (c.sortname(), SUPERVISOR_TYPE[c.supervisor_type], self.emplid))
 

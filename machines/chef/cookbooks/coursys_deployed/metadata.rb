@@ -1,1 +1,1 @@
-name        "coursy_deployed"
+name        "coursys_deployed"

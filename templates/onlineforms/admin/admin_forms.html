@@ -4,7 +4,7 @@
 {% block title %} Administrate Forms {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
         $('#pend_table').dataTable({
                     "bPaginate": false,
@@ -16,12 +16,22 @@
                     "bJQueryUI": true,
                     "aaSorting": [[4, "asc"]],
         });
+        $('#unsubmitted_table').dataTable({
+                    "bPaginate": false,
+                    "bJQueryUI": true,
+                    "aaSorting": [[2, "asc"]],
+        });
+        $("h3.summary_heading").collapsible();
+        $(".form_title").click(function() {
+            $("#pend_table_filter input").val($(this).text());
+            $("#pend_table_filter input").keyup();
+        });
     });
 </script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
     <li>Admin Forms</li>
 {% endblock %}
 
@@ -29,14 +39,23 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url "onlineforms.views.admin_assign_any" %}">Assign Form</a></li>
-        <li><a href="{% url "onlineforms.views.admin_completed" %}">View Completed Submissions</a></li>
+        <li><a href="{% url "onlineforms:admin_assign_any" %}">Assign Form</a></li>
+        <li><a href="{% url "onlineforms:admin_completed" %}">View Completed Submissions</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {% block content %}
 <h2>Pending Forms</h2>
+    {% if sub_summary %}
+        <h3 class="summary_heading">Summary</h3>
+        <div id="summary_content" class="collapse_menu">
+            <span class="helptext">Number of pending submissions per form, from most pending to least:<br/></span>
+        {% for k, v in sub_summary %}
+            <span class="form_title" title="Click to search in the table.">{{ k }}</span> ({{ v }})<br/>
+        {% endfor %}
+        </div>
+    {% endif %}
 <p class="helptext">These forms have been completed by the person filling things out. They require administrative action: either giving another sheet to someone else, or marking them completed.</p>
 <div class="datatable_container">
     {% if pend_submissions %}
@@ -51,7 +70,7 @@
             {% for form_sub in pend_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
-                    <td><a href="{% url "onlineforms.views.view_submission" form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
+                    <td><a href="{% url "onlineforms:view_submission" form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
                     <td><span class="sort">{{ form_sub.last_sheet_completion.isoformat }}</span>{{ form_sub.last_sheet_completion }}</td>
                 </tr>
               {% endfor %}
@@ -77,7 +96,7 @@
             {% for form_sub in wait_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
-                    <td><a href="{% url "onlineforms.views.view_submission" form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
+                    <td><a href="{% url "onlineforms:view_submission" form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
                     <td>{{ form_sub.assigned_to.sheet.title }}</td>
                     <td>{{ form_sub.assigned_to.filler }}</td>
                     <td><span class="sort">{{ form_sub.assigned_to.given_at.isoformat }}</span>{{ form_sub.assigned_to.given_at|timesince }}</td>
@@ -88,5 +107,28 @@
             <p>There are currently no forms being worked on.</p>
     {% endif %}
 </div>
+ {% if unsubmitted_forms %}
+    <h2>Unsubmitted Forms</h2>
+    <p class="helptext">These forms have not yet been submitted.  The user has only saved the initial sheet without submitting it.  You probably don't care about these, but you may be interested in them if someone claims to have submitted something.  These automatically get deleted after 14 days of non-activity.</p>
+    <div class="datatable_container">
+        <table class="display" id="unsubmitted_table">
+            <thead>
+                <tr>
+                    <th scope="col">Form</th>
+                    <th scope="col">Initiator</th>
+                    <th scope="col">Elapsed Time</th>
+                </tr>
+            </thead>
+            {% for form_sub in unsubmitted_forms %}
+                <tr>
+                    <td>{{ form_sub.form.title }}</td>
+                    <td><a href="{% url "onlineforms:view_submission" form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
+                    <td><span class="sort">{{ form_sub.assigned_to.given_at.isoformat }}</span>{{ form_sub.assigned_to.given_at|timesince }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endif %}
+
 
 {% endblock %}

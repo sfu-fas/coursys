@@ -12,6 +12,12 @@ $(document).ready(function(){
     $(this).css('float', 'right');
     $(this).insertBefore($('#id_template_text'));
   });
+
+  /* The Semester part of the Semester date picker shouldn't be required regardless of
+  if the whole field is.  Make sure the browser doesn't enforce that one, in case someone puts
+  in a date without a semester code.
+   */
+  $('input.semester-input.semester-start').removeAttr('required');
 });
 
 function event_filter_update(datatable) {
@@ -34,4 +40,9 @@ function event_filter_update(datatable) {
   });
 
   table.draw();
+}
+
+function numberWithCommas(x) {
+    // Based on http://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
+    return x.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }

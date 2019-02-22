@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block title %}CourSys Roles{% endblock %}
-{% block h1 %}CourSys Roles{% endblock %}
+{% block title %}{{ CourSys }} Roles{% endblock %}
+{% block h1 %}{{ CourSys }} Roles{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>New Role</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li><li>New Role</li>{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
 $(document).ready(function() {
     $('#id_person').each(function() {
@@ -24,7 +24,7 @@ $(document).ready(function() {
 
 {% block content %}
 
-<form action="{% url "coredata.views.new_role" %}" method="post">
+<form action="{% url "sysadmin:new_role" %}" method="post">
 <fieldset>{% csrf_token %}
 <legend>Role</legend>
 {{ form|as_dl }}

@@ -69,16 +69,15 @@ def view(request, grad_slug, section=None):
               related_object=grad )
         l.save()
         return redirect("https://cortez.cs.sfu.ca/grad/scripts/grabcurrent.asp?Identifier=" + grad.config['cortezid'])
-    
+
+    # Only an authtype ruled as "admin" by _can_view_student should be allowed to edit anything here.
+    can_edit = authtype == 'admin'
     context = {
         'grad': grad, 
-        'index': True, 
-        'can_edit': True, 
-        'authtype': authtype }
+        'can_edit': can_edit,
+        'authtype': authtype,
+    }
 
-    if authtype in ['supervisor', 'graddir']:
-        context['can_edit'] = False
-    
     for s in all_sections:
         context[s+'_content'] = ''
     
@@ -147,7 +146,7 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__financialcomments.html', context)
         
         elif section == 'letters':
-            letters = Letter.objects.filter(student=grad).select_related('template').order_by('date')
+            letters = Letter.objects.filter(student=grad, removed=False).select_related('template').order_by('date')
             context['letters'] = letters
             return render(request, 'grad/view__letters.html', context)
         
@@ -166,12 +165,12 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__documents.html', context)
 
         elif section == 'visas':
-            visas = Visa.get_visas(grad.person)
+            visas = Visa.get_visas([grad.person])
             context['visas'] = visas
             return render(request, 'grad/view__visas.html', context)
 
         else:
-            raise ValueError, "Not all sections handled by view code: " + repr(section)
+            raise ValueError("Not all sections handled by view code: " + repr(section))
 
     elif '_escaped_fragment_' in request.GET:
         # Implement google-suggested hash-bang workaround. Not terribly efficient, but probably uncommon.
@@ -179,7 +178,7 @@ def view(request, grad_slug, section=None):
         sections = request.GET['_escaped_fragment_'].split(',')
         for s in sections:
             resp = view(request, grad_slug, section=s)
-            context[s+'_content'] = mark_safe(resp.content)
+            context[s+'_content'] = mark_safe(resp.content.decode('utf8'))
 
     other_grad = GradStudent.objects \
                  .filter(program__unit__in=units, person=grad.person) \

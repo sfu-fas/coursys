@@ -11,7 +11,7 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url "submission.views.add_component" course_slug=course.slug activity_slug=activity.slug %}">Add Submission Component</a></li>
+        <li><a href="{% url "offering:submission:add_component" course_slug=course.slug activity_slug=activity.slug %}">Add Submission Component</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -38,7 +38,7 @@
 			<dt><label for="id_{{forloop.counter}}_position">Position</label></dt>
 			<dd><input type="text" name="{{forloop.counter}}_position" id="id_{{forloop.counter}}_position" value="{{forloop.counter}}" size="2" maxlength="3"/></dd>
         </dl>
-        <p><a href="{% url "submission.views.edit_single" course_slug=course.slug activity_slug=activity.slug %}?id={{component.id}}">Edit {{ component.title }} details</a></p>
+        <p><a href="{% url "offering:submission:edit_single" course_slug=course.slug activity_slug=activity.slug %}?id={{component.id}}">Edit {{ component.title }} details</a></p>
     {% endfor %}
     <p><input type="submit" class="submit" value="Update Positions"/></p>
     </form>

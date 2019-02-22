@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+{% load humanize %}
+
+{% block title %}{{ position.title }}{% endblock %}
+{% block h1 %}{{ position.title }}{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('#id_person').each(function() {
+        $(this).autocomplete({
+          source: '/data/students',
+          minLength: 2,
+          select: function(event, ui){
+            $(this).data("val", ui.item.value);
+          }
+        });
+    });
+
+} );
+</script>
+{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'faculty:index' %}">Faculty Management</a></li>
+<li><a href="{% url 'faculty:list_positions' %}">Positions</a></li>
+<li><a href="{% url 'faculty:view_position' position_id=position_id %}">View Position</a></li>
+<li>Assign Person</li>
+<li>{{ position.title }}</li>
+{% endblock %}
+
+
+{% block content %}
+    <form action="{% url "faculty:assign_position_person" position_id=position_id%}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Assign Candidate" />
+    </p>
+</form>
+{% endblock %}

@@ -14,14 +14,14 @@ from coredata.queries import grad_student_courses, grad_student_gpas
 def escape(s):
     if s is None:
         return 'null'
-    elif type(s) in (int,long,float):
+    elif type(s) in (int,int,float):
         return(s)
     else:
         import MySQLdb
-        if type(s)==unicode:
+        if type(s)==str:
             return "'" + MySQLdb._mysql.escape_string(s) + "'"
         else:
-            return "'" + MySQLdb._mysql.escape_string(unicode(s,errors='replace')) + "'"
+            return "'" + MySQLdb._mysql.escape_string(str(s,errors='replace')) + "'"
 
 def escape_all(*ss):
     return tuple(map(escape, ss))

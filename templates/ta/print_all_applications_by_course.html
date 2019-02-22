@@ -4,7 +4,7 @@
 {% block h1 %}{{ application.posting.unit.label }} TA Applications for {{posting.short_str}}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
   $(function() {
       window.print()
   });
@@ -13,8 +13,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta:posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
 <li>TA Applications for {{posting.short_str}} </li> 
 {% endblock %}
 
@@ -31,65 +31,8 @@
 
 {% for application in offering.applications %}
 <div class="table_container" style='page-break-before: always; page-break-after:always; page-break-inside:avoid;'>
-  <h2>{{application.person.name}}</h2>
-
-  <h3>General Information:</h3>
-  {% if application.late %}
-    <p>This application was submitted late.  <a href="{% url "ta.views.update_application" post_slug=application.posting.slug userid=application.person.userid %}">Remove late status.</a></p>
-  {% endif %}
-  <table class="info">
-    <tr><th>Name</th><td>{{ application.person.name }} ({{application.person.email_mailto}})</td></tr>
-    <tr><th>Student Number</th><td>{{ application.person.emplid }} </td></tr>
-    <tr><th>Semester</th><td>{{ application.posting.semester }}</td></tr>
-    <tr><th>Category</th><td>{{ application.get_category_display }}</td></tr>
-    <tr><th>Base Units</th><td>{{ application.base_units }}</td></tr>
-    <tr><th>Current Program</th><td>{{ application.current_program|linebreaksbr }}</td></tr>
-    <tr><th>Experience</th><td>{{ application.experience|linebreaksbr }}</td></tr>
-    <tr><th>Course Load</th><td>{{ application.course_load|linebreaksbr }}</td></tr>
-    <tr><th>Other Support</th><td>{{ application.other_support|linebreaksbr }}</td></tr>
-    <tr><th>Comments</th><td>{{ application.comments|linebreaksbr }}</td></tr>
-  </table>
-
-  {% if application.config.extra_questions %}
-    <h3>Extra Questions</h3>
-    {% for question, answer in application.config.extra_questions.items %}
-        <p><strong>{{ question }}:</strong> {{answer }}</p>
-    {% endfor %}
-  {% endif %}
-  
-  <h3>Courses Applied for:</h3>
-  <table class="info">
-    <tr>
-      <th>Course</th>
-      <th>Taken</th>
-      <th>Experience</th>
-    </tr>
-      {% for course in application.courses %}
-        <tr>
-          <td>{{ course.course }}</td>
-          <td>{{ course.get_taken_display }}</td>
-          <td>{{ course.get_exper_display }}</td>
-        </tr>
-      {% endfor %}
-   </table>
-
-  {% if application.campuses %}
-  <h3>Campus Preference:</h3> 
-  <table class="info">
-      {% for campus in application.campuses %}
-        <tr><th>{{ campus.get_campus_display }}</th><td>{{ campus.get_pref_display }}</td></tr>
-      {% endfor %}
-  </table> 
-  {% endif %}  
- 
-  {% if application.skills %}
-  <h3>Skills:</h3>
-  <table class="info">
-      {% for skill in application.skills %}
-        <tr><th>{{ skill.skill.name }}</th><td>{{ skill.get_level_display }}</td></tr>
-      {% endfor %}
-  </table>
-  {% endif %}
+  <h2 id="app-{{ offering.slug }}-{{ application.person.userid_or_emplid }}">{{application.person.name}}</h2>
+  {% include "ta/_ta_application.html" with application=application only %}
 </div>
 {% endfor %}
 {% endfor %}

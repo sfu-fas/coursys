@@ -1,4 +1,4 @@
-{% if index and can_edit %}<p class="manage_link"><a href="{% url "grad.views.manage_letters" grad_slug=grad.slug  %}">Manage Letters</a></p>{% endif %}
+{% if can_edit %}<p class="manage_link"><a href="{% url "grad:manage_letters" grad_slug=grad.slug  %}">Manage Letters</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-1">
 		<thead>
@@ -7,19 +7,30 @@
 				<th scope="col">Send Date</th>
                 <th scope="col">Creation Date</th>
 				<th scope="col">From</th>
-				{% if not index %}<th scope="col">Actions</th>{% endif %}
+				<th scope="col">Actions</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for l in letters %}
 			<tr>
-				<td> {{ l.template.label }} </td>
+				<td> {{ l.template.label }}
+                    {% if l.email_sent %}
+                        <i class="fa fa-envelope" title="Letter emailed at {{ l.email_sent }}."></i>
+                    {% endif %}
+                </td>
 				<td> <span class="sort">{{ l.date.isoformat }}</span>{{ l.date|date:GRAD_DATE_FORMAT }} </td>
 				<td> <span class="sort">{{ l.created_at.isoformat }}</span>{{ l.created_at|date:GRAD_DATETIME_FORMAT }} </td>
 				<td> {{ l.from_person }} </td>
-				{% if not index %}<td><a href="{% url "grad.views.get_letter" grad_slug=grad.slug letter_slug=l.slug %}">Get PDF</a>
-					| <a href="{% url "grad.views.view_letter" grad_slug=grad.slug letter_slug=l.slug %}">View Body</a>
-					| <a href="{% url "grad.views.copy_letter" grad_slug=grad.slug letter_slug=l.slug %}">Copy Letter</a></td>{% endif %}
+				<td class="miniaction"><a href="{% url "grad:get_letter" grad_slug=grad.slug letter_slug=l.slug %}">Get PDF</a>
+					| <a href="{% url "grad:view_letter" grad_slug=grad.slug letter_slug=l.slug %}">View Body</a>
+                {% if can_edit %} | <a href="{% url "grad:send_letter_email" grad_slug=grad.slug letter_slug=l.slug %}">Send Email</a>
+				  | <a href="{% url "grad:copy_letter" grad_slug=grad.slug letter_slug=l.slug %}">Copy Letter</a>
+                    <form class="lineform" action="{% url "grad:remove_letter" grad_slug=grad.slug letter_slug=l.slug %}" method="post">
+                        {% csrf_token %}
+                        <input class="actionbutton confirm-submit" type="submit" value="remove" data-submit-action="remove this letter" />
+                    </form>
+                {% endif %}
+                </td>
 			</tr>
 			{% endfor %}
 		</tbody>

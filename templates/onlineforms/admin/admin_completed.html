@@ -5,8 +5,8 @@
 {% block h1 %}Completed Form Submissions{% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-    <li><a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
+    <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms:admin_list_all" %}">Admin Forms</a></li>
     <li>Completed</li>
 {% endblock %}
 
@@ -14,7 +14,7 @@
 <p>You have access to submissions for these forms:</p>
 <ul>
     {% for f in forms %}
-    <li><a href="{% url 'onlineforms.views.admin_completed_form' form_slug=f.slug %}">{{ f.title }} [{{ f.unit.label }}]</a></li>
+    <li><a href="{% url 'onlineforms:admin_completed_form' form_slug=f.slug %}">{{ f.title }} [{{ f.unit.label }}]</a></li>
     {% endfor %}
 </ul>
 {% endblock %}

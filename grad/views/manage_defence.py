@@ -5,10 +5,10 @@ from grad.forms import GradDefenceForm, possible_supervisors
 from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import transaction
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_defence(request, grad_slug):
     """
     Page for managing all defence-related stuff.
@@ -87,7 +87,7 @@ def manage_defence(request, grad_slug):
                   description="Updated grad defence info for %s." % (grad),
                   related_object=grad)
             l.save()    
-            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:view', kwargs={'grad_slug':grad.slug}))
     else:
         initial = {}
         if 'thesis_type' in grad.config:

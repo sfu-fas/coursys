@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DisciplineCaseChair',
             fields=[
-                ('disciplinecasebase_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='discipline.DisciplineCaseBase')),
+                ('disciplinecasebase_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='discipline.DisciplineCaseBase', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DisciplineCaseChairNonStudent',
             fields=[
-                ('disciplinecasechair_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='discipline.DisciplineCaseChair')),
+                ('disciplinecasechair_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='discipline.DisciplineCaseChair', on_delete=models.CASCADE)),
                 ('emplid', models.PositiveIntegerField(help_text=b'SFU student number, if known', max_length=9, null=True, verbose_name=b'Student Number', blank=True)),
                 ('userid', models.CharField(help_text=b'SFU Unix userid, if known', max_length=8, null=True, blank=True)),
                 ('email', models.EmailField(max_length=75)),
@@ -83,8 +83,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DisciplineCaseChairStudent',
             fields=[
-                ('disciplinecasechair_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='discipline.DisciplineCaseChair')),
-                ('student', models.ForeignKey(help_text=b'The student this case concerns.', to='coredata.Person')),
+                ('disciplinecasechair_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='discipline.DisciplineCaseChair', on_delete=models.CASCADE)),
+                ('student', models.ForeignKey(help_text=b'The student this case concerns.', to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -93,7 +93,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DisciplineCaseInstr',
             fields=[
-                ('disciplinecasebase_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='discipline.DisciplineCaseBase')),
+                ('disciplinecasebase_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='discipline.DisciplineCaseBase', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -102,7 +102,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DisciplineCaseInstrNonStudent',
             fields=[
-                ('disciplinecaseinstr_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='discipline.DisciplineCaseInstr')),
+                ('disciplinecaseinstr_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='discipline.DisciplineCaseInstr', on_delete=models.CASCADE)),
                 ('emplid', models.PositiveIntegerField(help_text=b'SFU student number, if known', max_length=9, null=True, verbose_name=b'Student Number', blank=True)),
                 ('userid', models.CharField(help_text=b'SFU Unix userid, if known', max_length=8, null=True, blank=True)),
                 ('email', models.EmailField(max_length=75)),
@@ -116,8 +116,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DisciplineCaseInstrStudent',
             fields=[
-                ('disciplinecaseinstr_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='discipline.DisciplineCaseInstr')),
-                ('student', models.ForeignKey(help_text=b'The student this case concerns.', to='coredata.Person')),
+                ('disciplinecaseinstr_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='discipline.DisciplineCaseInstr', on_delete=models.CASCADE)),
+                ('student', models.ForeignKey(help_text=b'The student this case concerns.', to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -129,7 +129,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(help_text=b'An arbitrary "name" for this cluster of cases', max_length=60, verbose_name=b'Cluster Name')),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
-                ('offering', models.ForeignKey(help_text=b'The course this cluster is associated with', to='coredata.CourseOffering')),
+                ('offering', models.ForeignKey(help_text=b'The course this cluster is associated with', to='coredata.CourseOffering', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -155,8 +155,8 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=255, null=True, blank=True)),
                 ('notes', models.TextField(null=True, blank=True)),
                 ('object_id', models.PositiveIntegerField()),
-                ('case', models.ForeignKey(to='discipline.DisciplineCaseBase')),
-                ('content_type', models.ForeignKey(to='contenttypes.ContentType')),
+                ('case', models.ForeignKey(to='discipline.DisciplineCaseBase', on_delete=models.CASCADE)),
+                ('content_type', models.ForeignKey(to='contenttypes.ContentType', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -173,31 +173,31 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='disciplinecasechair',
             name='instr_case',
-            field=models.ForeignKey(to='discipline.DisciplineCaseInstr', help_text=b"The instructor's case that triggered this case"),
+            field=models.ForeignKey(to='discipline.DisciplineCaseInstr', help_text=b"The instructor's case that triggered this case", on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='disciplinecasebase',
             name='group',
-            field=models.ForeignKey(blank=True, to='discipline.DisciplineGroup', help_text=b'Cluster this case belongs to (if any).', null=True),
+            field=models.ForeignKey(blank=True, to='discipline.DisciplineGroup', help_text=b'Cluster this case belongs to (if any).', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='disciplinecasebase',
             name='offering',
-            field=models.ForeignKey(to='coredata.CourseOffering'),
+            field=models.ForeignKey(to='coredata.CourseOffering', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='disciplinecasebase',
             name='owner',
-            field=models.ForeignKey(help_text=b'The person who created/owns this case.', to='coredata.Person'),
+            field=models.ForeignKey(help_text=b'The person who created/owns this case.', to='coredata.Person', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='caseattachment',
             name='case',
-            field=models.ForeignKey(to='discipline.DisciplineCaseBase'),
+            field=models.ForeignKey(to='discipline.DisciplineCaseBase', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(

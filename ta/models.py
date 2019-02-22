@@ -1,26 +1,41 @@
+import os
 from django.db import models
 from django.db.models import Sum
 from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES
+from django.conf import settings
 from ra.models import Account
 from courselib.json_fields import JSONField
-from courselib.json_fields import getter_setter #, getter_setter_2
+from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
 from autoslug import AutoSlugField
-import decimal, datetime
+import decimal, datetime, uuid
 from numbers import Number
 from dashboard.models import NewsItem
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
-from creoleparser import text2html
+from django.http import HttpResponse
+from dashboard.letters import ta_form
+from django.core.mail import EmailMultiAlternatives
+from courselib.markup import markup_to_html
+from courselib.storage import UploadedFileStorage, upload_path
 
-import bu_rules
+from . import bu_rules
 
 LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
 LAB_BONUS = float(LAB_BONUS_DECIMAL)
 HOURS_PER_BU = 42 # also in media/js/ta.js
+LAB_PREP_HOURS = 13 # min hours of prep for courses with tutorials/labs
 
 HOLIDAY_HOURS_PER_BU = decimal.Decimal('1.1')
+
+
+DEPT_CHOICES = [
+    ('CMPT', 'CMPT student'),
+    ('OTHR', 'Other program'),
+    ('NONS', 'Not a student'),
+]
+
 
 def _round_hours(val):
     "Round to two decimal places because... come on."
@@ -31,6 +46,7 @@ def _round_hours(val):
     else:
         return val
 
+
 class TUG(models.Model):
     """
     Time use guideline filled out by instructors
@@ -38,10 +54,10 @@ class TUG(models.Model):
     Based on form in Appendix C (p. 73) of the collective agreement:
     http://www.tssu.ca/wp-content/uploads/2010/01/CA-2004-2010.pdf
     """	
-    member = models.ForeignKey(Member, null=False, unique=True)
+    member = models.OneToOneField(Member, null=False, on_delete=models.PROTECT)
     base_units = models.DecimalField(max_digits=4, decimal_places=2, blank=False, null=False)
     last_update = models.DateField(auto_now=True)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # t.config['prep']: Preparation for labs/tutorials
         # t.config['meetings']: Attendance at planning meetings with instructor
         # t.config['lectures']: Attendance at lectures
@@ -72,9 +88,10 @@ class TUG(models.Model):
     other2 = property(*getter_setter('other2'))
     
     def iterothers(self):
-        return (other for key, other in self.config.iteritems() 
+        return (other for key, other in self.config.items() 
                 if key.startswith('other')
-                and other.get('total',0) > 0)
+                and isinstance(other.get('total'), float)
+                and other.get('total', 0) > 0)
 
     others = lambda self:list(self.iterothers())
     
@@ -82,15 +99,13 @@ class TUG(models.Model):
         return ((field, self.config[field]) for field in self.all_fields 
                  if field in self.config)
     
-    regular_default = {'weekly': 0, 'total': 0, 'comment': ''}
-    regular_fields = ['prep', 'meetings', 'lectures', 'tutorials', 
+    regular_fields = ['prep', 'meetings', 'lectures', 'tutorials',
             'office_hours', 'grading', 'test_prep', 'holiday']
-    other_default = {'label': '', 'weekly': 0, 'total': 0, 'comment': ''}
     other_fields = ['other1', 'other2']
     all_fields = regular_fields + other_fields
-    
-    defaults = dict([(field, regular_default) for field in regular_fields] + 
-        [(field, other_default) for field in other_fields])
+
+    defaults = dict([(field, {'weekly': 0, 'total': 0, 'comment': ''}) for field in regular_fields] +
+        [(field, {'label': '', 'weekly': 0, 'total': 0, 'comment': ''}) for field in other_fields])
     
     # depicts the above comment in code
     config_meta = {'prep':{'label':'Preparation', 
@@ -100,24 +115,22 @@ class TUG(models.Model):
             'lectures':{'label':'Attendance at lectures', 
                     'help':'3. Attendance at lectures'}, 
             'tutorials':{'label':'Attendance at labs/tutorials', 
-                    'help':u'4. Attendance at labs/tutorials'}, 
+                    'help':'4. Attendance at labs/tutorials'}, 
             'office_hours':{'label':'Office hours', 
-                    'help':u'5. Office hours/student consultation/electronic communication'}, 
+                    'help':'5. Office hours/student consultation/electronic communication'}, 
             'grading':{'label':'Grading', 
-                    'help':u'6. Grading\u2020',
-                    'extra':u'\u2020Includes grading of all assignments, reports and examinations.'}, 
+                    'help':'6. Grading\u2020',
+                    'extra':'\u2020Includes grading of all assignments, reports and examinations.'}, 
             'test_prep':{'label':'Quiz/exam preparation and invigilation', 
-                    'help':u'7. Quiz preparation/assist in exam preparation/Invigilation of exams'}, 
+                    'help':'7. Quiz preparation/assist in exam preparation/Invigilation of exams'}, 
             'holiday':{'label':'Holiday compensation', 
-                    'help':u'8. Statutory Holiday Compensation\u2021',
-                    'extra':u'''\u2021To compensate for all statutory holidays which  
+                    'help':'8. Statutory Holiday Compensation\u2021',
+                    'extra':'''\u2021To compensate for all statutory holidays which  
 may occur in a semester, the total workload required will be reduced by %s
 hour(s) for each base unit assigned excluding the additional %s B.U. for
 preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOURS_PER_BU, LAB_BONUS, 4.4, 4+LAB_BONUS)}}
     
-    #prep_weekly, set_prep_weekly = getter_setter_2('prep', 'weekly')
-
-    def __unicode__(self):
+    def __str__(self):
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
     
     def save(self, newsitem=True, newsitem_author=None, *args, **kwargs):
@@ -139,7 +152,7 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOUR
             n.save()
 
     def get_absolute_url(self):
-        return reverse('ta.views.view_tug', kwargs={
+        return reverse('offering:view_tug', kwargs={
                 'course_slug': self.member.offering.slug, 
                 'userid':self.member.person.userid})
     
@@ -150,7 +163,7 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOUR
         """
         Total number of hours assigned
         """
-        return sum((decimal.Decimal(data['total']) for _,data in self.iterfielditems() if data['total']))
+        return round(sum((decimal.Decimal(data['total']) for _,data in self.iterfielditems() if data['total'])), 2)
 
 CATEGORY_CHOICES = ( # order must match list in TAPosting.config['salary']
         ('GTA1', 'Masters'),
@@ -163,19 +176,21 @@ class TAPosting(models.Model):
     """
     Posting for one unit in one semester
     """
-    semester = models.ForeignKey(Semester)
-    unit = models.ForeignKey(Unit)
+    semester = models.ForeignKey(Semester, on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     opens = models.DateField(help_text='Opening date for the posting')
     closes = models.DateField(help_text='Closing date for the posting')
     def autoslug(self):
         return make_slug(self.semester.slugform() + "-" + self.unit.label)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # 'salary': default pay rates per BU for each GTA1, GTA2, UTA, EXT: ['1.00', '2.00', '3.00', '4.00']
         # 'scholarship': default scholarship rates per BU for each GTA1, GTA2, UTA, EXT
         # 'accounts': default accounts for GTA1, GTA2, UTA, EXT (ra.models.Account.id values)
         # 'start': default start date for contracts ('YYYY-MM-DD')
         # 'end': default end date for contracts ('YYYY-MM-DD')
+        # 'payroll_start': default payroll start date for contracts ('YYYY-MM-DD')
+        # 'payroll_end': default payroll start date for contracts ('YYYY-MM-DD')
         # 'deadline': default deadline to accept contracts ('YYYY-MM-DD')
         # 'excluded': courses to exclude from posting (list of Course.id values)
         # 'payperiods': number of pay periods in the semeseter
@@ -194,12 +209,14 @@ class TAPosting(models.Model):
             'accounts': [None]*len(CATEGORY_CHOICES),
             'start': '',
             'end': '',
+            'payroll_start': '',
+            'payroll_end': '',
             'deadline': '',
             'excluded': [],
             'bu_defaults': {},
             'payperiods': 8,
             'max_courses': 10,
-            'min_courses': 5,
+            'min_courses': 0,
             'contact': None,
             'offer_text': '',
             'export_seq': 0,
@@ -212,6 +229,8 @@ class TAPosting(models.Model):
     accounts, set_accounts = getter_setter('accounts')
     start, set_start = getter_setter('start')
     end, set_end = getter_setter('end')
+    payroll_start, set_payroll_start = getter_setter('payroll_start')
+    payroll_end, set_payroll_end = getter_setter('payroll_end')
     deadline, set_deadline = getter_setter('deadline')
     excluded, set_excluded = getter_setter('excluded')
     bu_defaults, set_bu_defaults = getter_setter('bu_defaults')
@@ -226,7 +245,7 @@ class TAPosting(models.Model):
     
     class Meta:
         unique_together = (('unit', 'semester'),)
-    def __unicode__(self): 
+    def __str__(self): 
         return "%s, %s" % (self.unit.name, self.semester)
     def save(self, *args, **kwargs):
         super(TAPosting, self).save(*args, **kwargs)
@@ -236,7 +255,7 @@ class TAPosting(models.Model):
     def short_str(self):
         return "%s %s" % (self.unit.label, self.semester)
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
     
     def contact(self):
         if 'contact' in self.config:
@@ -371,36 +390,45 @@ class TAPosting(models.Model):
         if html:
             return mark_safe(html)
         else:
-            html = text2html(self.offer_text())
+            html = markup_to_html(self.offer_text(), 'creole')
             cache.set(key, html, 24*3600) # expires on self.save() above
-            return mark_safe(html)
+            return html
     
         
 class Skill(models.Model):
     """
     Skills an applicant specifies in their application.  Skills are specific to a posting.
     """
-    posting = models.ForeignKey(TAPosting)
+    posting = models.ForeignKey(TAPosting, on_delete=models.PROTECT)
     name = models.CharField(max_length=30)
     position = models.IntegerField()
     
     class Meta:
         ordering = ['position']
         unique_together = (('posting', 'position'))
-    def __unicode__(self):
+    def __str__(self):
         return "%s in %s" % (self.name, self.posting)
 
 
+def _file_upload_to(instance, filename):
+    """
+    path to upload TA Application resume
+    """
+    return upload_path('ta_applications', filename)
+
+
+_resume_upload_to = _file_upload_to
+_transcript_upload_to = _file_upload_to
 
 class TAApplication(models.Model):
     """
     TA application filled out by students
     """
-    posting = models.ForeignKey(TAPosting)
-    person = models.ForeignKey(Person)
+    posting = models.ForeignKey(TAPosting, on_delete=models.PROTECT)
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
     category = models.CharField(max_length=4, blank=False, null=False, choices=CATEGORY_CHOICES, verbose_name='Program')
-    current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Department",
-        help_text='In what department are you a student (e.g. "CMPT", "ENSC", if applicable)?')
+    current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Department", choices=DEPT_CHOICES,
+        help_text='In what department are you a student?')
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN",help_text="Social insurance number (required for receiving payments)")
     base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,
             help_text='Maximum number of base units (BU\'s) you would accept. Each BU represents a maximum of 42 hours of work for the semester. TA appointments can consist of 2 to 5 base units and are based on course enrollments and department requirements.')
@@ -413,15 +441,31 @@ class TAApplication(models.Model):
         verbose_name="Other financial support",
         help_text='Do you have a merit based scholarship or fellowship (e.g. FAS Graduate Fellowship) in the semester that you are applying for? ')
     comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
-    rank = models.IntegerField(blank=False, default=0) 
+    preference_comment = models.TextField(verbose_name='Course preference comment', null=True, blank=True)
+    rank = models.IntegerField(blank=False, default=0)
     late = models.BooleanField(blank=False, default=False)
+    resume = models.FileField("Curriculum Vitae (CV)", storage=UploadedFileStorage, upload_to=_resume_upload_to, max_length=500,
+                              blank=True, null=True, help_text='Please attach your Curriculum Vitae (CV).')
+    resume_mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    transcript = models.FileField(storage=UploadedFileStorage, upload_to=_transcript_upload_to, max_length=500, blank=True,
+                                  null=True, help_text='Please attach your unofficial transcript.')
+    transcript_mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     admin_created = models.BooleanField(blank=False, default=False)
-    config = JSONField(null=False, blank=False, default={})
+    new_workers_training = models.BooleanField('I have completed the SFU Safety Orientation training',
+                                               default=False,
+                                               help_text=mark_safe('Have you completed the University\'s safety '
+                                                         'orientation? SFU has a <a href="https://canvas.sfu.ca/enroll/RR8WDW">short online module</a> you can take online'
+                                                         'and periodically '
+                                                         'offers classroom sessions of the same material.  Some '
+                                                         'research and instructional laboratories may require '
+                                                         'additional training, contact the faculty member in charge of '
+                                                         'your lab(s) for details.'))
+    config = JSONField(null=False, blank=False, default=dict)
         # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'} 
  
     class Meta:
         unique_together = (('person', 'posting'),)
-    def __unicode__(self):
+    def __str__(self):
         return "%s  Posting: %s" % (self.person, self.posting)
     
     def course_pref_display(self):
@@ -433,13 +477,15 @@ class TAApplication(models.Model):
     
     def course_assigned_display(self):
         crs = []
-        tacrss = TACourse.objects.filter(contract__application=self).select_related('course')
+        tacrss = TACourse.objects.filter(contract__application=self).exclude(contract__status__in=['CAN', 'REJ'])\
+            .select_related('course')
         for tacrs in tacrss:
             crs.append(tacrs.course.subject + ' ' + tacrs.course.number)
         return ', '.join(crs)
     
     def base_units_assigned(self):
-        crs = TACourse.objects.filter(contract__application=self).aggregate(Sum('bu'))
+        crs = TACourse.objects.filter(contract__application=self).exclude(contract__status__in=['CAN', 'REJ'])\
+            .aggregate(Sum('bu'))
         return crs['bu__sum']
 
 PREFERENCE_CHOICES = (
@@ -453,7 +499,7 @@ class CampusPreference(models.Model):
     """
     Preference ranking for a campuses
     """
-    app = models.ForeignKey(TAApplication)
+    app = models.ForeignKey(TAApplication, on_delete=models.PROTECT)
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
     pref = models.CharField(max_length=3, choices=PREFERENCE_CHOICES)
     class Meta:
@@ -470,8 +516,8 @@ class SkillLevel(models.Model):
     """
     Skill of an applicant
     """
-    skill = models.ForeignKey(Skill)
-    app = models.ForeignKey(TAApplication)
+    skill = models.ForeignKey(Skill, on_delete=models.PROTECT)
+    app = models.ForeignKey(TAApplication, on_delete=models.PROTECT)
     level = models.CharField(max_length=4, choices=LEVEL_CHOICES)
     #class Meta:
     #    unique_together = (('app', 'skill'),)
@@ -492,18 +538,24 @@ STATUS_CHOICES = (
 STATUS = dict(STATUS_CHOICES)
 STATUSES_NOT_TAING = ['NEW', 'REJ', 'CAN'] # statuses that mean "not actually TAing"
 
+DEFAULT_EMAIL_TEXT = "Please find attached a copy of your TA contract."
+DEFAULT_EMAIL_SUBJECT = "Your TA contract."
+
+
 class TAContract(models.Model):
     """    
     TA Contract, filled in by TAAD
     """
     status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status", default="NEW")
-    posting = models.ForeignKey(TAPosting)
-    application = models.ForeignKey(TAApplication)
+    posting = models.ForeignKey(TAPosting, on_delete=models.PROTECT)
+    application = models.ForeignKey(TAApplication, on_delete=models.PROTECT)
     sin = models.CharField(max_length=30, verbose_name="SIN",help_text="Social insurance number")
+    appointment_start = models.DateField(null=True, blank=True)
+    appointment_end = models.DateField(null=True, blank=True)
     pay_start = models.DateField()
     pay_end = models.DateField()
     appt_category = models.CharField(max_length=4, choices=CATEGORY_CHOICES, verbose_name="Appointment Category", default="GTA1")
-    position_number = models.ForeignKey(Account)
+    position_number = models.ForeignKey(Account, on_delete=models.PROTECT)
     appt = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES, verbose_name="Appointment", default="INIT")
     pay_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Pay per Base Unit Semester Rate.",)
     scholarship_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Scholarship per Base Unit Semester Rate.",)
@@ -519,8 +571,8 @@ class TAContract(models.Model):
     class Meta:
         unique_together = (('posting', 'application'),)
         
-    def __unicode__(self):
-        return "%s" % (self.application.person)
+    def __str__(self):
+        return "%s" % self.application.person
 
     def save(self, *args, **kwargs):
         super(TAContract, self).save(*args, **kwargs)
@@ -538,14 +590,32 @@ class TAContract(models.Model):
         from tacontracts.models import TAContract as NewTAContract
         NewTAContract.update_ta_members(self.application.person, self.posting.semester_id)
 
+        # If the status of this contract is Cancelled or Rejected, find all the TACourses
+        # it applies to and set their BUs to 0.
+        if self.status in ('CAN', 'REJ'):
+            courses = TACourse.objects.filter(contract=self)
+            for course in courses:
+                course.bu = 0
+                course.save()
+
 
     def first_assign(self, application, posting):
         self.application = application
         self.posting = posting
         self.sin = application.sin
         self.appt_category = application.category
-        self.pay_start = posting.start()
-        self.pay_end = posting.end()
+        self.appointment_start = posting.start()
+        self.appointment_end = posting.end()
+        # New postings may have proper payroll_start/end fields.  If so, let's use them,
+        # otherwise, use the same fields as for the appointment start/end for backwards compatibility.
+        if posting.payroll_start():
+            self.pay_start = posting.payroll_start()
+        else:
+            self.pay_start = posting.start()
+        if posting.payroll_end():
+            self.pay_end = posting.payroll_end()
+        else:
+            self.pay_end = posting.end()
         self.deadline = posting.deadline()
         index = posting.cat_index(application.category)
         self.position_number = Account.objects.get(pk=posting.accounts()[index])
@@ -555,50 +625,96 @@ class TAContract(models.Model):
 
     def bu(self):
         courses = TACourse.objects.filter(contract=self)
-        return sum( [course.bu for course in courses] )
+        if self.status in ('CAN', 'REJ'):
+            return 0
+        return sum([course.bu for course in courses])
 
     def total_bu(self):
         courses = TACourse.objects.filter(contract=self)
         if self.status in ('CAN', 'REJ'):
             return 0
-        return sum( [course.total_bu for course in courses] )
+        return sum([course.total_bu for course in courses])
 
     def prep_bu(self):
         courses = TACourse.objects.filter(contract=self)
-        return sum( [course.prep_bu for course in courses] )
+        if self.status in ('CAN', 'REJ'):
+            return 0
+        return sum([course.prep_bu for course in courses])
 
     def total_pay(self):
         return decimal.Decimal(self.bu()) * self.pay_per_bu
 
+    def scholarship_pay(self):
+        return decimal.Decimal(self.bu()) * self.scholarship_per_bu
+
     @property
     def should_be_added_to_the_course(self):
         return self.status in ['SGN', 'ACC']
+
+    @property
+    def total(self):
+        return self.total_pay() + self.scholarship_pay()
+
+    def course_list_string(self):
+        # Build a string of all course offerings tied to this contract for CSV downloads and grad student views.
+        course_list_string = ', '.join(ta_course.course.name() for ta_course in self.tacourse_set.all())
+        return course_list_string
+
+    def email_contract(self):
+        unit = self.posting.unit
+        try:
+            contract_email = unit.contract_email_text
+            content = contract_email.content
+            subject = contract_email.subject
+        except TAContractEmailText.DoesNotExist:
+            content = DEFAULT_EMAIL_TEXT
+            subject = DEFAULT_EMAIL_SUBJECT
+
+        response = HttpResponse(content_type="application/pdf")
+        response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % (self.posting.slug,
+                                                                            self.application.person.userid)
+        ta_form(self, response)
+        to_email = self.application.person.email()
+        if self.posting.contact():
+            from_email = self.posting.contact().email()
+        else:
+            from_email = settings.DEFAULT_FROM_EMAIL
+        msg = EmailMultiAlternatives(subject, content, from_email,
+                                     [to_email], headers={'X-coursys-topic': 'ta'})
+        msg.attach(('"%s-%s.pdf' % (self.posting.slug, self.application.person.userid)), response.getvalue(),
+                   'application/pdf')
+        msg.send()
 
 
 class CourseDescription(models.Model):
     """
     Description of the work for a TA contract
     """
-    unit = models.ForeignKey(Unit)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     description = models.CharField(max_length=60, blank=False, null=False, help_text="Description of the work for a course, as it will appear on the contract. (e.g. 'Office/marking')")
     labtut = models.BooleanField(default=False, verbose_name="Lab/Tutorial?", help_text="Does this description get the %s BU bonus?"%(LAB_BONUS))
     hidden = models.BooleanField(default=False)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     
-    def __unicode__(self):
+    def __str__(self):
         return self.description
+
+    def delete(self):
+        """Like most of our objects, we don't want to ever really delete it."""
+        self.hidden = True
+        self.save()
 
 
 class TACourse(models.Model):
-    course = models.ForeignKey(CourseOffering, blank=False, null=False)
-    contract = models.ForeignKey(TAContract, blank=False, null=False)
-    description = models.ForeignKey(CourseDescription, blank=False, null=False)
+    course = models.ForeignKey(CourseOffering, blank=False, null=False, on_delete=models.PROTECT)
+    contract = models.ForeignKey(TAContract, blank=False, null=False, on_delete=models.PROTECT)
+    description = models.ForeignKey(CourseDescription, blank=False, null=False, on_delete=models.PROTECT)
     bu = models.DecimalField(max_digits=4, decimal_places=2)
     
     class Meta:
         unique_together = (('contract', 'course'),)
     
-    def __unicode__(self):
+    def __str__(self):
         return "Course: %s  TA: %s" % (self.course, self.contract)
 
     @property
@@ -607,7 +723,12 @@ class TACourse(models.Model):
         Return the prep BUs for this assignment
         """
         if self.has_labtut():
-            return LAB_BONUS_DECIMAL
+            # If the contract that is attached to this course has been cancelled/rejected, there
+            # really aren't any BUs that are really used here.
+            if self.contract.status in ('CAN', 'REJ'):
+                return 0
+            else:
+                return LAB_BONUS_DECIMAL
         else:
             return 0
 
@@ -616,7 +737,12 @@ class TACourse(models.Model):
         """
         Return the total BUs for this assignment
         """
-        return self.bu + self.prep_bu
+        # If the contract that is attached to this course has been cancelled/rejected, there
+        # really aren't any BUs that are really used here.
+        if self.contract.status in ('CAN', 'REJ'):
+                return 0
+        else:
+            return self.bu + self.prep_bu
 
     @property
     def hours(self):
@@ -659,7 +785,7 @@ class TACourse(models.Model):
         if descs:
             return descs[0]
         else:
-            raise ValueError, "No appropriate CourseDescription found"
+            raise ValueError("No appropriate CourseDescription found")
     
     def pay(self):
         contract = self.contract
@@ -682,16 +808,28 @@ EXPER_CHOICES = (
         )
     
 class CoursePreference(models.Model):
-    app = models.ForeignKey(TAApplication)
-    course = models.ForeignKey(Course)
-    taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=False, null=False)
-    exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=False, null=False, verbose_name="Experience")
+    app = models.ForeignKey(TAApplication, on_delete=models.PROTECT)
+    course = models.ForeignKey(Course, on_delete=models.PROTECT)
+    taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=True, null=True)
+    exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=True, null=True, verbose_name="Experience")
     rank = models.IntegerField(blank=False)
     #class Meta:
     #    unique_together = (('app', 'course'),)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.app_id and self.course_id:
             return "%s's pref for %s" % (self.app.person, self.course)
         else:
             return "new CoursePreference"
+
+
+# An object to store the content that will be emailed when the contract automatically gets emailed upon the TA
+# accepting.  There should be only one of these per unit, so that it's only set once per school.  Realistically, only
+# CMPT uses this.
+class TAContractEmailText(models.Model):
+    unit = models.OneToOneField(Unit, editable=False, on_delete=models.PROTECT, related_name='contract_email_text')
+    subject = models.CharField(max_length=250, help_text='e.g. "Your TA Contract"')
+    content = models.TextField(help_text='e.g. "Please find enclosed your TA Contract..."')
+
+    def __str__(self):
+        return "TA contract acceptance text for %s" % self.unit.label.upper()

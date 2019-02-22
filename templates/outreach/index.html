@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Outreach Events{% endblock %}
+{% block h1 %}Current Events{% endblock %}
+
+{% block subbreadcrumbs %}<li>Outreach</li>{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#outreachevents').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']]
+  } );
+  $('#pastoutreachevents').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']]
+  } );
+  $('#view_past_events').prop('checked', false);
+  $('#pastevents').hide();
+  $('#view_past_events').click(togglePast);
+} );
+
+function togglePast() {
+    $('#pastevents').toggle();
+}
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "outreach:new_event" %}">Add New Event</a></li>
+        <li><a href="{% url "outreach:view_all_registrations" %}">View All Registrations</a></li>
+        {% if events %}
+            <li><a href="{% url "outreach:download_events" %}">Download Current Events</a></li>
+        {% endif %}
+        {% if past_events %}
+            <li><a href="{% url "outreach:download_events" past=1 %}">Download Past Events</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    {% if past_events %}
+    <div>View past events &nbsp; <input type="checkbox" id="view_past_events"></div>
+    {% endif %}
+    {% if events %}
+        <table id="outreachevents" class="display">
+            <thead>
+                <tr>
+                    <td>Title</td>
+                    <td>Start Date</td>
+                    <td>End Date</td>
+                    <td>Unit</td>
+                    <td>Attending</td>
+                    <td>Actions</td>
+                </tr>
+            </thead>
+            {% for event in events %}
+            <tr>
+                <td>{{ event.title }}</td>
+                <td>{{ event.start_date }}</td>
+                <td>{{ event.end_date }}</td>
+                <td>{{ event.unit }}</td>
+                <td>{{ event.registration_count }}</td>
+                <td style="min-width: 130px">
+                    <form class="lineform" method="POST"
+                          action="{% url "outreach:delete_event" event_id=event.id %}">
+                        {% csrf_token %}
+                        <button type='submit' class='btn confirm-submit' title="Hide Event" data-submit-action="remove this event">
+                            <i class='fa fa-trash-o'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "outreach:edit_event" event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="Edit Event">
+                            <i class='fa fa-edit'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "outreach:download_registrations" event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="Download Registrations">
+                            <i class='fa fa-download'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "outreach:view_event_registrations" event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="View Registrations">
+                            <i class='fa fa-book'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "outreach:view_event" event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="View Event">
+                            <i class='fa fa-eye'></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+    {% else %}
+        <div>There are no current events to display.</div>
+    {% endif %}
+    {% if past_events %}
+        <div id="pastevents">
+        <h1>Past Events</h1>
+        <table id="pastoutreachevents" class="display">
+            <thead>
+                <tr>
+                    <td>Title</td>
+                    <td>Start Date</td>
+                    <td>End Date</td>
+                    <td>Unit</td>
+                    <td>Attended</td>
+                    <td>Actions</td>
+                </tr>
+            </thead>
+            {% for event in past_events %}
+            <tr>
+                <td>{{ event.title }}</td>
+                <td>{{ event.start_date }}</td>
+                <td>{{ event.end_date }}</td>
+                <td>{{ event.unit }}</td>
+                <td>{{ event.registration_count }}</td>
+                <td>
+                    <form class="lineform" method="POST"
+                          action="{% url "outreach:delete_event" event_id=event.id %}">
+                        {% csrf_token %}
+                        <button type='submit' class='btn confirm-submit' title="Hide Event" data-submit-action="remove this event">
+                            <i class='fa fa-trash-o'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "outreach:edit_event" event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="Edit Event">
+                            <i class='fa fa-edit'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "outreach:view_event" event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="View Event">
+                            <i class='fa fa-eye'></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        </div>
+    {% endif %}
+{% endblock %}

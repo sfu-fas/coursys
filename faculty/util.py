@@ -2,7 +2,7 @@ import datetime
 
 from django.http import HttpResponse
 
-import unicodecsv
+import csv
 
 from coredata.models import Semester
 
@@ -10,7 +10,7 @@ from coredata.models import Semester
 def make_csv_writer_response(filename, *args, **kwargs):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
-    return unicodecsv.writer(response), response
+    return csv.writer(response), response
 
 
 class ReportingSemester(object):
@@ -31,7 +31,7 @@ class ReportingSemester(object):
     """
 
     def __init__(self, data):
-        if isinstance(data, (str, unicode)):
+        if isinstance(data, str):
             # It's a semester code!
             self.code = data
         elif isinstance(data, datetime.date):
@@ -50,16 +50,22 @@ class ReportingSemester(object):
     def __hash__(self):
         return hash(self.code)
 
-    def __cmp__(self, other):
-        return cmp(self.code, other.code)
+    def __eq__(self, other):
+        return self.code == other.code
+
+    def __lt__(self, other):
+        return self.code < other.code
+
+    def __le__(self, other):
+        return self.code <= other.code
 
     def __repr__(self):
         return repr("<ReportingSemester('{}')>".format(self.code))
 
-    def __unicode__(self):
-        return unicode(self.full_label)
+    def __str__(self):
+        return str(self.full_label)
 
-    def next(self):
+    def __next__(self):
         """Returns the next chronological semester."""
         new_month = ((self.start_date.month - 1) + 4) % 12 + 1
 
@@ -95,7 +101,7 @@ class ReportingSemester(object):
 
         while current <= end:
             yield current
-            current = current.next()
+            current = next(current)
 
     @staticmethod
     def make_full_label(code):

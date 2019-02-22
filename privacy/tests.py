@@ -1,5 +1,5 @@
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from courselib.testing import basic_page_tests, Client
 
 from coredata.models import Person
@@ -18,14 +18,15 @@ class PrivacyTestCase(TestCase):
 
         client = Client()
         client.login_user(p.userid)
-        privacy_url = reverse('privacy.views.privacy')
+        privacy_url = reverse('config:privacy')
+        privacy_da_url = reverse('config:privacy_da')
 
         # non-role page should still render
-        url = reverse('dashboard.views.index')
+        url = reverse('dashboard:index')
         basic_page_tests(self, client, url)
 
         # but role page should redirect to agreement
-        url = reverse('advisornotes.views.advising')
+        url = reverse('advising:advising')
         response = client.get(url)
         self.assertRedirects(response, privacy_url + '?next=' + url)
 
@@ -34,10 +35,18 @@ class PrivacyTestCase(TestCase):
 
         # submit and expect recorded agreement
         response = client.post(privacy_url + '?next=' + url, {'agree': 'on'})
-        self.assertRedirects(response, url)
+
+        # You should get redirected again to the DA agreement...
+        self.assertRedirects(response, url, target_status_code=302)
+
         p = Person.objects.get(userid='dzhao')
         self.assertTrue(p.config['privacy_signed'])
-
+        response = client.get(url)
+        self.assertRedirects(response, privacy_da_url + '?next=' + url)
+        response = client.post(privacy_da_url + '?next=' + url, {'agree': 'on'})
+        self.assertRedirects(response, url)
+        p = Person.objects.get(userid='dzhao')
+        self.assertTrue(p.config['privacy_da_signed'])
         # now we should be able to access
         basic_page_tests(self, client, url)
 

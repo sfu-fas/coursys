@@ -4,33 +4,30 @@ import json
 # Django
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
-from django.template import Template, Context
-from django.forms.util import ErrorList
 
 # Third-Party
-import unicodecsv as csv
+import csv
 
 # Local
-from alerts.models import AlertType
-from alerts.forms import AlertTypeForm
 from privacy.models import needs_privacy_signature, privacy_redirect
 from courselib.auth import requires_role, has_role, HttpResponseRedirect, \
                     ForbiddenResponse
 
 # App
-from models import Report, HardcodedReport, Result, Run, RunLine, \
+from .models import Report, HardcodedReport, Result, Run, RunLine, \
                     Query, AccessRule, ScheduleRule
-from forms import ReportForm, HardcodedReportForm, QueryForm, \
+from .forms import ReportForm, HardcodedReportForm, QueryForm, \
                     AccessRuleForm, ScheduleRuleForm
-from cache import clear_cache
+from .cache import clear_cache
 
 def _has_access(request, report):
     try:
         return (has_role('SYSA', request) or
-                AccessRule.objects.filter(report=report, person__userid=request.user.username).exists()
-               )
+                AccessRule.objects.filter(report=report, person__userid=request.user.username).exists() or
+                has_role('REPV', request)
+                )
     except AccessRule.DoesNotExist:
         return False
 
@@ -59,12 +56,15 @@ def requires_report_access():
 
 def view_reports(request):
     if has_role('SYSA', request):
-        reports = Report.objects.filter(hidden=False)
+        reports = Report.objects.filter(hidden=False).order_by('name')
         readonly = False
+    elif has_role('REPV', request):
+        reports = Report.objects.filter(hidden=False).order_by('name')
+        readonly = True
     else:
         readonly = True
-        access_rules = AccessRule.objects.filter(person__userid=request.user.username)
-        reports = [rule.report for rule in access_rules if rule.report.hidden == False]
+        access_rules = AccessRule.objects.filter(person__userid=request.user.username).order_by('report__name')
+        reports = [rule.report for rule in access_rules if not rule.report.hidden]
 
     return render(request, 'reports/view_reports.html', {'readonly':readonly, 'reports':reports})
 
@@ -78,7 +78,7 @@ def new_report(request):
             f.created_by = request.user.username
             f.save()
             messages.success(request, "Created new report: %s." % f.name)
-            return HttpResponseRedirect(reverse('reports.views.view_report', 
+            return HttpResponseRedirect(reverse('reports:view_report',
                                                     kwargs={'report':f.slug}))
     else:
         form = ReportForm()
@@ -136,7 +136,7 @@ def new_access_rule(request, report):
             f.report = report
             f.save()
             messages.success(request, "Created new access rule:  %s." % str(f.person) )
-            return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+            return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
     else:
         form = AccessRuleForm()
 
@@ -150,7 +150,7 @@ def delete_access_rule(request, report, access_rule_id):
 
     access_rule.delete()
     messages.success(request, "Deleted access rule")
-    return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+    return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
 
 
 @requires_role('SYSA')
@@ -164,7 +164,7 @@ def new_schedule_rule(request, report):
             f.report = report
             f.save()
             messages.success(request, "Created new schedule:  %s." % str(f.next_run) )
-            return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+            return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
     else:
         form = ScheduleRuleForm()
 
@@ -178,7 +178,7 @@ def delete_schedule_rule(request, report, schedule_rule_id):
 
     schedule_rule.delete()
     messages.success(request, "Deleted schedule rule")
-    return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+    return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
 
 
 @requires_role('SYSA')
@@ -198,11 +198,11 @@ def new_component(request, report):
                 f.created_by = request.user.username
                 f.save()
                 messages.success(request, "Created new report component: %s." % f.file_location)
-                return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+                return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
     else:
         form = HardcodedReportForm()
 
-    return render(request, 'reports/new_component.html', {'form': form, 'report': report })
+    return render(request, 'reports/new_component.html', {'form': form, 'report': report})
 
 
 @requires_role('SYSA')
@@ -212,7 +212,7 @@ def delete_component(request, report, component_id):
     
     component.delete()
     messages.success(request, "Deleted component")
-    return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+    return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
 
 
 @requires_role('SYSA')
@@ -227,7 +227,7 @@ def new_query(request, report):
             f.created_by = request.user.username
             f.save()
             messages.success(request, "Created new report query: %s" % f.query)
-            return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+            return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
     else:
         form = QueryForm()
 
@@ -248,7 +248,7 @@ def edit_query(request, report, query_id):
             f.save()
             query.delete()
             messages.success(request, "Edited query: %s" % f.query)
-            return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+            return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
     else:
         form = QueryForm(instance=query)
 
@@ -262,7 +262,7 @@ def delete_query(request, report, query_id):
     
     query.delete()
     messages.success(request, "Deleted query")
-    return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+    return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
 
 
 @requires_report_access()
@@ -287,7 +287,7 @@ def console(request, report):
         data['log'] = log_lines
         data['done'] = last_run.success
         if last_run.success:
-            data['url'] = reverse(view_run, kwargs={'report': report.slug, 'run': last_run.slug})
+            data['url'] = reverse('reports:view_run', kwargs={'report': report.slug, 'run': last_run.slug})
             clear_cache()
 
     return HttpResponse(json.dumps(data), content_type="application/json")
@@ -318,7 +318,7 @@ def delete_run(request, report, run):
     run.delete()
 
     messages.success(request, "Run Deleted!")
-    return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+    return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report':report.slug}))
 
 
 @requires_report_access()
@@ -348,20 +348,3 @@ def csv_result(request, report, run, result):
     
     return response
 
-@requires_role('SYSA')
-def new_alert(request, report):
-    report = get_object_or_404(Report, slug=report)
-
-    if request.method == 'POST':
-        form = AlertTypeForm(request.POST)
-        if form.is_valid():
-            f = form.save(commit=False)
-            f.save()
-            messages.success(request, "Created new alert type:  %s." % str(f.code) )
-            report.alert = f
-            report.save()
-            return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
-    else:
-        form = AlertTypeForm()
-
-    return render(request, 'reports/new_alert.html', {'form': form, 'report': report })

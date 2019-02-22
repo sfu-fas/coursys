@@ -1,18 +1,18 @@
 from django.test import TestCase
-from testboost.testcase import FastFixtureTestCase
 from coredata.models import CourseOffering, Semester, Person, SemesterWeek, \
-                            Member, Role, Unit, ROLE_CHOICES
+                            Member, Role, Unit, EnrolmentHistory, ROLE_CHOICES
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.management import call_command
 
 from courselib.testing import basic_page_tests, validate_content, Client, \
-                              TEST_COURSE_SLUG
+                              TEST_COURSE_SLUG, TEST_ROLE_EXPIRY
 #from django.conf import settings
 
 from django.db import IntegrityError
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import pytz, json
+
 
 def create_semesters():
     semester_1124 = Semester(name="1124", start=date(2012,4,4), end=date(2012,9,3))
@@ -52,10 +52,12 @@ def create_unit():
 def create_greg(unit):
     baker = Person(emplid="123456789", userid="ggbaker", first_name="Greg", last_name="Baker")
     baker.config['privacy_date'] = date(2008,9,9)
-    baker.config['privacy_version'] = 1 
+    baker.config['privacy_version'] = 1
+    baker.config['privacy_da_date'] = date(2008, 9, 9)
+    baker.config['privacy_da_version'] = 1
     baker.save()
     for role_tuple in ROLE_CHOICES:
-        role = Role(person=baker, role=role_tuple[0], unit=unit) 
+        role = Role(person=baker, role=role_tuple[0], unit=unit, expiry=date.today())
         role.save()
     return baker
 
@@ -95,14 +97,14 @@ class CoredataTest(TestCase):
         p1.save()
         p2.save()
         
-        self.assertEquals(str(p1), "Lname, Fname")
-        self.assertEquals(p1.name(), "Fname Lname")
-        self.assertEquals(p1.email(), "test1@sfu.ca")
+        self.assertEqual(str(p1), "Lname, Fname")
+        self.assertEqual(p1.name(), "Fname Lname")
+        self.assertEqual(p1.email(), "test1@sfu.ca")
         people = Person.objects.filter(userid__startswith="test")
         # check sorting
-        self.assertEquals(p1, people[0])
-        self.assertEquals(p2, people[1])
-        self.assertEquals(p3, people[2])
+        self.assertEqual(p1, people[0])
+        self.assertEqual(p2, people[1])
+        self.assertEqual(p3, people[2])
         
         # uniqueness checking for emplid and userid
         px = Person(emplid=210012345, userid="test4")
@@ -138,8 +140,8 @@ class CoredataTest(TestCase):
         wk = SemesterWeek(semester=s, week=5, monday=date(2007,10,8)) # pretend there is a Oct 1-5 break
         wk.save()
         
-        self.assertEquals(s.label(), "Fall 2007")
-        self.assertEquals(str(wk), "1077 week 5")
+        self.assertEqual(s.label(), "Fall 2007")
+        self.assertEqual(str(wk), "1077 week 5")
 
         # test semester arithmetic
         s = Semester.objects.get(name='1131')
@@ -207,10 +209,10 @@ class CoredataTest(TestCase):
         
         # should have a get_absolute_url
         url = c.get_absolute_url()
-        self.assertEquals(url, str(url))
-        self.assertEquals(url[0], '/')
-        self.assertEquals(str(c), "CMPT 120 D100 (Fall 2007)")
-        self.assertEquals(c.name(), "CMPT 120 D1")
+        self.assertEqual(url, str(url))
+        self.assertEqual(url[0], '/')
+        self.assertEqual(str(c), "CMPT 120 D100 (Fall 2007)")
+        self.assertEqual(c.name(), "CMPT 120 D1")
 
         # check uniqueness criteria
         c2 = CourseOffering(subject="CMPT", number="120", section="D100", semester=s, component="LAB",
@@ -263,7 +265,7 @@ class CoredataTest(TestCase):
         p1.save()
         
         unit = Unit.objects.get(label="UNIV")
-        r = Role(person=p1, role="SYSA", unit=unit)
+        r = Role(person=p1, role="SYSA", unit=unit, expiry=TEST_ROLE_EXPIRY)
         r.save()
         self.assertEqual( str(r), "Lname, Fname (System Administrator, UNIV)")
 
@@ -271,32 +273,53 @@ class CoredataTest(TestCase):
         client = Client()
         client.login_user("test1")
 
-        url = reverse('coredata.views.role_list')
+        url = reverse('sysadmin:role_list')
         response = basic_page_tests(self, client, url)
-        self.assertContains(response, 'Lname, Fname</a></td><td>System Administrator</td>')
+        self.assertContains(response, 'Lname, Fname</a></td>\n  <td>System Administrator</td>')
 
         # add a new role with the front end
         oldcount = Role.objects.filter(role='FAC').count()
-        url = reverse('coredata.views.new_role')
+        url = reverse('sysadmin:new_role')
         response = basic_page_tests(self, client, url)
         
         response = client.post(url, {'person':'33333333', 'role':'FAC', 'unit': 2})
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         validate_content(self, response.content, url)
-        self.assertTrue("could not import DB2 module" in response.content
-                        or "could not connect to reporting database" in response.content
-                        or "Could not find this emplid." in response.content
-                        or "Reporting database access has been disabled" in response.content
-                        or "Could not communicate with reporting database" in response.content)
+        self.assertTrue(b"could not import DB2 module" in response.content
+                        or b"could not connect to reporting database" in response.content
+                        or b"Could not find this emplid." in response.content
+                        or b"Reporting database access has been disabled" in response.content
+                        or b"Could not communicate with reporting database" in response.content)
 
-        response = client.post(url, {'person':p1.emplid, 'role':'FAC', 'unit':unit.id})
-        self.assertEquals(response.status_code, 302)
+        response = client.post(url, {'person':p1.emplid, 'role':'FAC', 'unit':unit.id, 'expiry': str(TEST_ROLE_EXPIRY)})
+        self.assertEqual(response.status_code, 302)
         
         # make sure the role is now there
-        self.assertEquals( Role.objects.filter(role='FAC').count(), oldcount+1)
+        self.assertEqual( Role.objects.filter(role='FAC').count(), oldcount+1)
+
+    def test_role_access(self):
+        r = Role.objects.filter(role='SYSA')[0]
+        p = r.person
+        p.config['privacy_signed'] = True
+        p.config['privacy_da_signed'] = True
+        p.save()
+
+        client = Client()
+        client.login_user(r.person.userid)
+        url = reverse('sysadmin:new_role')
+
+        # test data role expires in the future: should allow.
+        resp = client.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+        # expire the role: should now forbid.
+        r.expiry = date.today() - timedelta(days=2)
+        r.save()
+        resp = client.get(url)
+        self.assertEqual(resp.status_code, 403)
 
 
-class SlowCoredataTest(FastFixtureTestCase):
+class SlowCoredataTest(TestCase):
     fixtures = ['basedata', 'coredata']
     
     def test_course_browser(self):
@@ -305,17 +328,17 @@ class SlowCoredataTest(FastFixtureTestCase):
         s, c = create_offering()
         
         # the main search/filter page
-        url = reverse('coredata.views.browse_courses')
+        url = reverse('browse:browse_courses')
         response = basic_page_tests(self, client, url)
 
         # AJAX request for table data
         url += '?tabledata=yes&data_type=json&iDisplayStart=0&iDisplayLength=10&iSortingCols=0'
         response = client.get(url)
-        data = json.loads(response.content)
-        self.assertEquals(len(data['aaData']), 10)
+        data = json.loads(response.content.decode('utf8'))
+        self.assertEqual(len(data['aaData']), 10)
 
         # courseoffering detail page
-        url = reverse('coredata.views.browse_courses_info', kwargs={'course_slug': TEST_COURSE_SLUG})
+        url = reverse('browse:browse_courses_info', kwargs={'course_slug': TEST_COURSE_SLUG})
         response = basic_page_tests(self, client, url)
     
     def test_ajax(self):
@@ -325,32 +348,95 @@ class SlowCoredataTest(FastFixtureTestCase):
         # test person autocomplete
         client.login_user("dzhao")
         p = Person.objects.get(userid='ggbaker')
-        url = reverse('coredata.views.student_search')
+        url = reverse('data:student_search')
         response = client.get(url, {'term': 'ggba'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'application/json')
         # should find this person
-        data = json.loads(response.content)
+        data = json.loads(response.content.decode('utf8'))
         emplids = [str(d['value']) for d in data]
         self.assertIn(str(p.emplid), emplids)
 
 
-class DependencyTest(FastFixtureTestCase):
+class EnrolmentHistoryTest(TestCase):
+    fixtures = ['basedata', 'coredata']
+
+    def setUp(self):
+        offerings = CourseOffering.objects.all()
+        o1 = offerings[0]
+        o2 = offerings[1]
+        self.o1 = o1
+        self.o2 = o2
+
+        o1.enrl_cap = 10
+        o1.enrl_tot = 15
+        o1.wait_tot = 2
+        EnrolmentHistory.from_offering(o1, date='2017-01-01')
+        EnrolmentHistory.from_offering(o1, date='2017-01-02')
+        o1.enrl_cap = 13
+        EnrolmentHistory.from_offering(o1, date='2017-01-03')
+        EnrolmentHistory.from_offering(o1, date='2017-01-05')
+        o1.wait_tot = 3
+        EnrolmentHistory.from_offering(o1, date='2017-01-07')
+
+        o2.enrl_cap = 20
+        o2.enrl_tot = 25
+        o2.wait_tot = 7
+        EnrolmentHistory.from_offering(o2, date='2017-01-01')
+        EnrolmentHistory.from_offering(o2, date='2017-01-02')
+        EnrolmentHistory.from_offering(o2, date='2017-01-03')
+        EnrolmentHistory.from_offering(o2, date='2017-01-04')
+        o2.enrl_tot = 30
+        EnrolmentHistory.from_offering(o2, date='2017-01-05')
+        EnrolmentHistory.from_offering(o2, date='2017-01-06')
+
+    def test_dedupe(self):
+        EnrolmentHistory.deduplicate()
+        eh1 = EnrolmentHistory.objects.filter(offering=self.o1).order_by('date')
+        self.assertEqual(eh1.count(), 3)
+        self.assertEqual(eh1[0].date, date(2017, 1, 1))
+        self.assertEqual(eh1[0].enrl_vals, (10, 15, 2))
+        self.assertEqual(eh1[1].date, date(2017, 1, 3))
+        self.assertEqual(eh1[1].enrl_vals, (13, 15, 2))
+        self.assertEqual(eh1[2].date, date(2017, 1, 7))
+        self.assertEqual(eh1[2].enrl_vals, (13, 15, 3))
+
+        eh2 = EnrolmentHistory.objects.filter(offering=self.o2).order_by('date')
+        self.assertEqual(eh2.count(), 2)
+        self.assertEqual(eh2[0].date, date(2017, 1, 1))
+        self.assertEqual(eh2[0].enrl_vals, (20, 25, 7))
+        self.assertEqual(eh2[1].date, date(2017, 1, 5))
+        self.assertEqual(eh2[1].enrl_vals, (20, 30, 7))
+
+
+class DependencyTest(TestCase):
     """
     Tests of dependent libraries, where there have been problems
     """
+    def _flag_filter(self, filters):
+        q = CourseOffering.objects
+        for f in filters:
+            q = q.filter(flags=f)
+        return set(q)
+
     def test_bitfield(self):
-        s, c = create_offering()
+        s, c1 = create_offering()
+        c2 = CourseOffering(subject="CMPT", number="121", section="D100", semester=s, component="LEC",
+                           graded=True, crse_id=11112, class_nbr=22223, campus='BRNBY', title="Other Stuff",
+                           enrl_cap=100, enrl_tot=99, wait_tot=2)
+        c2.save()
 
-        c.flags = CourseOffering.flags.quant
-        c.save()
-        self.assertEqual(CourseOffering.objects.filter(flags=CourseOffering.flags.quant).count(), 1)
-        self.assertEqual(CourseOffering.objects.filter(flags=~CourseOffering.flags.quant).count(), 0)
+        c1.flags = CourseOffering.flags.quant
+        c1.save()
+        self.assertEqual(self._flag_filter([CourseOffering.flags.quant, CourseOffering.flags.bhum]), set())
+        self.assertEqual(self._flag_filter([CourseOffering.flags.quant]), {c1})
+        self.assertEqual(self._flag_filter([~CourseOffering.flags.quant]), {c2})
+        self.assertEqual(self._flag_filter([~CourseOffering.flags.bhum]), {c1, c2})
 
-        c.flags = 0
-        c.save()
-        self.assertEqual(CourseOffering.objects.filter(flags=CourseOffering.flags.quant).count(), 0)
-        self.assertEqual(CourseOffering.objects.filter(flags=~CourseOffering.flags.quant).count(), 1)
+        c1.flags = 0
+        c1.save()
+        self.assertEqual(self._flag_filter([CourseOffering.flags.quant]), set())
+        self.assertEqual(self._flag_filter([~CourseOffering.flags.quant]), {c1, c2})
 
     def test_jsonfield(self):
         from grades.models import CalNumericActivity

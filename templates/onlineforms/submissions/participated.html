@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block h1 %} Forms in which you participated{% endblock %}
+{% block title %} Forms in which you participated{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+    <li>Forms in which you participated</li>
+{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#participated_forms').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[6, 'desc']]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+{% if participated %}
+    <table id="participated_forms" class="display">
+        <thead>
+            <tr>
+                <th>Form</th>
+                <th>Unit</th>
+                <th>Sheet</th>
+                <th>Initiator</th>
+                <th>Form Last Modified</th>
+                <th>Sheet assigned</th>
+                <th>Sheet completed</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for sheet_sub in participated %}
+            <tr>
+                <td>{{ sheet_sub.form_submission.form.title }}</td>
+                <td>{{ sheet_sub.form_submission.form.unit }}</td>
+                <td><a href="{% url "onlineforms:sheet_submission_subsequent" form_slug=sheet_sub.form_submission.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheet_slug=sheet_sub.sheet.slug sheetsubmit_slug=sheet_sub.slug %}">{{ sheet_sub.sheet.title }}</a></td>
+                <td>{{ sheet_sub.form_submission.initiator }}</td>
+                <td><span class="sort">{{ sheet_sub.form_submission.last_sheet_completion.isoformat }}</span>{{ sheet_sub.form_submission.last_sheet_completion }}</td>
+                <td><span class="sort">{{ sheet_sub.given_at.isoformat }}</span>{{ sheet_sub.given_at }}</td>
+                <td><span class="sort">{{ sheet_sub.completed_at.isoformat }}</span>{{ sheet_sub.completed_at }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% else %}
+    <p>There are no forms in which you participated.</p>
+{% endif %}
+{% endblock %}

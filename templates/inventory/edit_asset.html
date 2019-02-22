@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit Asset{% endblock %}
+{% block h1 %}Edit Asset{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'inventory:inventory_index' %}">Inventory</a></li>
+<li>Edit Asset</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'inventory:edit_asset' asset_slug=asset_slug %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Asset" />
+    </p>
+</form>
+{% endblock %}

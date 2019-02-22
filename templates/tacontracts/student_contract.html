@@ -8,7 +8,7 @@
 {% block h1 %}TA Contracts for {{semester}}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $("h2").collapsible();
 });
@@ -35,7 +35,7 @@ $(document).ready(function() {
     {% if editable %}
     <div class='collapse_menu'>
         <ul>
-            <li><a href="{% url "tacontracts.views.edit_contract" semester=semester contract_slug=contract.slug %}">
+            <li><a href="{% url "tacontracts:edit_contract" semester=semester contract_slug=contract.slug %}">
                 <i class='fa fa-edit'></i>
                 Edit Contract Details</a>
             </li>
@@ -76,12 +76,12 @@ $(document).ready(function() {
     {% if editable %}
     <div class="collapse_menu">
         <ul>
-            <li><a href="{% url "tacontracts.views.edit_contract" semester=semester contract_slug=contract.slug %}">
+            <li><a href="{% url "tacontracts:edit_contract" semester=semester contract_slug=contract.slug %}">
                 <i class="fa fa-exchange"></i>
                 Use Different Account</a>
             </li>
             {% if not contract.category.frozen %}
-            <li><a href="{% url "tacontracts.views.edit_category" semester=semester category_slug=contract.category.slug %}">
+            <li><a href="{% url "tacontracts:edit_category" semester=semester category_slug=contract.category.slug %}">
                 <i class="fa fa-edit"></i>
                 Edit Account </a>
             {% endif %}
@@ -151,7 +151,7 @@ $(document).ready(function() {
             <td>
                 {% if editable %}
                 <form class="lineform" method="POST"
-                      action="{% url "tacontracts.views.delete_course" semester=semester course_slug=course.slug contract_slug=contract.slug %}">
+                      action="{% url "tacontracts:delete_course" semester=semester course_slug=course.slug contract_slug=contract.slug %}">
                     {% csrf_token %}
                       <button type="submit" class="btn" title="Delete Course">
                           <i class="fa fa-trash-o"></i>
@@ -172,7 +172,7 @@ $(document).ready(function() {
         <tr>
             <td colspan="6">
                 <h4 id="add_a_course">Add a Course</h4>
-                <form action="{% url "tacontracts.views.new_course" semester=semester contract_slug=contract.slug %}" method="post">
+                <form action="{% url "tacontracts:new_course" semester=semester contract_slug=contract.slug %}" method="post">
                     {% csrf_token %}
                     <fieldset>
                     {{ courseform|as_dl }}
@@ -261,7 +261,7 @@ $(document).ready(function() {
 </form>
 {% else %}
     {% if not contract.accepted_by_student %}
-    <form method="post" action="{% url "tacontracts.views.accept_contract" semester=semester contract_slug=contract.slug %}">
+    <form method="post" action="{% url "tacontracts:accept_contract" semester=semester contract_slug=contract.slug %}">
         {% csrf_token %}
         <p>
         </p>

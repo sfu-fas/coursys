@@ -5,16 +5,22 @@ from django import forms
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.forms.models import ModelForm
-from django.utils.encoding import force_unicode
-from django.utils.safestring import mark_safe
+from courselib.markup import MarkupContentMixin, MarkupContentField
 import datetime
 
 TEXT_WIDTH = 70
 
-class _AdvisorNoteForm(forms.ModelForm):
 
+class AdvisorNoteForm(MarkupContentMixin(field_name='text'), forms.ModelForm):
+    text = MarkupContentField(label="Content", default_markup='plain', allow_math=False, restricted=False, with_wysiwyg=True)
     email_student = forms.BooleanField(required=False,
                                        help_text="Should the student be emailed the contents of this note?")
+
+    def __init__(self, student, *args, **kwargs):
+        # Only needed for the clean_email_student below, so that we may check for an email and display a validation
+        # error if needed.  The view handles sending the actual email afterwards.
+        self.student = student
+        super().__init__(*args, **kwargs)
 
     def clean_email_student(self):
         email = self.cleaned_data['email_student']
@@ -25,16 +31,7 @@ class _AdvisorNoteForm(forms.ModelForm):
     class Meta:
         model = AdvisorNote
         exclude = ('hidden', 'emailed', 'created_at', 'config')
-        widgets = {'text': forms.Textarea(attrs={'cols': TEXT_WIDTH, 'rows': 15})}
 
-
-def advisor_note_factory(student, post_data=None, files=None, initial=None, instance=None):
-    """
-    Factory method to return the proper form for a student/nonstudent
-    """
-    form = _AdvisorNoteForm(post_data, files, initial=initial, instance=instance)
-    form.student = student
-    return form
 
 class ArtifactNoteForm(forms.ModelForm):
     class Meta:
@@ -53,20 +50,8 @@ class EditArtifactNoteForm(forms.ModelForm):
                 'text': forms.Textarea(attrs={'cols': TEXT_WIDTH, 'rows': 15})
                 }
 
-class StudentSelect(forms.Select):
-    input_type = 'text'
-
-    def render(self, name, value, attrs=None):
-        """
-        Render for jQueryUI autocomplete widget
-        """
-        if value is None:
-            value = ''
-        final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
-        if value != '':
-            # Only add the 'value' attribute if a value is non-empty.
-            final_attrs['value'] = force_unicode(value)
-        return mark_safe(u'<input%s />' % forms.widgets.flatatt(final_attrs))
+class StudentSelect(forms.TextInput):
+    pass
 
 
 class StudentField(forms.ModelChoiceField):
@@ -94,6 +79,11 @@ class StudentSearchForm(forms.Form):
 
 class NoteSearchForm(forms.Form):
     search = forms.CharField()
+
+
+class ArtifactSearchForm(forms.Form):
+    search = forms.CharField()
+
 
 class OfferingSearchForm(forms.Form):
     offering = OfferingField()

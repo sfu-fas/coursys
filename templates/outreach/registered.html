@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if event.current %}You're registered{% else %}Event ended{% endif %}
+{% endblock %}
+{% block h1 %}
+    {% if event.current %}You're registered{% else %}Event ended{% endif %}
+{% endblock %}
+
+
+{% block content %}
+{% if event.current %}
+    You have registered for the following event: <br/>
+    {{ event.title }}.
+    <dt>Event description</dt><dd>{{ event.description|linebreaks }}</dd>
+    <dt>Start date</dt><dd>{{ event.start_date }}</dd>
+    {% if event.end_date %}<dt>End date</dt><dd>{{ event.end_date }}</dd>{% endif %}
+    {% if event.location %}<dt>Location</dt><dd>{{ event.location|linebreaks }}</dd>{% endif %}
+    {% if event.notes %}<dt>Notes</dt><dd>{{ event.notes|linebreaks }}</dd>{% endif %}
+    {% if event.email %} For any questions about or problems with your registration, please contact
+        <a href="mailto:{{ event.email }}">{{ event.email }}</a>.{% endif %}
+{% else %}
+<div>Sorry, this event has already ended or it doesn't exist.</div>
+{% endif %}
+{% endblock %}

@@ -1,47 +1,25 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 
 {% block title %}{% if page %}Edit {{kind}} {{page.label}}{% else %}New {{kind}}{% endif %}{% endblock %}
 {% block h1 %}{% if page %}Edit {{kind}} {{page.label}}{% else %}New {{kind}}{% endif %}{% endblock %}
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li><li><a href="{% url "pages.views.index_page" course_slug=offering.slug %}">Pages</a></li>{% if page %}<li><a href="{% url "pages.views.view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>Edit</li>{% else %}<li>New Page</li>{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li><li><a href="{% url "offering:pages:index_page" course_slug=offering.slug %}">Pages</a></li>{% if page %}<li><a href="{% url "offering:pages:view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>Edit</li>{% else %}<li>New Page</li>{% endif %}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{STATIC_URL}}tiny_mce/tiny_mce.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}jquery-ext/jquery.cookie.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}js/pages.js"></script>
-<script type="text/javascript">
-var convert_url = '{% if page %}{% url "pages.views.convert_content" course_slug=offering.slug page_label=page.label %}{% else %}{% url "pages.views.convert_content" course_slug=offering.slug %}{% endif %}';
-var csrf_token = '{{csrf_token}}';
-$(document).ready(function() {
-	if ( $('#id_markup').val() == 'html' ) {
-		$('#wiki-on').show();
-		setup_tinymce('id_wikitext');
-	} else if ( $.cookie('editor_pref') == 'wysiwyg' ) {
-		do_wysiwyg();
-	} else {
-		$('#wysiwyg-on').show();
-	}
-	$('#id_releasedate').datepicker({'dateFormat': 'yy-mm-dd'});
-	$('#id_editdate').datepicker({'dateFormat': 'yy-mm-dd'});
-} );
-</script>
-{% endblock %}
-
-{% block actions %}
-{% if not import and page %}
-<div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-    <li><a href="{% url "pages.views.import_page" course_slug=offering.slug page_label=page.label %}">Import Content</a></li>
-    </ul>
-</div>
-{% endif %}
+{% include 'pages/markup_edit_head.html' %}
 {% endblock %}
 
 {% block content %}
-{% if kind != "File" %}
-<a href="javascript:do_wysiwyg()" id="wysiwyg-on" style="display:none">Switch to WYSIWYG editing</a>
-<a href="javascript:do_wiki()" id="wiki-on" style="display:none">Switch to wikitext editing</a>
+
+{% if is_macro_page %}
+<div class="helptext">
+<p>This is the page of macro expansions for this course offering. The &ldquo;content&rdquo; should be like this:</p>
+<blockquote><pre>MACRO_NAME: text to actually place on the page
+ANOTHER_MACRO: some other replacement text</pre></blockquote>
+<p>Then on any page for this course, the text <code>+MACRO_NAME+</code> and <code>+ANOTHER_MACRO+</code> will be replaced with the text above.
+Macro names (before the colon) cannot contain spaces; replacements (after the colon) can be any text, including wiki markup.</p>
+</div>
 {% endif %}
 
 <form action="{% if url %}{{url}}{% endif %}" method="post" enctype="multipart/form-data">{% csrf_token %}
@@ -53,8 +31,9 @@ $(document).ready(function() {
 <h2 id="delete">Delete this page</h2>
 <form action="{% if url %}{{url}}{% endif %}" method="post">{% csrf_token %}
 <p>
-<input type="hidden" name="delete" value="yes" />
-<input class="submit" type="submit" value="Delete {{kind}}" onclick="confirmSubmit('delete this {{kind}}')" />
+<input type="hidden" name="delete" value="yes" size="30"/>
+URL to redirect after deletion: <input type="text" name="redirect" value="Index" />
+<input class="submit confirm-submit" type="submit" value="Delete {{kind}}" data-submit-action="remove this {{kind}}" />
 </p>
 </form>
 {% endif %}

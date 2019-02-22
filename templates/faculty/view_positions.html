@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}Positions{% endblock %}
+{% block h1 %}Positions{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty:index" %}">Faculty Management</a></li>
+<li>Position</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#positions').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[2, 'asc']]
+  } );
+} );
+function confirmDelete(url) {
+  if ( confirm("Are you sure you want to delete this position?") ) {
+    document.location = url;
+  };
+}
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "faculty:new_position" %}">Add New Position</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if positions %}
+    <table id="positions" class="display">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Start Date</th>
+                <th>Position Number</th>
+                <th>Unit</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        {% for position in positions %}
+            <tr>
+                <td><a href="{% url 'faculty:view_position' position_id=position.id %}">{{ position.title }}</a></td>
+                <td>{{ position.projected_start_date }}</td>
+                <td>{{ position.position_number }}</td>
+                <td>{{ position.unit }}</td>
+                <td>
+                    <div class="lineform">
+                        <button type='submit' class='btn' title="Hide Position"
+                                onclick="confirmDelete('{% url "faculty:delete_position" position_id=position.id %}')">
+                            <i class='fa fa-trash-o'></i>
+                        </button>
+                    </div>
+                    <form class="lineform" method="GET"
+                        action="{% url "faculty:edit_position" position_id=position.id %}">
+                        <button type='submit' class='btn' title="Edit Position">
+                            <i class='fa fa-edit'></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <h2>There are no positions to display.</h2>
+{% endif %}
+
+{% endblock %}

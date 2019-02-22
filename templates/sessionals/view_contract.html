@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}View Contract{% endblock %}
+{% block h1 %}View Contract{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'sessionals:sessionals_index' %}">Sessionals</a></li>
+<li>View Account</li>
+{% endblock %}
+
+{% block actions %}
+<h2>Actions</h2>
+<ul>
+    <li><a href="{% url "sessionals:edit_contract" contract_slug=contract.slug %}">Edit</a></li>
+    <li><a href="{% url "sessionals:print_form" contract_slug=contract.slug %}">Print Sessional Instructor Form</a></li>
+    <li><a href="{% url "sessionals:new_attachment" contract_slug=contract.slug %}">Add Attachment</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<dt>Sessional</dt><dd>{{ contract.sessional.get_person }}</dd>
+<dt>Account</dt><dd>{{ contract.account }}</dd>
+<dt>Unit</dt><dd>{{ contract.unit }}</dd>
+<dt>SIN</dt><dd>{{ contract.sin }}</dd>
+<dt>Visa Verified</dt><dd>{{ contract.visa_verified|yesno }}</dd>
+<dt>Appointment Start</dt><dd>{{ contract.appointment_start }}</dd>
+<dt>Appointment End</dt><dd>{{ contract.appointment_end }}</dd>
+<dt>Pay Start</dt><dd>{{ contract.pay_start }}</dd>
+<dt>Pay Start</dt><dd>{{ contract.pay_end }}</dd>
+<dt>Offering</dt><dd>{{ contract.offering }}</dd>
+<dt>Course Hours Breakdown</dt><dd>{{ contract.course_hours_breakdown }}</dd>
+<dt>Appointment Guarantee</dt><dd>{{ contract.get_appt_guarantee_display }}</dd>
+<dt>Appointment Type</dt><dd>{{ contract.get_appt_type_display }}</dd>
+<dt>Weekly Contact Hours</dt><dd>{{ contract.contact_hours }}</dd>
+<dt>Total Salary</dt><dd>${{ contract.total_salary }}</dd>
+<dt>Notes</dt><dd>{{ contract.notes|linebreaks }}</dd>
+
+{% with attachments=contract.attachments.visible %}
+{% if attachments %}
+<h2 id="attachments">Attachments</h2>
+<ul>
+{% for a in attachments %}
+<li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
+  <a href="{% url 'sessionals:view_attachment' contract_slug=contract.slug attach_slug=a.slug %}">View</a> |
+  <a href="{% url 'sessionals:download_attachment' contract_slug=contract.slug attach_slug=a.slug %}">Download</a> |
+  <a href="{% url 'sessionals:delete_attachment' contract_slug=contract.slug attach_slug=a.slug  %}">Delete</a>
+</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+{% endblock %}

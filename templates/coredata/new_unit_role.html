@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 {% load form_display %}
 {% load course_display %}
-{% block title %}CourSys Roles{% endblock %}
-{% block h1 %}CourSys Roles{% endblock %}
+{% block title %}{{ CourSys }} Roles{% endblock %}
+{% block h1 %}{{ CourSys }} Roles{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "coredata.views.unit_admin" %}">Admin</a></li><li><a href="{% url "coredata.views.unit_role_list" %}">Roles</a></li><li>New</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "admin:unit_admin" %}">Admin</a></li><li><a href="{% url "admin:unit_role_list" %}">Roles</a></li><li>New</li>{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
-//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">
   function place_help(r, txt) {
     var inp = $('input[name$="role"][value$=' + r + ']');
     inp.parent().append('<div class="helptext">(' + txt + ')</div>');
@@ -29,15 +28,16 @@
     });  
 
   });
-//]]></script>
+</script>
 {% endblock %}
 
 {% block content %}
 
 <div class="form_container">
-<form action="{% url "coredata.views.new_unit_role" %}" method="post">{% csrf_token %}
+<form action="{% url "admin:new_unit_role" %}" method="post">{% csrf_token %}
 <fieldset>
 <legend>Role</legend>
+<p>Users should only be given roles here to access/modify data that is necessary for their job, and for the duration of their appointment.</p>
 {{ form|as_dl }}
 <p><input type="submit" class="submit" value="Submit" /></p>
 </fieldset>

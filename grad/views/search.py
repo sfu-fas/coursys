@@ -6,9 +6,9 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.safestring import mark_safe
 from django.contrib import messages
 from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES, COLUMN_WIDTHS
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from coredata.models import Person
-import unicodecsv as csv
+import csv
 import copy, datetime, json
 from grad.templatetags.getattribute import getattribute
 from dashboard.letters import card_req_forms, fasnet_forms
@@ -21,7 +21,7 @@ def _get_cleaned_get(request):
     """
     cleaned_get = copy.copy(request.GET)
     for parameter, parameter_values in request.GET.iterlists():
-        if len(filter(lambda x:len(x) > 0, parameter_values)) == 0:
+        if len([x for x in parameter_values if len(x) > 0]) == 0:
             del cleaned_get[parameter]
     return cleaned_get
 
@@ -71,7 +71,7 @@ def _generate_excel(response, columns, headers, grads):
     oddstyle = xlwt.easyxf('pattern: pattern sparse_dots, fore_colour grey25')
     
     # header row
-    sheet.write(0, 0, u'Graduate Student Search Results', xlwt.easyxf('font: bold on, height 320'))
+    sheet.write(0, 0, 'Graduate Student Search Results', xlwt.easyxf('font: bold on, height 320'))
     sheet.row(0).height = 400
     for i,hdr in enumerate(headers):
         sheet.write(1, i, hdr, hdrstyle)
@@ -113,7 +113,13 @@ def search(request):
 
     scholarshiptype_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False)]
 
-    program_choices = [(gp.id, gp.label) for gp in GradProgram.objects.filter(unit__in=request.units, hidden=False)]
+    # If the user has the grad role for more than one unit, append the unit label to the name of the program so
+    # they know which one they are looking at.
+    if len(request.units) > 1:
+        program_choices = [(gp.id, "%s - %s" % (gp.unit.label, gp.label)) for gp in
+                           GradProgram.objects.filter(unit__in=request.units, hidden=False)]
+    else:
+        program_choices = [(gp.id, gp.label) for gp in GradProgram.objects.filter(unit__in=request.units, hidden=False)]
 
     status_choices = [(st,desc) for st,desc in STATUS_CHOICES if st not in STATUS_OBSOLETE] + [('', 'None')]
 

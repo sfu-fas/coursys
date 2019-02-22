@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}RoleAccounts{% endblock %}
+{% block h1 %}RoleAccounts{% endblock %}
+
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#roleaccounts').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[0, 'asc']]
+  } );
+} );
+
+function confirmDelete(url) {
+  if ( confirm("Are you sure you want to delete this record?  This may cause horrible things to happen if the foreign keys are used elsewhere") ) {
+    document.location = url;
+  };
+}
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
+    <li><a href="{% url "sysadmin:list_anypersons" %}">AnyPersons</a></li>
+    <li>Role Accounts</li>
+{% endblock %}
+
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "sysadmin:add_roleaccount" %}">Add New Role Account</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if roleaccounts %}
+    <table id="roleaccounts" class="display">
+        <thead>
+            <tr>
+                <th>Userid</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>AnyPerson exists</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for roleaccount in roleaccounts %}
+        <tr>
+            <td>{{ roleaccount.userid }}</td>
+            <td>{{ roleaccount.get_type_display }}</td>
+            <td>{{ roleaccount.description }}</td>
+            <td>{{ roleaccount.is_anyperson|yesno }}</td>
+            <td>
+                <div class="lineform">
+                    <button type='submit' class='btn' title="Delete"
+                            onclick="confirmDelete('{% url "sysadmin:delete_roleaccount" roleaccount_id=roleaccount.id %}')">
+                        <i class='fa fa-trash-o'></i>
+                    </button>
+                </div>
+                <form class="lineform" method="GET"
+                    action="{% url "sysadmin:edit_roleaccount" roleaccount_id=roleaccount.id %}">
+                    <button type='submit' class='btn' title="Edit">
+                        <i class='fa fa-edit'></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% else %}
+    <h2>There are no role accounts to display.</h2>
+{% endif %}
+
+{% endblock %}

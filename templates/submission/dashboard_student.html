@@ -3,18 +3,16 @@
 {% block title %}Submission for {{activity.name}}{% endblock %}
 {% block h1 %}Submission for {{activity.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{course.name}}</a></li><li><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li><li>Submission</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{course.name}}</a></li><li><a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li><li>Submission</li>{% endblock %}
 
 
 {% block actions %}
-{% if submission %}
+{% if any_submissions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        {% if submission %}
-        <li><a href="{% url "submission.views.show_components_submission_history" course_slug=course.slug activity_slug=activity.slug %}">View Submission History</a></li>
-        <li><a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug userid=userid %}">Download Current Submission</a></li>
-        {% endif %}
+        <li><a href="{% url "offering:submission:show_components_submission_history" course_slug=course.slug activity_slug=activity.slug %}">View Submission History</a></li>
+        <li><a href="{% url "offering:submission:download_file" course_slug=course.slug activity_slug=activity.slug userid=userid %}">Download Current Submission</a></li>
     </ul>
 </div>
 {% endif %}
@@ -22,11 +20,6 @@
 
 
 {% block content%}
-
-{% ifequal submitted_pair|length 0 %}
-    {# there is no component #}
-{% else %}
-        <div class="table_container">
         <table class="info">
             {% block studentinfo %}{% if activity.group %}<tr><th scope="row">Last Submitter:</th><td>{{student.name}}</td></tr>{% endif %}{% endblock %}
             {% if activity.group %}
@@ -41,31 +34,32 @@
             </tr>
             <tr>
                 <th scope="row">Latest Submission:</th>
-                <td>{% if submission %} {{submission.created_at|date:"Y-m-d H:i:s"}} {% else %} &mdash; {% endif %}</td>
+                <td>{% if any_submissions %} {{submission_info.latest.created_at|date:"Y-m-d H:i:s"}} {% else %} &mdash; {% endif %}</td>
             </tr>
             {% if late %}
             <tr id="late_for">
                 <th scope="row">Late for:</th>
-                <td style="color:red">{{activity.due_date|timesince:submission.created_at}}</td>
+                <td class="warningmessage">{{activity.due_date|timesince:submission_info.latest.created_at}}</td>
             </tr>
             {% endif %}
         </table>
-        </div>
 
-        {% if cansubmit %}
-        {% if not is_staff %}
+        {% if cansubmit and not is_staff %}
             {% if activity.group and not group %}
             <p class="infomessage">This is a group-based activity: you cannot submit because you aren't in a group.</p>
-            <p class="infomessage">You need to <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">create or join a group</a> before you can submit. It can be a group with only one member if that is allowed by your instructor.</p>
+            <p class="infomessage">You need to <a href="{% url "offering:groups:groupmanage" course_slug=course.slug %}">create or join a group</a> before you can submit. It can be a group with only one member if that is allowed by your instructor.</p>
             {% else %}
         <h2 id="submit">Make a Submission</h2>
-            <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+            {% if submission_info.is_group and group %}
+            <p class="infomessage">This is a group activity. You will submit on behalf of the group &ldquo;{{ group }}&rdquo;.</p>
+            {% endif %}
+            <form action="" method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
                     {% for data in component_form_list %}
                         <fieldset>
                         <legend>{{data.comp.title}}</legend>
                         <dl class="inline">
                         {% for f in data.form.visible_fields %}
-                        <dt>{{ f.label }}</dt><dd>{{ f }}</dd>
+                        <dt>{{ f.label }}</dt><dd>{{ f }}{% if f.help_text %}<p class="helptext">{{ f.help_text }}</p>{% endif %}</dd>
                         {% endfor %}
                         {% if data.comp.description %}<dt>Description</dt><dd>{{data.comp.description|linebreaksbr}}</dd>{% endif %}
                         {% if data.comp.max_size %}<dt>Max File Size</dt><dd>{{data.comp.max_size}} KB</dd>{% endif %}
@@ -79,31 +73,47 @@
             </form>
             {% endif %}
         {% endif %}
-        {% endif %}
 
-        {% if submitted_components %}<h2 id="submitted">Current Submission</h2>
-        {# <!-- pair<component, its latest submission> --> #}
-        {% for pair in submitted_components %}
-        <h3>{{pair.0.title}}</h3>
+        {% if not activity.multisubmit %}
+        <h2 id="submitted">Current Submission</h2>
+        {% for comp,subcomp in submission_info.components_and_submitted %}
+        <h3 id="submitted-{{ comp.slug }}">{{comp.title}}</h3>
 
-        {% ifequal pair.1 None %}
+        {% ifequal subcomp None %}
             <p class="empty"><i class="fa fa-exclamation-triangle warningmessage"></i> You haven't made a submission for this component.</p>
         {% else %}
             <ul class="component_description">
-                <li>Latest Submission: {{pair.1.get_time}}</li>
+                <li>Latest Submission: {{subcomp.get_time}}</li>
                 {% if group %}
-                <li>Submitter: {{pair.1.get_submitter}}</li>
+                <li>Submitter: {{subcomp.get_submitter}}</li>
                 {% endif %}
-                {% if pair.1.get_size %}
-                <li>File Size: {{pair.1.get_size|filesizeformat}} </li>
+                {% if subcomp.get_size %}
+                <li>File Size: {{subcomp.get_size|filesizeformat}} </li>
                 {% endif %}
-                <li><a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug component_slug=pair.0.slug submission_id=pair.1.submission.id %}"><i class="fa fa-download"></i>
-                    Download {% if pair.1.get_filename %}{{ pair.1.get_filename }}{% else %}submission{% endif %}</a></li>
+                <li><a href="{% url "offering:submission:download_file" course_slug=course.slug activity_slug=activity.slug component_slug=comp.slug submission_id=subcomp.submission.id %}"><i class="fa fa-download"></i>
+                    Download {{ subcomp.get_filename|default:'submission' }}</a></li>
             </ul>
         {% endifequal %}
         {% endfor %}
-        {% endif %}
 
-{% endifequal %}
+        {% else %}
+        <h2 id="submitted">Submissions</h2>
+        <p class="infomessage">The instructor has flagged this activity for multiple submissions: older submissions will be available to the instructor. How they are used will depend on the course.</p>
+
+        {% for submission, subcomp in submission_info.submissions_and_components %}
+            <h3 id="sub-{{ submission.id }}">{{ submission.created_at }}</h3>
+            <ul>
+            {% for comp, sub in subcomp %}
+                {% if sub %}
+                <li>{{ comp.title }}:
+                    <a href="{% url "offering:submission:download_file" course_slug=course.slug activity_slug=activity.slug component_slug=comp.slug submission_id=submission.id %}"><i class="fa fa-download"></i> {{ sub.get_filename|default:'submission' }}</a></li>
+                {% endif %}
+            {% endfor %}
+            </ul>
+        {% empty %}
+        <p class="empty">None</p>
+        {% endfor %}
+
+        {% endif %}
 
 {% endblock %}

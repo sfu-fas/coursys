@@ -1,4 +1,3 @@
-
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from optparse import make_option
@@ -8,13 +7,13 @@ import datetime, os, glob
 class Command(BaseCommand):
     help = 'Create a database dump'
 
-    option_list = BaseCommand.option_list + (
-        make_option('--clean-old',
+    def add_arguments(self, parser):
+        parser.add_argument('--clean-old',
             dest='clean_old',
             action='store_true',
             default=False,
-            help="Clean old dumps as well?"),
-    )
+            help="Clean old dumps as well?")
+
 
     def handle(self, *args, **options):
         from dbdump.management.commands import dbdump
@@ -24,7 +23,13 @@ class Command(BaseCommand):
         now = datetime.datetime.now().replace(microsecond=0)
         filename = now.strftime(filename_format)
 
-        dbdump.Command().handle(backup_directory=path, filename=filename, compression_command='gzip', raw_args='--skip-extended-insert')
+        if 'ssl' in settings.DATABASES['default']['OPTIONS']:
+            sslarg = ' --ssl-ca=' + settings.DATABASES['default']['OPTIONS']['ssl']['ca']
+        else:
+            sslarg = ''
+
+        dbdump.Command().handle(backup_directory=path, filename=filename, compression_command='gzip',
+                                raw_args='--single-transaction --skip-extended-insert' + sslarg)
 
         if options['clean_old']:
             dates_covered = set()

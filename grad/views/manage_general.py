@@ -5,10 +5,10 @@ from grad.forms import GradAcademicForm, GradFlagValueForm
 from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import copy
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_general(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
 
@@ -46,7 +46,7 @@ def manage_general(request, grad_slug):
                   description="Updated grad general info for %s." % (form.instance.slug),
                   related_object=gradF)
             l.save()    
-            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:view', kwargs={'grad_slug':grad.slug}))
     else:
         initial = {'sin':sin}
         for x in extra_fields:

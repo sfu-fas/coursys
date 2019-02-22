@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Two-Factor Verification{% endblock %}
+{% block h1 %}Two-Factor Verification{% endblock %}
+
+{% block subbreadcrumbs %}<li>Two-Factor Verification</li>{% endblock %}
+
+{% block content %}
+
+<p>Please enter the two-factor token to complete the login process, or you can <a href="{{ LOGOUT_URL }}">sign out</a> to log in as another user.</p>
+
+<form action="" method="post">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" class="submit" value="Authenticate" /></p>
+</form>
+
+<p>Contact <a href="mailto:{{ help_email }}">{{ help_email }}</a> if something has gone wrong and you are unable to authenticate with {{ CourSys }}.</p>
+
+{% endblock %}

@@ -1,9 +1,10 @@
 from django import forms
-from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED
+from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED, RAAppointmentAttachment, Program
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
+
 
 class RAForm(forms.ModelForm):
     person = PersonField(label='Hire')
@@ -63,20 +64,22 @@ class RALetterForm(forms.ModelForm):
                    }
 
 
-class StudentSelect(forms.Select):
-    input_type = 'text'
+class LetterSelectForm(forms.Form):
+    letter_choice = forms.ChoiceField(label='Select a letter', required=True, help_text='Please select the appropriate letter template for this RA.')
 
-    def render(self, name, value, attrs=None):
-        if value is None:
-            value = ''
-        final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
-        if value != '':
-            final_attrs['value'] = force_unicode(value)
-        return mark_safe(u'<input%s />' % forms.widgets.flatatt(final_attrs))
+    def __init__(self, choices=[], *args, **kwargs):
+        super(LetterSelectForm, self).__init__(*args, **kwargs)
+        self.fields["letter_choice"].choices = choices
+
+
+class StudentSelect(forms.TextInput):
+    # widget to input an emplid; presumably with autocomplete in the frontend
+    pass
+
 
 class StudentField(forms.ModelChoiceField):
     def __init__(self, *args, **kwargs):
-        super(StudentField, self).__init__(*args, queryset=Person.objects.none(), widget=StudentSelect(attrs={'size': 30}), help_text="Type to search for a student's appointments.", **kwargs)
+        super(StudentField, self).__init__(*args, queryset=Person.objects.none(), widget=StudentSelect(attrs={'size': 20}), help_text="Type to search for a student's appointments.", **kwargs)
 
     def to_python(self, value):
         try:
@@ -85,23 +88,29 @@ class StudentField(forms.ModelChoiceField):
             raise forms.ValidationError("Unknown person selected")
         return st
 
+
 class RASearchForm(forms.Form):
     search = StudentField()
 
+
 class RABrowseForm(forms.Form):
-    hiring_faculty = forms.ChoiceField(choices=[])
-    account = forms.ChoiceField(choices=[])
-    project = forms.ChoiceField(choices=[])
+    current = forms.BooleanField(label='Only current appointments', initial=True, help_text='Appointments active now (or within two weeks).')
+
 
 class AccountForm(forms.ModelForm):
     class Meta:
         model = Account
         exclude = ('hidden',)
 
+
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         exclude = ('hidden',)
+        widgets = {
+            'project_prefix': forms.TextInput(attrs={'size': 1})
+        }
+
 
 class SemesterConfigForm(forms.Form):
     unit = forms.ModelChoiceField(queryset=Unit.objects.all())
@@ -109,4 +118,13 @@ class SemesterConfigForm(forms.Form):
     end_date = forms.DateField(required=True, help_text="Default end date for contracts")
 
 
+class RAAppointmentAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = RAAppointmentAttachment
+        exclude = ('appointment', 'created_by')
 
+
+class ProgramForm(forms.ModelForm):
+    class Meta:
+        model = Program
+        exclude = ('hidden',)

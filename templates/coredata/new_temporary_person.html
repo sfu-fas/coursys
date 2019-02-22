@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block title %}CourSys Add Temporary Person{% endblock %}
-{% block h1 %}CourSys Add Temporary Person{% endblock %}
+{% block title %}Add Temporary Person{% endblock %}
+{% block h1 %}Add Temporary Person{% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
+    <li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
     <li>Add Temporary Person</li>
 {% endblock %}
 
@@ -12,7 +12,7 @@
 
 <p> This person will not be able to log into the system. </p>
 
-<form action="{% url "coredata.views.new_temporary_person" %}" method="post">
+<form action="{% url "admin:new_temporary_person" %}" method="post">
 <fieldset>{% csrf_token %}
 <legend>New Temporary Person</legend>
 {{ form|as_dl }}

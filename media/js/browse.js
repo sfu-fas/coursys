@@ -1,5 +1,27 @@
 var table;
 
+function build_calendar(url, y, m ,d) {
+	$('#calendar').fullCalendar({
+    	header: {
+      		left: 'prev,next today',
+	      	center: 'title',
+      		right: 'month,agendaWeek'
+    	},
+    	events: {
+      		url: url,
+	      	cache: true,
+      		ignoreTimezone: false,
+    	},
+    	height: 500,
+    	firstHour: 8,
+    	slotMinutes: 60,
+    	defaultView: 'agendaWeek',
+    	year: y,
+    	month: m,
+    	day: d,
+  	})
+}
+
 // from http://stackoverflow.com/questions/9235304/how-to-replace-the-location-hash-and-only-keep-the-last-history-entry
 (function(namespace) { // Closure to protect local variable "var hash"
     if ('replaceState' in history) { // Yay, supported!
@@ -71,15 +93,21 @@ function refresh() {
 function browser_ready(my_url) {
   restore_form();
   table = $('#courses').dataTable( {
-    'bJQueryUI': true,
-    'sPaginationType': 'full_numbers',
-    'iDisplayLength' : 20,
-    'aaSorting': [[0,'desc'],[1,'asc']],
-    'bProcessing': true,
-    'bServerSide': true,
-    'sPaginationType': "full_numbers",
-    'iDisplayLength' : 25,
+    'jQueryUI': true,
+    'pagingType': 'full_numbers',
+    'pageLength' : 20,
+    'order': [[0,'desc'],[1,'asc']],
+    'processing': true,
+    'serverSide': true,
     'sAjaxSource': my_url + '?tabledata=yes',
+    'columns': [
+      null,
+      null,
+      null,
+      null,
+      {'orderable': false},
+      null,
+     ],
     'fnServerParams': function ( aoData ) {
       aoData.push.apply(aoData, server_params());
     },

@@ -1,4 +1,4 @@
-from base import *
+from .base import *
 import submission.forms
 from django.forms.widgets import Textarea, TextInput, FileInput
 from django import forms
@@ -16,9 +16,9 @@ class PDFComponent(SubmissionComponent):
 
 
 class SubmittedPDF(SubmittedComponent):
-    component = models.ForeignKey(PDFComponent, null=False)
+    component = models.ForeignKey(PDFComponent, null=False, on_delete=models.PROTECT)
     pdf = models.FileField(upload_to=submission_upload_path, blank=False,  max_length=500, 
-          storage=SubmissionSystemStorage, verbose_name='PDF submission')
+          storage=UploadedFileStorage, verbose_name='PDF submission')
         
     class Meta:
         app_label = 'submission'
@@ -32,11 +32,11 @@ class SubmittedPDF(SubmittedComponent):
     def get_filename(self):
         return os.path.split(self.pdf.name)[1]
 
-    def download_response(self):
+    def download_response(self, **kwargs):
         response = HttpResponse(content_type="application/pdf")
         self.sendfile(self.pdf, response)
         return response
-    def add_to_zip(self, zipfile, prefix=None):
+    def add_to_zip(self, zipfile, prefix=None, **kwargs):
         filename = self.file_filename(self.pdf, prefix)
         zipfile.write(self.pdf.path, filename)
 

@@ -12,8 +12,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'tacontracts.views.list_all_semesters' %}">Hiring Semesters</a></li>
-<li><a href="{% url 'tacontracts.views.list_all_contracts' semester=semester unit_slug=unit_slug %}">{{semester}}</a></li>
+<li><a href="{% url 'tacontracts:list_all_semesters' %}">Hiring Semesters</a></li>
+<li><a href="{% url 'tacontracts:list_all_contracts' semester=semester unit_slug=unit_slug %}">{{semester}}</a></li>
 <li>TA Contracts by Course</li>
 {% endblock %}
 
@@ -43,7 +43,7 @@
             <td>
                 {% if course %}
                 {% if course.contract.status == 'CAN' %}<del>{% endif %}
-                <a href="{% url "tacontracts.views.view_contract" unit_slug=unit_slug semester=semester contract_slug=course.contract.slug %}">
+                <a href="{% url "tacontracts:view_contract" unit_slug=unit_slug semester=semester contract_slug=course.contract.slug %}">
                     {{course.contract.person.name}} ({{course.contract.get_status_display}})</a>
                 {% endif %}
                 {% if course.contract.status == 'CAN' %}</del>{% endif %}
@@ -55,7 +55,7 @@
         <tr>
             <td>
                 {% if course.contract.status == 'CAN' %}<del>{% endif %}
-                <a href="{% url "tacontracts.views.view_contract" unit_slug=unit_slug semester=semester contract_slug=course.contract.slug %}">
+                <a href="{% url "tacontracts:view_contract" unit_slug=unit_slug semester=semester contract_slug=course.contract.slug %}">
                     {{course.contract.person.name}} ({{course.contract.get_status_display}})</a>
                 {% if course.contract.status == 'CAN' %}</del>{% endif %}
             </td>

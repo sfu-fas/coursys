@@ -1,9 +1,7 @@
 // hard-coded URL
 var onlineJSON = "/media/sfu/js/online.json"; 
 
-function confirmSubmit(action) {
-  return confirm("Are you sure you wish to " + action + "?");
-}
+var $ = jQuery;
 
 /* jQuery Datatables sorting by mark (e.g. "4.5/10") */
 function mark_cmp(x,y) {
@@ -195,6 +193,10 @@ function offering_autocomplete(id, courses) {
     var hiddenElementID  = formElementName + '_autocomplete_hidden';
     /* change name of orig input */
     $(this).attr('name', formElementName + '_autocomplete_label');
+    /* Hack so we don't insert "undefined" in the input. */
+    if (!formElementValue) {
+      formElementValue = "";
+    }
     /* create new hidden input with name of orig input */
     $(this).after("<input type=\"hidden\" name=\"" + formElementName + "\" id=\"" + hiddenElementID + "\" value = \"" + formElementValue + "\" />");
 
@@ -248,6 +250,16 @@ function student_autocomplete(id, nonstudent) {
   });
 }
 
+// Prevent double-clicking of submit buttons in forms
+// Taken from http://thepugautomatic.com/2008/07/jquery-double-submission/
+jQuery.fn.preventDoubleSubmit = function() {
+  jQuery(this).submit(function() {
+    if (this.beenSubmitted)
+      return false;
+    else
+      this.beenSubmitted = true;
+  });
+};
 
 $(document).ready(function(){
   /* if there are any errors on a form, scroll down to the first one, so the user notices */
@@ -259,4 +271,54 @@ $(document).ready(function(){
         $('ul.errorlist').effect('shake', {times:1, distance:3}, 75);
     })
   });
+
+  $('#page-content table').wrap('<div class="table"></div>'); // for SFU CSS
+
+  /* open help links in a new tab */
+  $('div.helptext a').attr('target', '_blank');
+
+  // Prevent double-clicking of submissions in all our forms
+  $('form[method=post]').preventDoubleSubmit()
+
+  // Add proper date-picker code to anything with the datepicker class, like our CalendarWidget inputs
+  $('.datepicker').datepicker({ buttonImageOnly: true, buttonImage: '/static/images/grades/calendar.png',
+                                changeMonth: true, changeYear: true,
+                                dateFormat: 'yy-mm-dd', showOn: 'both'});
+
+  // Add proper Person autocomplete code for PersonField in widgets.py
+  $('.autocomplete_person').each(function(){
+        $(this).autocomplete({
+            source: '/data/students',
+            minLength: 2,
+            select: function(event, ui){
+              $(this).data('val', ui.item.value);
+            }
+          });
+        });
+
+  // add autocomplete to courseoffering fields
+  $('.autocomplete_courseoffering').each(function(){
+        var url = '/data/offerings_slug';
+        var elt = $(this);
+        if(elt.attr('data-semester')) {
+          url += '/' + elt.attr('data-semester');
+        }
+        elt.autocomplete({
+            source: url,
+            minLength: 2,
+            select: function(event, ui){
+              elt.data('val', ui.item.value);
+            }
+          });
+        });
+
+    // enable submit confirmation where necessary
+    $('.confirm-submit').click(function(ev){
+        var action = $(this).attr('data-submit-action');
+        if ( action == null ) {
+            action = 'complete this action'
+        }
+        return confirm("Are you sure you wish to " + action + "?");
+    });
+
 });

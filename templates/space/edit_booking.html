@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load form_display %}
+
+{% block title %}Edit Booking{% endblock %}
+{% block h1 %}Edit Booking{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#id_person').each(function() {
+    $(this).autocomplete({
+      source: '/data/students',
+      minLength: 2,
+      select: function(event, ui){
+        $(this).data("val", ui.item.value);
+      }
+    });
+  });
+    $('#id_start_time_0').datepicker({'dateFormat': 'yy-mm-dd'});
+    $('#id_end_time_0').datepicker({'dateFormat': 'yy-mm-dd'});
+});
+
+
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "space:index" %}">Space Management</a></li>
+    <li><a href="{% url "space:view_location" location_slug=location.slug %}">View Location</a></li>
+    <li>Edit Booking</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'space:edit_booking' booking_slug=booking_slug  %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Booking" />
+    </p>
+</form>
+{% endblock %}

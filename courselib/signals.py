@@ -1,10 +1,8 @@
 from haystack.signals import RealtimeSignalProcessor
 from haystack.exceptions import NotHandled
 from haystack.query import SearchQuerySet
-
-from coredata.models import Person, CourseOffering, Member
-from pages.models import Page, PageVersion
-from discuss.models import DiscussionTopic, DiscussionMessage
+from django.apps import apps
+get_model = apps.get_model
 
 import logging
 logger = logging.getLogger(__name__)
@@ -14,18 +12,21 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
     Index changes in real time, but in the specific way we need them updated.
     """
     def handle_save(self, sender, instance, **kwargs):
-        if sender == Page:
+        cls = sender.__name__
+
+        if cls == 'Page':
             # reindex object in the standard way
             logger.debug('Reindexing Page %s' % (instance))
             super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
 
-        elif sender == PageVersion:
+        elif cls == 'PageVersion':
             # reindex corresponding Page
             logger.debug('Reindexing PageVersion %s' % (instance))
+            Page = get_model('pages', 'Page')
             page = instance.page
             self.handle_save(sender=Page, instance=page)
 
-        elif sender == DiscussionTopic:
+        elif cls == 'DiscussionTopic':
             logger.debug('Reindexing DiscussionTopic %s' % (instance))
             if instance.status == 'HID':
                 # hidden is deletion
@@ -33,12 +34,13 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
             else:
                 super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
 
-        elif sender == DiscussionMessage:
+        elif cls == 'DiscussionMessage':
             # reindex the containing topic
             logger.debug('Reindexing DiscussionMessage %s' % (instance))
+            DiscussionTopic = get_model('discuss', 'DiscussionTopic')
             self.handle_save(sender=DiscussionTopic, instance=instance.topic, **kwargs)
 
-        elif sender == CourseOffering:
+        elif cls == 'CourseOffering':
             logger.debug('Reindexing CourseOffering %s' % (instance))
             if instance.component == 'CAN':
                 # cancelling is our version of deleting
@@ -47,7 +49,7 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
                 # reindex object in the standard way
                 super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
 
-        elif sender == Member:
+        elif cls == 'Member':
             logger.debug('Reindexing Member %s' % (instance))
             if instance.role == 'DROP':
                 # dropping is our version of deleting
@@ -57,16 +59,26 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
                 super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
             elif instance.role == 'INST':
                 # instructor names are part of the CourseOffering index
+                CourseOffering = get_model('coredata', 'CourseOffering')
                 self.handle_save(sender=CourseOffering, instance=instance.offering, **kwargs)
 
-        elif sender == Person:
+        elif cls == 'Person':
             logger.debug('Reindexing Person %s' % (instance))
             # reindex the person themself
             super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
             # ... and reindex this person as a member of the courses they're in
+            Member = get_model('coredata', 'Member')
             members = Member.objects.filter(person=instance, role__in=['STUD', 'INST'])
             for m in members:
                 self.handle_save(sender=Member, instance=m, **kwargs)
+
+        elif cls == 'RAAppointment':
+            logger.debug('Reindexing RAAppointment %s' % (instance))
+            if instance.deleted:
+                # deleted contract
+                self.handle_delete(sender=sender, instance=instance, **kwargs)
+            else:
+                super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
 
         #else:
         #    ignore everything else, since we don't care.

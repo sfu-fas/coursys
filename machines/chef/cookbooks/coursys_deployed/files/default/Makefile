@@ -2,15 +2,15 @@ reload:
 	killall -USR2 gunicorn
 
 restart:
-	sudo restart gunicorn
+	sudo systemctl restart gunicorn
 
 run:
-	sudo start gunicorn
+	sudo systemctl start gunicorn
 
 big-restart: restart
 	sudo /etc/init.d/nginx reload
 	sudo /etc/init.d/celeryd restart
-	./manage.py collectstatic
+	./manage.py collectstatic --noinput
 
 pull:
 	git pull

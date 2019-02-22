@@ -16,7 +16,7 @@ class CMPT165_after_CMPT_Query(DB2_Query):
           INNER JOIN ps_stdnt_enrl se ON ct.class_nbr=se.class_nbr and ct.strm=se.strm and se.enrl_status_reason IN ('ENRL','EWAT')
         WHERE
           ct.strm<='$strm' AND ct.subject='CMPT'
-          AND (ct.catalog_nbr LIKE ' 2%' OR ct.catalog_nbr LIKE ' 3%' OR ct.catalog_nbr LIKE ' 4%')
+          AND (ct.catalog_nbr LIKE ' 2%' OR ct.catalog_nbr LIKE ' 3%' OR ct.catalog_nbr LIKE ' 4%' or ct.catalog_nbr LIKE '%125%' or ct.catalog_nbr LIKE '%135%')
           AND ct.class_type='E'
           AND se.emplid in (SELECT se.emplid FROM ps_class_tbl ct
             INNER JOIN ps_stdnt_enrl se ON ct.class_nbr=se.class_nbr and ct.strm=se.strm and se.enrl_status_reason IN ('ENRL','EWAT')

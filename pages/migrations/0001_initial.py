@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import django.core.files.storage
@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('can_read', models.CharField(default=b'ALL', help_text=b'Who should be able to view this page?', max_length=4, choices=[(b'NONE', b'nobody'), (b'INST', b'instructor'), (b'STAF', b'instructor and TAs'), (b'STUD', b'students, instructor and TAs'), (b'ALL', b'anybody')])),
                 ('can_write', models.CharField(default=b'STAF', help_text=b'Who should be able to edit this page?', max_length=4, verbose_name=b'Can change', choices=[(b'NONE', b'nobody'), (b'INST', b'instructor'), (b'STAF', b'instructor and TAs'), (b'STUD', b'students, instructor and TAs')])),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('offering', models.ForeignKey(to='coredata.CourseOffering')),
+                ('offering', models.ForeignKey(to='coredata.CourseOffering', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['label'],
@@ -42,9 +42,9 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('comment', models.TextField()),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('diff_from', models.ForeignKey(to='pages.PageVersion', null=True)),
-                ('editor', models.ForeignKey(to='coredata.Member')),
-                ('page', models.ForeignKey(to='pages.Page')),
+                ('diff_from', models.ForeignKey(to='pages.PageVersion', null=True, on_delete=models.CASCADE)),
+                ('editor', models.ForeignKey(to='coredata.Member', on_delete=models.CASCADE)),
+                ('page', models.ForeignKey(to='pages.Page', on_delete=models.CASCADE)),
             ],
             options={
             },

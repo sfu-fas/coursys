@@ -6,9 +6,9 @@ from grad.forms import CompletedRequirementForm
 from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_requirements(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)    
     
@@ -17,7 +17,7 @@ def manage_requirements(request, grad_slug):
     completed_gradreq_id = [cr.requirement_id for cr in completed_req if cr.removed==False]
     req = GradRequirement.objects.filter(program=grad.program, hidden=False)
     missing_req = req.exclude(id__in=completed_gradreq_id)
-    req_choices = [(u'', u'\u2014')] + [(r.id, r.description) for r in missing_req]
+    req_choices = [('', '\u2014')] + [(r.id, r.description) for r in missing_req]
     
     if request.method == 'POST':
         form = CompletedRequirementForm(request.POST)
@@ -32,7 +32,7 @@ def manage_requirements(request, grad_slug):
               related_object=req )
             l.save()
             
-            return HttpResponseRedirect(reverse('grad.views.manage_requirements', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:manage_requirements', kwargs={'grad_slug':grad.slug}))
     else:
         form = CompletedRequirementForm(initial={'student':grad, 'semester':Semester.get_semester()})
         form.fields['requirement'].choices = req_choices
@@ -42,5 +42,8 @@ def manage_requirements(request, grad_slug):
                 'form': form,
                 'completed_req': completed_req,
                 'missing_req': missing_req,
+                'can_edit': True,
               }
     return render(request, 'grad/manage_requirements.html', context)
+
+

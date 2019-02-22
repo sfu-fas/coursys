@@ -10,14 +10,14 @@
 {% block h1 %}New Grant{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
-<li><a href="{% url 'grants_index' %}">Grants</a></li>
+<li><a href="{% url 'faculty:index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty:grant_index' %}">Grants</a></li>
 <li>New Grant</li>
 {% endblock %}
 
 {% block content %}
 <div class="form_container">
-  <form action="{% url 'new_grant' %}" method="post">
+  <form action="{% url 'faculty:new_grant' %}" method="post">
     {% csrf_token %}
     <fieldset>
       {{ grant_form|as_dl }}

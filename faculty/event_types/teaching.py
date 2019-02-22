@@ -41,7 +41,7 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     def get_load_display(self):
         # display as an annual value, while storing as semesterly
-        return unicode(self.get_config('load', 0)*3)
+        return str(self.get_config('load', 0)*3)
 
     def teaching_adjust_per_semester(self):
         load = self.get_config('load')

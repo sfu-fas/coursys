@@ -14,7 +14,7 @@ function insertAtCaret(areaId,text) {
     else if (br == "ff") strPos = txtarea.selectionStart;
 
     var front = (txtarea.value).substring(0,strPos);  
-    var back = (txtarea.value).substring(strPos,txtarea.value.length); 
+    var back = (txtarea.value).substring(txtarea.selectionEnd,txtarea.value.length);
     txtarea.value=front+text+back;
     strPos = strPos + text.length;
     if (br == "ie") { 

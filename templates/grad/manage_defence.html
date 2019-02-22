@@ -5,7 +5,7 @@
 {% block h1 %}{{grad.person.name}}: Defence Information{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 	$(document).ready(function() {
 	    $("#id_exam_date").datepicker({'dateFormat': 'yy-mm-dd'});
 	});
@@ -13,8 +13,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grad.views.index" %}">Grad</a></li>
-<li><a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>Defence Information</li>
 {% endblock %}
 
@@ -30,5 +30,5 @@
         </fieldset>
     </form>
 </div>
-<p class="gradback"><a class="button" href="{% url "grad.views.view" grad_slug=grad.slug %}">Return to Profile</a></p>
+<p class="gradback"><a class="button" href="{% url "grad:view" grad_slug=grad.slug %}">Return to Profile</a></p>
 {% endblock %} 

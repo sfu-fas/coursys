@@ -8,22 +8,22 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'tacontracts.views.list_all_semesters' %}">Hiring Semesters</a></li>
-<li><a href="{% url 'tacontracts.views.list_all_contracts' unit_slug=unit_slug semester=semester %}">{{semester}}</a></li>
-<li><a href="{% url 'tacontracts.views.view_categories' unit_slug=unit_slug semester=semester %}">Categories</a></li>
+<li><a href="{% url 'tacontracts:list_all_semesters' %}">Hiring Semesters</a></li>
+<li><a href="{% url 'tacontracts:list_all_contracts' unit_slug=unit_slug semester=semester %}">{{semester}}</a></li>
+<li><a href="{% url 'tacontracts:view_categories' unit_slug=unit_slug semester=semester %}">Categories</a></li>
 <li>New Contract Category</li>
 {% endblock %}
 
 {% block actions %}
 <h2>Actions</h2>
 <ul>
-    <li><a href="{% url "ra.views.accounts_index" %}">Manage Accounts</a></li>
-    <li><a href="{% url "ra.views.new_account" %}">New Account</a></li>
+    <li><a href="{% url "ra:accounts_index" %}">Manage Accounts</a></li>
+    <li><a href="{% url "ra:new_account" %}">New Account</a></li>
 </ul>
 {% endblock %}
 
 {% block content %}
-<form action="{% url "tacontracts.views.new_category" unit_slug=unit_slug semester=semester %}" method="post">
+<form action="{% url "tacontracts:new_category" unit_slug=unit_slug semester=semester %}" method="post">
     {% csrf_token %}
     <fieldset>
     {{ form|as_dl }}

@@ -4,9 +4,8 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Course Information{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{STATIC_URL}}js/grades.js"></script>
-<script type="text/javascript">
-//<![CDATA[
+<script src="{{STATIC_URL}}js/grades.js"></script>
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
 	var oTable = $('#activities').dataTable({
 		"bJQueryUI": true,
@@ -28,21 +27,20 @@ $(document).ready(function() {
 		],
 	});
 
-    var reorder_url = "{% url "grades.views.reorder_activity" course_slug=course.slug %}";
+    var reorder_url = "{% url "offering:reorder_activity" course_slug=course.slug %}";
     var csrf_token = "{{csrf_token}}";
 
-	$('.sortarrows .arrow_up').attr('href', 'javascript:').bind('click', function(event) {
+	$('.sortarrows .arrow_up').attr('href', '#').bind('click', function(event) {
 	    var this_tr = $(this).parents('tr')
 	    var prev_tr = this_tr.prev();
         reorder_activities(reorder_url, csrf_token, oTable, prev_tr, this_tr);
 	});
-	$('.sortarrows .arrow_down').attr('href', 'javascript:').bind('click', function(event) {
+	$('.sortarrows .arrow_down').attr('href', '#').bind('click', function(event) {
 	    var this_tr = $(this).parents('tr')
 	    var next_tr = this_tr.next();
         reorder_activities(reorder_url, csrf_token, oTable, this_tr, next_tr);
 	});
 });
-//]]>
 </script>
 {% endblock %}
 
@@ -54,28 +52,32 @@ $(document).ready(function() {
 <div id="actions">
     <h2>Actions</h2>
     <ul class="fa-ul">
-	<li><a href="{% url "grades.views.course_config" course_slug=course.slug %}"><i class="fa fa-li fa-wrench"></i> Edit Course Setup</a></li>
-        <li><a href="{% url "grades.views.activity_choice" course_slug=course.slug %}"><i class="fa fa-li fa-plus"></i>Add Activity</a></li>
+	<li><a href="{% url "offering:course_config" course_slug=course.slug %}"><i class="fa fa-li fa-wrench"></i> Edit Course Setup</a></li>
+        <li><a href="{% url "offering:activity_choice" course_slug=course.slug %}"><i class="fa fa-li fa-plus"></i>Add Activity</a></li>
         {% if course.discussion %}
-        <li><a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}"><i class="fa fa-li fa-comment-o"></i> Course Discussion
+        <li><a href="{% url "offering:discussion:discussion_index" course_slug=course.slug %}"><i class="fa fa-li fa-comment-o"></i> Course Discussion
         	{% if discussion_activity %}<i class="fa fa-comments infomessage"></i>{% endif %}
         	</a></li>
         {% endif %}
-        <li class="newsec"><a href="{% url "grades.views.class_list" course_slug=course.slug %}"><i class="fa fa-li fa-list"></i>Display Class List</a></li>
-    {% if member.role == "INST" %}<li><a href="{% url "grades.views.photo_list" course_slug=course.slug %}"><i class="fa fa-li fa-picture-o"></i>Photo Class List</a></li>{% endif %}
-        <li><a href="{% url "grades.views.all_grades" course_slug=course.slug %}"><i class="fa fa-li fa-table"></i>Display All Grades</a></li>
-        <li><a href="{% url "grades.views.student_search" course_slug=course.slug %}"><i class="fa fa-li fa-search"></i>Student Search</a></li>
-	<li class="newsec"><a href="{% url "grades.views.new_message" course_slug=course.slug %}"><i class="fa fa-li fa-bullhorn"></i>Create News Item</a></li>
-	{% if any_group %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}"><i class="fa fa-li fa-group"></i>Manage Groups</a></li>{% endif %}
-    {% if member.role == "INST" %}<li><a href="{% url "discipline.views.index" course_slug=course.slug %}"><i class="fa fa-li fa-gavel"></i>Dishonesty Cases</a></li>{% endif %}
-        <li><a href="{% url "pages.views.index_page" course_slug=course.slug %}"><i class="fa fa-li fa-edit"></i>Course Pages</a></li>
+        <li class="newsec"><a href="{% url "offering:class_list" course_slug=course.slug %}"><i class="fa fa-li fa-list"></i>Display Class List</a></li>
+    {% if member.role == "INST" %}<li><a href="{% url "offering:photo_list" course_slug=course.slug %}"><i class="fa fa-li fa-picture-o"></i>Photo Class List</a></li>{% endif %}
+        <li><a href="{% url "offering:all_grades" course_slug=course.slug %}"><i class="fa fa-li fa-table"></i>Display All Grades</a></li>
+        <li><a href="{% url "offering:student_search" course_slug=course.slug %}"><i class="fa fa-li fa-search"></i>Student Search</a></li>
+	<li class="newsec"><a href="{% url "offering:new_message" course_slug=course.slug %}"><i class="fa fa-li fa-bullhorn"></i>Create News Item</a></li>
+	{% if any_group %}<li><a href="{% url "offering:groups:groupmanage" course_slug=course.slug %}"><i class="fa fa-li fa-group"></i>Manage Groups</a></li>{% endif %}
+    {% if member.role == "INST" %}<li><a href="{% url "offering:discipline:index" course_slug=course.slug %}"><i class="fa fa-li fa-gavel"></i>Dishonesty Cases</a></li>{% endif %}
+        <li><a href="{% url "offering:pages:index_page" course_slug=course.slug %}"><i class="fa fa-li fa-edit"></i>Course Pages</a></li>
     {% if member.role == "TA" %}
-        <li class="newsec"><a href="{% url "ta.views.view_tug" course_slug=course.slug userid=user.username %}"><i class="fa fa-li fa-clock-o"></i>Time Use Guideline</a></li>
+        <li class="newsec"><a href="{% url "offering:view_tug" course_slug=course.slug userid=user.username %}"><i class="fa fa-li fa-clock-o"></i>Time Use Guideline</a></li>
     {% endif %}
     </ul>
 </div>
 {% endblock %}
 {% block content %}
+{% if offer_combined %}
+<p class="infomessage">This seems to be joint with another offering. It is possible to combine offerings in {{ CourSys }} so they appear as one large &ldquo;course&rdquo;:
+email <a href="mailto:{{ help_email }}">{{ help_email }}</a> to get it set up <em>before</em> you do any setup here.</p>
+{% endif %}
 <div class="table_container">
     <table class="info">
         <tbody>
@@ -96,13 +98,15 @@ $(document).ready(function() {
             <tr>
                 <th scope="row">TA(s)</th>
                 <td>
-                {% if course.config.taemail %}
-                <a href="mailto:{{ course.config.taemail }}">{{ course.config.taemail }}</a>
-                ({% for ta in course.tas %}{{ ta.name_with_pref }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}{% endfor %})
+                {% if course.taemail or course.contact_url %}
+                  {% if course.taemail %}<a href="mailto:{{ course.taemail }}">{{ course.taemail }}</a>
+                  {% else %}<a href="{{ course.contact_url }}">{{ course.contact_url }}</a>
+                  {% endif %}
+                  ({% for ta in course.tas %}{{ ta.name_with_pref }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}{% endfor %})
                 {% else %}
-                {% for ta in course.tas %}
-                  {{ ta.name }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}
-                {% endfor %}
+                  {% for ta in course.tas %}
+                    {{ ta.name }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}
+                  {% endfor %}
                 {% endif %}
                 </td>
             </tr>
@@ -140,18 +144,18 @@ $(document).ready(function() {
                 <td class="sortarrows">
                     <span class="sort">{{ activity.position }}</span>
                     {% if not forloop.first %}
-                    <a class="arrow_up" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">
+                    <a class="arrow_up" href="{% url "offering:course_info" course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">
                     <i class="fa fa-arrow-up"></i>
                     </a>
                     {% endif %}
                     {% if not forloop.last %}
-                    <a class="arrow_down" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=down&amp;act={{ activity.slug }}">
+                    <a class="arrow_down" href="{% url "offering:course_info" course_slug=course.slug %}?order=down&amp;act={{ activity.slug }}">
                     <i class="fa fa-arrow-down"></i>
                     </a>
                     {% endif %}
                 </td>
                 <td scope="row">
-                <a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
+                <a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
                 </td>
                 
                 <td>{% if activity.group %}group{% else %}individual{% endif %}</td>
@@ -181,7 +185,7 @@ $(document).ready(function() {
 		{% else %}
                 <td>&mdash;</td>
                 {% endifnotequal %}
-                <td class="{{activity.status|lower}}">{{ activity.get_status_display }}</td>
+                <td class="{{activity.status|lower}}">{{ activity.get_status_display_staff }}</td>
                 <td class="{{activity.due_class}}"><span class="sort">{{ activity.due_date.isoformat }}</span>{{ activity.due_date }}</td>
             </tr>
             {% endwith %}
@@ -189,7 +193,7 @@ $(document).ready(function() {
         </tbody>
     </table>
     {% else %}
-    <p class="empty">No activities defined. You can <a href="{% url "grades.views.activity_choice" course_slug=course.slug %}">add an activity</a> to get started.</p>
+    <p class="empty">No activities defined. You can <a href="{% url "offering:activity_choice" course_slug=course.slug %}">add an activity</a> to get started.</p>
     {% endif %}
 {% if activities_info %}
 <p>Percent total: {{total_percent}}%</p>

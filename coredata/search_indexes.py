@@ -45,7 +45,7 @@ class PersonIndex(indexes.SearchIndex, indexes.Indexable):
         return self.get_model().objects.all()
 
     def prepare_text(self, o):
-        fields = [unicode(o.emplid), o.first_name, o.last_name]
+        fields = [str(o.emplid), o.first_name, o.last_name]
         if o.real_pref_first() != o.first_name:
             fields.append(o.real_pref_first())
         if o.userid:
@@ -75,7 +75,7 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
 
     def prepare_text(self, m):
         fields = [m.offering.semester.label(), m.offering.semester.name, m.offering.name(),
-                  unicode(m.person.emplid), m.person.first_name, m.person.last_name]
+                  str(m.person.emplid), m.person.first_name, m.person.last_name]
         if m.person.real_pref_first().lower() != m.person.first_name.lower():
             fields.append(m.person.real_pref_first())
         if m.person.userid:

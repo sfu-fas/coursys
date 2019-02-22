@@ -1,7 +1,7 @@
 """CAS login/logout replacement views"""
 
-from urllib import urlencode
-from urlparse import urljoin
+from urllib.parse import urlencode
+from urllib.parse import urljoin
 
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.conf import settings
@@ -68,7 +68,7 @@ def login(request, next_page=None, required=False):
 
     if not next_page:
         next_page = _redirect_url(request)
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         message = "You are logged in as %s." % request.user.username
         messages.success(request, message)
         return HttpResponseRedirect(next_page)

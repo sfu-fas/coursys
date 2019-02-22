@@ -5,10 +5,12 @@ import django.db.transaction
 from django.core.cache import cache
 from django.utils.html import conditional_escape as e
 from featureflags.flags import feature_disabled
-import re, hashlib, datetime, string, urllib, urllib2, httplib, time, json
-from socket import timeout
+import re, hashlib, datetime, string, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, http.client, time, json
+import socket, decimal
+
 
 multiple_breaks = re.compile(r'\n\n+')
+
 
 class DBConn(object):
     """
@@ -41,7 +43,7 @@ class DBConn(object):
         clean_args = tuple((self.escape_arg(a) for a in args))
         real_query = query % clean_args
         if self.verbose:
-            print ">>>", real_query
+            print(">>>", real_query)
         self.query = real_query
         return self.db.execute(real_query)
 
@@ -66,6 +68,7 @@ class DBConn(object):
             return row
         return tuple((self.prep_value(v) for v in row))
 
+
 class SIMSConn(DBConn):
     """
     Singleton object representing SIMS DB connection
@@ -75,25 +78,25 @@ class SIMSConn(DBConn):
     sims_db = settings.SIMS_DB_NAME
     schema = settings.SIMS_DB_SCHEMA
     
-    DatabaseError = None
-    DB2Error = None
+    DatabaseError = ReferenceError # placeholder until we have the DB2 module
+    DB2Error = ReferenceError
 
     def get_connection(self):
         if settings.DISABLE_REPORTING_DB:
-            raise SIMSProblem, "Reporting database access has been disabled in this deployment."
+            raise SIMSProblem("Reporting database access has been disabled in this deployment.")
         elif feature_disabled('sims'):
-            raise SIMSProblem, "Reporting database access has been temporarily disabled due to server maintenance or load."
+            raise SIMSProblem("Reporting database access has been temporarily disabled due to server maintenance or load.")
 
         try:
-            import DB2
+            import ibm_db_dbi
         except ImportError:
-            raise SIMSProblem, "could not import DB2 module"
-        SIMSConn.DatabaseError = DB2.DatabaseError
-        SIMSConn.DB2Error = DB2.Error
+            raise SIMSProblem("could not import DB2 module")
+        SIMSConn.DatabaseError = ibm_db_dbi.DatabaseError
+        SIMSConn.DB2Error = ibm_db_dbi.Error
         try:
-            dbconn = DB2.connect(dsn=self.sims_db, uid=self.sims_user, pwd=self.sims_passwd)
-        except DB2._db2.DatabaseError:
-            raise SIMSProblem, "Could not communicate with reporting database."
+            dbconn = ibm_db_dbi.connect(self.sims_db, self.sims_user, self.sims_passwd)
+        except ibm_db_dbi.Error:
+            raise SIMSProblem("Could not communicate with reporting database.")
         cursor = dbconn.cursor()
         cursor.execute("SET SCHEMA "+self.schema)
         return dbconn, cursor
@@ -103,13 +106,13 @@ class SIMSConn(DBConn):
         Escape argument for DB2
         """
         # Based on description of PHP's db2_escape_string
-        if type(a) in (int,long):
+        if type(a) in (int,int):
             return str(a)
         if type(a) in (tuple, list, set):
             return '(' + ', '.join((self.escape_arg(v) for v in a)) + ')'
         
         # assume it's a string if we don't know any better
-        a = unicode(a).encode('utf8')
+        a = str(a)
         a = a.replace("\\", "\\\\")
         a = a.replace("'", "\\'")
         a = a.replace('"', '\\"')
@@ -117,14 +120,16 @@ class SIMSConn(DBConn):
         a = a.replace("\n", "\\n")
         a = a.replace("\x00", "\\\x00")
         a = a.replace("\x1a", "\\\x1a")
-        return "'"+a+"'"
+        return "'" + a + "'"
 
     def prep_value(self, v):
         """
         get DB2 value into a useful format
         """
-        if isinstance(v, basestring):
-            return v.strip().decode('utf8')
+        if isinstance(v, str):
+            return v.strip()
+        elif isinstance(v, decimal.Decimal):
+            return float(v)
         else:
             return v
 
@@ -134,6 +139,7 @@ class SIMSProblem(Exception):
     Class used to pass back problems with the SIMS connection.
     """
     pass
+
 
 def SIMS_problem_handler(func):
     """
@@ -148,20 +154,22 @@ def SIMS_problem_handler(func):
         try:
             return func(*args, **kwargs)
         except SIMSConn.DatabaseError as e:
-            raise SIMSProblem, "could not connect to reporting database"
+            raise SIMSProblem("could not connect to reporting database")
         except SIMSConn.DB2Error as e:
-            raise SIMSProblem, "problem with reporting database connection"
+            raise SIMSProblem("problem with connection to reporting database")
 
     wrapped.__name__ = func.__name__
     return wrapped
 
+
 def _args_to_key(args, kwargs):
     "Hash arguments to get a cache key"
     h = hashlib.new('md5')
-    h.update(unicode(args))
-    h.update(unicode(kwargs))
+    h.update(str(args).encode('utf8'))
+    h.update(str(kwargs).encode('utf8'))
     return h.hexdigest()
-    
+
+
 def cache_by_args(func, seconds=38800): # 8 hours by default
     """
     Decorator to cache query results from SIMS (if successful: no SIMSProblem).
@@ -185,6 +193,7 @@ def cache_by_args(func, seconds=38800): # 8 hours by default
     wrapped.__name__ = func.__name__
     return wrapped
 
+
 @cache_by_args
 def userid_from_sims(emplid):
     """
@@ -200,6 +209,7 @@ def userid_from_sims(emplid):
             userid = None
     return userid
 
+
 @cache_by_args
 @SIMS_problem_handler
 def find_person(emplid, get_userid=True):
@@ -211,12 +221,13 @@ def find_person(emplid, get_userid=True):
                (str(emplid),))
 
     for emplid, last_name, first_name, middle_name in db:
-        # use emails to guess userid: if not found, leave unset and hope AMAINT has it on next nightly update
+        # use emails to guess userid: if not found, leave unset and hope the userid API has it on next nightly update
         if get_userid:
             userid = userid_from_sims(emplid)
         else:
             userid = None
         return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name, 'userid': userid}
+
 
 @cache_by_args
 @SIMS_problem_handler
@@ -256,15 +267,17 @@ def add_person(emplid, commit=True, get_userid=True, external_email=False):
         if data['userid']:
             ps = Person.objects.filter(userid=data['userid'])
             if ps:
-                raise ValueError, 'Possibly re-used userid %r?' % (data['userid'])
+                raise ValueError('Possibly re-used userid %r?' % (data['userid']))
 
         if commit:
             p.save()
     return p
 
+
 @cache_by_args
 def get_person_by_userid(userid):
     return ensure_person_from_userid(userid)
+
 
 @cache_by_args
 @SIMS_problem_handler
@@ -323,6 +336,7 @@ PLAN_QUERY = string.Template("""
               AND $where
             ORDER BY prog.emplid, plan.plan_sequence""")
 
+
 SUBPLAN_QUERY = string.Template("""
             SELECT prog.emplid, plantbl.acad_sub_plan, plantbl.descr, plantbl.trnscr_descr
             FROM ps_acad_prog prog, ps_acad_subplan plan, ps_acad_subpln_tbl AS plantbl
@@ -334,6 +348,7 @@ SUBPLAN_QUERY = string.Template("""
               AND prog.prog_status='AC' AND plantbl.eff_status='A'
               AND $where
             ORDER BY prog.emplid""")
+
 
 ALLFIELDS = 'alldata'
 @cache_by_args
@@ -450,7 +465,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
         for gpa, cred in db:
             data['gpa'] = gpa
             data['ccredits'] = cred
-    
+
     return data
 
 
@@ -515,7 +530,7 @@ def crse_id_info(crse_id):
     db.execute(offering_query, (crse_id,))
     fields = ['subject', 'catalog_nbr', 'descr']
     for row in db:
-        cdata = dict(zip(fields, row))
+        cdata = dict(list(zip(fields, row)))
         cdata['crse_found'] = True
         return cdata
     return {'subject': '?', 'catalog_nbr': '?', 'descr': '?', 'crse_found': False}
@@ -530,7 +545,7 @@ def ext_org_info(ext_org_id):
     db.execute(ext_org_query, (ext_org_id,))
     fields = ['ext_org']
     for row in db:
-        cdata = dict(zip(fields, row))
+        cdata = dict(list(zip(fields, row)))
         return cdata
     return {'ext_org': '?'}
 
@@ -555,6 +570,7 @@ REQMNT_DESIGNTN_FLAGS = { # map of ps_rqmnt_desig_tbl.descrshort to CourseOfferi
     'W/B-HumSci': ['bhum', 'bsci'],
     'B-Hum/Soc': ['bhum', 'bsoc'],
     'W/B-H/Soc': ['write', 'bhum', 'bsoc'],
+    'Q/B-Soc/Sc': ['quant', 'bsoc', 'bsci'],
     }
 
 @cache_by_args
@@ -605,7 +621,7 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     data['transfers'] = transfers
     fields = ['crse_id', 'grade', 'units', 'repeat', 'strm', 'reqdes', 'ext_org_id', 'src_org']
     for row in list(db):
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         crse_id = rdata['crse_id']
         ext_org_id = rdata['ext_org_id']
         
@@ -646,7 +662,7 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     data['semesters'] = semesters
     fields = ['strm', 'career', 'units_passed', 'tgpa', 'cgpa', 'standing', 'udgpa']
     for row in db:
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         strm = rdata['strm']
         if strm in found:
             # handle multiple rows from ps_acad_stdng_actn
@@ -670,7 +686,7 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     fields = ['strm', 'class_nbr', 'unit_taken', 'repeat', 'grade', 'reqdes', 'subject', 'number', 'descr']
     
     for row in db:
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         strm = rdata['strm']
         if rdata['reqdes']:
             rdata['req'] = req_map[rdata['reqdes']]
@@ -683,6 +699,72 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     
     return data
 
+
+@cache_by_args
+@SIMS_problem_handler
+def transfer_data(emplid):
+    """
+    Return external transfer credits for a given emplid
+
+    :param string emplid: The employee ID of the person whose transfer info we want
+    :return: A JSON-fiable object with external transfers
+    :rtype: object
+    """
+    emplid = str(emplid)
+    db = SIMSConn()
+    transfers = "WITH crse_offer AS (select crse_id, CRSE_OFFER_NBR, subject, catalog_nbr from dbcsown.ps_crse_offer "\
+                "A where effdt=(SELECT MAX(effdt) FROM dbcsown.ps_crse_offer WHERE crse_id=A.crse_id)), ext_org_tbl AS"\
+                "(select ext_org_id, descr50 from dbcsown.ps_ext_org_tbl A where effdt=(SELECT MAX(effdt) FROM"\
+                " dbcsown.ps_ext_org_tbl WHERE ext_org_id=A.ext_org_id))"\
+                "select tcd.emplid, eot.descr50, ec.SCHOOL_SUBJECT, ec.SCHOOL_CRSE_NBR, tcd.trnsfr_eqvlncy_grp, "\
+                "tcd.trnsfr_stat, co.subject, co.catalog_nbr, tcd.CRSE_GRADE_INPUT as tcd_grade_input, "\
+                "tcd.crse_grade_off as tcd_grade_off,ec.CRSE_GRADE_INPUT as ec_grade_input, ec.crse_grade_off "\
+                "as ec_grade_off, tcd.UNT_TRNSFR "\
+                "from dbcsown.ps_trns_crse_dtl tcd inner join dbcsown.ps_trns_crse_sch tcs on tcs.emplid=tcd.emplid "\
+                "and tcd.acad_career=tcs.acad_career and tcd.institution=tcs.institution and "\
+                "tcd.model_nbr=tcs.model_nbr left outer join dbcsown.ps_ext_course ec on ec.emplid=tcd.emplid and "\
+                "ec.ext_course_nbr=tcd.ext_course_nbr and ec.ext_org_id=tcs.ext_org_id left outer join ext_org_tbl "\
+                "eot on tcd.TRNSFR_SRC_ID = eot.ext_org_id left outer join crse_offer co on tcd.crse_id = co.crse_id "\
+                "and tcd.CRSE_OFFER_NBR = co.CRSE_OFFER_NBR where tcd.trnsfr_stat='P' and tcs.model_status='P' "\
+                "and tcd.emplid=%s order by tcd.model_nbr, tcd.TRNSFR_EQVLNCY_GRP, tcd.TRNSFR_EQVLNCY_SEQ"
+    db.execute(transfers, (emplid,))
+    fields = ['emplid', 'descr', 'school_subject', 'crse_nbr', 'trsnf_equivlncy_grp', 'transfr_stat', 'subject',
+              'catalog_nbr', 'tcd_grade_input', 'tcd_grade_off', 'ec_grade_input', 'ec_grade_off', 'unt_trnsfr']
+    data = {}
+    transfers = []
+    for row in list(db):
+        rdata = dict(list(zip(fields, row)))
+        transfers.append(rdata)
+    data['transfers'] = transfers
+    return data
+
+
+@cache_by_args
+@SIMS_problem_handler
+def classes_data(emplid):
+    """
+    Return all courses and grades taken by a given emplid
+
+    :param string emplid: The employee ID of the person whose course info we want
+    :return: A JSON-fiable object of courses taken
+    :rtype: object
+    """
+    emplid = str(emplid)
+    db = SIMSConn()
+    courses = "SELECT e.strm, c.subject, c.catalog_nbr, c.descr, e.crse_grade_off, e.unt_taken "\
+                 "FROM ps_stdnt_enrl e, ps_class_tbl c "\
+                 "WHERE e.class_nbr=c.class_nbr AND e.strm=c.strm AND e.emplid=%s "\
+                 "AND c.class_type='E' AND e.stdnt_enrl_status='E' "\
+                 "ORDER BY e.strm, c.subject, c.catalog_nbr"
+    db.execute(courses, (emplid,))
+    fields = ['strm', 'subject', 'catalog_nbr', 'descr', 'crse_grade_off', 'unt_taken']
+    data = {}
+    courses = []
+    for row in list(db):
+        rdata = dict(list(zip(fields, row)))
+        courses.append(rdata)
+    data['courses'] = courses
+    return data
 
 
 @cache_by_args
@@ -710,8 +792,8 @@ def acad_plan_count(acad_plan, strm):
 @cache_by_args
 @SIMS_problem_handler
 def get_or_create_semester(strm):
-    if not (isinstance(strm, basestring) and strm.isdigit() and len(strm)==4):
-        raise ValueError, "Bad strm: " + repr(strm)
+    if not (isinstance(strm, str) and strm.isdigit() and len(strm)==4):
+        raise ValueError("Bad strm: " + repr(strm))
     oldsem = Semester.objects.filter(name=strm)
     if oldsem:
         return oldsem[0]
@@ -720,12 +802,10 @@ def get_or_create_semester(strm):
     db.execute("SELECT strm, term_begin_dt, term_end_dt FROM ps_term_tbl WHERE strm=%s", (strm,))
     row = db.fetchone()
     if row is None:
-        raise ValueError, "Not Found: %r" % (strm)
+        raise ValueError("Not Found: %r" % strm)
     strm, st, en = row
     
     # create Semester object
-    st = datetime.datetime.strptime(st, "%Y-%m-%d").date()
-    en = datetime.datetime.strptime(en, "%Y-%m-%d").date()
     sem = Semester(name=strm, start=st, end=en)
     sem.save()
     
@@ -782,7 +862,7 @@ def offset_semester_string(semester, offset=1):
 
 def pairs( lst ):
     if len(lst) > 1:
-        for i in xrange(1, len(lst)):
+        for i in range(1, len(lst)):
             yield (lst[i-1], lst[i])
 
 #@cache_by_args
@@ -798,9 +878,9 @@ def get_timeline(emplid, verbose=False):
     programs = get_student_programs(emplid) 
     
     if verbose:
-        print "----------"
+        print("----------")
         for program in programs:
-            print program
+            print(program)
 
     # calculate start and end date for programs
     prog_dict = {}
@@ -815,15 +895,15 @@ def get_timeline(emplid, verbose=False):
             prog_dict[program_code]['not_on_leave'].append(strm)
 
     if verbose:
-        print "----------"
-        for key, val in prog_dict.iteritems():
-            print key, val
+        print("----------")
+        for key, val in prog_dict.items():
+            print(key, val)
 
     # calculate on-leave semesters
     on_leave_semesters = [strm for strm, reason in get_on_leave_semesters(emplid)]
 
     try:
-        for program_code, program_object in prog_dict.iteritems():
+        for program_code, program_object in prog_dict.items():
             prog_dict[program_code]['on_leave'] = []
             semesters = Semester.range( program_object['start'], program_object['end'] )
             for semester in semesters:
@@ -833,21 +913,21 @@ def get_timeline(emplid, verbose=False):
                     prog_dict[program_code]['on_leave'].append(semester)
             prog_dict[program_code]['on_leave'].sort()
     except Semester.DoesNotExist:
-        print "Semester out of range", program_object['start'], program_object['end']
+        print("Semester out of range", program_object['start'], program_object['end'])
         return {}
 
     # put the programs in a list, sorted by start date
     programs = []
-    for program_code, program_object in prog_dict.iteritems():
+    for program_code, program_object in prog_dict.items():
         del program_object['not_on_leave']
         program_object['program_code'] = program_code
         programs.append(program_object) 
     programs = sorted( programs, key= lambda x : int(x['start']) )
 
     if verbose: 
-        print "----------"
+        print("----------")
         for program in programs:
-            print program
+            print(program)
 
     # how did it end?
     for program in programs:
@@ -997,7 +1077,7 @@ def get_end_of_degree(emplid, acad_prog, start_semester):
     db.execute(query, (str(emplid),str(acad_prog),str(start_semester)))
     result = [(x[0], x[1], x[2]) for x in list(db)]
     if len(result) > 1:
-        print "\t Recoverable Error: More than one end of degree ", result
+        print("\t Recoverable Error: More than one end of degree ", result)
         return result[0]
     elif len(result) > 0:
         return result[0]
@@ -1272,7 +1352,7 @@ def outlines_api_url(offering):
     """
     The URL for info in the API.
     """
-    from urllib import quote_plus as q
+    from urllib.parse import quote_plus as q
 
     args = {
         'year': q(str(int(offering.semester.name[0:3]) + 1900)),
@@ -1288,16 +1368,16 @@ def outlines_api_url(offering):
 def outlines_data_json(offering):
     url = outlines_api_url(offering)
     try:
-        req = urllib2.urlopen(url, timeout=30)
+        req = urllib.request.urlopen(url, timeout=30)
         jsondata = req.read()
-        data = json.loads(jsondata)
+        data = json.loads(jsondata.decode('utf8'))
     except ValueError:
         data = {'internal_error': 'could not decode JSON'}
-    except (urllib2.HTTPError, urllib2.URLError, timeout):
+    except (urllib.error.HTTPError, urllib.error.URLError, socket.timeout, socket.error):
         data = {'internal_error': 'could not retrieve outline data from API'}
 
-    if 'info' in data and 'nodePath' in data['info']:
-        data['outlineurl'] = OUTLINES_FRONTEND_BASE + '?' + data['info']['nodePath']
+    if 'info' in data and 'outlinePath' in data['info']:
+        data['outlineurl'] = OUTLINES_FRONTEND_BASE + '?' + data['info']['outlinePath']
 
     return json.dumps(data, indent=1)
 
@@ -1316,16 +1396,16 @@ def userid_to_emplid(userid):
 
     Admin contact for the API is George Lee in the Learning & Community Platforms Group
     """
-    qs = urllib.urlencode({'art': EMPLID_SECRET, 'username': userid})
+    qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'username': userid})
     url = EMPLID_BASE_URL + qs
     try:
-        req = urllib2.urlopen(url, timeout=30)
-        jsondata = req.read()
+        req = urllib.request.urlopen(url, timeout=30)
+        jsondata = req.read().decode('utf8')
         data = json.loads(jsondata)
     except ValueError:
         # can't decode JSON
         return None
-    except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException, timeout):
+    except (urllib.error.HTTPError, urllib.error.URLError, http.client.HTTPException, socket.timeout, socket.error):
         # network problem, or 404 (if userid doesn't exist)
         return None
 
@@ -1340,21 +1420,21 @@ def emplid_to_userid(emplid):
 
     Admin contact for the API is George Lee in the Learning & Community Platforms Group
     """
-    qs = urllib.urlencode({'art': EMPLID_SECRET, 'sfuid': str(emplid)})
+    qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'sfuid': str(emplid)})
     url = USERID_BASE_URL + qs
     try:
-        req = urllib2.urlopen(url, timeout=30)
-        jsondata = req.read()
+        req = urllib.request.urlopen(url, timeout=30)
+        jsondata = req.read().decode('utf8')
         data = json.loads(jsondata)
     except ValueError:
         # can't decode JSON
         return None
-    except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException):
+    except (urllib.error.HTTPError, urllib.error.URLError, http.client.HTTPException):
         # network problem, or 404 (if userid doesn't exist)
         return None
 
     if 'username' not in data:
-        raise ValueError, "No 'username' returned in response."
+        raise ValueError("No 'username' returned in response.")
 
     userids = data['username']
     return userids.split(',')[0].strip()
@@ -1397,7 +1477,7 @@ def build_person(emplid, userid=None):
 
 def import_person(p, commit=True, grad_data=False):
     """
-    Import SIMS/AMAINT information about this Person. Return the Person or None if they can't be found.
+    Import SIMS (+ userid) information about this Person. Return the Person or None if they can't be found.
     """
     last_name, first_name, middle_name, pref_first_name, title = get_names(p.emplid)
     if last_name is None:

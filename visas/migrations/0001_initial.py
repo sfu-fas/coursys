@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import datetime
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('end_date', models.DateField(verbose_name=b'End Date')),
                 ('config', courselib.json_fields.JSONField(default={}, editable=False)),
                 ('hidden', models.BooleanField(default=False, editable=False)),
-                ('person', models.ForeignKey(to='coredata.Person')),
+                ('person', models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
             },

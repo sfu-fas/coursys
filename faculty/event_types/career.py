@@ -3,6 +3,7 @@ import itertools
 
 from django import forms
 from django.utils.safestring import mark_safe
+from django.http import HttpResponse
 
 from faculty.event_types import fields, search
 from faculty.event_types.base import BaseEntryForm
@@ -11,6 +12,7 @@ from faculty.event_types.choices import Choices
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 from faculty.event_types.constants import SALARY_STEPS_CHOICES
+from dashboard.letters import yellow_form_limited, yellow_form_tenure
 
 RANK_CHOICES = Choices(
     ('LLEC', 'Limited-Term Lecturer'),
@@ -22,6 +24,8 @@ RANK_CHOICES = Choices(
     ('ASSO', 'Associate Professor'),
     ('FULL', 'Full Professor'),
     ('URAS', 'University Research Associate'),
+    ('ADJC', 'Adjunct Professor'),
+    ('POPP', 'Professor of Professional Practice'),
     #('UNIV', 'University Professor'),
     #('UNIR', 'University Research Professor'),
 )
@@ -47,14 +51,33 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Position Number</dt><dd>{{ handler|get_display:"position_number" }}</dd>
         <dt>Leaving Reason</dt><dd>{{ handler|get_display:"leaving_reason" }}</dd>
-        <dt>Spousal hire</dt><dd>{{ handler|get_display:"spousal_hire"|yesno }}</dd>
+        <dt>Spousal Hire</dt><dd>{{ handler|get_display:"spousal_hire"|yesno }}</dd>
+
+        {% if handler|get_config:"degree1" != 'unknown' and  handler|get_config:"degree1" != ''%}
+        <dt>Degrees Held</dt>
+        <dd>{{ handler|get_display:"degree1" }}, {{ handler|get_display:"year1" }},
+        {{ handler|get_display:"institution1" }}, {{ handler|get_display:"location1" }}
+        {% if handler|get_config:"degree2" != 'unknown' and handler|get_config:"degree2" != ''%}<br>
+        <dd>{{ handler|get_display:"degree2" }}, {{ handler|get_display:"year2" }},
+        {{ handler|get_display:"institution2" }}, {{ handler|get_display:"location2" }}{% endif %}
+        {% if handler|get_config:"degree3" != 'unknown' and handler|get_config:"degree3" != '' %}<br>
+        <dd>{{ handler|get_display:"degree3" }},  {{ handler|get_display:"year3" }},
+        {{ handler|get_display:"institution3" }}, {{ handler|get_display:"location3" }}{% endif %}
+        {% endif %}
+        {% if handler|get_config:"teaching_semester_credits" != 'unknown' and  handler|get_config:"teaching_semester_credits" != ''%}
+        <dt>Teaching Semester Credits</dt><dd>{{ handler|get_config:"teaching_semester_credits" }}</dd>
+        {% endif %}
+
         {% endblock %}
     """
+
+    PDFS = {'yellow1': 'Yellow Form for Tenure Track',
+            'yellow2': 'Yellow Form for Limited Term'}
 
     class EntryForm(BaseEntryForm):
 
         LEAVING_CHOICES = Choices(
-            ('HERE', u'\u2014'),  # hasn't left yet
+            ('HERE', '\u2014'),  # hasn't left yet
             ('RETI', 'Retired'),
             ('END', 'Limited-term contract ended'),
             ('UNIV', 'Left: job at another University'),
@@ -68,6 +91,27 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         position_number = forms.CharField(initial='', required=False, widget=forms.TextInput(attrs={'size': '6'}))
         spousal_hire = forms.BooleanField(initial=False, required=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
+        degree1 = forms.CharField(max_length=12, help_text='These are the degrees to be inserted into the '
+                                                           'Recommendation for Appointment Forms (AKA "Yellow Form"). '
+                                                           ' List the highest degree first.', required=False,
+                                  label='Degree 1', widget=forms.TextInput(attrs={'size': '13'}))
+        year1 = forms.CharField(max_length=5, required=False, label='Year 1', widget=forms.TextInput(attrs={'size': '5'}))
+        institution1 = forms.CharField(max_length=25, required=False, label='Institution 1')
+        location1 = forms.CharField(max_length=23, required=False, label='City/Country 1')
+        degree2 = forms.CharField(max_length=12, required=False, label='Degree 2',
+                                  widget=forms.TextInput(attrs={'size': '13'}))
+        year2 = forms.CharField(max_length=5, required=False, label='Year 2', widget=forms.TextInput(attrs={'size': '5'}))
+        institution2 = forms.CharField(max_length=25, required=False, label='Institution 2')
+        location2 = forms.CharField(max_length=23, required=False, label='City/Country 2')
+        degree3 = forms.CharField(max_length=12, required=False, label='Degree 3',
+                                  widget=forms.TextInput(attrs={'size': '13'}))
+        year3 = forms.CharField(max_length=5, required=False, label='Year 3', widget=forms.TextInput(attrs={'size': '5'}))
+        institution3 = forms.CharField(max_length=25, required=False, label='Institution 3')
+        location3 = forms.CharField(max_length=23, required=False, label='City/Country 3')
+        teaching_semester_credits = forms.DecimalField(max_digits=3, decimal_places=0, required=False,
+                                                       help_text='Number of teaching semester credits, for the tenure '
+                                                       'track form')
+
 
     SEARCH_RULES = {
         'position_number': search.StringSearchRule,
@@ -86,6 +130,19 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     def short_summary(self):
         return "Appointment to position"
 
+    def generate_pdf(self, key):
+        response = HttpResponse(content_type="application/pdf")
+        response['Content-Disposition'] = 'inline; filename="yellowform.pdf"'
+        if key == 'yellow1':
+            yellow_form_tenure(self, response)
+            return response
+        if key == 'yellow2':
+            yellow_form_limited(self, response)
+            return response
+
+
+
+
 
 class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     """
@@ -98,12 +155,12 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     IS_EXCLUSIVE = True
 
     TO_HTML_TEMPLATE = """
-        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% load humanize %}{% block dl %}
         <dt>Rank &amp; Step</dt><dd>{{ handler|get_display:"rank" }}, step {{ handler|get_display:"step" }}</dd>
-        <dt>Base salary</dt><dd>${{ handler|get_display:"base_salary"|floatformat:2 }}</dd>
-        <dt>Add salary</dt><dd>${{ handler|get_display:"add_salary"|floatformat:2 }}</dd>
-        <dt>Add pay</dt><dd>${{ handler|get_display:"add_pay"|floatformat:2 }}</dd>
-        <dt>Total</dt><dd>${{ total|floatformat:2 }}</dd>
+        <dt>Base salary</dt><dd>${{ handler|get_display:"base_salary"|floatformat:2|intcomma}}</dd>
+        <dt>Add salary</dt><dd>${{ handler|get_display:"add_salary"|floatformat:2|intcomma }}</dd>
+        <dt>Add pay</dt><dd>${{ handler|get_display:"add_pay"|floatformat:2|intcomma }}</dd>
+        <dt>Total</dt><dd>${{ total|floatformat:2|intcomma }}</dd>
         <!--<dt>Biweekly</dt><dd>${{ biweekly|floatformat:2 }}</dd>-->
         {% endblock %}
     """
@@ -413,10 +470,13 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Option</dt><dd>{{ handler|get_display:"option" }} </dd>
         <dt>Pay Fraction</dt><dd>{{ handler|get_display:"pay_fraction" }}</dd>
         <dt>Report Received</dt><dd>{{ handler|get_display:"report_received"|yesno }}</dd>
         <dt>Report Received On</dt><dd>{{ handler|get_display:"report_received_date" }}</dd>
         <dt>Teaching Load Decrease</dt><dd>{{ handler|get_display:"teaching_decrease" }}</dd>
+        <dt>Deferred Salary</dt><dd>{{ handler|get_display:"deferred_salary"|yesno }}</dd>
+        <dt>Accumulated Credits</dt><dd>{{ handler|get_display:"accumulated_credits" }}</dd>
         <dt>Study Leave Credits Spent</dt><dd>{{ handler|get_display:"study_leave_credits" }}</dd>
         <dt>Study Leave Credits Carried Forward</dt><dd>{{ handler|get_display:"credits_forward" }}</dd>
         {% endblock %}
@@ -428,12 +488,21 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
             ('9/10', '90%'),
             ('1', '100%'),
         ]
+        option = forms.CharField(min_length=1, max_length=1, required=False,
+                                 help_text='The option for this study leave.  A, B, C, etc',
+                                 widget=forms.TextInput(attrs={'size': '1'}))
         pay_fraction = fields.FractionField(choices=PAY_FRACTION_CHOICES)
         report_received = forms.BooleanField(label='Report Received?', initial=False, required=False)
         report_received_date = fields.SemesterField(required=False, semester_start=False)
         teaching_decrease = fields.TeachingReductionField()
-        study_leave_credits = forms.IntegerField(label='Study Leave Credits Spent', min_value=0, max_value=99, help_text='Total number of Study Leave Credits spent for entire leave')
-        credits_forward = forms.IntegerField(label='Study Leave Credits Carried Forward', required=False, min_value=0, max_value=10000, help_text='Study Credits Carried Forward After Leave (may be left blank if unknown)')
+        deferred_salary = forms.BooleanField(label='Deferred Salary?', initial=False, required=False)
+        accumulated_credits = forms.IntegerField(label='Accumulated Credits', min_value=0, max_value=99,
+                                                 help_text='Accumulated unused credits', required=False)
+        study_leave_credits = forms.IntegerField(label='Study Leave Credits Spent', min_value=0, max_value=99,
+                                                 help_text='Total number of Study Leave Credits spent for entire leave')
+        credits_forward = forms.IntegerField(label='Study Leave Credits Carried Forward', required=False, min_value=0,
+                                             max_value=10000,
+                                             help_text='Study Credits Carried Forward After Leave (may be left blank if unknown)')
 
         def post_init(self):
             # finding the teaching load and set the decrease to that value
@@ -462,6 +531,10 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         'study_leave_credits',
         'credits_forward'
     ]
+
+    from django.conf.urls import url
+
+    EXTRA_LINKS = {'Teaching Summary': 'faculty:teaching_summary'}
 
     @classmethod
     def default_title(cls):

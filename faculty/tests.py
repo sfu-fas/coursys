@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from django.test import TestCase
 from django.utils import safestring
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from courselib.testing import Client, test_views, TEST_COURSE_SLUG
 
 from coredata.models import Semester
@@ -40,9 +40,9 @@ class EventTypesTest(TestCase):
                                                       unit=fac_role.unit))
 
         # tests below assume these permission settings for this event type
-        self.assertEquals(handler.VIEWABLE_BY, 'MEMB')
-        self.assertEquals(handler.EDITABLE_BY, 'DEPT')
-        self.assertEquals(handler.APPROVAL_BY, 'FAC')
+        self.assertEqual(handler.VIEWABLE_BY, 'MEMB')
+        self.assertEqual(handler.EDITABLE_BY, 'DEPT')
+        self.assertEqual(handler.APPROVAL_BY, 'FAC')
 
         self.assertFalse(handler.can_edit(fac_member))
         self.assertTrue(handler.can_edit(dept_admin))
@@ -94,13 +94,13 @@ class EventTypesTest(TestCase):
 
                 # display methods that each handler must implement
                 shortsummary = handler.short_summary()
-                self.assertIsInstance(shortsummary, basestring)
+                self.assertIsInstance(shortsummary, str)
                 self.assertNotIn('%s', shortsummary) # find these cases that shouldn't exist
                 html = handler.to_html()
-                self.assertIsInstance(html, (safestring.SafeString, safestring.SafeText, safestring.SafeUnicode))
+                self.assertIsInstance(html, (safestring.SafeString, safestring.SafeText))
 
             except:
-                print "failure with Handler==%s" % (Handler)
+                print("failure with Handler==%s" % (Handler))
                 raise
 
     def test_annual_teaching(self):
@@ -119,11 +119,11 @@ class EventTypesTest(TestCase):
         c.login_user(editor.userid)
 
         # make sure the form renders with value="6"
-        url = reverse('faculty.views.change_event', kwargs={'userid': person.userid, 'event_slug': event.slug})
+        url = reverse('faculty:change_event', kwargs={'userid': person.userid, 'event_slug': event.slug})
         resp = c.get(url)
-        inputs = [l for l in resp.content.split('\n') if 'name="load"' in l]
-        inputs_correct_value = [l for l in inputs if 'value="6"' in l]
-        self.assertEquals(len(inputs_correct_value), 1)
+        inputs = [l for l in resp.content.split(b'\n') if b'name="load"' in l]
+        inputs_correct_value = [l for l in inputs if b'value="6"' in l]
+        self.assertEqual(len(inputs_correct_value), 1)
 
         # POST a change and make sure the right value ends up in the DB
         data = {
@@ -135,7 +135,7 @@ class EventTypesTest(TestCase):
         }
         c.post(url, data)
         new_ce = CareerEvent.objects.filter(unit=unit, person=person, event_type=etype)[0]
-        self.assertEquals(new_ce.config['load'], '5/3')
+        self.assertEqual(new_ce.config['load'], '5/3')
 
 
 
@@ -264,36 +264,36 @@ class PagesTest(TestCase):
         # as department admin
         c.login_user('dzhao')
 
-        test_views(self, c, 'faculty.views.', ['index', 'search_index', 'salary_index', 'status_index', 'manage_event_index',
+        test_views(self, c, 'faculty:', ['index', 'search_index', 'salary_index', 'status_index', 'manage_event_index',
                 'teaching_capacity', 'fallout_report', 'course_accreditation', 'manage_faculty_roles'],
                 {})
-        test_views(self, c, 'faculty.views.', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo',
+        test_views(self, c, 'faculty:', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo',
                 'event_type_list', 'study_leave_credits', 'timeline', 'faculty_member_info', 'edit_faculty_member_info',
                 'faculty_wizard'],
                 {'userid': 'ggbaker'})
-        test_views(self, c, 'faculty.views.', ['view_event', 'change_event', 'new_attachment', 'new_text_attachment',
+        test_views(self, c, 'faculty:', ['view_event', 'change_event', 'new_attachment', 'new_text_attachment',
                                                'new_memo_no_template'],
                 {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position'})
 
-        test_views(self, c, 'faculty.views.', ['manage_memo_template'],
+        test_views(self, c, 'faculty:', ['manage_memo_template'],
                 {'event_type': 'appoint', 'slug': 'cmpt-welcome'})
-        test_views(self, c, 'faculty.views.', ['new_memo'],
+        test_views(self, c, 'faculty:', ['new_memo'],
                 {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position',
                  'memo_template_slug': 'cmpt-welcome'})
-        test_views(self, c, 'faculty.views.', ['manage_memo', 'view_memo'],
+        test_views(self, c, 'faculty:', ['manage_memo', 'view_memo'],
                 {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position',
                  'memo_slug': '2000-appointment-to-position-welcome'})
 
-        test_views(self, c, 'faculty.views.', ['teaching_credit_override'],
+        test_views(self, c, 'faculty:', ['teaching_credit_override'],
                 {'userid': 'ggbaker', 'course_slug': TEST_COURSE_SLUG})
-        test_views(self, c, 'faculty.views.', ['event_config_add'],
+        test_views(self, c, 'faculty:', ['event_config_add'],
                 {'event_type': 'fellow'})
 
         # grant views
-        test_views(self, c, 'faculty.views.', ['grant_index'], {})
-        test_views(self, c, 'faculty.views.', ['convert_grant'],
+        test_views(self, c, 'faculty:', ['grant_index'], {})
+        test_views(self, c, 'faculty:', ['convert_grant'],
                 {'gid': TempGrant.objects.all()[0].id})
-        test_views(self, c, 'faculty.views.', ['edit_grant', 'view_grant'],
+        test_views(self, c, 'faculty:', ['edit_grant', 'view_grant'],
                 {'unit_slug': 'cmpt', 'grant_slug': 'baker-startup-grant'})
 
         # TODO: CSV views, JSON view
@@ -303,17 +303,17 @@ class PagesTest(TestCase):
             try:
                 slug = Handler.EVENT_TYPE.lower()
 
-                test_views(self, c, 'faculty.views.', ['create_event'],
+                test_views(self, c, 'faculty:', ['create_event'],
                     {'userid': 'ggbaker', 'event_type': slug})
-                test_views(self, c, 'faculty.views.', ['event_config', 'new_memo_template'],
+                test_views(self, c, 'faculty:', ['event_config', 'new_memo_template'],
                     {'event_type': slug})
 
                 # the search form
-                test_views(self, c, 'faculty.views.', ['search_events'],
+                test_views(self, c, 'faculty:', ['search_events'],
                     {'event_type': slug})
                 # search with some results
-                test_views(self, c, 'faculty.views.', ['search_events'],
+                test_views(self, c, 'faculty:', ['search_events'],
                     {'event_type': slug}, qs='only_current=on')
             except:
-                print "failure with Handler==%s" % (Handler)
+                print("failure with Handler==%s" % (Handler))
                 raise

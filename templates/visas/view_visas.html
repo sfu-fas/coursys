@@ -12,7 +12,7 @@
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/visas.css" %}" type="text/css">
 <link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#visas').dataTable( {
     'bPaginate': false,
@@ -22,11 +22,6 @@ $(document).ready(function() {
     'aaSorting': [[2, 'asc']]
   } );
 } );
-function confirmDelete(url) {
-  if ( confirm("Are you sure you want to delete this visa?") ) {
-    document.location = url;
-  };
-}
 </script>
 {% endblock %}
 
@@ -34,7 +29,8 @@ function confirmDelete(url) {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "visas.views.new_visa" %}">Add New Visa</a></li>
+        <li><a href="{% url "visas:new_visa" %}">Add New Visa</a></li>
+        <li><a href="{% url 'visas:download_visas_csv' %}">Download CSV</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -46,6 +42,7 @@ function confirmDelete(url) {
         <thead>
             <tr>
                 <th>Person</th>
+                <th>Unit</th>
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Type</th>
@@ -56,22 +53,33 @@ function confirmDelete(url) {
         <tbody>
             {% for visa in visa_list %}
                 <tr {{ visa|add_visa_display_class }}>
-                    <td>{{ visa.person }}</td>
+                    <td>
+                        {{ visa.person }} {% if visa.has_attachments %} &nbsp;
+                        <i class="fa fa-paperclip" title="Attachment(s)"></i>{% endif %}
+                    </td>
+                    <td>{{ visa.unit.label }}</td>
                     <td><span class="sort">{{ visa.start_date.isoformat }}</span>{{ visa.start_date }}</td>
                     <td><span class="sort">{{ visa.end_date.isoformat }}</span>{{ visa.end_date }}</td>
                     <td>{{ visa.status }}</td>
                     <td>{{ visa.get_validity }}</td>
                     <td>
-                        <div class="lineform">
-                            <button type='submit' class='btn' title="Hide Visa"
-                                    onclick="confirmDelete('{% url "visas.views.delete_visa" visa_id=visa.id %}')">
+                        <form class="lineform" method="POST"
+                              action="{% url "visas:delete_visa" visa_id=visa.id %}">
+                            {% csrf_token %}
+                            <button type='submit' class='btn confirm-submit' title="Hide Visa" data-submit-action="delete this visa">
                                 <i class='fa fa-trash-o'></i>
                             </button>
-                        </div>
+                        </form>
                         <form class="lineform" method="GET"
-                            action="{% url "visas.views.edit_visa" visa_id=visa.id %}">
+                            action="{% url "visas:edit_visa" visa_id=visa.id %}">
                             <button type='submit' class='btn' title="Edit Visa">
                                 <i class='fa fa-edit'></i>
+                            </button>
+                        </form>
+                        <form class="lineform" method="GET"
+                            action="{% url "visas:view_visa" visa_id=visa.id %}">
+                            <button type='submit' class='btn' title="View Visa">
+                                <i class='fa fa-eye'></i>
                             </button>
                         </form>
                     </td>
@@ -79,9 +87,7 @@ function confirmDelete(url) {
             {% endfor %}
         </tbody>
     </table>
-    <a href="{% url 'visas.views.download_visas_csv' %}">
-        <i class="fa fa-li fa-download"></i> Download CSV
-    </a>
+
 {% else %}
     <h2>There are no visas to display.</h2>
 {% endif %}

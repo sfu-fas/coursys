@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -21,8 +21,8 @@ class Migration(migrations.Migration):
                 ('groupForSemester', models.BooleanField(default=True)),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
                 ('svn_slug', autoslug.fields.AutoSlugField(max_length=17, null=True, editable=False)),
-                ('courseoffering', models.ForeignKey(to='coredata.CourseOffering')),
-                ('manager', models.ForeignKey(to='coredata.Member')),
+                ('courseoffering', models.ForeignKey(to='coredata.CourseOffering', on_delete=models.CASCADE)),
+                ('manager', models.ForeignKey(to='coredata.Member', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name'],
@@ -34,9 +34,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('confirmed', models.BooleanField(default=False)),
-                ('activity', models.ForeignKey(to='grades.Activity')),
-                ('group', models.ForeignKey(to='groups.Group')),
-                ('student', models.ForeignKey(to='coredata.Member')),
+                ('activity', models.ForeignKey(to='grades.Activity', on_delete=models.CASCADE)),
+                ('group', models.ForeignKey(to='groups.Group', on_delete=models.CASCADE)),
+                ('student', models.ForeignKey(to='coredata.Member', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['student__person', 'activity'],

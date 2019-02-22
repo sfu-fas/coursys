@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 var oTable;
 function clear_filter() {
   oTable.fnFilter("");
@@ -14,18 +14,20 @@ $(document).ready(function() {
 		"bPaginate": false,
 		"aoColumns": [null, { "sType": "by-letter" }, { "bSearchable": false, "bSortable": false }]
 	});
-
+	$('#grades_form').submit(clear_filter);
 });
 </script>
 {% endblock %}
 
 {% block title %}Mark All Groups{% endblock %}
 {% block h1 %}Mark All Groups{% endblock %}
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Mark All Groups</li>{% endblock %}
 {% block content %}
 
-<form id="grades_form" class="subtle" action="{% url "marking.views.mark_all_groups" course_slug=course.slug activity_slug=activity.slug %}" method="post" onsubmit="return clear_filter()">{% csrf_token %}
+{% include "marking/mark_all_includes.html" %}
+
+<form id="grades_form" class="subtle" action="{% url "offering:mark_all_groups" course_slug=course.slug activity_slug=activity.slug %}" method="post">{% csrf_token %}
      <table class="display" id="all_marks">
         <thead class="form_head">
             <tr>

@@ -5,16 +5,16 @@
 {% block h1 %}TA Contracts for {{ posting }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta:posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
 <li>Contracts</li>
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     var application_urls = new Array();
     {% for app in applications %}
-    application_urls['{{ app.id }}'] = '{% url "ta.views.edit_contract" post_slug=posting.slug userid=app.person.userid %}';
+    application_urls['{{ app.id }}'] = '{% url "ta:edit_contract" post_slug=posting.slug userid=app.person.userid %}';
     {% endfor %}
     $(function() {
     	$('#contracts').dataTable({
@@ -49,8 +49,9 @@
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
-<li><a href="{% url "ta.views.contracts_csv" post_slug=posting.slug %}">Payroll Upload File</a></li>
-<li><a href="{% url "ta.views.contracts_forms" post_slug=posting.slug %}">All Forms</a></li>
+<li><a href="{% url "ta:contracts_csv" post_slug=posting.slug %}">Payroll Upload File</a></li>
+<li><a href="{% url "ta:contracts_forms" post_slug=posting.slug %}">All Forms</a></li>
+<li><a href="{% url "ta:contracts_table_csv" post_slug=posting.slug %}">Download CSV</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -70,7 +71,7 @@
 		<th scope="col">TA Courses</th>
 		<th scope="col">Deadline</th>
   		<th scope="col">Manage</th>
-  		<th scope="col">Send?<input type="checkbox" id="select_tog"></th>
+  		<th scope="col">Send? &nbsp;<input type="checkbox" id="select_tog"></th>
   	</tr>
   </thead>
   <tbody>
@@ -83,14 +84,21 @@
 	<td>{{contract.total_bu}}</td>
 	<td>{{contract.crs_list|linebreaksbr}}</td>
 	<td>{{ contract.deadline|date:"M d Y" }}</td>
-  	<td>
-  		<a href="{% url "ta.views.view_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">View</a>&nbsp;
-  		<a href="{% url "ta.views.edit_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">Edit</a>&nbsp;
+  	<td style="min-width: 150px">
+        <a class="lineform" href="{% url "ta:view_form" post_slug=contract.posting.slug userid=contract.application.person.userid %}">
+            <button type='button' class='btn' title="View Form"><i class='fa fa-print'></i></button>
+        </a>
+        <a class="lineform" href="{% url "ta:edit_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">
+            <button type='button' class='btn' title="Edit Contract"><i class='fa fa-edit'></i></button>
+        </a>
+  		<a class="lineform" href="{% url "ta:view_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">
+            <button type='button' class='btn' title="View Contract"><i class='fa fa-eye'></i></button>
+        </a>
   	</td>
   	<td class="miniaction">
   		{% if contract.status == 'NEW' %}
   		<input name="contract_{{contract.id}}" class="offer" type="checkbox"/>
-  		{% else %}{% if contract.status == 'ACC' or contract.status == 'OPN' %}
+  		{% else %}{% if contract.status == 'ACC'%}
   		<input type="submit" name="signed-{{ contract.application.person.userid }}" value="Signed" />
   		{% endif %}{% endif %}
   	</td>
@@ -106,7 +114,7 @@
 {%endif%}
 
 <h2 id="new">New Contract</h2>
-<form action="{% url "ta.views.new_contract" post_slug=posting.slug %}" method="post">{% csrf_token %}
+<form action="{% url "ta:new_contract" post_slug=posting.slug %}" method="post">{% csrf_token %}
 	{{ form.application }}
 	<input type="submit" class="submit" id="submit" value="Create">
 	<div class="helptext">Select the associated applicant</div>

@@ -5,8 +5,17 @@ from coredata.widgets import PersonField, OfferingField, CalendarWidget
 from coredata.models import Unit, Semester
 from ra.models import Account
 # App
-from .models import HiringSemester, TACategory, TAContract, TACourse
-from .widgets import GuessPayperiodsWidget
+from .models import HiringSemester, TACategory, TAContract, TACourse, CourseDescription, TAContractAttachment
+
+
+class GuessPayperiodsWidget(forms.TextInput):
+    """
+    A widget to guess at pay-periods.
+    Assumes that you have fields named "pay_start", "pay_end", and "payperiods"
+    """
+    class Media:
+        js = ('moment.min.js', 'js/tacontracts.js')
+
 
 class HiringSemesterForm(forms.ModelForm):
     def __init__(self, request, *args, **kwargs):
@@ -25,11 +34,12 @@ class HiringSemesterForm(forms.ModelForm):
         model = HiringSemester
         exclude = []
         widgets = {
-                    'deadline_for_acceptance':CalendarWidget,
-                    'pay_start':CalendarWidget,
-                    'pay_end':CalendarWidget,
-                    'payperiods':GuessPayperiodsWidget,
+                    'deadline_for_acceptance': CalendarWidget,
+                    'pay_start': CalendarWidget,
+                    'pay_end': CalendarWidget,
+                    'payperiods': GuessPayperiodsWidget,
                 }
+
 
 class TACategoryForm(forms.ModelForm):
     def __init__(self, unit, *args, **kwargs):
@@ -41,6 +51,7 @@ class TACategoryForm(forms.ModelForm):
         model = TACategory
         exclude = []
 
+
 class TAContractForm(forms.ModelForm):
     def __init__(self, hiring_semester, *args, **kwargs):
         super(TAContractForm, self).__init__(*args, **kwargs)
@@ -51,11 +62,14 @@ class TAContractForm(forms.ModelForm):
         model = TAContract
         exclude = []
         widgets = {
-            'pay_start':CalendarWidget,
-            'pay_end':CalendarWidget,
-            'deadline_for_acceptance':CalendarWidget,
-            'payperiods':GuessPayperiodsWidget,
+            'appointment_start': CalendarWidget,
+            'appointment_end': CalendarWidget,
+            'pay_start': CalendarWidget,
+            'pay_end': CalendarWidget,
+            'deadline_for_acceptance': CalendarWidget,
+            'payperiods': GuessPayperiodsWidget,
         }
+
 
 class TACourseForm(forms.ModelForm):
     def __init__(self, semester, *args, **kwargs):
@@ -71,3 +85,15 @@ class EmailForm(forms.Form):
     subject = forms.CharField(max_length=100)
     message = forms.CharField(widget=forms.Textarea)
     sender = PersonField()
+
+
+class CourseDescriptionForm(forms.ModelForm):
+    class Meta:
+        model = CourseDescription
+        exclude = ('config','hidden')
+
+
+class TAContracttAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = TAContractAttachment
+        exclude = ('contract', 'created_by')

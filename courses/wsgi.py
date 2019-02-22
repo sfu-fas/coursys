@@ -14,6 +14,8 @@ framework.
 
 """
 import os
+import sys
+assert sys.version_info >= (3, 5)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "courses.settings")
 

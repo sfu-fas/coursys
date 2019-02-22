@@ -1,4 +1,4 @@
-from base import *
+from .base import *
 import submission.forms
 from django.forms.widgets import Textarea, TextInput, FileInput
 from django import forms
@@ -25,8 +25,8 @@ class WordComponent(SubmissionComponent):
 
 
 class SubmittedWord(SubmittedComponent):
-    component = models.ForeignKey(WordComponent, null=False)
-    word = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=SubmissionSystemStorage,
+    component = models.ForeignKey(WordComponent, null=False, on_delete=models.PROTECT)
+    word = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=UploadedFileStorage,
                             verbose_name='Word document submission')
         
     class Meta:
@@ -41,7 +41,7 @@ class SubmittedWord(SubmittedComponent):
     def get_filename(self):
         return os.path.split(self.word.name)[1]
 
-    def download_response(self):
+    def download_response(self, **kwargs):
         # figure out the MIME type
         for ext in self.component.mime_types:
             if self.word.name.lower().endswith(ext):
@@ -52,7 +52,7 @@ class SubmittedWord(SubmittedComponent):
         self.sendfile(self.word, response)
         return response
 
-    def add_to_zip(self, zipfile, prefix=None):
+    def add_to_zip(self, zipfile, prefix=None, **kwargs):
         filename = self.file_filename(self.word, prefix)
         zipfile.write(self.word.path, filename)
 

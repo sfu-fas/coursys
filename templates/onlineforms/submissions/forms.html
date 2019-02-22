@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
         $('#form_table').dataTable({
                     "bPaginate": false,
@@ -25,17 +25,31 @@
 {% endblock %}
 
 {% block actions %}
-{% if form_groups or dept_admin %}
+{% if form_groups or form_admin %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
     	{% if form_groups %}
-        <li><a href="{% url "onlineforms.views.list_all" %}">Create/Edit Forms</a></li>
-        <li><a href="{% url "onlineforms.views.admin_list_all" %}">Manage Submissions</a></li>
+        <li><a href="{% url "onlineforms:list_all" %}">Create/Edit Forms</a></li>
+        <li><a href="{% url "onlineforms:admin_list_all" %}">Manage Submissions</a></li>
         {% endif %}
-    	{% if dept_admin %}
-        <li><a href="{% url "onlineforms.views.manage_groups" %}">Manage Form Groups</a></li>
+    	{% if form_admin %}
+        <li><a href="{% url "onlineforms:manage_groups" %}">Manage Form Groups</a></li>
         {% endif %}
+        {% if participated %}
+            <li>
+                <a href="{% url "onlineforms:participated_in" %}">
+                    View forms in which you participated
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+{% elif participated %}
+    <div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    	<li><a href="{% url "onlineforms:participated_in" %}">View completed forms in which you participated</a></li>
     </ul>
 </div>
 {% endif %}
@@ -57,7 +71,7 @@
         </thead>
         {% for sheet_sub in sheet_submissions %}
             <tr>
-                <td><a href="{% url "onlineforms.views.sheet_submission_subsequent" form_slug=sheet_sub.form_submission.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheet_slug=sheet_sub.sheet.slug sheetsubmit_slug=sheet_sub.slug %}">{{ sheet_sub.sheet.title }}</a></td>
+                <td><a href="{% url "onlineforms:sheet_submission_subsequent" form_slug=sheet_sub.form_submission.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheet_slug=sheet_sub.sheet.slug sheetsubmit_slug=sheet_sub.slug %}">{{ sheet_sub.sheet.title }}</a></td>
                 <td>{{ sheet_sub.form_submission.form.title }} (from {{ sheet_sub.form_submission.initiator.name }})</td>
                 <td><span class="sort">{{ sheet_sub.given_at.isoformat }}</span>{{ sheet_sub.given_at }}</td>
             </tr>
@@ -75,7 +89,7 @@
         <h3 id="forms-{{data.grouper.slug}}">{{ data.grouper.name }}</h3>
         <ul>
         {% for f in data.list %}
-        <li><a href="{% url "onlineforms.views.sheet_submission_initial" form_slug=f.slug %}">{{ f.title }}</a>: {{ f.description }}</li>
+        <li><a href="{% url "onlineforms:sheet_submission_initial" form_slug=f.slug %}">{{ f.title }}</a>: {{ f.description }}</li>
         {% endfor %}
         </ul>
     {% endfor %}
@@ -85,7 +99,7 @@
  	<p>These forms are also available if you log in with your SFU account:</p>
     <ul>
         {% for form in other_forms %}
-        <li><a href="{% url "onlineforms.views.sheet_submission_initial" form_slug=form.slug %}">{{ form.title }}</a> ({{ form.unit.name }}) <span class="helptext">{{ form.description }}</span></li>
+        <li><a href="{% url "onlineforms:sheet_submission_initial" form_slug=form.slug %}">{{ form.title }}</a> ({{ form.unit.name }}) <span class="helptext">{{ form.description }}</span></li>
         {% endfor %}
     </ul>
     {% endif %}

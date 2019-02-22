@@ -12,7 +12,6 @@ SECRET_KEY = 'THIS IS NOT A VERY SECRET KEY'
 
 # passwords for various connections:
 SVN_DB_PASS = ''
-AMAINT_DB_PASSWORD = ''
 AMPQ_PASSWORD = 'supersecretpassword'
 EMPLID_API_SECRET = ''
 INITIAL_PHOTO_PASSWORD = '' # will be injected into database by 'manage.py install_secrets', if needed
@@ -20,3 +19,7 @@ INITIAL_PHOTO_PASSWORD = '' # will be injected into database by 'manage.py insta
 # reporting DB connection
 SIMS_USER = 'ggbaker'
 SIMS_PASSWORD = ''
+
+#BACKUP_REMOTE_URL = 'scp://userid@backups.cs.sfu.ca//backups/coursys'
+#BACKUP_KEY_ID = 'coursys-help@sfu.ca'
+#BACKUP_KEY_PASSPHRASE = 'abc123'

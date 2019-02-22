@@ -9,9 +9,10 @@ from django.utils.html import conditional_escape as escape
 from coredata.models import Semester, Unit
 from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_update
 from dashboard.photos import do_photo_fetch
+from log.models import LogEntry
 
-import celery
-import random, socket, subprocess, urllib2, os, stat, time
+import celery, kombu
+import random, socket, subprocess, urllib.request, urllib.error, urllib.parse, os, stat, time, copy, pprint
 
 
 def _last_component(s):
@@ -60,19 +61,25 @@ def _check_file_create(directory):
 def settings_info():
     info = []
     info.append(('Deploy mode', settings.DEPLOY_MODE))
-    info.append(('Database engine', _last_component(settings.DATABASES['default']['ENGINE'])))
-    info.append(('Cache backend', _last_component(settings.CACHES['default']['BACKEND'])))
-    info.append(('Haystack engine', _last_component(settings.HAYSTACK_CONNECTIONS['default']['ENGINE'])))
-    info.append(('Email backend', '.'.join(settings.EMAIL_BACKEND.split('.')[-2:])))
+    info.append(('Database engine', settings.DATABASES['default']['ENGINE']))
+    info.append(('Cache backend', settings.CACHES['default']['BACKEND']))
+    info.append(('Haystack engine', settings.HAYSTACK_CONNECTIONS['default']['ENGINE']))
+    info.append(('Email backend', settings.EMAIL_BACKEND))
     if hasattr(settings, 'CELERY_EMAIL') and settings.CELERY_EMAIL:
-        info.append(('Celery email backend', '.'.join(settings.CELERY_EMAIL_BACKEND.split('.')[-2:])))
-    if hasattr(settings, 'BROKER_URL'):
-        info.append(('Celery broker', settings.BROKER_URL.split(':')[0]))
+        info.append(('Celery email backend', settings.CELERY_EMAIL_BACKEND))
+    if hasattr(settings, 'CELERY_BROKER_URL'):
+        info.append(('Celery broker', settings.CELERY_BROKER_URL.split(':')[0]))
+
+    DATABASES = copy.deepcopy(settings.DATABASES)
+    for d in DATABASES:
+        if 'PASSWORD' in DATABASES[d]:
+            DATABASES[d]['PASSWORD'] = '*****'
+    info.append(('DATABASES',  mark_safe('<pre>'+escape(pprint.pformat(DATABASES))+'</pre>')))
 
     return info
 
 
-def deploy_checks():
+def deploy_checks(request=None):
     passed = []
     failed = []
 
@@ -92,6 +99,18 @@ def deploy_checks():
     except django.db.utils.ProgrammingError:
         failed.append(('Main database connection', "database tables missing"))
 
+    # non-BMP Unicode in database
+    try:
+        l = LogEntry.objects.create(userid='ggbaker', description='Test Unicode \U0001F600', related_object=Semester.objects.first())
+    except OperationalError:
+        failed.append(('Unicode handling in database', 'non-BMP character not supported by connection'))
+    else:
+        l = LogEntry.objects.get(id=l.id)
+        if '\U0001F600' in l.description:
+            passed.append(('Unicode handling in database', 'okay'))
+        else:
+            failed.append(('Unicode handling in database', 'non-BMP character not stored correctly'))
+
     # Celery tasks
     celery_okay = False
     try:
@@ -101,13 +120,17 @@ def deploy_checks():
             except ImportError:
                 failed.append(('Celery task', "Couldn't import task: probably missing MySQLdb module"))
             else:
-                t = ping.apply_async()
-                res = t.get(timeout=5)
-                if res == True:
-                    passed.append(('Celery task', 'okay'))
-                    celery_okay = True
+                try:
+                    t = ping.apply_async()
+                except kombu.exceptions.OperationalError:
+                    failed.append(('Celery task', 'Kombu error. Probably RabbitMQ not running.'))
                 else:
-                    failed.append(('Celery task', 'got incorrect result from task'))
+                    res = t.get(timeout=5)
+                    if res == True:
+                        passed.append(('Celery task', 'okay'))
+                        celery_okay = True
+                    else:
+                        failed.append(('Celery task', 'got incorrect result from task'))
         else:
             failed.append(('Celery task', 'celery disabled in settings'))
     except celery.exceptions.TimeoutError:
@@ -134,7 +157,7 @@ def deploy_checks():
 
     # Django cache
     # (has a subprocess do something to make sure we're in a persistent shared cache, not DummyCache)
-    subprocess.call(['python', 'manage.py', 'check_things', '--cache_subcall'])
+    subprocess.call(['python3', 'manage.py', 'check_things', '--cache_subcall'])
     cache_okay = False
     res = cache.get('check_things_cache_test')
     if res == randval:
@@ -150,14 +173,20 @@ def deploy_checks():
     # Reporting DB connection
     try:
         db = SIMSConn()
-        db.execute("SELECT last_name FROM ps_names WHERE emplid=200133427", ())
-        n = len(list(db))
-        if n > 0:
-            passed.append(('Reporting DB connection', 'okay'))
-        else:
+        db.execute("SELECT last_name FROM ps_names WHERE emplid=301355288", ())
+        result = list(db)
+        # whoever this is, they have non-ASCII in their name: let's hope they don't change it.
+        lname = result[0][0]
+        if not isinstance(lname, str):
+            failed.append(('Reporting DB connection', 'string result not a string: check Unicode decoding'))
+        elif lname[1] != u'\u00e4':
+            failed.append(('Reporting DB connection', 'returned incorrectly-decoded Unicode'))
+        elif len(result) == 0:
             failed.append(('Reporting DB connection', 'query inexplicably returned nothing'))
+        else:
+            passed.append(('Reporting DB connection', 'okay'))
     except SIMSProblem as e:
-        failed.append(('Reporting DB connection', 'SIMSProblem, %s' % (unicode(e))))
+        failed.append(('Reporting DB connection', 'SIMSProblem, %s' % (str(e))))
     except ImportError:
         failed.append(('Reporting DB connection', "couldn't import DB2 module"))
 
@@ -188,7 +217,7 @@ def deploy_checks():
                 passed.append(('Photo fetching', 'okay'))
         except (KeyError, Unit.DoesNotExist, django.db.utils.ProgrammingError):
             failed.append(('Photo fetching', 'photo password not set'))
-        except urllib2.HTTPError as e:
+        except urllib.error.HTTPError as e:
             failed.append(('Photo fetching', 'failed to fetch photo (%s). Maybe wrong password?' % (e)))
     else:
         failed.append(('Photo fetching', 'not testing since memcached or celery failed'))
@@ -197,10 +226,38 @@ def deploy_checks():
     emplid = userid_to_emplid('ggbaker')
     if not emplid:
         failed.append(('Emplid API', 'no emplid returned'))
-    elif isinstance(emplid, basestring) and not emplid.startswith('2000'):
+    elif isinstance(emplid, str) and not emplid.startswith('2000'):
         failed.append(('Emplid API', 'incorrect emplid returned'))
     else:
         passed.append(('Emplid API', 'okay'))
+
+    # Piwik API
+    #if not request:
+    #    failed.append(('Piwik API', "can only check in web frontend with valid request object"))
+    #elif not settings.PIWIK_URL or not settings.PIWIK_TOKEN:
+    #    failed.append(('Piwik API', "not configured in secrets.py"))
+    #else:
+    #    # try to re-log this request in piwik and see what happens
+    #    from piwik_middleware.tracking import PiwikTrackerLogic, urllib_errors
+    #    tracking_logic = PiwikTrackerLogic()
+    #    kwargs = tracking_logic.get_track_kwargs(request)
+    #    try:
+    #        tracking_logic.do_track_page_view(fail_silently=False, **kwargs)
+    #    except urllib_errors as e:
+    #        failed.append(('Piwik API', "API call failed: %s" % (e)))
+    #    else:
+    #        passed.append(('Piwik API', 'okay'))
+
+    # Backup server
+    #if not settings.BACKUP_SERVER or not settings.BACKUP_USER or not settings.BACKUP_PATH or not settings.BACKUP_PASSPHRASE:
+    #    failed.append(('Backup server', 'Backup server settings not all present'))
+    #else:
+    #    from coredata.management.commands.backup_remote import do_check
+    #    try:
+    #        do_check()
+    #    except RuntimeError as e:
+    #        failed.append(('Backup server', unicode(e)))
+    #    passed.append(('Backup server', 'okay'))
 
 
     # certificates
@@ -219,42 +276,7 @@ def deploy_checks():
         bad_cert += 1
 
     if bad_cert == 0:
-        passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/'))
-
-    # SVN database
-    if settings.SVN_DB_CONNECT:
-        from courselib.svn import SVN_TABLE, _db_conn
-        import MySQLdb
-        try:
-            db = _db_conn()
-            db.execute('SELECT count(*) FROM '+SVN_TABLE, ())
-            n = list(db)[0][0]
-            if n > 0:
-                passed.append(('SVN database', 'okay'))
-            else:
-                failed.append(('SVN database', "couldn't access records"))
-        except MySQLdb.OperationalError:
-            failed.append(('SVN database', "can't connect to database"))
-    else:
-        failed.append(('SVN database', 'SVN_DB_CONNECT not set in secrets.py'))
-
-    # AMAINT database
-    if settings.AMAINT_DB_PASSWORD:
-        from coredata.importer import AMAINTConn
-        import MySQLdb
-        try:
-            db = AMAINTConn()
-            db.execute("SELECT count(*) FROM idMap", ())
-            n = list(db)[0][0]
-            if n > 0:
-                passed.append(('AMAINT database', 'okay'))
-            else:
-                failed.append(('AMAINT database', "couldn't access records"))
-        except MySQLdb.OperationalError:
-            failed.append(('AMAINT database', "can't connect to database"))
-    else:
-        failed.append(('AMAINT database', 'AMAINT_DB_PASSWORD not set in secrets.py'))
-
+        passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
 
     # file creation in the necessary places
     dirs_to_check = [
@@ -300,7 +322,101 @@ def deploy_checks():
         passed.append(('Ports listening externally', 'okay'))
 
 
+    # is the server time close to real-time?
+    import ntplib
+    c = ntplib.NTPClient()
+    response = c.request('0.ca.pool.ntp.org')
+    if abs(response.offset) > 0.1:
+        failed.append(('Server time', 'Time is %g seconds off NTP pool.' % (response.offset,)))
+    else:
+        passed.append(('Server time', 'okay'))
+
+
+    # library sanity
+    err = bitfield_check()
+    if err:
+        failed.append(('Library sanity', 'django-bitfield: ' + err))
+    else:
+        err = cache_check()
+        if err:
+            failed.append(('Library sanity', 'django cache: ' + err))
+        else:
+            passed.append(('Library sanity', 'okay'))
+
+
+    # github-flavoured markdown subprocess
+    from courselib.markup import markdown_to_html
+    try:
+        # checks that script runs; does github-flavour correctly; does Unicode correctly.
+        html = markdown_to_html('test *markup*\n\n```python\nprint(1)\n```\n\u2605\U0001F600')
+        if html.strip() == '<p>test <em>markup</em></p>\n<pre lang="python"><code>print(1)\n</code></pre>\n<p>\u2605\U0001F600</p>':
+            passed.append(('Markdown subprocess', 'okay'))
+        else:
+            failed.append(('Markdown subprocess', 'markdown script returned incorrect markup'))
+    except OSError:
+        failed.append(('Markdown subprocess', 'failed to start ruby command: ruby package probably not installed'))
+    except RuntimeError:
+        failed.append(('Markdown subprocess', 'markdown script failed'))
+
+
     return passed, failed
+
+
+from django.db.utils import OperationalError, ProgrammingError
+def bitfield_check():
+    """
+    The BitField claims it doesn't work in mysql, but what we need has always seemed to be okay. This system check
+    makes sure that the subset of behaviour we expect from BitField is there.
+    """
+    errors = []
+
+    from coredata.models import CourseOffering, OFFERING_FLAG_KEYS
+    assert OFFERING_FLAG_KEYS[0] == 'write'
+
+    # find an offering that should be returned by a "flag" query
+    try:
+        o = CourseOffering.objects.filter(flags=1).first()
+    except (OperationalError, ProgrammingError):
+        # probably means no DB migration yet: let it slide.
+        return []
+    if o is None:
+        # no data there to check
+        return []
+
+    # ... and the filter had better find it
+    found = CourseOffering.objects.filter(flags=CourseOffering.flags.write, pk=o.pk)
+    if not found:
+        return 'Bitfield set-bit query not finding what it should.'
+    # ... and the opposite had better not
+    found = CourseOffering.objects.filter(flags=~CourseOffering.flags.write, pk=o.pk)
+    if found:
+        return 'Bitfield negated-bit query finding what it should not.'
+
+    # find an offering that should be returned by a "not flag" query
+    o = CourseOffering.objects.filter(flags=0).first()
+    # *** This is the one that fails on mysql. We don't use it, so hooray.
+    # ... and the filter had better find it
+    #found = CourseOffering.objects.filter(flags=~CourseOffering.flags.write, pk=o.pk)
+    #if not found:
+    #    _add_error(errors, 'Bitfield negated-bit query not finding what it should.', 3)
+
+    # .. and the opposite had better not
+    found = CourseOffering.objects.filter(flags=CourseOffering.flags.write, pk=o.pk)
+    if found:
+        return 'Bitfield set-bit query finding what it should not.'
+
+
+def cache_check():
+    # A version of python-memcached had unicode issues: https://github.com/linsomniac/python-memcached/issues/79
+    # Make sure unicode runs through the Django cache unchanged.
+    k = 'test_cache_check_key'
+    v = '\u2021'
+    cache.set(k, v, 30)
+    v0 = cache.get(k)
+    if v != v0:
+        return 'python-memcached butchering Unicode strings'
+
+
 
 
 def send_test_email(email):
@@ -324,7 +440,7 @@ def celery_info():
     active = i.active()
     if not active:
         return [('Error', 'Could not inspect Celery: it may be down.')]
-    for worker, tasks in active.items():
+    for worker, tasks in list(active.items()):
         if tasks:
             taskstr = '; '.join("%s(*%s, **%s)" % (t['name'], t['args'], t['kwargs'])
                        for t in tasks)
@@ -333,7 +449,7 @@ def celery_info():
 
         info.append((worker + ' active', taskstr))
 
-    for worker, tasks in i.scheduled().items():
+    for worker, tasks in list(i.scheduled().items()):
         info.append((worker + ' scheduled', len(tasks)))
 
     info.sort()
@@ -367,7 +483,7 @@ def ps_info():
                     cmd = escape(cmd)
 
                 psdata.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%.1f</td><td>%s</td><td>%s</td></tr>' \
-                    % (proc.pid, proc.username(), perc, mem, escape(unicode(proc.status())), cmd))
+                    % (proc.pid, proc.username(), perc, mem, escape(str(proc.status())), cmd))
 
         except psutil.NoSuchProcess:
             pass
@@ -378,7 +494,7 @@ def ps_info():
 
 def pip_info():
     pip = subprocess.Popen(['pip', 'freeze'], stdout=subprocess.PIPE)
-    output = pip.stdout.read()
+    output = pip.stdout.read().decode('utf8')
     result = '<pre>' + escape(output) + '</pre>'
     return [('PIP freeze', mark_safe(result))]
 

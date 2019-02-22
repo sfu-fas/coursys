@@ -52,9 +52,9 @@ class ActiveProgramQuery(DB2_Query):
         }
 
 
-class ActivePlanQuery(DB2_Query):
+class ActivePlanQueryWithReqTerm(DB2_Query):
 
-    title = "Active Plan Query"
+    title = "Active Plan Query With Requirement Term"
     description = "Fetch a list of active students by academic plan" 
     # This is likely to produce duplicates - students that are enrolled in more than one academic plan. 
 
@@ -63,7 +63,8 @@ class ActivePlanQuery(DB2_Query):
         plan.emplid,
         plan.acad_career,
         prog.acad_prog,
-        plan.acad_plan
+        plan.acad_plan,
+        plan.req_term
     FROM 
         ps_acad_plan plan
     INNER JOIN
@@ -109,7 +110,17 @@ class ActivePlanQuery(DB2_Query):
         }
 
     def result(self):
-        return super(ActivePlanQuery, self).result().flatten("EMPLID")
+        return super(ActivePlanQueryWithReqTerm, self).result().flatten("EMPLID")
+
+class ActivePlanQuery(ActivePlanQueryWithReqTerm):
+    title = "Active Plan Query"
+    description = "Fetch a list of active students by academic plan"
+    # This is likely to produce duplicates - students that are enrolled in more than one academic plan.
+
+    def result(self):
+        tempresult = super(ActivePlanQuery, self).result().flatten("EMPLID")
+        tempresult.remove_column("REQ_TERM")
+        return tempresult
 
 class SubplanQuery(DB2_Query):
 
@@ -178,7 +189,7 @@ class ActiveInProgramOrPlanQuery(object):
     
     def produce_emplid_table(self, programs, plans):
         emplids = (plans.column_as_list("EMPLID") + programs.column_as_list("EMPLID"))
-        unique_emplids = {}.fromkeys(emplids).keys()
+        unique_emplids = list({}.fromkeys(emplids).keys())
         
         just_emplid_table = Table()
         just_emplid_table.append_column("EMPLID")

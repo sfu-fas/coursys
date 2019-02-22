@@ -4,10 +4,9 @@ from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import UploadApplicantsForm
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from coredata.models import Person, Semester
 from django.conf import settings
-from index import index
 
 @requires_role("GRAD", get_only=["GRPD"])
 def XXX_import_applic(request):
@@ -32,7 +31,7 @@ def XXX_import_applic(request):
                 messages.success(request, "Imported applicant data.")
                 return HttpResponse('<pre>'+res+'</pre>')       
 
-            return HttpResponseRedirect(reverse(index))
+            return HttpResponseRedirect(reverse('grad:index'))
     else:
         next_sem = Semester.next_starting()
         form = UploadApplicantsForm(initial={'semester': next_sem.id})

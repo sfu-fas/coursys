@@ -5,6 +5,9 @@ from django import forms
 from django.forms.models import BaseModelFormSet
 from grades.models import FLAG_CHOICES, CalNumericActivity,LETTER_GRADE_CHOICES_IN
 import json
+from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape
+
 
 
 class OutOfInput(forms.widgets.NumberInput):
@@ -15,7 +18,18 @@ class OutOfInput(forms.widgets.NumberInput):
         super(OutOfInput, self).__init__(**defaults)
 
     def render(self, *args, **kwargs):
-        return super(OutOfInput, self).render(*args, **kwargs) + ' out of ' + unicode(self.max_mark)
+        return super(OutOfInput, self).render(*args, **kwargs) + ' out of ' + str(self.max_mark)
+
+
+class PercentageInput(forms.widgets.NumberInput):
+    "A NumberInput, but with a suffix '%'"
+    def __init__(self, **kwargs):
+        defaults = {'attrs': {'size': 8}}
+        defaults.update(**kwargs)
+        super(PercentageInput, self).__init__(**defaults)
+
+    def render(self, *args, **kwargs):
+        return mark_safe(conditional_escape(super(PercentageInput, self).render(*args, **kwargs)) + ' %')
 
 
 class ActivityComponentMarkForm(ModelForm):
@@ -36,7 +50,7 @@ class ActivityComponentMarkForm(ModelForm):
 activity_mark_fields = ['late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', \
                   'file_attachment']
 activity_mark_widgets = {
-    'late_penalty': forms.NumberInput(attrs={'class': 'gradeinput'}),
+    'late_penalty': PercentageInput(attrs={'class': 'gradeinput'}),
     'mark_adjustment': forms.NumberInput(attrs={'class': 'gradeinput'}),
     'mark_adjustment_reason': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
     'overall_comment': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
@@ -55,10 +69,10 @@ class ActivityMarkForm(ModelForm):
         try:
             float(late_penalty)
         except TypeError:
-            raise forms.ValidationError(u'The late penalty must be a number')
+            raise forms.ValidationError('The late penalty must be a number')
         if late_penalty:
             if late_penalty > 100:
-                raise forms.ValidationError(u'The late penalty can not exceed 100 percent')
+                raise forms.ValidationError('The late penalty can not exceed 100 percent')
         return late_penalty
 
     def clean_mark_adjustment(self):  
@@ -66,7 +80,7 @@ class ActivityMarkForm(ModelForm):
         try:
             float(mark_adjustment)
         except TypeError:
-            raise forms.ValidationError(u'The mark penalty must be a number')
+            raise forms.ValidationError('The mark penalty must be a number')
         return mark_adjustment
 
 class StudentActivityMarkForm(ActivityMarkForm):
@@ -112,7 +126,7 @@ class BaseActivityComponentFormSet(BaseModelFormSet):
             else:  
                 title = form.cleaned_data['title']
                 if (not form.cleaned_data['deleted']) and title in titles:
-                    raise forms.ValidationError(u"Each component must have a unique title")
+                    raise forms.ValidationError("Each component must have a unique title")
                 titles.append(title)  
         
         # check max marks
@@ -123,7 +137,7 @@ class BaseActivityComponentFormSet(BaseModelFormSet):
                 continue                        
             max_mark = form.cleaned_data['max_mark']
             if max_mark < 0:
-                raise forms.ValidationError(u"Max mark of a component cannot be negative")
+                raise forms.ValidationError("Max mark of a component cannot be negative")
             
             
 class BaseCommonProblemFormSet(BaseModelFormSet):
@@ -158,12 +172,12 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
             
             title = form.cleaned_data['title']
             if (not form.cleaned_data['deleted']) and \
-               component in common_problems.keys() and \
+               component in list(common_problems.keys()) and \
                common_problems[component].count(form.cleaned_data['title']) > 0:
-               raise forms.ValidationError(u"Each common problem must have a unique title within one component")
+               raise forms.ValidationError("Each common problem must have a unique title within one component")
            
             if not form.cleaned_data['deleted']:
-                if not component in common_problems.keys():
+                if not component in list(common_problems.keys()):
                     common_problems[component] = [];
                 common_problems[component].append(title)
                       
@@ -177,7 +191,7 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
             penalty = form.cleaned_data['penalty']          
             if penalty:
                 if not (-component.max_mark <= penalty <= component.max_mark):
-                    raise forms.ValidationError(u"Penalty of a common problem cannot not exceed its corresponding component")
+                    raise forms.ValidationError("Penalty of a common problem cannot not exceed its corresponding component")
                           
 
 class MarkEntryForm(forms.Form):
@@ -190,7 +204,7 @@ class UploadGradeFileForm(forms.Form):
         file = self.cleaned_data['file']
         if file != None and (not file.name.endswith('.csv')) and\
            (not file.name.endswith('.CSV')):
-            raise forms.ValidationError(u"Only .csv files are permitted")
+            raise forms.ValidationError("Only .csv files are permitted")
         return file    
 
 class ImportFileForm(forms.Form):
@@ -200,7 +214,7 @@ class ImportFileForm(forms.Form):
 
         if file != None and (not file.name.endswith('.json')) and\
            (not file.name.endswith('.JSON')):
-            raise forms.ValidationError(u"Only .json files are permitted")
+            raise forms.ValidationError("Only .json files are permitted")
         return file
 
 class ImportMarkFileForm(forms.Form):
@@ -216,19 +230,22 @@ class ImportMarkFileForm(forms.Form):
 
         if file != None and (not file.name.endswith('.json')) and\
            (not file.name.endswith('.JSON')):
-            raise forms.ValidationError(u"Only .json files are permitted")
+            raise forms.ValidationError("Only .json files are permitted")
         
         try:
             data = file.read().decode('utf-8-sig')
         except UnicodeDecodeError:
-            raise forms.ValidationError(u"Bad UTF-8 data in file.")
+            raise forms.ValidationError("Bad UTF-8 data in file.")
         
         try:
             data = json.loads(data)
         except ValueError as e:
-            raise forms.ValidationError(u'JSON decoding error.  Exception was: "' + str(e) + '"')
+            raise forms.ValidationError('JSON decoding error.  Exception was: "' + str(e) + '"')
 
-        return activity_marks_from_JSON(self.activity, self.userid, data)
+        # actually parse the input to see if it's valid
+        activity_marks_from_JSON(self.activity, self.userid, data, save=False)
+
+        return data
 
 
 class ActivityRenameForm(forms.Form):
@@ -286,7 +303,7 @@ class GradeStatusForm_LetterGrade(forms.ModelForm):
         if flag == 'CALC':
             isCalActivity = CalLetterActivity.objects.filter(id=self.instance.activity.id).count() != 0
             if not isCalActivity:
-                raise forms.ValidationError(u'Option "calculated" is only for "calculated activity". Please use "graded".')            
+                raise forms.ValidationError('Option "calculated" is only for "calculated activity". Please use "graded".')            
         
         return flag
         
@@ -301,7 +318,7 @@ class MarkEntryForm_LetterGrade(forms.Form):
     def clean_value(self):
         grade = self.cleaned_data['value']
         if grade != '' and grade not in LETTER_GRADE_CHOICES_IN:
-            raise forms.ValidationError(u'Invalid letter grade.')
+            raise forms.ValidationError('Invalid letter grade.')
         return grade
 
 class UploadGradeFileForm_LetterGrade(forms.Form):
@@ -311,6 +328,6 @@ class UploadGradeFileForm_LetterGrade(forms.Form):
         file = self.cleaned_data['file']
         if file != None and (not file.name.endswith('.csv')) and\
            (not file.name.endswith('.CSV')):
-            raise forms.ValidationError(u"Only .csv files are permitted")
+            raise forms.ValidationError("Only .csv files are permitted")
         return file 
 

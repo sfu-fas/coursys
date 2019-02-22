@@ -1,12 +1,12 @@
 {% load sims_check %}
-{% if index and can_edit %}<p class="manage_link"><a href="{% url "grad.views.manage_status" grad_slug=grad.slug  %}">Manage Status</a></p>{% endif %}
+{% if can_edit %}<p class="manage_link"><a href="{% url "grad:manage_status" grad_slug=grad.slug  %}">Manage Status</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-1">
 		<thead>
 			<tr>
 				<th>Status</th>
 				<th>As Of</th>
-				{% if not index %}
+				{% if can_edit %}
                     <th>Actions</th>
                 {% endif %}
 			</tr>
@@ -28,18 +28,18 @@
 				</td>
 				<td> 
                     {% if s.hidden %}<del>{% endif %}
-                    	<span class="sort">{{s.start.name}} {% if s.start_date %}{{s.start_date.isoformat}}{% endif %}</span>
+                    	<span class="sort">{{s.start.name}} {% if s.start_date %}{{s.start_date.isoformat}}{% endif %} s{{s.status_order}}</span>
                         {{s.start.name}} ({{s.start}}{% if s.start_date %}, {{s.start_date|date:GRAD_DATE_FORMAT}}{% endif %})
                     {% if s.hidden %}</del>{% endif %}
                 </td>
 
-				{% if not index %}
+				{% if can_edit %}
                 <td class='miniaction'>
                     {% if not s.hidden %}
-                        <form action="{% url "grad.views.remove_status" grad_slug=grad.slug s_id=s.id %}" method="post">
+                        <form action="{% url "grad:remove_status" grad_slug=grad.slug s_id=s.id %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
-                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this status')" />
+                                    <input type="submit" value="remove" class="confirm-submit" data-submit-action="remove this status" />
                                 </p>
                         </form>
                     {% endif %}

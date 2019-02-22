@@ -1,6 +1,8 @@
 User-agent: *
+Allow: /static/
 Allow: /news/
 Allow: /calendar/
 Allow: /data/
+Allow: /forms/
+Allow: /*/pages/
 Disallow: /
-

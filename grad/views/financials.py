@@ -31,7 +31,6 @@ def financials(request, grad_slug, style='complete'):
     contracts = TAContract.objects.filter(application__person=grad.person).exclude(status__in=STATUSES_NOT_TAING).select_related('posting__semester')
     other_contracts = NewTAContract.objects.filter(person=grad.person, status__in=['NEW', 'SGN'])\
                     .select_related('category')\
-                    .select_related('email_receipt')\
                     .prefetch_related('course')
     appointments = RAAppointment.objects.filter(person=grad.person, deleted=False)
     program_history = GradProgramHistory.objects.filter(student=grad).select_related('start_semester', 'program')
@@ -53,7 +52,7 @@ def financials(request, grad_slug, style='complete'):
                       (get_semester(a.end_date) for a in appointments),
                       (ph.start_semester for ph in program_history),
                     )
-    all_semesters = itertools.ifilter(lambda x: isinstance(x, Semester), all_semesters)
+    all_semesters = filter(lambda x: isinstance(x, Semester), all_semesters)
     all_semesters = set(all_semesters)
     if len(all_semesters) == 0:
         all_semesters = [get_semester()]
@@ -102,7 +101,7 @@ def financials(request, grad_slug, style='complete'):
         # grad status        
         status = None
         status_short = None
-        for s in GradStatus.objects.filter(student=grad):
+        for s in GradStatus.objects.filter(student=grad, hidden=False).order_by('start_date'):
             if s.start <= semester and (s.end == None or semester <= s.end) :
                 status = s.get_status_display()
                 status_short = s.get_short_status_display()

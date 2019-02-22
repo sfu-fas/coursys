@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                 ('created_date', models.DateTimeField(auto_now_add=True)),
                 ('last_modified', models.DateTimeField(auto_now=True)),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
-                ('original', models.ForeignKey(blank=True, to='onlineforms.Field', null=True)),
+                ('original', models.ForeignKey(blank=True, to='onlineforms.Field', null=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('data', courselib.json_fields.JSONField(default={})),
-                ('field', models.ForeignKey(to='onlineforms.Field')),
+                ('field', models.ForeignKey(to='onlineforms.Field', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(default=datetime.datetime.now)),
                 ('file_attachment', models.FileField(storage=django.core.files.storage.FileSystemStorage(base_url=None, location=b'submitted_files'), max_length=500, null=True, upload_to=onlineforms.models.attachment_upload_to, blank=True)),
                 ('file_mediatype', models.CharField(max_length=200, null=True, editable=False, blank=True)),
-                ('field_submission', models.ForeignKey(to='onlineforms.FieldSubmission', unique=True)),
+                ('field_submission', models.ForeignKey(to='onlineforms.FieldSubmission', unique=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -71,7 +71,7 @@ class Migration(migrations.Migration):
                 ('advisor_visible', models.BooleanField(default=False, help_text=b'Should submissions be visible to advisors in this unit?')),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('original', models.ForeignKey(blank=True, to='onlineforms.Form', null=True)),
+                ('original', models.ForeignKey(blank=True, to='onlineforms.Form', null=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -104,8 +104,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('formgroup', models.ForeignKey(to='onlineforms.FormGroup')),
-                ('person', models.ForeignKey(to='coredata.Person')),
+                ('formgroup', models.ForeignKey(to='onlineforms.FormGroup', on_delete=models.CASCADE)),
+                ('person', models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
                 'db_table': 'onlineforms_formgroup_members',
@@ -119,9 +119,9 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(default=b'PEND', max_length=4, choices=[(b'PEND', b'The document is still being worked on'), (b'WAIT', b'Waiting for the owner to send it to someone else or change status to "done"'), (b'DONE', b'No further action required'), (b'REJE', b'Returned incomplete')])),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('form', models.ForeignKey(to='onlineforms.Form')),
-                ('initiator', models.ForeignKey(to='onlineforms.FormFiller')),
-                ('owner', models.ForeignKey(to='onlineforms.FormGroup')),
+                ('form', models.ForeignKey(to='onlineforms.Form', on_delete=models.CASCADE)),
+                ('initiator', models.ForeignKey(to='onlineforms.FormFiller', on_delete=models.CASCADE)),
+                ('owner', models.ForeignKey(to='onlineforms.FormGroup', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -153,8 +153,8 @@ class Migration(migrations.Migration):
                 ('last_modified', models.DateTimeField(auto_now=True)),
                 ('config', courselib.json_fields.JSONField(default={})),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
-                ('form', models.ForeignKey(to='onlineforms.Form')),
-                ('original', models.ForeignKey(blank=True, to='onlineforms.Sheet', null=True)),
+                ('form', models.ForeignKey(to='onlineforms.Form', on_delete=models.CASCADE)),
+                ('original', models.ForeignKey(blank=True, to='onlineforms.Sheet', null=True, on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('order',),
@@ -170,9 +170,9 @@ class Migration(migrations.Migration):
                 ('completed_at', models.DateTimeField(null=True)),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('filler', models.ForeignKey(to='onlineforms.FormFiller')),
-                ('form_submission', models.ForeignKey(to='onlineforms.FormSubmission')),
-                ('sheet', models.ForeignKey(to='onlineforms.Sheet')),
+                ('filler', models.ForeignKey(to='onlineforms.FormFiller', on_delete=models.CASCADE)),
+                ('form_submission', models.ForeignKey(to='onlineforms.FormSubmission', on_delete=models.CASCADE)),
+                ('sheet', models.ForeignKey(to='onlineforms.Sheet', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -183,7 +183,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('key', models.CharField(unique=True, max_length=128, editable=False)),
-                ('sheet_submission', models.ForeignKey(to='onlineforms.SheetSubmission')),
+                ('sheet_submission', models.ForeignKey(to='onlineforms.SheetSubmission', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -206,7 +206,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='formgroup',
             name='unit',
-            field=models.ForeignKey(to='coredata.Unit'),
+            field=models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -216,37 +216,37 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='formfiller',
             name='nonSFUFormFiller',
-            field=models.ForeignKey(to='onlineforms.NonSFUFormFiller', null=True),
+            field=models.ForeignKey(to='onlineforms.NonSFUFormFiller', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='formfiller',
             name='sfuFormFiller',
-            field=models.ForeignKey(to='coredata.Person', null=True),
+            field=models.ForeignKey(to='coredata.Person', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='form',
             name='owner',
-            field=models.ForeignKey(help_text=b'The group of users who own/administrate this form.', to='onlineforms.FormGroup'),
+            field=models.ForeignKey(help_text=b'The group of users who own/administrate this form.', to='onlineforms.FormGroup', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='form',
             name='unit',
-            field=models.ForeignKey(to='coredata.Unit'),
+            field=models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='fieldsubmission',
             name='sheet_submission',
-            field=models.ForeignKey(to='onlineforms.SheetSubmission'),
+            field=models.ForeignKey(to='onlineforms.SheetSubmission', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='field',
             name='sheet',
-            field=models.ForeignKey(to='onlineforms.Sheet'),
+            field=models.ForeignKey(to='onlineforms.Sheet', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(

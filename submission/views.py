@@ -6,14 +6,13 @@ from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug
 from courselib.search import find_member, find_userid_or_emplid
 from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
-from submission.models import StudentSubmission, GroupSubmission, get_current_submission, select_all_components, \
-    get_submission_components, get_component, find_type_by_label, generate_activity_zip, generate_zip_file, ALL_TYPE_CLASSES
-from django.core.urlresolvers import reverse
+from submission.models import StudentSubmission, GroupSubmission, SubmissionComponent
+from submission.models import select_all_components, SubmissionInfo, get_component, find_type_by_label, ALL_TYPE_CLASSES
+from django.urls import reverse
 from django.contrib import messages
-from marking.views import marking_student, marking_group
 from groups.models import Group, GroupMember
 from log.models import LogEntry
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.db import transaction
 from courselib.db import retry_transaction
 from courselib.search import find_userid_or_emplid
@@ -46,13 +45,19 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     activity = get_object_or_404(course.activity_set,slug=activity_slug, deleted=False)
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     cansubmit = True
-
-    submission, submitted_components = get_current_submission(student, activity, include_deleted=staff)
-    if len(submitted_components) == 0:
+    submission_configured = SubmissionComponent.objects.filter(activity_id=activity.id).exists()
+    if not submission_configured:
         return NotFoundResponse(request)
 
-    if submission and activity.due_date and activity.due_date < submission.created_at:
-        late = submission.created_at - activity.due_date
+    submission_info = SubmissionInfo(student=student, activity=activity)
+    submission_info.get_most_recent_components()
+    if activity.multisubmit():
+        submission_info.get_all_components()
+
+    any_submissions = bool(submission_info.submissions)
+
+    if submission_info.submissions and activity.due_date and activity.due_date < submission_info.latest().created_at:
+        late = submission_info.latest().created_at - activity.due_date
     else:
         late = 0
     
@@ -63,8 +68,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             member = gm[0].student
         else:
             group = None
-            #cansubmit = False
-            #messages.add_message(request, messages.INFO, "This is a group submission. You cannot submit since you aren't in a group.")
+
     else:
         group = None
 
@@ -74,7 +78,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     if not cansubmit:
         messages.add_message(request, messages.ERROR, "This activity is not submittable.")
         return render(request, "submission/" + template,
-        {"course":course, "activity":activity, "submission": submission, "submitted_components":submitted_components,
+        {"course":course, "activity":activity, "submission_info": submission_info, 'any_submissions': any_submissions,
          "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit})
 
     # get all components of activity
@@ -111,7 +115,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
                 submitted_comp.append(sub)
             else:
                 # hack to replace the "required" message to something more appropriate
-                for k,v in form.errors.items():
+                for k,v in list(form.errors.items()):
                     for i,e in enumerate(v):
                         if e == "This field is required.":
                             v[i] = "Nothing submitted."
@@ -122,12 +126,15 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         while not all_ok:
             all_ok = True
             d = {}
-            for c,s in submitted_components:
-                d[c] = s and s.get_filename()
+            if not activity.multisubmit():
+                # single-submit logic: don't want to overrite filenames from earlier submissions that are still in-play
+                for c,s in submission_info.components_and_submitted():
+                    d[c] = s and s.get_filename()
+            # filenames from this submission
             for s in submitted_comp:
                 d[s.component] = s.get_filename()
             # a list holding all file names
-            file_name_list = [a[1] for a in d.items() if a[1] is not None]
+            file_name_list = [a[1] for a in list(d.items()) if a[1] is not None]
             to_be_removed = []
             for (i, s) in enumerate(submitted_comp):
                 if file_name_list.count(s.get_filename()) > 1:
@@ -138,8 +145,8 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
                     for data in component_form_list:
                         if s.component == data['comp']:
                             # assume we have only one field for submission form
-                            field_name = data['form'].fields.keys()[0]
-                            data['form']._errors[field_name] = ErrorList([u"This file has the same name as another file in your submission."])
+                            field_name = list(data['form'].fields.keys())[0]
+                            data['form']._errors[field_name] = ErrorList(["This file has the same name as another file in your submission."])
             # remove those has errors in submitted_comp
             to_be_removed.reverse()
             for t in to_be_removed:
@@ -157,62 +164,40 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             else:
                 group_str = ""
             l = LogEntry(userid=request.user.username,
-                  description=u"submitted for %s %s%s" % (activity, sub.component.title, group_str),
+                  description="submitted for %s %s%s" % (activity, sub.component.title, group_str),
                   related_object=sub)
             l.save()
 
         if len(not_submitted_comp) == 0:
             messages.add_message(request, messages.SUCCESS, "Your submission was successful.")
-            return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+            return HttpResponseRedirect(reverse('offering:submission:show_components', args=[course_slug, activity_slug]))
 
         return render(request, "submission/submission_error.html",
             {"course":course, "activity":activity, "component_list":component_form_list,
             "submitted_comp":submitted_comp, "not_submitted_comp":not_submitted_comp})
     else: #not POST
-        if activity.group and gm:
-            messages.add_message(request, messages.INFO, "This is a group submission. You will submit on behalf of the group %s." % group.name)
-        
         component_form_list = make_form_from_list(component_list)
         return render(request, "submission/" + template,
-        {'component_form_list': component_form_list, "course": course, "activity": activity, "submission": submission,
-         "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group,
-         "cansubmit":cansubmit, "is_staff":staff})
+        {'component_form_list': component_form_list, "course": course, "activity": activity, "submission_info": submission_info,
+         "userid":userid, "late":late, "student":student, "group":group,
+         "cansubmit":cansubmit, "is_staff":staff, 'any_submissions': any_submissions})
+
 
 @requires_course_by_slug
 def show_components_submission_history(request, course_slug, activity_slug, userid=None):
-    if userid is None:
-        userid = request.GET.get('userid')
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set,slug = activity_slug, deleted=False)
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
     staff = False
 
-    if userid is None:
-        # can always see your own submissions
-        userid = request.user.username
-    else:
-        # specifying a userid: must be course staff
-        if is_course_staff_by_slug(request, course.slug):
-            staff = True
-        else:
-            return ForbiddenResponse(request)
+    userid = userid or request.user.username
+    member = get_object_or_404(Member, find_member(userid), offering=offering)
+    submission_info = SubmissionInfo(student=member.person, activity=activity)
+    submission_info.get_all_components()
+    if not submission_info.accessible_by(request):
+        return ForbiddenResponse(request)
 
-    member = get_object_or_404(Member, find_member(userid), offering=course)
-    if activity.group:
-        messages.add_message(request, messages.INFO, "This is a group submission. This history is based on submissions from all your group members.")
-        gms = GroupMember.objects.filter(student=member, confirmed=True, activity=activity)
-        submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
-    else:
-        submissions = StudentSubmission.objects.filter(activity=activity, member=member)
-
-    # get all submission components
-    component_list = select_all_components(activity, include_deleted=staff)
-    all_submitted_components = []
-    for submission in submissions:
-        c = get_submission_components(submission, activity, component_list)
-        all_submitted_components.append({'sub':submission, 'comp':c})
-    
     return render(request, "submission/submission_history_view.html",
-        {"course":course, "activity":activity,'userid':userid,'submitted_components': all_submitted_components})
+        {"offering":offering, "activity":activity, 'userid':userid, 'submission_info': submission_info})
 
 #staff submission configuratiton
 def _show_components_staff(request, course_slug, activity_slug):
@@ -237,7 +222,7 @@ def _show_components_staff(request, course_slug, activity_slug):
             except:
                 pass
         messages.add_message(request, messages.SUCCESS, 'Component positions updated.')
-        return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+        return HttpResponseRedirect(reverse('offering:submission:show_components', args=[course_slug, activity_slug]))
     
     component_list = select_all_components(activity, include_deleted=True)
     return render(request, "submission/component_view_staff.html",
@@ -273,11 +258,11 @@ def edit_single(request, course_slug, activity_slug):
             new_component.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=(u"edited component %s of %s") % (component.title, activity),
+                  description=("edited component %s of %s") % (component.title, activity),
                   related_object=new_component)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Component "' + new_component.title + '" successfully updated.')
-            return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+            return HttpResponseRedirect(reverse('offering:submission:show_components', args=[course_slug, activity_slug]))
         else:
             form = new_form
             messages.add_message(request, messages.ERROR, 'Please correct the errors in the form.')
@@ -310,11 +295,11 @@ def add_component(request, course_slug, activity_slug):
             new_component.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=(u"added %s component %s for %s") % (Type.name, new_component.title, activity),
+                  description=("added %s component %s for %s") % (Type.name, new_component.title, activity),
                   related_object=new_component)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'New component "' + new_component.title + '" successfully added.')
-            return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+            return HttpResponseRedirect(reverse('offering:submission:show_components', args=[course_slug, activity_slug]))
         else:
             messages.add_message(request, messages.ERROR, 'Please correct the errors in the form.')
             form = new_form
@@ -322,16 +307,6 @@ def add_component(request, course_slug, activity_slug):
     type_classes = ALL_TYPE_CLASSES
     return render(request, "submission/component_add.html",
         {"course":course, "activity":activity, "form":form, "type":Type, "types": type_classes})
-
-def get_submission(submission_id):
-    try:
-        return StudentSubmission.objects.get(id=submission_id)
-    except StudentSubmission.DoesNotExist:
-        try:
-            return GroupSubmission.objects.get(id=submission_id)
-        except GroupSubmission.DoesNotExist:
-            return None
-    
 
 
 @requires_course_by_slug
@@ -342,56 +317,49 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
     staff = False
     if is_course_staff_by_slug(request, course_slug):
         staff = True
-    
+
     # find the appropriate submission object
     if submission_id:
         # explicit request: get that one.
-        submission = get_submission(submission_id)
-        if not submission or submission.activity!=activity:
+        try:
+            submission_info = SubmissionInfo.from_submission_id(submission_id)
+        except ValueError:
             return NotFoundResponse(request)
-        submitted_components = get_submission_components(submission, activity, include_deleted=staff)
-
     elif userid:
         # userid specified: get their most recent submission
         student = get_object_or_404(Person, find_userid_or_emplid(userid))
-        submission, submitted_components = get_current_submission(student, activity, include_deleted=staff)
-        if not submission:
-            return NotFoundResponse(request)
-    
+        submission_info = SubmissionInfo(student=student, activity=activity, include_deleted=staff)
     else:
         return NotFoundResponse(request)
 
-    
-    # make sure this user is allowed to see the file
-    if staff:
-        pass
-    elif isinstance(submission, GroupSubmission):
-        membership = submission.group.groupmember_set.filter(student__person__userid=request.user.username, activity=activity, confirmed=True)
-        if not membership:
-            return ForbiddenResponse(request)
-    elif isinstance(submission, StudentSubmission):
-        if submission.member.person.userid != request.user.username:
-            return ForbiddenResponse(request)
+    if not submission_info.have_submitted() or submission_info.activity != activity:
+        return NotFoundResponse(request)
+
+    if not submission_info.accessible_by(request):
+        return ForbiddenResponse(request)
 
     # create the result
     if component_slug:
         # download single component if specified
-        # get the actual component: already did the searching above, so just look in that list
-        components = [sub for comp,sub in submitted_components if sub and sub.component.slug==component_slug]
-        if not components:
+        submission_info.get_most_recent_components()
+        submitted_components = [subcomp for comp, subcomp in submission_info.components_and_submitted() if subcomp and comp.slug == component_slug]
+        if not submitted_components:
             return NotFoundResponse(request)
-        return components[0].download_response()
+
+        submitted_component = submitted_components[0]
+        return submitted_component.download_response(slug=submission_info.submissions[0].file_slug())
     else:
         # no component specified: give back the full ZIP file.
-        return generate_zip_file(submission, submitted_components)
+        return submission_info.generate_student_zip()
 
 @requires_course_staff_by_slug
 @uses_feature('submit-get')
 def download_activity_files(request, course_slug, activity_slug):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)
-
-    return generate_activity_zip(activity)
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
+    submission_info = SubmissionInfo.for_activity(activity)
+    submission_info.get_all_components()
+    return submission_info.generate_activity_zip()
 
 @requires_course_staff_by_slug
 def show_student_submission_staff(request, course_slug, activity_slug, userid):
@@ -410,7 +378,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
     # get the urlencode
     qDict = request.GET
     urlencode = ''
-    if qDict.items():
+    if list(qDict.items()):
         urlencode = '?' +  qDict.urlencode()
 
     if userid:
@@ -423,7 +391,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
                 submission = StudentSubmission.objects.filter(member=student, activity=activity).latest('created_at')
         except:
             submission = None
-        response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
+        response = HttpResponseRedirect(reverse('offering:marking:marking_student', args=[course_slug, activity_slug, userid]) + urlencode)
         #if it is taken by someone not me, show a confirm dialog
         if request.GET.get('confirm') == None:
             # check disabled until such time as it can be fixed
@@ -439,7 +407,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         else:
             str = ""
         l = LogEntry(userid=request.user.username,
-              description=(u"took ownership on %s" + str + " by %s") % (activity, userid),
+              description=("took ownership on %s" + str + " by %s") % (activity, userid),
               related_object=student)
         l.save()
 
@@ -449,7 +417,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
             submission = GroupSubmission.objects.filter(group__slug=group_slug).latest('created_at')
         except:
             submission = None
-        response = HttpResponseRedirect(reverse(marking_group, args=[course_slug, activity_slug, group_slug]) + urlencode)
+        response = HttpResponseRedirect(reverse('offering:marking:marking_group', args=[course_slug, activity_slug, group_slug]) + urlencode)
         #if it is taken by someone not me, show a confirm dialog
         if request.GET.get('confirm') == None:
             # check disabled until such time as it can be fixed
@@ -466,7 +434,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         else:
             str = ""
         l = LogEntry(userid=request.user.username,
-          description=(u"took ownership on %s"+str+ " by group %s") % (activity, group.name),
+          description=("took ownership on %s"+str+ " by group %s") % (activity, group.name),
           related_object=group)
         l.save()
         return response

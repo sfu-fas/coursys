@@ -208,12 +208,93 @@
 },
 {
  "fields": {
+  "end": "2017-12-04",
+  "name": "1177",
+  "start": "2017-09-05"
+ },
+ "model": "coredata.semester",
+ "pk": 157
+},
+{
+ "fields": {
+  "end": "2018-04-10",
+  "name": "1181",
+  "start": "2018-01-03"
+ },
+ "model": "coredata.semester",
+ "pk": 158
+},
+{
+ "fields": {
+  "end": "2018-08-03",
+  "name": "1184",
+  "start": "2018-05-07"
+ },
+ "model": "coredata.semester",
+ "pk": 159
+},
+{
+ "fields": {
+  "end": "2018-12-03",
+  "name": "1187",
+  "start": "2018-09-04"
+ },
+ "model": "coredata.semester",
+ "pk": 160
+},
+{
+ "fields": {
+  "end": "2019-04-08",
+  "name": "1191",
+  "start": "2019-01-03"
+ },
+ "model": "coredata.semester",
+ "pk": 161
+},
+{
+ "fields": {
+  "end": "2019-08-02",
+  "name": "1194",
+  "start": "2019-05-06"
+ },
+ "model": "coredata.semester",
+ "pk": 162
+},
+{
+ "fields": {
+  "end": "2019-12-02",
+  "name": "1197",
+  "start": "2019-09-03"
+ },
+ "model": "coredata.semester",
+ "pk": 163
+},
+{
+ "fields": {
+  "end": "2020-04-09",
+  "name": "1201",
+  "start": "2020-01-06"
+ },
+ "model": "coredata.semester",
+ "pk": 164
+},
+{
+ "fields": {
+  "end": "2020-08-10",
+  "name": "1204",
+  "start": "2020-05-11"
+ },
+ "model": "coredata.semester",
+ "pk": 165
+},
+{
+ "fields": {
   "config": "{}",
   "emplid": 200000100,
-  "first_name": "Gregory",
+  "first_name": "Gregor\u028f",
   "last_name": "Baker",
   "middle_name": "Garnet",
-  "pref_first_name": "Gregory",
+  "pref_first_name": "Greg",
   "temporary": false,
   "title": null,
   "userid": "ggbaker"
@@ -236,6 +317,7 @@
 {
  "fields": {
   "config": "{}",
+  "expiry": "2021-09-29",
   "person": 1,
   "role": "SYSA",
   "unit": 1

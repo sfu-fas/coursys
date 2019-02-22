@@ -1,5 +1,6 @@
 from oauth_provider.utils import get_oauth_request
 from oauth_provider.models import Token
+from rest_framework_oauth.authentication import OAuthAuthentication
 from api.models import ConsumerInfo
 from rest_framework import permissions, authentication, fields, relations
 
@@ -17,7 +18,7 @@ class APIConsumerPermissions(permissions.BasePermission):
     they authorized.
     """
     def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated():
+        if not request.user or not request.user.is_authenticated:
             # must be authenticated one way or another
             return False
 
@@ -28,7 +29,7 @@ class APIConsumerPermissions(permissions.BasePermission):
             # CAS authenticated: the world is your oyster
             return True
 
-        elif isinstance(authenticator, authentication.OAuthAuthentication):
+        elif isinstance(authenticator, OAuthAuthentication):
             # OAuth authenticated: check that the consumer is allowed to do these things
 
             # re-find the Token, since it isn't stashed in the request
@@ -41,7 +42,7 @@ class APIConsumerPermissions(permissions.BasePermission):
             return set(required_permissions) <= set(allowed_perms)
 
         else:
-            raise ValueError, "Unknown authentication method."
+            raise ValueError("Unknown authentication method.")
 
 
 class IsOfferingMember(permissions.BasePermission):
@@ -49,19 +50,41 @@ class IsOfferingMember(permissions.BasePermission):
     Check that the authenticated user is a (non-dropped) member of the course.
     """
     def has_permission(self, request, view):
+        if 'course_slug' not in view.kwargs:
+            return False
+
         if not hasattr(view, 'offering'):
             offering = get_object_or_404(CourseOffering, slug=view.kwargs['course_slug'])
             view.offering = offering
 
         if not hasattr(view, 'member'):
-            assert request.user.is_authenticated()
+            assert request.user.is_authenticated
             member = Member.objects.exclude(role='DROP').filter(offering=offering, person__userid=request.user.username).first()
             view.member = member
 
         return bool(view.member)
 
-from django.core.cache import get_cache
-from django.utils.encoding import force_bytes, iri_to_uri
+class IsOfferingStaff(permissions.BasePermission):
+    """
+    Check that the authenticated user is an instructor or TA for the course
+    """
+    def has_permission(self, request, view):
+        if 'course_slug' not in view.kwargs:
+            return False
+
+        if not hasattr(view, 'offering'):
+            offering = get_object_or_404(CourseOffering, slug=view.kwargs['course_slug'])
+            view.offering = offering
+
+        if not hasattr(view, 'member'):
+            assert request.user.is_authenticated
+            member = Member.objects.filter(role__in=['INST', 'TA', 'APPR']).filter(offering=offering, person__userid=request.user.username).first()
+            view.member = member
+
+        return bool(view.member)
+
+from django.core.cache import caches
+from django.utils.encoding import force_text, iri_to_uri
 from django.utils.cache import patch_response_headers, patch_cache_control
 from rest_framework.response import Response
 import hashlib
@@ -84,7 +107,7 @@ class CacheMixin(object):
         # borrowed from FetchFromCacheMiddleware
         self.key_prefix = settings.CACHE_MIDDLEWARE_KEY_PREFIX
         self.cache_alias = settings.CACHE_MIDDLEWARE_ALIAS
-        self.cache = get_cache(self.cache_alias)
+        self.cache = caches[self.cache_alias]
 
     def _get_cache_key(self, request):
         """
@@ -96,13 +119,13 @@ class CacheMixin(object):
         method = request.method
 
         # Authenticated username
-        if not request.user.is_authenticated() or self.cache_ignore_auth:
+        if not request.user.is_authenticated or self.cache_ignore_auth:
             username = '*'
         else:
             username = request.user.username
 
         # URL path
-        url = force_bytes(iri_to_uri(request.get_full_path()))
+        url = force_text(iri_to_uri(request.get_full_path()))
 
         # build a cache key out of that
         key = '#'.join(('CacheMixin', self.key_prefix, username, method, url))
@@ -114,7 +137,6 @@ class CacheMixin(object):
 
     def _timeout(self):
         return self.cache_hours * 3600
-
 
     @property
     def default_response_headers(self):
@@ -153,7 +175,7 @@ class CacheMixin(object):
             'data': response.data,
             'status': response.status_code,
             'template_name': response.template_name,
-            'headers': dict(response._headers.values()),
+            'headers': dict(list(response._headers.values())),
             'exception': response.exception,
             'content_type': response.content_type,
         }
@@ -162,6 +184,9 @@ class CacheMixin(object):
         return response
 
     def get(self, request, *args, **kwargs):
+        """
+        Return the correct cached GET response.
+        """
         if hasattr(self, 'cached_get'):
             handler = self.cached_get
         else:
@@ -169,35 +194,46 @@ class CacheMixin(object):
         return self.cached_response(handler, request, *args, **kwargs)
 
     def head(self, request, *args, **kwargs):
-        if hasattr(self, 'cached_head'):
+        """
+        Return the correct cached HEAD response.
+
+        Imitate the logic in django.views.generic.base.View.as_view.view which uses .get() in place of .head() if it's
+        not there.
+        """
+        spr = super(CacheMixin, self)
+        if hasattr(self, 'cached_get') and not hasattr(self, 'cached_head'):
+            handler = self.cached_get
+        elif hasattr(self, 'cached_head'):
             handler = self.cached_head
+        elif hasattr(spr, 'get') and not hasattr(spr, 'head'):
+            handler = spr.get
         else:
-            handler = super(CacheMixin, self).head
+            handler = spr.head
         return self.cached_response(handler, request, *args, **kwargs)
 
 
 class HyperlinkCollectionField(fields.Field):
-    """
-    Field to represent a collection of links to related views. Used for HATEOAS-style self-documenting.
-
-    Constructor arguments are a 'label', and kwargs to a HyperlinkedIdentityField.
-    """
-    def __init__(self, data, help_text='links to additional information about this object', **kwargs):
-        super(HyperlinkCollectionField, self).__init__(help_text=help_text, **kwargs)
-        self.data = data
+    def __init__(self, hyperlink_data, help_text='links to additional information about this object', **kwargs):
+        super(HyperlinkCollectionField, self).__init__( read_only=True, help_text=help_text, **kwargs)
+        self.hyperlink_data = hyperlink_data
         self.label = None
 
-    def field_to_native(self, obj, field_name):
+    def to_representation(self, value):
         result = {}
-        for link in self.data:
+        for link in self.hyperlink_data:
             label = link['label']
-            kwargs = copy.copy(link)    
+            kwargs = copy.copy(link)
             del kwargs['label']
 
-            field = relations.HyperlinkedIdentityField(**kwargs)
-            field.initialize(self.parent, label)
-            result[label] = field.field_to_native(obj, label)
+            field = relations.HyperlinkedRelatedField(read_only=True, **kwargs)
+            # fake the request into the context so the URL can be constructed
+            field._context = {'request': self.context.get('request', None)}
+            result[label] = field.to_representation(value)
         return result
+
+    def get_attribute(self, instance):
+        # fake this out to prevent an exception trying to get data we don't care about
+        return instance
 
 
 system_tz = pytz.timezone(settings.TIME_ZONE)

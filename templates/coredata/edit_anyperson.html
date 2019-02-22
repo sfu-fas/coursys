@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}Edit AnyPerson{% endblock %}
+{% block h1 %}Edit AnyPerson{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "sysadmin:list_anypersons" %}">Anypersons</a></li>
+<li>Edit AnyPerson</li>
+{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#id_person').each(function() {
+        $(this).autocomplete({
+          source: '/data/students',
+          minLength: 2,
+          select: function(event, ui){
+            $(this).data("val", ui.item.value);
+          }
+        });
+      });
+} );
+
+</script>
+{% endblock %}
+
+{% block content %}
+<form action="{% url "sysadmin:edit_anyperson" anyperson_id=anyperson_id %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save AnyPerson" />
+    </p>
+</form>
+{% endblock %}

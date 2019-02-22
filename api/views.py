@@ -1,5 +1,5 @@
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.mail import send_mail
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -9,15 +9,16 @@ from oauth_provider.models import Token
 from oauth_provider.forms import AuthorizeRequestTokenForm
 from api.models import ConsumerInfo
 from coredata.models import Person
+from courselib.branding import product_name
 
 EMAIL_INFORM_TEMPLATE = """
-The application "{consumername}" has requested access to CourSys on your
+The application "{consumername}" has requested access to %s on your
 behalf. You can approve this request using the interface the application
 provided (and may have already done so).
 
 You can review permissions given to third-party applications (removing access
 if you wish) at this URL:
-{url}"""
+{url}""" % (product_name(hint='course'),)
 
 
 @login_required
@@ -31,7 +32,7 @@ def oauth_authorize(request, request_token, callback, params):
 
     # email the user so we're super-sure they know this is happening
     person = get_object_or_404(Person, userid=request.user.username)
-    manage_url = request.build_absolute_uri(reverse(manage_tokens))
+    manage_url = request.build_absolute_uri(reverse('config:manage_tokens'))
     message = EMAIL_INFORM_TEMPLATE.format(consumername=consumer.name, url=manage_url)
     send_mail('CourSys access requested', message, settings.DEFAULT_FROM_EMAIL, [person.email()], fail_silently=False)
 
@@ -62,7 +63,7 @@ def manage_tokens(request):
         key = request.POST.get('key', None)
         token = get_object_or_404(Token, user__username=request.user.username, token_type=Token.ACCESS, key=key)
         token.delete()
-        return HttpResponseRedirect(reverse(manage_tokens))
+        return HttpResponseRedirect(reverse('config:manage_tokens'))
 
     else:
         tokens = Token.objects.filter(user__username=request.user.username, token_type=Token.ACCESS) \

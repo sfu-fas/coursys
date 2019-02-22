@@ -4,9 +4,9 @@ from django.contrib import messages
 from log.models import LogEntry
 from courselib.auth import requires_role
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def remove_completedrequirement(request, grad_slug, cr_id):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     cr = get_object_or_404(CompletedRequirement, student=grad, id=cr_id)
@@ -19,4 +19,4 @@ def remove_completedrequirement(request, grad_slug, cr_id):
               related_object=cr)
         l.save()              
     
-    return HttpResponseRedirect(reverse('grad.views.manage_requirements', kwargs={'grad_slug':grad_slug}))
+    return HttpResponseRedirect(reverse('grad:manage_requirements', kwargs={'grad_slug':grad_slug}))

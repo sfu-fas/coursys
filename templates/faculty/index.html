@@ -7,8 +7,9 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/visas.css" %}" type="text/css">
+<link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
 <script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('.facultytable').DataTable( {
     'bPaginate': false,
@@ -20,7 +21,12 @@ $(document).ready(function() {
           event_filter_update('facultytable');
           event_filter_update('formerfaculty');
         }).change();
-} );
+});
+function confirmDelete(url) {
+  if ( confirm("Are you sure you want to delete this future person?") ) {
+    document.location = url;
+  };
+}
 </script>
 {% endblock %}
 
@@ -28,41 +34,46 @@ $(document).ready(function() {
 <div id="actions">
   <h2>Actions</h2>
   <ul class="fa-ul">
+    {% if is_admin %}
+        <li>
+          <a href="{% url 'faculty:manage_faculty_roles' %}"><i class="fa fa-li fa-plus"></i> Add/Remove Faculty Members</a>
+        </li>
+        <li>
+          <a href="{% url 'faculty:manage_event_index' %}"><i class="fa fa-li fa-wrench"></i> Event Management</a>
+        </li>
+        <li>
+          <a href="{% url 'faculty:status_index' %}"><i class="fa fa-li fa-thumbs-o-up"></i> Event Queue {% if queued_events %}<i class="fa fa-warning infomessage"> {{ queued_events }}</i>{% endif %}</a>
+        </li>
+        <li>
+          <a href="{% url 'faculty:list_positions' %}"><i class="fa fa-li fa-sitemap"></i> Positions</a>
+        </li>
+
+        <li class="newsec">
+          <a href="{% url 'faculty:search_index' %}"><i class="fa fa-li fa-search"></i> Event Search</a>
+        </li>
+        <li class="newsec">
+          <a href="{% url 'faculty:salary_index' %}"><i class="fa fa-li fa-money"></i> Salaries</a>
+        </li>
+        <li>
+          <a href="{% url 'faculty:fallout_report' %}"><i class="fa fa-li fa-umbrella"></i> Fallout Report</a>
+        </li>
+    {% endif %}
     <li>
-      <a href="{% url 'faculty.views.manage_faculty_roles' %}"><i class="fa fa-li fa-plus"></i> Add/Remove Faculty Members</a>
+      <a href="{% url 'faculty:teaching_capacity' %}"><i class="fa fa-li fa-briefcase"></i> Teaching Capacity by Unit</a>
     </li>
     <li>
-      <a href="{% url 'faculty.views.manage_event_index' %}"><i class="fa fa-li fa-wrench"></i> Event Management</a>
+      <a href="{% url 'faculty:course_accreditation' %}"><i class="fa fa-li fa-flag"></i> Courses by Instructor Accreditation</a>
     </li>
-    <li>
-      <a href="{% url 'faculty.views.status_index' %}"><i class="fa fa-li fa-thumbs-o-up"></i> Event Queue {% if queued_events %}<i class="fa fa-warning infomessage"> {{ queued_events }}</i>{% endif %}</a>
-    </li>
-    <li>
-      <a href="{% url 'grants_index' %}"><i class="fa fa-li fa-trophy"></i> Grants</a>
-    </li>
-    <li class="newsec">
-      <a href="{% url 'faculty.views.search_index' %}"><i class="fa fa-li fa-search"></i> Event Search</a>
-    </li>
-    <li class="newsec">
-      <a href="{% url 'faculty.views.salary_index' %}"><i class="fa fa-li fa-money"></i> Salaries</a>
-    </li>
-    <li>
-      <a href="{% url 'faculty.views.fallout_report' %}"><i class="fa fa-li fa-umbrella"></i> Fallout Report</a>
-    </li>
-    <li>
-      <a href="{% url 'faculty.views.teaching_capacity' %}"><i class="fa fa-li fa-briefcase"></i> Teaching Capacity by Unit</a>
-    </li>
-    <li>
-      <a href="{% url 'faculty.views.course_accreditation' %}"><i class="fa fa-li fa-flag"></i> Courses by Instructor Accreditation</a>
-    </li>
-    {% if not viewvisas %}
-    <li>
-        <a href="{% url 'faculty.views.index' %}?viewvisas=True"><i class="fa fa-li fa-plane"></i>View Visa Information</a>
-    </li>
-    {% else %}
-    <li>
-        <a href="{% url 'faculty.views.index' %}"><i class="fa fa-li fa-users"></i>View Rank and Unit</a>
-    </li>
+    {% if is_admin %}
+        {% if not viewvisas %}
+        <li>
+            <a href="{% url 'faculty:index' %}?viewvisas=True"><i class="fa fa-li fa-plane"></i>View Visa Information</a>
+        </li>
+        {% else %}
+        <li>
+            <a href="{% url 'faculty:index' %}"><i class="fa fa-li fa-users"></i>View Rank and Unit</a>
+        </li>
+        {% endif %}
     {% endif %}
   </ul>
 </div>
@@ -77,12 +88,12 @@ $(document).ready(function() {
 {% include 'faculty/_unit_form.html' %}
 
 <table id="facultytable" class="facultytable display">
-  <thead><tr><th scope="col">Name</th>{% if viewvisas %}<th>Visa Information</th>{% else %}<th scope="col">Rank</th><th scope="col">Unit</th>{% endif %}</tr></thead>
+  <thead><tr><th scope="col">Name</th>{% if viewvisas and is_admin %}<th>Visa Information</th>{% else %}<th scope="col">Rank</th><th scope="col">Unit</th>{% endif %}</tr></thead>
   <tbody>
   {% for person,units,ranks in fac_roles %}
   <tr class="{% for u in units %}{{ u.label }} {% endfor %}">
-  <td><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
-  {% if viewvisas %}<td>{{ person|display_visas }}</td>
+  <td><a href="{% url "faculty:summary" userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
+  {% if viewvisas and is_admin %}<td>{{ person|display_visas }}</td>
   {% else %}
   <td>{{ ranks }}</td>
   <td>
@@ -101,7 +112,7 @@ $(document).ready(function() {
   <tbody>
   {% for person,units,ranks in fac_roles_gone %}
   <tr class="{% for u in units %}{{ u.label }} {% endfor %}">
-  <td><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
+  <td><a href="{% url "faculty:summary" userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
   <td>{{ ranks }}</td>
   <td>
       {% for u in units %}{{ u.informal_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
@@ -110,4 +121,42 @@ $(document).ready(function() {
   {% endfor %}
   </tbody>
 </table>
+
+{% if is_admin %}
+    <h2 id="future">Future Faculty Members</h2>
+    <table id="futurefaculty" class="facultytable display">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Position</th>
+                <th scope="col">Converted to Faculty</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for person in future_people %}
+        <tr>
+        <td><a href="{% url "faculty:view_futureperson" futureperson_id=person.id %}">{{ person.sortname }}</a></td>
+        <td>{{ person.get_position_name }}</td>
+        <td>{{ person.assigned|yesno }}</td>
+        <td>
+            <div class="lineform">
+                <button type='submit' class='btn' title="Hide Position"
+                        onclick="confirmDelete('{% url "faculty:delete_futureperson" futureperson_id=person.id %}')">
+                    <i class='fa fa-trash-o'></i>
+                </button>
+            </div>
+            <form class="lineform" method="GET"
+                action="{% url "faculty:edit_futureperson" futureperson_id=person.id %}">
+                <button type='submit' class='btn' title="Edit Person">
+                    <i class='fa fa-edit'></i>
+                </button>
+            </form>
+
+        </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
 {% endblock %}

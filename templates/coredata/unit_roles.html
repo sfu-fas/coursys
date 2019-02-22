@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}CourSys Roles{% endblock %}
-{% block h1 %}CourSys Roles{% endblock %}
+{% block title %}{{ CourSys }} Roles{% endblock %}
+{% block h1 %}{{ CourSys }} Roles{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "coredata.views.unit_admin" %}">Admin</a></li><li>Roles</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "admin:unit_admin" %}">Admin</a></li><li>Roles</li>{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#roles').dataTable( {
     'bPaginate': false,
@@ -15,11 +15,6 @@ $(document).ready(function() {
     'aaSorting': [[2, 'asc']],
   } );
 } );
-function confirmDelete(url) {
-  if ( confirm("Are you sure you want to delete this role?") ) {
-    document.location = url;
-  };
-}
 </script>
 {% endblock %}
 
@@ -27,7 +22,7 @@ function confirmDelete(url) {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url "coredata.views.new_unit_role" %}">Add new role</a></li>
+    <li><a href="{% url "admin:new_unit_role" %}">Add new role</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -35,13 +30,25 @@ function confirmDelete(url) {
 {% block content %}
 <div class="datatable_container">
 <table id="roles" class="display">
-  <thead><tr><th scope="col">Name</th><th scope="col">User ID</th><th scope="col">Role</th><th scope="col">Unit</th><th scope="col">Actions</th></tr></thead>
+  <thead><tr><th scope="col">Name</th><th scope="col">User ID</th><th scope="col">Role</th><th scope="col">Expires</th>
+      <th scope="col">Unit</th><th scope="col">Actions</th></tr></thead>
   <tbody>
   {% for role in roles %}
-  <tr><td scope="row">{{role.person}}</td>
+  <tr{% if role.expires_soon %} class="warningmessage"{% endif %}><td scope="row">{{role.person}}</td>
   <td>{{role.person.userid}}</td>    
-  <td>{{role.get_role_display}}</td><td>{{role.unit.name}}</td>
-  <td><a href="javascript:confirmDelete('{% url "coredata.views.delete_unit_role" role_id=role.pk %}');">delete</a></td></tr>
+  <td>{{role.get_role_display}}</td>
+  <td>{{role.expiry.isoformat}}</td>
+  <td>{{role.unit.name}}</td>
+  <td>
+      {% if role.expires_far %}
+      <form class="lineform" method="POST" action="{% url "admin:renew_unit_role" role_id=role.id %}">
+      {% csrf_token %}<button type='submit' class='btn confirmsubmit' title="Renew Role" data-submit-action="renew this role for one year"><i class='fa fa-refresh'></i></button>
+      </form>
+      {% endif %}
+      <form class="lineform" method="POST" action="{% url "admin:delete_unit_role" role_id=role.id %}">
+      {% csrf_token %}<button type='submit' class='btn confirmsubmit' title="Delete Role" data-submit-action="delete this role"><i class='fa fa-trash-o'></i></button>
+      </form>
+  </td></tr>
   {% endfor %}
   </tbody>
 </table>

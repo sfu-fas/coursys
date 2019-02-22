@@ -4,7 +4,7 @@
 {% block title %}Combined Offerings{% endblock %}
 {% block h1 %}Combined Offerings{% endblock %}
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
     offering_autocomplete('id_offering');
     $('#id_person').each(function() {
@@ -21,8 +21,8 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
-<li><a href="{% url "coredata.views.combined_offerings" %}">Combined Offerings</a></li>
+<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
+<li><a href="{% url "sysadmin:combined_offerings" %}">Combined Offerings</a></li>
 <li>Add Offering</li>
 {% endblock %}
 

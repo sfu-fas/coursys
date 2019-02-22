@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
                 ('labtut', models.BooleanField(default=False, help_text=b'Does this description get the 0.17 BU bonus?', verbose_name=b'Lab/Tutorial?')),
                 ('hidden', models.BooleanField(default=False)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
                 ('late', models.BooleanField(default=False)),
                 ('admin_created', models.BooleanField(default=False)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('person', models.ForeignKey(to='coredata.Person')),
+                ('person', models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -114,8 +114,8 @@ class Migration(migrations.Migration):
                 ('created_by', models.CharField(max_length=8)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now_add=True)),
-                ('application', models.ForeignKey(to='ta.TAApplication')),
-                ('position_number', models.ForeignKey(to='ra.Account')),
+                ('application', models.ForeignKey(to='ta.TAApplication', on_delete=models.CASCADE)),
+                ('position_number', models.ForeignKey(to='ra.Account', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -126,9 +126,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('bu', models.DecimalField(max_digits=4, decimal_places=2)),
-                ('contract', models.ForeignKey(to='ta.TAContract')),
-                ('course', models.ForeignKey(to='coredata.CourseOffering')),
-                ('description', models.ForeignKey(to='ta.CourseDescription')),
+                ('contract', models.ForeignKey(to='ta.TAContract', on_delete=models.CASCADE)),
+                ('course', models.ForeignKey(to='coredata.CourseOffering', on_delete=models.CASCADE)),
+                ('description', models.ForeignKey(to='ta.CourseDescription', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -142,8 +142,8 @@ class Migration(migrations.Migration):
                 ('closes', models.DateField(help_text=b'Closing date for the posting')),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('semester', models.ForeignKey(to='coredata.Semester')),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('semester', models.ForeignKey(to='coredata.Semester', on_delete=models.CASCADE)),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -156,7 +156,7 @@ class Migration(migrations.Migration):
                 ('base_units', models.DecimalField(max_digits=4, decimal_places=2)),
                 ('last_update', models.DateField(auto_now=True)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('member', models.ForeignKey(to='coredata.Member', unique=True)),
+                ('member', models.ForeignKey(to='coredata.Member', unique=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -173,7 +173,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tacontract',
             name='posting',
-            field=models.ForeignKey(to='ta.TAPosting'),
+            field=models.ForeignKey(to='ta.TAPosting', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -183,7 +183,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='taapplication',
             name='posting',
-            field=models.ForeignKey(to='ta.TAPosting'),
+            field=models.ForeignKey(to='ta.TAPosting', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -193,19 +193,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='skilllevel',
             name='app',
-            field=models.ForeignKey(to='ta.TAApplication'),
+            field=models.ForeignKey(to='ta.TAApplication', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='skilllevel',
             name='skill',
-            field=models.ForeignKey(to='ta.Skill'),
+            field=models.ForeignKey(to='ta.Skill', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='skill',
             name='posting',
-            field=models.ForeignKey(to='ta.TAPosting'),
+            field=models.ForeignKey(to='ta.TAPosting', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -215,19 +215,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='coursepreference',
             name='app',
-            field=models.ForeignKey(to='ta.TAApplication'),
+            field=models.ForeignKey(to='ta.TAApplication', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='coursepreference',
             name='course',
-            field=models.ForeignKey(to='coredata.Course'),
+            field=models.ForeignKey(to='coredata.Course', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='campuspreference',
             name='app',
-            field=models.ForeignKey(to='ta.TAApplication'),
+            field=models.ForeignKey(to='ta.TAApplication', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(

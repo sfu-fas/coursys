@@ -1,4 +1,4 @@
-from base import *
+from .base import *
 import submission.forms
 from django.forms.widgets import Textarea, TextInput, FileInput
 from django import forms
@@ -24,9 +24,9 @@ class ArchiveComponent(SubmissionComponent):
 
 
 class SubmittedArchive(SubmittedComponent):
-    component = models.ForeignKey(ArchiveComponent, null=False)
+    component = models.ForeignKey(ArchiveComponent, null=False, on_delete=models.PROTECT)
     archive = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500,
-                               storage=SubmissionSystemStorage, verbose_name='Archive submission')
+                               storage=UploadedFileStorage, verbose_name='Archive submission')
         
     class Meta:
         app_label = 'submission'
@@ -40,7 +40,7 @@ class SubmittedArchive(SubmittedComponent):
     def get_filename(self):
         return os.path.split(self.archive.name)[1]
 
-    def download_response(self):
+    def download_response(self, **kwargs):
         # figure out the MIME type
         for ext in self.component.mime_types:
             if self.archive.name.lower().endswith(ext):
@@ -51,7 +51,7 @@ class SubmittedArchive(SubmittedComponent):
         self.sendfile(self.archive, response)
         return response
 
-    def add_to_zip(self, zipfile, prefix=None):
+    def add_to_zip(self, zipfile, prefix=None, **kwargs):
         filename = self.file_filename(self.archive, prefix)
         zipfile.write(self.archive.path, filename)
 

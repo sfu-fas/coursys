@@ -3,12 +3,12 @@ from coredata.models import Member, CourseOffering, repo_name
 from autoslug import AutoSlugField
 from grades.models import *
 from django.shortcuts import get_object_or_404
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from dashboard.models import NewsItem
 from django.conf import settings
 from courselib.slugs import make_slug
 from courselib.svn import update_group_repository
-import datetime, urlparse
+import datetime, urllib.parse
 
 
 class Group(models.Model):
@@ -16,29 +16,36 @@ class Group(models.Model):
     General group information in the courses
     """
     name = models.CharField(max_length=30, help_text='Group name')
-    manager = models.ForeignKey(Member, blank=False, null=False)
-    courseoffering = models.ForeignKey(CourseOffering)
+    manager = models.ForeignKey(Member, blank=False, null=False, on_delete=models.PROTECT)
+    courseoffering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     #if this bool value is true, then when a new group activity is created, it will call the add_activity_to_group_auto function to create corresponding GroupMembers for that activity.
     groupForSemester = models.BooleanField(default = True)
 
     # preface slug with "g-" to avoid conflict with userids (so they can be used in same places in URLs)
     def autoslug(self):
         return 'g-' + make_slug(self.name)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='courseoffering')
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='courseoffering')
     svn_slug = AutoSlugField(max_length=17, populate_from='slug', null=True, editable=False, unique_with='courseoffering')
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.name)
+
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
+
+    def __lt__(self, other):
+        return self.name < other.name
+
     def get_absolute_url(self):
-        return reverse('groups.views.view_group', kwargs={'course_slug': self.courseoffering.slug,
+        return reverse('offering:groups:view_group', kwargs={'course_slug': self.courseoffering.slug,
                                                           'group_slug': self.slug})
+
+    def confirmed_members(self):
+        return self.groupmember_set.filter(confirmed=True).select_related('student__person')
+
     def svn_url(self):
         "SVN URL for this member (assuming offering.uses_svn())"
-        return urlparse.urljoin(settings.SVN_URL_BASE, repo_name(self.courseoffering, self.svn_slug))
+        return urllib.parse.urljoin(settings.SVN_URL_BASE, repo_name(self.courseoffering, self.svn_slug))
 
     class Meta:
         unique_together = (("name", "courseoffering"), ("slug", "courseoffering"), ("svn_slug", "courseoffering"))
@@ -48,12 +55,12 @@ class GroupMember(models.Model):
     """
     Member information of each group
     """
-    group = models.ForeignKey(Group)
-    student = models.ForeignKey(Member)
+    group = models.ForeignKey(Group, on_delete=models.PROTECT)
+    student = models.ForeignKey(Member, on_delete=models.PROTECT)
     confirmed = models.BooleanField(default = False)
-    activity = models.ForeignKey(Activity)
+    activity = models.ForeignKey(Activity, on_delete=models.PROTECT)
 
-    def __unicode__(self):
+    def __str__(self):
 	    return '%s@%s/%s' % (self.student.person, self.group, self.activity.short_name)
     class Meta:
         unique_together = ("student", "activity")

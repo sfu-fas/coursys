@@ -1,10 +1,9 @@
-#from django.test import TestCase
-from testboost.testcase import FastFixtureTestCase as TestCase
+from django.test import TestCase
 from courselib.testing import basic_page_tests, Client, test_views, TEST_COURSE_SLUG
 from ta.models import CourseDescription, TAPosting, TAApplication, TAContract, CampusPreference, CoursePreference, TUG
 from coredata.models import Person, Semester, Unit, CourseOffering, Course, Role, Member
 from ra.models import Account
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from datetime import date
 
 class ApplicationTest(TestCase):
@@ -61,11 +60,11 @@ class ApplicationTest(TestCase):
 
         #Login a ta admin
         client = Client()
-        userid = Role.objects.filter(role="TAAD")[0].person.userid
+        userid = Role.objects_fresh.filter(role="TAAD")[0].person.userid
         client.login_user(userid)     
 
         #Check that assign_tas page has two courses in it, one with someone who has applied
-        url = reverse('ta.views.assign_tas', kwargs={'post_slug': posting.slug,})
+        url = reverse('ta:assign_tas', kwargs={'post_slug': posting.slug,})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="/ta/%s/%s"' % (posting.slug, self.co1.slug) )
@@ -73,14 +72,14 @@ class ApplicationTest(TestCase):
         self.assertContains(response, '<td class="num">1</td>')
 
         #Check the view application page to make sure it displays properly
-        url = reverse('ta.views.view_application', kwargs={'post_slug': posting.slug, 'userid':app.person.userid,})
+        url = reverse('ta:view_application', kwargs={'post_slug': posting.slug, 'userid':app.person.userid,})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="mailto:%s@sfu.ca"' % (app.person.userid) )
         self.assertContains(response, '<td>%s</td>' % (c1) )
        
         #Check the assign_bu page to make sure applicant appears
-        url = reverse('ta.views.assign_bus', kwargs={'post_slug': posting.slug, 'course_slug':self.co1.slug,})
+        url = reverse('ta:assign_bus', kwargs={'post_slug': posting.slug, 'course_slug':self.co1.slug,})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="/ta/%s/application/%s"' % (posting.slug, app.person.userid) )
@@ -97,8 +96,6 @@ class ApplicationTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<td class="num">2.00</td>')
 
-
-
     def test_pages(self):
         c = Client()
 
@@ -106,34 +103,35 @@ class ApplicationTest(TestCase):
         c.login_user('dzhao')
         offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         ta = Member.objects.filter(offering=offering, role="TA")[0]
-        test_views(self, c, 'ta.views.', ['new_tug'], {'course_slug': offering.slug, 'userid': ta.person.userid})
+        test_views(self, c, 'offering:', ['new_tug'], {'course_slug': offering.slug, 'userid': ta.person.userid})
 
         # create TUG to view/edit
         tug = TUG(member=ta, base_units=5)
-        for f in tug.config_meta.keys():
+        for f in list(tug.config_meta.keys()):
             tug.config[f] = {'weekly': 1, 'total': 13, 'note': 'somenote'}
         tug.save()
-        test_views(self, c, 'ta.views.', ['view_tug', 'edit_tug'], {'course_slug': offering.slug, 'userid': ta.person.userid})
+        test_views(self, c, 'offering:', ['view_tug', 'edit_tug'], {'course_slug': offering.slug, 'userid': ta.person.userid})
 
         # admin views
         c.login_user('dzhao')
-        test_views(self, c, 'ta.views.', ['all_tugs_admin', 'view_postings'], {})
+        test_views(self, c, 'tugs:', ['all_tugs_admin'], {})
+        test_views(self, c, 'ta:', ['view_postings'], {})
         post = TAPosting.objects.filter(unit__label='CMPT')[0]
-        test_views(self, c, 'ta.views.', ['new_application', 'new_application_manual', 'view_all_applications',
+        test_views(self, c, 'ta:', ['new_application', 'new_application_manual', 'view_all_applications',
                     'print_all_applications', 'print_all_applications_by_course', 'view_late_applications',
                     'assign_tas', 'all_contracts'],
                 {'post_slug': post.slug})
-        test_views(self, c, 'ta.views.', ['assign_bus'],
+        test_views(self, c, 'ta:', ['assign_bus'],
                 {'post_slug': post.slug, 'course_slug': offering.slug})
 
         contr = TAContract.objects.filter(posting=post)[0]
-        test_views(self, c, 'ta.views.', ['edit_application', 'view_application', 'preview_offer', 'view_contract',
+        test_views(self, c, 'ta:', ['edit_application', 'view_application', 'preview_offer', 'view_contract',
                                           'edit_contract'],
                    {'post_slug': post.slug, 'userid': contr.application.person.userid})
 
         # applicant views
         c.login_user(contr.application.person.userid)
-        test_views(self, c, 'ta.views.', ['accept_contract'],
+        test_views(self, c, 'ta:', ['accept_contract'],
                    {'post_slug': post.slug, 'userid': contr.application.person.userid})
 
 

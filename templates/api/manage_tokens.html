@@ -4,7 +4,7 @@
 {% block h1 %}Manage API Tokens{% endblock %}
 
 {% block headextra %}
-<script>
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#token-table').dataTable( {
     'bPaginate': false,
@@ -18,7 +18,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'dashboard.views.config' %}">User Configuration</a></li>
+<li><a href="{% url 'config:config' %}">User Configuration</a></li>
 <li>API Tokens</li>{% endblock %}
 
 {% block content %}
@@ -39,14 +39,14 @@ $(document).ready(function() {
     <td>
       <form action="" method="post" enctype="multipart/form-data" class="subtle">{% csrf_token %}
       <p><input type="hidden" name="key" value="{{ t.key }}" />
-      <input type="submit" value="Remove" onclick="return confirmSubmit('remove this authorization')" /></p>
+      <input type="submit" value="Remove" class="confirm-submit" data-submit-action="remove this authorization" /></p>
       </form>
     </td>
     </tr>
   {% endfor %}
   </table>
 {% else %}
-<p class="empty">You currently have no access tokens authorizing third-party apps to access data within CourSys.</p>
+<p class="empty">You currently have no access tokens authorizing third-party apps to access data within {{ CourSys }}.</p>
 {% endif %}
 
 {% endblock %}

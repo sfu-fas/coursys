@@ -5,9 +5,9 @@ from grad.forms import SupervisorForm, possible_supervisors
 from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     supervisors = Supervisor.objects.filter(student=grad).select_related('supervisor')
@@ -24,10 +24,10 @@ def manage_supervisors(request, grad_slug):
             
             messages.success(request, "Added committee member for %s." % (grad))
             l = LogEntry(userid=request.user.username,
-                  description=u"Added committee member %s for %s." % (s, grad.person.userid),
+                  description="Added committee member %s for %s." % (s, grad.person.userid),
                   related_object=s)
             l.save()              
-            return HttpResponseRedirect(reverse(manage_supervisors, kwargs={'grad_slug':grad_slug}))
+            return HttpResponseRedirect(reverse('grad:manage_supervisors', kwargs={'grad_slug':grad_slug}))
     else:
         form = SupervisorForm()
         form.set_supervisor_choices(possible_supervisors([grad.program.unit], extras=supervisor_people, null=True))
@@ -35,6 +35,7 @@ def manage_supervisors(request, grad_slug):
     context = {
                'form': form,
                'supervisors': supervisors,
-               'grad' : grad,
+               'grad': grad,
+               'can_edit': True,
                }
     return render(request, 'grad/manage_supervisors.html', context)

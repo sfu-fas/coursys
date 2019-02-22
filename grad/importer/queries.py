@@ -9,10 +9,12 @@ def grad_program_changes(acad_prog):
     """
     db = SIMSConn()
     db.execute("""
-        SELECT 'ProgramStatusChange', emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action, prog_reason,
-            effdt, effseq, admit_term, exp_grad_term
-        FROM ps_acad_prog
-        WHERE acad_career='GRAD' AND acad_prog=%s AND effdt>=%s AND admit_term>=%s
+        SELECT 'ProgramStatusChange', prog.emplid, prog.stdnt_car_nbr, adm_appl_nbr, prog.acad_prog, prog.prog_status, 
+        prog.prog_action, prog.prog_reason, prog.effdt, prog.effseq, prog.admit_term, prog.exp_grad_term, 
+        prog.degr_chkout_stat, plan.acad_sub_plan
+        FROM ps_acad_prog prog
+            LEFT JOIN ps_acad_subplan plan ON prog.emplid=plan.emplid AND prog.EFFDT=plan.effdt
+        WHERE prog.acad_career='GRAD' AND prog.acad_prog=%s AND prog.effdt>=%s AND prog.admit_term>=%s
         ORDER BY effdt, effseq
     """, (acad_prog, IMPORT_START_DATE, IMPORT_START_SEMESTER))
     return list(db)
@@ -25,12 +27,16 @@ def grad_appl_program_changes(acad_prog):
     Rows become ApplProgramChange objects.
 
     Many of these will duplicate ps_acad_prog: the ProgramStatusChange is smart enough to identify them.
+
+    The 13th null argument has been added because ApplProgramChange subclasses ProgramStatusChange, which now requires
+    an extra degr_chkout_stat argument to find the grad application/approved statuses.
     """
     db = SIMSConn()
     db.execute("""
         SELECT 'ApplProgramChange', prog.emplid, prog.stdnt_car_nbr, prog.adm_appl_nbr, prog.acad_prog, prog.prog_status, prog.prog_action, prog.prog_reason,
-            prog.effdt, prog.effseq, prog.admit_term, prog.exp_grad_term
+            prog.effdt, prog.effseq, prog.admit_term, prog.exp_grad_term, null, plan.ACAD_SUB_PLAN
         FROM ps_adm_appl_prog prog
+          LEFT JOIN ps_acad_subplan plan ON prog.emplid=plan.emplid AND prog.EFFDT=plan.effdt
             LEFT JOIN dbcsown.ps_adm_appl_data data
                 ON prog.emplid=data.emplid AND prog.acad_career=data.acad_career AND prog.stdnt_car_nbr=data.stdnt_car_nbr AND prog.adm_appl_nbr=data.adm_appl_nbr
         WHERE prog.acad_career='GRAD' AND prog.acad_prog=%s AND prog.effdt>=%s AND prog.admit_term>=%s
@@ -75,6 +81,7 @@ def committee_members(emplids):
                 ON (mem.institution=st.institution AND mem.committee_id=st.committee_id AND com.effdt=mem.effdt)
         WHERE
             st.emplid in %s
+            AND com.committee_type IN ('GSSUPER', 'GSEXAMING')
         ORDER BY com.effdt""",
         (emplids,))
     return list(db)
@@ -142,7 +149,7 @@ def grad_metadata(emplids):
     # win (since they might be better for that student's TA/RA appointments later).
     # Other sort orders just to make sure we get the same record tomorrow if there are other duplicates (visa can duplicate)
     db.execute("""
-        SELECT 'GradMetadata', p.emplid, e.email_addr, a.accomplishment, cit.country, v.visa_permit_type,
+        SELECT 'GradMetadata', p.emplid, e.email_addr, a.accomplishment, cit.country, v.visa_permit_type, v.effdt,
             case when (a.accomplishment='ENG') then 0 else 1 end s1,
             case when (cit.country='CAN') then 0 else 1 end s2
         FROM ps_personal_data p

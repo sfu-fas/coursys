@@ -2,6 +2,6 @@ There has been a new discussion topic "{{topic.title}}" created for {{offering.n
   {{url}}
 
 --
-You received this email from CourSys because you subscribed to discussion in
+You received this email from {{ CourSys }} because you subscribed to discussion in
 this course. If you do not wish to receive these notifications by email, you
 can change your subscription settings at {{editurl}} .

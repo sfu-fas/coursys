@@ -3,8 +3,8 @@ from django.http import HttpResponseRedirect, HttpResponse
 from courselib.auth import requires_role, ForbiddenResponse
 from courselib.search import get_query
 from grad.models import STATUS_CHOICES 
-import json, urllib
-from django.core.urlresolvers import reverse
+import json, urllib.request, urllib.parse, urllib.error
+from django.urls import reverse
 
 def _get_query(term):
 
@@ -56,8 +56,8 @@ def quick_search(request):
         grad_slug = request.GET['search']
         try:
             grad = GradStudent.objects.get(slug=grad_slug, program__unit__in=request.units)
-            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:view', kwargs={'grad_slug':grad.slug}))
         except GradStudent.DoesNotExist:
-            return HttpResponseRedirect(reverse('grad.views.not_found') + "?search=" + urllib.quote_plus(grad_slug))
+            return HttpResponseRedirect(reverse('grad:not_found') + "?search=" + urllib.parse.quote_plus(grad_slug.encode('utf8')))
     else:
         return ForbiddenResponse(request, 'must send term')

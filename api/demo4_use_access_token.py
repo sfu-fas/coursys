@@ -19,4 +19,4 @@ def use_access_token(oauth_token, oauth_secret):
 import sys
 oauth_token = sys.argv[1]
 oauth_secret = sys.argv[2]
-print use_access_token(oauth_token, oauth_secret)
+print(use_access_token(oauth_token, oauth_secret))

@@ -1,31 +1,46 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 
-{% block title %}TA Contract Descriptions{% endblock %}
-{% block h1 %}TA Contract Descriptions{% endblock %}
+{% block title %}TA Course Descriptions{% endblock %}
+{% block h1 %}TA Course Descriptions{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li>Contract Descriptions</li>
+<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
+<li>Course Descriptions</li>
 {% endblock %}
 
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url "ta.views.new_description" %}">New Description</a></li>
+    <li><a href="{% url "ta:new_description" %}">New Description</a></li>
     </ul>
 </div>
 {% endblock %}
 
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#descriptions').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[0, 'asc']]
+  } );
+} );
+</script>
+{% endblock %}
+
 {% block content %}
 
-<div class="datatable_container">
-<table class="display">
+<table id="descriptions" class="display">
 <thead>
 	<tr>
 		<th scope="col">Unit</th>
 		<th scope="col">Description</th>
 		<th scope="col">Lab/Tutorial</th>
+                <th scope="col">Actions</th>
 	</tr>
 </thead>
 <tbody>
@@ -34,11 +49,25 @@
   <td>{{ d.unit }}</td>
   <td>{{ d.description }}</td>
   <td>{{ d.labtut|yesno }}</td>
+  <td>
+      <form class="lineform" method="POST"
+          action="{% url "ta:delete_description" description_id=d.id %}">
+        {% csrf_token %}
+        <button type='submit' class='btn confirm-submit' title="Hide Description" data-submit-action="delete this description">
+            <i class='fa fa-trash-o'></i>
+        </button>
+    </form>
+    <form class="lineform" method="GET"
+        action="{% url "ta:edit_description" description_id=d.id %}">
+        <button type='submit' class='btn' title="Edit Description">
+            <i class='fa fa-edit'></i>
+        </button>
+    </form>
+  </td>
 </tr>	
 {% endfor %}
 </tbody>
 </table>
-</div>
 
 
 {% endblock %}

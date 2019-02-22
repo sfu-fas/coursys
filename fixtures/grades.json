@@ -711,13 +711,73 @@
 },
 {
  "fields": {
+  "date": "2016-02-09",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 152
+ },
+ "model": "coredata.holiday",
+ "pk": 154
+},
+{
+ "fields": {
+  "date": "2016-02-10",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 152
+ },
+ "model": "coredata.holiday",
+ "pk": 155
+},
+{
+ "fields": {
+  "date": "2016-02-11",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 152
+ },
+ "model": "coredata.holiday",
+ "pk": 156
+},
+{
+ "fields": {
+  "date": "2016-02-12",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 152
+ },
+ "model": "coredata.holiday",
+ "pk": 157
+},
+{
+ "fields": {
+  "date": "2016-02-13",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 152
+ },
+ "model": "coredata.holiday",
+ "pk": 158
+},
+{
+ "fields": {
+  "date": "2016-02-14",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 152
+ },
+ "model": "coredata.holiday",
+ "pk": 159
+},
+{
+ "fields": {
   "date": "2016-03-25",
   "description": "Good Friday",
   "holiday_type": "FULL",
   "semester": 152
  },
  "model": "coredata.holiday",
- "pk": 154
+ "pk": 160
 },
 {
  "fields": {
@@ -727,17 +787,17 @@
   "semester": 152
  },
  "model": "coredata.holiday",
- "pk": 155
+ "pk": 161
 },
 {
  "fields": {
-  "date": "2016-05-16",
+  "date": "2016-05-23",
   "description": "Victoria Day",
   "holiday_type": "FULL",
   "semester": 153
  },
  "model": "coredata.holiday",
- "pk": 156
+ "pk": 162
 },
 {
  "fields": {
@@ -747,7 +807,7 @@
   "semester": 153
  },
  "model": "coredata.holiday",
- "pk": 157
+ "pk": 163
 },
 {
  "fields": {
@@ -757,7 +817,7 @@
   "semester": 153
  },
  "model": "coredata.holiday",
- "pk": 158
+ "pk": 164
 },
 {
  "fields": {
@@ -767,7 +827,7 @@
   "semester": 154
  },
  "model": "coredata.holiday",
- "pk": 159
+ "pk": 165
 },
 {
  "fields": {
@@ -777,7 +837,7 @@
   "semester": 154
  },
  "model": "coredata.holiday",
- "pk": 160
+ "pk": 166
 },
 {
  "fields": {
@@ -787,7 +847,7 @@
   "semester": 154
  },
  "model": "coredata.holiday",
- "pk": 161
+ "pk": 167
 },
 {
  "fields": {
@@ -797,7 +857,7 @@
   "semester": 154
  },
  "model": "coredata.holiday",
- "pk": 162
+ "pk": 168
 },
 {
  "fields": {
@@ -807,7 +867,7 @@
   "semester": 154
  },
  "model": "coredata.holiday",
- "pk": 163
+ "pk": 169
 },
 {
  "fields": {
@@ -817,7 +877,7 @@
   "semester": 155
  },
  "model": "coredata.holiday",
- "pk": 164
+ "pk": 170
 },
 {
  "fields": {
@@ -827,7 +887,57 @@
   "semester": 155
  },
  "model": "coredata.holiday",
- "pk": 165
+ "pk": 171
+},
+{
+ "fields": {
+  "date": "2017-02-14",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 155
+ },
+ "model": "coredata.holiday",
+ "pk": 172
+},
+{
+ "fields": {
+  "date": "2017-02-15",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 155
+ },
+ "model": "coredata.holiday",
+ "pk": 173
+},
+{
+ "fields": {
+  "date": "2017-02-16",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 155
+ },
+ "model": "coredata.holiday",
+ "pk": 174
+},
+{
+ "fields": {
+  "date": "2017-02-17",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 155
+ },
+ "model": "coredata.holiday",
+ "pk": 175
+},
+{
+ "fields": {
+  "date": "2017-02-18",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 155
+ },
+ "model": "coredata.holiday",
+ "pk": 176
 },
 {
  "fields": {
@@ -837,7 +947,7 @@
   "semester": 155
  },
  "model": "coredata.holiday",
- "pk": 166
+ "pk": 177
 },
 {
  "fields": {
@@ -847,7 +957,7 @@
   "semester": 155
  },
  "model": "coredata.holiday",
- "pk": 167
+ "pk": 178
 },
 {
  "fields": {
@@ -857,7 +967,7 @@
   "semester": 156
  },
  "model": "coredata.holiday",
- "pk": 168
+ "pk": 179
 },
 {
  "fields": {
@@ -867,7 +977,7 @@
   "semester": 156
  },
  "model": "coredata.holiday",
- "pk": 169
+ "pk": 180
 },
 {
  "fields": {
@@ -877,83 +987,773 @@
   "semester": 156
  },
  "model": "coredata.holiday",
- "pk": 170
+ "pk": 181
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "16:20:00",
-  "exam": false,
-  "labtut_section": null,
-  "meeting_type": "LEC",
-  "offering": 11,
-  "room": "AQ3181",
-  "start_day": "2015-05-11",
-  "start_time": "15:30:00",
-  "weekday": 0
+  "date": "2017-09-04",
+  "description": "Labour Day",
+  "holiday_type": "FULL",
+  "semester": 157
  },
- "model": "coredata.meetingtime",
- "pk": 11
+ "model": "coredata.holiday",
+ "pk": 182
 },
 {
  "fields": {
-  "end_day": "2015-08-17",
-  "end_time": "15:00:00",
-  "exam": false,
-  "labtut_section": null,
-  "meeting_type": "EXAM",
-  "offering": 11,
-  "room": "",
-  "start_day": "2015-08-17",
-  "start_time": "12:00:00",
-  "weekday": 0
+  "date": "2017-10-09",
+  "description": "Thanksgiving Day",
+  "holiday_type": "FULL",
+  "semester": 157
  },
- "model": "coredata.meetingtime",
- "pk": 14
+ "model": "coredata.holiday",
+ "pk": 183
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "15:20:00",
+  "date": "2017-11-11",
+  "description": "Remembrance Day",
+  "holiday_type": "FULL",
+  "semester": 157
+ },
+ "model": "coredata.holiday",
+ "pk": 184
+},
+{
+ "fields": {
+  "date": "2017-12-25",
+  "description": "Christmas Day",
+  "holiday_type": "FULL",
+  "semester": 157
+ },
+ "model": "coredata.holiday",
+ "pk": 185
+},
+{
+ "fields": {
+  "date": "2017-12-26",
+  "description": "Boxing Day",
+  "holiday_type": "FULL",
+  "semester": 157
+ },
+ "model": "coredata.holiday",
+ "pk": 186
+},
+{
+ "fields": {
+  "date": "2018-01-01",
+  "description": "New Year's Day",
+  "holiday_type": "FULL",
+  "semester": 158
+ },
+ "model": "coredata.holiday",
+ "pk": 187
+},
+{
+ "fields": {
+  "date": "2018-02-12",
+  "description": "Family Day",
+  "holiday_type": "FULL",
+  "semester": 158
+ },
+ "model": "coredata.holiday",
+ "pk": 188
+},
+{
+ "fields": {
+  "date": "2018-02-13",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 158
+ },
+ "model": "coredata.holiday",
+ "pk": 189
+},
+{
+ "fields": {
+  "date": "2018-02-14",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 158
+ },
+ "model": "coredata.holiday",
+ "pk": 190
+},
+{
+ "fields": {
+  "date": "2018-02-15",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 158
+ },
+ "model": "coredata.holiday",
+ "pk": 191
+},
+{
+ "fields": {
+  "date": "2018-02-16",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 158
+ },
+ "model": "coredata.holiday",
+ "pk": 192
+},
+{
+ "fields": {
+  "date": "2018-02-17",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 158
+ },
+ "model": "coredata.holiday",
+ "pk": 193
+},
+{
+ "fields": {
+  "date": "2018-03-30",
+  "description": "Good Friday",
+  "holiday_type": "FULL",
+  "semester": 158
+ },
+ "model": "coredata.holiday",
+ "pk": 194
+},
+{
+ "fields": {
+  "date": "2018-04-02",
+  "description": "Easter Monday",
+  "holiday_type": "FULL",
+  "semester": 158
+ },
+ "model": "coredata.holiday",
+ "pk": 195
+},
+{
+ "fields": {
+  "date": "2018-05-21",
+  "description": "Victoria Day",
+  "holiday_type": "FULL",
+  "semester": 159
+ },
+ "model": "coredata.holiday",
+ "pk": 196
+},
+{
+ "fields": {
+  "date": "2018-07-01",
+  "description": "Canada Day",
+  "holiday_type": "FULL",
+  "semester": 159
+ },
+ "model": "coredata.holiday",
+ "pk": 197
+},
+{
+ "fields": {
+  "date": "2018-08-06",
+  "description": "BC Day",
+  "holiday_type": "FULL",
+  "semester": 159
+ },
+ "model": "coredata.holiday",
+ "pk": 198
+},
+{
+ "fields": {
+  "date": "2018-09-03",
+  "description": "Labour Day",
+  "holiday_type": "FULL",
+  "semester": 160
+ },
+ "model": "coredata.holiday",
+ "pk": 199
+},
+{
+ "fields": {
+  "date": "2018-10-08",
+  "description": "Thanksgiving Day",
+  "holiday_type": "FULL",
+  "semester": 160
+ },
+ "model": "coredata.holiday",
+ "pk": 200
+},
+{
+ "fields": {
+  "date": "2018-11-11",
+  "description": "Remembrance Day",
+  "holiday_type": "FULL",
+  "semester": 160
+ },
+ "model": "coredata.holiday",
+ "pk": 201
+},
+{
+ "fields": {
+  "date": "2018-12-25",
+  "description": "Christmas Day",
+  "holiday_type": "FULL",
+  "semester": 160
+ },
+ "model": "coredata.holiday",
+ "pk": 202
+},
+{
+ "fields": {
+  "date": "2018-12-26",
+  "description": "Boxing Day",
+  "holiday_type": "FULL",
+  "semester": 160
+ },
+ "model": "coredata.holiday",
+ "pk": 203
+},
+{
+ "fields": {
+  "date": "2019-01-01",
+  "description": "New Year's Day",
+  "holiday_type": "FULL",
+  "semester": 161
+ },
+ "model": "coredata.holiday",
+ "pk": 204
+},
+{
+ "fields": {
+  "date": "2019-02-18",
+  "description": "Family Day",
+  "holiday_type": "FULL",
+  "semester": 161
+ },
+ "model": "coredata.holiday",
+ "pk": 205
+},
+{
+ "fields": {
+  "date": "2019-02-19",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 161
+ },
+ "model": "coredata.holiday",
+ "pk": 206
+},
+{
+ "fields": {
+  "date": "2019-02-20",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 161
+ },
+ "model": "coredata.holiday",
+ "pk": 207
+},
+{
+ "fields": {
+  "date": "2019-02-21",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 161
+ },
+ "model": "coredata.holiday",
+ "pk": 208
+},
+{
+ "fields": {
+  "date": "2019-02-22",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 161
+ },
+ "model": "coredata.holiday",
+ "pk": 209
+},
+{
+ "fields": {
+  "date": "2019-02-23",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 161
+ },
+ "model": "coredata.holiday",
+ "pk": 210
+},
+{
+ "fields": {
+  "date": "2019-02-24",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 161
+ },
+ "model": "coredata.holiday",
+ "pk": 211
+},
+{
+ "fields": {
+  "date": "2019-04-19",
+  "description": "Good Friday",
+  "holiday_type": "FULL",
+  "semester": 161
+ },
+ "model": "coredata.holiday",
+ "pk": 212
+},
+{
+ "fields": {
+  "date": "2019-04-22",
+  "description": "Easter Monday",
+  "holiday_type": "FULL",
+  "semester": 161
+ },
+ "model": "coredata.holiday",
+ "pk": 213
+},
+{
+ "fields": {
+  "date": "2019-05-20",
+  "description": "Victoria Day",
+  "holiday_type": "FULL",
+  "semester": 162
+ },
+ "model": "coredata.holiday",
+ "pk": 214
+},
+{
+ "fields": {
+  "date": "2019-07-01",
+  "description": "Canada Day",
+  "holiday_type": "FULL",
+  "semester": 162
+ },
+ "model": "coredata.holiday",
+ "pk": 215
+},
+{
+ "fields": {
+  "date": "2019-08-05",
+  "description": "BC Day",
+  "holiday_type": "FULL",
+  "semester": 162
+ },
+ "model": "coredata.holiday",
+ "pk": 216
+},
+{
+ "fields": {
+  "date": "2019-09-02",
+  "description": "Labour Day",
+  "holiday_type": "FULL",
+  "semester": 163
+ },
+ "model": "coredata.holiday",
+ "pk": 217
+},
+{
+ "fields": {
+  "date": "2019-10-14",
+  "description": "Thanksgiving Day",
+  "holiday_type": "FULL",
+  "semester": 163
+ },
+ "model": "coredata.holiday",
+ "pk": 218
+},
+{
+ "fields": {
+  "date": "2019-11-11",
+  "description": "Remembrance Day",
+  "holiday_type": "FULL",
+  "semester": 163
+ },
+ "model": "coredata.holiday",
+ "pk": 219
+},
+{
+ "fields": {
+  "date": "2019-12-25",
+  "description": "Christmas Day",
+  "holiday_type": "FULL",
+  "semester": 163
+ },
+ "model": "coredata.holiday",
+ "pk": 220
+},
+{
+ "fields": {
+  "date": "2019-12-26",
+  "description": "Boxing Day",
+  "holiday_type": "FULL",
+  "semester": 163
+ },
+ "model": "coredata.holiday",
+ "pk": 221
+},
+{
+ "fields": {
+  "date": "2020-01-01",
+  "description": "New Year's Day",
+  "holiday_type": "FULL",
+  "semester": 164
+ },
+ "model": "coredata.holiday",
+ "pk": 222
+},
+{
+ "fields": {
+  "date": "2020-02-17",
+  "description": "Family Day",
+  "holiday_type": "FULL",
+  "semester": 164
+ },
+ "model": "coredata.holiday",
+ "pk": 223
+},
+{
+ "fields": {
+  "date": "2020-02-18",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 164
+ },
+ "model": "coredata.holiday",
+ "pk": 224
+},
+{
+ "fields": {
+  "date": "2020-02-19",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 164
+ },
+ "model": "coredata.holiday",
+ "pk": 225
+},
+{
+ "fields": {
+  "date": "2020-02-20",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 164
+ },
+ "model": "coredata.holiday",
+ "pk": 226
+},
+{
+ "fields": {
+  "date": "2020-02-21",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 164
+ },
+ "model": "coredata.holiday",
+ "pk": 227
+},
+{
+ "fields": {
+  "date": "2020-02-22",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 164
+ },
+ "model": "coredata.holiday",
+ "pk": 228
+},
+{
+ "fields": {
+  "date": "2020-02-23",
+  "description": "Reading Break",
+  "holiday_type": "FULL",
+  "semester": 164
+ },
+ "model": "coredata.holiday",
+ "pk": 229
+},
+{
+ "fields": {
+  "date": "2020-04-10",
+  "description": "Good Friday",
+  "holiday_type": "FULL",
+  "semester": 164
+ },
+ "model": "coredata.holiday",
+ "pk": 230
+},
+{
+ "fields": {
+  "date": "2020-04-13",
+  "description": "Easter Monday",
+  "holiday_type": "FULL",
+  "semester": 164
+ },
+ "model": "coredata.holiday",
+ "pk": 231
+},
+{
+ "fields": {
+  "date": "2020-05-18",
+  "description": "Victoria Day",
+  "holiday_type": "FULL",
+  "semester": 165
+ },
+ "model": "coredata.holiday",
+ "pk": 232
+},
+{
+ "fields": {
+  "date": "2020-07-01",
+  "description": "Canada Day",
+  "holiday_type": "FULL",
+  "semester": 165
+ },
+ "model": "coredata.holiday",
+ "pk": 233
+},
+{
+ "fields": {
+  "date": "2020-08-03",
+  "description": "BC Day",
+  "holiday_type": "FULL",
+  "semester": 165
+ },
+ "model": "coredata.holiday",
+ "pk": 234
+},
+{
+ "fields": {
+  "end_day": "2019-08-02",
+  "end_time": "10:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
   "offering": 12,
-  "room": "BLU9660",
-  "start_day": "2015-05-11",
-  "start_time": "14:30:00",
+  "room": "AQ3181",
+  "start_day": "2019-05-06",
+  "start_time": "09:30:00",
   "weekday": 0
  },
  "model": "coredata.meetingtime",
- "pk": 15
+ "pk": 1
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
+  "end_day": "2019-08-02",
+  "end_time": "10:20:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 11,
+  "room": "AQ3182",
+  "start_day": "2019-05-06",
+  "start_time": "09:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 12
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
   "end_time": "10:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
   "offering": 1,
-  "room": "C9002",
-  "start_day": "2015-01-06",
+  "room": "AQ3182",
+  "start_day": "2019-01-03",
   "start_time": "09:30:00",
   "weekday": 0
  },
  "model": "coredata.meetingtime",
- "pk": 33
+ "pk": 20
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
+  "end_day": "2019-04-15",
+  "end_time": "11:30:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 1,
+  "room": "",
+  "start_day": "2019-04-15",
+  "start_time": "08:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 23
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "11:20:00",
+  "exam": false,
+  "labtut_section": "D101",
+  "meeting_type": "LAB",
+  "offering": 1,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "10:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 24
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "12:20:00",
+  "exam": false,
+  "labtut_section": "D102",
+  "meeting_type": "LAB",
+  "offering": 1,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "11:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 25
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "13:20:00",
+  "exam": false,
+  "labtut_section": "D103",
+  "meeting_type": "LAB",
+  "offering": 1,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "12:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 26
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
   "end_time": "14:20:00",
+  "exam": false,
+  "labtut_section": "D104",
+  "meeting_type": "LAB",
+  "offering": 1,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "13:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 27
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "15:20:00",
+  "exam": false,
+  "labtut_section": "D105",
+  "meeting_type": "LAB",
+  "offering": 1,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "14:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 28
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "16:20:00",
+  "exam": false,
+  "labtut_section": "D106",
+  "meeting_type": "LAB",
+  "offering": 1,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "15:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 29
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "17:20:00",
+  "exam": false,
+  "labtut_section": "D107",
+  "meeting_type": "LAB",
+  "offering": 1,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "16:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 30
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "18:20:00",
+  "exam": false,
+  "labtut_section": "D108",
+  "meeting_type": "LAB",
+  "offering": 1,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "17:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 31
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "13:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
   "offering": 2,
-  "room": "AQ3181",
-  "start_day": "2015-01-06",
-  "start_time": "13:30:00",
+  "room": "AQ3182",
+  "start_day": "2019-01-03",
+  "start_time": "12:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 32
+},
+{
+ "fields": {
+  "end_day": "2019-04-15",
+  "end_time": "11:30:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 2,
+  "room": "",
+  "start_day": "2019-04-15",
+  "start_time": "08:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 35
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "16:20:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 5,
+  "room": "RCBIMAGTH",
+  "start_day": "2019-01-03",
+  "start_time": "15:30:00",
   "weekday": 0
  },
  "model": "coredata.meetingtime",
@@ -961,350 +1761,238 @@
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
+  "end_day": "2019-04-08",
+  "end_time": "16:20:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 9,
+  "room": "AQ3005",
+  "start_day": "2019-01-03",
+  "start_time": "15:30:00",
+  "weekday": 0
+ },
+ "model": "coredata.meetingtime",
+ "pk": 53
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
   "end_time": "15:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
-  "offering": 6,
-  "room": "BLU9660",
-  "start_day": "2015-01-06",
+  "offering": 10,
+  "room": "AQ3181",
+  "start_day": "2019-01-03",
   "start_time": "14:30:00",
   "weekday": 0
- },
- "model": "coredata.meetingtime",
- "pk": 48
-},
-{
- "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "12:20:00",
-  "exam": false,
-  "labtut_section": "LAB1",
-  "meeting_type": "LAB",
-  "offering": 13,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "09:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 24
-},
-{
- "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "15:20:00",
-  "exam": false,
-  "labtut_section": "LAB2",
-  "meeting_type": "LAB",
-  "offering": 13,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "12:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 25
-},
-{
- "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "18:20:00",
-  "exam": false,
-  "labtut_section": "LAB3",
-  "meeting_type": "LAB",
-  "offering": 13,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "15:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 26
-},
-{
- "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "12:20:00",
-  "exam": false,
-  "labtut_section": "LAB1",
-  "meeting_type": "LAB",
-  "offering": 14,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "09:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 27
-},
-{
- "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "15:20:00",
-  "exam": false,
-  "labtut_section": "LAB2",
-  "meeting_type": "LAB",
-  "offering": 14,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "12:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 28
-},
-{
- "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "18:20:00",
-  "exam": false,
-  "labtut_section": "LAB3",
-  "meeting_type": "LAB",
-  "offering": 14,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "15:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 29
-},
-{
- "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "12:20:00",
-  "exam": false,
-  "labtut_section": "LAB1",
-  "meeting_type": "LAB",
-  "offering": 15,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "09:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 30
-},
-{
- "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "15:20:00",
-  "exam": false,
-  "labtut_section": "LAB2",
-  "meeting_type": "LAB",
-  "offering": 15,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "12:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 31
-},
-{
- "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "18:20:00",
-  "exam": false,
-  "labtut_section": "LAB3",
-  "meeting_type": "LAB",
-  "offering": 15,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "15:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 32
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "12:20:00",
-  "exam": false,
-  "labtut_section": "LAB1",
-  "meeting_type": "LAB",
-  "offering": 3,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "09:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 58
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "15:20:00",
-  "exam": false,
-  "labtut_section": "LAB2",
-  "meeting_type": "LAB",
-  "offering": 3,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "12:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 59
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "18:20:00",
-  "exam": false,
-  "labtut_section": "LAB3",
-  "meeting_type": "LAB",
-  "offering": 3,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "15:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 60
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "12:20:00",
-  "exam": false,
-  "labtut_section": "LAB1",
-  "meeting_type": "LAB",
-  "offering": 4,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "09:30:00",
-  "weekday": 1
  },
  "model": "coredata.meetingtime",
  "pk": 61
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "15:20:00",
+  "end_day": "2019-08-02",
+  "end_time": "11:20:00",
   "exam": false,
-  "labtut_section": "LAB2",
-  "meeting_type": "LAB",
-  "offering": 4,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 13,
   "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "12:30:00",
+  "start_day": "2019-05-06",
+  "start_time": "08:30:00",
   "weekday": 1
  },
  "model": "coredata.meetingtime",
- "pk": 62
+ "pk": 15
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "18:20:00",
-  "exam": false,
-  "labtut_section": "LAB3",
-  "meeting_type": "LAB",
-  "offering": 4,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "15:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 63
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "12:20:00",
-  "exam": false,
-  "labtut_section": "LAB1",
-  "meeting_type": "LAB",
-  "offering": 5,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "09:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 64
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "15:20:00",
-  "exam": false,
-  "labtut_section": "LAB2",
-  "meeting_type": "LAB",
-  "offering": 5,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "12:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 65
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "18:20:00",
-  "exam": false,
-  "labtut_section": "LAB3",
-  "meeting_type": "LAB",
-  "offering": 5,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "15:30:00",
-  "weekday": 1
- },
- "model": "coredata.meetingtime",
- "pk": 66
-},
-{
- "fields": {
-  "end_day": "2015-08-10",
+  "end_day": "2019-08-02",
   "end_time": "14:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
-  "offering": 10,
-  "room": "AQ3182",
-  "start_day": "2015-05-11",
-  "start_time": "13:30:00",
-  "weekday": 2
+  "offering": 14,
+  "room": "ASB9838",
+  "start_day": "2019-05-06",
+  "start_time": "11:30:00",
+  "weekday": 1
  },
  "model": "coredata.meetingtime",
- "pk": 1
+ "pk": 16
 },
 {
  "fields": {
-  "end_day": "2015-08-12",
-  "end_time": "15:00:00",
+  "end_day": "2019-08-02",
+  "end_time": "17:20:00",
   "exam": false,
   "labtut_section": null,
-  "meeting_type": "EXAM",
-  "offering": 10,
-  "room": "",
-  "start_day": "2015-08-12",
-  "start_time": "12:00:00",
-  "weekday": 2
+  "meeting_type": "LEC",
+  "offering": 15,
+  "room": "ASB9838",
+  "start_day": "2019-05-06",
+  "start_time": "14:30:00",
+  "weekday": 1
  },
  "model": "coredata.meetingtime",
- "pk": 3
+ "pk": 17
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
+  "end_day": "2019-08-02",
+  "end_time": "13:20:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 16,
+  "room": "AQ3181",
+  "start_day": "2019-05-06",
+  "start_time": "11:30:00",
+  "weekday": 1
+ },
+ "model": "coredata.meetingtime",
+ "pk": 18
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "14:20:00",
+  "exam": false,
+  "labtut_section": "D201",
+  "meeting_type": "LAB",
+  "offering": 2,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "13:30:00",
+  "weekday": 1
+ },
+ "model": "coredata.meetingtime",
+ "pk": 36
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "15:20:00",
+  "exam": false,
+  "labtut_section": "D202",
+  "meeting_type": "LAB",
+  "offering": 2,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "14:30:00",
+  "weekday": 1
+ },
+ "model": "coredata.meetingtime",
+ "pk": 37
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "16:20:00",
+  "exam": false,
+  "labtut_section": "D203",
+  "meeting_type": "LAB",
+  "offering": 2,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "15:30:00",
+  "weekday": 1
+ },
+ "model": "coredata.meetingtime",
+ "pk": 38
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "17:20:00",
+  "exam": false,
+  "labtut_section": "D204",
+  "meeting_type": "LAB",
+  "offering": 2,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "16:30:00",
+  "weekday": 1
+ },
+ "model": "coredata.meetingtime",
+ "pk": 39
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "11:20:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 3,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "08:30:00",
+  "weekday": 1
+ },
+ "model": "coredata.meetingtime",
+ "pk": 48
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "14:20:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 4,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "11:30:00",
+  "weekday": 1
+ },
+ "model": "coredata.meetingtime",
+ "pk": 49
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "17:20:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 6,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "14:30:00",
+  "weekday": 1
+ },
+ "model": "coredata.meetingtime",
+ "pk": 50
+},
+{
+ "fields": {
+  "end_day": "2019-08-02",
+  "end_time": "10:20:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 12,
+  "room": "AQ3181",
+  "start_day": "2019-05-06",
+  "start_time": "09:30:00",
+  "weekday": 2
+ },
+ "model": "coredata.meetingtime",
+ "pk": 2
+},
+{
+ "fields": {
+  "end_day": "2019-08-02",
   "end_time": "11:20:00",
   "exam": false,
   "labtut_section": "D101",
   "meeting_type": "LAB",
-  "offering": 10,
+  "offering": 12,
   "room": "ASB9838",
-  "start_day": "2015-05-11",
+  "start_day": "2019-05-06",
   "start_time": "10:30:00",
   "weekday": 2
  },
@@ -1313,14 +2001,14 @@
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
+  "end_day": "2019-08-02",
   "end_time": "11:20:00",
   "exam": false,
   "labtut_section": "D102",
   "meeting_type": "LAB",
-  "offering": 10,
+  "offering": 12,
   "room": "ASB9838",
-  "start_day": "2015-05-11",
+  "start_day": "2019-05-06",
   "start_time": "10:30:00",
   "weekday": 2
  },
@@ -1329,14 +2017,14 @@
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
+  "end_day": "2019-08-02",
   "end_time": "12:20:00",
   "exam": false,
   "labtut_section": "D103",
   "meeting_type": "LAB",
-  "offering": 10,
+  "offering": 12,
   "room": "ASB9838",
-  "start_day": "2015-05-11",
+  "start_day": "2019-05-06",
   "start_time": "11:30:00",
   "weekday": 2
  },
@@ -1345,14 +2033,14 @@
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
+  "end_day": "2019-08-02",
   "end_time": "12:20:00",
   "exam": false,
   "labtut_section": "D104",
   "meeting_type": "LAB",
-  "offering": 10,
+  "offering": 12,
   "room": "ASB9838",
-  "start_day": "2015-05-11",
+  "start_day": "2019-05-06",
   "start_time": "11:30:00",
   "weekday": 2
  },
@@ -1361,14 +2049,14 @@
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
+  "end_day": "2019-08-02",
   "end_time": "13:20:00",
   "exam": false,
   "labtut_section": "D105",
   "meeting_type": "LAB",
-  "offering": 10,
+  "offering": 12,
   "room": "ASB9838",
-  "start_day": "2015-05-11",
+  "start_day": "2019-05-06",
   "start_time": "12:30:00",
   "weekday": 2
  },
@@ -1377,14 +2065,14 @@
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
+  "end_day": "2019-08-02",
   "end_time": "13:20:00",
   "exam": false,
   "labtut_section": "D106",
   "meeting_type": "LAB",
-  "offering": 10,
+  "offering": 12,
   "room": "ASB9838",
-  "start_day": "2015-05-11",
+  "start_day": "2019-05-06",
   "start_time": "12:30:00",
   "weekday": 2
  },
@@ -1393,15 +2081,15 @@
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "15:20:00",
+  "end_day": "2019-08-02",
+  "end_time": "14:20:00",
   "exam": false,
   "labtut_section": "D107",
   "meeting_type": "LAB",
-  "offering": 10,
+  "offering": 12,
   "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "14:30:00",
+  "start_day": "2019-05-06",
+  "start_time": "13:30:00",
   "weekday": 2
  },
  "model": "coredata.meetingtime",
@@ -1409,111 +2097,79 @@
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "16:20:00",
+  "end_day": "2019-08-02",
+  "end_time": "14:20:00",
+  "exam": false,
+  "labtut_section": "D108",
+  "meeting_type": "LAB",
+  "offering": 12,
+  "room": "ASB9838",
+  "start_day": "2019-05-06",
+  "start_time": "13:30:00",
+  "weekday": 2
+ },
+ "model": "coredata.meetingtime",
+ "pk": 11
+},
+{
+ "fields": {
+  "end_day": "2019-08-02",
+  "end_time": "10:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
   "offering": 11,
-  "room": "AQ3181",
-  "start_day": "2015-05-11",
-  "start_time": "15:30:00",
+  "room": "AQ3182",
+  "start_day": "2019-05-06",
+  "start_time": "09:30:00",
   "weekday": 2
  },
  "model": "coredata.meetingtime",
- "pk": 12
+ "pk": 13
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "15:20:00",
-  "exam": false,
-  "labtut_section": null,
-  "meeting_type": "LEC",
-  "offering": 12,
-  "room": "BLU9660",
-  "start_day": "2015-05-11",
-  "start_time": "14:30:00",
-  "weekday": 2
- },
- "model": "coredata.meetingtime",
- "pk": 16
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
+  "end_day": "2019-04-08",
   "end_time": "10:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
   "offering": 1,
-  "room": "C9002",
-  "start_day": "2015-01-06",
+  "room": "AQ3182",
+  "start_day": "2019-01-03",
   "start_time": "09:30:00",
   "weekday": 2
  },
  "model": "coredata.meetingtime",
- "pk": 34
+ "pk": 21
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "11:20:00",
+  "end_day": "2019-04-08",
+  "end_time": "13:20:00",
   "exam": false,
-  "labtut_section": "D101",
-  "meeting_type": "LAB",
-  "offering": 1,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "10:30:00",
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 2,
+  "room": "AQ3182",
+  "start_day": "2019-01-03",
+  "start_time": "12:30:00",
   "weekday": 2
  },
  "model": "coredata.meetingtime",
- "pk": 37
+ "pk": 33
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "11:20:00",
+  "end_day": "2019-04-08",
+  "end_time": "09:20:00",
   "exam": false,
-  "labtut_section": "D102",
+  "labtut_section": "D205",
   "meeting_type": "LAB",
-  "offering": 1,
+  "offering": 2,
   "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "10:30:00",
-  "weekday": 2
- },
- "model": "coredata.meetingtime",
- "pk": 38
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "12:20:00",
-  "exam": false,
-  "labtut_section": "D103",
-  "meeting_type": "LAB",
-  "offering": 1,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "11:30:00",
-  "weekday": 2
- },
- "model": "coredata.meetingtime",
- "pk": 39
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "12:20:00",
-  "exam": false,
-  "labtut_section": "D104",
-  "meeting_type": "LAB",
-  "offering": 1,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "11:30:00",
+  "start_day": "2019-01-03",
+  "start_time": "08:30:00",
   "weekday": 2
  },
  "model": "coredata.meetingtime",
@@ -1521,15 +2177,15 @@
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "13:20:00",
+  "end_day": "2019-04-08",
+  "end_time": "10:20:00",
   "exam": false,
-  "labtut_section": "D105",
+  "labtut_section": "D206",
   "meeting_type": "LAB",
-  "offering": 1,
+  "offering": 2,
   "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "12:30:00",
+  "start_day": "2019-01-03",
+  "start_time": "09:30:00",
   "weekday": 2
  },
  "model": "coredata.meetingtime",
@@ -1537,15 +2193,15 @@
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "13:20:00",
+  "end_day": "2019-04-08",
+  "end_time": "11:20:00",
   "exam": false,
-  "labtut_section": "D106",
+  "labtut_section": "D207",
   "meeting_type": "LAB",
-  "offering": 1,
+  "offering": 2,
   "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "12:30:00",
+  "start_day": "2019-01-03",
+  "start_time": "10:30:00",
   "weekday": 2
  },
  "model": "coredata.meetingtime",
@@ -1553,15 +2209,15 @@
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "14:20:00",
+  "end_day": "2019-04-08",
+  "end_time": "12:20:00",
   "exam": false,
-  "labtut_section": "D107",
+  "labtut_section": "D208",
   "meeting_type": "LAB",
-  "offering": 1,
+  "offering": 2,
   "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "13:30:00",
+  "start_day": "2019-01-03",
+  "start_time": "11:30:00",
   "weekday": 2
  },
  "model": "coredata.meetingtime",
@@ -1569,15 +2225,15 @@
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "14:20:00",
+  "end_day": "2019-04-08",
+  "end_time": "16:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
-  "offering": 2,
-  "room": "AQ3181",
-  "start_day": "2015-01-06",
-  "start_time": "13:30:00",
+  "offering": 5,
+  "room": "RCBIMAGTH",
+  "start_day": "2019-01-03",
+  "start_time": "15:30:00",
   "weekday": 2
  },
  "model": "coredata.meetingtime",
@@ -1585,14 +2241,14 @@
 },
 {
  "fields": {
-  "end_day": "2015-04-22",
+  "end_day": "2019-04-10",
   "end_time": "15:00:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "EXAM",
-  "offering": 2,
-  "room": "C9001",
-  "start_day": "2015-04-22",
+  "offering": 5,
+  "room": "",
+  "start_day": "2019-04-10",
   "start_time": "12:00:00",
   "weekday": 2
  },
@@ -1601,31 +2257,15 @@
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "15:20:00",
+  "end_day": "2019-04-08",
+  "end_time": "11:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
-  "offering": 6,
-  "room": "BLU9660",
-  "start_day": "2015-01-06",
-  "start_time": "14:30:00",
-  "weekday": 2
- },
- "model": "coredata.meetingtime",
- "pk": 49
-},
-{
- "fields": {
-  "end_day": "2015-04-15",
-  "end_time": "15:00:00",
-  "exam": false,
-  "labtut_section": null,
-  "meeting_type": "EXAM",
-  "offering": 6,
-  "room": "SWH10041",
-  "start_day": "2015-04-15",
-  "start_time": "12:00:00",
+  "offering": 7,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "08:30:00",
   "weekday": 2
  },
  "model": "coredata.meetingtime",
@@ -1633,111 +2273,143 @@
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
+  "end_day": "2019-04-08",
   "end_time": "14:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
-  "offering": 10,
-  "room": "AQ3182",
-  "start_day": "2015-05-11",
-  "start_time": "12:30:00",
-  "weekday": 4
+  "offering": 8,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "11:30:00",
+  "weekday": 2
  },
  "model": "coredata.meetingtime",
- "pk": 2
+ "pk": 52
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
+  "end_day": "2019-04-08",
   "end_time": "16:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
-  "offering": 11,
-  "room": "AQ3181",
-  "start_day": "2015-05-11",
+  "offering": 9,
+  "room": "AQ3005",
+  "start_day": "2019-01-03",
   "start_time": "15:30:00",
-  "weekday": 4
+  "weekday": 2
  },
  "model": "coredata.meetingtime",
- "pk": 13
+ "pk": 54
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
+  "end_day": "2019-04-10",
+  "end_time": "15:00:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "EXAM",
+  "offering": 9,
+  "room": "",
+  "start_day": "2019-04-10",
+  "start_time": "12:00:00",
+  "weekday": 2
+ },
+ "model": "coredata.meetingtime",
+ "pk": 56
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
   "end_time": "15:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
-  "offering": 12,
-  "room": "BLU9660",
-  "start_day": "2015-05-11",
+  "offering": 10,
+  "room": "AQ3181",
+  "start_day": "2019-01-03",
   "start_time": "14:30:00",
-  "weekday": 4
+  "weekday": 2
  },
  "model": "coredata.meetingtime",
- "pk": 17
+ "pk": 62
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "11:20:00",
+  "end_day": "2019-08-02",
+  "end_time": "12:20:00",
   "exam": false,
-  "labtut_section": "D101",
-  "meeting_type": "LAB",
-  "offering": 12,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "10:30:00",
-  "weekday": 4
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 16,
+  "room": "AQ3181",
+  "start_day": "2019-05-06",
+  "start_time": "11:30:00",
+  "weekday": 3
  },
  "model": "coredata.meetingtime",
  "pk": 19
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "12:20:00",
+  "end_day": "2019-04-18",
+  "end_time": "15:00:00",
   "exam": false,
-  "labtut_section": "D102",
-  "meeting_type": "LAB",
-  "offering": 12,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "11:30:00",
-  "weekday": 4
+  "labtut_section": null,
+  "meeting_type": "EXAM",
+  "offering": 10,
+  "room": "",
+  "start_day": "2019-04-18",
+  "start_time": "12:00:00",
+  "weekday": 3
  },
  "model": "coredata.meetingtime",
- "pk": 20
+ "pk": 64
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "13:20:00",
+  "end_day": "2019-08-02",
+  "end_time": "10:20:00",
   "exam": false,
-  "labtut_section": "D103",
-  "meeting_type": "LAB",
+  "labtut_section": null,
+  "meeting_type": "LEC",
   "offering": 12,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "12:30:00",
+  "room": "AQ3181",
+  "start_day": "2019-05-06",
+  "start_time": "09:30:00",
   "weekday": 4
  },
  "model": "coredata.meetingtime",
- "pk": 21
+ "pk": 3
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "14:20:00",
+  "end_day": "2019-08-02",
+  "end_time": "10:20:00",
   "exam": false,
-  "labtut_section": "D104",
-  "meeting_type": "LAB",
-  "offering": 12,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "13:30:00",
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 11,
+  "room": "AQ3182",
+  "start_day": "2019-05-06",
+  "start_time": "09:30:00",
+  "weekday": 4
+ },
+ "model": "coredata.meetingtime",
+ "pk": 14
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "10:20:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 1,
+  "room": "AQ3182",
+  "start_day": "2019-01-03",
+  "start_time": "09:30:00",
   "weekday": 4
  },
  "model": "coredata.meetingtime",
@@ -1745,47 +2417,31 @@
 },
 {
  "fields": {
-  "end_day": "2015-08-10",
-  "end_time": "16:20:00",
-  "exam": false,
-  "labtut_section": "D105",
-  "meeting_type": "LAB",
-  "offering": 12,
-  "room": "ASB9838",
-  "start_day": "2015-05-11",
-  "start_time": "15:30:00",
-  "weekday": 4
- },
- "model": "coredata.meetingtime",
- "pk": 23
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "10:20:00",
-  "exam": false,
-  "labtut_section": null,
-  "meeting_type": "LEC",
-  "offering": 1,
-  "room": "C9002",
-  "start_day": "2015-01-06",
-  "start_time": "09:30:00",
-  "weekday": 4
- },
- "model": "coredata.meetingtime",
- "pk": 35
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "14:20:00",
+  "end_day": "2019-04-08",
+  "end_time": "13:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
   "offering": 2,
-  "room": "AQ3181",
-  "start_day": "2015-01-06",
-  "start_time": "13:30:00",
+  "room": "AQ3182",
+  "start_day": "2019-01-03",
+  "start_time": "12:30:00",
+  "weekday": 4
+ },
+ "model": "coredata.meetingtime",
+ "pk": 34
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "16:20:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 5,
+  "room": "RCBIMAGTH",
+  "start_day": "2019-01-03",
+  "start_time": "15:30:00",
   "weekday": 4
  },
  "model": "coredata.meetingtime",
@@ -1793,79 +2449,15 @@
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "15:20:00",
+  "end_day": "2019-04-08",
+  "end_time": "16:20:00",
   "exam": false,
   "labtut_section": null,
   "meeting_type": "LEC",
-  "offering": 6,
-  "room": "K9500",
-  "start_day": "2015-01-06",
-  "start_time": "14:30:00",
-  "weekday": 4
- },
- "model": "coredata.meetingtime",
- "pk": 50
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "11:20:00",
-  "exam": false,
-  "labtut_section": "D101",
-  "meeting_type": "LAB",
-  "offering": 6,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "10:30:00",
-  "weekday": 4
- },
- "model": "coredata.meetingtime",
- "pk": 52
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "11:20:00",
-  "exam": false,
-  "labtut_section": "D102",
-  "meeting_type": "LAB",
-  "offering": 6,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "10:30:00",
-  "weekday": 4
- },
- "model": "coredata.meetingtime",
- "pk": 53
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "12:20:00",
-  "exam": false,
-  "labtut_section": "D103",
-  "meeting_type": "LAB",
-  "offering": 6,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "11:30:00",
-  "weekday": 4
- },
- "model": "coredata.meetingtime",
- "pk": 54
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "12:20:00",
-  "exam": false,
-  "labtut_section": "D104",
-  "meeting_type": "LAB",
-  "offering": 6,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "11:30:00",
+  "offering": 9,
+  "room": "AQ3005",
+  "start_day": "2019-01-03",
+  "start_time": "15:30:00",
   "weekday": 4
  },
  "model": "coredata.meetingtime",
@@ -1873,31 +2465,15 @@
 },
 {
  "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "13:20:00",
+  "end_day": "2019-04-08",
+  "end_time": "11:20:00",
   "exam": false,
-  "labtut_section": "D105",
+  "labtut_section": "D101",
   "meeting_type": "LAB",
-  "offering": 6,
+  "offering": 9,
   "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "12:30:00",
-  "weekday": 4
- },
- "model": "coredata.meetingtime",
- "pk": 56
-},
-{
- "fields": {
-  "end_day": "2015-04-13",
-  "end_time": "13:20:00",
-  "exam": false,
-  "labtut_section": "D106",
-  "meeting_type": "LAB",
-  "offering": 6,
-  "room": "ASB9838",
-  "start_day": "2015-01-06",
-  "start_time": "12:30:00",
+  "start_day": "2019-01-03",
+  "start_time": "10:30:00",
   "weekday": 4
  },
  "model": "coredata.meetingtime",
@@ -1905,35 +2481,67 @@
 },
 {
  "fields": {
-  "end_day": "2015-08-15",
-  "end_time": "11:30:00",
+  "end_day": "2019-04-08",
+  "end_time": "12:20:00",
   "exam": false,
-  "labtut_section": null,
-  "meeting_type": "EXAM",
-  "offering": 12,
-  "room": "",
-  "start_day": "2015-08-15",
-  "start_time": "08:30:00",
-  "weekday": 5
+  "labtut_section": "D102",
+  "meeting_type": "LAB",
+  "offering": 9,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "11:30:00",
+  "weekday": 4
  },
  "model": "coredata.meetingtime",
- "pk": 18
+ "pk": 58
 },
 {
  "fields": {
-  "end_day": "2015-04-25",
-  "end_time": "18:30:00",
+  "end_day": "2019-04-08",
+  "end_time": "13:20:00",
   "exam": false,
-  "labtut_section": null,
-  "meeting_type": "EXAM",
-  "offering": 1,
-  "room": "RBCIMAGTH",
-  "start_day": "2015-04-25",
-  "start_time": "15:30:00",
-  "weekday": 5
+  "labtut_section": "D103",
+  "meeting_type": "LAB",
+  "offering": 9,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "12:30:00",
+  "weekday": 4
  },
  "model": "coredata.meetingtime",
- "pk": 36
+ "pk": 59
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "15:20:00",
+  "exam": false,
+  "labtut_section": "D104",
+  "meeting_type": "LAB",
+  "offering": 9,
+  "room": "ASB9838",
+  "start_day": "2019-01-03",
+  "start_time": "14:30:00",
+  "weekday": 4
+ },
+ "model": "coredata.meetingtime",
+ "pk": 60
+},
+{
+ "fields": {
+  "end_day": "2019-04-08",
+  "end_time": "15:20:00",
+  "exam": false,
+  "labtut_section": null,
+  "meeting_type": "LEC",
+  "offering": 10,
+  "room": "AQ3181",
+  "start_day": "2019-01-03",
+  "start_time": "14:30:00",
+  "weekday": 4
+ },
+ "model": "coredata.meetingtime",
+ "pk": 63
 },
 {
  "fields": {
@@ -1942,13 +2550,13 @@
   "config": "{\"bu\":5}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 9,
+  "offering": 12,
   "official_grade": null,
-  "person": 21,
+  "person": 26,
   "role": "TA"
  },
  "model": "coredata.member",
- "pk": 20
+ "pk": 21
 },
 {
  "fields": {
@@ -1957,9 +2565,24 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 9,
+  "offering": 12,
   "official_grade": null,
-  "person": 42,
+  "person": 39,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 25
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 12,
+  "official_grade": null,
+  "person": 47,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -1972,9 +2595,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 9,
+  "offering": 12,
   "official_grade": null,
-  "person": 30,
+  "person": 45,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -1987,28 +2610,13 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 9,
+  "offering": 12,
   "official_grade": null,
-  "person": 14,
+  "person": 19,
   "role": "STUD"
  },
  "model": "coredata.member",
  "pk": 23
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 9,
-  "official_grade": null,
-  "person": 18,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 21
 },
 {
  "fields": {
@@ -2017,13 +2625,13 @@
   "config": "{\"bu\":5}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 7,
+  "offering": 11,
   "official_grade": null,
-  "person": 47,
+  "person": 46,
   "role": "TA"
  },
  "model": "coredata.member",
- "pk": 25
+ "pk": 26
 },
 {
  "fields": {
@@ -2032,39 +2640,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 7,
+  "offering": 11,
   "official_grade": null,
-  "person": 30,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 29
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 7,
-  "official_grade": null,
-  "person": 38,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 27
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 7,
-  "official_grade": null,
-  "person": 16,
+  "person": 41,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2077,13 +2655,43 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 7,
+  "offering": 11,
   "official_grade": null,
-  "person": 14,
+  "person": 31,
   "role": "STUD"
  },
  "model": "coredata.member",
- "pk": 26
+ "pk": 29
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 11,
+  "official_grade": null,
+  "person": 51,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 27
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 11,
+  "official_grade": null,
+  "person": 19,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 30
 },
 {
  "fields": {
@@ -2092,13 +2700,13 @@
   "config": "{\"bu\":5}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 8,
+  "offering": 13,
   "official_grade": null,
-  "person": 31,
+  "person": 36,
   "role": "TA"
  },
  "model": "coredata.member",
- "pk": 30
+ "pk": 31
 },
 {
  "fields": {
@@ -2107,39 +2715,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 8,
+  "offering": 13,
   "official_grade": null,
-  "person": 40,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 32
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 8,
-  "official_grade": null,
-  "person": 52,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 33
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 8,
-  "official_grade": null,
-  "person": 46,
+  "person": 37,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2152,25 +2730,25 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 8,
+  "offering": 13,
   "official_grade": null,
-  "person": 24,
+  "person": 23,
   "role": "STUD"
  },
  "model": "coredata.member",
- "pk": 31
+ "pk": 33
 },
 {
  "fields": {
-  "added_reason": "TAC",
-  "career": "NONS",
-  "config": "{\"bu\":5}",
-  "credits": 0,
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
   "labtut_section": null,
-  "offering": 10,
+  "offering": 13,
   "official_grade": null,
-  "person": 23,
-  "role": "TA"
+  "person": 31,
+  "role": "STUD"
  },
  "model": "coredata.member",
  "pk": 35
@@ -2182,13 +2760,28 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 10,
+  "offering": 13,
   "official_grade": null,
-  "person": 40,
+  "person": 43,
   "role": "STUD"
  },
  "model": "coredata.member",
- "pk": 38
+ "pk": 32
+},
+{
+ "fields": {
+  "added_reason": "TAC",
+  "career": "NONS",
+  "config": "{\"bu\":5}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 14,
+  "official_grade": null,
+  "person": 32,
+  "role": "TA"
+ },
+ "model": "coredata.member",
+ "pk": 36
 },
 {
  "fields": {
@@ -2197,9 +2790,24 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 10,
+  "offering": 14,
   "official_grade": null,
-  "person": 30,
+  "person": 15,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 40
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 14,
+  "official_grade": null,
+  "person": 23,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2212,9 +2820,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 10,
+  "offering": 14,
   "official_grade": null,
-  "person": 46,
+  "person": 35,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2227,13 +2835,13 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 10,
+  "offering": 14,
   "official_grade": null,
-  "person": 22,
+  "person": 13,
   "role": "STUD"
  },
  "model": "coredata.member",
- "pk": 36
+ "pk": 38
 },
 {
  "fields": {
@@ -2242,13 +2850,13 @@
   "config": "{\"bu\":5}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 11,
+  "offering": 15,
   "official_grade": null,
-  "person": 37,
+  "person": 40,
   "role": "TA"
  },
  "model": "coredata.member",
- "pk": 40
+ "pk": 41
 },
 {
  "fields": {
@@ -2257,24 +2865,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 11,
+  "offering": 15,
   "official_grade": null,
-  "person": 30,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 44
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 11,
-  "official_grade": null,
-  "person": 28,
+  "person": 25,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2287,40 +2880,10 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 11,
+  "offering": 15,
   "official_grade": null,
-  "person": 26,
+  "person": 27,
   "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 41
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 11,
-  "official_grade": null,
-  "person": 18,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 42
-},
-{
- "fields": {
-  "added_reason": "TAC",
-  "career": "NONS",
-  "config": "{\"bu\":5}",
-  "credits": 0,
-  "labtut_section": null,
-  "offering": 12,
-  "official_grade": null,
-  "person": 49,
-  "role": "TA"
  },
  "model": "coredata.member",
  "pk": 45
@@ -2332,9 +2895,54 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 12,
+  "offering": 15,
   "official_grade": null,
-  "person": 30,
+  "person": 21,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 42
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 15,
+  "official_grade": null,
+  "person": 19,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 44
+},
+{
+ "fields": {
+  "added_reason": "TAC",
+  "career": "NONS",
+  "config": "{\"bu\":5}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 16,
+  "official_grade": null,
+  "person": 38,
+  "role": "TA"
+ },
+ "model": "coredata.member",
+ "pk": 46
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 16,
+  "official_grade": null,
+  "person": 47,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2347,39 +2955,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 12,
+  "offering": 16,
   "official_grade": null,
-  "person": 34,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 46
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 12,
-  "official_grade": null,
-  "person": 20,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 47
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 12,
-  "official_grade": null,
-  "person": 48,
+  "person": 37,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2387,15 +2965,15 @@
 },
 {
  "fields": {
-  "added_reason": "TAC",
-  "career": "NONS",
-  "config": "{\"bu\":5}",
-  "credits": 0,
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
   "labtut_section": null,
-  "offering": 13,
+  "offering": 16,
   "official_grade": null,
-  "person": 41,
-  "role": "TA"
+  "person": 45,
+  "role": "STUD"
  },
  "model": "coredata.member",
  "pk": 50
@@ -2407,25 +2985,40 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 13,
+  "offering": 16,
   "official_grade": null,
-  "person": 28,
+  "person": 51,
   "role": "STUD"
  },
  "model": "coredata.member",
- "pk": 52
+ "pk": 47
 },
 {
  "fields": {
   "added_reason": "AUTO",
-  "career": "UGRD",
+  "career": "NONS",
   "config": "{}",
-  "credits": 3,
+  "credits": 0,
   "labtut_section": null,
-  "offering": 13,
+  "offering": 1,
   "official_grade": null,
-  "person": 44,
-  "role": "STUD"
+  "person": 14,
+  "role": "TA"
+ },
+ "model": "coredata.member",
+ "pk": 18
+},
+{
+ "fields": {
+  "added_reason": "TAC",
+  "career": "NONS",
+  "config": "{\"bu\":5}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 50,
+  "role": "TA"
  },
  "model": "coredata.member",
  "pk": 51
@@ -2437,9 +3030,24 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 13,
+  "offering": 1,
   "official_grade": null,
-  "person": 50,
+  "person": 25,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 57
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 39,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2452,25 +3060,25 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 13,
+  "offering": 1,
   "official_grade": null,
-  "person": 26,
+  "person": 15,
   "role": "STUD"
  },
  "model": "coredata.member",
- "pk": 54
+ "pk": 20
 },
 {
  "fields": {
-  "added_reason": "TAC",
-  "career": "NONS",
-  "config": "{\"bu\":5}",
-  "credits": 0,
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
   "labtut_section": null,
-  "offering": 14,
+  "offering": 1,
   "official_grade": null,
-  "person": 47,
-  "role": "TA"
+  "person": 17,
+  "role": "STUD"
  },
  "model": "coredata.member",
  "pk": 55
@@ -2482,9 +3090,24 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 14,
+  "offering": 1,
   "official_grade": null,
-  "person": 34,
+  "person": 45,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 54
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 21,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2497,10 +3120,40 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 14,
+  "offering": 1,
   "official_grade": null,
-  "person": 32,
+  "person": 35,
   "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 52
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 13,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 19
+},
+{
+ "fields": {
+  "added_reason": "TAC",
+  "career": "NONS",
+  "config": "{\"bu\":5}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 2,
+  "official_grade": null,
+  "person": 44,
+  "role": "TA"
  },
  "model": "coredata.member",
  "pk": 58
@@ -2512,9 +3165,39 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 14,
+  "offering": 2,
   "official_grade": null,
-  "person": 28,
+  "person": 25,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 60
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 2,
+  "official_grade": null,
+  "person": 35,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 61
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 2,
+  "official_grade": null,
+  "person": 13,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2527,13 +3210,13 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 14,
+  "offering": 2,
   "official_grade": null,
-  "person": 22,
+  "person": 19,
   "role": "STUD"
  },
  "model": "coredata.member",
- "pk": 57
+ "pk": 62
 },
 {
  "fields": {
@@ -2542,40 +3225,10 @@
   "config": "{\"bu\":5}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 15,
+  "offering": 5,
   "official_grade": null,
-  "person": 51,
+  "person": 18,
   "role": "TA"
- },
- "model": "coredata.member",
- "pk": 60
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 15,
-  "official_grade": null,
-  "person": 42,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 64
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 15,
-  "official_grade": null,
-  "person": 24,
-  "role": "STUD"
  },
  "model": "coredata.member",
  "pk": 63
@@ -2587,58 +3240,13 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 15,
-  "official_grade": null,
-  "person": 26,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 62
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 15,
-  "official_grade": null,
-  "person": 16,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 61
-},
-{
- "fields": {
-  "added_reason": "TAC",
-  "career": "NONS",
-  "config": "{\"bu\":5}",
-  "credits": 0,
-  "labtut_section": null,
-  "offering": 1,
-  "official_grade": null,
-  "person": 19,
-  "role": "TA"
- },
- "model": "coredata.member",
- "pk": 65
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "NONS",
-  "config": "{}",
-  "credits": 0,
-  "labtut_section": null,
-  "offering": 1,
+  "offering": 5,
   "official_grade": null,
   "person": 15,
-  "role": "TA"
+  "role": "STUD"
  },
  "model": "coredata.member",
- "pk": 17
+ "pk": 66
 },
 {
  "fields": {
@@ -2647,9 +3255,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 1,
+  "offering": 5,
   "official_grade": null,
-  "person": 42,
+  "person": 23,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2662,13 +3270,13 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 1,
+  "offering": 5,
   "official_grade": null,
-  "person": 40,
+  "person": 29,
   "role": "STUD"
  },
  "model": "coredata.member",
- "pk": 66
+ "pk": 65
 },
 {
  "fields": {
@@ -2677,13 +3285,28 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 1,
+  "offering": 5,
   "official_grade": null,
-  "person": 52,
+  "person": 43,
   "role": "STUD"
  },
  "model": "coredata.member",
- "pk": 70
+ "pk": 64
+},
+{
+ "fields": {
+  "added_reason": "TAC",
+  "career": "NONS",
+  "config": "{\"bu\":5}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 3,
+  "official_grade": null,
+  "person": 26,
+  "role": "TA"
+ },
+ "model": "coredata.member",
+ "pk": 68
 },
 {
  "fields": {
@@ -2692,9 +3315,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 1,
+  "offering": 3,
   "official_grade": null,
-  "person": 20,
+  "person": 15,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2707,9 +3330,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 1,
+  "offering": 3,
   "official_grade": null,
-  "person": 28,
+  "person": 37,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2722,58 +3345,28 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 1,
+  "offering": 3,
   "official_grade": null,
-  "person": 26,
+  "person": 21,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 70
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 3,
+  "official_grade": null,
+  "person": 35,
   "role": "STUD"
  },
  "model": "coredata.member",
  "pk": 71
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 1,
-  "official_grade": null,
-  "person": 16,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 19
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 1,
-  "official_grade": null,
-  "person": 14,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 18
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 1,
-  "official_grade": null,
-  "person": 18,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 68
 },
 {
  "fields": {
@@ -2782,9 +3375,9 @@
   "config": "{\"bu\":5}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 2,
+  "offering": 4,
   "official_grade": null,
-  "person": 33,
+  "person": 20,
   "role": "TA"
  },
  "model": "coredata.member",
@@ -2797,39 +3390,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 2,
+  "offering": 4,
   "official_grade": null,
-  "person": 30,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 76
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 2,
-  "official_grade": null,
-  "person": 34,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 74
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 2,
-  "official_grade": null,
-  "person": 16,
+  "person": 29,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2842,13 +3405,43 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 2,
+  "offering": 4,
   "official_grade": null,
-  "person": 36,
+  "person": 43,
   "role": "STUD"
  },
  "model": "coredata.member",
  "pk": 75
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 4,
+  "official_grade": null,
+  "person": 21,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 76
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 4,
+  "official_grade": null,
+  "person": 13,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 74
 },
 {
  "fields": {
@@ -2859,7 +3452,7 @@
   "labtut_section": null,
   "offering": 6,
   "official_grade": null,
-  "person": 35,
+  "person": 42,
   "role": "TA"
  },
  "model": "coredata.member",
@@ -2874,7 +3467,7 @@
   "labtut_section": null,
   "offering": 6,
   "official_grade": null,
-  "person": 40,
+  "person": 27,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2889,22 +3482,7 @@
   "labtut_section": null,
   "offering": 6,
   "official_grade": null,
-  "person": 46,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 80
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 6,
-  "official_grade": null,
-  "person": 34,
+  "person": 47,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2919,7 +3497,22 @@
   "labtut_section": null,
   "offering": 6,
   "official_grade": null,
-  "person": 26,
+  "person": 43,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 80
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 6,
+  "official_grade": null,
+  "person": 19,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2932,9 +3525,9 @@
   "config": "{\"bu\":5}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 3,
+  "offering": 7,
   "official_grade": null,
-  "person": 27,
+  "person": 52,
   "role": "TA"
  },
  "model": "coredata.member",
@@ -2947,39 +3540,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 3,
+  "offering": 7,
   "official_grade": null,
-  "person": 34,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 86
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 3,
-  "official_grade": null,
-  "person": 28,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 85
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 3,
-  "official_grade": null,
-  "person": 22,
+  "person": 25,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -2992,9 +3555,39 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 3,
+  "offering": 7,
   "official_grade": null,
-  "person": 18,
+  "person": 17,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 85
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 7,
+  "official_grade": null,
+  "person": 21,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 86
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 7,
+  "official_grade": null,
+  "person": 35,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -3007,9 +3600,9 @@
   "config": "{\"bu\":5}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 4,
+  "offering": 8,
   "official_grade": null,
-  "person": 51,
+  "person": 24,
   "role": "TA"
  },
  "model": "coredata.member",
@@ -3022,39 +3615,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 4,
+  "offering": 8,
   "official_grade": null,
-  "person": 42,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 89
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 4,
-  "official_grade": null,
-  "person": 40,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 92
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 4,
-  "official_grade": null,
-  "person": 26,
+  "person": 41,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -3067,13 +3630,43 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 4,
+  "offering": 8,
   "official_grade": null,
-  "person": 48,
+  "person": 31,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 92
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 8,
+  "official_grade": null,
+  "person": 33,
   "role": "STUD"
  },
  "model": "coredata.member",
  "pk": 91
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 8,
+  "official_grade": null,
+  "person": 21,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 89
 },
 {
  "fields": {
@@ -3082,9 +3675,9 @@
   "config": "{\"bu\":5}",
   "credits": 0,
   "labtut_section": null,
-  "offering": 5,
+  "offering": 9,
   "official_grade": null,
-  "person": 49,
+  "person": 44,
   "role": "TA"
  },
  "model": "coredata.member",
@@ -3097,39 +3690,9 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 5,
+  "offering": 9,
   "official_grade": null,
-  "person": 20,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 95
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 5,
-  "official_grade": null,
-  "person": 38,
-  "role": "STUD"
- },
- "model": "coredata.member",
- "pk": 97
-},
-{
- "fields": {
-  "added_reason": "AUTO",
-  "career": "UGRD",
-  "config": "{}",
-  "credits": 3,
-  "labtut_section": null,
-  "offering": 5,
-  "official_grade": null,
-  "person": 50,
+  "person": 27,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -3142,9 +3705,24 @@
   "config": "{}",
   "credits": 3,
   "labtut_section": null,
-  "offering": 5,
+  "offering": 9,
   "official_grade": null,
-  "person": 14,
+  "person": 41,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 97
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 9,
+  "official_grade": null,
+  "person": 21,
   "role": "STUD"
  },
  "model": "coredata.member",
@@ -3152,13 +3730,103 @@
 },
 {
  "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 9,
+  "official_grade": null,
+  "person": 35,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 95
+},
+{
+ "fields": {
+  "added_reason": "TAC",
+  "career": "NONS",
+  "config": "{\"bu\":5}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 10,
+  "official_grade": null,
+  "person": 48,
+  "role": "TA"
+ },
+ "model": "coredata.member",
+ "pk": 98
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 10,
+  "official_grade": null,
+  "person": 39,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 99
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 10,
+  "official_grade": null,
+  "person": 47,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 101
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 10,
+  "official_grade": null,
+  "person": 17,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 100
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 10,
+  "official_grade": null,
+  "person": 21,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 102
+},
+{
+ "fields": {
   "config": "{}",
   "deleted": false,
-  "due_date": "2015-03-07T00:00:00",
+  "due_date": "2019-03-04T00:00:00",
   "group": false,
-  "name": "Assignment 1",
+  "name": "Assignmen\u021b 1",
   "offering": 1,
-  "percent": "10",
+  "percent": "10.00",
   "position": 1,
   "short_name": "A1",
   "slug": "a1",
@@ -3171,11 +3839,11 @@
  "fields": {
   "config": "{\"url\":\"http://www.cs.sfu.ca/CC/165/common/a2\"}",
   "deleted": false,
-  "due_date": "2015-03-17T00:00:00",
+  "due_date": "2019-03-14T00:00:00",
   "group": true,
   "name": "Assignment 2",
   "offering": 1,
-  "percent": "10",
+  "percent": "10.00",
   "position": 2,
   "short_name": "A2",
   "slug": "a2",
@@ -3188,11 +3856,11 @@
  "fields": {
   "config": "{}",
   "deleted": false,
-  "due_date": "2015-03-27T00:00:00",
+  "due_date": "2019-03-24T00:00:00",
   "group": true,
   "name": "Project",
   "offering": 1,
-  "percent": "40",
+  "percent": "40.00",
   "position": 3,
   "short_name": "Proj",
   "slug": "proj",
@@ -3205,11 +3873,11 @@
  "fields": {
   "config": "{}",
   "deleted": false,
-  "due_date": "2015-03-28T00:00:00",
+  "due_date": "2019-03-25T00:00:00",
   "group": false,
   "name": "Report",
   "offering": 1,
-  "percent": "10",
+  "percent": "10.00",
   "position": 4,
   "short_name": "Rep",
   "slug": "rep",
@@ -3226,7 +3894,7 @@
   "group": false,
   "name": "Final Exam",
   "offering": 1,
-  "percent": "30",
+  "percent": "30.00",
   "position": 5,
   "short_name": "Exam",
   "slug": "exam",
@@ -3243,7 +3911,7 @@
   "group": false,
   "name": "Final Percent",
   "offering": 1,
-  "percent": "0",
+  "percent": "0.00",
   "position": 6,
   "short_name": "Perc",
   "slug": "perc",
@@ -3260,7 +3928,7 @@
   "group": false,
   "name": "Letter Grade",
   "offering": 1,
-  "percent": "0",
+  "percent": "0.00",
   "position": 6,
   "short_name": "Letter",
   "slug": "letter",
@@ -3271,28 +3939,28 @@
 },
 {
  "fields": {
-  "max_grade": "10"
+  "max_grade": "10.00"
  },
  "model": "grades.numericactivity",
  "pk": 1
 },
 {
  "fields": {
-  "max_grade": "20"
+  "max_grade": "20.00"
  },
  "model": "grades.numericactivity",
  "pk": 2
 },
 {
  "fields": {
-  "max_grade": "90"
+  "max_grade": "90.00"
  },
  "model": "grades.numericactivity",
  "pk": 5
 },
 {
  "fields": {
-  "max_grade": "100"
+  "max_grade": "100.00"
  },
  "model": "grades.numericactivity",
  "pk": 6
@@ -3336,7 +4004,7 @@
   "position": 1,
   "slug": "code-file",
   "specified_filename": "",
-  "title": "Code File"
+  "title": "C\u00f6de File"
  },
  "model": "submission.submissioncomponent",
  "pk": 1
@@ -3373,7 +4041,7 @@
  "fields": {
   "courseoffering": 1,
   "groupForSemester": true,
-  "manager": 68,
+  "manager": 20,
   "name": "AnotherGroup",
   "slug": "g-anothergroup",
   "svn_slug": "g-anothergroup"
@@ -3385,7 +4053,7 @@
  "fields": {
   "courseoffering": 1,
   "groupForSemester": true,
-  "manager": 72,
+  "manager": 19,
   "name": "SomeGroup",
   "slug": "g-somegroup",
   "svn_slug": "g-somegroup"
@@ -3397,58 +4065,8 @@
  "fields": {
   "activity": 2,
   "confirmed": true,
-  "group": 2,
-  "student": 70
- },
- "model": "groups.groupmember",
- "pk": 5
-},
-{
- "fields": {
-  "activity": 3,
-  "confirmed": true,
-  "group": 2,
-  "student": 70
- },
- "model": "groups.groupmember",
- "pk": 6
-},
-{
- "fields": {
-  "activity": 2,
-  "confirmed": true,
   "group": 1,
-  "student": 72
- },
- "model": "groups.groupmember",
- "pk": 1
-},
-{
- "fields": {
-  "activity": 2,
-  "confirmed": true,
-  "group": 2,
-  "student": 19
- },
- "model": "groups.groupmember",
- "pk": 7
-},
-{
- "fields": {
-  "activity": 3,
-  "confirmed": true,
-  "group": 2,
-  "student": 19
- },
- "model": "groups.groupmember",
- "pk": 8
-},
-{
- "fields": {
-  "activity": 2,
-  "confirmed": true,
-  "group": 1,
-  "student": 18
+  "student": 57
  },
  "model": "groups.groupmember",
  "pk": 2
@@ -3458,7 +4076,27 @@
   "activity": 2,
   "confirmed": true,
   "group": 2,
-  "student": 68
+  "student": 53
+ },
+ "model": "groups.groupmember",
+ "pk": 5
+},
+{
+ "fields": {
+  "activity": 3,
+  "confirmed": true,
+  "group": 2,
+  "student": 53
+ },
+ "model": "groups.groupmember",
+ "pk": 6
+},
+{
+ "fields": {
+  "activity": 2,
+  "confirmed": true,
+  "group": 2,
+  "student": 20
  },
  "model": "groups.groupmember",
  "pk": 3
@@ -3468,20 +4106,50 @@
   "activity": 3,
   "confirmed": true,
   "group": 2,
-  "student": 68
+  "student": 20
  },
  "model": "groups.groupmember",
  "pk": 4
 },
 {
  "fields": {
+  "activity": 2,
+  "confirmed": true,
+  "group": 2,
+  "student": 55
+ },
+ "model": "groups.groupmember",
+ "pk": 7
+},
+{
+ "fields": {
+  "activity": 3,
+  "confirmed": true,
+  "group": 2,
+  "student": 55
+ },
+ "model": "groups.groupmember",
+ "pk": 8
+},
+{
+ "fields": {
+  "activity": 2,
+  "confirmed": true,
+  "group": 1,
+  "student": 19
+ },
+ "model": "groups.groupmember",
+ "pk": 1
+},
+{
+ "fields": {
   "deleted": false,
-  "description": "Part 1 was done well and seems to work.",
-  "max_mark": "5",
+  "description": "Part \u2780 was done well and seems to work.",
+  "max_mark": "5.00",
   "numeric_activity": 1,
   "position": 1,
-  "slug": "part-1",
-  "title": "Part 1"
+  "slug": "part",
+  "title": "Part \u2780"
  },
  "model": "marking.activitycomponent",
  "pk": 1
@@ -3490,7 +4158,7 @@
  "fields": {
   "deleted": false,
   "description": "Part 2 was done well and seems to work.",
-  "max_mark": "5",
+  "max_mark": "5.00",
   "numeric_activity": 1,
   "position": 2,
   "slug": "part-2",

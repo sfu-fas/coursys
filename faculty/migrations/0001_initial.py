@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import faculty.event_types.awards
@@ -36,8 +36,8 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(default=b'', max_length=2, choices=[(b'NA', b'Needs Approval'), (b'A', b'Approved'), (b'D', b'Deleted')])),
                 ('import_key', models.TextField(null=True, blank=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('person', models.ForeignKey(related_name='career_events', to='coredata.Person')),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('person', models.ForeignKey(related_name='career_events', to='coredata.Person', on_delete=models.CASCADE)),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('-start_date', '-end_date', 'event_type'),
@@ -53,8 +53,8 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('contents', models.FileField(storage=django.core.files.storage.FileSystemStorage(base_url=None, location=b'submitted_files'), max_length=500, upload_to=faculty.models.attachment_upload_to)),
                 ('mediatype', models.CharField(max_length=200, null=True, editable=False, blank=True)),
-                ('career_event', models.ForeignKey(related_name='attachments', to='faculty.CareerEvent')),
-                ('created_by', models.ForeignKey(help_text=b'Document attachment created by.', to='coredata.Person')),
+                ('career_event', models.ForeignKey(related_name='attachments', to='faculty.CareerEvent', on_delete=models.CASCADE)),
+                ('created_by', models.ForeignKey(help_text=b'Document attachment created by.', to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('created_at',),
@@ -67,7 +67,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('event_type', models.CharField(max_length=10, choices=[(b'ADMINPOS', faculty.event_types.position.AdminPositionEventHandler), (b'APPOINT', faculty.event_types.career.AppointmentEventHandler), (b'AWARD', faculty.event_types.awards.AwardEventHandler), (b'COMMITTEE', faculty.event_types.info.CommitteeMemberHandler), (b'EXTERN_AFF', faculty.event_types.info.ExternalAffiliationHandler), (b'EXTSERVICE', faculty.event_types.info.ExternalServiceHandler), (b'FELLOW', faculty.event_types.awards.FellowshipEventHandler), (b'GRANTAPP', faculty.event_types.awards.GrantApplicationEventHandler), (b'NORM_TEACH', faculty.event_types.teaching.NormalTeachingLoadHandler), (b'LEAVE', faculty.event_types.career.OnLeaveEventHandler), (b'ONE_NINE', faculty.event_types.teaching.OneInNineHandler), (b'OTHER_NOTE', faculty.event_types.info.OtherEventHandler), (b'LABMEMB', faculty.event_types.info.ResearchMembershipHandler), (b'SALARY', faculty.event_types.career.SalaryBaseEventHandler), (b'STIPEND', faculty.event_types.career.SalaryModificationEventHandler), (b'SPCL_DEAL', faculty.event_types.info.SpecialDealHandler), (b'STUDYLEAVE', faculty.event_types.career.StudyLeaveEventHandler), (b'TEACHING', faculty.event_types.awards.TeachingCreditEventHandler), (b'TENUREAPP', faculty.event_types.career.TenureApplicationEventHandler), (b'ACCRED', faculty.event_types.career.AccreditationFlagEventHandler), (b'PROMOTION', faculty.event_types.career.PromotionApplicationEventHandler), (b'SALARYREV', faculty.event_types.career.SalaryReviewEventHandler), (b'CONTRACTRV', faculty.event_types.career.ContractReviewEventHandler)])),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -84,7 +84,7 @@ class Migration(migrations.Migration):
                 ('emergency_contact', models.TextField(verbose_name=b'Emergency Contact Information', blank=True)),
                 ('config', courselib.json_fields.JSONField(default={}, null=True, blank=True)),
                 ('last_updated', models.DateTimeField(auto_now=True)),
-                ('person', models.ForeignKey(related_name='+', to='coredata.Person', unique=True)),
+                ('person', models.ForeignKey(related_name='+', to='coredata.Person', unique=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -120,7 +120,7 @@ class Migration(migrations.Migration):
                 ('actual', models.DecimalField(verbose_name=b'YTD actual', max_digits=12, decimal_places=2)),
                 ('month', models.DecimalField(verbose_name=b'current month', max_digits=12, decimal_places=2)),
                 ('config', courselib.json_fields.JSONField(default={}, null=True, blank=True)),
-                ('grant', models.ForeignKey(to='faculty.Grant')),
+                ('grant', models.ForeignKey(to='faculty.Grant', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['date'],
@@ -132,8 +132,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('config', courselib.json_fields.JSONField(default={}, null=True, blank=True)),
-                ('grant', models.ForeignKey(to='faculty.Grant')),
-                ('person', models.ForeignKey(to='coredata.Person')),
+                ('grant', models.ForeignKey(to='faculty.Grant', on_delete=models.CASCADE)),
+                ('person', models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -153,9 +153,9 @@ class Migration(migrations.Migration):
                 ('hidden', models.BooleanField(default=False)),
                 ('config', courselib.json_fields.JSONField(default={})),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
-                ('career_event', models.ForeignKey(to='faculty.CareerEvent')),
-                ('created_by', models.ForeignKey(related_name='+', to='coredata.Person', help_text=b'Letter generation requested by.')),
-                ('from_person', models.ForeignKey(related_name='+', to='coredata.Person', null=True)),
+                ('career_event', models.ForeignKey(to='faculty.CareerEvent', on_delete=models.CASCADE)),
+                ('created_by', models.ForeignKey(related_name='+', to='coredata.Person', help_text=b'Letter generation requested by.', on_delete=models.CASCADE)),
+                ('from_person', models.ForeignKey(related_name='+', to='coredata.Person', null=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -173,8 +173,8 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('hidden', models.BooleanField(default=False)),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
-                ('created_by', models.ForeignKey(related_name='+', to='coredata.Person', help_text=b'Memo template created by.')),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('created_by', models.ForeignKey(related_name='+', to='coredata.Person', help_text=b'Memo template created by.', on_delete=models.CASCADE)),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -190,7 +190,7 @@ class Migration(migrations.Migration):
                 ('import_key', models.CharField(help_text=b"e.g. 'nserc-43517b4fd422423382baab1e916e7f63'", max_length=255, null=True, blank=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('creator', models.ForeignKey(blank=True, to='coredata.Person', null=True)),
+                ('creator', models.ForeignKey(blank=True, to='coredata.Person', null=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -207,13 +207,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='memo',
             name='template',
-            field=models.ForeignKey(to='faculty.MemoTemplate', null=True),
+            field=models.ForeignKey(to='faculty.MemoTemplate', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='memo',
             name='unit',
-            field=models.ForeignKey(help_text=b'The unit producing the memo: will determine the letterhead used for the memo.', to='coredata.Unit'),
+            field=models.ForeignKey(help_text=b'The unit producing the memo: will determine the letterhead used for the memo.', to='coredata.Unit', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -225,7 +225,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='grant',
             name='unit',
-            field=models.ForeignKey(help_text=b'Unit who owns the grant', to='coredata.Unit'),
+            field=models.ForeignKey(help_text=b'Unit who owns the grant', to='coredata.Unit', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(

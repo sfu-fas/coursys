@@ -1,11 +1,10 @@
-language: python
-python:
-  - "2.7"
 notifications:
     email:
-      - courseman-project@sfu.ca
-install: "pip install -r build_deps/working_deps.txt"
-script: "python manage.py test"
-branches:
-  except:
-    - django17
+      - coursys-help@sfu.ca
+cache: pip
+sudo: required
+services:
+  - docker
+install:
+  - docker pull ggbaker/coursys-test-py3
+script: "docker run ggbaker/coursys-test-py3"

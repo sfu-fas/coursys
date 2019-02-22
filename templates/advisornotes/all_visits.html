@@ -3,7 +3,7 @@
 {% block h1 %}All Visits{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(function() {
   $('.display').dataTable( {
     'bPaginate': false,
@@ -18,7 +18,7 @@ $(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
 <li>All Visits</li>
 {% endblock %}
 

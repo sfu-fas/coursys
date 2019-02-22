@@ -1,31 +1,24 @@
 import copy
 
+
 # tool to create convenient getters and setters for .config fields
 def getter_setter(field):
     def getter(self):
         return self.config[field] if field in self.config else copy.copy(self.defaults[field])
+
     def setter(self, val):
         self.config[field] = val
     return getter, setter
 
-# for nested config fields
-def getter_setter_2(field, subfield):
-    def getter(self):
-        return (self.config[field][subfield] 
-                if field in self.config 
-                else copy.copy(self.defaults[field][subfield]))
-    def setter(self, val):
-        self.config[field][subfield] = val
-    return getter, setter
 
 # better version of getter_setter
 def config_property(field, default):
     def getter(self):
         return self.config[field] if field in self.config else copy.copy(default)
+
     def setter(self, val):
         self.config[field] = val
     return property(getter, setter)
-
 
 
 from jsonfield.fields import JSONField as JSONFieldOriginal
@@ -40,7 +33,7 @@ class JSONField(JSONFieldOriginal):
             return {}
         res = super(JSONField, self).pre_init(value, obj)
         # hack around https://github.com/bradjasper/django-jsonfield/issues/106 until fixed properly
-        if isinstance(res, basestring):
+        if isinstance(res, str):
             return json.loads(res)
         return res
 

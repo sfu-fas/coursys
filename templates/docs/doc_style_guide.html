@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 
-{% block title %}CourSys: Style Guide{% endblock %}
-{% block h1 %}CourSys: Style Guide{% endblock %}
+{% block title %}Style Guide{% endblock %}
+{% block h1 %}Style Guide{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shCore.js"></script>
@@ -11,7 +11,7 @@
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushDjango.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushXml.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushJScript.js"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     SyntaxHighlighter.defaults['light'] = true;
     SyntaxHighlighter.all()
 </script>
@@ -20,7 +20,7 @@
 <link href="{{STATIC_URL}}style/styleguide.css" rel="stylesheet" type="text/css" />
 {% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "dashboard.views.list_docs" %}">Docs</a></li><li>Style Guide</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "docs:list_docs" %}">Docs</a></li><li>Style Guide</li>{% endblock %}
 
 
 {% block actions %}
@@ -83,10 +83,10 @@
 	<div id="actions">
 	    <h2>Actions</h2>
 	    <ul class="fa-ul">
-	    <li><a href="{% url "dashboard.views.news_list" %}"><i class="fa fa-li fa-envelope"></i> All News Items</a></li>
-	    <li><a href="{% url "dashboard.views.config" %}"><i class="fa fa-li fa-wrench"></i> User Configuration</a></li>
-	    <li><a href="{% url "dashboard.views.calendar" %}"><i class="fa fa-li fa-calendar"></i> View Calendar</a></li>
-	    <li><a href="{% url "coredata.views.browse_courses" %}"><i class="fa fa-li fa-eye"></i> Browse Course Offerings</a></li>
+	    <li><a href="{% url "news:news_list" %}"><i class="fa fa-li fa-envelope"></i> All News Items</a></li>
+	    <li><a href="{% url "config:config" %}"><i class="fa fa-li fa-wrench"></i> User Configuration</a></li>
+	    <li><a href="{% url "calendar:calendar" %}"><i class="fa fa-li fa-calendar"></i> View Calendar</a></li>
+	    <li><a href="{% url "browse:browse_courses" %}"><i class="fa fa-li fa-eye"></i> Browse Course Offerings</a></li>
 	</div>
 	{% templatetag openblock %} endblock {% templatetag closeblock %}
 </pre>
@@ -139,7 +139,7 @@
 <p> To enable different features, javascript needs to be added to the <code>headextra</code> block. It is preferable to keep all javascript in a separate file especially if the script can be reused. Below is an example of a script for datatables:</p>
 <pre class="brush: django">
 {% templatetag openblock %} block headextra {% templatetag closeblock %} 
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 	$(document).ready(function() {
 	  $('#members').dataTable( {
 	    'bPaginate': false,
@@ -189,7 +189,7 @@
 		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushDjango.js"></script>
 		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushXml.js"></script>
 		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushJScript.js"></script>
-		<script type="text/javascript">
+		<script nonce="{{ CSP_NONCE }}">
 		    SyntaxHighlighter.defaults['light'] = true;
 		    SyntaxHighlighter.all()
 		</script>
@@ -271,15 +271,15 @@ The units where the use has the role should me used to show them only the data t
            return make_slug(self.unit.label + '-' + self.name)
        
        slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
-       unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False)
-       config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+       unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False, on_delete=models.PROTECT)
+       config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 </pre>
 <p>Here we're automatically making a slug out of the Artifact's unit (CMPT) and name - "cmpt-thingamajigger".</p>
 
 <h3 id="config">Configuration Fields</h3>
 <p>When building models that may change in the future (pro-tip: this is most models) we often include an empty JSON field in the model.</p>
 <pre class="brush: python">
-	config = JSONField(null=False, blank=False, default={})
+	config = JSONField(null=False, blank=False, default=dict)
 </pre>
 <p>When working with the config field, it's considered polite to include any fields that we might be storing in the config field as a comment.</p>
 <pre class="brush: python">
@@ -341,7 +341,6 @@ The following sections describe legacy code that should be either removed or mod
 	<li><code>datatable_container</code></li>
 	<li><code>semesters-container</code></li>
 	<li><code>submission_error_container</code></li>
-	<li><code>submission_history_view_container</code></li>
 </ul>
 <h3 id="legacy_forms">Forms</h3>
 <p>All forms using <code>as_dl_onlineforms</code> should be changed to <code>as_dl</code> because they output the same thing. Any form not using some variation of as_dl as listed in the form section should be changed to as_dl.</p>

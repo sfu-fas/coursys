@@ -4,13 +4,13 @@
 {% block h1 %}{% if newsem %}New{% else %}Edit{% endif %} Semester{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
-<li><a href="{% url "coredata.views.semester_list" %}">Semesters</a></li>
+<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
+<li><a href="{% url "sysadmin:semester_list" %}">Semesters</a></li>
 <li>{% if newsem %}New{% else %}Edit {{ semester.name }}{% endif %}</li>
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
   $(document).ready(function() {
     $("#id_sem-start").datepicker({ changeMonth: true, changeYear: true, dateFormat: 'yy-mm-dd' });
@@ -54,7 +54,7 @@
     {% endfor %}
   </tr></thead>
   {% endif %}
-  <tr class="{% cycle row1,row2 %}">
+  <tr>
   {% for field in form.visible_fields %}
     <td>
     {# Include the hidden fields in the form #}
@@ -85,7 +85,7 @@
     {% endfor %}
   </tr></thead>
   {% endif %}
-  <tr class="{% cycle row1,row2 %}">
+  <tr>
   {% for field in form.visible_fields %}
     <td>
     {# Include the hidden fields in the form #}

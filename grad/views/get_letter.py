@@ -1,22 +1,28 @@
-from courselib.auth import requires_role
+from courselib.auth import ForbiddenResponse
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from grad.models import Letter
 from django.http import HttpResponse
 from dashboard.letters import OfficialLetter, LetterContents
+from grad.views.view import _can_view_student
 
-@requires_role("GRAD", get_only=["GRPD"])
+@login_required
 def get_letter(request, grad_slug, letter_slug):
-    letter = get_object_or_404(Letter, slug=letter_slug, student__slug=grad_slug, student__program__unit__in=request.units)
+    grad, authtype, units = _can_view_student(request, grad_slug)
+    if grad is None or authtype == 'student':
+        return ForbiddenResponse(request)
+    letter = get_object_or_404(Letter, slug=letter_slug, student=grad, student__program__unit__in=units)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (letter_slug)
 
     doc = OfficialLetter(response, unit=letter.student.program.unit)
     l = LetterContents(to_addr_lines=letter.to_lines.split("\n"), 
-                        from_name_lines=letter.from_lines.split("\n"), 
-                        date=letter.date, 
-                        closing=letter.closing, 
-                        signer=letter.from_person,
-                        use_sig=letter.use_sig())
+                       from_name_lines=letter.from_lines.split("\n"),
+                       date=letter.date,
+                       closing=letter.closing,
+                       signer=letter.from_person,
+                       use_sig=letter.use_sig(),
+                       body_font_size=letter.template.body_font_size())
     content_lines = letter.content.split("\n\n")
     l.add_paragraphs(content_lines)
     doc.add_letter(l)

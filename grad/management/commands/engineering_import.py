@@ -12,14 +12,14 @@ from coredata.models import Person, Unit, Role, Semester
 from grad.models import *
 from grad.importer import create_or_update_student
 
-from new_grad_students import get_mother_tongue, get_passport_issued_by, holds_resident_visa 
+from .new_grad_students import get_mother_tongue, get_passport_issued_by, holds_resident_visa 
 
 import coredata.queries
 from django.db import transaction
 
 import datetime
 import os
-from cleaner.table import Table
+from .cleaner.table import Table
 
 from optparse import make_option
 
@@ -55,7 +55,7 @@ class Command(BaseCommand):
         unit = Unit.objects.get(label=options['unit'])
 
         if not os.path.exists( input_file ):
-            print input_file, " is not a valid file path. Please provide an --input x.csv argument."
+            print(input_file, " is not a valid file path. Please provide an --input x.csv argument.")
             exit()
 
         table = Table.from_csv( input_file )
@@ -88,7 +88,7 @@ class Command(BaseCommand):
             # Person
             student_number = row['SFU ID']
             if student_number == "" or student_number == UNPARSEABLE:
-                print row["FIRST NAME"] + " " + row["SURNAME"] + " doesn't have a student number and will not be imported." 
+                print(row["FIRST NAME"] + " " + row["SURNAME"] + " doesn't have a student number and will not be imported.") 
                 continue
 
             create_or_update_student( student_number )
@@ -106,17 +106,17 @@ class Command(BaseCommand):
                 elif degree in ['m.a.sc.', 'm.a.sc', 'masc']:
                     program = m_asc_program
                 else: 
-                    print row["FIRST NAME"] + " " + row["SURNAME"] + " program : " + degree + " not found." 
+                    print(row["FIRST NAME"] + " " + row["SURNAME"] + " program : " + degree + " not found.") 
                     continue
 
             gradstudent_records = GradStudent.objects.filter(person__emplid=student_number, program=program)
 
             if len(gradstudent_records) > 1:
-                print "Too many grad student records!" 
+                print("Too many grad student records!") 
             if len(gradstudent_records) > 0:
                 grad = gradstudent_records[0]
             else:
-                print "Grad Student not created"
+                print("Grad Student not created")
                 continue
             
             # Semesters
@@ -142,7 +142,7 @@ class Command(BaseCommand):
                 if thesis_date_dirty != UNPARSEABLE and thesis_date_dirty != "" and len(thesis_date_dirty) == 10:
                     thesis_date_clean = datetidy(thesis_date_dirty)
                     if thesis_date_clean:
-                        print thesis_date_clean
+                        print(thesis_date_clean)
                         grad.config['exam_date'] = thesis_date_clean
 
             phd_qualifying_exam_set = row['PHD QUALIFYING EXAM'].split(',')
@@ -155,7 +155,7 @@ class Command(BaseCommand):
                 if phd_exam_date_dirty != UNPARSEABLE and phd_exam_date_dirty != "" and len(phd_exam_date_dirty) == 10:
                     phd_exam_date_clean = datetidy(phd_exam_date_dirty)
                     if phd_exam_date_clean:
-                        print phd_exam_date_clean
+                        print(phd_exam_date_clean)
                         grad.config['qualifying_exam_date'] = phd_exam_date_clean
             
             # Dates
@@ -171,13 +171,13 @@ class Command(BaseCommand):
             grad.config['imported_from'] = 'Engineering Import Winter 2013'
             grad.save()
 
-            print "-----------------------------------------------------"
-            print " "
+            print("-----------------------------------------------------")
+            print(" ")
 
 def fix_newlines( table ):
     # convert all "_x000B_" characters to newlines. 
     for row in table.rows:
-        for i in xrange(0, len(row)):
+        for i in range(0, len(row)):
             row[i] = row[i].replace(NEWLINE, "\n")
 
 def clean_semester( semester ):
@@ -186,7 +186,7 @@ def clean_semester( semester ):
     if len(semester) == 3:
         semester = "0" + semester
     if len(semester) != 4:
-        print "Invalid Semester: " + semester
+        print("Invalid Semester: " + semester)
         return None
     try:
         return Semester.objects.get(name=semester)
@@ -197,10 +197,10 @@ def find_or_generate_status( student, status, start, end=None ):
     start_semester = clean_semester( start )
     if start_semester == None:
         return None
-    print status + " starting " + str(start_semester)
+    print(status + " starting " + str(start_semester))
 
     end_semester = clean_semester( end )
-    print status + " ending " + str(start_semester)
+    print(status + " ending " + str(start_semester))
 
     try:
         status = GradStatus.objects.get( student=student, 
@@ -237,7 +237,7 @@ def find_or_generate_supervisor( student, supervisor_type, data ):
             supervisor = Supervisor( student=student, 
                                     supervisor_type=supervisor_type, 
                                     supervisor=person )
-            print "Creating Supervisor: ", supervisor_type,  supervisor
+            print("Creating Supervisor: ", supervisor_type,  supervisor)
             supervisor.save()
         return supervisor
 
@@ -252,7 +252,7 @@ def find_or_generate_supervisor( student, supervisor_type, data ):
     except Supervisor.DoesNotExist:
         supervisor = Supervisor( student=student, supervisor_type=supervisor_type, external=data )
         supervisor.save()
-        print "Creating Supervisor: ", supervisor_type,  supervisor
+        print("Creating Supervisor: ", supervisor_type,  supervisor)
     return supervisor
 
 def find_or_generate_program( unit, label ):
@@ -260,7 +260,7 @@ def find_or_generate_program( unit, label ):
         return GradProgram.objects.get(unit=unit, label=label ) 
     except GradProgram.DoesNotExist:
         g = GradProgram( unit=unit, label=label, description=label) 
-        print "Creating ", g 
+        print("Creating ", g) 
         g.save()
         return g
 
@@ -269,7 +269,7 @@ def find_or_generate_requirement( program, description ):
         return GradRequirement.objects.get(program=program, description=description)
     except GradRequirement.DoesNotExist:
         g = GradRequirement( program=program, description=description )
-        print "Creating ", g
+        print("Creating ", g)
         g.save()
         return g
 
@@ -285,7 +285,7 @@ def find_or_generate_completed_requirement( student, requirement, semester ):
         c = CompletedRequirement( student=student,
                                   requirement=requirement,
                                   semester=semester )
-        print "Creating ", c
+        print("Creating ", c)
         c.save()
         return c
 
@@ -293,14 +293,14 @@ def find_or_generate_person( emplid ):
     # return a Person object, either a student who exists in the system:
     try:
         p = Person.objects.get(emplid=emplid)
-        print "Person " + str(p) + " found: " + str(p.id) 
+        print("Person " + str(p) + " found: " + str(p.id)) 
         return p
     except Person.DoesNotExist:
         try:
-            print "Fetching " + str(emplid) + " from SIMS" 
+            print("Fetching " + str(emplid) + " from SIMS") 
             p = coredata.queries.add_person( emplid )
-            print str(p) + " fetched from SIMS"  
+            print(str(p) + " fetched from SIMS")  
             return p
         except IntegrityError:
-            print " Integrity error! " + str(emplid) + " 's userid already exists in the system." 
+            print(" Integrity error! " + str(emplid) + " 's userid already exists in the system.") 
             return None

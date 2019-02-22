@@ -6,8 +6,9 @@
 
 {% block headextra %}
     <!-- Changes must also be applied to new_field.html -->
+    {% if field.fieldtype == 'TEXT' %}{% include 'pages/markup_edit_head.html' %}{% endif %}
     {% if choices %}
-        <script type="text/javascript">
+        <script nonce="{{ CSP_NONCE }}">
             $(document).ready(function () {
 
 
@@ -60,17 +61,17 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "onlineforms.views.list_all" %}">Forms</a></li>
-    <li><a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+    <li><a href="{% url "onlineforms:list_all" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms:view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
     <li><a
-            href="{% url "onlineforms.views.edit_sheet" form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a>
+            href="{% url "onlineforms:edit_sheet" form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a>
     </li>
     <li>Edit Field</li>
 {% endblock %}
 
 {% block content %}
     <div class="form_container">
-        <form action="{% url "onlineforms.views.edit_field" form_slug=owner_form.slug sheet_slug=owner_sheet.slug field_slug=field.slug %}"
+        <form action="{% url "onlineforms:edit_field" form_slug=owner_form.slug sheet_slug=owner_sheet.slug field_slug=field.slug %}"
               method="post">{% csrf_token %}
             <fieldset>
                 <legend> Edit Field Type</legend>

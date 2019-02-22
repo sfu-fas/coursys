@@ -4,7 +4,7 @@
 {% block headextra %}
   <link rel="stylesheet" href="{% static "style/grad_quicksearch.css" %}" />
 
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     $.widget("custom.alteredcomplete", $.ui.autocomplete, {
         _renderItem: function(ul, item) {
         var cls="quicksearch-"+item.label.split(",")[2].trim().toLowerCase().replace(/\s/g, "-");
@@ -20,7 +20,7 @@
 	$(document).ready(function() {
 	    $("#id_search").focus();
 	    $("#id_search").alteredcomplete({
-            source: '{% url "grad.views.quick_search" %}',
+            source: '{% url "grad:quick_search" %}',
             minLength: 2
         });
 	});
@@ -35,13 +35,13 @@
 <div id="actions">
 <h2>Actions</h2>
 <ul>
-<li><a href="{% url "grad.views.programs" %}">Manage Programs</a></li>
-<li><a href="{% url "grad.views.requirements" %}">Manage Requirements</a></li>
-<li><a href="{% url "grad.views.letter_templates" %}">View Letter Templates</a></li>
-<li><a href="{% url "grad.views.manage_scholarshipType" %}">New Scholarship Type</a></li>
-<li class="newsec"><a href="{% url "grad.views.search" %}">Advanced Search</a></li>
-<li><a href="{% url "grad.views.all_promises" %}">Ending Promises</a></li>
-<li><a href="{% url "grad.views.funding_report" %}">Funding Report</a></li>
+<li><a href="{% url "grad:programs" %}">Manage Programs</a></li>
+<li><a href="{% url "grad:requirements" %}">Manage Requirements</a></li>
+<li><a href="{% url "grad:letter_templates" %}">View Letter Templates</a></li>
+<li><a href="{% url "grad:manage_scholarshiptypes" %}">Manage Scholarship Types</a></li>
+<li class="newsec"><a href="{% url "grad:search" %}">Advanced Search</a></li>
+<li><a href="{% url "grad:all_promises" %}">Ending Promises</a></li>
+<li><a href="{% url "grad:funding_report" %}">Funding Report</a></li>
 </ul>
 
 </div>
@@ -56,7 +56,7 @@
 {% for u in units %}{{u.name}}{% if not forloop.last %}, {% endif %}{% endfor %}.
 </p>
 
-<form action="{% url "grad.views.quick_search" %}" method="get">
+<form action="{% url "grad:quick_search" %}" method="get">
 <p>{{form.search.label}}: {{form.search}} <span class="helptext">{{form.search.help_text}}</span></p>
 <p><input class="submit" type="submit" class="submit" value="Go" /></p>
 </form>
@@ -65,7 +65,7 @@
 <h2 id="saved" style="clear: right;">My Saved Searches</h2>
 <ul>
 {% for s in savedsearches %}
-<li><a href="{% url "grad.views.search" %}?{{ s.query }}">{{s.name}}</a></li>
+<li><a href="{% url "grad:search" %}?{{ s.query }}">{{s.name}}</a></li>
 {% endfor %}
 </ul>
 {% endif %}
@@ -74,7 +74,7 @@
 <h2 id="saved" style="clear: right;">All Saved Searches</h2>
 <ul>
 {% for s in other_savedsearches %}
-<li><a href="{% url "grad.views.search" %}?{{ s.query }}">{{s.name}}</a></li>
+<li><a href="{% url "grad:search" %}?{{ s.query }}">{{s.name}}</a></li>
 {% endfor %}
 </ul>
 {% endif %}

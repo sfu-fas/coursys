@@ -64,7 +64,7 @@ class CareerEventMeta(abc.ABCMeta):
         cls.BASE_FIELDS = collections.OrderedDict()
         cls.CONFIG_FIELDS = collections.OrderedDict()
 
-        for name, field in cls.EntryForm.base_fields.iteritems():
+        for name, field in cls.EntryForm.base_fields.items():
             if name in BaseEntryForm.base_fields:
                 cls.BASE_FIELDS[name] = field
             else:
@@ -94,7 +94,7 @@ class BaseEntryForm(forms.Form):
         super(BaseEntryForm, self).__init__(*args, **kwargs)
 
         self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
-        self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
+        self.fields['unit'].choices = [(str(u.id), str(u)) for u in units]
 
         # Load initial data from the handler instance if possible
         if handler:
@@ -117,10 +117,19 @@ class BaseEntryForm(forms.Form):
         "Hook to do setup of the form"
         pass
 
+    def clean_end_date(self):
+        start_date = self.cleaned_data.get('start_date', None)
+        end_date = self.cleaned_data['end_date']
+        if not start_date:
+            return end_date
+        if not end_date:
+            return
+        if start_date > end_date:
+            raise forms.ValidationError('End date cannot be before the start date.')
+        return end_date
 
-class CareerEventHandlerBase(object):
 
-    __metaclass__ = CareerEventMeta
+class CareerEventHandlerBase(object, metaclass=CareerEventMeta):
 
     NAME = ''
     EVENT_TYPE = ''
@@ -147,6 +156,10 @@ class CareerEventHandlerBase(object):
     CONFIG_FIELDS = {}
     SEARCH_RULE_INSTANCES = []
     FLAGS = []
+    PDFS = {}
+
+    # A dict for extra links to display in the template.  Should only be populated in the derived classes if needed.
+    EXTRA_LINKS = {}
 
     def __init__(self, event):
         self.event = event
@@ -199,7 +212,7 @@ class CareerEventHandlerBase(object):
         if self.event.event_type == 'SALARY':
             # invalidate cache of rank
             from faculty.models import CareerEvent
-            CareerEvent.current_ranks.invalidate(self.event.person)
+            CareerEvent.current_ranks.invalidate(self.event.person.id)
 
         self.post_save()
 
@@ -214,7 +227,7 @@ class CareerEventHandlerBase(object):
                 else:
                     return default
             else:
-                    return field.to_python(raw_value)
+                return field.to_python(raw_value)
         except forms.ValidationError:
             # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in
             #      the config field, then it was most likely valid when the event was created.
@@ -225,9 +238,9 @@ class CareerEventHandlerBase(object):
         if value is None:
             raw_value = None
         elif isinstance(value, models.Model):
-            raw_value = unicode(value.pk)
+            raw_value = str(value.pk)
         else:
-            raw_value = unicode(field.prepare_value(value))
+            raw_value = str(field.prepare_value(value))
 
         self.event.config[name] = raw_value
 
@@ -252,7 +265,7 @@ class CareerEventHandlerBase(object):
         """
         This editor's permission level with respect to this faculty member.
         """
-        edit_units = set(r.unit for r in Role.objects.filter(person=editor, role='ADMN'))
+        edit_units = set(r.unit for r in Role.objects_fresh.filter(person=editor, role__in=['ADMN', 'FACA']))
         fac_units = set()
         if self.event:
             fac_units = set(r.unit for r in Role.objects.filter(person=self.event.person, role='FAC'))
@@ -363,6 +376,7 @@ class CareerEventHandlerBase(object):
                              person=person,
                              **kwargs)
         form.legend = cls.NAME
+        form.use_required_attribute = False
         return form
 
     # event configuration
@@ -470,7 +484,7 @@ class CareerEventHandlerBase(object):
     @classmethod
     def get_search_rules(cls, viewer, member_units, data=None):
         return [(rule, rule.make_form(viewer, member_units, data))
-                for rule in cls.SEARCH_RULE_INSTANCES.itervalues()]
+                for rule in cls.SEARCH_RULE_INSTANCES.values()]
 
     @classmethod
     def validate_all_search(cls, rules):
@@ -551,5 +565,19 @@ class CareerEventHandlerBase(object):
 
         """
         pass
+
+    def generate_pdf(self, key):
+        """
+        A method to generate a PDF from the PDF dictionary in the class.
+        This needs to be implemented in each derived class that has extra PDFs.
+
+        :param key: The key for the PDF from the handler's PDF list
+        :type key: String
+        :return: The PDF form
+        :rtype: HttpResponse
+        """
+        raise NotImplementedError("This needs to be implemented in the derived class")
+
+
 
 

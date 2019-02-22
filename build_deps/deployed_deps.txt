@@ -1,7 +1,0 @@
-python-memcached==1.53
-django-dbdump==1.1
-#pyelasticsearch==0.6.1
-elasticsearch==1.2.0
-lxml==3.3.3
-gunicorn==18.0
-MySQL-python==1.2.5

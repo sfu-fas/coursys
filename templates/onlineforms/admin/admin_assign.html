@@ -5,25 +5,31 @@
 {% block h1 %} Assign {{ form_submission.form.title }} {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-    <li><a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
+    <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms:admin_list_all" %}">Admin Forms</a></li>
     <li>Assign {{ form_submission.form.title }}</li>
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     var frequent_fillers = {{ frequent_fillers }}
 
     function set_assignee(emplid) {
         $('#id_assignee').val(emplid);
     }
     function update_frequent() {
-        var html = 'Frequent assignees: ';
+        var container = $('#frequent');
         var sheetid = $('#assignform input[name=sheet]:checked').val();
+        var link;
+        container.html('Frequent assignees: ');
         $(frequent_fillers[sheetid]).each(function(i, p) {
-            html += '<a href="javascript:set_assignee(' + p['emplid'] + ')">' + p['name'] + '</a> &nbsp; ';
+            link = $('<a href="#">' + p['name'] + '</a>');
+            link.click(function(){
+                set_assignee(p['emplid']);
+            });
+            container.append(link);
+            container.append(' &nbsp; ');
         });
-        $('#frequent').html(html);
     }
 
     $(document).ready(function() {
@@ -40,10 +46,6 @@
           update_frequent();
         });
         update_frequent();
-
-        $('form').submit(function(){
-          $('input[type=submit]', this).attr('disabled', 'disabled');
-        });
     });
 </script>
 {% endblock %}
@@ -53,11 +55,11 @@
     <h2 class="heading">Actions</h2>
     <ul>
     {% if assign_to_sfu_account %}
-    <li><a href="{% url "onlineforms.views.admin_assign_nonsfu" form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
+    <li><a href="{% url "onlineforms:admin_assign_nonsfu" form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
     Assign to non-SFU user
     </a></li>
     {% else %}
-    <li><a href="{% url "onlineforms.views.admin_assign" form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
+    <li><a href="{% url "onlineforms:admin_assign" form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
     Assign to an SFU user
     </a></li>
     {% endif %}

@@ -1,23 +1,23 @@
 import io
-import unicodecsv as csv
+import csv
 import json
 import decimal
 
-from django.core.urlresolvers import reverse
-from django.template import RequestContext
+from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.forms.models import ModelChoiceField, modelformset_factory
 from django.forms.forms import Form
+from django.forms import BooleanField
 from django.db.models import Q, Max, Sum
 import django.db.transaction
-from django.shortcuts import render_to_response, render, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
-from models import ActivityComponent, CommonProblem, ActivityComponentMark
-from models import GroupActivityMark, GroupActivityMark_LetterGrade, StudentActivityMark
-from models import get_activity_mark_by_id, get_activity_mark_for_student, get_group_mark_by_id, get_group_mark
-from models import copyCourseSetup, neaten_activity_positions
+from .models import ActivityComponent, CommonProblem, ActivityComponentMark
+from .models import GroupActivityMark, GroupActivityMark_LetterGrade, StudentActivityMark
+from .models import get_activity_mark_by_id, get_activity_mark_for_student, get_group_mark_by_id, get_group_mark
+from .models import copyCourseSetup, neaten_activity_positions, activity_marks_from_JSON
 from coredata.models import Person, CourseOffering, Member
 from grades.models import FLAGS, Activity, NumericActivity, NumericGrade
 from grades.models import LetterActivity, LetterGrade, LETTER_GRADE_CHOICES_IN, get_entry_person
@@ -42,15 +42,15 @@ from marking.forms import UploadGradeFileForm, UploadGradeFileForm_LetterGrade
 def _redirct_response(request, course_slug, activity_slug, userid=None):
     from_page = request.GET.get('from_page')
     if from_page == 'course':
-        redirect_url = reverse('grades.views.course_info', args=(course_slug,))
+        redirect_url = reverse('offering:course_info', args=(course_slug,))
     elif from_page == 'activityinfo':
-        redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
+        redirect_url = reverse('offering:activity_info', args=(course_slug, activity_slug))
     elif from_page == 'activityinfo_group':
-        redirect_url = reverse('grades.views.activity_info_with_groups', args=(course_slug, activity_slug))
+        redirect_url = reverse('offering:activity_info_with_groups', args=(course_slug, activity_slug))
     elif userid and from_page == 'studentinfo':
-        redirect_url = reverse('grades.views.student_info', args=(course_slug, userid))
+        redirect_url = reverse('offering:student_info', args=(course_slug, userid))
     else: #default to the activity_info page
-        redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
+        redirect_url = reverse('offering:activity_info', args=(course_slug, activity_slug))
     return HttpResponseRedirect(redirect_url)
 
 
@@ -110,7 +110,7 @@ def _check_and_save_renamed_activities(all_activities, conflicting_activities, r
         act.save()
         #LOG EVENT
         l = LogEntry(userid=user,
-              description=(u"renamed %s(%s) to %s(%s) in course %s") % 
+              description=("renamed %s(%s) to %s(%s) in course %s") % 
                           (old_name, old_short, act.name, act.short_name, act.offering),
               related_object=act)
         l.save()
@@ -134,6 +134,8 @@ def copy_course_setup(request, course_slug):
                 return "%s" % (obj.offering)
         class CourseSourceForm(Form):
             course = CourseChoiceField(label="Source course", queryset=courses_qset)
+        class PageRedirectForm(Form):
+            redirect = BooleanField(label='Redirect old offering\'s pages to the new offering?', initial=True, required=False)
         
         if request.method == "POST":         
             target_setup = Activity.objects.filter(offering = course, deleted = False)
@@ -143,51 +145,53 @@ def copy_course_setup(request, course_slug):
                 select_form = CourseSourceForm(request.POST, prefix = "select-form")
                 if select_form.is_valid():
                     source_course = select_form.cleaned_data['course'].offering
-                    source_setup = Activity.objects.filter(offering = source_course, deleted = False)
-                    source_pages = Page.objects.filter(offering=source_course)
+                    source_setup = Activity.objects.filter(offering=source_course, deleted=False)
+                    source_pages = Page.objects.filter(offering=source_course).exclude(can_read='NONE', can_write='NONE')
+                    source_pages = (p for p in source_pages if not p.current_version().redirect)
                     conflicting_acts = _find_setup_conflicts(source_setup, target_setup)
-                    rename_forms =[ ActivityRenameForm(prefix=act.id) for act in conflicting_acts ]
+                    rename_forms = [ ActivityRenameForm(prefix=act.id) for act in conflicting_acts ]
+                    page_form = PageRedirectForm(prefix='pages')
                 else:
-                    return render_to_response("marking/select_course_setup.html", 
-                                 {'course': course, 'select_form': select_form},\
-                                 context_instance=RequestContext(request))                
+                    return render(request, "marking/select_course_setup.html",
+                                 {'course': course, 'select_form': select_form})
                 
-            else: # POST request for renaming and copy    
-                source_course = get_object_or_404(CourseOffering, slug = source_slug)
-                source_setup = Activity.objects.filter(offering = source_course, deleted = False) 
-                source_pages = Page.objects.filter(offering=source_course)
-                conflicting_acts = _find_setup_conflicts(source_setup, target_setup)   
+            else: # POST request for renaming and copy
+                source_course = get_object_or_404(CourseOffering, slug=source_slug)
+                source_setup = Activity.objects.filter(offering=source_course, deleted=False)
+                source_pages = Page.objects.filter(offering=source_course).exclude(can_read='NONE', can_write='NONE')
+                conflicting_acts = _find_setup_conflicts(source_setup, target_setup)
+                page_form = PageRedirectForm(request.POST, prefix='pages')
                 
                 if conflicting_acts: # check the renamed activities
                     rename_forms = [ ActivityRenameForm(request.POST, prefix=act.id) for act in conflicting_acts ]
                     error_info = _check_and_save_renamed_activities(
                                        target_setup, conflicting_acts, rename_forms, request.user.username)
                 
-                if not error_info:# do the copy !
-                    copyCourseSetup(source_course, course)
+                if not error_info and page_form.is_valid(): # do the copy !
+                    copyCourseSetup(source_course, course, redirect_pages=page_form.cleaned_data['redirect'])
                     neaten_activity_positions(course)
                     #LOG EVENT
                     l = LogEntry(userid=request.user.username,
-                          description=(u"copied course setup from %s to %s") % 
+                          description=("copied course setup from %s to %s") % 
                                       (source_course, course),
                           related_object=course)
                     l.save()                         
-                    messages.add_message(request, messages.SUCCESS, \
+                    messages.add_message(request, messages.SUCCESS,
                             "Course Setup copied from %s (%s)" % (source_course.name(), source_course.semester.label(),))                
-                    return HttpResponseRedirect(reverse('grades.views.course_info', args=(course_slug,)))
-            
+                    return HttpResponseRedirect(reverse('offering:course_info', args=(course_slug,)))
+
             if error_info:
                 messages.add_message(request, messages.ERROR, error_info)   
             
-            return render(request, "marking/copy_course_setup.html",\
-                    {'course' : course, 'source_course' : source_course, "source_pages": source_pages,\
-                    'source_setup' : source_setup, 'conflicting_activities' : zip(conflicting_acts, rename_forms)})
+            return render(request, "marking/copy_course_setup.html",
+                    {'course' : course, 'source_course' : source_course, "source_pages": source_pages,
+                     'page_form': page_form,
+                    'source_setup' : source_setup, 'conflicting_activities' : list(zip(conflicting_acts, rename_forms))})
                 
         else: # for GET request
             select_form = CourseSourceForm(prefix = "select-form")   
-            return render_to_response("marking/select_course_setup.html",
-                                     {'course': course, 'select_form': select_form},\
-                                     context_instance=RequestContext(request))
+            return render(request, "marking/select_course_setup.html",
+                                     {'course': course, 'select_form': select_form})
 
 def _save_common_problems(formset, activity, user):
     for form in formset.forms:
@@ -207,7 +211,7 @@ def _save_common_problems(formset, activity, user):
                 action = 'deleted'                                          
             #LOG EVENT#
             l = LogEntry(userid=user,
-                  description=(u"%s common problem %s for %s" % 
+                  description=("%s common problem %s for %s" % 
                               (action, instance, activity)),
                   related_object=instance)
             l.save()
@@ -231,7 +235,7 @@ def _save_components(formset, activity, user):
                 action = 'deleted'                           
             #LOG EVENT#
             l = LogEntry(userid=user,
-                  description=(u"%s marking component %s of %s") % 
+                  description=("%s marking component %s of %s") % 
                               (action, instance, activity),
                   related_object=instance)  
             l.save()         
@@ -275,77 +279,10 @@ def manage_activity_components(request, course_slug, activity_slug):
         
         if error_info:
             messages.add_message(request, messages.ERROR, error_info)
-        return render_to_response("marking/components.html", 
+        return render(request, "marking/components.html", 
                                   {'course' : course, 'activity' : activity,\
-                                   'formset' : formset },\
-                                   context_instance=RequestContext(request))
+                                   'formset' : formset })
 
-
-@requires_course_staff_by_slug
-def import_components(request, course_slug, activity_slug):
-    """
-    Quick (but not pretty) view to allow importing marking setup from the old system.  Not well tested, but seems to work well enough.
-    """
-    course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)
-
-    if request.method == "POST":
-        form = ImportFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            max_grade = ActivityComponent.objects.filter(numeric_activity=activity).aggregate(Sum('max_mark'))['max_mark__sum']
-            if max_grade is None:
-                max_grade = 0
-
-            pos = ActivityComponent.objects.filter(numeric_activity=activity).aggregate(Max('position'))['position__max']
-            if pos is None:
-                pos = 1
-            else:
-                pos += 1
-
-            data = request.FILES['file'].read().decode('windows-1252')
-            data = json.loads(data)
-            for comp in data:
-                if len(comp)==0:
-                    # ignore the empty object outputted for ease-of-export
-                    continue
-                ac = ActivityComponent(numeric_activity=activity,
-                        max_mark = comp['mark'],
-                        title = comp['name'],
-                        description = comp['desc'],
-                        position = pos)
-                ac.save()
-                max_grade += comp['mark']
-                pos += 1
-                for c in comp['common']:
-                    if len(c)==0:
-                        # ignore the empty object outputted for ease-of-export
-                        continue
-                    cp = CommonProblem(activity_component=ac,
-                            title=c['short'],
-                            penalty=str(c['mark']),
-                            description=c['long'])
-                    cp.save()
-            
-            # if the max grade changed
-            if max_grade != activity.max_grade: 
-                old_max = activity.max_grade
-                activity.max_grade = max_grade
-                activity.save()               
-                messages.add_message(request, messages.WARNING, \
-                                     "The max grade of %s updated from %s to %s" % (activity.name, old_max, max_grade))
-            #LOG EVENT
-            l = LogEntry(userid=request.user.username,
-                  description=(u"imported marking setup for %s") % (activity),
-                  related_object=activity)
-            l.save()                         
-            messages.add_message(request, messages.SUCCESS, "Marking setup imported.")                
-            return HttpResponseRedirect(reverse('marking.views.manage_activity_components', kwargs={'course_slug':course_slug, 'activity_slug': activity_slug}))
-    else:
-        form = ImportFileForm()
-    return render_to_response("marking/import.html", 
-                              {'course': course, 'activity': activity, 'form': form},\
-                              context_instance=RequestContext(request))
-    
 
 @requires_course_staff_by_slug
 @uses_feature('marking')
@@ -375,16 +312,15 @@ def manage_common_problems(request, course_slug, activity_slug):
                 # save the formset  
                 _save_common_problems(formset, activity, request.user.username)
                 messages.add_message(request, messages.SUCCESS, 'Common problems Saved')
-                return HttpResponseRedirect(reverse('marking.views.manage_common_problems', kwargs={'course_slug': activity.offering.slug, 'activity_slug': activity.slug}))
+                return HttpResponseRedirect(reverse('offering:marking:manage_common_problems', kwargs={'course_slug': activity.offering.slug, 'activity_slug': activity.slug}))
         else: # for GET request     
             formset = CommonProblemFormSet(components, queryset = qset) 
         
         if error_info:
             messages.add_message(request, messages.ERROR, error_info)    
-        return render_to_response("marking/common_problems.html", 
+        return render(request, "marking/common_problems.html", 
                                   {'course' : course, 'activity' : activity, 
-                                  'components': components, 'formset' : formset },\
-                                  context_instance=RequestContext(request))
+                                  'components': components, 'formset' : formset })
 
 @requires_course_staff_by_slug
 @uses_feature('marking')
@@ -406,16 +342,15 @@ def manage_component_positions(request, course_slug, activity_slug):
                 
                 #LOG EVENT
                 l = LogEntry(userid=request.user.username,
-                      description=(u"updated positions of marking components in %s") % activity,
+                      description=("updated positions of marking components in %s") % activity,
                       related_object=activity)
                 l.save()        
                     
                 return HttpResponse("Positions of components updated !")
                
-        return render_to_response("marking/component_positions.html",
+        return render(request, "marking/component_positions.html",
                                   {'course' : course, 'activity' : activity,\
-                                   'components': components, 'components': components},\
-                                   context_instance=RequestContext(request))
+                                   'components': components, 'components': components})
         
 
 
@@ -462,7 +397,7 @@ def _change_grade_status_numeric(request, course, activity, userid):
 
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                      description=(u"changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
+                      description=("changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
                                   (userid, numeric_grade.value, FLAGS[numeric_grade.flag], activity, numeric_grade.comment),
                       related_object=numeric_grade)
                 l.save()
@@ -478,8 +413,7 @@ def _change_grade_status_numeric(request, course, activity, userid):
         context = {'course':course,'activity' : activity,\
                    'student' : member.person, 'current_status' : FLAGS[numeric_grade.flag],
                    'status_form': status_form}
-        return render_to_response("marking/grade_status.html", context,
-                                  context_instance=RequestContext(request))  
+        return render(request, "marking/grade_status.html", context)
 
 @retry_transaction()
 def _change_grade_status_letter(request, course, activity, userid):
@@ -504,7 +438,7 @@ def _change_grade_status_letter(request, course, activity, userid):
 
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                      description=(u"changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
+                      description=("changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
                                   (userid, letter_grade.letter_grade, FLAGS[letter_grade.flag], activity, letter_grade.comment),
                       related_object=letter_grade)
                 l.save()
@@ -520,8 +454,7 @@ def _change_grade_status_letter(request, course, activity, userid):
         context = {'course':course,'activity' : activity,\
                    'student' : member.person, 'current_status' : FLAGS[letter_grade.flag],
                    'status_form': status_form}
-        return render_to_response("marking/grade_status_lettergrade.html", context,
-                                  context_instance=RequestContext(request))  
+        return render(request, "marking/grade_status_lettergrade.html", context)
 
 
 @retry_transaction()
@@ -539,6 +472,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
         if groupmark:
             group = get_object_or_404(Group, slug=userid, courseoffering=course)
             ActivityMarkForm = GroupActivityMarkForm
+            group_members = GroupMember.objects.filter(group=group, activity=activity)
         else:
             student = get_object_or_404(Person, find_userid_or_emplid(userid))
             membership = get_object_or_404(Member, offering=course, person=student, role='STUD') 
@@ -552,7 +486,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             # use POST data when creating forms
             postdata = request.POST
             filedata = request.FILES
-        elif 'base_activity_mark' in request.GET:
+        if 'base_activity_mark' in request.GET:
             # requested "mark based on": get that object
             old_id = request.GET['base_activity_mark']
             try:
@@ -564,19 +498,6 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                     am = get_group_mark_by_id(activity, group, old_id)
                 else:
                     am = get_activity_mark_by_id(activity, membership, old_id)
-        elif 'load_old' in request.GET:
-            # requested load any previous mark: get that object
-            try:
-                if groupmark:
-                    am = get_group_mark(activity, group)
-                else:
-                    am = get_activity_mark_for_student(activity, membership)
-            except NumericGrade.DoesNotExist:
-                pass
-
-            if am:
-                messages.add_message(request, messages.INFO, 'There was a previous mark for this student.  Details are below.')
-            
 
         # build forms
         form = ActivityMarkForm(instance=am, data=postdata, files=filedata)
@@ -598,6 +519,12 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             if form.is_valid() and (False not in [entry['form'].is_valid() for entry in component_data]):
                 # set additional ActivityMark info
                 am = form.save(commit=False)
+                #  Let's make sure we create a new object to preserve history.  If we had an instance, this will force
+                #  creation of a new one.  If this was already a new object, no harm done.  We must specify both
+                #  pk and id due to inheritance.
+                #  See: https://docs.djangoproject.com/en/1.7/topics/db/queries/#copying-model-instances
+                am.pk = None
+                am.id = None
                 am.created_by = request.user.username
                 am.activity = activity
                 if 'file_attachment' in request.FILES:
@@ -623,16 +550,22 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                 
                 # calculate grade and save
                 total = decimal.Decimal(0)
+                components_not_all_there = False
                 for entry in component_data:
                     value = entry['form'].cleaned_data['value']
-                    total += value
-                    if value > entry['component'].max_mark:
-                        messages.add_message(request, messages.WARNING, "Bonus marks given for %s" % (entry['component'].title))
-                    if value < 0:
-                        messages.add_message(request, messages.WARNING, "Negative mark given for %s" % (entry['component'].title))
-                
-                mark = (1-form.cleaned_data['late_penalty']/decimal.Decimal(100)) * \
-                       (total - form.cleaned_data['mark_adjustment'])
+                    if value is None:
+                        components_not_all_there = True
+                    else:
+                        total += value
+                        if value > entry['component'].max_mark:
+                            messages.add_message(request, messages.WARNING, "Bonus marks given for %s" % (entry['component'].title))
+                        if value < 0:
+                            messages.add_message(request, messages.WARNING, "Negative mark given for %s" % (entry['component'].title))
+                if not components_not_all_there:
+                    mark = (1-form.cleaned_data['late_penalty']/decimal.Decimal(100)) * \
+                           (total - form.cleaned_data['mark_adjustment'])
+                else:
+                    mark = None
 
                 am.setMark(mark, entered_by=request.user.username)
                 am.save()
@@ -645,12 +578,12 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                     entry['form'].save_m2m()
 
                 if groupmark:
-                    messages.add_message(request, messages.SUCCESS, u'Mark for group "%s" on %s saved: %s/%s.' % (group.name, activity.name, mark, activity.max_grade))
+                    messages.add_message(request, messages.SUCCESS, 'Mark for group "%s" on %s saved: %s/%s.' % (group.name, activity.name, mark, activity.max_grade))
                 else:
-                    messages.add_message(request, messages.SUCCESS, u'Mark for %s on %s saved: %s/%s.' % (student.name(), activity.name, mark, activity.max_grade))
+                    messages.add_message(request, messages.SUCCESS, 'Mark for %s on %s saved: %s/%s.' % (student.name(), activity.name, mark, activity.max_grade))
                 #LOG EVENT
                 l = LogEntry(userid=request.user.username,
-                      description=(u"marked %s for %s: %s/%s") % (activity, userid, mark, activity.max_grade),
+                      description=("marked %s for %s: %s/%s") % (activity, userid, mark, activity.max_grade),
                       related_object=am)
                 l.save()
 
@@ -660,13 +593,13 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                     try:
                         nextmember = Member.objects.filter(offering=course, person__userid__gt=userid, role="STUD"
                                      ).order_by('person__userid')[0]
-                        return HttpResponseRedirect(reverse(marking_student, 
+                        return HttpResponseRedirect(reverse('offering:marking:marking_student',
                                kwargs={'course_slug': course.slug, 'activity_slug': activity.slug,
                                'userid': nextmember.person.userid}) + "?load_old")
                     except IndexError:
                         messages.add_message(request, messages.INFO, 'That was the last userid in the course.')
                 elif groupmark:
-                    return HttpResponseRedirect(reverse('grades.views.activity_info_with_groups', 
+                    return HttpResponseRedirect(reverse('offering:activity_info_with_groups', 
                                kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
 
                 return _redirct_response(request, course_slug, activity_slug)
@@ -675,9 +608,10 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
         context = {'course': course, 'activity': activity, 'form': form, 'component_data': component_data }
         if groupmark:
             context['group'] = group
+            context['group_members'] = list(group_members)
         else:
             context['student'] = student
-        return render_to_response("marking/marking.html", context, context_instance=RequestContext(request))  
+        return render(request, "marking/marking.html", context)  
     
 
 @requires_course_staff_by_slug
@@ -716,10 +650,9 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
         act_mark = get_activity_mark_for_student(activity, membership)
     
     if act_mark == None:
-        return render_to_response("marking/mark_summary_none.html", 
+        return render(request, "marking/mark_summary_none.html", 
                                {'course':course, 'activity' : activity, 'student' : student, \
-                                'is_staff': is_staff}, \
-                                context_instance = RequestContext(request))
+                                'is_staff': is_staff})
     
     group = None
     if hasattr(act_mark, 'group'):
@@ -727,11 +660,10 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
                       
     component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)      
     
-    return render_to_response("marking/mark_summary.html", 
+    return render(request, "marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'student' : student, 'group' : group, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
-                                'is_staff': is_staff, 'view_history': act_mark_id == None}, \
-                                context_instance = RequestContext(request))
+                                'is_staff': is_staff, 'view_history': act_mark_id == None})
 
 @login_required
 def mark_summary_group(request, course_slug, activity_slug, group_slug):
@@ -745,14 +677,14 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug, deleted=False)
     group = get_object_or_404(Group, courseoffering=course, slug=group_slug)
-     
+
     if not is_staff:
         gm = GroupMember.objects.filter(group=group, student__person__userid=request.user.username)
         if not gm:
             return ForbiddenResponse(request)
      
     act_mark_id = request.GET.get('activity_mark')
-    if act_mark_id != None: 
+    if act_mark_id != None:
         act_mark = get_group_mark_by_id(activity, group, act_mark_id)
     else:
         act_mark = get_group_mark(activity, group)
@@ -760,11 +692,10 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
         raise Http404('No such ActivityMark for group %s on %s found.' % (group.name, activity))
     component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)
      
-    return render_to_response("marking/mark_summary.html", 
+    return render(request, "marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'group' : group, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
-                                'is_staff': is_staff, 'view_history': act_mark_id == None},\
-                                context_instance = RequestContext(request))
+                                'is_staff': is_staff, 'view_history': act_mark_id == None})
          
 @login_required
 def download_marking_attachment(request, course_slug, activity_slug, mark_id):
@@ -823,7 +754,7 @@ def mark_history_student(request, course_slug, activity_slug, userid):
     if not mark_history_info:
         return NotFoundResponse(request)
     context.update(mark_history_info)
-    return render_to_response("marking/mark_history_student.html", context, context_instance = RequestContext(request))
+    return render(request, "marking/mark_history_student.html", context)
 
 @requires_course_staff_by_slug
 def mark_history_group(request, course_slug, activity_slug, group_slug):
@@ -837,7 +768,7 @@ def mark_history_group(request, course_slug, activity_slug, group_slug):
     context = {'course': course, 'activity' : activity, 'group' : group,}
     mark_history_info = get_group_mark(activity, group, True)
     context.update(mark_history_info)    
-    return render_to_response("marking/mark_history_group.html", context, context_instance = RequestContext(request))
+    return render(request, "marking/mark_history_group.html", context)
     
 
 @requires_course_staff_by_slug
@@ -1010,12 +941,12 @@ def mark_all_groups(request, course_slug, activity_slug):
 def _mark_all_groups_numeric(request, course, activity):
     with django.db.transaction.atomic():
         error_info = None
-        rows=[]
-        warning_info=[]
+        rows = []
+        warning_info = []
         groups = set()
         all_members = GroupMember.objects.select_related('group').filter(activity = activity, confirmed = True)
         for member in all_members:
-            if not member.group in groups:
+            if member.group not in groups:
                 groups.add(member.group)
         
         if request.method == 'POST':
@@ -1024,24 +955,24 @@ def _mark_all_groups_numeric(request, course, activity):
             for group in groups:
                 entry_form = MarkEntryForm(data = request.POST, prefix = group.name)
                 if not entry_form.is_valid():
-                    error_info = "Error found"           
+                    error_info = "Error found"
                 act_mark = get_group_mark(activity, group)         
-                if act_mark == None:
+                if not act_mark:
                     current_mark = 'no grade'
                 else:
                     current_mark = act_mark.mark 
                 current_act_marks.append(act_mark)
                 rows.append({'group': group, 'current_mark' : current_mark, 'form' : entry_form})  
             
-            if error_info == None:
+            if not error_info:
                 updated = 0
                 i = -1
                 for group in groups:
                     i += 1
                     new_value = rows[i]['form'].cleaned_data['value']
-                    if new_value== None :
+                    if new_value is None:
                         continue
-                    if current_act_marks[i] != None and current_act_marks[i].mark == new_value:
+                    if current_act_marks[i] is not None and current_act_marks[i].mark == new_value:
                         # if any of the group members originally has a grade status other than 'GRAD'
                         # so do not override the status
                         continue
@@ -1051,26 +982,26 @@ def _mark_all_groups_numeric(request, course, activity):
 
                     updated += 1
                     if new_value < 0:
-                        warning_info.append(u"Negative mark given to group %s" % group.name)
+                        warning_info.append("Negative mark given to group %s" % group.name)
                     elif new_value > activity.max_grade:
-                        warning_info.append(u"Bonus mark given to group %s" % group.name)  
+                        warning_info.append("Bonus mark given to group %s" % group.name)  
 
                     #LOG EVENT
                     l = LogEntry(userid=request.user.username,
-                         description=(u"bulk marked %s for group '%s': %s/%s") % (activity, group.name, new_value, activity.max_grade),
+                         description=("bulk marked %s for group '%s': %s/%s") % (activity, group.name, new_value, activity.max_grade),
                          related_object=act_mark)
                     l.save()                  
                      
                 if updated > 0:
-                    messages.add_message(request, messages.SUCCESS, u"Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
+                    messages.add_message(request, messages.SUCCESS, "Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
                 for warning in warning_info:
                     messages.add_message(request, messages.WARNING, warning)                    
                 return _redirct_response(request, course.slug, activity.slug)   
             
-        else: # for GET request
+        else:  # for GET request
             for group in groups: 
                 act_mark = get_group_mark(activity, group)         
-                if act_mark == None:
+                if act_mark is None:
                     current_mark = 'no grade'
                 else:
                     current_mark = act_mark.mark
@@ -1079,33 +1010,32 @@ def _mark_all_groups_numeric(request, course, activity):
         
         if error_info:
             messages.add_message(request, messages.ERROR, error_info)     
-        return render_to_response("marking/mark_all_group.html",
-                              {'course': course, 'activity': activity,'mark_all_rows': rows }, 
-                              context_instance = RequestContext(request))
+        return render(request, "marking/mark_all_group.html",
+                              {'course': course, 'activity': activity,'mark_all_rows': rows })
 
 
 @retry_transaction()
 def _mark_all_groups_letter(request, course, activity):
     with django.db.transaction.atomic():
         error_info = None
-        rows=[]
-        warning_info=[]
+        rows = []
+        warning_info = []
         groups = set()
-        all_members = GroupMember.objects.select_related('group').filter(activity = activity, confirmed = True)
+        all_members = GroupMember.objects.select_related('group').filter(activity=activity, confirmed=True)
         for member in all_members:
-            if not member.group in groups:
+            if member.group not in groups:
                 groups.add(member.group)
         
         if request.method == 'POST':
             entered_by = get_entry_person(request.user.username)
             current_act_marks = []
             for group in groups:
-                entry_form = MarkEntryForm_LetterGrade(data = request.POST, prefix = group.name)
+                entry_form = MarkEntryForm_LetterGrade(data=request.POST, prefix=group.name)
                 if not entry_form.is_valid():
                     error_info = "Error found"           
                 act_mark = None 
                 try:
-                    act_mark = LetterGrade.objects.get(activity = activity, member = member)
+                    act_mark = LetterGrade.objects.get(activity=activity, member=member.student)
                 except LetterGrade.DoesNotExist:
                     current_grade = 'no grade'
                 else:
@@ -1113,7 +1043,7 @@ def _mark_all_groups_letter(request, course, activity):
                 current_act_marks.append(act_mark)
                 rows.append({'group': group, 'current_grade' : current_grade, 'form' : entry_form})  
             
-            if error_info == None:
+            if error_info is None:
                 updated = 0
                 i = -1
                 for group in groups:
@@ -1122,7 +1052,7 @@ def _mark_all_groups_letter(request, course, activity):
                     new_value = rows[i]['form'].cleaned_data['value']
                     if new_value not in LETTER_GRADE_CHOICES_IN: 
                         continue
-                    if act_mark!= None and act_mark.letter_grade == new_value:
+                    if act_mark is not None and act_mark.letter_grade == new_value:
                         # if any of the group members originally has a grade status other than 'GRAD'
                         # so do not override the status
                         continue
@@ -1147,19 +1077,17 @@ def _mark_all_groups_letter(request, course, activity):
         else: # for GET request
             for group in groups:
                 act_mark = get_group_mark(activity, group)
-                if act_mark == None:
+                if act_mark is None:
                     current_grade = 'no grade'
                 else:
                     current_grade = act_mark.mark
                 entry_form = MarkEntryForm_LetterGrade(prefix=group.name)                                    
                 rows.append({'group': group, 'current_grade' : current_grade, 'form' : entry_form}) 
-            
-        
+
         if error_info:
             messages.add_message(request, messages.ERROR, error_info)     
-        return render_to_response("marking/mark_all_group_lettergrade.html",
-                              {'course': course, 'activity': activity,'mark_all_rows': rows }, 
-                              context_instance = RequestContext(request))     
+        return render(request, "marking/mark_all_group_lettergrade.html",
+                              {'course': course, 'activity': activity,'mark_all_rows': rows })
 
 #This is for change grade status of letter grades
 
@@ -1169,12 +1097,10 @@ def _mark_all_students_letter(request, course, activity):
     with django.db.transaction.atomic():
         rows = []
         fileform = None
-        imported_data = {} #may get filled with data from an imported file, a mapping from student's userid to grade
-        error_info = None 
-        warning_info = []
+        imported_data = {}  # may get filled with data from an imported file, a mapping from student's userid to grade
+        error_info = []
         memberships = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
-        valid_input = True  
-        
+
         if request.method == 'POST' and request.GET.get('import') != 'true':
             lgrades = []   
             # get data from the mark entry forms
@@ -1182,7 +1108,7 @@ def _mark_all_students_letter(request, course, activity):
                 student = member.person  
                 entry_form = MarkEntryForm_LetterGrade(data = request.POST, prefix = student.userid)
                 if not entry_form.is_valid():
-                    error_info = "Error found"           
+                    error_info.append("Error found")
                 lgrade = None
                 try:
                     lgrade = LetterGrade.objects.get(activity = activity, member = member)
@@ -1194,7 +1120,7 @@ def _mark_all_students_letter(request, course, activity):
                 rows.append({'student': student, 'member': member, 'current_grade' : current_grade, 'form' : entry_form})    
            
             # save if needed 
-            if error_info == None:
+            if not error_info:
                 entered_by = get_entry_person(request.user.username)
                 updated = 0                 
                 for i in range(len(memberships)):
@@ -1203,45 +1129,41 @@ def _mark_all_students_letter(request, course, activity):
                     new_value = rows[i]['form'].cleaned_data['value'] 
                     # the new mark is blank or the new mark is the same as the old one, do nothing
                     if new_value not in LETTER_GRADE_CHOICES_IN:  
-                        error_info = False
                         continue
-                    if lgrade !=None and lgrade.letter_grade == new_value:
+                    if lgrade is not None and lgrade.letter_grade == new_value:
                         # if the student originally has a grade status other than 'GRAD',
                         # we do not override that status
                         continue 
                     # save data 
-                    if lgrade == None:
+                    if not lgrade:
                         lgrade = LetterGrade(activity = activity, member = memberships[i]);
                     lgrade.letter_grade = new_value
                     lgrade.flag = "GRAD"
                     lgrade.save(entered_by=entered_by)
                    
                     updated += 1    
-                   
-                   
-                    #LOG EVENT
+
+                    # LOG EVENT
                     l = LogEntry(userid=request.user.username,
-                         description=(u"bulk marked %s for %s: %s") % (activity, student.userid, new_value),
-                         related_object=lgrade)
+                                 description=("bulk marked %s for %s: %s") % (activity, student.userid, new_value),
+                                 related_object=lgrade)
                     l.save()                  
                
                 if updated > 0:
-                    messages.add_message(request, messages.SUCCESS, u"Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
+                    messages.add_message(request, messages.SUCCESS, "Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
                 
-                #if valid_input == False:
-                #   messages.add_message(request, messages.SUCCESS, "Not valid input exists, but was ignored. Please check for not updated one.")
-                        
-                return _redirct_response(request, course.slug, activity.slug) 
+                return _redirct_response(request, course.slug, activity.slug)
         
         else: 
             if request.method == 'POST': # for import
                 fileform = UploadGradeFileForm_LetterGrade(request.POST, request.FILES, prefix = 'import-file');
-                if fileform.is_valid() and fileform.cleaned_data['file'] != None:
+                if fileform.is_valid() and fileform.cleaned_data['file'] is not None:
                     students = course.members.filter(person__role='STUD')
-                    error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data, activity)
-                    if error_info == None:
+                    error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data,
+                                                               activity)
+                    if not error_info:
                         messages.add_message(request, messages.SUCCESS,\
-                                    "%s students' grades imported. Please review before submitting." % len(imported_data.keys()))
+                                    "%s students' grades imported. Please review before submitting." % len(list(imported_data.keys())))
             # may use the imported file data to fill in the forms       
             for member in memberships: 
                 student = member.person              
@@ -1251,23 +1173,23 @@ def _mark_all_students_letter(request, course, activity):
                     current_grade = 'no grade'
                 else:
                     current_grade = lgrade.letter_grade            
-                initial_value = imported_data.get(student.userid) 
-                if initial_value != None:
-                    entry_form = MarkEntryForm_LetterGrade(initial = {'value': initial_value}, prefix = student.userid)
+                initial_value = imported_data.get(student.userid)
+                if initial_value is not None:
+                    entry_form = MarkEntryForm_LetterGrade(initial={'value': initial_value.strip()}, prefix=student.userid)
                 else:
                     entry_form = MarkEntryForm_LetterGrade(prefix = student.userid)                                    
-                rows.append({'student': student, 'member': member, 'current_grade' : current_grade, 'form' : entry_form}) 
+                rows.append({'student': student, 'member': member, 'current_grade': current_grade, 'form': entry_form})
                    
         if error_info:
-            messages.add_message(request, messages.ERROR, error_info) 
+            for error_message in error_info:
+                messages.add_message(request, messages.ERROR, error_message)
 
-        if fileform == None:
+        if not fileform:
             fileform = UploadGradeFileForm_LetterGrade(prefix = 'import-file')   
 
-        return render_to_response("marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,
+        return render(request, "marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,
                                   'fileform' : fileform,'too_many': len(rows) >= 100,
-                                  'mark_all_rows': rows, 'userid_header': Person.userid_header() }, 
-                                  context_instance = RequestContext(request))
+                                  'mark_all_rows': rows, 'userid_header': Person.userid_header() })
 
 
 
@@ -1321,7 +1243,7 @@ def _mark_all_students_numeric(request, course, activity):
         rows = []
         fileform = None
         imported_data = {} #may get filled with data from an imported file, a mapping from student's userid to grade
-        error_info = None 
+        error_info = []
         warning_info = []
         memberships = Member.objects.select_related('person').filter(offering=course, role='STUD')   
         
@@ -1332,7 +1254,7 @@ def _mark_all_students_numeric(request, course, activity):
                 student = member.person  
                 entry_form = MarkEntryForm(data = request.POST, prefix=student.userid)
                 if not entry_form.is_valid():
-                    error_info = "Error found"           
+                    error_info.append("Error found")
                 ngrade = None
                 try:
                     ngrade = NumericGrade.objects.get(activity=activity, member=member)
@@ -1344,36 +1266,36 @@ def _mark_all_students_numeric(request, course, activity):
                 rows.append({'student': student, 'member': member, 'current_grade' : current_grade, 'form' : entry_form})
 
             # save if needed 
-            if error_info == None:
+            if not error_info:
                 entered_by = get_entry_person(request.user.username)
                 updated = 0                 
                 for i in range(len(memberships)):
                     student = memberships[i].person  
                     ngrade = ngrades[i]
-                    new_value = rows[i]['form'].cleaned_data['value'] 
+                    new_value = rows[i]['form'].cleaned_data['value']
                     # the new mark is blank or the new mark is the same as the old one, do nothing
-                    if new_value == None: 
+                    if new_value is None:
                         continue
-                    if ngrade !=None and ngrade.value == new_value:
+                    if ngrade is not None and ngrade.value == new_value:
                         # if the student originally has a grade status other than 'GRAD',
                         # we do not override that status
                         continue 
                     # save data 
-                    if ngrade == None:
-                        ngrade = NumericGrade(activity = activity, member = memberships[i]);
+                    if not ngrade:
+                        ngrade = NumericGrade(activity=activity, member=memberships[i]);
                     ngrade.value = new_value
                     ngrade.flag = "GRAD"
                     ngrade.save(entered_by=entered_by)
                     
                     updated += 1     
                     if new_value < 0:
-                        warning_info.append(u"Negative mark given to %s on %s" %(student.userid, activity.name))
+                        warning_info.append("Negative mark given to %s on %s" %(student.userid, activity.name))
                     elif new_value > activity.max_grade:
-                        warning_info.append(u"Bonus mark given to %s on %s" %(student.userid, activity.name))
+                        warning_info.append("Bonus mark given to %s on %s" %(student.userid, activity.name))
                    
                     #LOG EVENT
                     l = LogEntry(userid=request.user.username,
-                          description=(u"bulk marked %s for %s: %s/%s") % (activity, student.userid, new_value, activity.max_grade),
+                          description=("bulk marked %s for %s: %s/%s") % (activity, student.userid, new_value, activity.max_grade),
                           related_object=ngrade)
                     l.save()                  
                
@@ -1390,9 +1312,9 @@ def _mark_all_students_numeric(request, course, activity):
                 if fileform.is_valid() and fileform.cleaned_data['file'] != None:
                     students = course.members.filter(person__role='STUD')
                     error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data, activity)
-                    if error_info == None:
+                    if not error_info:
                         messages.add_message(request, messages.SUCCESS,\
-                                    "%s students' grades imported. Please review before submitting." % len(imported_data.keys()))
+                                    "%s students' grades imported. Please review before submitting." % len(list(imported_data.keys())))
             # may use the imported file data to fill in the forms       
             for member in memberships: 
                 student = member.person              
@@ -1403,22 +1325,22 @@ def _mark_all_students_numeric(request, course, activity):
                 else:
                     current_grade = ngrade.value            
                 initial_value = imported_data.get(student.userid) 
-                if initial_value != None:
+                if initial_value is not None:
                     entry_form = MarkEntryForm(initial = {'value': initial_value}, prefix = student.userid)
                 else:
                     entry_form = MarkEntryForm(prefix = student.userid)                                    
                 rows.append({'student': student, 'member': member, 'current_grade' : current_grade, 'form' : entry_form}) 
                    
         if error_info:
-            messages.add_message(request, messages.ERROR, error_info) 
+            for error_message in error_info:
+                messages.add_message(request, messages.ERROR, error_message)
 
-        if fileform == None:
+        if not fileform:
             fileform = UploadGradeFileForm(prefix = 'import-file')   
         
-        return render_to_response("marking/mark_all_student.html",{'course': course, 'activity': activity,
+        return render(request, "marking/mark_all_student.html",{'course': course, 'activity': activity,
                                   'fileform' : fileform,'too_many': len(rows) >= 100,
-                                  'mark_all_rows': rows, 'userid_header': Person.userid_header()},
-                                  context_instance = RequestContext(request))
+                                  'mark_all_rows': rows, 'userid_header': Person.userid_header()})
 
 def _compose_imported_grades(file, students_qset, data_to_return, activity):
     try:
@@ -1428,18 +1350,18 @@ def _compose_imported_grades(file, students_qset, data_to_return, activity):
     else:
         fcopy = io.StringIO(fh.getvalue(), newline=None)
         try:
-            first_line = csv.reader(fcopy).next()
+            first_line = next(csv.reader(fcopy))
             (error_string, userid_col, activity_col) = _CMS_header(first_line, Person.userid_header(), activity.short_name)
         except UnicodeEncodeError:
             error_string = "File cannot be encoded as UTF-8 data: make sure it contains legal Unicode characters."
 
-    if error_string != None:
-        return error_string
-    elif userid_col != None and activity_col != None:
+    if error_string:
+        return [error_string]
+    elif userid_col is not None and activity_col is not None:
         try:
             return _import_CMS_output(fh, students_qset, data_to_return, userid_col, activity_col)
         except UnicodeEncodeError:
-            return "File contains bad UTF-8 data: make sure it has been saved as UTF-8 text."
+            return ["File contains bad UTF-8 data: make sure it has been saved as UTF-8 text."]
     else:
         return _import_specific_file(fh, students_qset, data_to_return)
 
@@ -1474,51 +1396,60 @@ def _strip_email_userid(s):
 
 def _import_CMS_output(fh, students_qset, data_to_return, userid_col, activity_col):
     reader = csv.reader(fh)
-    reader.next() # Skip header line
+    next(reader) # Skip header line
+    error_info = []
     #print userid_col, activity_col #AEK
     for row_num, row in enumerate(reader):
         #print row_num, row #AEK
         userid = _strip_email_userid(row[userid_col])
         target = students_qset.filter(userid = userid)
         if target.count() == 0:
-            data_to_return.clear()
-            return u"Error found in file (row %s): Unmatched userid (%s)." % (row_num, row[userid_col])
-        if data_to_return.has_key(target[0].userid):
-            data_to_return.clear()
-            return u"Error found in file (row %s): Second entry found for student (%s)." % (row_num, row[userid_col])
+            #data_to_return.clear()
+            error_info.append("Error found in file (row %s): Unmatched userid (%s)." % (row_num, row[userid_col]))
+            continue
+        if target[0].userid in data_to_return:
+            #data_to_return.clear()
+            error_info.append("Error found in file (row %s): Second entry found for student (%s)."
+                              % (row_num, row[userid_col]))
+            continue
         try:
             data_to_return[target[0].userid] = row[activity_col]
         except IndexError:
             # short row: no data
             pass
-    return None
+    return error_info
 
 def _import_specific_file(fh, students_qset, data_to_return):
-    reader = csv.reader(fh)   
+    reader = csv.reader(fh)
+    error_info = []
     try:  
-        read = 1;
-        for row in reader:            
+        read = 0
+        for row in reader:
+            read += 1
             try: #if the first field is not an integer, cannot be emplid
                 userid = _strip_email_userid(row[0])
                 num = int(row[0])
             except ValueError:
-                target = students_qset.filter(userid = userid)
+                target = students_qset.filter(userid=userid)
             else:        
-                target = students_qset.filter(Q(userid = userid) | Q(emplid = num))
+                target = students_qset.filter(Q(userid=userid) | Q(emplid=num))
             if target.count() == 0:                
-                data_to_return.clear()
-                return u"Error found in the file (row %s): Unmatched student number or user-id (%s)." % (read, row[0],)            
-            if(data_to_return.has_key(target[0].userid)):
-                data_to_return.clear()
-                return u"Error found in the file (row %s): Second entry found for student (%s)." % (read, row[0],) 
+                #data_to_return.clear()
+                error_info.append("Error found in the file (row %s): Unmatched student number or user-id (%s)."
+                                  % (read, row[0],))
+                continue
+            if target[0].userid in data_to_return:
+                #data_to_return.clear()
+                error_info.append("Error found in the file (row %s): Second entry found for student (%s)."
+                                  % (read, row[0],))
+                continue
             data_to_return[target[0].userid] = row[1]
-            read += 1               
     except:
-        data_to_return.clear()
-        return ("Error found in the file (row %s): The format should be " % read) +\
-               "\"[student user-id or student number, grade, ]\" and " + \
-               "only the first two columns are used."   
-    return None   
+        #data_to_return.clear()
+        error_info.append(("Error found in the file (row %s): The format should be " % read) +
+                          "\"[student user-id or student number, grade, ]\" and " +
+                          "only the first two columns are used.")
+    return error_info
 
 # adapted from http://stackoverflow.com/questions/1960516/python-json-serialize-a-decimal-object
 class _DecimalEncoder(json.JSONEncoder):
@@ -1532,41 +1463,54 @@ def _export_mark_dict(m):
     Dictionary required for JSON export of ActivityMark (without userid/group identifier)
     """
     mdict = {}
-    comps = ActivityComponentMark.objects.filter(activity_mark=m).select_related('activity_component')
+    comps = ActivityComponentMark.objects.filter(activity_mark=m, activity_component__deleted=False).select_related('activity_component')
     for c in comps:
         mdict[c.activity_component.slug] = {'mark': c.value}
         mdict[c.activity_component.slug]['comment'] = c.comment
+        if c.display_raw():
+            mdict[c.activity_component.slug]['display_raw'] = True
         
     mdict['late_percent'] = m.late_penalty
     mdict['mark_penalty'] = m.mark_adjustment
     mdict['mark_penalty_reason'] = m.mark_adjustment_reason
     mdict['overall_comment'] = m.overall_comment
-    
+    if m.calculated_mark() != m.mark:
+        mdict['the_mark'] = m.mark
+
+
     return mdict
 
 
 def _mark_export_data(activity):
     data = []
-    found = set()
-    marks = StudentActivityMark.objects.filter(numeric_grade__activity=activity).order_by('-created_at')
-    for m in marks:
-        ident = m.numeric_grade.member.person.userid
-        if ident in found:
-            continue
-        found.add(ident)
-        mdict = _export_mark_dict(m)
-        mdict['userid'] = ident
-        data.append(mdict)
+    found = {}
     marks = GroupActivityMark.objects.filter(numeric_activity=activity).order_by('-created_at')
     for m in marks:
         ident = m.group.slug
         if ident in found:
             continue
-        found.add(ident)
+        found[ident] = m.mark
+        for member in m.group.confirmed_members():
+            found[member.student.person.userid] = m.mark
         mdict = _export_mark_dict(m)
         mdict['group'] = ident
         data.append(mdict)
-    
+
+    marks = StudentActivityMark.objects.filter(numeric_grade__activity=activity).order_by('-created_at')
+    for m in marks:
+        ident = m.numeric_grade.member.person.userid
+        if ident in found:
+            continue
+        found[ident]=m.mark
+        mdict = _export_mark_dict(m)
+        mdict['userid'] = ident
+        data.append(mdict)
+
+    #  Also add any individual numeric grades that have been added
+    for g in NumericGrade.objects.filter(activity=activity):
+        if g.member.person.userid not in found or g.grade != found[g.member.person.userid]:
+            data.append({'userid': g.member.person.userid, 'the_mark': g.grade})
+
     return data
 
 @requires_course_staff_by_slug
@@ -1607,39 +1551,15 @@ def import_marks(request, course_slug, activity_slug):
         if request.method == 'POST':
             form = ImportMarkFileForm(data=request.POST, files=request.FILES, activity=activity, userid=request.user.username)
             if form.is_valid():
-                entered_by = get_entry_person(request.user.username)
-                # validation function builds all the objects we need: just save them now that we know everything is okay.
-                ams, amcs, ngs = form.cleaned_data['file']
-                count = 0
-                for ng in ngs:
-                    # save temporarily so we have ids for foreign keys
-                    ng.flag = 'NOGR'
-                    ng.save(entered_by=None, is_temporary=True)
+                found, not_found = activity_marks_from_JSON(activity, request.user.username, form.cleaned_data['file'], save=True)
 
-                for am in ams:
-                    if isinstance(am, StudentActivityMark):
-                        am.numeric_grade = am.numeric_grade
-                        #LOG EVENT
-                        l = LogEntry(userid=request.user.username,
-                              description=(u"Imported marking info for student %s on %s in %s") % (am.numeric_grade.member.person.userid, activity, course),
-                              related_object=activity)
-                        l.save()
-                    else:
-                        #LOG EVENT
-                        l = LogEntry(userid=request.user.username,
-                              description=(u"Imported marking info for group %s on %s in %s") % (am.group.slug, activity, course),
-                              related_object=activity)
-                        l.save()
+                messages.add_message(request, messages.SUCCESS, "Successfully imported %i marks." % (len(found)))
 
-                    am.setMark(am.mark, entered_by=entered_by) # deal with the GradeHistory and other details
-                    am.save()
-                    count += 1
-
-                for amc in amcs:
-                    amc.activity_mark = amc.activity_mark
-                    amc.save()
-
-                messages.add_message(request, messages.SUCCESS, "Successfully imported %i marks." % (count))
+                if len(not_found) > 0:
+                    for n in not_found:
+                        messages.add_message(request, messages.WARNING,
+                                             "The following group/userid was not found in the class list and was "
+                                             "ignored: %s." % n)
                 
                 return _redirct_response(request, course_slug, activity_slug)
         else:
@@ -1652,5 +1572,5 @@ def import_marks(request, course_slug, activity_slug):
         
         components = ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)
         context = {'course': course, 'activity': activity, 'components': components, 'groups': groups, 'form': form}
-        return render_to_response("marking/import_marks.html", context, context_instance=RequestContext(request))
+        return render(request, "marking/import_marks.html", context)
 

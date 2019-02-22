@@ -36,6 +36,11 @@ class Mse410LessThan3CoopsReport (Report):
 
             students_in_mse_494 = students_in_mse_494_query.result()
 
+            students_in_ensc_395_query = SingleCourseStrmQuery({'subject': 'ENSC', 'catalog_nbr': '395'},
+                                                         include_current=True)
+
+            students_in_ensc_395 = students_in_ensc_395_query.result()
+
             # These are cached queries, so it shouldn't be *too* expensive to run them.
             # see bad_first_semester.py
 
@@ -53,20 +58,21 @@ class Mse410LessThan3CoopsReport (Report):
                 try:
                     return float(row_map["CREDITS"]) > Mse410LessThan3CoopsReport.MAX_ALLOWABLE_CREDITS
                 except ValueError:
-                    print "Could not convert credit value to float"
+                    print("Could not convert credit value to float")
 
             def did_3_coops(row_map):
                 try:
                     return not (students_in_mse_493.contains("EMPLID", row_map["EMPLID"]) or
-                                students_in_mse_494.contains("EMPLID", row_map["EMPLID"]))
+                                students_in_mse_494.contains("EMPLID", row_map["EMPLID"]) or
+                                students_in_ensc_395.contains("EMPLID", row_map["EMPLID"]))
                 except KeyError:
-                    print "No emplid in the given row."
+                    print("No emplid in the given row.")
 
             def graduated(row_map):
                 try:
                     return not students_graduated.contains("EMPLID", row_map["EMPLID"])
                 except KeyError:
-                    print "No emplid in the given row."
+                    print("No emplid in the given row.")
 
             # We want to remove all people in 410 who have ever taken 493 or 494.
             students_in_mse_410.filter(did_3_coops)
@@ -85,7 +91,7 @@ class Mse410LessThan3CoopsReport (Report):
             # Also, we're going to have to make some assumptions here.  If you completed an academic program for ENG,
             # MSE, or MSE2, we're going to assume you're not doing another MSE degree.
             emplids = students_in_mse_410.column_as_list("EMPLID")
-            students_graduated_query = GraduatedStudentQuery({'emplids': emplids, 'programs': ['ENG', 'MSE', 'MSE2'],
+            students_graduated_query = GraduatedStudentQuery({'emplids': emplids, 'programs': ['ENSC', 'ENSC2', 'ENBUX', 'ENG', 'MSE', 'MSE2'],
                                                               'start_semester': '1141'})
             students_graduated = students_graduated_query.result()
 

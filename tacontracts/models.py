@@ -1,16 +1,16 @@
 # Python
 import datetime
 import decimal
+import os
 # Django
 from django.db import models, transaction
-from django.db.models.query import QuerySet
 # Third Party
-from model_utils.managers import PassThroughManager
 from autoslug import AutoSlugField
 # Local
 from coredata.models import Unit, Person, CourseOffering, Semester, Member
 from courselib.slugs import make_slug
 from courselib.json_fields import JSONField
+from courselib.storage import UploadedFileStorage, upload_path
 from grad.models import GradStudent
 from ra.models import Account
 from dashboard.models import NewsItem
@@ -59,29 +59,36 @@ APPOINTMENT_CHOICES = (
 DUMMY_SINS = ['999999999', '000000000', '123456789']
 
 
-class HiringSemesterQuerySet(QuerySet):
+class HiringSemesterManager(models.Manager):
     def visible(self, units):
-        return self.filter(unit__in=units)
+        qs = self.get_queryset()
+        return qs.filter(unit__in=units)
+
     def semester(self, semester_name, units):
-        return self.filter(unit__in=units, 
-                           semester=Semester.objects.get(name=semester_name))
+        qs = self.get_queryset()
+        return qs.filter(unit__in=units,
+                         semester=Semester.objects.get(name=semester_name))
 
 
-class TACategoryQuerySet(QuerySet):
+class TACategoryManager(models.Manager):
     def visible(self, hiring_semester):
-        return self.filter(hiring_semester=hiring_semester, hidden=False)
+        qs = self.get_queryset()
+        return qs.filter(hiring_semester=hiring_semester, hidden=False)
 
 
-class TAContractQuerySet(QuerySet):
+class TAContractManager(models.Manager):
     def visible(self, hiring_semester):
-        return self.filter(category__hiring_semester=hiring_semester)\
-                    .select_related('category')\
-                    .select_related('email_receipt')\
-                    .prefetch_related('course')
+        qs = self.get_queryset()
+        return qs.filter(category__hiring_semester=hiring_semester)\
+                         .select_related('category')\
+                         .prefetch_related('course')
+
     def draft(self, hiring_semester):
         return self.visible(hiring_semester).filter(status='NEW')
+
     def signed(self, hiring_semester):
         return self.visible(hiring_semester).filter(status='SGN')
+
     def cancelled(self, hiring_semester):
         return self.visible(hiring_semester).filter(status='CAN')
 
@@ -94,20 +101,20 @@ class HiringSemester(models.Model):
     This is subject to change on a contract-by-contract basis, 
     so these are only defaults. 
     """
-    semester = models.ForeignKey(Semester)
-    unit = models.ForeignKey(Unit)
+    semester = models.ForeignKey(Semester, on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     deadline_for_acceptance = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
     payperiods = models.DecimalField(max_digits=4, decimal_places=2,
                                      verbose_name= "During the contract, how many bi-weekly pay periods?")
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
     
     class Meta:
         unique_together = (('semester', 'unit'),)
     
-    def __unicode__(self):
-        return unicode(self.semester.name)
+    def __str__(self):
+        return str(self.semester.name)
 
     def copy_categories_from_previous_semester(self, unit):
         prev_semester = self.semester.previous_semester()
@@ -139,7 +146,7 @@ class HiringSemester(models.Model):
     def total_bu(self):
         return sum([contract.total_bu for contract in self.contracts])
     
-    objects = PassThroughManager.for_queryset_class(HiringSemesterQuerySet)()
+    objects = HiringSemesterManager()
     
     def next_export_seq(self):
         """
@@ -162,9 +169,9 @@ class TACategory(models.Model):
     It's only valid for a single semester, but we offer the ability 
     to copy all of the TACategories from the last semester to the next semester.
     """
-    account = models.ForeignKey(Account)
+    account = models.ForeignKey(Account, on_delete=models.PROTECT)
     # the account already FKs to a Unit, so we don't need one. 
-    hiring_semester = models.ForeignKey(HiringSemester, editable=False)
+    hiring_semester = models.ForeignKey(HiringSemester, editable=False, on_delete=models.PROTECT)
     code = models.CharField(max_length=5, 
                         help_text="Category Choice Code - for example 'GTA2'")
     title = models.CharField(max_length=50,
@@ -194,22 +201,21 @@ class TACategory(models.Model):
 
     # ensc-gta2
     def autoslug(self):
-        return make_slug(self.account.unit.label + '-' + unicode(self.code))
-    slug = AutoSlugField(populate_from=autoslug, 
+        return make_slug(self.account.unit.label + '-' + str(self.code))
+    slug = AutoSlugField(populate_from='autoslug',
                          null=False, 
                          editable=False, 
                          unique=True)
     created = models.DateTimeField(default=datetime.datetime.now,
                                    editable=False)
     hidden = models.BooleanField(default=False, editable=False)
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
 
-    objects = PassThroughManager.for_queryset_class(TACategoryQuerySet)()
+    objects = TACategoryManager()
     
-    def __unicode__(self):
-        return "%s %s %s - %s" % (self.account.unit.label, unicode(self.code), 
-                                  unicode(self.title), unicode(self.account))
-
+    def __str__(self):
+        return "%s %s %s - %s" % (self.account.unit.label, str(self.code), 
+                                  str(self.title), str(self.account))
 
     @property
     def frozen(self):
@@ -252,8 +258,8 @@ class TAContract(models.Model):
     """    
     TA Contract, filled in by TA Administrator
     """
-    person = models.ForeignKey(Person)
-    category = models.ForeignKey(TACategory, 
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
+    category = models.ForeignKey(TACategory, on_delete=models.PROTECT,
                                  related_name="contract")
     status = models.CharField(max_length=4,
                               choices=CONTRACT_STATUS_CHOICES,
@@ -267,6 +273,8 @@ class TAContract(models.Model):
     # allow printing of the contract if this box hasn't been checked.
     visa_verified = models.BooleanField(default=False, help_text="I have verified this TA's visa information")
     deadline_for_acceptance = models.DateField()
+    appointment_start = models.DateField(null=True, blank=True)
+    appointment_end = models.DateField(null=True, blank=True)
     pay_start = models.DateField()
     pay_end = models.DateField()
     payperiods = models.DecimalField(max_digits=4, decimal_places=2,
@@ -287,19 +295,19 @@ class TAContract(models.Model):
     # curtis-lassam-2014-09-01 
     def autoslug(self):
         return make_slug(self.person.first_name + '-' + self.person.last_name \
-                            + "-" + unicode(self.pay_start))
-    slug = AutoSlugField(populate_from=autoslug, 
+                            + "-" + str(self.pay_start))
+    slug = AutoSlugField(populate_from='autoslug',
                          null=False, 
                          editable=False, 
                          unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     created_by = models.CharField(max_length=20, null=False, blank=False, \
                                   editable=False)
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
     
-    objects = PassThroughManager.for_queryset_class(TAContractQuerySet)()
+    objects = TAContractManager()
    
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % (self.person,)
 
     @property
@@ -354,6 +362,8 @@ class TAContract(models.Model):
         else:
             for course in self.course.all():
                 course.delete()
+            for receipt in self.email_receipt.all():
+                receipt.delete()
             super(TAContract, self).delete(*args, **kwargs)
 
     def copy(self, created_by):
@@ -365,6 +375,8 @@ class TAContract(models.Model):
                                  sin=self.sin,
                                  deadline_for_acceptance= \
                                         self.deadline_for_acceptance,
+                                 appointment_start=self.appointment_start,
+                                 appointment_end=self.appointment_end,
                                  pay_start=self.pay_start,
                                  pay_end=self.pay_end,
                                  payperiods=self.payperiods,
@@ -419,6 +431,8 @@ class TAContract(models.Model):
 
     @property
     def biweekly_pay(self):
+        if self.payperiods == 0:
+            return decimal.Decimal(0)
         return self.total_pay / decimal.Decimal(self.payperiods)
 
     @property
@@ -430,6 +444,8 @@ class TAContract(models.Model):
 
     @property
     def biweekly_scholarship(self):
+        if self.payperiods == 0:
+            return decimal.Decimal(0)
         return self.scholarship_pay / decimal.Decimal(self.payperiods)
 
     @property
@@ -451,7 +467,7 @@ class TAContract(models.Model):
 
     @property
     def should_be_added_to_the_course(self):
-        return (self.status == "SGN" or self.accepted_by_student == True)
+        return (self.status == "SGN" or self.accepted_by_student == True) and not (self.status == "CAN")
 
     @classmethod
     def update_ta_members(cls, person, semester_id):
@@ -517,13 +533,39 @@ class TAContract(models.Model):
         """
         TAContract.update_ta_members(self.person, self.category.hiring_semester.semester_id)
 
+    def course_list_string(self):
+        # Build a string of all course offerings tied to this contract for CSV downloads and grad student views.
+        course_list_string = ', '.join(ta_course.course.name() for ta_course in self.course.all())
+        return course_list_string
+
+    def has_attachments(self):
+        return self.attachments.visible().count() > 0
+
+
+class CourseDescription(models.Model):
+    """
+    Description of the work for a TA contract
+    """
+    unit = models.ForeignKey(Unit, related_name='description_unit', on_delete=models.PROTECT)
+    description = models.CharField(max_length=60, blank=False, null=False,
+                                   help_text="Description of the work for a course, as it will appear on the contract. (e.g. 'Office/marking')")
+    hidden = models.BooleanField(default=False)
+    config = JSONField(null=False, blank=False, default=dict)
+
+    def __str__(self):
+        return self.description
+
+    def delete(self):
+        """Like most of our objects, we don't want to ever really delete it."""
+        self.hidden = True
+        self.save()
 
 class TACourse(models.Model):
-    course = models.ForeignKey(CourseOffering,
+    course = models.ForeignKey(CourseOffering, on_delete=models.PROTECT,
                                blank=False, 
                                null=False,
                                related_name="+")
-    contract = models.ForeignKey(TAContract, 
+    contract = models.ForeignKey(TAContract, on_delete=models.PROTECT,
                                  blank=False, 
                                  null=False, 
                                  editable=False,
@@ -535,23 +577,24 @@ class TACourse(models.Model):
     labtut = models.BooleanField(default=False, 
                                  verbose_name="Lab/Tutorial?", 
                                  help_text="Does this course have a lab or tutorial?")
-    member = models.ForeignKey(Member, null=True, editable=False, related_name="tacourse")
+    description = models.ForeignKey(CourseDescription, null=True, blank=True, on_delete=models.PROTECT)
+    member = models.ForeignKey(Member, null=True, editable=False, related_name="tacourse", on_delete=models.PROTECT)
 
     def autoslug(self):
         """
         curtis-lassam-2014-09-01 
         """
         return make_slug(self.course.slug)
-    slug = AutoSlugField(populate_from=autoslug, 
+    slug = AutoSlugField(populate_from='autoslug', 
                          null=False, 
                          editable=False, 
                          unique=False)
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
     
     class Meta:
         unique_together = (('contract', 'course'),)
     
-    def __unicode__(self):
+    def __str__(self):
         return "Course: %s  TA: %s" % (self.course, self.contract)
 
     @property
@@ -597,7 +640,7 @@ class TACourse(models.Model):
 
     @property
     def scholarship_pay(self):
-        return self.total_bu * self.contract.scholarship_per_bu
+        return self.bu * self.contract.scholarship_per_bu
 
     @property
     def total(self):
@@ -636,12 +679,51 @@ class EmailReceipt(models.Model):
     This object serves as a record that this has occurred, which we can consult
     later. 
     """
-    contract = models.ForeignKey(TAContract, 
+    contract = models.ForeignKey(TAContract, on_delete=models.PROTECT,
                                  blank=False, 
                                  null=False, 
                                  editable=False,
                                  related_name="email_receipt")
-    content = models.ForeignKey(NewsItem,
-                                 blank=False,
-                                 null=False,
-                                 editable=False)
+    content = models.ForeignKey(NewsItem, on_delete=models.CASCADE,
+                                blank=False,
+                                null=False,
+                                editable=False)
+
+
+def tacontracts_attachment_upload_to(instance, filename):
+    return upload_path('taattachments', filename)
+
+
+class TAContractAttachmentQueryset(models.QuerySet):
+    def visible(self):
+        return self.filter(hidden=False)
+
+
+class TAContractAttachment(models.Model):
+    """
+    Like most of our contract-based objects, an attachment object that can be attached to them.
+    """
+    contract = models.ForeignKey(TAContract, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
+    title = models.CharField(max_length=250, null=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('contract',))
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.', on_delete=models.PROTECT)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=tacontracts_attachment_upload_to, max_length=500)
+    mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = TAContractAttachmentQueryset.as_manager()
+
+    def __str__(self):
+        return self.contents.name
+
+    class Meta:
+        ordering = ("created_at",)
+        unique_together = (("contract", "slug"),)
+
+    def contents_filename(self):
+        return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()

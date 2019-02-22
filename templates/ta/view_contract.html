@@ -2,9 +2,9 @@
 {% load form_display course_display%}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
-<li><a href="{% url "ta.views.all_contracts" post_slug=posting.slug %}">Contracts</a></li>
+<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta:posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li><a href="{% url "ta:all_contracts" post_slug=posting.slug %}">Contracts</a></li>
 <li>{{ contract.application.person.name }}</li>
 {% endblock %}
 
@@ -15,9 +15,9 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url "ta.views.edit_contract" post_slug=contract.posting.slug userid=contract.application.person.userid %}">Edit Contract</a></li>
-    <li><a href="{% url "ta.views.view_form" post_slug=contract.posting.slug userid=contract.application.person.userid %}">Appointment Form</a></li>
-    <li><a href="{% url "ta.views.preview_offer" post_slug=contract.posting.slug userid=contract.application.person.userid %}">Preview Offer</a></li>
+    <li><a href="{% url "ta:edit_contract" post_slug=contract.posting.slug userid=contract.application.person.userid %}">Edit Contract</a></li>
+    <li><a href="{% url "ta:view_form" post_slug=contract.posting.slug userid=contract.application.person.userid %}">Appointment Form</a></li>
+    <li><a href="{% url "ta:preview_offer" post_slug=contract.posting.slug userid=contract.application.person.userid %}">Preview Offer</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -33,8 +33,10 @@
   	<tr><th>Category</th><td>{{ contract.get_appt_category_display }}</td></tr>
   	<tr><th>Appointment Type</th><td>{{ contract.get_appt_display }}</td></tr>
   	<tr><th>Status</th><td>{{ contract.get_status_display }}</td></tr>
-    <tr><th>Contract Start Date</th><td>{{ contract.pay_start }}</td></tr>
-    <tr><th>Contract End Date</th><td>{{ contract.pay_end }}</td></tr>
+    <tr><th>Appointment Start Date</th><td>{{ contract.appointment_start }}</td></tr>
+    <tr><th>Appointment End Date</th><td>{{ contract.appointment_end }}</td></tr>
+    <tr><th>Payroll Start Date</th><td>{{ contract.pay_start }}</td></tr>
+    <tr><th>Payroll End Date</th><td>{{ contract.pay_end }}</td></tr>
     <tr><th>Acceptance Deadline</th><td>{{ contract.deadline }}</td></tr>
     <tr><th>Conditional</th><td>{{ contract.appt_cond|yesno }}</td></tr>
     <tr><th>Appointment in TSSU</th><td>{{ contract.appt_tssu|yesno }}</td></tr>

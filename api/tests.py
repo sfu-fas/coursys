@@ -4,18 +4,18 @@ import json
 #Django
 from django.test import TestCase
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse, resolve
+from django.urls import reverse, resolve
 
 #Third Party
 from oauth_provider.models import Consumer, Token
 from oauth_provider.consts import ACCEPTED
-import mock
 
 #Local
 from courselib.testing import Client, TEST_COURSE_SLUG
 
 #App
 from .models import ConsumerInfo
+from coredata.models import Member
 
 
 VERIFIER = '1234567890'
@@ -32,7 +32,7 @@ class APIEndpointTester(object):
         self.client = client
         self.testcase = testcase
         # fake APIRoot into the found links: we don't demand a link to it since it's the root
-        self.found_view_links = set([self.link_to_view(reverse('api.APIRoot'))])
+        self.found_view_links = set([self.link_to_view(reverse('api:APIRoot'))])
         self.checked_views = set()
 
     def all_links(self, data):
@@ -43,7 +43,7 @@ class APIEndpointTester(object):
             if 'link' in data:
                 yield data['link']
             if 'links' in data:
-                for u in data['links'].values():
+                for u in list(data['links'].values()):
                     yield u
         elif isinstance(data, (list, tuple)):
             for d in data:
@@ -55,7 +55,7 @@ class APIEndpointTester(object):
         return resolve(url).func
 
     def links_to_views(self, urls):
-        return map(self.link_to_view, urls)
+        return list(map(self.link_to_view, urls))
 
     def find_views_in(self, data):
         found = set(self.links_to_views(self.all_links(data)))
@@ -68,7 +68,7 @@ class APIEndpointTester(object):
         url = reverse(view, kwargs=view_kwargs)
         resp = self.client.get(url)
         self.testcase.assertEqual(resp.status_code, 200)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content.decode('utf8'))
 
         self.find_views_in(data)
         self.checked_views.add(self.link_to_view(url))
@@ -148,17 +148,58 @@ class APITest(TestCase):
         perms = ConsumerInfo.allowed_permissions(self.token)
         self.assertEqual(perms, [])
 
+    def test_head_request(self):
+        "Make sure HEAD requests work with the cache mixin"
+        self.client.login_user('ggbaker')
+        url = reverse('api:APIRoot', kwargs={})
+        resp = self.client.head(url)
+
     def test_all_endpoints(self):
         client = self.client
         client.login_user("ggbaker")
 
         tester = APIEndpointTester(client, self)
 
-        tester.check_endpoint('api.APIRoot', {})
-        tester.check_endpoint('api.MyOfferings', {})
-        tester.check_endpoint('api.OfferingInfo', {'course_slug': TEST_COURSE_SLUG})
-        tester.check_endpoint('api.OfferingActivities', {'course_slug': TEST_COURSE_SLUG})
-        tester.check_endpoint('api.OfferingGrades', {'course_slug': TEST_COURSE_SLUG})
-        tester.check_endpoint('api.OfferingStats', {'course_slug': TEST_COURSE_SLUG})
+        tester.check_endpoint('api:APIRoot', {})
+        tester.check_endpoint('api:MyOfferings', {})
+        tester.check_endpoint('api:OfferingInfo', {'course_slug': TEST_COURSE_SLUG})
+        tester.check_endpoint('api:OfferingActivities', {'course_slug': TEST_COURSE_SLUG})
+        tester.check_endpoint('api:OfferingGrades', {'course_slug': TEST_COURSE_SLUG})
+        tester.check_endpoint('api:OfferingStats', {'course_slug': TEST_COURSE_SLUG})
+        tester.check_endpoint('api:OfferingStudents', {'course_slug': TEST_COURSE_SLUG})
 
         tester.check_found_links()
+
+    def test_class_list_permission(self):
+        """
+        Check that the class list API endpoint has the right permissions
+        """
+        client = self.client
+
+        # no auth: should be forbidden
+        url = reverse('api:OfferingStudents', kwargs={'course_slug': TEST_COURSE_SLUG})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 403)
+        data = json.loads(resp.content.decode('utf8'))
+        self.assertIsInstance(data, dict)
+        self.assertEqual(list(data.keys()), ['detail'])
+
+        # as instructor: should return class list
+        client.login_user("ggbaker")
+        url = reverse('api:OfferingStudents', kwargs={'course_slug': TEST_COURSE_SLUG})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.content.decode('utf8'))
+        self.assertIsInstance(data, list)
+        self.assertEqual([d['userid'] for d in data],
+                         [m.person.userid for m in Member.objects.filter(offering__slug=TEST_COURSE_SLUG, role='STUD')
+                             .select_related('person')])
+
+        # as a student: should be forbidden
+        client.login_user("0aaa0")
+        url = reverse('api:OfferingStudents', kwargs={'course_slug': TEST_COURSE_SLUG})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 403)
+        data = json.loads(resp.content.decode('utf8'))
+        self.assertIsInstance(data, dict)
+        self.assertEqual(list(data.keys()), ['detail'])

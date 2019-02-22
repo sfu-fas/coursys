@@ -1,4 +1,4 @@
-from base import *
+from .base import *
 import submission.forms
 from django.forms.widgets import FileInput, Textarea
 from django import forms
@@ -24,9 +24,9 @@ class ImageComponent(SubmissionComponent):
 
 
 class SubmittedImage(SubmittedComponent):
-    component = models.ForeignKey(ImageComponent, null=False)
+    component = models.ForeignKey(ImageComponent, null=False, on_delete=models.PROTECT)
     image = models.FileField(upload_to=submission_upload_path, blank=False,  max_length=500, 
-          storage=SubmissionSystemStorage, verbose_name='Image submission')
+          storage=UploadedFileStorage, verbose_name='Image submission')
         
     class Meta:
         app_label = 'submission'
@@ -40,7 +40,7 @@ class SubmittedImage(SubmittedComponent):
     def get_filename(self):
         return os.path.split(self.image.name)[1]
 
-    def download_response(self):
+    def download_response(self, **kwargs):
         # figure out the MIME type
         for ext in self.component.mime_types:
             if self.image.name.lower().endswith(ext):
@@ -50,7 +50,7 @@ class SubmittedImage(SubmittedComponent):
         response = HttpResponse(content_type=content_type)
         self.sendfile(self.image, response)
         return response
-    def add_to_zip(self, zipfile, prefix=None):
+    def add_to_zip(self, zipfile, prefix=None, **kwargs):
         filename = self.file_filename(self.image, prefix)
         zipfile.write(self.image.path, filename)
 

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>New Message</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>New Message</li>{% endblock %}
 
 {% block title %}Create a new news item{% endblock %}
 {% block h1 %}Create a new news item{% endblock %}
@@ -11,11 +11,11 @@
 This news item will be sent to all members of {{course.name}} ({{course.semester.label}}).
 </p>
 
-<form action="{% url "grades.views.new_message" course_slug=course.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+<form action="{% url "offering:new_message" course_slug=course.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
 <fieldset>
 {{form|as_dl}}
 </fieldset>
-<p><input class="submit" type="submit" value="Send" onclick="return confirmSubmit('post this news item')" /></p>
+<p><input type="submit" value="Send" class="submit confirm-submit" data-submit-action="post this news item" /></p>
 </form>
 
 {% endblock %}

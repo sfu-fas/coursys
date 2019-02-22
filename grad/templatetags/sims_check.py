@@ -23,8 +23,8 @@ class SIMSCheckNode(template.Node):
         else:
             gs = obj.student
 
-        if gs.program.unit.slug == 'cmpt' and not debug:
-            return ''
+        # if gs.program.unit.slug == 'cmpt' and not debug:
+        #    return ''
 
         if hasattr(obj, 'config') and SIMS_SOURCE in obj.config and obj.config[SIMS_SOURCE]:
             tag = '<i class="fa fa-check sims_check_yes" title="Found in SIMS"></i>'

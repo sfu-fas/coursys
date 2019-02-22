@@ -1,22 +1,22 @@
 from django.db import models
 from django.core.cache import cache
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, Member
-from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 from cache_utils.decorators import cached
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
-from courselib.json_fields import JSONField
+from courselib.json_fields import JSONField, config_property
 from courselib.text import normalize_newlines, many_newlines
 from courselib.conditional_save import ConditionalSaveMixin
-import itertools, datetime, os
+from courselib.storage import UploadedFileStorage, upload_path
+import itertools, datetime, os, uuid
 import coredata.queries
 from django.conf import settings
 import django.db.transaction
 
 
 class GradProgram(models.Model):
-    unit = models.ForeignKey(Unit, null=False, blank=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
     label = models.CharField(max_length=20, null=False)
     description = models.CharField(max_length=100, blank=True)
     
@@ -29,11 +29,11 @@ class GradProgram(models.Model):
         # strip the punctutation entirely
         sluglabel = ''.join((c for c in self.label if c.isalnum()))
         return make_slug(sluglabel)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with=('unit',))
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=('unit',))
     class Meta:
         unique_together = (('unit', 'label'),)
-    def __unicode__ (self):
-        return u"%s" % (self.label)
+    def __str__ (self):
+        return "%s" % (self.label)
     
     def cmpt_program_type(self):
         """
@@ -77,15 +77,21 @@ STATUS_CHOICES = (
         ('TRIN', 'Transferred from another department'),
         ('TROU', 'Transferred to another department'),
         ('DELE', 'Deleted Record'), # used to flag GradStudents as deleted
+        ('DEFR', 'Deferred'),
+        ('GAPL', 'Applied for Graduation'),
+        ('GAPR', 'Graduation Approved'),
+        ('WAIT', 'Waitlisted'),
         )
-STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
-STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO') # statuses that mean "currently applying"
+STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV',
+                    'DEFR', 'WAIT') # statuses that mean "applicant"
+STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'WAIT') # statuses that mean "currently applying"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
-STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
+STATUS_GPA = ('GAPL', 'GAPR',) + STATUS_ACTIVE  # Statuses for which we want to import the GPA
+STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP', 'GAPL', 'GAPR') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
 STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE', 'DELE', 'TRIN', 'TROU') # statuses we don't let users enter
 STATUS_REAL_PROGRAM = STATUS_CURRENTAPPLICANT + STATUS_ACTIVE + STATUS_INACTIVE # things to report for TAs
-SHORT_STATUSES = dict([ # a shorter status description we can use in compact tables
+SHORT_STATUSES = dict([  # a shorter status description we can use in compact tables
         ('INCO', 'Incomp App'),
         ('COMP', 'Complete App'),
         ('INRE', 'In-Review'),
@@ -108,6 +114,10 @@ SHORT_STATUSES = dict([ # a shorter status description we can use in compact tab
         ('TRIN', 'Transfer in'),
         ('TROU', 'Transfer out'),
         ('DELE', 'Deleted Record'),
+        ('DEFR', 'Deferred'),
+        ('GAPL', 'Grad Applied'),
+        ('GAPR', 'Grad Approved'),
+        ('WAIT', 'Waitlisted'),
         (None, 'None'),
 ])
 
@@ -168,7 +178,7 @@ def _active_semesters(pk, program=None):
 def _active_semesters_display(pk):
     self = GradStudent.objects.get(pk=pk)
     active, total = self.active_semesters()
-    res = u"%i/%i" % (active, total)
+    res = "%i/%i" % (active, total)
 
     history = GradProgramHistory.objects.filter(student=self).order_by('-starting', '-start_semester').select_related('program')
     if history.count() > 1:
@@ -176,6 +186,21 @@ def _active_semesters_display(pk):
         active, total = self.active_semesters(program=currentprog)
         res += ' (%i/%i in %s)' % (active, total, currentprog.program.label)
 
+    return res
+
+
+@cached(24*3600)
+def _program_start_end_semesters_display(pk):
+    self = GradStudent.objects.get(pk=pk)
+    start = self.start_semester.name if self.start_semester else "???"
+    end = self.end_semester.name if self.end_semester else "present"
+    history = GradProgramHistory.objects.filter(student=self).order_by('-starting', '-start_semester').select_related(
+        'program')
+    res = "%s - %s" % (start, end)
+    if history.count() > 1:
+        currentprog = history.first()
+        if not currentprog.start_semester == self.start_semester:
+            res += ' (%s start semester: %s)' % (currentprog.program.label, currentprog.start_semester.name)
     return res
 
 
@@ -198,22 +223,22 @@ class GradStudent(models.Model, ConditionalSaveMixin):
     objects = GradStudentManager()
     all_objects = models.Manager()
 
-    person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
-    program = models.ForeignKey(GradProgram, null=False, blank=False)
+    person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False, on_delete=models.PROTECT)
+    program = models.ForeignKey(GradProgram, null=False, blank=False, on_delete=models.PROTECT)
     def autoslug(self):
         if self.person.userid:
             userid = self.person.userid
         else:
             userid = str(self.person.emplid)
         return make_slug(userid + "-" + self.program.slug)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True, manager=all_objects)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True, manager=all_objects)
     research_area = models.TextField('Research Area', blank=True)
     campus = models.CharField(max_length=5, choices=GRAD_CAMPUS_CHOICES, blank=True, db_index=True)
 
     english_fluency = models.CharField(max_length=50, blank=True, help_text="I.e. Read, Write, Speak, All.")
     mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. English, Chinese, French")
     is_canadian = models.NullBooleanField()
-    passport_issued_by = models.CharField(max_length=25, blank=True, help_text="I.e. US, China")
+    passport_issued_by = models.CharField(max_length=30, blank=True, help_text="I.e. US, China")
     comments = models.TextField(max_length=250, blank=True, help_text="Additional information.")
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -222,8 +247,8 @@ class GradStudent(models.Model, ConditionalSaveMixin):
     modified_by = models.CharField(max_length=32, null=True, help_text='Grad Student modified by.', verbose_name='Last Modified By')
     
     # fields that are essentially denormalized caches for advanced search. Updated by self.update_status_fields()
-    start_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student started the program.", related_name='grad_start_sem')
-    end_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student finished/left the program.", related_name='grad_end_sem')
+    start_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student started the program.", related_name='grad_start_sem', on_delete=models.PROTECT)
+    end_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student finished/left the program.", related_name='grad_end_sem', on_delete=models.PROTECT)
     current_status = models.CharField(max_length=4, null=True, choices=STATUS_CHOICES, help_text="Current student status", db_index=True)
 
     config = JSONField(default=dict) # addition configuration
@@ -253,10 +278,12 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         'masters_cgpa':'',
         'qualifying_exam_date':'',
         'qualifying_exam_location':'',
-        'progress':''}
+        'progress':'',
+        'notes':''}
 
     #sin, set_sin = getter_setter('sin')
     applic_email, set_applic_email = getter_setter('applic_email')
+    notes, set_notes = getter_setter('notes')
     
     tacked_on_fields = [
         ('place_of_birth', "Place of Birth"),
@@ -268,8 +295,11 @@ class GradStudent(models.Model, ConditionalSaveMixin):
     ]
 
 
-    def __unicode__(self):
-        return u"%s, %s" % (self.person, self.program.label)
+    def __str__(self):
+        return "%s, %s" % (self.person, self.program.label)
+
+    def __lt__(self, other):
+        return self.person.sortname() < other.person.sortname()
 
     def save(self, *args, **kwargs):
         # rebuild slug in case something changes
@@ -294,11 +324,16 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             semester = Semester.current()
 
         timely_status = models.Q(start__name__lte=semester.name)
-        application_status = models.Q(start__name__lte=semester.offset_name(1), status__in=STATUS_APPLICANT)
+        application_status = models.Q(start__name__lte=semester.offset_name(3), status__in=STATUS_APPLICANT)
 
         statuses = GradStatus.objects.filter(student=self, hidden=False) \
                     .filter(timely_status | application_status) \
                     .order_by('-start__name', '-start_date').select_related('start')
+
+        # Only keep the statuses that don't have the ignore_status flag set, which should be all of them in almost all
+        # cases, as the flag was introduced for a particular edge case.
+
+        statuses = [s for s in statuses if not s.ignore_status]
 
         if not statuses:
             return None
@@ -308,12 +343,11 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         semester_statuses = [(
                                  st.start.name,
-                                 STATUS_ORDER[st.status],
-                                 st.start_date or datetime.date(1970,1,1),
+                                 st.start_date or st.created_at.date() or datetime.date(1970, 1, 1),
                                  st)
                              for st in statuses if st.start == status_sem]
-        semester_statuses.sort()
-        return semester_statuses[-1][3].status
+        semester_statuses.sort(key=lambda tup: (tup[0], tup[1]))
+        return semester_statuses[-1][2].status
 
 
     def status_as_of_old(self, semester=None):
@@ -393,7 +427,8 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             active_statuses = [status for status in all_gs if status.status=='ACTI']
             confirmed_statuses = [status for status in all_gs if status.status=='CONF']
             offered_statuses = [status for status in all_gs if status.status=='OFFO']
-            application_statuses = [status for status in all_gs if status.status=='COMP']
+            completed_application_statuses = [status for status in all_gs if status.status=='COMP']
+            rejected_application_statuses = [status for status in all_gs if status.status=='REJE']
 
             if len(active_statuses) > 0:
                 self.start_semester = active_statuses[0].start
@@ -401,29 +436,33 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 self.start_semester = confirmed_statuses[-1].start
             elif len(offered_statuses) > 0:
                 self.start_semester = offered_statuses[-1].start
-            elif len(application_statuses) > 0:
-                self.start_semester = application_statuses[-1].start
+            elif len(completed_application_statuses) > 0:
+                self.start_semester = completed_application_statuses[-1].start
+            elif len(rejected_application_statuses) > 0:
+                self.start_semester = rejected_application_statuses[-1].start
 
         # end_semester
-        if 'end_semester' in self.config:
-            if self.config['end_semester']:
+        # First, assume there is no end semester.
+        self.end_semester = None
+        # If the users manually added an end semester at some time, use that.
+        if 'end_semester' in self.config and self.config['end_semester']:
                 self.end_semester = Semester.objects.get(name=self.config['end_semester'])
-            else:
-                self.end_semester = None
-        else:
-            if self.current_status in STATUS_DONE:
-                ends = [status for status in all_gs if status.status in STATUS_DONE]
-                if len(ends) > 0:
-                    end_status = ends[-1]
-                    self.end_semester = end_status.start
-            else:
-                self.end_semester = None
+        # However, if either the users or SIMS created a current status that means the student is done
+        # then the semester for that status should really be the end semester.
+        if self.current_status in STATUS_DONE:
+            ends = [status for status in all_gs if status.status in STATUS_DONE]
+            if len(ends) > 0:
+                end_status = ends[-1]
+                self.end_semester = end_status.start
+
+
 
         current = (self.start_semester_id, self.end_semester_id, self.current_status, self.program_id)
         if old != current:
             self.save()
             _active_semesters.invalidate(self.pk)
             _active_semesters_display.invalidate(self.pk)
+            _program_start_end_semesters_display.invalidate(self.pk)
 
 
     def active_semesters(self, program=None):
@@ -468,6 +507,16 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         Cache is invalidated by self.update_status_fields.
         """
         return _active_semesters_display(self.pk)
+
+    def program_start_end_semesters_display(self):
+        """
+        Format the start/end semesters including the current program ones if they are different than the
+        GradStudent ones, which can happen in the case of program changes within the same career.
+
+        Cache is invalidated by self.update_status_fields.
+        """
+        return _program_start_end_semesters_display(self.pk)
+
 
     def program_as_of(self, semester=None, future_if_necessary=False):
         if semester == None:
@@ -532,12 +581,15 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         if gender == "M" :
             hisher = "his"
             heshe = 'he'
+            himher = 'her'
         elif gender == "F":
             hisher = "her"
             heshe = 'she'
+            himher = 'her'
         else:
             hisher = "his/her"
             heshe = 'he/she'
+            himher = 'him/her'
         
         # financial stuff
         promises = Promise.objects.filter(student=self).order_by('-start_semester')
@@ -545,13 +597,21 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             try:
                 promise = "${:,f}".format(promises[0].amount)
             except ValueError: # handle Python <2.7
-                promise = '$' + unicode(promises[0].amount)
+                promise = '$' + str(promises[0].amount)
+
+            # In addition to the latest promise, also get the earliest one, as requested by grad admins.
+            try:
+                promise_earliest = "${:,f}".format(promises.reverse()[0].amount)
+            except ValueError:  # handle Python <2.7
+                promise_earliest = '$' + str(promises.reverse()[0].amount)
+
         else:
-            promise = u'$0'
+            promise = '$0'
+            promise_earliest = '$0'
 
         tas = TAContract.objects.filter(application__person=self.person).order_by('-posting__semester__name')
         ras = RAAppointment.objects.filter(person=self.person, deleted=False).order_by('-start_date')
-        schols = Scholarship.objects.filter(student=self).order_by('start_semester__name').select_related('start_semester')
+        schols = Scholarship.objects.filter(student=self, removed=False).order_by('start_semester__name').select_related('start_semester')
         if tas and ras:
             if tas[0].application.posting.semester.name > ras[0].start_semester().name:
                 recent_empl = 'teaching assistant'
@@ -613,7 +673,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         # starting info
         startsem = self.start_semester
         if startsem:
-            startyear = unicode(startsem.start.year)
+            startyear = str(startsem.start.year)
             startsem = startsem.label()
         else:
             startyear = 'UNKNOWN'
@@ -658,7 +718,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         committee_3_name, committee_3_email, x, y, z = supervisor_details('COM', 3)
 
         all_supervisors = [x for x in Supervisor.objects.filter(student=self, removed=False)]
-        all_supervisors.sort(cmp=lambda x,y: cmp(x.type_order(), y.type_order()))
+        all_supervisors.sort(key=lambda s: s.type_order())
         committee = ""
         for supervisor in all_supervisors:
             if supervisor.supervisor:
@@ -683,6 +743,25 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         qualifying_exam_date = config_or_unknown("qualifying_exam_date")
         qualifying_exam_location = config_or_unknown("qualifying_exam_location")
 
+        if self.program.unit.slug == 'cmpt':
+            # get CMPT offer of admission form details
+            from onlineforms.models import FieldSubmission
+            emplid = str(self.person.emplid)
+            # all emplid entries for all possibly-relevant form submissons:
+            emplid_fieldsubs = FieldSubmission.objects.filter(
+                sheet_submission__form_submission__form__slug='cmpt-offer-of-admission-form',
+                field__slug='student-id-aka-student-number',
+                sheet_submission__completed_at__gte=datetime.datetime.now() - datetime.timedelta(days=120) # limit search to last ~semester
+            ).select_related('sheet_submission__form_submission').order_by('-sheet_submission__completed_at')
+
+            # field submissions actually about this person:
+            emplid_fieldsubs = [fs for fs in emplid_fieldsubs if 'info' in fs.data and fs.data['info'] == emplid]
+            if len(emplid_fieldsubs) > 0:
+                # the sheet submission we actually care about:
+                sheet_sub = emplid_fieldsubs[0].sheet_submission
+                fieldsubs = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
+                # TODO: find the data they want and include it below.
+    
         ls = { # if changing, also update LETTER_TAGS below with docs!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
                 'todays_date' : todays_date, 
@@ -691,10 +770,13 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 'His_Her' : hisher.title(),
                 'he_she' : heshe,
                 'He_She' : heshe.title(),
+                'him_her' : himher,
+                'Him_Her' : himher.title(),
                 'first_name': self.person.first_name,
                 'last_name': self.person.last_name,
                 'emplid': emplid, 
                 'promise': promise,
+                'promise_earliest': promise_earliest,
                 'start_semester': startsem,
                 'start_year': startyear,
                 'program': self.program.description,
@@ -815,7 +897,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             other.semlength = 1
             other.semvalue = other.amount
             other.promiseeligible = other.eligible
-            semesters[sem]['other'].append(other)
+            semesters[other.semester]['other'].append(other)
             
         return semesters
     
@@ -852,7 +934,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         if semester == None:
             semester = Semester.current() 
 
-        student_records = GradStudent.objects.filter(person=person)
+        student_records = GradStudent.objects.filter(person=person).order_by('-start_semester')
 
         students_and_statuses = [(gs, gs.status_as_of(semester)) for gs in student_records]
 
@@ -865,14 +947,15 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         def intersect( l1, l2 ):
             return bool(set(l1) & set(l2))
 
-        if (intersect( STATUS_ACTIVE, statuses ) or 
-            intersect( STATUS_APPLICANT, statuses ) or 
-            'LEAV' in statuses):
-            students_and_statuses = [(student, status) for student, status in 
-                                        students_and_statuses if 
-                                        status not in STATUS_INACTIVE]
+        if intersect(STATUS_ACTIVE, statuses):
+            return [student for (student, status) in students_and_statuses if status in STATUS_ACTIVE]
+        elif intersect(STATUS_APPLICANT, statuses):
+            return [student for (student, status) in students_and_statuses if status in STATUS_APPLICANT]
+        elif 'LEAV' in statuses:
+            return [student for (student, status) in students_and_statuses if status == 'LEAV']
+        else:
+            return [student for (student, status) in students_and_statuses]
 
-        return student_records
 
     @classmethod
     def create( cls, person, program ):
@@ -895,9 +978,9 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             is_canadian=is_canadian)
         
 class GradProgramHistory(models.Model, ConditionalSaveMixin):
-    student = models.ForeignKey(GradStudent, null=False, blank=False)
-    program = models.ForeignKey(GradProgram, null=False, blank=False)
-    start_semester = models.ForeignKey(Semester, null=False, blank=False,
+    student = models.ForeignKey(GradStudent, null=False, blank=False, on_delete=models.PROTECT)
+    program = models.ForeignKey(GradProgram, null=False, blank=False, on_delete=models.PROTECT)
+    start_semester = models.ForeignKey(Semester, null=False, blank=False, on_delete=models.PROTECT,
             help_text="Semester when the student entered the program")
     starting = models.DateField(default=datetime.date.today)
     config = JSONField(default=dict) # addition configuration
@@ -906,7 +989,7 @@ class GradProgramHistory(models.Model, ConditionalSaveMixin):
     class Meta:
         ordering = ('-starting',)
     
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s/%s" % (self.student.person, self.program, self.start_semester.name)
 
 
@@ -920,10 +1003,12 @@ LETTER_TAGS = {
                'emplid': 'student\'s emplid',
                'his_her' : '"his" or "her" (or use His_Her for capitalized)',
                'he_she' : '"he" or "she" (or use He_She for capitalized)',
+               'him_her' : '"him" or "her" (or use Him_Her for capitalized)',
                'program': 'the program the student is enrolled in',
                'start_semester': 'student\'s first semester (e.g. "Summer 2000")',
                'start_year': 'year of student\'s first semester (e.g. "2000")',
                'promise': 'the amount of the [most recent] funding promise to the student (e.g. "$17,000")',
+               'promise_earliest': 'the amount of the earliest funding promise to the student (e.g. "$17,000")',
                'supervisor_name': "the name of the student's potential supervisor",
                'supervisor_hisher': 'pronoun for the potential supervisor ("his" or "her")',
                'supervisor_heshe': 'pronoun for the potential supervisor ("he" or "she")',
@@ -934,7 +1019,7 @@ LETTER_TAGS = {
                'sr_supervisor_hisher': 'pronoun for the senior supervisor ("his" or "her")',
                'sr_supervisor_heshe': 'pronoun for the senior supervisor ("he" or "she")',
                'sr_supervisor_himher': 'pronoun for the senior supervisor ("him" or "her")',
-               'sr_supervisor_email': 'potential supervisor\'s email address',
+               'sr_supervisor_email': 'senior supervisor\'s email address',
                'defence_chair_name': 'the name of the student\'s defence chair', 
                'defence_chair_email': 'the email address of the student\'s defence chair',
                'sfu_examiner_name': 'the name of the student\'s internal (SFU) examiner', 
@@ -943,12 +1028,12 @@ LETTER_TAGS = {
                'external_examiner_email': 'the email of the student\'s external examiner',
                'co_sr_supervisor_name': 'the name of the student\'s co-senior supervisor', 
                'co_sr_supervisor_email': 'the email of the student\'s co-senior supervisor',
-               'committee_1_name': 'the name of the student\'s first committee member',
-               'committee_1_email': 'the email of the student\'s first committee member', 
-               'committee_2_name': 'the name of the student\'s second committee member',
-               'committee_2_email': 'the email of the student\'s second committee member',
-               'committee_3_name': 'the name of the student\'s third committee member',
-               'committee_3_email': 'the email of the student\'s third committee member', 
+               'committee_1_name': 'the name of the student\'s first (non-senior) supervisor',
+               'committee_1_email': 'the email of the student\'s first (non-senior) supervisor',
+               'committee_2_name': 'the name of the student\'s second (non-senior) supervisor',
+               'committee_2_email': 'the email of the student\'s second (non-senior) supervisor',
+               'committee_3_name': 'the name of the student\'s third (non-senior) supervisor',
+               'committee_3_email': 'the email of the student\'s third (non-senior) supervisor',
                'recent_empl': 'most recent employment ("teaching assistant" or "research assistant")',
                'tafunding': 'List of funding as a TA',
                'last_ta_start_date': 'the first day of the most recent TA contract granted to this student', 
@@ -972,7 +1057,7 @@ LETTER_TAGS = {
 SUPERVISOR_TYPE_CHOICES = [
     ('SEN', 'Senior Supervisor'),
     ('COS', 'Co-senior Supervisor'),
-    ('COM', 'Committee Member'),
+    ('COM', 'Supervisor'),
     ('CHA', 'Defence Chair'),
     ('EXT', 'External Examiner'),
     ('SFU', 'SFU Examiner'),
@@ -994,8 +1079,8 @@ class Supervisor(models.Model, ConditionalSaveMixin):
     """
     Member (or potential member) of student's supervisory committee.
     """
-    student = models.ForeignKey(GradStudent)
-    supervisor = models.ForeignKey(Person, blank=True, null=True, verbose_name="Member")
+    student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
+    supervisor = models.ForeignKey(Person, blank=True, null=True, verbose_name="Member", on_delete=models.PROTECT)
     external = models.CharField(max_length=200, blank=True, null=True, help_text="Details if not an SFU internal member")
     #position = models.SmallIntegerField(null=False)
     #is_senior = models.BooleanField()
@@ -1019,8 +1104,8 @@ class Supervisor(models.Model, ConditionalSaveMixin):
         #unique_together = ("student", "position")
         pass
     
-    def __unicode__(self):
-        return u"%s (%s) for %s" % (self.supervisor or self.external, self.supervisor_type, self.student.person)
+    def __str__(self):
+        return "%s (%s) for %s" % (self.supervisor or self.external, self.supervisor_type, self.student.person)
 
     def sortname(self):
         if self.supervisor:
@@ -1039,9 +1124,9 @@ class Supervisor(models.Model, ConditionalSaveMixin):
         is_person = bool(self.supervisor)
         is_ext = bool(self.external)
         if is_person and is_ext:
-            raise ValueError, "Cannot be both an SFU user and external"
+            raise ValueError("Cannot be both an SFU user and external")
         if not is_person and not is_ext:
-            raise ValueError, "Must be either an SFU user or external"
+            raise ValueError("Must be either an SFU user or external")
         
         super(Supervisor, self).save(*args, **kwargs)
         self.student.clear_has_committee()
@@ -1069,7 +1154,7 @@ class GradRequirement(models.Model):
     """
     A requirement that a unit has for grad students
     """
-    program = models.ForeignKey(GradProgram, null=False, blank=False)
+    program = models.ForeignKey(GradProgram, null=False, blank=False, on_delete=models.PROTECT)
     description = models.CharField(max_length=100)
     series = models.PositiveIntegerField(null=False, db_index=True, help_text='The category of requirement for searching by requirement, across programs')
     # .series is used to allow searching by type/series/category of requirement (e.g. "Completed Courses"),
@@ -1080,8 +1165,8 @@ class GradRequirement(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     hidden = models.BooleanField(default=False)
 
-    def __unicode__(self):
-        return u"%s" % (self.description)
+    def __str__(self):
+        return "%s" % (self.description)
     class Meta:
         unique_together = (('program', 'description'),)
 
@@ -1112,9 +1197,9 @@ class CompletedRequirement(models.Model):
     """
     A requirement met by a student (or notes about them meeting it in the future)
     """
-    requirement = models.ForeignKey(GradRequirement)
-    student = models.ForeignKey(GradStudent)
-    semester = models.ForeignKey(Semester, null=False,
+    requirement = models.ForeignKey(GradRequirement, on_delete=models.PROTECT)
+    student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
+    semester = models.ForeignKey(Semester, null=False, on_delete=models.PROTECT,
             help_text="Semester when the requirement was completed")
     date = models.DateField(null=True, blank=True,
             help_text="Date the requirement was completed (optional)")
@@ -1125,13 +1210,14 @@ class CompletedRequirement(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')    
     #class meta:
     #    unique_together = (("requirement", "student"),)
-    def __unicode__(self):
-        return u"%s" % (self.requirement)
+    def __str__(self):
+        return "%s" % (self.requirement)
 
 
 STATUS_ORDER = {
         'INCO': 0,
         'COMP': 0,
+        'WAIT': 0,
         'INRE': 1,
         'HOLD': 1,
         'OFFO': 2,
@@ -1142,10 +1228,13 @@ STATUS_ORDER = {
         'TRIN': 4,
         'CANC': 5,
         'ARIV': 5,
+        'DEFR': 5,
         'ACTI': 6,
         'PART': 6,
         'LEAV': 7,
         'NOND': 7,
+        'GAPL': 7,
+        'GAPR': 7,
         'TROU': 8,
         'WIDR': 8,
         'GRAD': 8,
@@ -1158,13 +1247,13 @@ class GradStatus(models.Model, ConditionalSaveMixin):
     """
     A "status" for a grad student: what were they doing in this range of semesters?
     """
-    student = models.ForeignKey(GradStudent)
+    student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
     status = models.CharField(max_length=4, choices=STATUS_CHOICES, blank=False)
-    start = models.ForeignKey(Semester, null=False, related_name="start_semester", verbose_name="Effective Semester",
+    start = models.ForeignKey(Semester, null=False, related_name="start_semester", verbose_name="Effective Semester", on_delete=models.PROTECT,
             help_text="Semester when this status is effective")
     start_date = models.DateField(null=True, blank=True, verbose_name="Effective Date",
             help_text="Date this status is effective (optional)")
-    end = models.ForeignKey(Semester, null=True, blank=True, related_name="end_semester",
+    end = models.ForeignKey(Semester, null=True, blank=True, related_name="end_semester", on_delete=models.PROTECT,
             help_text="Final semester of this status: blank for ongoing")
     notes = models.TextField(blank=True, help_text="Other notes")
     
@@ -1177,8 +1266,11 @@ class GradStatus(models.Model, ConditionalSaveMixin):
         # 'in_from': for status=='TRIN', a Unit.slug where the student came from
         # 'out_to': for status=='TROU', a Unit.slug where the student went
 
+    # If this is set to true, this status is not used in the calculation of the "status as of" logic.
+    ignore_status = config_property('ignore_status', False)
+
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
+        raise NotImplementedError("This object cannot be deleted, set the hidden flag instead.")
 
     def save(self, close_others=True, *args, **kwargs):
         if not self.start_date and self.status in STATUS_APPLICANT:
@@ -1197,13 +1289,9 @@ class GradStatus(models.Model, ConditionalSaveMixin):
             self.student.update_status_fields()
 
     
-    def __unicode__(self):
-        return u"Grad Status: %s %s in %s" % (self.student, self.status, self.start.name)
+    def __str__(self):
+        return "Grad Status: %s %s in %s" % (self.student, self.status, self.start.name)
     
-    def status_order(self):
-        "For sorting by status"
-        return STATUS_ORDER[self.status]
-
     def get_short_status_display(self):
         return SHORT_STATUSES[self.status]
 
@@ -1228,47 +1316,68 @@ Letters
 """
 
 class LetterTemplate(models.Model):
-    unit = models.ForeignKey(Unit, null=False, blank=False)
-    label = models.CharField(max_length=250, null=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
+    label = models.CharField(max_length=150, null=False)
         # likely choices: visa, international, msc offer, phd offer, special student offer, qualifying student offer
     content = models.TextField(help_text="I.e. 'This is to confirm {{title}} {{last_name}} ... '")
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Letter template created by.')
     hidden = models.BooleanField(default=False)
+    config = JSONField(default=dict)  # Additional configuration for the template
+        # 'body_font_size': the default font size for the letter.
+        # 'email_body': the text to include in the email when sending out this letter
+        # 'email_subject':  the email subject when sending out the letter
+
+    defaults = {'body_font_size': 12, 'email_body': '', 'email_subject': ''}
+    body_font_size, set_body_font_size = getter_setter('body_font_size')
+    email_body, set_email_body = getter_setter('email_body')
+    email_subject, set_email_subject = getter_setter('email_subject')
 
     def autoslug(self):
         return make_slug(self.unit.label + "-" + self.label)  
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     class Meta:
         unique_together = ('unit', 'label')      
-    def __unicode__(self):
-        return u"%s in %s" % (self.label, self.unit)
+    def __str__(self):
+        return "%s in %s" % (self.label, self.unit)
+
     
 class Letter(models.Model):
-    student = models.ForeignKey(GradStudent, null=False, blank=False)
+    student = models.ForeignKey(GradStudent, null=False, blank=False, on_delete=models.PROTECT)
     date = models.DateField(help_text="The sending date of the letter")
     to_lines = models.TextField(help_text='Delivery address for the letter', null=True, blank=True)
     content = models.TextField(help_text="I.e. 'This is to confirm Mr. Baker ... '")
-    template = models.ForeignKey(LetterTemplate)
+    template = models.ForeignKey(LetterTemplate, on_delete=models.PROTECT)
     closing = models.CharField(max_length=100, default="Sincerely")
-    from_person = models.ForeignKey(Person, null=True)
+    from_person = models.ForeignKey(Person, null=True, on_delete=models.PROTECT)
     from_lines = models.TextField(help_text='Name (and title) of the signer, e.g. "John Smith, Program Director"')
     
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Letter generation requseted by.')
+    removed = models.BooleanField(default=False)
+
     config = JSONField(default=dict) # addition configuration for within the letter
-        # data returned by grad.letter_info() is stored here.
-        # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)
-    
-    defaults = {'use_sig': True}
+    # data returned by grad.letter_info() is stored here.
+    # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is
+    # required.)
+    # 'email_body', 'email_subject', 'email_cc':  Used for sending the letter in an email
+    # 'email_sent': Used to put up an indicator to let us know when this letter was sent as an email.
+
+    defaults = {'use_sig': True, 'email_body': '', 'email_subject': 'Letter from CourSys', 'email_cc': '',
+                'email_sent': ''}
     use_sig, set_use_sig = getter_setter('use_sig')
-        
+    email_body, set_email_body = getter_setter('email_body')
+    email_subject, set_email_subject = getter_setter('email_subject')
+    email_cc, set_email_cc = getter_setter('email_cc')
+    email_sent, set_email_sent = getter_setter('email_sent')
 
     def autoslug(self):
         return make_slug(self.student.slug + "-" + self.template.label)     
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)            
-    def __unicode__(self):
-        return u"%s letter for %s" % (self.template.label, self.student)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+
+    def __str__(self):
+        return "%s letter for %s" % (self.template.label, self.student)
+
     def save(self, *args, **kwargs):
         # normalize text so it's easy to work with
         if not self.to_lines:
@@ -1284,31 +1393,31 @@ Financial
 """
 
 class ScholarshipType(models.Model):
-    unit = models.ForeignKey(Unit)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     name = models.CharField(max_length=256)
     eligible = models.BooleanField(default=True, help_text="Does this scholarship count towards promises of support?")
     comments = models.TextField(blank=True, null=True)
     hidden = models.BooleanField(default=False)
     class meta:
         unique_together = (("unit", "name"),)
-    def __unicode__(self):
-        return u"%s - %s" % (self.unit.label, self.name)
+    def __str__(self):
+        return "%s - %s" % (self.unit.label, self.name)
 
 class Scholarship(models.Model):
-    scholarship_type = models.ForeignKey(ScholarshipType)
-    student = models.ForeignKey(GradStudent)
+    scholarship_type = models.ForeignKey(ScholarshipType, on_delete=models.PROTECT)
+    student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
     amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
-    start_semester = models.ForeignKey(Semester, related_name="scholarship_start")
-    end_semester = models.ForeignKey(Semester, related_name="scholarship_end")
+    start_semester = models.ForeignKey(Semester, related_name="scholarship_start", on_delete=models.PROTECT)
+    end_semester = models.ForeignKey(Semester, related_name="scholarship_end", on_delete=models.PROTECT)
     comments = models.TextField(blank=True, null=True)
     removed = models.BooleanField(default=False)
-    def __unicode__(self):
-        return u"%s (%s)" % (self.scholarship_type, self.amount)
+    def __str__(self):
+        return "%s (%s)" % (self.scholarship_type, self.amount)
     
     
 class OtherFunding(models.Model):
-    student = models.ForeignKey(GradStudent)
-    semester = models.ForeignKey(Semester, related_name="other_funding")
+    student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
+    semester = models.ForeignKey(Semester, related_name="other_funding", on_delete=models.PROTECT)
     description = models.CharField(max_length=100, blank=False)
     amount = models.DecimalField(verbose_name="Funding Amount", max_digits=8, decimal_places=2)
     eligible = models.BooleanField(default=True, help_text="Does this funding count towards promises of support?")
@@ -1316,14 +1425,14 @@ class OtherFunding(models.Model):
     removed = models.BooleanField(default=False)
     
 class Promise(models.Model):
-    student = models.ForeignKey(GradStudent)
+    student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
     amount = models.DecimalField(verbose_name="Promise Amount", max_digits=8, decimal_places=2)
-    start_semester = models.ForeignKey(Semester, related_name="promise_start")
-    end_semester = models.ForeignKey(Semester, related_name="promise_end")
+    start_semester = models.ForeignKey(Semester, related_name="promise_start", on_delete=models.PROTECT)
+    end_semester = models.ForeignKey(Semester, related_name="promise_end", on_delete=models.PROTECT)
     comments = models.TextField(blank=True, null=True)
     removed = models.BooleanField(default=False)
-    def __unicode__(self):
-        return u"%s promise for %s %s-%s" % (self.amount, self.student.person, self.start_semester.name, self.end_semester.name)
+    def __str__(self):
+        return "%s promise for %s %s-%s" % (self.amount, self.student.person, self.start_semester.name, self.end_semester.name)
 
     def semester_length(self):
         return self.end_semester - self.start_semester + 1
@@ -1355,11 +1464,11 @@ class Promise(models.Model):
             self._received_cache = sum(funding_values)
         return self._received_cache
 
-    def short(self):
+    def difference(self):
         """
         How much are we short on this promise?
         """
-        return self.amount - self.received()
+        return self.received() - self.amount
 
 
 COMMENT_TYPE_CHOICES = [
@@ -1369,36 +1478,36 @@ COMMENT_TYPE_CHOICES = [
         ('OTH', 'Other'),
         ]
 class FinancialComment(models.Model):
-    student = models.ForeignKey(GradStudent)
-    semester = models.ForeignKey(Semester, related_name="+")
+    student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
+    semester = models.ForeignKey(Semester, related_name="+", on_delete=models.PROTECT)
     comment_type = models.CharField(max_length=3, choices=COMMENT_TYPE_CHOICES, default='OTH', blank=False, null=False)
     comment = models.TextField(blank=False, null=False)
     created_by = models.CharField(max_length=32, null=False, help_text='Entered by (userid)')
     created_at = models.DateTimeField(default=datetime.datetime.now)
     removed = models.BooleanField(default=False)
     
-    def __unicode__(self):
+    def __str__(self):
         return "Comment for %s by %s" % (self.student.person.emplid, self.created_by)
 
 class GradFlag(models.Model):
-    unit = models.ForeignKey(Unit)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     label = models.CharField(max_length=100, blank=False, null=False)
     
-    def __unicode__(self):
+    def __str__(self):
         return self.label
     class Meta:
         unique_together = (('unit', 'label'),)
 
 class GradFlagValue(models.Model):
-    student = models.ForeignKey(GradStudent)
-    flag = models.ForeignKey(GradFlag)
+    student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
+    flag = models.ForeignKey(GradFlag, on_delete=models.PROTECT)
     value = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s" % (self.flag.label, self.value)
 
 class SavedSearch(models.Model):
-    person = models.ForeignKey(Person, null=True)
+    person = models.ForeignKey(Person, null=True, on_delete=models.PROTECT)
     query = models.TextField()
     config = JSONField(null=False, blank=False, default=dict)
     
@@ -1411,7 +1520,7 @@ class SavedSearch(models.Model):
 
 
 class ProgressReport(models.Model):
-    student = models.ForeignKey(GradStudent)
+    student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
     result = models.CharField(max_length=5, 
                               choices=PROGRESS_REPORT_CHOICES, 
                               db_index=True)
@@ -1420,33 +1529,20 @@ class ProgressReport(models.Model):
     config = JSONField(null=False, blank=False, default=dict)
     comments = models.TextField(blank=True, null=True)
 
-    def __unicode__(self):
-        return u"(%s) %s Progress Report" % (str(self.date), 
+    def __str__(self):
+        return "(%s) %s Progress Report" % (str(self.date), 
                                              self.get_result_display())
 
 
-GradSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, 
-                                      base_url=None)
-
-
 def attachment_upload_to(instance, filename):
-    """
-    Take the filename, encode it in ascii, ignoring characters that don't
-    translate, then create a path for it, like: 
-    gradnotes/2011-01-04/<filename>
-    """
-    fullpath = os.path.join(
-            'gradnotes',
-            datetime.datetime.now().strftime("%Y-%m-%d"),
-                                             filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('gradnotes', filename)
 
 
 class ExternalDocument(models.Model):
-    student = models.ForeignKey(GradStudent)
+    student = models.ForeignKey(GradStudent, on_delete=models.PROTECT)
     name = models.CharField(max_length=100, null=False,
                             help_text="A short description of what this file contains.")
-    file_attachment = models.FileField(storage=GradSystemStorage, 
+    file_attachment = models.FileField(storage=UploadedFileStorage,
                                        upload_to=attachment_upload_to,
                                        max_length=500)
     file_mediatype = models.CharField(max_length=200, 
@@ -1456,14 +1552,14 @@ class ExternalDocument(models.Model):
     config = JSONField(null=False, blank=False, default=dict)
     comments = models.TextField(blank=True, null=True)
     
-    def __unicode__(self):
-        return u"(%s) %s" % (str(self.date), self.name)
+    def __str__(self):
+        return "(%s) %s" % (str(self.date), self.name)
     
     def attachment_filename(self):
         """
         Return the filename only (no path) for the attachment.
         """
         _, filename = os.path.split(self.file_attachment.name)
-        print "FILENAME:", filename
+        print("FILENAME:", filename)
         return filename
 

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load form_display %}{% load staticfiles %}
+{% block title %}Add File Attachment{% endblock %}
+{% block h1 %}Add File Attachment{% endblock %}
+
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "space:index" %}">Space Management</a></li>
+    <li><a href="{% url "space:view_location" location_slug=booking.location.slug %}">View Location</a></li>
+    <li><a href="{% url "space:view_booking" booking_slug=booking.slug %}">View Booking</a></li>
+    <li>Add Attachment</li>
+{% endblock %}
+
+
+{% block content %}
+<div class="form_container">
+    <form action="{% url "space:add_booking_attachment" booking_slug=booking.slug  %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset>
+            {{ attachment_form|as_dl }}
+            <p><input type="submit" class="submit" value="Create Attachment" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

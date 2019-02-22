@@ -8,8 +8,12 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra.views.search" %}">RAs</a></li>
-<li><a href="{% url "ra.views.student_appointments" userid=appointment.person.emplid %}">{{ student.name }}</a></li>
+{% if supervisor_only %}
+<li>RAs</li><li>{{ student.name }}</li>
+{% else %}
+<li><a href="{% url "ra:search" %}">RAs</a></li>
+<li><a href="{% url "ra:student_appointments" userid=appointment.person.emplid %}">{{ student.name }}</a></li>
+{% endif %}
 <li>{{ appointment.account.title }} starting {{ appointment.start_date }}</li>
 {% endblock %}
 
@@ -17,11 +21,12 @@
   <div id="actions">
     <h2>Actions</h2>
     <ul>
-      <li><a href="{% url "ra.views.edit" ra_slug=appointment.slug %}">Edit this appointment</a></li>
-      <li><a href="{% url "ra.views.edit_letter" ra_slug=appointment.slug %}">Edit Letter Text</a></li>
-      <li><a href="{% url "ra.views.form" ra_slug=appointment.slug %}">Appointment Form</a></li>
-      <li><a href="{% url "ra.views.letter" ra_slug=appointment.slug %}">Appointment Letter</a></li>
-      <li><a href="{% url "ra.views.reappoint" ra_slug=appointment.slug %}">Reappoint</a></li>
+      <li><a href="{% url "ra:edit" ra_slug=appointment.slug %}">Edit this appointment</a></li>
+      <li><a href="{% url "ra:edit_letter" ra_slug=appointment.slug %}">Edit Letter Text</a></li>
+      <li><a href="{% url "ra:form" ra_slug=appointment.slug %}">Appointment Form</a></li>
+      <li><a href="{% url "ra:letter" ra_slug=appointment.slug %}">Appointment Letter</a></li>
+      <li><a href="{% url "ra:reappoint" ra_slug=appointment.slug %}">Reappoint</a></li>
+      <li><a href="{% url "ra:new_attachment" ra_slug=appointment.slug %}">Add Attachment</a></li>
     </ul>
   </div>
 {% endblock %}
@@ -58,7 +63,7 @@
     <tr><th>Fund Number:</th>
       <td>{{ appointment.project.fund_number }}</td></tr>
     <tr><th>Project Number:</th>
-      <td>{{ appointment.project.project_number }}
+      <td>{{ appointment.project.get_full_project_number }}
           {% if appointment.project.hidden %}
             : <span class='warning'>Warning! This project has been deleted! </span>
           {% endif %} 
@@ -72,6 +77,10 @@
       </td></tr>
     <tr><th>Position Number:</th>
       <td>{{ appointment.account.position_number }}</td></tr>
+    <tr><th>Program Number</th>
+      <td>{{ appointment.get_program_display }}</td></tr>
+    <tr><th>Department Number</th>
+      <td>{{ appointment.project.department_code }}</td></tr>
     <tr><th>Start Date:</th>
       <td>{{ appointment.start_date|date:GRAD_DATE_FORMAT }}</td></tr>
     <tr><th>End Date:</th>
@@ -126,18 +135,32 @@
 <div class="table_container">
   <h2>Other Information</h2>
   <table class="info">
-    <tr><th>Notes:</th>
-      <td>{{ appointment.notes|linebreaksbr }}</td></tr>
     <tr><th>Comments:</th>
+      <td>{{ appointment.notes|linebreaksbr }}</td></tr>
+    <tr><th>Notes:</th>
       <td>{{ appointment.comments|linebreaksbr }}</td></tr>
   </table>
 </div>
+{% with attachments=appointment.attachments.visible %}
+    {% if attachments %}
+    <h2 id="attachments">Attachments</h2>
+    <ul>
+    {% for a in attachments %}
+    <li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
+      <a href="{% url 'ra:view_attachment' ra_slug=appointment.slug  attach_slug=a.slug %}">View</a> |
+      <a href="{% url 'ra:download_attachment' ra_slug=appointment.slug  attach_slug=a.slug %}">Download</a> |
+      <a href="{% url 'ra:delete_attachment' ra_slug=appointment.slug  attach_slug=a.slug  %}">Delete</a>
+    </li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
 
-                        <form action="{% url "ra.views.delete_ra" ra_slug=appointment.slug %}" method="post">
+                        <form action="{% url "ra:delete_ra" ra_slug=appointment.slug %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
-                                    <input type="submit" class="submit" value="Delete Appointment" onclick="return confirmSubmit('delete this appointment')" />
+                                    <input type="submit" class="submit confirm-submit" value="Delete Appointment" data-submit-action="remove this appointment" />
                                 </p>
                         </form>
-
+    Initial creation: {{ appointment.created_at }}.
 {%endblock content%}

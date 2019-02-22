@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
+{% endblock %}
+
+{% block title %}Edit Position{% endblock %}
+{% block h1 %}Edit Position{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty:index" %}">Faculty Management</a></li>
+<li><a href="{% url "faculty:list_positions" %}">Positions</a></li>
+<li>Edit Position</li>
+{% endblock %}
+
+
+{% block content %}
+<form action="{% url "faculty:edit_position" position_id=position_id%}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Position" />
+    </p>
+</form>
+{% endblock %}

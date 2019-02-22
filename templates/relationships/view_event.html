@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load contact_display %}
+{% load staticfiles %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'relationships:index' %}">Relationships</a></li>
+    <li><a href="{% url 'relationships:view_contact' contact_slug=contact.slug %}">{{ contact.full_name }}</a></li>
+<li>View Contact Content</li>
+{% endblock %}
+
+
+{% block content %}
+{{ handler.to_html }}
+    {% if event.last_modified %}
+        <p class="logentry">Last modified on {{ event.last_modified }} {% if event.last_modified_by %} by {{ event.last_modified_by }} {% endif %}</p>
+    {% endif %}
+{% endblock %}

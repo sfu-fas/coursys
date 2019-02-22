@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load form_display %}
+
+{% block title %}View Booking{% endblock %}
+{% block h1 %}View Booking{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "space:index" %}">Space Management</a></li>
+    <li><a href="{% url "space:view_location" location_slug=booking.location.slug %}">View Location</a></li>
+    <li>View Booking</li>
+{% endblock %}
+
+{% block actions %}
+    <div id="actions">
+        <h2>Actions</h2>
+        <ul>
+            <li><a href="{% url "space:add_booking_attachment" booking_slug=booking.slug %}">Add Attachment</a></li>
+            <li><a href="{% url "space:send_booking_memo" booking_slug=booking.slug %}" onclick="return confirm('Are you sure? Clicking \'OK\' *will* send an email.')">Send Booking Memo</a></li>
+        </ul>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <dt>Person</dt><dd>{{ booking.person.name }}</dd>
+    <dt>Start Time</dt><dd>{{ booking.start_time }}</dd>
+    <dt>End Time</dt><dd>{{ booking.end_time }}</dd>
+    {% if booking.form_submission_URL %}
+    <dt>Form Submission URL</dt><dd><a href="{{ booking.form_submission_URL }}">{{ booking.form_submission_URL }}</a></dd>
+    {% endif %}
+    {% if booking.notes %}
+    <dt>Notes</dt><dd>{{ booking.notes|linebreaks }}</dd>
+    {% endif %}
+    <dt>Last Modified</dt><dd>{{ booking.last_modified }}</dd>
+    <dt>Last Modified By</dt><dd>{{ booking.last_modified_by.name }}</dd>
+
+    {% with attachments=booking.attachments.visible %}
+    {% if attachments %}
+    <h2 id="attachments">Attachments</h2>
+    <ul>
+    {% for a in attachments %}
+    <li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
+      <a href="{% url 'space:view_booking_attachment' booking_slug=booking.slug attachment_id=a.id %}">View</a> |
+      <a href="{% url 'space:download_booking_attachment' booking_slug=booking.slug attachment_id=a.id %}">Download</a> |
+      <a href="{% url 'space:delete_booking_attachment' booking_slug=booking.slug attachment_id=a.id  %}">Delete</a>
+    </li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+    {% with memos=booking.memos.all %}
+    {% if memos %}
+    <h2 id="memos">Memos</h2>
+    <ul>
+        {% for m in memos %}
+            <li>Sent {{ m.created_at }} by {{ m.created_by }}.</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+{% endblock %}

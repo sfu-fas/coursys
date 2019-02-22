@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
                 ('created_by', models.CharField(help_text=b'Entered by (userid)', max_length=32)),
                 ('created_at', models.DateTimeField(default=datetime.datetime.now)),
                 ('removed', models.BooleanField(default=False)),
-                ('semester', models.ForeignKey(related_name='+', to='coredata.Semester')),
+                ('semester', models.ForeignKey(related_name='+', to='coredata.Semester', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('label', models.CharField(max_length=100)),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -77,7 +77,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('value', models.BooleanField(default=False)),
-                ('flag', models.ForeignKey(to='grad.GradFlag')),
+                ('flag', models.ForeignKey(to='grad.GradFlag', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -95,7 +95,7 @@ class Migration(migrations.Migration):
                 ('modified_by', models.CharField(help_text=b'Grad Program modified by.', max_length=32, null=True)),
                 ('hidden', models.BooleanField(default=False)),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -106,8 +106,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('starting', models.DateField(default=datetime.date.today)),
-                ('program', models.ForeignKey(to='grad.GradProgram')),
-                ('start_semester', models.ForeignKey(help_text=b'Semester when the student entered the program', to='coredata.Semester')),
+                ('program', models.ForeignKey(to='grad.GradProgram', on_delete=models.CASCADE)),
+                ('start_semester', models.ForeignKey(help_text=b'Semester when the student entered the program', to='coredata.Semester', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('-starting',),
@@ -123,7 +123,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True, verbose_name=b'Last Updated At')),
                 ('hidden', models.BooleanField(default=False)),
-                ('program', models.ForeignKey(to='grad.GradProgram')),
+                ('program', models.ForeignKey(to='grad.GradProgram', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -139,8 +139,8 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('hidden', models.BooleanField(default=False, db_index=True)),
-                ('end', models.ForeignKey(related_name='end_semester', blank=True, to='coredata.Semester', help_text=b'Final semester of this status: blank for ongoing', null=True)),
-                ('start', models.ForeignKey(related_name='start_semester', verbose_name=b'Effective Semester', to='coredata.Semester', help_text=b'Semester when this status is effective')),
+                ('end', models.ForeignKey(related_name='end_semester', blank=True, to='coredata.Semester', help_text=b'Final semester of this status: blank for ongoing', null=True, on_delete=models.CASCADE)),
+                ('start', models.ForeignKey(related_name='start_semester', verbose_name=b'Effective Semester', to='coredata.Semester', help_text=b'Semester when this status is effective', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -164,10 +164,10 @@ class Migration(migrations.Migration):
                 ('modified_by', models.CharField(help_text=b'Grad Student modified by.', max_length=32, null=True, verbose_name=b'Last Modified By')),
                 ('current_status', models.CharField(help_text=b'Current student status', max_length=4, null=True, db_index=True, choices=[(b'APPL', b'Applicant'), (b'INCO', b'Incomplete Application'), (b'COMP', b'Complete Application'), (b'INRE', b'Application In-Review'), (b'HOLD', b'Hold Application'), (b'OFFO', b'Offer Out'), (b'REJE', b'Rejected Application'), (b'DECL', b'Declined Offer'), (b'EXPI', b'Expired Application'), (b'CONF', b'Confirmed Acceptance'), (b'CANC', b'Cancelled Acceptance'), (b'ARIV', b'Arrived'), (b'ACTI', b'Active'), (b'PART', b'Part-Time'), (b'LEAV', b'On-Leave'), (b'WIDR', b'Withdrawn'), (b'GRAD', b'Graduated'), (b'NOND', b'Non-degree'), (b'GONE', b'Gone'), (b'ARSP', b'Completed Special')])),
                 ('config', courselib.json_fields.JSONField(default=dict)),
-                ('end_semester', models.ForeignKey(related_name='grad_end_sem', to='coredata.Semester', help_text=b'Semester when the student finished/left the program.', null=True)),
-                ('person', models.ForeignKey(help_text=b'Type in student ID or number.', to='coredata.Person')),
-                ('program', models.ForeignKey(to='grad.GradProgram')),
-                ('start_semester', models.ForeignKey(related_name='grad_start_sem', to='coredata.Semester', help_text=b'Semester when the student started the program.', null=True)),
+                ('end_semester', models.ForeignKey(related_name='grad_end_sem', to='coredata.Semester', help_text=b'Semester when the student finished/left the program.', null=True, on_delete=models.CASCADE)),
+                ('person', models.ForeignKey(help_text=b'Type in student ID or number.', to='coredata.Person', on_delete=models.CASCADE)),
+                ('program', models.ForeignKey(to='grad.GradProgram', on_delete=models.CASCADE)),
+                ('start_semester', models.ForeignKey(related_name='grad_start_sem', to='coredata.Semester', help_text=b'Semester when the student started the program.', null=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -186,8 +186,8 @@ class Migration(migrations.Migration):
                 ('created_by', models.CharField(help_text=b'Letter generation requseted by.', max_length=32)),
                 ('config', courselib.json_fields.JSONField(default=dict)),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
-                ('from_person', models.ForeignKey(to='coredata.Person', null=True)),
-                ('student', models.ForeignKey(to='grad.GradStudent')),
+                ('from_person', models.ForeignKey(to='coredata.Person', null=True, on_delete=models.CASCADE)),
+                ('student', models.ForeignKey(to='grad.GradStudent', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -203,7 +203,7 @@ class Migration(migrations.Migration):
                 ('created_by', models.CharField(help_text=b'Letter template created by.', max_length=32)),
                 ('hidden', models.BooleanField(default=False)),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -218,8 +218,8 @@ class Migration(migrations.Migration):
                 ('eligible', models.BooleanField(default=True, help_text=b'Does this funding count towards promises of support?')),
                 ('comments', models.TextField(null=True, blank=True)),
                 ('removed', models.BooleanField(default=False)),
-                ('semester', models.ForeignKey(related_name='other_funding', to='coredata.Semester')),
-                ('student', models.ForeignKey(to='grad.GradStudent')),
+                ('semester', models.ForeignKey(related_name='other_funding', to='coredata.Semester', on_delete=models.CASCADE)),
+                ('student', models.ForeignKey(to='grad.GradStudent', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -234,7 +234,7 @@ class Migration(migrations.Migration):
                 ('date', models.DateField(default=datetime.date.today)),
                 ('config', courselib.json_fields.JSONField(default=dict)),
                 ('comments', models.TextField(null=True, blank=True)),
-                ('student', models.ForeignKey(to='grad.GradStudent')),
+                ('student', models.ForeignKey(to='grad.GradStudent', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -247,9 +247,9 @@ class Migration(migrations.Migration):
                 ('amount', models.DecimalField(verbose_name=b'Promise Amount', max_digits=8, decimal_places=2)),
                 ('comments', models.TextField(null=True, blank=True)),
                 ('removed', models.BooleanField(default=False)),
-                ('end_semester', models.ForeignKey(related_name='promise_end', to='coredata.Semester')),
-                ('start_semester', models.ForeignKey(related_name='promise_start', to='coredata.Semester')),
-                ('student', models.ForeignKey(to='grad.GradStudent')),
+                ('end_semester', models.ForeignKey(related_name='promise_end', to='coredata.Semester', on_delete=models.CASCADE)),
+                ('start_semester', models.ForeignKey(related_name='promise_start', to='coredata.Semester', on_delete=models.CASCADE)),
+                ('student', models.ForeignKey(to='grad.GradStudent', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -261,7 +261,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('query', models.TextField()),
                 ('config', courselib.json_fields.JSONField(default=dict)),
-                ('person', models.ForeignKey(to='coredata.Person', null=True)),
+                ('person', models.ForeignKey(to='coredata.Person', null=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -274,7 +274,7 @@ class Migration(migrations.Migration):
                 ('amount', models.DecimalField(verbose_name=b'Scholarship Amount', max_digits=8, decimal_places=2)),
                 ('comments', models.TextField(null=True, blank=True)),
                 ('removed', models.BooleanField(default=False)),
-                ('end_semester', models.ForeignKey(related_name='scholarship_end', to='coredata.Semester')),
+                ('end_semester', models.ForeignKey(related_name='scholarship_end', to='coredata.Semester', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -288,7 +288,7 @@ class Migration(migrations.Migration):
                 ('eligible', models.BooleanField(default=True, help_text=b'Does this scholarship count towards promises of support?')),
                 ('comments', models.TextField(null=True, blank=True)),
                 ('hidden', models.BooleanField(default=False)),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -306,8 +306,8 @@ class Migration(migrations.Migration):
                 ('created_by', models.CharField(help_text=b'Committee member added by.', max_length=32)),
                 ('modified_by', models.CharField(help_text=b'Committee member modified by.', max_length=32, null=True, verbose_name=b'Last Modified By')),
                 ('config', courselib.json_fields.JSONField(default=dict)),
-                ('student', models.ForeignKey(to='grad.GradStudent')),
-                ('supervisor', models.ForeignKey(verbose_name=b'Member', blank=True, to='coredata.Person', null=True)),
+                ('student', models.ForeignKey(to='grad.GradStudent', on_delete=models.CASCADE)),
+                ('supervisor', models.ForeignKey(verbose_name=b'Member', blank=True, to='coredata.Person', null=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -316,19 +316,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='scholarship',
             name='scholarship_type',
-            field=models.ForeignKey(to='grad.ScholarshipType'),
+            field=models.ForeignKey(to='grad.ScholarshipType', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='scholarship',
             name='start_semester',
-            field=models.ForeignKey(related_name='scholarship_start', to='coredata.Semester'),
+            field=models.ForeignKey(related_name='scholarship_start', to='coredata.Semester', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='scholarship',
             name='student',
-            field=models.ForeignKey(to='grad.GradStudent'),
+            field=models.ForeignKey(to='grad.GradStudent', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -338,13 +338,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='letter',
             name='template',
-            field=models.ForeignKey(to='grad.LetterTemplate'),
+            field=models.ForeignKey(to='grad.LetterTemplate', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='gradstatus',
             name='student',
-            field=models.ForeignKey(to='grad.GradStudent'),
+            field=models.ForeignKey(to='grad.GradStudent', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -354,7 +354,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='gradprogramhistory',
             name='student',
-            field=models.ForeignKey(to='grad.GradStudent'),
+            field=models.ForeignKey(to='grad.GradStudent', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -364,7 +364,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='gradflagvalue',
             name='student',
-            field=models.ForeignKey(to='grad.GradStudent'),
+            field=models.ForeignKey(to='grad.GradStudent', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -374,31 +374,31 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='financialcomment',
             name='student',
-            field=models.ForeignKey(to='grad.GradStudent'),
+            field=models.ForeignKey(to='grad.GradStudent', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='externaldocument',
             name='student',
-            field=models.ForeignKey(to='grad.GradStudent'),
+            field=models.ForeignKey(to='grad.GradStudent', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='completedrequirement',
             name='requirement',
-            field=models.ForeignKey(to='grad.GradRequirement'),
+            field=models.ForeignKey(to='grad.GradRequirement', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='completedrequirement',
             name='semester',
-            field=models.ForeignKey(help_text=b'Semester when the requirement was completed', to='coredata.Semester'),
+            field=models.ForeignKey(help_text=b'Semester when the requirement was completed', to='coredata.Semester', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='completedrequirement',
             name='student',
-            field=models.ForeignKey(to='grad.GradStudent'),
+            field=models.ForeignKey(to='grad.GradStudent', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

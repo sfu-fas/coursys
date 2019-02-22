@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load static %}{% load compress %}
+
 {% block title %}Discussion: {{ topic.title }}{% endblock %}
 {% block h1 %}Discussion: {{ topic.title }}
 	{% if topic.pinned %}<i class="fa fa-tag"></i>{% endif %}
@@ -6,30 +8,11 @@
 {% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{STATIC_URL}}style/discuss.css" media="all" />
-{% if brushes %}
-	<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shCore.js"></script>
-	{% for b in brushes %}
-	<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/{{b}}"></script>
-	{% endfor %}
-	<link href="{{STATIC_URL}}syntaxhighlighter/styles/shCore.css" rel="stylesheet" type="text/css" />
-	<link href="{{STATIC_URL}}syntaxhighlighter/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript">
-	SyntaxHighlighter.defaults['light'] = true;
-	SyntaxHighlighter.all()
-	</script>
-{% endif %}
-{% if any_math %}
-	<script type="text/x-mathjax-config">
-	MathJax.Hub.Config({
-	displayAlign: "left",
-	displayIndent: "2em",
-	elements: {{need_mathjax|safe}},
-	});
-	</script>
-	<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-{% endif %}
-<script type="text/javascript">
+{% include 'pages/markup_view_head.html' %}
+{% include 'pages/markup_edit_head.html' %}
+<link rel="stylesheet" href="{% static 'style/discuss.css' %}" media="all" />
+
+<script nonce="{{ CSP_NONCE }}">
 	$(document).ready(function() {
 		{% if not form.errors %}
 			$("#discussion-topic-reply-form").hide();
@@ -59,8 +42,8 @@
 
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
-<li><a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">Discussion</a></li>
+<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{% url "offering:discussion:discussion_index" course_slug=course.slug %}">Discussion</a></li>
 <li>{{ topic.title }}</li>
 {% endblock %}
 {% block actions %}
@@ -70,10 +53,10 @@
 	<h2 class="heading">Actions</h2>
 	<ul>
 		{% if username == topic.author.person.userid and topic.still_editable %}
-		<li><a href="{% url "discuss.views.edit_topic" course_slug=course.slug topic_slug=topic.slug %}">Edit Topic ({{ topic.editable_time_left }} left)</a></li>
+		<li><a href="{% url "offering:discussion:edit_topic" course_slug=course.slug topic_slug=topic.slug %}">Edit Topic ({{ topic.editable_time_left }} left)</a></li>
 		{% endif %}
 		{% if view == 'staff' %}
-		<li><a href="{% url "discuss.views.change_topic_status" course_slug=course.slug topic_slug=topic.slug %}">Manage Topic</a></li>
+		<li><a href="{% url "offering:discussion:change_topic_status" course_slug=course.slug topic_slug=topic.slug %}">Manage Topic</a></li>
 		{% endif %}
 	</ul>
 </div>
@@ -89,7 +72,7 @@
 <div class="topic-body">
 <p class="discussion-author"><span class="author">{{ topic.author.person.name_pref }} ({{ topic.author.person.userid }})</span>, {{ topic.created_at_delta }}.</p>
 
-<div class="discussion-content" id="topic-content">
+<div class="discussion-content {% if topic.math %}tex2jax_process{% else %}tex2jax_ignore{% endif %}" id="topic-content">
 {{ topic.html_content }}
 </div>
 </div>
@@ -101,7 +84,7 @@
 	{% endif %}
 	{% if replies|length > 0 %}
 	{% for reply in replies %}
-        <div class="discussion-reply{% if reply.status == 'HID' %} fade-out{% endif %}" id="reply-content-{{reply.id}}">
+        <div class="discussion-reply{% if reply.status == 'HID' %} fade-out{% endif %} {% if reply.math %}tex2jax_process{% else %}tex2jax_ignore{% endif %}" id="reply-content-{{reply.id}}">
             <p class="reply-author ">
                 <span class="author">{{ reply.author.person.name_pref }} ({{reply.author.person.userid}})</span>, {{ reply.create_at_delta }}
 				{% if reply.was_edited %}*{% endif %}
@@ -109,13 +92,13 @@
             {% if reply.status != 'HID' %}
             <div class="discussion-reply-controls">
 			{% if view == 'staff' or username == reply.author.person.userid %}
-			    <form class="miniform" id="remove-reply-{{ reply.pk }}" action="{% url "discuss.views.remove_message" course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" method="post">
+			    <form class="miniform" id="remove-reply-{{ reply.pk }}" action="{% url "offering:discussion:remove_message" course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" method="post">
 				{% csrf_token %}
 			    <span class="remove-discussion-reply" id="topic-{{ reply.pk }}"><i class="fa fa-times"></i> Remove</span>
 			    </form>
 			{% endif %}
 			{% if reply.still_editable and username == reply.author.person.userid %}
-			    <a href="{% url "discuss.views.edit_message" course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" class="edit-discussion-reply">
+			    <a href="{% url "offering:discussion:edit_message" course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" class="edit-discussion-reply">
                 <i class="fa fa-pencil-square-o"></i> Edit ({{ reply.editable_time_left }})</a>
 			{% endif %}
             </div>
@@ -137,14 +120,14 @@
 {% if topic.status != 'CLO' or view == 'staff' %}
 <p><a href="#" id="topic-reply-toggle">Post a reply</a></p>
 <div id="discussion-topic-reply-form">
-	<form action="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}" method="post">
+	<form action="{% url "offering:discussion:view_topic" course_slug=course.slug topic_slug=topic.slug %}" method="post">
 		{% csrf_token %}
 		<div class="discussion-topic-reply-errors">
 			{% for error in form.content.errors %}
 			    <span>{{ error }}</span><br />
 			{% endfor %}
 		</div>
-		<p>{{ form.content }}</p><p class="helptext">{{form.content.help_text}}</p>
+		{{ form.content }}<p class="helptext">{{form.content.help_text}}</p>
 		<div><input type="submit" value="Reply" /></div>
 	</form>
 </div>

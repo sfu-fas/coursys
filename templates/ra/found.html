@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 	$(document).ready(function() {
 		$('#people').dataTable({
 			"bJQueryUI" : true,
@@ -17,7 +17,7 @@
 {% block h1 %}RA Quick Search{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra.views.search" %}">RAs</a></li>
+<li><a href="{% url "ra:search" %}">RAs</a></li>
 <li>Quick Search</li>
 {% endblock %}
 
@@ -35,7 +35,7 @@
 		<tbody>
 			{% for p in people %}
 			<tr>
-				<td><a href="{% url "ra.views.student_appointments" userid=p.userid_or_emplid %}">{{p.last_name}}</a></td>
+				<td><a href="{% url "ra:student_appointments" userid=p.userid_or_emplid %}">{{p.last_name}}</a></td>
 				<td>{{p.first_name}}</td>
 				<td>{{p.emplid}}</td>
 				<td>{{p.ras}}</td>

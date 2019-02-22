@@ -1,26 +1,23 @@
 {% extends "base.html" %}
 
 {% block headextra %}
-<script type="text/javascript">
-//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $("h3.instructions").collapsible();
 });
-//]]></script>
+</script>
 {% endblock %}
 
 {% block title %}Edit Time Use Guideline{% endblock %}
 {% block h1 %}Edit Time Use Guideline{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
-<li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li>
-<li><a href="{% url "coredata.views.manage_tas" course_slug=course.slug %}">Manage TAs</a></li>
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li>
+<li><a href="{% url "offering:manage_tas" course_slug=course.slug %}">Manage TAs</a></li>
 <li>Edit TUG for {{ta.name}}</li>{% endblock %}
 
 {% block content %}
-<div class="form_container">
-<form action="" method="post">{% csrf_token %}
-<fieldset id="edit-time-use-guideline">
+<form action="" method="post" id="edit-time-use-guideline">{% csrf_token %}
 
 <p>TA Name: {{ta.name}}</p>
 <p>Course: {{course}}</p>
@@ -31,7 +28,7 @@ $(document).ready(function() {
 <th>Duties and Responsibilities</th><th>Average hrs/week</th><th>Total hrs/semester</th><th>Comment</th>
 </tr>
 
-{% for form in form.subforms.itervalues %}
+{% for form in form.subforms.values %}
 <tr>
 <th>
 {{form.non_field_errors}}
@@ -54,7 +51,6 @@ Other: {{ form.label.as_widget }}{{form.label.errors}}
 </table>
 {{ form.config_form.management_form }}
 <p><input class='submit' type="submit" value="Save TUG" /></p>
-</fieldset>
 </form>
 </div>
 
@@ -128,10 +124,9 @@ factors affecting workload occur:
     reasons of the decision in writing, with a copy to the Union.
   </li>
 </ul>
-</div>
 
 <script type="text/javascript" src="{{STATIC_URL}}js/ta.js"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 var HOURS_PER_BU = {{HOURS_PER_BU}};
 </script>
 {% block extrascripts %}{% endblock %}

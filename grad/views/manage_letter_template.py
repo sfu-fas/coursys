@@ -5,8 +5,8 @@ from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import LetterTemplateForm
-from django.core.urlresolvers import reverse
-from letter_templates import letter_templates
+from django.urls import reverse
+from .letter_templates import letter_templates
 
 @requires_role("GRAD", get_only=["GRPD"])
 def manage_letter_template(request, letter_template_slug):
@@ -16,21 +16,25 @@ def manage_letter_template(request, letter_template_slug):
         form = LetterTemplateForm(request.POST, instance=letter_template)
         if form.is_valid():
             f = form.save(commit=False)
-            f.created_by = request.user.username            
+            f.created_by = request.user.username
+            if 'email_body' in form.cleaned_data:
+                f.set_email_body(form.cleaned_data['email_body'])
+            if 'email_subject' in form.cleaned_data:
+                f.set_email_subject(form.cleaned_data['email_subject'])
             f.save()
             messages.success(request, "Updated %s letter for %s." % (form.instance.label, form.instance.unit))
             l = LogEntry(userid=request.user.username,
                   description="Updated new %s letter for %s." % (form.instance.label, form.instance.unit),
                   related_object=form.instance)
             l.save()            
-            return HttpResponseRedirect(reverse(letter_templates))
+            return HttpResponseRedirect(reverse('grad:letter_templates'))
     else:
         form = LetterTemplateForm(instance=letter_template)
         form.fields['unit'].choices = unit_choices 
 
     page_title = 'Manage Letter Template'  
     crumb = 'Manage' 
-    lt = sorted(LETTER_TAGS.iteritems())
+    lt = sorted(LETTER_TAGS.items())
     context = {
                'form': form,
                'page_title' : page_title,

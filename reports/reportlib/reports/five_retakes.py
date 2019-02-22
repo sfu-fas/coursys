@@ -80,7 +80,7 @@ class FiveRetakeReport( Report ):
         output_table.append_column("N_RETAKES")
         output_table.append_column("RETAKES")
         
-        for key, value in student_retakes.iteritems():
+        for key, value in student_retakes.items():
             if len(value) > 1:
                 output_table.append_row( [ key, len(value), value ] )
         

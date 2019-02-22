@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+{% load humanize %}
+
+{% block title %}New FuturePerson{% endblock %}
+{% block h1 %}New FuturePerson{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
+<li><a href="{% url "sysadmin:list_anypersons" %}">AnyPersons</a></li>
+<li><a href="{% url "sysadmin:list_futurepersons" %}">FuturePersons</a></li>
+<li>New FuturePerson</li>
+{% endblock %}
+
+
+{% block content %}
+    <form action="{% url "sysadmin:add_futureperson" %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Add FuturePerson" />
+    </p>
+</form>
+{% endblock %}

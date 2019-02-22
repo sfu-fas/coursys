@@ -5,9 +5,9 @@
 {% block h1 %}View Memo{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
-<li><a href="{% url 'faculty.views.summary' userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
-<li><a href="{% url 'faculty.views.view_event' userid=person.userid_or_emplid event_slug=event.slug %}">{{ event.handler_type_name }}</a></li>
+<li><a href="{% url 'faculty:index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty:summary' userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url 'faculty:view_event' userid=person.userid_or_emplid event_slug=event.slug %}">{{ event.handler_type_name }}</a></li>
 <li>View Memo</li>
 {% endblock %}
 
@@ -15,7 +15,7 @@
 <div id="actions">
 <h2>Actions</h2>
 <ul>
-<li><a href="{% url 'faculty.views.get_memo_pdf' userid=person.userid_or_emplid event_slug=event.slug memo_slug=memo.slug %}">Get PDF</a></li>
+<li><a href="{% url 'faculty:get_memo_pdf' userid=person.userid_or_emplid event_slug=event.slug memo_slug=memo.slug %}">Get PDF</a></li>
 </ul>
 </div>
 {% endblock %}

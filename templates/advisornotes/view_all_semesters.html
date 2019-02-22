@@ -4,7 +4,7 @@
 {% block h1 %}Course Offerings{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(function() {
   $('.semesters').dataTable( {
     'aaSorting': [[ 0, "desc" ]],
@@ -19,8 +19,8 @@ $(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
-<li><a href="{% url "advisornotes.views.view_course_offerings" %}">Course Offerings</a></li>
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:view_course_offerings" %}">Course Offerings</a></li>
 <li>All Semesters</li>
 {% endblock %}
 
@@ -41,7 +41,7 @@ $(function() {
             {% for semester in semesters %}
             <tr>
                 <td>{{ semester.name }}</td>
-                <td><a href="{% url "advisornotes.views.view_course_offerings" semester=semester.name %}">{{ semester }}</a></td>
+                <td><a href="{% url "advising:view_course_offerings" semester=semester.name %}">{{ semester }}</a></td>
             </tr>
             {% endfor %}
         </tbody>

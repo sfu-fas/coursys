@@ -5,7 +5,7 @@
 {% block subbreadcrumbs %}<li>Your TAs</li>{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
   $(function() {
   	table = $('#tas').dataTable({
         "bPaginate": false,

@@ -10,4 +10,4 @@ for o in offerings:
         continue
     ratio = 1.0*o.wait_tot/o.enrl_tot
 #    if ratio > 0.3:
-    print o, o.enrl_tot, o.wait_tot
+    print(o, o.enrl_tot, o.wait_tot)

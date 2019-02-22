@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}Edit Future Person{% endblock %}
+{% block h1 %}Edit Future Person{% endblock %}
+
+{% block subbreadcrumbs %}
+{% if from_admin == '1' %}
+<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
+<li><a href="{% url "sysadmin:list_anypersons" %}">AnyPersons</a></li>
+<li><a href="{% url "sysadmin:list_futurepersons" %}">FuturePersons</a></li>
+{% else %}
+<li><a href="{% url "faculty:index" %}">Faculty Management</a></li>
+{% endif %}
+<li>Edit Person</li>
+{% endblock %}
+
+
+{% block content %}
+<form action="{% url "faculty:edit_futureperson" futureperson_id=fp.id from_admin=from_admin %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Person" />
+    </p>
+</form>
+{% endblock %}

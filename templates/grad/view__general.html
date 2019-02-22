@@ -1,7 +1,7 @@
 {% if can_edit %}
 <p class="manage_link">
-    <a href="{% url "grad.views.manage_general" grad_slug=grad.slug  %}">Manage General Info</a>
-    | <a href="{% url "grad.views.manage_program" grad_slug=grad.slug  %}">Change Program</a>
+    <a href="{% url "grad:manage_general" grad_slug=grad.slug  %}">Manage General Info</a>
+    | <a href="{% url "grad:manage_program" grad_slug=grad.slug  %}">Change Program</a>
 </p>
 {% endif %}
 

@@ -37,9 +37,9 @@
 }
 </style>
 
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 
-    var console_url = '{% url "reports.views.console" report=report.slug %}';
+    var console_url = '{% url "reports:console" report=report.slug %}';
 
     var show_console = function(){
         $("#console-modal").dialog({
@@ -72,7 +72,7 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li>
+<li><a href="{% url "reports:view_reports" %}">Reports</a></li>
 <li>{{report.name}} </li>
 {% endblock %}
 
@@ -81,15 +81,12 @@
     <h2>Actions</h2>
     <ul>
         {% if not readonly %}
-        <li><a href="{% url "reports.views.new_access_rule" report=report.slug %}">New Access Rule</a></li>
-        <li><a href="{% url "reports.views.new_schedule_rule" report=report.slug %}">New Schedule Rule</a></li>
-        <li><a href="{% url "reports.views.new_component" report=report.slug %}">New Report Component</a></li>
-        <li><a href="{% url "reports.views.new_query" report=report.slug %}">New Query</a></li>
-        {% if not report.alert%}
-            <li><a href="{% url "reports.views.new_alert" report=report.slug %}">New Alert</a></li>
+        <li><a href="{% url "reports:new_access_rule" report=report.slug %}">New Access Rule</a></li>
+        <li><a href="{% url "reports:new_schedule_rule" report=report.slug %}">New Schedule Rule</a></li>
+        <li><a href="{% url "reports:new_component" report=report.slug %}">New Report Component</a></li>
+        <li><a href="{% url "reports:new_query" report=report.slug %}">New Query</a></li>
         {% endif %}
-        {% endif %}
-        <li><a class='run' href="{% url "reports.views.run" report=report.slug %}">Run This Report Right Now</a></li>
+        <li><a class='run' href="{% url "reports:run" report=report.slug %}">Run This Report Right Now</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -114,7 +111,7 @@
     <li>
         {{access_rule.person.name}}
         {% if not readonly %}
-        - <a href="{% url "reports.views.delete_access_rule" report=report.slug access_rule_id=access_rule.id%}">Delete</a>
+        - <a href="{% url "reports:delete_access_rule" report=report.slug access_rule_id=access_rule.id%}">Delete</a>
         {% endif %}
         {% if access_rule.notify %}
             <small> - this person receives an email every time this report is successfully run.</small> 
@@ -147,7 +144,7 @@
                 <td>{{rule.last_run}}</td>
                 <td>{{rule.next_run}}</td>
                 {% if not readonly %}
-                <td><a href="{% url "reports.views.delete_schedule_rule" report=report.slug schedule_rule_id=rule.id %}">Delete</a></td>
+                <td><a href="{% url "reports:delete_schedule_rule" report=report.slug schedule_rule_id=rule.id %}">Delete</a></td>
                 {% endif %}
         {% endfor %}
         </tbody>
@@ -157,7 +154,7 @@
 {% if is_scheduled_to_run %}
     <div>
         This report is scheduled to run <em>today</em>. 
-        <a class='run' href="{% url "reports.views.run" report=report.slug %}">Run This Report Right Now</a>
+        <a class='run' href="{% url "reports:run" report=report.slug %}">Run This Report Right Now</a>
     </div>
 {% endif %}
 </div>
@@ -173,7 +170,7 @@
 {% for component in components %}
     <li>{{component.file_location}} - 
         {% if not readonly %}
-        <a href="{% url "reports.views.delete_component" report=report.slug component_id=component.id %}">Delete</a>
+        <a href="{% url "reports:delete_component" report=report.slug component_id=component.id %}">Delete</a>
         {% endif %}
     </li>
 {% endfor %}
@@ -189,18 +186,11 @@
         <pre>{{query.query}}</pre>
         {% if not readonly %}
         - 
-        <a href="{% url "reports.views.delete_query" report=report.slug query_id=query.id %}">Delete</a> |
-        <a href="{% url "reports.views.edit_query" report=report.slug query_id=query.id %}">Edit</a></li>
+        <a href="{% url "reports:delete_query" report=report.slug query_id=query.id %}">Delete</a> |
+        <a href="{% url "reports:edit_query" report=report.slug query_id=query.id %}">Edit</a></li>
         {% endif %}
 {% endfor %}
 </ul>
-
-{% if report.alert %}
-<h3>Alert : {{report.alert.code}}</h3>
-    <p><em>{{report.alert.description}}</em></p>
-    <a href="{% url "alerts.views.view_alerts" alert_type=report.alert.slug %}">View Alerts</a>
-
-{% endif %}
 
 <h2>Runs</h2>
 <p>Report output:</p>
@@ -210,9 +200,9 @@
 {% endif %}
 {% for run in runs %}
     <li class='{{run.success|yesno:"success,fail,other"}}'>
-    <a href="{% url "reports.views.view_run" report=report.slug run=run.slug %}">{{run.created_at}} - {{run.name}}</a>
+    <a href="{% url "reports:view_run" report=report.slug run=run.slug %}">{{run.created_at}} - {{run.name}}</a>
         {% if not readonly %}
-        <a style='float:right' href="{% url "reports.views.delete_run" report=report.slug run=run.slug %}">Delete</a>
+        <a style='float:right' href="{% url "reports:delete_run" report=report.slug run=run.slug %}">Delete</a>
         {% endif %}
     </li>
 {% endfor %}

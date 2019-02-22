@@ -51,7 +51,7 @@ class GraduatedStudentQuery(DB2_Query):
         :type query_args: dict
         """
         # Add all arguments that are in default_arguments but not in our query_args
-        for arg in GraduatedStudentQuery.default_arguments.keys():
+        for arg in list(GraduatedStudentQuery.default_arguments.keys()):
             if arg not in query_args:
                 query_args[arg] = GraduatedStudentQuery.default_arguments[arg]
         self.title = "Graduated Student Query - " + \

@@ -4,7 +4,7 @@
 {% block h1 %}{{ course.name }} Class List{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
 	// activate dataTable ui
 	oTable = $('#students').dataTable({
@@ -25,7 +25,7 @@
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Class List</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Class List</li>{% endblock %}
 
 {% block content %}
 <div class="datatable_container">
