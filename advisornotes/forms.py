@@ -1,4 +1,4 @@
-from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact
+from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory
 from coredata.models import Person
 from coredata.forms import OfferingField, CourseField
 from django import forms
@@ -134,4 +134,8 @@ class MergeStudentField(forms.Field):
 class MergeStudentForm(forms.Form):
 
     student = MergeStudentField(label="Student #")
-    
+
+class AdvisorVisitCategoryForm(forms.ModelForm):
+    class Meta:
+        model = AdvisorVisitCategory
+        exclude = ['config']

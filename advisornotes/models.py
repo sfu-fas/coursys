@@ -240,3 +240,13 @@ class AdvisorVisit(models.Model):
         assert self.student or self.nonstudent or self.program
         assert not (self.student and self.nonstudent)
         super(AdvisorVisit, self).save(*args, **kwargs)
+
+
+class AdvisorVisitCategory(models.Model):
+    """
+    Allow each unit to manage the categories which are now included in a visit.
+    """
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
+    label = models.CharField(null=False, blank=False, max_length=50)
+    description = models.CharField(null=True, blank=True, max_length=500)
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
