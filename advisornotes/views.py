@@ -318,7 +318,7 @@ def student_notes(request, userid):
         notes = AdvisorNote.objects.filter(student=student, unit__in=request.units).order_by("-created_at")
         form_subs = FormSubmission.objects.filter(initiator__sfuFormFiller=student, form__unit__in=Unit.sub_units(request.units),
                                                   form__advisor_visible=True)
-
+        visits = AdvisorVisit.objects.filter(student=student, unit__in=request.units).order_by('-created_at')
         # decorate with .entry_type (and .created_at if not present so we can sort nicely)
         for n in notes:
             n.entry_type = 'NOTE'
@@ -331,6 +331,7 @@ def student_notes(request, userid):
         nonstudent = False
     else:
         notes = AdvisorNote.objects.filter(nonstudent=student, unit__in=request.units).order_by("-created_at")
+        visits = AdvisorVisit.objects.filter(nonstudent=student, unit__in=request.units).order_by('-created_at')
         for n in notes:
             n.entry_type = 'NOTE'
         items = notes
@@ -343,7 +344,7 @@ def student_notes(request, userid):
 
     template = 'advisornotes/student_notes.html'
     context = {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent,
-               'show_transcript': show_transcript, 'units': request.units}
+               'show_transcript': show_transcript, 'units': request.units, 'visits': visits}
     return render(request, template, context)
 
 
