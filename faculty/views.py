@@ -214,11 +214,21 @@ def manage_faculty_roles(request):
             if form.old_role:
                 form.old_role.config['gone'] = False
                 form.old_role.save()
+                l = LogEntry(userid=request.user.username,
+                             description="added faculty role in %s for %s" %
+                                         (form.old_role.unit.label, form.old_role.person),
+                             related_object=form.old_role)
+                l.save()
             else:
                 role = form.save(commit=False)
                 role.role = 'FAC'
                 role.expiry = FACULTY_ROLE_EXPIRY
                 role.save()
+                l = LogEntry(userid=request.user.username,
+                             description="added faculty role in %s for %s" % (role.unit.label, role.person),
+                             related_object=role)
+
+                l.save()
             messages.success(request, 'New faculty role added.')
             return HttpResponseRedirect(reverse('faculty:manage_faculty_roles'))
 
@@ -230,6 +240,11 @@ def manage_faculty_roles(request):
         role = get_object_or_404(Role, id=roleid)
         role.gone = True
         role.save()
+        l = LogEntry(userid=request.user.username,
+                     description="removed faculty role in %s for %s" % (role.unit.label, role.person),
+                     related_object=role)
+
+        l.save()
         messages.success(request, 'Faculty member marked as "gone".')
         return HttpResponseRedirect(reverse('faculty:manage_faculty_roles'))
 
