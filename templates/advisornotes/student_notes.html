@@ -51,6 +51,16 @@
         $('#moreinfo>a').click(function() {
             get_more_info('{% url "advising:student_more_info" userid=userid %}');
         });
+
+        $('#advisingvisits').dataTable( {
+            'bPaginate': true,
+            'bInfo': false,
+            'bLengthChange': true,
+            "bJQueryUI": true,
+            'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, 'All']],
+            'aaSorting': [[0, 'desc']]
+
+        } );
 	});
 </script>
 {% endblock %}
@@ -71,7 +81,7 @@
         <li><a href="{% url "advising:merge_nonstudent" nonstudent_slug=student.slug %}">Merge with existing student</a></li>
         {% endif %}
         <li><a href="#" class='show_deleted'>Show Deleted Notes</a></li> 
-        <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li> 
+        <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li>
         <li>
             {% for u in units %}
             <form method="post" action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
@@ -145,8 +155,37 @@
                 <td>{{ student.nonstudent_colg }}</td>
             </tr>
             {% endif %}
+            {% if visits  %}
+                <tr>
+                    <th>Last Visit</th>
+                    <td>{% with visits|first as visit %} {{ visit.created_at }} with {{ visit.advisor }} {% endwith %}</td>
+                </tr>
+            {% endif %}
+            <tr>
+
+            </tr>
         </tbody>
     </table>
+
+{% if visits %}
+    <div id="visitssection">
+    <h2>Visits</h2>
+    <table id="advisingvisits">
+        <thead>
+            <th scope="col">Start Time</th>
+            <th scope="col">Advisor</th>
+        </thead>
+        <tbody>
+        {% for visit in visits %}
+            <tr>
+                <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
+                <td>{{ visit.advisor.sortname }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+{% endif %}
 
 {% if items %}
 {% for item in items %}
