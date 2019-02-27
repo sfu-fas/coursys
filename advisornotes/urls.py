@@ -9,6 +9,7 @@ advisornotes_patterns = [ # prefix /advising/
     #url(r'^new_notes/$', advisornotes_views.rest_notes, name='rest_notes'),
     url(r'^hide_note$', advisornotes_views.hide_note, name='hide_note'),
     url(r'^note_search$', advisornotes_views.note_search, name='note_search'),
+    url(r'^all_notes$', advisornotes_views.all_notes, name='all_notes'),
     url(r'^artifact_search$', advisornotes_views.artifact_search, name='artifact_search'),
     url(r'^sims_search$', advisornotes_views.sims_search, name='sims_search'),
     url(r'^sims_add$', advisornotes_views.sims_add_person, name='sims_add_person'),

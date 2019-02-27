@@ -74,6 +74,13 @@ def note_search(request):
 
 
 @requires_role('ADVS')
+def all_notes(request):
+    notes = AdvisorNote.objects.filter(unit__in=request.units).select_related('student', 'advisor')\
+        .order_by("-created_at")
+    return render(request, 'advisornotes/all_notes.html', {'notes': notes})
+
+
+@requires_role('ADVS')
 def artifact_search(request):
     if 'text-search' not in request.GET:
         return ForbiddenResponse(request, "must send search query")
