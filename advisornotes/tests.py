@@ -86,11 +86,6 @@ class AdvisorNotestest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['notes']), 3)
 
-        # all notes
-        url = reverse('advising:all_notes')
-        response = basic_page_tests(self, client, url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context['notes']), 3)
 
     def test_new_nonstudent_not_advisor(self):
         client = Client()
