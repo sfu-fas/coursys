@@ -67,17 +67,38 @@ def note_search(request):
     search = request.GET['text-search']
     query = get_query(search, ('text',))
     notes = AdvisorNote.objects.filter(query, unit__in=request.units) \
-            .select_related('student', 'advisor').order_by("-created_at")[:100]
+            .select_related('student', 'advisor').order_by("-created_at")[:1000]
     note_form = NoteSearchForm(prefix="text", initial={'search': search})
     context = {'notes': notes, 'note_form': note_form}
     return render(request, 'advisornotes/note_search.html', context)
 
 
 @requires_role('ADVS')
-def all_notes(request):
+def download_notes_summary(request):
     notes = AdvisorNote.objects.filter(unit__in=request.units).select_related('student', 'advisor')\
         .order_by("-created_at")
-    return render(request, 'advisornotes/all_notes.html', {'notes': notes})
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-%s-notes.csv"' % (list(request.units)[0].label,
+                                                                              datetime.datetime.now().strftime(
+                                                                              '%Y%m%d'))
+    writer = csv.writer(response)
+
+    writer.writerow(['Student', 'Advisor', 'Created', 'Has File', 'URL'])
+    for note in notes:
+        if note.student:
+            student = note.student.sortname()
+            url = request.build_absolute_uri(reverse('advising:student_notes',
+                                                     kwargs={'userid': note.student.userid_or_emplid()}))
+        else:
+            student = "%s (prospective)" % note.nonstudent.sortname()
+            url = request.build_absolute_uri(reverse('advising:student_notes', kwargs={'userid': note.nonstudent.slug}))
+        if note.file_attachment:
+            attachment = 'Y'
+        else:
+            attachment = ''
+        writer.writerow([student, note.advisor.sortname(), note.created_at.isoformat(), attachment, url])
+
+    return response
 
 
 @requires_role('ADVS')
