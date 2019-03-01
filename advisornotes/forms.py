@@ -1,5 +1,5 @@
 from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory
-from coredata.models import Person
+from coredata.models import Person, Unit
 from coredata.forms import OfferingField, CourseField
 from django import forms
 from django.core import validators
@@ -139,3 +139,17 @@ class AdvisorVisitCategoryForm(forms.ModelForm):
     class Meta:
         model = AdvisorVisitCategory
         exclude = ['config']
+
+
+class AdvisorVisitCategoryForm(forms.ModelForm):
+    def __init__(self, request, *args, **kwargs):
+        super(AdvisorVisitCategoryForm, self).__init__(*args, **kwargs)
+        unit_ids = [unit.id for unit in request.units]
+        units = Unit.objects.filter(id__in=unit_ids)
+        self.fields['unit'].queryset = units
+        self.fields['unit'].empty_label = None
+
+    class Meta:
+        model = AdvisorVisitCategory
+        exclude = []
+

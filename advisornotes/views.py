@@ -1,7 +1,7 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
     MergeStudentForm, ArtifactNoteForm, ArtifactForm, AdvisorNoteForm,\
-    EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm, ArtifactSearchForm
-from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit
+    EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm, ArtifactSearchForm, AdvisorVisitCategoryForm
+from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit, AdvisorVisitCategory
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member, Role
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, transfer_data,\
     SIMSProblem, classes_data
@@ -56,7 +56,8 @@ def advising(request):
     form = StudentSearchForm()
     note_form = NoteSearchForm(prefix="text")
     artifact_form = ArtifactSearchForm(prefix="text")
-    context = {'form': form, 'note_form': note_form, 'artifact_form': artifact_form}
+    advisor_admin = Role.objects_fresh.filter(role='ADVM', person__userid=request.user.username).exists()
+    context = {'form': form, 'note_form': note_form, 'artifact_form': artifact_form, 'advisor_admin': advisor_admin}
     return render(request, 'advisornotes/student_search.html', context)
 
 
@@ -896,3 +897,62 @@ def xxx_rest_notes(request):
     return HttpResponse(status=200)
 
 
+@requires_role('ADVM')
+def manage_categories(request):
+    categories = AdvisorVisitCategory.objects.visible(request.units)
+    return render(request, 'advisornotes/manage_categories.html', {'categories': categories})
+
+
+@requires_role('ADVM')
+@transaction.atomic
+def add_category(request):
+    if request.method == 'POST':
+        form = AdvisorVisitCategoryForm(request, request.POST)
+        if form.is_valid():
+            category = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 'Added category %s' % category)
+            l = LogEntry(userid=request.user.username,
+                         description="Added category %s" % category,
+                         related_object=category)
+            l.save()
+            return HttpResponseRedirect(reverse('advising:manage_categories'))
+    else:
+        form = AdvisorVisitCategoryForm(request)
+    return render(request, 'advisornotes/add_category.html', {'form': form})
+
+
+@requires_role('ADVM')
+@transaction.atomic
+def edit_category(request, category_slug):
+    category = get_object_or_404(AdvisorVisitCategory, slug=category_slug, unit__in=request.units)
+    if request.method == 'POST':
+        form = AdvisorVisitCategoryForm(request, request.POST, instance=category)
+        if form.is_valid():
+            category = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 'Edited category %s' % category)
+            l = LogEntry(userid=request.user.username,
+                         description="Edited category %s" % category,
+                         related_object=category)
+            l.save()
+            return HttpResponseRedirect(reverse('advisornotes:manage_categories'))
+    else:
+        form = AdvisorVisitCategoryForm(request, instance=category)
+    return render(request, 'advisornotes/edit_category.html', {'form': form, 'category_slug': category.slug})
+
+
+@requires_role('ADVM')
+@transaction.atomic
+def delete_category(request, category_slug):
+    category = get_object_or_404(AdvisorVisitCategory, slug=category_slug, unit__in=request.units)
+    if request.method == 'POST':
+        category.delete()
+        messages.success(request, 'Deleted category %s' % category)
+        l = LogEntry(userid=request.user.username,
+                     description="Deleted category: %s" % category,
+                     related_object=category)
+        l.save()
+    return HttpResponseRedirect(reverse('advising:manage_categories'))

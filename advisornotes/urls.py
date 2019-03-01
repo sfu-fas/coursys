@@ -1,6 +1,9 @@
 from django.conf.urls import url
 from courselib.urlparts import UNIT_COURSE_SLUG, NOTE_ID, SEMESTER, COURSE_SLUG, ARTIFACT_SLUG, USERID_OR_EMPLID, \
-    NONSTUDENT_SLUG, UNIT_SLUG
+    NONSTUDENT_SLUG, UNIT_SLUG, SLUG_RE
+
+CATEGORY_SLUG = '(?P<category_slug>' + SLUG_RE + ')'
+
 
 import advisornotes.views as advisornotes_views
 
@@ -14,6 +17,11 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^sims_search$', advisornotes_views.sims_search, name='sims_search'),
     url(r'^sims_add$', advisornotes_views.sims_add_person, name='sims_add_person'),
     url(r'^visits', advisornotes_views.all_visits, name='all_visits'),
+
+    url(r'^categories$', advisornotes_views.manage_categories, name='manage_categories'),
+    url(r'^categories/add$', advisornotes_views.add_category, name='add_category'),
+    url(r'^categories/' + CATEGORY_SLUG + '/delete/$', advisornotes_views.delete_category, name='delete_category'),
+    url(r'^categories/' + CATEGORY_SLUG + '/edit/$', advisornotes_views.edit_category, name='edit_category'),
 
     url(r'^courses/$', advisornotes_views.view_courses, name='view_courses'),
     url(r'^courses/' + UNIT_COURSE_SLUG + '/new$', advisornotes_views.new_artifact_note, name='new_artifact_note'),

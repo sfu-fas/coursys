@@ -11,6 +11,9 @@ import datetime
 import os.path
 
 
+# Used to determine if you have any non-end-dated visit, but only of the newer type, with end-dates added by a view.
+# All the older visits will not have an end-date.
+ADVISOR_VISIT_VERSION = 1
 
 def attachment_upload_to(instance, filename):
     return upload_path('advisornotes', filename)
@@ -212,6 +215,42 @@ class ArtifactNote(models.Model):
         return self.best_before and date.today() > self.best_before
 
 
+class AdvisorVisitCategoryQuerySet(models.QuerySet):
+    """
+    As usual, define some querysets.
+    """
+
+    def visible(self, units):
+        """
+        Only see visible items, in this case also limited by accessible units.
+        """
+        return self.filter(hidden=False, unit__in=units)
+
+
+class AdvisorVisitCategory(models.Model):
+    """
+    Allow each unit to manage the categories which are now included in a visit.
+    """
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
+    label = models.CharField(null=False, blank=False, max_length=50)
+    description = models.CharField(null=True, blank=True, max_length=500)
+    hidden = models.BooleanField(null=False, blank=False, default=False, editable=False)
+    config = JSONField(null=False, blank=False, default=dict, editable=False)  # addition configuration stuff:
+
+    def autoslug(self):
+        return make_slug(self.unit.slug + '-' + self.label)
+
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+
+    def __str__(self):
+        return "%s - %s" % (self.unit, self.label)
+
+    objects = AdvisorVisitCategoryQuerySet.as_manager()
+
+    def delete(self):
+        # As usual, only hide stuff, don't delete it.
+        self.hidden = True
+        self.save()
 
 class AdvisorVisit(models.Model):
     """
@@ -226,13 +265,18 @@ class AdvisorVisit(models.Model):
     student = models.ForeignKey(Person, help_text='The student that visited the advisor', on_delete=models.PROTECT,
                                 blank=True, null=True, related_name='+')
     nonstudent = models.ForeignKey(NonStudent, blank=True, null=True, on_delete=models.PROTECT,
-                                help_text='The non-student that visited')
-    program = models.ForeignKey(Unit, help_text='The unit of the program the student is in', blank=True, null=True, on_delete=models.PROTECT,
+                                   help_text='The non-student that visited')
+    program = models.ForeignKey(Unit, help_text='The unit of the program the student is in', blank=True, null=True,
+                                on_delete=models.PROTECT,
                                 related_name='+')
     advisor = models.ForeignKey(Person, help_text='The advisor that created the note', on_delete=models.PROTECT,
                                 editable=False, related_name='+')
     created_at = models.DateTimeField(default=datetime.datetime.now)
-    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this visit', null=False, on_delete=models.PROTECT)
+    end_time = models.DateTimeField(null=True, blank=True)
+    category = models.ForeignKey(AdvisorVisitCategory, blank=True, null=True, on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this visit', null=False,
+                             on_delete=models.PROTECT)
+    version = models.PositiveSmallIntegerField(null=False, blank=False, default=0, editable=False)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     def save(self, *args, **kwargs):
@@ -240,13 +284,3 @@ class AdvisorVisit(models.Model):
         assert self.student or self.nonstudent or self.program
         assert not (self.student and self.nonstudent)
         super(AdvisorVisit, self).save(*args, **kwargs)
-
-
-class AdvisorVisitCategory(models.Model):
-    """
-    Allow each unit to manage the categories which are now included in a visit.
-    """
-    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
-    label = models.CharField(null=False, blank=False, max_length=50)
-    description = models.CharField(null=True, blank=True, max_length=500)
-    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:

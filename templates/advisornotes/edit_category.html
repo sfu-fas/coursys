@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Edit Category{% endblock %}
+{% block h1 %}Edit Category{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:manage_categories" %}">Categories</a></li>
+<li>Edit Category</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'advising:edit_category' category_slug=category_slug %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Add Category" />
+    </p>
+</form>
+{% endblock %}
