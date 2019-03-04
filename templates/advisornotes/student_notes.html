@@ -84,8 +84,8 @@
         <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li>
         <li>
             {% for u in units %}
-            <form method="post" action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
-            {% csrf_token %}<p><input type="submit" value="Record visit" title="Record visit to {{ u.informal_name }} advisor" /></p>
+            <form action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
+                <p><input type="submit" value="Record visit" title="Record visit to {{ u.informal_name }} advisor" /></p>
             </form>
             {% endfor %}
         </li>

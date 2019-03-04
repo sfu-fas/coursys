@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Student Visit{% endblock %}
+{% block h1 %}Student Visit{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:student_notes" userid=userid %}">Notes for {{ userid }}</a></li>
+<li>Student Visit</li>
+{% endblock %}
+
+{% block content %}
+    <div class="form_container">
+        <form action="{% url "advising:record_advisor_visit" userid=userid unit_slug=unit_slug %}" method="post">
+            {% csrf_token %}
+            {{ form|as_dl }}
+            <p>
+                <input type="submit" class="submit" value="End Visit" />
+            </p>
+        </form>
+    </div>
+{% endblock %}

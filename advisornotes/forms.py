@@ -153,3 +153,8 @@ class AdvisorVisitCategoryForm(forms.ModelForm):
         model = AdvisorVisitCategory
         exclude = []
 
+
+class AdvisorVisitForm(forms.ModelForm):
+    class Meta:
+        model = AdvisorVisit
+        exclude = ['unit', 'student', 'nonstudent', 'created_at', 'advisor']

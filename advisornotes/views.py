@@ -1,7 +1,8 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
-    MergeStudentForm, ArtifactNoteForm, ArtifactForm, AdvisorNoteForm,\
+    MergeStudentForm, ArtifactNoteForm, ArtifactForm, AdvisorNoteForm, AdvisorVisitForm, \
     EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm, ArtifactSearchForm, AdvisorVisitCategoryForm
-from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit, AdvisorVisitCategory
+from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit, AdvisorVisitCategory, \
+    ADVISOR_VISIT_VERSION
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member, Role
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, transfer_data,\
     SIMSProblem, classes_data
@@ -15,8 +16,7 @@ from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
-from django.utils.text import wrap
-from django.views.decorators.http import require_POST
+from django.utils import timezone
 from log.models import LogEntry
 from onlineforms.models import FormSubmission
 import datetime
@@ -545,7 +545,6 @@ def student_transfers_download(request, userid):
 
 
 @requires_role('ADVS')
-@require_POST
 def record_advisor_visit(request, userid, unit_slug):
     unit = get_object_or_404(Unit, slug=unit_slug, id__in=(u.id for u in request.units))
     advisor = get_object_or_404(Person, userid=request.user.username)
@@ -556,11 +555,25 @@ def record_advisor_visit(request, userid, unit_slug):
         nonstudent = get_object_or_404(NonStudent, slug=userid)
         student = None
 
-    av = AdvisorVisit(student=student, nonstudent=nonstudent, program=None, advisor=advisor, unit=unit)
-    av.save()
+    visit = AdvisorVisit(student=student, nonstudent=nonstudent, unit=unit, advisor=advisor,
+                         version=ADVISOR_VISIT_VERSION)
 
-    messages.add_message(request, messages.SUCCESS, '%s advisor visit recorded on %s.' % (unit.informal_name(), datetime.date.today()))
-    return HttpResponseRedirect(reverse('advising:student_notes', kwargs={'userid': userid}))
+    if request.method == 'POST':
+        form = AdvisorVisitForm(request, request.POST, instance=visit)
+        print("in POST")
+        if form.is_valid():
+            visit = form.save(commit=False)
+            visit.unit = unit
+            visit.student = student
+            visit.nonstudent = nonstudent
+            visit.advisor = advisor
+            visit.save()
+            pass
+    else:
+        form = AdvisorVisitForm(request)
+        print("in GET")
+        print(request)
+    return render(request, 'advisornotes/record_visit.html', {'userid': userid, 'unit_slug': unit_slug, 'form': form})
 
 
 @requires_role('ADVS')

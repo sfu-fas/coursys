@@ -252,6 +252,7 @@ class AdvisorVisitCategory(models.Model):
         self.hidden = True
         self.save()
 
+
 class AdvisorVisit(models.Model):
     """
     Record of a visit to an advisor.
@@ -273,7 +274,7 @@ class AdvisorVisit(models.Model):
                                 editable=False, related_name='+')
     created_at = models.DateTimeField(default=datetime.datetime.now)
     end_time = models.DateTimeField(null=True, blank=True)
-    category = models.ForeignKey(AdvisorVisitCategory, blank=True, null=True, on_delete=models.PROTECT)
+    categories = models.ManyToManyField(AdvisorVisitCategory)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this visit', null=False,
                              on_delete=models.PROTECT)
     version = models.PositiveSmallIntegerField(null=False, blank=False, default=0, editable=False)
