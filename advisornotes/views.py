@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
-from django.utils import timezone
+from django.views.decorators.http import require_POST
 from log.models import LogEntry
 from onlineforms.models import FormSubmission
 import datetime
@@ -410,6 +410,23 @@ def student_more_info(request, userid):
     json.dump(data, response)
     return response
 
+
+@requires_role('ADVS')
+def student_more_info_short(request, userid):
+    """
+    Same as above, but with a more limited subset of info.
+    """
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    try:
+        data = more_personal_info(student.emplid, needed=['programs', 'gpa'])
+    except SIMSProblem as e:
+        data = {'error': str(e)}
+
+    response = HttpResponse(content_type='application/json')
+    json.dump(data, response)
+    return response
+
+
 @requires_role('ADVS')
 def student_courses(request, userid):
     """
@@ -545,6 +562,7 @@ def student_transfers_download(request, userid):
 
 
 @requires_role('ADVS')
+@require_POST
 def record_advisor_visit(request, userid, unit_slug):
     unit = get_object_or_404(Unit, slug=unit_slug, id__in=(u.id for u in request.units))
     advisor = get_object_or_404(Person, userid=request.user.username)
@@ -557,23 +575,50 @@ def record_advisor_visit(request, userid, unit_slug):
 
     visit = AdvisorVisit(student=student, nonstudent=nonstudent, unit=unit, advisor=advisor,
                          version=ADVISOR_VISIT_VERSION)
+    visit.save()
+    return HttpResponseRedirect(reverse('advising:edit_visit', kwargs={'visit_slug': visit.slug}))
 
+
+@requires_role('ADVS')
+def edit_visit(request, visit_slug):
+    visit = AdvisorVisit.objects.get(slug=visit_slug)
     if request.method == 'POST':
-        form = AdvisorVisitForm(request, request.POST, instance=visit)
-        print("in POST")
+        form = AdvisorVisitForm(request.POST, instance=visit)
         if form.is_valid():
             visit = form.save(commit=False)
-            visit.unit = unit
-            visit.student = student
-            visit.nonstudent = nonstudent
-            visit.advisor = advisor
+            visit.categories.clear()
+            print(form.cleaned_data)
+            if 'categories' in form.cleaned_data:
+                for c in form.cleaned_data['categories']:
+                    visit.categories.add(c)
+            visit.end_time = datetime.datetime.now()
+            if 'programs' in form.cleaned_data:
+                visit.programs = form.cleaned_data['programs']
+            if 'cgpa' in form.cleaned_data:
+                visit.cgpa = form.cleaned_data['cgpa']
+            if 'credits' in form.cleaned_data:
+                visit.credits = form.cleaned_data['credits']
             visit.save()
-            pass
+            return HttpResponseRedirect(reverse('advising:student_notes', kwargs={'userid': visit.get_userid()}))
     else:
-        form = AdvisorVisitForm(request)
-        print("in GET")
-        print(request)
-    return render(request, 'advisornotes/record_visit.html', {'userid': userid, 'unit_slug': unit_slug, 'form': form})
+        form = AdvisorVisitForm(instance=visit)
+        #  If we've already fetched info from SIMS for this person, set a flag so we don't automatically fetch it again,
+        #  this would mean we're editing an already populated visit, and we should leave the choice to the user.
+        already_got_sims = False
+        if visit.cgpa:
+            form.initial['cgpa'] = visit.cgpa
+            already_got_sims = True
+        if visit.programs:
+            form.initial['programs'] = visit.programs
+            already_got_sims = True
+        if visit.credits:
+            form.initial['credits'] = visit.credits
+            already_got_sims = True
+        print(already_got_sims)
+
+    return render(request, 'advisornotes/record_visit.html', {'userid': visit.get_userid(), 'visit': visit,
+                                                              'form': form,
+                                                              'fetch_automatically': not already_got_sims})
 
 
 @requires_role('ADVS')

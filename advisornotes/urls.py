@@ -1,11 +1,11 @@
 from django.conf.urls import url
 from courselib.urlparts import UNIT_COURSE_SLUG, NOTE_ID, SEMESTER, COURSE_SLUG, ARTIFACT_SLUG, USERID_OR_EMPLID, \
     NONSTUDENT_SLUG, UNIT_SLUG, SLUG_RE
+import advisornotes.views as advisornotes_views
 
 CATEGORY_SLUG = '(?P<category_slug>' + SLUG_RE + ')'
+VISIT_SLUG = '(?P<visit_slug>' + SLUG_RE + ')'
 
-
-import advisornotes.views as advisornotes_views
 
 advisornotes_patterns = [ # prefix /advising/
     url(r'^$', advisornotes_views.advising, name='advising'),
@@ -48,8 +48,12 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^students/' + NONSTUDENT_SLUG + '/merge$', advisornotes_views.merge_nonstudent, name='merge_nonstudent'),
     url(r'^students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '/file', advisornotes_views.download_file, name='download_file'),
     url(r'^students/' + USERID_OR_EMPLID + '/moreinfo$', advisornotes_views.student_more_info, name='student_more_info'),
+    url(r'^students/' + USERID_OR_EMPLID + '/moreinfo_short$', advisornotes_views.student_more_info_short,
+        name='student_more_info_short'),
     url(r'^students/' + USERID_OR_EMPLID + '/courses$', advisornotes_views.student_courses, name='student_courses'),
-    url(r'^students/' + USERID_OR_EMPLID + '/visited/' + UNIT_SLUG, advisornotes_views.record_advisor_visit, name='record_advisor_visit'),
+    url(r'^students/' + USERID_OR_EMPLID + '/visited/' + UNIT_SLUG, advisornotes_views.record_advisor_visit,
+        name='record_advisor_visit'),
+    url(r'^students/' + VISIT_SLUG + '/edit$', advisornotes_views.edit_visit, name='edit_visit'),
     url(r'^students/' + USERID_OR_EMPLID + '/courses-data$', advisornotes_views.student_courses_data, name='student_courses_data'),
     url(r'^students/' + USERID_OR_EMPLID + '/courses-download$', advisornotes_views.student_courses_download, name='student_courses_download'),
     url(r'^students/' + USERID_OR_EMPLID + '/transfers-data$', advisornotes_views.student_transfers_data, name='student_transfers_data'),

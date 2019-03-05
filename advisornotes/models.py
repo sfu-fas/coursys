@@ -243,7 +243,7 @@ class AdvisorVisitCategory(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     def __str__(self):
-        return "%s - %s" % (self.unit, self.label)
+        return self.label
 
     objects = AdvisorVisitCategoryQuerySet.as_manager()
 
@@ -262,6 +262,8 @@ class AdvisorVisit(models.Model):
     CMPT student visited".
 
     Only (1) is implemented in the frontend for now.
+
+    Update:  They don't seem to really want (2), so that's mainly unreachable right now.  
     """
     student = models.ForeignKey(Person, help_text='The student that visited the advisor', on_delete=models.PROTECT,
                                 blank=True, null=True, related_name='+')
@@ -272,16 +274,35 @@ class AdvisorVisit(models.Model):
                                 related_name='+')
     advisor = models.ForeignKey(Person, help_text='The advisor that created the note', on_delete=models.PROTECT,
                                 editable=False, related_name='+')
+
     created_at = models.DateTimeField(default=datetime.datetime.now)
     end_time = models.DateTimeField(null=True, blank=True)
-    categories = models.ManyToManyField(AdvisorVisitCategory)
+    categories = models.ManyToManyField(AdvisorVisitCategory, blank=True)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this visit', null=False,
                              on_delete=models.PROTECT)
     version = models.PositiveSmallIntegerField(null=False, blank=False, default=0, editable=False)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
+
+    programs = config_property('programs', '')
+    cgpa = config_property('cgpa', '')
+    credits = config_property('credits', '')
+
+    def autoslug(self):
+        return make_slug(self.unit.slug + '-' + self.get_userid() + '-' + self.advisor.userid)
+
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+
+    def get_userid(self):
+        if self.student:
+            return self.student.userid
+        else:
+            return self.nonstudent.slug
 
     def save(self, *args, **kwargs):
         # ensure we always have either the student, nonstudent, or program unit.
         assert self.student or self.nonstudent or self.program
         assert not (self.student and self.nonstudent)
         super(AdvisorVisit, self).save(*args, **kwargs)
+
+    def categories_display(self):
+        return '; '.join(c.label for c in self.categories.all())

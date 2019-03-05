@@ -84,7 +84,8 @@
         <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li>
         <li>
             {% for u in units %}
-            <form action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
+            <form target="_blank" method="post" action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
+            {% csrf_token %}
                 <p><input type="submit" value="Record visit" title="Record visit to {{ u.informal_name }} advisor" /></p>
             </form>
             {% endfor %}
@@ -173,12 +174,16 @@
     <table id="advisingvisits">
         <thead>
             <th scope="col">Start Time</th>
+            <th scope="col">End Time</th>
+            <th scope="col">Categories</th>
             <th scope="col">Advisor</th>
         </thead>
         <tbody>
         {% for visit in visits %}
             <tr>
                 <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
+                <td>{{ visit.end_time }}</td>
+                <td>{{ visit.categories_display }}</td>
                 <td>{{ visit.advisor.sortname }}</td>
             </tr>
         {% endfor %}

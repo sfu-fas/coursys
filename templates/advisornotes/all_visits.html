@@ -27,21 +27,23 @@ $(function() {
 <table class="display visits">
     <thead>
         <tr>
-            <th scope="col">At</th>
+            <th scope="col">Start</th>
+            <th scope="col">End</th>
             <th scope="col">Student</th>
-            <!--<th scope="col">Unit</th>-->
             <th scope="col">Advisor</th>
+            <th scope="col">Categories</th>
         </tr>
     </thead>
     <tbody>
         {% for visit in visits %}
         <tr>
             <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
+            <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
             <td>
                 {% if visit.student %}{{ visit.student.sortname }}{% endif %}
                 {% if visit.nonstudent %}{{ visit.nonstudent.sortname }}{% endif %}
             </td>
-            <!--<td>{{ visit.program.label }}</td>-->
+            <td>{{ visit.get_categories_display }}</td>
             <td>{{ visit.advisor.sortname }}</td>
         </tr>
         {% endfor %}

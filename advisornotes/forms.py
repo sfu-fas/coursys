@@ -135,6 +135,7 @@ class MergeStudentForm(forms.Form):
 
     student = MergeStudentField(label="Student #")
 
+
 class AdvisorVisitCategoryForm(forms.ModelForm):
     class Meta:
         model = AdvisorVisitCategory
@@ -155,6 +156,32 @@ class AdvisorVisitCategoryForm(forms.ModelForm):
 
 
 class AdvisorVisitForm(forms.ModelForm):
+    programs = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols': '50', 'rows': '5'}),
+                               help_text='This field can not be edited.  To refresh it, click "Refresh SIMS info".')
+
+    cgpa = forms.CharField(label='CGPA', widget=forms.TextInput(attrs={'size': 4}),
+                           required=False, help_text='This field can not be edited.  To refresh it, click "Refresh '
+                                                     'SIMS info".')
+    credits = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': 4}),
+                              help_text='This field can not be edited.  To refresh it, click "Refresh SIMS info".')
+
+    def __init__(self, *args, **kwargs):
+        super(AdvisorVisitForm, self).__init__(*args, **kwargs)
+        categories = AdvisorVisitCategory.objects.visible([self.instance.unit])
+        self.fields['categories'].queryset = categories
+        initial = kwargs.setdefault('initial', {})
+        initial['categories'] = [c.pk for c in kwargs['instance'].categories.all()]
+        self.fields['programs'].widget.attrs['readonly'] = True
+        self.fields['credits'].widget.attrs['readonly'] = True
+        self.fields['cgpa'].widget.attrs['readonly'] = True
+
     class Meta:
         model = AdvisorVisit
-        exclude = ['unit', 'student', 'nonstudent', 'created_at', 'advisor']
+        fields = ['programs', "cgpa", "credits", "categories"]
+        widgets = {
+            'categories': forms.CheckboxSelectMultiple(),
+            'cgpa': forms.TextInput(attrs={'size': 4}),
+            'credits': forms.TextInput(attrs={'size': 4}),
+            'programs': forms.Textarea(attrs={'cols': '20', 'rows': '5'}),
+        }
+
