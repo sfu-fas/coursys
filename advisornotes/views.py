@@ -599,7 +599,8 @@ def edit_visit(request, visit_slug):
             if 'credits' in form.cleaned_data:
                 visit.credits = form.cleaned_data['credits']
             visit.save()
-            return HttpResponseRedirect(reverse('advising:student_notes', kwargs={'userid': visit.get_userid()}))
+            script = '<script nonce='+request.csp_nonce+'>window.close();window.opener.parent.location.href = "/advising/students/'+visit.get_userid()+'";</script>'
+            return HttpResponse(script)
     else:
         form = AdvisorVisitForm(instance=visit)
         #  If we've already fetched info from SIMS for this person, set a flag so we don't automatically fetch it again,
@@ -626,10 +627,19 @@ def view_visit(request, visit_slug):
     return render(request, 'advisornotes/view_visit.html', {'userid': visit.get_userid(), 'visit': visit})
 
 
-@requires_role('ADVS')
+@requires_role('ADVM')
 def all_visits(request):
     visits = AdvisorVisit.objects.filter(unit__in=request.units).select_related('student', 'nonstudent', 'advisor')
     context = {'visits': visits}
+    return render(request, 'advisornotes/all_visits.html', context)
+
+
+@requires_role('ADVS')
+def my_visits(request):
+    #  Same as all visits, but for a given advisor.
+    advisor = get_object_or_404(Person, userid=request.user.username)
+    visits = AdvisorVisit.objects.filter(unit__in=request.units, advisor=advisor).select_related('student', 'nonstudent', 'advisor')
+    context = {'visits': visits, 'mine': True}
     return render(request, 'advisornotes/all_visits.html', context)
 
 

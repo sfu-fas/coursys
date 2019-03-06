@@ -16,7 +16,8 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^artifact_search$', advisornotes_views.artifact_search, name='artifact_search'),
     url(r'^sims_search$', advisornotes_views.sims_search, name='sims_search'),
     url(r'^sims_add$', advisornotes_views.sims_add_person, name='sims_add_person'),
-    url(r'^visits', advisornotes_views.all_visits, name='all_visits'),
+    url(r'^visits$', advisornotes_views.all_visits, name='all_visits'),
+    url(r'^my_visits$', advisornotes_views.my_visits, name='my_visits'),
 
     url(r'^categories$', advisornotes_views.manage_categories, name='manage_categories'),
     url(r'^categories/add$', advisornotes_views.add_category, name='add_category'),

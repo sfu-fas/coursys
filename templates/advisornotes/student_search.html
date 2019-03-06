@@ -32,7 +32,9 @@ $(function() {
         <li><a href="{% url "advising:view_artifacts" %}">View all artifacts</a></li>
         {% if advisor_admin %}
             <li><a href="{% url "advising:manage_categories" %}">Manage advisor visit categories</a></li>
+            <li><a href="{% url "advising:all_visits" %}">All Visits</a></li>
         {% endif %}
+        <li><a href={% url "advising:my_visits" %}>My visits</a></li>
     </ul>
 </div>
 {% endblock %}
