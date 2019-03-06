@@ -587,7 +587,6 @@ def edit_visit(request, visit_slug):
         if form.is_valid():
             visit = form.save(commit=False)
             visit.categories.clear()
-            print(form.cleaned_data)
             if 'categories' in form.cleaned_data:
                 for c in form.cleaned_data['categories']:
                     visit.categories.add(c)
@@ -599,7 +598,7 @@ def edit_visit(request, visit_slug):
             if 'credits' in form.cleaned_data:
                 visit.credits = form.cleaned_data['credits']
             visit.save()
-            script = '<script nonce='+request.csp_nonce+'>window.close();window.opener.parent.location.href = "/advising/students/'+visit.get_userid()+'";</script>'
+            script = '<script nonce='+request.csp_nonce+'>window.close();window.opener.location.reload();</script>'
             return HttpResponse(script)
     else:
         form = AdvisorVisitForm(instance=visit)
