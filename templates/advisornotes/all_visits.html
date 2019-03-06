@@ -40,10 +40,9 @@ $(function() {
             <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
             <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
             <td>
-                {% if visit.student %}{{ visit.student.sortname }}{% endif %}
-                {% if visit.nonstudent %}{{ visit.nonstudent.sortname }}{% endif %}
+                {% if visit.student %}<a href="{% url "advising:student_notes" userid=visit.student.userid %}">{{ visit.student.sortname }} ({{ visit.student.emplid }})</a>{% endif %}
+                {% if visit.nonstudent %}<a href="{% url "advising:student_notes" nonstudent_slug=visit.nonstudent.slug %}">{{ visit.nonstudent.sortname }}</a>{% endif %}
             </td>
-            <td>{{ visit.get_categories_display }}</td>
             <td>{{ visit.advisor.sortname }}</td>
         </tr>
         {% endfor %}
