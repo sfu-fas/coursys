@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load form_display %}
 {% load staticfiles %}
-{% block title %}Student Visit{% endblock %}
-{% block h1 %}Student Visit{% endblock %}
+{% block title %}Visit by {{ visit.get_full_name }}{% endblock %}
+{% block h1 %}Visit by {{ visit.get_full_name }}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "advising:advising" %}">Advising</a></li>
-<li><a href="{% url "advising:student_notes" userid=userid %}">Notes for {{ userid }}</a></li>
+<li><a href="{% url "advising:student_notes" userid=userid %}">Notes for {{ visit.get_full_name }}</a></li>
 <li>Student Visit</li>
 {% endblock %}
 
@@ -17,7 +17,7 @@
         $('#moreinfo>a').click(function() {
             get_more_info_visit('{% url "advising:student_more_info_short" userid=userid %}');
         });
-        {% if fetch_automatically %}
+        {% if fetch_automatically and not visit.nonstudent %}
             get_more_info_visit('{% url "advising:student_more_info_short" userid=userid %}');
         {% endif %}
     });
@@ -38,6 +38,7 @@
 {% endblock %}
 
 {% block content %}
+    Visit started {{ visit.created_at }}
     <form method="post" action="{% url "advising:edit_visit" visit_slug=visit.slug %}">
         {% csrf_token %}
         {{ form|as_dl }}

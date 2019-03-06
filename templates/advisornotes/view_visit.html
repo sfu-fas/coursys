@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:student_notes" userid=userid %}">Notes for {{ userid }}</a></li>
+<li>View Visit</li>
+{% endblock %}
+
+{% block content %}
+<dt>Student</dt><dd>{{ visit.get_full_name }}</dd>
+<dt>Advisor</dt><dd>{{ visit.advisor }}</dd>
+<dt>Unit</dt><dd>{{ visit.unit }}</dd>
+<dt>Start Time</dt><dd>{{ visit.created_at }}</dd>
+{% if visit.end_time %}<dt>End Time</dt><dd>{{ visit.end_time }}</dd>{% endif %}
+{% if visit.end_time %}<dt>Duration</dt><dd>{{ visit.get_duration }}</dd>{% endif %}
+{% if visit.has_categories %}<dt>Categories</dt><dd>{{ visit.categories_display }}</dd>{% endif %}
+
+{% if visit.has_sims_data %}
+<h2>Data gathered from SIMS at time of visit</h2>
+{% if visit.programs %}<dt>Programs</dt><dd>{{ visit.programs|linebreaks }}</dd>{% endif %}
+{% if visit.cgpa %}<dt>CGPA</dt><dd>{{ visit.cgpa }}</dd>{% endif %}
+{% if visit.credits %}<dt>Credits</dt><dd>{{ visit.credits }}</dd>{% endif %}
+{% endif %}
+{% endblock %}

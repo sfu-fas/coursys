@@ -614,11 +614,16 @@ def edit_visit(request, visit_slug):
         if visit.credits:
             form.initial['credits'] = visit.credits
             already_got_sims = True
-        print(already_got_sims)
 
     return render(request, 'advisornotes/record_visit.html', {'userid': visit.get_userid(), 'visit': visit,
                                                               'form': form,
                                                               'fetch_automatically': not already_got_sims})
+
+
+@requires_role('ADVS')
+def view_visit(request, visit_slug):
+    visit = AdvisorVisit.objects.get(slug=visit_slug, unit__in=request.units)
+    return render(request, 'advisornotes/view_visit.html', {'userid': visit.get_userid(), 'visit': visit})
 
 
 @requires_role('ADVS')

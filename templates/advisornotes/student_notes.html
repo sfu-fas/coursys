@@ -177,6 +177,7 @@
             <th scope="col">End Time</th>
             <th scope="col">Categories</th>
             <th scope="col">Advisor</th>
+            <th>Actions</th>
         </thead>
         <tbody>
         {% for visit in visits %}
@@ -185,6 +186,12 @@
                 <td>{{ visit.end_time }}</td>
                 <td>{{ visit.categories_display }}</td>
                 <td>{{ visit.advisor.sortname }}</td>
+                <td><form class="lineform" method="GET"
+                    action="{% url "advising:view_visit" visit_slug=visit.slug %}">
+                    <button type='submit' class='btn' title="View visit">
+                        <i class='fa fa-eye'></i>
+                    </button>
+                </form></td>
             </tr>
         {% endfor %}
         </tbody>

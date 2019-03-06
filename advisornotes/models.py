@@ -263,7 +263,7 @@ class AdvisorVisit(models.Model):
 
     Only (1) is implemented in the frontend for now.
 
-    Update:  They don't seem to really want (2), so that's mainly unreachable right now.  
+    Update:  They don't seem to really want (2), so that's mainly unreachable right now.
     """
     student = models.ForeignKey(Person, help_text='The student that visited the advisor', on_delete=models.PROTECT,
                                 blank=True, null=True, related_name='+')
@@ -292,17 +292,36 @@ class AdvisorVisit(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def get_userid(self):
-        if self.student:
-            return self.student.userid
-        else:
-            return self.nonstudent.slug
-
     def save(self, *args, **kwargs):
         # ensure we always have either the student, nonstudent, or program unit.
         assert self.student or self.nonstudent or self.program
         assert not (self.student and self.nonstudent)
         super(AdvisorVisit, self).save(*args, **kwargs)
 
+    # Template display helper methods
     def categories_display(self):
         return '; '.join(c.label for c in self.categories.all())
+
+    def has_categories(self):
+        return self.categories.all().count() > 0
+
+    def get_userid(self):
+        if self.student:
+            return self.student.userid
+        else:
+            return self.nonstudent.slug
+
+    def get_full_name(self):
+        if self.student:
+            return self.student.name()
+        else:
+            return self.nonstudent.name()
+
+    def get_duration(self):
+        if self.end_time:
+            return str(self.end_time - self.created_at).split('.')[0]
+        else:
+            return None
+
+    def has_sims_data(self):
+        return self.programs or self.cgpa or self.credits
