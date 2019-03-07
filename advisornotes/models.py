@@ -286,6 +286,8 @@ class AdvisorVisit(models.Model):
     programs = config_property('programs', '')
     cgpa = config_property('cgpa', '')
     credits = config_property('credits', '')
+    gender = config_property('gender', '')
+    citizenship = config_property('citizenship', '')
 
     def autoslug(self):
         return make_slug(self.unit.slug + '-' + self.get_userid() + '-' + self.advisor.userid)
@@ -325,3 +327,9 @@ class AdvisorVisit(models.Model):
 
     def has_sims_data(self):
         return self.programs or self.cgpa or self.credits
+
+    def get_email(self):
+        if self.student:
+            return self.student.email()
+        else:
+            return self.nonstudent.email()

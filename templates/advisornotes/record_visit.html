@@ -14,12 +14,24 @@
 <script type="text/javascript" src={% static "js/advisornotes.js" %}></script>
 <script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
+        var confirmClose = true;
         $('#moreinfo>a').click(function() {
             get_more_info_visit('{% url "advising:student_more_info_short" userid=userid %}');
         });
-        {% if fetch_automatically and not visit.nonstudent %}
+        {% if not visit.nonstudent and fetch_automatically %}
             get_more_info_visit('{% url "advising:student_more_info_short" userid=userid %}');
         {% endif %}
+
+        $(window).on('beforeunload', function(e) {
+            if (confirmClose == true) {
+                // All modern browsers now ignore this message and show their own.  Nothing we can do about that.
+                return('Your visit will not have an end-time.');
+            }
+        });
+        $(".submit").click(function() {
+            // If you actually submit the form, don't show the nag message.
+            confirmClose = false;
+        });
     });
 </script>
 {% endblock %}
@@ -41,7 +53,7 @@
     Visit started {{ visit.created_at }}
     <form method="post" action="{% url "advising:edit_visit" visit_slug=visit.slug %}">
         {% csrf_token %}
-        {{ form|as_dl }}
+        {{ form|as_dl_inline }}
         <p>
             <input type="submit" class="submit" value="End Visit" />
         </p>

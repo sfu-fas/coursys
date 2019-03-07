@@ -125,6 +125,12 @@ function get_more_info_visit(url) {
             if (data['ccredits']) {
                 $('#id_credits').val(data['ccredits']);
             }
+            if (data['gender']) {
+                $('#id_gender').val(data['gender']);
+            }
+            if (data['citizen']) {
+                $('#id_citizenship').val(data['citizen']);
+            }
             $('#fetchwait').hide();
         },
         error: function(jqXHR, textStatus, errorThrown) {

@@ -7,18 +7,24 @@
 {% endblock %}
 
 {% block content %}
-<dt>Student</dt><dd>{{ visit.get_full_name }}</dd>
-<dt>Advisor</dt><dd>{{ visit.advisor }}</dd>
-<dt>Unit</dt><dd>{{ visit.unit }}</dd>
-<dt>Start Time</dt><dd>{{ visit.created_at }}</dd>
-{% if visit.end_time %}<dt>End Time</dt><dd>{{ visit.end_time }}</dd>{% endif %}
-{% if visit.end_time %}<dt>Duration</dt><dd>{{ visit.get_duration }}</dd>{% endif %}
-{% if visit.has_categories %}<dt>Categories</dt><dd>{{ visit.categories_display }}</dd>{% endif %}
+    <table class="info">
+<tr><th>Student</th><td>{{ visit.get_full_name }}</td></tr>
+<tr><th>Advisor</th><td>{{ visit.advisor }}</td></tr>
+<tr><th>Unit</th><td>{{ visit.unit }}</td></tr>
+<tr><th>Start Time</th><td>{{ visit.created_at }}</td></tr>
+{% if visit.end_time %}<tr><th>End Time</th><td>{{ visit.end_time }}</td></tr>{% endif %}
+{% if visit.end_time %}<tr><th>Duration</th><td>{{ visit.get_duration }}</td></tr>{% endif %}
+{% if visit.has_categories %}<tr><th>Categories</th><td>{{ visit.categories_display }}</td></tr>{% endif %}
+    </table>
 
 {% if visit.has_sims_data %}
 <h2>Data gathered from SIMS at time of visit</h2>
-{% if visit.programs %}<dt>Programs</dt><dd>{{ visit.programs|linebreaks }}</dd>{% endif %}
-{% if visit.cgpa %}<dt>CGPA</dt><dd>{{ visit.cgpa }}</dd>{% endif %}
-{% if visit.credits %}<dt>Credits</dt><dd>{{ visit.credits }}</dd>{% endif %}
+    <table class="info">
+{% if visit.programs %}<tr><th>Programs</th><td>{{ visit.programs|linebreaks }}</td></tr>{% endif %}
+{% if visit.cgpa %}<tr><th>CGPA</th><td>{{ visit.cgpa }}</td></tr>{% endif %}
+{% if visit.credits %}<tr><th>Credits</th><td>{{ visit.credits }}</td></tr>{% endif %}
+{% if visit.gender %}<tr><th>Gender</th><td>{{ visit.gender }}</td></tr>{% endif %}
+{% if visit.citizenship %}<tr><th>Citizenship</th><td>{{ visit.citizenship }}</td></tr>{% endif %}
+    </table>
 {% endif %}
 {% endblock %}

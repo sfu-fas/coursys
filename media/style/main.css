@@ -1198,3 +1198,7 @@ p.logentry {
 .form_title:hover {
     color: #a6192e;
 }
+
+input:read-only,textarea:read-only {
+    background: lightgrey;
+}

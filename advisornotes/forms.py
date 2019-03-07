@@ -165,6 +165,18 @@ class AdvisorVisitForm(forms.ModelForm):
     credits = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': 4}),
                               help_text='This field can not be edited.  To refresh it, click "Refresh SIMS info".')
 
+    gender = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': 1}),
+                              help_text='This field can not be edited.  To refresh it, click "Refresh SIMS info".')
+
+    citizenship = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': 10}),
+                              help_text='This field can not be edited.  To refresh it, click "Refresh SIMS info".')
+    note = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols': '70', 'rows': '5'}),
+                           help_text='If you want to also create a note, please type its content here.  This is a '
+                                     'plain text note.  If you want more fancy formatting, please create a note in '
+                                     'the main student notes page.')
+    email_student = forms.BooleanField(required=False,
+                                       help_text="Should the student be emailed the contents of this note?")
+
     def __init__(self, *args, **kwargs):
         super(AdvisorVisitForm, self).__init__(*args, **kwargs)
         categories = AdvisorVisitCategory.objects.visible([self.instance.unit])
@@ -174,14 +186,18 @@ class AdvisorVisitForm(forms.ModelForm):
         self.fields['programs'].widget.attrs['readonly'] = True
         self.fields['credits'].widget.attrs['readonly'] = True
         self.fields['cgpa'].widget.attrs['readonly'] = True
+        self.fields['gender'].widget.attrs['readonly'] = True
+        self.fields['citizenship'].widget.attrs['readonly'] = True
 
     class Meta:
         model = AdvisorVisit
-        fields = ['programs', "cgpa", "credits", "categories"]
+        fields = ['programs', "cgpa", "credits", "gender", "citizenship", "categories", "note", "email_student"]
         widgets = {
             'categories': forms.CheckboxSelectMultiple(),
-            'cgpa': forms.TextInput(attrs={'size': 4}),
-            'credits': forms.TextInput(attrs={'size': 4}),
-            'programs': forms.Textarea(attrs={'cols': '20', 'rows': '5'}),
         }
 
+    def clean_email_student(self):
+        email = self.cleaned_data['email_student']
+        if email and not self.instance.get_email():
+            raise ValidationError("We don't have an email address for this student: cannot email them here.")
+        return email

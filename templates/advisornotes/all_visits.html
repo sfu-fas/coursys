@@ -11,16 +11,16 @@ $(function() {
     'bInfo': false,
     'bLengthChange': true,
     "bJQueryUI": true,
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
   } );
-
-  offering_autocomplete('id_course', true);
 } );
 </script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "advising:advising" %}">Advising</a></li>
-<li>All Visits</li>
+<li>{% if mine %}My Visits{% else %}All Visits{% endif %}</li>
 {% endblock %}
 
 {% block content %}
@@ -48,12 +48,28 @@ $(function() {
             </td>
             <td>{{ visit.advisor.sortname }}</td>
             <td>{{ visit.categories_display }}</td>
-            <td><form class="lineform" method="GET"
+            <td style="min-width: 100px">
+                <form class="lineform" method="GET"
                     action="{% url "advising:view_visit" visit_slug=visit.slug %}">
                     <button type='submit' class='btn' title="View visit">
                         <i class='fa fa-eye'></i>
                     </button>
-                </form></td>
+                </form>
+                {% if mine and not visit.end_time %}
+                <form class="lineform" method="POST" action="{% url "advising:end_visit_mine" visit_slug=visit.slug %}">
+                {% csrf_token %}<button type='submit' class='btn' title="End visit now">
+                        <i class='fa fa-clock-o'></i>
+                    </button>
+                </form>
+                {% endif %}
+                {% if admin and not visit.end_time %}
+                <form class="lineform" method="POST" action="{% url "advising:end_visit_admin" visit_slug=visit.slug %}">
+                {% csrf_token %}<button type='submit' class='btn' title="End visit now">
+                        <i class='fa fa-clock-o'></i>
+                    </button>
+                </form>
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>
