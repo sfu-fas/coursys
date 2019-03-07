@@ -309,9 +309,9 @@ class AdvisorVisit(models.Model):
 
     def get_userid(self):
         if self.student:
-            return self.student.userid
+            return self.student.userid_or_emplid()
         else:
-            return self.nonstudent.slug
+            return self.nonstudent.slug or 'none'
 
     def get_full_name(self):
         if self.student:
