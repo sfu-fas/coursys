@@ -99,6 +99,47 @@ function get_more_info(url) {
     });
 }
 
+function get_more_info_visit(url) {
+    // fetch more info on this student from SIMS
+    $('#fetchwait').show();
+    $.ajax({
+        url: url,
+        success: function(data){
+            if (data['error']) {
+                alert('Error: ' + data['error']);
+                $('#fetchwait').hide();
+                return;
+            }
+
+            if (data['programs']) {
+                var programs = data['programs']
+                var res = '';
+                for (var i=0; i<programs.length; i++) {
+                    res += programs[i] + '\n';
+                }
+                $('#id_programs').val(res);
+            }
+            if (data['gpa']) {
+                $('#id_cgpa').val(data['gpa']);
+            }
+            if (data['ccredits']) {
+                $('#id_credits').val(data['ccredits']);
+            }
+            if (data['gender']) {
+                $('#id_gender').val(data['gender']);
+            }
+            if (data['citizen']) {
+                $('#id_citizenship').val(data['citizen']);
+            }
+            $('#fetchwait').hide();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+			alert('Could not contact server.')
+			$('#fetchwait').hide();
+        }
+    });
+}
+
 function more_course_info(url) {
 	// fetch more info on this course from SIMS
 	$('#fetchwait').show();

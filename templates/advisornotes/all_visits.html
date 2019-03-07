@@ -1,6 +1,7 @@
 {% extends "base.html" %}
-{% block title %}All Visits{% endblock %}
-{% block h1 %}All Visits{% endblock %}
+
+{% block title %}{% if mine %}My Visits{% else %}All Visits{% endif %}{% endblock %}
+{% block h1 %}{% if mine %}My Visits{% else %}All Visits{% endif %}{% endblock %}
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
@@ -10,40 +11,70 @@ $(function() {
     'bInfo': false,
     'bLengthChange': true,
     "bJQueryUI": true,
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
   } );
-
-  offering_autocomplete('id_course', true);
 } );
 </script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "advising:advising" %}">Advising</a></li>
-<li>All Visits</li>
+<li>{% if mine %}My Visits{% else %}All Visits{% endif %}</li>
 {% endblock %}
 
 {% block content %}
 
+{% if visits %}
 <table class="display visits">
     <thead>
         <tr>
-            <th scope="col">At</th>
+            <th scope="col">Start</th>
+            <th scope="col">End</th>
             <th scope="col">Student</th>
             <th scope="col">Advisor</th>
+            <th scope="col">Categories</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         {% for visit in visits %}
         <tr>
             <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
+            <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
             <td>
-                {% if visit.student %}<a href="{% url "advising:student_notes" userid=visit.student.userid %}">{{ visit.student.sortname }} ({{ visit.student.emplid }})</a>{% endif %}
-                {% if visit.nonstudent %}<a href="{% url "advising:student_notes" nonstudent_slug=visit.nonstudent.slug %}">{{ visit.nonstudent.sortname }}</a>{% endif %}
+                {% if visit.student %}<a href="{% url "advising:student_notes" userid=visit.get_userid %}">{{ visit.student.sortname }} ({{ visit.student.emplid }})</a>{% endif %}
+                {% if visit.nonstudent %}<a href="{% url "advising:student_notes" nonstudent_slug=visit.get_userid %}">{{ visit.nonstudent.sortname }}</a>{% endif %}
             </td>
             <td>{{ visit.advisor.sortname }}</td>
+            <td>{{ visit.categories_display }}</td>
+            <td style="min-width: 100px">
+                <form class="lineform" method="GET"
+                    action="{% url "advising:view_visit" visit_slug=visit.slug %}">
+                    <button type='submit' class='btn' title="View visit">
+                        <i class='fa fa-eye'></i>
+                    </button>
+                </form>
+                {% if mine and not visit.end_time %}
+                <form class="lineform" method="POST" action="{% url "advising:end_visit_mine" visit_slug=visit.slug %}">
+                {% csrf_token %}<button type='submit' class='btn' title="End visit now">
+                        <i class='fa fa-clock-o'></i>
+                    </button>
+                </form>
+                {% endif %}
+                {% if admin and not visit.end_time %}
+                <form class="lineform" method="POST" action="{% url "advising:end_visit_admin" visit_slug=visit.slug %}">
+                {% csrf_token %}<button type='submit' class='btn' title="End visit now">
+                        <i class='fa fa-clock-o'></i>
+                    </button>
+                </form>
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-
+{% else %}
+<h2>You have no visits to display.</h2>
+{% endif %}
 {% endblock %}
