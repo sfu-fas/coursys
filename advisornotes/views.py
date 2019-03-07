@@ -607,10 +607,10 @@ def edit_visit(request, visit_slug):
             if 'note' in form.cleaned_data and form.cleaned_data['note']:
                 note = AdvisorNote(student=visit.student, nonstudent=visit.nonstudent, advisor=visit.advisor,
                                    unit=visit.unit, text=form.cleaned_data['note'])
-                note.save()
                 if form.cleaned_data['email_student']:
                     _email_student_note(note)
                     note.emailed = True
+                note.save()
                 l = LogEntry(userid=request.user.username,
                              description=("new advisor note from visit for %s") % visit.get_userid(),
                              related_object=note)
