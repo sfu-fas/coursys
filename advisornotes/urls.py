@@ -1,8 +1,11 @@
 from django.conf.urls import url
 from courselib.urlparts import UNIT_COURSE_SLUG, NOTE_ID, SEMESTER, COURSE_SLUG, ARTIFACT_SLUG, USERID_OR_EMPLID, \
-    NONSTUDENT_SLUG, UNIT_SLUG
-
+    NONSTUDENT_SLUG, UNIT_SLUG, SLUG_RE
 import advisornotes.views as advisornotes_views
+
+CATEGORY_SLUG = '(?P<category_slug>' + SLUG_RE + ')'
+VISIT_SLUG = '(?P<visit_slug>' + SLUG_RE + ')'
+
 
 advisornotes_patterns = [ # prefix /advising/
     url(r'^$', advisornotes_views.advising, name='advising'),
@@ -13,7 +16,13 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^artifact_search$', advisornotes_views.artifact_search, name='artifact_search'),
     url(r'^sims_search$', advisornotes_views.sims_search, name='sims_search'),
     url(r'^sims_add$', advisornotes_views.sims_add_person, name='sims_add_person'),
-    url(r'^visits', advisornotes_views.all_visits, name='all_visits'),
+    url(r'^visits$', advisornotes_views.all_visits, name='all_visits'),
+    url(r'^my_visits$', advisornotes_views.my_visits, name='my_visits'),
+
+    url(r'^categories$', advisornotes_views.manage_categories, name='manage_categories'),
+    url(r'^categories/add$', advisornotes_views.add_category, name='add_category'),
+    url(r'^categories/' + CATEGORY_SLUG + '/delete/$', advisornotes_views.delete_category, name='delete_category'),
+    url(r'^categories/' + CATEGORY_SLUG + '/edit/$', advisornotes_views.edit_category, name='edit_category'),
 
     url(r'^courses/$', advisornotes_views.view_courses, name='view_courses'),
     url(r'^courses/' + UNIT_COURSE_SLUG + '/new$', advisornotes_views.new_artifact_note, name='new_artifact_note'),
@@ -40,8 +49,15 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^students/' + NONSTUDENT_SLUG + '/merge$', advisornotes_views.merge_nonstudent, name='merge_nonstudent'),
     url(r'^students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '/file', advisornotes_views.download_file, name='download_file'),
     url(r'^students/' + USERID_OR_EMPLID + '/moreinfo$', advisornotes_views.student_more_info, name='student_more_info'),
+    url(r'^students/' + USERID_OR_EMPLID + '/moreinfo_short$', advisornotes_views.student_more_info_short,
+        name='student_more_info_short'),
     url(r'^students/' + USERID_OR_EMPLID + '/courses$', advisornotes_views.student_courses, name='student_courses'),
-    url(r'^students/' + USERID_OR_EMPLID + '/visited/' + UNIT_SLUG, advisornotes_views.record_advisor_visit, name='record_advisor_visit'),
+    url(r'^students/' + USERID_OR_EMPLID + '/visited/' + UNIT_SLUG, advisornotes_views.record_advisor_visit,
+        name='record_advisor_visit'),
+    url(r'^students/' + VISIT_SLUG + '/edit$', advisornotes_views.edit_visit, name='edit_visit'),
+    url(r'^students/' + VISIT_SLUG + '/view$', advisornotes_views.view_visit, name='view_visit'),
+    url(r'^students/' + VISIT_SLUG + '/end_mine$', advisornotes_views.end_visit_mine, name='end_visit_mine'),
+    url(r'^students/' + VISIT_SLUG + '/end_admin$', advisornotes_views.end_visit_admin, name='end_visit_admin'),
     url(r'^students/' + USERID_OR_EMPLID + '/courses-data$', advisornotes_views.student_courses_data, name='student_courses_data'),
     url(r'^students/' + USERID_OR_EMPLID + '/courses-download$', advisornotes_views.student_courses_download, name='student_courses_download'),
     url(r'^students/' + USERID_OR_EMPLID + '/transfers-data$', advisornotes_views.student_transfers_data, name='student_transfers_data'),

@@ -43,6 +43,7 @@ VISA_STATUSES = ( # as taken from SIMS ps_visa_permit_tbl
 
 ROLE_CHOICES = (
         ('ADVS', 'Advisor'),
+        ('ADVM', 'Advisor Manager'),
         ('FAC', 'Faculty Member'),
         ('SESS', 'Sessional Instructor'),
         ('COOP', 'Co-op Staff'),
@@ -72,13 +73,14 @@ ROLE_CHOICES = (
         )
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'GRPD',
+UNIT_ROLES = ['ADVS', 'ADVM', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'GRPD',
               'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR', 'FACA', 'RELA', 'SPAC', 'FORM']
 # roles that give access to SIMS data
-SIMS_ROLES = ['ADVS', 'DISC', 'DICC', 'FUND', 'GRAD', 'GRPD']
+SIMS_ROLES = ['ADVS', 'ADMV', 'DISC', 'DICC', 'FUND', 'GRAD', 'GRPD']
 # help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
+        'ADVM': 'Can manage advisor visit categories.',
         'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
         'DICC': 'Will be copied on all discipline case letters in the unit: include whoever files your discipline cases.',
         'TAAD': 'Can administer TA job postings and appointments.',

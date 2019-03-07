@@ -84,8 +84,9 @@
         <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li>
         <li>
             {% for u in units %}
-            <form method="post" action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
-            {% csrf_token %}<p><input type="submit" value="Record visit" title="Record visit to {{ u.informal_name }} advisor" /></p>
+            <form target="_blank" method="post" action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
+            {% csrf_token %}
+                <p><input type="submit" value="Record visit" title="Record visit to {{ u.informal_name }} advisor" /></p>
             </form>
             {% endfor %}
         </li>
@@ -173,13 +174,24 @@
     <table id="advisingvisits">
         <thead>
             <th scope="col">Start Time</th>
+            <th scope="col">End Time</th>
+            <th scope="col">Categories</th>
             <th scope="col">Advisor</th>
+            <th>Actions</th>
         </thead>
         <tbody>
         {% for visit in visits %}
             <tr>
                 <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
+                <td>{{ visit.end_time }}</td>
+                <td>{{ visit.categories_display }}</td>
                 <td>{{ visit.advisor.sortname }}</td>
+                <td><form class="lineform" method="GET"
+                    action="{% url "advising:view_visit" visit_slug=visit.slug %}">
+                    <button type='submit' class='btn' title="View visit">
+                        <i class='fa fa-eye'></i>
+                    </button>
+                </form></td>
             </tr>
         {% endfor %}
         </tbody>

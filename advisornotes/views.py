@@ -1,7 +1,8 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
-    MergeStudentForm, ArtifactNoteForm, ArtifactForm, AdvisorNoteForm,\
-    EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm, ArtifactSearchForm
-from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit
+    MergeStudentForm, ArtifactNoteForm, ArtifactForm, AdvisorNoteForm, AdvisorVisitForm, \
+    EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm, ArtifactSearchForm, AdvisorVisitCategoryForm
+from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit, AdvisorVisitCategory, \
+    ADVISOR_VISIT_VERSION
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member, Role
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, transfer_data,\
     SIMSProblem, classes_data
@@ -15,7 +16,6 @@ from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
-from django.utils.text import wrap
 from django.views.decorators.http import require_POST
 from log.models import LogEntry
 from onlineforms.models import FormSubmission
@@ -56,7 +56,8 @@ def advising(request):
     form = StudentSearchForm()
     note_form = NoteSearchForm(prefix="text")
     artifact_form = ArtifactSearchForm(prefix="text")
-    context = {'form': form, 'note_form': note_form, 'artifact_form': artifact_form}
+    advisor_admin = Role.objects_fresh.filter(role='ADVM', person__userid=request.user.username).exists()
+    context = {'form': form, 'note_form': note_form, 'artifact_form': artifact_form, 'advisor_admin': advisor_admin}
     return render(request, 'advisornotes/student_search.html', context)
 
 
@@ -222,8 +223,8 @@ def new_note(request, userid):
             note.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("new note for %s by %s") % (form.instance.student, request.user.username),
-                  related_object=form.instance)
+                         description=("new advisor note for %s") % student,
+                         related_object=form.instance)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Note created.')
 
@@ -409,6 +410,23 @@ def student_more_info(request, userid):
     json.dump(data, response)
     return response
 
+
+@requires_role('ADVS')
+def student_more_info_short(request, userid):
+    """
+    Same as above, but with a more limited subset of info.
+    """
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    try:
+        data = more_personal_info(student.emplid, needed=['programs', 'gpa', 'citizen', 'gender'])
+    except SIMSProblem as e:
+        data = {'error': str(e)}
+
+    response = HttpResponse(content_type='application/json')
+    json.dump(data, response)
+    return response
+
+
 @requires_role('ADVS')
 def student_courses(request, userid):
     """
@@ -555,18 +573,121 @@ def record_advisor_visit(request, userid, unit_slug):
         nonstudent = get_object_or_404(NonStudent, slug=userid)
         student = None
 
-    av = AdvisorVisit(student=student, nonstudent=nonstudent, program=None, advisor=advisor, unit=unit)
-    av.save()
-
-    messages.add_message(request, messages.SUCCESS, '%s advisor visit recorded on %s.' % (unit.informal_name(), datetime.date.today()))
-    return HttpResponseRedirect(reverse('advising:student_notes', kwargs={'userid': userid}))
+    visit = AdvisorVisit(student=student, nonstudent=nonstudent, unit=unit, advisor=advisor,
+                         version=ADVISOR_VISIT_VERSION)
+    visit.save()
+    return HttpResponseRedirect(reverse('advising:edit_visit', kwargs={'visit_slug': visit.slug}))
 
 
 @requires_role('ADVS')
+def edit_visit(request, visit_slug):
+    visit = get_object_or_404(AdvisorVisit, slug=visit_slug)
+    already_got_sims = False
+    if request.method == 'POST':
+        form = AdvisorVisitForm(request.POST, instance=visit)
+        if form.is_valid():
+            visit = form.save(commit=False)
+            visit.categories.clear()
+            if 'categories' in form.cleaned_data:
+                for c in form.cleaned_data['categories']:
+                    visit.categories.add(c)
+            visit.end_time = datetime.datetime.now()
+            if 'programs' in form.cleaned_data:
+                visit.programs = form.cleaned_data['programs']
+            if 'cgpa' in form.cleaned_data:
+                visit.cgpa = form.cleaned_data['cgpa']
+            if 'credits' in form.cleaned_data:
+                visit.credits = form.cleaned_data['credits']
+            if 'gender' in form.cleaned_data:
+                visit.gender = form.cleaned_data['gender']
+            if 'citizenship' in form.cleaned_data:
+                visit.citizenship = form.cleaned_data['citizenship']
+            visit.save()
+
+            if 'note' in form.cleaned_data and form.cleaned_data['note']:
+                note = AdvisorNote(student=visit.student, nonstudent=visit.nonstudent, advisor=visit.advisor,
+                                   unit=visit.unit, text=form.cleaned_data['note'])
+                note.save()
+                if form.cleaned_data['email_student']:
+                    _email_student_note(note)
+                    note.emailed = True
+                l = LogEntry(userid=request.user.username,
+                             description=("new advisor note from visit for %s") % visit.get_userid(),
+                             related_object=note)
+                l.save()
+            l = LogEntry(userid=request.user.username,
+                         description=("Recorded visit for %s") % visit.get_userid(),
+                         related_object=visit)
+            l.save()
+            script = '<script nonce='+request.csp_nonce+'>window.close();window.opener.location.reload();</script>'
+            return HttpResponse(script)
+    else:
+        form = AdvisorVisitForm(instance=visit)
+        #  If we've already fetched info from SIMS for this person, set a flag so we don't automatically fetch it again,
+        #  this would mean we're editing an already populated visit, and we should leave the choice to the user.
+        if visit.cgpa:
+            form.initial['cgpa'] = visit.cgpa
+            already_got_sims = True
+        if visit.programs:
+            form.initial['programs'] = visit.programs
+            already_got_sims = True
+        if visit.credits:
+            form.initial['credits'] = visit.credits
+            already_got_sims = True
+
+    return render(request, 'advisornotes/record_visit.html', {'userid': visit.get_userid(), 'visit': visit,
+                                                              'form': form,
+                                                              'fetch_automatically': not already_got_sims})
+
+
+@requires_role('ADVS')
+def view_visit(request, visit_slug):
+    visit = AdvisorVisit.objects.get(slug=visit_slug, unit__in=request.units)
+    return render(request, 'advisornotes/view_visit.html', {'userid': visit.get_userid(), 'visit': visit})
+
+
+@requires_role('ADVM')
 def all_visits(request):
     visits = AdvisorVisit.objects.filter(unit__in=request.units).select_related('student', 'nonstudent', 'advisor')
-    context = {'visits': visits}
+    context = {'visits': visits, 'admin': True}
     return render(request, 'advisornotes/all_visits.html', context)
+
+
+@requires_role('ADVS')
+def my_visits(request):
+    #  Same as all visits, but for a given advisor.
+    advisor = get_object_or_404(Person, userid=request.user.username)
+    visits = AdvisorVisit.objects.filter(unit__in=request.units, advisor=advisor).select_related('student', 'nonstudent', 'advisor')
+    context = {'visits': visits, 'mine': True}
+    return render(request, 'advisornotes/all_visits.html', context)
+
+
+@require_POST
+@requires_role('ADVS')
+def end_visit_mine(request, visit_slug):
+    advisor = get_object_or_404(Person, userid=request.user.username)
+    visit = get_object_or_404(AdvisorVisit, slug=visit_slug, unit__in=request.units, advisor=advisor)
+    visit.end_time = datetime.datetime.now()
+    visit.save()
+    l = LogEntry(userid=request.user.username,
+                 description=("manually ended own advisor visit for %s from %s") % (visit.get_userid(), visit.created_at),
+                 related_object=visit)
+    l.save()
+    return HttpResponseRedirect(reverse('advising:my_visits'))
+
+
+@require_POST
+@requires_role('ADVM')
+def end_visit_admin(request, visit_slug):
+    visit = get_object_or_404(AdvisorVisit, slug=visit_slug, unit__in=request.units)
+    visit.end_time = datetime.datetime.now()
+    visit.save()
+    l = LogEntry(userid=request.user.username,
+                 description=("manually ended advisor visit for %s with %s from %s") %
+                             (visit.get_userid(), visit.advisor.userid, visit.created_at),
+                 related_object=visit)
+    l.save()
+    return HttpResponseRedirect(reverse('advising:all_visits'))
 
 
 @requires_role('ADVS')
@@ -896,3 +1017,62 @@ def xxx_rest_notes(request):
     return HttpResponse(status=200)
 
 
+@requires_role('ADVM')
+def manage_categories(request):
+    categories = AdvisorVisitCategory.objects.visible(request.units)
+    return render(request, 'advisornotes/manage_categories.html', {'categories': categories})
+
+
+@requires_role('ADVM')
+@transaction.atomic
+def add_category(request):
+    if request.method == 'POST':
+        form = AdvisorVisitCategoryForm(request, request.POST)
+        if form.is_valid():
+            category = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 'Added category %s' % category)
+            l = LogEntry(userid=request.user.username,
+                         description="Added category %s" % category,
+                         related_object=category)
+            l.save()
+            return HttpResponseRedirect(reverse('advising:manage_categories'))
+    else:
+        form = AdvisorVisitCategoryForm(request)
+    return render(request, 'advisornotes/add_category.html', {'form': form})
+
+
+@requires_role('ADVM')
+@transaction.atomic
+def edit_category(request, category_slug):
+    category = get_object_or_404(AdvisorVisitCategory, slug=category_slug, unit__in=request.units)
+    if request.method == 'POST':
+        form = AdvisorVisitCategoryForm(request, request.POST, instance=category)
+        if form.is_valid():
+            category = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 'Edited category %s' % category)
+            l = LogEntry(userid=request.user.username,
+                         description="Edited category %s" % category,
+                         related_object=category)
+            l.save()
+            return HttpResponseRedirect(reverse('advisornotes:manage_categories'))
+    else:
+        form = AdvisorVisitCategoryForm(request, instance=category)
+    return render(request, 'advisornotes/edit_category.html', {'form': form, 'category_slug': category.slug})
+
+
+@requires_role('ADVM')
+@transaction.atomic
+def delete_category(request, category_slug):
+    category = get_object_or_404(AdvisorVisitCategory, slug=category_slug, unit__in=request.units)
+    if request.method == 'POST':
+        category.delete()
+        messages.success(request, 'Deleted category %s' % category)
+        l = LogEntry(userid=request.user.username,
+                     description="Deleted category: %s" % category,
+                     related_object=category)
+        l.save()
+    return HttpResponseRedirect(reverse('advising:manage_categories'))
