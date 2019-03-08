@@ -25,7 +25,7 @@
         $(window).on('beforeunload', function(e) {
             if (confirmClose == true) {
                 // All modern browsers now ignore this message and show their own.  Nothing we can do about that.
-                return('Your visit will not have an end-time.');
+                return 'Your visit will not have an end-time.';
             }
         });
         $(".submit").click(function() {
