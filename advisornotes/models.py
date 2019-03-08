@@ -326,7 +326,7 @@ class AdvisorVisit(models.Model):
             return None
 
     def has_sims_data(self):
-        return self.programs or self.cgpa or self.credits
+        return self.programs or self.cgpa or self.credits or self.gender or self.citizenship
 
     def get_email(self):
         if self.student:
