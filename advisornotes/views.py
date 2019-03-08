@@ -648,7 +648,8 @@ def view_visit(request, visit_slug):
 
 @requires_role('ADVM')
 def all_visits(request):
-    visits = AdvisorVisit.objects.filter(unit__in=request.units).select_related('student', 'nonstudent', 'advisor')
+    visits = AdvisorVisit.objects.filter(unit__in=request.units).select_related('student', 'nonstudent', 'advisor')\
+                 .order_by("-created_at")[:1000]
     context = {'visits': visits, 'admin': True}
     return render(request, 'advisornotes/all_visits.html', context)
 
@@ -657,7 +658,8 @@ def all_visits(request):
 def my_visits(request):
     #  Same as all visits, but for a given advisor.
     advisor = get_object_or_404(Person, userid=request.user.username)
-    visits = AdvisorVisit.objects.filter(unit__in=request.units, advisor=advisor).select_related('student', 'nonstudent', 'advisor')
+    visits = AdvisorVisit.objects.filter(unit__in=request.units, advisor=advisor)\
+        .select_related('student', 'nonstudent', 'advisor').order_by("-created_at")[:1000]
     context = {'visits': visits, 'mine': True}
     return render(request, 'advisornotes/all_visits.html', context)
 
