@@ -1056,7 +1056,7 @@ LETTER_TAGS = {
 
 SUPERVISOR_TYPE_CHOICES = [
     ('SEN', 'Senior Supervisor'),
-    ('COS', 'Co-senior Supervisor'),
+    ('COS', 'Co-Supervisor'),
     ('COM', 'Supervisor'),
     ('CHA', 'Defence Chair'),
     ('EXT', 'External Examiner'),
