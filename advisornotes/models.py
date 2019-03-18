@@ -1,6 +1,6 @@
 from django.db import models
 from autoslug import AutoSlugField
-from coredata.models import Person, Unit, Course, CourseOffering
+from coredata.models import Person, Unit, Course, CourseOffering, CAMPUS_CHOICES
 from courselib.json_fields import JSONField, config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines
@@ -277,6 +277,7 @@ class AdvisorVisit(models.Model):
 
     created_at = models.DateTimeField(default=datetime.datetime.now)
     end_time = models.DateTimeField(null=True, blank=True)
+    campus = models.CharField(null=True, blank=True, choices=CAMPUS_CHOICES, max_length=5)
     categories = models.ManyToManyField(AdvisorVisitCategory, blank=True)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this visit', null=False,
                              on_delete=models.PROTECT)
