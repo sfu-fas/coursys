@@ -193,7 +193,8 @@ class AdvisorVisitForm(forms.ModelForm):
 
     class Meta:
         model = AdvisorVisit
-        fields = ['programs', "cgpa", "credits", "gender", "citizenship", "categories", "note", "file_attachment", "email_student"]
+        fields = ['programs', "cgpa", "credits", "gender", "citizenship", "campus", "categories", "note",
+                  "file_attachment", "email_student"]
         widgets = {
             'categories': forms.CheckboxSelectMultiple(),
         }
