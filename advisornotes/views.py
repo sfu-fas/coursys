@@ -584,7 +584,7 @@ def edit_visit(request, visit_slug):
     visit = get_object_or_404(AdvisorVisit, slug=visit_slug)
     already_got_sims = False
     if request.method == 'POST':
-        form = AdvisorVisitForm(request.POST, instance=visit)
+        form = AdvisorVisitForm(request.POST, request.FILES, instance=visit)
         if form.is_valid():
             visit = form.save(commit=False)
             visit.categories.clear()
@@ -607,6 +607,10 @@ def edit_visit(request, visit_slug):
             if 'note' in form.cleaned_data and form.cleaned_data['note']:
                 note = AdvisorNote(student=visit.student, nonstudent=visit.nonstudent, advisor=visit.advisor,
                                    unit=visit.unit, text=form.cleaned_data['note'])
+                if 'file_attachment' in request.FILES:
+                    upfile = request.FILES['file_attachment']
+                    note.file_attachment = upfile
+                    note.file_mediatype = upfile.content_type
                 if form.cleaned_data['email_student']:
                     _email_student_note(note)
                     note.emailed = True
