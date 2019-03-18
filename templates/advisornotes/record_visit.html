@@ -51,7 +51,7 @@
 
 {% block content %}
     Visit started {{ visit.created_at }}
-    <form method="post" action="{% url "advising:edit_visit" visit_slug=visit.slug %}">
+    <form enctype="multipart/form-data", method="post" action="{% url "advising:edit_visit" visit_slug=visit.slug %}">
         {% csrf_token %}
         {{ form|as_dl_inline }}
         <p>

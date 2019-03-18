@@ -174,6 +174,8 @@ class AdvisorVisitForm(forms.ModelForm):
                            help_text='If you want to also create a note, please type its content here.  This is a '
                                      'plain text note.  If you want more fancy formatting, please create a note in '
                                      'the main student notes page.')
+    file_attachment = forms.FileField(required=False,
+                                      help_text="If you add a note, you may also add an attachment to it.")
     email_student = forms.BooleanField(required=False,
                                        help_text="Should the student be emailed the contents of this note?")
 
@@ -191,7 +193,7 @@ class AdvisorVisitForm(forms.ModelForm):
 
     class Meta:
         model = AdvisorVisit
-        fields = ['programs', "cgpa", "credits", "gender", "citizenship", "categories", "note", "email_student"]
+        fields = ['programs', "cgpa", "credits", "gender", "citizenship", "categories", "note", "file_attachment", "email_student"]
         widgets = {
             'categories': forms.CheckboxSelectMultiple(),
         }
@@ -201,3 +203,9 @@ class AdvisorVisitForm(forms.ModelForm):
         if email and not self.instance.get_email():
             raise ValidationError("We don't have an email address for this student: cannot email them here.")
         return email
+
+    def clean_note(self):
+        text = self.cleaned_data['note']
+        if 'file_attachment' in self.files and not text:
+            raise ValidationError("You need to add a note in order to save an attachment.")
+        return text
