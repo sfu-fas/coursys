@@ -33,6 +33,8 @@ $(function() {
         <tr>
             <th scope="col">Start</th>
             <th scope="col">End</th>
+            <th scope="col">Duration</th>
+            <th scope="col">Campus</th>
             <th scope="col">Student</th>
             <th scope="col">Advisor</th>
             <th scope="col">Categories</th>
@@ -44,6 +46,8 @@ $(function() {
         <tr>
             <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
             <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
+            <td>{{ visit.get_duration }}</td>
+            <td>{{ visit.get_campus_display }}</td>
             <td>
                 {% if visit.student %}<a href="{% url "advising:student_notes" userid=visit.get_userid %}">{{ visit.student.sortname }} ({{ visit.student.emplid }})</a>{% endif %}
                 {% if visit.nonstudent %}<a href="{% url "advising:student_notes" nonstudent_slug=visit.get_userid %}">{{ visit.nonstudent.sortname }}</a>{% endif %}
