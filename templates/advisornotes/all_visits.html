@@ -57,6 +57,21 @@ $(function() {
                         <i class='fa fa-eye'></i>
                     </button>
                 </form>
+                {% if mine %}
+                <form class="lineform" method="GET"
+                    action="{% url "advising:edit_visit_subsequent" visit_slug=visit.slug %}">
+                    <button type='submit' class='btn' title="Edit visit">
+                        <i class='fa fa-edit'></i>
+                    </button>
+                </form>
+                {% elif admin %}
+                <form class="lineform" method="GET"
+                    action="{% url "advising:edit_visit_admin" visit_slug=visit.slug %}">
+                    <button type='submit' class='btn' title="Edit visit">
+                        <i class='fa fa-edit'></i>
+                    </button>
+                </form>
+                {% endif %}
                 {% if mine and not visit.end_time %}
                 <form class="lineform" method="POST" action="{% url "advising:end_visit_mine" visit_slug=visit.slug %}">
                 {% csrf_token %}<button type='submit' class='btn' title="End visit now">

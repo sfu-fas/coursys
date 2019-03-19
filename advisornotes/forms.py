@@ -155,7 +155,7 @@ class AdvisorVisitCategoryForm(forms.ModelForm):
         exclude = []
 
 
-class AdvisorVisitForm(forms.ModelForm):
+class AdvisorVisitFormInitial(forms.ModelForm):
     programs = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols': '50', 'rows': '5'}),
                                help_text='This field can not be edited.  To refresh it, click "Refresh SIMS info".')
 
@@ -180,7 +180,7 @@ class AdvisorVisitForm(forms.ModelForm):
                                        help_text="Should the student be emailed the contents of this note?")
 
     def __init__(self, *args, **kwargs):
-        super(AdvisorVisitForm, self).__init__(*args, **kwargs)
+        super(AdvisorVisitFormInitial, self).__init__(*args, **kwargs)
         categories = AdvisorVisitCategory.objects.visible([self.instance.unit])
         self.fields['categories'].queryset = categories
         initial = kwargs.setdefault('initial', {})
@@ -210,3 +210,30 @@ class AdvisorVisitForm(forms.ModelForm):
         if 'file_attachment' in self.files and not text:
             raise ValidationError("You need to add a note in order to save an attachment.")
         return text
+
+
+class AdvisorVisitFormSubsequent(forms.ModelForm):
+    end_time = forms.SplitDateTimeField()
+
+    def __init__(self, *args, **kwargs):
+        super(AdvisorVisitFormSubsequent, self).__init__(*args, **kwargs)
+        categories = AdvisorVisitCategory.objects.visible([self.instance.unit])
+        self.fields['categories'].queryset = categories
+        initial = kwargs.setdefault('initial', {})
+        initial['categories'] = [c.pk for c in kwargs['instance'].categories.all()]
+
+    class Meta:
+        model = AdvisorVisit
+        fields = ["campus", "end_time", "categories"]
+        widgets = {
+            'categories': forms.CheckboxSelectMultiple(),
+            'end_time': forms.SplitDateTimeWidget(),
+        }
+
+    def clean_end_time(self):
+        end_time = self.cleaned_data['end_time']
+        if end_time and end_time <= self.instance.created_at:
+            raise ValidationError("Cannot end the meeting before it started.")
+        elif end_time and end_time > datetime.datetime.now():
+            raise ValidationError("Cannot end a meeting in the future.")
+        return end_time
