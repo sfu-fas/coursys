@@ -1,9 +1,10 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
-    MergeStudentForm, ArtifactNoteForm, ArtifactForm, AdvisorNoteForm, AdvisorVisitForm, \
-    EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm, ArtifactSearchForm, AdvisorVisitCategoryForm
+    MergeStudentForm, ArtifactNoteForm, ArtifactForm, AdvisorNoteForm, AdvisorVisitFormInitial, \
+    EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm, ArtifactSearchForm, AdvisorVisitCategoryForm, \
+    AdvisorVisitFormSubsequent
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit, AdvisorVisitCategory, \
     ADVISOR_VISIT_VERSION
-from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member, Role
+from coredata.models import Person, Course, CourseOffering, Semester, Unit, Role
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, transfer_data,\
     SIMSProblem, classes_data
 from courselib.auth import requires_role, HttpResponseRedirect, \
@@ -576,15 +577,17 @@ def record_advisor_visit(request, userid, unit_slug):
     visit = AdvisorVisit(student=student, nonstudent=nonstudent, unit=unit, advisor=advisor,
                          version=ADVISOR_VISIT_VERSION)
     visit.save()
-    return HttpResponseRedirect(reverse('advising:edit_visit', kwargs={'visit_slug': visit.slug}))
+    return HttpResponseRedirect(reverse('advising:edit_visit_initial', kwargs={'visit_slug': visit.slug}))
 
 
 @requires_role('ADVS')
-def edit_visit(request, visit_slug):
+def edit_visit_initial(request, visit_slug):
+    #  This is for the initial edit, when the visit is first created.  At this point, we want to show all the SIMS
+    #  stuff, set categories, and also potentially create a note.  The end date/time is set when the form is submitted.
     visit = get_object_or_404(AdvisorVisit, slug=visit_slug)
     already_got_sims = False
     if request.method == 'POST':
-        form = AdvisorVisitForm(request.POST, request.FILES, instance=visit)
+        form = AdvisorVisitFormInitial(request.POST, request.FILES, instance=visit)
         if form.is_valid():
             visit = form.save(commit=False)
             visit.categories.clear()
@@ -626,7 +629,7 @@ def edit_visit(request, visit_slug):
             script = '<script nonce='+request.csp_nonce+'>window.close();window.opener.location.reload();</script>'
             return HttpResponse(script)
     else:
-        form = AdvisorVisitForm(instance=visit)
+        form = AdvisorVisitFormInitial(instance=visit)
         #  If we've already fetched info from SIMS for this person, set a flag so we don't automatically fetch it again,
         #  this would mean we're editing an already populated visit, and we should leave the choice to the user.
         if visit.cgpa:
@@ -642,6 +645,46 @@ def edit_visit(request, visit_slug):
     return render(request, 'advisornotes/record_visit.html', {'userid': visit.get_userid(), 'visit': visit,
                                                               'form': form,
                                                               'fetch_automatically': not already_got_sims})
+
+
+@requires_role('ADVM')
+def edit_visit_admin(request, visit_slug):
+    return edit_visit_subsequent(request, visit_slug, admin=True)
+
+
+@requires_role(['ADVS', 'ADVM'])
+def edit_visit_subsequent(request, visit_slug, admin=False):
+    #  This is for advisors to edit their own visits, or advisor managers to edit those of their teams.  The only
+    #  real use case right now is someone forgetting to end a visit, and having the advisor/manager set the end time
+    #  correctly.
+    print(admin)
+    visit = get_object_or_404(AdvisorVisit, slug=visit_slug)
+    requester = get_object_or_404(Person, userid=request.user.username)
+    # Managers can edit all visits in their unit, and advisors can edit their own visits.
+    if (admin and not Role.objects.filter(person=requester, role='ADVM', unit=visit.unit).exists()) or \
+            (not admin and not visit.advisor == requester):
+        return ForbiddenResponse(request, "You do not have permission to edit this visit.")
+    if request.method == 'POST':
+        form = AdvisorVisitFormSubsequent(request.POST, instance=visit)
+        if form.is_valid():
+            visit = form.save(commit=False)
+            visit.categories.clear()
+            if 'categories' in form.cleaned_data:
+                for c in form.cleaned_data['categories']:
+                    visit.categories.add(c)
+            visit.save()
+            l = LogEntry(userid=request.user.username,
+                         description=("Edited visit for %s") % visit.get_userid(),
+                         related_object=visit)
+            l.save()
+            if admin:
+                return HttpResponseRedirect(reverse('advising:all_visits'))
+            else:
+                return HttpResponseRedirect(reverse('advising:my_visits'))
+    else:
+        form = AdvisorVisitFormSubsequent(instance=visit)
+    return render(request, 'advisornotes/edit_visit.html', {'userid': visit.get_userid(), 'visit': visit,
+                                                            'form': form, 'admin': admin})
 
 
 @requires_role('ADVS')
