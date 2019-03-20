@@ -191,6 +191,7 @@ class AdvisorVisitFormInitial(forms.ModelForm):
         self.fields['gender'].widget.attrs['readonly'] = True
         self.fields['citizenship'].widget.attrs['readonly'] = True
         self.fields['campus'].required = True
+        self.fields['categories'].required = True
 
     class Meta:
         model = AdvisorVisit
@@ -223,7 +224,7 @@ class AdvisorVisitFormSubsequent(forms.ModelForm):
         initial = kwargs.setdefault('initial', {})
         initial['categories'] = [c.pk for c in kwargs['instance'].categories.all()]
         self.fields['campus'].required = True
-
+        self.fields['categories'].required = True
 
     class Meta:
         model = AdvisorVisit
