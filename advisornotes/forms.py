@@ -190,6 +190,7 @@ class AdvisorVisitFormInitial(forms.ModelForm):
         self.fields['cgpa'].widget.attrs['readonly'] = True
         self.fields['gender'].widget.attrs['readonly'] = True
         self.fields['citizenship'].widget.attrs['readonly'] = True
+        self.fields['campus'].required = True
 
     class Meta:
         model = AdvisorVisit
@@ -221,6 +222,8 @@ class AdvisorVisitFormSubsequent(forms.ModelForm):
         self.fields['categories'].queryset = categories
         initial = kwargs.setdefault('initial', {})
         initial['categories'] = [c.pk for c in kwargs['instance'].categories.all()]
+        self.fields['campus'].required = True
+
 
     class Meta:
         model = AdvisorVisit
