@@ -348,7 +348,7 @@ def student_notes(request, userid):
         notes = AdvisorNote.objects.filter(student=student, unit__in=request.units).order_by("-created_at")
         form_subs = FormSubmission.objects.filter(initiator__sfuFormFiller=student, form__unit__in=Unit.sub_units(request.units),
                                                   form__advisor_visible=True)
-        visits = AdvisorVisit.objects.filter(student=student, unit__in=request.units).order_by('-created_at')
+        visits = AdvisorVisit.objects.visible(request.units).filter(student=student).order_by('-created_at')
         # decorate with .entry_type (and .created_at if not present so we can sort nicely)
         for n in notes:
             n.entry_type = 'NOTE'
@@ -657,7 +657,6 @@ def edit_visit_subsequent(request, visit_slug, admin=False):
     #  This is for advisors to edit their own visits, or advisor managers to edit those of their teams.  The only
     #  real use case right now is someone forgetting to end a visit, and having the advisor/manager set the end time
     #  correctly.
-    print(admin)
     visit = get_object_or_404(AdvisorVisit, slug=visit_slug, hidden=False)
     requester = get_object_or_404(Person, userid=request.user.username)
     # Managers can edit all visits in their unit, and advisors can edit their own visits.
@@ -705,7 +704,7 @@ def all_visits(request):
 def my_visits(request):
     #  Same as all visits, but for a given advisor.
     advisor = get_object_or_404(Person, userid=request.user.username)
-    visits = AdvisorVisit.objects.visible().filter(unit__in=request.units, advisor=advisor)\
+    visits = AdvisorVisit.objects.visible(request.units).filter(advisor=advisor)\
         .select_related('student', 'nonstudent', 'advisor').order_by("-created_at")[:1000]
     context = {'visits': visits, 'mine': True}
     return render(request, 'advisornotes/all_visits.html', context)
@@ -733,6 +732,34 @@ def end_visit_admin(request, visit_slug):
     visit.save()
     l = LogEntry(userid=request.user.username,
                  description=("manually ended advisor visit for %s with %s from %s") %
+                             (visit.get_userid(), visit.advisor.userid, visit.created_at),
+                 related_object=visit)
+    l.save()
+    return HttpResponseRedirect(reverse('advising:all_visits'))
+
+
+@require_POST
+@requires_role('ADVS')
+def delete_visit_mine(request, visit_slug):
+    advisor = get_object_or_404(Person, userid=request.user.username)
+    visit = get_object_or_404(AdvisorVisit, slug=visit_slug, unit__in=request.units, advisor=advisor, hidden=False)
+    visit.hidden = True
+    visit.save()
+    l = LogEntry(userid=request.user.username,
+                 description=("deleted own advisor visit for %s from %s") % (visit.get_userid(), visit.created_at),
+                 related_object=visit)
+    l.save()
+    return HttpResponseRedirect(reverse('advising:my_visits'))
+
+
+@require_POST
+@requires_role('ADVM')
+def delete_visit_admin(request, visit_slug):
+    visit = get_object_or_404(AdvisorVisit, slug=visit_slug, unit__in=request.units, hidden=False)
+    visit.hidden = True
+    visit.save()
+    l = LogEntry(userid=request.user.username,
+                 description=("deleted advisor visit via admin for %s with %s from %s") %
                              (visit.get_userid(), visit.advisor.userid, visit.created_at),
                  related_object=visit)
     l.save()
