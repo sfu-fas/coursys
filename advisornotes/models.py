@@ -1,9 +1,8 @@
 from django.db import models
 from autoslug import AutoSlugField
-from coredata.models import Person, Unit, Course, CourseOffering, CAMPUS_CHOICES
+from coredata.models import Person, Unit, Course, CourseOffering
 from courselib.json_fields import JSONField, config_property
 from courselib.slugs import make_slug
-from courselib.text import normalize_newlines
 from courselib.storage import UploadedFileStorage, upload_path
 from courselib.markup import markup_to_html
 from datetime import date
@@ -14,6 +13,13 @@ import os.path
 # Used to determine if you have any non-end-dated visit, but only of the newer type, with end-dates added by a view.
 # All the older visits will not have an end-date.
 ADVISOR_VISIT_VERSION = 1
+
+ADVISING_CAMPUS_CHOICES = (
+        ('BRNBY', 'Burnaby'),
+        ('SURRY', 'Surrey'),
+        ('VANCR', 'Vancouver'),
+        )
+
 
 def attachment_upload_to(instance, filename):
     return upload_path('advisornotes', filename)
@@ -253,6 +259,18 @@ class AdvisorVisitCategory(models.Model):
         self.save()
 
 
+class AdvisorVisitQuerySet(models.QuerySet):
+    """
+    As usual, define some querysets.
+    """
+
+    def visible(self, units):
+        """
+        Only see visible items, in this case also limited by accessible units.
+        """
+        return self.filter(hidden=False, unit__in=units)
+
+
 class AdvisorVisit(models.Model):
     """
     Record of a visit to an advisor.
@@ -277,11 +295,12 @@ class AdvisorVisit(models.Model):
 
     created_at = models.DateTimeField(default=datetime.datetime.now)
     end_time = models.DateTimeField(null=True, blank=True)
-    campus = models.CharField(null=True, blank=True, choices=CAMPUS_CHOICES, max_length=5)
+    campus = models.CharField(null=False, blank=False, choices=ADVISING_CAMPUS_CHOICES, max_length=5)
     categories = models.ManyToManyField(AdvisorVisitCategory, blank=True)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this visit', null=False,
                              on_delete=models.PROTECT)
     version = models.PositiveSmallIntegerField(null=False, blank=False, default=0, editable=False)
+    hidden = models.BooleanField(null=False, blank=False, default=False, editable=False)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     programs = config_property('programs', '')
@@ -289,6 +308,8 @@ class AdvisorVisit(models.Model):
     credits = config_property('credits', '')
     gender = config_property('gender', '')
     citizenship = config_property('citizenship', '')
+
+    objects = AdvisorVisitQuerySet.as_manager()
 
     def autoslug(self):
         return make_slug(self.unit.slug + '-' + self.get_userid() + '-' + self.advisor.userid)
