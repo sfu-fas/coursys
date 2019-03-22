@@ -55,6 +55,20 @@ $(function() {
             <td>{{ visit.advisor.sortname }}</td>
             <td>{{ visit.categories_display }}</td>
             <td style="min-width: 100px">
+                {% if mine %}
+                <form class="lineform" method="POST" action="{% url "advising:delete_visit_mine" visit_slug=visit.slug %}">
+                {% csrf_token %}<button type='submit' class='btn confirm-submit' title="Delete visit" data-submit-action="delete this visit">
+                        <i class='fa fa-trash-o'></i>
+                    </button>
+                </form>
+                {% endif %}
+                {% if admin %}
+                <form class="lineform" method="POST" action="{% url "advising:delete_visit_admin" visit_slug=visit.slug %}">
+                {% csrf_token %}<button type='submit' class='btn confirm-submit' title="Delete visit" data-submit-action="delete this visit">
+                        <i class='fa fa-trash-o'></i>
+                    </button>
+                </form>
+                {% endif %}
                 <form class="lineform" method="GET"
                     action="{% url "advising:view_visit" visit_slug=visit.slug %}">
                     <button type='submit' class='btn' title="View visit">
