@@ -1,4 +1,5 @@
-from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory
+from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory, \
+    ADVISING_CAMPUS_CHOICES
 from coredata.models import Person, Unit
 from coredata.forms import OfferingField, CourseField
 from django import forms
@@ -190,7 +191,8 @@ class AdvisorVisitFormInitial(forms.ModelForm):
         self.fields['cgpa'].widget.attrs['readonly'] = True
         self.fields['gender'].widget.attrs['readonly'] = True
         self.fields['citizenship'].widget.attrs['readonly'] = True
-        self.fields['campus'].required = True
+        # You have to manually reset the choices for the widget not to have the blank line.
+        self.fields['campus'].widget.choices = ADVISING_CAMPUS_CHOICES
         if categories.count() > 0:
             self.fields['categories'].required = True
 
@@ -200,6 +202,7 @@ class AdvisorVisitFormInitial(forms.ModelForm):
                   "file_attachment", "email_student"]
         widgets = {
             'categories': forms.CheckboxSelectMultiple(),
+            'campus': forms.RadioSelect()
         }
 
     def clean_email_student(self):
@@ -224,7 +227,8 @@ class AdvisorVisitFormSubsequent(forms.ModelForm):
         self.fields['categories'].queryset = categories
         initial = kwargs.setdefault('initial', {})
         initial['categories'] = [c.pk for c in kwargs['instance'].categories.all()]
-        self.fields['campus'].required = True
+        # You have to manually reset the choices for the widget not to have the blank line.
+        self.fields['campus'].widget.choices = ADVISING_CAMPUS_CHOICES
         if categories.count() > 0:
             self.fields['categories'].required = True
 
@@ -234,6 +238,7 @@ class AdvisorVisitFormSubsequent(forms.ModelForm):
         widgets = {
             'categories': forms.CheckboxSelectMultiple(),
             'end_time': forms.SplitDateTimeWidget(),
+            'campus': forms.RadioSelect()
         }
 
     def clean_end_time(self):

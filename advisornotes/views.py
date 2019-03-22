@@ -584,7 +584,7 @@ def record_advisor_visit(request, userid, unit_slug):
 def edit_visit_initial(request, visit_slug):
     #  This is for the initial edit, when the visit is first created.  At this point, we want to show all the SIMS
     #  stuff, set categories, and also potentially create a note.  The end date/time is set when the form is submitted.
-    visit = get_object_or_404(AdvisorVisit, slug=visit_slug)
+    visit = get_object_or_404(AdvisorVisit, slug=visit_slug, hidden=False)
     already_got_sims = False
     if request.method == 'POST':
         form = AdvisorVisitFormInitial(request.POST, request.FILES, instance=visit)
@@ -658,7 +658,7 @@ def edit_visit_subsequent(request, visit_slug, admin=False):
     #  real use case right now is someone forgetting to end a visit, and having the advisor/manager set the end time
     #  correctly.
     print(admin)
-    visit = get_object_or_404(AdvisorVisit, slug=visit_slug)
+    visit = get_object_or_404(AdvisorVisit, slug=visit_slug, hidden=False)
     requester = get_object_or_404(Person, userid=request.user.username)
     # Managers can edit all visits in their unit, and advisors can edit their own visits.
     if (admin and not Role.objects.filter(person=requester, role='ADVM', unit=visit.unit).exists()) or \
@@ -689,13 +689,13 @@ def edit_visit_subsequent(request, visit_slug, admin=False):
 
 @requires_role('ADVS')
 def view_visit(request, visit_slug):
-    visit = AdvisorVisit.objects.get(slug=visit_slug, unit__in=request.units)
+    visit = AdvisorVisit.objects.visible(request.units).get(slug=visit_slug)
     return render(request, 'advisornotes/view_visit.html', {'userid': visit.get_userid(), 'visit': visit})
 
 
 @requires_role('ADVM')
 def all_visits(request):
-    visits = AdvisorVisit.objects.filter(unit__in=request.units).select_related('student', 'nonstudent', 'advisor')\
+    visits = AdvisorVisit.objects.visible(request.units).select_related('student', 'nonstudent', 'advisor')\
                  .order_by("-created_at")[:1000]
     context = {'visits': visits, 'admin': True}
     return render(request, 'advisornotes/all_visits.html', context)
@@ -705,7 +705,7 @@ def all_visits(request):
 def my_visits(request):
     #  Same as all visits, but for a given advisor.
     advisor = get_object_or_404(Person, userid=request.user.username)
-    visits = AdvisorVisit.objects.filter(unit__in=request.units, advisor=advisor)\
+    visits = AdvisorVisit.objects.visible().filter(unit__in=request.units, advisor=advisor)\
         .select_related('student', 'nonstudent', 'advisor').order_by("-created_at")[:1000]
     context = {'visits': visits, 'mine': True}
     return render(request, 'advisornotes/all_visits.html', context)
@@ -715,7 +715,7 @@ def my_visits(request):
 @requires_role('ADVS')
 def end_visit_mine(request, visit_slug):
     advisor = get_object_or_404(Person, userid=request.user.username)
-    visit = get_object_or_404(AdvisorVisit, slug=visit_slug, unit__in=request.units, advisor=advisor)
+    visit = get_object_or_404(AdvisorVisit, slug=visit_slug, unit__in=request.units, advisor=advisor, hidden=False)
     visit.end_time = datetime.datetime.now()
     visit.save()
     l = LogEntry(userid=request.user.username,
@@ -728,7 +728,7 @@ def end_visit_mine(request, visit_slug):
 @require_POST
 @requires_role('ADVM')
 def end_visit_admin(request, visit_slug):
-    visit = get_object_or_404(AdvisorVisit, slug=visit_slug, unit__in=request.units)
+    visit = get_object_or_404(AdvisorVisit, slug=visit_slug, unit__in=request.units, hidden=False)
     visit.end_time = datetime.datetime.now()
     visit.save()
     l = LogEntry(userid=request.user.username,
