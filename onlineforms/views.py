@@ -14,7 +14,7 @@ from courselib.auth import ForbiddenResponse, requires_role, requires_form_admin
     requires_formgroup, login_redirect
 from courselib.db import retry_transaction
 from courselib.branding import help_email
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignFormForm, AdminAssignSheetForm, EditGroupForm, EmployeeSearchForm, \
@@ -454,6 +454,10 @@ def _userToFormFiller(user):
         form_filler = FormFiller.objects.get(sfuFormFiller=user)
     except ObjectDoesNotExist:
         form_filler = FormFiller.objects.create(sfuFormFiller=user)
+    except MultipleObjectsReturned:
+        #  It shouldn't be possible, but there are occasionally Formfillers that have the same sfuFormFiller.  Since
+        #  this isn't enforced at the database level, deal with it this way until we clean it up and/or enforce it.
+        form_filler = FormFiller.objects.filter(sfuFormFiller=user).first()
     return form_filler
 
 
