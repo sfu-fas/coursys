@@ -41,7 +41,7 @@ def _redirect_to_notes(student):
         return HttpResponseRedirect(reverse('advising:student_notes', kwargs={'nonstudent_slug': student.slug}))
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def advising(request):
     if request.method == 'POST':
         # find the student if we can and redirect to info page
@@ -62,7 +62,7 @@ def advising(request):
     return render(request, 'advisornotes/student_search.html', context)
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def note_search(request):
     if 'text-search' not in request.GET:
         return ForbiddenResponse(request, "must send search query")
@@ -75,7 +75,7 @@ def note_search(request):
     return render(request, 'advisornotes/note_search.html', context)
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def download_notes_summary(request):
     notes = AdvisorNote.objects.filter(unit__in=request.units).select_related('student', 'advisor')\
         .order_by("-created_at")
@@ -103,7 +103,7 @@ def download_notes_summary(request):
     return response
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def artifact_search(request):
     if 'text-search' not in request.GET:
         return ForbiddenResponse(request, "must send search query")
@@ -125,7 +125,7 @@ def artifact_search(request):
     return render(request, 'advisornotes/artifact_search.html', context)
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def sims_search(request):
     emplid = request.GET.get('emplid', None)
     data = None
@@ -148,7 +148,7 @@ def sims_search(request):
     return response
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def sims_add_person(request):
     if request.method == 'POST':
         emplid = request.POST.get('emplid', None)
@@ -193,7 +193,7 @@ def _email_student_note(note):
     mail.send()
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 @transaction.atomic
 def new_note(request, userid):
     try:
@@ -236,7 +236,7 @@ def new_note(request, userid):
     return render(request, 'advisornotes/new_note.html', {'form': form, 'student': student, 'userid': userid})
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 @transaction.atomic
 def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact_slug=None):
     unit_choices = [(u.id, str(u)) for u in request.units]
@@ -290,7 +290,7 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
         {'form': form, 'related': related, 'artifact': artifact, 'course': course, 'offering': offering})
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 @transaction.atomic
 def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None, artifact_slug=None):
     note = get_object_or_404(ArtifactNote, id=note_id, unit__in=request.units)
@@ -330,7 +330,7 @@ def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None
         {'form': form, 'note': note, 'related': related, 'artifact': artifact, 'course': course, 'offering': offering})
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def student_notes(request, userid):
 
     try:
@@ -378,7 +378,7 @@ def student_notes(request, userid):
     return render(request, template, context)
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def download_file(request, userid, note_id):
     note = AdvisorNote.objects.get(id=note_id, unit__in=request.units)
     note.file_attachment.open()
@@ -387,7 +387,7 @@ def download_file(request, userid, note_id):
     return resp
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def download_artifact_file(request, note_id):
     note = ArtifactNote.objects.get(id=note_id, unit__in=request.units)
     note.file_attachment.open()
@@ -396,7 +396,7 @@ def download_artifact_file(request, note_id):
     return resp
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def student_more_info(request, userid):
     """
     AJAX request for contact info, etc. (queries SIMS directly)
@@ -412,7 +412,7 @@ def student_more_info(request, userid):
     return response
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def student_more_info_short(request, userid):
     """
     Same as above, but with a more limited subset of info.
@@ -428,7 +428,7 @@ def student_more_info_short(request, userid):
     return response
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def student_courses(request, userid):
     """
     List of courses now (and in surrounding semesters)
@@ -443,7 +443,7 @@ def student_courses(request, userid):
     resp.has_inline_script = True # show/hide link
     return resp
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def student_courses_data(request, userid):
     """
     AJAX request for course data, etc. (queries SIMS directly)
@@ -460,7 +460,7 @@ def student_courses_data(request, userid):
     return response
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def student_courses_download(request, userid):
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     try:
@@ -491,7 +491,7 @@ def student_courses_download(request, userid):
 
     return response
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def student_transfers_data(request, userid):
     """
     AJAX request for transfer data, etc. (queries SIMS directly)
@@ -507,7 +507,7 @@ def student_transfers_data(request, userid):
     return response
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def student_transfers(request, userid):
     """
     List of transfer credits for a given student
@@ -521,7 +521,7 @@ def student_transfers(request, userid):
     return render(request, 'advisornotes/student_transfers.html', context)
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def student_transfers_download(request, userid):
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     try:
@@ -562,7 +562,7 @@ def student_transfers_download(request, userid):
     return response
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 @require_POST
 def record_advisor_visit(request, userid, unit_slug):
     unit = get_object_or_404(Unit, slug=unit_slug, id__in=(u.id for u in request.units))
@@ -580,7 +580,7 @@ def record_advisor_visit(request, userid, unit_slug):
     return HttpResponseRedirect(reverse('advising:edit_visit_initial', kwargs={'visit_slug': visit.slug}))
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def edit_visit_initial(request, visit_slug):
     #  This is for the initial edit, when the visit is first created.  At this point, we want to show all the SIMS
     #  stuff, set categories, and also potentially create a note.  The end date/time is set when the form is submitted.
@@ -686,7 +686,7 @@ def edit_visit_subsequent(request, visit_slug, admin=False):
                                                             'form': form, 'admin': admin})
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def view_visit(request, visit_slug):
     visit = AdvisorVisit.objects.visible(request.units).get(slug=visit_slug)
     return render(request, 'advisornotes/view_visit.html', {'userid': visit.get_userid(), 'visit': visit})
@@ -700,7 +700,7 @@ def all_visits(request):
     return render(request, 'advisornotes/all_visits.html', context)
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def my_visits(request):
     #  Same as all visits, but for a given advisor.
     advisor = get_object_or_404(Person, userid=request.user.username)
@@ -711,7 +711,7 @@ def my_visits(request):
 
 
 @require_POST
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def end_visit_mine(request, visit_slug):
     advisor = get_object_or_404(Person, userid=request.user.username)
     visit = get_object_or_404(AdvisorVisit, slug=visit_slug, unit__in=request.units, advisor=advisor, hidden=False)
@@ -739,7 +739,7 @@ def end_visit_admin(request, visit_slug):
 
 
 @require_POST
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def delete_visit_mine(request, visit_slug):
     advisor = get_object_or_404(Person, userid=request.user.username)
     visit = get_object_or_404(AdvisorVisit, slug=visit_slug, unit__in=request.units, advisor=advisor, hidden=False)
@@ -766,7 +766,7 @@ def delete_visit_admin(request, visit_slug):
     return HttpResponseRedirect(reverse('advising:all_visits'))
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 @transaction.atomic
 def new_nonstudent(request):
     """
@@ -785,7 +785,7 @@ def new_nonstudent(request):
     return render(request, 'advisornotes/new_nonstudent.html', {'form': form})
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 @transaction.atomic
 def new_artifact(request):
     """
@@ -811,7 +811,7 @@ def new_artifact(request):
     return render(request, 'advisornotes/new_artifact.html', {'form': form})
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 @transaction.atomic
 def edit_artifact(request, artifact_slug):
     """
@@ -838,7 +838,7 @@ def edit_artifact(request, artifact_slug):
     return render(request, 'advisornotes/edit_artifact.html', {'form': form, 'artifact': artifact})
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def view_artifacts(request):
     """
     View to view all artifacts
@@ -850,7 +850,7 @@ def view_artifacts(request):
     )
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def view_artifact_notes(request, artifact_slug):
     """
     View to view all notes for a specific artifact
@@ -865,7 +865,7 @@ def view_artifact_notes(request, artifact_slug):
     )
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def view_courses(request):
     """
     View to view all courses
@@ -906,7 +906,7 @@ def view_courses(request):
     )
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def view_course_notes(request, unit_course_slug):
     """
     View to view all notes for a specific artifact
@@ -928,7 +928,7 @@ def view_course_notes(request, unit_course_slug):
     )
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def course_more_info(request, unit_course_slug):
     """
     AJAX request for calendar description, etc. (queries SIMS directly)
@@ -947,7 +947,7 @@ def course_more_info(request, unit_course_slug):
     return response
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def view_course_offerings(request, semester=None):
     """
     View to view all courses
@@ -973,7 +973,7 @@ def view_course_offerings(request, semester=None):
     )
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def view_all_semesters(request):
     """
     View to view all semesters
@@ -985,7 +985,7 @@ def view_all_semesters(request):
     )
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 def view_offering_notes(request, course_slug):
     """
     View to view all notes for a specific artifact
@@ -1001,7 +1001,7 @@ def view_offering_notes(request, course_slug):
     )
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 @transaction.atomic
 def hide_note(request):
     """
@@ -1016,7 +1016,7 @@ def hide_note(request):
     return HttpResponse(status=403)
 
 
-@requires_role('ADVS')
+@requires_role(['ADVS', 'ADVM'])
 @transaction.atomic
 def merge_nonstudent(request, nonstudent_slug):
     """
