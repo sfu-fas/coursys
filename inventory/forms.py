@@ -45,17 +45,13 @@ class AssetChangeForm(forms.ModelForm):
         #  adding/removing them for events in your children units.
         unit_ids = [unit.id for unit in Unit.sub_units(request.units)]
         units = Unit.objects.filter(id__in=unit_ids)
-        #  Get current events + any events in the last 12 weeks, that should give enough time to fix inventory based
-        #  on events.
-        self.fields['event'].queryset = OutreachEvent.objects.visible(units).\
-            exclude(end_date__lt=datetime.datetime.today() - datetime.timedelta(weeks=12))
 
     class Meta:
         model = AssetChangeRecord
         widgets = {
             'date': CalendarWidget
         }
-        fields = ['person', 'qty', 'event', 'date']
+        fields = ['person', 'qty', 'date']
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
