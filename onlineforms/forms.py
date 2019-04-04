@@ -41,7 +41,7 @@ class FormForm(ModelForm):
                                                'expect most users to be external to SFU.')
     unlisted = forms.BooleanField(required=False, initial=False, label='Unlisted',
                                   help_text='Should this form be visible in the list of forms everyone can see?  '
-                                            'if this is checked, only people with the direct URL will be able to '
+                                            'If this is checked, only people with the direct URL will be able to '
                                             'fill in this form.')
     autoconfirm = forms.BooleanField(required=False, initial=False, label='Auto-Confirm',
                                      help_text='Should we send the filler of this form a confirmation email once they '
