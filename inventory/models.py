@@ -117,9 +117,8 @@ class AssetChangeRecord(models.Model):
     person = models.ForeignKey(Person, null=False, blank=False, on_delete=models.PROTECT)
     qty = models.IntegerField("Quantity adjustment", null=False, blank=False,
                               help_text="The change in quantity.  For removal of item, make it a negative number. "
-                                        "For adding items, make it a positive.  e.g. '-2' if someone removed two of"
+                                        "For adding items, make it a positive.  e.g. '-2' if someone removed two of "
                                         "this item for something")
-    event = models.ForeignKey(OutreachEvent, null=True, blank=True, help_text="The event it was for, if any", on_delete=models.PROTECT)
     date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
