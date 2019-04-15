@@ -358,6 +358,13 @@ def deploy_checks(request=None):
     except RuntimeError:
         failed.append(('Markdown subprocess', 'markdown script failed'))
 
+    # locale is UTF-8 (matters for markdown script calls, the SIMS database connection)
+    import locale
+    _, encoding = locale.getdefaultlocale()
+    if encoding == 'UTF-8':
+        passed.append(('Locale encoding', 'okay'))
+    else:
+        failed.append(('Locale encoding', "is %r; should be 'UTF-8'" % (encoding,)))
 
     return passed, failed
 
