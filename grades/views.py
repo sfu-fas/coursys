@@ -1165,9 +1165,9 @@ def _all_grades_output(response, course):
     for a in activities:
         grades[a.slug] = {}
         if hasattr(a, 'numericgrade_set'):
-            gs = a.numericgrade_set.all()
+            gs = a.numericgrade_set.all().select_related('member', 'member__person')
         else:
-            gs = a.lettergrade_set.all()
+            gs = a.lettergrade_set.all().select_related('member', 'member__person')
         for g in gs:
             grades[a.slug][g.member.person.userid] = g
     
