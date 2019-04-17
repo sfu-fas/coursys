@@ -200,7 +200,7 @@ class DisciplineCaseBase(models.Model):
         """
         for CaseClass in [DisciplineCaseInstrStudent, DisciplineCaseInstrNonStudent, DisciplineCaseChairStudent, DisciplineCaseChairNonStudent]:
             try:
-                return CaseClass.objects.get(id=self.id)
+                return CaseClass.objects.filter(id=self.id).select_related('owner', 'offering', 'offering__semester', 'student').first()
             except CaseClass.DoesNotExist:
                 pass
 
