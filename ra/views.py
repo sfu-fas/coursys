@@ -549,7 +549,7 @@ class RADataJson(BaseDatatableView):
 def download_ras(request, current=True):
     ras = RAAppointment.objects.filter(Q(unit__in=request.units)
                                        | Q(hiring_faculty__userid=request.user.username))\
-        .select_related('person', 'hiring_faculty', 'unit').exclude(deleted=True)
+        .select_related('person', 'hiring_faculty', 'unit', 'project', 'account').exclude(deleted=True)
     if current:
         today = datetime.date.today()
         slack = 14  # number of days to fudge the start/end
