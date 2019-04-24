@@ -355,3 +355,12 @@ class AdvisorVisit(models.Model):
             return self.student.email()
         else:
             return self.nonstudent.email()
+
+    def get_created_at_display(self):
+        return self.created_at.strftime("%Y/%m/%d %H:%M")
+
+    def get_end_time_display(self):
+        if self.end_time:
+            return self.end_time.strftime("%Y/%m/%d %H:%M")
+        else:
+            return ''

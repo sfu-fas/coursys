@@ -711,6 +711,41 @@ def my_visits(request):
     return render(request, 'advisornotes/all_visits.html', context)
 
 
+@requires_role('ADVM')
+def download_all_visits(request):
+    visits = AdvisorVisit.objects.visible(request.units).select_related('student', 'nonstudent', 'advisor', ) \
+                 .prefetch_related('categories').order_by("-created_at")[:1000]
+    return _return_visits_pdf(visits=visits, admin=True)
+
+
+@requires_role(['ADVS', 'ADVM'])
+def download_my_visits(request):
+    advisor = get_object_or_404(Person, userid=request.user.username)
+    visits = AdvisorVisit.objects.visible(request.units).filter(advisor=advisor) \
+                 .select_related('student', 'nonstudent', 'advisor').prefetch_related('categories') \
+                 .order_by("-created_at")[:1000]
+    return _return_visits_pdf(visits=visits, admin=False)
+
+
+def _return_visits_pdf(visits=None, admin=False):
+    response = HttpResponse(content_type='text/csv')
+    if admin:
+        filename_prefix = 'all'
+    else:
+        filename_prefix = 'my'
+
+    response['Content-Disposition'] = 'inline; filename="%s-%s-visits.csv"' % \
+                                      (datetime.datetime.now().strftime('%Y%m%d'), filename_prefix)
+    writer = csv.writer(response)
+
+    writer.writerow(['Start', 'End', 'Duration', 'Campus', 'Student', 'Advisor', 'Categories', 'Programs', 'CGPA',
+                     'Credits', 'Gender', 'Citizenship'])
+    for v in visits:
+        writer.writerow([v.get_created_at_display(), v.get_end_time_display(), v.get_duration(), v.get_campus_display(),
+                         v.get_full_name(), v.advisor.sortname(), v.categories_display(), v.programs, v.cgpa, v.credits,
+                         v.gender, v.citizenship])
+    return response
+
 @require_POST
 @requires_role(['ADVS', 'ADVM'])
 def end_visit_mine(request, visit_slug):
