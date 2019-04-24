@@ -18,6 +18,8 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^sims_add$', advisornotes_views.sims_add_person, name='sims_add_person'),
     url(r'^visits$', advisornotes_views.all_visits, name='all_visits'),
     url(r'^my_visits$', advisornotes_views.my_visits, name='my_visits'),
+    url(r'^download_all_visits$', advisornotes_views.download_all_visits, name='download_all_visits'),
+    url(r'^download_my_visits$', advisornotes_views.download_my_visits, name='download_my_visits'),
 
     url(r'^categories$', advisornotes_views.manage_categories, name='manage_categories'),
     url(r'^categories/add$', advisornotes_views.add_category, name='add_category'),

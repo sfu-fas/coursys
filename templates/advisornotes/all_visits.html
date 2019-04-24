@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}{% if mine %}My Visits{% else %}All Visits{% endif %}{% endblock %}
-{% block h1 %}{% if mine %}My Visits{% else %}All Visits{% endif %}{% endblock %}
+{% block title %}{% if mine %}My Visits{% elif admin %}All Visits{% endif %}{% endblock %}
+{% block h1 %}{% if mine %}My Visits{% elif admin %}All Visits{% endif %}{% endblock %}
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
@@ -18,9 +18,22 @@ $(function() {
 </script>
 {% endblock %}
 
+{% block actions %}
+    <div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        {% if mine %}
+        <li><a href="{% url "advising:download_my_visits" %}">Download CSV</a></li>
+        {% elif admin %}
+        <li><a href="{% url "advising:download_all_visits" %}">Download CSV</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li><a href="{% url "advising:advising" %}">Advising</a></li>
-<li>{% if mine %}My Visits{% else %}All Visits{% endif %}</li>
+<li>{% if mine %}My Visits{% elif admin %}All Visits{% endif %}</li>
 {% endblock %}
 
 {% block content %}
@@ -43,8 +56,8 @@ $(function() {
     <tbody>
         {% for visit in visits %}
         <tr>
-            <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
-            <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
+            <td>{{ visit.created_at }}</td>
+            <td>{{ visit.end_time }}</td>
             <td>{{ visit.get_duration }}</td>
             <td>{{ visit.get_campus_display }}</td>
             <td>
