@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load form_display %}
+
+{% block title %}Add Infastructure Safety Item{% endblock %}
+{% block h1 %}Add Infastructure Safety Item{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "space:index" %}">Space Management</a></li>
+    <li><a href="{% url "space:manage_safety_items" %}">Manage Infrastructure Safety Items</a></li>
+    <li>New Safety Item</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'space:add_safety_item' %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Add Safety Item" />
+    </p>
+</form>
+{% endblock %}

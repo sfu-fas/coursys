@@ -54,7 +54,8 @@ class SpaceTestCase(TestCase):
 
         userid = Role.objects_fresh.filter(role='SPAC', unit=unit)[0].person.userid
         client.login_user(userid)
-        test_views(self, client, 'space:', ['index', 'list_roomtypes', 'add_roomtype'], {})
+        test_views(self, client, 'space:', ['index', 'list_roomtypes', 'add_roomtype', 'manage_safety_items',
+                                            'add_safety_item'], {})
         test_views(self, client, 'space:', ['view_location', 'edit_location', 'add_booking'],
                    {'location_slug': location.slug})
         test_views(self, client, 'space:', ['view_roomtype', 'edit_roomtype'], {'roomtype_slug': roomtype.slug})

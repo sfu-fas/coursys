@@ -51,6 +51,7 @@ function confirmMemo() {
     <dt>Category</dt><dd>{{ location.get_category_display }}</dd>
     <dt>Occupancy</dt><dd>{{ location.occupancy_count }}</dd>
     <dt>Own/Leased</dt><dd>{{ location.get_own_or_lease_display }}</dd>
+    {% if location.has_safety_items %}<dt>Safety Infrastructure Items</dt><dd>{{ location.safety_items_display }}</dd>{% endif %}
     <dt>Comments</dt><dd>{{ location.comments|linebreaks }}</dd>
 
     {% if location.bookings.count > 0 %}

@@ -89,6 +89,44 @@ class RoomType(models.Model):
         return "%s-%s-%s" % (self.unit.label, self.code, str(self.COU_code_value))
 
 
+class RoomSafetyItemQuerySet(models.QuerySet):
+    """
+    As usual, define some querysets.
+    """
+
+    def visible(self, units):
+        """
+        Only see visible items, in this case also limited by accessible units.
+        """
+        return self.filter(hidden=False, unit__in=units)
+
+
+class RoomSafetyItem(models.Model):
+    """
+    Allow each unit to manage the categories which are now included in a visit.
+    """
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
+    label = models.CharField(null=False, blank=False, max_length=50)
+    description = models.CharField(null=True, blank=True, max_length=500)
+    hidden = models.BooleanField(null=False, blank=False, default=False, editable=False)
+    config = JSONField(null=False, blank=False, default=dict, editable=False)  # addition configuration stuff:
+
+    def autoslug(self):
+        return make_slug(self.unit.slug + '-' + self.label)
+
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+
+    def __str__(self):
+        return self.label
+
+    objects = RoomSafetyItemQuerySet.as_manager()
+
+    def delete(self):
+        # As usual, only hide stuff, don't delete it.
+        self.hidden = True
+        self.save()
+
+
 class LocationManager(models.QuerySet):
     def visible(self, units):
         """
@@ -110,6 +148,8 @@ class Location(models.Model):
     category = models.CharField(max_length=5, choices=CATEGORY_CHOICES, null=True, blank=True)
     occupancy_count = models.PositiveIntegerField(null=True, blank=True)
     own_or_lease = models.CharField("SFU Owned or Leased", max_length=5, choices=OWN_CHOICES, null=True, blank=True)
+    field = models.CharField("Research/Teaching Field", max_length=250, null=True, blank=True)
+    safety_items = models.ManyToManyField(RoomSafetyItem, blank=True, verbose_name="Safety Infrastructure")
     comments = models.CharField(max_length=400, null=True, blank=True)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     config = JSONField(null=False, blank=False, editable=False, default=dict)
@@ -156,6 +196,13 @@ class Location(models.Model):
                         and a.end_time > b.start_time:
                     a.conflict = True
             a.save()
+
+    # Template/PDF display helper methods
+    def safety_items_display(self):
+        return '; '.join(c.label for c in self.safety_items.all())
+
+    def has_safety_items(self):
+        return self.safety_items.all().count() > 0
 
 
 class BookingRecordManager(models.QuerySet):
