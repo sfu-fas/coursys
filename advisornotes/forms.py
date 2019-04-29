@@ -138,12 +138,6 @@ class MergeStudentForm(forms.Form):
 
 
 class AdvisorVisitCategoryForm(forms.ModelForm):
-    class Meta:
-        model = AdvisorVisitCategory
-        exclude = ['config']
-
-
-class AdvisorVisitCategoryForm(forms.ModelForm):
     def __init__(self, request, *args, **kwargs):
         super(AdvisorVisitCategoryForm, self).__init__(*args, **kwargs)
         unit_ids = [unit.id for unit in request.units]

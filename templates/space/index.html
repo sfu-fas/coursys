@@ -17,9 +17,6 @@ $(document).ready(function() {
     'aaSorting': [[0, 'asc'], [1, 'asc']]
   } );
 } );
-function confirmDelete() {
-  return confirm("Are you sure you want to delete this location?");
-}
 </script>
 {% endblock %}
 
@@ -29,6 +26,7 @@ function confirmDelete() {
     <ul>
         <li><a href="{% url "space:add_location" %}">Add New Location</a></li>
         <li><a href="{% url "space:list_roomtypes" %}">Manage Room Types</a></li>
+        <li><a href="{% url "space:manage_safety_items" %}">Manage Safety Infrastructure Items</a></li>
         <li><a href="{% url "space:download_locations" %}">Download Locations</a></li>
     </ul>
 </div>
@@ -59,10 +57,10 @@ function confirmDelete() {
                         <td>{{ l.get_current_bookings_str }}</td>
                         <td>
                             <form class="lineform" method="POST"
-                                action="{% url "space:delete_location" location_id=l.id %}"
-                                onsubmit="return confirmDelete()">
+                                action="{% url "space:delete_location" location_id=l.id %}">
                                 {% csrf_token %}
-                                <button type='submit' class='btn' title="Delete Location">
+                                <button type='submit' class='btn confirm-submit' title="Delete location"
+                                        data-submit-action="remove this location">
                                     <i class='fa fa-trash-o'></i>
                                 </button>
                             </form>

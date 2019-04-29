@@ -1,6 +1,6 @@
 from django.contrib.admin import widgets
 
-from .models import BookingRecord, Location, RoomType, BookingRecordAttachment
+from .models import BookingRecord, Location, RoomType, BookingRecordAttachment, RoomSafetyItem
 from django import forms
 from coredata.models import Unit
 from coredata.forms import PersonField
@@ -16,12 +16,18 @@ class LocationForm(forms.ModelForm):
         self.fields['unit'].empty_label = None
         self.fields['room_type'].queryset = roomtypes
         self.fields['room_type'].empty_label = None
+        safety_items = RoomSafetyItem.objects.visible(units)
+        self.fields['safety_items'].queryset = safety_items
+        initial = kwargs.setdefault('initial', {})
+        if 'instance' in kwargs:
+            initial['safety_items'] = [c.pk for c in kwargs['instance'].safety_items.all()]
 
     class Meta:
         exclude = []
         model = Location
         widgets = {
-            'comments': forms.Textarea
+            'comments': forms.Textarea,
+            'safety_items': forms.CheckboxSelectMultiple(),
         }
 
 
@@ -71,3 +77,16 @@ class BookingRecordAttachmentForm(forms.ModelForm):
     class Meta:
         exclude = ['booking_record', 'created_by']
         model = BookingRecordAttachment
+
+
+class RoomSafetyItemForm(forms.ModelForm):
+    def __init__(self, request, *args, **kwargs):
+        super(RoomSafetyItemForm, self).__init__(*args, **kwargs)
+        unit_ids = [unit.id for unit in Unit.sub_units(request.units)]
+        units = Unit.objects.filter(id__in=unit_ids)
+        self.fields['unit'].queryset = units
+        self.fields['unit'].empty_label = None
+
+    class Meta:
+        model = RoomSafetyItem
+        exclude = []
