@@ -1283,7 +1283,7 @@ def view_form(request, post_slug, userid):
 @requires_role("TAAD")
 def contracts_forms(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
-    contracts = TAContract.objects.filter(posting=posting, status='ACC')
+    contracts = TAContract.objects.filter(posting=posting, status__in=['ACC', 'SGN']).order_by('application__person__last_name', 'application__person__first_name')
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (posting.slug)
     ta_forms(contracts, response)
