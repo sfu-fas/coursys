@@ -1146,7 +1146,7 @@ class TAForm(object):
 
         # personal info
         self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=str(emplid))
-        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=str(sin))
+        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=None)
         self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=str(last_name))
         self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=str(first_name))
 
