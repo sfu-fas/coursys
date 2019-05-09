@@ -11,7 +11,7 @@ class FieldConfigForm(forms.Form):
     """
 
     required = forms.BooleanField(label="Required", required=False, help_text="Should the user be required to complete this field?")
-    label = forms.CharField(label="Label", max_length=100, help_text="The label identifying this field, like \"Label\" on this field.")
+    label = forms.CharField(label="Label", max_length=60, help_text="The label identifying this field, like \"Label\" on this field.")
     help_text = forms.CharField(label="Help Text", required=False, help_text="Help text for the user. This text is help text: what you enter here will appear like this.",
                                 widget=forms.TextInput(attrs={'size': 60}))
 
