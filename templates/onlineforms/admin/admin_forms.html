@@ -6,6 +6,7 @@
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
+        $("h3.summary_heading").collapsible();
         $('#pend_table').dataTable({
                     "bPaginate": false,
                     "bJQueryUI": true,
@@ -21,7 +22,6 @@
                     "bJQueryUI": true,
                     "aaSorting": [[2, "asc"]],
         });
-        $("h3.summary_heading").collapsible();
         $(".form_title").click(function() {
             $("#pend_table_filter input").val($(this).text());
             $("#pend_table_filter input").keyup();
@@ -48,8 +48,8 @@
 {% block content %}
 <h2>Pending Forms</h2>
     {% if sub_summary %}
-        <h3 class="summary_heading">Summary</h3>
-        <div id="summary_content" class="collapse_menu">
+        <h3 class="summary_heading collapsible-heading-collapsed">Summary</h3>
+        <div id="summary_content" class="collapse_menu collapsible-content-collapsed">
             <span class="helptext">Number of pending submissions per form, from most pending to least:<br/></span>
         {% for k, v in sub_summary %}
             <span class="form_title" title="Click to search in the table.">{{ k }}</span> ({{ v }})<br/>
