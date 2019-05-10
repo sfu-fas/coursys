@@ -1,5 +1,4 @@
-# start containerizedd development deployment with:
-# cd machines/compose && docker-compose up
+# TODO: the common code between this and Dockerfile-app should be factored out somewhere
 
 FROM python:3.6
 WORKDIR /code
@@ -23,8 +22,6 @@ RUN pip install -r /tmp/requirements.txt && pip install ipython
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.5.0/wait /wait
 RUN chmod +x /wait
 
-#CMD /wait && python3 ./manage.py migrate && python3 ./manage.py loaddata fixtures/*.json && python3 ./manage.py runserver 0:8000
+USER www-data
 CMD /wait \
-  && python3 ./manage.py migrate \
-  && python3 ./manage.py loaddata fixtures/*.json \
-  && /usr/local/bin/gunicorn --workers=5 --worker-class=sync --max-requests=1000 --bind 0:8000 courses.wsgi:application
+  && /usr/local/bin/celery worker -A courses -l INFO -B

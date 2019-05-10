@@ -31,6 +31,7 @@ class CSPMiddleware(object):
         token = new_token()
         request.csp_nonce = token
         response = self.get_response(request)
+        return response
 
         if settings.DEBUG:
             header = 'Content-Security-Policy'
