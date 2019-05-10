@@ -1,0 +1,31 @@
+version: '3'
+services:
+
+  db:
+    image: "mysql:5.7"
+    ports:
+      - "3306:3306"
+    volumes:
+      - db:/var/lib/mysql:rw
+    environment:
+      MYSQL_DATABASE: coursys
+      MYSQL_USER: coursysuser
+      MYSQL_PASSWORD: coursyspassword
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  app:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../../:/code:ro
+      - ./localsettings.py:/code/courses/localsettings.py
+    environment:
+      PYTHONUNBUFFERED: 1
+      WAIT_HOSTS: db:3306
+
+volumes:
+  db:
