@@ -1,0 +1,64 @@
+[
+{
+ "fields": {
+  "author": 81,
+  "config": "{\"markup\":\"creole\"}",
+  "content": "//Hello classmates//.\n\nWe have **many** things to discuss.",
+  "created_at": "2019-05-13T15:27:49.637",
+  "last_activity_at": "2019-05-13T15:27:49.700",
+  "message_count": 2,
+  "offering": 2,
+  "pinned": false,
+  "slug": "discussion-one",
+  "status": "OPN",
+  "title": "Discussion One"
+ },
+ "model": "discuss.discussiontopic",
+ "pk": 1
+},
+{
+ "fields": {
+  "author": 21,
+  "config": "{\"markup\":\"markdown\",\"math\":true}",
+  "content": "I *really* can't figure out if \\\\(x+1=y\\\\).",
+  "created_at": "2019-05-13T15:27:49.650",
+  "last_activity_at": "2019-05-13T15:27:49.650",
+  "message_count": 0,
+  "offering": 2,
+  "pinned": false,
+  "slug": "discussion-two",
+  "status": "OPN",
+  "title": "Discussion Two"
+ },
+ "model": "discuss.discussiontopic",
+ "pk": 2
+},
+{
+ "fields": {
+  "author": 20,
+  "config": "{}",
+  "content": "Hello, friend.",
+  "created_at": "2019-05-13T15:27:49.675",
+  "modified_at": "2019-05-13T15:27:49.675",
+  "slug": "0aaa0",
+  "status": "VIS",
+  "topic": 1
+ },
+ "model": "discuss.discussionmessage",
+ "pk": 1
+},
+{
+ "fields": {
+  "author": 80,
+  "config": "{\"markup\":\"markdown\"}",
+  "content": "Run this program:\n```python\nfor i in range(2):\n    print(i)\n````",
+  "created_at": "2019-05-13T15:27:49.719",
+  "modified_at": "2019-05-13T15:27:49.719",
+  "slug": "0aaa16",
+  "status": "VIS",
+  "topic": 1
+ },
+ "model": "discuss.discussionmessage",
+ "pk": 2
+}
+]

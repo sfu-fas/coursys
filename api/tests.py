@@ -191,9 +191,9 @@ class APITest(TestCase):
         self.assertEqual(resp.status_code, 200)
         data = json.loads(resp.content.decode('utf8'))
         self.assertIsInstance(data, list)
-        self.assertEqual([d['userid'] for d in data],
-                         [m.person.userid for m in Member.objects.filter(offering__slug=TEST_COURSE_SLUG, role='STUD')
-                             .select_related('person')])
+        self.assertEqual({d['userid'] for d in data},
+                         {m.person.userid for m in Member.objects.filter(offering__slug=TEST_COURSE_SLUG, role='STUD')
+                             .select_related('person')})
 
         # as a student: should be forbidden
         client.login_user("0aaa0")
