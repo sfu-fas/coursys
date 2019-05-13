@@ -18,7 +18,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /tmp/
-RUN pip install -r /tmp/requirements.txt && pip install ipython
+RUN pip install -r /tmp/requirements.txt && pip install ipython pysolr==3.8.1
 
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.5.0/wait /wait
 RUN chmod +x /wait

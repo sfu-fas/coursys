@@ -14,9 +14,8 @@ COMPRESS_ROOT = '/static/static'
 MEMCACHED_HOST = 'memcache:11211'
 HAYSTACK_CONNECTIONS = {
     'default': {
-        'ENGINE': 'courselib.elasticsearch_backend.CustomElasticsearchSearchEngine',
-        'URL': 'http://elasticsearch:9200/',
-        'INDEX_NAME': 'haystack',
-        'TIMEOUT': 60,
+        'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
+        'URL': 'http://solr:8983/solr/coursys',
+        'ADMIN_URL': 'http://solr:8983/solr/admin/cores',
     },
 }
