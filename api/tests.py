@@ -52,6 +52,7 @@ class APIEndpointTester(object):
 
     def link_to_view(self, url):
         url = url.replace('http://testserver/', '/')
+        url = url.replace('http://localhost:8000/', '/')
         return resolve(url).func
 
     def links_to_views(self, urls):
