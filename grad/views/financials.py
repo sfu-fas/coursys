@@ -183,13 +183,8 @@ def financials(request, grad_slug, style='complete'):
                 continue
             received += semester['semester_total']
         
-        owing = received - promise.amount
-        # minor logic for display. 
-        if owing < 0:
-            owing = abs(owing)
-        else:
-            owing = -1
-        
+        owing = promise.amount - received
+
         # annotate the semester where we're displaying the promise with relevant info
         for semester in semesters:
             if semester['semester'] == promise.end_semester:
