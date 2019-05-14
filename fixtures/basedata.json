@@ -289,6 +289,15 @@
 },
 {
  "fields": {
+  "end": "2020-12-07",
+  "name": "1207",
+  "start": "2020-09-08"
+ },
+ "model": "coredata.semester",
+ "pk": 166
+},
+{
+ "fields": {
   "config": "{}",
   "emplid": 200000100,
   "first_name": "Gregor\u028f",
@@ -317,7 +326,7 @@
 {
  "fields": {
   "config": "{}",
-  "expiry": "2021-09-29",
+  "expiry": "2022-02-06",
   "person": 1,
   "role": "SYSA",
   "unit": 1

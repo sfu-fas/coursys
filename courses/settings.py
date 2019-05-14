@@ -230,7 +230,7 @@ STATICFILES_DIRS = (
 COMPRESS_ENABLED = getattr(localsettings, 'COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter']
 COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
-COMPRESS_ROOT = STATIC_ROOT
+COMPRESS_ROOT = getattr(localsettings, 'COMPRESS_ROOT', STATIC_ROOT)
 
 # production-like vs development settings
 if DEPLOY_MODE in ['production', 'proddev']:
@@ -238,6 +238,8 @@ if DEPLOY_MODE in ['production', 'proddev']:
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': '127.0.0.1:11211',
     } }
+    if getattr(localsettings, 'MEMCACHED_HOST', None):
+        CACHES['default']['LOCATION'] = localsettings.MEMCACHED_HOST
     HAYSTACK_CONNECTIONS = {
         'default': {
             'ENGINE': 'courselib.elasticsearch_backend.CustomElasticsearchSearchEngine',

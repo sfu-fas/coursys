@@ -1,7 +1,7 @@
 [
 {
  "fields": {
-  "config": "{\"markup\":\"creole\",\"math\":false}",
+  "config": "{}",
   "content": "Happy new year! It's Jan 1.",
   "course": null,
   "date_type": "YEAR",
@@ -22,7 +22,7 @@
 },
 {
  "fields": {
-  "config": "{\"markup\":\"creole\",\"math\":false}",
+  "config": "{}",
   "content": "The new semester started a while ago, in case you weren't paying attention.",
   "course": null,
   "date_type": "SEM",
@@ -43,7 +43,7 @@
 },
 {
  "fields": {
-  "config": "{\"markup\":\"markdown\",\"math\":false}",
+  "config": "{\"markup\":\"markdown\"}",
   "content": "It's probably *almost* time for the final exam.\r\n\r\nCreate it.",
   "course": 2,
   "date_type": "SEM",
@@ -64,7 +64,7 @@
 },
 {
  "fields": {
-  "config": "{\"markup\":\"creole\",\"math\":false}",
+  "config": "{}",
   "content": "This has been deleted and shouldn't be visible.",
   "course": null,
   "date_type": "SEM",

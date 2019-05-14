@@ -28,7 +28,8 @@ role_expiry = datetime.date.today() + datetime.timedelta(days=1000)
 
 def import_strms():
     s = Semester.current()
-    return [s.name, s.offset_name(1), s.offset_name(2)]
+    return [s.name, s.offset_name(1), s.offset_name(2), s.offset_name(3), s.offset_name(4), s.offset_name(5),
+        s.offset_name(6), s.offset_name(7), s.offset_name(8), s.offset_name(9)]
 
 def test_semester():
     return Semester.current().offset(1)
@@ -147,6 +148,9 @@ def create_coredata():
     # restore ggbaker's real emplid so import_offerings will match
     p = find_person('ggbaker')
     p.emplid = find_emplid('ggbaker')
+    p.first_name = 'Gregorʏ'
+    p.pref_first_name = 'Greg'
+    p.save()
 
     # import a few more people we definitely need later
     find_person('popowich')
@@ -179,6 +183,10 @@ def create_coredata():
         p.save()
 
     fake_emplids()
+    p = find_person('ggbaker')
+    p.first_name = 'Gregorʏ'
+    p.pref_first_name = 'Greg'
+    p.save()
 
     # use/import no real emplids after this
 
@@ -261,6 +269,7 @@ def create_test_offering():
     crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
 
     crs.set_labtut(True)
+    crs.set_discussion(True)
     crs.set_url("http://www.cs.sfu.ca/CC/165/common/")
     crs.set_taemail("cmpt-165-contact@sfu.ca")
     crs.save()
@@ -362,6 +371,43 @@ def create_grades():
         MeetingTime.objects.all(),
         Member.objects.filter(role__in=['TA', 'STUD']),
         create_test_offering(),
+    )
+
+
+def create_discussion():
+    """
+    Test data for discussion
+    """
+    from discuss.models import DiscussionTopic, DiscussionMessage
+    offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+    members = list(Member.objects.filter(offering=offering, role='STUD'))
+    random.shuffle(members)
+
+    m = members.pop()
+    t1 = DiscussionTopic(offering=offering, title='Discussion One', author=m,
+                         content='//Hello classmates//.\n\nWe have **many** things to discuss.')
+    t1.set_markup('creole')
+    t1.save()
+
+    m = members.pop()
+    t2 = DiscussionTopic(offering=offering, title='Discussion Two', author=m,
+                         content="I *really* can't figure out if \\\\(x+1=y\\\\).")
+    t2.set_markup('markdown')
+    t2.set_math(True)
+    t2.save()
+
+    m = members.pop()
+    m1 = DiscussionMessage(topic=t1, content='Hello, friend.', author=m)
+    m1.save()
+
+    m = members.pop()
+    m2 = DiscussionMessage(topic=t1, author=m, content='''Run this program:\n```python\nfor i in range(2):\n    print(i)\n````''')
+    m2.set_markup('markdown')
+    m2.save()
+
+    return itertools.chain(
+        DiscussionTopic.objects.all(),
+        DiscussionMessage.objects.all()
     )
 
 
@@ -492,9 +538,9 @@ def create_grad():
         of.save()
 
         # promise
-        p = Promise(student=gs, start_semester=start, end_semester=start.offset(2), amount=10000)
+        p = Promise(student=gs, start_semester=start, end_semester=start.offset(1), amount=10000)
         p.save()
-        p = Promise(student=gs, start_semester=start.offset(3), end_semester=start.offset(5), amount=10000)
+        p = Promise(student=gs, start_semester=start.offset(2), end_semester=start.offset(3), amount=10000)
         p.save()
 
         # flags
@@ -535,7 +581,6 @@ def create_grad():
         GradFlagValue.objects.all(),
         Supervisor.objects.all(),
     )
-
 
 
 def create_ta_ra():
@@ -776,6 +821,32 @@ def create_space():
     )
 
 
+def create_reminders():
+    from reminders.models import Reminder
+    person = find_person('ggbaker')
+    offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+    r1 = Reminder(title='New Year', reminder_type='PERS', person=person, content="Happy new year! It's Jan 1.",
+                  date_type='YEAR', month=1, day=1)
+    r1.save()
+
+    r2 = Reminder(title='Start of semester', reminder_type='ROLE', role='SYSA', unit=Unit.objects.get(slug='univ'),
+                  content="The new semester started a while ago, in case you weren't paying attention.",
+                  date_type='SEM', week=2, weekday=1, person=person)
+    r2.save()
+
+    r3 = Reminder(title='Create an exam', reminder_type='INST', course=offering.course,
+                  content="It's probably *almost* time for the final exam.\r\n\r\nCreate it.",
+                  date_type='SEM', week=12, weekday=4, person=person)
+    r3.markup = 'markdown'
+    r3.save()
+
+    r4 = Reminder(title='Deleted reminder', reminder_type='PERS', person=person, content="This has been deleted and shouldn't be visible.",
+                  date_type='SEM', week=5, weekday=2, status='D')
+    r4.save()
+
+    return Reminder.all_objects.all()
+
+
 def serialize_result(data_func, filename):
     print("creating %s.json" % (filename))
     start = time.time()
@@ -796,6 +867,7 @@ def main():
     serialize_result(create_coredata, 'coredata')
     # use/import no real emplids after this
     serialize_result(create_grades, 'grades')
+    serialize_result(create_discussion, 'discussion')
     serialize_result(create_grad, 'grad')
     serialize_result(create_onlineforms, 'onlineforms')
     serialize_result(create_ta_ra, 'ta_ra')
@@ -803,6 +875,7 @@ def main():
     serialize_result(create_sessionals, 'sessionals')
     serialize_result(create_inventory, 'inventory')
     serialize_result(create_space, 'space')
+    serialize_result(create_reminders, 'reminders')
 
 if __name__ == "__main__":
     hostname = socket.gethostname()

@@ -86,7 +86,11 @@ span.label {
  	font-weight: bold
 }
 .promise-owing {
-  color: red;
+    color: red;
+}
+
+.promise-owing-negative {
+    color: green;
 }
 
 .sims_check_yes {
