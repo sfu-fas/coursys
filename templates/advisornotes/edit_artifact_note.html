@@ -36,7 +36,7 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(function() {
     $("#id_best_before").datepicker({'dateFormat': 'yy-mm-dd'});
 });

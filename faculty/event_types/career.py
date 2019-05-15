@@ -25,6 +25,7 @@ RANK_CHOICES = Choices(
     ('FULL', 'Full Professor'),
     ('URAS', 'University Research Associate'),
     ('ADJC', 'Adjunct Professor'),
+    ('POPP', 'Professor of Professional Practice'),
     #('UNIV', 'University Professor'),
     #('UNIR', 'University Research Professor'),
 )
@@ -157,7 +158,7 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         {% extends "faculty/event_base.html" %}{% load event_display %}{% load humanize %}{% block dl %}
         <dt>Rank &amp; Step</dt><dd>{{ handler|get_display:"rank" }}, step {{ handler|get_display:"step" }}</dd>
         <dt>Base salary</dt><dd>${{ handler|get_display:"base_salary"|floatformat:2|intcomma}}</dd>
-        <dt>Add salary</dt><dd>${{ handler|get_display:"add_salary"|floatformat:2|intcomma }}</dd>
+        <dt>Market Differential</dt><dd>${{ handler|get_display:"add_salary"|floatformat:2|intcomma }}</dd>
         <dt>Add pay</dt><dd>${{ handler|get_display:"add_pay"|floatformat:2|intcomma }}</dd>
         <dt>Total</dt><dd>${{ total|floatformat:2|intcomma }}</dd>
         <!--<dt>Biweekly</dt><dd>${{ biweekly|floatformat:2 }}</dd>-->
@@ -169,7 +170,7 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         step = forms.DecimalField(max_digits=4, decimal_places=2,
                                   help_text="Current salary step")
         base_salary = fields.AddSalaryField(help_text="Base annual salary for this rank + step.")
-        add_salary = fields.AddSalaryField()
+        add_salary = fields.AddSalaryField(label="Market Differential")
         add_pay = fields.AddPayField()
 
         def post_init(self):

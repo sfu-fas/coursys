@@ -86,10 +86,11 @@ class GradTest(TestCase):
         test_views(self, client, 'grad:',
                 ['programs', 'new_program', 'requirements', 'new_requirement', 
                     'letter_templates', 'new_letter_template', 
-                    'manage_scholarshipType', 'search', 'funding_report', 
-                    'all_promises'],
+                    'manage_scholarshiptypes', 'search', 'funding_report',
+                    'all_promises', 'new_scholarshiptype'],
                 {})
         test_views(self, client, 'grad:', ['manage_letter_template'], {'letter_template_slug': lt.slug})
+        test_views(self, client, 'grad:', ['edit_scholarshiptype'], {'st_id': 1})
         test_views(self, client, 'grad:', ['not_found'], {}, qs='search=grad')
 
 
@@ -315,20 +316,20 @@ class GradTest(TestCase):
         leave_now = form.search_results(units)
         self.assertNotIn(gs, leave_now)
 
-        # test status-as-of searching
-        form = SearchForm(QueryDict('student_status=ACTI&status_asof=%s&columns=person.emplid' % (this_sem.offset(-4).name)))
-        active_past = form.search_results(units)
-        self.assertNotIn(gs, active_past)
-        form = SearchForm(QueryDict('student_status=COMP&status_asof=%s&columns=person.emplid' % (this_sem.offset(-4).name)))
-        applic_past = form.search_results(units)
+        # test status-as-of searching  -- DISABLED since we removed this from the form.
+        #form = SearchForm(QueryDict('student_status=ACTI&status_asof=%s&columns=person.emplid' % (this_sem.offset(-4).name)))
+        #active_past = form.search_results(units)
+        #self.assertNotIn(gs, active_past)
+        #form = SearchForm(QueryDict('student_status=COMP&status_asof=%s&columns=person.emplid' % (this_sem.offset(-4).name)))
+        #applic_past = form.search_results(units)
         #self.assertIn(gs, applic_past)
 
-        form = SearchForm(QueryDict('student_status=ACTI&status_asof=%s&columns=person.emplid' % (this_sem.offset(3).name)))
-        active_later = form.search_results(units)
-        self.assertNotIn(gs, active_later)
-        form = SearchForm(QueryDict('student_status=LEAV&status_asof=%s&columns=person.emplid' % (this_sem.offset(3).name)))
-        leave_later = form.search_results(units)
-        self.assertIn(gs, leave_later)
+        #form = SearchForm(QueryDict('student_status=ACTI&status_asof=%s&columns=person.emplid' % (this_sem.offset(3).name)))
+        #active_later = form.search_results(units)
+        #self.assertNotIn(gs, active_later)
+        #form = SearchForm(QueryDict('student_status=LEAV&status_asof=%s&columns=person.emplid' % (this_sem.offset(3).name)))
+        #leave_later = form.search_results(units)
+        #self.assertIn(gs, leave_later)
 
 
 

@@ -1,9 +1,14 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 {% block title %}New Note for {{ student.first_name}} {{ student.last_name}} {% endblock %}
 {% block h1 %}New Note for {{ student.first_name}} {{ student.last_name}} {% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "advising:advising" %}">Advising</a></li><li><a href="{% url "advising:student_notes" userid=userid %}">Notes for {{ student.first_name}} {{ student.last_name}}</a></li><li>New Note</li>{% endblock %}
+
+{% block headextra %}
+{% include 'pages/markup_edit_head.html' %}
+{% endblock %}
 
 {% block content %}
 

@@ -5,7 +5,7 @@
 {% block h1 %}Faculty Event Queue{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#faculty_salary_table').dataTable( {
     'bPaginate': false,

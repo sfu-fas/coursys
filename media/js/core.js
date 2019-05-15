@@ -3,10 +3,6 @@ var onlineJSON = "/media/sfu/js/online.json";
 
 var $ = jQuery;
 
-function confirmSubmit(action) {
-  return confirm("Are you sure you wish to " + action + "?");
-}
-
 /* jQuery Datatables sorting by mark (e.g. "4.5/10") */
 function mark_cmp(x,y) {
   xn = parseFloat(x.split("/", 1), 10)
@@ -197,6 +193,10 @@ function offering_autocomplete(id, courses) {
     var hiddenElementID  = formElementName + '_autocomplete_hidden';
     /* change name of orig input */
     $(this).attr('name', formElementName + '_autocomplete_label');
+    /* Hack so we don't insert "undefined" in the input. */
+    if (!formElementValue) {
+      formElementValue = "";
+    }
     /* create new hidden input with name of orig input */
     $(this).after("<input type=\"hidden\" name=\"" + formElementName + "\" id=\"" + hiddenElementID + "\" value = \"" + formElementValue + "\" />");
 
@@ -272,6 +272,8 @@ $(document).ready(function(){
     })
   });
 
+  $('#page-content table').wrap('<div class="table"></div>'); // for SFU CSS
+
   /* open help links in a new tab */
   $('div.helptext a').attr('target', '_blank');
 
@@ -310,5 +312,13 @@ $(document).ready(function(){
           });
         });
 
+    // enable submit confirmation where necessary
+    $('.confirm-submit').click(function(ev){
+        var action = $(this).attr('data-submit-action');
+        if ( action == null ) {
+            action = 'complete this action'
+        }
+        return confirm("Are you sure you wish to " + action + "?");
+    });
 
 });

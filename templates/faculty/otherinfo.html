@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Faculty Summary: {{ person.name }}{% endblock %}
-{% block h1 %}Faculty Summary: {{ person.name }}{% endblock %}
+{% block title %}Faculty Member Summary: {{ person.name }}{% endblock %}
+{% block h1 %}Faculty Member Summary: {{ person.name }}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#coursestable').dataTable( {
     'bPaginate': false,
@@ -18,6 +18,18 @@ $(document).ready(function() {
     "bJQueryUI": true,
   } );
   $('#ratable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[1, "desc"], [0, "asc"]],
+    "bJQueryUI": true,
+  } );
+  $('#servicetable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[1, "desc"], [0, "asc"]],
+    "bJQueryUI": true,
+  } );
+  $('#bookingstable').dataTable( {
     'bPaginate': false,
     'bInfo': false,
     "aaSorting": [[1, "desc"], [0, "asc"]],
@@ -95,6 +107,62 @@ $(document).ready(function() {
   </tbody>
 </table>
 </div>
+
+{% if services %}
+    <h2 id="service">Service</h2>
+    <div class="datatable_container">
+    <table id="servicetable" class="display">
+        <thead>
+            <tr>
+                <th scope="col">Committee</th>
+                <th scope="col">Start Date</th>
+                <th scope="col">End Date</th>
+                <th scope="col">Unit</th>
+                <th scope="col">Comments</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for s in services %}
+            <tr>
+            <td scope="row">{{ s.committee }}</td>
+            <td>{{ s.start_date }}</td>
+            <td>{{ s.end_date }}</td>
+            <td>{{ s.unit.name }}</td>
+            <td>{{ s.comments }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+{% endif %}
+
+{% if bookings %}
+    <h2 id="bookings">Current Space Bookings</h2>
+    <div class ="datatable_container">
+    <table id="bookingstable" class="display">
+        <thead>
+        <tr>
+            <th scope="col">Room</th>
+            <th scope="col">Booking Start</th>
+            <th scope="col">Booking End</th>
+            <th scope="col">Notes</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for booking in bookings %}
+            <tr>
+            <td scope="row">{{ booking.location }}</td>
+            <td>{{ booking.start_time }}</td>
+            <td>{{ booking.end_time }}</td>
+            <td>{{ booking.notes|linebreaks }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    </div>
+
+{% endif %}
 
 
 {% endblock %}

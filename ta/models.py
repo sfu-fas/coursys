@@ -14,7 +14,10 @@ from dashboard.models import NewsItem
 from django.urls import reverse
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
-from creoleparser import text2html
+from django.http import HttpResponse
+from dashboard.letters import ta_form
+from django.core.mail import EmailMultiAlternatives
+from courselib.markup import markup_to_html
 from courselib.storage import UploadedFileStorage, upload_path
 
 from . import bu_rules
@@ -27,6 +30,13 @@ LAB_PREP_HOURS = 13 # min hours of prep for courses with tutorials/labs
 HOLIDAY_HOURS_PER_BU = decimal.Decimal('1.1')
 
 
+DEPT_CHOICES = [
+    ('CMPT', 'CMPT student'),
+    ('OTHR', 'Other program'),
+    ('NONS', 'Not a student'),
+]
+
+
 def _round_hours(val):
     "Round to two decimal places because... come on."
     if isinstance(val, decimal.Decimal):
@@ -35,6 +45,7 @@ def _round_hours(val):
         return round(val, 2)
     else:
         return val
+
 
 class TUG(models.Model):
     """
@@ -205,7 +216,7 @@ class TAPosting(models.Model):
             'bu_defaults': {},
             'payperiods': 8,
             'max_courses': 10,
-            'min_courses': 5,
+            'min_courses': 0,
             'contact': None,
             'offer_text': '',
             'export_seq': 0,
@@ -379,9 +390,9 @@ class TAPosting(models.Model):
         if html:
             return mark_safe(html)
         else:
-            html = text2html(self.offer_text())
+            html = markup_to_html(self.offer_text(), 'creole')
             cache.set(key, html, 24*3600) # expires on self.save() above
-            return mark_safe(html)
+            return html
     
         
 class Skill(models.Model):
@@ -403,7 +414,7 @@ def _file_upload_to(instance, filename):
     """
     path to upload TA Application resume
     """
-    return upload_path('ta_applications', instance.posting.semester.name, filename)
+    return upload_path('ta_applications', filename)
 
 
 _resume_upload_to = _file_upload_to
@@ -416,8 +427,8 @@ class TAApplication(models.Model):
     posting = models.ForeignKey(TAPosting, on_delete=models.PROTECT)
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
     category = models.CharField(max_length=4, blank=False, null=False, choices=CATEGORY_CHOICES, verbose_name='Program')
-    current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Department",
-        help_text='In what department are you a student (e.g. "CMPT", "ENSC", if applicable)?')
+    current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Department", choices=DEPT_CHOICES,
+        help_text='In what department are you a student?')
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN",help_text="Social insurance number (required for receiving payments)")
     base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,
             help_text='Maximum number of base units (BU\'s) you would accept. Each BU represents a maximum of 42 hours of work for the semester. TA appointments can consist of 2 to 5 base units and are based on course enrollments and department requirements.')
@@ -430,7 +441,8 @@ class TAApplication(models.Model):
         verbose_name="Other financial support",
         help_text='Do you have a merit based scholarship or fellowship (e.g. FAS Graduate Fellowship) in the semester that you are applying for? ')
     comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
-    rank = models.IntegerField(blank=False, default=0) 
+    preference_comment = models.TextField(verbose_name='Course preference comment', null=True, blank=True)
+    rank = models.IntegerField(blank=False, default=0)
     late = models.BooleanField(blank=False, default=False)
     resume = models.FileField("Curriculum Vitae (CV)", storage=UploadedFileStorage, upload_to=_resume_upload_to, max_length=500,
                               blank=True, null=True, help_text='Please attach your Curriculum Vitae (CV).')
@@ -439,15 +451,15 @@ class TAApplication(models.Model):
                                   null=True, help_text='Please attach your unofficial transcript.')
     transcript_mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     admin_created = models.BooleanField(blank=False, default=False)
-    new_workers_training = models.BooleanField('I have completed the mandatory SFU Safety Orientation training',
+    new_workers_training = models.BooleanField('I have completed the SFU Safety Orientation training',
                                                default=False,
-                                               help_text='WorkSafe BC requires all new employees to take a safety '
-                                                         'orientation.  SFU has a short online module you can take here'
-                                                         ' <https://canvas.sfu.ca/enroll/RR8WDW> and periodically '
+                                               help_text=mark_safe('Have you completed the University\'s safety '
+                                                         'orientation? SFU has a <a href="https://canvas.sfu.ca/enroll/RR8WDW">short online module</a> you can take online'
+                                                         'and periodically '
                                                          'offers classroom sessions of the same material.  Some '
                                                          'research and instructional laboratories may require '
                                                          'additional training, contact the faculty member in charge of '
-                                                         'your lab(s) for details.')
+                                                         'your lab(s) for details.'))
     config = JSONField(null=False, blank=False, default=dict)
         # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'} 
  
@@ -525,6 +537,10 @@ STATUS_CHOICES = (
     )
 STATUS = dict(STATUS_CHOICES)
 STATUSES_NOT_TAING = ['NEW', 'REJ', 'CAN'] # statuses that mean "not actually TAing"
+
+DEFAULT_EMAIL_TEXT = "Please find attached a copy of your TA contract."
+DEFAULT_EMAIL_SUBJECT = "Your TA contract."
+
 
 class TAContract(models.Model):
     """    
@@ -643,6 +659,32 @@ class TAContract(models.Model):
         # Build a string of all course offerings tied to this contract for CSV downloads and grad student views.
         course_list_string = ', '.join(ta_course.course.name() for ta_course in self.tacourse_set.all())
         return course_list_string
+
+    def email_contract(self):
+        unit = self.posting.unit
+        try:
+            contract_email = unit.contract_email_text
+            content = contract_email.content
+            subject = contract_email.subject
+        except TAContractEmailText.DoesNotExist:
+            content = DEFAULT_EMAIL_TEXT
+            subject = DEFAULT_EMAIL_SUBJECT
+
+        response = HttpResponse(content_type="application/pdf")
+        response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % (self.posting.slug,
+                                                                            self.application.person.userid)
+        ta_form(self, response)
+        to_email = self.application.person.email()
+        if self.posting.contact():
+            from_email = self.posting.contact().email()
+        else:
+            from_email = settings.DEFAULT_FROM_EMAIL
+        msg = EmailMultiAlternatives(subject, content, from_email,
+                                     [to_email], headers={'X-coursys-topic': 'ta'})
+        msg.attach(('"%s-%s.pdf' % (self.posting.slug, self.application.person.userid)), response.getvalue(),
+                   'application/pdf')
+        msg.send()
+
 
 class CourseDescription(models.Model):
     """
@@ -768,8 +810,8 @@ EXPER_CHOICES = (
 class CoursePreference(models.Model):
     app = models.ForeignKey(TAApplication, on_delete=models.PROTECT)
     course = models.ForeignKey(Course, on_delete=models.PROTECT)
-    taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=False, null=False)
-    exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=False, null=False, verbose_name="Experience")
+    taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=True, null=True)
+    exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=True, null=True, verbose_name="Experience")
     rank = models.IntegerField(blank=False)
     #class Meta:
     #    unique_together = (('app', 'course'),)
@@ -779,3 +821,15 @@ class CoursePreference(models.Model):
             return "%s's pref for %s" % (self.app.person, self.course)
         else:
             return "new CoursePreference"
+
+
+# An object to store the content that will be emailed when the contract automatically gets emailed upon the TA
+# accepting.  There should be only one of these per unit, so that it's only set once per school.  Realistically, only
+# CMPT uses this.
+class TAContractEmailText(models.Model):
+    unit = models.OneToOneField(Unit, editable=False, on_delete=models.PROTECT, related_name='contract_email_text')
+    subject = models.CharField(max_length=250, help_text='e.g. "Your TA Contract"')
+    content = models.TextField(help_text='e.g. "Please find enclosed your TA Contract..."')
+
+    def __str__(self):
+        return "TA contract acceptance text for %s" % self.unit.label.upper()

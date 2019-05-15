@@ -327,15 +327,22 @@ class Form(models.Model, _FormCoherenceMixin):
         return make_slug(self.unit.label + ' ' + self.title)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
-        # 'loginprompt': should the "log in with your account" prompt be displayed for non-logged-in? (default True)
-        # 'unlisted':  Form can be filled out, but doesn't show up in the index
-        # 'jsfile':  Extra Javascript file included with this form.  USE THIS CAREFULLY.  There is no validation here, and
-        # this should be used extremely rarely by sysadmins only.  There should never be any UI to modify this by users.
+    # 'loginprompt': should the "log in with your account" prompt be displayed for non-logged-in? (default True)
+    # 'unlisted':  Form can be filled out, but doesn't show up in the index
+    # 'jsfile':  Extra Javascript file included with this form.  USE THIS CAREFULLY.  There is no validation here, and
+    # this should be used extremely rarely by sysadmins only.  There should never be any UI to modify this by users.
+    # 'autoconfirm':  Whether a confirmation should be emailed once someone submits the initial sheet.
+    # 'emailsubject', 'emailbody':  The subject and body for the autoconfirm email if the autoconfirm option is set.
 
-    defaults = {'loginprompt': True, 'unlisted': False, 'jsfile': None}
+
+    defaults = {'loginprompt': True, 'unlisted': False, 'jsfile': None, 'autoconfirm': False, 'emailsubject': '',
+                'emailbody': ''}
     loginprompt, set_loginprompt = getter_setter('loginprompt')
     unlisted, set_unlisted = getter_setter('unlisted')
     jsfile, set_jsfile = getter_setter('jsfile')
+    autoconfirm, set_autoconfirm = getter_setter('autoconfirm')
+    emailsubject, set_emailsubject = getter_setter('emailsubject')
+    emailbody, set_emailbody = getter_setter('emailbody')
 
     def __str__(self):
         return "%s [%s]" % (self.title, self.id)
@@ -407,9 +414,51 @@ class Form(models.Model, _FormCoherenceMixin):
 
             return newform
 
-    def all_submission_summary(self):
+    def duplicate_sheets(self, destination, ignore_initial=False, dry_run=False):
+        """
+        :param Form destination:  The destination form where the sheets should be copied
+        :param ignore_initial:   Sometimes, you just want sheets that were added after the initial one.
+        :param dry_run:  Set to True if you want to do a dry run first.
+        :return:   Nothing
+
+        Sometimes you've already created forms, and you just want to copy the sheets from one to the other.
+
+        In the use case for which this was written, multiple forms had the initial sheet already defined, but needed
+        the same extra sheets added afterwards. This allows us to only write the sheets once and copy it to all forms.
+
+        WARNING:  If you don't specify "ignore_initial" and your destination form already had an initial sheet,
+        you will end up with two initial sheets.  You'll have to manually mark one not initial in the backend.
+        """
+        assert type(destination) is Form, "the destination must be an onlineforms.Form instance."
+        if dry_run:
+            print("This is a dry-run only.  Nothing will actually get saved.")
+        with django.db.transaction.atomic():
+            sheets = Sheet.objects.filter(form=self, active=True)
+            if ignore_initial:
+                sheets = sheets.exclude(is_initial=True)
+            for s in sheets:
+                newsheet = s.clone()
+                newsheet.form = destination
+                newsheet.original = None
+                newsheet.slug = None
+                if not dry_run:
+                    newsheet.save()
+
+                fields = Field.objects.filter(sheet=s)
+                for f in fields:
+                    newfield = f.clone()
+                    newfield.sheet = newsheet
+                    newfield.original = None
+                    newfield.slug = None
+                    if not dry_run:
+                        newfield.save()
+                print("Copied sheet %s." % s.title)
+            print("Done!")
+
+    def all_submission_summary(self, statuses=['DONE']):
         """
         Generate summary data of each submission for CSV output
+        (with FormSubmission and SheetSubmission statuses in given statuses list).
         """
         DATETIME_FMT = "%Y-%m-%d"
         headers = []
@@ -429,9 +478,11 @@ class Form(models.Model, _FormCoherenceMixin):
                 }
 
         # find all fields in each of those sheets (in a equally-sensible order)
-        fields = Field.objects.filter(sheet__form__original_id=self.original_id).select_related('sheet').order_by('order', '-created_date')
-        active_fields = [f for f in fields if f.active]
-        inactive_fields = [f for f in fields if not f.active]
+        fields = Field.objects.filter(sheet__form__original_id=self.original_id).select_related('sheet') \
+            .order_by('order', '-created_date').select_related('sheet')
+
+        active_fields = [f for f in fields if f.active and f.sheet.active]
+        inactive_fields = [f for f in fields if not (f.active and f.sheet.active)]
         for f in itertools.chain(active_fields, inactive_fields):
             if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
                 continue
@@ -447,19 +498,19 @@ class Form(models.Model, _FormCoherenceMixin):
             headers.append(None)
             headers.append('ID')
             if info['is_initial']:
-                headers.append('Initiated')
+                headers.append('Submitted')
             for fid, finfo in info['fields'].items():
                 headers.append(finfo['label'])
         headers.append('Last Sheet Completed')
         headers.append('Link')
 
         # go through FormSubmissions and create a row for each
-        formsubs = FormSubmission.objects.filter(form__original_id=self.original_id, status='DONE') \
+        formsubs = FormSubmission.objects.filter(form__original_id=self.original_id, status__in=statuses) \
                 .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
                 # selecting only fully completed forms: does it make sense to be more liberal and report status?
 
         # choose a winning SheetSubmission: there may be multiples of each sheet but we're only outputting one
-        sheetsubs = SheetSubmission.objects.filter(form_submission__form__original_id=self.original_id, status='DONE') \
+        sheetsubs = SheetSubmission.objects.filter(form_submission__form__original_id=self.original_id, form_submission__status__in=statuses) \
                 .order_by('given_at').select_related('sheet', 'filler__sfuFormFiller', 'filler__nonSFUFormFiller')
         # Docs for the dict constructor: "If a key occurs more than once, the last value for that key becomes the corresponding value in the new dictionary."
         # Result is that the sheetsub with most recent given_at wins.
@@ -495,7 +546,7 @@ class Form(models.Model, _FormCoherenceMixin):
 
                 if info['is_initial']:
                     if ss:
-                        row.append(ss.given_at.strftime(DATETIME_FMT))
+                        row.append(ss.completed_at.strftime(DATETIME_FMT))
                     else:
                         row.append(None)
 
@@ -519,6 +570,132 @@ class Form(models.Model, _FormCoherenceMixin):
                 data.append(row)
 
         return headers, data
+
+    def all_submission_summary_special(self, statuses=['DONE'], recurring_sheet_slug=None):
+        """
+        A special case of the summary method, for one particular form which will be obsoleted after the hiring module
+        is done.  The recurring_sheet_slug gives us a sheet for which we want *all* the submissions.  For the purposes
+        of this method, we assume that all others have only one entry, and that this sheet is also the last sheet,
+        order-wise.  This is a horrible hack, and very fragile.
+        """
+        DATETIME_FMT = "%Y-%m-%d"
+        headers = []
+        data = []
+
+        recurring_sheet = Sheet.objects.get(form__original_id=self.id, slug=recurring_sheet_slug)
+        # find all currently active sheets (in the correct order.  Ignore deleted ones.)
+        sheets = Sheet.objects.filter(form__original_id=self.original_id, active=True).order_by('order',
+                                                                                              '-created_date')
+        #  The problem is there may be other versions of the active sheets.  Find those too.
+        sheets_list = []
+        for s in sheets:
+            matching_sheets = Sheet.objects.filter(original_id=s.original_id)
+            for sheet in matching_sheets:
+                sheets_list.append(sheet)
+
+        # Order the sheets in the correct order:  First by order, then newest first, so we get the attributes of the
+        # latest.
+        sheets_list = sorted(sorted(sheets_list, key=lambda s: s.created_date, reverse=True), key=lambda s: s.order)
+
+        sheet_info = collections.OrderedDict()
+        for s in sheets_list:
+            if s.original_id not in sheet_info:
+                sheet_info[s.original_id] = {
+                    'title': s.title,
+                    'fields': collections.OrderedDict(),
+                    'is_initial': s.is_initial,
+                    'recurring': s.original_id == recurring_sheet.original_id,
+                }
+
+        # find all fields in each of those sheets (in a equally-sensible order)
+        fields = Field.objects.filter(sheet__in=sheets_list, sheet__active=True, active=True)\
+            .select_related('sheet').order_by('order', '-created_date').select_related('sheet')
+        for f in fields:
+            if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
+                continue
+            info = sheet_info[f.sheet.original_id]
+            if f.original_id not in info['fields']:
+                info['fields'][f.original_id] = {
+                    'label': f.label,
+                }
+
+        # go through FormSubmissions and create a row for each
+        formsubs = FormSubmission.objects.filter(form__original_id=self.original_id, status__in=statuses) \
+            .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
+
+        sheetsubs = SheetSubmission.objects.filter(form_submission__form__original_id=self.original_id,
+                                                   form_submission__status__in=statuses, sheet__in=sheets_list) \
+            .order_by('given_at').select_related('sheet', 'filler__sfuFormFiller', 'filler__nonSFUFormFiller')
+
+
+        # collect fieldsubs to output
+        fieldsubs = FieldSubmission.objects.filter(sheet_submission__form_submission__form__original_id=self.original_id) \
+                .order_by('sheet_submission__given_at') \
+                .select_related('sheet_submission', 'field')
+        fieldsub_lookup = dict(
+            ((fs.sheet_submission_id, fs.field.original_id), fs)
+            for fs in fieldsubs)
+
+        # A counter to keep track of how many of our relevant sheet we have.
+        max_relevant_count = 0
+
+        for formsub in formsubs:
+            row = []
+            found_anything = False
+            last_completed = None
+            sheets = sheetsubs.filter(form_submission=formsub, sheet__in=sheets_list)\
+                .order_by('sheet__order', 'given_at').select_related('sheet', 'filler__sfuFormFiller',
+                                                                     'filler__nonSFUFormFiller')
+            relevant_count = sheets.filter(sheet__original_id=recurring_sheet.original_id).count()
+            if relevant_count > max_relevant_count:
+                max_relevant_count = relevant_count
+            for ss in sheets:
+                row.append(ss.filler.name())
+                row.append(ss.filler.email())
+                row.append(ss.filler.emplid())
+                if not last_completed or ss.completed_at > last_completed:
+                    last_completed = ss.completed_at
+                if ss.sheet.is_initial:
+                    row.append(ss.completed_at.strftime(DATETIME_FMT))
+
+                info = sheet_info[ss.sheet.original_id]
+
+                for fid, finfo in info['fields'].items():
+                    if ss and (ss.id, fid) in fieldsub_lookup:
+                        fs = fieldsub_lookup[(ss.id, fid)]
+                        handler = FIELD_TYPE_MODELS[fs.field.fieldtype](fs.field.config)
+                        row.append(handler.to_text(fs))
+                        found_anything = True
+                    else:
+                        row.append(None)
+
+            if found_anything:
+                data.append(row)
+
+        # build header row
+        for sid, info in sheet_info.items():
+            headers.append(info['title'].upper())
+            headers.append(None)
+            headers.append('ID')
+            if info['is_initial']:
+                headers.append('Submitted')
+            for fid, finfo in info['fields'].items():
+                headers.append(finfo['label'])
+            # Add more multiples for the recurring sheet:
+            if info['recurring']:
+                for _ in range(1, max_relevant_count):
+                    headers.append(info['title'].upper())
+                    headers.append(None)
+                    headers.append('ID')
+                    for fid, finfo in info['fields'].items():
+                        headers.append(finfo['label'])
+        return headers, data
+
+    def email_confirm(self, recipient):
+        msg = EmailMultiAlternatives(subject=self.emailsubject(), body=self.emailbody(),
+                                     from_email=settings.DEFAULT_FROM_EMAIL, to=[recipient.full_email()],
+                                     headers={'X-coursys-topic': 'onlineforms'})
+        msg.send()
 
 
 class Sheet(models.Model, _FormCoherenceMixin):
@@ -604,6 +781,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
     def get_can_view_display_short(self):
         return VIEWABLE_SHORT[self.can_view]
 
+
 class Field(models.Model, _FormCoherenceMixin):
     label = models.CharField(max_length=60, null=False, blank=False)
     # the sheet this field is a part of
@@ -667,11 +845,13 @@ class FormSubmission(models.Model):
         # 'summary': summary of the form entered when closing it
         # 'emailed': True if the initiator was emailed when the form was closed
         # 'closer': coredata.Person.id of the person that marked the formsub as DONE
+        # 'email_cc':  email addresses that got CCed when the student got emailed.
 
-    defaults = {'summary': '', 'emailed': False, 'closer': None}
+    defaults = {'summary': '', 'emailed': False, 'closer': None, 'email_cc': None}
     summary, set_summary = getter_setter('summary')
     emailed, set_emailed = getter_setter('emailed')
     closer_id, set_closer = getter_setter('closer')
+    email_cc, set_email_cc = getter_setter('email_cc')
 
     def update_status(self):
         sheet_submissions = SheetSubmission.objects.filter(form_submission=self)
@@ -713,7 +893,7 @@ class FormSubmission(models.Model):
 
         return self.sheetsubmission_set.all().aggregate(Max('completed_at'))['completed_at__max']
 
-    def email_notify_completed(self, request, admin):
+    def email_notify_completed(self, request, admin, email_cc=None):
         plaintext = get_template('onlineforms/emails/notify_completed.txt')
         html = get_template('onlineforms/emails/notify_completed.html')
 
@@ -721,8 +901,11 @@ class FormSubmission(models.Model):
         subject = '%s for %s submission complete' % (self.form.title, self.initiator.name())
         from_email = FormFiller.form_full_email(admin)
         to = self.initiator.full_email()
+        if email_cc:
+            email_cc = [l.strip() for l in email_cc.split(',')]
+
         msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
-                from_email=from_email, to=[to], bcc=[admin.full_email()],
+                from_email=from_email, to=[to], bcc=[admin.full_email()], cc=email_cc,
                 headers={'X-coursys-topic': 'onlineforms'})
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()

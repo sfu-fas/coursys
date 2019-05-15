@@ -6,11 +6,6 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}js/discipline.js"></script>
-<script type="text/javascript">
-function confirmSubmit() {
-  return confirm("Are you sure you want to delete this template?");
-}
-</script>
 {% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li><li><a href="{% url "sysadmin:show_templates" %}">Dishonesty Templates</a></li><li>Edit "{{template.label}}"</li>{% endblock %}
@@ -28,7 +23,7 @@ function confirmSubmit() {
     </form>
 
     <form action="{% url "sysadmin:delete_template" template_id=template.id %}" method="post" name="deleteform">{% csrf_token %}
-    <p><input type="submit" class="submit" value="Delete Template" id="deletesubmit" onclick="return confirmSubmit();" /></p>
+    <p><input type="submit" class="submit confirm-submit" value="Delete Template" id="deletesubmit" data-submit-action="delete this template" /></p>
     </form>
 </div>
 

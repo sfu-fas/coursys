@@ -1,11 +1,13 @@
 from courselib.auth import requires_role
 from .models import SessionalAccount, SessionalContract, SessionalConfig
-from .forms import SessionalAccountForm, SessionalContractForm, SessionalConfigForm
+from .forms import SessionalAccountForm, SessionalContractForm, SessionalConfigForm, SessionalAttachmentForm
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
 from django.urls import reverse
 from django.contrib import messages
+from django.http import StreamingHttpResponse
+from django.db import transaction
 from log.models import LogEntry
-from coredata.models import AnyPerson, Role
+from coredata.models import AnyPerson, Role, Person
 from dashboard.letters import sessional_form
 
 
@@ -246,3 +248,68 @@ def print_contract(request, contract_slug):
 def view_contract(request, contract_slug):
     contract = get_object_or_404(SessionalContract, slug=contract_slug, unit__in=request.units)
     return render(request, 'sessionals/view_contract.html', {'contract': contract})
+
+
+@requires_role(["TAAD", "GRAD", "ADMN"])
+@transaction.atomic
+def new_attachment(request, contract_slug):
+    contract = get_object_or_404(SessionalContract, slug=contract_slug, unit__in=request.units)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    form = SessionalAttachmentForm()
+    context = {"contract": contract,
+               "attachment_form": form}
+
+    if request.method == "POST":
+        form = SessionalAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.sessional = contract
+            attachment.created_by = editor
+            upfile = request.FILES['contents']
+            filetype = upfile.content_type
+            if upfile.charset:
+                filetype += "; charset=" + upfile.charset
+            attachment.mediatype = filetype
+            attachment.save()
+            return HttpResponseRedirect(reverse('sessionals:view_contract', kwargs={'contract_slug': contract.slug}))
+        else:
+            context.update({"attachment_form": form})
+
+    return render(request, 'sessionals/add_attachment.html', context)
+
+
+@requires_role(["TAAD", "GRAD", "ADMN"])
+def view_attachment(request, contract_slug, attach_slug):
+    contract = get_object_or_404(SessionalContract, slug=contract_slug, unit__in=request.units)
+    attachment = get_object_or_404(contract.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role(["TAAD", "GRAD", "ADMN"])
+def download_attachment(request, contract_slug, attach_slug):
+    contract = get_object_or_404(SessionalContract, slug=contract_slug, unit__in=request.units)
+    attachment = get_object_or_404(contract.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role(["TAAD", "GRAD", "ADMN"])
+def delete_attachment(request, contract_slug, attach_slug):
+    contract = get_object_or_404(SessionalContract, slug=contract_slug, unit__in=request.units)
+    attachment = get_object_or_404(contract.attachments.all(), slug=attach_slug)
+    attachment.hide()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         'Attachment deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
+    l.save()
+    return HttpResponseRedirect(reverse('sessionals:view_contract', kwargs={'contract_slug': contract.slug}))

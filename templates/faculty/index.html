@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="{% static "style/visas.css" %}" type="text/css">
 <link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
 <script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('.facultytable').DataTable( {
     'bPaginate': false,

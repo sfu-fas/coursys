@@ -75,6 +75,13 @@ class OutreachEvent(models.Model):
     registration_email_text = models.TextField(null=True, blank=True,
                                                help_text='If you fill this in, this will be sent as an email to all '
                                                          'all new registrants as a registration confirmation.')
+    enable_waitlist = models.BooleanField(default=False, help_text='If this box is checked and you have a registration'
+                                                                   ' cap which has been met, people will still be able '
+                                                                   'to register but will be marked as not attending '
+                                                                   'and waitlisted.')
+    show_dietary_question = models.BooleanField(default=True, help_text='If this box is checked, the registration '
+                                                                        'forms will show the dietary restrictions '
+                                                                        'question.  Otherwise, it\'ll be omitted.')
     config = JSONField(null=False, blank=False, default=dict)
     # 'extra_questions': additional questions to ask registrants
 
@@ -109,9 +116,21 @@ class OutreachEvent(models.Model):
     def can_register(self):
         if self.closed or not self.current():
             return False
+        #  If we allow a waitlist, and the event isn't closed, allow registration regardless of cap.
+        if self.enable_waitlist:
+            return True
         if self.registration_cap and self.registration_cap <= self.registration_count():
             return False
         return True
+
+    def registrations_waitlisted(self):
+        # If the event has passed, or registrations are closed, you're still hooped.
+        if self.closed or not self.current():
+            return False
+        # Otherwise, check to see if we're in waitlisted status.
+        if self.enable_waitlist and self.registration_cap and self.registration_cap <= self.registration_count():
+            return True
+        return False
 
 
 class OutreachEventRegistrationQuerySet(models.QuerySet):
@@ -152,11 +171,12 @@ class OutreachEventRegistration(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, null=False)
     last_name = models.CharField("Participant Last Name", max_length=32)
     first_name = models.CharField("Participant First Name", max_length=32)
-    middle_name = models.CharField("Participant Middle Name", max_length=32, null=True, blank=True)
     age = models.DecimalField("Participant Age", null=True, blank=True, max_digits=2, decimal_places=0)
     birthdate = models.DateField("Participant Date of Birth", null=False, blank=False)
-    parent_name = models.CharField(max_length=100, blank=False, null=False)
-    parent_phone = models.CharField(max_length=15, blank=False, null=False)
+    parent_name = models.CharField("Parent/Guardian Name", max_length=100, blank=False, null=False)
+    parent_phone = models.CharField("Parent/Guardian Phone", max_length=15, blank=False, null=False)
+    secondary_name = models.CharField("Secondary Emergency Contact Name", max_length=100, blank=False, null=False)
+    secondary_phone = models.CharField("Secondary Emergency Contact Phone", max_length=15, blank=False, null=False)
     email = models.EmailField("Contact E-mail")
     event = models.ForeignKey(OutreachEvent, blank=False, null=False, on_delete=models.PROTECT)
     photo_waiver = models.BooleanField("I, the parent or guardian of the Child, hereby authorize the Faculty of "
@@ -186,11 +206,16 @@ class OutreachEventRegistration(models.Model):
     school = models.CharField("Participant School", null=False, blank=False, max_length=200)
     grade = models.PositiveSmallIntegerField("Participant Grade", blank=False, null=False)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
-    notes = models.CharField("Allergies/Dietary Restrictions", max_length=400, blank=True, null=True)
+    notes = models.CharField("Allergies/Dietary Restrictions", max_length=400, blank=True, null=True,
+                             help_text="Describe any allergies, dietary restrictions, or medical conditions. Please "
+                                       "include information on severity and whether an Epipen is required. Students "
+                                       "requiring an Epipen must carry it on their person for the entire event and "
+                                       "identify themselves to staff at registration.")
     objects = OutreachEventRegistrationQuerySet.as_manager()
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
     attended = models.BooleanField(default=True, editable=False, blank=False, null=False)
+    waitlisted = models.BooleanField(default=False, editable=False, blank=False, null=False)
     config = JSONField(null=False, blank=False, default=dict)
     # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'}
 
@@ -206,7 +231,7 @@ class OutreachEventRegistration(models.Model):
         self.save()
 
     def fullname(self):
-        return "%s, %s %s" % (self.last_name, self.first_name, self.middle_name or '')
+        return "%s, %s" % (self.last_name, self.first_name)
 
     def save(self, *args, **kwargs):
         self.last_modified = timezone.now()
@@ -217,6 +242,9 @@ class OutreachEventRegistration(models.Model):
         Emails the registration confirmation email if there is one and if none has been emailed for this registration
         before.
         """
+        # If this registration is waitlisted, don't email!
+        if self.waitlisted:
+            return
         if 'email' not in self.config and self.event.registration_email_text:
             subject = 'Registration Confirmation'
             from_email = settings.DEFAULT_FROM_EMAIL

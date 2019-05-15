@@ -7,7 +7,7 @@
 {% block subbreadcrumbs %}<li>Space Management</li>{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#locations').dataTable( {
     'bPaginate': false,
@@ -17,9 +17,6 @@ $(document).ready(function() {
     'aaSorting': [[0, 'asc'], [1, 'asc']]
   } );
 } );
-function confirmDelete() {
-  return confirm("Are you sure you want to delete this location?");
-}
 </script>
 {% endblock %}
 
@@ -29,6 +26,7 @@ function confirmDelete() {
     <ul>
         <li><a href="{% url "space:add_location" %}">Add New Location</a></li>
         <li><a href="{% url "space:list_roomtypes" %}">Manage Room Types</a></li>
+        <li><a href="{% url "space:manage_safety_items" %}">Manage Safety Infrastructure Items</a></li>
         <li><a href="{% url "space:download_locations" %}">Download Locations</a></li>
     </ul>
 </div>
@@ -45,7 +43,7 @@ function confirmDelete() {
                         <td>Building</td>
                         <td>Room Number</td>
                         <td>Room Type</td>
-                        <td>Current Booking</td>
+                        <td>Current Booking(s)</td>
                         <td>Actions</td>
                     </tr>
                 </thead>
@@ -56,30 +54,29 @@ function confirmDelete() {
                         <td>{{ l.room_number }}
                             {% if l.has_bookings %} &nbsp; <i class="fa fa-book" title="Booking(s)"></i>{% endif %}</td>
                         <td>{{ l.room_type.long_description }}</td>
-                        <td>{{ l.get_current_booking.person.name }}
-                            {% if l.get_current_booking and l.get_current_booking.conflict %} <span style="color: darkorange"><i class="fa fa-warning" title="This booking conflicts with others"></i></span> {% endif %}</td>
+                        <td>{{ l.get_current_bookings_str }}</td>
                         <td>
                             <form class="lineform" method="POST"
-                                action="{% url "space:delete_location" location_id=l.id %}"
-                                onsubmit="return confirmDelete()">
+                                action="{% url "space:delete_location" location_id=l.id %}">
                                 {% csrf_token %}
-                                <button type='submit' class='btn' title="Delete Location">
+                                <button type='submit' class='btn confirm-submit' title="Delete location"
+                                        data-submit-action="remove this location">
                                     <i class='fa fa-trash-o'></i>
                                 </button>
                             </form>
-                            <form class="lineform" method="GET"
+                            <form class="lineform" method="GET" target="_blank"
                                 action="{% url "space:add_booking" location_slug=l.slug from_index=1 %}">
                                 <button type='submit' class='btn' title="Add Booking">
                                     <i class='fa fa-book'></i>
                                 </button>
                             </form>
-                            <form class="lineform" method="GET"
+                            <form class="lineform" method="GET" target="_blank"
                                 action="{% url "space:edit_location" location_slug=l.slug from_index=1 %}">
                                 <button type='submit' class='btn' title="Edit Location">
                                     <i class='fa fa-edit'></i>
                                 </button>
                             </form>
-                            <form class="lineform" method="GET"
+                            <form class="lineform" method="GET" target="_blank"
                                 action="{% url "space:view_location" location_slug=l.slug %}">
                                 <button type='submit' class='btn' title="View Location">
                                     <i class='fa fa-eye'></i>

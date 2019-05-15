@@ -401,9 +401,12 @@ class RAAppointment(models.Model):
         else:
             return '00000'
 
+    def has_attachments(self):
+        return self.attachments.visible().count() > 0
+
 
 def ra_attachment_upload_to(instance, filename):
-    return upload_path('raattachments', str(instance.appointment.start_date.year), filename)
+    return upload_path('raattachments', filename)
 
 
 class RAAppointmentAttachmentQueryset(models.QuerySet):

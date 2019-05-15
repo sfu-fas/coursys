@@ -19,7 +19,7 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#sessionals').dataTable( {
     'bPaginate': false,

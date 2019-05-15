@@ -42,10 +42,10 @@
           {% if info.need_conf %}
           <p>You have not confirmed membership in this group.</p>
           <form action="{% url "offering:groups:join" course_slug=course.slug group_slug=info.group.slug %}" method="post">{% csrf_token %}
-          <p><input type="submit" value="Join Group" onclick="return confirmSubmit('join the group')" /></p>
+          <p><input type="submit" value="Join Group" class="confirm-submit" data-submit-action="join the group" /></p>
           </form>
           <form action="{% url "offering:groups:reject" course_slug=course.slug group_slug=info.group.slug %}" method="post">{% csrf_token %}
-          <p><input type="submit" value="Reject Invitation" onclick="return confirmSubmit('reject the invitation')" /></p>
+          <p><input type="submit" value="Reject Invitation" class="confirm-submit" data-submit-action="reject the invitation" /></p>
           </form>
           {% else %}
             {% if course.uses_svn %}

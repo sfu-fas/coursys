@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#registrations').dataTable( {
     'bPaginate': false,
@@ -20,11 +20,6 @@ $(document).ready(function() {
     'aaSorting': [[1, 'asc']]
   } );
 } );
-
-function confirmDelete() {
-  return confirm("Are you sure you want to remove this registration?");
-}
-
 </script>
 {% endblock %}
 
@@ -37,8 +32,11 @@ function confirmDelete() {
                     <td>Event</td>
                     <td>Event Start Date</td>
                     <td>Registration Date</td>
-                    <td>Waiver</td>
+                    <td>Photo Waiver</td>
                     <td>Attending</td>
+                     {% if event.enable_waitlist %}
+                        <td>Waitlisted</td>
+                     {% endif %}
                     <td>Actions</td>
                 </tr>
             </thead>
@@ -48,9 +46,21 @@ function confirmDelete() {
                     <td><a href="{% url 'outreach:view_event' event_slug=registration.event.slug  %}" title="View event">{{ registration.event.title }}</a></td>
                     <td>{{ registration.event.start_date }}</td>
                     <td>{{ registration.created_at }}</td>
-                    <td>{{ registration.waiver|yesno }}</td>
+                    <td>{{ registration.photo_waiver|yesno }}</td>
                     <td>{{ registration.attended|yesno }}</td>
+                    {% if event.enable_waitlist %}
+                        <td>{{ registration.waitlisted|yesno }}</td>
+                    {% endif %}
                     <td>
+                    {% if event.enable_waitlist %}
+                        <form class="lineform" method="POST"
+                            action = "{% url "outreach:toggle_registration_waitlist" registration_id=registration.id event_slug=event.slug %}">
+                            {% csrf_token %}
+                            <button type='submit' class='btn' title="Toggle Waitlist Status">
+                                <i class='fa fa-clock-o'></i>
+                            </button>
+                        </form>
+                    {% endif %}
                     <form class="lineform" method="POST"
                         action = "{% url "outreach:toggle_registration_attendance" registration_id=registration.id event_slug=event.slug %}">
                         {% csrf_token %}
@@ -59,10 +69,9 @@ function confirmDelete() {
                         </button>
                     </form>
                     <form class="lineform" method="POST"
-                          action="{% url "outreach:delete_registration" registration_id=registration.id event_slug=event.slug %}"
-                          onsubmit="return confirmDelete();">
+                          action="{% url "outreach:delete_registration" registration_id=registration.id event_slug=event.slug %}">
                         {% csrf_token %}
-                        <button type='submit' class='btn' title="Hide Registration">
+                        <button type='submit' class='btn confirm-submit' title="Hide Registration" data-submit-action="remove this registration">
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>

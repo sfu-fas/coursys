@@ -47,7 +47,7 @@ Column logic:
 	oTable = $('#student_grades').dataTable({
                 "bPaginate": false,
 		"bJQueryUI": true,
-		"aaSorting": [[0, "asc"]],
+		"aaSorting": [[0, "asc"], [1, "asc"]],
 		"aoColumns": [
 		    null,
 		    null,
@@ -85,7 +85,7 @@ Column logic:
 	    cal_link = $('#'+fetchUserId(settings.data));
 	    cal_link.parent().children('.ajax_status').text(xhr.status + " " + xhr.statusText);
 	});
-	$('a.calculator').attr('href', 'javascript:').click(function(){
+	$('a.calculator').attr('href', '#').click(function(){
 	    var cal_link = $(this);
 	    var userid = cal_link.attr('id').substring(5);
 	    /* post request */
@@ -173,9 +173,9 @@ Column logic:
                 <td><form action="{% url "offering:release_activity" course_slug=course.slug activity_slug=activity.slug %}" method="post">{% csrf_token %}<p>
                 {{activity.get_status_display_staff}}
                 {% if activity.status == "INVI" %}
-                <input type="submit" value="Make visible" onclick="return confirmSubmit('make the activity visible to students')" />
+                <input type="submit" value="Make visible" class="confirm-submit" data-submit-action="make the activity visible to students" />
                 {% else %}{% if activity.status == "URLS" %}
-                <input type="submit" value="Release grades" onclick="return confirmSubmit('release the grades to students')" />
+                <input type="submit" value="Release grades" class="confirm-submit" data-submit-action="release the grades to students" />
                 {% endif %}{% endif %}</p></form></td>
             </tr>
             <tr>

@@ -11,7 +11,7 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#positions').dataTable( {
     'bPaginate': false,

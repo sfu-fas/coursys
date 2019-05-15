@@ -108,15 +108,16 @@ def download_visas_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="visas-%s.csv"' % datetime.now().strftime('%Y%m%d')
     writer = csv.writer(response)
-    writer.writerow(['Person', 'Unit', 'Start Date', 'End Date', 'Type', 'Validity'])
+    writer.writerow(['Person', 'Email', 'Unit', 'Start Date', 'End Date', 'Type', 'Validity'])
     for v in visas:
         person = v.person
+        email = v.person.email()
         unit = v.unit.name
         start_date = v.start_date
         end_date = v.end_date
         visa_type = v.status
         validity = v.get_validity()
-        writer.writerow([person, unit, start_date, end_date, visa_type, validity])
+        writer.writerow([person, email, unit, start_date, end_date, visa_type, validity])
 
     return response
 

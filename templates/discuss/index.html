@@ -2,7 +2,7 @@
 {% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 {% block headextra %}
 <link rel="stylesheet" href="{{STATIC_URL}}style/discuss.css" media="all" />
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 	$(document).ready(function() {
 		$('.discussion-topic-title').hover(function() {
 			$(this).parent().addClass('discussion-highlight');

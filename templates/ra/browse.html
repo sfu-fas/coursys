@@ -8,7 +8,7 @@
 {% block headextra %}
 <script type="text/javascript" src="{% static "jquery-ext/jquery.ba-bbq.min.js" %}"></script>
 <script src="{% static 'js/ra.js' %}"></script>
-<script>
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   ra_browser_setup("{% url 'ra:browse' %}");
 });

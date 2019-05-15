@@ -6,7 +6,7 @@
 {% block subbreadcrumbs %}<li>Outreach</li>{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#outreachevents').dataTable( {
     'bPaginate': false,
@@ -24,11 +24,8 @@ $(document).ready(function() {
   } );
   $('#view_past_events').prop('checked', false);
   $('#pastevents').hide();
+  $('#view_past_events').click(togglePast);
 } );
-
-function confirmDelete() {
-  return confirm("Are you sure you want to delete this event?");
-}
 
 function togglePast() {
     $('#pastevents').toggle();
@@ -54,7 +51,7 @@ function togglePast() {
 
 {% block content %}
     {% if past_events %}
-    <div>View past events &nbsp; <input type="checkbox" id="view_past_events" onclick="togglePast()"></div>
+    <div>View past events &nbsp; <input type="checkbox" id="view_past_events"></div>
     {% endif %}
     {% if events %}
         <table id="outreachevents" class="display">
@@ -77,10 +74,9 @@ function togglePast() {
                 <td>{{ event.registration_count }}</td>
                 <td style="min-width: 130px">
                     <form class="lineform" method="POST"
-                          action="{% url "outreach:delete_event" event_id=event.id %}"
-                          onsubmit="return confirmDelete()">
+                          action="{% url "outreach:delete_event" event_id=event.id %}">
                         {% csrf_token %}
-                        <button type='submit' class='btn' title="Hide Event">
+                        <button type='submit' class='btn confirm-submit' title="Hide Event" data-submit-action="remove this event">
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>
@@ -88,6 +84,18 @@ function togglePast() {
                         action="{% url "outreach:edit_event" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="Edit Event">
                             <i class='fa fa-edit'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "outreach:download_registrations" event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="Download Registrations">
+                            <i class='fa fa-download'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "outreach:view_event_registrations" event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="View Registrations">
+                            <i class='fa fa-book'></i>
                         </button>
                     </form>
                     <form class="lineform" method="GET"
@@ -127,10 +135,9 @@ function togglePast() {
                 <td>{{ event.registration_count }}</td>
                 <td>
                     <form class="lineform" method="POST"
-                          action="{% url "outreach:delete_event" event_id=event.id %}"
-                          onsubmit="confirmDelete(this)">
+                          action="{% url "outreach:delete_event" event_id=event.id %}">
                         {% csrf_token %}
-                        <button type='submit' class='btn' title="Hide Event">
+                        <button type='submit' class='btn confirm-submit' title="Hide Event" data-submit-action="remove this event">
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>

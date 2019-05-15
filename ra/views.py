@@ -209,6 +209,7 @@ def edit(request, ra_slug):
         raform.fields['program'].choices = program_choices
     return render(request, 'ra/edit.html', { 'raform': raform, 'appointment': appointment, 'person': appointment.person })
 
+
 #Quick Reappoint, The difference between this and edit is that the reappointment box is automatically checked, and date information is filled out as if a new appointment is being created.
 #Since all reappointments will be new appointments, no post method is present, rather the new appointment template is rendered with the existing data which will call the new method above when posting.
 @requires_role("FUND")
@@ -219,15 +220,16 @@ def reappoint(request, ra_slug):
     raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True,
                     'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 80,
                     'use_hourly': appointment.use_hourly() })
-    raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
-    scholarship_choices = [("", "---------")]
-    for s in Scholarship.objects.filter(student__person__emplid = appointment.person.emplid):
-            scholarship_choices.append((s.pk, s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"))
+    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices, program_choices = \
+        _appointment_defaults(request.units, emplid=appointment.person.emplid)
+    raform.fields['hiring_faculty'].choices = hiring_faculty_choices
     raform.fields['scholarship'].choices = scholarship_choices
-    raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-    raform.fields['project'].choices = [(p.id, str(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
-    raform.fields['account'].choices = [(a.id, '%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
+    raform.fields['unit'].choices = unit_choices
+    raform.fields['project'].choices = project_choices
+    raform.fields['account'].choices = account_choices
+    raform.fields['program'].choices = program_choices
     return render(request, 'ra/new.html', { 'raform': raform, 'appointment': appointment })
+
 
 @requires_role("FUND")
 def edit_letter(request, ra_slug):
@@ -255,7 +257,8 @@ def edit_letter(request, ra_slug):
 @requires_role("FUND")
 def select_letter(request, ra_slug, print_only=None):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
-    letter_choices = RAAppointment.letter_choices(request.units)
+    # Forcing sorting of the letter choices so the Standard template is first.
+    letter_choices = sorted(RAAppointment.letter_choices(request.units))
     if request.method == 'POST':
         filled_form = LetterSelectForm(data=request.POST, choices=letter_choices)
         if filled_form.is_valid():
@@ -531,7 +534,11 @@ class RADataJson(BaseDatatableView):
         elif column == 'person':
             url = ra.get_absolute_url()
             name = ra.person.sortname()
-            return '<a href="%s">%s</a>' % (escape(url), escape(name))
+            if ra.has_attachments():
+                extra_string = '&nbsp; <i class="fa fa-paperclip" title="Attachment(s)"></i>'
+            else:
+                extra_string = ''
+            return '<a href="%s">%s%s</a>' % (escape(url), escape(name), extra_string)
         elif column == 'unit':
             return ra.unit.label
 
@@ -542,7 +549,7 @@ class RADataJson(BaseDatatableView):
 def download_ras(request, current=True):
     ras = RAAppointment.objects.filter(Q(unit__in=request.units)
                                        | Q(hiring_faculty__userid=request.user.username))\
-        .select_related('person', 'hiring_faculty', 'unit').exclude(deleted=True)
+        .select_related('person', 'hiring_faculty', 'unit', 'project', 'account').exclude(deleted=True)
     if current:
         today = datetime.date.today()
         slack = 14  # number of days to fudge the start/end

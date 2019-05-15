@@ -4,7 +4,7 @@
 {% block h1 %}{{ application.posting.unit.label }} TA Applications for {{posting.short_str}}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
   $(function() {
       window.print()
   });

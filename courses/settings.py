@@ -89,6 +89,7 @@ INSTALLED_APPS = (
     'inventory',
     'relationships',
     'space',
+    'reminders',
 )
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
@@ -162,8 +163,8 @@ X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 
-PASSWORD_AUTH_AGE = 86400 # 24 hours
-TWOFACTOR_AUTH_AGE = 1209600 # 2 weeks
+PASSWORD_AUTH_AGE = 7*24*3600 # 1 week
+TWOFACTOR_AUTH_AGE = 31*24*3600 # 1 month
 
 # database config
 if DEPLOY_MODE in ['production', 'proddev']:
@@ -229,7 +230,7 @@ STATICFILES_DIRS = (
 COMPRESS_ENABLED = getattr(localsettings, 'COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter']
 COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
-COMPRESS_ROOT = STATIC_ROOT
+COMPRESS_ROOT = getattr(localsettings, 'COMPRESS_ROOT', STATIC_ROOT)
 
 # production-like vs development settings
 if DEPLOY_MODE in ['production', 'proddev']:
@@ -237,6 +238,8 @@ if DEPLOY_MODE in ['production', 'proddev']:
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': '127.0.0.1:11211',
     } }
+    if getattr(localsettings, 'MEMCACHED_HOST', None):
+        CACHES['default']['LOCATION'] = localsettings.MEMCACHED_HOST
     HAYSTACK_CONNECTIONS = {
         'default': {
             'ENGINE': 'courselib.elasticsearch_backend.CustomElasticsearchSearchEngine',

@@ -273,7 +273,9 @@ def edit_case_info(request, course_slug, case_slug, field):
         'templatesJSON': mark_safe(tempaltesJSON), 'groupmembersJSON': mark_safe(groupmembersJSON), 'hasRelAct': hasRelAct}
     if field == 'letter_review':
         context['currentuser'] = _currentuser(request)
-    return render(request, "discipline/edit_"+field+".html", context)
+    resp = render(request, "discipline/edit_"+field+".html", context)
+    resp.has_inline_script = True # popups in help_text, onchange="" on a few forms
+    return resp
 
 
 def _currentuser(request):
@@ -570,32 +572,6 @@ def chair_index(request):
     context = {'instr_cases': instr_cases, 'has_global_role': has_global_role}
     return render(request, "discipline/chair-index.html", context)
     
-@requires_role("DISC")
-def chair_create(request, course_slug, case_slug):
-    instr_case = get_object_or_404(DisciplineCaseInstr, slug=case_slug, offering__slug=course_slug)
-    instr_case = instr_case.subclass()
-    if request.method == 'POST':
-        chair_case = instr_case.create_chair_case(request.user.username)
-        chair_case.save()
-        
-        #LOG EVENT#
-        l = LogEntry(userid=request.user.username,
-              description=("created chair's case %s in %s") % (chair_case.slug, chair_case.offering),
-              related_object=chair_case)
-        l.save()
-        messages.add_message(request, messages.SUCCESS, "Created Chair's case.")
-        return HttpResponseRedirect(reverse('discipline:chair_show', kwargs={'course_slug': course_slug, 'case_slug': chair_case.slug}))
-        
-    return HttpResponseRedirect(reverse('discipline:chair_index', kwargs={}))
-
-@requires_role("DISC")
-def chair_show(request, course_slug, case_slug):
-    case = get_object_or_404(DisciplineCaseChair, slug=case_slug, offering__slug=course_slug)
-    case = case.subclass()
-    
-    context = {'case': case}
-    return render(request, "discipline/chair-show.html", context)
-
 
 @requires_role("DISC")
 def chair_show_instr(request, course_slug, case_slug):
@@ -603,7 +579,8 @@ def chair_show_instr(request, course_slug, case_slug):
     Display instructor's case for Chair
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
+    case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug,
+                             offering__owner__in=Unit.sub_units(request.units))
     case = case.subclass()
     roles = ["DEPT"]
     case.ro_display = True
@@ -627,6 +604,18 @@ def permission_admin(request):
         r.delete()
 
         messages.add_message(request, messages.SUCCESS, 'Deleted role for %s.' % (r.person.name(),))
+        return HttpResponseRedirect(reverse('discipline:permission_admin'))
+    elif 'renew' in request.GET:
+        r = get_object_or_404(Role, role__in=['DISC', 'DICC'], id=request.GET['renew'])
+        new_exp = datetime.date.today() + datetime.timedelta(days=365)
+        r.expiry = new_exp
+        r.save()
+        # LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+                     description=("renewed discipline role %s for %s") % (r.role, r.person.name()),
+                     related_object=r.person)
+        l.save()
+        messages.add_message(request, messages.SUCCESS, 'Renewed role for %s.' % (r.person.name(),))
         return HttpResponseRedirect(reverse('discipline:permission_admin'))
 
     disc_roles = Role.objects_fresh.filter(role__in=['DISC', 'DICC']).select_related('person', 'unit')

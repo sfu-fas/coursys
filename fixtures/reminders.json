@@ -1,0 +1,86 @@
+[
+{
+ "fields": {
+  "config": "{}",
+  "content": "Happy new year! It's Jan 1.",
+  "course": null,
+  "date_type": "YEAR",
+  "day": 1,
+  "month": "1",
+  "person": 1,
+  "reminder_type": "PERS",
+  "role": null,
+  "slug": "pers-year-new-year",
+  "status": "A",
+  "title": "New Year",
+  "unit": null,
+  "week": null,
+  "weekday": null
+ },
+ "model": "reminders.reminder",
+ "pk": 1
+},
+{
+ "fields": {
+  "config": "{}",
+  "content": "The new semester started a while ago, in case you weren't paying attention.",
+  "course": null,
+  "date_type": "SEM",
+  "day": null,
+  "month": null,
+  "person": 1,
+  "reminder_type": "ROLE",
+  "role": "SYSA",
+  "slug": "role-sem-start-of-semester",
+  "status": "A",
+  "title": "Start of semester",
+  "unit": 1,
+  "week": 2,
+  "weekday": "1"
+ },
+ "model": "reminders.reminder",
+ "pk": 2
+},
+{
+ "fields": {
+  "config": "{\"markup\":\"markdown\"}",
+  "content": "It's probably *almost* time for the final exam.\r\n\r\nCreate it.",
+  "course": 2,
+  "date_type": "SEM",
+  "day": null,
+  "month": null,
+  "person": 1,
+  "reminder_type": "INST",
+  "role": null,
+  "slug": "inst-sem-create-an-exam",
+  "status": "A",
+  "title": "Create an exam",
+  "unit": null,
+  "week": 12,
+  "weekday": "4"
+ },
+ "model": "reminders.reminder",
+ "pk": 3
+},
+{
+ "fields": {
+  "config": "{}",
+  "content": "This has been deleted and shouldn't be visible.",
+  "course": null,
+  "date_type": "SEM",
+  "day": null,
+  "month": null,
+  "person": 1,
+  "reminder_type": "PERS",
+  "role": null,
+  "slug": "pers-sem-deleted-reminder",
+  "status": "D",
+  "title": "Deleted reminder",
+  "unit": null,
+  "week": 5,
+  "weekday": "2"
+ },
+ "model": "reminders.reminder",
+ "pk": 4
+}
+]

@@ -1,12 +1,25 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Register{% endblock %}
-{% block h1 %}Register{% endblock %}
+{% block title %}Register{% if event.registrations_waitlisted %} for waitlist{% endif %}{% endblock %}
+{% block h1 %}Register{% if event.registrations_waitlisted %} for waitlist{% endif %}{% endblock %}
 
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('#id_birthdate').datepicker("option", "yearRange", "-65:+0");
+});
+</script>
+{% endblock %}
 
 {% block content %}
     {% if event.can_register %}
+        {% if event.registrations_waitlisted %}
+            <h2>
+            WARNING:  This event is currently full.  This registration will add you to the waitlist.
+            </h2>
+            <br/>
+        {% endif %}
     This is the registration form for {{ event.title }}.
     <dt>Event description</dt><dd>{{ event.description|linebreaks }}</dd>
     <dt>Start date</dt><dd>{{ event.start_date }}</dd>

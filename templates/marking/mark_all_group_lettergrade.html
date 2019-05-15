@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 var oTable;
 function clear_filter() {
   oTable.fnFilter("");
@@ -14,7 +14,7 @@ $(document).ready(function() {
 		"bPaginate": false,
 		"aoColumns": [null, { "sType": "by-letter" }, { "bSearchable": false, "bSortable": false }]
 	});
-
+	$('#grades_form').submit(clear_filter);
 });
 </script>
 {% endblock %}
@@ -27,7 +27,7 @@ $(document).ready(function() {
 
 {% include "marking/mark_all_includes.html" %}
 
-<form id="grades_form" class="subtle" action="{% url "offering:mark_all_groups" course_slug=course.slug activity_slug=activity.slug %}" method="post" onsubmit="return clear_filter()">{% csrf_token %}
+<form id="grades_form" class="subtle" action="{% url "offering:mark_all_groups" course_slug=course.slug activity_slug=activity.slug %}" method="post">{% csrf_token %}
      <table class="display" id="all_marks">
         <thead class="form_head">
             <tr>

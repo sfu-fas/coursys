@@ -5,7 +5,7 @@
 {% block subbreadcrumbs %}<li><a href="{% url "admin:unit_admin" %}">Admin</a></li><li>Roles</li>{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#roles').dataTable( {
     'bPaginate': false,
@@ -15,12 +15,6 @@ $(document).ready(function() {
     'aaSorting': [[2, 'asc']],
   } );
 } );
-function confirmDelete(url) {
-  return confirm("Are you sure you want to delete this role?");
-}
-function confirmRenew(url) {
-  return confirm("Are you sure you want to renew this role for one year?");
-}
 </script>
 {% endblock %}
 
@@ -48,11 +42,11 @@ function confirmRenew(url) {
   <td>
       {% if role.expires_far %}
       <form class="lineform" method="POST" action="{% url "admin:renew_unit_role" role_id=role.id %}">
-      {% csrf_token %}<button type='submit' class='btn' title="Renew Role" onclick="return confirmRenew()"><i class='fa fa-refresh'></i></button>
+      {% csrf_token %}<button type='submit' class='btn confirmsubmit' title="Renew Role" data-submit-action="renew this role for one year"><i class='fa fa-refresh'></i></button>
       </form>
       {% endif %}
       <form class="lineform" method="POST" action="{% url "admin:delete_unit_role" role_id=role.id %}">
-      {% csrf_token %}<button type='submit' class='btn' title="Delete Role" onclick="return confirmDelete()"><i class='fa fa-trash-o'></i></button>
+      {% csrf_token %}<button type='submit' class='btn confirmsubmit' title="Delete Role" data-submit-action="delete this role"><i class='fa fa-trash-o'></i></button>
       </form>
   </td></tr>
   {% endfor %}

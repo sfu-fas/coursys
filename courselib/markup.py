@@ -1,5 +1,5 @@
 # TODO: write better help_text (incl allow_math=False case)
-# TODO: ta module uses creole for offer_text
+# TODO: ta module uses creole for offer_text  ** FIXED, although it calls markup_to_html directly, which isn't great **
 # TODO: discipline module uses textile
 # TODO: ta TAContactForm uses textile
 # TODO: just a "text with line breaks" markup
@@ -8,6 +8,7 @@
 
 from django.db import models
 from django.utils.safestring import mark_safe, SafeText
+from django.utils.html import linebreaks
 from django.conf import settings
 from cache_utils.decorators import cached
 
@@ -21,6 +22,7 @@ from textile import textile_restricted
 
 
 MARKUP_CHOICES = [
+    ('plain', 'Plain Text'),
     ('creole', 'WikiCreole'),
     ('markdown', 'Markdown'),
     ('textile', 'Textile'),
@@ -34,8 +36,8 @@ allowed_tags_restricted = bleach.sanitizer.ALLOWED_TAGS + [ # allowed in discuss
     'h3', 'h4', 'pre', 'p', 'dl', 'dt', 'dd',
     'dfn', 'q', 'del', 'ins', 's', 'sub', 'sup', 'u',
 ]
-allowed_tags = allowed_tags_restricted + [ # allowed on pages
-    'h2', 'img',
+allowed_tags = allowed_tags_restricted + [ # allowed on pages and advisor notes
+    'h2', 'img', 'div',
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
 ]
 allowed_attributes = bleach.sanitizer.ALLOWED_ATTRIBUTES
@@ -54,7 +56,8 @@ def sanitize_html(html, restricted=False):
 def ensure_sanitary_markup(markup, markuplang, restricted=False):
     """
     Double-check that the markup we're about to store is safe.
-    :param html: markup
+
+    :param markup: markup
     :param markuplang: markup language contained in markup argument
     :param restricted: use the restricted HTML subset?
     :return: sanitary markup
@@ -122,6 +125,9 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
         else:
             html = sanitize_html(markup, restricted=restricted)
 
+    elif markuplang == 'plain':
+        html = mark_safe(linebreaks(markup, autoescape=True))
+
     else:
         raise NotImplementedError()
 
@@ -161,7 +167,7 @@ class MarkupContentField(forms.MultiValueField):
     widget = MarkupContentWidget
 
     def __init__(self, with_wysiwyg=False, rows=20, default_markup='creole', allow_math=True, restricted=False,
-                 max_length=10000, *args, **kwargs):
+                 max_length=100000, *args, **kwargs):
         choices = MARKUP_CHOICES_WYSIWYG if with_wysiwyg else MARKUP_CHOICES
         fields = [
             forms.CharField(required=True, max_length=max_length),

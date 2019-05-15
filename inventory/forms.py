@@ -1,4 +1,4 @@
-from .models import Asset, AssetDocumentAttachment, AssetChangeRecord
+from .models import Asset, AssetDocumentAttachment, AssetChangeRecord, CATEGORY_CHOICES
 from outreach.models import OutreachEvent
 from django import forms
 from coredata.models import Unit
@@ -13,6 +13,8 @@ class AssetForm(forms.ModelForm):
         units = Unit.objects.filter(id__in=unit_ids)
         self.fields['unit'].queryset = units
         self.fields['unit'].empty_label = None
+        SORTED_CATEGORIES = sorted(CATEGORY_CHOICES, key=lambda x: x[1])
+        self.fields['category'].choices = SORTED_CATEGORIES
 
     class Meta:
         exclude = []
@@ -20,7 +22,8 @@ class AssetForm(forms.ModelForm):
         widgets = {
             'notes': forms.Textarea,
             'price': DollarInput,
-            'last_order_date': CalendarWidget
+            'last_order_date': CalendarWidget,
+            'vendor': forms.Textarea,
         }
 
 
@@ -42,17 +45,13 @@ class AssetChangeForm(forms.ModelForm):
         #  adding/removing them for events in your children units.
         unit_ids = [unit.id for unit in Unit.sub_units(request.units)]
         units = Unit.objects.filter(id__in=unit_ids)
-        #  Get current events + any events in the last 12 weeks, that should give enough time to fix inventory based
-        #  on events.
-        self.fields['event'].queryset = OutreachEvent.objects.visible(units).\
-            exclude(end_date__lt=datetime.datetime.today() - datetime.timedelta(weeks=12))
 
     class Meta:
         model = AssetChangeRecord
         widgets = {
             'date': CalendarWidget
         }
-        fields = ['person', 'qty', 'event', 'date']
+        fields = ['person', 'qty', 'date']
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)

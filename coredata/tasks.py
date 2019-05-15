@@ -47,7 +47,7 @@ def backup_database():
 @task()
 def backup_to_remote():
     return
-    call_command('backup_remote', db_only=True)
+    call_command('backup_remote')
 
 
 

@@ -3,7 +3,7 @@
 {% block title %}Summary of {{offering.name}}, {{offering.semester.label}}{% endblock %}
 {% block h1 %}Summary of {{offering.name}}, {{offering.semester.label}}{% endblock %}
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#members').dataTable( {
     'bPaginate': false,

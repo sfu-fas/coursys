@@ -320,7 +320,9 @@ def _activity_info_student(request, course_slug, activity_slug):
 
     context = {'course': course, 'activity': activity, 'grade': grade,
                'activity_stat': activity_stat, 'reason_msg': reason_msg}
-    return render(request, 'grades/activity_info_student.html', context)
+    resp = render(request, 'grades/activity_info_student.html', context)
+    resp.allow_gstatic_csp = True
+    return resp
 
 
 @requires_course_staff_by_slug
@@ -416,7 +418,9 @@ def activity_stat(request, course_slug, activity_slug):
             # don't report on deleted components
             continue
         owner = subid_dict[sc.submission_id]
-        subed_comps[sc.component_id].add(owner)
+        # Add a sanity check to fix corrupt data
+        if sc.component_id in subed_comps:
+            subed_comps[sc.component_id].add(owner)
     
     # actual list of components and counts
     sub_comp_rows = []
@@ -434,13 +438,17 @@ def activity_stat(request, course_slug, activity_slug):
 
 
     context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary, 'submark_stat': submark_stat, 'sub_comp_rows': sub_comp_rows}
-    return render(request, 'grades/activity_stat.html', context)
+    resp = render(request, 'grades/activity_stat.html', context)
+    resp.allow_gstatic_csp = True
+    return resp
+
 
 @requires_course_staff_by_slug
 def activity_choice(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     context = {'course': course}
     return render(request, 'grades/activity_choice.html', context)
+
 
 @requires_course_staff_by_slug
 def edit_cutoffs(request, course_slug, activity_slug):
@@ -483,7 +491,10 @@ def edit_cutoffs(request, course_slug, activity_slug):
     source_grades = '[' + ", ".join(["%.2f" % (g.value) for g in source_grades]) + ']'
 
     context = {'course': course, 'activity': activity, 'cutoff':form, 'source_grades': source_grades}
-    return render(request, 'grades/edit_cutoffs.html', context)
+    resp = render(request, 'grades/edit_cutoffs.html', context)
+    resp.allow_gstatic_csp = True
+    return resp
+
 
 def _cutoffsdict(cutoff):
     data = dict()
@@ -646,7 +657,9 @@ def add_cal_numeric_activity(request, course_slug):
     else:
         form = CalNumericActivityForm(initial={'formula': '[[activitytotal]]'})
     context = {'course': course, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['add']}
-    return render(request, 'grades/cal_numeric_activity_form.html', context)
+    resp = render(request, 'grades/cal_numeric_activity_form.html', context)
+    resp.has_inline_script = True # insert activity in formula links
+    return resp
 
 @requires_course_staff_by_slug
 def add_cal_letter_activity(request, course_slug):
@@ -968,18 +981,18 @@ def edit_activity(request, course_slug, activity_slug):
         else:
             datadict = _create_activity_formdatadict(activity)
             if isinstance(activity, CalNumericActivity):
-                form = CalNumericActivityForm(datadict)
+                form = CalNumericActivityForm(initial=datadict)
             elif isinstance(activity, NumericActivity):
-                form = NumericActivityForm(datadict, previous_activities=activities_list)
+                form = NumericActivityForm(initial=datadict, previous_activities=activities_list)
             elif isinstance(activity, CalLetterActivity):
-                form = CalLetterActivityForm(datadict)
+                form = CalLetterActivityForm(initial=datadict)
                 form.fields['numeric_activity'].choices = numact_choices
                 form.fields['exam_activity'].choices = examact_choices
                 # set initial value in form to current value
             elif isinstance(activity, LetterActivity):
-                form = LetterActivityForm(datadict, previous_activities=activities_list)
+                form = LetterActivityForm(initial=datadict, previous_activities=activities_list)
             elif isinstance(activity, CalLetterActivity):
-                form = CalLetterActivityForm(datadict)
+                form = CalLetterActivityForm(initial=datadict)
                 form.fields['numeric_activity'].choices = numact_choices
                 form.fields['exam_activity'].choices = examact_choices
 
@@ -988,7 +1001,9 @@ def edit_activity(request, course_slug, activity_slug):
         if isinstance(activity, CalNumericActivity):
             numeric_activities = NumericActivity.objects.exclude(slug=activity_slug).filter(offering=course, deleted=False)
             context = {'course': course, 'activity': activity, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
-            return render(request, 'grades/cal_numeric_activity_form.html', context)
+            resp = render(request, 'grades/cal_numeric_activity_form.html', context)
+            resp.has_inline_script = True  # insert activity in formula links
+            return resp
         elif isinstance(activity, NumericActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
             return render(request, 'grades/numeric_activity_form.html', context)
@@ -1150,9 +1165,9 @@ def _all_grades_output(response, course):
     for a in activities:
         grades[a.slug] = {}
         if hasattr(a, 'numericgrade_set'):
-            gs = a.numericgrade_set.all()
+            gs = a.numericgrade_set.all().select_related('member', 'member__person')
         else:
-            gs = a.lettergrade_set.all()
+            gs = a.lettergrade_set.all().select_related('member', 'member__person')
         for g in gs:
             grades[a.slug][g.member.person.userid] = g
     

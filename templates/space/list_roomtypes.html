@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#roomtypes').dataTable( {
     'bPaginate': false,
@@ -20,9 +20,6 @@ $(document).ready(function() {
     'aaSorting': [[0, 'asc']]
   } );
 } );
-function confirmDelete() {
-  return confirm("Are you sure you want to delete this room type?");
-}
 </script>
 {% endblock %}
 
@@ -58,7 +55,7 @@ function confirmDelete() {
                               action="{% url "space:delete_roomtype" roomtype_id=r.id %}"
                               onsubmit="return confirmDelete()">
                             {% csrf_token %}
-                            <button type='submit' class='btn' title="Delete Room Type">
+                            <button type='submit' class='btn confirm-submit' title="Delete room type" data-submit-action="remove this room type">
                                 <i class='fa fa-trash-o'></i>
                             </button>
                         </form>

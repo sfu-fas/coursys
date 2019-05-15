@@ -12,6 +12,7 @@
 <ul>
     <li><a href="{% url "sessionals:edit_contract" contract_slug=contract.slug %}">Edit</a></li>
     <li><a href="{% url "sessionals:print_form" contract_slug=contract.slug %}">Print Sessional Instructor Form</a></li>
+    <li><a href="{% url "sessionals:new_attachment" contract_slug=contract.slug %}">Add Attachment</a></li>
 </ul>
 {% endblock %}
 
@@ -32,4 +33,19 @@
 <dt>Weekly Contact Hours</dt><dd>{{ contract.contact_hours }}</dd>
 <dt>Total Salary</dt><dd>${{ contract.total_salary }}</dd>
 <dt>Notes</dt><dd>{{ contract.notes|linebreaks }}</dd>
+
+{% with attachments=contract.attachments.visible %}
+{% if attachments %}
+<h2 id="attachments">Attachments</h2>
+<ul>
+{% for a in attachments %}
+<li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
+  <a href="{% url 'sessionals:view_attachment' contract_slug=contract.slug attach_slug=a.slug %}">View</a> |
+  <a href="{% url 'sessionals:download_attachment' contract_slug=contract.slug attach_slug=a.slug %}">Download</a> |
+  <a href="{% url 'sessionals:delete_attachment' contract_slug=contract.slug attach_slug=a.slug  %}">Delete</a>
+</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
 {% endblock %}

@@ -1,5 +1,11 @@
 import datetime
 
+# This was all originally written in python 2.x.  It expects that a division of two ints will return
+# the floor of said division.  Make sure all division operators are using the new "floor division" operator
+# for python 3.x.
+# See: https://docs.python.org/3/whatsnew/2.2.html#pep-238-changing-the-division-operator
+
+
 class Semester(int):
     
     SPRING = 1
@@ -15,7 +21,7 @@ class Semester(int):
         2002
         """
 
-        return 1900 + self/10
+        return 1900 + self//10
     
     def code(self):
         """ Return the semester code
@@ -39,7 +45,7 @@ class Semester(int):
         if temp_code >= 10:
             temp_code -= 9
             temp_year += 1
-        temp_year += count/3
+        temp_year += count//3
         return Semester((temp_year - 1900) * 10 + temp_code)
 
     def start_date(self):
@@ -103,7 +109,7 @@ def date2semester(toconvert):
     771
 
     """
-    semcode = 1+(3*((toconvert.month-1)/4))
+    semcode = 1+(3*((toconvert.month-1)//4))
     return Semester( (toconvert.year - 1900) * 10 + semcode )
 
 def current_semester():

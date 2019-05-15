@@ -4,8 +4,9 @@
 {% block title %} Administrate Forms {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
+        $("h3.summary_heading").collapsible();
         $('#pend_table').dataTable({
                     "bPaginate": false,
                     "bJQueryUI": true,
@@ -20,6 +21,10 @@
                     "bPaginate": false,
                     "bJQueryUI": true,
                     "aaSorting": [[2, "asc"]],
+        });
+        $(".form_title").click(function() {
+            $("#pend_table_filter input").val($(this).text());
+            $("#pend_table_filter input").keyup();
         });
     });
 </script>
@@ -42,6 +47,15 @@
 
 {% block content %}
 <h2>Pending Forms</h2>
+    {% if sub_summary %}
+        <h3 class="summary_heading collapsible-heading-collapsed">Summary</h3>
+        <div id="summary_content" class="collapse_menu collapsible-content-collapsed">
+            <span class="helptext">Number of pending submissions per form, from most pending to least:<br/></span>
+        {% for k, v in sub_summary %}
+            <span class="form_title" title="Click to search in the table.">{{ k }}</span> ({{ v }})<br/>
+        {% endfor %}
+        </div>
+    {% endif %}
 <p class="helptext">These forms have been completed by the person filling things out. They require administrative action: either giving another sheet to someone else, or marking them completed.</p>
 <div class="datatable_container">
     {% if pend_submissions %}

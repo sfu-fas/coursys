@@ -5,7 +5,7 @@ from collections import OrderedDict
 from coredata.models import Member
 from coredata.widgets import CalendarWidget
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
-        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES
+        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES, TAContractEmailText
 from ta.util import table_row__Form
 import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
@@ -189,7 +189,6 @@ class TAApplicationForm(forms.ModelForm):
         model = TAApplication
         exclude = ('posting', 'course_load', 'person','skills','campus_preferences','rank','late','admin_created', 'config')
         widgets = {'base_units': forms.TextInput(attrs={'size': 5}),
-                   'current_program': forms.TextInput(attrs={'size': 10}),
                    'experience': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
                    'course_load': forms.Textarea(attrs={'cols': 50, 'rows': 2}),
                    'other_support': forms.Textarea(attrs={'cols': 50, 'rows': 2}),
@@ -230,17 +229,23 @@ class TAApplicationForm(forms.ModelForm):
             raise forms.ValidationError("BU amount must be in the range 1-5")
         return bu
 
-    def clean_new_workers_training(self):
-        training = self.cleaned_data['new_workers_training']
-        if not training:
-            raise forms.ValidationError("You must have attended New Workers Training before we can process your application.")
-        return training
+    #def clean_new_workers_training(self):
+    #    training = self.cleaned_data['new_workers_training']
+    #    if not training:
+    #        raise forms.ValidationError("You must have attended New Workers Training before we can process your application.")
+    #    return training
 
 class CoursePreferenceForm(forms.ModelForm):
 
     class Meta:
         model = CoursePreference
-        exclude = ('app','rank') 
+        exclude = ('app', 'rank', 'taken', 'exper')
+
+    def __init__(self, *args, **kwargs):
+        super(CoursePreferenceForm, self).__init__(*args, **kwargs)
+        crs_field = self.fields['course']
+        crs_field.required = False
+
         
 class TAAcceptanceForm(forms.ModelForm):
     sin = forms.CharField(label="SIN", help_text="Social insurance number")
@@ -360,7 +365,7 @@ class BaseTACourseFormSet(BaseInlineFormSet):
         #check no duplicate course selection
         courses = []
         for form in self.forms:
-            if form.cleaned_data and form.cleaned_data['course']:
+            if form.cleaned_data and 'course' in form.cleaned_data:
                 course = form.cleaned_data['course']
                 if(course in courses):
                         raise forms.ValidationError("Duplicate course selection")
@@ -683,3 +688,13 @@ class CourseDescriptionForm(forms.ModelForm):
     class Meta:
         model = CourseDescription
         exclude = ('config','hidden') 
+
+
+class TAContractEmailTextForm(forms.ModelForm):
+    class Meta:
+        model = TAContractEmailText
+        exclude = ()
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': '20', 'cols': '60'}),
+        }
+

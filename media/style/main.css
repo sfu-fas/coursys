@@ -1142,10 +1142,9 @@ table#groups .groupaction ul li {
     text-decoration: none;
     background-color: #a6192e;
     font-size: 1em;
-    line-height: 1.3125em;
     font-family: "DINWebMedium",sans-serif;
     font-weight: normal;
-    line-height: 1.625;
+    line-height: 1.625em;
     color: #FFF;
     width: auto;
     cursor: pointer;
@@ -1169,10 +1168,37 @@ table#groups .groupaction ul li {
     width: 30px;
 }
 
+/* Sometimes you want something like the lineform, but without floating right or using tiny buttons. */
+.inlineform{
+    display: inline;
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+
+.inlineform .btn{
+    margin: 0;
+    margin-left: 10px;
+    padding: 0 4px;
+    display: inline;
+    border-bottom: 0px;
+    line-height: 1.3125em;
+}
+
+
 /* FormLogEntry and some other log-type objects that show up for users */
 p.logentry {
   font-size: 80%;
   margin: 0;
   font-style: italic;
   line-height: 1.25em;
+}
+
+.form_title:hover {
+    color: #a6192e;
+}
+
+input:read-only,textarea:read-only {
+    background: lightgrey;
 }

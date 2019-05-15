@@ -47,6 +47,20 @@
             $('.hide_deleted').hide();
             return false;
         });
+
+        $('#moreinfo>a').click(function() {
+            get_more_info('{% url "advising:student_more_info" userid=userid %}');
+        });
+
+        $('#advisingvisits').dataTable( {
+            'bPaginate': true,
+            'bInfo': false,
+            'bLengthChange': true,
+            "bJQueryUI": true,
+            'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, 'All']],
+            'aaSorting': [[0, 'desc']]
+
+        } );
 	});
 </script>
 {% endblock %}
@@ -60,18 +74,19 @@
         {% if show_transcript %}<li><a href="{% url "advising:student_courses" userid=userid%}">View Current Courses</a></li>{% endif %}
         <li><a href="{% url "advising:student_transfers" userid=userid %}">View Transfer Credits</a></li>
         <li id="moreinfo">
-            <a href="javascript:get_more_info('{% url "advising:student_more_info" userid=userid %}')">Fetch more info <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></a>
+            <a href="#">Fetch more info <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></a>
         </li>
         {% endif %}
         {% if nonstudent %}
         <li><a href="{% url "advising:merge_nonstudent" nonstudent_slug=student.slug %}">Merge with existing student</a></li>
         {% endif %}
         <li><a href="#" class='show_deleted'>Show Deleted Notes</a></li> 
-        <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li> 
+        <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li>
         <li>
             {% for u in units %}
-            <form method="post" action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
-            {% csrf_token %}<p><input type="submit" value="Record visit" title="Record visit to {{ u.informal_name }} advisor" /></p>
+            <form target="_blank" method="post" action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
+            {% csrf_token %}
+                <p><input type="submit" value="Record visit" title="Record visit to {{ u.informal_name }} advisor" /></p>
             </form>
             {% endfor %}
         </li>
@@ -141,8 +156,48 @@
                 <td>{{ student.nonstudent_colg }}</td>
             </tr>
             {% endif %}
+            {% if visits  %}
+                <tr>
+                    <th>Last Visit</th>
+                    <td>{% with visits|first as visit %} {{ visit.created_at }} with {{ visit.advisor }} {% endwith %}</td>
+                </tr>
+            {% endif %}
+            <tr>
+
+            </tr>
         </tbody>
     </table>
+
+{% if visits %}
+    <div id="visitssection">
+    <h2>Visits</h2>
+    <table id="advisingvisits">
+        <thead>
+            <th scope="col">Start Time</th>
+            <th scope="col">End Time</th>
+            <th scope="col">Categories</th>
+            <th scope="col">Advisor</th>
+            <th>Actions</th>
+        </thead>
+        <tbody>
+        {% for visit in visits %}
+            <tr>
+                <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
+                <td>{{ visit.end_time }}</td>
+                <td>{{ visit.categories_display }}</td>
+                <td>{{ visit.advisor.sortname }}</td>
+                <td><form class="lineform" method="GET"
+                    action="{% url "advising:view_visit" visit_slug=visit.slug %}">
+                    <button type='submit' class='btn' title="View visit">
+                        <i class='fa fa-eye'></i>
+                    </button>
+                </form></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+{% endif %}
 
 {% if items %}
 {% for item in items %}
@@ -159,7 +214,7 @@
 <div class="note-box" id="note-box-{{note.id}}">
 
     <div class="note-content">
-        {{note.text|linebreaks}}
+        {{ note.html_content }}
     </div>
     {% if note.file_attachment %}
     <p><a href="{% url "advising:download_file" userid=userid note_id=note.id%}">

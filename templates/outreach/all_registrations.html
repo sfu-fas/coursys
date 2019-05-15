@@ -24,7 +24,7 @@
 
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#currentregistrations').dataTable( {
     'bPaginate': false,
@@ -42,11 +42,8 @@ $(document).ready(function() {
   } );
   $('#view_past_registrations').prop('checked', false);
   $('#pastsection').hide();
+  $('#view_past_registrations').click(togglePast);
 } );
-
-function confirmDelete() {
-  return confirm("Are you sure you want to remove this registration?");
-}
 
 function togglePast() {
     $('#pastsection').toggle();
@@ -56,7 +53,7 @@ function togglePast() {
 
 {% block content %}
     {% if past_registrations %}
-    <div>View past registrations &nbsp; <input type="checkbox" id="view_past_registrations" onclick="togglePast()"></div>
+    <div>View past registrations &nbsp; <input type="checkbox" id="view_past_registrations"></div>
     {% endif %}
     {% if current_registrations %}
         <h1>Current Registrations</h1>
@@ -69,6 +66,7 @@ function togglePast() {
                     <td>Registration Date</td>
                     <td>Photo Waiver</td>
                     <td>Attending</td>
+                    <td>Waitlisted</td>
                     <td>Actions</td>
                 </tr>
             </thead>
@@ -80,7 +78,22 @@ function togglePast() {
                     <td>{{ registration.created_at }}</td>
                     <td>{{ registration.photo_waiver|yesno }}</td>
                     <td>{{ registration.attended|yesno }}</td>
+                    <td>{% if registration.event.enable_waitlist %}
+                            {{ registration.waitlisted|yesno }}
+                        {% else %}
+                            <span title="There is no waitlist for this event.">N/A</span>
+                        {% endif %}
+                    </td>
                     <td>
+                        {% if registration.event.enable_waitlist %}
+                        <form class="lineform" method="POST"
+                            action = "{% url "outreach:toggle_registration_waitlist" registration_id=registration.id event_slug=registration.event.slug %}">
+                            {% csrf_token %}
+                            <button type='submit' class='btn' title="Toggle Waitlist Status">
+                                <i class='fa fa-clock-o'></i>
+                            </button>
+                        </form>
+                        {% endif %}
                     <form class="lineform" method="POST"
                         action = "{% url "outreach:toggle_registration_attendance" registration_id=registration.id %}">
                         {% csrf_token %}
@@ -89,10 +102,9 @@ function togglePast() {
                         </button>
                     </form>
                     <form class="lineform" method="POST"
-                          action="{% url "outreach:delete_registration" registration_id=registration.id %}"
-                          onsubmit="return confirmDelete();">
+                          action="{% url "outreach:delete_registration" registration_id=registration.id %}">
                         {% csrf_token %}
-                        <button type='submit' class='btn' title="Hide Registration">
+                        <button type='submit' class='btn confirm-submit' title="Hide Registration" data-submit-action="remove this registration">
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>
@@ -127,6 +139,7 @@ function togglePast() {
                         <td>Registration Date</td>
                         <td>Waiver</td>
                         <td>Attended</td>
+                        <td>Waitlisted</td>
                         <td>Actions</td>
                     </tr>
                 </thead>
@@ -138,7 +151,22 @@ function togglePast() {
                         <td>{{ registration.created_at }}</td>
                         <td>{{ registration.waiver|yesno }}</td>
                         <td>{{ registration.attended|yesno }}</td>
+                        <td>{% if registration.event.enable_wailist %}
+                                {{ registration.waitlisted|yesno }}
+                            {% else %}
+                                <span title="There is no waitlist for this event.">N/A</span>
+                            {% endif %}
+                        </td>
                         <td>
+                        {% if registration.event.enable_waitlist %}
+                            <form class="lineform" method="POST"
+                                action = "{% url "outreach:toggle_registration_waitlist" registration_id=registration.id event_slug=registration.event.slug %}">
+                                {% csrf_token %}
+                                <button type='submit' class='btn' title="Toggle Waitlist Status">
+                                    <i class='fa fa-clock-o'></i>
+                                </button>
+                            </form>
+                        {% endif %}
                         <form class="lineform" method="POST"
                             action = "{% url "outreach:toggle_registration_attendance" registration_id=registration.id %}">
                             {% csrf_token %}
@@ -147,10 +175,9 @@ function togglePast() {
                             </button>
                         </form>
                         <form class="lineform" method="POST"
-                              action="{% url "outreach:delete_registration" registration_id=registration.id %}"
-                              onsubmit="confirmDelete(this)">
+                              action="{% url "outreach:delete_registration" registration_id=registration.id %}">
                             {% csrf_token %}
-                            <button type='submit' class='btn' title="Hide Registration">
+                            <button type='submit' class='btn confirm-submit' title="Hide Registration" data-submit-action="remove this registration">
                                 <i class='fa fa-trash-o'></i>
                             </button>
                         </form>

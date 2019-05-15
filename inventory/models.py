@@ -2,7 +2,6 @@
 A module written for inventory control of any type of asset we may want.
 """
 
-import datetime
 import os
 from coredata.models import Unit, Person
 from outreach.models import OutreachEvent
@@ -12,8 +11,6 @@ from django.utils import timezone
 from courselib.slugs import make_slug
 from courselib.json_fields import JSONField
 from courselib.storage import UploadedFileStorage, upload_path
-from django.conf import settings
-import uuid
 
 
 CATEGORY_CHOICES = {
@@ -24,6 +21,11 @@ CATEGORY_CHOICES = {
     ('EVEN', 'Events'),
     ('GEN', 'General'),
     ('OFF', 'Office Supplies'),
+    ('SURP', 'Surplus'),
+    ('TEAC', 'Teaching'),
+    ('RESR', 'Research'),
+    ('ADMN', 'Admin Support'),
+    ('TECH', 'Tech Support'),
 }
 
 
@@ -54,6 +56,9 @@ class Asset(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     category = models.CharField(max_length=4, choices=CATEGORY_CHOICES, null=True, blank=True, default='GEN')
     location = models.CharField(max_length=150, null=True, blank=True)
+    po = models.CharField("PR/PO No.", max_length=60, null=True, blank=True)
+    account = models.CharField("Account No.", max_length=60, null=True, blank=True)
+    vendor = models.CharField("Supplier/Vendor", max_length=400, null=True, blank=True)
     notes = models.CharField(max_length=400, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
@@ -112,9 +117,8 @@ class AssetChangeRecord(models.Model):
     person = models.ForeignKey(Person, null=False, blank=False, on_delete=models.PROTECT)
     qty = models.IntegerField("Quantity adjustment", null=False, blank=False,
                               help_text="The change in quantity.  For removal of item, make it a negative number. "
-                                        "For adding items, make it a positive.  e.g. '-2' if someone removed two of"
+                                        "For adding items, make it a positive.  e.g. '-2' if someone removed two of "
                                         "this item for something")
-    event = models.ForeignKey(OutreachEvent, null=True, blank=True, help_text="The event it was for, if any", on_delete=models.PROTECT)
     date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
@@ -169,7 +173,7 @@ class AssetDocumentAttachment(models.Model):
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
 
-    objects = AssetChangeRecordQuerySet.as_manager()
+    objects = AssetDocumentAttachmentQueryset.as_manager()
 
     def __str__(self):
         return self.contents.name

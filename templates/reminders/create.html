@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}New Reminder{% endblock %}
+{% block h1 %}New Reminder{% endblock %}
+
+{% block headextra %}
+<script src="{% static 'js/reminders.js' %}"></script>
+{% include 'pages/markup_edit_head.html' %}
+{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'reminders:index' %}">Reminders</a></li>
+<li>Create</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'reminders:create' %}" class="reminder-form" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Create Reminder" />
+    </p>
+</form>
+{% endblock %}

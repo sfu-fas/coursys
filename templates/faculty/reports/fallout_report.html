@@ -17,7 +17,7 @@
     }
 </style>
 <script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#fallout_table').dataTable( {
     'bPaginate': false,

@@ -47,7 +47,7 @@
                     <form action="{% url "grad:remove_financialcomment" grad_slug=grad.slug f_id=f.id %}" method="post">
                         {% csrf_token %}
                             <p class="actionbutton">
-                                <input type="submit" value="remove" onclick="return confirmSubmit('remove this financial comment')" />
+                                <input type="submit" value="remove" class="confirm-submit" data-submit-action="remove this financial comment" />
                             </p>
                     </form>
                 </td>

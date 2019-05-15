@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe
 from django.db.models import Q
 from coredata.models import Role, CourseOffering, Member, Semester
 from onlineforms.models import FormGroup, Form
-from privacy.models import needs_privacy_signature, privacy_redirect
+from privacy.models import needs_privacy_signature, privacy_redirect, needs_privacy_signature_da, privacy_da_redirect
 import urllib.request, urllib.parse, urllib.error
 import datetime
 
@@ -34,6 +34,8 @@ def user_passes_test(test_func, login_url=None,
                     # logic there: usually only check for the admin roles we know have a privacy implication. If we're
                     # passed force_privacy, then views must have the privacy agreement.
                     return privacy_redirect(request)
+                elif needs_privacy_signature_da(request):
+                    return privacy_da_redirect(request)
                 else:
                     return view_func(request, *args, **kwargs)
             elif request.user.is_authenticated:
@@ -46,7 +48,7 @@ def user_passes_test(test_func, login_url=None,
     return decorator
 
 
-def HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=None, simple=False):
+def HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=None, simple=False, exception=None):
     if simple:
         # this case is intended to produce human-readable HTML for API errors
         template = 'simple-error.html'
@@ -56,14 +58,14 @@ def HttpError(request, status=404, title="Not Found", error="The requested resou
     resp.status_code = status
     return resp
 
-def ForbiddenResponse(request, errormsg=None):
+def ForbiddenResponse(request, errormsg=None, exception=None):
     error = mark_safe("You do not have permission to access this resource.")
     if not request.user.is_authenticated:
         login_url = settings.LOGIN_URL + '?' + urllib.parse.urlencode({'next': request.get_full_path()})
         error += mark_safe(' You are <strong>not logged in</strong>, so maybe <a href="%s">logging in</a> would help.' % (login_url))
     return HttpError(request, status=403, title="Forbidden", error=error, errormsg=errormsg)
 
-def NotFoundResponse(request, errormsg=None):
+def NotFoundResponse(request, errormsg=None, exception=None):
     return HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=errormsg)
 
 def has_global_role(role, request, **kwargs):
@@ -149,18 +151,22 @@ def requires_course_student_by_slug(function=None, login_url=None):
     else:
         return actual_decorator
 
-def is_course_staff_by_slug(request, course_slug, **kwargs):
+def is_course_staff_by_slug(request, course_slug, expires=True, **kwargs):
     """
     Return True if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug' keyword.
     TAs should only have access to courses they TAed up to a semester ago.
     """
-    max_semester_name_for_tas = Semester.current().offset_name(-1)
-    memberships = Member.objects.filter(Q(role__in=['INST', 'APPR']) | (Q(role='TA') &
-                                                                        Q(offering__semester__name__gte=
-                                                                        max_semester_name_for_tas)),
-                                        offering__slug=course_slug,
-                                        person__userid=request.user.username, offering__graded=True)\
-        .exclude(offering__component="CAN")
+    if expires:
+        max_semester_name_for_tas = Semester.current().offset_name(-1)
+        ta_query = Q(role='TA') & Q(offering__semester__name__gte=max_semester_name_for_tas)
+    else:
+        ta_query = Q(role='TA')
+
+    memberships = Member.objects.filter(
+        Q(role__in=['INST', 'APPR']) | ta_query,
+        offering__slug=course_slug,
+        person__userid=request.user.username, offering__graded=True
+    ).exclude(offering__component="CAN")
     memberships = list(memberships)
     if memberships:
         request.member = memberships[0]

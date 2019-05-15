@@ -61,9 +61,10 @@ class OutreachEventRegistrationForm(forms.ModelForm):
             'contact': forms.Textarea,
             'birthdate': CalendarWidget,
         }
-        fields = ['last_name', 'first_name', 'middle_name', 'birthdate', 'parent_name', 'parent_phone', 'email',
-                  'confirm_email', 'photo_waiver', 'participation_waiver', 'previously_attended', 'school', 'grade',
-                  'notes']
+
+        fields = ['last_name', 'first_name', 'birthdate', 'parent_name', 'parent_phone',
+                  'secondary_name', 'secondary_phone', 'email', 'confirm_email',  'previously_attended', 'school',
+                  'grade', 'notes', 'photo_waiver', 'participation_waiver']
 
     def clean(self):
         cleaned_data = super(OutreachEventRegistrationForm, self).clean()
@@ -78,10 +79,23 @@ class OutreachEventRegistrationForm(forms.ModelForm):
 
     def add_extra_questions(self, event):
         if 'extra_questions' in event.config and len(event.config['extra_questions']) > 0:
+            extra_fields = []
             for question in event.config['extra_questions']:
+                extra_fields.append(question)
                 if 'extra_questions' in self.instance.config and question in self.instance.config['extra_questions']:
                     self.fields[question] = \
                         forms.CharField(label=question,widget=forms.Textarea,
                                         initial=self.instance.config['extra_questions'][question])
                 else:
                     self.fields[question] = forms.CharField(label=question, widget=forms.Textarea)
+            # We want to move the extra questions *before* the waivers, for neatness' sake.
+            field_list = (self._meta.fields)
+            # We got the original list of fields, add our extra questions in the spot before two before last.
+            field_list[len(field_list) - 2:len(field_list) - 2] = extra_fields
+            # Re-order the fields to that list.
+            self.order_fields(field_list)
+
+
+    def check_dietary_field(self, event):
+        if not event.show_dietary_question:
+            self.fields.pop('notes')

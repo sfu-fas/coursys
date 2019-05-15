@@ -44,7 +44,7 @@
                         <form action="{% url "grad:remove_otherfunding" grad_slug=grad.slug o_id=f.id %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
-                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this funding')" />
+                                    <input type="submit" value="remove" class="confirm-submit" data-submit-action="remove this funding" />
                                 </p>
                         </form>
                     {% endif %}

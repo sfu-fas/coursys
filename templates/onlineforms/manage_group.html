@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
     $('#formgroupmembers').dataTable({
                 "bPaginate": false,
@@ -61,7 +61,7 @@ $(document).ready(function() {
             <tr>
                 <th scope="col">Name</th>
                 <th scope="col">Email?</th>
-                <th scope="col">Remove</th>
+                <th scope="col">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -69,14 +69,22 @@ $(document).ready(function() {
             <tr>
                 <td>{{ member.person.sortname }}{% if member.person.userid %} &nbsp;({{ member.person.userid }}){% endif %}</td>
                 <td>{{ member.email|yesno }}</td>
-                <td class="miniaction"> 
-                    <form action="{% url "onlineforms:remove_group_member" formgroup_slug=group.slug userid=member.person.emplid %}" method="post">{% csrf_token %}
-                        <div>
-                            <input type="hidden" name="action" value="remove"/>
-                            <input type="submit" value="remove"/>
-                        </div>
+                <td>
+                    <form class="lineform" method="POST"
+                          action="{% url "onlineforms:remove_group_member" formgroup_slug=group.slug userid=member.person.emplid %}">
+                        {% csrf_token %}
+                        <button type='submit' class='btn confirm-submit' title="Remove member" data-submit-action="remove this member">
+                            <i class='fa fa-trash-o'></i>
+                        </button>
                     </form>
-                </td>                
+                    <form class="lineform" method="POST"
+                          action="{% url "onlineforms:toggle_group_member" formgroup_slug=group.slug userid=member.person.emplid %}">
+                        {% csrf_token %}
+                        <button type='submit' class='btn' title="Toggle member email setting">
+                            <i class='fa fa-at'></i>
+                        </button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

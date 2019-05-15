@@ -526,6 +526,10 @@ class PagesTest(TestCase):
             self.assertIsInstance(result, SafeText)
             self.assertEqual(result.strip(), correct)
 
+        result = markup_to_html('Paragraph <1> \u2605\U0001F600', 'plain')
+        self.assertIsInstance(result, SafeText)
+        self.assertEqual(result.strip(), '<p>Paragraph &lt;1&gt; \u2605\U0001F600</p>')
+
     def test_html_safety(self):
         """
         Check that we're handling HTML in a safe way
@@ -535,6 +539,15 @@ class PagesTest(TestCase):
 
         html = markup_to_html('Foo<script>alert()</script>', 'html')
         self.assertEqual(html, 'Fooalert()')
+
+        # some junky MSWord-like markup
+        html = markup_to_html('Foo<p class="home"><Span style="font-size: 500%">bar</Span></P>', 'html', restricted=True)
+        self.assertEqual(html, 'Foo<p>bar</p>')
+
+        html = markup_to_html('A&nbsp;&nbsp;<p>&nbsp;</p><table cellpadding="10"><tr><td colspan=4>B</td></tr></table>',
+                              'html', restricted=True)
+        self.assertEqual(html, 'A&nbsp;&nbsp;<p>&nbsp;</p>B')
+
 
         # unsafe if we ask for it
         html = markup_to_html('Foo<script>alert()</script>', 'html', html_already_safe=True)

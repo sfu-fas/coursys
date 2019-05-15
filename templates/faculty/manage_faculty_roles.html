@@ -6,7 +6,7 @@
 {% block h1 %}Manage Faculty Members{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('table.display').dataTable( {
     'bPaginate': false,
@@ -48,7 +48,7 @@ $(document).ready(function() {
             <p>
                 <input type="hidden" name="action" value="del" />
                 <input type="hidden" name="role_id" value="{{r.id}}" />
-                <input type="submit" value="Remove" onclick="return confirmSubmit('mark this person as gone')" />
+                <input type="submit" value="Remove" class="confirm-submit" data-submit-action="mark this person as gone" />
             </p>
         </form>
     </td>

@@ -17,7 +17,7 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 
     var old_status = {% if old_status %}'{{old_status|escapejs}}'{% else %}null{% endif %};
 

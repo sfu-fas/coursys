@@ -24,7 +24,7 @@ $(document).ready(function() {
     <li><a href="{% url "calendar:calendar" %}"><i class="fa fa-li fa-calendar"></i> View Calendar</a></li>
     
     {% if 'DISC' in roles %}<li><a href="{% url "discipline:chair_index" %}"><i class="fa fa-li fa-gavel"></i> Discipline Cases</a></li>{% endif %}
-    {% if 'ADVS' in roles %}<li><a href="{% url "advising:advising" %}"><i class="fa fa-li fa-comments"></i> Advisor Notes</a></li>{% endif %}
+    {% if 'ADVS' in roles or 'ADVM' in roles %}<li><a href="{% url "advising:advising" %}"><i class="fa fa-li fa-comments"></i> Advisor Notes</a></li>{% endif %}
     {% if 'OUTR' in roles %}<li><a href="{% url "outreach:outreach_index" %}"><i class="fa fa-li fa-university"></i> Outreach </a></li>{% endif %}
     {% if 'INV' in roles %}<li><a href="{% url "inventory:inventory_index" %}"><i class="fa fa-li fa-laptop"></i> Inventory </a></li>{% endif %}
     {% if 'SPAC' in roles %}<li><a href="{% url "space:index" %}"><i class="fa fa-li fa-building"></i> Space Management</a></li>{% endif %}
@@ -33,11 +33,11 @@ $(document).ready(function() {
     {% if 'GRAD' in roles or 'GRPD' in roles %}<li class="newsec"><a href="{% url "grad:index" %}"><i class="fa fa-li fa-group"></i> Grad Students</a></li>{% endif %}
 
     {% if 'FUND' in roles %}<li class="newsec"><a href="{% url "ra:search" %}"><i class="fa fa-li fa-money"></i> Research Associates</a></li>{% endif %}
-    {% if 'ADMN' in roles or 'TAAD' in roles %}<li><a href="{% url "tugs:all_tugs_admin" %}"><i class="fa fa-li fa-clock-o"></i> Time Use Guidelines</a></li>{% endif %}
+    {% if 'ADMN' in roles or 'TAAD' in roles or is_instructor %}<li><a href="{% url "tugs:all_tugs_admin" %}"><i class="fa fa-li fa-clock-o"></i> Time Use Guidelines</a></li>{% endif %}
 
     <li class='newsec'><a href="{% url "onlineforms:index" %}"><i class="fa fa-li fa-envelope-o"></i> Online Forms</a></li>
-    {% if 'TAAD' in roles %}<li><a href="{% url "ta:view_postings" %}"><i class="fa fa-li fa-briefcase"></i> TA Job Postings</a></li>{% endif %}
-    {% if 'TAAD' in roles %}<li><a href="{% url "tacontracts:list_all_semesters" %}"><i class="fa fa-li fa-file-zip-o"></i> TA Contracts</a></li>{% endif %}
+    {% if cmpt_taadmn  %}<li><a href="{% url "ta:view_postings" %}"><i class="fa fa-li fa-briefcase"></i> TA Job Postings</a></li>{% endif %}
+    {% if other_taadmn %}<li><a href="{% url "tacontracts:list_all_semesters" %}"><i class="fa fa-li fa-file-zip-o"></i> TA Contracts</a></li>{% endif %}
     {% if 'ADMN' in roles or 'FACR' in roles or 'FACA' in roles %}
         <li><a href="{% url "faculty:index" %}"><i class="fa fa-li fa-files-o"></i> Faculty Management</a></li>
     {% endif %}
@@ -63,8 +63,7 @@ $(document).ready(function() {
     <li class="newsec"><a href="{% url "config:config" %}"><i class="fa fa-li fa-wrench"></i> User Configuration</a></li>
     <li><a href="{% url "browse:browse_courses" %}"><i class="fa fa-li fa-eye"></i> Browse Course Offerings</a></li>
     {% if excluded %}<li><a href="{% url "dashboard:index_full" %}"><i class="fa fa-li fa-archive"></i> View Older Courses</a></li>{% endif %}
-    {% if staff_memberships %}
-    <li><a href="{% url "students:student_info" %}"><i class="fa fa-li fa-search"></i> Student Search</a></li>
+    {% if staff_memberships or form_groups %}
     <li><a href="{% url "docs:list_docs" %}"><i class="fa fa-li fa-question"></i> View Documentation</a></li>
     {% endif %}
     </ul>

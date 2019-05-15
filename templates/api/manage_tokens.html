@@ -4,7 +4,7 @@
 {% block h1 %}Manage API Tokens{% endblock %}
 
 {% block headextra %}
-<script>
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#token-table').dataTable( {
     'bPaginate': false,
@@ -39,7 +39,7 @@ $(document).ready(function() {
     <td>
       <form action="" method="post" enctype="multipart/form-data" class="subtle">{% csrf_token %}
       <p><input type="hidden" name="key" value="{{ t.key }}" />
-      <input type="submit" value="Remove" onclick="return confirmSubmit('remove this authorization')" /></p>
+      <input type="submit" value="Remove" class="confirm-submit" data-submit-action="remove this authorization" /></p>
       </form>
     </td>
     </tr>

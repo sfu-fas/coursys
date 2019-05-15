@@ -3,6 +3,7 @@ from django.conf import settings
 from django.views.generic import TemplateView,  RedirectView
 
 from courselib.urlparts import USERID_SLUG, COURSE_SLUG
+from courselib.csp import csp_report_view
 
 from advisornotes.urls import advisornotes_patterns
 from coredata.urls import data_patterns, admin_patterns, sysadmin_patterns, browse_patterns
@@ -22,6 +23,7 @@ from sessionals.urls import sessionals_patterns
 from inventory.urls import inventory_pattern
 from relationships.urls import relationship_patterns
 from space.urls import space_patterns
+from reminders.urls import reminders_patterns
 from api.urls import api_patterns
 from otp.urls import otp_patterns
 
@@ -38,6 +40,7 @@ toplevel_patterns = [
     url(r'^logout/(?P<next_page>.*)/$', logout, name='auth_logout_next'),
     url(r'^robots.txt$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
     url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL + 'icons/favicon.ico', permanent=True)),
+    url(r'^csp-reports', csp_report_view, name='csp_reports'),
 
     # top-level pages
     url(r'^$', dashboard_views.index, name='index'),
@@ -80,6 +83,7 @@ urlpatterns = [
     url(r'^sessionals/', include((sessionals_patterns, 'sessionals'), namespace='sessionals')),
     url(r'^inventory/', include((inventory_pattern, 'inventory'), namespace='inventory')),
     url(r'^space/', include((space_patterns, 'space'), namespace='space')),
+    url(r'^reminders/', include((reminders_patterns, 'reminders'), namespace='reminders')),
 
 
     # graduate student-related apps
@@ -98,11 +102,9 @@ urlpatterns = [
 
 if settings.DEPLOY_MODE != 'production':
     # URLs for development only:
-    from courselib.csp import csp_report_view
     urlpatterns += [
         url(r'^fake_login', dashboard_views.fake_login, name='fake_login'),
         url(r'^fake_logout', dashboard_views.fake_logout, name='fake_logout'),
-        url(r'^csp-reports', csp_report_view, name='csp_reports'),
     ]
 
 if settings.DEBUG_TOOLBAR:

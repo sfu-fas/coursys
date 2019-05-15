@@ -6,7 +6,7 @@
 {% block h1 %}{% if event %}Change Event{% else %}New {{ name|title }}{% endif %}: {{ person.name }}{% endblock %}
 
 {% block headextra %}
-<script>
+<script nonce="{{ CSP_NONCE }}">
 var event_type = "{{ event_type|escapejs }}";
 </script>
 <script type="text/javascript" src="{% static "js/faculty.js" %}"></script>

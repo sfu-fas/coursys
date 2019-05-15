@@ -294,6 +294,8 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
         <dt>Grant Name</dt><dd>{{ handler|get_display:"grant_name" }}</dd>
         <dt>Amount</dt><dd>${{ handler|get_display:"amount" }}</dd>
         <dt>Overhead</dt><dd>${{ handler|get_display:"overhead" }}</dd>
+        <dt>Principal Investigator Fees</dt><dd>${{ handler|get_display:"principal_investigator_fees" }}</dd>
+        <dt>Release Time Stipend/Replacement Cost</dt><dd>${{ handler|get_display:"rts_fees" }}</dd>
         <dt>Primary Use of Funds</dt><dd>{{ handler|get_display:"primary_use_of_funds" }}</dd>
         <dt>Title of Project</dt><dd>{{ handler|get_display:"title_of_project" }}</dd>
         <dt>Co-Investigator</dt><dd>{{ handler|get_display:"co_investigator" }}</dd>
@@ -303,9 +305,12 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
 
     class EntryForm(BaseEntryForm):
         funding_agency = forms.CharField(label='Funding Agency', max_length=255)
-        grant_name = forms.CharField(label='Grant Name', max_length=255)
+        grant_name = forms.CharField(label='Grant Name', max_length=255, required=False)
         amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
         overhead = forms.DecimalField(widget=DollarInput, required=False, decimal_places=2, initial=0)
+        principal_investigator_fees = forms.DecimalField(widget=DollarInput, required=False,decimal_places=2, initial=0)
+        rts_fees = forms.DecimalField(label='Release Time Stipend/Replacement Cost', widget=DollarInput,
+                                      required=False, decimal_places=2, initial=0)
         primary_use_of_funds = forms.CharField(label='Primary Use of Funds', required=False, max_length=255)
         title_of_project = forms.CharField(label='Title of Project', required=False, max_length=255)
         co_investigator = forms.CharField(label='Co-investigator', required=False, max_length=255)
@@ -315,7 +320,9 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
         'funding_agency': StringSearchRule,
         'grant_name': StringSearchRule,
         'amount': ComparableSearchRule,
-        'overhead': ComparableSearchRule, 
+        'overhead': ComparableSearchRule,
+        'principal_investigator_fees': ComparableSearchRule,
+        'rts_fees': ComparableSearchRule,
         'primary_use_of_funds': StringSearchRule, 
         'title_of_project': StringSearchRule,
         'funding_program': StringSearchRule

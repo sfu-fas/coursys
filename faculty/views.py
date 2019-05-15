@@ -49,6 +49,7 @@ from faculty.event_types.info import ResumeEventHandler
 from coredata.models import AnyPerson
 from dashboard.letters import position_yellow_form_limited, position_yellow_form_tenure
 from log.models import LogEntry
+from space.models import BookingRecord
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -213,11 +214,21 @@ def manage_faculty_roles(request):
             if form.old_role:
                 form.old_role.config['gone'] = False
                 form.old_role.save()
+                l = LogEntry(userid=request.user.username,
+                             description="added faculty role in %s for %s" %
+                                         (form.old_role.unit.label, form.old_role.person),
+                             related_object=form.old_role)
+                l.save()
             else:
                 role = form.save(commit=False)
                 role.role = 'FAC'
                 role.expiry = FACULTY_ROLE_EXPIRY
                 role.save()
+                l = LogEntry(userid=request.user.username,
+                             description="added faculty role in %s for %s" % (role.unit.label, role.person),
+                             related_object=role)
+
+                l.save()
             messages.success(request, 'New faculty role added.')
             return HttpResponseRedirect(reverse('faculty:manage_faculty_roles'))
 
@@ -229,6 +240,11 @@ def manage_faculty_roles(request):
         role = get_object_or_404(Role, id=roleid)
         role.gone = True
         role.save()
+        l = LogEntry(userid=request.user.username,
+                     description="removed faculty role in %s for %s" % (role.unit.label, role.person),
+                     related_object=role)
+
+        l.save()
         messages.success(request, 'Faculty member marked as "gone".')
         return HttpResponseRedirect(reverse('faculty:manage_faculty_roles'))
 
@@ -1348,11 +1364,22 @@ def otherinfo(request, userid):
     ras = RAAppointment.objects.filter(deleted=False, hiring_faculty=person, unit__in=units) \
             .select_related('person', 'project', 'account')
 
+    services = CareerEvent.objects.not_deleted().filter(event_type='COMMITTEE', person=person,
+                                                        unit__in=Unit.sub_units(request.units))
+    if services:
+        for s in services:
+            handler = s.get_handler()
+            s.committee = handler.get_committee_display()
+
+    bookings = BookingRecord.objects.current().filter(person=person)
+
     context = {
         'person': person,
         'instructed': instructed,
         'supervised': supervised,
         'ras': ras,
+        'services': services,
+        'bookings': bookings,
     }
     return render(request, 'faculty/otherinfo.html', context)
 
@@ -1406,10 +1433,15 @@ def generate_pdf(request, userid, event_slug, pdf_key):
 
     return handler.generate_pdf(pdf_key)
 
+
 @requires_role(['ADMN', 'FACA'])
 def timeline(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     return render(request, 'faculty/reports/timeline.html', {'person': person})
+
+
+def _timeline_date(dt):
+    return {'year': dt.year, 'month': dt.month, 'day': dt.day}
 
 
 @requires_role(['ADMN', 'FACA'])
@@ -1417,17 +1449,10 @@ def timeline_json(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     viewer = get_object_or_404(Person, userid=request.user.username)
 
-    payload = {
-        'timeline': {
-            'type': 'default',
-            'startDate': '{:%Y,%m,%d}'.format(datetime.date.today()),
-            'date': [],
-            'era': [],
-        },
-    }
     semesters = set()
 
     # Populate events
+    slides = []
     events = (CareerEvent.objects.not_deleted()
                          .only_subunits(request.units).approved()
                          .filter(person=person)
@@ -1436,16 +1461,20 @@ def timeline_json(request, userid):
         handler = event.get_handler()
 
         if handler.can_view(viewer):
-            blurb = {
-                'startDate': '{:%Y,%m,%d}'.format(handler.event.start_date),
-                'headline': handler.short_summary(),
-                'text': '<a href="{}">more information</a>'.format(handler.event.get_absolute_url()),
+            slide = {
+                'start_date': _timeline_date(handler.event.start_date),
+                #'headline': handler.short_summary(),
+                #'text': '<a href="{}">more information</a>'.format(handler.event.get_absolute_url()),
+                'text': {
+                    'headline': handler.short_summary(),
+                    'text': '<a href="{}">more information</a>'.format(handler.event.get_absolute_url()),
+                }
             }
 
             if handler.event.end_date is not None:
-                payload['endDate'] = '{:%Y,%m,%d}'.format(handler.event.end_date)
+                slide['end_date'] = _timeline_date(handler.event.end_date)
 
-            payload['timeline']['date'].append(blurb)
+            slides.append(slide)
 
             # Show all semesters that the event covers, if possible.
             if event.end_date is not None:
@@ -1455,13 +1484,26 @@ def timeline_json(request, userid):
                 semesters.add(ReportingSemester(event.start_date))
 
     # Populate semesters
+    eras = []
     for semester in semesters:
-        payload['timeline']['era'].append({
-            'startDate': '{:%Y,%m,%d}'.format(semester.start_date),
-            'endDate': '{:%Y,%m,%d}'.format(semester.end_date),
-            'headline': semester.short_label,
+        eras.append({
+            'start_date': _timeline_date(semester.start_date),
+            'end_date': _timeline_date(semester.end_date),
+            'text': {
+                'headline': semester.short_label,
+            }
         })
+        #payload['timeline']['era'].append({
+        #    'startDate': '{:%Y,%m,%d}'.format(semester.start_date),
+        #    'endDate': '{:%Y,%m,%d}'.format(semester.end_date),
+        #    'headline': semester.short_label,
+        #})
 
+    payload = {
+        'events': slides,
+        'eras': eras,
+    }
+    print(payload)
     return HttpResponse(json.dumps(payload), content_type='application/json')
 
 

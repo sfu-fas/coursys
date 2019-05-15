@@ -2,7 +2,7 @@
 {% load form_display %}
 
 {% block headextra %}
-<script type="text/javascript">//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">//<![CDATA[
 function append_problem(n, penalty, content, outof) {
   // handle comment
   var comment = $("#id_cmp-" + n + "-comment");

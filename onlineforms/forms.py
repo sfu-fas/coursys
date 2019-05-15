@@ -41,8 +41,18 @@ class FormForm(ModelForm):
                                                'expect most users to be external to SFU.')
     unlisted = forms.BooleanField(required=False, initial=False, label='Unlisted',
                                   help_text='Should this form be visible in the list of forms everyone can see?  '
-                                            'if this is checked, only people with the direct URL will be able to '
+                                            'If this is checked, only people with the direct URL will be able to '
                                             'fill in this form.')
+    autoconfirm = forms.BooleanField(required=False, initial=False, label='Auto-Confirm',
+                                     help_text='Should we send the filler of this form a confirmation email once they '
+                                               'submit the initial sheet?  If unchecked, the user will still see a '
+                                               'confirmation message at the top of the page, but they will not get an '
+                                               'automatic email.')
+    emailsubject = forms.CharField(required=False, label='Confirmation Email Subject',
+                                   help_text='The subject for the confirmation email.', widget=forms.TextInput)
+    emailbody = forms.CharField(required=False, label='Confirmation Email Body',
+                                help_text='The message body for the confirmation email.', widget=forms.Textarea)
+
 
     class Meta:
         model = Form
@@ -55,15 +65,23 @@ class FormForm(ModelForm):
         super(FormForm, self).__init__(*args, **kwargs)
         self.initial['loginprompt'] = self.instance.loginprompt()
         self.initial['unlisted'] = self.instance.unlisted()
+        self.initial['autoconfirm'] = self.instance.autoconfirm()
+        self.initial['emailsubject'] = self.instance.emailsubject()
+        self.initial['emailbody'] = self.instance.emailbody()
 
     def save(self, *args, **kwargs):
         self.instance.set_loginprompt(self.cleaned_data['loginprompt'])
         self.instance.set_unlisted(self.cleaned_data['unlisted'])
+        self.instance.set_autoconfirm(self.cleaned_data['autoconfirm'])
+        self.instance.set_emailsubject(self.cleaned_data['emailsubject'])
+        self.instance.set_emailbody(self.cleaned_data['emailbody'])
+
         return super(FormForm, self).save(*args, **kwargs)
 
     # get instance of the FormForm    
     def _get(self):
             return self.instance
+
     #Validation error on assigning Forms without initial sheets         
     def clean_initiators(self):
         initiators = self.cleaned_data['initiators']
@@ -71,6 +89,14 @@ class FormForm(ModelForm):
         if initiators != 'NON' and not Sheet.objects.filter(form=form, is_initial=True, active=True):
             raise forms.ValidationError("Can't activate until you have created at least one sheet to be filled out.")
         return initiators
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if 'autoconfirm' in cleaned_data and cleaned_data['autoconfirm']:
+            if not cleaned_data['emailsubject']:
+                self.add_error('emailsubject', 'If you select the auto-confirm option, you must have an email subject.')
+            if not cleaned_data['emailbody']:
+                self.add_error('emailbody', 'If you select the auto-confirm option, you must have an email body.')
 
 class NewFormForm(FormForm):
     class Meta:
@@ -82,7 +108,7 @@ class NewFormForm(FormForm):
 
 
 class SheetForm(forms.Form):
-    title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
+    title = forms.CharField(required=True, max_length=60, label=mark_safe('Title'), help_text='Name of the sheet')
     can_view = forms.ChoiceField(required=True, choices=VIEWABLE_CHOICES, label='Can view', help_text='When someone is filling out this sheet, what else can they see?')
 
 class EditSheetForm(ModelForm):
@@ -175,7 +201,10 @@ class CloseFormForm(forms.Form):
                 widget=forms.Textarea(attrs={'rows': '5', 'cols': '70'})
                 )
     email = forms.BooleanField(initial=False, required=False, help_text="Would you like to email the summary to the student?")
-    
+    email_cc = forms.CharField(label='Email CC', required=False, widget=forms.TextInput(),
+                               help_text='If you are emailing the student, you can also get others to be '
+                                         'CCed as well. Please add addresses here, separated by commas.')
+
     def __init__(self, advisor_visible, *args, **kwargs):
         super(CloseFormForm, self).__init__(*args, **kwargs)
         self.used = True

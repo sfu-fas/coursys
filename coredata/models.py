@@ -43,6 +43,7 @@ VISA_STATUSES = ( # as taken from SIMS ps_visa_permit_tbl
 
 ROLE_CHOICES = (
         ('ADVS', 'Advisor'),
+        ('ADVM', 'Advisor Manager'),
         ('FAC', 'Faculty Member'),
         ('SESS', 'Sessional Instructor'),
         ('COOP', 'Co-op Staff'),
@@ -66,16 +67,20 @@ ROLE_CHOICES = (
         ('FACA', 'Faculty Administrator'),
         ('RELA', 'Relationship Database User'),
         ('SPAC', 'Space Administrator'),
+        ('FORM', 'Form Administrator'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'GRPD',
-              'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR', 'FACA', 'RELA', 'SPAC']
+UNIT_ROLES = ['ADVS', 'ADVM', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'GRPD',
+              'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR', 'FACA', 'RELA', 'SPAC', 'FORM']
+# roles that give access to SIMS data
+SIMS_ROLES = ['ADVS', 'ADMV', 'DISC', 'DICC', 'FUND', 'GRAD', 'GRPD']
 # help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
+        'ADVM': 'Can manage advisor visit categories.',
         'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
         'DICC': 'Will be copied on all discipline case letters in the unit: include whoever files your discipline cases.',
         'TAAD': 'Can administer TA job postings and appointments.',
@@ -97,6 +102,7 @@ ROLE_DESCR = {
         'FACA': 'Can manage faculty data',
         'RELA': 'Can access relationship database',
         'SPAC': 'Can manage spaces',
+        'FORM': 'Can manage form groups (and thus, forms)',
 }
 INSTR_ROLES = ["FAC", "SESS", "COOP", 'INST']  # roles that are given to categorize course instructors
 
@@ -623,7 +629,7 @@ class Semester(models.Model):
         """
         Calculate duedate based on week-of-semester and weekday.  Provided argument time can be either datetime.time or datetime.datetime: time is copied from this to new duedate.
         """
-        # find the "base": first known week before mk
+        # find the "base": first known week before wk
         weeks = list(SemesterWeek.objects.filter(semester=self))
         weeks.reverse()
         base = None
@@ -631,7 +637,7 @@ class Semester(models.Model):
             if w.week <= wk:
                 base = w
                 break
-        
+
         date = base.monday + datetime.timedelta(days=7 * (wk - base.week) + wkday)
         # construct the datetime from date and time.
         if time:
@@ -858,6 +864,7 @@ COMPONENT_CHOICES = (
         ('CNV', 'CNV'), # converted from SIMON?
         ('OPL', 'Open Lab'), # ???
         ('EXM', 'Exam'),  # First showed up 2017/09/20 with descr "PhD Oral Candidacy Exam"
+        ('CAP', 'Capstone Required'),  # First showed up 2019/03/24.  go.sfu shows those classes as "Capstone Required"
         ('CAN', 'Cancelled')
         )
 COMPONENTS = dict(COMPONENT_CHOICES)
@@ -1150,12 +1157,12 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         """
         Should students and groups in this course get Subversion repositories created?
         """
-        if 'uses_svn' in self.config and self.config['uses_svn']:
-            return True
-
-        return self.subject == "CMPT" \
-            and ((self.semester.name == "1117" and self.number in ["470", "379", "882"])
-                 or (self.semester.name >= "1121" and self.number >= "200"))
+        return False
+        #if 'uses_svn' in self.config and self.config['uses_svn']:
+        #    return True
+        #return self.subject == "CMPT" \
+        #    and ((self.semester.name == "1117" and self.number in ["470", "379", "882"])
+        #         or (self.semester.name >= "1121" and self.number >= "200"))
 
     def export_dict(self, instructors=None):
         """
@@ -1603,14 +1610,14 @@ class Role(models.Model):
         def get_queryset(self):
             return super(Role.RoleNonExpiredManager, self).get_queryset().filter(expiry__gte=datetime.date.today())
 
-
-    ROLES = dict(ROLE_CHOICES)
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
     role = models.CharField(max_length=4, choices=ROLE_CHOICES)
     unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     expiry = models.DateField(null=False, blank=False)
     config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # 'gone': used with role='FAC' to indicate this person has left/retired/whatever
+        # 'giver': userid of the user who assigned the role
+        # 'given_date': date the role was assigned
 
     gone = config_property('gone', False)
 
@@ -1618,7 +1625,7 @@ class Role(models.Model):
     objects_fresh = RoleNonExpiredManager()
 
     def __str__(self):
-        return "%s (%s, %s)" % (self.person, self.ROLES[str(self.role)], self.unit.label)
+        return "%s (%s, %s)" % (self.person, ROLES[str(self.role)], self.unit.label)
     class Meta:
         unique_together = (('person', 'role', 'unit'),)
 
@@ -1628,6 +1635,7 @@ class Role(models.Model):
 
     def expires_far(self):
         return self.expiry - datetime.date.today() < datetime.timedelta(days=182)
+
     def expires_soon(self):
         return self.expiry - datetime.date.today() < datetime.timedelta(days=14)
 

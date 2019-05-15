@@ -30,12 +30,12 @@ $(document).ready(function() {
     var reorder_url = "{% url "offering:reorder_activity" course_slug=course.slug %}";
     var csrf_token = "{{csrf_token}}";
 
-	$('.sortarrows .arrow_up').attr('href', 'javascript:').bind('click', function(event) {
+	$('.sortarrows .arrow_up').attr('href', '#').bind('click', function(event) {
 	    var this_tr = $(this).parents('tr')
 	    var prev_tr = this_tr.prev();
         reorder_activities(reorder_url, csrf_token, oTable, prev_tr, this_tr);
 	});
-	$('.sortarrows .arrow_down').attr('href', 'javascript:').bind('click', function(event) {
+	$('.sortarrows .arrow_down').attr('href', '#').bind('click', function(event) {
 	    var this_tr = $(this).parents('tr')
 	    var next_tr = this_tr.next();
         reorder_activities(reorder_url, csrf_token, oTable, this_tr, next_tr);

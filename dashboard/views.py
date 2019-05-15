@@ -4,7 +4,6 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.template import TemplateDoesNotExist
-from django.views.decorators.cache import cache_page
 from django.views.decorators.gzip import gzip_page
 from django.conf import settings
 from django.contrib import messages
@@ -33,7 +32,9 @@ from xml.etree.ElementTree import ParseError
 from ipware import ip
 import pytz
 import itertools
+import iso8601
 from urllib.parse import urlencode
+from urllib.error import HTTPError
 
 
 @login_required
@@ -41,6 +42,7 @@ def index(request):
     userid = request.user.username
     memberships, excluded = Member.get_memberships(userid)
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
+    is_instructor = len([m for m in memberships if m.role == 'INST']) > 0  # For TUGs link
     news_list = _get_news_list(userid, 5)
     roles = Role.all_roles(userid)
     is_grad = GradStudent.objects.filter(person__userid=userid, current_status__in=STATUS_ACTIVE).exists()
@@ -48,20 +50,23 @@ def index(request):
     form_groups = FormGroup.objects.filter(members__userid=request.user.username).exists()
     has_ras = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username, deleted=False).exists()
 
-    #messages.add_message(request, messages.SUCCESS, 'Success message.')
-    #messages.add_message(request, messages.WARNING, 'Warning message.')
-    #messages.add_message(request, messages.INFO, 'Info message.')
-    #messages.add_message(request, messages.ERROR, 'Error message.')
+    # Only CMPT admins should see the one different TA module.  Only non-CMPT TA Admins should see the other.
+    # re-factored to take into account the very few people who should see both (mainly FAS Departmental Admins)
+    cmpt_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD', unit__label__in=['CMPT', 'SEE']).exists()
+    other_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD').exclude(unit__label__in=['CMPT', 'SEE']).exists()
 
-    context = {'memberships': memberships, 
-                'staff_memberships': staff_memberships, 
-                'news_list': news_list, 
-                'roles': roles, 
-                'is_grad':is_grad,
-                'has_grads': has_grads,
-                'has_ras': has_ras,
-                'excluded': excluded, 
-                'form_groups': form_groups}
+    context = {'memberships': memberships,
+               'staff_memberships': staff_memberships,
+               'news_list': news_list,
+               'roles': roles,
+               'is_grad':is_grad,
+               'has_grads': has_grads,
+               'has_ras': has_ras,
+               'excluded': excluded,
+               'form_groups': form_groups,
+               'cmpt_taadmn': cmpt_taadmn,
+               'other_taadmn': other_taadmn,
+               'is_instructor': is_instructor}
     return render(request, "dashboard/index.html", context)
 
 @login_required
@@ -134,7 +139,8 @@ from django_cas.views import _redirect_url, _service_url, _login_url, HttpRespon
 def login(request, next_page=None, required=False):
     """Forwards to CAS login URL or verifies CAS ticket
 
-    Modified locally: honour next=??? in query string, don't deliver a message, catch IOError, generate LogEntry
+    Modified locally: honour next=??? in query string, don't deliver a message, catch HTTPError and IOError,
+    generate LogEntry
     """
     if not next_page and 'next' in request.GET:
         next_page = request.GET['next']
@@ -154,6 +160,15 @@ def login(request, next_page=None, required=False):
             # Here we want to catch only: connection reset, timeouts, name or service unknown
             if e.errno in [104, 110, 'socket error']:
                 user = None
+            # HTTPError is a type of OSError, which IOError is an alias for.
+            # Sometimes, the CAS server seems to just return a 500 internal server error.  Let's handle that the
+            # same way as the above case.
+            elif isinstance(e, HTTPError):
+                if e.code == 500:
+                    user = None
+                else:
+                    # Any other HTTPError should bubble up and let us know something horrible has happened.
+                    raise HTTPError("Got an HTTP Error when authenticating. The error is: {0!s}.".format(e))
             else:
                 raise IOError("The errno is %r: %s." % (e.errno, str(e)))
         except ParseError:
@@ -245,7 +260,6 @@ def _get_news_list(userid, count):
 
 
 @uses_feature('feeds')
-@cache_page(60 * 15)
 def atom_feed(request, token, userid, course_slug=None):
     """
     Return an Atom feed for this user, authenticated by the token in the URL
@@ -311,7 +325,7 @@ def _activity_colour(a):
 def _holiday_colour(h):
     return "#060680"
 
-ICAL_SEQUENCE = '2' # used to perturb the icalendar idents when the output changes
+ICAL_SEQUENCE = '3' # used to perturb the icalendar idents when the output changes
 def _offerings_calendar_data(offerings, labsecs, start, end, local_tz, dt_string=True, colour=False, browse_titles=False):
     """
     Get calendar data for this set of offerings and lab sections.
@@ -442,7 +456,6 @@ def _ical_datetime(utc, dt):
         return dt
 
 @uses_feature('feeds')
-@cache_page(60*60*6)
 def calendar_ical(request, token, userid):
     """
     Return an iCalendar for this user, authenticated by the token in the URL
@@ -515,15 +528,15 @@ def calendar_data(request):
     AJAX JSON results for the calendar (rendered by dashboard.views.calendar)
     """
     try:
-        int(request.GET['start'])
-        int(request.GET['end'])
-    except (KeyError, ValueError):
+        st = iso8601.parse_date(request.GET['start'])
+        en = iso8601.parse_date(request.GET['end'])
+    except (KeyError, ValueError, iso8601.ParseError):
         return NotFoundResponse(request, errormsg="Bad request")
 
     user = get_object_or_404(Person, userid=request.user.username)
     local_tz = pytz.timezone(settings.TIME_ZONE)
-    start = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['start'])))-datetime.timedelta(days=1)
-    end = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['end'])))+datetime.timedelta(days=1)
+    start = st - datetime.timedelta(days=1)
+    end = en + datetime.timedelta(days=1)
 
     resp = HttpResponse(content_type="application/json")
     events = _calendar_event_data(user, start, end, local_tz, dt_string=True, colour=True,
@@ -780,7 +793,7 @@ def view_doc(request, doc_slug):
         instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role__in=["INST","TA"])
         offerings = [(Member.objects.filter(offering=m.offering, role="STUD"), m.offering) for m in instructor]
         offerings = [(students.count()>0, course.semester.name, students, course) for students, course in offerings]
-        offerings.sort()
+        offerings.sort(key=lambda x: (x[0], x[1], x[3]))
         offerings.reverse()
         if offerings:
             nonempty, semester, students, course = offerings[0]
@@ -832,7 +845,6 @@ def view_doc(request, doc_slug):
 # public data, so no authentication done
 @uses_feature('feeds')
 @gzip_page
-@cache_page(60 * 60 * 6)
 def courses_json(request, semester):
     offerings = CourseOffering.objects.filter(semester__name=semester)\
         .exclude(component="CAN").exclude(flags=CourseOffering.flags.combined) \

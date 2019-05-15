@@ -1,5 +1,16 @@
+import json
 import random
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from django.http.response import HttpResponse
+from log.models import LogEntry
+from coredata.models import Unit
+generic_related = None
+
+
+# TODO: onclick usages
+# TODO: onsubmit usages
+
 
 def new_token():
     """
@@ -20,32 +31,63 @@ class CSPMiddleware(object):
         token = new_token()
         request.csp_nonce = token
         response = self.get_response(request)
+        return response
 
-        #header = 'Content-Security-Policy'
-        header = 'Content-Security-Policy-Report-Only'
-        #value = "default-src 'self' * ; script-src 'self' * 'nonce-%s' 'unsafe-inline'" % (token,)
-        value = "default-src 'self' * ; " \
-                "style-src 'self' 'unsafe-inline' ; " \
-                "img-src 'self' www.sfu.ca data: ; " \
-                "font-src 'self' www.sfu.ca ; " \
-                "script-src 'self' 'nonce-%s' ; " \
-                "report-uri /csp-reports ; " \
-                % (token,)
+        if settings.DEBUG:
+            header = 'Content-Security-Policy'
+        else:
+            header = 'Content-Security-Policy-Report-Only'
+            return response # short-circuit for now
 
         if header in response:
+            # if the view set the Content-Security-Policy, honour it
             return response
 
-        #response[header] = value
+        extra_script_src = " 'nonce-%s'" % (token,)
+        extra_style_src = ''
+        if hasattr(response, 'allow_gstatic_csp') and response.allow_gstatic_csp:
+            # pages that use Google charts need to load/run that code...
+            extra_script_src += " https://www.gstatic.com https://www.google.com 'unsafe-eval'"
+            extra_style_src = ' https://www.gstatic.com https://ajax.googleapis.com https://www.google.com'
+
+        if hasattr(response, 'has_inline_script') and response.has_inline_script:
+            # 'unsafe-inline' is ignored if a nonce value is present in the source list
+            extra_script_src = " 'unsafe-inline'"
+
+        value = "default-src 'self' * ; " \
+                "style-src 'self' 'unsafe-inline'%s ; " \
+                "img-src 'self' www.sfu.ca data: ; " \
+                "font-src 'self' www.sfu.ca ; " \
+                "script-src 'self' https://cdnjs.cloudflare.com %s ; " % (extra_style_src, extra_script_src)
+        value += "report-uri /csp-reports ;"
+
+        response[header] = value
         return response
 
 
 @csrf_exempt
 def csp_report_view(request):
-    from django.http.response import HttpResponse
-    import json
-    report = json.loads(request.body.decode('utf8'))
-    print(json.dumps(report, indent=2))
-    return HttpResponse()
+    global generic_related
+    report_json = request.body.decode('utf8')
+    report = json.loads(report_json)
+    resp = HttpResponse()
+
+    if ('script-sample' in report['csp-report']
+            and 'var t=0,e=function(t,e){ret' in report['csp-report']['script-sample']) or \
+            ('script-sample' in report['csp-report'] and report['csp-report']['script-sample'] == ';undefined'):
+        # firefox browser plugin injection?
+        return resp
+
+    if generic_related is None:
+        generic_related = Unit.objects.get(slug='univ')
+    userid = request.user.username if request.user.is_authenticated else '_anon'
+    l = LogEntry(userid=userid, description='CSP violation', comment=report_json, related_object=generic_related)
+    l.save()
+
+    if settings.DEBUG:
+        print(json.dumps(report, indent=2))
+
+    return resp
 
 
 def context_processor(request):

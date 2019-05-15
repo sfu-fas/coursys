@@ -1,12 +1,17 @@
-from courselib.auth import requires_role
+from courselib.auth import ForbiddenResponse
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from grad.models import Letter
 from django.http import HttpResponse
 from dashboard.letters import OfficialLetter, LetterContents
+from grad.views.view import _can_view_student
 
-@requires_role("GRAD", get_only=["GRPD"])
+@login_required
 def get_letter(request, grad_slug, letter_slug):
-    letter = get_object_or_404(Letter, slug=letter_slug, student__slug=grad_slug, student__program__unit__in=request.units)
+    grad, authtype, units = _can_view_student(request, grad_slug)
+    if grad is None or authtype == 'student':
+        return ForbiddenResponse(request)
+    letter = get_object_or_404(Letter, slug=letter_slug, student=grad, student__program__unit__in=units)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (letter_slug)
 

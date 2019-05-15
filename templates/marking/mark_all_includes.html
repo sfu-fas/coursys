@@ -1,15 +1,17 @@
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 function setgrades() {
     $("tr input").val($("#setallgrades").val());
 }
-
 function cleargrades() {
     $("tr input").val('');
     $("#setallgrades").val('');
-
 }
+$(document).ready(function() {
+	$('#setgrades').click(setgrades);
+	$('#cleargrades').click(cleargrades);
+});
 </script>
 
-Set all grades to: <input type="text" id="setallgrades" size=5>
-<button type="button" onclick="setgrades();">Set</button>
-<button type="button" onclick="cleargrades();">Clear all</button>
+Set all grades to: <input type="text" id="setallgrades" size="5">
+<button type="button" id="setgrades">Set</button>
+<button type="button" id="cleargrades">Clear all</button>

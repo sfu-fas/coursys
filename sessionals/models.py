@@ -5,8 +5,10 @@ some important differences.
 
 from django.db import models
 from autoslug import AutoSlugField
-from coredata.models import AnyPerson, Unit, JSONField, CourseOffering
+from coredata.models import AnyPerson, Unit, JSONField, CourseOffering, Person
 from courselib.slugs import make_slug
+from courselib.storage import UploadedFileStorage, upload_path
+import os
 
 
 GUARANTEE_CHOICES = (
@@ -119,6 +121,9 @@ class SessionalContract(models.Model):
         self.hidden = True
         self.save()
 
+    def has_attachments(self):
+        return self.attachments.visible().count() > 0
+
     class Meta:
         # Presumably, you can only have one contract for the same person, offering, and account/position.
         unique_together = (('sessional', 'account', 'offering'),)
@@ -149,3 +154,43 @@ class SessionalConfig(models.Model):
 
     def delete(self):
         raise NotImplementedError("This object cannot be deleted")
+
+
+def sessional_attachment_upload_to(instance, filename):
+    return upload_path('sessionals', filename)
+
+
+class SessionalAttachmentQueryset(models.QuerySet):
+    def visible(self):
+        return self.filter(hidden=False)
+
+
+class SessionalAttachment(models.Model):
+    """
+    Document attached to a CareerEvent.
+    """
+    sessional = models.ForeignKey(SessionalContract, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
+    title = models.CharField(max_length=250, null=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('sessional',))
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.', on_delete=models.PROTECT)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=sessional_attachment_upload_to, max_length=500)
+    mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = SessionalAttachmentQueryset.as_manager()
+
+    def __str__(self):
+        return self.contents.name
+
+    class Meta:
+        ordering = ("created_at",)
+        unique_together = (("sessional", "slug"),)
+
+    def contents_filename(self):
+        return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()
+

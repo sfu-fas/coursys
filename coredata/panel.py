@@ -278,23 +278,6 @@ def deploy_checks(request=None):
     if bad_cert == 0:
         passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
 
-    # SVN database
-    if settings.SVN_DB_CONNECT:
-        from courselib.svn import SVN_TABLE, _db_conn
-        import MySQLdb
-        try:
-            db = _db_conn()
-            db.execute('SELECT count(*) FROM '+SVN_TABLE, ())
-            n = list(db)[0][0]
-            if n > 0:
-                passed.append(('SVN database', 'okay'))
-            else:
-                failed.append(('SVN database', "couldn't access records"))
-        except MySQLdb.OperationalError:
-            failed.append(('SVN database', "can't connect to database"))
-    else:
-        failed.append(('SVN database', 'SVN_DB_CONNECT not set in secrets.py'))
-
     # file creation in the necessary places
     dirs_to_check = [
         (settings.DB_BACKUP_DIR, 'DB backup dir'),
@@ -375,6 +358,13 @@ def deploy_checks(request=None):
     except RuntimeError:
         failed.append(('Markdown subprocess', 'markdown script failed'))
 
+    # locale is UTF-8 (matters for markdown script calls, the SIMS database connection)
+    import locale
+    _, encoding = locale.getdefaultlocale()
+    if encoding == 'UTF-8':
+        passed.append(('Locale encoding', 'okay'))
+    else:
+        failed.append(('Locale encoding', "is %r; should be 'UTF-8'" % (encoding,)))
 
     return passed, failed
 
@@ -511,7 +501,7 @@ def ps_info():
 
 def pip_info():
     pip = subprocess.Popen(['pip', 'freeze'], stdout=subprocess.PIPE)
-    output = pip.stdout.read()
+    output = pip.stdout.read().decode('utf8')
     result = '<pre>' + escape(output) + '</pre>'
     return [('PIP freeze', mark_safe(result))]
 

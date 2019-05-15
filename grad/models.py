@@ -80,10 +80,11 @@ STATUS_CHOICES = (
         ('DEFR', 'Deferred'),
         ('GAPL', 'Applied for Graduation'),
         ('GAPR', 'Graduation Approved'),
+        ('WAIT', 'Waitlisted'),
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV',
-                    'DEFR') # statuses that mean "applicant"
-STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO') # statuses that mean "currently applying"
+                    'DEFR', 'WAIT') # statuses that mean "applicant"
+STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'WAIT') # statuses that mean "currently applying"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_GPA = ('GAPL', 'GAPR',) + STATUS_ACTIVE  # Statuses for which we want to import the GPA
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP', 'GAPL', 'GAPR') # statuses that mean "done"
@@ -116,6 +117,7 @@ SHORT_STATUSES = dict([  # a shorter status description we can use in compact ta
         ('DEFR', 'Deferred'),
         ('GAPL', 'Grad Applied'),
         ('GAPR', 'Grad Approved'),
+        ('WAIT', 'Waitlisted'),
         (None, 'None'),
 ])
 
@@ -596,8 +598,16 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 promise = "${:,f}".format(promises[0].amount)
             except ValueError: # handle Python <2.7
                 promise = '$' + str(promises[0].amount)
+
+            # In addition to the latest promise, also get the earliest one, as requested by grad admins.
+            try:
+                promise_earliest = "${:,f}".format(promises.reverse()[0].amount)
+            except ValueError:  # handle Python <2.7
+                promise_earliest = '$' + str(promises.reverse()[0].amount)
+
         else:
             promise = '$0'
+            promise_earliest = '$0'
 
         tas = TAContract.objects.filter(application__person=self.person).order_by('-posting__semester__name')
         ras = RAAppointment.objects.filter(person=self.person, deleted=False).order_by('-start_date')
@@ -735,19 +745,23 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         if self.program.unit.slug == 'cmpt':
             # get CMPT offer of admission form details
-            from onlineforms.models import SheetSubmission, FieldSubmission
+            from onlineforms.models import FieldSubmission
             emplid = str(self.person.emplid)
             # all emplid entries for all possibly-relevant form submissons:
-            fieldsubs = FieldSubmission.objects.filter(
+            emplid_fieldsubs = FieldSubmission.objects.filter(
                 sheet_submission__form_submission__form__slug='cmpt-offer-of-admission-form',
                 field__slug='student-id-aka-student-number',
                 sheet_submission__completed_at__gte=datetime.datetime.now() - datetime.timedelta(days=120) # limit search to last ~semester
-            ).select_related('sheet_submission__form_submission__form')
+            ).select_related('sheet_submission__form_submission').order_by('-sheet_submission__completed_at')
 
             # field submissions actually about this person:
-            fieldsubs = [fs for fs in fieldsubs if 'info' in fs.data and fs.data['info'] == emplid]
-            # TODO: find the data they want and include it below.
-
+            emplid_fieldsubs = [fs for fs in emplid_fieldsubs if 'info' in fs.data and fs.data['info'] == emplid]
+            if len(emplid_fieldsubs) > 0:
+                # the sheet submission we actually care about:
+                sheet_sub = emplid_fieldsubs[0].sheet_submission
+                fieldsubs = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
+                # TODO: find the data they want and include it below.
+    
         ls = { # if changing, also update LETTER_TAGS below with docs!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
                 'todays_date' : todays_date, 
@@ -762,6 +776,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 'last_name': self.person.last_name,
                 'emplid': emplid, 
                 'promise': promise,
+                'promise_earliest': promise_earliest,
                 'start_semester': startsem,
                 'start_year': startyear,
                 'program': self.program.description,
@@ -993,6 +1008,7 @@ LETTER_TAGS = {
                'start_semester': 'student\'s first semester (e.g. "Summer 2000")',
                'start_year': 'year of student\'s first semester (e.g. "2000")',
                'promise': 'the amount of the [most recent] funding promise to the student (e.g. "$17,000")',
+               'promise_earliest': 'the amount of the earliest funding promise to the student (e.g. "$17,000")',
                'supervisor_name': "the name of the student's potential supervisor",
                'supervisor_hisher': 'pronoun for the potential supervisor ("his" or "her")',
                'supervisor_heshe': 'pronoun for the potential supervisor ("he" or "she")',
@@ -1003,7 +1019,7 @@ LETTER_TAGS = {
                'sr_supervisor_hisher': 'pronoun for the senior supervisor ("his" or "her")',
                'sr_supervisor_heshe': 'pronoun for the senior supervisor ("he" or "she")',
                'sr_supervisor_himher': 'pronoun for the senior supervisor ("him" or "her")',
-               'sr_supervisor_email': 'potential supervisor\'s email address',
+               'sr_supervisor_email': 'senior supervisor\'s email address',
                'defence_chair_name': 'the name of the student\'s defence chair', 
                'defence_chair_email': 'the email address of the student\'s defence chair',
                'sfu_examiner_name': 'the name of the student\'s internal (SFU) examiner', 
@@ -1040,7 +1056,7 @@ LETTER_TAGS = {
 
 SUPERVISOR_TYPE_CHOICES = [
     ('SEN', 'Senior Supervisor'),
-    ('COS', 'Co-senior Supervisor'),
+    ('COS', 'Co-Supervisor'),
     ('COM', 'Supervisor'),
     ('CHA', 'Defence Chair'),
     ('EXT', 'External Examiner'),
@@ -1201,6 +1217,7 @@ class CompletedRequirement(models.Model):
 STATUS_ORDER = {
         'INCO': 0,
         'COMP': 0,
+        'WAIT': 0,
         'INRE': 1,
         'HOLD': 1,
         'OFFO': 2,
@@ -1308,9 +1325,13 @@ class LetterTemplate(models.Model):
     hidden = models.BooleanField(default=False)
     config = JSONField(default=dict)  # Additional configuration for the template
         # 'body_font_size': the default font size for the letter.
+        # 'email_body': the text to include in the email when sending out this letter
+        # 'email_subject':  the email subject when sending out the letter
 
-    defaults = {'body_font_size': 12}
+    defaults = {'body_font_size': 12, 'email_body': '', 'email_subject': ''}
     body_font_size, set_body_font_size = getter_setter('body_font_size')
+    email_body, set_email_body = getter_setter('email_body')
+    email_subject, set_email_subject = getter_setter('email_subject')
 
     def autoslug(self):
         return make_slug(self.unit.label + "-" + self.label)  
@@ -1319,6 +1340,7 @@ class LetterTemplate(models.Model):
         unique_together = ('unit', 'label')      
     def __str__(self):
         return "%s in %s" % (self.label, self.unit)
+
     
 class Letter(models.Model):
     student = models.ForeignKey(GradStudent, null=False, blank=False, on_delete=models.PROTECT)
@@ -1335,18 +1357,27 @@ class Letter(models.Model):
     removed = models.BooleanField(default=False)
 
     config = JSONField(default=dict) # addition configuration for within the letter
-        # data returned by grad.letter_info() is stored here.
-        # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)
+    # data returned by grad.letter_info() is stored here.
+    # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is
+    # required.)
+    # 'email_body', 'email_subject', 'email_cc':  Used for sending the letter in an email
+    # 'email_sent': Used to put up an indicator to let us know when this letter was sent as an email.
 
-    defaults = {'use_sig': True}
+    defaults = {'use_sig': True, 'email_body': '', 'email_subject': 'Letter from CourSys', 'email_cc': '',
+                'email_sent': ''}
     use_sig, set_use_sig = getter_setter('use_sig')
-
+    email_body, set_email_body = getter_setter('email_body')
+    email_subject, set_email_subject = getter_setter('email_subject')
+    email_cc, set_email_cc = getter_setter('email_cc')
+    email_sent, set_email_sent = getter_setter('email_sent')
 
     def autoslug(self):
         return make_slug(self.student.slug + "-" + self.template.label)     
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+
     def __str__(self):
         return "%s letter for %s" % (self.template.label, self.student)
+
     def save(self, *args, **kwargs):
         # normalize text so it's easy to work with
         if not self.to_lines:
@@ -1504,7 +1535,7 @@ class ProgressReport(models.Model):
 
 
 def attachment_upload_to(instance, filename):
-    return upload_path('gradnotes', str(datetime.date.today().year), filename)
+    return upload_path('gradnotes', filename)
 
 
 class ExternalDocument(models.Model):

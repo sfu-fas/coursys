@@ -86,6 +86,7 @@ class AdvisorNotestest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['notes']), 3)
 
+
     def test_new_nonstudent_not_advisor(self):
         client = Client()
         client.login_user("0ppp0")

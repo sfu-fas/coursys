@@ -4,7 +4,7 @@
 {% block h1 %}{{course.name}} TAs{% endblock %}
 {% block title %}{{course.name}} TAs{% endblock %}
 
-{% block headextra %}<script type="text/javascript">
+{% block headextra %}<script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
     $('#tas_table').dataTable({
                 "bPaginate": false,
@@ -43,7 +43,7 @@
 </td>
 <td class="miniaction">
 {% if m.added_reason == "TAIN" %}
-<form action="{% url "offering:manage_tas" course_slug=course.slug %}" method="post">{% csrf_token %}<p><input type="hidden" name="action" value="del" /><input type="hidden" name="userid" value="{{m.person.userid}}" /><input type="submit" value="Remove TA" onclick="return confirmSubmit('remove this TA')" /></p></form>
+<form action="{% url "offering:manage_tas" course_slug=course.slug %}" method="post">{% csrf_token %}<p><input type="hidden" name="action" value="del" /><input type="hidden" name="userid" value="{{m.person.userid}}" /><input type="submit" value="Remove TA" class="confirm-submit" data-submit-action="remove this TA" /></p></form>
 {% else %}{% if m.added_reason == "AUTO" %}
 [cannot remove: imported]
 {% else %}

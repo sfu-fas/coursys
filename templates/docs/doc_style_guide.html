@@ -11,7 +11,7 @@
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushDjango.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushXml.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushJScript.js"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     SyntaxHighlighter.defaults['light'] = true;
     SyntaxHighlighter.all()
 </script>
@@ -139,7 +139,7 @@
 <p> To enable different features, javascript needs to be added to the <code>headextra</code> block. It is preferable to keep all javascript in a separate file especially if the script can be reused. Below is an example of a script for datatables:</p>
 <pre class="brush: django">
 {% templatetag openblock %} block headextra {% templatetag closeblock %} 
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 	$(document).ready(function() {
 	  $('#members').dataTable( {
 	    'bPaginate': false,
@@ -189,7 +189,7 @@
 		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushDjango.js"></script>
 		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushXml.js"></script>
 		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushJScript.js"></script>
-		<script type="text/javascript">
+		<script nonce="{{ CSP_NONCE }}">
 		    SyntaxHighlighter.defaults['light'] = true;
 		    SyntaxHighlighter.all()
 		</script>

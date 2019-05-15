@@ -8,7 +8,7 @@
 {% block h1 %}TA Contracts for {{semester}}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $("h2").collapsible();
 });

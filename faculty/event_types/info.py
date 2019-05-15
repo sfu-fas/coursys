@@ -85,7 +85,7 @@ committee_helptext = lazy(_committee_helptext, SafeText)
 class CommitteeMemberHandler(CareerEventHandlerBase):
 
     EVENT_TYPE = 'COMMITTEE'
-    NAME = 'Committee Member'
+    NAME = 'Service'
     config_name = 'Committee'
 
     TO_HTML_TEMPLATE = '''

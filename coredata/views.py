@@ -19,7 +19,9 @@ from django.contrib import messages
 from cache_utils.decorators import cached
 from haystack.query import SearchQuerySet
 import socket, json, datetime, os
+import iso8601
 from functools import reduce
+from operator import itemgetter
 
 @requires_global_role("SYSA")
 def sysadmin(request):
@@ -56,7 +58,10 @@ def new_role(request, role=None):
     if request.method == 'POST':
         form = RoleForm(request.POST)
         if form.is_valid():
-            form.save()
+            r = form.save(commit=False)
+            r.config['giver'] = request.user.username
+            r.config['given_date'] = datetime.date.today().isoformat()
+            r.save()
             messages.success(request, 'Added role %s for %s.' % (form.instance.get_role_display(), form.instance.person.name()))
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
@@ -391,8 +396,8 @@ def admin_panel(request):
             return render(request, 'coredata/admin_panel_tab.html', {'the_request': pprint.pformat(request.__dict__)})
         elif request.GET['content'] == 'git':
             git = {}
-            git['branch'] = panel.git_branch()
-            git['revision'] = panel.git_revision()
+            git['branch'] = panel.git_branch().decode('utf8')
+            git['revision'] = panel.git_revision().decode('utf8')
             return render(request, 'coredata/admin_panel_tab.html', {'git':git})
         elif request.GET['content'] == 'pip':
             data = panel.pip_info()
@@ -725,13 +730,18 @@ def unit_role_list(request):
 @requires_role("ADMN")
 def new_unit_role(request, role=None):
     role_choices = [(r,ROLES[r]) for r in UNIT_ROLES]
+    # Make the form more readable by sorting by role long name.
+    role_choices.sort(key=itemgetter(1))
     unit_choices = [(u.id, str(u)) for u in Unit.sub_units(request.units)]
     if request.method == 'POST':
         form = UnitRoleForm(request.POST)
         form.fields['role'].choices = role_choices
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
-            form.save()
+            r = form.save(commit=False)
+            r.config['giver'] = request.user.username
+            r.config['given_date'] = datetime.date.today().isoformat()
+            r.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                   description=("new role: %s as %s in %s") % (form.instance.person.userid, form.instance.role, form.instance.unit),
@@ -832,6 +842,7 @@ def missing_instructors(request, unit_slug):
     missing = list(missing)
     missing.sort()
     initial = [{'person': p, 'role': None} for p in missing]
+    new_exp = datetime.date.today() + datetime.timedelta(days=365)
 
     if request.method == 'POST':
         formset = InstrRoleFormSet(request.POST, initial=initial)
@@ -843,7 +854,7 @@ def missing_instructors(request, unit_slug):
                 if r == "NONE" or p not in missing:
                     continue
                 
-                r = Role(person=p, role=r, unit=unit)
+                r = Role(person=p, role=r, unit=unit, expiry=new_exp)
                 r.save()
                 count += 1
 
@@ -917,11 +928,13 @@ def course_search(request):
 # AJAX/JSON for student search autocomplete
 EXCLUDE_EMPLIDS = set(['953022983']) # exclude these from autocomplete
   # 953022983 is an inactive staff account and should not be assigned things
+
+
 @login_required
 def student_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
-    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND', 'SYSA'])
+    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND', 'SYSA', 'FACA'])
     if not(roles & allowed) and not has_formgroup(request) and not has_global_role('DISC', request):
         # doesn't have any allowed roles
         return ForbiddenResponse(request, "Not permitted to do student search.")
@@ -994,7 +1007,6 @@ def XXX_sims_person_search(request):
 
 
 @uses_feature('course_browser')
-#@cache_page(60*60*6)
 def browse_courses(request):
     """
     Interactive CourseOffering browser
@@ -1215,7 +1227,6 @@ def _instructor_autocomplete(request):
 
 
 @uses_feature('course_browser')
-@cache_page(60*60)
 def browse_courses_info(request, course_slug):
     """
     Browsing info about a single course offering.
@@ -1257,14 +1268,14 @@ def _offering_meeting_time_data(request, offering):
     fullcalendar.js data for this offering's events
     """
     try:
-        int(request.GET['start'])
-        int(request.GET['end'])
-    except (KeyError, ValueError):
+        st = iso8601.parse_date(request.GET['start'])
+        en = iso8601.parse_date(request.GET['end'])
+    except (KeyError, ValueError, iso8601.ParseError):
         return NotFoundResponse(request, errormsg="Bad request")
 
     local_tz = pytz.timezone(settings.TIME_ZONE)
-    start = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['start'])))-datetime.timedelta(days=1)
-    end = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['end'])))+datetime.timedelta(days=1)
+    start = st - datetime.timedelta(days=1)
+    end = en + datetime.timedelta(days=1)
 
     response = HttpResponse(content_type='application/json')
     data = list(_offerings_calendar_data([offering], None, start, end, local_tz,

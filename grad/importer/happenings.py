@@ -10,6 +10,7 @@ from grad.models import STATUS_APPLICANT, SHORT_STATUSES, SUPERVISOR_TYPE
 import datetime
 from collections import defaultdict
 
+
 def build_program_map():
     """
     Return a dict mapping SIMS's ACAD_PROG to GradProgram
@@ -36,7 +37,16 @@ def build_program_map():
     program_map['ESMAS'] = GradProgram.objects.get(label="M.A.Sc.", unit=engunit)
     program_map['ESPHD'] = GradProgram.objects.get(label="Ph.D.", unit=engunit)
 
+    psychunit = Unit.objects.get(label='PSYC')
+    program_map['PSGEX'] = GradProgram.objects.get(label="PSGEX", unit=psychunit)
+    program_map['PSGND'] = GradProgram.objects.get(label="PSGND", unit=psychunit)
+    program_map['PSGQL'] = GradProgram.objects.get(label="PSGQL", unit=psychunit)
+    program_map['PSMAC'] = GradProgram.objects.get(label="PSMAC", unit=psychunit)
+    program_map['PSMAP'] = GradProgram.objects.get(label="PSMAP", unit=psychunit)
+    program_map['PSPHC'] = GradProgram.objects.get(label="PSPHC", unit=psychunit)
+    program_map['PSPHP'] = GradProgram.objects.get(label="PSPHP", unit=psychunit)
     return program_map
+
 
 def build_reverse_program_map():
     """
@@ -54,6 +64,21 @@ def build_reverse_program_map():
     rev_program_map[GradProgram.objects.get(label="MSc Course", unit=cmptunit)].append('CPMCW')
     rev_program_map[GradProgram.objects.get(label="MSc Proj", unit=cmptunit)].append('CPMSC')
     return rev_program_map
+
+
+def build_program_subplan_map():
+    """
+    Similar to build_program_map, but we now have some cases where we fake a GradProgram based on the program and
+    subplan combination.
+    :return: A dict of (program, subplan): GradProgram mapping.
+    """
+    cmptunit = Unit.objects.get(label="CMPT")
+    program_subplan_map = {
+        ('PMSCS', 'PMSCSBD'): GradProgram.objects.get(label="Prof MSc Big Data", unit=cmptunit),
+        ('PMSCS', 'PMSCSVC'): GradProgram.objects.get(label="Prof MSc Visual Comp", unit=cmptunit),
+    }
+    return program_subplan_map
+
 
 COMMITTEE_MEMBER_MAP = { # SIMS committee_role -> our Supervisor.supervisor_type
     'SNRS': 'SEN',
@@ -75,6 +100,7 @@ class GradHappening(object):
     Superclass to represent things that happen to grad students.
     """
     program_map = None
+    program_subplan_map = None
     def effdt_to_strm(self):
         "Look up the semester that goes with this date"
         # within a few days of the end of the semester, things applicable next semester are being entered
@@ -101,12 +127,31 @@ class GradHappening(object):
 
         self.strm = strm
 
-    def acad_prog_to_gradprogram(self):
+    def acad_prog_to_gradprogram(self, subplan=None):
         """
         Turn self.acad_prog into a GradProgram in self.grad_program if possible. Also set the unit that goes with it.
         """
         if GradHappening.program_map is None:
             GradHappening.program_map = build_program_map()
+
+        if GradHappening.program_subplan_map is None:
+            GradHappening.program_subplan_map = build_program_subplan_map()
+
+        # If we got a subplan passed in, see if it matches one of our special cases where we fake the GradProgram
+        # based on the subplan.  This should only apply to ProgramStatusChanges and ApplProgramChanges, as they are
+        # the only things passing in this parameter.
+        if subplan:
+            found_subplan = False
+            try:
+                self.grad_program = GradHappening.program_subplan_map[(self.acad_prog, subplan)]
+                self.unit = self.grad_program.unit
+                found_subplan = True
+            except KeyError:
+                self.grad_program = None
+                self.unit = None
+            # If this worked, we're done, otherwise, do the logic based only on the program.
+            if found_subplan:
+                return
 
         try:
             self.grad_program = GradHappening.program_map[self.acad_prog]
@@ -129,7 +174,7 @@ class ProgramStatusChange(GradHappening):
     Record a row from ps_acad_prog
     """
     def __init__(self, emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action,
-            prog_reason, effdt, effseq, admit_term, exp_grad_term, degr_chkout_stat):
+            prog_reason, effdt, effseq, admit_term, exp_grad_term, degr_chkout_stat, acad_sub_plan):
         # argument order must match grad_program_changes query
         self.emplid = emplid
         self.stdnt_car_nbr = None
@@ -146,7 +191,7 @@ class ProgramStatusChange(GradHappening):
         self.degr_chkout_stat = degr_chkout_stat
 
         self.status = self.prog_status_translate()
-        self.acad_prog_to_gradprogram()
+        self.acad_prog_to_gradprogram(subplan=acad_sub_plan)
         self.effdt_to_strm()
 
         # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
@@ -212,6 +257,13 @@ class ProgramStatusChange(GradHappening):
             # deferred start: probably implies start semester change
             return 'DEFR'
 
+        elif st_ac == ('WT', 'WAIT'):
+            return 'WAIT'
+
+        elif st_ac == ('AP', 'DATA') and self.prog_reason == 'WAIT':
+            # Shows up in SIMS as 'Waitlisted by department', instead of the one above which is just 'Waitlisted'
+            return 'WAIT'
+
         elif self.prog_action == 'DATA':    
             if self.prog_reason == 'APPR':
                 # approved by department: close enough to ('AD', 'COND')
@@ -224,7 +276,7 @@ class ProgramStatusChange(GradHappening):
 
         elif st_ac == ('AC', 'ACTV'):
             return 'ACTI'
-        elif st_ac == ('DC', 'DISC'):
+        elif st_ac in [('DC', 'DISC'), ('DE', 'DISC')]:
             return 'WIDR'
         elif st_ac == ('LA', 'LEAV'):
             return 'LEAV'
@@ -254,10 +306,10 @@ class ProgramStatusChange(GradHappening):
         same_appl_key = [s for s in statuses
                 if 'appl_key' in s.config and s.config['appl_key'] == self.appl_key()]
         if same_appl_key:
-            if len(same_appl_key) > 1:
-                print(self.appl_key())
-                print(same_appl_key)
-                raise ValueError(str(key))
+            #if len(same_appl_key) > 1:
+            #    print(self.appl_key())
+            #    print(same_appl_key)
+            #    raise ValueError(str(key))
             s = same_appl_key[0]
             s.config[SIMS_SOURCE] = key
             assert s.status == self.status
@@ -580,7 +632,7 @@ class CommitteeMembership(GradHappening):
             self.sup_emplid = '200011069'
 
     def __repr__(self):
-        return "%s as %s for %s" % (self.sup_emplid, self.committee_role, self.acad_prog)
+        return "%s as %s for %s in %s" % (self.sup_emplid, self.committee_role, self.emplid, self.acad_prog)
 
     def find_local_data(self, student_info, verbosity):
         pass

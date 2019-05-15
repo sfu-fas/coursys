@@ -69,9 +69,9 @@ class TemplateForm(forms.ModelForm):
         }
 
 
-from coredata.forms import RoleForm
+from coredata.forms import UnitRoleForm
 from coredata.models import Unit
-class DisciplineRoleForm(RoleForm):
+class DisciplineRoleForm(UnitRoleForm):
     def __init__(self, *args, **kwargs):
         super(DisciplineRoleForm, self).__init__(*args, **kwargs)
         self.fields['role'].choices = [

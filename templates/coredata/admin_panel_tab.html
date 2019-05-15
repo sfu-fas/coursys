@@ -50,18 +50,6 @@ Some guess about how fresh the reporting database is&hellip;
 {% endif %}
 
 {% if psinfo %}
-<script type="text/javascript">
-$(document).ready(function() {
-  $('#procs').css('font-size', '75%').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    'bLengthChange': false,
-    "bJQueryUI": true,
-    'aaSorting': [[2, 'desc']],
-  } );
-} );
-</script>
-
 <h2 id="psinfo">Process Info</h2>
 {{ psinfo|panel_info }}
 {% endif %}

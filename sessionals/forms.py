@@ -1,5 +1,5 @@
 from django import forms
-from .models import SessionalContract, SessionalAccount, SessionalConfig
+from .models import SessionalContract, SessionalAccount, SessionalConfig, SessionalAttachment
 from coredata.widgets import CalendarWidget, OfferingField
 from coredata.forms import PersonField
 from coredata.models import Unit
@@ -117,3 +117,9 @@ class SessionalConfigForm(forms.ModelForm):
                                                             "date.",
                                          'appointment_start': "Appointment end date cannot be before appointmentstart "
                                                              "date."})
+
+
+class SessionalAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = SessionalAttachment
+        exclude = ("sessional", "created_by")

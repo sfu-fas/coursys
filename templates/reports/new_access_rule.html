@@ -4,7 +4,7 @@
 {% block h1 %}New Access Rule{% endblock %}
 
 {% block headextra %}
-<script>
+<script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
       $('#id_person').each(function() {
         $(this).autocomplete({

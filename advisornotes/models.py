@@ -1,19 +1,28 @@
 from django.db import models
-from django.conf import settings
 from autoslug import AutoSlugField
 from coredata.models import Person, Unit, Course, CourseOffering
-from courselib.json_fields import JSONField
+from courselib.json_fields import JSONField, config_property
 from courselib.slugs import make_slug
-from courselib.text import normalize_newlines
 from courselib.storage import UploadedFileStorage, upload_path
+from courselib.markup import markup_to_html
 from datetime import date
 import datetime
 import os.path
 
 
+# Used to determine if you have any non-end-dated visit, but only of the newer type, with end-dates added by a view.
+# All the older visits will not have an end-date.
+ADVISOR_VISIT_VERSION = 1
+
+ADVISING_CAMPUS_CHOICES = (
+        ('BRNBY', 'Burnaby'),
+        ('SURRY', 'Surrey'),
+        ('VANCR', 'Vancouver'),
+        )
+
 
 def attachment_upload_to(instance, filename):
-    return upload_path('advisornotes', str(datetime.date.today().year), filename)
+    return upload_path('advisornotes', filename)
 
 
 class NonStudent(models.Model):
@@ -81,6 +90,11 @@ class AdvisorNote(models.Model):
     emailed = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
+    # 'markup': markup language used in reminder content: see courselib/markup.py
+    # 'math': page uses MathJax? (boolean)
+    markup = config_property('markup', 'plain')
+    math = config_property('math', False)
+
     def __str__(self):
         return str(self.student) + "@" + str(self.created_at)
 
@@ -108,20 +122,9 @@ class AdvisorNote(models.Model):
     
     def __hash__(self):
         return self.unique_tuple().__hash__()
-    
-    def text_preview(self):
-        """
-        A max-one-line preview of the note content, for the compact display.
-        """
-        text = normalize_newlines(self.text.rstrip())
-        lines = text.split('\n')
-        text = lines[0]
-        if len(text) > 70:
-            text = text[:100] + ' \u2026'
-        elif len(lines) > 1:
-            text += ' \u2026'
-        return text
 
+    def html_content(self):
+        return markup_to_html(self.text, self.markup, restricted=False)
 
 ARTIFACT_CATEGORIES = (
     ("INS", "Institution"),
@@ -218,6 +221,55 @@ class ArtifactNote(models.Model):
         return self.best_before and date.today() > self.best_before
 
 
+class AdvisorVisitCategoryQuerySet(models.QuerySet):
+    """
+    As usual, define some querysets.
+    """
+
+    def visible(self, units):
+        """
+        Only see visible items, in this case also limited by accessible units.
+        """
+        return self.filter(hidden=False, unit__in=units)
+
+
+class AdvisorVisitCategory(models.Model):
+    """
+    Allow each unit to manage the categories which are now included in a visit.
+    """
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
+    label = models.CharField(null=False, blank=False, max_length=50)
+    description = models.CharField(null=True, blank=True, max_length=500)
+    hidden = models.BooleanField(null=False, blank=False, default=False, editable=False)
+    config = JSONField(null=False, blank=False, default=dict, editable=False)  # addition configuration stuff:
+
+    def autoslug(self):
+        return make_slug(self.unit.slug + '-' + self.label)
+
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+
+    def __str__(self):
+        return self.label
+
+    objects = AdvisorVisitCategoryQuerySet.as_manager()
+
+    def delete(self):
+        # As usual, only hide stuff, don't delete it.
+        self.hidden = True
+        self.save()
+
+
+class AdvisorVisitQuerySet(models.QuerySet):
+    """
+    As usual, define some querysets.
+    """
+
+    def visible(self, units):
+        """
+        Only see visible items, in this case also limited by accessible units.
+        """
+        return self.filter(hidden=False, unit__in=units)
+
 
 class AdvisorVisit(models.Model):
     """
@@ -228,21 +280,87 @@ class AdvisorVisit(models.Model):
     CMPT student visited".
 
     Only (1) is implemented in the frontend for now.
+
+    Update:  They don't seem to really want (2), so that's mainly unreachable right now.
     """
     student = models.ForeignKey(Person, help_text='The student that visited the advisor', on_delete=models.PROTECT,
                                 blank=True, null=True, related_name='+')
     nonstudent = models.ForeignKey(NonStudent, blank=True, null=True, on_delete=models.PROTECT,
-                                help_text='The non-student that visited')
-    program = models.ForeignKey(Unit, help_text='The unit of the program the student is in', blank=True, null=True, on_delete=models.PROTECT,
+                                   help_text='The non-student that visited')
+    program = models.ForeignKey(Unit, help_text='The unit of the program the student is in', blank=True, null=True,
+                                on_delete=models.PROTECT,
                                 related_name='+')
     advisor = models.ForeignKey(Person, help_text='The advisor that created the note', on_delete=models.PROTECT,
                                 editable=False, related_name='+')
+
     created_at = models.DateTimeField(default=datetime.datetime.now)
-    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this visit', null=False, on_delete=models.PROTECT)
+    end_time = models.DateTimeField(null=True, blank=True)
+    campus = models.CharField(null=False, blank=False, choices=ADVISING_CAMPUS_CHOICES, max_length=5)
+    categories = models.ManyToManyField(AdvisorVisitCategory, blank=True)
+    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this visit', null=False,
+                             on_delete=models.PROTECT)
+    version = models.PositiveSmallIntegerField(null=False, blank=False, default=0, editable=False)
+    hidden = models.BooleanField(null=False, blank=False, default=False, editable=False)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
+
+    programs = config_property('programs', '')
+    cgpa = config_property('cgpa', '')
+    credits = config_property('credits', '')
+    gender = config_property('gender', '')
+    citizenship = config_property('citizenship', '')
+
+    objects = AdvisorVisitQuerySet.as_manager()
+
+    def autoslug(self):
+        return make_slug(self.unit.slug + '-' + self.get_userid() + '-' + self.advisor.userid)
+
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     def save(self, *args, **kwargs):
         # ensure we always have either the student, nonstudent, or program unit.
         assert self.student or self.nonstudent or self.program
         assert not (self.student and self.nonstudent)
         super(AdvisorVisit, self).save(*args, **kwargs)
+
+    # Template display helper methods
+    def categories_display(self):
+        return '; '.join(c.label for c in self.categories.all())
+
+    def has_categories(self):
+        return self.categories.all().count() > 0
+
+    def get_userid(self):
+        if self.student:
+            return self.student.userid_or_emplid()
+        else:
+            return self.nonstudent.slug or 'none'
+
+    def get_full_name(self):
+        if self.student:
+            return self.student.name()
+        else:
+            return self.nonstudent.name()
+
+    def get_duration(self):
+        if self.end_time:
+            return str(self.end_time - self.created_at).split('.')[0]
+        else:
+            return None
+
+    def has_sims_data(self):
+        return self.programs or self.cgpa or self.credits or self.gender or self.citizenship
+
+    def get_email(self):
+        if self.student:
+            return self.student.email()
+        else:
+            return self.nonstudent.email()
+
+    def get_created_at_display(self):
+        return self.created_at.strftime("%Y/%m/%d %H:%M")
+
+    def get_end_time_display(self):
+        if self.end_time:
+            return self.end_time.strftime("%Y/%m/%d %H:%M")
+        else:
+            return ''

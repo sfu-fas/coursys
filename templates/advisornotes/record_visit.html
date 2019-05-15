@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+{% block title %}Visit by {{ visit.get_full_name }}{% endblock %}
+{% block h1 %}Visit by {{ visit.get_full_name }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:student_notes" userid=userid %}">Notes for {{ visit.get_full_name }}</a></li>
+<li>Student Visit</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src={% static "js/advisornotes.js" %}></script>
+<script nonce="{{ CSP_NONCE }}">
+    $(document).ready(function() {
+        var confirmClose = true;
+        $('#moreinfo>a').click(function() {
+            get_more_info_visit('{% url "advising:student_more_info_short" userid=userid %}');
+        });
+        {% if not visit.nonstudent and fetch_automatically %}
+            get_more_info_visit('{% url "advising:student_more_info_short" userid=userid %}');
+        {% endif %}
+
+        $(window).on('beforeunload', function(e) {
+            if (confirmClose == true) {
+                // All modern browsers now ignore this message and show their own.  Nothing we can do about that.
+                return 'Your visit will not have an end-time.';
+            }
+        });
+        $(".submit").click(function() {
+            // If you actually submit the form, don't show the nag message.
+            confirmClose = false;
+        });
+    });
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        {% if not visit.nonstudent %}
+        <li id="moreinfo">
+            <a href="#">Refresh SIMS info <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></a>
+        </li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    Visit started {{ visit.created_at }}
+    <form enctype="multipart/form-data", method="post" action="{% url "advising:edit_visit_initial" visit_slug=visit.slug %}">
+        {% csrf_token %}
+        {{ form|as_dl_inline }}
+        <p>
+            <input type="submit" class="submit" value="End Visit" />
+        </p>
+    </form>
+{% endblock %}

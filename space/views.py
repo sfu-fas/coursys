@@ -2,8 +2,9 @@ from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, Ht
 from django.urls import reverse
 from django.contrib import messages
 from django.http import StreamingHttpResponse
-from .models import Location, RoomType, BookingRecord, BookingMemo, BookingRecordAttachment
-from .forms import LocationForm, RoomTypeForm, BookingRecordForm, BookingRecordAttachmentForm
+from django.db import transaction
+from .models import Location, RoomType, BookingRecord, BookingMemo, BookingRecordAttachment, RoomSafetyItem
+from .forms import LocationForm, RoomTypeForm, BookingRecordForm, BookingRecordAttachmentForm, RoomSafetyItemForm
 from courselib.auth import requires_role
 from log.models import LogEntry
 from coredata.models import Unit, Person
@@ -15,15 +16,17 @@ import csv
 @requires_role('SPAC')
 def index(request):
     units = Unit.sub_units(request.units)
-    locations = Location.objects.visible(units)
-    room_types = RoomType.objects.visible(units)
+    locations = Location.objects.visible(units).select_related('room_type')\
+        .prefetch_related('safety_items', 'bookings', 'bookings__person')
+    room_types = RoomType.objects.visible(units).count() > 0
     return render(request, 'space/index.html', {'locations': locations, 'room_types': room_types})
 
 
 @requires_role('SPAC')
 def download_locations(request):
     units = Unit.sub_units(request.units)
-    locations = Location.objects.visible(units)
+    locations = Location.objects.visible(units).select_related('unit', 'room_type')\
+        .prefetch_related('safety_items', 'bookings', 'bookings__person')
     response = HttpResponse(content_type='text/csv')
 
     response['Content-Disposition'] = 'inline; filename="locations-%s.csv"' % \
@@ -31,20 +34,24 @@ def download_locations(request):
     writer = csv.writer(response)
     writer.writerow(['Unit', 'Campus', 'Building', 'Floor', 'Room Number', 'Square Meters', 'Room Type Description',
                      'Room Type Code', 'COU Code Description', 'Space Factor', 'COU Code Value', 'Infrastructure',
-                     'Room Capacity', 'Category', 'Occupancy', 'Own/Leased', 'Comments', 'Current Booking',
-                     'Active Grad Student(s)'])
+                     'Room Capacity', 'Category', 'Occupancy', 'Own/Leased', 'Safety Infrastructure Items', 'Comments',
+                     'Current Booking', 'Active Grad Student(s)'])
     for l in locations:
-        booking = l.get_current_booking()
+        bookings = l.get_current_bookings()
         grad_count = None
-        if booking:
-            booker = booking.person
-            grad_count = Supervisor.objects.filter(supervisor=booker, removed=False, student__current_status='ACTI').count()
+        if bookings:
+            grad_count = 0
+            for b in bookings:
+                booker = b.person
+                grad_count += Supervisor.objects.filter(supervisor=booker, removed=False,
+                                                        student__current_status='ACTI').count()
 
         writer.writerow([l.unit.name, l.get_campus_display(), l.get_building_display(), l.floor, l.room_number,
                          l.square_meters, l.room_type.long_description, l.room_type.code,
                          l.room_type.COU_code_description, l.room_type.space_factor, l.room_type.COU_code_value,
                          l.get_infrastructure_display(), l.room_capacity, l.get_category_display(), l.occupancy_count,
-                         l.get_own_or_lease_display(), l.comments, booking, grad_count])
+                         l.get_own_or_lease_display(), l.safety_items_display(), l.comments,
+                         l.get_current_bookings_str(), grad_count])
     return response
 
 
@@ -341,3 +348,65 @@ def send_memo(request, booking_slug, from_index=0):
         return HttpResponseRedirect(reverse('space:view_location', kwargs={'location_slug': booking.location.slug}))
     return HttpResponseRedirect(reverse('space:view_booking', kwargs={'booking_slug': booking.slug}))
 
+
+@requires_role('SPAC')
+def manage_room_safety_items(request):
+    safety_items = RoomSafetyItem.objects.visible(Unit.sub_units(request.units))
+    return render(request, 'space/list_safety_items.html', {'safety_items': safety_items})
+
+
+@requires_role('SPAC')
+@transaction.atomic
+def add_room_safety_item(request):
+    if request.method == 'POST':
+        form = RoomSafetyItemForm(request, request.POST)
+        if form.is_valid():
+            item = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 'Safety item was created')
+            l = LogEntry(userid=request.user.username,
+                         description="Added safety item %s" % item,
+                         related_object=item)
+            l.save()
+            return HttpResponseRedirect(reverse('space:manage_safety_items'))
+    else:
+        form = RoomSafetyItemForm(request)
+    return render(request, 'space/add_safety_item.html', {'form': form})
+
+
+@requires_role('SPAC')
+@transaction.atomic
+def edit_room_safety_item(request, safety_item_slug):
+    safety_item = get_object_or_404(RoomSafetyItem, unit__in=Unit.sub_units(request.units), slug=safety_item_slug)
+    if request.method == 'POST':
+        form = RoomSafetyItemForm(request, request.POST, instance=safety_item)
+        if form.is_valid():
+            item = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 'Safety item was saved')
+            l = LogEntry(userid=request.user.username,
+                         description="Edited safety item %s" % item,
+                         related_object=item)
+            l.save()
+            return HttpResponseRedirect(reverse('space:manage_safety_items'))
+    else:
+        form = RoomSafetyItemForm(request, instance=safety_item)
+    return render(request, 'space/edit_safety_item.html', {'form': form, 'safety_item_slug': safety_item_slug})
+
+
+@requires_role('SPAC')
+@transaction.atomic
+def delete_room_safety_item(request, safety_item_slug):
+    safety_item = get_object_or_404(RoomSafetyItem, unit__in=Unit.sub_units(request.units), slug=safety_item_slug)
+    if request.method == 'POST':
+        safety_item.delete()
+        messages.add_message(request,
+                             messages.SUCCESS,
+                             'Safety item was deleted')
+        l = LogEntry(userid=request.user.username,
+                     description="Deleted safety item %s" % safety_item,
+                     related_object=safety_item)
+        l.save()
+        return HttpResponseRedirect(reverse('space:manage_safety_items'))

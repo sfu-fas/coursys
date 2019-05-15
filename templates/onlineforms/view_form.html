@@ -3,7 +3,7 @@
 {% block h1 %}{{ form.title }}{% endblock %}
 {% block title %}{{ form.title }}{% endblock %}
 
-{% block headextra %}<script type="text/javascript">
+{% block headextra %}<script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
     $(document).ready(function() {
     $('#form_table').dataTable({
@@ -78,7 +78,7 @@
                         <p> 
                             <input type="hidden" name="sheet_id" value="{{sheet.id}}" />
                             <input type="hidden" name="action" value="del" />
-                            <input type="submit" value="Remove" onclick="return confirmSubmit('remove this sheet')" disabled="disabled" />
+                            <input type="submit" value="Remove" class="confirm-submit" data-submit-action="remove this sheet" disabled="disabled" />
                         </p>
                         </form>    
                         {% else %}
@@ -86,7 +86,7 @@
                         <p> 
                             <input type="hidden" name="sheet_id" value="{{sheet.id}}" />
                             <input type="hidden" name="action" value="del" />
-                            <input type="submit" value="Remove" onclick="return confirmSubmit('remove this sheet')" />
+                            <input type="submit" value="Remove" class="confirm-submit" data-submit-action="remove this sheet" />
                         </p>
                         </form>
                         {%  endif %}
@@ -98,5 +98,9 @@
             <p>There are currently no sheets: you must <a href="{% url "onlineforms:new_sheet" form_slug=form.slug %}">create at least one sheet</a> for the initial requester to complete.</p>
     {% endif %}
 </div>
+
+<h2>URL</h2>
+{% if form.unlisted %}This form is unlisted.  {% endif %}
+The URL where people can fill this form out (if it is enabled) is <a href="{{ form_url }}">{{ form_url }}</a>
 
 {% endblock %}

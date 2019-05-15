@@ -9,7 +9,7 @@
 {% endcompress %}
 {% compress js %}
 <script type="text/javascript" src="{% static "js/grad.js" %}"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
 	prep_content();
 });

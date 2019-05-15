@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#descriptions').dataTable( {
     'bPaginate': false,
@@ -53,10 +53,9 @@ function confirmDelete() {
   <td>{{ d.description }}</td>
   <td>
     <form class="lineform" method="POST"
-          action="{% url "tacontracts:delete_description" description_id=d.id %}"
-          onsubmit="return confirmDelete()">
+          action="{% url "tacontracts:delete_description" description_id=d.id %}">
         {% csrf_token %}
-        <button type='submit' class='btn' title="Hide Description">
+        <button type='submit' class='btn confirm-submit' title="Hide Description" data-submit-action="delete this course description">
             <i class='fa fa-trash-o'></i>
         </button>
     </form>

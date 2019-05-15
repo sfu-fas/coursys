@@ -16,7 +16,11 @@ def manage_letter_template(request, letter_template_slug):
         form = LetterTemplateForm(request.POST, instance=letter_template)
         if form.is_valid():
             f = form.save(commit=False)
-            f.created_by = request.user.username            
+            f.created_by = request.user.username
+            if 'email_body' in form.cleaned_data:
+                f.set_email_body(form.cleaned_data['email_body'])
+            if 'email_subject' in form.cleaned_data:
+                f.set_email_subject(form.cleaned_data['email_subject'])
             f.save()
             messages.success(request, "Updated %s letter for %s." % (form.instance.label, form.instance.unit))
             l = LogEntry(userid=request.user.username,

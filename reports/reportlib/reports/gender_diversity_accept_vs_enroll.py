@@ -1,6 +1,6 @@
 from reports.reportlib.report import Report
 from reports.reportlib.table import Table
-from reports.reportlib.semester import current_semester, semester_range, Semester
+from coredata.models import Semester
 from ..db2_query import DB2_Query
 import string
 
@@ -20,13 +20,13 @@ class AcceptedQuery(DB2_Query):
 
     plans_list = ['CMPTMAJ','DCMPT','CMPTMIN','CMPTHON','CMPTJMA','CMPTJHO','SOSYMAJ','ZUSFU']
 
-    default_arguments = {'strm': current_semester().increment(1), 'acad_plans': plans_list}
+    default_arguments = {'strm': Semester.current().offset_name(1), 'acad_plans': plans_list}
 
     def __init__(self, query_args):
         for arg in list(AcceptedQuery.default_arguments.keys()):
             if arg not in query_args:
                 query_args[arg] = AcceptedQuery.default_arguments[arg]
-        self.title = "Accepted Students and Genders - " + Semester(query_args["strm"]).long_form()
+        self.title = "Accepted Students and Genders - " + Semester(query_args["strm"]).label()
         super(AcceptedQuery, self).__init__(query_args)
 
 class EnrolledQuery(DB2_Query):
@@ -44,13 +44,13 @@ class EnrolledQuery(DB2_Query):
     """)
 
     progs_list = ['CMPT', 'CMPT2']
-    default_arguments = {'strm': str(current_semester().increment(1)), 'acad_progrs': progs_list}
+    default_arguments = {'strm': Semester.current().offset_name(1), 'acad_progrs': progs_list}
 
     def __init__(self, query_args):
         for arg in list(EnrolledQuery.default_arguments.keys()):
             if arg not in query_args:
                 query_args[arg] = EnrolledQuery.default_arguments[arg]
-        self.title = "Enrolled Students and Genders - " + Semester(query_args["strm"]).long_form()
+        self.title = "Enrolled Students and Genders - " + Semester(query_args["strm"]).label()
         super(EnrolledQuery, self).__init__(query_args)
 
 class GenderDiversityAcceptvsEnrollReport(Report):
@@ -59,11 +59,11 @@ class GenderDiversityAcceptvsEnrollReport(Report):
                   "actually enrolled."
 
     def run(self):
-        AcceptedStudentsQuery = AcceptedQuery({'strm': str(current_semester().increment(1)), 'acad_plans':
+        AcceptedStudentsQuery = AcceptedQuery({'strm': Semester.current().offset_name(1), 'acad_plans':
                                                ['CMPTMAJ', 'DCMPT', 'CMPTMIN', 'CMPTHON', 'CMPTJMA', 'CMPTJHO',
                                                 'SOSYMAJ', 'ZUSFU']})
         AcceptedStudents = AcceptedStudentsQuery.result()
-        EnrolledStudentsQuery = EnrolledQuery({'strm': str(current_semester().increment(1)), 'acad_progs':
+        EnrolledStudentsQuery = EnrolledQuery({'strm': Semester.current().offset_name(1), 'acad_progs':
                                                ['CMPT', 'CMPT2']})
         EnrolledStudents = EnrolledStudentsQuery.result()
 

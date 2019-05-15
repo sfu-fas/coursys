@@ -19,17 +19,20 @@
 <dt>Event</dt><dd>{{ registration.event }}</dd>
 <dt>Last Name</dt><dd>{{ registration.last_name }}</dd>
 <dt>First Name</dt><dd>{{ registration.first_name }}</dd>
-<dt>Middle Name</dt><dd>{{ registration.middle_name|default:"None" }}</dd>
 <dt>Date of Birth</dt><dd>{{ registration.birthdate|default:"None" }}</dd>
 <dt>Parent Name</dt><dd>{{ registration.parent_name }}</dd>
 <dt>Parent Phone</dt><dd>{{ registration.parent_phone }}</dd>
+<dt>Secondary Contact Name</dt><dd>{{ registration.secondary_name }}</dd>
+<dt>Secondary Contact Phone</dt><dd>{{ registration.secondary_phone }}</dd>
 <dt>Email</dt><dd>{{ registration.email }}</dd>
 <dt>Photo Waiver</dt><dd>{{ registration.photo_waiver|yesno }}</dd>
 <dt>Participation Waiver</dt><dd>{{  registration.participation_waiver|yesno }}</dd>
 <dt>Previously Attended</dt><dd>{{ registration.previously_attended|yesno }}</dd>
 <dt>School</dt><dd>{{ registration.school|default:"None" }}</dd>
 <dt>Grade</dt><dd>{{ registration.grade }}</dd>
-<dt>Notes</dt><dd>{{ registration.notes|default:"None"|linebreaks }}</dd>
+{% if registration.event.show_dietary_question %}
+    <dt>Dietary Restrictions</dt><dd>{{ registration.notes|default:"None"|linebreaks }}</dd>
+{% endif %}
 <dt>Registered at</dt><dd>{{ registration.created_at }}</dd>
 <dt>Last Modified</dt><dd>{{ registration.last_modified }}</dd>
 <dt>Email sent</dt><dd>{{ registration.email_sent|default:"None"|linebreaks }}</dd>
