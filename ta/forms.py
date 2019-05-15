@@ -23,8 +23,8 @@ class LabelledHidden(forms.HiddenInput):
     """
     input_type = 'hidden'
     is_hidden = False
-    def render(self, name, value, attrs=None):
-        res = super(LabelledHidden, self).render(name, value, attrs=attrs) 
+    def render(self, name, value, attrs=None, renderer=None):
+        res = super(LabelledHidden, self).render(name, value, attrs=attrs, renderer=renderer)
         if value:
             res += str(value)
         return res

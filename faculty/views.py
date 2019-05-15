@@ -1454,7 +1454,7 @@ def timeline_json(request, userid):
     # Populate events
     slides = []
     events = (CareerEvent.objects.not_deleted()
-                         .only_subunits(request.units).approved()
+                         .only_subunits(request.units)
                          .filter(person=person)
                          .exclude(event_type=SalaryBaseEventHandler.EVENT_TYPE))
     for event in events:
