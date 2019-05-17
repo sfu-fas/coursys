@@ -864,7 +864,8 @@ COMPONENT_CHOICES = (
         ('CNV', 'CNV'), # converted from SIMON?
         ('OPL', 'Open Lab'), # ???
         ('EXM', 'Exam'),  # First showed up 2017/09/20 with descr "PhD Oral Candidacy Exam"
-        ('CAP', 'Capstone Required'),  # First showed up 2019/03/24.  go.sfu shows those classes as "Capstone Required"
+        ('CAP', 'Capstone'),  # First showed up 2019/03/24.  go.sfu shows those classes as "Capstone Required"
+        ('COP', 'Work Integrated Learning'),
         ('CAN', 'Cancelled')
         )
 COMPONENTS = dict(COMPONENT_CHOICES)
