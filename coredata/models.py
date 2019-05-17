@@ -865,6 +865,7 @@ COMPONENT_CHOICES = (
         ('OPL', 'Open Lab'), # ???
         ('EXM', 'Exam'),  # First showed up 2017/09/20 with descr "PhD Oral Candidacy Exam"
         ('CAP', 'Capstone Required'),  # First showed up 2019/03/24.  go.sfu shows those classes as "Capstone Required"
+        ('INT', 'Internship Required'),  # First encountered 2019/05/16.
         ('CAN', 'Cancelled')
         )
 COMPONENTS = dict(COMPONENT_CHOICES)
@@ -909,6 +910,7 @@ INSTR_MODE_CHOICES = [ # from ps_instruct_mode in reporting DB
     ('P', 'In Person'),
     ('PO', 'In Person - Off Campus'),
     ('PR', 'Practicum'),
+    ('PF', 'In Person Field School'),
     ]
 INSTR_MODE = dict(INSTR_MODE_CHOICES)
 
