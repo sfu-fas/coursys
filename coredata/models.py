@@ -868,6 +868,7 @@ COMPONENT_CHOICES = (
         ('INT', 'Internship Required'),  # First encountered 2019/05/16.
         ('CAP', 'Capstone'),  # First showed up 2019/03/24.  go.sfu shows those classes as "Capstone Required"
         ('COP', 'Work Integrated Learning'),  # First encountered 2019/05/17.
+        ('THE', 'Thesis Research'),  # First encountered 2019/05/17.
         ('CAN', 'Cancelled')
         )
 COMPONENTS = dict(COMPONENT_CHOICES)
