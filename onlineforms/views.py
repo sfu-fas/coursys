@@ -1537,7 +1537,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             secret_url.save()
                             #LOG EVENT#
                             l = LogEntry(userid=logentry_userid,
-                                description=("Secret URL created for sheet submission %s of sheet %s of form %s by %s") % (sheet_submission, sheet.title, owner_form.title, formFiller.email()),
+                                description=("URL created for sheet submission %s of form %s by %s") % (sheet_submission, owner_form.title, formFiller.email()),
                                 related_object=secret_url)
                             l.save()
                             # email them the URL
