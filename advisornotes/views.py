@@ -714,7 +714,7 @@ def my_visits(request):
 @requires_role('ADVM')
 def download_all_visits(request):
     visits = AdvisorVisit.objects.visible(request.units).select_related('student', 'nonstudent', 'advisor', ) \
-                 .prefetch_related('categories').order_by("-created_at")[:1000]
+                 .prefetch_related('categories').order_by("-created_at")[:5000]
     return _return_visits_pdf(visits=visits, admin=True)
 
 
@@ -723,7 +723,7 @@ def download_my_visits(request):
     advisor = get_object_or_404(Person, userid=request.user.username)
     visits = AdvisorVisit.objects.visible(request.units).filter(advisor=advisor) \
                  .select_related('student', 'nonstudent', 'advisor').prefetch_related('categories') \
-                 .order_by("-created_at")[:1000]
+                 .order_by("-created_at")[:5000]
     return _return_visits_pdf(visits=visits, admin=False)
 
 
