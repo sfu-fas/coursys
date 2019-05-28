@@ -13,6 +13,7 @@ from coredata.queries import more_personal_info, SIMSProblem
 from courselib.auth import requires_role, has_role, ForbiddenResponse, user_passes_test
 from courselib.search import find_userid_or_emplid, get_query
 from grad.models import GradStudent, Scholarship
+from visas.models import Visa
 from log.models import LogEntry
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
@@ -646,6 +647,33 @@ def person_info(request):
         except SIMSProblem as e:
             result['error'] = str(e)
 
+    return HttpResponse(json.dumps(result), content_type='application/json;charset=utf-8')
+
+
+@requires_role("FUND")
+def person_visas(request):
+    """
+    Get info on this person's current visas, for info in the new RA appointment form.
+    """
+    result = {'visas': []}
+    emplid = request.GET.get('emplid', None)
+    if not emplid or not emplid.isdigit() or len(emplid) != 9:
+        pass
+    else:
+        try:
+            person = Person.objects.get(emplid=emplid)
+        except Person.DoesNotExist:
+            pass
+        visas = []
+        personvisas = Visa.objects.visible_given_user(person).filter(unit__in=request.units)
+        for v in personvisas:
+            if v.is_current():
+                data = {
+                    'start': v.start_date.isoformat(),
+                    'status': v.status,
+                }
+                visas.append(data)
+        result['visas'] = visas
     return HttpResponse(json.dumps(result), content_type='application/json;charset=utf-8')
 
 

@@ -6,6 +6,7 @@
 <script nonce="{{ CSP_NONCE }}">
 var personinfo_url = "{% url "ra:person_info" %}";
 var payperiods_url = "{% url "ra:pay_periods" %}";
+var personvisas_url = "{% url "ra:person_visas" %}";
 {% if person %}
 var emplid = '{{ person.emplid }}';
 {% else %}
