@@ -116,6 +116,7 @@ function update_person() {
 	emplid = $('#id_person').first().val();
 	// update program list
 	get_person_info(emplid);
+	get_person_visas(emplid);
 	// get scholarships
     $.getJSON("/data/scholarships/" + emplid, function(json) {
     var options = '<option value="">—</option>';
@@ -128,7 +129,7 @@ function update_person() {
 
 function get_person_info(emplid) {
 	$('div#programs').remove();
-	$('dl.dlform').first().before('<div id="programs">...</div>');	
+	$('div#extra_info').append('<div id="programs">...</div>');
 	$.ajax({
 		url: personinfo_url + '?emplid=' + emplid,
 		success: function(data, textStatus, jqXHR) {
@@ -154,6 +155,29 @@ function get_person_info(emplid) {
 			$('div#programs').html(html);
 		},
 	})
+}
+
+function get_person_visas(emplid) {
+    $('div#visas').remove();
+    $('div#extra_info').append('<div id="visas">...</div>');
+    $.ajax({
+        url: personvisas_url + '?emplid=' + emplid,
+            success: function(data) {
+            var html = '';
+            html += '<h3>Valid Visa(s)</h3><ul>';
+            if (data['visas'].length == 0) {
+                html += '<li class="empty">No valid visa in system</li>';
+            } else {
+                $(data['visas']).each(function(e, visa) {
+                    html += '<li>';
+                    html += visa['status'] + ' starting ' + visa['start'];
+                    html += '</li>';
+                });
+            }
+            html += '</ul>';
+            $('div#visas').html(html);
+        },
+    })
 }
 
 var table;
@@ -187,6 +211,7 @@ function ra_browser_setup(my_url) {
 $(document).ready(function() {
   name_label = document.createElement("span");
   name_label.id = "label_person_name";
+  $('dl.dlform').first().before('<div id="extra_info"></div>');
   $('#id_person').parent().append(name_label);
   $("id_person").focus();
   ra_autocomplete('id_person');
@@ -206,7 +231,8 @@ $(document).ready(function() {
   if ( typeof payperiods_url !== 'undefined' ) {
     update_pay_periods();
   }
-  if ( typeof emplid !== 'undefined' ) {
+  if ( emplid !== null ) {
   	get_person_info(emplid);
+  	get_person_visas(emplid);
   }
 });
