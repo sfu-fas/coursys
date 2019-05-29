@@ -20,6 +20,10 @@ div#extra_info {
 	width: 25%;
 }
 
+div#visa_warning {
+    color: red;
+}
+
 div#programs li {
 	list-style-type: disc;
 }

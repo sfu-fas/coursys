@@ -660,12 +660,8 @@ def person_visas(request):
     if not emplid or not emplid.isdigit() or len(emplid) != 9:
         pass
     else:
-        try:
-            person = Person.objects.get(emplid=emplid)
-        except Person.DoesNotExist:
-            pass
         visas = []
-        personvisas = Visa.objects.visible_given_user(person).filter(unit__in=request.units)
+        personvisas = Visa.objects.visible().filter(person__emplid=emplid, unit__in=request.units)
         for v in personvisas:
             if v.is_current():
                 data = {
