@@ -2242,6 +2242,11 @@ class FormMixin(object):
             self.c.setFont("Helvetica-Bold", 12)
             self.c.drawString(x * mm, y * mm, content)
 
+    def header_label_large_nobold(self, x, y, content):
+        if content:
+            self.c.setFont("Helvetica", 12)
+            self.c.drawString(x * mm, y * mm, content)
+
     def label(self, x, y, content):
         if content:
             self.c.setFont("Helvetica", 9)
@@ -2295,6 +2300,11 @@ class FormMixin(object):
     def label_filled(self, x, y, content):
         if content:
             self.c.setFont("Courier", 9)
+            self.c.drawString(x*mm, y*mm, content)
+
+    def label_filled_large(self, x, y, content):
+        if content:
+            self.c.setFont("Courier", 11)
             self.c.drawString(x*mm, y*mm, content)
 
     def label_filled_centred(self, x, y, content):
@@ -3377,4 +3387,106 @@ class SessionalForm(FormMixin, SFUMediaMixin):
 def sessional_form(contract, outfile):
     doc = SessionalForm(outfile)
     doc.draw_form(contract)
+    doc.save()
+
+
+class KeyForm(FormMixin, SFUMediaMixin):
+    def __init__(self, *args, **kwargs):
+        super(KeyForm, self).__init__(*args, **kwargs)
+        self._media_setup()
+
+    def draw_form(self, booking):
+        x_origin = 30.5 * mm
+        y_origin = 43 * mm
+        x_max = 156.1
+
+        self.c.translate(x_origin, y_origin)  # origin = lower-left of the main box
+        self.c.setStrokeColor(black)
+
+        # SFU logo
+        self.c.drawImage(logofile, x=0.5, y=200 * mm, width=24 * mm, height=10 * mm)
+        self.c.setFont('BemboMTPro', 10)
+        self.c.setFillColor(self.sfu_red)
+        self._drawStringLeading(self.c, 28 * mm, 204 * mm, 'SIMON FRASER UNIVERSITY'.translate(self.sc_trans_bembo),
+                                charspace=1.4)
+        self.c.setFont('DINPro', 5)
+        self.c.setFillColor(self.sfu_grey)
+        self._drawStringLeading(self.c, 42 * mm, 201 * mm, 'Surrey'.upper(), charspace=2)
+        self.c.setFillColor(black)
+
+        # Top instructions
+        self.header_label_large_nobold(0,191, "Key Policy")
+        self.label(0, 182, "1.  I am accountable for the key listed below.")
+        self.label(0, 175.5, "2.  The key is the property of SFU")
+        self.label(0, 168.5, "3.  I will return the ley when it is not needed, or when requested, without delay.")
+        self.label(0, 162, "4.  I will return the key to Facilities Services Surrey or put it in the drop box.")
+        self.label(0, 155, "5.  I will not give the key to another person, exceot as arranged through Facilities.")
+        self.label(0, 148.5, "6.  I will not load the key or attempt to have it copied.")
+        self.label(0, 142, "7.  I will immediately report a lost or stolen key.")
+        self.label(0, 135, "8.  I have not paid a deposit for this key.")
+        self.header_label(0, 126, "I  have read and understand the above policy.")
+
+
+        # Top rectangle
+        self.rect(0, 82.5, x_max, 38)
+        self.hline(0, x_max, 105.2)
+        self.hline(0, x_max, 94 )
+        self.vline(x_max/2, 82.5, 120.5)
+        self.vline(x_max/4, 82.5, 94)
+
+        self.label_small(2, 117, "Signature")
+        self.label_small(80.1, 117, "Date")
+        self.label_small(2, 102.5, "Name")
+        self.label_small(80.1, 102.5, "SFU ID")
+        self.label_small(2, 91, "Department")
+        self.label_small(41, 91, "Room")
+        self.label_small(80.1, 91, "Email or telephone")
+
+        self.label_filled_large(2, 97, booking.person.name())
+        self.label_filled_large(80.1, 97, str(booking.person.emplid))
+        self.label_filled_large(41, 85.5, str(booking.location.room_number))
+
+        #  Bottom rectangle
+        self.c.setFillGray(0.9)
+        self.rect(0, 11, x_max, 67, filled=1)
+        self.c.setFillGray(0)
+        self.hline(0, x_max, 59.9)
+        self.hline(0, x_max, 50.5)
+        self.hline(0, x_max, 41.1)
+        self.vline(x_max/2, 11, 59.9)
+        self.c.setLineWidth(2)
+        self.rect(x_max/2, 11, x_max/2, 48.9)
+
+        self.header_label_large(2, 73, "Internal Use Only")
+        self.label(2, 63, "Room")
+        self.label(80, 63, "key")
+        self.label(130, 63, "Serial")
+        self.label(2, 54, "Date Returned")
+        self.label(80, 54, "Date Lost")
+        self.label(2, 45, "Initial")
+        self.label(80, 45, "Initial")
+        self.label(2, 35.5, "Notes / Comments")
+        self.label(80, 35.5, "Notes / Comments")
+
+        self.c.setFont("Helvetica", 5.8)
+        self.c.drawString(0, 4.8*mm, "The information on this form is collected under the general authority of the "
+                                   "University Act (R.S.B.C. 1979, c.419). It is related directly to and needed by the "
+                                   "University for the")
+        self.c.drawString(0, 2.4*mm, "Administration of keys and security on campus. The information will be used by SFU "
+                                   "and will not be shared with any other parties except in the event of an emergency. "
+                                   "If you")
+        self.c.drawString(0, 0, "have any questions about the collection and use of this information, please "
+                                   "contact the Manager, Facilities Services, SFU Surrey at (778) 782-7496.")
+        self.c.drawString(0, -10*mm, "Form generated automatically by CourSys.")
+
+
+
+        # All done, show the page
+        self.c.showPage()
+
+
+
+def key_form(booking, outfile):
+    doc = KeyForm(outfile)
+    doc.draw_form(booking)
     doc.save()

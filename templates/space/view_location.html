@@ -92,6 +92,14 @@ function confirmMemo() {
                                     <i class='fa fa-trash-o'></i>
                                 </button>
                             </form>
+                            {% if printkeyform %}
+                            <form class="lineform" method="GET"
+                                action="{% url "space:keyform" booking_slug=b.slug %}">
+                                <button type='submit' class='btn' title="Print Surrey Key Form">
+                                    <i class='fa fa-key'></i>
+                                </button>
+                            </form>
+                            {% endif %}
                             <form class="lineform" method="GET"
                                 action="{% url "space:send_booking_memo" booking_slug=b.slug from_index=1 %}"
                                 onsubmit="return confirmMemo()">

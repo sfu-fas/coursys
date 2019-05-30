@@ -9,6 +9,7 @@ from courselib.auth import requires_role
 from log.models import LogEntry
 from coredata.models import Unit, Person
 from grad.models import Supervisor
+from dashboard.letters import key_form
 import datetime
 import csv
 
@@ -99,7 +100,10 @@ def edit_location(request, location_slug, from_index=0):
 @requires_role('SPAC')
 def view_location(request, location_slug):
     location = get_object_or_404(Location, slug=location_slug, unit__in=Unit.sub_units(request.units))
-    return render(request, 'space/view_location.html', {'location': location})
+    printkeyform = False
+    if location.unit.label == 'SEE' or location.building in ['SRY', 'SEE'] or location.campus == 'SURRY':
+        printkeyform = True
+    return render(request, 'space/view_location.html', {'location': location, 'printkeyform': printkeyform})
 
 
 @requires_role('SPAC')
@@ -410,3 +414,12 @@ def delete_room_safety_item(request, safety_item_slug):
                      related_object=safety_item)
         l.save()
         return HttpResponseRedirect(reverse('space:manage_safety_items'))
+
+
+@requires_role('SPAC')
+def keyform(request, booking_slug):
+    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=Unit.sub_units(request.units))
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="keyform-%s-%s.pdf"' % (booking.location.room_number, booking.person.userid)
+    key_form(booking, response)
+    return response
