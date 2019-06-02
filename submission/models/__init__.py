@@ -25,6 +25,7 @@ from .office import Office
 from .codefile import Codefile
 from .gittag import GitTag
 from .text import Text
+from .livecode import LiveCode
 
 ALL_TYPE_CLASSES = [Archive, Code, Codefile, GitTag, Image, Office, PDF, Text, URL, Word]
 

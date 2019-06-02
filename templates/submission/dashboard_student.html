@@ -6,6 +6,30 @@
 {% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{course.name}}</a></li><li><a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li><li>Submission</li>{% endblock %}
 
 
+{% block headextra %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.47.0/codemirror.min.css" integrity="sha256-I8NyGs4wjbMuBSUE40o55W6k6P7tu/7G28/JGUUYCIs=" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.47.0/theme/eclipse.min.css" integrity="sha256-C2k2AGTJsrRfmmxnfxARIMz6/LK8tCUuFcWsG4kMhu8=" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.47.0/codemirror.min.js" integrity="sha256-2I1PtOi9LsvUCUPXmB064faXMlnry57bYMG9OrM4njM=" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    {% for data in component_form_list %}{% if data.comp.is_live_code %} {# codemirror mode <script> elements for livecode #}
+        {{ data.comp.mode_script_element }}
+    {% endif %}{% endfor %}
+    <script nonce="{{ CSP_NONCE }}">
+    var cm;
+    function activate_codemirror() {
+        $('dd.livecode').each(function(i, dd) {
+            dd = $(dd);
+            var ta = dd.find('textarea').get(0);
+            var mode = dd.attr('data-mode');
+            dd.css('float', 'none'); // TODO: ug, our CSS
+            console.log(ta);
+            console.log(mode);
+            cm = CodeMirror.fromTextArea(ta, {'mode': mode});
+        });
+    }
+    $(document).ready(activate_codemirror);
+    </script>
+{% endblock %}
+
 {% block actions %}
 {% if any_submissions %}
 <div id="actions">
@@ -59,7 +83,7 @@
                         <legend>{{data.comp.title}}</legend>
                         <dl class="inline">
                         {% for f in data.form.visible_fields %}
-                        <dt>{{ f.label }}</dt><dd>{{ f }}{% if f.help_text %}<p class="helptext">{{ f.help_text }}</p>{% endif %}</dd>
+                        <dt>{{ f.label }}</dt><dd{% if data.comp.is_live_code %} class="livecode" data-mode="{{ data.comp.language }}"{% endif %}>{{ f }}{% if f.help_text %}<p class="helptext">{{ f.help_text }}</p>{% endif %}</dd>
                         {% endfor %}
                         {% if data.comp.description %}<dt>Description</dt><dd>{{data.comp.description|linebreaksbr}}</dd>{% endif %}
                         {% if data.comp.max_size %}<dt>Max File Size</dt><dd>{{data.comp.max_size}} KB</dd>{% endif %}
