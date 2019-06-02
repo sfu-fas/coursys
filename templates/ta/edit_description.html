@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit Course Description{% endblock %}
+{% block h1 %}Edit Course Description{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta:descriptions" %}">Course Descriptions</a></li>
+<li>Edit</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="form_container">
+<form action="" method="post">{% csrf_token %}
+<fieldset>
+    {{ form|as_dl }}
+</fieldset>
+<input type="submit" class="submit" value="Save" /></p>
+</fieldset>
+</form>
+</div>
+
+{% endblock %}

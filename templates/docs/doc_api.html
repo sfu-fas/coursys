@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}CourSys: API{% endblock %}
-{% block h1 %}CourSys: API{% endblock %}
+{% block title %}API{% endblock %}
+{% block h1 %}API{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "dashboard.views.list_docs" %}">Docs</a></li><li>API</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "docs:list_docs" %}">Docs</a></li><li>API</li>{% endblock %}
 
 {% block actions %}
 {% endblock %}
@@ -11,7 +11,7 @@
 {% block content %}
 
 <h2 id="token">Consumer Token</h2>
-<p>Each app needs a consumer token created in the system. Email Greg Baker (<a href="mailto:ggbaker@sfu.ca">ggbaker@sfu.ca</a>) to get one.</p>
+<p>Each app needs a consumer token created in the system. Email Greg Baker (<a href="mailto:{{ help_email }}">{{ help_email }}</a>) to get one.</p>
 
 <h2 id="auth">Authentication</h2>
 <p>You can test the authenticated parts of the API in a web browser if you have already logged in with CAS.
@@ -19,17 +19,17 @@
 <p>For &ldquo;real&rdquo; API use, users must be authenticated with OAuth (1.0). The short instructions: it's like
     <a href="https://dev.twitter.com/docs/auth/obtaining-access-tokens">Twitter &ldquo;application-user authentication&rdquo;</a>, either 3-legged or PIN-based but with these URLs:</p>
 <ul class="bulleted">
-    <li>Request token URL: {{BASE_ABS_URL}}{% url 'oauth_request_token' %}</li>
-    <li>Authorize token URL: {{BASE_ABS_URL}}{% url 'oauth_user_authorization' %}</li>
-    <li>Access token URL: {{BASE_ABS_URL}}{% url 'oauth_access_token' %}</li>
+    <li>Request token URL: {{BASE_ABS_URL}}{% url 'api:oauth_request_token' %}</li>
+    <li>Authorize token URL: {{BASE_ABS_URL}}{% url 'api:oauth_user_authorization' %}</li>
+    <li>Access token URL: {{BASE_ABS_URL}}{% url 'api:oauth_access_token' %}</li>
 </li>
 </ul>
-<p>Remember that users can <a href="{% url 'api.views.manage_tokens' %}">revoke</a> their access tokens, so just because a token worked today, that doesn't mean it will work tomorrow.</p>
+<p>Remember that users can <a href="{% url 'config:manage_tokens' %}">revoke</a> their access tokens, so just because a token worked today, that doesn't mean it will work tomorrow.</p>
 
 <h2 id="urls">API Endpoints</h2>
-<p>The &ldquo;right&rdquo; endpoints to have are still very much up for debate and are under development. We will make them all <a href="{% url 'api.APIRoot' %}">discoverable from the root</a>.</p>
+<p>The &ldquo;right&rdquo; endpoints to have are still very much up for debate and are under development. We will make them all <a href="{% url 'api:APIRoot' %}">discoverable from the root</a>.</p>
 
 <h2 id="swagger">API Details</h2>
-<p>For now, <a href="{% url 'django.swagger.base.view' %}">Swagger</a>.</p>
+<p>For now, <a href="{% url 'api:swagger_base' %}">Swagger</a>.</p>
 
 {% endblock %}

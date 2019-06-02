@@ -1,49 +1,51 @@
 # Python
-import datetime
+import datetime, locale, decimal
 # Third-Party
-import unicodecsv as csv
+import csv
 # Django
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
-from django.http import HttpResponseRedirect, HttpResponse
-from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
+from django.urls import reverse
 from django.db import transaction, IntegrityError
 from django.contrib.auth.decorators import login_required
 # Local
 from courselib.auth import requires_role
-from coredata.models import Semester, Unit, CourseOffering
+from coredata.models import Semester, Unit, CourseOffering, Person
 from dashboard.models import NewsItem
+from log.models import LogEntry
+
 # App
 from .models import HiringSemester, TACategory, TAContract, TACourse, \
-                    EmailReceipt, NoPreviousSemesterException
+                    EmailReceipt, NoPreviousSemesterException, CourseDescription, TAContractAttachment
 from .forms import HiringSemesterForm, TACategoryForm, TAContractForm, \
-                    TACourseForm, EmailForm
+                    TACourseForm, EmailForm, CourseDescriptionForm, TAContracttAttachmentForm
 from dashboard.letters import tacontract_form
 
 def _home_redirect():
-    return HttpResponseRedirect(reverse('tacontracts.views.list_all_semesters'))
+    return HttpResponseRedirect(reverse('tacontracts:list_all_semesters'))
 
 
 def _contracts_redirect(unit_slug, semester):
-    if not isinstance(semester, basestring):
+    if not isinstance(semester, str):
         raise ValueError("Semester must be a four-character string - 1141")
-    return HttpResponseRedirect(reverse('tacontracts.views.list_all_contracts', 
+    return HttpResponseRedirect(reverse('tacontracts:list_all_contracts', 
                                         kwargs={'unit_slug':unit_slug,
                                             'semester':semester}))
 
 
 def _category_redirect(unit_slug, semester):
-    if not isinstance(semester, basestring):
+    if not isinstance(semester, str):
         raise ValueError("Semester must be a four-character string - 1141")
-    return HttpResponseRedirect(reverse('tacontracts.views.view_categories',
+    return HttpResponseRedirect(reverse('tacontracts:view_categories',
                                         kwargs={'unit_slug':unit_slug,
                                             'semester':semester}))
 
 
 def _contract_redirect(unit_slug, semester, contract_slug):
-    if not isinstance(semester, basestring):
+    if not isinstance(semester, str):
         raise ValueError("Semester must be a four-character string - 1141")
-    return HttpResponseRedirect(reverse('tacontracts.views.view_contract',
+    return HttpResponseRedirect(reverse('tacontracts:view_contract',
                                         kwargs={'unit_slug':unit_slug,
                                                 'semester':semester, 
                                                 'contract_slug':contract_slug}))
@@ -102,7 +104,11 @@ def new_semester(request):
             sem.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Semester %s created.' % unicode(sem))
+                                 'Semester %s created.' % str(sem))
+            l = LogEntry(userid=request.user.username,
+                         description="Added new semester '%s'." % str(sem),
+                         related_object=sem)
+            l.save()
             return _contracts_redirect(sem.unit.label, sem.semester.name)
     else:
         form = HiringSemesterForm(request)
@@ -141,7 +147,11 @@ def edit_semester(request, unit_slug, semester):
             sem.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Semester %s updated.' % unicode(sem))
+                                 'Semester %s updated.' % str(sem))
+            l = LogEntry(userid=request.user.username,
+                         description="Edited semester %s." % str(sem),
+                         related_object=sem)
+            l.save()
             return _home_redirect()
     else:
         form = HiringSemesterForm(request, instance=semester)
@@ -226,17 +236,17 @@ def copy_categories(request, unit_slug, semester):
             hiring_semester.config['copied_categories']):
         messages.add_message(request,
                              messages.ERROR,
-                             u'TA Categories have already been copied.')
+                             'TA Categories have already been copied.')
     try:
         hiring_semester.copy_categories_from_previous_semester(unit=unit)
         hiring_semester.config['copied_categories'] = True
         messages.add_message(request, 
                              messages.SUCCESS, 
-                             u'TA Categories copied.')
+                             'TA Categories copied.')
     except NoPreviousSemesterException:
         messages.add_message(request,
                              messages.ERROR,
-                             u'No previous semester to copy from.')
+                             'No previous semester to copy from.')
 
     return _category_redirect(unit_slug, hiring_semester.semester.name)
 
@@ -269,7 +279,11 @@ def new_category(request, unit_slug, semester):
             category.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Category %s created.' % unicode(category))
+                                 'Category %s created.' % str(category))
+            l = LogEntry(userid=request.user.username,
+                         description="Created category %s." % str(category),
+                         related_object=category)
+            l.save()
             return _category_redirect(unit_slug, semester)
     else:
         form = TACategoryForm(hiring_semester.unit)
@@ -296,7 +310,11 @@ def edit_category(request, unit_slug, semester, category_slug):
             category.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Category %s updated.' % unicode(category))
+                                 'Category %s updated.' % str(category))
+            l = LogEntry(userid=request.user.username,
+                         description="Edited category %s." % str(category),
+                         related_object=category)
+            l.save()
             return _category_redirect(unit_slug, semester)
     else:
         form = TACategoryForm(hiring_semester.unit, instance=category)
@@ -321,7 +339,11 @@ def hide_category(request, unit_slug, semester, category_slug):
         category.hide()
         messages.add_message(request, 
                              messages.SUCCESS, 
-                             u'Category %s hidden.' % unicode(category))
+                             'Category %s hidden.' % str(category))
+        l = LogEntry(userid=request.user.username,
+                     description="Hid category %s." % str(category),
+                     related_object=category)
+        l.save()
     return _category_redirect(unit_slug, semester)
 
 
@@ -343,7 +365,11 @@ def new_contract(request, unit_slug, semester):
                                      'You have entered 0 pay periods.  This TA will never get paid.')
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Contract %s created.' % unicode(contract))
+                                 'Contract %s created.' % str(contract))
+            l = LogEntry(userid=request.user.username,
+                         description="Created contract %s." % str(contract),
+                         related_object=contract)
+            l.save()
             return _contract_redirect(unit_slug, semester, contract.slug)
     else:
         form = TAContractForm(hiring_semester, initial={
@@ -370,10 +396,14 @@ def view_contract(request, unit_slug, semester, contract_slug):
                                  category__hiring_semester=hiring_semester,
                                  slug=contract_slug,
                                  category__account__unit__in=request.units)
+    description_choices = [('', '---------')] + [(d.id, d.description)
+                                                 for d in
+                                                 CourseDescription.objects.filter(unit__in=request.units, hidden=False)]
     category = contract.category
     courses = contract.course.all()
     emails = contract.email_receipt.all()
     courseform = TACourseForm(semester)
+    courseform.fields['description'].choices = description_choices
     return render(request, 'tacontracts/view_contract.html', {
                    'unit_slug': unit_slug,
                    'semester': semester,
@@ -404,7 +434,11 @@ def edit_contract(request, unit_slug, semester, contract_slug):
                                      'You have entered 0 pay periods.  This TA will never get paid.')
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Contract %s updated.' % unicode(contract))
+                                 'Contract %s updated.' % str(contract))
+            l = LogEntry(userid=request.user.username,
+                         description="Edited contract %s." % str(contract),
+                         related_object=contract)
+            l.save()
             return _contract_redirect(unit_slug, semester, contract.slug)
     else:
         form = TAContractForm(hiring_semester, instance=contract)
@@ -430,7 +464,11 @@ def sign_contract(request, unit_slug, semester, contract_slug):
         contract.sign()
         messages.add_message(request, 
                              messages.SUCCESS, 
-                             u'Contract signed!')
+                             'Contract signed!')
+        l = LogEntry(userid=request.user.username,
+                     description="Signed contract %s." % str(contract),
+                     related_object=contract)
+        l.save()
         return _contract_redirect(unit_slug, semester, contract_slug)
     else:
         return _contract_redirect(unit_slug, semester, contract_slug)
@@ -451,13 +489,22 @@ def cancel_contract(request, unit_slug, semester, contract_slug):
             contract.cancel()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Contract Deleted!')
+                                 'Contract Deleted!')
+            l = LogEntry(userid=request.user.username,
+                         description="Deleted contract %s." % str(contract),
+                         related_object=contract)
+            l.save()
             return _contracts_redirect(unit_slug, semester)
+
         else:
             contract.cancel()
             messages.add_message(request, 
                                  messages.SUCCESS,
-                                 u'Contract Cancelled!')
+                                 'Contract Cancelled!')
+            l = LogEntry(userid=request.user.username,
+                         description="Cancelled contract %s." % str(contract),
+                         related_object=contract)
+            l.save()
             return _contract_redirect(unit_slug, semester, contract.slug)
     else:
         return _contract_redirect(unit_slug, semester, contract_slug)
@@ -478,7 +525,11 @@ def copy_contract(request, unit_slug, semester, contract_slug):
         newcontract = contract.copy(request.user.username)
         messages.add_message(request, 
                              messages.SUCCESS, 
-                             u'Contract copied!')
+                             'Contract copied!')
+        l = LogEntry(userid=request.user.username,
+                     description="Copied contract %s." % str(contract),
+                     related_object=contract)
+        l.save()
         return _contract_redirect(unit_slug, semester, newcontract.slug)
     else:
         return _contract_redirect(unit_slug, semester, contract_slug)
@@ -499,7 +550,7 @@ def print_contract(request, unit_slug, semester, contract_slug):
     # it's just for our own peace of mind.
     if not contract.visa_verified:
         messages.error(request, 'You must verify the TA\'s visa information before printing')
-        return HttpResponseRedirect(reverse('tacontracts.views.view_contract',
+        return HttpResponseRedirect(reverse('tacontracts:view_contract',
                                             kwargs={'unit_slug': unit_slug,
                                                     'semester': semester,
                                                     'contract_slug': contract_slug}))
@@ -520,6 +571,9 @@ def new_course(request, unit_slug, semester, contract_slug):
                                  category__hiring_semester=hiring_semester,
                                  slug=contract_slug,
                                  category__account__unit__in=request.units)
+    description_choices = [('', '---------')] + [(d.id, d.description)
+                                                 for d in
+                                                 CourseDescription.objects.filter(unit__in=request.units, hidden=False)]
     category = contract.category
     if request.method == 'POST':
         form = TACourseForm(semester, request.POST)
@@ -531,14 +585,19 @@ def new_course(request, unit_slug, semester, contract_slug):
             except IntegrityError:
                 messages.add_message(request, 
                                      messages.ERROR, 
-                                     u'This contract already has %s.' % unicode(course))
+                                     'This contract already has %s.' % str(course))
                 return _contract_redirect(unit_slug, semester, contract.slug)
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Course %s created.' % unicode(course))
+                                 'Course %s created.' % str(course))
+            l = LogEntry(userid=request.user.username,
+                         description="Created course %s." % str(course),
+                         related_object=course)
+            l.save()
             return _contract_redirect(unit_slug, semester, contract.slug)
     else:
         form = TACourseForm(semester)
+    form.fields['description'].choices = description_choices
     return render(request, 'tacontracts/new_course.html', {
                   'unit_slug': unit_slug,
                   'semester':semester,
@@ -562,7 +621,11 @@ def delete_course(request, unit_slug, semester, contract_slug, course_slug):
                                      contract=contract,
                                      slug=course_slug)
         course.delete()
-        messages.add_message(request, messages.SUCCESS, u'Course deleted.')
+        messages.add_message(request, messages.SUCCESS, 'Course deleted.')
+        l = LogEntry(userid=request.user.username,
+                     description="Deleted course %s." % str(course),
+                     related_object=course)
+        l.save()
         return _contract_redirect(unit_slug, semester, contract_slug)
     else:
         return _contract_redirect(unit_slug, semester, contract_slug)
@@ -581,7 +644,7 @@ def bulk_email(request, unit_slug, semester):
             subject = form.cleaned_data['subject']
             message = form.cleaned_data['message']
             sender = form.cleaned_data['sender']
-            url = reverse('tacontracts.views.student_contract', 
+            url = reverse('tacontracts:student_contract', 
                                                   kwargs={'semester':semester})
             contract_ids = [int(x) for x in request.POST.getlist('contracts[]')]
             contracts = TAContract.objects.visible(hiring_semester)\
@@ -597,7 +660,7 @@ def bulk_email(request, unit_slug, semester):
                 e = EmailReceipt(contract=contract, 
                                  content=n)
                 e.save()
-            messages.add_message(request, messages.SUCCESS, u'Email sent.')
+            messages.add_message(request, messages.SUCCESS, 'Email sent.')
             return _contracts_redirect(unit_slug, semester)
     else:
         form = EmailForm()
@@ -630,8 +693,12 @@ def accept_contract(request, semester, contract_slug):
         contract.save()
         messages.add_message(request, 
                              messages.SUCCESS, 
-                             u'Contract Accepted.')
-    return HttpResponseRedirect(reverse('tacontracts.views.student_contract', 
+                             'Contract Accepted.')
+        l = LogEntry(userid=request.user.username,
+                     description="Accepted contract %s." % str(contract),
+                     related_object=contract)
+        l.save()
+    return HttpResponseRedirect(reverse('tacontracts:student_contract',
                                         kwargs={'semester':semester}))
 
 
@@ -653,10 +720,9 @@ def contracts_csv(request, unit_slug, semester):
                      'Payroll Start Date', 'Payroll End Date',
                      'Action', 'Action Reason', 'Position Number', 
                      'Job Code', 'Full_Part time', 'Pay Group',
-                     'Employee Class', 'Category', 'Fund', 
-                     'Dept ID (cost center)', 'Project', 'Account',
-                     'Prep Units', 'Base Units', 'Appt Comp Freq', 
-                     'Semester Base Salary Rate',
+                     'Employee Class', 'Category', 'Project', 'Object', 'Fund',
+                     'Dept ID (cost center)', 'Program', 'Prep Units', 'Base Units',
+                     'Appt Comp Freq', 'Semester Base Salary Rate',
                      'Biweekly Base Salary Pay Rate', 
                      'Hourly Rate', 'Standard Hours', 'Scholarship Rate Code',
                      'Semester Scholarship Salary Pay Rate', 
@@ -681,8 +747,8 @@ def contracts_csv(request, unit_slug, semester):
             prep_units = ''
 
         # Build a string of all course offerings tied to this contract to add to the results.
-        course_list_string = ', '.join([unicode.encode(ta_course.course.name()) for ta_course in c.course.all()])
-        
+        course_list_string = c.course_list_string()
+
         row = []
         #Batch ID
         row.append(batchid)
@@ -718,14 +784,16 @@ def contracts_csv(request, unit_slug, semester):
         row.append('')
         #Category
         row.append(c.category.code)
+        # Project
+        row.append('')
+        # Account
+        row.append(c.category.account.account_number)
         #Fund
         row.append(11)
         #Dept ID(cost center)
         row.append(hiring_semester.unit.deptid())
-        #Project
-        row.append('')
-        #Account
-        row.append(c.category.account.account_number)
+        # Program
+        row.append(90150)
         #Prep Units
         row.append(prep_units)
         #Base Units
@@ -749,3 +817,213 @@ def contracts_csv(request, unit_slug, semester):
         writer.writerow(row)
     
     return response
+
+
+@requires_role("TAAD")
+def descriptions(request):
+    descriptions = CourseDescription.objects.filter(unit__in=request.units, hidden=False).select_related('unit')
+    context = {'descriptions': descriptions}
+    return render(request, 'tacontracts/descriptions.html', context)
+
+
+@requires_role("TAAD")
+def new_description(request):
+    unit_choices = [(u.id, str(u)) for u in request.units]
+    if request.method == 'POST':
+        form = CourseDescriptionForm(request.POST)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            desc = form.save(commit=False)
+            desc.hidden = False
+            desc.save()
+
+            messages.success(request, "Created contract description '%s'." % (desc.description))
+            l = LogEntry(userid=request.user.username,
+                         description="Created course description '%s' in %s." % (desc.description, desc.unit.label),
+                         related_object=desc)
+            l.save()
+            return HttpResponseRedirect(reverse('tacontracts:descriptions', kwargs={}))
+
+    else:
+        form = CourseDescriptionForm()
+        form.fields['unit'].choices = unit_choices
+    context = {'form': form}
+    return render(request, 'tacontracts/new_description.html', context)
+
+
+@requires_role("TAAD")
+def edit_description(request, description_id):
+    description = get_object_or_404(CourseDescription, pk=description_id, unit__in=request.units)
+    if request.method == 'POST':
+        form = CourseDescriptionForm(request.POST, instance=description)
+        if form.is_valid():
+            description = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 'Description was modified')
+            l = LogEntry(userid=request.user.username,
+                         description="Modified description %s" % description.description,
+                         related_object=description)
+            l.save()
+            return HttpResponseRedirect(reverse('tacontracts:descriptions'))
+    else:
+        form = CourseDescriptionForm(instance=description)
+    return render(request, 'tacontracts/edit_description.html', {'form': form})
+
+
+@requires_role("TAAD")
+def delete_description(request, description_id):
+    description = get_object_or_404(CourseDescription, pk=description_id, unit__in=request.units)
+    if request.method == 'POST':
+        # Descriptions are actual basically text, we will allow them to delete them.
+        description.delete()
+        messages.success(request, 'Deleted description %s' % description.description)
+        l = LogEntry(userid=request.user.username,
+                     description="Deleted description: %s" % description.description,
+                     related_object=description)
+        l.save()
+    return HttpResponseRedirect(reverse('tacontracts:descriptions'))
+
+
+@requires_role(["TAAD", "GRAD"])
+def view_financial_summary(request, unit_slug, semester,):
+    hiring_semester = get_object_or_404(HiringSemester,
+                                        semester__name=semester,
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contracts = TAContract.objects.signed(hiring_semester).filter(category__account__unit__in=request.units)
+    pay = 0
+    bus = 0
+    tac = contracts.count()
+    tacourses = TACourse.objects.filter(contract__in=contracts)
+    course_offerings = set()
+    for course in tacourses:
+        pay += course.total
+        bus += course.total_bu
+        course_offerings.add(course.course)
+    pay = locale.currency(float(pay))
+    pay = '%s' % (pay)
+    offerings = []
+    for o in course_offerings:
+        courses = tacourses.filter(course=o)
+        total_pay = 0
+        total_bus = decimal.Decimal(0)
+        for c in courses:
+            total_pay += c.total
+            total_bus += c.total_bu
+
+        total_pay = '%s' % (locale.currency(float(total_pay)))
+        total_bus = "%.2f" % total_bus
+        tas = courses.count()
+        o.total_pay = total_pay
+        o.total_bus = total_bus
+        o.tas = tas
+        offerings.append(o)
+    info = {'course_total': len(tacourses), 'bu_total': bus, 'pay_total': pay, 'ta_count': tac}
+    context = {'hiring_semester': hiring_semester, 'info': info, 'offerings': offerings}
+    return render(request, 'tacontracts/view_financial.html', context)
+
+
+@requires_role(["TAAD", "GRAD"])
+@transaction.atomic
+def new_attachment(request,  unit_slug, semester, contract_slug):
+    hiring_semester = get_object_or_404(HiringSemester,
+                                        semester__name=semester,
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contract = get_object_or_404(TAContract,
+                                 category__hiring_semester=hiring_semester,
+                                 slug=contract_slug,
+                                 category__account__unit__in=request.units)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    form = TAContracttAttachmentForm()
+    context = {"contract": contract,
+               "attachment_form": form,
+               'unit_slug': unit_slug,
+               'semester': semester,
+               'contract_slug': contract_slug}
+
+    if request.method == "POST":
+        form = TAContracttAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.contract = contract
+            attachment.created_by = editor
+            upfile = request.FILES['contents']
+            filetype = upfile.content_type
+            if upfile.charset:
+                filetype += "; charset=" + upfile.charset
+            attachment.mediatype = filetype
+            attachment.save()
+            return HttpResponseRedirect(reverse('tacontracts:view_contract',
+                                        kwargs={'unit_slug': unit_slug,
+                                                'semester': semester,
+                                                'contract_slug': contract_slug}))
+        else:
+            context.update({"attachment_form": form})
+
+    return render(request, 'tacontracts/new_attachment.html', context)
+
+
+
+
+@requires_role(["TAAD", "GRAD"])
+def view_attachment(request,  unit_slug, semester, contract_slug, attach_slug):
+    hiring_semester = get_object_or_404(HiringSemester,
+                                        semester__name=semester,
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contract = get_object_or_404(TAContract,
+                                 category__hiring_semester=hiring_semester,
+                                 slug=contract_slug,
+                                 category__account__unit__in=request.units)
+    attachment = get_object_or_404(contract.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role(["TAAD", "GRAD"])
+def download_attachment(request,  unit_slug, semester, contract_slug, attach_slug):
+    hiring_semester = get_object_or_404(HiringSemester,
+                                        semester__name=semester,
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contract = get_object_or_404(TAContract,
+                                 category__hiring_semester=hiring_semester,
+                                 slug=contract_slug,
+                                 category__account__unit__in=request.units)
+    attachment = get_object_or_404(contract.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role("FUND")
+def delete_attachment(request,  unit_slug, semester, contract_slug, attach_slug):
+    hiring_semester = get_object_or_404(HiringSemester,
+                                        semester__name=semester,
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contract = get_object_or_404(TAContract,
+                                 category__hiring_semester=hiring_semester,
+                                 slug=contract_slug,
+                                 category__account__unit__in=request.units)
+    attachment = get_object_or_404(contract.attachments.all(), slug=attach_slug)
+    attachment.hide()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         'Attachment deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
+    l.save()
+    return HttpResponseRedirect(reverse('tacontracts:view_contract',
+                                        kwargs={'unit_slug': unit_slug,
+                                                'semester': semester,
+                                                'contract_slug': contract_slug}))
+

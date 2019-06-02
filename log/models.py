@@ -28,14 +28,19 @@ class LogEntry(models.Model):
     comment = models.TextField(null=True, help_text="Comment from the user (if available)")
 
     # link to object that was changed
-    content_type = models.ForeignKey(ContentType, null=False, related_name="content_type")
+    content_type = models.ForeignKey(ContentType, null=True, related_name="content_type", on_delete=models.SET_NULL)
     object_id = models.PositiveIntegerField(null=True)
     related_object = GenericForeignKey('content_type', 'object_id')
     class Meta:
         ordering = ['-datetime']
 
+    def save(self, *args, **kwargs):
+        # self.content_type might be null if the related item is deleted, but must be created with one.
+        assert self.content_type
+        return super().save(*args, **kwargs)
+
     def display(self):
         return "%s - %s - %s" % (self.userid, self.description, self.comment)
 
-    __unicode__ = display
+    __str__ = display
 

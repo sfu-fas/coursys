@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.models import ModelForm
-from models import Alert, AlertType, AlertUpdate, AlertEmailTemplate
+from .models import Alert, AlertType, AlertUpdate, AlertEmailTemplate
 from django.template import Template, TemplateSyntaxError
 
 class AlertTypeForm(ModelForm):
@@ -18,7 +18,7 @@ class EmailForm(ModelForm):
         try:
             Template(content)
         except TemplateSyntaxError as e:
-            raise forms.ValidationError('Syntax error in template: ' + unicode(e))
+            raise forms.ValidationError('Syntax error in template: ' + str(e))
         return content
 
 class ResolutionForm(ModelForm):

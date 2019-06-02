@@ -3,15 +3,15 @@
 {% block h1 %}Transfer Credits for {{ student.first_name}} {{ student.last_name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
-<li><a href="{% url "advisornotes.views.student_notes" userid=userid %}">{{ student.name }}</a></li>
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:student_notes" userid=userid %}">{{ student.name }}</a></li>
 <li>Transfer credits</li>
 {% endblock %}
 
 
 
 {% block headextra %}
-<script type="text/javascript">//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">
 
 	var course_data;
 
@@ -65,7 +65,7 @@
         } );
     }
 
-	var data_url = '{% url "advisornotes.views.student_transfers_data" userid=userid %}';
+	var data_url = '{% url "advising:student_transfers_data" userid=userid %}';
     $(document).ready(function() {
     	$.ajax({
         	url: data_url,
@@ -77,8 +77,7 @@
 
    		});
  	});
-
-//]]></script>
+</script>
 
 {% endblock %}
 
@@ -87,7 +86,7 @@
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "advisornotes.views.student_transfers_download" userid=userid%}">Download CSV</a></li>
+        <li><a href="{% url "advising:student_transfers_download" userid=userid%}">Download CSV</a></li>
     </ul>
 </div>
 {% endblock %}

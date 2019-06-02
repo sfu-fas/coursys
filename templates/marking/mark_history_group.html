@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
 	oTable = $('.display').dataTable({
 		"bJQueryUI": true,
@@ -19,9 +19,9 @@
 {% block h1 %}Marking History: {{group.name}}, {{activity.name}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li>
-<li><a href="{% url "marking.views.mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">{{ group.name }} Marking</a></li>
+<li><a href="{% url "offering:marking:mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">{{ group.name }} Marking</a></li>
 <li>History</li>
 {% endblock %}
 
@@ -46,7 +46,7 @@
 		      </td>
 	          <td>{{ act_mark.created_by }}</td>           
 	          <td>{{ act_mark.mark }}/{{ activity.max_grade }}
-	          	<a href="{% url "marking.views.mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?activity_mark={{act_mark.id}}"><i class="fa fa-search" title="View detail"></i></a>
+	          	<a href="{% url "offering:marking:mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?activity_mark={{act_mark.id}}"><i class="fa fa-search" title="View detail"></i></a>
 	          </td>
 	        </tr>	
 	     {% empty %}

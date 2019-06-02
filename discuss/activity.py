@@ -1,4 +1,4 @@
-from models import DiscussionTopic
+from .models import DiscussionTopic
 from django.db.models.aggregates import Max
 import datetime
 import time
@@ -12,6 +12,7 @@ def recent_activity(member):
     if latest_activity is None:
         latest_activity = datetime.datetime.fromtimestamp(0)
     return datetime.datetime.fromtimestamp(member.last_discuss()) < latest_activity
+
 
 def update_last_viewed(member):
     """

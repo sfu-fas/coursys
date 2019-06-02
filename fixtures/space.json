@@ -1,0 +1,58 @@
+[
+{
+ "fields": {
+  "COU_code_description": "Magical Room Type Space",
+  "COU_code_value": "12.2",
+  "code": "RMM_TYP",
+  "config": "{}",
+  "hidden": false,
+  "long_description": "A room type",
+  "slug": "cmpt-rmm_typ-122",
+  "space_factor": "0.5",
+  "unit": 5
+ },
+ "model": "space.roomtype",
+ "pk": 1
+},
+{
+ "fields": {
+  "building": "ASB",
+  "campus": "BRNBY",
+  "category": "STAFF",
+  "comments": "This is the room with the thing",
+  "config": "{}",
+  "field": null,
+  "floor": 9,
+  "hidden": false,
+  "infrastructure": "STD",
+  "occupancy_count": 3,
+  "own_or_lease": "OWN",
+  "room_capacity": 10,
+  "room_number": "9971",
+  "room_type": 1,
+  "safety_items": [],
+  "slug": "cmpt-brnby-asb-9-9971",
+  "square_meters": "6.00",
+  "unit": 5
+ },
+ "model": "space.location",
+ "pk": 1
+},
+{
+ "fields": {
+  "config": "{}",
+  "end_time": "2099-01-01T23:59:59",
+  "form_submission_URL": null,
+  "hidden": false,
+  "last_modified": "2019-05-13T15:28:01.173",
+  "last_modified_by": null,
+  "location": 1,
+  "notes": null,
+  "person": 18,
+  "slug": "cmpt-brnby-asb-9-9971-0ggg1-2010-01-01",
+  "start_time": "2010-01-01T00:00:00"
+ },
+ "model": "space.bookingrecord",
+ "pk": 1
+}
+]

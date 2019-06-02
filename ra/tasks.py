@@ -1,8 +1,8 @@
-from celery.task import periodic_task
+from courselib.celerytasks import periodic_task
 from celery.schedules import crontab
 from ra.models import RAAppointment
 
 
-@periodic_task(run_every=crontab(minute='0', hour='6'))
+@periodic_task(run_every=crontab(minute='0', hour='13'))
 def expiring_ras_reminder():
     RAAppointment.email_expiring_ras()

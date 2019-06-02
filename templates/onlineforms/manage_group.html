@@ -5,13 +5,13 @@
 {% block h1 %}Edit {{ group.name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-<li><a href="{% url "onlineforms.views.manage_groups" %}">Form Groups</a></li>
+<li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+<li><a href="{% url "onlineforms:manage_groups" %}">Form Groups</a></li>
 <li>Edit {{ group.name }}</li>
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
     $('#formgroupmembers').dataTable({
                 "bPaginate": false,
@@ -37,7 +37,7 @@ $(document).ready(function() {
 
 {% block content %}
 <div style="clear: left;">
-	<form action="{% url "onlineforms.views.manage_group" formgroup_slug=group.slug %}" method="post">
+	<form action="{% url "onlineforms:manage_group" formgroup_slug=group.slug %}" method="post">
 		{% csrf_token %}
 		 <fieldset style="width: 65%">
             <legend>Group Information</legend>
@@ -61,22 +61,30 @@ $(document).ready(function() {
             <tr>
                 <th scope="col">Name</th>
                 <th scope="col">Email?</th>
-                <th scope="col">Remove</th>
+                <th scope="col">Action</th>
             </tr>
         </thead>
         <tbody>
             {% for member in groupmembers %}
             <tr>
-                <td>{{ member.person.sortname }}</td>
+                <td>{{ member.person.sortname }}{% if member.person.userid %} &nbsp;({{ member.person.userid }}){% endif %}</td>
                 <td>{{ member.email|yesno }}</td>
-                <td class="miniaction"> 
-                    <form action="{% url "onlineforms.views.remove_group_member" formgroup_slug=group.slug userid=member.person.emplid %}" method="post">{% csrf_token %}
-                        <div>
-                            <input type="hidden" name="action" value="remove"/>
-                            <input type="submit" value="remove"/>
-                        </div>
+                <td>
+                    <form class="lineform" method="POST"
+                          action="{% url "onlineforms:remove_group_member" formgroup_slug=group.slug userid=member.person.emplid %}">
+                        {% csrf_token %}
+                        <button type='submit' class='btn confirm-submit' title="Remove member" data-submit-action="remove this member">
+                            <i class='fa fa-trash-o'></i>
+                        </button>
                     </form>
-                </td>                
+                    <form class="lineform" method="POST"
+                          action="{% url "onlineforms:toggle_group_member" formgroup_slug=group.slug userid=member.person.emplid %}">
+                        {% csrf_token %}
+                        <button type='submit' class='btn' title="Toggle member email setting">
+                            <i class='fa fa-at'></i>
+                        </button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -88,7 +96,7 @@ $(document).ready(function() {
 <div>
     <fieldset style="width: 65%">
         <legend>Add Member</legend>
-        <form action="{% url "onlineforms.views.add_group_member" formgroup_slug=group.slug %}" method="post">{% csrf_token %}
+        <form action="{% url "onlineforms:add_group_member" formgroup_slug=group.slug %}" method="post">{% csrf_token %}
             <ul>
                 <li>{{ search|as_dl }}</li>
                 <li><input type="hidden" name="action" value="add" /></li>

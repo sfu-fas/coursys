@@ -1,9 +1,7 @@
 import abc
 
 
-class CareerEventMixinBase(object):
-
-    __metaclass__ = abc.ABCMeta
+class CareerEventMixinBase(object, metaclass=abc.ABCMeta):
 
     FLAGS = []
 

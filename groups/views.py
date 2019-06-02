@@ -1,15 +1,16 @@
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import Q
 from coredata.models import Member, Person, CourseOffering
 from groups.models import Group, GroupMember, all_activities
 from grades.models import Activity, all_activities_filter
-from django.shortcuts import render_to_response, render, get_object_or_404
-from django.template import RequestContext
+from django.shortcuts import render, get_object_or_404
 from groups.forms import ActivityForm, GroupForSemesterForm, StudentForm, GroupNameForm
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
-from courselib.auth import is_course_staff_by_slug, is_course_student_by_slug, requires_course_by_slug, requires_course_staff_by_slug
+from courselib.auth import is_course_staff_by_slug, is_course_student_by_slug, requires_course_by_slug, \
+    requires_course_staff_by_slug, ForbiddenResponse
 from marking.models import GroupActivityMark, GroupActivityMark_LetterGrade
 from log.models import LogEntry
 from dashboard.models import NewsItem
@@ -22,7 +23,7 @@ def groupmanage(request, course_slug, activity_slug=None):
     elif is_course_student_by_slug(request, course_slug):
         return _groupmanage_student(request, course_slug)
     else:
-        return HttpResponseForbidden()
+        return ForbiddenResponse(request)
 
 def _groupmanage_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -53,15 +54,12 @@ def _groupmanage_student(request, course_slug):
         if group_min and headcount < group_min:
             # total size too small
             size_message = 'Groups in this course must have at least %i members.' % (group_min)
-        #elif group_max and headcount > group_max:
-        #    # total size too large
-        #    size_message = 'Groups in this course must have at most %i members.' % (group_max)
         else:
             # check size for each activity
             act_count = defaultdict(int)
             for m in members:
                 act_count[m.activity] += 1
-            bad_act = [act.name for act,count in act_count.items() if count < group_min]
+            bad_act = [act.name for act,count in list(act_count.items()) if count < group_min]
             if bad_act:
                 size_message = 'Groups in this course must have at least %i members: this group doesn\'t for %s.' % (group_min, ', '.join(bad_act))
 
@@ -77,8 +75,8 @@ def _group_info(course, group, members):
     """
     Collect all info about a group we need for display
     """
-    group_min = course.group_min()
-    group_max = course.group_max()
+    group_min = course.group_min() or 1
+    group_max = course.group_max() or 50
 
     gmembers = members.filter(group=group)
     all_act = all_activities(gmembers)
@@ -104,12 +102,12 @@ def _group_info(course, group, members):
     elif group_max and headcount > group_max:
         # total size too large
         size_message = 'Has %i members.' % (headcount)
-    else:
+    elif group_min:
         # check size for each activity
         act_count = defaultdict(int)
         for m in group.groupmember_set.all().select_related('activity'):
             act_count[m.activity] += 1
-        bad_act = [act.name for act,count in act_count.items() if count < group_min]
+        bad_act = [act.name for act,count in list(act_count.items()) if count < group_min]
         if bad_act:
             size_message = 'Too small for %s.' % (', '.join(bad_act))
     return {'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members,
@@ -222,8 +220,9 @@ def group_data(request, course_slug):
 @requires_course_by_slug
 @transaction.atomic
 def create(request, course_slug):
-    person = get_object_or_404(Person,userid=request.user.username)
-    course = get_object_or_404(CourseOffering, slug = course_slug)
+    person = get_object_or_404(Person, userid=request.user.username)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    span = course.group_span_activities()
 
     # allow 'activity=foo' in query string to suggest default selected for the form
     if 'activity' in request.GET:
@@ -236,15 +235,14 @@ def create(request, course_slug):
     activities = Activity.objects.exclude(status='INVI').filter(offering=course, group=True, deleted=False)
     activityList = []
     for activity in activities:
-        default = (not selected_activity) or (selected_activity and activity == selected_activity)
+        default = (span and not selected_activity) or (selected_activity and activity == selected_activity)
         activityForm = ActivityForm(prefix=activity.slug, initial={'selected': default})
         activityList.append({'activityForm': activityForm, 'name': activity.name,
                              'percent': activity.percent, 'due_date': activity.due_date})
 
     if is_course_student_by_slug(request, course_slug):
-        return render_to_response('groups/create_student.html',
-                                  {'manager':group_manager, 'course':course, 'groupForSemester':groupForSemesterForm, 'activityList':activityList},\
-                                  context_instance = RequestContext(request))
+        return render(request, 'groups/create_student.html',
+                                  {'manager':group_manager, 'course':course, 'groupForSemester':groupForSemesterForm, 'activityList':activityList})
 
     elif is_course_staff_by_slug(request, course_slug):
         #For instructor page, there is a student table for him/her to choose the students who belong to the new group
@@ -256,9 +254,9 @@ def create(request, course_slug):
                                  'last_name' : student.person.last_name, 'userid' : student.person.userid,\
                                  'emplid' : student.person.emplid})
 
-        return render_to_response('groups/create_instructor.html',
+        return render(request, 'groups/create_instructor.html',
                           {'manager':group_manager, 'course':course,'groupForSemester':groupForSemesterForm, 'activityList':activityList, \
-                           'studentList':studentList}, context_instance = RequestContext(request))
+                           'studentList':studentList})
     else:
         return HttpResponseForbidden()
     
@@ -309,12 +307,16 @@ def _validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course,
                         messages.add_message(request, messages.ERROR, error_info)
     return not integrityError
 
+
 @requires_course_by_slug
 @transaction.atomic
 def submit(request, course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
-    course = get_object_or_404(CourseOffering, slug = course_slug)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
     member = Member.objects.exclude(role='DROP').get(person=person, offering=course)
+    is_staff = is_course_staff_by_slug(request, course_slug)
+    span = course.group_span_activities()
+
     error_info=None
     name = request.POST.get('GroupName')
     if name:
@@ -323,19 +325,19 @@ def submit(request, course_slug):
     if Group.objects.filter(name=name,courseoffering=course):
         error_info="A group named \"%s\" already exists" % (name)
         messages.add_message(request, messages.ERROR, error_info)
-        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
     #Check if the group name is empty, these two checks may need to be moved to forms later.
     if name == "":
         error_info = "Group name cannot be empty: please enter a group name."
         messages.add_message(request, messages.ERROR, error_info)
-        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
     
 
     else:
         # find selected activities
         selected_act = []
         activities = Activity.objects.filter(offering=course, group=True, deleted=False)
-        if not is_course_staff_by_slug(request, course_slug):
+        if not is_staff:
             activities = activities.exclude(status='INVI')
 
         for activity in activities:
@@ -346,11 +348,14 @@ def submit(request, course_slug):
         # no selected activities: fail.
         if not selected_act:
             messages.add_message(request, messages.ERROR, "Group not created: no activities selected.")
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
-        
-        #groupForSemesterForm = GroupForSemesterForm(request.POST)
-        #if groupForSemesterForm.is_valid():
-        #    groupForSemester = groupForSemesterForm.cleaned_data['selected']
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
+
+        # check groups_span_activities restriction if it's set
+        if not span and not is_staff and len(selected_act) > 1:
+            # students cannot violate groups_span_activities restriction, but instructors can
+            messages.add_message(request, messages.ERROR, "Group not created: groups cannot last for more than one activity in this course.")
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
+
         groupForSemester = False
         
         #validate database integrity before saving anything. 
@@ -369,11 +374,11 @@ def submit(request, course_slug):
                     studentList.append(student)
         #Check if students has already in a group
         if _validateIntegrity(request,isStudentCreatedGroup, groupForSemester, course, studentList, selected_act) == False:
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
         #No selected members,group creating will fail.        
         if not studentList:
             messages.add_message(request, messages.ERROR, "Group not created: no members selected.")
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
         
         group = Group(name=name, manager=member, courseoffering=course, groupForSemester = groupForSemester)
         group.save()
@@ -394,7 +399,7 @@ def submit(request, course_slug):
                 l.save()
 
             messages.add_message(request, messages.SUCCESS, 'Group Created')
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
 
         elif is_course_staff_by_slug(request, course_slug):
             students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
@@ -413,12 +418,12 @@ def submit(request, course_slug):
                     n = NewsItem(user=student.person, author=member.person, course=group.courseoffering,
                      source_app="group", title="Added to Group",
                      content="You have been added the group %s." % (group.name),
-                     url=reverse('groups.views.groupmanage', kwargs={'course_slug':course.slug})
+                     url=reverse('offering:groups:groupmanage', kwargs={'course_slug':course.slug})
                     )
                     n.save()
                     
             messages.add_message(request, messages.SUCCESS, 'Group Created')
-            return HttpResponseRedirect(reverse('groups.views.view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
+            return HttpResponseRedirect(reverse('offering:groups:view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
         else:
             return HttpResponseForbidden()
 
@@ -445,7 +450,7 @@ def join(request, course_slug, group_slug):
     related_object=group )
     l.save()
     messages.add_message(request, messages.SUCCESS, 'You have joined the group "%s".' % (group.name))
-    return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+    return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
 
 @requires_course_by_slug
 @transaction.atomic
@@ -467,16 +472,16 @@ def reject(request, course_slug, group_slug):
     related_object=group )
     l.save()
     messages.add_message(request, messages.SUCCESS, 'You have left the group "%s".' % (group.name))
-    return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+    return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
 
 @requires_course_by_slug
 @transaction.atomic
 def invite(request, course_slug, group_slug):
     #TODO need to validate the student who is invited, cannot be the invitor him/herself.
-    course = get_object_or_404(CourseOffering, slug = course_slug)
-    group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
-    person = get_object_or_404(Person, userid = request.user.username)
-    invitor = get_object_or_404(Member, person = person, offering=course)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    group = get_object_or_404(Group, courseoffering=course, slug=group_slug)
+    person = get_object_or_404(Person, userid=request.user.username)
+    invitor = get_object_or_404(Member, ~Q(role='DROP'), person=person, offering=course)
     error_info=None
     group_max = course.group_max()
     from django import forms
@@ -492,12 +497,12 @@ def invite(request, course_slug, group_slug):
             existing = GroupMember.objects.filter(group=group).values('student').order_by().distinct().count()
             if group_max and existing >= group_max:
                 messages.add_message(request, messages.ERROR, 'Group already has %s members, which is the maximum.' % (group_max))
-                return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+                return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
 
             members = Member.objects.filter(person__userid = name, offering = course, role="STUD")
             if not members:
                 messages.add_message(request, messages.ERROR, 'Could not find userid "%s".' % (name))
-                return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+                return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
             member = members[0]
             
             # find out if this person is already in a group
@@ -526,19 +531,19 @@ def invite(request, course_slug, group_slug):
                 n = NewsItem(user=member.person, author=person, course=group.courseoffering,
                      source_app="group", title="Group Invitation",
                      content="You have been invited to join group %s." % (group.name),
-                     url=reverse('groups.views.groupmanage', kwargs={'course_slug':course.slug})
+                     url=reverse('offering:groups:groupmanage', kwargs={'course_slug':course.slug})
                     )
                 n.save()
                 messages.add_message(request, messages.SUCCESS, 'Your invitation to %s has been sent out.' % (member.person.name()))
 
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
         else:
             messages.add_message(request, messages.ERROR, "Invalid userid.")
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
     else:
         student_receiver_form = StudentReceiverForm()
         context = {'course': course, 'form': student_receiver_form}
-        return render_to_response("groups/invite.html", context, context_instance=RequestContext(request))
+        return render(request, "groups/invite.html", context)
 
 @login_required
 @transaction.atomic
@@ -561,7 +566,7 @@ def remove_student(request, course_slug, group_slug):
 
     if request.method == "POST":
         for m in members:
-            f = StudentForm(request.POST, prefix=unicode(m.student.person.userid_or_emplid()) + '_' + m.activity.slug)
+            f = StudentForm(request.POST, prefix=str(m.student.person.userid_or_emplid()) + '_' + m.activity.slug)
             if (is_staff or m.student_editable(request.user.username)=="") \
                 and f.is_valid() and f.cleaned_data['selected'] == True:
             
@@ -574,23 +579,22 @@ def remove_student(request, course_slug, group_slug):
                 l.save()
 
         if is_staff:
-            return HttpResponseRedirect(reverse('groups.views.view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
+            return HttpResponseRedirect(reverse('offering:groups:view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
         else:
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:groups:groupmanage', kwargs={'course_slug': course_slug}))
 
     else:
         data = []
         for m in members:
             editable = m.student_editable(request.user.username)
             if is_staff or editable == "":
-                f = StudentForm(prefix=unicode(m.student.person.userid_or_emplid()) + '_' + m.activity.slug)
+                f = StudentForm(prefix=str(m.student.person.userid_or_emplid()) + '_' + m.activity.slug)
                 data.append({'form': f, 'member': m})
             else:
                 data.append({'form': None, 'member': m, 'reason': editable})
 
-        return render_to_response('groups/remove_student.html', \
-                          {'course':course, 'group' : group, 'data':data, 'is_staff':is_staff}, \
-                          context_instance = RequestContext(request))
+        return render(request, 'groups/remove_student.html', \
+                          {'course':course, 'group' : group, 'data':data, 'is_staff':is_staff})
 
 @requires_course_staff_by_slug
 @transaction.atomic
@@ -608,14 +612,13 @@ def change_name(request, course_slug, group_slug):
             description="changed name of group %s to %s for course %s." % (oldname, group.name, group.courseoffering),
             related_object=group)
             l.save()
-            return HttpResponseRedirect(reverse('groups.views.view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
+            return HttpResponseRedirect(reverse('offering:groups:view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
 
     else:
         groupForm = GroupNameForm(instance=group)
 
-    return render_to_response("groups/change_name.html", \
-                                  {'groupForm': groupForm, 'course': course, 'group': group}, 
-                                  context_instance=RequestContext(request))
+    return render(request, "groups/change_name.html", \
+                                  {'groupForm': groupForm, 'course': course, 'group': group})
 
 
 @requires_course_staff_by_slug
@@ -649,7 +652,7 @@ def assign_student(request, course_slug, group_slug):
                         description="added %s to group %s for %s." % (m.person.userid, group.name, a), related_object=gm)
                         l.save()
 
-        return HttpResponseRedirect(reverse('groups.views.view_group', kwargs={'course_slug': course.slug, 'group_slug': group.slug}))
+        return HttpResponseRedirect(reverse('offering:groups:view_group', kwargs={'course_slug': course.slug, 'group_slug': group.slug}))
         
     else:
         activity_data = []
@@ -662,7 +665,6 @@ def assign_student(request, course_slug, group_slug):
             form = StudentForm(prefix=m.person.userid)
             student_data.append( {'form': form, 'member': m} )
 
-        return render_to_response('groups/assign_student.html', \
-                          {'course':course, 'group':group, 'activity_data': activity_data, 'student_data': student_data}, \
-                          context_instance = RequestContext(request))
+        return render(request, 'groups/assign_student.html', \
+                          {'course':course, 'group':group, 'activity_data': activity_data, 'student_data': student_data})
 

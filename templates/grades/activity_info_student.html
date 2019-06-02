@@ -6,12 +6,12 @@
 {% block subbreadcrumbs %}<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>{{ activity.name }}</li>{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<script type="text/javascript">
+<script src="https://www.gstatic.com/charts/loader.js" referrerpolicy="no-referrer"></script>
+<script nonce="{{ CSP_NONCE }}">
 {% if activity_stat %}
 {% if activity.showhisto %}
-  google.load('visualization', '1.0', {'packages':['corechart']});
-  google.setOnLoadCallback(drawChart);
+  google.charts.load('current', {'packages':['corechart']});
+  google.charts.setOnLoadCallback(drawChart);
   
   var chart, data, rangetitle;
   function drawChart() {
@@ -42,10 +42,10 @@
     <h2 class="heading">Actions</h2>
     <ul>
 		{% if activity.submitable %}
-        <li><a href="{% url "submission.views.show_components" course.slug activity.slug%}">Make Submission</a></li>
+        <li><a href="{% url "offering:submission:show_components" course.slug activity.slug%}">Make Submission</a></li>
 		{% else %}
 		{% if activity.no_submit_too_old %}
-        <li><a href="{% url "submission.views.show_components" course.slug activity.slug%}">View Submission</a></li>
+        <li><a href="{% url "offering:submission:show_components" course.slug activity.slug%}">View Submission</a></li>
 		{% endif %}
 		{% endif %}
     </ul>
@@ -86,7 +86,7 @@
                {% if activity.is_numeric %}
                {% ifnotequal grade.flag 'NOGR' %} 
                {% ifnotequal grade.flag 'CALC' %} 
-               [<a href="{% url "marking.views.mark_summary_student" course_slug=course.slug activity_slug=activity.slug userid=grade.member.person.userid %}">Additional Marking Details</a>]
+               [<a href="{% url "offering:marking:mark_summary_student" course_slug=course.slug activity_slug=activity.slug userid=grade.member.person.userid %}">Additional Marking Details</a>]
                {% endifnotequal %}
                {% endifnotequal %}
                {% endif %}

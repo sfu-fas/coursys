@@ -5,8 +5,7 @@ from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import GradRequirementForm
-from django.core.urlresolvers import reverse
-from requirements import requirements
+from django.urls import reverse
 
 @requires_role("GRAD", get_only=["GRPD"])
 def new_requirement(request):
@@ -21,7 +20,7 @@ def new_requirement(request):
                   description="Created new grad requirement %s in %s." % (form.instance.description, form.instance.program),
                   related_object=form.instance)
             l.save()            
-            return HttpResponseRedirect(reverse(requirements))
+            return HttpResponseRedirect(reverse('grad:requirements'))
     else:
         form = GradRequirementForm()
         form.fields['program'].choices = program_choices

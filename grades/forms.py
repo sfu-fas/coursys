@@ -1,17 +1,15 @@
 from django import forms
-from django.conf import settings
 from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, LetterActivity, CalNumericActivity, Activity, NumericGrade, LetterGrade,ACTIVITY_TYPES, LETTER_GRADE_CHOICES
 from coredata.models import CourseOffering
 from groups.models import GroupMember
 from django.utils.safestring import mark_safe
 import pickle
-from grades.formulas import parse, activities_dictionary, cols_used
-from pyparsing import ParseException
-from django.forms.utils import ErrorList
-import datetime, decimal
+import datetime
 from grades.utils import parse_and_validate_formula, ValidationError
 from submission.models import Submission
 from dashboard.models import NewsItem
+from courselib.markup import MarkupContentField, MarkupContentMixin
+
 
 FORMTYPE = {'add': 'add', 'edit': 'edit'}
 GROUP_STATUS_CHOICES = [
@@ -20,31 +18,6 @@ GROUP_STATUS_CHOICES = [
 GROUP_STATUS = dict(GROUP_STATUS_CHOICES)
 GROUP_STATUS_MAP = {'0': True, '1': False}
 
-class CustomSplitDateTimeWidget(forms.SplitDateTimeWidget):
-    """
-    Create a custom SplitDateTimeWidget with custom html output format
-    """
-    def __init__(self, attrs=None, date_format=None, time_format=None):
-        super(CustomSplitDateTimeWidget, self).__init__(attrs, date_format, time_format)
-
-    def value_from_datadict(self, data, files, name):
-        """
-        Quick dirty solution.
-        Fix SplitDateTimeWidget bugs when displaying the form with SplitDateTimeField.
-        (Original problem: SplitDateTimeField can not display the field data into the seperated
-        DateInput and TimeInput)
-        """
-        if data.has_key(name):
-            # need to manually split the datetime into date and time for later data retrieval
-            if isinstance(data[name], datetime.datetime):
-                if isinstance(self.widgets[0], forms.DateInput) and isinstance(self.widgets[1], forms.TimeInput):
-                    data[name + '_0'] = data[name].date()
-                    data[name + '_1'] = data[name].time()
-        return [widget.value_from_datadict(data, files, name + '_%s' % i) for i, widget in enumerate(self.widgets)]
-        
-    def format_output(self, rendered_widgets):
-        return mark_safe(u'<div class="datetime">%s %s<br />%s %s</div>' % \
-            (('Date:'), rendered_widgets[0], ('Time:'), rendered_widgets[1]))
 
 class ActivityForm(forms.Form):
     name = forms.CharField(max_length=30,
@@ -79,10 +52,10 @@ class ActivityForm(forms.Form):
         if name:
             if self._addform_validate:
                 if Activity.objects.filter(offering__slug=self._course_slug, name=name).count() > 0:
-                    raise forms.ValidationError(u'Activity with the same name already exists')
+                    raise forms.ValidationError('Activity with the same name already exists')
             if self._editform_validate:
                 if Activity.objects.filter(offering__slug=self._course_slug, name=name).exclude(slug=self._activity_slug).count() > 0:
-                    raise forms.ValidationError(u'Activity with the same name already exists')
+                    raise forms.ValidationError('Activity with the same name already exists')
         
         return name
     
@@ -91,10 +64,10 @@ class ActivityForm(forms.Form):
         if short_name:
             if self._addform_validate:
                 if Activity.objects.filter(offering__slug=self._course_slug, short_name=short_name).count() > 0:
-                    raise forms.ValidationError(u'Activity with the same short name already exists')
+                    raise forms.ValidationError('Activity with the same short name already exists')
             if self._editform_validate:
                 if Activity.objects.filter(offering__slug=self._course_slug, short_name=short_name).exclude(slug=self._activity_slug).count() > 0:
-                    raise forms.ValidationError(u'Activity with the same short name already exists')
+                    raise forms.ValidationError('Activity with the same short name already exists')
         
         return short_name
 
@@ -165,8 +138,7 @@ class NumericActivityForm(ActivityForm):
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
             help_text='visibility of grades/activity to students')
     due_date = forms.SplitDateTimeField(required=False,
-            help_text='Time format: HH:MM:SS, 24-hour time',
-            widget=CustomSplitDateTimeWidget())
+            help_text='Time format: HH:MM:SS, 24-hour time')
     max_grade = forms.DecimalField(max_digits=8, decimal_places=2, label='Maximum grade',
             help_text='Maximum grade for the activity',
             widget=forms.NumberInput(attrs={'class': 'gradeinput'}))
@@ -197,8 +169,7 @@ class LetterActivityForm(ActivityForm):
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
                                help_text='Visibility of grades/activity to students')
     due_date = forms.SplitDateTimeField(required=False,
-                                        help_text='Time format: HH:MM:SS',
-                                        widget=CustomSplitDateTimeWidget())
+                                        help_text='Time format: HH:MM:SS')
     group = forms.ChoiceField(label='Group activity', initial='1',
                               choices=GROUP_STATUS_CHOICES,
                               widget=forms.RadioSelect())
@@ -233,12 +204,15 @@ class CalNumericActivityForm(ActivityForm):
                     help_text=mark_safe('Formula to calculate the numeric grade: see <a href="#help">formula help</a> below for more info'),
                     widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
     showstats = forms.BooleanField(initial=True, required=False,
-            label="Show summary stats:", 
+            label="Show summary stats",
             help_text="Should students be able to view the summary stats: max, min, median, etc?")
     showhisto = forms.BooleanField(initial=True, required=False,
-            label="Show histogram:", 
+            label="Show histogram",
             help_text="Should students be able to view the grade distribution histogram?")
-    
+    calculation_leak = forms.BooleanField(initial=False, required=False,
+            label="Allow leaking unreleased",
+            help_text="Include unreleased grades in the calculation, even after this grade is released? May leak unreleased grades to students.")
+
     def activate_addform_validation(self, course_slug):
         super(CalNumericActivityForm, self).activate_addform_validation(course_slug)
         self._course_numeric_activities = NumericActivity.objects.filter(offering__slug=course_slug, deleted=False)
@@ -352,7 +326,7 @@ class CourseConfigForm(forms.Form):
         if 'group_min' in self.cleaned_data and 'group_max' in self.cleaned_data:
             gmin =  self.cleaned_data['group_min']
             gmax =  self.cleaned_data['group_max']
-            if gmin > gmax:
+            if gmin and gmax and gmin > gmax:
                 raise forms.ValidationError("Minimum group size can't be larger than maximum size.")
         return self.cleaned_data
 
@@ -449,11 +423,14 @@ class CutoffForm(forms.Form):
         return d
 
 
-class MessageForm(forms.ModelForm):
+class MessageForm(MarkupContentMixin(), forms.ModelForm):
+    content = MarkupContentField(rows=10, with_wysiwyg=False, default_markup='textile', allow_math=False,
+                                 restricted=True)
+
     class Meta:
         model = NewsItem
         # these fields are decided from the request at the time the form is submitted
-        exclude = ['user', 'author', 'published','updated','source_app','course', 'read']
+        exclude = ['user', 'author', 'published','updated','source_app','course', 'read', 'config']
 
 
 

@@ -1,6 +1,6 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
@@ -9,13 +9,51 @@ from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
-from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES, MACRO_LABEL
-from pages.forms import EditPageForm, EditFileForm, PageImportForm, SiteImportForm
+from pages.models import Page, PageVersion, PagePermission, MEMBER_ROLES, ACL_ROLES, MACRO_LABEL
+from pages.forms import EditPageForm, EditFileForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import NotFoundResponse, ForbiddenResponse, HttpError
-from importer import HTMLWiki
+from urllib.parse import urljoin
 import json, datetime
+
+
+def _allowed_member(userid, offering, acl_value):
+    """
+    Is a person with this userid allowed to access a page because they are a Member?
+    """
+    members = Member.objects.filter(person__userid=userid, offering=offering).exclude(role='DROP')
+    if not members:
+        if acl_value == 'ALL':
+            return True
+        else:
+            return None
+
+    m = members[0]
+    if acl_value == 'ALL':
+        return m
+    elif m.role in MEMBER_ROLES[acl_value]:
+        return m
+
+    return None
+
+
+def _allowed_permission(userid, offering, acl_value):
+    """
+    Is a person with this userid allowed to access a page because they have a PagePermission?
+    """
+    pps = PagePermission.objects.filter(person__userid=userid, offering=offering)
+    if not pps:
+        if acl_value == 'ALL':
+            return True
+        else:
+            return None
+
+    p = pps[0]
+    if p.role in MEMBER_ROLES[acl_value]:
+        return p
+
+    return None
 
 
 def _check_allowed(request, offering, acl_value, date=None):
@@ -28,19 +66,20 @@ def _check_allowed(request, offering, acl_value, date=None):
     """
     acl_value = Page.adjust_acl_release(acl_value, date)
 
-    members = Member.objects.filter(person__userid=request.user.username, offering=offering)
-    if not members:
-        if acl_value=='ALL':
-            return True
-        else:
-            return None
-    m = members[0]
-    if acl_value == 'ALL':
-        return m
-    elif m.role in MEMBER_ROLES[acl_value]:
+    if request.user.is_authenticated:
+        userid = request.user.username
+    else:
+        userid = '!'
+
+    # first option: can access because of Membership.
+    m = _allowed_member(userid, offering, acl_value)
+    if m and isinstance(m, Member):
         return m
 
-    return None    
+    # next option: can access because of a PagePermission
+    p = _allowed_permission(userid, offering, acl_value)
+    return p
+
 
 def _forbidden_response(request, visible_to):
     """
@@ -49,7 +88,7 @@ def _forbidden_response(request, visible_to):
     error = 'Not allowed to view this page. It is visible only to %s in this course.' % (visible_to,)
     errormsg_template = '<strong>You are not currently logged in</strong>. You may be able to view this page if you <a href="%s">log in</a>'
     errormsg = None
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         url = conditional_escape(settings.LOGIN_URL + '?next=' + request.get_full_path())
         errormsg = mark_safe(errormsg_template % (url))
 
@@ -75,6 +114,8 @@ def all_pages(request, course_slug):
     else:
         pages = Page.objects.filter(offering=offering, can_read='ALL')
         can_create = False
+
+    pages = (p for p in pages if not p.current_version().redirect)
 
     context = {'offering': offering, 'pages': pages, 'can_create': can_create, 'member': member}
     return render(request, 'pages/all_pages.html', context)
@@ -104,7 +145,7 @@ def view_page(request, course_slug, page_label):
 
         return _forbidden_response(request, page.get_can_read_display())
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         editor = _check_allowed(request, offering, page.can_write, page.editdate())
         can_edit = bool(editor)
     else:
@@ -116,7 +157,7 @@ def view_page(request, course_slug, page_label):
             and not page.config.get('prevent_redirect', False) ):
         # we have a migrated page and should redirect to the new location
         slug, label = page.config['migrated_to']
-        url = reverse(view_page, kwargs={'course_slug': slug, 'page_label': label})
+        url = reverse('offering:pages:view_page', kwargs={'course_slug': slug, 'page_label': label})
 
         member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
         can_create = bool(member)
@@ -127,10 +168,25 @@ def view_page(request, course_slug, page_label):
             # but most users just get a 301
             return redirect(url, permanent=True)
 
+    if version.redirect:
+        # this is a redirection stub: honour it.
+        url = urljoin(page.get_absolute_url(), version.redirect)
+        member = _check_allowed(request, offering, offering.page_creators())  # users who can create pages
+        can_create = bool(member)
+        if can_create:
+            # show these users a message so they can see what's happening
+            redirect_url = url
+        else:
+            # but most users just get a 301/410
+            resp = redirect(url, permanent=True)
+            if version.redirect_reason() == 'delete':
+                resp.status_code = 410
+            return resp
+
     is_index = page_label=='Index'
     if is_index:
         # canonical-ize the index URL
-        url = reverse(index_page, kwargs={'course_slug': course_slug})
+        url = reverse('offering:pages:index_page', kwargs={'course_slug': course_slug})
         if request.path != url:
             return HttpResponseRedirect(url)
     
@@ -213,7 +269,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     """
     View to create and edit pages
     """
-    if 'delete' in request.POST and request.POST['delete'] == 'yes':
+    if request.method == 'POST' and 'delete' in request.POST and request.POST['delete'] == 'yes':
         return _delete_pagefile(request, course_slug, page_label, kind)
     with django.db.transaction.atomic():
         offering = get_object_or_404(CourseOffering, slug=course_slug)
@@ -221,11 +277,16 @@ def _edit_pagefile(request, course_slug, page_label, kind):
             page = get_object_or_404(Page, offering=offering, label=page_label)
             version = page.current_version()
             member = _check_allowed(request, offering, page.can_write, page.editdate())
+            old_label = page.label
         else:
             page = None
             version = None
             member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
-        
+            old_label = None
+
+        if isinstance(member, PagePermission):
+            return ForbiddenResponse(request, 'Editing of pages by additional-permission holders is not implemented. Sorry')
+
         # make sure we're looking at the right "kind" (page/file)
         if not kind:
             kind = "file" if version.is_filepage() else "page"
@@ -268,6 +329,21 @@ def _edit_pagefile(request, course_slug, page_label, kind):
                 elif not restricted:
                     instance.set_editdate(None)
 
+                instance.redirect = None
+
+                if old_label and old_label != instance.label:
+                    # page has been moved to a new URL: leave a redirect in its place
+                    redir_page = Page(offering=instance.offering, label=old_label,
+                                      can_read=instance.can_read, can_write=offering.page_creators())
+                    redir_page.set_releasedate(instance.releasedate())
+                    redir_page.set_editdate(instance.editdate())
+                    redir_page.save()
+                    redir_version = PageVersion(page=redir_page, title=version.title, redirect=instance.label,
+                                                editor=member, comment='automatically generated on label change')
+                    redir_version.set_redirect_reason('rename')
+                    redir_version.save()
+                    messages.info(request, 'Page label changed: the old location (%s) will redirect to this page.' % (old_label,))
+
                 instance.save()
                 
                 #LOG EVENT#
@@ -287,14 +363,14 @@ def _edit_pagefile(request, course_slug, page_label, kind):
                     offering.save()
                     messages.info(request, "Set course URL to new Index page.")
                 
-                return HttpResponseRedirect(reverse('pages.views.view_page', kwargs={'course_slug': course_slug, 'page_label': instance.label}))
+                return HttpResponseRedirect(reverse('offering:pages:view_page', kwargs={'course_slug': course_slug, 'page_label': instance.label}))
         else:
             form = Form(instance=page, offering=offering)
             if 'label' in request.GET:
                 label = request.GET['label']
                 if label == 'Index':
                     form.initial['title'] = offering.name()
-                    form.fields['label'].help_text += u'\u2014the label "Index" indicates the front page for this course.'
+                    form.fields['label'].help_text += '\u2014the label "Index" indicates the front page for this course.'
                 elif label == MACRO_LABEL:
                     form.initial['can_read'] = 'INST'
                     form.initial['can_write'] = 'INST'
@@ -319,7 +395,7 @@ def _delete_pagefile(request, course_slug, page_label, kind):
     with django.db.transaction.atomic():
         offering = get_object_or_404(CourseOffering, slug=course_slug)
         page = get_object_or_404(Page, offering=offering, label=page_label)
-        #version = page.current_version()
+        version = page.current_version()
         member = _check_allowed(request, offering, page.can_write, page.editdate())
         if not member:
             return ForbiddenResponse(request, 'Not allowed to edit this '+kind+'.')
@@ -327,109 +403,26 @@ def _delete_pagefile(request, course_slug, page_label, kind):
         if not can_create:
             return ForbiddenResponse(request, 'Not allowed to delete pages in for this offering (must have page-creator permission).')
 
-        page.safely_delete()
+        from django.core.validators import URLValidator
+        from django.core.exceptions import ValidationError
+        val = URLValidator()
 
-        messages.success(request, "Page deleted (but can be recovered by an administrator in an emergency).")
-        return HttpResponseRedirect(reverse(index_page, kwargs={'course_slug': course_slug}))
+        redirect = request.POST.get('redirect', 'Index')
+        url = request.build_absolute_uri(urljoin(page.get_absolute_url(), redirect))
 
-
-
-
-
-
-def convert_content(request, course_slug, page_label=None):
-    """
-    Convert between wikicreole and HTML (AJAX called in editor when switching editing modes)
-    """
-    if request.method != 'POST':
-        return ForbiddenResponse(request, 'POST only')
-    if 'to' not in request.POST:
-        return ForbiddenResponse(request, 'must send "to" language')
-    if 'data' not in request.POST:
-        return ForbiddenResponse(request, 'must sent source "data"')
-
-    offering = get_object_or_404(CourseOffering, slug=course_slug)
-    
-    to = request.POST['to']
-    data = request.POST['data']
-    if to == 'html':
-        # convert wikitext to HTML
-        # temporarily change the current version to get the result (but don't save)
-        if page_label:
-            page = get_object_or_404(Page, offering=offering, label=page_label)
-            pv = page.current_version()
-        else:
-            # create temporary Page for conversion during creation
-            pv = PageVersion()
-        
-        pv.wikitext = data
-        pv.diff_from = None
-        result = {'data': pv.html_contents(offering=offering)}
-        return HttpResponse(json.dumps(result), content_type="application/json")
-    else:
-        # convert HTML to wikitext
-        converter = HTMLWiki([])
         try:
-            wiki = converter.from_html(data)
-        except converter.ParseError:
-            wiki = ''
-        result = {'data': wiki}
-        return HttpResponse(json.dumps(result), content_type="application/json")
+            val(url)
+        except ValidationError:
+            messages.error(request, "Bad redirect URL entered. Not deleted.")
+            return HttpResponseRedirect(reverse('offering:pages:edit_page', kwargs={'course_slug': course_slug, 'page_label': page.label}))
 
+        redir_version = PageVersion(page=page, title=version.title, redirect=redirect,
+                                    editor=member, comment='automatically generated on deletion')
+        redir_version.set_redirect_reason('delete')
+        redir_version.save()
 
-@login_required
-def import_page(request, course_slug, page_label):
-    with django.db.transaction.atomic():
-        offering = get_object_or_404(CourseOffering, slug=course_slug)
-        page = get_object_or_404(Page, offering=offering, label=page_label)
-        version = page.current_version()
-        member = _check_allowed(request, offering, page.can_write)
-        if not member:
-            return ForbiddenResponse(request, 'Not allowed to edit/create this page.')
-        
-        if request.method == 'POST':
-            form = PageImportForm(data=request.POST, files=request.FILES)
-            if form.is_valid():
-                wiki = form.cleaned_data['file'] or form.cleaned_data['url']
-
-                # create Page editing form for preview-before-save
-                pageform = EditPageForm(instance=page, offering=offering)
-                pageform.initial['wikitext'] = wiki
-                
-                # URL for submitting that form
-                url = reverse(edit_page, kwargs={'course_slug': offering.slug, 'page_label': page.label})
-                messages.warning(request, "Page has not yet been saved, but your HTML has been imported below.")
-                context = {'offering': offering, 'page': page, 'form': pageform, 'kind': 'Page', 'import': True, 'url': url}
-                return render(request, 'pages/edit_page.html', context)
-        else:
-            form = PageImportForm()
-        
-        context = {'offering': offering, 'page': page, 'version': version, 'form': form}
-        return render(request, 'pages/import_page.html', context)
-
-
-@login_required
-def import_site(request, course_slug):
-    with django.db.transaction.atomic():
-        offering = get_object_or_404(CourseOffering, slug=course_slug)
-        member = _check_allowed(request, offering, 'STAF') # only staff can import
-        if not member:
-            return ForbiddenResponse(request, 'Not allowed to edit/create pages.')
-        
-        if request.method == 'POST':
-            form = SiteImportForm(offering=offering, editor=member, data=request.POST, files=request.FILES)
-            if form.is_valid():
-                pages, errors = form.cleaned_data['url']
-                for label in pages:
-                    page, pv = pages[label]
-                    page.save()
-                    pv.page_id = page.id
-                    pv.save()
-        else:
-            form = SiteImportForm(offering=offering, editor=member)
-        
-        context = {'offering': offering, 'form': form}
-        return render(request, 'pages/import_site.html', context)
+        messages.success(request, "Page deleted and will redirect to this location.")
+        return HttpResponseRedirect(urljoin(page.get_absolute_url(), redirect))
 
 
 from django.forms import ValidationError
@@ -442,30 +435,30 @@ def _pages_from_json(request, offering, data):
         try:
             data = data.decode('utf-8-sig')
         except UnicodeDecodeError:
-            raise ValidationError(u"Bad UTF-8 data in file.")
+            raise ValidationError("Bad UTF-8 data in file.")
             
         try:
             data = json.loads(data)
         except ValueError as e:
-            raise ValidationError(u'JSON decoding error.  Exception was: "' + str(e) + '"')
+            raise ValidationError('JSON decoding error.  Exception was: "' + str(e) + '"')
         
         if not isinstance(data, dict):
-            raise ValidationError(u'Outer JSON data structure must be an object.')
+            raise ValidationError('Outer JSON data structure must be an object.')
         if 'userid' not in data or 'token' not in data:
-            raise ValidationError(u'Outer JSON data object must contain keys "userid" and "token".')
+            raise ValidationError('Outer JSON data object must contain keys "userid" and "token".')
         if 'pages' not in data:
-            raise ValidationError(u'Outer JSON data object must contain keys "pages".')
+            raise ValidationError('Outer JSON data object must contain keys "pages".')
         if not isinstance(data['pages'], list):
-            raise ValidationError(u'Value for "pages" must be a list.')
+            raise ValidationError('Value for "pages" must be a list.')
         
         try:
             user = Person.objects.get(userid=data['userid'])
             member = Member.objects.exclude(role='DROP').get(person=user, offering=offering)
-        except Person.DoesNotExist, Member.DoesNotExist:
-            raise ValidationError(u'Person with that userid does not exist.')
+        except (Person.DoesNotExist, Member.DoesNotExist):
+            raise ValidationError('Person with that userid does not exist.')
         
         if 'pages-token' not in user.config or user.config['pages-token'] != data['token']:
-            e = ValidationError(u'Could not validate authentication token.')
+            e = ValidationError('Could not validate authentication token.')
             e.status = 403
             raise e
         
@@ -473,9 +466,9 @@ def _pages_from_json(request, offering, data):
         
         for i, pdata in enumerate(data['pages']):
             if not isinstance(pdata, dict):
-                raise ValidationError(u'Page #%i entry structure must be an object.' % (i))
+                raise ValidationError('Page #%i entry structure must be an object.' % (i))
             if 'label' not in pdata:
-                raise ValidationError(u'Page #%i entry does not have a "label".' % (i))
+                raise ValidationError('Page #%i entry does not have a "label".' % (i))
             
             # handle changes to the Page object
             pages = Page.objects.filter(offering=offering, label=pdata['label'])
@@ -489,40 +482,42 @@ def _pages_from_json(request, offering, data):
             # check write permissions
             
             # mock the request object enough to satisfy _check_allowed()
-            class FakeRequest(object): pass
+            class FakeRequest(object):
+                is_authenticated = True
             fake_request = FakeRequest()
             fake_request.user = FakeRequest()
             fake_request.user.username = user.userid
+
             if old_ver:
                 m = _check_allowed(fake_request, offering, page.can_write, page.editdate())
             else:
                 m = _check_allowed(fake_request, offering, offering.page_creators())
             if not m:
-                raise ValidationError(u'You can\'t edit page #%i.' % (i))
+                raise ValidationError('You can\'t edit page #%i.' % (i))
             
             # handle Page attributes
             if 'can_read' in pdata:
-                if type(pdata['can_read']) != unicode or pdata['can_read'] not in ACL_DESC:
-                    raise ValidationError(u'Page #%i "can_read" value must be one of %s.'
-                                          % (i, ','.join(ACL_DESC.keys())))
+                if type(pdata['can_read']) != str or pdata['can_read'] not in ACL_DESC:
+                    raise ValidationError('Page #%i "can_read" value must be one of %s.'
+                                          % (i, ','.join(list(ACL_DESC.keys()))))
                 
                 page.can_read = pdata['can_read']
 
             if 'can_write' in pdata:
-                if type(pdata['can_write']) != unicode or pdata['can_write'] not in WRITE_ACL_DESC:
-                    raise ValidationError(u'Page #%i "can_write" value must be one of %s.'
-                                          % (i, ','.join(WRITE_ACL_DESC.keys())))
+                if type(pdata['can_write']) != str or pdata['can_write'] not in WRITE_ACL_DESC:
+                    raise ValidationError('Page #%i "can_write" value must be one of %s.'
+                                          % (i, ','.join(list(WRITE_ACL_DESC.keys()))))
                 if m.role == 'STUD':
-                    raise ValidationError(u'Page #%i: students can\'t change can_write value.' % (i))
+                    raise ValidationError('Page #%i: students can\'t change can_write value.' % (i))
                 page.can_write = pdata['can_write']
             
             if 'new_label' in pdata:
-                if type(pdata['new_label']) != unicode:
-                    raise ValidationError(u'Page #%i "new_label" value must be a string.' % (i))
+                if type(pdata['new_label']) != str:
+                    raise ValidationError('Page #%i "new_label" value must be a string.' % (i))
                 if m.role == 'STUD':
-                    raise ValidationError(u'Page #%i: students can\'t change label value.' % (i))
+                    raise ValidationError('Page #%i: students can\'t change label value.' % (i))
                 if Page.objects.filter(offering=offering, label=pdata['new_label']):
-                    raise ValidationError(u'Page #%i: there is already a page with that "new_label".' % (i))
+                    raise ValidationError('Page #%i: there is already a page with that "new_label".' % (i))
 
                 page.label = pdata['new_label']
 
@@ -532,46 +527,52 @@ def _pages_from_json(request, offering, data):
             ver = PageVersion(page=page, editor=member)
             
             if 'title' in pdata:
-                if type(pdata['title']) != unicode:
-                    raise ValidationError(u'Page #%i "title" value must be a string.' % (i))
+                if type(pdata['title']) != str:
+                    raise ValidationError('Page #%i "title" value must be a string.' % (i))
                 
                 ver.title = pdata['title']
             elif old_ver:
                 ver.title = old_ver.title
             else:
-                raise ValidationError(u'Page #%i has no "title" for new page.' % (i))
+                raise ValidationError('Page #%i has no "title" for new page.' % (i))
 
             if 'comment' in pdata:
-                if type(pdata['comment']) != unicode:
-                    raise ValidationError(u'Page #%i "comment" value must be a string.' % (i))
+                if type(pdata['comment']) != str:
+                    raise ValidationError('Page #%i "comment" value must be a string.' % (i))
                 
                 ver.comment = pdata['comment']
 
             if 'use_math' in pdata:
                 if type(pdata['use_math']) != bool:
-                    raise ValidationError(u'Page #%i "comment" value must be a boolean.' % (i))
-                
+                    raise ValidationError('Page #%i "comment" value must be a boolean.' % (i))
+
                 ver.set_math(pdata['use_math'])
 
+            if 'markup' in pdata:
+                if isinstance(pdata['markup'], str):
+                    raise ValidationError('Page #%i "markup" value must be a string.' % (i))
+
+                ver.set_markup(pdata['markup'])
+
             if 'wikitext-base64' in pdata:
-                if type(pdata['wikitext-base64']) != unicode:
-                    raise ValidationError(u'Page #%i "wikitext-base64" value must be a string.' % (i))
+                if type(pdata['wikitext-base64']) != str:
+                    raise ValidationError('Page #%i "wikitext-base64" value must be a string.' % (i))
                 try:
-                    wikitext = base64.b64decode(pdata['wikitext-base64'])
+                    wikitext = base64.b64decode(pdata['wikitext-base64']).decode('utf8')
                 except TypeError:
-                    raise ValidationError(u'Page #%i "wikitext-base64" contains bad base BASE64 data.' % (i))
+                    raise ValidationError('Page #%i "wikitext-base64" contains bad base BASE64 data.' % (i))
                 
                 ver.wikitext = wikitext
             elif 'wikitext' in pdata:
-                if type(pdata['wikitext']) != unicode:
-                    raise ValidationError(u'Page #%i "wikitext" value must be a string.' % (i))
+                if type(pdata['wikitext']) != str:
+                    raise ValidationError('Page #%i "wikitext" value must be a string.' % (i))
                 
                 ver.wikitext = pdata['wikitext']
             elif old_ver:
                 ver.wikitext = old_ver.wikitext
             else:
-                raise ValidationError(u'Page #%i has no wikitext for new page.' % (i))
-            
+                raise ValidationError('Page #%i has no wikitext for new page.' % (i))
+
             ver.save()
         
         return user

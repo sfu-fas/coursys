@@ -11,7 +11,7 @@ def __startsem_name(gs):
     if gs.start_semester:
         return gs.start_semester.name
     else:
-        return None
+        return '0000'
 
 class _FakeProgram(object):
     # just enough like a GradProgram to display other totals
@@ -25,16 +25,15 @@ def _build_funding_totals(semester, programs, units):
     Returns list of programs annotated with the totals
     """
     # build mapping of Person.id to most-likely-currently-interesting GradProgram they're in
-    gradstudents = GradStudent.objects.filter(program__unit__in=units).select_related('start_semester')
-    # decorate so most-interesting sorts last
-    gradstudents = [(-ACTIVE_STATUS_ORDER[gs.current_status], __startsem_name(gs), gs) for gs in gradstudents]
-    gradstudents.sort()
+    gradstudents = GradStudent.objects.filter(program__unit__in=units).select_related('start_semester', 'person')
+    gradstudents = list(gradstudents)
+    gradstudents.sort(key=lambda gs: (-ACTIVE_STATUS_ORDER[gs.current_status], __startsem_name(gs)))
     student_programs = {}
-    for _,_,gs in gradstudents:
+    for gs in gradstudents:
         student_programs[gs.person_id] = gs.program_id
     del gradstudents
 
-    
+
     programs = list(programs)
     non_grad = _FakeProgram(label="Non Grad *", pid=-1)
     programs.append(non_grad)
@@ -45,9 +44,9 @@ def _build_funding_totals(semester, programs, units):
         prog.funding_ra = decimal.Decimal(0)
         prog.funding_schol = decimal.Decimal(0)
         prog.funding_other = decimal.Decimal(0)
-    
+
     prog_lookup = dict((prog.id, prog) for prog in programs)
-    
+
     # TA funding
     tacourses = TACourse.objects.filter(contract__posting__semester=semester,
                                         contract__posting__unit__in=units,
@@ -63,7 +62,7 @@ def _build_funding_totals(semester, programs, units):
         pay = crs.pay()
         prog.funding_ta += pay
         total.funding_ta += pay
-    
+
     # RA funding
     sem_st, sem_en = RAAppointment.start_end_dates(semester)
     raappt = RAAppointment.objects.filter(unit__in=units, deleted=False, end_date__gte=sem_st, start_date__lte=sem_en)
@@ -74,7 +73,7 @@ def _build_funding_totals(semester, programs, units):
             prog = prog_lookup[prog_id]
         else:
             prog = non_grad
-	semlen = ra.semester_length()
+        semlen = ra.semester_length()
         if semlen == 0:
             semlen = 1
         pay = ra.lump_sum_pay/semlen
@@ -92,7 +91,7 @@ def _build_funding_totals(semester, programs, units):
         pay = sch.amount / length
         prog.funding_schol += pay
         total.funding_schol += pay
-        
+
     # other funding
     others = OtherFunding.objects.filter(student__program__unit__in=units, semester=semester).select_related('student')
     for oth in others:
@@ -101,7 +100,7 @@ def _build_funding_totals(semester, programs, units):
         pay = oth.amount
         prog.funding_other += pay
         total.funding_other += pay
-        
+
     return programs
 
 
@@ -111,12 +110,12 @@ def funding_report(request, semester_name=None):
         semester = Semester.next_starting()
     else:
         semester = get_object_or_404(Semester, name=semester_name)
-    
+
     programs = GradProgram.objects.filter(unit__in=request.units, hidden=False).order_by('label')
     programs = _build_funding_totals(semester, programs, request.units)
-    
+
     these_units = ', '.join(u.name for u in request.units)
     context = {'semester': semester, 'programs': programs, 'these_units': these_units}
-    
+
     return render(request, 'grad/funding_report.html', context)
 

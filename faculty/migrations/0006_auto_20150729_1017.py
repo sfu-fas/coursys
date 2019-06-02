@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='position',
             name='unit',
-            field=models.ForeignKey(to='coredata.Unit'),
+            field=models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE),
         ),
     ]

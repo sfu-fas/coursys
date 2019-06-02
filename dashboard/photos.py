@@ -4,8 +4,8 @@ from django.db import transaction
 from coredata.models import Unit
 from cache_utils.decorators import cached
 import itertools, os
-import hashlib, string, datetime, StringIO
-import urllib, urllib2, json, base64
+import hashlib, string, datetime, io
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, json, base64
 import celery
 try:
     from PIL import Image
@@ -36,12 +36,12 @@ def _grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
-    return itertools.izip_longest(fillvalue=fillvalue, *args)
+    return itertools.zip_longest(fillvalue=fillvalue, *args)
 
 def _photo_cache_key(emplid):
-    return 'photo-image-'+unicode(emplid)
+    return 'photo-image-'+str(emplid)
 def _task_cache_key(emplid):
-    return 'photo-task-'+unicode(emplid)
+    return 'photo-task-'+str(emplid)
 
 # functions that should actually be called to do stuff
 
@@ -98,7 +98,7 @@ def photo_for_view(emplid):
     if not data:
         # whatever happened above failed: use a no-photo placeholder
         logger.debug('using dummy image for %s' % (emplid))
-        data = open(DUMMY_IMAGE_FILE, 'r').read()
+        data = open(DUMMY_IMAGE_FILE, 'rb').read()
         data = possibly_resize(data)
         status = 404
 
@@ -118,19 +118,19 @@ def pre_fetch_photos(emplids):
     task_map = {}
     # ignore emplids where we already have a cached image
     # (It's possible that the cache expires between this and actual photo use, but I'll take that chance.)
-    emplids = [e for e in emplids if not cache.has_key(_photo_cache_key(e))]
+    emplids = [e for e in emplids if _photo_cache_key(e) not in cache]
 
     for group in _grouper(emplids, CHUNK_SIZE):
         # filter out the Nones introduced by grouper
-        group = [unicode(e) for e in group if e is not None]
+        group = [str(e) for e in group if e is not None]
         t = fetch_photos_task.delay(emplids=group)
 
         # record which task is fetching which photos
         if t is not None: # returns None if no Celery available in devel environment: ignore the results then
-            new_map = dict(itertools.izip(group, itertools.repeat(t.task_id, CHUNK_SIZE)))
+            new_map = dict(zip(group, itertools.repeat(t.task_id, CHUNK_SIZE)))
             task_map.update(new_map)
 
-    for emplid, task_id in task_map.iteritems():
+    for emplid, task_id in task_map.items():
         cache.set(_task_cache_key(emplid), task_id, 60)
 
 
@@ -163,13 +163,13 @@ def _get_photo_token():
     """
     Get auth token from photo service
     """
-    token_data = urllib.urlencode({'AccountName': ACCOUNT_NAME, 'Password': get_photo_password()})
+    token_data = urllib.parse.urlencode({'AccountName': ACCOUNT_NAME, 'Password': get_photo_password()}).encode('utf8')
     try:
-        token_request = urllib2.urlopen(TOKEN_URL, data=token_data)
+        token_request = urllib.request.urlopen(TOKEN_URL, data=token_data)
     except IOError:
         return ''
     else:
-        token_response = json.load(token_request)
+        token_response = json.loads(token_request.read().decode('utf8'))
         token = token_response['ServiceToken']
         return token
 
@@ -180,7 +180,7 @@ def possibly_resize(original):
     if Image is None:
         return original
 
-    img = Image.open(StringIO.StringIO(original))
+    img = Image.open(io.BytesIO(original))
     w,h = img.size
     if w <= MAX_PHOTO_SIZE and h <= MAX_PHOTO_SIZE:
         # original is reasonably-sized
@@ -189,7 +189,7 @@ def possibly_resize(original):
     # resize
     img.thumbnail((MAX_PHOTO_SIZE, MAX_PHOTO_SIZE), Image.ANTIALIAS)
 
-    resize = StringIO.StringIO()
+    resize = io.BytesIO()
     img.save(resize, format='jpeg')
     return resize.getvalue()
 
@@ -209,12 +209,12 @@ def _get_photos(emplids):
     photo_url = PHOTO_URL % (emplid_str)
     headers = {'Authorization': 'Bearer ' + token}
     try:
-        photo_request_obj = urllib2.Request(url=photo_url, headers=headers)
-        photo_request = urllib2.urlopen(photo_request_obj, timeout=30)
+        photo_request_obj = urllib.request.Request(url=photo_url, headers=headers)
+        photo_request = urllib.request.urlopen(photo_request_obj, timeout=30)
     except IOError:
         return {}
 
-    photo_response = json.load(photo_request)
+    photo_response = json.loads(photo_request.read().decode('utf8'))
     photos = {}
     for data in photo_response:
         if 'SfuId' not in data or 'PictureIdentification' not in data or not data['PictureIdentification']:
@@ -252,7 +252,7 @@ def generate_password(input_seed):
     secret = settings.SECRET_KEY
     seed_str = '_'.join([secret, input_seed, PW_SERIES, secret])
     h = hashlib.new('sha512')
-    h.update(seed_str)
+    h.update(seed_str.encode('utf8'))
     seed = int(h.hexdigest(), 16)
 
     # use seed to pick characters: one letter, one digit, one punctuation, length 6-10
@@ -295,12 +295,12 @@ def change_photo_password():
     if not settings.DO_IMPORTING_HERE:
         raise ValueError
     newpw = generate_password(datetime.date.today().isoformat())
-    token_data = urllib.urlencode({
+    token_data = urllib.parse.urlencode({
         'AccountName': ACCOUNT_NAME,
         'OldPassword': get_photo_password(),
         'NewPassword': newpw,
     })
-    resp = urllib2.urlopen(PASSWORD_URL, data=token_data)
+    resp = urllib.request.urlopen(PASSWORD_URL, data=token_data.encode('ascii'))
     resp_text = resp.read()
     set_photo_password(newpw)
     return resp_text

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 	$(document).ready(function() {
 		$('#letter_templates').dataTable({
 			"bJQueryUI" : true,
@@ -18,7 +18,7 @@
 	<h2>Actions</h2>
 	<ul>
 		<li >
-			<a href="{% url "grad.views.new_letter_template" %}">New Letter Template</a>
+			<a href="{% url "grad:new_letter_template" %}">New Letter Template</a>
 		</li>
 	</ul>
 </div>
@@ -29,7 +29,7 @@
 
 {% block subbreadcrumbs %}
 <li>
-	<a href="{% url "grad.views.index" %}">Grad</a>
+	<a href="{% url "grad:index" %}">Grad</a>
 </li>
 <li>
 	{{crumb}}
@@ -53,7 +53,7 @@
 				<td>{{s.label}}</td>
 				<td>{{s.content|slice:":75"}}</td>
 				<td>{{s.created_at}}</td>
-				<td><a href="{% url "grad.views.manage_letter_template" letter_template_slug=s.slug %}">Manage</a></td>
+				<td><a href="{% url "grad:manage_letter_template" letter_template_slug=s.slug %}">Manage</a></td>
 			</tr>
 			{% endfor %}
 		</tbody>

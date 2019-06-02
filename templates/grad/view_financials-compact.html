@@ -7,15 +7,15 @@
 <div id="actions">
 	<h2>Actions</h2>
 	<ul>
-	<li><a href="{% url "grad.views.financials" grad_slug=grad.slug %}">View complete format</a></li>
+	<li><a href="{% url "grad:financials" grad_slug=grad.slug %}">View complete format</a></li>
 	</ul>
 </div>
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grad.views.index" %}">Grad</a></li>
-<li><a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li><a href="{% url "grad.views.financials" grad_slug=grad.slug %}">Financial Summary</a></li>
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li><a href="{% url "grad:financials" grad_slug=grad.slug %}">Financial Summary</a></li>
 <li>Compact</li>
 {% endblock %}
 

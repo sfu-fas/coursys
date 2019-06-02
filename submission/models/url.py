@@ -1,5 +1,5 @@
 from django.db import models
-from base import SubmissionComponent, SubmittedComponent
+from .base import SubmissionComponent, SubmittedComponent
 from django.forms.widgets import Textarea, TextInput
 from django import forms
 from django.http import HttpResponse
@@ -16,7 +16,7 @@ class URLComponent(SubmissionComponent):
         app_label = 'submission'
 
 class SubmittedURL(SubmittedComponent):
-    component = models.ForeignKey(URLComponent, null=False)
+    component = models.ForeignKey(URLComponent, null=False, on_delete=models.PROTECT)
     url = models.URLField(null=False, blank=False, max_length=500, verbose_name="URL submission")
     class Meta:
         app_label = 'submission'
@@ -31,13 +31,13 @@ class SubmittedURL(SubmittedComponent):
     
     def download_response(self, **kwargs):
         response = HttpResponse(content_type="text/html;charset=utf-8")
-        content = u"""<title>%s</title><a href="%s">%s</a>""" % (escape(self.component.title), escape(self.url), escape(self.url))
+        content = """<title>%s</title><a href="%s">%s</a>""" % (escape(self.component.title), escape(self.url), escape(self.url))
         response.write(content.encode('utf-8'))
         return response
 
     def add_to_zip(self, zipfile, prefix=None, **kwargs):
         content = '<html><head><META HTTP-EQUIV="Refresh" CONTENT="0; URL='
-        if unicode(self.url).find("://") == -1:
+        if str(self.url).find("://") == -1:
             content += "http://"
         content += self.url
         content += '"></head><body>' \

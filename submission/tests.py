@@ -1,5 +1,5 @@
 #from django.test import TestCase
-from testboost.testcase import FastFixtureTestCase as TestCase
+from django.test import TestCase
 
 from submission.models import URL, Archive, Code, StudentSubmission, select_all_components, ALL_TYPE_CLASSES
 from submission.models.code import SubmittedCode
@@ -8,11 +8,11 @@ from grades.models import NumericActivity, Activity
 from groups.models import Group, GroupMember
 from coredata.tests import create_offering, validate_content
 from coredata.models import Member, Person, CourseOffering
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from courselib.testing import Client, test_views, basic_page_tests, TEST_COURSE_SLUG
 import datetime, tempfile, os
 
-import base64, StringIO
+import base64, io
 TGZ_FILE = base64.b64decode('H4sIAI7Wr0sAA+3OuxHCMBAE0CtFJUjoVw8BODfQP3bgGSKIcPResjO3G9w9/i9vRmt7ltnzZx6ilNrr7PVS9vscbUTKJ/wWr8fzuqYUy3pbvu1+9QAAAAAAAAAAAHCiNyHUDpAAKAAA')
 GZ_FILE = base64.b64decode('H4sICIjWr0sAA2YAAwAAAAAAAAAAAA==')
 ZIP_FILE = base64.b64decode('UEsDBAoAAAAAAMB6fDwAAAAAAAAAAAAAAAABABwAZlVUCQADiNavSzTYr0t1eAsAAQToAwAABOgDAABQSwECHgMKAAAAAADAenw8AAAAAAAAAAAAAAAAAQAYAAAAAAAAAAAApIEAAAAAZlVUBQADiNavS3V4CwABBOgDAAAE6AMAAFBLBQYAAAAAAQABAEcAAAA7AAAAAAA=')
@@ -94,8 +94,8 @@ class SubmissionTest(TestCase):
         comps = select_all_components(a1)
         self.assertEqual(len(comps), 3)
         self.assertEqual(comps[0].title, 'Archive File') # make sure position=1 is first
-        self.assertEqual(str(comps[1].Type), "submission.models.code.Code")
-        self.assertEqual(str(comps[2].Type), "submission.models.url.URL")
+        self.assertEqual(str(comps[1].Type.name), "Code")
+        self.assertEqual(str(comps[2].Type.name), "URL")
 
     def test_component_view_page(self):
         _, course = create_offering()
@@ -118,7 +118,7 @@ class SubmissionTest(TestCase):
         client.login_user("ggbaker")
         
         # When no component, should display error message
-        url = reverse('submission.views.show_components', kwargs={'course_slug':course.slug, 'activity_slug':a2.slug})
+        url = reverse('offering:submission:show_components', kwargs={'course_slug':course.slug, 'activity_slug':a2.slug})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, 'No components configured.')
         # add component and test
@@ -139,27 +139,27 @@ class SubmissionTest(TestCase):
         """
         Test file type inference function
         """
-        fh = StringIO.StringIO(TGZ_FILE)
+        fh = io.BytesIO(TGZ_FILE)
         fh.name = "something.tar.gz"
         ftype = filetype(fh)
         self.assertEqual(ftype, "TGZ")
         
-        fh = StringIO.StringIO(GZ_FILE)
+        fh = io.BytesIO(GZ_FILE)
         fh.name = "something.gz"
         ftype = filetype(fh)
         self.assertEqual(ftype, "GZIP")
         
-        fh = StringIO.StringIO(ZIP_FILE)
+        fh = io.BytesIO(ZIP_FILE)
         fh.name = "something.zip"
         ftype = filetype(fh)
         self.assertEqual(ftype, "ZIP")
         
-        fh = StringIO.StringIO(RAR_FILE)
+        fh = io.BytesIO(RAR_FILE)
         fh.name = "something.rar"
         ftype = filetype(fh)
         self.assertEqual(ftype, "RAR")
         
-        fh = StringIO.StringIO(PDF_FILE)
+        fh = io.BytesIO(PDF_FILE)
         fh.name = "something.pdf"
         ftype = filetype(fh)
         self.assertEqual(ftype, "PDF")
@@ -180,9 +180,9 @@ class SubmissionTest(TestCase):
                 ]
         
         for fn, ftype in testfiles:
-            fh = open(os.path.join("submission", "testfiles", fn))
-            ftypem = filetype(fh)
-            self.assertEqual(ftype, ftypem)
+            with open(os.path.join("submission", "testfiles", fn), 'rb') as fh:
+                ftypem = filetype(fh)
+                self.assertEqual(ftype, ftypem)
 
     def test_group_submission_view(self):
         """
@@ -232,7 +232,7 @@ class SubmissionTest(TestCase):
         client.login_user("0aaa0")
 
         #submission page for assignment 1
-        url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
+        url = reverse('offering:submission:show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, "This is a group activity. You will submit on behalf of the group &ldquo;Test Group&rdquo;.")
         self.assertContains(response, "You haven't made a submission for this component.")
@@ -259,12 +259,12 @@ class SubmissionTest(TestCase):
         # submit as student
         client = Client()
         client.login_user("0aaa0")
-        url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
+        url = reverse('offering:submission:show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
         response = basic_page_tests(self, client, url)
 
         # submit a file
         tmpf = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
-        codecontents = 'print "Hello World!"\n'
+        codecontents = b'print "Hello World!"\n'
         tmpf.write(codecontents)
         tmpf.close()
 
@@ -272,22 +272,22 @@ class SubmissionTest(TestCase):
             fh = open(tmpf.name, "r")
             data = {"%i-code" % (c.id): fh}
             response = client.post(url, data)
-            self.assertEquals(response.status_code, 302)
+            self.assertEqual(response.status_code, 302)
             
         finally:
             os.unlink(tmpf.name)
 
         # make sure it's there and correct
         subs = StudentSubmission.objects.all()
-        self.assertEquals(len(subs), 1)
+        self.assertEqual(len(subs), 1)
         sub = subs[0]
-        self.assertEquals(sub.member.person.userid, '0aaa0')
+        self.assertEqual(sub.member.person.userid, '0aaa0')
             
         codes = SubmittedCode.objects.all()
-        self.assertEquals(len(codes), 1)
+        self.assertEqual(len(codes), 1)
         code = codes[0]
         code.code.open()
-        self.assertEquals(code.code.read(), codecontents)
+        self.assertEqual(code.code.read(), codecontents)
             
     def test_pages(self):
         "Test a bunch of page views"
@@ -307,14 +307,14 @@ class SubmissionTest(TestCase):
                                    check=False, prefix='')
         component2.save()
 
-        test_views(self, client, 'submission.views.', ['show_components', 'add_component'],
+        test_views(self, client, 'offering:submission:', ['show_components', 'add_component'],
                    {'course_slug': offering.slug, 'activity_slug': activity.slug})
 
-        url = reverse('submission.views.edit_single', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug}) \
-                + '?id=' + unicode(component1.id)
+        url = reverse('offering:submission:edit_single', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug}) \
+                + '?id=' + str(component1.id)
         basic_page_tests(self, client, url)
 
-        url = reverse('submission.views.add_component', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug}) \
+        url = reverse('offering:submission:add_component', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug}) \
                 + '?type=url'
         basic_page_tests(self, client, url)
 
@@ -333,9 +333,9 @@ class SubmissionTest(TestCase):
             ({name1: 'http://www.sfu.ca/', name2: 'http://example.com/'}, True),
         ]
         for submitdata, redir in submissions:
-            test_views(self, client, 'submission.views.', ['show_components', 'show_components_submission_history'],
+            test_views(self, client, 'offering:submission:', ['show_components', 'show_components_submission_history'],
                        {'course_slug': offering.slug, 'activity_slug': activity.slug})
-            url = reverse('submission.views.show_components', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug})
+            url = reverse('offering:submission:show_components', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug})
             response = client.post(url, submitdata)
             if redir:
                 # success: we expect a redirect
@@ -358,7 +358,7 @@ class SubmissionTest(TestCase):
 
         for Type in ALL_TYPE_CLASSES:
             label = Type.label
-            test_views(self, client, 'submission.views.', ['add_component'],
+            test_views(self, client, 'offering:submission:', ['add_component'],
                    {'course_slug': offering.slug, 'activity_slug': activity.slug}, qs='type='+label)
 
 

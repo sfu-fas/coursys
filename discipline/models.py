@@ -1,18 +1,16 @@
 from django.db import models
 from coredata.models import Person, Member, CourseOffering, Role
 from grades.models import Activity
-#from django.http import Http404
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.core.mail import EmailMessage, EmailMultiAlternatives
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template.loader import render_to_string
 from autoslug import AutoSlugField
-from django.core.files.storage import FileSystemStorage
 from django.utils.text import wrap
 from django.conf import settings
-#from django.shortcuts import get_object_or_404
 from courselib.slugs import make_slug
+from courselib.storage import UploadedFileStorage, upload_path
 import string, os, datetime, json
 
 CONTACT_CHOICES = (
@@ -33,15 +31,15 @@ INSTR_PENALTY_CHOICES = (
         ('WARN', 'give the student a written warning'),
         ('REDO', 'require the student to redo the work, or to do supplementary work'),
         ('MARK', 'assign a low grade for the work'),
-        ('ZERO', u'assign a grade of \u201CF\u201D or zero for the work'),
+        ('ZERO', 'assign a grade of \u201CF\u201D or zero for the work'),
         )
 CHAIR_PENALTY_CHOICES = (
         ('WAIT', 'penalty not yet assigned'),
         ('NONE', 'no further penalty assigned'),
         ('REPR', 'formal reprimand to the student'),
         ('GRAD', 'grade penalty less severe than failure'),
-        ('F', u'grade of \u201CF\u201D in the course'),
-        ('FD', u'grade of \u201CFD\u201D in the course'),
+        ('F', 'grade of \u201CF\u201D in the course'),
+        ('FD', 'grade of \u201CFD\u201D in the course'),
         ('OTHE', 'other penalty: see rationale'),
         )
 LETTER_CHOICES = (
@@ -57,7 +55,6 @@ SS_STATE_CHOICES = (
         )
 PRE_LETTER_STEPS = ['related', 'attach', 'notes', 'contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'penalty'] # These fields affect the letter: if they are changed, letter must be re-reviewed; after letter sent, can't be changed.
 
-DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 STEP_VIEW = { # map of field/form -> view function ("edit_foo") that is used to edit it.
         'notes': 'notes',
@@ -180,15 +177,15 @@ class DisciplineGroup(models.Model):
     """
     name = models.CharField(max_length=60, blank=False, null=False, verbose_name="Cluster Name",
             help_text='An arbitrary "name" for this cluster of cases')
-    offering = models.ForeignKey(CourseOffering, help_text="The course this cluster is associated with")
+    offering = models.ForeignKey(CourseOffering, help_text="The course this cluster is associated with", on_delete=models.PROTECT)
     def autoslug(self):
         return make_slug(self.name)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='offering')
     
-    def __unicode__(self):
+    def __str__(self):
         return "%s in %s" % (self.name, self.offering)
     def get_absolute_url(self):
-        return reverse('discipline.views.showgroup', kwargs={'course_slug': self.offering.slug, 'group_slug': self.slug})
+        return reverse('offering:discipline:showgroup', kwargs={'course_slug': self.offering.slug, 'group_slug': self.slug})
     class Meta:
         unique_together = (("name", "offering"),)
 
@@ -209,18 +206,18 @@ class DisciplineCaseBase(models.Model):
 
         return self
     
-    owner = models.ForeignKey(Person, help_text="The person who created/owns this case.")
-    offering = models.ForeignKey(CourseOffering)
+    owner = models.ForeignKey(Person, help_text="The person who created/owns this case.", on_delete=models.PROTECT)
+    offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     notes = models.TextField(blank=True, null=True, verbose_name="Private Notes", help_text='Notes about the case (private notes, '+TEXTILENOTE+').')
     notes_public = models.TextField(blank=True, null=True, verbose_name="Public Notes", help_text='Notes about the case (public notes, '+TEXTILENOTE+').')
     def autoslug(self):
         return self.student.userid
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='offering')
-    group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Cluster this case belongs to (if any).")
+    group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Cluster this case belongs to (if any).", on_delete=models.PROTECT)
     
 
     contact_email_text = models.TextField(blank=True, null=True, verbose_name="Contact Email Text",
-            help_text=u'The initial email sent to the student regarding the case. Please also note the date of the email. ('+TEXTILEONLYNOTE+'.)')
+            help_text='The initial email sent to the student regarding the case. Please also note the date of the email. ('+TEXTILEONLYNOTE+'.)')
     contacted = models.CharField(max_length=4, choices=CONTACT_CHOICES, default="NONE", verbose_name="Student Contacted?",
             help_text='Has the student been informed of the case?')
     contact_date = models.DateField(blank=True, null=True, verbose_name="Initial Contact Date", help_text='Date of initial contact with student regarding the case.')
@@ -286,11 +283,11 @@ class DisciplineCaseBase(models.Model):
             help_text="Student Services' notes about the case (private notes, "+TEXTILENOTE+')')
     """
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id)
 
     def get_absolute_url(self):
-        return reverse('discipline.views.show', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug})
+        return reverse('offering:discipline:show', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug})
     def get_origsection(self):
         if not self.origsection:
             # no cached section: look up
@@ -426,7 +423,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
 
     def next_step_url(self):
         "The URL to edit view for the next step."
-        return reverse('discipline.views.edit_case_info',
+        return reverse('offering:discipline:edit_case_info',
             kwargs={'field': STEP_VIEW[self.next_step()], 'course_slug':self.offering.slug, 'case_slug': self.slug})
 
     def next_step_short(self):
@@ -467,9 +464,9 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         """
         student = self.student.full_email()
         instr = self.owner.full_email()
-        roles = Role.objects.filter(role="DICC", unit=self.offering.owner)
+        roles = Role.objects_fresh.filter(role="DICC", unit=self.offering.owner)
         dept = [r.person.full_email() for r in roles]
-        roles = Role.objects.filter(role="DICC", unit__label="UNIV")
+        roles = Role.objects_fresh.filter(role="DICC", unit__label="UNIV")
         univ = [r.person.full_email() for r in roles]
 
         return student, instr, dept, univ
@@ -481,7 +478,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         """
         html_body = render_to_string('discipline/letter_body.html', { 'case': self, 'currentuser': currentuser })
         text_body = "Letter is included here as an HTML message, or can be viewed online at this URL:\n%s" %\
-            (settings.BASE_ABS_URL + reverse('discipline.views.view_letter', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug}))
+            (settings.BASE_ABS_URL + reverse('offering:discipline:view_letter', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug}))
         self.letter_text = html_body
         self.letter_date = datetime.date.today()
         self.save()
@@ -520,7 +517,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         email.send(fail_silently=False)
 
 class DisciplineCaseInstrStudent(DisciplineCaseInstr):
-    student = models.ForeignKey(Person, help_text="The student this case concerns.")
+    student = models.ForeignKey(Person, help_text="The student this case concerns.", on_delete=models.PROTECT)
     def is_in_course(self):
         return True
     
@@ -529,18 +526,6 @@ class DisciplineCaseInstrStudent(DisciplineCaseInstr):
     def membership(self):
         return Member.objects.get(offering=self.offering, person=self.student)
 
-    def create_chair_case(self, userid):
-        """
-        Create and return the Chair's case corresponding to self.
-        """
-        case = DisciplineCaseChairStudent()
-        case.student = self.student
-        case.offering = self.offering
-        case.slug = self.slug
-        case.group = self.group
-        case.owner = Person.objects.get(userid=userid)
-        case.instr_case = self
-        return case
 
 class _FakePerson(object):
     """
@@ -610,10 +595,10 @@ class DisciplineCaseChair(DisciplineCaseBase):
     """
     An chair's case
     """
-    instr_case = models.ForeignKey(DisciplineCaseInstr, help_text="The instructor's case that triggered this case")
+    instr_case = models.ForeignKey(DisciplineCaseInstr, help_text="The instructor's case that triggered this case", on_delete=models.PROTECT)
 
 class DisciplineCaseChairStudent(DisciplineCaseChair):
-    student = models.ForeignKey(Person, help_text="The student this case concerns.")
+    student = models.ForeignKey(Person, help_text="The student this case concerns.", on_delete=models.PROTECT)
     def is_in_course(self):
         return True
     def student_userid(self):
@@ -655,11 +640,11 @@ class RelatedObject(models.Model):
     """
     Another object within the system that is related to this case: private for instructor
     """
-    case = models.ForeignKey(DisciplineCaseBase)
+    case = models.ForeignKey(DisciplineCaseBase, on_delete=models.PROTECT)
     name = models.CharField(max_length=255, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     # front-end handles adding some types of content_object, but can handle
@@ -670,22 +655,17 @@ def _disc_upload_to(instance, filename):
     """
     path to upload case attachment
     """
-    fullpath = os.path.join(
-        instance.case.offering.slug,
-        "_discipline",
-        str(instance.case.id),
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path(instance.case.offering.slug, '_discipline', filename)
+
 
 class CaseAttachment(models.Model):
     """
     A piece of evidence to attach to a case
     """
 
-    case = models.ForeignKey(DisciplineCaseBase)
-    name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name", help_text="Identifying name for the attachment")
-    attachment = models.FileField(upload_to=_disc_upload_to, max_length=500, verbose_name="File", storage=DisciplineSystemStorage)
+    case = models.ForeignKey(DisciplineCaseBase, on_delete=models.PROTECT)
+    name = models.CharField(max_length=150, blank=True, null=True, verbose_name="Name", help_text="Identifying name for the attachment")
+    attachment = models.FileField(upload_to=_disc_upload_to, max_length=500, verbose_name="File", storage=UploadedFileStorage)
     mediatype = models.CharField(null=True, blank=True, max_length=200)
     public = models.BooleanField(default=True, verbose_name="Public?", 
             help_text='Public files will be included in correspondence with student. Private files will be retained as information about the case.')
@@ -703,7 +683,7 @@ class DisciplineTemplate(models.Model):
     """
     A text template to help fill in a field in this app.
     """
-    field = models.CharField(max_length=30, null=False, choices=TEMPLATE_FIELDS.items(),
+    field = models.CharField(max_length=30, null=False, choices=list(TEMPLATE_FIELDS.items()),
             verbose_name="Field", help_text="The field this template applies to")
     label = models.CharField(max_length=50, null=False,
             verbose_name="Label", help_text="A short label for the menu of templates")
@@ -712,7 +692,7 @@ class DisciplineTemplate(models.Model):
     class Meta:
         unique_together = (("field", "label"),)
         ordering = ('field', 'label')
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s" % (self.field, self.label)
     def JSON_data(self):
         """

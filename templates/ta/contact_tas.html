@@ -5,15 +5,15 @@
 {% block h1 %}Contact TAs for {{posting}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta:posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
 <li>Contact TAs</li>
 {% endblock %}
 
 {% block headextra %}
 <link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
 <script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
   function get_recipients() {
   	var selected = $('#id_statuses :selected');
   	var st='';
@@ -26,10 +26,12 @@
       	$("#contactlist").text("Emails of selected TAs: " + data.contacts);
       }
     });
+    return false;
   }
   $(function() {
     $("#id_statuses").css("min-height", "160px").multiselect({});
     //$("#id_statuses").click(get_recipients);
+    $("#get-recipients").click(get_recipients);
   });
 
 </script>
@@ -48,7 +50,7 @@
 </form>
 </div>
 
-<p><a href="javascript:get_recipients()">Get email list</a></p>
+<p><a id="get-recipients" href="#">Get email list</a></p>
 
 <p id="contactlist"></p>
 

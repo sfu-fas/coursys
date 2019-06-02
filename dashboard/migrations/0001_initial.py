@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import django.core.files.storage
@@ -25,9 +25,9 @@ class Migration(migrations.Migration):
                 ('updated', models.DateTimeField(auto_now=True)),
                 ('url', models.URLField(help_text=b'absolute URL for the item: starts with "http://" or "/"', verbose_name=b'URL', blank=True)),
                 ('read', models.BooleanField(default=False, help_text=b'The user has marked the story read')),
-                ('author', models.ForeignKey(related_name='author', to='coredata.Person', null=True)),
-                ('course', models.ForeignKey(to='coredata.CourseOffering', null=True)),
-                ('user', models.ForeignKey(related_name='user', to='coredata.Person')),
+                ('author', models.ForeignKey(related_name='author', to='coredata.Person', null=True, on_delete=models.CASCADE)),
+                ('course', models.ForeignKey(to='coredata.CourseOffering', null=True, on_delete=models.CASCADE)),
+                ('user', models.ForeignKey(related_name='user', to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('sig', models.FileField(storage=django.core.files.storage.FileSystemStorage(base_url=None, location=b'submitted_files'), max_length=500, upload_to=dashboard.models._sig_upload_to)),
-                ('user', models.ForeignKey(to='coredata.Person')),
+                ('user', models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('key', models.CharField(max_length=20, db_index=True)),
                 ('value', courselib.json_fields.JSONField(default={})),
-                ('user', models.ForeignKey(to='coredata.Person')),
+                ('user', models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
             },

@@ -3,13 +3,14 @@ from coredata.models import Person, CourseOffering, Member
 from django.utils.safestring import mark_safe
 from pytz import timezone
 from django.conf import settings
-from django.core.cache import cache
 from django.core.mail import EmailMultiAlternatives
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from autoslug.settings import slugify
-from courselib.json_fields import JSONField
+from courselib.json_fields import JSONField, config_property
+from courselib.branding import product_name
+from courselib.storage import UploadedFileStorage, upload_path
 import random, hashlib, os, datetime
-from textile import textile_restricted
+
 
 def _rfc_format(dt):
     """
@@ -31,20 +32,26 @@ class NewsItem(models.Model):
     """
     Class representing a news item for a particular user.
     """
-    user = models.ForeignKey(Person, null=False, related_name="user")
-    author = models.ForeignKey(Person, null=True, related_name="author")
-    course = models.ForeignKey(CourseOffering, null=True)
+    user = models.ForeignKey(Person, null=False, related_name="user", on_delete=models.PROTECT)
+    author = models.ForeignKey(Person, null=True, related_name="author", on_delete=models.PROTECT)
+    course = models.ForeignKey(CourseOffering, null=True, on_delete=models.PROTECT)
     source_app = models.CharField(max_length=20, null=False, help_text="Application that created the story")
 
     title = models.CharField(max_length=100, null=False, help_text="Story title (plain text)")
-    content = models.TextField(help_text=mark_safe('Main story content (<a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a>)'))
+    content = models.TextField(help_text=mark_safe('Main story content'))
     published = models.DateTimeField(default=datetime.datetime.now)
     updated = models.DateTimeField(auto_now=True)
     url = models.URLField(blank=True, verbose_name="URL", help_text='absolute URL for the item: starts with "http://" or "/"')
     
     read = models.BooleanField(default=False, help_text="The user has marked the story read")
-    
-    def __unicode__(self):
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
+        # 'markup': markup language used: see courselib/markup.py
+        # 'math': page uses MathJax? (boolean)
+
+    markup = config_property('markup', 'creole')
+    math = config_property('math', False)
+
+    def __str__(self):
         return '"%s" for %s' % (self.title, self.user.userid)
     
     def save(self, *args, **kwargs):
@@ -70,7 +77,7 @@ class NewsItem(models.Model):
         elif self.author:
             return self.author.full_email()
         else:
-            return "CourSys <%s>" % (settings.DEFAULT_FROM_EMAIL)
+            return settings.DEFAULT_FROM_EMAIL
     
     # turn the source_app field into a more externally-friendly string
     source_app_translate = {
@@ -97,7 +104,7 @@ class NewsItem(models.Model):
                 }
 
         if self.course:
-            subject = u"%s: %s" % (self.course.name(), self.title)
+            subject = "%s: %s" % (self.course.name(), self.title)
             headers['X-course'] = self.course.slug
         else:
             subject = self.title
@@ -111,18 +118,19 @@ class NewsItem(models.Model):
         if self.url:
             url = self.absolute_url()
         else:
-            url = settings.BASE_ABS_URL + reverse('dashboard.views.news_list')
+            url = settings.BASE_ABS_URL + reverse('news:news_list')
         
-        text_content = u"For more information, see " + url + "\n"
-        text_content += u"\n--\nYou received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can edit your email settings here:\n  "
-        text_content += settings.BASE_ABS_URL + reverse('dashboard.views.news_config')
+        text_content = "For more information, see " + url + "\n"
+        text_content += "\n--\nYou received this email from %s. If you do not wish to receive\nthese notifications by email, you can edit your email settings here:\n  " % (product_name(hint='course'))
+        text_content += settings.BASE_ABS_URL + reverse('config:news_config')
         
         if self.course:
-            html_content = u'<h3>%s: <a href="%s">%s</a></h3>\n' % (self.course.name(), url, self.title)
+            html_content = '<h3>%s: <a href="%s">%s</a></h3>\n' % (self.course.name(), url, self.title)
         else:
-            html_content = u'<h3><a href="%s">%s</a></h3>\n' % (url, self.title)
+            html_content = '<h3><a href="%s">%s</a></h3>\n' % (url, self.title)
         html_content += self.content_xhtml()
-        html_content += u'\n<p style="font-size: smaller; border-top: 1px solid black;">You received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can <a href="' + settings.BASE_ABS_URL + reverse('dashboard.views.news_config') + '">change your email settings</a>.</p>'
+        html_content += '\n<p style="font-size: smaller; border-top: 1px solid black;">You received this email from %s. If you do not wish to receive\nthese notifications by email, you can <a href="%s">change your email settings</a>.</p>' \
+                        % (product_name(hint='course'), settings.BASE_ABS_URL + reverse('config:news_config'))
         
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email], headers=headers)
         msg.attach_alternative(html_content, "text/html")
@@ -131,18 +139,9 @@ class NewsItem(models.Model):
     def content_xhtml(self):
         """
         Render content field as XHTML.
-        
-        Memoized in the cache: textile is expensive.
         """
-        key = "news-content-" + hashlib.md5(self.content.encode("utf-8")).hexdigest()
-        val = cache.get(key)
-        if val:
-            return mark_safe(val)
-
-        markup = mark_safe(textile_restricted(unicode(self.content)))
-
-        cache.set(key, markup, 86400)
-        return markup
+        from courselib.markup import markup_to_html
+        return markup_to_html(self.content, self.markup, html_already_safe=False, restricted=True)
 
     def rfc_updated(self):
         """
@@ -181,9 +180,11 @@ class NewsItem(models.Model):
         members = Member.objects.exclude(role="DROP").exclude(role="APPR").filter(**member_kwargs)
         members = list(members)
         random.shuffle(members)
-        
+
+        markup = newsitem_kwargs.pop('markup', 'textile')
         for m in members:
             n = NewsItem(user=m.person, **newsitem_kwargs)
+            n.markup = markup
             n.save()
 
 
@@ -191,36 +192,30 @@ class UserConfig(models.Model):
     """
     Simple class to hold user preferences.
     """
-    user = models.ForeignKey(Person, null=False)
+    user = models.ForeignKey(Person, null=False, on_delete=models.PROTECT)
     key = models.CharField(max_length=20, db_index=True, null=False)
-    value = JSONField(null=False, blank=False, default={})
+    value = JSONField(null=False, blank=False, default=dict)
     class Meta:
         unique_together = (("user", "key"),)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s='%s'" % (self.user.userid, self.key, self.value)
 
-from django.core.files.storage import FileSystemStorage
-SignatureStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 def _sig_upload_to(instance, filename):
     """
     path to upload case attachment
     """
-    fullpath = os.path.join(
-        "signatures",
-        str(instance.user.userid),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('signatures', filename)
 
 
 class Signature(models.Model):
     """
     User's signature (for letters)
     """
-    user = models.ForeignKey(Person, null=False)
-    sig = models.FileField(upload_to=_sig_upload_to, storage=SignatureStorage, max_length=500)
+    user = models.ForeignKey(Person, null=False, on_delete=models.PROTECT)
+    sig = models.FileField(upload_to=_sig_upload_to, storage=UploadedFileStorage, max_length=500)
     resolution = 200 # expect 200 dpi images
     
-    def __unicode__(self):
+    def __str__(self):
         return "Signature of %s" % (self.user.name())

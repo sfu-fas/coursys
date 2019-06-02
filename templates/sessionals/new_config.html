@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}New Default Configuration{% endblock %}
+{% block h1 %}New Default Configuration{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'sessionals:sessionals_index' %}">Sessionals</a></li>
+<li><a href="{% url 'sessionals:manage_configs' %}">Manage Configurations</a></li>
+<li>New Account</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'sessionals:new_config' %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Add Configuration" />
+    </p>
+</form>
+{% endblock %}

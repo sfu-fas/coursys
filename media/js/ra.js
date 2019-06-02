@@ -1,4 +1,8 @@
 var default_hours = 80;
+var isCanadian = false;
+var citizenshipUnknown = false;
+var hasVisas = false;
+var checkVisas = false;
 
 function ra_autocomplete() {
   var regexp = /(,.*)/;
@@ -116,6 +120,7 @@ function update_person() {
 	emplid = $('#id_person').first().val();
 	// update program list
 	get_person_info(emplid);
+	get_person_visas(emplid);
 	// get scholarships
     $.getJSON("/data/scholarships/" + emplid, function(json) {
     var options = '<option value="">—</option>';
@@ -127,8 +132,9 @@ function update_person() {
 }
 
 function get_person_info(emplid) {
+    remove_visa_warning();
 	$('div#programs').remove();
-	$('dl.dlform').first().before('<div id="programs">...</div>');	
+	$('div#extra_info').append('<div id="programs"><i class="fa fa-spinner"> Fetching extra info from SIMS</i></div>');
 	$.ajax({
 		url: personinfo_url + '?emplid=' + emplid,
 		success: function(data, textStatus, jqXHR) {
@@ -146,15 +152,81 @@ function get_person_info(emplid) {
 			html += '</ul>';
 
 	        if (data['citizen']) {
-	        	html += '<p>Citizenship: ' + data['citizen'] + '</p>'
+	            citizenshipUnknown = false;
+	        	html += '<p>Citizenship: ' + data['citizen'] + '</p>';
+                if (data['citizen'] == 'Canada') {
+                    isCanadian = true;
+                } else {
+                    isCanadian = false;
+                }
 	        } else {
-	        	html += '<p>Citizenship: unknown</p>'	        	
+	            citizenshipUnknown = true;
+	        	html += '<p>Citizenship: unknown</p>';
+                isCanadian = false;
 	        }
 
 			$('div#programs').html(html);
 		},
+        complete: function() {
+		    checkVisas = true;
+        }
 	})
 }
+
+function get_person_visas(emplid) {
+    remove_visa_warning();
+    $('div#visas').remove();
+    $('div#extra_info').append('<div id="visas"><i class="fa fa-spinner"> Fetching visas from system</i></div>');
+    $.ajax({
+        url: personvisas_url + '?emplid=' + emplid,
+        success: function(data) {
+            var html = '';
+            html += '<h3>Currently Valid Visa(s)</h3><ul>';
+            if (data['visas'].length == 0) {
+                html += '<li class="empty">No currently valid visa in system</li>';
+                hasVisas = false;
+            } else {
+                hasVisas = true;
+                $(data['visas']).each(function(e, visa) {
+                    html += '<li>';
+                    html += visa['status'] + ' starting ' + visa['start'];
+                    html += '</li>';
+                });
+            }
+            html += '</ul>';
+            $('div#visas').html(html);
+        },
+        complete: function() {
+            checkVisas = true;
+        }
+    });
+}
+
+function update_visa_warning() {
+    remove_visa_warning();
+    if ((citizenshipUnknown) && (!hasVisas)) {
+        add_visa_unknown();
+    }
+    else if ((!isCanadian) && (!hasVisas)) {
+        add_visa_warning();
+    }
+}
+
+function remove_visa_warning() {
+    $('div#visa_warning').remove();
+}
+
+function add_visa_warning() {
+    $('div#extra_info').append('<div id="visa_warning"><p>WARNING:  We do not have any currently valid visa for this person,' +
+        ' and they are not Canadian.  Please make sure you check/add this person\'s visa information in the Visas module. </p></div>');
+}
+
+function add_visa_unknown() {
+    $('div#extra_info').append('<div id="visa_warning"><p>WARNING:  We do not have any currently valid visa for this person,' +
+        ' and we have no way to verify they are Canadian.  Please make sure you check/add this person\'s visa ' +
+        'information in the Visas module. </p></div>');
+}
+
 
 var table;
 
@@ -187,6 +259,7 @@ function ra_browser_setup(my_url) {
 $(document).ready(function() {
   name_label = document.createElement("span");
   name_label.id = "label_person_name";
+  $('dl.dlform').first().before('<div id="extra_info"></div>');
   $('#id_person').parent().append(name_label);
   $("id_person").focus();
   ra_autocomplete('id_person');
@@ -206,7 +279,16 @@ $(document).ready(function() {
   if ( typeof payperiods_url !== 'undefined' ) {
     update_pay_periods();
   }
-  if ( typeof emplid !== 'undefined' ) {
+  if ( emplid !== null ) {
   	get_person_info(emplid);
+  	get_person_visas(emplid);
   }
+});
+
+$(document).ajaxStop(function() {
+    // The first time one of the two AJAX calls we really care about are completed, this variable gets set to true.
+    // otherwise, the warning will get added after the one AJAX call we don't care about.
+    if (checkVisas) {
+        update_visa_warning();
+    }
 });

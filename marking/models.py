@@ -1,7 +1,7 @@
 import copy
 import django
 from django.db import models, IntegrityError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.files.base import ContentFile
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
 from grades.models import all_activities_filter, neaten_activity_positions, get_entry_person, COMMENT_LENGTH
@@ -12,20 +12,19 @@ from datetime import datetime
 from django.db.models import Q
 from submission.models import select_all_components
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
-import os, decimal, base64
+from courselib.storage import UploadedFileStorage, upload_path
+import os, decimal, base64, uuid
 
-MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 class ActivityComponent(models.Model):
     """    
     Markable Component of a numeric activity   
     """
-    numeric_activity = models.ForeignKey(NumericActivity, null=False)
+    numeric_activity = models.ForeignKey(NumericActivity, null=False, on_delete=models.PROTECT)
     max_mark = models.DecimalField(max_digits=8, decimal_places=2, null=False)
     title = models.CharField(max_length=30, null=False)
     description = models.TextField(max_length=COMMENT_LENGTH, null=True, blank=True)
@@ -36,10 +35,10 @@ class ActivityComponent(models.Model):
         return make_slug(self.title)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='numeric_activity')
     
-    def __unicode__(self):        
+    def __str__(self):        
         return self.title
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
     class Meta:
         verbose_name_plural = "Activity Marking Components"
         ordering = ['numeric_activity', 'deleted', 'position']
@@ -59,26 +58,19 @@ class CommonProblem(models.Model):
     """
     Common problem of a activity component. One activity component can have several common problems.
     """
-    activity_component = models.ForeignKey(ActivityComponent, null=False)
+    activity_component = models.ForeignKey(ActivityComponent, null=False, on_delete=models.CASCADE)
     title = models.CharField(max_length=30, null=False)
     penalty = models.DecimalField(max_digits=8, decimal_places=2)
     description = models.TextField(max_length=COMMENT_LENGTH, null=True, blank=True)
     deleted = models.BooleanField(null=False, db_index=True, default=False)
-    def __unicode__(self):
+    def __str__(self):
         return "common problem %s for %s" % (self.title, self.activity_component)
 
 
 def attachment_upload_to(instance, filename):
-    """
-    callback to avoid path in the filename(that we have append folder structure to) being striped 
-    """
-    fullpath = os.path.join(
-            instance.activity.offering.slug,
-            instance.activity.slug + "_marking",
-            datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.created_by),
-            filename.encode('ascii', 'ignore'))
-    return fullpath 
-                
+    return upload_path(instance.activity.offering.slug, '_marking', filename)
+
+
 class ActivityMark(models.Model):
     """
     General Marking class for one numeric activity 
@@ -87,7 +79,7 @@ class ActivityMark(models.Model):
     late_penalty = models.DecimalField(max_digits=5, decimal_places=2, null=True, default=0, blank=True, help_text='Percentage to deduct from the total due to late submission')
     mark_adjustment = models.DecimalField(max_digits=8, decimal_places=2, null=True, default=0, blank=True, verbose_name="Mark Penalty", help_text='Points to deduct for any special reasons (may be negative for bonus)')
     mark_adjustment_reason = models.TextField(null=True, max_length=COMMENT_LENGTH, blank=True, verbose_name="Mark Penalty Reason")
-    file_attachment = models.FileField(storage=MarkingSystemStorage, null=True, upload_to=attachment_upload_to, blank=True, max_length=500)
+    file_attachment = models.FileField(storage=UploadedFileStorage, null=True, upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200)
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -95,12 +87,12 @@ class ActivityMark(models.Model):
     # need the copy of the mark here in case that 
     # the 'value' field in the related numeric grades gets overridden
     mark = models.DecimalField(max_digits=8, decimal_places=2, null=True)
-    activity = models.ForeignKey(NumericActivity, null=True) # null=True to keep south happy
+    activity = models.ForeignKey(NumericActivity, null=True, on_delete=models.PROTECT) # null=True to keep south happy
     
-    def __unicode__(self):
+    def __str__(self):
         return "Super object containing additional info for marking"
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
     class Meta:
         ordering = ['created_at']
 
@@ -153,15 +145,15 @@ class StudentActivityMark(ActivityMark):
     """
     Marking of one student on one numeric activity 
     """        
-    numeric_grade = models.ForeignKey(NumericGrade, null=False)
+    numeric_grade = models.ForeignKey(NumericGrade, null=False, on_delete=models.PROTECT)
        
-    def __unicode__(self):
+    def __str__(self):
         # get the student and the activity
         student = self.numeric_grade.member.person
         activity = self.numeric_grade.activity      
         return "Marking for student [%s] for activity [%s]" %(student, activity)   
     def get_absolute_url(self):
-        return reverse('marking.views.mark_history_student', kwargs={'course_slug': self.numeric_grade.activity.offering.slug, 'activity_slug': self.numeric_grade.activity.slug, 'userid': self.numeric_grade.member.person.userid})
+        return reverse('offering:marking:mark_history_student', kwargs={'course_slug': self.numeric_grade.activity.offering.slug, 'activity_slug': self.numeric_grade.activity.slug, 'userid': self.numeric_grade.member.person.userid})
       
     def setMark(self, grade, entered_by):
         """         
@@ -181,13 +173,13 @@ class GroupActivityMark(ActivityMark):
     """
     Marking of one group on one numeric activity
     """
-    group = models.ForeignKey(Group, null=False)
-    numeric_activity = models.ForeignKey(NumericActivity, null=False)
+    group = models.ForeignKey(Group, null=False, on_delete=models.PROTECT)
+    numeric_activity = models.ForeignKey(NumericActivity, null=False, on_delete=models.PROTECT)
          
-    def __unicode__(self):
+    def __str__(self):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.numeric_activity)
     def get_absolute_url(self):
-        return reverse('marking.views.mark_history_group', kwargs={'course_slug': self.numeric_activity.offering.slug, 'activity_slug': self.numeric_activity.slug, 'group_slug': self.group.slug})
+        return reverse('offering:marking:mark_history_group', kwargs={'course_slug': self.numeric_activity.offering.slug, 'activity_slug': self.numeric_activity.slug, 'group_slug': self.group.slug})
     
     def setMark(self, grade, entered_by, details=True):
         """         
@@ -219,22 +211,22 @@ class ActivityComponentMark(models.Model):
     Marking of one particular component of an activity for one student  
     Stores the mark the student gets for the component
     """
-    activity_mark = models.ForeignKey(ActivityMark, null = False)    
-    activity_component = models.ForeignKey(ActivityComponent, null = False)
+    activity_mark = models.ForeignKey(ActivityMark, null=False, on_delete=models.PROTECT)
+    activity_component = models.ForeignKey(ActivityComponent, null=False, on_delete=models.PROTECT)
     value = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Mark', null=True, blank=True)
     comment = models.TextField(null = True, max_length=1000, blank=True)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
         # 'display_raw': Whether the comment should be displayed in a <pre> tag instead of using the
         # linebreaks filter.  Useful for comments with blocks of code.
 
     defaults = {'display_raw': False}
     display_raw, set_display_raw = getter_setter('display_raw')
 
-    def __unicode__(self):
+    def __str__(self):
         # get the student and the activity
         return "Marking for [%s]" %(self.activity_component,)
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used for marking history"
+        raise NotImplementedError("This object cannot be deleted because it is used for marking history")
         
     class Meta:
         unique_together = (('activity_mark', 'activity_component'),)
@@ -252,12 +244,12 @@ class ActivityMark_LetterGrade(models.Model):
     # need the copy of the mark here in case that 
     # the 'value' field in the related numeric grades gets overridden
     mark = models.CharField(max_length=2, null=False,choices=LETTER_GRADE_CHOICES)
-    activity = models.ForeignKey(LetterActivity, null=True) # null=True to keep south happy
+    activity = models.ForeignKey(LetterActivity, null=True, on_delete=models.PROTECT) # null=True to keep south happy
     
-    def __unicode__(self):
+    def __str__(self):
         return "Super object containing additional info for marking"
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
     class Meta:
         ordering = ['created_at']
     
@@ -281,15 +273,15 @@ class StudentActivityMark_LetterGrade(ActivityMark_LetterGrade):
     """
     Marking of one student on one letter activity 
     """        
-    letter_grade = models.ForeignKey(LetterGrade, null=False, choices=LETTER_GRADE_CHOICES)
+    letter_grade = models.ForeignKey(LetterGrade, null=False, choices=LETTER_GRADE_CHOICES, on_delete=models.PROTECT)
        
-    def __unicode__(self):
+    def __str__(self):
         # get the student and the activity
         student = self.letter_grade.member.person
         activity = self.letter_grade.activity      
         return "Marking for student [%s] for activity [%s]" %(student, activity)   
     def get_absolute_url(self):
-        return reverse('marking.views.mark_history_student', kwargs={'course_slug': self.letter_grade.activity.offering.slug, 'activity_slug': self.letter_grade.activity.slug, 'userid': self.letter_grade.member.person.userid})
+        return reverse('offering:marking:mark_history_student', kwargs={'course_slug': self.letter_grade.activity.offering.slug, 'activity_slug': self.letter_grade.activity.slug, 'userid': self.letter_grade.member.person.userid})
       
     def setMark(self, grade, entered_by):
         """
@@ -304,14 +296,14 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
     """
     Marking of one group on one letter activity
     """
-    group = models.ForeignKey(Group, null = False) 
-    letter_activity = models.ForeignKey(LetterActivity, null = False)
+    group = models.ForeignKey(Group, null=False, on_delete=models.PROTECT)
+    letter_activity = models.ForeignKey(LetterActivity, null=False, on_delete=models.PROTECT)
     letter_grade = models.CharField(max_length=2, choices=LETTER_GRADE_CHOICES)
          
-    def __unicode__(self):
+    def __str__(self):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.letter_activity)
     def get_absolute_url(self):
-        return reverse('marking.views.mark_history_group', kwargs={'course_slug': self.letter_activity.offering.slug, 'activity_slug': self.letter_activity.slug, 'group_slug': self.group.slug})
+        return reverse('offering:marking:mark_history_group', kwargs={'course_slug': self.letter_activity.offering.slug, 'activity_slug': self.letter_activity.slug, 'group_slug': self.group.slug})
     
     def setMark(self, grade, entered_by):
         """         
@@ -462,7 +454,9 @@ def copy_activity(source_activity, source_course_offering, target_course_offerin
 
     if 'url' in new_activity.config:
         # if offering slug is in URL, replace it, to heuristically adapt to moved course pages.
-        new_activity.config['url'] = new_activity.config['url'].replace(source_course_offering.slug, target_course_offering.slug)
+        new_activity.config['url'] = new_activity.config['url'] \
+            .replace(source_course_offering.slug, target_course_offering.slug) \
+            .replace('courses.cs.sfu.ca', 'coursys.sfu.ca')
 
     return new_activity
 
@@ -491,7 +485,9 @@ def copy_setup_base(course_copy_from, course_copy_to):
 
         if 'url' in course_copy_to.config:
             # if slug is in URL, replace it, to heuristically adapt to moved course pages.
-            course_copy_to.config['url'] = course_copy_to.config['url'].replace(course_copy_from.slug, course_copy_to.slug)
+            course_copy_to.config['url'] = course_copy_to.config['url'] \
+                .replace(course_copy_from.slug, course_copy_to.slug) \
+                .replace('courses.cs.sfu.ca', 'coursys.sfu.ca')
         course_copy_to.save()
 
 
@@ -561,8 +557,9 @@ def copy_setup_activities(course_copy_from, course_copy_to):
 
 def copy_setup_pages(course_copy_from, course_copy_to):
         # copy the Pages
-        from pages.models import Page, PageFilesStorage, attachment_upload_to
+        from pages.models import Page, UploadedFileStorage, attachment_upload_to
         copy_pages = Page.objects.filter(offering=course_copy_from).exclude(can_read='NONE', can_write='NONE')
+        copy_pages = (p for p in copy_pages if not p.current_version().redirect)
         for p in copy_pages:
             new_p = copy.deepcopy(p)
             new_p.id = None
@@ -613,7 +610,7 @@ def copy_setup_pages(course_copy_from, course_copy_to):
                 # files without leaving bad path reference)
                 src = v.file_attachment.path
                 path = attachment_upload_to(new_v, new_v.file_name)
-                dst = PageFilesStorage.path(path)
+                dst = UploadedFileStorage.path(path)
                 dstpath, dstfile = os.path.split(dst)
                 while os.path.exists(os.path.join(dstpath, dstfile)):
                     # handle duplicates by mangling the directory name
@@ -660,24 +657,25 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
     Redundant yes, but it lets is_valid actually do its job without side effects.
     """
     if not isinstance(data, dict):
-        raise ValidationError(u'Outer JSON data structure must be an object.')
+        raise ValidationError('Outer JSON data structure must be an object.')
     if 'marks' not in data:
-        raise ValidationError(u'Outer JSON data object must contain key "marks".')
+        raise ValidationError('Outer JSON data object must contain key "marks".')
     if not isinstance(data['marks'], list):
-        raise ValidationError(u'Value for "marks" must be a list.')
+        raise ValidationError('Value for "marks" must be a list.')
 
     # All the ActivityMark and ActivityComponentMark objects get built here:
     # we basically have to do this work to validate anyway.
     components = ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False)
     components = dict((ac.slug, ac) for ac in components)
     found = set()
+    not_found = set()
     combine = False # are we combining these marks with existing (as opposed to overwriting)?
     if 'combine' in data and bool(data['combine']):
         combine = True
 
     for markdata in data['marks']:
         if not isinstance(markdata, dict):
-            raise ValidationError(u'Elements of array must be JSON objects.')
+            raise ValidationError('Elements of array must be JSON objects.')
 
         # build the ActivityMark object and populate as much as possible for now.
         if activity.group and 'group' in markdata:
@@ -685,7 +683,8 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
             try:
                 group = Group.objects.get(slug=markdata['group'], courseoffering=activity.offering)
             except Group.DoesNotExist:
-                raise ValidationError(u'Group with id "%s" not found.' % (markdata['group']))
+                not_found.add(markdata['group'])
+                continue
             am = GroupActivityMark(activity_id=activity.id, numeric_activity_id=activity.id, group=group, created_by=userid)
             recordid = markdata['group']
 
@@ -694,15 +693,16 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
             try:
                 member = Member.objects.get(person__userid=markdata['userid'], offering=activity.offering, role="STUD")
             except Member.DoesNotExist:
-                raise ValidationError(u'Userid %s not in course.' % (markdata['userid']))
+                not_found.add(markdata['userid'])
+                continue
             am = StudentActivityMark(activity_id=activity.id, created_by=userid)
             recordid = markdata['userid']
         else:
-            raise ValidationError(u'Must specify "userid" or "group" for mark.')
+            raise ValidationError('Must specify "userid" or "group" for mark.')
 
         # check for duplicates in import
         if recordid in found:
-            raise ValidationError(u'Duplicate marks for "%s".' % (recordid))
+            raise ValidationError('Duplicate marks for "%s".' % (recordid))
         found.add(recordid)
 
         if combine:
@@ -743,31 +743,34 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
             if slug in ['userid', 'group']:
                 continue
             elif slug == 'the_mark':
-                the_mark = decimal.Decimal(str(markdata[slug]))
+                try:
+                    the_mark = decimal.Decimal(str(markdata[slug]))
+                except decimal.InvalidOperation:
+                    pass
                 continue
             elif slug=="late_percent":
                 try:
                     late_percent = decimal.Decimal(str(markdata[slug]))
                 except decimal.InvalidOperation:
-                    raise ValidationError(u'Value for "late_percent" must be numeric in record for "%s".' % (recordid))
+                    raise ValidationError('Value for "late_percent" must be numeric in record for "%s".' % (recordid))
                 continue
             elif slug=="mark_penalty":
                 try:
                     mark_penalty = decimal.Decimal(str(markdata[slug]))
                 except decimal.InvalidOperation:
-                    raise ValidationError(u'Value for "mark_penalty" must be numeric in record for "%s".' % (recordid))
+                    raise ValidationError('Value for "mark_penalty" must be numeric in record for "%s".' % (recordid))
                 continue
             elif slug=="mark_penalty_reason":
-                mark_penalty_reason = unicode(markdata[slug])
+                mark_penalty_reason = str(markdata[slug])
                 continue
             elif slug=="overall_comment":
-                overall_comment = unicode(markdata[slug])
+                overall_comment = str(markdata[slug])
                 continue
             elif slug=="attach_type":
                 file_mediatype = str(markdata[slug])
                 continue
             elif slug=="attach_filename":
-                file_filename = unicode(markdata[slug])
+                file_filename = str(markdata[slug])
                 continue
             elif slug=="attach_data":
                 try:
@@ -782,30 +785,30 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
                 found_comp_slugs.add(slug)
             elif slug in components:
                 # shouldn't happen because JSON lib forces unique keys, but let's be extra safe...
-                raise ValidationError(u'Multiple values given for "%s" in record for "%s".' % (slug, recordid))
+                raise ValidationError('Multiple values given for "%s" in record for "%s".' % (slug, recordid))
             else:
-                raise ValidationError(u'Mark component "%s" not found in record for "%s".' % (slug, recordid))
+                raise ValidationError('Mark component "%s" not found in record for "%s".' % (slug, recordid))
 
             cm = ActivityComponentMark(activity_component=comp)
             acms.append(cm) # can't set activity_mark yet since it doesn't have an id
 
             componentdata = markdata[slug]
             if not isinstance(componentdata, dict):
-                raise ValidationError(u'Mark component data must be JSON object (in "%s" for "%s").' % (slug, recordid))
+                raise ValidationError('Mark component data must be JSON object (in "%s" for "%s").' % (slug, recordid))
 
             if 'mark' not in componentdata:
-                raise ValidationError(u'Must give "mark" for "%s" in record for "%s".' % (comp.title, recordid))
+                raise ValidationError('Must give "mark" for "%s" in record for "%s".' % (comp.title, recordid))
             
             try:
                 value = decimal.Decimal(str(componentdata['mark']))
             except decimal.InvalidOperation:
-                raise ValidationError(u'Value for "mark" must be numeric for "%s" in record for "%s".' % (comp.title, recordid))
+                raise ValidationError('Value for "mark" must be numeric for "%s" in record for "%s".' % (comp.title, recordid))
 
             cm.value = value
 
             mark_total += float(componentdata['mark'])
             if 'comment' in componentdata and save:
-                cm.comment = unicode(componentdata['comment'])
+                cm.comment = str(componentdata['comment'])
 
             if 'display_raw' in componentdata and save:
                 cm.set_display_raw(bool(componentdata['display_raw']))
@@ -819,7 +822,8 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
 
                 if old_am:
                     old_cm = ActivityComponentMark.objects.get(activity_mark=old_am, activity_component=components[slug])
-                    mark_total += float(old_cm.value)
+                    if old_cm.value is not None:
+                        mark_total += float(old_cm.value)
                     cm.value = old_cm.value
                     cm.comment = old_cm.comment
                     cm.set_display_raw(old_cm.display_raw())
@@ -829,7 +833,7 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
         if file_filename or file_data or file_mediatype:
             # new attachment
             if not (file_filename and file_data and file_mediatype):
-                raise ValidationError(u'Must specify all or none of "attach_type", "attach_filename", "attach_data" in record for "%s"' % (recordid))
+                raise ValidationError('Must specify all or none of "attach_type", "attach_filename", "attach_data" in record for "%s"' % (recordid))
             am.file_mediatype = file_mediatype
             if save:
                 am.file_attachment.save(name=file_filename, content=ContentFile(file_data), save=False)
@@ -885,4 +889,4 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
                 cm.activity_mark = am
                 cm.save()
 
-    return found
+    return found, not_found

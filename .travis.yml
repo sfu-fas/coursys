@@ -1,13 +1,10 @@
-language: python
-python:
-  - "2.7"
 notifications:
     email:
       - coursys-help@sfu.ca
 cache: pip
-install: "pip install -r build_deps/working_deps.txt"
-script: "python manage.py test --nomigration"
-sudo: false
-branches:
-  except:
-    - django17
+sudo: required
+services:
+  - docker
+install:
+  - docker pull ggbaker/coursys-test-py3
+script: "docker run ggbaker/coursys-test-py3"

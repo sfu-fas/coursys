@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Event Registrations{% endblock %}
+{% block h1 %}Event Registrations{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'outreach:outreach_index' %}">Outreach</a></li>
+<li><a href="{% url 'outreach:view_event' event_slug=event.slug %}">{{ event.title }}</a></li>
+<li>Registration</li>
+{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#registrations').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+{% if registrations %}
+        <table id="registrations">
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Event</td>
+                    <td>Event Start Date</td>
+                    <td>Registration Date</td>
+                    <td>Photo Waiver</td>
+                    <td>Attending</td>
+                     {% if event.enable_waitlist %}
+                        <td>Waitlisted</td>
+                     {% endif %}
+                    <td>Actions</td>
+                </tr>
+            </thead>
+            {% for registration in registrations %}
+                <tr>
+                    <td>{{ registration.fullname }}</td>
+                    <td><a href="{% url 'outreach:view_event' event_slug=registration.event.slug  %}" title="View event">{{ registration.event.title }}</a></td>
+                    <td>{{ registration.event.start_date }}</td>
+                    <td>{{ registration.created_at }}</td>
+                    <td>{{ registration.photo_waiver|yesno }}</td>
+                    <td>{{ registration.attended|yesno }}</td>
+                    {% if event.enable_waitlist %}
+                        <td>{{ registration.waitlisted|yesno }}</td>
+                    {% endif %}
+                    <td>
+                    {% if event.enable_waitlist %}
+                        <form class="lineform" method="POST"
+                            action = "{% url "outreach:toggle_registration_waitlist" registration_id=registration.id event_slug=event.slug %}">
+                            {% csrf_token %}
+                            <button type='submit' class='btn' title="Toggle Waitlist Status">
+                                <i class='fa fa-clock-o'></i>
+                            </button>
+                        </form>
+                    {% endif %}
+                    <form class="lineform" method="POST"
+                        action = "{% url "outreach:toggle_registration_attendance" registration_id=registration.id event_slug=event.slug %}">
+                        {% csrf_token %}
+                        <button type='submit' class='btn' title="Toggle Attendance">
+                            <i class='fa fa-check-square'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="POST"
+                          action="{% url "outreach:delete_registration" registration_id=registration.id event_slug=event.slug %}">
+                        {% csrf_token %}
+                        <button type='submit' class='btn confirm-submit' title="Hide Registration" data-submit-action="remove this registration">
+                            <i class='fa fa-trash-o'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "outreach:edit_registration" registration_id=registration.id event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="Edit Registration">
+                            <i class='fa fa-edit'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "outreach:view_registration" registration_id=registration.id %}">
+                        <button type='submit' class='btn' title="View Registration">
+                            <i class='fa fa-eye'></i>
+                        </button>
+                    </form>
+                </td>
+                </tr>
+            {% endfor %}
+        </table>
+{% else %}
+    There are no registrations for this event.
+{% endif %}
+{% endblock %}

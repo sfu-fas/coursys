@@ -1,6 +1,6 @@
-{% if index and can_edit %}
+{% if can_edit %}
     <p class="manage_link">
-        <a href="{% url "grad.views.manage_otherfunding" grad_slug=grad.slug  %}">Manage Other Funding</a>
+        <a href="{% url "grad:manage_otherfunding" grad_slug=grad.slug  %}">Manage Other Funding</a>
     </p>
 {% endif %}
 
@@ -11,7 +11,7 @@
 				<th>Description</th>
 				<th>Amount</th>
 				<th>Semester</th>
-				{% if not index %}
+				{% if can_edit %}
                     <th>Actions</th>
                 {% endif %}
 			</tr>
@@ -38,13 +38,13 @@
                         {{ f.semester.name }} ({{ f.semester }})
                     {% if f.removed %}</del>{% endif %}
                 </td>
-				{% if not index %}
+				{% if can_edit %}
                 <td class='miniaction'>
                     {% if not p.removed %}
-                        <form action="{% url "grad.views.remove_otherfunding" grad_slug=grad.slug o_id=f.id %}" method="post">
+                        <form action="{% url "grad:remove_otherfunding" grad_slug=grad.slug o_id=f.id %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
-                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this funding')" />
+                                    <input type="submit" value="remove" class="confirm-submit" data-submit-action="remove this funding" />
                                 </p>
                         </form>
                     {% endif %}

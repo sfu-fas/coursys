@@ -1,6 +1,6 @@
 from django import template
 from visas.models import Visa
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as e
 register = template.Library()
@@ -10,19 +10,19 @@ register = template.Library()
 def display_visas(person):
     visas = Visa.get_visas([person])
     if visas.count() > 1:
-        result = '<a href="%s">More than one visa found</a>' % reverse('visas.views.list_all_visas', kwargs={'emplid':person.userid_or_emplid()})
+        result = '<a href="%s">More than one visa found</a>' % reverse('visas:list_all_visas', kwargs={'emplid':person.userid_or_emplid()})
         return mark_safe(result)
 
     elif visas.count() == 0:
-        result = '<a href="%s">No visa found</a>' % reverse('visas.views.new_visa', kwargs={'emplid':person.userid_or_emplid()})
+        result = '<a href="%s">No visa found</a>' % reverse('visas:new_visa', kwargs={'emplid':person.userid_or_emplid()})
         return mark_safe(result)
 
     elif visas.count() == 1:
         visa = visas[0]
 
-        result = ['<a href="', reverse('visas.views.edit_visa', kwargs={'visa_id': visa.id}), '" ',
-                  e(add_visa_display_class(visa)),'>', e(visa.status),' valid from ', e(unicode(visa.start_date)), ' until ',
-                  e(unicode(visa.end_date)), ' -- ', e(visa.get_validity()), '</a>']
+        result = ['<a href="', reverse('visas:edit_visa', kwargs={'visa_id': visa.id}), '" ',
+                  e(add_visa_display_class(visa)),'>', e(visa.status),' valid from ', e(str(visa.start_date)), ' until ',
+                  e(str(visa.end_date)), ' -- ', e(visa.get_validity()), '</a>']
         return mark_safe(''.join(result))
 
     else:

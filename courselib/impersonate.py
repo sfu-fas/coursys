@@ -1,5 +1,6 @@
 # modified from http://stackoverflow.com/questions/2242909/django-user-impersonation-by-admin
 
+from django.utils.deprecation import MiddlewareMixin
 from django.http import HttpResponseRedirect
 from courselib.auth import ForbiddenResponse
 from django.contrib.auth.models import User
@@ -7,18 +8,23 @@ from courselib.auth import has_global_role
 from log.models import LogEntry
 
 from coredata.models import Member
-from urlparts import COURSE_SLUG
+from .urlparts import COURSE_SLUG
 import re
 
 course_path_re = re.compile("^/" + COURSE_SLUG + "/")
 
-class ImpersonateMiddleware(object):
+class ImpersonateMiddleware(MiddlewareMixin):
     def _generate_error(self, request, msg):
         return ForbiddenResponse(request, errormsg="cannot impersonate that user: "+msg)
         
     def process_request(self, request):
         if "__impersonate" in request.GET:
             # impersonation requested: check if it's allowed
+            if request.method == 'POST':
+                #  We do not allow you to impersonate while calling a POST.
+                return self._generate_error(request, "You cannot impersonate a user while calling a POST.  "
+                                                     "You are probably trying to submit something while impersonating "
+                                                     "someone, which is not allowed.")
             userid = request.GET["__impersonate"]
             match = course_path_re.match(request.path)
             if has_global_role('SYSA', request):

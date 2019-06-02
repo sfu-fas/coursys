@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('position', models.IntegerField(default=0, null=True, blank=True)),
                 ('deleted', models.BooleanField(default=False, db_index=True)),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
-                ('numeric_activity', models.ForeignKey(to='grades.NumericActivity')),
+                ('numeric_activity', models.ForeignKey(to='grades.NumericActivity', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['numeric_activity', 'deleted', 'position'],
@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('value', models.DecimalField(verbose_name=b'Mark', max_digits=8, decimal_places=2)),
                 ('comment', models.TextField(max_length=1000, null=True, blank=True)),
-                ('activity_component', models.ForeignKey(to='marking.ActivityComponent')),
+                ('activity_component', models.ForeignKey(to='marking.ActivityComponent', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('activity_component',),
@@ -87,7 +87,7 @@ class Migration(migrations.Migration):
                 ('penalty', models.DecimalField(max_digits=8, decimal_places=2)),
                 ('description', models.TextField(max_length=200, null=True, blank=True)),
                 ('deleted', models.BooleanField(default=False, db_index=True)),
-                ('activity_component', models.ForeignKey(to='marking.ActivityComponent')),
+                ('activity_component', models.ForeignKey(to='marking.ActivityComponent', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -96,9 +96,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GroupActivityMark',
             fields=[
-                ('activitymark_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='marking.ActivityMark')),
-                ('group', models.ForeignKey(to='groups.Group')),
-                ('numeric_activity', models.ForeignKey(to='grades.NumericActivity')),
+                ('activitymark_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='marking.ActivityMark', on_delete=models.CASCADE)),
+                ('group', models.ForeignKey(to='groups.Group', on_delete=models.CASCADE)),
+                ('numeric_activity', models.ForeignKey(to='grades.NumericActivity', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -107,10 +107,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GroupActivityMark_LetterGrade',
             fields=[
-                ('activitymark_lettergrade_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='marking.ActivityMark_LetterGrade')),
+                ('activitymark_lettergrade_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='marking.ActivityMark_LetterGrade', on_delete=models.CASCADE)),
                 ('letter_grade', models.CharField(max_length=2, choices=[(b'A+', b'A+ (Excellent performance)'), (b'A', b'A (Excellent performance)'), (b'A-', b'A- (Excellent performance)'), (b'B+', b'B+ (Good performance)'), (b'B', b'B (Good performance)'), (b'B-', b'B- (Good performance)'), (b'C+', b'C+ (Satisfactory performance)'), (b'C', b'C (Satisfactory performance)'), (b'C-', b'C- (Marginal performance)'), (b'D', b'D (Marginal performance)'), (b'F', b'F (Fail. Unsatisfactory Performance)'), (b'N', b'N (Did not write exam or did not complete course)'), (b'P', b'P (Satisfactory performance or better (pass, ungraded))'), (b'DE', b'DE (Deferred grade)'), (b'GN', b'GN (Grade not reported)'), (b'IP', b'IP (In progress)')])),
-                ('group', models.ForeignKey(to='groups.Group')),
-                ('letter_activity', models.ForeignKey(to='grades.LetterActivity')),
+                ('group', models.ForeignKey(to='groups.Group', on_delete=models.CASCADE)),
+                ('letter_activity', models.ForeignKey(to='grades.LetterActivity', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -119,8 +119,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='StudentActivityMark',
             fields=[
-                ('activitymark_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='marking.ActivityMark')),
-                ('numeric_grade', models.ForeignKey(to='grades.NumericGrade')),
+                ('activitymark_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='marking.ActivityMark', on_delete=models.CASCADE)),
+                ('numeric_grade', models.ForeignKey(to='grades.NumericGrade', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -129,8 +129,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='StudentActivityMark_LetterGrade',
             fields=[
-                ('activitymark_lettergrade_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='marking.ActivityMark_LetterGrade')),
-                ('letter_grade', models.ForeignKey(to='grades.LetterGrade', choices=[(b'A+', b'A+ (Excellent performance)'), (b'A', b'A (Excellent performance)'), (b'A-', b'A- (Excellent performance)'), (b'B+', b'B+ (Good performance)'), (b'B', b'B (Good performance)'), (b'B-', b'B- (Good performance)'), (b'C+', b'C+ (Satisfactory performance)'), (b'C', b'C (Satisfactory performance)'), (b'C-', b'C- (Marginal performance)'), (b'D', b'D (Marginal performance)'), (b'F', b'F (Fail. Unsatisfactory Performance)'), (b'N', b'N (Did not write exam or did not complete course)'), (b'P', b'P (Satisfactory performance or better (pass, ungraded))'), (b'DE', b'DE (Deferred grade)'), (b'GN', b'GN (Grade not reported)'), (b'IP', b'IP (In progress)')])),
+                ('activitymark_lettergrade_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='marking.ActivityMark_LetterGrade', on_delete=models.CASCADE)),
+                ('letter_grade', models.ForeignKey(to='grades.LetterGrade', on_delete=models.CASCADE, choices=[(b'A+', b'A+ (Excellent performance)'), (b'A', b'A (Excellent performance)'), (b'A-', b'A- (Excellent performance)'), (b'B+', b'B+ (Good performance)'), (b'B', b'B (Good performance)'), (b'B-', b'B- (Good performance)'), (b'C+', b'C+ (Satisfactory performance)'), (b'C', b'C (Satisfactory performance)'), (b'C-', b'C- (Marginal performance)'), (b'D', b'D (Marginal performance)'), (b'F', b'F (Fail. Unsatisfactory Performance)'), (b'N', b'N (Did not write exam or did not complete course)'), (b'P', b'P (Satisfactory performance or better (pass, ungraded))'), (b'DE', b'DE (Deferred grade)'), (b'GN', b'GN (Grade not reported)'), (b'IP', b'IP (In progress)')])),
             ],
             options={
             },
@@ -139,19 +139,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='activitymark_lettergrade',
             name='activity',
-            field=models.ForeignKey(to='grades.LetterActivity', null=True),
+            field=models.ForeignKey(to='grades.LetterActivity', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='activitymark',
             name='activity',
-            field=models.ForeignKey(to='grades.NumericActivity', null=True),
+            field=models.ForeignKey(to='grades.NumericActivity', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='activitycomponentmark',
             name='activity_mark',
-            field=models.ForeignKey(to='marking.ActivityMark'),
+            field=models.ForeignKey(to='marking.ActivityMark', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(

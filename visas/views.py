@@ -3,14 +3,14 @@ from .models import Visa
 from .forms import VisaForm, VisaAttachmentForm
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
 from django.http import StreamingHttpResponse
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from django.db import transaction
 from log.models import LogEntry
 from datetime import datetime
 from courselib.search import find_userid_or_emplid
-from coredata.models import Person
-import unicodecsv as csv
+from coredata.models import Person, Unit
+import csv
 
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
@@ -20,7 +20,7 @@ def list_all_visas(request, emplid=None):
         visa_list = Visa.objects.visible_given_user(person)
     else:
         person = None
-        visa_list = Visa.objects.visible
+        visa_list = Visa.objects.visible_by_unit(Unit.sub_units(request.units))
     context = {'visa_list': visa_list, 'person': person}
     return render(request, 'visas/view_visas.html', context)
 
@@ -28,13 +28,13 @@ def list_all_visas(request, emplid=None):
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def new_visa(request, emplid=None):
     if request.method == 'POST':
-        form = VisaForm(request.POST)
+        form = VisaForm(request, request.POST)
         if form.is_valid():
             visa = form.save(commit=False)
             visa.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Visa was created.'
+                                 'Visa was created.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="added visa: %s" % (visa),
@@ -42,13 +42,13 @@ def new_visa(request, emplid=None):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse('visas.views.list_all_visas'))
+            return HttpResponseRedirect(reverse('visas:list_all_visas'))
     else:
         if emplid:
             person = Person.objects.get(find_userid_or_emplid(emplid))
-            form = VisaForm(initial={'person':person})
+            form = VisaForm(request, initial={'person': person})
         else:
-            form = VisaForm()
+            form = VisaForm(request)
 
     return render(request, 'visas/new_visa.html', {'form': form})
 
@@ -57,13 +57,13 @@ def new_visa(request, emplid=None):
 def edit_visa(request, visa_id):
     visa = get_object_or_404(Visa, pk=visa_id)
     if request.method == 'POST':
-        form = VisaForm(request.POST, instance=visa)
+        form = VisaForm(request, request.POST, instance=visa)
         if form.is_valid():
             visa = form.save(commit=False)
             visa.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Visa was successfully modified.'
+                                 'Visa was successfully modified.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="edited visa: %s" % (visa),
@@ -71,11 +71,11 @@ def edit_visa(request, visa_id):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse('visas.views.list_all_visas'))
+            return HttpResponseRedirect(reverse('visas:list_all_visas'))
     else:
         # The initial value needs to be the person's emplid in the form.
         # Django defaults to the pk, which is not human readable.
-        form = VisaForm(instance=visa, initial={'person': visa.person.emplid})
+        form = VisaForm(request, instance=visa, initial={'person': visa.person.emplid})
 
     return render(request, 'visas/edit_visa.html', {'form': form, 'visa_id': visa_id})
 
@@ -88,33 +88,36 @@ def view_visa(request, visa_id):
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def delete_visa(request, visa_id):
-    visa = get_object_or_404(Visa, pk=visa_id)
-    messages.success(request, 'Hid visa for %s' % (visa.person.name()))
-    l = LogEntry(userid=request.user.username,
-                 description="deleted visa: %s" % (visa),
-                 related_object=visa.person
-                 )
-    l.save()
+    if request.method == 'POST':
+        visa = get_object_or_404(Visa, pk=visa_id)
+        messages.success(request, 'Hid visa for %s' % (visa.person.name()))
+        l = LogEntry(userid=request.user.username,
+                     description="deleted visa: %s" % (visa),
+                     related_object=visa.person
+                     )
+        l.save()
 
-    visa.hide()
-    visa.save()
-    return HttpResponseRedirect(reverse(list_all_visas))
+        visa.hide()
+        visa.save()
+    return HttpResponseRedirect(reverse('visas:list_all_visas'))
 
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def download_visas_csv(request):
-    visas = Visa.objects.visible()
+    visas = Visa.objects.visible_by_unit(Unit.sub_units(request.units))
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'inline; filename="%s.csv"' % datetime.now().strftime('%Y%m%d')
+    response['Content-Disposition'] = 'inline; filename="visas-%s.csv"' % datetime.now().strftime('%Y%m%d')
     writer = csv.writer(response)
-    writer.writerow(['Person', 'Start Date', 'End Date', 'Type', 'Validity'])
+    writer.writerow(['Person', 'Email', 'Unit', 'Start Date', 'End Date', 'Type', 'Validity'])
     for v in visas:
         person = v.person
+        email = v.person.email()
+        unit = v.unit.name
         start_date = v.start_date
         end_date = v.end_date
         visa_type = v.status
         validity = v.get_validity()
-        writer.writerow([person, start_date, end_date, visa_type, validity])
+        writer.writerow([person, email, unit, start_date, end_date, visa_type, validity])
 
     return response
 
@@ -140,7 +143,7 @@ def new_attachment(request, visa_id):
                 filetype += "; charset=" + upfile.charset
             attachment.mediatype = filetype
             attachment.save()
-            return HttpResponseRedirect(reverse(view_visa, kwargs={'visa_id':visa.id}))
+            return HttpResponseRedirect(reverse('visas:view_visa', kwargs={'visa_id':visa.id}))
         else:
             context.update({"attachment_form": form})
 
@@ -175,8 +178,8 @@ def delete_attachment(request, visa_id, attach_slug):
     attachment.hide()
     messages.add_message(request,
                          messages.SUCCESS,
-                         u'Attachment deleted.'
+                         'Attachment deleted.'
                          )
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
-    return HttpResponseRedirect(reverse(view_visa, kwargs={'visa_id':visa.id}))
+    return HttpResponseRedirect(reverse('visas:view_visa', kwargs={'visa_id':visa.id}))

@@ -4,10 +4,10 @@ from grad.models import GradStudent, ExternalDocument
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from grad.forms import ExternalDocumentForm
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from log.models import LogEntry
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_documents(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug = grad_slug)
     documents = ExternalDocument.objects.filter(student=grad).order_by('date')
@@ -28,7 +28,7 @@ def manage_documents(request, grad_slug):
               related_object=document )
             l.save()
             
-            return HttpResponseRedirect(reverse('grad.views.manage_documents', 
+            return HttpResponseRedirect(reverse('grad:manage_documents', 
                                                 kwargs={'grad_slug':grad.slug}))
     else:
         form = ExternalDocumentForm()
@@ -37,6 +37,7 @@ def manage_documents(request, grad_slug):
                 'grad':grad,
                 'form': form,
                 'documents': documents,
+                'can_edit': True,
               }
     return render(request, 'grad/manage_documents.html', context)
 

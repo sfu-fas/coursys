@@ -11,7 +11,7 @@ from django.template import RequestContext
 
 @requires_role('PLAN')
 def create_plan(request):
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, str(u)) for u in request.units]
 
     if request.method == 'POST':
         form = PlanBasicsForm(request.POST)
@@ -31,4 +31,4 @@ def create_plan(request):
         form = PlanBasicsForm()
         form.fields['unit'].choices = unit_choices
 
-    return render_to_response("planning/create_plan.html", {'form': form}, context_instance=RequestContext(request))
+    return render(request, "planning/create_plan.html", {'form': form})

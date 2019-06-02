@@ -1,4 +1,4 @@
-from celery.task import task, periodic_task
+from courselib.celerytasks import task, periodic_task
 from celery.schedules import crontab
 from coredata.queries import SIMSConn, PLAN_QUERY, SUBPLAN_QUERY
 from advisornotes.models import AdvisorVisit

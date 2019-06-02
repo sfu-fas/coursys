@@ -1,17 +1,18 @@
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Q
 from django.db import transaction
 from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, has_role, \
     is_course_staff_by_slug, is_course_instr_by_slug, user_passes_test, \
     ForbiddenResponse, NotFoundResponse, HttpError
+from courselib.branding import help_email
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
     CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU, \
-    HOLIDAY_HOURS_PER_BU, LAB_PREP_HOURS
+    HOLIDAY_HOURS_PER_BU, LAB_PREP_HOURS, TAContractEmailText
 from tacontracts.models import TACourse as NewTACourse
 from ra.models import Account
 from grad.models import GradStudent, STATUS_REAL_PROGRAM
@@ -21,7 +22,7 @@ from coredata.queries import more_personal_info, SIMSProblem, ensure_person_from
 from grad.models import GradStatus, GradStudent, Supervisor
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
-    CourseDescriptionForm, LabelledHidden, NewTAContractForm
+    CourseDescriptionForm, LabelledHidden, NewTAContractForm, TAContractEmailTextForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form, ta_forms
@@ -29,10 +30,10 @@ from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 import datetime, decimal, locale 
-import unicodecsv as csv
+import csv
 from ta.templatetags import ta_display
 import json
-import bu_rules
+from . import bu_rules
 
 locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' ) #fiddle with this if you cant get the following function to work
 def _format_currency(i):
@@ -48,28 +49,27 @@ def _create_news(person, url, from_user, accept_deadline):
         gradstudent = gradstudents[0]
         # See if we can find a supervisor to notify.  The student shouldn't have Senior, CoSenior, and Potential
         #  supervisors, so we'll just get all of those and grab the first one.
-        supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type__in=['SEN', 'COS', 'POT'])
-        supervisor_url = reverse('ta.views.instr_offers')
+        supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type__in=['SEN', 'COS', 'POT'],
+                                                removed=False)
         if len(supervisors) > 0:
             supervisor = supervisors[0].supervisor
             n = NewsItem(user=supervisor,
                          source_app="ta_contract",
-                         title=u"TA Contract Offer for %s" % person,
-                         url=supervisor_url,
+                         title="TA Contract Offer for %s" % person,
                          author=from_user,
-                         content=u"Your student %s has been offered a TA contract." % person
+                         content="Your student %s has been offered a TA contract." % person
                          )
             n.save()
 
-    n = NewsItem(user=person, source_app="ta_contract", title=u"TA Contract Offer for %s" % (person),
+    n = NewsItem(user=person, source_app="ta_contract", title="TA Contract Offer for %s" % (person),
                  url=url, author=from_user, content="You have been offered a TA contract. You must log in and accept or reject it by %s."%(accept_deadline))
     n.save()
 
 
 def _is_admin_by_slug(request, course_slug, **kwargs):
     offering = CourseOffering.objects.get(slug=course_slug)
-    roles = Role.objects.filter(person__userid=request.user.username, role='ADMN', unit=offering.owner).count() \
-            + Role.objects.filter(person__userid=request.user.username, role='TAAD', unit=offering.owner).count()
+    roles = Role.objects_fresh.filter(person__userid=request.user.username, role='ADMN', unit=offering.owner).count() \
+            + Role.objects_fresh.filter(person__userid=request.user.username, role='TAAD', unit=offering.owner).count()
     return roles > 0
 
 def _requires_course_staff_or_admin_by_slug(function=None, login_url=None):
@@ -78,7 +78,7 @@ def _requires_course_staff_or_admin_by_slug(function=None, login_url=None):
     *or* if they are the departmental admin for the course's department
     """
     def test_func(request, **kwargs):
-        return is_course_staff_by_slug(request, **kwargs) or _is_admin_by_slug(request, **kwargs)
+        return is_course_staff_by_slug(request, expires=False, **kwargs) or _is_admin_by_slug(request, **kwargs)
     actual_decorator = user_passes_test(test_func, login_url=login_url)
     if function:
         return actual_decorator(function)
@@ -188,7 +188,7 @@ def view_tug(request, course_slug, userid):
         return ForbiddenResponse(request)
     else:
         tug = get_object_or_404(TUG, member=member)
-        iterable_fields = [(_, params) for _, params in tug.config.iteritems() if hasattr(params, '__iter__') ]
+        iterable_fields = [(_, params) for _, params in tug.config.items() if hasattr(params, '__iter__') ]
         total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in iterable_fields if params.get('total',0) is not None)
         total_hours = round(total_hours, 2)
 
@@ -272,7 +272,7 @@ def _edit_tug(request, course_slug, userid, tug=None):
         if form.is_valid():
             tug = form.save(False)
             tug.save(newsitem_author=Person.objects.get(userid=request.user.username))
-            return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
+            return HttpResponseRedirect(reverse('offering:view_tug', args=(course.slug, userid)))
     else:
         form = TUGForm(instance=tug, offering=course, userid=userid, enforced_prep_min=prep_min, initial={
             'holiday':{'total': holiday_hours},
@@ -319,47 +319,53 @@ def edit_application(request, post_slug, userid):
 def _new_application(request, post_slug, manual=False, userid=None):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     editing = bool(userid)
+    is_ta_admin = False
     
     if editing:
         if userid == request.user.username and posting.is_open():
             # can edit own application until closes
             pass
         elif has_role('TAAD', request) and posting.unit in request.units:
-            # admin can always edit
+            is_ta_admin = True
             pass
         else:
             return ForbiddenResponse(request)
 
-    course_choices = [(c.id, unicode(c) + " (" + c.title + ")") for c in posting.selectable_courses()]
+    course_choices = [(c.id, str(c) + " (" + c.title + ")") for c in posting.selectable_courses()]
+    course_choices = [(None, '\u2014')] + course_choices
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
     skills = Skill.objects.filter(posting=posting)    
     max_courses = posting.max_courses()
     min_courses = posting.min_courses()
- 
+    CoursesFormSet = formset_factory(CoursePreferenceForm, min_num=max_courses, max_num=max_courses)
+
     sin = None
     # build basic objects, whether new or editing application
     if editing:
         person = Person.objects.get(userid=userid)
         application = get_object_or_404(TAApplication, posting=posting, person__userid=userid)
         old_coursepref = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
-        CoursesFormSet = formset_factory(CoursePreferenceForm, extra=max(0, min_courses-old_coursepref.count()), max_num=max_courses)
     else:
-        CoursesFormSet = formset_factory(CoursePreferenceForm, extra=min_courses, max_num=max_courses)
         application = None
     
     if not manual:
-        try:
-            person = ensure_person_from_userid(request.user.username)
-        except SIMSProblem:
-            return HttpError(request, status=503, title="Service Unavailable", error="Currently unable to handle the request.", errormsg="Problem with SIMS connection while trying to find your account info")
+        """
+        Don't change the person in the case of a TA Admin editing, as we don't want to save this application as the
+        Admin's, but as the original user's.
+        """
+        if not is_ta_admin:
+            try:
+                person = ensure_person_from_userid(request.user.username)
+            except SIMSProblem:
+                return HttpError(request, status=503, title="Service Unavailable", error="Currently unable to handle the request.", errormsg="Problem with SIMS connection while trying to find your account info")
 
         if not person:
-            return NotFoundResponse(request, "Unable to find your computing account in the system: this is likely because your account was recently activated, and it should be fixed tomorrow. If not, email coursys-help@sfu.ca.")
+            return NotFoundResponse(request, "Unable to find your computing account in the system: this is likely because your account was recently activated, and it should be fixed tomorrow. If not, email %s." % (help_email(request),))
 
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
         if not userid and existing_app.count() > 0: 
-            messages.success(request, u"You have already applied for the %s %s posting." % (posting.unit, posting.semester))
-            return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
+            messages.success(request, "You have already applied for the %s %s posting." % (posting.unit, posting.semester))
+            return HttpResponseRedirect(reverse('ta:view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
 
         if person.sin() != person.defaults['sin']:
             sin = person.sin()
@@ -372,20 +378,20 @@ def _new_application(request, post_slug, manual=False, userid=None):
                 person = get_object_or_404(Person, emplid=int(request.POST['search']))
             except ValueError:
                 search_form = StudentSearchForm(request.POST['search'])
-                messages.error(request, u"Invalid emplid %s for person." % (request.POST['search']))
-                return HttpResponseRedirect(reverse('ta.views.new_application_manual', args=(post_slug,)))
+                messages.error(request, "Invalid emplid %s for person." % (request.POST['search']))
+                return HttpResponseRedirect(reverse('ta:new_application_manual', args=(post_slug,)))
             
             #Check to see if an application already exists for the person 
             existing_app = TAApplication.objects.filter(person=person, posting=posting)
             if existing_app.count() > 0: 
-                messages.success(request, u"%s has already applied for the %s %s posting." % (person, posting.unit, posting.semester))
-                return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
+                messages.success(request, "%s has already applied for the %s %s posting." % (person, posting.unit, posting.semester))
+                return HttpResponseRedirect(reverse('ta:view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
         
         if editing:
-            ta_form = TAApplicationForm(request.POST, prefix='ta', instance=application)
+            ta_form = TAApplicationForm(request.POST, request.FILES, prefix='ta', instance=application)
         else:
-            ta_form = TAApplicationForm(request.POST, prefix='ta')
-        
+            ta_form = TAApplicationForm(request.POST, request.FILES, prefix='ta')
+
         ta_form.add_extra_questions(posting)
 
         courses_formset = CoursesFormSet(request.POST)
@@ -396,7 +402,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
             # No duplicates allowed
             courses = []
             for (rank,form) in enumerate(courses_formset):
-                if 'course' in form.cleaned_data:
+                if 'course' in form.cleaned_data and form.cleaned_data['course']:
                     courses.append( form.cleaned_data['course'] )
 
             if len(courses) != len(set(courses)):
@@ -424,7 +430,25 @@ def _new_application(request, post_slug, manual=False, userid=None):
                 app.person = person
                 if manual:
                     app.admin_create = True
-                    
+
+                # Add our attachments (resume and transcript if included.)
+                if request.FILES and 'ta-resume' in request.FILES:
+                    resume = request.FILES['ta-resume']
+                    resume_file_type = resume.content_type
+                    if resume.charset:
+                        resume_file_type += "; charset=" + resume.charset
+                    app.resume = resume
+                    app.resume_mediatype = resume_file_type
+
+                if request.FILES and 'ta-transcript' in request.FILES:
+                    transcript = request.FILES['ta-transcript']
+                    transcript_file_type = transcript.content_type
+                    if transcript.charset:
+                        transcript_file_type += "; charset=" + transcript.charset
+                    app.transcript = transcript
+                    app.transcript_mediatype = transcript_file_type
+
+
                 app.save()
                 ta_form.save_m2m()
                 
@@ -452,21 +476,22 @@ def _new_application(request, post_slug, manual=False, userid=None):
                     existing_crs = CoursePreference.objects.filter(app=app, course=form.cleaned_data['course'])
                     if existing_crs:
                         course = existing_crs[0]
-                        course.exper = form.cleaned_data['exper']
-                        course.taken = form.cleaned_data['taken']
+                        #course.exper = form.cleaned_data['exper']
+                        #course.taken = form.cleaned_data['taken']
                     else:
                         course = form.save(commit=False)
                     course.app = app
                     course.rank = rank+1
-                    course.save()
-                    used_pref.add(course)
+                    if course.course_id:
+                        course.save()
+                        used_pref.add(course)
                 
                 # any removed courses: set to rank=0, but don't delete (since we assume one exists if it has been assigned already)
                 for course in old_pref - used_pref:
                     course.rank = 0
                     course.save()
                 
-                return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': app.posting.slug, 'userid': app.person.userid}))
+                return HttpResponseRedirect(reverse('ta:view_application', kwargs={'post_slug': app.posting.slug, 'userid': app.person.userid}))
         
         # redisplaying form: build values for template with entered values
         campus_preferences = []
@@ -486,6 +511,12 @@ def _new_application(request, post_slug, manual=False, userid=None):
         # editing: build initial form from existing values
         
         ta_form = TAApplicationForm(prefix='ta', instance=application)
+        # Stupidly, the filefields don't consider themselves "filled" if we have a previous instance that contained
+        # the right fields anyway.  Manually check and clear the required part.
+        if application.resume:
+            ta_form.fields['resume'].required = False
+        if application.transcript:
+            ta_form.fields['transcript'].required = False
         ta_form.add_extra_questions(posting)
         cp_init = [{'course': cp.course, 'taken': cp.taken, 'exper':cp.exper} for cp in old_coursepref]
         search_form = None
@@ -552,7 +583,7 @@ def get_info(request, post_slug):
     try:
         data = more_personal_info(emplid=p.emplid, needed=['phones'])
     except SIMSProblem as e:
-        data = {'error': e.message}
+        data = {'error': str(e)}
     return HttpResponse(json.dumps(data), content_type='application/json')
 
 @requires_role("TAAD")
@@ -561,7 +592,7 @@ def update_application(request, post_slug, userid):
     application.late = False
     application.save()
     messages.success(request, "Removed late status from the application.")
-    return HttpResponseRedirect(reverse(view_application, kwargs={'post_slug': application.posting.slug, 'userid': application.person.userid}))
+    return HttpResponseRedirect(reverse('ta:view_application', kwargs={'post_slug': application.posting.slug, 'userid': application.person.userid}))
     
 @requires_role("TAAD")
 def view_all_applications(request,post_slug):
@@ -572,6 +603,24 @@ def view_all_applications(request,post_slug):
             'posting': posting,
             }
     return render(request, 'ta/view_all_applications.html', context)
+
+@requires_role("TAAD")
+def download_all_applications(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    applications = TAApplication.objects.filter(posting=posting)
+    response = HttpResponse(content_type='text/csv')
+
+    response['Content-Disposition'] = 'inline; filename="ta_applications-%s-%s.csv"' % \
+                                      (posting.semester.name, datetime.datetime.now().strftime('%Y%m%d'))
+    writer = csv.writer(response)
+    if applications:
+        writer.writerow(['Person', 'Category', 'Program', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned'])
+
+        for a in applications:
+            writer.writerow([a.person.sortname(), a.get_category_display(), a.get_current_program_display(), a.base_units_assigned(),
+                             a.base_units, a.course_pref_display(), a.course_assigned_display()])
+    return response
+
 
 @requires_role("TAAD")
 def print_all_applications(request,post_slug):
@@ -633,17 +682,14 @@ def print_all_applications_by_course(request,post_slug):
 @login_required
 def view_application(request, post_slug, userid):
     application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
-    roles = Role.objects.filter(role="TAAD", person__userid=request.user.username)
-   
-    #Only TA Administrator or owner of application can view it
-    if application.person.userid != request.user.username:
-        units = [r.unit for r in roles]
-        if roles.count() == 0:
-            return ForbiddenResponse(request, 'You cannot access this application')
-        elif application.posting.unit not in units:
-            return ForbiddenResponse(request, 'You cannot access this application')
-    else:
-        units = [application.posting.unit]
+    is_ta_admin = Role.objects_fresh.filter(role="TAAD", person__userid=request.user.username,
+                                      unit=application.posting.unit).count() > 0
+
+    # Only TA Administrator or owner of application can view it
+    if application.person.userid != request.user.username and not is_ta_admin:
+        return ForbiddenResponse(request, 'You cannot access this application')
+
+    units = [application.posting.unit]
    
     application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
     application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
@@ -654,7 +700,7 @@ def view_application(request, post_slug, userid):
     application.grad_programs = GradStudent.objects \
                  .filter(program__unit__in=units, person=application.person)
 
-    if roles and application.courses:
+    if is_ta_admin and application.courses:
         contract = application.courses[0]
     else:
         contract = None
@@ -662,8 +708,71 @@ def view_application(request, post_slug, userid):
     context = {
             'application':application,
             'contract': contract,
+            'is_ta_admin': is_ta_admin,
             }
     return render(request, 'ta/view_application.html', context)
+
+
+@requires_role("TAAD")
+def view_resume(request, post_slug, userid):
+    application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
+    is_ta_admin = Role.objects_fresh.filter(role="TAAD", person__userid=request.user.username,
+                                      unit=application.posting.unit).count() > 0
+    if not is_ta_admin:
+        return ForbiddenResponse(request, 'You cannot access this application')
+    resume = application.resume
+    filename = resume.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(resume.chunks(), content_type=application.resume_mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = resume.size
+    return resp
+
+
+@requires_role("TAAD")
+def download_resume(request, post_slug, userid):
+    application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
+    is_ta_admin = Role.objects_fresh.filter(role="TAAD", person__userid=request.user.username,
+                                      unit=application.posting.unit).count() > 0
+    if not is_ta_admin:
+        return ForbiddenResponse(request, 'You cannot access this application')
+    resume = application.resume
+    filename = resume.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(resume.chunks(), content_type=application.resume_mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = resume.size
+    return resp
+
+
+@requires_role("TAAD")
+def view_transcript(request, post_slug, userid):
+    application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
+    is_ta_admin = Role.objects_fresh.filter(role="TAAD", person__userid=request.user.username,
+                                      unit=application.posting.unit).count() > 0
+    if not is_ta_admin:
+        return ForbiddenResponse(request, 'You cannot access this application')
+    transcript = application.transcript
+    filename = transcript.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(transcript.chunks(), content_type=application.transcript_mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = transcript.size
+    return resp
+
+
+@requires_role("TAAD")
+def download_transcript(request, post_slug, userid):
+    application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
+    is_ta_admin = Role.objects_fresh.filter(role="TAAD", person__userid=request.user.username,
+                                      unit=application.posting.unit).count() > 0
+    if not is_ta_admin:
+        return ForbiddenResponse(request, 'You cannot access this application')
+    transcript = application.transcript
+    filename = transcript.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(transcript.chunks(), content_type=application.transcript_mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = transcript.size
+    return resp
+
+
 
 @requires_role("TAAD")
 def view_late_applications(request,post_slug):
@@ -677,7 +786,7 @@ def view_late_applications(request,post_slug):
 
 @login_required
 def view_postings(request):
-    roles = Role.objects.filter(role="TAAD", person__userid=request.user.username)
+    roles = Role.objects_fresh.filter(role="TAAD", person__userid=request.user.username)
     units = [r.unit for r in roles]
     today = datetime.date.today()
     postings = TAPosting.objects.filter(opens__lte=today, closes__gte=today).order_by('-semester', 'unit')
@@ -723,7 +832,7 @@ def assign_bus(request, post_slug, course_slug):
     descrs = CourseDescription.objects.filter(unit=posting.unit)
     if not descrs.filter(labtut=True) or not descrs.filter(labtut=False):
         messages.error(request, "Must have at least one course description for TAs with and without labs/tutorials before assigning TAs.")
-        return HttpResponseRedirect(reverse('ta.views.descriptions', kwargs={}))
+        return HttpResponseRedirect(reverse('ta:descriptions', kwargs={}))
     
     if request.method == "POST" and 'extra_bu' in request.POST:
         # update extra BU and lab/tutorial setting for course
@@ -886,7 +995,7 @@ def assign_bus(request, post_slug, course_slug):
                         course = applicant.assigned_course
                         course.delete()
             if not descr_error:
-                return HttpResponseRedirect(reverse(assign_tas, args=(post_slug,)))
+                return HttpResponseRedirect(reverse('ta:assign_tas', args=(post_slug,)))
     else:
         formset = AssignBUFormSet(initial=initial)
     
@@ -898,13 +1007,13 @@ def assign_bus(request, post_slug, course_slug):
 def all_contracts(request, post_slug):
     #name, appointment category, rank, deadline, status. Total BU, Courses TA-ing , view/edit
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
-    contracts = TAContract.objects.filter(posting=posting)
+    contracts = TAContract.objects.filter(posting=posting).order_by('application__person')
     paginator = Paginator(contracts,5)
 
     descrs = CourseDescription.objects.filter(unit=posting.unit)
     if not descrs.filter(labtut=True) or not descrs.filter(labtut=False):
         messages.error(request, "Must have at least one course description for TAs with and without labs/tutorials before assigning TAs.")
-        return HttpResponseRedirect(reverse('ta.views.descriptions', kwargs={}))
+        return HttpResponseRedirect(reverse('ta:descriptions', kwargs={}))
 
     existing = set(c.application_id for c in TAContract.objects.filter(posting=posting).select_related('application'))
     queryset = TAApplication.objects.filter(posting=posting).exclude(id__in=existing).order_by('person')
@@ -926,10 +1035,10 @@ def all_contracts(request, post_slug):
         ccount = 0
         from_user = posting.contact()
         for contract in contracts:
-            cname = u'contract_%s' % contract.id
+            cname = 'contract_%s' % contract.id
             if cname in request.POST:
                 app = contract.application.person
-                offer_url = reverse('ta.views.accept_contract', kwargs={'post_slug': post_slug, 'userid': app.userid})
+                offer_url = reverse('ta:accept_contract', kwargs={'post_slug': post_slug, 'userid': app.userid})
                 contract.status = 'OPN'
                 _create_news(app, offer_url, from_user, contract.deadline)
                 contract.save()
@@ -950,12 +1059,12 @@ def all_contracts(request, post_slug):
                     contract = contracts[0]
                     contract.status = 'SGN'
                     contract.save()
-                    messages.success(request, u"Contract for %s signed." % (contract.application.person.name()))
+                    messages.success(request, "Contract for %s signed." % (contract.application.person.name()))
                     l = LogEntry(userid=request.user.username,
-                        description=u"Set contract for %s to signed." % (contract.application.person.name()),
+                        description="Set contract for %s to signed." % (contract.application.person.name()),
                         related_object=contract)
                     l.save()
-                return HttpResponseRedirect(reverse('ta.views.all_contracts', kwargs={'post_slug': posting.slug}))
+                return HttpResponseRedirect(reverse('ta:all_contracts', kwargs={'post_slug': posting.slug}))
 
     
     # Create a list of courses that this TA is assigned to. 
@@ -971,6 +1080,29 @@ def all_contracts(request, post_slug):
     return render(request, 'ta/all_contracts.html',
                   {'contracts':contracts, 'posting':posting, 'applications':applications, 'form': form})
 
+
+@requires_role("TAAD")
+def contracts_table_csv(request, post_slug):
+    # The contracts_csv view is actually a payroll upload file, with way more fields.  This one is basically
+    # the exact same as all_contracts, but in CSV format.
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    contracts = TAContract.objects.filter(posting=posting)
+    for contract in contracts:
+        crs_list = ''
+        courses = TACourse.objects.filter(contract=contract)
+        for course in courses:
+            crs_list += course.course.subject+" "+course.course.number+" "+course.course.section+" ("+str(course.total_bu)+")\n"
+        contract.crs_list = crs_list
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-table.csv"' % (posting.slug)
+    writer = csv.writer(response)
+    writer.writerow(['Person', 'Appt Category', 'Rank', 'Status', 'Total BU', 'TA Courses', 'Deadline'])
+    for c in contracts:
+        writer.writerow([c.application.person, c.get_appt_category_display() + '(' + c.appt_category + ')',
+                         c.application.rank, c.get_status_display(), c.total_bu(), c.crs_list, c.deadline])
+    return response
+
+
 @requires_role("TAAD")
 def contracts_csv(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
@@ -980,7 +1112,7 @@ def contracts_csv(request, post_slug):
     writer.writerow(['Batch ID', 'Term ID', 'Contract Signed', 'Benefits Indicator', 'EmplID', 'SIN',
                      'Last Name', 'First Name 1', 'First Name 2', 'Payroll Start Date', 'Payroll End Date',
                      'Action', 'Action Reason', 'Position Number', 'Job Code', 'Full_Part time', 'Pay Group',
-                     'Employee Class', 'Category', 'Fund', 'Dept ID (cost center)', 'Project', 'Account',
+                     'Employee Class', 'Category', 'Project', 'Object', 'Fund', 'Dept ID (cost center)', 'Program',
                      'Prep Units', 'Base Units', 'Appt Comp Freq', 'Semester Base Salary Rate',
                      'Biweekly Base Salary Pay Rate', 'Hourly Rate', 'Standard Hours', 'Scholarship Rate Code',
                      'Semester Scholarship Salary Pay Rate', 'Biweekly Scholarship Salary Pay Rate', 'Lump Sum Amount',
@@ -1006,9 +1138,9 @@ def contracts_csv(request, post_slug):
         row = [batchid, posting.semester.name, signed, benefits, c.application.person.emplid, c.application.sin]
         row.extend([c.application.person.last_name, c.application.person.first_name, c.application.person.middle_name])
         row.extend([c.pay_start.strftime("%Y%m%d"), c.pay_end.strftime("%Y%m%d"), 'REH', 'REH'])
-        row.extend(["%08i" % (c.position_number.position_number), '', '', 'TSU', '', c.application.category])
-        row.extend([11, posting.unit.deptid(), '', c.position_number.account_number, prep_units, bu])
-        row.extend(['T', "%.2f"%(salary_total), '', '', '', schol_rate, "%.2f"%(schol_total), '', '', '', ''])
+        row.extend(["%08i" % c.position_number.position_number, '', '', 'TSU', '', c.application.category])
+        row.extend(['', c.position_number.account_number, 11, posting.unit.deptid(),  90150, prep_units, bu])
+        row.extend(['T', "%.2f" % salary_total, '', '', '', schol_rate, "%.2f" % schol_total, '', '', '', ''])
         writer.writerow(row)
     
     return response
@@ -1030,10 +1162,15 @@ def accept_contract(request, post_slug, userid, preview=False):
     person = get_object_or_404(Person, userid=request.user.username)
     
     contract = TAContract.objects.filter(posting=posting, application__person__userid=userid)
+    #  If you have at least one contract for this posting, return the first one that matches.
     if contract.count() > 0:
         contract = contract[0]
         application = TAApplication.objects.get(person__userid=userid, posting=posting)
-        
+    #  Otherwise, someone is probably trying to guess/make up a URL, or the contract has been deleted since they
+    #  got the URL.
+    else:
+        return ForbiddenResponse(request)
+
     courses = TACourse.objects.filter(contract=contract)
     total = contract.total_bu()
     bu = contract.bu()
@@ -1065,9 +1202,15 @@ def accept_contract(request, post_slug, userid, preview=False):
             elif "accept" in request.POST:
                 contract.status = 'ACC'
             contract.save()
-            messages.success(request, u"Successfully %s the offer." % (contract.get_status_display()))
+            messages.success(request, "Successfully %s the offer." % (contract.get_status_display()))
+            
+            # Do this after the save, just in case something went wrong during saving:
+            if "accept" in request.POST:
+                contract.email_contract()
+                messages.info(request, "You should be receiving an email with your contract attached.")
+
             ##not sure where to redirect to...so currently redirects to itself
-            return HttpResponseRedirect(reverse(accept_contract, args=(post_slug,userid)))
+            return HttpResponseRedirect(reverse('ta:accept_contract', args=(post_slug,userid)))
     else:   
         form = TAContractForm(instance=contract) 
 
@@ -1140,7 +1283,7 @@ def view_form(request, post_slug, userid):
 @requires_role("TAAD")
 def contracts_forms(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
-    contracts = TAContract.objects.filter(posting=posting, status='ACC')
+    contracts = TAContract.objects.filter(posting=posting, status__in=['ACC', 'SGN']).order_by('application__person__last_name', 'application__person__first_name')
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (posting.slug)
     ta_forms(contracts, response)
@@ -1166,9 +1309,9 @@ def new_contract(request, post_slug):
             app = form.cleaned_data['application']
             contract = TAContract(created_by=request.user.username)
             contract.first_assign(app, posting)
-            return HttpResponseRedirect(reverse(edit_contract, kwargs={'post_slug': posting.slug, 'userid': app.person.userid}))
+            return HttpResponseRedirect(reverse('ta:edit_contract', kwargs={'post_slug': posting.slug, 'userid': app.person.userid}))
     
-    return HttpResponseRedirect(reverse(all_contracts, args=(post_slug,)))
+    return HttpResponseRedirect(reverse('ta:all_contracts', args=(post_slug,)))
 
 
 def _lab_or_tutorial( courseDescription ):
@@ -1185,7 +1328,7 @@ def edit_contract(request, post_slug, userid):
         ForbiddenResponse(request, 'You cannot access this page')
         
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
-    position_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit, hidden=False)]
+    position_choices = [(a.id, "%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit, hidden=False)]
     description_choices = [('', '---------')] + [(d.id, d.description + _lab_or_tutorial(d) ) 
                                 for d in CourseDescription.objects.filter(unit=posting.unit, hidden=False)]
     
@@ -1255,7 +1398,7 @@ def edit_contract(request, post_slug, userid):
                 # if contract.status == "OPN":
                 person = application.person
                 
-                offer_url = reverse('ta.views.accept_contract', kwargs={'post_slug': post_slug, 'userid': userid})
+                offer_url = reverse('ta:accept_contract', kwargs={'post_slug': post_slug, 'userid': userid})
                 from_user = posting.contact()
                 if contract.status == 'OPN':
                     _create_news(person, offer_url, from_user, contract.deadline)
@@ -1268,15 +1411,14 @@ def edit_contract(request, post_slug, userid):
                 contract.save()
 
                 if not editing:
-                    messages.success(request, u"Created TA Contract for %s for %s." % (contract.application.person, posting))
+                    messages.success(request, "Created TA Contract for %s for %s." % (contract.application.person, posting))
                 else:
-                    messages.success(request, u"Edited TA Contract for %s for %s." % (contract.application.person, posting))
-                return HttpResponseRedirect(reverse(all_contracts, args=(post_slug,)))
+                    messages.success(request, "Edited TA Contract for %s for %s." % (contract.application.person, posting))
+                return HttpResponseRedirect(reverse('ta:all_contracts', args=(post_slug,)))
     else:
         form = TAContractForm(instance=contract) 
         formset = TACourseFormset(instance=contract)
         if not editing:
-            print "Not editing loop"
             initial={'sin': application.sin,
                      'appt_category': application.category,
                      'position_number': posting.accounts()[posting.cat_index(application.category)],
@@ -1316,17 +1458,17 @@ def _copy_posting_defaults(source, destination):
 
 @requires_role("TAAD")
 def edit_posting(request, post_slug=None):
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
-    account_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units, hidden=False).order_by('title')]
+    unit_choices = [(u.id, str(u)) for u in request.units]
+    account_choices = [(a.id, "%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units, hidden=False).order_by('title')]
 
     today = datetime.date.today()
     if post_slug:
-        semester_choices = [(s.id, unicode(s)) for s in Semester.objects.all().order_by('start')]
+        semester_choices = [(s.id, str(s)) for s in Semester.objects.all().order_by('start')]
     else:
-        semester_choices = [(s.id, unicode(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
+        semester_choices = [(s.id, str(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
     # TODO: display only relevant semester/unit offerings (with AJAX magic)
     offerings = CourseOffering.objects.filter(owner__in=request.units, semester__end__gte=datetime.date.today()).select_related('course')
-    excluded_choices = list(set(((u"%s (%s)" % (o.course,  o.title), o.course_id) for o in offerings)))
+    excluded_choices = list(set((("%s (%s)" % (o.course,  o.title), o.course_id) for o in offerings)))
     excluded_choices.sort()
     excluded_choices = [(cid,label) for label,cid in excluded_choices]
 
@@ -1352,11 +1494,13 @@ def edit_posting(request, post_slug=None):
             posting.config['excluded'] = default_exclude
             posting.config['contact'] = Person.objects.get(userid=request.user.username).id
 
-    contact_choices = [(r.person.id, r.person.name()) for r in Role.objects.filter(unit__in=request.units)]
+    contact_choices = [(r.person.id, r.person.name()) for r in Role.objects_fresh.filter(unit__in=request.units)]
     current_contact = posting.contact()
     if current_contact:
         contact_choices.append((current_contact.id, current_contact.name()))
     contact_choices = list(set(contact_choices))
+    # Let's sort these choices by name at least.
+    contact_choices = sorted(contact_choices, key=lambda name: name[1])
     
     if request.method == "POST":
         form = TAPostingForm(data=request.POST, instance=posting)
@@ -1381,14 +1525,14 @@ def edit_posting(request, post_slug=None):
             Skill.objects.filter(posting=form.instance).exclude(id__in=found_skills).delete()
             
             l = LogEntry(userid=request.user.username,
-                  description=u"Edited TAPosting for %s in %s." % (form.instance.unit, form.instance.semester),
+                  description="Edited TAPosting for %s in %s." % (form.instance.unit, form.instance.semester),
                   related_object=form.instance)
             l.save()
             if editing:
-                messages.success(request, u"Edited TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
+                messages.success(request, "Edited TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
             else:
-                messages.success(request, u"Created TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
-            return HttpResponseRedirect(reverse('ta.views.view_postings', kwargs={}))
+                messages.success(request, "Created TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
+            return HttpResponseRedirect(reverse('ta:view_postings', kwargs={}))
     else:
         form = TAPostingForm(instance=posting)
         form.fields['unit'].choices = unit_choices
@@ -1462,10 +1606,10 @@ def edit_bu(request, post_slug):
                 posting.save()
                 
                 l = LogEntry(userid=request.user.username,
-                  description=u"Edited BU defaults for %s, level %s." % (posting, level),
+                  description="Edited BU defaults for %s, level %s." % (posting, level),
                   related_object=posting)
                 l.save()
-                messages.success(request, u"Updated BU defaults for %s, %s-level." % (posting, level))
+                messages.success(request, "Updated BU defaults for %s, %s-level." % (posting, level))
     else:
         form = TAPostingBUForm()
 
@@ -1482,6 +1626,16 @@ def _by_start_semester(gradstudent):
 
 @requires_role("TAAD")
 def generate_csv(request, post_slug):
+    # An even shorter Campus name, for smaller columns in the CSV.
+    CAMPUS_CHOICES_SHORTENED = (
+        ('BRNBY', 'BBY'),
+        ('SURRY', 'SRY'),
+        ('VANCR', 'VCR'),
+        ('OFFST', 'OFF'),
+        ('GNWC', 'GNW'),
+        ('METRO', 'OTHR'),
+    )
+    CAMPUSES_SHORTENED = dict(CAMPUS_CHOICES_SHORTENED)
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).exclude(component='CAN').select_related('course')
@@ -1505,16 +1659,17 @@ def generate_csv(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Name', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus',
-           'Assigned Course(s)', 'Assigned BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
+    off = ['Rank', 'Name', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU',
+           'Campus', 'Assigned Course(s)', 'Assigned BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
     csvWriter.writerow(off)
     
     # next row: campuses
-    off = ['']*11 + [str(o.campus) for o in offerings]
+    off = ['']*12 + [str(CAMPUSES_SHORTENED[o.campus]) for o in offerings]
     csvWriter.writerow(off)
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')
     for app in apps:
+        rank = 'P%d' % app.rank
         system_program = ''
         startsem = ''
         status = ''
@@ -1555,12 +1710,12 @@ def generate_csv(request, post_slug):
                 assigned_courses = ', '.join([tacourse.course.name() for tacourse in ta_courses])
                 assigned_bus = sum([t.total_bu for t in ta_courses])
 
-        row = [app.person.sortname(), app.category, app.current_program, system_program, status, unit, startsem,
+        row = [rank, app.person.sortname(), app.category, app.get_current_program_display(), system_program, status, unit, startsem,
                app.base_units, campuspref, assigned_courses, assigned_bus]
         
         for off in offerings:
             crs = off.course
-            if crs in course_prefs[app]:
+            if app in course_prefs and crs in course_prefs[app]:
                 pref = course_prefs[app][crs]
                 row.append(pref.rank)
             else:
@@ -1588,7 +1743,7 @@ def generate_csv_by_course(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Name', 'Student ID', 'Email', 'Category', 'Program', 'BU']
+    off = ['Rank', 'Name', 'Student ID', 'Email', 'Category', 'Program', 'BU']
     extra_questions = []
     if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
         for question in posting.config['extra_questions']:
@@ -1601,8 +1756,8 @@ def generate_csv_by_course(request, post_slug):
         applications_for_this_offering = [pref.app for pref in prefs if 
             (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
         for app in applications_for_this_offering:
-            
-            row = [app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.current_program, app.base_units]
+            rank = 'P%d' % app.rank
+            row = [rank, app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.get_current_program_display(), app.base_units]
             if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:
                 for question in extra_questions:
                     try:
@@ -1638,8 +1793,26 @@ def view_financial(request, post_slug):
     info = {'course_total': len(offerings), 'bu_total': bu, 'pay_total': pay, 'ta_count': ta}
     
     context = {'posting': posting, 'offerings': offerings, 'excluded': excluded, 'info': info}
-    return render(request, 'ta/view_financial.html', context) 
+    return render(request, 'ta/view_financial.html', context)
 
+
+@requires_role("TAAD")
+def download_financial(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
+    # ignore excluded courses
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-financials-%s.csv"' % \
+                                      (post_slug, datetime.datetime.now().strftime('%Y%m%d'))
+    writer = csv.writer(response)
+    writer.writerow(['Offering', 'Instructor(s)', 'Enrolment', 'Campus', 'Number of TAs', 'Assigned BU',
+                     'Total Amount'])
+    for o in offerings:
+        writer.writerow([o.name(), o.instructors_str(), '(%s/%s)' % (o.enrl_tot, o.enrl_cap), o.get_campus_display(),
+                         posting.ta_count(o), posting.assigned_bu(o), locale.currency(float(posting.total_pay(o)))])
+    return response
 
 def _contact_people(posting, statuses):
     """
@@ -1667,17 +1840,18 @@ def contact_tas(request, post_slug):
             from_person = Person.objects.get(userid=request.user.username)
             if 'url' in form.cleaned_data and form.cleaned_data['url']:
                 url = form.cleaned_data['url']
+            else:
+                url = ''
             # message each person
             count = 0
             for person in people:
-                url = ''
                 n = NewsItem(user=person, author=from_person, course=None, source_app='ta_contract',
                              title=form.cleaned_data['subject'], content=form.cleaned_data['text'], url=url)
                 n.save()
                 count += 1
             
             messages.success(request, "Message sent to %i TAs." % (count))
-            return HttpResponseRedirect(reverse('ta.views.posting_admin', kwargs={'post_slug': posting.slug}))
+            return HttpResponseRedirect(reverse('ta:posting_admin', kwargs={'post_slug': posting.slug}))
     
     elif 'statuses' in request.GET:
         statuses = request.GET['statuses'].split(',')
@@ -1710,7 +1884,7 @@ def descriptions(request):
 
 @requires_role("TAAD")
 def new_description(request):
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, str(u)) for u in request.units]
     if request.method == 'POST':
         form = CourseDescriptionForm(request.POST)
         form.fields['unit'].choices = unit_choices
@@ -1719,12 +1893,12 @@ def new_description(request):
             desc.hidden = False
             desc.save()
             
-            messages.success(request, "Created contract description '%s'." % (desc.description))
+            messages.success(request, "Created course description '%s'." % (desc.description))
             l = LogEntry(userid=request.user.username,
-                  description=u"Created contract description '%s' in %s." % (desc.description, desc.unit.label),
+                  description="Created contract description '%s' in %s." % (desc.description, desc.unit.label),
                   related_object=desc)
             l.save()
-            return HttpResponseRedirect(reverse('ta.views.descriptions', kwargs={}))
+            return HttpResponseRedirect(reverse('ta:descriptions', kwargs={}))
             
     else:
         form = CourseDescriptionForm()
@@ -1732,24 +1906,60 @@ def new_description(request):
     context = {'form': form}
     return render(request, 'ta/new_description.html', context)
 
-from grad.models import STATUS_ACTIVE, STATUS_INACTIVE
-@login_required
-def instr_offers(request):
-    p = get_object_or_404(Person, userid=request.user.username)
-    cutoff = datetime.date.today() - datetime.timedelta(days=60)
-    members = Member.objects.filter(person=p, role="INST", offering__semester__start__gte=cutoff) \
-              .select_related('offering')
-    offerings = [m.offering for m in members]
-    tacrses = TACourse.objects.filter(course__in=offerings, bu__gt=0,
-                                      contract__status__in=['OPN','REJ','ACC','SGN']) \
-                              .select_related('contract__application__person')
 
-    for crs in tacrses:
-        p = crs.contract.application.person
-        gradprog = GradStudent.objects.filter(person=p, current_status__in=STATUS_ACTIVE+STATUS_INACTIVE) \
-                   .select_related('program__unit')
-        crs.gradprog = ', '.join("%s %s" % (gp.program.label, gp.program.unit.label) for gp in gradprog)
-    
-    context = {'tacrses': tacrses}    
-    return render(request, 'ta/instr_offers.html', context)
+@requires_role("TAAD")
+def edit_description(request, description_id):
+    description = get_object_or_404(CourseDescription, pk=description_id, unit__in=request.units)
+    if request.method == 'POST':
+        form = CourseDescriptionForm(request.POST, instance=description)
+        if form.is_valid():
+            description = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 'Description was modified')
+            l = LogEntry(userid=request.user.username,
+                         description="Modified description %s" % description.description,
+                         related_object=description)
+            l.save()
+            return HttpResponseRedirect(reverse('ta:descriptions'))
+    else:
+        form = CourseDescriptionForm(instance=description)
+    return render(request, 'ta/edit_description.html', {'form': form})
+
+
+@requires_role("TAAD")
+def delete_description(request, description_id):
+    description = get_object_or_404(CourseDescription, pk=description_id, unit__in=request.units)
+    if request.method == 'POST':
+        # Descriptions are actual basically text, we will allow them to delete them.
+        description.delete()
+        messages.success(request, 'Deleted description %s' % description.description)
+        l = LogEntry(userid=request.user.username,
+                     description="Deleted description: %s" % description.description,
+                     related_object=description)
+        l.save()
+    return HttpResponseRedirect(reverse('ta:descriptions'))
+
+
+@requires_role("TAAD")
+def add_edit_ta_contract_email(request):
+    #  It's probably safe to assume everyone but sysadmins are only TA admins for a single school.  Anyone with more
+    #  than one role most likely won't be actually adding/editing this text.
+    unit = list(request.units)[0]
+    instance = TAContractEmailText.objects.filter(unit=unit).first()
+    if request.method == 'POST':
+        form = TAContractEmailTextForm(request.POST, instance=instance)
+        if form.is_valid():
+            text = form.save(commit=False)
+            text.unit = unit
+            text.save()
+            messages.success(request, 'Email text successfully changed.')
+            l = LogEntry(userid=request.user.username,
+                         description='Added/Modified TA Contract Email Text for %s.' % text.unit.label,
+                         related_object=text)
+            l.save()
+            return HttpResponseRedirect(reverse('ta:view_postings'))
+    else:
+        form = TAContractEmailTextForm(instance=instance)
+    return render(request, 'ta/edit_contract_email.html', {'form': form})
 

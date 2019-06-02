@@ -5,8 +5,8 @@
 {% block h1 %}{{ application.posting.unit.label }} TA Application for {{application.person}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li><a href="{% url "ta.views.posting_admin" post_slug=application.posting.slug %}">{{ application.posting.short_str }}</a></li>
+<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta:posting_admin" post_slug=application.posting.slug %}">{{ application.posting.short_str }}</a></li>
 <li>{{ application.person.userid }}</li> 
 {% endblock %}
 
@@ -15,8 +15,8 @@
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
-{% if application.posting.is_open %}<li><a href="{% url "ta.views.edit_application" post_slug=application.posting.slug userid=application.person.userid %}">Edit Application</a></li>{% endif %}
-{% if contract %}<li><a href="{% url "ta.views.view_contract" post_slug=application.posting.slug userid=application.person.userid %}">View Contract</a></li>{% endif %}
+{% if application.posting.is_open or is_ta_admin %}<li><a href="{% url "ta:edit_application" post_slug=application.posting.slug userid=application.person.userid %}">Edit Application</a></li>{% endif %}
+{% if contract %}<li><a href="{% url "ta:view_contract" post_slug=application.posting.slug userid=application.person.userid %}">View Contract</a></li>{% endif %}
 </ul>
 </div>
 {% endif %}
@@ -25,5 +25,16 @@
 {% block content %}
 
 {% include "ta/_ta_application.html" with application=application only %}
+
+{% if is_ta_admin %}
+    {% if application.resume or application.transcript %}
+    <h3>Resume/Transcript</h3>
+    Curriculum Vitae: &nbsp; <a href="{% url "ta:view_resume" post_slug=application.posting.slug userid=application.person.userid %}">View</a>
+        &nbsp; <a href="{% url "ta:download_resume" post_slug=application.posting.slug userid=application.person.userid %}">Download</a>
+    <br/>
+    Transcript: &nbsp; <a href="{% url "ta:view_transcript" post_slug=application.posting.slug userid=application.person.userid %}">View</a>
+        &nbsp; <a href="{% url "ta:download_transcript" post_slug=application.posting.slug userid=application.person.userid %}">Download</a>
+    {% endif %}
+{% endif %}
 
 {% endblock %}

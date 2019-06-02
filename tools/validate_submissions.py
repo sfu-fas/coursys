@@ -35,16 +35,16 @@ for userid in users:
     rm_svn(subs)
 
     # go through submissions in reverse-chronological order; make sure those submissions are the ones found
-    print userid
+    print(userid)
     found_parts = set()
     for sub in subs:
-        print " ", sub
+        print(" ", sub)
         subdir = os.path.join(userdir, sub)
         parts = os.listdir(subdir)
         rm_svn(parts)
         for p in parts:
             if p not in found_parts:
-                print "   ", p
+                print("   ", p)
                 # most current submission of this component: make sure it matches.
                 found_parts.add(p)
                 arch_file = os.path.join(archive, course, assign, userid, sub, p)

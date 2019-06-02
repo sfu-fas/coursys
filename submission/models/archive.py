@@ -1,4 +1,4 @@
-from base import *
+from .base import *
 import submission.forms
 from django.forms.widgets import Textarea, TextInput, FileInput
 from django import forms
@@ -24,9 +24,9 @@ class ArchiveComponent(SubmissionComponent):
 
 
 class SubmittedArchive(SubmittedComponent):
-    component = models.ForeignKey(ArchiveComponent, null=False)
+    component = models.ForeignKey(ArchiveComponent, null=False, on_delete=models.PROTECT)
     archive = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500,
-                               storage=SubmissionSystemStorage, verbose_name='Archive submission')
+                               storage=UploadedFileStorage, verbose_name='Archive submission')
         
     class Meta:
         app_label = 'submission'

@@ -13,6 +13,6 @@ class APIRoot(CacheMixin, views.APIView):
 
     def cached_get(self, request, format=None):
         data = {'links': {
-            'user_offerings': reverse('api.MyOfferings', request=request)
+            'user_offerings': reverse('api:MyOfferings', request=request)
         }}
         return Response(data)

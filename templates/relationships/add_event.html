@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+
+{% block title %}Add Content{% endblock %}
+{% block h1 %}Add Content{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url 'relationships:index' %}">Relationships</a></li>
+    <li><a href="{% url 'relationships:view_contact' contact_slug=contact.slug%}">{{ contact.name }}</a></li>
+    <li><a href="{% url 'relationships:list_events' contact_slug=contact.slug %}">Add Event</a></li>
+{% endblock %}
+
+{% block content %}
+    <form enctype="multipart/form-data" action="{% url 'relationships:add_event' contact_slug=contact.slug handler_slug=handler_slug %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save" />
+    </p>
+</form>
+{% endblock %}

@@ -1,4 +1,4 @@
-from base import *
+from .base import *
 import submission.forms
 from django.forms.widgets import FileInput, Textarea
 from django import forms
@@ -24,9 +24,9 @@ class ImageComponent(SubmissionComponent):
 
 
 class SubmittedImage(SubmittedComponent):
-    component = models.ForeignKey(ImageComponent, null=False)
+    component = models.ForeignKey(ImageComponent, null=False, on_delete=models.PROTECT)
     image = models.FileField(upload_to=submission_upload_path, blank=False,  max_length=500, 
-          storage=SubmissionSystemStorage, verbose_name='Image submission')
+          storage=UploadedFileStorage, verbose_name='Image submission')
         
     class Meta:
         app_label = 'submission'

@@ -4,7 +4,7 @@
 {% block title %}Combined Offerings{% endblock %}
 {% block h1 %}Combined Offerings{% endblock %}
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#combined').dataTable( {
     'bPaginate': false,
@@ -29,7 +29,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
+<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
 <li>Combined Offerings</li>
 {% endblock %}
 
@@ -47,12 +47,12 @@ $(document).ready(function() {
     <li>{{ o }}</li>
     {% endfor %}
   </ul></td>
-  <td><a href="{% url "coredata.views.add_combined_offering" pk=c.pk %}">add offering</a></td>
+  <td><a href="{% url "sysadmin:add_combined_offering" pk=c.pk %}">add offering</a></td>
   {% endfor %}
   </tbody>
 </table>
 
-<form action="{% url 'coredata.views.new_combined' %}" method="get">
+<form action="{% url 'sysadmin:new_combined' %}" method="get">
 <fieldset><legend>Create New Combined Offering</legend>
 {{ new_form|as_dl }}
 <p><input type="submit" class="submit" value="Create" /></p>

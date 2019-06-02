@@ -5,23 +5,32 @@
 {% block h1 %}Financial Summary for TA Appointments{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a>
+<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta:posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a>
 <li>Financial</li>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url "ta:download_financial" post_slug=posting.slug %}">Download CSV</a></li>
+    </ul>
+</div>
+{% endblock %}
+
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 	var total, rows;
 	var totalrows = {{offerings|length}};
 	$(function() {
 		$('#offerings').dataTable({
 			"bJQueryUI": true,
 			"bPaginate": false,
-			"aaSorting": [[3, "desc"]],
+			"aaSorting": [[5, "desc"]],
 			"fnPreDrawCallback": function() {total=0; rows=0;},
 			"fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-				var pay = parseFloat(aData[4].slice(1));
+				var pay = parseFloat(aData[6].slice(1));
 				total += pay;
 				rows += 1;
 				var text = "$" + total.toFixed(2);
@@ -73,6 +82,8 @@
 <thead>
 	<tr>
 		<th scope="col">Offering</th>
+        <th scope="col">Instructor(s)</th>
+        <th scope="col">Enrolment</th>
 		<th scope="col">Campus</th>
 		<th scope="col">Number of TAs</th>
 		<th scope="col">Assigned BU</th>
@@ -82,7 +93,9 @@
 <tbody>
 {% for o in offerings %}
 <tr>
-  <td scope="row" title="{{o.title}}"><a href="{% url "ta.views.assign_bus" post_slug=posting.slug course_slug=o.slug %}">{{o.name}}</a></td>
+  <td scope="row" title="{{o.title}}"><a href="{% url "ta:assign_bus" post_slug=posting.slug course_slug=o.slug %}">{{o.name}}</a></td>
+  <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+  <td scope="num">{{o.enrl_tot}}/{{o.enrl_cap}}</td>
   <td class="num">{{o.get_campus_display}}</td>
   <td class="num">{{ o|display_ta_count:posting }}</td>
   <td class="num">{{ o|display_assigned_bu:posting }}</td>
@@ -92,7 +105,7 @@
 </tbody>
 </table>
 <p class="helptext">
-These offerings have been excluded from the above because they are in the exclusion list of the <a href="{% url "ta.views.edit_posting" post_slug=posting.slug %}">original posting</a>: 
+These offerings have been excluded from the above because they are in the exclusion list of the <a href="{% url "ta:edit_posting" post_slug=posting.slug %}">original posting</a>: 
 {% for o in excluded %}{{ o.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
 </p>
 </div>

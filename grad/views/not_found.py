@@ -1,7 +1,7 @@
 from grad.models import GradStudent, Supervisor
 from courselib.auth import requires_role
 from django.shortcuts import render
-from quick_search import _get_query
+from .quick_search import _get_query
 from courselib.auth import ForbiddenResponse
 
 @requires_role("GRAD", get_only=["GRPD"])

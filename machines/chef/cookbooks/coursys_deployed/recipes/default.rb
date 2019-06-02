@@ -1,4 +1,3 @@
-
 # Create 'coursys' user
 user "coursys" do
     home "/home/coursys"
@@ -21,13 +20,13 @@ directory "/home/coursys" do
     action :create
 end
 
-# Link /home/vagrant/courses to /home/coursys/courses"
+# Link /home/ubuntu/courses to /home/coursys/courses"
 execute "link coursys" do
-    command "ln -s /home/vagrant/courses /home/coursys/courses"
+    command "ln -s /home/ubuntu/courses /home/coursys/courses"
     not_if do ::File.exists?('/home/coursys/courses/manage.py') end
 end
 execute "chmod courses" do
-    command "chown -R coursys /home/vagrant/courses"
+    command "chown -R coursys /home/ubuntu/courses"
     ignore_failure true
 end
 
@@ -38,7 +37,7 @@ directory "/home/coursys/static" do
     mode 00755
     action :create
 end
-directory "/home/vagrant/static" do
+directory "/home/ubuntu/static" do
     owner "coursys"
     group "coursys"
     mode 00755
@@ -49,7 +48,7 @@ end
 package "mysql-client"
 package "libmysqlclient-dev"
 
-# Media Server
+# Frontend Server
 package "nginx"
 
 # Queue Server
@@ -67,6 +66,11 @@ package "stunnel4"
 # Keep the time in sync
 package "ntp"
 
+# encrypted backups
+package "duplicity"
+package "libssl-dev"
+package "libffi-dev"
+
 # for pillow build
 package "libjpeg-dev"
 package "zlib1g-dev"
@@ -81,17 +85,11 @@ package "screen"
 
 package "dos2unix"
 
-# pip install any listed requirements
-execute "install_pip_requirements" do
-    cwd "/home/vagrant/"
-    command "pip install -r /home/vagrant/courses/build_deps/deployed_deps.txt"
-end
-
 # collect static files
 execute "static files" do
     user "coursys"
     cwd "/home/coursys/courses"
-    command "echo 'yes' | ./manage.py collectstatic"
+    command "./manage.py collectstatic --noinput"
 end
 
 # database backup directory
@@ -103,27 +101,12 @@ directory "/home/coursys/db_backup" do
 end
 
 # elasticsearch
-package "openjdk-7-jre-headless"
-directory "/tmp/elasticsearch" do
-    owner "coursys"
-    group "coursys"
-    mode 00755
-    action :create
-end
-execute "install_elasticsearch" do
-    cwd "/tmp"
-    command "wget -nc https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb && dpkg -i elasticsearch-1.1.0.deb"
-    not_if do ::File.exists?('/var/lib/elasticsearch/') end
+package "elasticsearch"
+file '/etc/default/elasticsearch' do
+  content "START_DAEMON=true\nRESTART_ON_UPGRADE=true\n"
 end
 cookbook_file "elasticsearch.yml" do
     path "/etc/elasticsearch/elasticsearch.yml"
-end
-execute "install_elasticsearch-HQ" do
-    command "/usr/share/elasticsearch/bin/plugin -install royrusso/elasticsearch-HQ"
-    not_if do ::File.exists?('/usr/share/elasticsearch/plugins/HQ') end
-end
-execute "elasticsearch-update-rc.d" do
-    command "update-rc.d elasticsearch defaults"
 end
 
 service "elasticsearch" do
@@ -163,6 +146,10 @@ end
 execute "deny_coursys_ssh" do
     cwd "/"
     command "grep -q 'DenyUsers coursys'  /etc/ssh/sshd_config || (echo '\nDenyUsers coursys\nDenyUsers www-data' >> /etc/ssh/sshd_config)"
+end
+execute "ssh_no_passwords" do
+    cwd "/"
+    command "grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config || (echo '\nPasswordAuthentication no' >> /etc/ssh/sshd_config)"
 end
 cookbook_file "forward" do
     path "/root/.forward"
@@ -213,9 +200,6 @@ cookbook_file "nginx_default.conf" do
     path "/etc/nginx/sites-available/default"
     action :create
 end
-service "nginx" do
-  action :restart
-end
 cookbook_file "error503.html" do
     path "/usr/share/nginx/html/error503.html"
 end
@@ -265,13 +249,25 @@ cookbook_file "Makefile" do
 end
 
 # gunicorn upstart config
-cookbook_file "gunicorn.conf" do
-    path "/etc/init/gunicorn.conf"
+#cookbook_file "gunicorn.conf" do
+#    path "/etc/init/gunicorn.conf"
+#    mode "0644"
+#    action :create
+#end
+
+# gunicorn systemd config
+cookbook_file "gunicorn.service" do
+    path "/lib/systemd/system/gunicorn.service"
     mode "0644"
     action :create
 end
 
+
+execute "gunicorn-systemd" do
+    command "systemctl enable gunicorn"
+end
+
 #start gunicorn
 execute "gunicorn" do
-    command "restart gunicorn || start gunicorn"
+    command "systemctl restart gunicorn || systemctl start gunicorn"
 end

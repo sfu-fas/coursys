@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li>
+<li><a href="{% url "reports:view_reports" %}">Reports</a></li>
 <li>New Report</li>
 {% endblock %}
 
@@ -16,7 +16,7 @@
 
 {% block content %}
 
-<form action="{% url "reports.views.new_report" %}" method="post">{% csrf_token %}
+<form action="{% url "reports:new_report" %}" method="post">{% csrf_token %}
 <fieldset>
 {{ form|as_dl }}
 <p><input type="submit" class="submit" value="Submit" /></p>

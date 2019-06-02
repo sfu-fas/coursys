@@ -1,9 +1,7 @@
 // hard-coded URL
 var onlineJSON = "/media/sfu/js/online.json"; 
 
-function confirmSubmit(action) {
-  return confirm("Are you sure you wish to " + action + "?");
-}
+var $ = jQuery;
 
 /* jQuery Datatables sorting by mark (e.g. "4.5/10") */
 function mark_cmp(x,y) {
@@ -195,6 +193,10 @@ function offering_autocomplete(id, courses) {
     var hiddenElementID  = formElementName + '_autocomplete_hidden';
     /* change name of orig input */
     $(this).attr('name', formElementName + '_autocomplete_label');
+    /* Hack so we don't insert "undefined" in the input. */
+    if (!formElementValue) {
+      formElementValue = "";
+    }
     /* create new hidden input with name of orig input */
     $(this).after("<input type=\"hidden\" name=\"" + formElementName + "\" id=\"" + hiddenElementID + "\" value = \"" + formElementValue + "\" />");
 
@@ -270,8 +272,13 @@ $(document).ready(function(){
     })
   });
 
+  $('#page-content table').wrap('<div class="table"></div>'); // for SFU CSS
+
+  /* open help links in a new tab */
+  $('div.helptext a').attr('target', '_blank');
+
   // Prevent double-clicking of submissions in all our forms
-  $('form').preventDoubleSubmit()
+  $('form[method=post]').preventDoubleSubmit()
 
   // Add proper date-picker code to anything with the datepicker class, like our CalendarWidget inputs
   $('.datepicker').datepicker({ buttonImageOnly: true, buttonImage: '/static/images/grades/calendar.png',
@@ -289,5 +296,29 @@ $(document).ready(function(){
           });
         });
 
+  // add autocomplete to courseoffering fields
+  $('.autocomplete_courseoffering').each(function(){
+        var url = '/data/offerings_slug';
+        var elt = $(this);
+        if(elt.attr('data-semester')) {
+          url += '/' + elt.attr('data-semester');
+        }
+        elt.autocomplete({
+            source: url,
+            minLength: 2,
+            select: function(event, ui){
+              elt.data('val', ui.item.value);
+            }
+          });
+        });
+
+    // enable submit confirmation where necessary
+    $('.confirm-submit').click(function(ev){
+        var action = $(this).attr('data-submit-action');
+        if ( action == null ) {
+            action = 'complete this action'
+        }
+        return confirm("Are you sure you wish to " + action + "?");
+    });
 
 });

@@ -4,7 +4,7 @@ from grad.models import GradStudent, FinancialComment
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from grad.forms import FinancialCommentForm
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from coredata.models import Semester
 from log.models import LogEntry
 
@@ -26,7 +26,7 @@ def manage_financialcomments(request, grad_slug):
               related_object=comment )
             l.save()
             
-            return HttpResponseRedirect(reverse('grad.views.manage_financialcomments', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:manage_financialcomments', kwargs={'grad_slug':grad.slug}))
     else:
         form = FinancialCommentForm(initial={
                 'student':grad, 

@@ -4,7 +4,7 @@
 {% block h1 %}Courses{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(function() {
   $('.display').dataTable( {
     'bPaginate': false,
@@ -19,7 +19,7 @@ $(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
 <li>Courses</li>
 {% endblock %}
 
@@ -38,7 +38,7 @@ $(function() {
         {% for course in courses %}
         <tr>
             <td>{{ course.subject }} {{ course.number }}</td>
-            <td><a href="{% url "advisornotes.views.view_course_notes" unit_course_slug=course.slug %}">{{ course.title }}</a></td>
+            <td><a href="{% url "advising:view_course_notes" unit_course_slug=course.slug %}">{{ course.title }}</a></td>
             <td class="iconcell">{% if course.id in with_note_ids %}<span class="sort">yes</span><i class="fa fa-check infomessage"></i>{% endif %}</td>
         </tr>
         {% endfor %}

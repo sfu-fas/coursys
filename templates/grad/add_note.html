@@ -1,0 +1,26 @@
+{% extends "grad/base.html" %}
+{% load form_display %}
+
+{% block title %}{{grad.person.name}}: Add Note{% endblock %}
+{% block h1 %}{{grad.person.name}}: Add Note{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>Add Note</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="form_container">
+    <form action="" method="post">
+    	{% csrf_token %}
+    	<fieldset>
+    	<legend>Add Note</legend>
+        {{ form|as_dl }}
+        <p><input class="submit" type="submit" value="Add Note" /></p>
+        </fieldset>
+    </form>
+</div>
+<p class="gradback"><a class="button" href="{% url "grad:view" grad_slug=grad.slug %}">Return to Profile</a></p>
+{% endblock %}

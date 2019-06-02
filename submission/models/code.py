@@ -3,6 +3,7 @@ import submission.forms
 from django.forms.widgets import Textarea, TextInput, FileInput, SelectMultiple
 from django import forms
 from django.http import HttpResponse
+from django.utils.functional import SimpleLazyObject
 from os.path import splitext
 from django.conf import settings
 STATIC_URL = settings.STATIC_URL
@@ -67,8 +68,8 @@ class CodeComponent(SubmissionComponent):
         return False
 
 class SubmittedCode(SubmittedComponent):
-    component = models.ForeignKey(CodeComponent, null=False)
-    code = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=SubmissionSystemStorage,
+    component = models.ForeignKey(CodeComponent, null=False, on_delete=models.PROTECT)
+    code = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=UploadedFileStorage,
                             verbose_name='Code submission')
 
     class Meta:
@@ -91,15 +92,15 @@ class SubmittedCode(SubmittedComponent):
         filename = self.file_filename(self.code, prefix)
         zipfile.write(self.code.path, filename)
 
-FIELD_TEMPLATE = Template('''<li>
+FIELD_TEMPLATE = SimpleLazyObject(lambda: Template('''<li>
                     {{ field.label_tag }}
                     <div class="inputfield">
                         {{ field }}
             {% if field.errors %}<div class="errortext">{{field.errors.0}}</div>{% endif %}
             <div class="helptext">{{field.help_text}}</div>
                     </div>
-                </li>''')
-                        
+                </li>'''))
+
 class Code:
     label = "code"
     name = "Code"

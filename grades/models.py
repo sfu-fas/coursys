@@ -4,7 +4,7 @@ from coredata.models import Member, CourseOffering, Person
 from dashboard.models import NewsItem
 from django.db import transaction
 from django.db.models import Count
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from datetime import datetime, timedelta, date
 from courselib.json_fields import JSONField
@@ -85,33 +85,35 @@ class Activity(models.Model):
     position = models.PositiveSmallIntegerField(help_text="The order of displaying course activities.")
     group = models.BooleanField(null=False, default=False)
     deleted = models.BooleanField(null = False, db_index = True, default=False)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # a.config['url'] (string, default None): URL for more info
         # a.config['showstats'] (boolean, default True): show students summary stats for this activity?
         # a.config['showhisto'] (boolean, default True): show students histogram for this activity?
         # a.config['showformula'] (boolean, default False): show students formula/cutoffs for this activity?
         # a.config['multisubmit'] (boolean, default False): Use the "submit many times" behaviour?
+        # a.config['calculation_leak'] (boolean, default False): For CalNumericActivity, include unreleased grades when calculating? (Thus possibly leaking URLS values to students)
         # TODO: showformula not actually implemented yet
     
-    offering = models.ForeignKey(CourseOffering)
+    offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     
-    defaults = {'url': '', 'showstats': True, 'showhisto': True, 'showformula': False, 'multisubmit': False}
+    defaults = {'url': '', 'showstats': True, 'showhisto': True, 'showformula': False, 'multisubmit': False, 'calculation_leak': False}
     url, set_url = getter_setter('url')
     showstats, set_showstats = getter_setter('showstats')
     showhisto, set_showhisto = getter_setter('showhisto')
     showformula, set_showformula = getter_setter('showformula')
     multisubmit, set_multisubmit = getter_setter('multisubmit')
+    calculation_leak, set_calculation_leak = getter_setter('calculation_leak')
 
-    def __unicode__(self):
-        return u"%s - %s" % (self.offering, self.name)
+    def __str__(self):
+        return "%s - %s" % (self.offering, self.name)
     def short_str(self):
         return self.name
-    def __cmp__(self, other):
-        return cmp(self.position, other.position)
+    def __lt__(self, other):
+        return self.position < other.position
     def get_absolute_url(self):
-        return reverse('grades.views.activity_info', kwargs={'course_slug': self.offering.slug, 'activity_slug': self.slug})
+        return reverse('offering:activity_info', kwargs={'course_slug': self.offering.slug, 'activity_slug': self.slug})
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
     def is_numeric(self):
         return False
     class Meta:
@@ -188,7 +190,7 @@ class Activity(models.Model):
         """
         return self.display_grade_visible(student, 'INST')
 
-    def get_status_display(self):
+    def get_status_display_(self):
         """
         Override to provide better string for not-yet-due case.
         """
@@ -261,11 +263,11 @@ class Activity(models.Model):
         Produce pretty string for "in how long is this due"
         """
         if not self.due_date:
-            return u"\u2014"
+            return "\u2014"
         due_in = self.due_date - datetime.now()
         seconds = (due_in.microseconds + (due_in.seconds + due_in.days * 24 * 3600.0) * 10**6) / 10**6
         if due_in < timedelta(seconds=0):
-            return u'\u2014'
+            return '\u2014'
         elif due_in > timedelta(days=2):
             return "%i days" % (due_in.days)
         elif due_in > timedelta(days=1):
@@ -294,6 +296,10 @@ class Activity(models.Model):
             return "due_far"
 
 
+# https://stackoverflow.com/a/47817197/6871666
+Activity.get_status_display = Activity.get_status_display_
+
+
 class NumericActivity(Activity):
     """
     Activity with a numeric mark
@@ -302,6 +308,7 @@ class NumericActivity(Activity):
 
     class Meta:
         verbose_name_plural = "numeric activities"
+        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Numeric Graded"
@@ -315,7 +322,7 @@ class NumericActivity(Activity):
     def get_grade(self, student, role):
         if role == 'STUD':
             if self.status == 'INVI':
-                raise RuntimeError, "Can't display invisible grade."
+                raise RuntimeError("Can't display invisible grade.")
             elif self.status == 'URLS':
                 return None
 
@@ -330,7 +337,7 @@ class NumericActivity(Activity):
         if grade:
             return "%s/%s" % (grade.value, self.max_grade)
         else:
-            return u'\u2014'
+            return '\u2014'
 
 
 
@@ -340,6 +347,7 @@ class LetterActivity(Activity):
     """
     class Meta:
         verbose_name_plural = "letter activities"
+        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Letter Graded"
@@ -353,7 +361,7 @@ class LetterActivity(Activity):
     def get_grade(self, student, role):
         if role == 'STUD':
             if self.status == 'INVI':
-                raise RuntimeError, "Can't display invisible grade."
+                raise RuntimeError("Can't display invisible grade.")
             elif self.status == 'URLS':
                 return None
 
@@ -366,9 +374,9 @@ class LetterActivity(Activity):
     def display_grade_visible(self, student, role):
         grade = self.get_grade(student, role)
         if grade:
-            return unicode(grade.letter_grade)
+            return str(grade.letter_grade)
         else:
-            return u'\u2014'
+            return '\u2014'
 
 
 class CalNumericActivity(NumericActivity):
@@ -382,6 +390,7 @@ class CalNumericActivity(NumericActivity):
 
     class Meta:
         verbose_name_plural = "cal numeric activities"
+        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Calculated Numeric Grade"
@@ -395,8 +404,8 @@ class CalLetterActivity(LetterActivity):
     """
     Activity with a calculated letter grade which is the final letter grade of the course offering
     """
-    numeric_activity = models.ForeignKey(NumericActivity, related_name='numeric_source')
-    exam_activity = models.ForeignKey(Activity, null=True, related_name='exam_activity')
+    numeric_activity = models.ForeignKey(NumericActivity, related_name='numeric_source', on_delete=models.PROTECT)
+    exam_activity = models.ForeignKey(Activity, null=True, related_name='cal_exam_activity', on_delete=models.PROTECT)
     letter_cutoffs = models.CharField(max_length=500, help_text='parsed formula to calculate final letter grade', default='[95, 90, 85, 80, 75, 70, 65, 60, 55, 50]')
 
     def is_calculated(self):
@@ -409,6 +418,7 @@ class CalLetterActivity(LetterActivity):
     
     class Meta:
         verbose_name_plural = 'cal letter activities'
+        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Calculated Letter Grade"
@@ -427,12 +437,12 @@ class CalLetterActivity(LetterActivity):
         Set the grade cutoffs. List must be 10 values, lower-bounds for A+, A, A-, B+, ...
         """
         if len(cutoffs) != 10:
-            raise ValueError, "Must provide 10 cutoffs."
+            raise ValueError("Must provide 10 cutoffs.")
         cut_copy = cutoffs[:]
         cut_copy.sort()
         cut_copy.reverse()
         if cutoffs != cut_copy:
-            raise ValueError, "Cutoffs must be in decending order."
+            raise ValueError("Cutoffs must be in decending order.")
 
         self.letter_cutoffs = json.dumps([str(g) for g in cutoffs])
     
@@ -442,11 +452,10 @@ class CalLetterActivity(LetterActivity):
             disp.append(' <span class="letter">')
             disp.append(l)
             disp.append('</span> ')
-            disp.append(unicode(c))
+            disp.append(str(c))
         disp.append('&nbsp;<span class="letter">F</span> ')
 
         return mark_safe(''.join(disp))
-
 
 
 # list of all subclasses of Activity:
@@ -491,14 +500,14 @@ class NumericGrade(models.Model):
     """
     Individual numeric grade for a NumericActivity.
     """
-    activity = models.ForeignKey(NumericActivity, null=False)
-    member = models.ForeignKey(Member, null=False)
+    activity = models.ForeignKey(NumericActivity, null=False, on_delete=models.PROTECT)
+    member = models.ForeignKey(Member, null=False, on_delete=models.PROTECT)
 
     value = models.DecimalField(max_digits=8, decimal_places=2, default=0, null=False)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
     comment = models.TextField(null=True, max_length=COMMENT_LENGTH)
     
-    def __unicode__(self):
+    def __str__(self):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
 
     @property
@@ -508,7 +517,7 @@ class NumericGrade(models.Model):
 
     def display_staff(self):
         if self.flag == 'NOGR':
-            return u'\u2014'
+            return '\u2014'
         else:
             return "%s/%s" % (self.value, self.activity.max_grade)
 
@@ -523,11 +532,11 @@ class NumericGrade(models.Model):
         Display student grade with percentage from student view, e.g 12/15 (80.00%)
         """
         if self.activity.status == 'URLS':
-            return u'\u2014'
+            return '\u2014'
         elif self.activity.status == "INVI":
-            raise RuntimeError, "Can't display invisible grade."
+            raise RuntimeError("Can't display invisible grade.")
         elif self.flag == "NOGR":
-            return u'\u2014'
+            return '\u2014'
         elif self.activity.max_grade == 0:
             return '%s/%s' % (self.value, self.activity.max_grade)
         else:
@@ -553,7 +562,7 @@ class NumericGrade(models.Model):
 
         entered_by = get_entry_person(entered_by)
         if bool(mark) and not mark.id:
-            raise ValueError, "ActivityMark must be saved before calling setMark."
+            raise ValueError("ActivityMark must be saved before calling setMark.")
 
         if entered_by:
             gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
@@ -565,8 +574,8 @@ class NumericGrade(models.Model):
         if self.activity.status == "RLS" and newsitem and self.flag not in ["NOGR", "CALC"]:
             # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
-                source_app="grades", title=u"%s grade available" % (self.activity.name),
-                content=u'A new grade for %s in %s is available.'
+                source_app="grades", title="%s grade available" % (self.activity.name),
+                content='A new grade for %s in %s is available.'
                   % (self.activity.name, self.activity.offering.name()),
                 url=self.activity.get_absolute_url())
             n.save()
@@ -578,9 +587,9 @@ class NumericGrade(models.Model):
         because there is no associated mark summary record
         """
         if CalNumericActivity.objects.filter(id=self.activity.id):
-            return reverse("grades.views.activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
+            return reverse("offering:activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
         else:
-            return reverse("marking.views.mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
+            return reverse("offering:marking:mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
     class Meta:
         unique_together = (('activity', 'member'),)
 
@@ -590,14 +599,14 @@ class LetterGrade(models.Model):
     """
     Individual letter grade for a LetterActivity
     """
-    activity = models.ForeignKey(LetterActivity, null=False)
-    member = models.ForeignKey(Member, null=False)
+    activity = models.ForeignKey(LetterActivity, null=False, on_delete=models.PROTECT)
+    member = models.ForeignKey(Member, null=False, on_delete=models.PROTECT)
     
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
     comment = models.TextField(null=True, max_length=COMMENT_LENGTH)
     
-    def __unicode__(self):
+    def __str__(self):
         return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.activity)
 
     @property
@@ -607,9 +616,9 @@ class LetterGrade(models.Model):
 
     def display_staff(self):
         if self.flag == 'NOGR':
-            return u'\u2014'
+            return '\u2014'
         else:
-            return u"%s" % (self.letter_grade)
+            return "%s" % (self.letter_grade)
     display_staff_short = display_staff
 
     def display_with_percentage_student(self):
@@ -617,13 +626,13 @@ class LetterGrade(models.Model):
         Display student grade with percentage from student view, e.g 12/15 (80.00%)
         """
         if self.activity.status == 'URLS':
-            return u'\u2014'
+            return '\u2014'
         elif self.activity.status == "INVI":
-            raise RuntimeError, "Can't display invisible grade."
+            raise RuntimeError("Can't display invisible grade.")
         elif self.flag == "NOGR":
-            return u'\u2014'
+            return '\u2014'
         else:
-            return u'%s' % (self.letter_grade)
+            return '%s' % (self.letter_grade)
     
     def save(self, entered_by, group=None, newsitem=True):
         """Save the grade.
@@ -661,15 +670,17 @@ class LetterGrade(models.Model):
         because there is no associated mark summary record
         """
         if CalNumericActivity.objects.filter(id=self.activity.id):
-            return reverse("grades.views.activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
+            return reverse("offering:activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
         else:
-            return reverse("marking.views.mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
+            return reverse("offering:marking:mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
             
     class Meta:
         unique_together = (('activity', 'member'), )
 
+
 NumericActivity.GradeClass = NumericGrade
 LetterActivity.GradeClass = LetterGrade
+
 
 def neaten_activity_positions(course):
     """
@@ -736,12 +747,12 @@ def median_letters(sorted_grades):
     """
     l = len(sorted_grades)
     if l == 0:
-        return u"\u2014"
+        return "\u2014"
     elif l%2 == 1:
-        return sorted_grades[(l-1)/2]
+        return sorted_grades[(l-1)//2]
     else:
-        g1 = sorted_grades[l/2-1]      
-        g2 = sorted_grades[l/2]
+        g1 = sorted_grades[l//2-1]
+        g2 = sorted_grades[l//2]
         if g1 == g2:
             return g1
         else:
@@ -756,7 +767,7 @@ def max_letters(sorted_grades):
     """
     l = len(sorted_grades)
     if l == 0:
-        return u"\u2014"
+        return "\u2014"
     else:
         return sorted_grades[0]
 
@@ -768,7 +779,7 @@ def min_letters(sorted_grades):
     grades_s = [g for g in sorted_grades if LETTER_POSITION[g] <= 11]
     l = len(grades_s)
     if l == 0:
-        return u"\u2014"
+        return "\u2014"
     else:
         return grades_s[l-1]
 
@@ -788,9 +799,9 @@ class GradeHistory(models.Model):
     """
     Grade audit history. Created automatically by ActivityMark.save().
     """
-    activity = models.ForeignKey(Activity, null=False)
-    member = models.ForeignKey(Member, null=False)
-    entered_by = models.ForeignKey(Person, null=False, blank=False)
+    activity = models.ForeignKey(Activity, null=False, on_delete=models.PROTECT)
+    member = models.ForeignKey(Member, null=False, on_delete=models.PROTECT)
+    entered_by = models.ForeignKey(Person, null=False, blank=False, on_delete=models.PROTECT)
 
     activity_status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status when grade was entered.')
     numeric_grade = models.DecimalField(max_digits=8, decimal_places=2, default=0, null=False)
@@ -798,8 +809,8 @@ class GradeHistory(models.Model):
     grade_flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
     comment = models.TextField(null=True, max_length=COMMENT_LENGTH)
 
-    mark = models.ForeignKey('marking.ActivityMark', null=True, help_text='The ActivityMark object this grade came from, if applicable.')
-    group = models.ForeignKey('groups.Group', null=True, help_text='If this was a mark for a group, the group.')
+    mark = models.ForeignKey('marking.ActivityMark', null=True, help_text='The ActivityMark object this grade came from, if applicable.', on_delete=models.PROTECT)
+    group = models.ForeignKey('groups.Group', null=True, help_text='If this was a mark for a group, the group.', on_delete=models.PROTECT)
     status_change = models.BooleanField(null=False, default=False)
 
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -809,7 +820,7 @@ class GradeHistory(models.Model):
         ordering = ['-timestamp']
 
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it's job is to exist."
+        raise NotImplementedError("This object cannot be deleted because it's job is to exist.")
 
     def grade(self):
         return self.letter_grade or self.numeric_grade 

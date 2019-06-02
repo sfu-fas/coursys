@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load form_display %}{% load staticfiles %}
+{% block title %}Add File Attachment{% endblock %}
+{% block h1 %}Add File Attachment{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'inventory:inventory_index' %}">Inventory</a></li>
+<li><a href="{% url 'inventory:view_asset' asset_slug=asset.slug %}">View Asset</a></li>
+<li>Add Attachment</li>
+{% endblock %}
+
+
+{% block content %}
+<div class="form_container">
+    <form action="{% url "inventory:new_attachment" asset_id=asset.id  %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset>
+            {{ attachment_form|as_dl }}
+            <p><input type="submit" class="submit" value="Create Attachment" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}Space Management{% endblock %}
+{% block h1 %}Space Management{% endblock %}
+
+{% block subbreadcrumbs %}<li>Space Management</li>{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#locations').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[0, 'asc'], [1, 'asc']]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "space:add_location" %}">Add New Location</a></li>
+        <li><a href="{% url "space:list_roomtypes" %}">Manage Room Types</a></li>
+        <li><a href="{% url "space:manage_safety_items" %}">Manage Safety Infrastructure Items</a></li>
+        <li><a href="{% url "space:download_locations" %}">Download Locations</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    {% if not room_types %}
+        <div>You have no room types defined.  You probably won't be able to do much until you <a href="{% url "space:list_roomtypes" %}">add some</a>.</div>
+    {% else %}
+        {% if locations %}
+            <table id="locations">
+                <thead>
+                    <tr>
+                        <td>Building</td>
+                        <td>Room Number</td>
+                        <td>Room Type</td>
+                        <td>Current Booking(s)</td>
+                        <td>Actions</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in locations %}
+                    <tr>
+                        <td>{{ l.get_building_display }}</td>
+                        <td>{{ l.room_number }}
+                            {% if l.has_bookings %} &nbsp; <i class="fa fa-book" title="Booking(s)"></i>{% endif %}</td>
+                        <td>{{ l.room_type.long_description }}</td>
+                        <td>{{ l.get_current_bookings_str }}</td>
+                        <td>
+                            <form class="lineform" method="POST"
+                                action="{% url "space:delete_location" location_id=l.id %}">
+                                {% csrf_token %}
+                                <button type='submit' class='btn confirm-submit' title="Delete location"
+                                        data-submit-action="remove this location">
+                                    <i class='fa fa-trash-o'></i>
+                                </button>
+                            </form>
+                            <form class="lineform" method="GET" target="_blank"
+                                action="{% url "space:add_booking" location_slug=l.slug from_index=1 %}">
+                                <button type='submit' class='btn' title="Add Booking">
+                                    <i class='fa fa-book'></i>
+                                </button>
+                            </form>
+                            <form class="lineform" method="GET" target="_blank"
+                                action="{% url "space:edit_location" location_slug=l.slug from_index=1 %}">
+                                <button type='submit' class='btn' title="Edit Location">
+                                    <i class='fa fa-edit'></i>
+                                </button>
+                            </form>
+                            <form class="lineform" method="GET" target="_blank"
+                                action="{% url "space:view_location" location_slug=l.slug %}">
+                                <button type='submit' class='btn' title="View Location">
+                                    <i class='fa fa-eye'></i>
+                                </button>
+                            </form>
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div>There are no locations to display.</div>
+        {% endif %}
+    {% endif %}
+
+{% endblock %}
+

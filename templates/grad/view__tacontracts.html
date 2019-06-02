@@ -12,13 +12,14 @@
                 <th>Category</th>
                 <th>Total</th>
                 <th>Status</th>
+                <th>Course(s)</th>
             </tr>
         </thead>
         <tbody>
     {% for contract in tacontracts %}
     <tr>
                 <td>
-                    <a href="{% url "tacontracts.views.view_contract" unit_slug=contract.category.account.unit.slug semester=contract.category.hiring_semester.semester.name contract_slug=contract.slug %}">
+                    <a href="{% url "tacontracts:view_contract" unit_slug=contract.category.account.unit.slug semester=contract.category.hiring_semester.semester.name contract_slug=contract.slug %}">
                         {{contract}}</a>
                 </td>
                 <td>
@@ -43,12 +44,15 @@
                         <i class='fa fa-check'></i>
                     {% endif %}
                 </td>
+                <td>
+                    {{ contract.course_list_string }}
+                </td>
             </tr>
     {% endfor %}
     {% for contract in oldcontracts %}
     <tr>
                 <td>
-  		            <a href="{% url "ta.views.view_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">
+  		            <a href="{% url "ta:view_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">
                         {{contract}}</a>
                 </td>
                 <td>
@@ -69,6 +73,9 @@
                 </td>
                 <td>
                     {{contract.get_status_display}}
+                </td>
+                <td>
+                    {{ contract.course_list_string }}
                 </td>
             </tr>
     {% endfor %}

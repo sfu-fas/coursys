@@ -5,7 +5,7 @@
 
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#anypersons').dataTable( {
     'bPaginate': false,
@@ -30,16 +30,16 @@ function confirmCleanup(url) {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>AnyPersons</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li><li>AnyPersons</li>{% endblock %}
 
 
 {% block actions %}
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "coredata.views.add_anyperson" %}">Add New AnyPerson</a></li>
-        <li><a class="newsec" href="{% url "coredata.views.list_futurepersons" %}">Manage Future Persons</a></li>
-        <li><a href="{% url "coredata.views.list_roleaccounts" %}">Manage Role Accounts</a></li>
+        <li><a href="{% url "sysadmin:add_anyperson" %}">Add New AnyPerson</a></li>
+        <li><a class="newsec" href="{% url "sysadmin:list_futurepersons" %}">Manage Future Persons</a></li>
+        <li><a href="{% url "sysadmin:list_roleaccounts" %}">Manage Role Accounts</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -64,12 +64,12 @@ function confirmCleanup(url) {
             <td>
                 <div class="lineform">
                     <button type='submit' class='btn' title="Delete AnyPerson"
-                            onclick="confirmDelete('{% url "coredata.views.delete_anyperson" anyperson_id=anyperson.id %}')">
+                            onclick="confirmDelete('{% url "sysadmin:delete_anyperson" anyperson_id=anyperson.id %}')">
                         <i class='fa fa-trash-o'></i>
                     </button>
                 </div>
                 <form class="lineform" method="GET"
-                    action="{% url "coredata.views.edit_anyperson" anyperson_id=anyperson.id %}">
+                    action="{% url "sysadmin:edit_anyperson" anyperson_id=anyperson.id %}">
                     <button type='submit' class='btn' title="Edit Anyperson">
                         <i class='fa fa-edit'></i>
                     </button>
@@ -80,11 +80,11 @@ function confirmCleanup(url) {
         </tbody>
     </table>
 
-    <form method="POST" action={% url "coredata.views.delete_empty_anypersons" %}>
+    <form method="POST" action={% url "sysadmin:delete_empty_anypersons" %}>
     {% csrf_token %}
         Remove AnyPersons with no Person, FuturePerson, and RoleAccount
     <button type="submit" class='btn' title="Clean up empty AnyPersons"
-            onclick="confirmCleanup('{% url "coredata.views.delete_empty_anypersons" %}')">Cleanup</button>
+            onclick="confirmCleanup('{% url "sysadmin:delete_empty_anypersons" %}')">Cleanup</button>
 
     </form>
 {% else %}

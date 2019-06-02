@@ -58,4 +58,4 @@ def edit_planned_offering(request, semester, plan_slug, planned_offering_slug):
         form.fields['course'].choices = courses
         formset = MeetingTimeFormSet(instance=offering)
 
-    return render_to_response("planning/edit_planned_offering.html", {'form': form, 'formset': formset, 'plan': plan, 'course': offering}, context_instance=RequestContext(request))
+    return render(request, "planning/edit_planned_offering.html", {'form': form, 'formset': formset, 'plan': plan, 'course': offering})

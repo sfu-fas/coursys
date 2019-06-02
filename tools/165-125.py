@@ -15,7 +15,7 @@ prev_cmpt = Member.objects.filter(person__in=people,
 prev_125 = prev_cmpt.filter(offering__number="125")
 prev_126 = prev_cmpt.filter(offering__number="126")
 
-print prev_125.count() + prev_126.count()
-print students.count()
+print(prev_125.count() + prev_126.count())
+print(students.count())
 
 

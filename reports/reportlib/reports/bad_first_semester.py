@@ -33,13 +33,13 @@ class BadFirstSemesterReport( Report ):
             try:
                 return float(row_map["CUM_GPA"]) < 2 and float(row_map["CUM_GPA"]) > 0
             except:
-                print row_map
+                print(row_map)
         
         def credits_below_15_but_not_zero( row_map ):
             try:
                 return float(row_map["CREDITS"]) < 18 and float(row_map["CREDITS"]) > 0
             except:
-                print row_map
+                print(row_map)
 
         def student_in_undergrad_cmpt( row_map ):
             return plan_or_program( row_map, rules.plan_groups['cmpt_plans'], rules.program_groups['cmpt_undergrad_programs'] )

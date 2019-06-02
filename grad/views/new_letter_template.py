@@ -5,10 +5,10 @@ from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect
 from grad.forms import LetterTemplateForm
-from django.core.urlresolvers import reverse
-from letter_templates import letter_templates
+from django.urls import reverse
 
-@requires_role("GRAD", get_only=["GRPD"])
+
+@requires_role(["GRAD", "GRPD"])
 def new_letter_template(request):
     unit_choices = [(u.id, u.name) for u in request.units]
     if request.method == 'POST':
@@ -23,14 +23,14 @@ def new_letter_template(request):
                   description="Created new letter template %s for %s." % (form.instance.label, form.instance.unit),
                   related_object=form.instance)
             l.save()            
-            return HttpResponseRedirect(reverse(letter_templates))
+            return HttpResponseRedirect(reverse('grad:letter_templates'))
     else:
         form = LetterTemplateForm()
         form.fields['unit'].choices = unit_choices 
 
     page_title = 'New Letter Template'  
     crumb = 'New'
-    lt = sorted(LETTER_TAGS.iteritems()) 
+    lt = sorted(LETTER_TAGS.items()) 
     context = {
                'form': form,
                'page_title' : page_title,

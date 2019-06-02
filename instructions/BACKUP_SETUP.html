@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>CourSys Backup Server Config</title>
+<style type="text/css">
+body {
+  margin-bottom: 5em;
+}
+h2 {
+  margin-top: 2em;
+}
+dt {
+  margin-top: 1em;
+  font-weight: bold;
+}
+code.file {
+  font-weight: bold;
+}
+.del {
+  text-decoration: line-through;
+}
+</style>
+</head>
+<body>
+<h1>CourSys Backup Server Config</h1>
+
+<p>This describes the method used to set up the production backup server in January 2018.</p>
+
+<dl>
+    <dt>GPG Key Creation</dt>
+    <dd>
+        <p>Created GPG for coursys-help@sfu.ca with: 4096-bit RSA, randomly-generated string as passphrase.</p>
+        <blockquote><pre>gpg --gen-key</pre></blockquote>
+        <p>The key should be archived somewhere safe:</p>
+        <blockquote><pre>gpg -a --export coursys-help@sfu.ca > key.asc
+gpg -a --export-secret-keys coursys-help@sfu.ca >> key.asc
+gpg --export-ownertrust > ownertrust.asc</pre></blockquote>
+    </dd>
+
+    <dt>Backup server</dt>
+    <dd>
+        <p>VM Ubuntu base system installed. Basic setup needed to bootstsrap the coursys user:</p>
+       <blockquote><pre>sudo apt-get update
+sudo apt-get dist-upgrade
+sudo adduser coursys
+sudo gpasswd -a coursys sudo
+sudo su coursys</pre></blockquote>
+
+    <dt>Configure Production Server</dt>
+    <dd>
+        <p>On the production server, in <code class="file">courses/secrets.py</code>, set the variables
+            <code>BACKUP_REMOTE_URL</code>, <code>BACKUP_KEY_ID</code>, and <code>BACKUP_KEY_PASSPHRASE</code>.</p>
+    </dd>
+
+    <dt>Bootstrap/Try It</dt>
+    <dd>
+        <p>Make sure things are working, and do the initial full backup:</p>
+        <blockquote><pre>./manage.py backup_remote --full --dry-run
+./manage.py backup_remote --full</pre></blockquote>
+        <p>We aren't backing up the <code>submitted_files</code> because of their size.</p>
+    </dd>
+    <dt>Restoring</dt>
+    <dd>
+        <p>If you need the backups, they can be retrieved with the commands given by:</p>
+        <blockquote><pre>./manage.py backup_remote --retrieve-commands</pre></blockquote>
+        <p>The workflow to restore after complete and total failure would be something like:</p>
+        <blockquote><pre>zcat db_dump/???.dump.gz | ./manage.py dbshell
+#cp -a submitted_files/* $SUBMISSION_PATH</pre></blockquote>
+        <p>Let's hope it never comes to that.</p>
+    </dd>
+    <dt>Restoring Manually</dt>
+    <dd>
+        <p>Oh, things have gone completely to crap, you say? Hopefully you have archived the GPG key and passphrase somewhere.</p>
+        <blockquote><pre>gpg --import key.asc</pre></blockquote>
+        <p>The commands to restore will be something like:</p>
+        <blockquote><pre>duplicity --encrypt-key coursys-help@sfu.ca --file-prefix db- [[scp://userid@backups.cs.sfu.ca//backups/coursys]] [[/restorepath/dbdump]]
+#duplicity --encrypt-key coursys-help@sfu.ca --file-prefix files- [[scp://userid@backups.cs.sfu.ca//backups/coursys]] [[/restorepath/files]]</pre></blockquote>
+    </dd>
+</dl>
+
+
+
+</body>
+</html>
+
+

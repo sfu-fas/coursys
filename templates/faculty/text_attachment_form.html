@@ -4,14 +4,14 @@
 {% block h1 %}Add Text Attachment{% endblock %}
 
 {% block headextra %}
-<script>
+<script nonce="{{ CSP_NONCE }}">
 var event_type = "{{ event_type|escapejs }}";
 </script>
 <script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
 {% endblock %}
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
-<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url "faculty:index" %}">Faculty</a></li>
+<li><a href="{% url "faculty:summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
 <li><a href="{{ event.get_absolute_url }}">{{ event.handler_type_name }}</a></li>
 <li>Add Text Attachment</li>
 {% endblock %}

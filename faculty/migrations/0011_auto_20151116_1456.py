@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
                 ('contents', models.FileField(storage=django.core.files.storage.FileSystemStorage(base_url=None, location=b'submitted_files'), max_length=500, upload_to=faculty.models.attachment_upload_to)),
                 ('mediatype', models.CharField(max_length=200, null=True, editable=False, blank=True)),
                 ('hidden', models.BooleanField(default=False, editable=False)),
-                ('created_by', models.ForeignKey(help_text=b'Document attachment created by.', to='coredata.Person')),
-                ('position', models.ForeignKey(related_name='attachments', to='faculty.Position')),
+                ('created_by', models.ForeignKey(help_text=b'Document attachment created by.', to='coredata.Person', on_delete=models.CASCADE)),
+                ('position', models.ForeignKey(related_name='attachments', to='faculty.Position', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('created_at',),

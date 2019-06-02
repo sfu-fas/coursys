@@ -15,8 +15,10 @@ def get_addresses(request):
     
     try:
         data = more_personal_info(emplid, needed=['addresses'])
+        if data:
+            data['full_name'] = "%s\n" % grad.person.name()
     except SIMSProblem as e:
-        data = {'error': e.message}
+        data = {'error': str(e)}
         
     resp = HttpResponse(content_type="application/json")
     json.dump(data, resp, indent=1)

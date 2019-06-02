@@ -10,8 +10,7 @@ Vagrant.configure("2") do |config|
 
   # The url from where the 'config.vm.box' box will be fetched if it
   # doesn't already exist on the user's system.
-  config.vm.box = "trusty64"
-  config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+  config.vm.box = "ubuntu/xenial64"
   
   # Boot with a GUI so you can see the screen. (Default is headless)
   # config.vm.boot_mode = :gui
@@ -42,15 +41,16 @@ Vagrant.configure("2") do |config|
   # Share an additional folder to the guest VM. The first argument is
   # an identifier, the second is the path on the guest to mount the
   # folder, and the third is the path on the host to the actual folder.
-  config.vm.synced_folder "../..", "/home/vagrant/courses", 
+  config.vm.synced_folder "../..", "/home/ubuntu/courses", 
       id: "vagrant-root", 
-      owner: "vagrant",
+      owner: "ubuntu",
       group: "www-data",
       mount_options: ["dmode=777,fmode=777"]
 
   config.vm.provider "virtualbox" do |v|
-      v.customize ["modifyvm", :id, "--memory", "2048"]
+      v.customize ["modifyvm", :id, "--memory", "4096"]
       v.customize ["modifyvm", :id, "--cpus", "1"]
+      v.customize ["modifyvm", :id, "--uartmode1", "disconnected"] # speed up boot https://bugs.launchpad.net/cloud-images/+bug/1627844
   end
 
   # Enable provisioning with chef solo, specifying a cookbooks path, roles
@@ -69,7 +69,7 @@ Vagrant.configure("2") do |config|
      chef.add_recipe "sfu-db2"
 
   #   # You may also specify custom JSON attributes:
-     chef.json = { :sfu_db2 => { :users => ['coursys', 'vagrant']} }
+     chef.json = { :sfu_db2 => { :users => ['coursys', 'ubuntu']} }
   end
 
 end

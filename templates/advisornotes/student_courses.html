@@ -3,8 +3,8 @@
 {% block h1 %}Current Courses for {{ student.first_name}} {{ student.last_name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
-<li><a href="{% url "advisornotes.views.student_notes" userid=userid %}">{{ student.name }}</a></li>
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:student_notes" userid=userid %}">{{ student.name }}</a></li>
 <li>Courses</li>
 {% endblock %}
 
@@ -14,14 +14,14 @@
     <ul>
         <li class="showtitle"><a href="javascript:show_titles();">Show Course Titles</a></li>
         <li class="coursetitle"><a href="javascript:hide_titles();">Hide Course Titles</a></li>
-        <li><a href={% url "advisornotes.views.student_courses_download" userid=userid %}>Download Courses</a></li>
+        <li><a href={% url "advising:student_courses_download" userid=userid %}>Download Courses</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
-<script type="text/javascript">//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">
 	function show_titles() {
 		$('.coursetitle').show();
 		$('.showtitle').hide();
@@ -81,7 +81,7 @@
 		});
 	}
 
-	var data_url = '{% url "advisornotes.views.student_courses_data" userid=userid %}';
+	var data_url = '{% url "advising:student_courses_data" userid=userid %}';
     $(document).ready(function() {
     	$.ajax({
         	url: data_url,
@@ -93,7 +93,7 @@
 
    		});
  	});
-//]]></script>
+</script>
 <style type="text/css">
 table.courses, table.courses td, table.courses th {
 	border: none;

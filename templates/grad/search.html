@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load staticfiles %}
 
 {% block headextra %}
-<link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
-<script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
-<script type="text/javascript">
+<link rel="stylesheet" href="{% static 'multiselect/css/ui.multiselect.css' %}" />
+<script src="{% static 'multiselect/js/ui.multiselect.js' %}"></script>
+<script nonce="{{ CSP_NONCE }}">
   $(function() {
     $("#id_student_status").css("min-height", "180px").multiselect();
     $("#id_application_status").css("min-height", "160px").multiselect();
@@ -23,16 +24,12 @@
     
     $(".formheader").collapsible();
     $(".formheaderopen").collapsible().trigger('expand');
-    $('a.collapsible-heading-toggle').attr('href', 'javascript:');
-
   });
 </script>
-<style type="text/css">
+<style>
 .collapsible-heading-status {
 	display: none;
 }
-</style>
-<style type="text/css">
 #deleteinvalidsearchbutton {float: none;}
 </style>
 {% endblock %}
@@ -41,13 +38,13 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li><a href="{% url "grad:index" %}">Grad</a></li>
 <li>Search</li>
 {% endblock %}
 
 {% block content %}
 {% if savedsearch %}
-<form id="searchform" action="{% url "grad.views.delete_savedsearch" %}" method="post">
+<form id="searchform" action="{% url "grad:delete_savedsearch" %}" method="post">
 
 <input type="hidden" name="person" value="{{ savedsearch.person.pk }}" id="id_person">
 <input type="hidden" name="query" value="{{ savedsearch.query }}" id="id_query">
@@ -58,7 +55,7 @@
 {% endif %}
 <p class="helptext">If you don't make a selection in a category, that category is ignored. Unless specified, all multiple select searches will search for any of the conditions.</p>
 <div class="form_container">
-    <form id="searchform" action="{% url "grad.views.search" %}" method="get">
+    <form id="searchform" action="{% url "grad:search" %}" method="get">
         <fieldset>
             <h2 class="formheaderopen">Status</h2>
             <div class="formsection">{{ form|as_dl_includefields:form.status_fields }}</div>

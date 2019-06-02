@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}New Event{% endblock %}
+{% block h1 %}New Event{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('#id_start_date_0').datepicker({'dateFormat': 'yy-mm-dd'});
+    $('#id_end_date_0').datepicker({'dateFormat': 'yy-mm-dd'});
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'outreach:outreach_index' %}">Outreach</a></li>
+<li>New Event</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'outreach:new_event' %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Add Event" />
+    </p>
+</form>
+{% endblock %}

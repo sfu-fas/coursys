@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 import submission.models.base
@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SubmittedText',
             fields=[
-                ('submittedcomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='submission.SubmittedComponent')),
+                ('submittedcomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='submission.SubmittedComponent', on_delete=models.CASCADE)),
                 ('text', models.TextField(max_length=102400)),
             ],
             bases=('submission.submittedcomponent',),
@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TextComponent',
             fields=[
-                ('submissioncomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='submission.SubmissionComponent')),
+                ('submissioncomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='submission.SubmissionComponent', on_delete=models.CASCADE)),
                 ('max_size', submission.models.base.FileSizeField(default=5000, help_text=b'Maximum size of the archive file, in kB.')),
             ],
             bases=('submission.submissioncomponent',),
@@ -31,6 +31,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='submittedtext',
             name='component',
-            field=models.ForeignKey(to='submission.TextComponent'),
+            field=models.ForeignKey(to='submission.TextComponent', on_delete=models.CASCADE),
         ),
     ]

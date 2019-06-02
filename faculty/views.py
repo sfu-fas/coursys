@@ -3,7 +3,7 @@ import datetime
 import itertools
 import json
 import operator
-import StringIO
+import io
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
 
@@ -21,7 +21,7 @@ from django.core.exceptions import PermissionDenied
 
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template.base import Template
 from django.template.context import Context
 from courselib.search import find_userid_or_emplid
@@ -31,8 +31,8 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
-from faculty.models import Grant, TempGrant, GrantOwner, Position
-from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
+from faculty.models import Grant, TempGrant, GrantOwner, Position, DocumentAttachment
+from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, FACULTY_ROLE_EXPIRY
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
     ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, \
@@ -40,14 +40,16 @@ from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportFor
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm, PositionAttachmentForm
 from faculty.processing import FacultySummary
-from templatetags.event_display import fraction_display
+from .templatetags.event_display import fraction_display
 from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.choices import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+from faculty.event_types.info import ResumeEventHandler
 from coredata.models import AnyPerson
 from dashboard.letters import position_yellow_form_limited, position_yellow_form_tenure
 from log.models import LogEntry
+from space.models import BookingRecord
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -95,23 +97,25 @@ def _get_event_types():
 ###############################################################################
 # Top-level views (management, etc. Not specific to a faculty member)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'], get_only=['FACR'])
 def index(request):
     sub_units = Unit.sub_units(request.units)
     fac_roles = Role.objects.filter(role='FAC', unit__in=sub_units).select_related('person', 'unit').order_by('person')
 
     fac_roles_gone = [r for r in fac_roles if r.gone]
     fac_roles_gone = itertools.groupby(fac_roles_gone, key=lambda ro: ro.person)
-    fac_roles_gone = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p)) for p, roles in fac_roles_gone]
+    fac_roles_gone = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p.id)) for p, roles in fac_roles_gone]
 
     fac_roles = [r for r in fac_roles if not r.gone]
     fac_roles = itertools.groupby(fac_roles, key=lambda ro: ro.person)
-    fac_roles = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p)) for p, roles in fac_roles]
+    fac_roles = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p.id)) for p, roles in fac_roles]
 
     editor = get_object_or_404(Person, userid=request.user.username)
     events = CareerEvent.objects.filter(status='NA').only_subunits(request.units)
     events = [e.get_handler() for e in events]
     events = [h for h in events if h.can_approve(editor)]
+    is_admin = Role.objects_fresh.filter(unit__in=request.units, person__userid=request.user.username,
+                                         role__in=['ADMN', 'FACA']).exists()
     filterform = UnitFilterForm(sub_units)
 
     future_people = FuturePerson.objects.visible()
@@ -122,12 +126,13 @@ def index(request):
         'queued_events': len(events),
         'filterform': filterform,
         'viewvisas': request.GET.get('viewvisas', False),
-        'future_people': future_people
+        'future_people': future_people,
+        'is_admin': is_admin,
     }
     return render(request, 'faculty/index.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def search_index(request):
     editor = get_object_or_404(Person, userid=request.user.username)
     event_types = _get_event_types()
@@ -138,12 +143,12 @@ def search_index(request):
     })
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def search_events(request, event_type):
     Handler = _get_Handler_or_404(event_type)
     viewer = get_object_or_404(Person, userid=request.user.username)
     member_units = Unit.sub_units(request.units)
-    unit_choices = [('', u'\u2012',)] + [(u.id, u.name) for u in Unit.sub_units(request.units)]
+    unit_choices = [('', '\u2012',)] + [(u.id, u.name) for u in Unit.sub_units(request.units)]
     filterform = UnitFilterForm(Unit.sub_units(request.units))
 
     results = []
@@ -194,7 +199,7 @@ def search_events(request, event_type):
     return render(request, 'faculty/search_form.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def manage_faculty_roles(request):
     units = Unit.sub_units(request.units)
@@ -209,12 +214,23 @@ def manage_faculty_roles(request):
             if form.old_role:
                 form.old_role.config['gone'] = False
                 form.old_role.save()
+                l = LogEntry(userid=request.user.username,
+                             description="added faculty role in %s for %s" %
+                                         (form.old_role.unit.label, form.old_role.person),
+                             related_object=form.old_role)
+                l.save()
             else:
                 role = form.save(commit=False)
                 role.role = 'FAC'
+                role.expiry = FACULTY_ROLE_EXPIRY
                 role.save()
+                l = LogEntry(userid=request.user.username,
+                             description="added faculty role in %s for %s" % (role.unit.label, role.person),
+                             related_object=role)
+
+                l.save()
             messages.success(request, 'New faculty role added.')
-            return HttpResponseRedirect(reverse(manage_faculty_roles))
+            return HttpResponseRedirect(reverse('faculty:manage_faculty_roles'))
 
     elif request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         # submission to delete faculty member
@@ -224,8 +240,13 @@ def manage_faculty_roles(request):
         role = get_object_or_404(Role, id=roleid)
         role.gone = True
         role.save()
+        l = LogEntry(userid=request.user.username,
+                     description="removed faculty role in %s for %s" % (role.unit.label, role.person),
+                     related_object=role)
+
+        l.save()
         messages.success(request, 'Faculty member marked as "gone".')
-        return HttpResponseRedirect(reverse(manage_faculty_roles))
+        return HttpResponseRedirect(reverse('faculty:manage_faculty_roles'))
 
     else:
         form = NewRoleForm()
@@ -238,7 +259,7 @@ def manage_faculty_roles(request):
     return render(request, 'faculty/manage_faculty_roles.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def salary_index(request):
     """
     Salaries of all faculty members
@@ -309,7 +330,7 @@ def _salary_index_data(request, date):
     return fac_pay_summary
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def salary_index_csv(request):
     if request.GET:
         form = GetSalaryForm(request.GET)
@@ -349,7 +370,7 @@ def salary_index_csv(request):
     return response
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def fallout_report(request):
 
     if request.GET:
@@ -407,7 +428,7 @@ def _fallout_report_data(request, start_date, end_date):
     return table
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def fallout_report_csv(request):
     if request.GET:
         form = DateRangeForm(request.GET)
@@ -453,7 +474,7 @@ def fallout_report_csv(request):
     return response
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def status_index(request):
     """
     Status list of for all yet-to-be approved events.
@@ -468,7 +489,7 @@ def status_index(request):
     return render(request, 'faculty/status_index.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def salary_summary(request, userid):
     """
     Shows all salary career events at a date
@@ -527,7 +548,7 @@ def _teaching_capacity_data(unit, semester):
         yield person, credits, -load, -(credits + load)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def teaching_capacity(request):
     sub_units = Unit.sub_units(request.units)
 
@@ -560,7 +581,7 @@ def teaching_capacity(request):
     return render(request, 'faculty/reports/teaching_capacity.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def teaching_capacity_csv(request):
     sub_units = Unit.sub_units(request.units)
 
@@ -650,7 +671,7 @@ def _course_accreditation_data(viewer, units, semesters, operator, selected_flag
                 yield offering, instructor, matched_flags
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def course_accreditation(request):
     viewer = get_object_or_404(Person, userid=request.user.username)
     units = Unit.sub_units(request.units)
@@ -692,7 +713,7 @@ def course_accreditation(request):
     return render(request, 'faculty/reports/course_accreditation.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def course_accreditation_csv(request):
     viewer = get_object_or_404(Person, userid=request.user.username)
     units = Unit.sub_units(request.units)
@@ -744,7 +765,7 @@ def course_accreditation_csv(request):
     return HttpResponseBadRequest(form.errors)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def new_position(request):
     units = Unit.sub_units(request.units)
     unit_choices = [(u.id, u.name) for u in units]
@@ -757,7 +778,7 @@ def new_position(request):
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Position was created.'
+                                 'Position was created.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="added position: %s" % position,
@@ -765,7 +786,7 @@ def new_position(request):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+            return HttpResponseRedirect(reverse('faculty:list_positions'))
 
     else:
         form = PositionForm()
@@ -773,7 +794,7 @@ def new_position(request):
 
     return render(request, 'faculty/new_position.html', {'form': form})
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_position(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     can_wizard = False
@@ -789,7 +810,7 @@ def view_position(request, position_id):
 
     return render(request, 'faculty/view_position.html', {'position': position, 'can_wizard': can_wizard})
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def edit_position(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     if request.method == 'POST':
@@ -800,7 +821,7 @@ def edit_position(request, position_id):
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Successfully edited position.'
+                                 'Successfully edited position.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="Edited position: %s" % position,
@@ -808,24 +829,24 @@ def edit_position(request, position_id):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+            return HttpResponseRedirect(reverse('faculty:list_positions'))
     else:
         form = PositionForm(instance=position)
         form.fields['teaching_load'].initial = position.get_load_display()
     return render(request, 'faculty/edit_position.html', {'form': form, 'position_id': position_id})
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def delete_position(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     position.hide()
     position.save()
-    messages.add_message(request, messages.SUCCESS, u'Succesfully hid position.')
+    messages.add_message(request, messages.SUCCESS, 'Succesfully hid position.')
     l = LogEntry(userid=request.user.username, description="Hid position %s" % position, related_object=position)
     l.save()
-    return HttpResponseRedirect(reverse(list_positions))
+    return HttpResponseRedirect(reverse('faculty:list_positions'))
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def list_positions(request):
     sub_units = Unit.sub_units(request.units)
     positions = Position.objects.visible_by_unit(sub_units)
@@ -833,13 +854,13 @@ def list_positions(request):
     return render(request, 'faculty/view_positions.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def assign_position_entry(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     return render(request, 'faculty/assign_position_entry.html', {'position': position})
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def assign_position_person(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     if request.method == 'POST':
@@ -858,12 +879,13 @@ def assign_position_person(request, position_id):
                 position.save()
                 # Let's see if this person already has a faculty role for this unit, otherwise, add it:
                 if not Role.objects.filter(role='FAC', unit=position.unit, person=person).exists():
-                    new_role = Role(role='FAC', unit=position.unit, person=person)
+                    expiry = datetime.date.today() + datetime.timedelta(days=365)
+                    new_role = Role(role='FAC', unit=position.unit, person=person, expiry=expiry)
                     new_role.save()
-                    messages.add_message(request, messages.SUCCESS, u'Added faculty role for %s' % person)
+                    messages.add_message(request, messages.SUCCESS, 'Added faculty role for %s' % person)
                 messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Successfully assigned person to position.'
+                                 'Successfully assigned person to position.'
                                  )
                 l = LogEntry(userid=request.user.username,
                              description="Edited position: %s" % position,
@@ -871,13 +893,13 @@ def assign_position_person(request, position_id):
                              )
                 l.save()
 
-                return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+                return HttpResponseRedirect(reverse('faculty:list_positions'))
 
     else:
         form = PositionPersonForm()
     return render(request, 'faculty/assign_position_person.html', {'form': form, 'position_id': position_id})
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def position_add_credentials(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     if request.method == 'POST':
@@ -886,20 +908,20 @@ def position_add_credentials(request, position_id):
             form.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Successfully added credentials to position.'
+                                 'Successfully added credentials to position.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="Added credentials for position: %s" % position,
                          related_object=position
                          )
             l.save()
-            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+            return HttpResponseRedirect(reverse('faculty:list_positions'))
     else:
         form = PositionCredentialsForm(instance=position)
     return render(request, 'faculty/add_position_credentials.html', {'form': form, 'position': position})
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def assign_position_futureperson(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     if request.method == 'POST':
@@ -917,14 +939,14 @@ def assign_position_futureperson(request, position_id):
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Successfully assigned person to position.'
+                                 'Successfully assigned person to position.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="Edited position: %s" % position,
                          related_object=position
                          )
             l.save()
-            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+            return HttpResponseRedirect(reverse('faculty:list_positions'))
     else:
         form = FuturePersonForm()
     return render(request, 'faculty/assign_position_futureperson.html', {'form': form, 'position_id': position_id})
@@ -945,7 +967,7 @@ def position_get_yellow_form_limited(request, position_id):
     position_yellow_form_limited(position, response)
     return response
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_futureperson(request, futureperson_id, from_admin=0):
     """
     The from_admin parameter is used to know if we are getting here from the sysadmin panel, and only causes things
@@ -956,7 +978,7 @@ def view_futureperson(request, futureperson_id, from_admin=0):
 
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def edit_futureperson(request, futureperson_id, from_admin=0):
     """
     The from_admin parameter is used to know if we are getting here from the sysadmin panel, and only causes things
@@ -974,7 +996,7 @@ def edit_futureperson(request, futureperson_id, from_admin=0):
             future_person.save()
             messages.add_message(request,
                                  messages.SUCCESS,
-                                 u'Successfully edited faculty member.'
+                                 'Successfully edited faculty member.'
                                  )
             l = LogEntry(userid=request.user.username,
                          description="Edited future person: %s" % future_person,
@@ -982,9 +1004,9 @@ def edit_futureperson(request, futureperson_id, from_admin=0):
                          )
             l.save()
             if from_admin == '1':
-                return HttpResponseRedirect(reverse('coredata.views.list_futurepersons'))
+                return HttpResponseRedirect(reverse('sysadmin:list_futurepersons'))
             else:
-                return HttpResponseRedirect(reverse('faculty.views.index'))
+                return HttpResponseRedirect(reverse('faculty:index'))
     else:
         form = FuturePersonForm(instance=fp)
         form.fields['sin'].initial = fp.sin()
@@ -994,20 +1016,20 @@ def edit_futureperson(request, futureperson_id, from_admin=0):
     return render(request, 'faculty/edit_future_person.html', {'form': form, 'fp': fp, 'from_admin': from_admin})
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def delete_futureperson(request, futureperson_id):
     fp = get_object_or_404(FuturePerson, pk=futureperson_id)
     fp.hide()
     fp.save()
-    messages.add_message(request, messages.SUCCESS, u'Succesfully hid future person.')
+    messages.add_message(request, messages.SUCCESS, 'Succesfully hid future person.')
     l = LogEntry(userid=request.user.username, description="Hid future person %s" % fp, related_object=fp)
     l.save()
-    return HttpResponseRedirect(reverse(index))
+    return HttpResponseRedirect(reverse('faculty:index'))
 
 ###############################################################################
 # Display/summary views for a faculty member
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def summary(request, userid):
     """
     Summary page for a faculty member.
@@ -1016,6 +1038,9 @@ def summary(request, userid):
     editor = get_object_or_404(Person, userid=request.user.username)
     career_events = CareerEvent.objects.not_deleted().only_subunits(request.units).filter(person=person)
     filterform = EventFilterForm()
+    resume = career_events.filter(event_type='RESUME').order_by('start_date').last()
+    is_admin = Role.objects_fresh.filter(unit__in=request.units, person__userid=request.user.username,
+                                         role__in=['ADMN', 'FACA']).exists()
 
     context = {
         'person': person,
@@ -1023,11 +1048,13 @@ def summary(request, userid):
         'career_events': career_events,
         'filterform': filterform,
         'can_wizard': not career_events.exclude(event_type='GRANTAPP').exists(),
+        'resume': resume,
+        'is_admin': is_admin,
     }
     return render(request, 'faculty/summary.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def teaching_summary(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
 
@@ -1058,7 +1085,7 @@ def teaching_summary(request, userid):
         cb, event = _teaching_events_data(person, curr_semester)
         credit_balance += cb
         events.extend(event)
-        curr_semester = curr_semester.next()
+        curr_semester = next(curr_semester)
 
     start = start_semester.code
     end = end_semester.code
@@ -1102,7 +1129,7 @@ def _teaching_events_data(person, semester):
     return cb, e
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def teaching_summary_csv(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     events = []
@@ -1128,7 +1155,7 @@ def teaching_summary_csv(request, userid):
     while curr_semester <= end_semester:
         cb, event = _teaching_events_data(person, curr_semester)
         events.extend(event)
-        curr_semester = curr_semester.next()
+        curr_semester = next(curr_semester)
 
     start = start_semester.code
     end = end_semester.code
@@ -1165,7 +1192,7 @@ def teaching_summary_csv(request, userid):
     return response
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def study_leave_credits(request, userid):
     person, units = _get_faculty_or_404(request.units, userid)
     end_semester = ReportingSemester(datetime.date.today())
@@ -1209,7 +1236,7 @@ def study_leave_credits(request, userid):
 
 
 def _csvfrac(f):
-    if isinstance(f, basestring):
+    if isinstance(f, str):
         return f
     else:
         return "%.3f" % (f)
@@ -1268,12 +1295,12 @@ def _all_study_events(units, person, start_semester, end_semester):
             events += [('', 'Study Leave Credits prior to '+start_semester.code, '', slc_total , slc_total)]
 
         events += event
-        curr_semester = curr_semester.next()
+        curr_semester = next(curr_semester)
 
     return slc_total, events, finish_semester
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def study_leave_credits_csv(request, userid):
     person, units = _get_faculty_or_404(request.units, userid)
     end_semester = ReportingSemester(datetime.date.today())
@@ -1319,7 +1346,7 @@ def study_leave_credits_csv(request, userid):
     return response
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'], get_only='FACR')
 def otherinfo(request, userid):
     person, units = _get_faculty_or_404(request.units, userid)
 
@@ -1337,16 +1364,27 @@ def otherinfo(request, userid):
     ras = RAAppointment.objects.filter(deleted=False, hiring_faculty=person, unit__in=units) \
             .select_related('person', 'project', 'account')
 
+    services = CareerEvent.objects.not_deleted().filter(event_type='COMMITTEE', person=person,
+                                                        unit__in=Unit.sub_units(request.units))
+    if services:
+        for s in services:
+            handler = s.get_handler()
+            s.committee = handler.get_committee_display()
+
+    bookings = BookingRecord.objects.current().filter(person=person)
+
     context = {
         'person': person,
         'instructed': instructed,
         'supervised': supervised,
         'ras': ras,
+        'services': services,
+        'bookings': bookings,
     }
     return render(request, 'faculty/otherinfo.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_event(request, userid, event_slug):
     """
     Change existing career event for a faculty member.
@@ -1377,7 +1415,7 @@ def view_event(request, userid, event_slug):
     }
     return render(request, 'faculty/view_event.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def generate_pdf(request, userid, event_slug, pdf_key):
     """
     Generate the PDF for a given event, faculty member, and PDF type (dictated by the handler)
@@ -1395,28 +1433,26 @@ def generate_pdf(request, userid, event_slug, pdf_key):
 
     return handler.generate_pdf(pdf_key)
 
-@requires_role('ADMN')
+
+@requires_role(['ADMN', 'FACA'])
 def timeline(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     return render(request, 'faculty/reports/timeline.html', {'person': person})
 
 
-@requires_role('ADMN')
+def _timeline_date(dt):
+    return {'year': dt.year, 'month': dt.month, 'day': dt.day}
+
+
+@requires_role(['ADMN', 'FACA'])
 def timeline_json(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     viewer = get_object_or_404(Person, userid=request.user.username)
 
-    payload = {
-        'timeline': {
-            'type': 'default',
-            'startDate': '{:%Y,%m,%d}'.format(datetime.date.today()),
-            'date': [],
-            'era': [],
-        },
-    }
     semesters = set()
 
     # Populate events
+    slides = []
     events = (CareerEvent.objects.not_deleted()
                          .only_subunits(request.units).approved()
                          .filter(person=person)
@@ -1425,16 +1461,20 @@ def timeline_json(request, userid):
         handler = event.get_handler()
 
         if handler.can_view(viewer):
-            blurb = {
-                'startDate': '{:%Y,%m,%d}'.format(handler.event.start_date),
-                'headline': handler.short_summary(),
-                'text': u'<a href="{}">more information</a>'.format(handler.event.get_absolute_url()),
+            slide = {
+                'start_date': _timeline_date(handler.event.start_date),
+                #'headline': handler.short_summary(),
+                #'text': '<a href="{}">more information</a>'.format(handler.event.get_absolute_url()),
+                'text': {
+                    'headline': handler.short_summary(),
+                    'text': '<a href="{}">more information</a>'.format(handler.event.get_absolute_url()),
+                }
             }
 
             if handler.event.end_date is not None:
-                payload['endDate'] = '{:%Y,%m,%d}'.format(handler.event.end_date)
+                slide['end_date'] = _timeline_date(handler.event.end_date)
 
-            payload['timeline']['date'].append(blurb)
+            slides.append(slide)
 
             # Show all semesters that the event covers, if possible.
             if event.end_date is not None:
@@ -1444,17 +1484,30 @@ def timeline_json(request, userid):
                 semesters.add(ReportingSemester(event.start_date))
 
     # Populate semesters
+    eras = []
     for semester in semesters:
-        payload['timeline']['era'].append({
-            'startDate': '{:%Y,%m,%d}'.format(semester.start_date),
-            'endDate': '{:%Y,%m,%d}'.format(semester.end_date),
-            'headline': semester.short_label,
+        eras.append({
+            'start_date': _timeline_date(semester.start_date),
+            'end_date': _timeline_date(semester.end_date),
+            'text': {
+                'headline': semester.short_label,
+            }
         })
+        #payload['timeline']['era'].append({
+        #    'startDate': '{:%Y,%m,%d}'.format(semester.start_date),
+        #    'endDate': '{:%Y,%m,%d}'.format(semester.end_date),
+        #    'headline': semester.short_label,
+        #})
 
+    payload = {
+        'events': slides,
+        'eras': eras,
+    }
+    print(payload)
     return HttpResponse(json.dumps(payload), content_type='application/json')
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def faculty_member_info(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     info = FacultyMemberInfo.objects.filter(person=person).first()
@@ -1471,7 +1524,7 @@ def faculty_member_info(request, userid):
     return render(request, 'faculty/faculty_member_info.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def edit_faculty_member_info(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
@@ -1498,7 +1551,7 @@ def edit_faculty_member_info(request, userid):
     return render(request, 'faculty/edit_faculty_member_info.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def teaching_credit_override(request, userid, course_slug):
     person, _ = _get_faculty_or_404(request.units, userid)
@@ -1516,7 +1569,7 @@ def teaching_credit_override(request, userid, course_slug):
             course.set_teaching_credit(form.cleaned_data['teaching_credits'])
             course.set_teaching_credit_reason(form.cleaned_data['reason'])
             course.save()
-            return HttpResponseRedirect(reverse(teaching_summary, kwargs={'userid':userid}))
+            return HttpResponseRedirect(reverse('faculty:teaching_summary', kwargs={'userid':userid}))
 
         else:
             context.update({'form': form})
@@ -1535,7 +1588,7 @@ def teaching_credit_override(request, userid, course_slug):
 ###############################################################################
 # Creation and editing of CareerEvents
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def event_type_list(request, userid):
     types = _get_event_types()
     person, _ = _get_faculty_or_404(request.units, userid)
@@ -1548,7 +1601,7 @@ def event_type_list(request, userid):
     return render(request, 'faculty/event_type_list.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def create_event(request, userid, event_type):
     """
@@ -1573,10 +1626,19 @@ def create_event(request, userid, event_type):
 
     if request.method == "POST":
         form = Handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
+        # If the form has a file field, we should put the file data back in there.  Make sure the actual field is called
+        # "files" in the form!
+        if len(request.FILES) != 0:
+            form.files = request.FILES
+
         if form.is_valid():
             handler = Handler.create_for(person=person, form=form)
             handler.save(editor)
             handler.set_status(editor)
+            if isinstance(handler, ResumeEventHandler):
+                # The ResumeEventHandler has to create an attachment at this point.
+                ResumeEventHandler.add_attachment(event=handler.event, filedata=request.FILES, editor=editor)
+
             return HttpResponseRedirect(handler.event.get_absolute_url())
         else:
             context.update({"event_form": form})
@@ -1588,7 +1650,7 @@ def create_event(request, userid, event_type):
     return render(request, 'faculty/career_event_form.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def change_event(request, userid, event_slug):
     """
@@ -1629,7 +1691,7 @@ def change_event(request, userid, event_slug):
 
 
 @require_POST
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def change_event_status(request, userid, event_slug):
     """
@@ -1648,7 +1710,7 @@ def change_event_status(request, userid, event_slug):
         event.get_handler().save(editor)
         return HttpResponseRedirect(event.get_absolute_url())
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def faculty_wizard(request, userid, position=None):
     """
@@ -1712,14 +1774,15 @@ def faculty_wizard(request, userid, position=None):
             # has been assigned to a real faculty member, meaning we most likely can delete this individual.
             if position:
                 position = get_object_or_404(Position, pk=position)
-                a = position.any_person
-                a.person = person
-                a.save()
-                if a.future_person:
-                    f = a.future_person
-                    f.set_assigned(True)
-                    f.save()
-            return HttpResponseRedirect(reverse(summary, kwargs={'userid':userid}))
+                if position.any_person:
+                    a = position.any_person
+                    a.person = person
+                    a.save()
+                    if a.future_person:
+                        f = a.future_person
+                        f.set_assigned(True)
+                        f.save()
+            return HttpResponseRedirect(reverse('faculty:summary', kwargs={'userid':userid}))
         else:
             form_list = [form_appoint, form_salary, form_load]
             context.update({"event_form": form_list})
@@ -1767,27 +1830,28 @@ def faculty_wizard(request, userid, position=None):
 
     return render(request, 'faculty/faculty_wizard.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def pick_position(request, userid):
     units = Unit.sub_unit_ids(request.units)
     positions = Position.objects.visible_by_unit(units)
     position_choices = [(p.id, p) for p in positions]
+    person = get_object_or_404(Person, find_userid_or_emplid(userid))
     if request.method == 'POST':
         filled_form = PositionPickerForm(data=request.POST, choices=position_choices)
         if filled_form.is_valid():
             position = filled_form.cleaned_data['position_choice']
-            return HttpResponseRedirect(reverse(faculty_wizard, kwargs=({'userid': userid, 'position': position})))
+            return HttpResponseRedirect(reverse('faculty:faculty_wizard', kwargs=({'userid': userid, 'position': position})))
         else:
-            return HttpResponseRedirect(reverse(faculty_wizard, kwargs=({'userid': userid})))
+            return HttpResponseRedirect(reverse('faculty:faculty_wizard', kwargs=({'userid': userid})))
     else:
         new_form = PositionPickerForm(choices=position_choices)
-        context = {'form': new_form, 'userid': userid, 'positions': position_choices}
+        context = {'form': new_form, 'person': person, 'positions': position_choices}
         return render(request, 'faculty/position_picker.html', context)
 
 
 ###############################################################################
 # Management of DocumentAttachments and Memos
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def new_attachment(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
@@ -1801,16 +1865,22 @@ def new_attachment(request, userid, event_slug):
 
     if request.method == "POST":
         form = AttachmentForm(request.POST, request.FILES)
+        title = request.POST.get('title')
+        files = request.FILES.getlist('contents')
         if form.is_valid():
-            attachment = form.save(commit=False)
-            attachment.career_event = event
-            attachment.created_by = editor
-            upfile = request.FILES['contents']
-            filetype = upfile.content_type
-            if upfile.charset:
-                filetype += "; charset=" + upfile.charset
-            attachment.mediatype = filetype
-            attachment.save()
+            for f in files:
+                attachment = DocumentAttachment()
+                attachment.title = title
+                attachment.career_event = event
+                attachment.created_by = editor
+                attachment.contents = f
+                upfile = f
+                filetype = f.content_type
+                if upfile.charset:
+                    filetype += "; charset=" + upfile.charset
+                attachment.mediatype = filetype
+                attachment.save()
+            messages.add_message(request, messages.SUCCESS, ('Uploaded %s attachment(s)' % len(files)))
             return HttpResponseRedirect(event.get_absolute_url())
         else:
             context.update({"attachment_form": form})
@@ -1818,7 +1888,7 @@ def new_attachment(request, userid, event_slug):
     return render(request, 'faculty/document_attachment_form.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def new_text_attachment(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
@@ -1837,7 +1907,7 @@ def new_text_attachment(request, userid, event_slug):
             attachment.career_event = event
             attachment.created_by = editor
             content = form.cleaned_data['text_contents'].encode('utf-8')
-            contentio = StringIO.StringIO(content)
+            contentio = io.StringIO(content)
             contentio.size = len(content)
             attachment.contents.save('attachment.txt', contentio, save=True)
             attachment.mediatype = 'text/plain; charset=utf-8'
@@ -1849,7 +1919,7 @@ def new_text_attachment(request, userid, event_slug):
     return render(request, 'faculty/text_attachment_form.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_attachment(request, userid, event_slug, attach_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -1868,7 +1938,7 @@ def view_attachment(request, userid, event_slug, attach_slug):
     return resp
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def download_attachment(request, userid, event_slug, attach_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -1886,7 +1956,7 @@ def download_attachment(request, userid, event_slug, attach_slug):
     resp['Content-Length'] = attachment.contents.size
     return resp
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def delete_attachment(request, userid, event_slug, attach_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -1897,14 +1967,14 @@ def delete_attachment(request, userid, event_slug, attach_slug):
     attachment.hide()
     messages.add_message(request,
                          messages.SUCCESS,
-                         u'Attachment deleted.'
+                         'Attachment deleted.'
                          )
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
     return HttpResponseRedirect(event.get_absolute_url())
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def new_position_attachment(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
@@ -1926,13 +1996,13 @@ def new_position_attachment(request, position_id):
                 filetype += "; charset=" + upfile.charset
             attachment.mediatype = filetype
             attachment.save()
-            return HttpResponseRedirect(reverse(view_position, kwargs={'position_id':position.id}))
+            return HttpResponseRedirect(reverse('faculty:view_position', kwargs={'position_id':position.id}))
         else:
             context.update({"attachment_form": form})
 
     return render(request, 'faculty/position_document_attachment_form.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_position_attachment(request, position_id, attach_slug):
     position = get_object_or_404(Position, pk=position_id)
     attachment = get_object_or_404(position.attachments.all(), slug=attach_slug)
@@ -1943,7 +2013,7 @@ def view_position_attachment(request, position_id, attach_slug):
     return resp
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def download_position_attachment(request, position_id, attach_slug):
     position = get_object_or_404(Position, pk=position_id)
     attachment = get_object_or_404(position.attachments.all(), slug=attach_slug)
@@ -1954,24 +2024,24 @@ def download_position_attachment(request, position_id, attach_slug):
     return resp
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def delete_position_attachment(request, position_id, attach_slug):
     position = get_object_or_404(Position, pk=position_id)
     attachment = get_object_or_404(position.attachments.all(), slug=attach_slug)
     attachment.hide()
     messages.add_message(request,
                          messages.SUCCESS,
-                         u'Attachment deleted.'
+                         'Attachment deleted.'
                          )
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
-    return HttpResponseRedirect(reverse(view_position, kwargs={'position_id':position.id}))
+    return HttpResponseRedirect(reverse('faculty:view_position', kwargs={'position_id':position.id}))
 
 ###############################################################################
 # Configuring event types, and managing memo templates
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def manage_event_index(request):
     types = _get_event_types()
     context = {
@@ -1979,7 +2049,7 @@ def manage_event_index(request):
         }
     return render(request, 'faculty/manage_events_index.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def event_config(request, event_type):
     templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=event_type.upper(), hidden=False)
     event_type_object = next((key, Handler) for (key, Handler) in EVENT_TYPE_CHOICES if key.lower() == event_type)
@@ -1995,7 +2065,7 @@ def event_config(request, event_type):
         }
     return render(request, 'faculty/event_config.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def event_config_add(request, event_type):
     event_type_object = next((key, Handler) for (key, Handler) in EVENT_TYPE_CHOICES if key.lower() == event_type)
@@ -2007,7 +2077,7 @@ def event_config_add(request, event_type):
         form = Handler.get_config_item_form(units=request.units, data=request.POST)
         if form.is_valid():
             form.save_config()
-            return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
+            return HttpResponseRedirect(reverse('faculty:event_config', kwargs={'event_type':event_type}))
     else:
         form = Handler.get_config_item_form(units=request.units, initial={'unit': in_unit.id})
 
@@ -2019,11 +2089,12 @@ def event_config_add(request, event_type):
         }
     return render(request, 'faculty/event_config_add.html', context)
 
-'''
 @require_POST
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def delete_event_flag(request, event_type, unit, flag):
     # currently not linked anywhere in frontend
+    raise NotImplementedError
+
     Unit.sub_units(request.units)
     unit_obj = get_object_or_404(Unit, id__in=Unit.sub_unit_ids(request.units), label=unit)
     ec, _ = EventConfig.objects.get_or_create(unit=unit_obj, event_type='FELLOW')
@@ -2035,10 +2106,10 @@ def delete_event_flag(request, event_type, unit, flag):
     ec.config['fellowships'] = list_flags
     ec.save()
 
-    return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
-'''
+    return HttpResponseRedirect(reverse('faculty:event_config', kwargs={'event_type':event_type}))
 
-@requires_role('ADMN')
+
+@requires_role(['ADMN', 'FACA'])
 def new_memo_template(request, event_type):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
@@ -2054,12 +2125,12 @@ def new_memo_template(request, event_type):
             f.event_type = event_type.upper()
             f.save()
             messages.success(request, "Created memo template %s for %s." % (form.instance.label, form.instance.unit))
-            return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
+            return HttpResponseRedirect(reverse('faculty:event_config', kwargs={'event_type':event_type}))
     else:
         form = MemoTemplateForm(initial={'unit': in_unit})
         form.fields['unit'].choices = unit_choices
 
-    tags = sorted(EVENT_TAGS.iteritems())
+    tags = sorted(EVENT_TAGS.items())
     event_handler = event_type_object[1].CONFIG_FIELDS
     #get additional tags for specific event
     add_tags = {}
@@ -2069,7 +2140,7 @@ def new_memo_template(request, event_type):
         except KeyError:
             add_tags[tag] = tag.replace("_", " ")
 
-    add = sorted(add_tags.iteritems())
+    add = sorted(add_tags.items())
     lt = tags + add
 
     context = {
@@ -2080,7 +2151,7 @@ def new_memo_template(request, event_type):
                }
     return render(request, 'faculty/memo_template_form.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def manage_memo_template(request, event_type, slug):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))
     subunits = Unit.sub_units(request.units)
@@ -2096,12 +2167,12 @@ def manage_memo_template(request, event_type, slug):
             f.event_type = event_type.upper()
             f.save()
             messages.success(request, "Updated %s template for %s." % (form.instance.label, form.instance.unit))
-            return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
+            return HttpResponseRedirect(reverse('faculty:event_config', kwargs={'event_type':event_type}))
     else:
         form = MemoTemplateForm(instance=memo_template)
         form.fields['unit'].choices = unit_choices
 
-    tags = sorted(EVENT_TAGS.iteritems())
+    tags = sorted(EVENT_TAGS.items())
     event_handler = event_type_object[1].CONFIG_FIELDS
     #get additional tags for specific event
     add_tags = {}
@@ -2111,7 +2182,7 @@ def manage_memo_template(request, event_type, slug):
         except KeyError:
             add_tags[tag] = tag.replace("_", " ")
 
-    add = sorted(add_tags.iteritems())
+    add = sorted(add_tags.items())
     lt = tags + add
 
     context = {
@@ -2127,7 +2198,7 @@ def manage_memo_template(request, event_type, slug):
 ###############################################################################
 # Creating and editing Memos
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def new_memo_no_template(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = _get_event_or_404(units=member_units, slug=event_slug, person=person)
@@ -2148,7 +2219,7 @@ def new_memo_no_template(request, userid, event_slug):
             f.template = None
             f.save()
             messages.success(request, "Created new memo.")
-            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
+            return HttpResponseRedirect(reverse('faculty:view_event', kwargs={'userid':userid, 'event_slug':event_slug}))
     else:
         initial = {
             'date': datetime.date.today(),
@@ -2169,7 +2240,7 @@ def new_memo_no_template(request, userid, event_slug):
     return render(request, 'faculty/new_memo.html', context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def new_memo(request, userid, event_slug, memo_template_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=Unit.sub_units(request.units))
@@ -2189,13 +2260,14 @@ def new_memo(request, userid, event_slug, memo_template_slug):
             f.template = template
             f.save()
             messages.success(request, "Created new %s memo." % (form.instance.template.label,))
-            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
+            return HttpResponseRedirect(reverse('faculty:view_event', kwargs={'userid':userid, 'event_slug':event_slug}))
     else:
         initial = {
             'date': datetime.date.today(),
             'subject': '%s %s\n%s' % (person.get_title(), person.name(), template.subject),
             'to_lines': person.letter_name(),
             'from_lines': template.default_from,
+            'is_letter': template.is_letter,
         }
         form = MemoForm(initial=initial)
 
@@ -2207,7 +2279,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
                }
     return render(request, 'faculty/new_memo.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def manage_memo(request, userid, event_slug, memo_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -2234,7 +2306,7 @@ def manage_memo(request, userid, event_slug, memo_slug):
                 else:
                     f.save()
                     messages.success(request, "Edited memo.")
-            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
+            return HttpResponseRedirect(reverse('faculty:view_event', kwargs={'userid':userid, 'event_slug':event_slug}))
     else:
         form = MemoForm(instance=memo)
 
@@ -2246,7 +2318,7 @@ def manage_memo(request, userid, event_slug, memo_slug):
                }
     return render(request, 'faculty/manage_memo.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def get_memo_text(request, userid, event_slug, memo_template_id):
     """ Get the text from memo template """
     person, member_units = _get_faculty_or_404(request.units, userid)
@@ -2258,7 +2330,7 @@ def get_memo_text(request, userid, event_slug, memo_template_id):
 
     return HttpResponse(text, content_type='text/plain')
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def get_memo_pdf(request, userid, event_slug, memo_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -2274,7 +2346,7 @@ def get_memo_pdf(request, userid, event_slug, memo_slug):
     memo.write_pdf(response)
     return response
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_memo(request, userid, event_slug, memo_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -2291,7 +2363,7 @@ def view_memo(request, userid, event_slug, memo_slug):
                }
     return render(request, 'faculty/view_memo.html', context)
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def delete_memo(request, userid, event_slug, memo_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -2301,7 +2373,7 @@ def delete_memo(request, userid, event_slug, memo_slug):
 
     messages.add_message(request,
                          messages.SUCCESS,
-                         u'Memo deleted.'
+                         'Memo deleted.'
                          )
     l = LogEntry(userid=request.user.username, description="Hid memo %s" % memo, related_object=memo)
     l.save()
@@ -2312,7 +2384,7 @@ def delete_memo(request, userid, event_slug, memo_slug):
 ###############################################################################
 # Creating and editing Grants
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def grant_index(request):
     editor = get_object_or_404(Person, userid=request.user.username)
     temp_grants = TempGrant.objects.filter(creator=editor)
@@ -2327,7 +2399,7 @@ def grant_index(request):
     return render(request, "faculty/grant_index.html", context)
 
 @require_POST
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def import_grants(request):
     editor = get_object_or_404(Person, userid=request.user.username)
@@ -2340,10 +2412,10 @@ def import_grants(request):
             messages.error(request, "Created %d grants, %d failed" % (len(created), len(failed)))
         else:
             messages.info(request, "Created %d grants" % (len(created)))
-    return HttpResponseRedirect(reverse("grants_index"))
+    return HttpResponseRedirect(reverse("faculty:grant_index"))
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def convert_grant(request, gid):
     editor = get_object_or_404(Person, userid=request.user.username)
@@ -2375,7 +2447,7 @@ def convert_grant(request, gid):
             else:
                 # Delete the temporary grant
                 tmp.delete()
-                return HttpResponseRedirect(reverse("grants_index"))
+                return HttpResponseRedirect(reverse("faculty:grant_index"))
     else:
         form = GrantForm(units, initial=tmp.grant_dict())
 
@@ -2384,16 +2456,16 @@ def convert_grant(request, gid):
 
 
 @require_POST
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def delete_grant(request, gid):
     editor = get_object_or_404(Person, userid=request.user.username)
     tmp = get_object_or_404(TempGrant, id=gid, creator=editor)
     tmp.delete()
-    return HttpResponseRedirect(reverse("grants_index"))
+    return HttpResponseRedirect(reverse("faculty:grant_index"))
 
 
-#@requires_role('ADMN')
+#@requires_role(['ADMN', 'FACA'])
 #@transaction.atomic
 #def new_grant(request):
 #    editor = get_object_or_404(Person, userid=request.user.username)
@@ -2416,7 +2488,7 @@ def delete_grant(request, gid):
 #    return render(request, "faculty/new_grant.html", context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 @transaction.atomic
 def edit_grant(request, unit_slug, grant_slug):
     editor = get_object_or_404(Person, userid=request.user.username)
@@ -2436,7 +2508,7 @@ def edit_grant(request, unit_slug, grant_slug):
             for p in form.cleaned_data['owners']:
                 GrantOwner(grant=grant, person=p).save()
 
-            return HttpResponseRedirect(reverse("view_grant", kwargs={'unit_slug': grant.unit.slug, 'grant_slug': grant.slug}))
+            return HttpResponseRedirect(reverse("faculty:view_grant", kwargs={'unit_slug': grant.unit.slug, 'grant_slug': grant.slug}))
 
     else:
         form = GrantForm(units, instance=grant)
@@ -2446,7 +2518,7 @@ def edit_grant(request, unit_slug, grant_slug):
     return render(request, "faculty/edit_grant.html", context)
 
 
-@requires_role('ADMN')
+@requires_role(['ADMN', 'FACA'])
 def view_grant(request, unit_slug, grant_slug):
     units = Unit.sub_units(request.units)
     grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug, unit__in=units)

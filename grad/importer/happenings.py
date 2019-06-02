@@ -10,6 +10,7 @@ from grad.models import STATUS_APPLICANT, SHORT_STATUSES, SUPERVISOR_TYPE
 import datetime
 from collections import defaultdict
 
+
 def build_program_map():
     """
     Return a dict mapping SIMS's ACAD_PROG to GradProgram
@@ -26,6 +27,7 @@ def build_program_map():
         'CPGQL': GradProgram.objects.get(label="Qualifying", unit=cmptunit),
         'CPMCW': GradProgram.objects.get(label="MSc Course", unit=cmptunit),
         'CPGND': GradProgram.objects.get(label="Special", unit=cmptunit),
+        'PMSCS': GradProgram.objects.get(label="Prof MSc", unit=cmptunit),
     }
     engunit = Unit.objects.get(label="ENSC")
     mechunit = Unit.objects.get(label="MSE")
@@ -35,7 +37,16 @@ def build_program_map():
     program_map['ESMAS'] = GradProgram.objects.get(label="M.A.Sc.", unit=engunit)
     program_map['ESPHD'] = GradProgram.objects.get(label="Ph.D.", unit=engunit)
 
+    psychunit = Unit.objects.get(label='PSYC')
+    program_map['PSGEX'] = GradProgram.objects.get(label="PSGEX", unit=psychunit)
+    program_map['PSGND'] = GradProgram.objects.get(label="PSGND", unit=psychunit)
+    program_map['PSGQL'] = GradProgram.objects.get(label="PSGQL", unit=psychunit)
+    program_map['PSMAC'] = GradProgram.objects.get(label="PSMAC", unit=psychunit)
+    program_map['PSMAP'] = GradProgram.objects.get(label="PSMAP", unit=psychunit)
+    program_map['PSPHC'] = GradProgram.objects.get(label="PSPHC", unit=psychunit)
+    program_map['PSPHP'] = GradProgram.objects.get(label="PSPHP", unit=psychunit)
     return program_map
+
 
 def build_reverse_program_map():
     """
@@ -45,14 +56,29 @@ def build_reverse_program_map():
     """
     program_map = build_program_map()
     rev_program_map = defaultdict(list)
-    for acad_prog, gradprog in program_map.items():
+    for acad_prog, gradprog in list(program_map.items()):
         rev_program_map[gradprog].append(acad_prog)
 
     cmptunit = Unit.objects.get(label="CMPT")
-    rev_program_map[GradProgram.objects.get(label="MSc Thesis", unit=cmptunit)].append('CPMCW')
-    rev_program_map[GradProgram.objects.get(label="MSc Course", unit=cmptunit)].append('CPMSC')
+    rev_program_map[GradProgram.objects.get(label="MSc Thesis", unit=cmptunit)].append('CPMSC')
+    rev_program_map[GradProgram.objects.get(label="MSc Course", unit=cmptunit)].append('CPMCW')
     rev_program_map[GradProgram.objects.get(label="MSc Proj", unit=cmptunit)].append('CPMSC')
     return rev_program_map
+
+
+def build_program_subplan_map():
+    """
+    Similar to build_program_map, but we now have some cases where we fake a GradProgram based on the program and
+    subplan combination.
+    :return: A dict of (program, subplan): GradProgram mapping.
+    """
+    cmptunit = Unit.objects.get(label="CMPT")
+    program_subplan_map = {
+        ('PMSCS', 'PMSCSBD'): GradProgram.objects.get(label="Prof MSc Big Data", unit=cmptunit),
+        ('PMSCS', 'PMSCSVC'): GradProgram.objects.get(label="Prof MSc Visual Comp", unit=cmptunit),
+    }
+    return program_subplan_map
+
 
 COMMITTEE_MEMBER_MAP = { # SIMS committee_role -> our Supervisor.supervisor_type
     'SNRS': 'SEN',
@@ -74,6 +100,7 @@ class GradHappening(object):
     Superclass to represent things that happen to grad students.
     """
     program_map = None
+    program_subplan_map = None
     def effdt_to_strm(self):
         "Look up the semester that goes with this date"
         # within a few days of the end of the semester, things applicable next semester are being entered
@@ -83,7 +110,7 @@ class GradHappening(object):
         elif isinstance(self, CommitteeMembership):
             offset = datetime.timedelta(days=0)
 
-        if hasattr(self, 'status') and self.status == 'GRAD' and self.exp_grad_term:
+        if hasattr(self, 'status') and self.status in ['GRAD', 'GAPL', 'GAPR'] and self.exp_grad_term:
             # Graduation strm is explicitly in there
             strm = self.exp_grad_term
         elif hasattr(self, 'status') and self.status in STATUS_APPLICANT:
@@ -100,12 +127,31 @@ class GradHappening(object):
 
         self.strm = strm
 
-    def acad_prog_to_gradprogram(self):
+    def acad_prog_to_gradprogram(self, subplan=None):
         """
         Turn self.acad_prog into a GradProgram in self.grad_program if possible. Also set the unit that goes with it.
         """
         if GradHappening.program_map is None:
             GradHappening.program_map = build_program_map()
+
+        if GradHappening.program_subplan_map is None:
+            GradHappening.program_subplan_map = build_program_subplan_map()
+
+        # If we got a subplan passed in, see if it matches one of our special cases where we fake the GradProgram
+        # based on the subplan.  This should only apply to ProgramStatusChanges and ApplProgramChanges, as they are
+        # the only things passing in this parameter.
+        if subplan:
+            found_subplan = False
+            try:
+                self.grad_program = GradHappening.program_subplan_map[(self.acad_prog, subplan)]
+                self.unit = self.grad_program.unit
+                found_subplan = True
+            except KeyError:
+                self.grad_program = None
+                self.unit = None
+            # If this worked, we're done, otherwise, do the logic based only on the program.
+            if found_subplan:
+                return
 
         try:
             self.grad_program = GradHappening.program_map[self.acad_prog]
@@ -128,28 +174,31 @@ class ProgramStatusChange(GradHappening):
     Record a row from ps_acad_prog
     """
     def __init__(self, emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action,
-            prog_reason, effdt, effseq, admit_term, exp_grad_term):
+            prog_reason, effdt, effseq, admit_term, exp_grad_term, degr_chkout_stat, acad_sub_plan):
         # argument order must match grad_program_changes query
         self.emplid = emplid
         self.stdnt_car_nbr = None
         self.app_stdnt_car_nbr = stdnt_car_nbr
         self.adm_appl_nbr = adm_appl_nbr
         self.acad_prog = acad_prog
-        self.effdt = datetime.datetime.strptime(effdt, '%Y-%m-%d').date()
+        self.effdt = effdt
         self.admit_term = admit_term
         self.exp_grad_term = exp_grad_term
 
         self.prog_status = prog_status
         self.prog_action = prog_action
         self.prog_reason = prog_reason
+        self.degr_chkout_stat = degr_chkout_stat
 
         self.status = self.prog_status_translate()
-        self.acad_prog_to_gradprogram()
+        self.acad_prog_to_gradprogram(subplan=acad_sub_plan)
         self.effdt_to_strm()
 
         # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
-        self.oldkey = ['ps_acad_prog', emplid, 'GRAD', stdnt_car_nbr, effdt, effseq]
-        self.key = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog]
+        self.oldkey = ['ps_acad_prog', emplid, effdt.isoformat(), self.prog_status, self.prog_reason, self.acad_prog,
+                       self.prog_action]
+        self.key = ['ps_acad_prog', emplid, effdt.isoformat(), self.prog_status, self.prog_reason, self.acad_prog,
+                    self.prog_action, self.degr_chkout_stat]
 
         self.in_career = False
         self.gradstatus = None
@@ -169,14 +218,17 @@ class ProgramStatusChange(GradHappening):
         # application-related
         if st_ac == ('AP', 'APPL'):
             return 'COMP'
-        if st_ac == ('AP', 'RAPP'):
+        elif st_ac == ('AP', 'RAPP'):
             # application for readmission
             return 'COMP'
+        elif st_ac == ('AP', 'DDEF'):
+            # deferred decision: we don't represent that.
+            return None
         elif st_ac == ('CN', 'WAPP'):
             return 'DECL'
         elif st_ac == ('CN', 'WADM'):
             # cancelled application
-            return None
+            return 'CANC'
         elif st_ac == ('AD', 'ADMT'):
             return 'OFFO'
         elif st_ac == ('AD', 'COND'):
@@ -188,14 +240,31 @@ class ProgramStatusChange(GradHappening):
             return 'REJE'
         elif st_ac == ('CN', 'ADRV'):
             return 'CANC'
+        elif st_ac == ('AC', 'DATA'):
+            # Application for graduation
+            if self.degr_chkout_stat == 'AG':
+                return 'GAPL'
+            # Graduation status change to 'Approved'
+            elif self.degr_chkout_stat == 'AP':
+                return 'GAPR'
+            # Some other data change that we most likely don't care about.
+            return None
+
         elif self.prog_action == 'RECN':
             # "reconsideration"
             return None
         elif self.prog_action == 'DEFR':
             # deferred start: probably implies start semester change
-            return None
+            return 'DEFR'
 
-        elif self.prog_action == 'DATA':
+        elif st_ac == ('WT', 'WAIT'):
+            return 'WAIT'
+
+        elif st_ac == ('AP', 'DATA') and self.prog_reason == 'WAIT':
+            # Shows up in SIMS as 'Waitlisted by department', instead of the one above which is just 'Waitlisted'
+            return 'WAIT'
+
+        elif self.prog_action == 'DATA':    
             if self.prog_reason == 'APPR':
                 # approved by department: close enough to ('AD', 'COND')
                 return 'OFFO'
@@ -207,7 +276,7 @@ class ProgramStatusChange(GradHappening):
 
         elif st_ac == ('AC', 'ACTV'):
             return 'ACTI'
-        elif st_ac == ('DC', 'DISC'):
+        elif st_ac in [('DC', 'DISC'), ('DE', 'DISC')]:
             return 'WIDR'
         elif st_ac == ('LA', 'LEAV'):
             return 'LEAV'
@@ -218,7 +287,7 @@ class ProgramStatusChange(GradHappening):
         elif st_ac == ('CM', 'COMP'):
             return 'GRAD'
 
-        raise KeyError, str((self.prog_status, self.prog_action, self.prog_reason))
+        raise KeyError(str((self.emplid, self.prog_status, self.prog_action, self.prog_reason, self.degr_chkout_stat)))
 
     def import_key(self):
         return self.key
@@ -237,10 +306,10 @@ class ProgramStatusChange(GradHappening):
         same_appl_key = [s for s in statuses
                 if 'appl_key' in s.config and s.config['appl_key'] == self.appl_key()]
         if same_appl_key:
-            if len(same_appl_key) > 1:
-                print self.appl_key()
-                print same_appl_key
-                raise ValueError, str(key)
+            #if len(same_appl_key) > 1:
+            #    print(self.appl_key())
+            #    print(same_appl_key)
+            #    raise ValueError(str(key))
             s = same_appl_key[0]
             s.config[SIMS_SOURCE] = key
             assert s.status == self.status
@@ -292,7 +361,7 @@ class ProgramStatusChange(GradHappening):
                 and not hasattr(s, 'found_in_import')]
         if close_enough:
             if verbosity > 2:
-                print "* Found similar (but imperfect) status for %s/%s is %s in %s" % (self.emplid, self.unit.slug, self.status, self.strm)
+                print("* Found similar (but imperfect) status for %s/%s is %s in %s" % (self.emplid, self.unit.slug, self.status, self.strm))
             return close_enough[0]
 
 
@@ -314,8 +383,8 @@ class ProgramStatusChange(GradHappening):
         Find/update GradStatus object for this happening
         """
         # don't manage for CMPT, except completed application status for recent applicants
-        if self.unit.slug == 'cmpt' and (self.status not in ['COMP', 'REJE'] or self.admit_term < CMPT_CUTOFF):
-            return
+        # if self.unit.slug == 'cmpt' and (self.status not in ['COMP', 'REJE'] or self.admit_term < CMPT_CUTOFF):
+        #     return
 
         statuses = student_info['statuses']
         if self.gradstatus:
@@ -336,7 +405,7 @@ class ProgramStatusChange(GradHappening):
                 st = GradStatus(student=student_info['student'], status=self.status)
                 statuses.append(st)
                 if verbosity:
-                    print "Adding grad status: %s/%s is '%s' as of %s." % (self.emplid, self.unit.slug, SHORT_STATUSES[self.status], self.strm)
+                    print("Adding grad status: %s/%s is '%s' as of %s." % (self.emplid, self.unit.slug, SHORT_STATUSES[self.status], self.strm))
 
         self.gradstatus = st
         self.gradstatus.found_in_import = True
@@ -362,10 +431,6 @@ class ProgramStatusChange(GradHappening):
         """
         programs = student_info['programs']
 
-        if self.unit.slug == 'cmpt' and programs:
-            # CMPT students get only their initial application gradprogramhistory filled in.
-            return
-
         key = self.import_key()
         if self.strm < student_info['real_admit_term']:
             # program change could happen before admit: we take those as effective the student's admit term
@@ -385,6 +450,17 @@ class ProgramStatusChange(GradHappening):
                         and p.program == self.grad_program]
                 if similar_history:
                     ph = similar_history[0]
+                    #  We need to check if we have a different date for this action than the matching entry.
+                    #  in some cases (like adding an active status afterwards), we need this date to be maximized
+                    #  to show the correct current program.
+                    if ph.starting != self.effdt:
+                        if verbosity > 1:
+                            print("Changing start of similar program %s/%s in %s from %s to %s" % \
+                                  (self.emplid, self.unit.slug, self.grad_program.slug, ph.starting, self.effdt))
+                        ph.starting = self.effdt
+                        if not dry_run:
+                            ph.save()
+
                 else:
                     need_ph = True
 
@@ -393,7 +469,7 @@ class ProgramStatusChange(GradHappening):
             next_history = [p for p in programs if p.start_semester.name > strm]
             if next_history and next_history[0].program == self.grad_program:
                 if verbosity > 1:
-                    print "* Adjusting program change start: %s/%s in %s as of %s." % (self.emplid, self.unit.slug, self.grad_program.slug, strm)
+                    print("* Adjusting program change start: %s/%s in %s as of %s." % (self.emplid, self.unit.slug, self.grad_program.slug, strm))
                 ph = next_history[0]
                 ph.start_semester = STRM_MAP[strm]
                 ph.starting = self.effdt
@@ -411,7 +487,7 @@ class ProgramStatusChange(GradHappening):
         if need_ph:
             if (verbosity and previous_history) or verbosity > 1:
                 # don't usually report first ever ProgramHistory because those are boring
-                print "Adding program change: %s/%s in %s as of %s." % (self.emplid, self.unit.slug, self.grad_program.slug, strm)
+                print("Adding program change: %s/%s in %s as of %s." % (self.emplid, self.unit.slug, self.grad_program.slug, strm))
             ph = GradProgramHistory(student=student_info['student'], program=self.grad_program,
                     start_semester=STRM_MAP[strm], starting=self.effdt)
             ph.config[SIMS_SOURCE] = key
@@ -475,8 +551,8 @@ class GradSemester(GradHappening):
         pass
 
     def update_local_data(self, student_info, verbosity, dry_run):
-        if self.grad_program.unit.slug == 'cmpt':
-            return
+        # if self.grad_program.unit.slug == 'cmpt':
+        #     return
 
         # make sure the student is "active" as of the start of this semester, since they're taking courses
         statuses = student_info['statuses']
@@ -504,7 +580,7 @@ class GradSemester(GradHappening):
                 # Kick it to make it effective for this semester, but don't bother reporting it.
                 effdt = effdt + datetime.timedelta(days=1)
             elif verbosity > 1:
-                print "* Adjusting date of grad status: %s/%s is '%s' as of %s (was taking courses)." % (self.emplid, self.unit.slug, SHORT_STATUSES['ACTI'], self.strm)
+                print("* Adjusting date of grad status: %s/%s is '%s' as of %s (was taking courses)." % (self.emplid, self.unit.slug, SHORT_STATUSES['ACTI'], self.strm))
 
             st.start_date = effdt
             st.config[SIMS_SOURCE] = key
@@ -513,7 +589,7 @@ class GradSemester(GradHappening):
         else:
             # Option 3: need to add an active status
             if verbosity:
-                print "Adding grad status: %s/%s is '%s' as of %s (was taking courses)." % (self.emplid, self.unit.slug, SHORT_STATUSES['ACTI'], self.strm)
+                print("Adding grad status: %s/%s is '%s' as of %s (was taking courses)." % (self.emplid, self.unit.slug, SHORT_STATUSES['ACTI'], self.strm))
             st = GradStatus(student=student_info['student'], status='ACTI', start=semester,
                     start_date=effdt)
             st.config[SIMS_SOURCE] = key
@@ -535,7 +611,7 @@ class CommitteeMembership(GradHappening):
         self.stdnt_car_nbr = None
         self.committee_id = committee_id
         self.acad_prog = acad_prog
-        self.effdt = datetime.datetime.strptime(effdt, '%Y-%m-%d').date()
+        self.effdt = effdt
         self.sup_emplid = sup_emplid
         self.committee_type = committee_type
         self.committee_role = committee_role
@@ -556,17 +632,17 @@ class CommitteeMembership(GradHappening):
             self.sup_emplid = '200011069'
 
     def __repr__(self):
-        return "%s as %s for %s" % (self.sup_emplid, self.committee_role, self.acad_prog)
+        return "%s as %s for %s in %s" % (self.sup_emplid, self.committee_role, self.emplid, self.acad_prog)
 
     def find_local_data(self, student_info, verbosity):
         pass
 
     def import_key(self):
-        return [self.committee_id, self.effdt, self.committee_type, self.sup_emplid, self.committee_role]
+        return [self.committee_id, self.effdt.isoformat(), self.committee_type, self.sup_emplid, self.committee_role]
 
     def update_local_data(self, student_info, verbosity, dry_run):
-        if self.grad_program.unit.slug == 'cmpt':
-            return
+        # if self.grad_program.unit.slug == 'cmpt':
+        #     return
 
         key = self.import_key()
         local_committee = student_info['committee']
@@ -586,11 +662,11 @@ class CommitteeMembership(GradHappening):
             similar = [m for m in local_committee if m.supervisor == p]
             if len(similar) > 0:
                 if verbosity > 2:
-                    print "* Found similar (but imperfect) committee member for %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug)
+                    print("* Found similar (but imperfect) committee member for %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
                 member = similar[0]
             else:
                 if verbosity:
-                    print "Adding committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug)
+                    print("Adding committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug))
                 member = Supervisor(student=student_info['student'], supervisor=p, supervisor_type=sup_type)
                 member.created_at = self.effdt
                 local_committee.append(member)
@@ -643,7 +719,7 @@ class CareerUnitChangeOut(ProgramStatusChange):
     def inout(self):
         return 'out'
     def import_key(self):
-        return ['unit_change_'+self.inout(), self.emplid, self.adm_appl_nbr, str(self.effdt), self.unit.slug, self.otherunit.slug]
+        return ['unit_change_'+self.inout(), self.emplid, self.adm_appl_nbr, self.effdt.isoformat(), self.unit.slug, self.otherunit.slug]
 
     def status_config(self):
         "Additional entries for GradStatus.config when updating"
@@ -755,7 +831,7 @@ class GradMetadata(GradHappening):
 
         if changed:
             if verbosity > 1:
-                print "* Changed personal info for %s/%s: %s" % (self.emplid, gs.program.unit.slug, ', '.join(changed))
+                print("* Changed personal info for %s/%s: %s" % (self.emplid, gs.program.unit.slug, ', '.join(changed)))
             if not dry_run:
                 gs.save()
                 if 'visa' in changed:

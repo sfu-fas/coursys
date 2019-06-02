@@ -1,7 +1,7 @@
 import decimal
 
 from django.db import models
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from autoslug import AutoSlugField
 from django_countries.fields import CountryField
@@ -54,7 +54,7 @@ class GradeSource(models.Model):
     )
     country = CountryField()
     institution = models.CharField(max_length=128, verbose_name="Institution/Scale Name")
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     status = models.CharField(max_length=4, choices=STATUS_CHOICES, default='ACTI')
     scale = models.CharField(max_length=4, choices=SCALE_CHOICES, default='DISC')
 
@@ -78,7 +78,7 @@ class GradeSource(models.Model):
         unique_together = (("country", "institution"),)
         ordering = ('institution', 'country')
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, %s" % (self.institution, self.country)
 
     def delete(self):
@@ -111,7 +111,7 @@ class GradeSource(models.Model):
         return rules
 
     def all_discrete_grades_str(self):
-        return u', '.join(r.lookup_value for r in self.all_discrete_grades())
+        return ', '.join(r.lookup_value for r in self.all_discrete_grades())
 
 
 class Rule(models.Model):
@@ -148,7 +148,7 @@ class DiscreteRule(models.Model):
     class Meta:
         unique_together = (("grade_source", "lookup_value"),)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s:%s :: %s:SFU" % (self.lookup_value,
                                     self.grade_source,
                                     self.transfer_value)
@@ -183,7 +183,7 @@ class ContinuousRule(models.Model):
                                       null=False, blank=False,
                                       choices=GPA_GRADE_CHOICES)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s:%s :: %s and up:SFU" % (self.lookup_lbound,
                                            self.grade_source,
                                            self.transfer_value)
@@ -204,12 +204,12 @@ class UserArchive(models.Model):
     """
     grade_source = models.ForeignKey(GradeSource)
     slug = models.SlugField(max_length=64, unique=True)
-    data = JSONField(blank=False, null=False, default={})
+    data = JSONField(blank=False, null=False, default=dict)
     # Defaults
     # data field should store the raw data dump from the RuleFormSet.
     # Then the form can be repopulated with ease.
 
-    def __unicode__(self):
+    def __str__(self):
         return "Calculation Archive: %s" % self.slug
 
     def get_absolute_url(self):

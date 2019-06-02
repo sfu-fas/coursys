@@ -100,7 +100,7 @@ class DiscreteGradeForm(BaseGradeForm):
     def initialize(self, grade_source):
         values = grade_source.all_discrete_grades()
         values = [v.lookup_value for v in values]
-        self.fields['grade'].choices = [('', u'\u2014')] + zip(values, values)
+        self.fields['grade'].choices = [('', '\u2014')] + list(zip(values, values))
 
 
 class ContinuousGradeForm(BaseGradeForm):

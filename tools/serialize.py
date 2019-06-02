@@ -11,5 +11,5 @@ objs = itertools.chain(ArtifactNote.objects.all(), Artifact.objects.all())
 # output the JSON: copy into test_data.json when you're sure it's right.
 from django.core import serializers
 data = serializers.serialize("json", objs, sort_keys=True, indent=1)
-print data
+print(data)
 

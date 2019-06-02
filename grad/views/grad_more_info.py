@@ -14,7 +14,7 @@ def grad_more_info(request, grad_slug):
     try:
         data = more_personal_info(grad.person.emplid, exclude=GRADFIELDS)
     except SIMSProblem as e:
-        data = {'error': e.message}
+        data = {'error': str(e)}
     
     response = HttpResponse(content_type='application/json')
     json.dump(data, response, indent=1)

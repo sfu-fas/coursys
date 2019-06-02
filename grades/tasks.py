@@ -19,7 +19,9 @@ def _send_grade_released_news(activity_id):
                     'title': "%s grade released" % (activity.name),
                     'content': 'Grades have been released for %s in %s.'
                       % (activity.name, activity.offering.name()),
-                    'url': activity.get_absolute_url()})
+                    'url': activity.get_absolute_url(),
+                    'markup': 'textile',
+                })
 
 @task(max_retries=2, queue='fast')
 def send_grade_released_news_task(activity_id):

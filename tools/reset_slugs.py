@@ -8,6 +8,6 @@ import datetime
 #courses = CourseOffering.objects.filter(semester__start__gt=datetime.date.today())
 courses = CourseOffering.objects.all()
 for c in courses:
-    print c.slug
+    print(c.slug)
     c.slug = None
     c.save()

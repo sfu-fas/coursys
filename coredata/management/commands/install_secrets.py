@@ -6,7 +6,7 @@ from dashboard.photos import get_photo_password, set_photo_password
 
 class Command(BaseCommand):
     def _report_missing(self, config, obj):
-        print "Warning: Not installing %s since %s not set in secrets.py." % (obj, config)
+        print("Warning: Not installing %s since %s not set in secrets.py." % (obj, config))
 
     def _install_from(self, config, filename, mode=stat.S_IRUSR):
         if hasattr(secrets, config) and getattr(secrets, config):

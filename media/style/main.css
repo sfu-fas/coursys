@@ -70,6 +70,14 @@ ul.bulleted li, .wikicontents ul>li, table.info ul li {
 .wikicontents pre {
   overflow-x: auto;
 }
+.wikicontents div.table table {
+    width: auto;
+}
+div.markup-content textarea {
+    font-family: "Consolas", "Bitstream Vera Sans Mono", "Courier New", "Courier", monospace;
+    font-size: 90%;
+    max-width: 100%;
+}
 a img {
     border-style: none;
 }
@@ -638,9 +646,6 @@ dl.dlform div.field.radio label {
 dl.dlform div.field.radio ul {
     margin-top: 0;
 }
-dl.dlform dd .explanation_block {
-    margin-left: 9.5em;
-}
 .reqicon {
   font-size: 80%;
 }
@@ -764,6 +769,10 @@ div.discside {
   margin-bottom: 0.5em;
   display: none; /* display controlled by JS */
 }
+div.disc-details ul {
+  list-style-type: circle;
+  margin-left: 1em;
+}
 @media(max-width:1280px){
   div.discside {
     width: 10em;
@@ -859,7 +868,18 @@ table.info span.letter {
   white-space: nowrap;
   text-align: center;
 }
-
+/* A/B testing on search box */
+.actionable-header.ab-yes {
+  width: 35%;
+}
+@media(max-width: 980px) {
+  .actionable-header.ab-yes {
+    width: 100%;
+  }
+  .actionable-header.ab-yes span.searchlabel {
+    display: none;
+  }
+}
 
 /* miniaction buttons in tables */
 td.miniaction, td.miniaction p {
@@ -878,7 +898,7 @@ td.miniaction input {
 
 
 /* pages module styles */
-div.syntaxhighlighter {
+pre.highlight {
   padding: 0.1em 0.1em 0.1em 2em;
   clear: right;
 }
@@ -1122,10 +1142,9 @@ table#groups .groupaction ul li {
     text-decoration: none;
     background-color: #a6192e;
     font-size: 1em;
-    line-height: 1.3125em;
     font-family: "DINWebMedium",sans-serif;
     font-weight: normal;
-    line-height: 1.625;
+    line-height: 1.625em;
     color: #FFF;
     width: auto;
     cursor: pointer;
@@ -1147,4 +1166,39 @@ table#groups .groupaction ul li {
     padding: 0 4px;
     display: inline;
     width: 30px;
+}
+
+/* Sometimes you want something like the lineform, but without floating right or using tiny buttons. */
+.inlineform{
+    display: inline;
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+
+.inlineform .btn{
+    margin: 0;
+    margin-left: 10px;
+    padding: 0 4px;
+    display: inline;
+    border-bottom: 0px;
+    line-height: 1.3125em;
+}
+
+
+/* FormLogEntry and some other log-type objects that show up for users */
+p.logentry {
+  font-size: 80%;
+  margin: 0;
+  font-style: italic;
+  line-height: 1.25em;
+}
+
+.form_title:hover {
+    color: #a6192e;
+}
+
+input:read-only,textarea:read-only {
+    background: lightgrey;
 }

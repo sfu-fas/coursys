@@ -4,9 +4,9 @@ from django.contrib import messages
 from log.models import LogEntry
 from courselib.auth import requires_role
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def remove_progress(request, grad_slug, p_id):
     grad = get_object_or_404(GradStudent, slug=grad_slug, 
                              program__unit__in=request.units)
@@ -22,5 +22,5 @@ def remove_progress(request, grad_slug, p_id):
                      related_object=progress)
         l.save()              
     
-    return HttpResponseRedirect(reverse('grad.views.manage_progress', 
+    return HttpResponseRedirect(reverse('grad:manage_progress', 
                                 kwargs={'grad_slug':grad_slug}))

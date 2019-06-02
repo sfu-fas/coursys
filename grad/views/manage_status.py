@@ -7,9 +7,9 @@ from django.http import HttpResponseRedirect
 from grad.forms import GradStatusForm
 import datetime
 from coredata.models import Semester
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_status(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     statuses = GradStatus.objects.filter(student=grad)
@@ -35,14 +35,15 @@ def manage_status(request, grad_slug):
                     description="Updated Status History for %s." % (grad.person),
                     related_object=status)
             l.save()                       
-            return HttpResponseRedirect(reverse('grad.views.manage_status', kwargs={'grad_slug':grad_slug}))
+            return HttpResponseRedirect(reverse('grad:manage_status', kwargs={'grad_slug':grad_slug}))
     else:
-        form = GradStatusForm(initial={'start': Semester.current(), 'start_date': None})
+        form = GradStatusForm(initial={'start': Semester.current(), 'start_date': datetime.datetime.today()})
         form.fields['status'].choices = status_choices
 
     context = {
                'form' : form,
                'statuses' : statuses,
                'grad' : grad,
+               'can_edit': True,
                }
     return render(request, 'grad/manage_status.html', context)

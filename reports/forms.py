@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.models import ModelForm
-from models import Report, HardcodedReport, Query, AccessRule, ScheduleRule
+from .models import Report, HardcodedReport, Query, AccessRule, ScheduleRule
 from coredata.forms import PersonField
 
 class ReportForm(ModelForm):

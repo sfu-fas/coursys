@@ -1,8 +1,8 @@
-from query import Query
+from .query import Query
 from django.conf import settings
 from coredata.queries import SIMSProblem
 
-import semester
+from . import semester
 import datetime
 
 class Unescaped(str):
@@ -39,15 +39,15 @@ class DB2_Query(Query):
         """
         
         if settings.DISABLE_REPORTING_DB:
-            raise SIMSProblem, "Reporting database access has been disabled in this deployment."
+            raise SIMSProblem("Reporting database access has been disabled in this deployment.")
 
         sims_user = settings.SIMS_USER
         sims_passwd = settings.SIMS_PASSWORD
         sims_db_name = settings.SIMS_DB_NAME
         sims_db_schema = settings.SIMS_DB_SCHEMA
-        
-        import DB2
-        dbconn = DB2.connect(dsn=sims_db_name, uid=sims_user, pwd=sims_passwd)
+
+        import ibm_db_dbi
+        dbconn = ibm_db_dbi.connect(sims_db_name, sims_user, sims_passwd)
         cursor = dbconn.cursor()
         cursor.execute("SET SCHEMA "+sims_db_schema)
         DB2_Query.db = dbconn
@@ -80,7 +80,7 @@ class DB2_Query(Query):
         """
         if type( argument ) is str: 
             return DB2_Query.clean_string( argument )
-        if type( argument ) is unicode:
+        if type( argument ) is str:
             return DB2_Query.clean_unicode( argument )
         if type( argument ) is Unescaped:
             return argument
@@ -98,7 +98,7 @@ class DB2_Query(Query):
     @staticmethod
     def clean_output(argument):
         if type( argument ) is str: 
-            return unicode(argument.strip(), 'utf-8', 'replace')
+            return argument.strip()
         else:
             return argument
 

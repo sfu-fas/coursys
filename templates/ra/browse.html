@@ -8,9 +8,9 @@
 {% block headextra %}
 <script type="text/javascript" src="{% static "jquery-ext/jquery.ba-bbq.min.js" %}"></script>
 <script src="{% static 'js/ra.js' %}"></script>
-<script>
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
-  ra_browser_setup("{% url 'ra.views.browse' %}");
+  ra_browser_setup("{% url 'ra:browse' %}");
 });
 </script>{% endblock %}
 
@@ -18,12 +18,14 @@ $(document).ready(function() {
 {% if supervisor_only %}
 <li>RAs</li>
 {% else %}
-<li><a href="{% url "ra.views.search" %}">RAs</a></li>
+<li><a href="{% url "ra:search" %}">RAs</a></li>
 {% endif %}
 <li>Browse</li>
 {% endblock %}
 
 {% block actions %}
+<li><a href="{% url "ra:download_current_ras" %}">Download Current RAs</a></li>
+<li><a href="{% url "ra:download_all_ras" %}">Download All RAs</a></li>
 {% endblock %}
 
 {% block content %}

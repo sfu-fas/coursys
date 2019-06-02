@@ -4,9 +4,9 @@ from django.contrib import messages
 from log.models import LogEntry
 from courselib.auth import requires_role
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def remove_otherfunding(request, grad_slug, o_id):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     otherfunding = get_object_or_404(OtherFunding, student=grad, id=o_id)
@@ -19,4 +19,4 @@ def remove_otherfunding(request, grad_slug, o_id):
               related_object=otherfunding)
         l.save()              
     
-    return HttpResponseRedirect(reverse('grad.views.manage_otherfunding', kwargs={'grad_slug':grad_slug}))
+    return HttpResponseRedirect(reverse('grad:manage_otherfunding', kwargs={'grad_slug':grad_slug}))

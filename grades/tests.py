@@ -1,6 +1,5 @@
 # coding=utf-8
 
-from testboost.testcase import FastFixtureTestCase as TestCase
 from grades.formulas import parse, cols_used, eval_parse, EvalException, ParseException
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, \
     NumericGrade, LetterGrade, GradeHistory, all_activities_filter, ACTIVITY_STATUS, sorted_letters, \
@@ -30,12 +29,12 @@ test_formulas = [ # expression, correct-result pairs
         ("max([A1],[A2])", 30),
         ("Min([A1],[A2], 12)", 10),
         ("AVG([A1],[A2], 12)", 17.3333333333333),
-        (u"BEST(2, [A1], [A2])", 40),
-        (u"BEST(2, [A1], [\u00b6],[A2], 12,-123)", 42),
-        (u"BEST(3, [A1], [\u00b6],[A2], 12,123   )  ", 165),
-        (u"[\u00b6] + 1", 5.5),
-        (u"BEST(4, 1.0, 0.8, 0.0, 1.0, 0.5)", 3.3),
-        (u"BEST(4, 1.0, 0.2, 0.5, 0.0,	0.0)", 1.7)
+        ("BEST(2, [A1], [A2])", 40),
+        ("BEST(2, [A1], [\u00b6],[A2], 12,-123)", 42),
+        ("BEST(3, [A1], [\u00b6],[A2], 12,123   )  ", 165),
+        ("[\u00b6] + 1", 5.5),
+        ("BEST(4, 1.0, 0.8, 0.0, 1.0, 0.5)", 3.3),
+        ("BEST(4, 1.0, 0.2, 0.5, 0.0,	0.0)", 1.7)
         ]
 
 class GradesTest(TestCase):
@@ -54,7 +53,7 @@ class GradesTest(TestCase):
         m = Member(person=p, offering=c, role="STUD", credits=3, added_reason="UNK")
         m.save()
        
-        a = NumericActivity(name="Paragraph", short_name=u"\u00b6", status="RLS", offering=c, position=3, max_grade=40, percent=5)
+        a = NumericActivity(name="Paragraph", short_name="\u00b6", status="RLS", offering=c, position=3, max_grade=40, percent=5)
         a.save()
         g = NumericGrade(activity=a, member=m, value="4.5", flag="CALC")
         g.save(entered_by='ggbaker')
@@ -67,7 +66,7 @@ class GradesTest(TestCase):
         g = NumericGrade(activity=a2, member=m, value=30, flag="GRAD")
         g.save(entered_by='ggbaker')
         
-        ca = CalNumericActivity(name="Final Grade", short_name=u"FG", status="RLS", offering=c, position=4, max_grade=1)
+        ca = CalNumericActivity(name="Final Grade", short_name="FG", status="RLS", offering=c, position=4, max_grade=1)
         ca.save()
         
         activities = NumericActivity.objects.filter(offering=c)
@@ -85,7 +84,7 @@ class GradesTest(TestCase):
         for expr, correct in test_formulas:
             tree = parse(expr, c, ca)
             res = eval_parse(tree, ca, act_dict, m, False)
-            self.assertAlmostEqual(correct, res, msg=u"Incorrect result for %s"%(expr,))
+            self.assertAlmostEqual(correct, res, msg="Incorrect result for %s"%(expr,))
 
         # test some badly-formed stuff for appropriate exceptions
         tree = parse("1 + BEST(3, [A1], [A2])", c, ca)
@@ -114,14 +113,18 @@ class GradesTest(TestCase):
         expr = "[Assignment #2]"
         tree = parse(expr, c, ca)
         
-        # unreleased assignment (with grade)
+        # unreleased assignment (with grade) should not be included in the calculation
         a2.status='URLS'
         a2.save()
         activities = NumericActivity.objects.filter(offering=c)
         act_dict = activities_dictionary(activities)
         res = eval_parse(tree, ca, act_dict, m, True)
         self.assertAlmostEqual(res, 0.0)
-        
+        # ... unless the instructor said to do so.
+        ca.set_calculation_leak(True)
+        res = eval_parse(tree, ca, act_dict, m, True)
+        self.assertAlmostEqual(res, 30.0)
+
         # explicit no grade (released assignment)
         g.flag="NOGR"
         g.save(entered_by='ggbaker')
@@ -190,19 +193,19 @@ class GradesTest(TestCase):
         client.login_user("ggbaker")
 
         response = basic_page_tests(self, client, '/' + c.slug + '/')
-        self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
+        self.assertContains(response, 'href="' + reverse('offering:groups:groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
         basic_page_tests(self, client, c.get_absolute_url())
-        basic_page_tests(self, client, reverse('grades.views.student_info', kwargs={'course_slug': c.slug, 'userid': '0aaa0'}))
-        basic_page_tests(self, client, reverse('grades.views.add_numeric_activity', kwargs={'course_slug':c.slug}))
-        basic_page_tests(self, client, reverse('grades.views.add_letter_activity', kwargs={'course_slug':c.slug}))
+        basic_page_tests(self, client, reverse('offering:student_info', kwargs={'course_slug': c.slug, 'userid': '0aaa0'}))
+        basic_page_tests(self, client, reverse('offering:add_numeric_activity', kwargs={'course_slug':c.slug}))
+        basic_page_tests(self, client, reverse('offering:add_letter_activity', kwargs={'course_slug':c.slug}))
 
         # test student pages
         client = Client()
         client.login_user("0aaa0")
         response = basic_page_tests(self, client, '/' + c.slug + '/')
-        self.assertContains(response, u"Gregorʏ (Greg) Baker")
-        self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
+        self.assertContains(response, "Gregorʏ (Greg) Baker")
+        self.assertContains(response, 'href="' + reverse('offering:groups:groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
         response = basic_page_tests(self, client, a.get_absolute_url())
         # small class (one student) shouldn't contain summary stats
@@ -229,11 +232,11 @@ class GradesTest(TestCase):
         client.login_user("ggbaker")
         
         # course main screen
-        url = reverse('grades.views.course_info', kwargs={'course_slug': c.slug})
+        url = reverse('offering:course_info', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
-        url = reverse('grades.views.activity_choice', kwargs={'course_slug': c.slug})
+        url = reverse('offering:activity_choice', kwargs={'course_slug': c.slug})
         self.assertContains(response, 'href="' + url +'"')
-        url = reverse('grades.views.add_numeric_activity', kwargs={'course_slug': c.slug})
+        url = reverse('offering:add_numeric_activity', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
         
         # add activity
@@ -241,34 +244,34 @@ class GradesTest(TestCase):
         now = datetime.datetime.now()
         due = now + datetime.timedelta(days=7)
         response = client.post(url, {'name':'Assignment 1', 'short_name':'A1', 'status':'URLS', 'due_date_0':due.strftime('%Y-%m-%d'), 'due_date_1':due.strftime('%H:%M:%S'), 'percent': '10', 'group': '1', 'max_grade': 25, 'extend_group': 'None'})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         
         acts = NumericActivity.objects.filter(offering=c)
-        self.assertEquals(len(acts), 1)
+        self.assertEqual(len(acts), 1)
         a = acts[0]
-        self.assertEquals(a.name, "Assignment 1")
-        self.assertEquals(a.slug, "a1")
-        self.assertEquals(a.max_grade, 25)
-        self.assertEquals(a.group, False)
-        self.assertEquals(a.deleted, False)
+        self.assertEqual(a.name, "Assignment 1")
+        self.assertEqual(a.slug, "a1")
+        self.assertEqual(a.max_grade, 25)
+        self.assertEqual(a.group, False)
+        self.assertEqual(a.deleted, False)
         
         # add calculated numeric activity
-        url = reverse('grades.views.add_cal_numeric_activity', kwargs={'course_slug': c.slug})
+        url = reverse('offering:add_cal_numeric_activity', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
         response = client.post(url, {'name':'Total', 'short_name':'Total', 'status':'URLS', 'group': '1', 'max_grade': 30, 'formula': '[A1]+5'})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
 
         acts = CalNumericActivity.objects.filter(offering=c)
-        self.assertEquals(len(acts), 1)
+        self.assertEqual(len(acts), 1)
         a = acts[0]
-        self.assertEquals(a.slug, "total")
-        self.assertEquals(a.max_grade, 30)
-        self.assertEquals(a.group, False)
-        self.assertEquals(a.deleted, False)
-        self.assertEquals(a.formula, '[A1]+5')
+        self.assertEqual(a.slug, "total")
+        self.assertEqual(a.max_grade, 30)
+        self.assertEqual(a.group, False)
+        self.assertEqual(a.deleted, False)
+        self.assertEqual(a.formula, '[A1]+5')
         
         # formula tester
-        url = reverse('grades.views.formula_tester', kwargs={'course_slug': c.slug})
+        url = reverse('offering:formula_tester', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
         response = client.get(url, {'formula': '[A1]+5', 'a1-status': 'RLS', 'a1-value': '6', 'total-status': 'URLS'})
         self.assertContains(response, '<div id="formula_result">11.0</div>')
@@ -280,17 +283,18 @@ class GradesTest(TestCase):
         """
         # check the get_status_display override
         now = datetime.datetime.now()
-        a = NumericActivity(name="Assign 1", short_name="A1", status="INVI", max_grade=10)
-        self.assertEquals(a.get_status_display(), ACTIVITY_STATUS["INVI"])
+        s, c = create_offering()
+        a = NumericActivity(offering=c, name="Assign 1", short_name="A1", status="INVI", max_grade=10)
+        self.assertEqual(a.get_status_display(), ACTIVITY_STATUS["INVI"])
         a.status="RLS"
-        self.assertEquals(a.get_status_display(), ACTIVITY_STATUS["RLS"])
+        self.assertEqual(a.get_status_display(), ACTIVITY_STATUS["RLS"])
         a.status="URLS"
-        self.assertEquals(a.get_status_display(), ACTIVITY_STATUS["URLS"])
+        self.assertEqual(a.get_status_display(), ACTIVITY_STATUS["URLS"])
         a.due_date = now - datetime.timedelta(hours=1)
-        self.assertEquals(a.get_status_display(), ACTIVITY_STATUS["URLS"])
+        self.assertEqual(a.get_status_display(), ACTIVITY_STATUS["URLS"])
         # the special case: unreleased, before the due date
         a.due_date = now + datetime.timedelta(hours=1)
-        self.assertEquals(a.get_status_display(), "no grades: due date not passed")
+        self.assertEqual(a.get_status_display(), "no grades: due date not passed")
         
     def test_group_change(self):
         """
@@ -313,20 +317,20 @@ class GradesTest(TestCase):
         
         client = Client()
         client.login_user("ggbaker")
-        url = reverse('grades.views.edit_activity', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
+        url = reverse('offering:edit_activity', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
 
         # for whatever reason, '0' is group and '1' is individual for the group value
         submit_dict = {'name': a.name, 'short_name': a.short_name, 'status': a.status, 'due_date_0': due_date, 'due_date_1': due_time, 'percent': a.percent, 'max_grade': a.max_grade, 'group': '1', 'extend_group': 'None'}
         # no change
         response = client.post(url, submit_dict)
-        self.assertEquals(response.status_code, 302) # successful submit -> redirect
-        self.assertEquals(NumericActivity.objects.get(id=a.id).group, False)
+        self.assertEqual(response.status_code, 302) # successful submit -> redirect
+        self.assertEqual(NumericActivity.objects.get(id=a.id).group, False)
 
         # change indiv -> group
         submit_dict['group'] = '0'
         response = client.post(url, submit_dict)
-        self.assertEquals(response.status_code, 302)
-        self.assertEquals(NumericActivity.objects.get(id=a.id).group, True)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(NumericActivity.objects.get(id=a.id).group, True)
         
         # try with activity past due
         a.due_date = datetime.datetime.now() - datetime.timedelta(days=1)
@@ -334,7 +338,7 @@ class GradesTest(TestCase):
         submit_dict['due_date_0'] = str(a.due_date.date())
         submit_dict['group'] = '0'
         response = client.post(url, submit_dict)
-        self.assertEquals(response.status_code, 200) # error on form -> 200 and back to form with error
+        self.assertEqual(response.status_code, 200) # error on form -> 200 and back to form with error
         self.assertContains(response, "due date has passed")
         
         # try with a mark in the system
@@ -345,7 +349,7 @@ class GradesTest(TestCase):
         g = NumericGrade(activity=a, member=m, value=2, flag="GRAD")
         g.save(entered_by='ggbaker')
         response = client.post(url, submit_dict)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "grades have already been given")
         
         # try with a submission in the system
@@ -354,39 +358,39 @@ class GradesTest(TestCase):
         s = StudentSubmission(activity=a, member=m)
         s.save()
         response = client.post(url, submit_dict)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "submissions have already been made")
         
     def test_grade_range_stat(self):
         student_grade_list = [10, 10, 10, 100, 100, 0, 0, 5, 20]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [(u'0\u201310%',3), (u'10\u201320%',3), (u'20\u201330%',1), (u'30\u201340%',0), (u'40\u201350%',0), (u'50\u201360%',0), (u'60\u201370%',0),(u'70\u201380%',0),(u'80\u201390%',0),(u'90\u2013100%',2)]
-        self.assertEquals(res, expect)
+        expect = [('0\u201310%',3), ('10\u201320%',3), ('20\u201330%',1), ('30\u201340%',0), ('40\u201350%',0), ('50\u201360%',0), ('60\u201370%',0),('70\u201380%',0),('80\u201390%',0),('90\u2013100%',2)]
+        self.assertEqual(res, expect)
 
         student_grade_list = [10, 10, 10, 100.01, 100, 0, 0, 5, 20]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [(u'0\u201310%',3), (u'10\u201320%',3), (u'20\u201330%',1), (u'30\u201340%',0), (u'40\u201350%',0), (u'50\u201360%',0), (u'60\u201370%',0),(u'70\u201380%',0),(u'80\u201390%',0),(u'90\u2013100%',1),('>100%',1)]
-        self.assertEquals(res, expect)
+        expect = [('0\u201310%',3), ('10\u201320%',3), ('20\u201330%',1), ('30\u201340%',0), ('40\u201350%',0), ('50\u201360%',0), ('60\u201370%',0),('70\u201380%',0),('80\u201390%',0),('90\u2013100%',1),('>100%',1)]
+        self.assertEqual(res, expect)
 
         student_grade_list = [20, 20, 20, 20, 20, 20, 20, 20, 20]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [(u'0\u201310%',0), (u'10\u201320%',0), (u'20\u201330%',9), (u'30\u201340%',0), (u'40\u201350%',0), (u'50\u201360%',0), (u'60\u201370%',0),(u'70\u201380%',0),(u'80\u201390%',0),(u'90\u2013100%',0)]
-        self.assertEquals(res, expect)
+        expect = [('0\u201310%',0), ('10\u201320%',0), ('20\u201330%',9), ('30\u201340%',0), ('40\u201350%',0), ('50\u201360%',0), ('60\u201370%',0),('70\u201380%',0),('80\u201390%',0),('90\u2013100%',0)]
+        self.assertEqual(res, expect)
 
         student_grade_list = [-20, -20, -20, -20, -10, -10, -10, -10]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [('<0%',8), (u'0\u201310%',0), (u'10\u201320%',0), (u'20\u201330%',0), (u'30\u201340%',0), (u'40\u201350%',0), (u'50\u201360%',0), (u'60\u201370%',0),(u'70\u201380%',0),(u'80\u201390%',0),(u'90\u2013100%',0)]
-        self.assertEquals(res, expect)
+        expect = [('<0%',8), ('0\u201310%',0), ('10\u201320%',0), ('20\u201330%',0), ('30\u201340%',0), ('40\u201350%',0), ('50\u201360%',0), ('60\u201370%',0),('70\u201380%',0),('80\u201390%',0),('90\u2013100%',0)]
+        self.assertEqual(res, expect)
 
         student_grade_list = [-20.1, -20, -20, -20, -10, -10, -10, -10]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [('<0%',8), (u'0\u201310%',0), (u'10\u201320%',0), (u'20\u201330%',0), (u'30\u201340%',0), (u'40\u201350%',0), (u'50\u201360%',0), (u'60\u201370%',0),(u'70\u201380%',0),(u'80\u201390%',0),(u'90\u2013100%',0)]
-        self.assertEquals(res, expect)
+        expect = [('<0%',8), ('0\u201310%',0), ('10\u201320%',0), ('20\u201330%',0), ('30\u201340%',0), ('40\u201350%',0), ('50\u201360%',0), ('60\u201370%',0),('70\u201380%',0),('80\u201390%',0),('90\u2013100%',0)]
+        self.assertEqual(res, expect)
 
     def test_calc_letter(self):
         """
@@ -405,7 +409,7 @@ class GradesTest(TestCase):
         a.set_cutoffs(cs)
         s.save()
         cs = a.get_cutoffs()
-        self.assertAlmostEquals(float(cs[1]), 90.333333333333)
+        self.assertAlmostEqual(float(cs[1]), 90.333333333333)
 
     def test_sort_letter(self):
         """
@@ -447,7 +451,7 @@ class GradesTest(TestCase):
         g_objs = LetterGrade.objects.filter(activity=a)
         gs = [g.letter_grade for g in g_objs]
         gs_sort = sorted_letters(gs)
-        self.assertEquals(gs_sort, ['A', 'B+', 'B-', 'C-', 'D', 'P', 'F', 'DE', 'N', 'GN'])
+        self.assertEqual(gs_sort, ['A', 'B+', 'B-', 'C-', 'D', 'P', 'F', 'DE', 'N', 'GN'])
         
         # pre-sort by userid for median testing (so we know which subsets we're grabbing)
         gs = [(int(g.member.person.userid[4:]), g.letter_grade) for g in g_objs]
@@ -455,11 +459,11 @@ class GradesTest(TestCase):
         gs = [g for u,g in gs]
 
         # odd-length case
-        self.assertEquals(median_letters(sorted_letters(gs[0:5])), "B-")
+        self.assertEqual(median_letters(sorted_letters(gs[0:5])), "B-")
         # even length with median at boundary
-        self.assertEquals(median_letters(sorted_letters(gs[0:6])), "B-/D")
+        self.assertEqual(median_letters(sorted_letters(gs[0:6])), "B-/D")
         # empty list
-        self.assertEquals(median_letters([]), u"\u2014")
+        self.assertEqual(median_letters([]), "\u2014")
 
 
         
@@ -476,26 +480,26 @@ class GradesTest(TestCase):
         client = Client()
         client.login_user("ggbaker")
         
-        url = reverse('marking.views.change_grade_status', kwargs={'course_slug': c.slug, 'activity_slug': a.slug, 'userid': stud.person.userid})
+        url = reverse('offering:change_grade_status', kwargs={'course_slug': c.slug, 'activity_slug': a.slug, 'userid': stud.person.userid})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, "out of 0")
 
         response = client.post(url, {'grade-status-value': 3, 'grade-status-flag': 'GRAD', 'grade-status-comment': ''})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         g = NumericGrade.objects.get(activity=a, member=stud)
-        self.assertEquals(g.value, 3)
+        self.assertEqual(g.value, 3)
         
-        url = reverse('grades.views.activity_info', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
+        url = reverse('offering:activity_info', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
         response = basic_page_tests(self, client, url)
-        url = reverse('grades.views.student_info', kwargs={'course_slug': c.slug, 'userid': stud.person.userid})
+        url = reverse('offering:student_info', kwargs={'course_slug': c.slug, 'userid': stud.person.userid})
         response = basic_page_tests(self, client, url)
 
         # test as student
         client.login_user(stud.person.userid)
 
-        url = reverse('grades.views.course_info', kwargs={'course_slug': c.slug})
+        url = reverse('offering:course_info', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
-        url = reverse('grades.views.activity_info', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
+        url = reverse('offering:activity_info', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
         response = basic_page_tests(self, client, url)
 
 
@@ -534,46 +538,46 @@ class GradesTest(TestCase):
         m = Member.objects.get(offering=o, person__userid='0aaa0')
 
         # grade status form
-        url = reverse('marking.views.change_grade_status', kwargs={'course_slug': o.slug, 'activity_slug': a.slug, 'userid': m.person.userid})
+        url = reverse('offering:change_grade_status', kwargs={'course_slug': o.slug, 'activity_slug': a.slug, 'userid': m.person.userid})
         response = basic_page_tests(self, client, url)
         response = client.post(url, {'grade-status-value': '6', 'grade-status-flag': 'DISH', 'grade-status-comment': 'the comment'})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
 
         ng = NumericGrade.objects.get(member=m, activity=a)
-        self.assertEquals(ng.value, 6)
-        self.assertEquals(ng.flag, 'DISH')
-        self.assertEquals(ng.comment, 'the comment')
+        self.assertEqual(ng.value, 6)
+        self.assertEqual(ng.flag, 'DISH')
+        self.assertEqual(ng.comment, 'the comment')
 
         # grade all students
-        url = reverse('marking.views.mark_all_students', kwargs={'course_slug': o.slug, 'activity_slug': a.slug})
+        url = reverse('offering:mark_all_students', kwargs={'course_slug': o.slug, 'activity_slug': a.slug})
         response = basic_page_tests(self, client, url)
         response = client.post(url, {'0aaa0-value': '7', '0aaa1-value': '8'})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
 
         ng = NumericGrade.objects.get(member=m, activity=a)
-        self.assertEquals(ng.value, 7)
-        self.assertEquals(ng.flag, 'GRAD')
+        self.assertEqual(ng.value, 7)
+        self.assertEqual(ng.flag, 'GRAD')
         ng = NumericGrade.objects.get(member__person__userid='0aaa1', activity=a)
-        self.assertEquals(ng.value, 8)
-        self.assertEquals(ng.flag, 'GRAD')
+        self.assertEqual(ng.value, 8)
+        self.assertEqual(ng.flag, 'GRAD')
 
         # detailed marking
-        url = reverse('marking.views.marking_student', kwargs={'course_slug': o.slug, 'activity_slug': a.slug, 'userid': m.person.userid})
+        url = reverse('offering:marking:marking_student', kwargs={'course_slug': o.slug, 'activity_slug': a.slug, 'userid': m.person.userid})
         response = basic_page_tests(self, client, url)
         response = client.post(url, {'cmp-1-value': '2', 'cmp-1-comment': 'comment1', 'cmp-2-value': '3', 'cmp-2-comment': 'comment2',
                                      'late_penalty': '0', 'mark_adjustment': '0'})
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
         ng = NumericGrade.objects.get(member=m, activity=a)
-        self.assertEquals(ng.value, 5)
-        self.assertEquals(ng.flag, 'GRAD')
+        self.assertEqual(ng.value, 5)
+        self.assertEqual(ng.flag, 'GRAD')
 
         # student summary page
-        url = reverse('grades.views.student_info', kwargs={'course_slug': o.slug, 'userid': m.person.userid})
+        url = reverse('offering:student_info', kwargs={'course_slug': o.slug, 'userid': m.person.userid})
         response = basic_page_tests(self, client, url)
 
         # check GradeHistory objects
         ghs = GradeHistory.objects.filter(activity=a, member=m)
-        self.assertEquals(ghs.count(), 3)
+        self.assertEqual(ghs.count(), 3)
 
     def test_get_grade(self):
         """
@@ -660,8 +664,8 @@ class APITests(TestCase):
         """
         client = Client()
         client.login_user("0aaa0")
-        grades_url = reverse('api.OfferingGrades', kwargs={'course_slug': TEST_COURSE_SLUG})
-        stats_url = reverse('api.OfferingStats', kwargs={'course_slug': TEST_COURSE_SLUG})
+        grades_url = reverse('api:OfferingGrades', kwargs={'course_slug': TEST_COURSE_SLUG})
+        stats_url = reverse('api:OfferingStats', kwargs={'course_slug': TEST_COURSE_SLUG})
 
         o = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         na = NumericActivity.objects.get(slug='a1')
@@ -680,7 +684,7 @@ class APITests(TestCase):
             la.status = 'INVI'
             la.save(entered_by=instr.person)
             resp = client.get(grades_url)
-            data = json.loads(resp.content)
+            data = json.loads(resp.content.decode('utf8'))
             self.assertIsNone(self._get_by_slug(data, 'a1'))
             self.assertIsNone(self._get_by_slug(data, 'rep'))
 
@@ -690,14 +694,14 @@ class APITests(TestCase):
             la.status = 'URLS'
             la.save(entered_by=instr.person)
             resp = client.get(grades_url)
-            data = json.loads(resp.content)
+            data = json.loads(resp.content.decode('utf8'))
             self.assertFalse(self._get_by_slug(data, 'a1')['grade'])
             self.assertFalse(self._get_by_slug(data, 'rep')['grade'])
             self.assertFalse(self._get_by_slug(data, 'a1')['details'])
             self.assertFalse(self._get_by_slug(data, 'rep')['details'])
 
             resp = client.get(stats_url)
-            data = json.loads(resp.content)
+            data = json.loads(resp.content.decode('utf8'))
             self.assertIn('unreleased activities', self._get_by_slug(data, 'a1')['missing_reason'])
             self.assertIn('unreleased activities', self._get_by_slug(data, 'rep')['missing_reason'])
             self.assertIsNone(self._get_by_slug(data, 'a1')['count'])
@@ -718,7 +722,7 @@ class APITests(TestCase):
             lg = LetterGrade(activity=la, member=student, letter_grade='A', flag='GRAD', comment='Foo')
             lg.save(entered_by=instr.person)
             resp = client.get(grades_url)
-            data = json.loads(resp.content)
+            data = json.loads(resp.content.decode('utf8'))
             self.assertFalse(self._get_by_slug(data, 'a1')['grade'])
             self.assertFalse(self._get_by_slug(data, 'rep')['grade'])
             self.assertFalse(self._get_by_slug(data, 'a1')['details'])
@@ -730,14 +734,14 @@ class APITests(TestCase):
             la.status = 'RLS'
             la.save(entered_by=instr.person)
             resp = client.get(grades_url)
-            data = json.loads(resp.content)
+            data = json.loads(resp.content.decode('utf8'))
             self.assertEqual(self._get_by_slug(data, 'a1')['grade'], '2.00')
             self.assertEqual(self._get_by_slug(data, 'rep')['grade'], 'A')
             self.assertEqual(self._get_by_slug(data, 'a1')['details']['overall_comment'], 'thecomment')
             self.assertIsNone(self._get_by_slug(data, 'rep')['details']) # letter grades have no marking
 
             resp = client.get(stats_url)
-            data = json.loads(resp.content)
+            data = json.loads(resp.content.decode('utf8'))
             self.assertIn('small classes', self._get_by_slug(data, 'a1')['missing_reason'])
             self.assertIn('small classes', self._get_by_slug(data, 'rep')['missing_reason'])
 
@@ -764,10 +768,10 @@ class PagesTests(TestCase):
         c.login_user(instr.person.userid)
 
         # photo things should fail if no agreement
-        url = reverse('grades.views.photo_list', kwargs={'course_slug': crs.slug})
+        url = reverse('offering:photo_list', kwargs={'course_slug': crs.slug})
         response = c.get(url)
         self.assertEqual(response.status_code, 403)
-        url = reverse('grades.views.student_photo', kwargs={'emplid': student.person.emplid})
+        url = reverse('data:student_photo', kwargs={'emplid': student.person.emplid})
         response = c.get(url)
         self.assertEqual(response.status_code, 403)
 
@@ -776,36 +780,36 @@ class PagesTests(TestCase):
         u = Unit.objects.get(label='UNIV')
         u.config['photopass'] = 'foo'
         u.save()
-        test_views(self, c, 'grades.views.', ['course_config', 'course_info', 'add_numeric_activity',
+        test_views(self, c, 'offering:', ['course_config', 'course_info', 'add_numeric_activity',
                 'add_cal_numeric_activity', 'add_letter_activity', 'add_cal_letter_activity', 'formula_tester',
                 'all_grades', 'class_list', 'photo_list', 'student_search', 'new_message'],
                 {'course_slug': crs.slug})
-        test_views(self, c, 'grades.views.', ['student_info'],
+        test_views(self, c, 'offering:', ['student_info'],
                 {'course_slug': crs.slug, 'userid': student.person.userid})
 
         # photo list styles
         for style in ['table', 'horiz']:
-            test_views(self, c, 'grades.views.', ['photo_list'], {'course_slug': crs.slug, 'style': style})
+            test_views(self, c, 'offering:', ['photo_list'], {'course_slug': crs.slug, 'style': style})
 
 
         # various combinations of activity type and view
-        test_views(self, c, 'grades.views.', ['activity_info', 'activity_info_with_groups', 'activity_stat',
+        test_views(self, c, 'offering:', ['activity_info', 'activity_info_with_groups', 'activity_stat',
                 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': na.slug})
-        test_views(self, c, 'grades.views.', ['compare_official', 'activity_info',
+        test_views(self, c, 'offering:', ['compare_official', 'activity_info',
                 'activity_info_with_groups', 'activity_stat', 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': la.slug})
-        test_views(self, c, 'grades.views.', ['activity_info', 'activity_stat', 'edit_activity'],
+        test_views(self, c, 'offering:', ['activity_info', 'activity_stat', 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': cna.slug})
-        test_views(self, c, 'grades.views.', ['edit_cutoffs', 'compare_official', 'activity_info',
+        test_views(self, c, 'offering:', ['edit_cutoffs', 'compare_official', 'activity_info',
                 'activity_stat', 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': cla.slug})
 
         # as student
         c.login_user(student.person.userid)
-        test_views(self, c, 'grades.views.', ['course_info'],
+        test_views(self, c, 'offering:', ['course_info'],
                 {'course_slug': crs.slug})
-        test_views(self, c, 'grades.views.', ['activity_info'],
+        test_views(self, c, 'offering:', ['activity_info'],
                 {'course_slug': crs.slug, 'activity_slug': na.slug})
 
 

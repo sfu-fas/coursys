@@ -3,7 +3,7 @@
 {% for sheet_sub, fields in formsub_activity %}
 {% if fields == 'FormLogEntry' %}{# it's a FormLogEntry, not a SheetSubmission #}
     {% with logentry=sheet_sub %}
-    <p class="formlogentry">
+    <p class="logentry">
         {{ logentry.timestamp }} by {{ logentry.identifier }}: {{ logentry.description }}
         {% if logentry.sheet_submission %}
         (sheet <a href="#sheetsub-{{ logentry.sheet_submission.id }}">{{ logentry.sheet_submission.sheet.title }}</a>)
@@ -30,7 +30,7 @@
                 <dt><label>Completed by:</label></dt>
                 <dd><p>{{ sheet_sub.filler }}
                 {% if can_advise and sheet_sub.sheet.is_initial and sheet_sub.filler.isSFUPerson %}
-                [<a href="{% url "advisornotes.views.student_notes" userid=sheet_sub.filler.sfuFormFiller.userid_or_emplid %}">advising notes for {{ sheet_sub.filler.name }}</a>]
+                [<a href="{% url "advising:student_notes" userid=sheet_sub.filler.sfuFormFiller.userid_or_emplid %}">advising notes for {{ sheet_sub.filler.name }}</a>]
                 {% endif %}
                 </p></dd>
                 <dt><label>Email:</label></dt>
@@ -42,7 +42,7 @@
                     {% if sheetsWithFiles %}
                         {% for sheet_id, file_id in sheetsWithFiles.items %}
                             <dt><label>{{ field.label }}:</label></dt>
-                            <dd>{% ifequal sheet_id sheet_sub.id %}<a href="{% url "onlineforms.views.file_field_download" form_slug=form_slug formsubmit_slug=formsubmit_slug sheet_id=sheet_sub.id file_id=file_id disposition="attachment" %}">Download File</a>{% endifequal %}</dd>
+                            <dd>{% ifequal sheet_id sheet_sub.id %}<a href="{% url "onlineforms:file_field_download" form_slug=form_slug formsubmit_slug=formsubmit_slug sheet_id=sheet_sub.id file_id=file_id disposition="attachment" %}">Download File</a>{% endifequal %}</dd>
                         {% endfor %}
                     {% else %}
                         <dt><label>{{ field.label }}:</label></dt>
@@ -53,9 +53,9 @@
             <dt><label>Completed at:</label></dt>
             <dd>{% if sheet_sub.status == 'DONE' %}{{sheet_sub.completed_at}}{% else %}Still incomplete.{% endif %}</dd>
 			</dl>
-            {% if sheet_sub.status == 'DONE' and can_admin %}
+            {% if sheet_sub.status == 'DONE' and can_admin and not sheet_sub.sheet.is_initial %}
             <p class="returnlink">
-            <a href="{% url "onlineforms.views.admin_return_sheet" form_slug=sheet_sub.sheet.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheetsubmit_slug=sheet_sub.slug %}">
+            <a href="{% url "onlineforms:admin_return_sheet" form_slug=sheet_sub.sheet.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheetsubmit_slug=sheet_sub.slug %}">
             Return to {{ sheet_sub.filler.name }}</a></p>
             {% endif %}
 			{% endif %}

@@ -8,5 +8,5 @@ activities = Activity.objects.filter(deleted=False, offering__semester__name__in
 activities = activities.exclude(offering__owner__label="CMPT")
 offerings = set((a.offering for a in activities))
 for o in offerings:
-    print "%-30s %s" % (o, o.instructors_str())
+    print("%-30s %s" % (o, o.instructors_str()))
 

@@ -1,6 +1,6 @@
 import oauth2 as oauth
 import requests
-import urlparse
+import urllib.parse
 
 ACCESS_TOKEN_URL = 'http://localhost:8000/api/oauth/access_token/'
 
@@ -11,7 +11,7 @@ def get_access_token(oauth_token, oauth_secret, oauth_verifier):
     oauth_request = oauth.Request.from_consumer_and_token(consumer, token, http_url=ACCESS_TOKEN_URL)
     oauth_request.sign_request(oauth.SignatureMethod_HMAC_SHA1(), consumer, token)
     response = requests.get(ACCESS_TOKEN_URL, headers=oauth_request.to_header())
-    access_token = dict(urlparse.parse_qsl(response.content))
+    access_token = dict(urllib.parse.parse_qsl(response.content))
 
     return access_token
 
@@ -21,5 +21,5 @@ oauth_token = sys.argv[1]
 oauth_secret = sys.argv[2]
 oauth_verifier = sys.argv[3]
 t = get_access_token(oauth_token, oauth_secret, oauth_verifier)
-print "Here are your access token and secret:"
-print t['oauth_token'], t['oauth_token_secret']
+print("Here are your access token and secret:")
+print(t['oauth_token'], t['oauth_token_secret'])

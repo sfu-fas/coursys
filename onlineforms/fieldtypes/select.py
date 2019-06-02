@@ -27,7 +27,7 @@ class RadioSelectField(FieldBase):
         return self.RadioSelectConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = [(k, v) for k, v in self.config.items() if k.startswith("choice_") and self.config[k]]
         the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
 
         c = forms.ChoiceField(required=self.config['required'],
@@ -79,9 +79,13 @@ class DropdownSelectField(FieldBase):
         config = self.DropdownSelectConfigForm(self.config)
         return config
 
-    def make_entry_field(self, fieldsubmission=None):
-        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+    def get_choices(self):
+        the_choices = [(k, v) for k, v in self.config.items() if k.startswith("choice_") and self.config[k]]
         the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
+        return the_choices
+
+    def make_entry_field(self, fieldsubmission=None):
+        the_choices = self.get_choices()
 
         c = forms.ChoiceField(required=self.config['required'],
             label=self.config['label'],
@@ -92,9 +96,8 @@ class DropdownSelectField(FieldBase):
             initial=fieldsubmission.data['info']
             c.initial=initial
 
-
         if not self.config['required']:
-            c.choices.insert(0, ('', u'\u2014'))
+            c.choices.insert(0, ('', '\u2014'))
 
         return c
 
@@ -108,6 +111,33 @@ class DropdownSelectField(FieldBase):
         choice = fieldsubmission.data['info']
         if choice in self.config:
             return self.config[choice]
+        else:
+            return 'None selected'
+
+
+GRADE_CHOICES = [
+    ('4.33', 'A+'), ('4.00', 'A'), ('3.67', 'A-'),
+    ('3.33', 'B+'), ('3.00', 'B'), ('2.67', 'B-'),
+    ('2.33', 'C+'), ('2.00', 'C'), ('1.67', 'C-'),
+    ('1.00', 'D'), ('0.00', 'F'),
+]
+GRADE_TO_LETTER = dict(GRADE_CHOICES)
+
+class GradeSelectField(DropdownSelectField):
+    choices = False
+    class GradeSelectConfigForm(FieldConfigForm):
+        pass
+
+    def make_config_form(self):
+        return self.GradeSelectConfigForm(self.config)
+
+    def get_choices(self):
+        return GRADE_CHOICES
+
+    def to_text(self, fieldsubmission=None):
+        choice = fieldsubmission.data['info']
+        if choice in GRADE_TO_LETTER:
+            return '%s (%s)' % (GRADE_TO_LETTER[choice], choice)
         else:
             return 'None selected'
 
@@ -135,7 +165,7 @@ class MultipleSelectField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
 
-        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = [(k, v) for k, v in self.config.items() if k.startswith("choice_") and self.config[k]]
         the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
 
         initial = []
@@ -161,7 +191,7 @@ class MultipleSelectField(FieldBase):
 
     def to_html(self, fieldsubmission=None):
 
-        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = [(k, v) for k, v in self.config.items() if k.startswith("choice_") and self.config[k]]
         the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
 
         initial = []
@@ -184,7 +214,7 @@ class MultipleSelectField(FieldBase):
 
     def to_text(self, fieldsubmission=None):
 
-        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = [(k, v) for k, v in self.config.items() if k.startswith("choice_") and self.config[k]]
         the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
 
         initial = []

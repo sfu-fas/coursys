@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.forms.widgets import Textarea, TextInput
 from django import forms
 
-from base import SubmissionComponent, SubmittedComponent, FileSizeField
+from .base import SubmissionComponent, SubmittedComponent, FileSizeField
 from submission.forms import ComponentForm as BaseComponentForm, SubmissionForm as BaseSubmissionForm
 
 import os
@@ -17,7 +17,7 @@ class TextComponent(SubmissionComponent):
         app_label = 'submission'
 
 class SubmittedText(SubmittedComponent):
-    component = models.ForeignKey(TextComponent, null=False)
+    component = models.ForeignKey(TextComponent, null=False, on_delete=models.PROTECT)
     text = models.TextField(null=False, blank=False, max_length=MAX_TEXT_LENGTH)
     class Meta:
         app_label = 'submission'

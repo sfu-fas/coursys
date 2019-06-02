@@ -1,31 +1,21 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load staticfiles %}
+
 {% block h1 %} {{ owner_form.title }}  [{{sheet.form.unit.informal_name}}]{% endblock %}
 {% block title %} {{ owner_form.title }}  [{{sheet.form.unit.informal_name}}] {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
     <li>{{ sheet.title }} [{{sheet.form.unit.label}}]</li>
 {% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{STATIC_URL}}style/onlineforms.css" media="all" />
-<script type="text/javascript">
-//<![CDATA[
-$(document).ready(function() {
-
-    $('.date-input').datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
-                                changeMonth: true, changeYear: true,
-                                dateFormat: 'yy-mm-dd', showOn: 'both'});
-
-    // If we click submit, we want to store which button actually was clicked.
-    $('input[type=submit]').click(function() {
-       $submitButton = $(this)
-    });
-
-
-});
-//]]></script>
+<link rel="stylesheet" href="{% static 'style/onlineforms.css' %}" media="all" />
+<script type="text/javascript" src="{% static 'js/onlineforms.js' %}"></script>
+{% if owner_form.jsfile %}
+    <script type="text/javascript" src={{owner_form.jsfile|get_js_path }}></script>
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -76,7 +66,7 @@ $(document).ready(function() {
                 </fieldset>
                 </form>
                 {% if sheet_submission %}
-                <form action="{% if sheet_submission.filler.isSFUPerson %}{% url "onlineforms.views.reject_sheet_subsequent" form_slug=sheet.form.slug formsubmit_slug=form_submission.slug sheet_slug=sheet.slug sheetsubmit_slug=sheet_submission.slug %}{% else %}{% url "onlineforms.views.reject_sheet_via_url" secret_url=sheet_submission.get_secret.key %}{% endif %}" method="post">{% csrf_token %}
+                <form action="{% if sheet_submission.filler.isSFUPerson %}{% url "onlineforms:reject_sheet_subsequent" form_slug=sheet.form.slug formsubmit_slug=form_submission.slug sheet_slug=sheet.slug sheetsubmit_slug=sheet_submission.slug %}{% else %}{% url "onlineforms:reject_sheet_via_url" secret_url=sheet_submission.get_secret.key %}{% endif %}" method="post">{% csrf_token %}
                 <p>
                 {% if sheet.is_initial %}
                 <input type="submit" value="Throw away form" class="submit nofloat" />

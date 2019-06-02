@@ -4,10 +4,10 @@ from grad.models import GradStudent, ProgressReport
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from grad.forms import ProgressReportForm
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from log.models import LogEntry
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_progress(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug = grad_slug)
     progress_reports = ProgressReport.objects.filter(student=grad).order_by('date')
@@ -24,7 +24,7 @@ def manage_progress(request, grad_slug):
               related_object=report )
             l.save()
             
-            return HttpResponseRedirect(reverse('grad.views.manage_progress', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:manage_progress', kwargs={'grad_slug':grad.slug}))
     else:
         form = ProgressReportForm()
     
@@ -32,6 +32,7 @@ def manage_progress(request, grad_slug):
                 'grad':grad,
                 'form': form,
                 'progress_reports': progress_reports,
+                'can_edit': True,
               }
     return render(request, 'grad/manage_progress.html', context)
 

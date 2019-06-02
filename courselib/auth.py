@@ -1,14 +1,15 @@
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from django.utils.http import urlquote, urlencode
 from django.utils.safestring import mark_safe
-from coredata.models import Role, CourseOffering, Member
+from django.db.models import Q
+from coredata.models import Role, CourseOffering, Member, Semester
 from onlineforms.models import FormGroup, Form
-from privacy.models import needs_privacy_signature, privacy_redirect
-import urllib
+from privacy.models import needs_privacy_signature, privacy_redirect, needs_privacy_signature_da, privacy_da_redirect
+import urllib.request, urllib.parse, urllib.error
+import datetime
 
 try:
     from functools import wraps
@@ -33,9 +34,11 @@ def user_passes_test(test_func, login_url=None,
                     # logic there: usually only check for the admin roles we know have a privacy implication. If we're
                     # passed force_privacy, then views must have the privacy agreement.
                     return privacy_redirect(request)
+                elif needs_privacy_signature_da(request):
+                    return privacy_da_redirect(request)
                 else:
                     return view_func(request, *args, **kwargs)
-            elif request.user.is_authenticated():
+            elif request.user.is_authenticated:
                 return ForbiddenResponse(request)
             else:
                 path = '%s?%s=%s' % (login_url, redirect_field_name,
@@ -45,31 +48,31 @@ def user_passes_test(test_func, login_url=None,
     return decorator
 
 
-def HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=None, simple=False):
+def HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=None, simple=False, exception=None):
     if simple:
         # this case is intended to produce human-readable HTML for API errors
         template = 'simple-error.html'
     else:
         template = 'error.html'
-    resp = render_to_response(template, {'title': title, 'error': error, 'errormsg': errormsg}, context_instance=RequestContext(request))
+    resp = render(request, template, {'title': title, 'error': error, 'errormsg': errormsg})
     resp.status_code = status
     return resp
 
-def ForbiddenResponse(request, errormsg=None):
+def ForbiddenResponse(request, errormsg=None, exception=None):
     error = mark_safe("You do not have permission to access this resource.")
-    if not request.user.is_authenticated():
-        login_url = settings.LOGIN_URL + '?' + urllib.urlencode({'next': request.get_full_path()})
+    if not request.user.is_authenticated:
+        login_url = settings.LOGIN_URL + '?' + urllib.parse.urlencode({'next': request.get_full_path()})
         error += mark_safe(' You are <strong>not logged in</strong>, so maybe <a href="%s">logging in</a> would help.' % (login_url))
     return HttpError(request, status=403, title="Forbidden", error=error, errormsg=errormsg)
 
-def NotFoundResponse(request, errormsg=None):
+def NotFoundResponse(request, errormsg=None, exception=None):
     return HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=errormsg)
 
 def has_global_role(role, request, **kwargs):
     """
     Return True is the given user has the specified role
     """
-    perms = Role.objects.filter(person__userid=request.user.username, role=role, unit__label="UNIV")
+    perms = Role.objects_fresh.filter(person__userid=request.user.username, role=role, unit__label="UNIV")
     count = perms.count()
     return count>0
 
@@ -97,7 +100,7 @@ def has_role(role, request, get_only=None, **kwargs):
         else:
             allowed.append(get_only)
 
-    roles = Role.objects.filter(person__userid=request.user.username, role__in=allowed).select_related('unit')
+    roles = Role.objects_fresh.filter(person__userid=request.user.username, role__in=allowed).select_related('unit')
     request.units = set(r.unit for r in roles)
     count = roles.count()
     return count > 0
@@ -108,7 +111,7 @@ def requires_global_role(role, login_url=None):
     """
     def has_this_role(req, **kwargs):
         return has_global_role(role, req, **kwargs)
-        
+
     actual_decorator = user_passes_test(has_this_role, login_url=login_url)
     return actual_decorator
 
@@ -148,12 +151,22 @@ def requires_course_student_by_slug(function=None, login_url=None):
     else:
         return actual_decorator
 
-def is_course_staff_by_slug(request, course_slug, **kwargs):
+def is_course_staff_by_slug(request, course_slug, expires=True, **kwargs):
     """
     Return True if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug' keyword.
+    TAs should only have access to courses they TAed up to a semester ago.
     """
-    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=request.user.username,
-            role__in=['INST', 'TA', 'APPR'], offering__graded=True).exclude(offering__component="CAN")
+    if expires:
+        max_semester_name_for_tas = Semester.current().offset_name(-1)
+        ta_query = Q(role='TA') & Q(offering__semester__name__gte=max_semester_name_for_tas)
+    else:
+        ta_query = Q(role='TA')
+
+    memberships = Member.objects.filter(
+        Q(role__in=['INST', 'APPR']) | ta_query,
+        offering__slug=course_slug,
+        person__userid=request.user.username, offering__graded=True
+    ).exclude(offering__component="CAN")
     memberships = list(memberships)
     if memberships:
         request.member = memberships[0]
@@ -235,8 +248,8 @@ def is_discipline_user(request, course_slug, **kwargs):
     else:
         return False
 
-    perms = Role.objects.filter(person__userid=request.user.username, role='DISC', unit=offering.owner).count()
-    perms += Role.objects.filter(person__userid=request.user.username, role='DISC', unit__label='UNIV').count()
+    perms = Role.objects_fresh.filter(person__userid=request.user.username, role='DISC', unit=offering.owner).count()
+    perms += Role.objects_fresh.filter(person__userid=request.user.username, role='DISC', unit__label='UNIV').count()
     if perms>0:
         roles.add("DEPT")
 
@@ -293,3 +306,23 @@ def login_redirect(next_url):
     Send the user to log in, and then to next_url
     """
     return HttpResponseRedirect(settings.LOGIN_URL + '?' + urlencode({'next': next_url}))
+
+
+from coredata.models import Person
+def get_person(user):
+    '''
+    Get the Person object associated with this user, or None.
+    '''
+    if not user.is_authenticated:
+        return None
+
+    if hasattr(user, 'person'):
+        # Cache in the User object, since we might need it multiple times.
+        pass
+    else:
+        try:
+            user.person = Person.objects.get(userid=user.username)
+        except Person.DoesNotExist:
+            user.person = None
+
+    return user.person

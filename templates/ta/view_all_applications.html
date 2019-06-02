@@ -5,13 +5,13 @@
 {% block h1 %}TA Applications for {{ posting }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li><a href="{% url "ta:view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta:posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
 <li>Applications</li>
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
     $(function() {
     	$('#apps').dataTable({
 			"bJQueryUI" : true,
@@ -39,9 +39,9 @@
   <tbody>
   {% for app in applications %}
   <tr>
-  	<td><a href="{% url "ta.views.view_application" post_slug=posting.slug userid=app.person.userid %}">{{ app.person.sortname }}</a></td>
+  	<td><a href="{% url "ta:view_application" post_slug=posting.slug userid=app.person.userid %}">{{ app.person.sortname }}</a></td>
   	<td>{{ app.get_category_display }}</td>
-    <td>{{ app.current_program }}</td>
+    <td>{{ app.get_current_program_display }}</td>
   	<td>{{ app.base_units_assigned }}</td>
   	<td>{{ app.base_units }}</td>
   	<td>{{ app.course_pref_display }}</td>
@@ -51,4 +51,7 @@
   </tbody>
 </table>
 </div>
+    <a href="{% url "ta:download_all_ta_applications" post_slug=posting.slug %}">
+        <i class="fa fa-li fa-download"></i> Download CSV
+    </a>
 {% endblock %}

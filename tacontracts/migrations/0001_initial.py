@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             name='EmailReceipt',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('content', models.ForeignKey(editable=False, to='dashboard.NewsItem')),
+                ('content', models.ForeignKey(editable=False, to='dashboard.NewsItem', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -36,8 +36,8 @@ class Migration(migrations.Migration):
                 ('pay_end', models.DateField()),
                 ('payperiods', models.DecimalField(verbose_name=b'During the contract, how many bi-weekly pay periods?', max_digits=4, decimal_places=2)),
                 ('config', courselib.json_fields.JSONField(default={}, editable=False)),
-                ('semester', models.ForeignKey(to='coredata.Semester')),
-                ('unit', models.ForeignKey(to='coredata.Unit')),
+                ('semester', models.ForeignKey(to='coredata.Semester', on_delete=models.CASCADE)),
+                ('unit', models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -58,8 +58,8 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(default=datetime.datetime(2014, 12, 21, 15, 39, 54, 818244), editable=False)),
                 ('hidden', models.BooleanField(default=False, editable=False)),
                 ('config', courselib.json_fields.JSONField(default={}, editable=False)),
-                ('account', models.ForeignKey(to='ra.Account')),
-                ('hiring_semester', models.ForeignKey(editable=False, to='tacontracts.HiringSemester')),
+                ('account', models.ForeignKey(to='ra.Account', on_delete=models.CASCADE)),
+                ('hiring_semester', models.ForeignKey(editable=False, to='tacontracts.HiringSemester', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -84,8 +84,8 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('created_by', models.CharField(max_length=20, editable=False)),
                 ('config', courselib.json_fields.JSONField(default={}, editable=False)),
-                ('category', models.ForeignKey(related_name='contract', to='tacontracts.TACategory')),
-                ('person', models.ForeignKey(to='coredata.Person')),
+                ('category', models.ForeignKey(related_name='contract', to='tacontracts.TACategory', on_delete=models.CASCADE)),
+                ('person', models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -99,9 +99,9 @@ class Migration(migrations.Migration):
                 ('labtut', models.BooleanField(default=False, help_text=b'Does this course have a lab or tutorial?', verbose_name=b'Lab/Tutorial?')),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
                 ('config', courselib.json_fields.JSONField(default={}, editable=False)),
-                ('contract', models.ForeignKey(related_name='course', editable=False, to='tacontracts.TAContract')),
-                ('course', models.ForeignKey(related_name='+', to='coredata.CourseOffering')),
-                ('member', models.ForeignKey(related_name='tacourse', editable=False, to='coredata.Member', null=True)),
+                ('contract', models.ForeignKey(related_name='course', editable=False, to='tacontracts.TAContract', on_delete=models.CASCADE)),
+                ('course', models.ForeignKey(related_name='+', to='coredata.CourseOffering', on_delete=models.CASCADE)),
+                ('member', models.ForeignKey(related_name='tacourse', editable=False, to='coredata.Member', null=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -118,7 +118,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='emailreceipt',
             name='contract',
-            field=models.ForeignKey(related_name='email_receipt', editable=False, to='tacontracts.TAContract'),
+            field=models.ForeignKey(related_name='email_receipt', editable=False, to='tacontracts.TAContract', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

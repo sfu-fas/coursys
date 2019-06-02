@@ -5,23 +5,23 @@
 {% block h1 %}New {{ template.label|title }} Letter{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grad.views.index" %}">Grad</a></li>
-<li><a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li><a href="{% url "grad.views.manage_letters" grad_slug=grad.slug%}">Letters</a></li>
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li><a href="{% url "grad:manage_letters" grad_slug=grad.slug%}">Letters</a></li>
 <li>New {{ template.label|title }}</li>
 {% endblock %}
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}js/grad.js"></script>
-<script type="text/javascript">//<![CDATA[
+<script nonce="{{ CSP_NONCE }}">//<![CDATA[
 
 	$(document).ready(function() {
 		$("#id_date").datepicker({
 			'dateFormat' : 'yy-mm-dd'
 		});
 
-		get_addresses('{% url "grad.views.get_addresses" %}')
+		get_addresses('{% url "grad:get_addresses" %}')
 
-		url = '{% url "grad.views.get_letter_text" grad_slug=grad.slug letter_template_id=template.id %}'
+		url = '{% url "grad:get_letter_text" grad_slug=grad.slug letter_template_id=template.id %}'
 		getData(url);
 
 		$("#id_from_person").change(update_from_lines);
@@ -32,7 +32,7 @@
 {% endblock %}
 {% block content %}
 <div class="form_container">
-	<form action="{% url "grad.views.new_letter" grad_slug=grad.slug letter_template_slug=template.slug %}" method="post">
+	<form action="{% url "grad:new_letter" grad_slug=grad.slug letter_template_slug=template.slug %}" method="post">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
@@ -46,5 +46,5 @@
 		</fieldset>
 	</form>
 </div>
-<p class="gradback"><a class="button" href="{% url "grad.views.view" grad_slug=grad.slug %}">Return to Profile</a></p>
+<p class="gradback"><a class="button" href="{% url "grad:view" grad_slug=grad.slug %}">Return to Profile</a></p>
 {% endblock %} 

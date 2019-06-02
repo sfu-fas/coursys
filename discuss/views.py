@@ -1,17 +1,17 @@
 from coredata.models import CourseOffering, Member
 from courselib.auth import is_course_student_by_slug, is_course_staff_by_slug
-from discuss.models import DiscussionTopic, DiscussionMessage, DiscussionSubscription, TopicSubscription
+from discuss.models import DiscussionTopic, DiscussionMessage, DiscussionSubscription
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from featureflags.flags import uses_feature
 from discuss.forms import discussion_topic_form_factory,\
-    DiscussionTopicStatusForm, DiscussionMessageForm, DiscussionSubscriptionForm, TopicSubscriptionForm
+    DiscussionTopicStatusForm, DiscussionMessageForm, DiscussionSubscriptionForm
 import datetime, itertools, json
-import activity
+from . import activity
 
 def _get_course_and_view(request, course_slug):
     """
@@ -59,7 +59,8 @@ def discussion_index(request, course_slug):
         topics = paginator.page(page)
     except (EmptyPage, InvalidPage):
         topics = paginator.page(paginator.num_pages)
-    return render(request, 'discuss/index.html', {'course': course, 'topics': topics, 'view': view})
+    context = {'course': course, 'topics': topics, 'view': view, 'paginator': paginator, 'page': page}
+    return render(request, 'discuss/index.html', context)
     
 @uses_feature('discuss')
 @login_required
@@ -72,17 +73,16 @@ def create_topic(request, course_slug):
         # course is an HttpResponse in this case
         return course
     if request.method == 'POST':
-        creole = DiscussionTopic(offering=course).get_creole()
-        form = discussion_topic_form_factory(view, data=request.POST, creole=creole)
+        form = discussion_topic_form_factory(view, data=request.POST)
         if form.is_valid():
             topic = form.save(commit=False)
             topic.offering = course
             topic.author = _get_member(request.user.username, view, course_slug)
             topic.save()
             messages.add_message(request, messages.SUCCESS, 'Discussion topic created successfully.')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
-        form = discussion_topic_form_factory(view, creole=None)
+        form = discussion_topic_form_factory(view)
     return render(request, 'discuss/create_topic.html', {'course': course, 'form': form})
 
 @uses_feature('discuss')
@@ -102,14 +102,13 @@ def edit_topic(request, course_slug, topic_slug):
         raise Http404
     
     if request.method == 'POST':
-        creole = topic.get_creole()
-        form = discussion_topic_form_factory(view, data=request.POST, creole=creole, instance=topic)
+        form = discussion_topic_form_factory(view, data=request.POST, instance=topic)
         if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS, 'Discussion topic edited successfully.')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
-        form = discussion_topic_form_factory(view, creole=None, instance=topic)
+        form = discussion_topic_form_factory(view, instance=topic)
     
     return render(request, 'discuss/edit_topic.html', {'course': course, 'topic': topic, 'form': form})
 
@@ -127,32 +126,22 @@ def view_topic(request, course_slug, topic_slug):
     if view == 'student' and topic.status == 'HID':
         raise Http404
     replies = DiscussionMessage.objects.filter(topic=topic).order_by('created_at')
-
-    # syntaxhighlighter brushes needed
-    brushes = set(itertools.chain(topic.brushes(), *(r.brushes() for r in replies)))
-    # who needs mathjax activated?
-    need_mathjax = ['reply-content-%i' % (r.id) for r in replies if r.math()]
-    if topic.math():
-        need_mathjax.append('topic-content')
-    any_math = bool(need_mathjax)
-    need_mathjax = json.dumps(need_mathjax)
     
     if request.method == 'POST':
         if topic.status == 'CLO' and not view  == 'staff':
             raise Http404
-        creole = topic.get_creole()
-        form = DiscussionMessageForm(data=request.POST, creole=creole)
+        form = DiscussionMessageForm(data=request.POST)
         if form.is_valid():
             message = form.save(commit=False)
             message.topic = topic
             message.author = _get_member(request.user.username, view, course_slug)
             message.save()
             messages.add_message(request, messages.SUCCESS, 'Sucessfully replied')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
-        form = DiscussionMessageForm(creole=None)
+        form = DiscussionMessageForm()
     context = {'course': course, 'topic': topic, 'replies': replies, 'view': view, 'form': form,
-               'brushes': brushes, 'need_mathjax': need_mathjax, 'any_math': any_math, 'username': request.user.username}
+               'username': request.user.username}
     return render(request, 'discuss/topic.html', context)
 
 @uses_feature('discuss')
@@ -173,7 +162,7 @@ def change_topic_status(request, course_slug, topic_slug):
         if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS, 'Discussion topic has been successfully changed.')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
         form = DiscussionTopicStatusForm(instance=topic)
     return render(request, 'discuss/change_topic.html', {'course': course, 'topic': topic, 'form': form})
@@ -197,14 +186,13 @@ def edit_message(request, course_slug, topic_slug, message_slug):
         raise Http404
     
     if request.method == 'POST':
-        creole = topic.get_creole()
-        form = DiscussionMessageForm(data=request.POST, instance=message, creole=creole)
+        form = DiscussionMessageForm(data=request.POST, instance=message)
         if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS, 'Reply successfully edited.')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
-        form = DiscussionMessageForm(instance=message, creole=None)
+        form = DiscussionMessageForm(instance=message)
     return render(request, 'discuss/edit_reply.html', {'course':course, 'topic': topic, 'message': message, 'form': form})
 
 @uses_feature('discuss')
@@ -225,7 +213,7 @@ def remove_message(request, course_slug, topic_slug, message_slug):
         message.status = 'HID'
         message.save()
         messages.add_message(request, messages.SUCCESS, 'Reply successfully removed.')
-        return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic_slug}))
+        return HttpResponseRedirect(reverse('offering:discussion:view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic_slug}))
     else:
         return HttpResponseForbidden()
     
@@ -238,8 +226,6 @@ def manage_discussion_subscription(request, course_slug):
         return course
     member = get_object_or_404(Member, offering=course, person__userid=request.user.username)
     sub, _ = DiscussionSubscription.objects.get_or_create(member=member)
-    topic_subs = TopicSubscription.objects.filter(member=member, topic__offering=course) \
-                 .exclude(status='NONE').select_related('topic')
     if request.method == 'POST':
         form = DiscussionSubscriptionForm(request.POST, instance=sub)
         if form.is_valid():
@@ -247,41 +233,10 @@ def manage_discussion_subscription(request, course_slug):
             sub.member = member
             sub.save()
             messages.add_message(request, messages.SUCCESS, 'Updated your discussion subscription.')
-            return HttpResponseRedirect(reverse('discuss.views.discussion_index', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('offering:discussion:discussion_index', kwargs={'course_slug': course_slug}))
         
     else:
         form = DiscussionSubscriptionForm(instance=sub)
 
-    context = {'course':course, 'form': form, 'topic_subs': topic_subs}
+    context = {'course':course, 'form': form}
     return render(request, 'discuss/manage_discussion_subscription.html', context)
-
-@uses_feature('discuss')
-@login_required()
-def manage_topic_subscription(request, course_slug, topic_slug):
-    course, view = _get_course_and_view(request, course_slug)
-    if view is None:
-        # course is an HttpResponse in this case
-        return course
-    member = get_object_or_404(Member, offering=course, person__userid=request.user.username)
-    topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
-    sub, _ = TopicSubscription.objects.get_or_create(member=member, topic=topic)
-    if request.method == 'POST':
-        form = TopicSubscriptionForm(request.POST, instance=sub)
-        if form.is_valid():
-            sub = form.save(commit=False)
-            sub.member = member
-            sub.topic = topic
-            sub.save()
-            messages.add_message(request, messages.SUCCESS, 'Updated your subscription to "%s".' % (topic.title))
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic_slug}))
-        
-    else:
-        form = TopicSubscriptionForm(instance=sub)
-
-    context = {'course':course, 'topic': topic, 'form': form}
-    return render(request, 'discuss/manage_topic_subscription.html', context)
-
-
-
-
-

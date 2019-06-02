@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='LetterActivity',
             fields=[
-                ('activity_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='grades.Activity')),
+                ('activity_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='grades.Activity', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name_plural': 'letter activities',
@@ -64,7 +64,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CalLetterActivity',
             fields=[
-                ('letteractivity_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='grades.LetterActivity')),
+                ('letteractivity_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='grades.LetterActivity', on_delete=models.CASCADE)),
                 ('letter_cutoffs', models.CharField(default=b'[95, 90, 85, 80, 75, 70, 65, 60, 55, 50]', help_text=b'parsed formula to calculate final letter grade', max_length=500)),
             ],
             options={
@@ -79,8 +79,8 @@ class Migration(migrations.Migration):
                 ('letter_grade', models.CharField(max_length=2, choices=[(b'A+', b'A+ (Excellent performance)'), (b'A', b'A (Excellent performance)'), (b'A-', b'A- (Excellent performance)'), (b'B+', b'B+ (Good performance)'), (b'B', b'B (Good performance)'), (b'B-', b'B- (Good performance)'), (b'C+', b'C+ (Satisfactory performance)'), (b'C', b'C (Satisfactory performance)'), (b'C-', b'C- (Marginal performance)'), (b'D', b'D (Marginal performance)'), (b'F', b'F (Fail. Unsatisfactory Performance)'), (b'N', b'N (Did not write exam or did not complete course)'), (b'P', b'P (Satisfactory performance or better (pass, ungraded))'), (b'DE', b'DE (Deferred grade)'), (b'GN', b'GN (Grade not reported)'), (b'IP', b'IP (In progress)')])),
                 ('flag', models.CharField(default=b'NOGR', help_text=b'Status of the grade', max_length=4, choices=[(b'NOGR', b'no grade'), (b'GRAD', b'graded'), (b'CALC', b'calculated'), (b'EXCU', b'excused'), (b'DISH', b'academic dishonesty')])),
                 ('comment', models.TextField(null=True)),
-                ('activity', models.ForeignKey(to='grades.LetterActivity')),
-                ('member', models.ForeignKey(to='coredata.Member')),
+                ('activity', models.ForeignKey(to='grades.LetterActivity', on_delete=models.CASCADE)),
+                ('member', models.ForeignKey(to='coredata.Member', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NumericActivity',
             fields=[
-                ('activity_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='grades.Activity')),
+                ('activity_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='grades.Activity', on_delete=models.CASCADE)),
                 ('max_grade', models.DecimalField(max_digits=8, decimal_places=2)),
             ],
             options={
@@ -100,7 +100,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CalNumericActivity',
             fields=[
-                ('numericactivity_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='grades.NumericActivity')),
+                ('numericactivity_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='grades.NumericActivity', on_delete=models.CASCADE)),
                 ('formula', models.TextField(default=b'[[activitytotal]]', help_text=b'parsed formula to calculate final numeric grade')),
             ],
             options={
@@ -115,8 +115,8 @@ class Migration(migrations.Migration):
                 ('value', models.DecimalField(default=0, max_digits=8, decimal_places=2)),
                 ('flag', models.CharField(default=b'NOGR', help_text=b'Status of the grade', max_length=4, choices=[(b'NOGR', b'no grade'), (b'GRAD', b'graded'), (b'CALC', b'calculated'), (b'EXCU', b'excused'), (b'DISH', b'academic dishonesty')])),
                 ('comment', models.TextField(null=True)),
-                ('activity', models.ForeignKey(to='grades.NumericActivity')),
-                ('member', models.ForeignKey(to='coredata.Member')),
+                ('activity', models.ForeignKey(to='grades.NumericActivity', on_delete=models.CASCADE)),
+                ('member', models.ForeignKey(to='coredata.Member', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -133,13 +133,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='gradehistory',
             name='activity',
-            field=models.ForeignKey(to='grades.Activity'),
+            field=models.ForeignKey(to='grades.Activity', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='gradehistory',
             name='entered_by',
-            field=models.ForeignKey(to='coredata.Person'),
+            field=models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

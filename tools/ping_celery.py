@@ -11,5 +11,5 @@ try:
     # try to run a task
     res.get(timeout=600)
 except TimeoutError:
-    print "Celery ping task failed: celeryd probably isn't running."
+    print("Celery ping task failed: celeryd probably isn't running.")
 

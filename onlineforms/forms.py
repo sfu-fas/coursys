@@ -5,18 +5,12 @@ from django.forms.fields import MultipleChoiceField
 from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
-from pages.models import ParserFor
 from django.forms.utils import ErrorList
 
 class DividerFieldWidget(forms.TextInput):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         return mark_safe('<hr />')
 
-
-class ExplanationFieldWidget(forms.Textarea):
-    def render(self, name, value, attrs=None):
-        parser = ParserFor(offering=None)
-        return mark_safe('<div class="explanation_block">%s</div>' % parser.text2html(self.explanation))
 
 # Manage groups
 class GroupForm(ModelForm):
@@ -24,10 +18,12 @@ class GroupForm(ModelForm):
         model = FormGroup
         exclude = ('members', 'config')
 
+
 class EditGroupForm(ModelForm):
     class Meta:
         model = FormGroup
         fields = ('name',)
+
 
 class EmployeeSearchForm(forms.Form):
     search = PersonField(label="Person")
@@ -45,8 +41,18 @@ class FormForm(ModelForm):
                                                'expect most users to be external to SFU.')
     unlisted = forms.BooleanField(required=False, initial=False, label='Unlisted',
                                   help_text='Should this form be visible in the list of forms everyone can see?  '
-                                            'if this is checked, only people with the direct URL will be able to '
+                                            'If this is checked, only people with the direct URL will be able to '
                                             'fill in this form.')
+    autoconfirm = forms.BooleanField(required=False, initial=False, label='Auto-Confirm',
+                                     help_text='Should we send the filler of this form a confirmation email once they '
+                                               'submit the initial sheet?  If unchecked, the user will still see a '
+                                               'confirmation message at the top of the page, but they will not get an '
+                                               'automatic email.')
+    emailsubject = forms.CharField(required=False, label='Confirmation Email Subject',
+                                   help_text='The subject for the confirmation email.', widget=forms.TextInput)
+    emailbody = forms.CharField(required=False, label='Confirmation Email Body',
+                                help_text='The message body for the confirmation email.', widget=forms.Textarea)
+
 
     class Meta:
         model = Form
@@ -59,22 +65,38 @@ class FormForm(ModelForm):
         super(FormForm, self).__init__(*args, **kwargs)
         self.initial['loginprompt'] = self.instance.loginprompt()
         self.initial['unlisted'] = self.instance.unlisted()
+        self.initial['autoconfirm'] = self.instance.autoconfirm()
+        self.initial['emailsubject'] = self.instance.emailsubject()
+        self.initial['emailbody'] = self.instance.emailbody()
 
     def save(self, *args, **kwargs):
         self.instance.set_loginprompt(self.cleaned_data['loginprompt'])
         self.instance.set_unlisted(self.cleaned_data['unlisted'])
+        self.instance.set_autoconfirm(self.cleaned_data['autoconfirm'])
+        self.instance.set_emailsubject(self.cleaned_data['emailsubject'])
+        self.instance.set_emailbody(self.cleaned_data['emailbody'])
+
         return super(FormForm, self).save(*args, **kwargs)
 
     # get instance of the FormForm    
     def _get(self):
             return self.instance
+
     #Validation error on assigning Forms without initial sheets         
     def clean_initiators(self):
         initiators = self.cleaned_data['initiators']
         form = self._get()
         if initiators != 'NON' and not Sheet.objects.filter(form=form, is_initial=True, active=True):
-            raise forms.ValidationError, "Can't activate until you have created at least one sheet to be filled out."
+            raise forms.ValidationError("Can't activate until you have created at least one sheet to be filled out.")
         return initiators
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if 'autoconfirm' in cleaned_data and cleaned_data['autoconfirm']:
+            if not cleaned_data['emailsubject']:
+                self.add_error('emailsubject', 'If you select the auto-confirm option, you must have an email subject.')
+            if not cleaned_data['emailbody']:
+                self.add_error('emailbody', 'If you select the auto-confirm option, you must have an email body.')
 
 class NewFormForm(FormForm):
     class Meta:
@@ -86,7 +108,7 @@ class NewFormForm(FormForm):
 
 
 class SheetForm(forms.Form):
-    title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
+    title = forms.CharField(required=True, max_length=60, label=mark_safe('Title'), help_text='Name of the sheet')
     can_view = forms.ChoiceField(required=True, choices=VIEWABLE_CHOICES, label='Can view', help_text='When someone is filling out this sheet, what else can they see?')
 
 class EditSheetForm(ModelForm):
@@ -179,7 +201,10 @@ class CloseFormForm(forms.Form):
                 widget=forms.Textarea(attrs={'rows': '5', 'cols': '70'})
                 )
     email = forms.BooleanField(initial=False, required=False, help_text="Would you like to email the summary to the student?")
-    
+    email_cc = forms.CharField(label='Email CC', required=False, widget=forms.TextInput(),
+                               help_text='If you are emailing the student, you can also get others to be '
+                                         'CCed as well. Please add addresses here, separated by commas.')
+
     def __init__(self, advisor_visible, *args, **kwargs):
         super(CloseFormForm, self).__init__(*args, **kwargs)
         self.used = True
@@ -197,6 +222,8 @@ class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
         self.title = title
         super(DynamicForm, self).__init__(*args, **kwargs)
+        # Force no enforcing of required field by browser so we can save the form.
+        self.use_required_attribute=False
 
     def fromFields(self, fields, field_submissions=[]):
         """
@@ -226,11 +253,11 @@ class DynamicForm(forms.Form):
 
     def fromPostData(self, post_data, files_data, ignore_required=False):
         self.cleaned_data = {}
-        for name, field in self.fields.items():
+        for name, field in list(self.fields.items()):
             try:
                 if isinstance(field, forms.MultiValueField):
-                    relevant_data = dict([(k,v) for k,v in post_data.items() if k.startswith(str(name)+"_")])
-                    relevant_data[str(name)] = u''
+                    relevant_data = dict([(k,v) for k,v in list(post_data.items()) if k.startswith(str(name)+"_")])
+                    relevant_data[str(name)] = ''
                     relevant_data['required'] = ignore_required
                     cleaned_data = field.compress(relevant_data)
                 elif isinstance(field, forms.FileField):
@@ -262,13 +289,13 @@ class DynamicForm(forms.Form):
                         cleaned_data = field.clean("")
                 self.cleaned_data[str(name)] = cleaned_data
                 field.initial = cleaned_data
-            except forms.ValidationError, e:
+            except forms.ValidationError as e:
                 #self.errors[name] = ", ".join(e.messages)
                 self.errors[name] = ErrorList(e.messages)
                 if str(name) in post_data:
                     field.initial = post_data[str(name)]
                 else:
-                    initial_data = [v for k,v in post_data.items() if k.startswith(str(name)+"_") and v != '']
+                    initial_data = [v for k,v in list(post_data.items()) if k.startswith(str(name)+"_") and v != '']
                     field.initial = initial_data
 
     def is_valid(self):
@@ -279,8 +306,8 @@ class DynamicForm(forms.Form):
         """
         Validate the contents of the form
         """
-        for name, field in self.fields.items():
+        for name, field in list(self.fields.items()):
             try:
                 field.clean(post[str(name)])
-            except Exception, e:
-                self.errors[name] = e.message
+            except Exception as e:
+                self.errors[name] = str(e)

@@ -15,12 +15,13 @@ from django.forms.models import BaseModelFormSet
 #from django.core.exceptions import ValidationError
 from django.forms.widgets import HiddenInput
 from django.template import Template, TemplateSyntaxError
-from itertools import ifilter, chain
-import unicodecsv as csv
+from itertools import chain
+import csv
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 from django.core.validators import EMPTY_VALUES
 from advisornotes.forms import StudentSearchForm
+from functools import reduce
 
 class QuickSearchForm(StudentSearchForm):
     pass
@@ -29,25 +30,20 @@ class QuickSearchForm(StudentSearchForm):
 #    incl_grad = forms.BooleanField(initial=False)
 #   incl_oldappl = forms.BooleanField(initial=False)
 
-class LabelTextInput(forms.TextInput):
-    "TextInput with a bonus label"
-    def __init__(self, label, *args, **kwargs):
-        self.label = label
-        super(LabelTextInput, self).__init__(*args, **kwargs)
-    def render(self, *args, **kwargs):
-        return " " + self.label + ": " + super(LabelTextInput, self).render(*args, **kwargs)
 
 class SupervisorWidget(forms.MultiWidget):
     "Widget for entering supervisor by choices or userid"
+    template_name = 'grad/_supervisor_widget.html'
     def __init__(self, *args, **kwargs):
-        widgets = [forms.Select(), LabelTextInput(label=" or User ID", attrs={'size': 8, 'maxlength': 8})]
+        widgets = [forms.Select(), forms.TextInput(attrs={'size': 8, 'maxlength': 8})]
         kwargs['widgets'] = widgets
         super(SupervisorWidget, self).__init__(*args, **kwargs)
     
     def decompress(self, value):
         if value:
             return [value, '']
-        return [None,None]
+        return [None, None]
+
 
 class SupervisorField(forms.MultiValueField):
     "Field for entering supervisor by either dropdown or userid"
@@ -93,8 +89,8 @@ class SupervisorForm(ModelForm):
         """
         Set choices for the supervisor
         """
-        self.fields['supervisor'].fields[0].choices = [("","Other")] + choices
-        self.fields['supervisor'].widget.widgets[0].choices = [("","Other")] + choices
+        self.fields['supervisor'].fields[0].choices = choices
+        self.fields['supervisor'].widget.widgets[0].choices = choices
 
     def clean(self):
         data = self.cleaned_data
@@ -114,7 +110,7 @@ class SupervisorForm(ModelForm):
     
     class Meta:
         model = Supervisor
-        exclude = ('student', 'created_by', 'modified_by', 'removed', 'config', 'position')
+        exclude = ('student', 'created_by', 'created_at', 'modified_by', 'removed', 'config', 'position')
         
 class PotentialSupervisorForm(ModelForm): 
     def set_supervisor_choices(self, choices):
@@ -150,7 +146,7 @@ def possible_supervisors(units, extras=[], null=False):
     people.sort()
     supervisors = [(p.id, p.name()) for p in people]
     if null:
-        return [(-1, u'\u2014')] + supervisors
+        return [(-1, '\u2014')] + supervisors
     else:
         return supervisors
 
@@ -228,7 +224,7 @@ class GradStatusForm(ModelForm):
         
     class Meta:
         model = GradStatus
-        exclude = ('student', 'created_by', 'hidden', 'end', 'start_date', 'config')
+        exclude = ('student', 'created_by', 'hidden', 'end', 'config')
         hidden = ('id')
         widgets = {
                    'notes': forms.Textarea(attrs={'rows': 2, 'cols': 40}),
@@ -243,17 +239,37 @@ class GradRequirementForm(ModelForm):
 
 class LetterTemplateForm(ModelForm):
     content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '60'}))
+    email_subject = forms.CharField(widget=forms.TextInput(attrs={'size':'59'}),
+                                    help_text='The subject to be included in the email if this letter is emailed via the system.', required=False)
+    email_body = forms.CharField(widget=forms.Textarea(attrs={'rows': '20', 'cols': '60'}),
+                                 help_text='The text to be included in the body of the email', required=False)
+
     class Meta:
         model = LetterTemplate
         exclude = ('created_by', 'config')
+
+    def __init__(self, *args, **kwargs):
+        super(LetterTemplateForm, self).__init__(*args, **kwargs)
+        if 'instance' in kwargs:
+            self.initial['email_body'] = kwargs['instance'].email_body()
+            self.initial['email_subject'] = kwargs['instance'].email_subject()
     
     def clean_content(self):
         content = self.cleaned_data['content']
         try:
             Template(content)
         except TemplateSyntaxError as e:
-            raise forms.ValidationError('Syntax error in template: ' + unicode(e))
+            raise forms.ValidationError('Syntax error in template: ' + str(e))
         return content
+
+    def clean_email_body(self):
+        if 'email_body' in self.cleaned_data:
+            email_body = self.cleaned_data['email_body']
+            try:
+                Template(email_body)
+            except TemplateSyntaxError as e:
+                raise forms.ValidationError('Syntax error in template: ' + str(e))
+            return email_body
 
 
 class LetterForm(ModelForm):
@@ -278,6 +294,19 @@ class LetterForm(ModelForm):
         use_sig = self.cleaned_data['use_sig']
         self.instance.config['use_sig'] = use_sig
         return use_sig
+
+
+class LetterEmailForm(forms.Form):
+    email_subject = forms.CharField(widget=forms.TextInput(attrs={'size':'59'}),
+                                    help_text='The subject that will be displayed in the email.')
+    email_cc = forms.CharField(label='Email CC', required=False, widget=forms.TextInput(),
+                               help_text='You will automatically get CCed on this email. If you want anyone else to be '
+                                         'CCed as well, please add addresses here, separated by commas.')
+    email_body = forms.CharField(widget=forms.Textarea(attrs={'rows': '20', 'cols': '60'}),
+                                 help_text='Input the text that will be included as the body of the email.  Note:  '
+                                           'This is NOT the letter that will be sent.  The letter PDF will be attached '
+                                           'as well.')
+
 
 class CompletedRequirementForm(ModelForm):
     semester = StaffSemesterField()
@@ -328,7 +357,7 @@ class GradFlagValueForm(ModelForm):
         exclude = ('student','flag')
 
                 
-class new_scholarshipTypeForm(ModelForm):
+class ScholarshipTypeForm(ModelForm):
     class Meta:
         model = ScholarshipType
         exclude = ('hidden',)
@@ -391,25 +420,25 @@ class NullBooleanSearchSelect(forms.widgets.Select):
     A Select Widget intended to be used with NullBooleanSearchField.
     """
     def __init__(self, attrs=None):
-        choices = ((u'', '---------'), (u'2', u'Yes'), (u'3', u'No'), (u'1', u'Unknown'))
+        choices = (('', '---------'), ('2', 'Yes'), ('3', 'No'), ('1', 'Unknown'))
         super(NullBooleanSearchSelect, self).__init__(attrs, choices)
 
-    def render(self, name, value, attrs=None, choices=()):
+    def render(self, name, value, attrs=None, renderer=None):
         try:
-            value = {Unknown: u'1', True: u'2', False: u'3', u'1':u'1', u'2': u'2', u'3': u'3'}[value]
+            value = {Unknown: '1', True: '2', False: '3', '1':'1', '2': '2', '3': '3'}[value]
         except KeyError:
-            value = u''
-        return super(NullBooleanSearchSelect, self).render(name, value, attrs, choices)
+            value = ''
+        return super(NullBooleanSearchSelect, self).render(name, value, attrs=attrs, renderer=renderer)
 
     def value_from_datadict(self, data, files, name):
         value = data.get(name, None)
-        return {u'1': Unknown,
+        return {'1': Unknown,
                 Unknown: Unknown,
                 'Unknown': Unknown,
-                u'2': True,
+                '2': True,
                 True: True,
                 'True': True,
-                u'3': False,
+                '3': False,
                 'False': False,
                 False: False}.get(value, None)
 
@@ -487,16 +516,18 @@ def getattribute(value, arg, html=True):
     elif arg == 'gender':
         return value.person.gender()
     elif arg == 'visa':
-        return value.person.visa()
+        return value.person.get_visas_summary()
     elif arg == 'citizen':
         return value.person.citizen() or 'unknown'
     elif arg == 'person.emplid':
-        return unicode(value.person.emplid)
+        return str(value.person.emplid)
     elif arg == 'email':
         if html:
             return value.person.email_mailto()
         else:
             return value.person.email()
+    elif arg == 'notes':
+        return value.notes()
     elif arg == 'appemail':
         if 'applic_email' in value.config:
             email = value.config['applic_email']
@@ -514,7 +545,7 @@ def getattribute(value, arg, html=True):
     elif '.' not in arg:
         if hasattr(value, str(arg)):
             res = getattr(value, arg)
-        elif hasattr(value, 'has_key') and value.has_key(arg):
+        elif hasattr(value, 'has_key') and arg in value:
             res = value[arg]
         elif numeric_test.match(str(arg)) and len(value) > int(arg):
             res = value[int(arg)]
@@ -529,8 +560,8 @@ def getattribute(value, arg, html=True):
         res = res.name
     elif res is None:
         res = ''
-    elif type(res) not in [int, float, str, unicode]:
-        res = unicode(res)
+    elif type(res) not in [int, float, str, str]:
+        res = str(res)
 
     return res
 
@@ -560,6 +591,7 @@ COLUMN_CHOICES = (
         ('gender',                  'Gender'),
         ('scholarships',            'Scholarships'),
         ('unit',                    'Unit'),
+        ('notes',                   'Notes'),
         )
 COLUMN_WIDTHS_DATA = (
         # column widths for Excel export
@@ -588,6 +620,7 @@ COLUMN_WIDTHS_DATA = (
         ('gender',                  2000),
         ('scholarships',            10000),
         ('unit',                    3000),
+        ('notes',                   3000),
         )
 COLUMN_WIDTHS = dict(COLUMN_WIDTHS_DATA)
 
@@ -606,38 +639,41 @@ class SearchForm(forms.Form):
     first_name_contains = forms.CharField( required=False )
     last_name_contains = forms.CharField( required=False )
 
-    start_semester_start = StaffSemesterField(required=False, label="Start semester after")
+    start_semester_start = StaffSemesterField(required=False, label="Start semester after (inclusively)")
     start_semester_end = StaffSemesterField(required=False,
-            help_text='Semester in which the student started their program', label="Start semester before")
-    end_semester_start = StaffSemesterField(required=False, label="End semester after")
-    end_semester_end = StaffSemesterField(required=False, label="End semester before",
-            help_text='Semester in which the student completed/left their program')
+            help_text='Semester in which the student started their program To get only a single semester, '
+                      'put in the same value in both boxes.', label="Start semester before (inclusively)")
+    end_semester_start = StaffSemesterField(required=False, label="End semester after (inclusively)")
+    end_semester_end = StaffSemesterField(required=False, label="End semester before (inclusively)",
+            help_text='Semester in which the student completed/left their program.  To get only a single semester, '
+                      'put in the same value in both boxes.')
     
-    student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES + (('', 'None'),),
+    student_status = forms.MultipleChoiceField(choices=gradmodels.STATUS_CHOICES + (('', 'None'),),
             required=False, help_text="Student's current status"
             ) # choices updated in views/search.py
-    status_asof = StaffSemesterField(label='Status as of', required=False, initial='')
+    # The "Status as of" field causes nested queries that time out the DB.  Removing it.
+    # status_asof = StaffSemesterField(label='Status as of', required=False, initial='')
 
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
     program_asof = StaffSemesterField(label='Program as of', required=False, initial='')
     grad_flags = forms.MultipleChoiceField(choices=[],
             label='Program Options', required=False)
-    campus = forms.MultipleChoiceField(GRAD_CAMPUS_CHOICES, required=False)
-    supervisor = forms.MultipleChoiceField([], required=False, label='Senior Supervisor')
+    campus = forms.MultipleChoiceField(choices=GRAD_CAMPUS_CHOICES, required=False)
+    supervisor = forms.MultipleChoiceField(choices=[], required=False, label='Senior Supervisor')
     
     requirements = forms.MultipleChoiceField(choices=[],
             label='Completed requirements', required=False)
-    requirements_st = forms.ChoiceField((
-            ('AND',mark_safe(u'Student must have completed <em>all</em> of these requirements')),
-            ('OR',mark_safe(u'Student must have completed <em>any</em> of these requirements'))),
+    requirements_st = forms.ChoiceField(choices=(
+            ('AND',mark_safe('Student must have completed <em>all</em> of these requirements')),
+            ('OR',mark_safe('Student must have completed <em>any</em> of these requirements'))),
             label='Requirements search type', required=False, initial='AND',
             widget=forms.RadioSelect)
-    incomplete_requirements = forms.MultipleChoiceField([],
+    incomplete_requirements = forms.MultipleChoiceField(choices=[],
             label='Incomplete requirements', required=False)
 
     is_canadian = NullBooleanSearchField(required=False)
     
-    financial_support = forms.MultipleChoiceField((
+    financial_support = forms.MultipleChoiceField(choices=(
             ('N','None'),
             ('S','Scholarship'),
             ('O','Other Funding'),
@@ -646,15 +682,16 @@ class SearchForm(forms.Form):
     
     gpa_min = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
     gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
-    gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','Unknown')),
+    gender = forms.ChoiceField(choices=(('','---------'), ('M','Male'), ('F','Female'), ('U','Unknown')),
             required=False)
-    visa = forms.MultipleChoiceField(VISA_STATUSES, required=False,)
-    scholarship_sem = forms.ModelMultipleChoiceField(Semester.objects.all(),
-            label='Scholarship Semester Received',required=False)
-    scholarshiptype = forms.ModelMultipleChoiceField(ScholarshipType.objects.all(),
+    visa = forms.MultipleChoiceField(choices=VISA_STATUSES, required=False,)
+    scholarship_sem = forms.ModelMultipleChoiceField(queryset=Semester.objects.all(),
+            label='Scholarship Semester Received', required=False)
+    scholarshiptype = forms.ModelMultipleChoiceField(queryset=ScholarshipType.objects.all(),
             label='Received Scholarship', required=False)
 
-    columns = forms.MultipleChoiceField(COLUMN_CHOICES, initial=('person.last_name', 'person.first_name', 'person.emplid', 'person.userid', 'program', 'current_status', ),
+    columns = forms.MultipleChoiceField(choices=COLUMN_CHOICES,
+            initial=('person.last_name', 'person.first_name', 'person.emplid', 'person.userid', 'program', 'current_status', ),
             help_text='Columns to display in the search results.')
 
     sort = forms.CharField(required=False, widget=forms.HiddenInput()) # used to persist table sorting across "modify search" workflow
@@ -704,13 +741,13 @@ class SearchForm(forms.Form):
     def clean_requirements_st(self):
         value = self.cleaned_data['requirements_st']
         if not value and len(self.cleaned_data['requirements']) > 1:
-            raise ValidationError, u"Specify a search type for requirements"
+            raise ValidationError("Specify a search type for requirements")
         return value
     
     def clean_financial_support(self):
         value = self.cleaned_data['financial_support']
         if 'N' in value and len(value) > 1:
-            raise ValidationError, u"If 'None' is selected, nothing else can be selected"
+            raise ValidationError("If 'None' is selected, nothing else can be selected")
         return value
     
     def _make_query(self, query_string, query_param=None):
@@ -725,7 +762,7 @@ class SearchForm(forms.Form):
     
     def get_query(self):
         if not self.is_valid():
-            raise Exception, "The form needs to be valid to get the search query"
+            raise Exception("The form needs to be valid to get the search query")
         auto_queries = [
                 ('first_name_contains', 'person__first_name__icontains' ),
                 ('last_name_contains', 'person__last_name__icontains' ),
@@ -813,7 +850,7 @@ class SearchForm(forms.Form):
         # (which returns a single Q object) and then reduces the auto_queries
         # and manual_queries into one Q object using the & operator
         query = reduce(Q.__and__, 
-                    chain(ifilter(lambda x:x is not None, 
+                    chain(filter(lambda x:x is not None, 
                         (self._make_query(*qargs) for qargs in auto_queries)),
                         manual_queries),
                     Q())
@@ -863,7 +900,7 @@ class SearchForm(forms.Form):
     def search_results(self, units):
         query = self.get_query()
         grads = GradStudent.objects.filter(program__unit__in=units).filter(query).select_related('person', 'program').distinct()
-        return filter(self.secondary_filter(), grads)
+        return list(filter(self.secondary_filter(), grads))
 
 
 class SaveSearchForm(ModelForm):
@@ -899,10 +936,14 @@ class UploadApplicantsForm(forms.Form):
         csvfile = self.cleaned_data['csvfile']
         if csvfile != None and (not csvfile.name.endswith('.csv')) and\
            (not csvfile.name.endswith('.CSV')):
-            raise forms.ValidationError(u"Only .csv files are permitted")
+            raise forms.ValidationError("Only .csv files are permitted")
         
         return csvfile
-    
+
+
+class GradNotesForm(forms.Form):
+    notes = forms.CharField(max_length=400, widget=forms.Textarea)
+
 
 PCS_COLUMNS = [ # (key, header)
                ('appid', 'ID'),
@@ -926,7 +967,7 @@ from django.db import transaction
 from coredata.models import Unit
 from coredata.queries import add_person, SIMSProblem, grad_student_info
 from log.models import LogEntry
-import datetime, StringIO
+import datetime, io
 
 @transaction.atomic
 def process_pcs_row(row, column, rownum, unit, semester, user):
@@ -950,7 +991,7 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
         try:
             p = add_person(emplid)
         except SIMSProblem as e:
-            return e.message
+            return str(e)
 
     ident = 'for "%s"' % (p.name())
 
@@ -1084,13 +1125,13 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
     return warnings
 
 def process_pcs_export(csvdata, unit_id, semester_id, user):
-    data = csv.reader(StringIO.StringIO(csvdata))
+    data = csv.reader(io.StringIO(csvdata))
     unit = Unit.objects.get(id=unit_id)
     semester = Semester.objects.get(id=semester_id)
     warnings = []
 
     # find the columns by their heading, so we're tolerant of small changes to export format
-    titles = data.next()
+    titles = next(data)
     column = {}
     req_columns = set(PCS_HDR_LOOKUP.keys())
     for i, header in enumerate(titles):
@@ -1101,7 +1142,7 @@ def process_pcs_export(csvdata, unit_id, semester_id, user):
 
     missing = req_columns - set(column.keys())
     if missing:
-        return u"Missing columns in export: " + ', '.join([PCS_HDR_LOOKUP[key] for key in missing])
+        return "Missing columns in export: " + ', '.join([PCS_HDR_LOOKUP[key] for key in missing])
     
     # process data rows
     count = 0

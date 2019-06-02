@@ -4,9 +4,9 @@ from django.contrib import messages
 from log.models import LogEntry
 from courselib.auth import requires_role
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def remove_scholarship(request, grad_slug, s_id):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     scholarship = get_object_or_404(Scholarship, student=grad, id=s_id)
@@ -19,6 +19,6 @@ def remove_scholarship(request, grad_slug, s_id):
               related_object=scholarship)
         l.save()              
     
-    return HttpResponseRedirect(reverse('grad.views.manage_scholarships', kwargs={'grad_slug':grad_slug}))
+    return HttpResponseRedirect(reverse('grad:manage_scholarships', kwargs={'grad_slug':grad_slug}))
 
 

@@ -6,7 +6,7 @@ from grad.forms import GradSemesterForm
 from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 @requires_role("GRAD", get_only=["GRPD"])
 def manage_start_end_semesters(request, grad_slug):
@@ -38,10 +38,11 @@ def manage_start_end_semesters(request, grad_slug):
 
             messages.success(request, "Updated start/end semester info for %s." % (grad.person))
             l = LogEntry(userid=request.user.username,
-                  description="Updated start/end semester for %s." % (grad),
-                  related_object=grad)
+                         description="Updated start/end semester for %s to Start: %s, "
+                                     "End: %s" % (grad, grad.config['start_semester'], grad.config['end_semester']),
+                         related_object=grad)
             l.save()    
-            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:view', kwargs={'grad_slug':grad.slug}))
     else:
         form = GradSemesterForm(initial={'start_semester': grad.start_semester, 'end_semester': grad.end_semester})
 

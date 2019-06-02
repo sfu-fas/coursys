@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit Account{% endblock %}
+{% block h1 %}Edit Account{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'sessionals:sessionals_index' %}">Sessionals</a></li>
+<li><a href="{% url 'sessionals:manage_accounts' %}">Manage Accounts</a></li>
+<li>Edit Account</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'sessionals:edit_account' account_slug=account.slug %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Account" />
+    </p>
+</form>
+{% endblock %}

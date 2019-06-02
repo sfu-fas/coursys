@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load form_display %}
+
+{% block title %}Edit Location{% endblock %}
+{% block h1 %}Edit Location{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "space:index" %}">Space Management</a></li>
+    {% ifnotequal from_index '1' %}
+        <li><a href="{% url "space:view_location" location_slug=location.slug %}">View Location</a></li>
+    {% endifnotequal %}
+    <li>Edit Location</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'space:edit_location' location_slug=location.slug from_index=from_index %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Location" />
+    </p>
+</form>
+{% endblock %}

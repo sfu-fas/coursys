@@ -23,7 +23,7 @@ def _create_advising_notes(data, advisor, unit):
             text = note['text']
             if not isinstance(emplid, int):
                 raise ValidationError("Note emplid must be an integer")
-            if not isinstance(text, basestring):
+            if not isinstance(text, str):
                 raise ValidationError("Note text must be a string")
         except KeyError:
             raise ValidationError("Emplid or text not present in note")
@@ -42,11 +42,11 @@ def _create_advising_notes(data, advisor, unit):
             filename = note['filename']
             mediatype = note['mediatype']
             file_data = note['data']
-            if not isinstance(filename, basestring):
+            if not isinstance(filename, str):
                 raise ValidationError("Note filename must be a string")
-            if not isinstance(mediatype, basestring):
+            if not isinstance(mediatype, str):
                 raise ValidationError("Note mediatype must be a string")
-            if not isinstance(file_data, basestring):
+            if not isinstance(file_data, str):
                 raise ValidationError("Note file data must be a string")
             
             try:

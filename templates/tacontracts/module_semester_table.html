@@ -15,7 +15,7 @@
         {% for semester in semesters %}
             <tr>
                 <td>
-                    <a href="{% url "tacontracts.views.list_all_contracts" unit_slug=semester.unit.label semester=semester.semester.name %}">
+                    <a href="{% url "tacontracts:list_all_contracts" unit_slug=semester.unit.label semester=semester.semester.name %}">
                         {{semester.semester.label}}
                     </a>
                     {% if display_units %}
@@ -26,7 +26,7 @@
                 <td>{{semester.number_of_incomplete_contracts}}</td>
                 <td>{{semester.total_bu|bu}}</td>
                 <td>
-                    <a href="{% url "tacontracts.views.edit_semester" unit_slug=semester.unit.label semester=semester.semester.name %}">
+                    <a href="{% url "tacontracts:edit_semester" unit_slug=semester.unit.label semester=semester.semester.name %}">
                         Edit Semester
                     </a>
                 </td>

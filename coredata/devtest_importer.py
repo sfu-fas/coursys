@@ -18,16 +18,18 @@ from coredata.models import Person, Unit, Role, Semester, SemesterWeek, Holiday,
 from coredata.importer import import_semester_info, import_offerings, import_offering_members, ensure_member
 from coredata.queries import add_person, SIMSConn, cache_by_args
 from grades.models import NumericActivity
-from privacy.models import set_privacy_signed
+from privacy.models import set_privacy_signed, set_privacy_da_signed
 from courselib.testing import TEST_COURSE_SLUG
 import itertools, random, string
 import datetime, time
 
 SEMESTER_CUTOFF = '1100' # semesters with label >= this will be included
+role_expiry = datetime.date.today() + datetime.timedelta(days=1000)
 
 def import_strms():
     s = Semester.current()
-    return [s.name, s.offset_name(1), s.offset_name(2)]
+    return [s.name, s.offset_name(1), s.offset_name(2), s.offset_name(3), s.offset_name(4), s.offset_name(5),
+        s.offset_name(6), s.offset_name(7), s.offset_name(8), s.offset_name(9)]
 
 def test_semester():
     return Semester.current().offset(1)
@@ -53,7 +55,7 @@ def randname(l):
     """
     n = random.choice(string.ascii_uppercase)
     for _ in range(l-1):
-        n = n + random.choice(string.ascii_lowercase + u'àêïõú')
+        n = n + random.choice(string.ascii_lowercase + 'àêïõú')
     return n
 
 randnullbool = lambda:random.choice((False, True, None))
@@ -103,12 +105,12 @@ def create_true_core():
     import_semester_info(dry_run=False, verbose=False, long_long_ago=True, bootstrap=True)
     p = find_person('ggbaker')
     p.emplid = '200000100'
-    p.first_name = u'Gregorʏ'
+    p.first_name = 'Gregorʏ'
     p.pref_first_name = 'Greg'
     p.save()
     u = Unit(label='UNIV', name='Simon Fraser University')
     u.save()
-    r = Role(person=p, role='SYSA', unit=u)
+    r = Role(person=p, role='SYSA', unit=u, expiry=role_expiry)
     r.save()
 
     return itertools.chain(
@@ -146,6 +148,9 @@ def create_coredata():
     # restore ggbaker's real emplid so import_offerings will match
     p = find_person('ggbaker')
     p.emplid = find_emplid('ggbaker')
+    p.first_name = 'Gregorʏ'
+    p.pref_first_name = 'Greg'
+    p.save()
 
     # import a few more people we definitely need later
     find_person('popowich')
@@ -157,6 +162,7 @@ def create_coredata():
     # import a limited set of course offerings
     offerings = import_offerings(import_semesters=import_strms, extra_where=
         "(subject='CMPT' AND (catalog_nbr LIKE '%% 12%%')) "
+        "OR (subject='CMPT' AND (catalog_nbr LIKE '%% 16%%')) "
         "OR (subject='ENSC' AND (catalog_nbr LIKE '%% 10%%')) "
         )
     offerings = list(offerings)
@@ -165,7 +171,7 @@ def create_coredata():
     if not CourseOffering.objects.filter(slug=TEST_COURSE_SLUG):
         o = CourseOffering.objects.filter(subject='CMPT', semester__name=import_strms()[0]) \
             .order_by('number', 'section').first()
-        raise ValueError, "courselib.testing.TEST_COURSE_SLUG isn't an offering we have. Maybe use '%s'." % (o.slug)
+        raise ValueError("courselib.testing.TEST_COURSE_SLUG isn't an offering we have. Maybe use '%s'." % (o.slug))
 
     # import instructors
     for o in offerings:
@@ -177,6 +183,10 @@ def create_coredata():
         p.save()
 
     fake_emplids()
+    p = find_person('ggbaker')
+    p.first_name = 'Gregorʏ'
+    p.pref_first_name = 'Greg'
+    p.save()
 
     # use/import no real emplids after this
 
@@ -215,15 +225,23 @@ def create_coredata():
 
     d = Person.objects.get(userid='dzhao')
     set_privacy_signed(d)
-    r1 = Role(person=d, role='ADVS', unit=Unit.objects.get(slug='cmpt'))
+    set_privacy_da_signed(d)
+    u = Unit.objects.get(slug='cmpt')
+    r1 = Role(person=d, role='ADVS', unit=u, expiry=role_expiry)
     r1.save()
-    r2 = Role(person=d, role='ADMN', unit=Unit.objects.get(slug='cmpt'))
+    r2 = Role(person=d, role='ADMN', unit=u, expiry=role_expiry)
     r2.save()
-    r3 = Role(person=Person.objects.get(userid='pba7'), role='SYSA', unit=Unit.objects.get(slug='univ'))
+    r3 = Role(person=Person.objects.get(userid='pba7'), role='SYSA', unit=Unit.objects.get(slug='univ'), expiry=role_expiry)
     r3.save()
+    r4 = Role(person=d, role='INV', unit=u, expiry=role_expiry)
+    r4.save()
+    r5 = Role(person=d, role='OUTR', unit=u, expiry=role_expiry)
+    r5.save()
+    r6 = Role(person=d, role='SPAC', unit=u, expiry=role_expiry)
+    r6.save()
 
     # ensures course appears in menu for students
-    a = NumericActivity(offering=o, name=u'Assignmenț 1', short_name='A1', status='URLS', position=1, percent=10,
+    a = NumericActivity(offering=o, name='Assignmenț 1', short_name='A1', status='URLS', position=1, percent=10,
         max_grade=10, due_date=(o.semester.start + datetime.timedelta(days=60)))
     a.save()
 
@@ -234,7 +252,7 @@ def create_coredata():
         CourseOffering.objects.all(),
         Person.objects.order_by('emplid'),
         Member.objects.all(),
-        [r1, r2, r3, a.activity_ptr, a],
+        [r1, r2, r3, r4, r5, r6, a.activity_ptr, a],
     )
 
 def create_test_offering():
@@ -251,6 +269,7 @@ def create_test_offering():
     crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
 
     crs.set_labtut(True)
+    crs.set_discussion(True)
     crs.set_url("http://www.cs.sfu.ca/CC/165/common/")
     crs.set_taemail("cmpt-165-contact@sfu.ca")
     crs.save()
@@ -279,14 +298,14 @@ def create_test_offering():
     to.save()
 
     # make A1 submittable and markable
-    s = CodeComponent(activity=a1, title=u"Cöde File", description="The code you're submitting.",
+    s = CodeComponent(activity=a1, title="Cöde File", description="The code you're submitting.",
         allowed=".py,.java")
     s.save()
     s = PDFComponent(activity=a1, title="Report", description="Report on what you did.",
         specified_filename="report.pdf")
     s.save()
 
-    m = ActivityComponent(numeric_activity=a1, max_mark=5, title=u"Part ➀", description="Part ➀ was done well and seems to work.", position=1, slug='part-1')
+    m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part ➀", description="Part ➀ was done well and seems to work.", position=1, slug='part-1')
     m.save()
     m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part 2", description="Part 2 was done well and seems to work.", position=2)
     m.save()
@@ -355,6 +374,43 @@ def create_grades():
     )
 
 
+def create_discussion():
+    """
+    Test data for discussion
+    """
+    from discuss.models import DiscussionTopic, DiscussionMessage
+    offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+    members = list(Member.objects.filter(offering=offering, role='STUD'))
+    random.shuffle(members)
+
+    m = members.pop()
+    t1 = DiscussionTopic(offering=offering, title='Discussion One', author=m,
+                         content='//Hello classmates//.\n\nWe have **many** things to discuss.')
+    t1.set_markup('creole')
+    t1.save()
+
+    m = members.pop()
+    t2 = DiscussionTopic(offering=offering, title='Discussion Two', author=m,
+                         content="I *really* can't figure out if \\\\(x+1=y\\\\).")
+    t2.set_markup('markdown')
+    t2.set_math(True)
+    t2.save()
+
+    m = members.pop()
+    m1 = DiscussionMessage(topic=t1, content='Hello, friend.', author=m)
+    m1.save()
+
+    m = members.pop()
+    m2 = DiscussionMessage(topic=t1, author=m, content='''Run this program:\n```python\nfor i in range(2):\n    print(i)\n````''')
+    m2.set_markup('markdown')
+    m2.save()
+
+    return itertools.chain(
+        DiscussionTopic.objects.all(),
+        DiscussionMessage.objects.all()
+    )
+
+
 def create_grad():
     """
     Test data for grad, ta, ra
@@ -368,9 +424,9 @@ def create_grad():
 
     # some admin roles
     d = Person.objects.get(userid='dzhao')
-    r1 = Role(person=d, role='GRAD', unit=cmpt)
+    r1 = Role(person=d, role='GRAD', unit=cmpt, expiry=role_expiry)
     r1.save()
-    r2 = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=cmpt)
+    r2 = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=cmpt, expiry=role_expiry)
     r2.save()
     roles = [r1, r2]
 
@@ -384,7 +440,7 @@ def create_grad():
     templates = [
                  {"unit": cmpt,
                   "label": "offer",
-                  "content": u"Congratulations, {{first_name}}, we would like to offer you admission to the {{program}} program in Computing Science at SFU.\r\n\r\nThis is gööd news. Really."
+                  "content": "Congratulations, {{first_name}}, we would like to offer you admission to the {{program}} program in Computing Science at SFU.\r\n\r\nThis is gööd news. Really."
                   },
                  {"unit": cmpt,
                   "label": "visa",
@@ -482,9 +538,9 @@ def create_grad():
         of.save()
 
         # promise
-        p = Promise(student=gs, start_semester=start, end_semester=start.offset(2), amount=10000)
+        p = Promise(student=gs, start_semester=start, end_semester=start.offset(1), amount=10000)
         p.save()
-        p = Promise(student=gs, start_semester=start.offset(3), end_semester=start.offset(5), amount=10000)
+        p = Promise(student=gs, start_semester=start.offset(2), end_semester=start.offset(3), amount=10000)
         p.save()
 
         # flags
@@ -527,7 +583,6 @@ def create_grad():
     )
 
 
-
 def create_ta_ra():
     """
     Build test data for the ta and ra modules.
@@ -540,9 +595,9 @@ def create_ta_ra():
     # TAs
     d = Person.objects.get(userid='dzhao')
     unit = Unit.objects.get(slug='cmpt')
-    r1 = Role(person=d, role='TAAD', unit=unit)
+    r1 = Role(person=d, role='TAAD', unit=unit, expiry=role_expiry)
     r1.save()
-    r2 = Role(person=d, role='FUND', unit=unit)
+    r2 = Role(person=d, role='FUND', unit=unit, expiry=role_expiry)
     r2.save()
 
     s = Semester.current().next_semester()
@@ -600,7 +655,8 @@ def create_ta_ra():
     # RAs
     s = Semester.current()
     superv = list(m.person for m in Member.objects.filter(role='INST').select_related('person'))
-    empl = list(itertools.chain(Person.objects.filter(last_name='Grad'), random.sample(Person.objects.filter(last_name='Student'), 10)))
+    empl = list(itertools.chain(Person.objects.filter(last_name='Grad'),
+                                random.sample(list(Person.objects.filter(last_name='Student')), 10)))
     cats = [c for c,d in HIRING_CATEGORY_CHOICES if c not in HIRING_CATEGORY_DISABLED]
     config = SemesterConfig.get_config([unit], s)
 
@@ -672,7 +728,7 @@ def create_onlineforms():
     fld4.save()
     fld4 = Field(label='Reasons', sheet=s2, fieldtype='LGTX', config={"min_length": 1, "required": True, "max_length": "1000", 'label': 'Reasons', "help_text":'Why do you think you deserve it?'})
     fld4.save()
-    fld5 = Field(label='Prediction', sheet=s2, fieldtype='RADI', config={"required": False, 'label': u'Predictiŏn', "help_text":"Do you think it's likely this will be approved?", "choice_1": "Yes", "choice_2": "No", "choice_3": "Huh?"})
+    fld5 = Field(label='Prediction', sheet=s2, fieldtype='RADI', config={"required": False, 'label': 'Predictiŏn', "help_text":"Do you think it's likely this will be approved?", "choice_1": "Yes", "choice_2": "No", "choice_3": "Huh?"})
     fld5.save()
     s3 = Sheet(form=f2, title="Decision", can_view="ALL")
     s3.save()
@@ -690,8 +746,109 @@ def create_onlineforms():
     )
 
 
+def create_outreach():
+    from outreach.models import OutreachEvent, OutreachEventRegistration
+    unit = Unit.objects.get(slug='cmpt')
+    start = datetime.datetime(2099,0o1,0o1,00,00,00) # Start a long time from now so the tests are always valid
+    end = start + datetime.timedelta(days=2)
+    e = OutreachEvent(title='A Test Event', start_date=start, end_date=end, unit=unit, notes='Here are some notes',
+                      description='An event to test', slug='devtest_a_test_event')
+    e.save()
+    dob = datetime.date(1800, 1, 1)
+    r = OutreachEventRegistration(event=e, birthdate=dob, parent_name='Joe Smith Sr.', last_name='SomePerson',
+                                  first_name='Bob', school='Little Lord Fauntleroy School for Albino Hemophiliacs',
+                                  grade=2, secondary_name='George Smith Jr.', secondary_phone='800-555-1212')
+    r.save()
+    return itertools.chain(
+        OutreachEvent.objects.all(),
+        OutreachEventRegistration.objects.all(),
+    )
+
+
+def create_sessionals():
+    from sessionals.models import SessionalAccount, SessionalContract
+    from coredata.models import AnyPerson, Person
+    unit = Unit.objects.get(slug='cmpt')
+    a = SessionalAccount(unit=unit, title='SFUFA Account', account_number='234', position_number=123456,
+                         slug='cmpt-234-sfufa-account')
+    a.save()
+    p = Person.objects.get(userid='0ggg1')
+    ap = AnyPerson.get_or_create_for(person=p)
+    ap.save()
+    co = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+    c = SessionalContract(account=a, sessional=ap, offering=co, appointment_start=co.semester.start,
+                          appointment_end=co.semester.end, pay_start=co.semester.start - datetime.timedelta(days=2),
+                          pay_end=co.semester.end - datetime.timedelta(days=2), slug='a-test-sessionalcontract',
+                          sin='000000000', contact_hours=45.6, total_salary=4657.95, created_by='devtest', unit=unit)
+    c.save()
+    return itertools.chain(
+        SessionalAccount.objects.all(),
+        AnyPerson.objects.all(),
+        SessionalContract.objects.all(),
+    )
+
+
+def create_inventory():
+    from inventory.models import Asset
+    unit = Unit.objects.get(slug='cmpt')
+    a = Asset(unit=unit, name='Something', brand='Baycrest', slug='cmpt-something',
+              location='In the dining room, with the candlestick')
+    a.save()
+    return itertools.chain(
+        Asset.objects.all(),
+    )
+
+
+def create_space():
+    from space.models import RoomType, Location, BookingRecord
+    unit = Unit.objects.get(slug='cmpt')
+    rt = RoomType(unit=unit, long_description='A room type', code='RMM_TYP',
+                  COU_code_description='Magical Room Type Space', space_factor=0.5, COU_code_value=12.2)
+    rt.save()
+    loc = Location(unit=unit, campus='BRNBY', building='ASB', floor=9, room_number='9971', square_meters=6,
+                   room_type=rt, infrastructure='STD', room_capacity=10, category='STAFF', occupancy_count=3,
+                   own_or_lease='OWN', comments='This is the room with the thing')
+    loc.save()
+    p = Person.objects.get(userid='0ggg1')
+    start = datetime.datetime(2010, 0o1, 0o1, 00, 00, 00)
+    end = datetime.datetime(2099, 0o1, 0o1, 23, 59, 59)
+    book = BookingRecord(person=p, location=loc, start_time=start, end_time=end)
+    book.save()
+    return itertools.chain(
+        RoomType.objects.all(),
+        Location.objects.all(),
+        BookingRecord.objects.all()
+    )
+
+
+def create_reminders():
+    from reminders.models import Reminder
+    person = find_person('ggbaker')
+    offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+    r1 = Reminder(title='New Year', reminder_type='PERS', person=person, content="Happy new year! It's Jan 1.",
+                  date_type='YEAR', month=1, day=1)
+    r1.save()
+
+    r2 = Reminder(title='Start of semester', reminder_type='ROLE', role='SYSA', unit=Unit.objects.get(slug='univ'),
+                  content="The new semester started a while ago, in case you weren't paying attention.",
+                  date_type='SEM', week=2, weekday=1, person=person)
+    r2.save()
+
+    r3 = Reminder(title='Create an exam', reminder_type='INST', course=offering.course,
+                  content="It's probably *almost* time for the final exam.\r\n\r\nCreate it.",
+                  date_type='SEM', week=12, weekday=4, person=person)
+    r3.markup = 'markdown'
+    r3.save()
+
+    r4 = Reminder(title='Deleted reminder', reminder_type='PERS', person=person, content="This has been deleted and shouldn't be visible.",
+                  date_type='SEM', week=5, weekday=2, status='D')
+    r4.save()
+
+    return Reminder.all_objects.all()
+
+
 def serialize_result(data_func, filename):
-    print "creating %s.json" % (filename)
+    print("creating %s.json" % (filename))
     start = time.time()
     objs = data_func()
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
@@ -710,12 +867,18 @@ def main():
     serialize_result(create_coredata, 'coredata')
     # use/import no real emplids after this
     serialize_result(create_grades, 'grades')
+    serialize_result(create_discussion, 'discussion')
     serialize_result(create_grad, 'grad')
     serialize_result(create_onlineforms, 'onlineforms')
     serialize_result(create_ta_ra, 'ta_ra')
+    serialize_result(create_outreach, 'outreach')
+    serialize_result(create_sessionals, 'sessionals')
+    serialize_result(create_inventory, 'inventory')
+    serialize_result(create_space, 'space')
+    serialize_result(create_reminders, 'reminders')
 
 if __name__ == "__main__":
     hostname = socket.gethostname()
     if hostname == 'courses':
-        raise NotImplementedError, "Don't do that."
+        raise NotImplementedError("Don't do that.")
     main()

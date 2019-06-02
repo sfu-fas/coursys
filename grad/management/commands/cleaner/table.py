@@ -58,7 +58,7 @@ class Table(object):
         Jonathan | Lassam | Jonathan Lassam
        
         """
-        for i in xrange( 0, len(self.rows) ):
+        for i in range( 0, len(self.rows) ):
             self.rows[i].append( column_function( self.row_map(i) ) )
 
         self.headers.append( column_name )
@@ -130,7 +130,7 @@ class Table(object):
         """
         row = self.rows[i]
         obj = {}
-        for i in xrange( 0, len(self.headers) ):
+        for i in range( 0, len(self.headers) ):
             obj[self.headers[i]] = row[i]
         return obj
 
@@ -150,7 +150,7 @@ class Table(object):
         [{'LastName': 'Lassam', 'FirstName': 'Curtis'}, {'LastName': 'Lassam', 'FirstName': 'Jonathan'}]
 
         """
-        for i in xrange( 0, len(self.rows) ):
+        for i in range( 0, len(self.rows) ):
             yield self.row_map(i) 
 
     def filter( self, filter_function ):
@@ -179,7 +179,7 @@ class Table(object):
         Peter | Ox-Hands
 
         """
-        for i in xrange( len(self.rows)-1, -1, -1 ):
+        for i in range( len(self.rows)-1, -1, -1 ):
             if not filter_function( self.row_map(i) ):
                 del self.rows[i]
         return self
@@ -209,7 +209,7 @@ class Table(object):
                 return -1
         
         # Linear search. O(n)
-        for i in xrange( 0, len(self.rows) ):
+        for i in range( 0, len(self.rows) ):
             if self.row_map(i)[key_column] == value:
                 return i
         return -1
@@ -269,7 +269,7 @@ class Table(object):
 
         """
         self.indices[key_column] = {}
-        for i in xrange( 0, len(self.rows) ):
+        for i in range( 0, len(self.rows) ):
             row_map = self.row_map(i) 
             key = self.row_map(i)[key_column]
             if key not in self.indices[key_column]:
@@ -327,7 +327,7 @@ class Table(object):
         self.generate_index(key_column)
         other_table.generate_index(key_column) 
 
-        for i in xrange( len(self.rows)-1, -1, -1 ): 
+        for i in range( len(self.rows)-1, -1, -1 ): 
             key = self.row_map(i)[key_column]
             loc = other_table.find(key_column, key)
             if loc == -1:
@@ -373,7 +373,7 @@ class Table(object):
 
         blank_row = ["" for x in other_table.headers]
 
-        for i in xrange( len(self.rows)-1, -1, -1 ): 
+        for i in range( len(self.rows)-1, -1, -1 ): 
             key = self.row_map(i)[key_column]
             loc = other_table.find(key_column, key)
             if loc == -1:
@@ -415,7 +415,7 @@ class Table(object):
         assert( key_index != -1) 
         delete_rows = []
         self.generate_index(key_column)
-        for i in xrange( 0, len(self.rows) ):
+        for i in range( 0, len(self.rows) ):
             key = self.rows[i][key_index]
             first_appearance_of_key = self.find(key_column, key)
             if first_appearance_of_key != i:
@@ -503,7 +503,7 @@ class Table(object):
 
     @staticmethod
     def asciify(thing):
-        if type(thing) is unicode:
+        if type(thing) is str:
             return thing.encode('ascii', 'ignore')
         if type(thing) is not str:
             return str(thing)
@@ -512,7 +512,7 @@ class Table(object):
 
     @staticmethod
     def utf8(thing):
-        if type(thing) is unicode:
+        if type(thing) is str:
             return thing.encode('utf-8', 'ignore')
         else:
             return thing
@@ -545,7 +545,7 @@ class Table(object):
         list_of_strings = []
         for row_map in self.row_maps():
             pretty_print.pprint(row_map)
-            print "-------------------"
+            print("-------------------")
 
     def to_csv(self, location):
         """ Print the table to a csv file. 
@@ -596,12 +596,12 @@ class Table(object):
     
     @staticmethod
     def to_unicode(thing):
-        if type(thing) is unicode:
+        if type(thing) is str:
             return thing
         if type(thing) is str:
-            return unicode( thing, 'utf-8' )
+            return str( thing, 'utf-8' )
         else: 
-            return unicode( thing )
+            return str( thing )
     
     def __len__(self):
         return len(self.rows)

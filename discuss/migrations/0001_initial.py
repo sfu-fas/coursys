@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(default=b'VIS', max_length=3, choices=[(b'VIS', b'Visible'), (b'HID', b'Hidden')])),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('author', models.ForeignKey(to='coredata.Member')),
+                ('author', models.ForeignKey(to='coredata.Member', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('status', models.CharField(default=b'NONE', help_text=b'Action to take when a new topic is posted', max_length=4, verbose_name=b'Notification', choices=[(b'NONE', b'Do nothing'), (b'MAIL', b'Email me when a new topic is started'), (b'ALLM', b'Email me for new topics and replies')])),
-                ('member', models.ForeignKey(to='coredata.Member')),
+                ('member', models.ForeignKey(to='coredata.Member', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -54,8 +54,8 @@ class Migration(migrations.Migration):
                 ('pinned', models.BooleanField(default=False, help_text=b'Should this topic be pinned to bring attention?')),
                 ('slug', autoslug.fields.AutoSlugField(editable=False)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('author', models.ForeignKey(to='coredata.Member')),
-                ('offering', models.ForeignKey(to='coredata.CourseOffering')),
+                ('author', models.ForeignKey(to='coredata.Member', on_delete=models.CASCADE)),
+                ('offering', models.ForeignKey(to='coredata.CourseOffering', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -66,8 +66,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('status', models.CharField(default=b'MAIL', help_text=b'Action to take when a new message is posted to this topic', max_length=4, verbose_name=b'Notification', choices=[(b'NONE', b'Do nothing'), (b'MAIL', b'Email me')])),
-                ('member', models.ForeignKey(to='coredata.Member')),
-                ('topic', models.ForeignKey(to='discuss.DiscussionTopic')),
+                ('member', models.ForeignKey(to='coredata.Member', on_delete=models.CASCADE)),
+                ('topic', models.ForeignKey(to='discuss.DiscussionTopic', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -80,7 +80,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='discussionmessage',
             name='topic',
-            field=models.ForeignKey(to='discuss.DiscussionTopic'),
+            field=models.ForeignKey(to='discuss.DiscussionTopic', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

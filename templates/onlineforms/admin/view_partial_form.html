@@ -7,25 +7,17 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static 'style/onlineforms.css' %}" media="all" />
-<script type="text/javascript">
-    $(document).ready(function() {
-        $('#form_table').dataTable({
-                    "bPaginate": false,
-                    "bJQueryUI": true,
-                    "aaSorting": [[0, "asc"]],
-        }); 
-    });
-</script>
+<script type="text/javascript" src="{% static 'js/onlineforms.js' %}"></script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
-{% if is_advisor %}
-<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
-<li><a href="{% url "advisornotes.views.student_notes" userid=form_sub.initiator.sfuFormFiller.userid_or_emplid %}">{{ form_sub.initiator.sfuFormFiller.name }}</a></li>
+{% if is_advisor and form_sub.initiator.sfuFormFiller %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:student_notes" userid=form_sub.initiator.sfuFormFiller.userid_or_emplid %}">{{ form_sub.initiator.sfuFormFiller.name }}</a></li>
 <li>View {{ form.title }}</li>
 {% else %}
-<li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-<li><a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
+<li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+<li><a href="{% url "onlineforms:admin_list_all" %}">Admin Forms</a></li>
 <li>View {{ form.title }}</li>
 {% endif %}
 {% endblock %}
@@ -39,11 +31,16 @@
 {% if waiting_sheets %}
 <p>Sheets currently waiting to be completed:</p>
 <ul>
-{% for ss in waiting_sheets %}
-<li>{{ ss.sheet.title }} by {{ ss.filler.name }}</li>
-{% endfor %}
+    {% for ss in waiting_sheets %}
+    <li>    {{ ss.sheet.title }} by {{ ss.filler.name }}{% if can_admin %}
+    <form class="inlineform" action="{% if ss.filler.isSFUPerson %}{% url "onlineforms:reject_sheet_admin" form_slug=ss.sheet.form.slug formsubmit_slug=ss.form_submission.slug sheet_slug=ss.sheet.slug sheetsubmit_slug=ss.slug %}{% else %}{% url "onlineforms:reject_sheet_via_url_admin" secret_url=ss.get_secret.key form_slug=ss.sheet.form.slug %}{% endif %}" method="post">{% csrf_token %}
+        <button type='submit' class='btn confirm-submit' title="Reject sheet" data-submit-action="reject this sheet? This should only be done if you accidentally assigned this sheet to the wrong person. If everything else in the form is completed, mark it 'Done' instead. Are you sure">Reject</button>
+    </form>
+    {% endif %}</li>
+    {% endfor %}
 </ul>
 {% endif %}
+
 {% if form_sub.status == 'DONE' %}
 <p>Closed by: {% if form_sub.closer %}{{ form_sub.closer.name|default_if_none:"unknown"}}{% else %}<span class="empty">nobody</span>{% endif %}.
 {% if form_sub.summary %}Summary given: &ldquo;{{ form_sub.summary }}&rdquo;.{% endif %}
@@ -55,7 +52,7 @@ The initiator {% if form_sub.emailed %}<strong>was</strong>{% else %}was <strong
 <div class="form_container" id="assign" style="margin-top:5em;">
     <form action="" method="post" enctype="multipart/form-data">
     <fieldset><legend>Assign Next Sheet</legend>
-    <p style="margin-bottom: 1em;"><a href="{% url "onlineforms.views.admin_assign" form_slug=form_slug formsubmit_slug=formsubmit_slug %}">Assign the next sheet of this form</a></p>
+    <p style="margin-bottom: 1em;"><a href="{% url "onlineforms:admin_assign" form_slug=form_slug formsubmit_slug=formsubmit_slug %}">Assign the next sheet of this form</a></p>
     </fieldset>
     </form>
 </div>
@@ -63,14 +60,14 @@ The initiator {% if form_sub.emailed %}<strong>was</strong>{% else %}was <strong
     <form action="#completed" method="post" enctype="multipart/form-data">{% csrf_token %}
     <fieldset><legend>Mark Completed</legend>
     {% if close_form.used %}{{ close_form|as_dl }}{% endif %}
-    <p><input class="submit" type="submit" value="Mark as done" /></p>
+    <p><input class="submit confirm-submit" type="submit" value="Mark as done" data-submit-action="mark this form done and prevent any more interaction with this form" /></p>
     </fieldset>
     </form>
 </div>
 <div class="form_container" id="give">
     <form action="" method="post" enctype="multipart/form-data">
     <fieldset><legend>Give to another group</legend>
-    <p style="margin-bottom: 1em;"><a href="{% url "onlineforms.views.admin_change_owner" form_slug=form_slug formsubmit_slug=formsubmit_slug %}">Give this form submission to another group</a></p>
+    <p style="margin-bottom: 1em;"><a href="{% url "onlineforms:admin_change_owner" form_slug=form_slug formsubmit_slug=formsubmit_slug %}">Give this form submission to another group</a></p>
     </fieldset>
     </form>
 </div>

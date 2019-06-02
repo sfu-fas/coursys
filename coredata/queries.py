@@ -5,10 +5,12 @@ import django.db.transaction
 from django.core.cache import cache
 from django.utils.html import conditional_escape as e
 from featureflags.flags import feature_disabled
-import re, hashlib, datetime, string, urllib, urllib2, httplib, time, json
-import socket
+import re, hashlib, datetime, string, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, http.client, time, json
+import socket, decimal
+
 
 multiple_breaks = re.compile(r'\n\n+')
+
 
 class DBConn(object):
     """
@@ -41,7 +43,7 @@ class DBConn(object):
         clean_args = tuple((self.escape_arg(a) for a in args))
         real_query = query % clean_args
         if self.verbose:
-            print ">>>", real_query
+            print(">>>", real_query)
         self.query = real_query
         return self.db.execute(real_query)
 
@@ -66,6 +68,7 @@ class DBConn(object):
             return row
         return tuple((self.prep_value(v) for v in row))
 
+
 class SIMSConn(DBConn):
     """
     Singleton object representing SIMS DB connection
@@ -75,8 +78,8 @@ class SIMSConn(DBConn):
     sims_db = settings.SIMS_DB_NAME
     schema = settings.SIMS_DB_SCHEMA
     
-    DatabaseError = None
-    DB2Error = None
+    DatabaseError = ReferenceError # placeholder until we have the DB2 module
+    DB2Error = ReferenceError
 
     def get_connection(self):
         if settings.DISABLE_REPORTING_DB:
@@ -85,14 +88,14 @@ class SIMSConn(DBConn):
             raise SIMSProblem("Reporting database access has been temporarily disabled due to server maintenance or load.")
 
         try:
-            import DB2
+            import ibm_db_dbi
         except ImportError:
             raise SIMSProblem("could not import DB2 module")
-        SIMSConn.DatabaseError = DB2.DatabaseError
-        SIMSConn.DB2Error = DB2.Error
+        SIMSConn.DatabaseError = ibm_db_dbi.DatabaseError
+        SIMSConn.DB2Error = ibm_db_dbi.Error
         try:
-            dbconn = DB2.connect(dsn=self.sims_db, uid=self.sims_user, pwd=self.sims_passwd)
-        except DB2._db2.DatabaseError:
+            dbconn = ibm_db_dbi.connect(self.sims_db, self.sims_user, self.sims_passwd)
+        except ibm_db_dbi.Error:
             raise SIMSProblem("Could not communicate with reporting database.")
         cursor = dbconn.cursor()
         cursor.execute("SET SCHEMA "+self.schema)
@@ -103,13 +106,13 @@ class SIMSConn(DBConn):
         Escape argument for DB2
         """
         # Based on description of PHP's db2_escape_string
-        if type(a) in (int,long):
+        if type(a) in (int,int):
             return str(a)
         if type(a) in (tuple, list, set):
             return '(' + ', '.join((self.escape_arg(v) for v in a)) + ')'
         
         # assume it's a string if we don't know any better
-        a = unicode(a).encode('utf8')
+        a = str(a)
         a = a.replace("\\", "\\\\")
         a = a.replace("'", "\\'")
         a = a.replace('"', '\\"')
@@ -117,14 +120,16 @@ class SIMSConn(DBConn):
         a = a.replace("\n", "\\n")
         a = a.replace("\x00", "\\\x00")
         a = a.replace("\x1a", "\\\x1a")
-        return "'"+a+"'"
+        return "'" + a + "'"
 
     def prep_value(self, v):
         """
         get DB2 value into a useful format
         """
-        if isinstance(v, basestring):
-            return v.strip().decode('utf8')
+        if isinstance(v, str):
+            return v.strip()
+        elif isinstance(v, decimal.Decimal):
+            return float(v)
         else:
             return v
 
@@ -134,6 +139,7 @@ class SIMSProblem(Exception):
     Class used to pass back problems with the SIMS connection.
     """
     pass
+
 
 def SIMS_problem_handler(func):
     """
@@ -155,13 +161,15 @@ def SIMS_problem_handler(func):
     wrapped.__name__ = func.__name__
     return wrapped
 
+
 def _args_to_key(args, kwargs):
     "Hash arguments to get a cache key"
     h = hashlib.new('md5')
-    h.update(unicode(args))
-    h.update(unicode(kwargs))
+    h.update(str(args).encode('utf8'))
+    h.update(str(kwargs).encode('utf8'))
     return h.hexdigest()
-    
+
+
 def cache_by_args(func, seconds=38800): # 8 hours by default
     """
     Decorator to cache query results from SIMS (if successful: no SIMSProblem).
@@ -185,6 +193,7 @@ def cache_by_args(func, seconds=38800): # 8 hours by default
     wrapped.__name__ = func.__name__
     return wrapped
 
+
 @cache_by_args
 def userid_from_sims(emplid):
     """
@@ -199,6 +208,7 @@ def userid_from_sims(emplid):
         if userid and len(userid) > 8:
             userid = None
     return userid
+
 
 @cache_by_args
 @SIMS_problem_handler
@@ -217,6 +227,7 @@ def find_person(emplid, get_userid=True):
         else:
             userid = None
         return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name, 'userid': userid}
+
 
 @cache_by_args
 @SIMS_problem_handler
@@ -262,9 +273,11 @@ def add_person(emplid, commit=True, get_userid=True, external_email=False):
             p.save()
     return p
 
+
 @cache_by_args
 def get_person_by_userid(userid):
     return ensure_person_from_userid(userid)
+
 
 @cache_by_args
 @SIMS_problem_handler
@@ -323,6 +336,7 @@ PLAN_QUERY = string.Template("""
               AND $where
             ORDER BY prog.emplid, plan.plan_sequence""")
 
+
 SUBPLAN_QUERY = string.Template("""
             SELECT prog.emplid, plantbl.acad_sub_plan, plantbl.descr, plantbl.trnscr_descr
             FROM ps_acad_prog prog, ps_acad_subplan plan, ps_acad_subpln_tbl AS plantbl
@@ -334,6 +348,7 @@ SUBPLAN_QUERY = string.Template("""
               AND prog.prog_status='AC' AND plantbl.eff_status='A'
               AND $where
             ORDER BY prog.emplid""")
+
 
 ALLFIELDS = 'alldata'
 @cache_by_args
@@ -450,7 +465,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
         for gpa, cred in db:
             data['gpa'] = gpa
             data['ccredits'] = cred
-    
+
     return data
 
 
@@ -515,7 +530,7 @@ def crse_id_info(crse_id):
     db.execute(offering_query, (crse_id,))
     fields = ['subject', 'catalog_nbr', 'descr']
     for row in db:
-        cdata = dict(zip(fields, row))
+        cdata = dict(list(zip(fields, row)))
         cdata['crse_found'] = True
         return cdata
     return {'subject': '?', 'catalog_nbr': '?', 'descr': '?', 'crse_found': False}
@@ -530,7 +545,7 @@ def ext_org_info(ext_org_id):
     db.execute(ext_org_query, (ext_org_id,))
     fields = ['ext_org']
     for row in db:
-        cdata = dict(zip(fields, row))
+        cdata = dict(list(zip(fields, row)))
         return cdata
     return {'ext_org': '?'}
 
@@ -606,7 +621,7 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     data['transfers'] = transfers
     fields = ['crse_id', 'grade', 'units', 'repeat', 'strm', 'reqdes', 'ext_org_id', 'src_org']
     for row in list(db):
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         crse_id = rdata['crse_id']
         ext_org_id = rdata['ext_org_id']
         
@@ -647,7 +662,7 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     data['semesters'] = semesters
     fields = ['strm', 'career', 'units_passed', 'tgpa', 'cgpa', 'standing', 'udgpa']
     for row in db:
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         strm = rdata['strm']
         if strm in found:
             # handle multiple rows from ps_acad_stdng_actn
@@ -671,7 +686,7 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     fields = ['strm', 'class_nbr', 'unit_taken', 'repeat', 'grade', 'reqdes', 'subject', 'number', 'descr']
     
     for row in db:
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         strm = rdata['strm']
         if rdata['reqdes']:
             rdata['req'] = req_map[rdata['reqdes']]
@@ -718,7 +733,7 @@ def transfer_data(emplid):
     data = {}
     transfers = []
     for row in list(db):
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         transfers.append(rdata)
     data['transfers'] = transfers
     return data
@@ -746,7 +761,7 @@ def classes_data(emplid):
     data = {}
     courses = []
     for row in list(db):
-        rdata = dict(zip(fields, row))
+        rdata = dict(list(zip(fields, row)))
         courses.append(rdata)
     data['courses'] = courses
     return data
@@ -777,7 +792,7 @@ def acad_plan_count(acad_plan, strm):
 @cache_by_args
 @SIMS_problem_handler
 def get_or_create_semester(strm):
-    if not (isinstance(strm, basestring) and strm.isdigit() and len(strm)==4):
+    if not (isinstance(strm, str) and strm.isdigit() and len(strm)==4):
         raise ValueError("Bad strm: " + repr(strm))
     oldsem = Semester.objects.filter(name=strm)
     if oldsem:
@@ -791,8 +806,6 @@ def get_or_create_semester(strm):
     strm, st, en = row
     
     # create Semester object
-    st = datetime.datetime.strptime(st, "%Y-%m-%d").date()
-    en = datetime.datetime.strptime(en, "%Y-%m-%d").date()
     sem = Semester(name=strm, start=st, end=en)
     sem.save()
     
@@ -849,7 +862,7 @@ def offset_semester_string(semester, offset=1):
 
 def pairs( lst ):
     if len(lst) > 1:
-        for i in xrange(1, len(lst)):
+        for i in range(1, len(lst)):
             yield (lst[i-1], lst[i])
 
 #@cache_by_args
@@ -865,9 +878,9 @@ def get_timeline(emplid, verbose=False):
     programs = get_student_programs(emplid) 
     
     if verbose:
-        print "----------"
+        print("----------")
         for program in programs:
-            print program
+            print(program)
 
     # calculate start and end date for programs
     prog_dict = {}
@@ -882,15 +895,15 @@ def get_timeline(emplid, verbose=False):
             prog_dict[program_code]['not_on_leave'].append(strm)
 
     if verbose:
-        print "----------"
-        for key, val in prog_dict.iteritems():
-            print key, val
+        print("----------")
+        for key, val in prog_dict.items():
+            print(key, val)
 
     # calculate on-leave semesters
     on_leave_semesters = [strm for strm, reason in get_on_leave_semesters(emplid)]
 
     try:
-        for program_code, program_object in prog_dict.iteritems():
+        for program_code, program_object in prog_dict.items():
             prog_dict[program_code]['on_leave'] = []
             semesters = Semester.range( program_object['start'], program_object['end'] )
             for semester in semesters:
@@ -900,21 +913,21 @@ def get_timeline(emplid, verbose=False):
                     prog_dict[program_code]['on_leave'].append(semester)
             prog_dict[program_code]['on_leave'].sort()
     except Semester.DoesNotExist:
-        print "Semester out of range", program_object['start'], program_object['end']
+        print("Semester out of range", program_object['start'], program_object['end'])
         return {}
 
     # put the programs in a list, sorted by start date
     programs = []
-    for program_code, program_object in prog_dict.iteritems():
+    for program_code, program_object in prog_dict.items():
         del program_object['not_on_leave']
         program_object['program_code'] = program_code
         programs.append(program_object) 
     programs = sorted( programs, key= lambda x : int(x['start']) )
 
     if verbose: 
-        print "----------"
+        print("----------")
         for program in programs:
-            print program
+            print(program)
 
     # how did it end?
     for program in programs:
@@ -1064,7 +1077,7 @@ def get_end_of_degree(emplid, acad_prog, start_semester):
     db.execute(query, (str(emplid),str(acad_prog),str(start_semester)))
     result = [(x[0], x[1], x[2]) for x in list(db)]
     if len(result) > 1:
-        print "\t Recoverable Error: More than one end of degree ", result
+        print("\t Recoverable Error: More than one end of degree ", result)
         return result[0]
     elif len(result) > 0:
         return result[0]
@@ -1339,7 +1352,7 @@ def outlines_api_url(offering):
     """
     The URL for info in the API.
     """
-    from urllib import quote_plus as q
+    from urllib.parse import quote_plus as q
 
     args = {
         'year': q(str(int(offering.semester.name[0:3]) + 1900)),
@@ -1355,12 +1368,12 @@ def outlines_api_url(offering):
 def outlines_data_json(offering):
     url = outlines_api_url(offering)
     try:
-        req = urllib2.urlopen(url, timeout=30)
+        req = urllib.request.urlopen(url, timeout=30)
         jsondata = req.read()
-        data = json.loads(jsondata)
+        data = json.loads(jsondata.decode('utf8'))
     except ValueError:
         data = {'internal_error': 'could not decode JSON'}
-    except (urllib2.HTTPError, urllib2.URLError, socket.timeout, socket.error):
+    except (urllib.error.HTTPError, urllib.error.URLError, socket.timeout, socket.error):
         data = {'internal_error': 'could not retrieve outline data from API'}
 
     if 'info' in data and 'outlinePath' in data['info']:
@@ -1383,16 +1396,16 @@ def userid_to_emplid(userid):
 
     Admin contact for the API is George Lee in the Learning & Community Platforms Group
     """
-    qs = urllib.urlencode({'art': EMPLID_SECRET, 'username': userid})
+    qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'username': userid})
     url = EMPLID_BASE_URL + qs
     try:
-        req = urllib2.urlopen(url, timeout=30)
-        jsondata = req.read()
+        req = urllib.request.urlopen(url, timeout=30)
+        jsondata = req.read().decode('utf8')
         data = json.loads(jsondata)
     except ValueError:
         # can't decode JSON
         return None
-    except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException, socket.timeout, socket.error):
+    except (urllib.error.HTTPError, urllib.error.URLError, http.client.HTTPException, socket.timeout, socket.error):
         # network problem, or 404 (if userid doesn't exist)
         return None
 
@@ -1407,16 +1420,16 @@ def emplid_to_userid(emplid):
 
     Admin contact for the API is George Lee in the Learning & Community Platforms Group
     """
-    qs = urllib.urlencode({'art': EMPLID_SECRET, 'sfuid': str(emplid)})
+    qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'sfuid': str(emplid)})
     url = USERID_BASE_URL + qs
     try:
-        req = urllib2.urlopen(url, timeout=30)
-        jsondata = req.read()
+        req = urllib.request.urlopen(url, timeout=30)
+        jsondata = req.read().decode('utf8')
         data = json.loads(jsondata)
     except ValueError:
         # can't decode JSON
         return None
-    except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException):
+    except (urllib.error.HTTPError, urllib.error.URLError, http.client.HTTPException):
         # network problem, or 404 (if userid doesn't exist)
         return None
 

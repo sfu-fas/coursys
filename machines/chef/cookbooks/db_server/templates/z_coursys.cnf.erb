@@ -1,0 +1,12 @@
+[mysqld]
+innodb_buffer_pool_size = 256M # chestnut heuristic: 80% memory
+innodb_log_file_size = 512M
+innodb_file_per_table = true
+bind_address = 127.0.0.1
+
+log-bin
+server_id = <%= @node_num %>
+replicate-do-db = coursys_db
+
+expire-logs-days = 30
+max-binlog-size = 500M

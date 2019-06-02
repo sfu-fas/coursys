@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('file_mediatype', models.CharField(max_length=200, null=True, editable=False, blank=True)),
                 ('hidden', models.BooleanField(default=False, db_index=True)),
                 ('emailed', models.BooleanField(default=False)),
-                ('advisor', models.ForeignKey(related_name='advisor', editable=False, to='coredata.Person', help_text=b'The advisor that created the note')),
+                ('advisor', models.ForeignKey(related_name='advisor', editable=False, to='coredata.Person', help_text=b'The advisor that created the note', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['student', 'created_at'],
@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created_at', models.DateTimeField(default=datetime.datetime.now)),
                 ('config', courselib.json_fields.JSONField(default=dict)),
-                ('advisor', models.ForeignKey(related_name='+', editable=False, to='coredata.Person', help_text=b'The advisor that created the note')),
+                ('advisor', models.ForeignKey(related_name='+', editable=False, to='coredata.Person', help_text=b'The advisor that created the note', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
                 ('category', models.CharField(max_length=3, choices=[(b'INS', b'Institution'), (b'PRO', b'Program'), (b'OTH', b'Other')])),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
                 ('config', courselib.json_fields.JSONField(default=dict)),
-                ('unit', models.ForeignKey(help_text=b'The academic unit that owns this artifact', to='coredata.Unit')),
+                ('unit', models.ForeignKey(help_text=b'The academic unit that owns this artifact', to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name'],
@@ -72,11 +72,11 @@ class Migration(migrations.Migration):
                 ('file_attachment', models.FileField(storage=django.core.files.storage.FileSystemStorage(base_url=None, location=b'submitted_files'), max_length=500, null=True, upload_to=advisornotes.models.attachment_upload_to, blank=True)),
                 ('file_mediatype', models.CharField(max_length=200, null=True, editable=False, blank=True)),
                 ('hidden', models.BooleanField(default=False, db_index=True)),
-                ('advisor', models.ForeignKey(editable=False, to='coredata.Person', help_text=b'The advisor that created the note')),
-                ('artifact', models.ForeignKey(blank=True, to='advisornotes.Artifact', help_text=b'The artifact that the note is about', null=True)),
-                ('course', models.ForeignKey(blank=True, to='coredata.Course', help_text=b'The course that the note is about', null=True)),
-                ('course_offering', models.ForeignKey(blank=True, to='coredata.CourseOffering', help_text=b'The course offering that the note is about', null=True)),
-                ('unit', models.ForeignKey(help_text=b'The academic unit that owns this note', to='coredata.Unit')),
+                ('advisor', models.ForeignKey(editable=False, to='coredata.Person', help_text=b'The advisor that created the note', on_delete=models.CASCADE)),
+                ('artifact', models.ForeignKey(blank=True, to='advisornotes.Artifact', help_text=b'The artifact that the note is about', null=True, on_delete=models.CASCADE)),
+                ('course', models.ForeignKey(blank=True, to='coredata.Course', help_text=b'The course that the note is about', null=True, on_delete=models.CASCADE)),
+                ('course_offering', models.ForeignKey(blank=True, to='coredata.CourseOffering', help_text=b'The course offering that the note is about', null=True, on_delete=models.CASCADE)),
+                ('unit', models.ForeignKey(help_text=b'The academic unit that owns this note', to='coredata.Unit', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['created_at'],
@@ -97,7 +97,7 @@ class Migration(migrations.Migration):
                 ('notes', models.TextField(help_text=b'Any general information for the student', blank=True)),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
                 ('config', courselib.json_fields.JSONField(default=dict)),
-                ('unit', models.ForeignKey(blank=True, to='coredata.Unit', help_text=b'The potential academic unit for the student', null=True)),
+                ('unit', models.ForeignKey(blank=True, to='coredata.Unit', help_text=b'The potential academic unit for the student', null=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -110,43 +110,43 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='advisorvisit',
             name='nonstudent',
-            field=models.ForeignKey(blank=True, to='advisornotes.NonStudent', help_text=b'The non-student that visited', null=True),
+            field=models.ForeignKey(blank=True, to='advisornotes.NonStudent', help_text=b'The non-student that visited', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='advisorvisit',
             name='program',
-            field=models.ForeignKey(related_name='+', blank=True, to='coredata.Unit', help_text=b'The unit of the program the student is in', null=True),
+            field=models.ForeignKey(related_name='+', blank=True, to='coredata.Unit', help_text=b'The unit of the program the student is in', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='advisorvisit',
             name='student',
-            field=models.ForeignKey(related_name='+', blank=True, to='coredata.Person', help_text=b'The student that visited the advisor', null=True),
+            field=models.ForeignKey(related_name='+', blank=True, to='coredata.Person', help_text=b'The student that visited the advisor', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='advisorvisit',
             name='unit',
-            field=models.ForeignKey(help_text=b'The academic unit that owns this visit', to='coredata.Unit'),
+            field=models.ForeignKey(help_text=b'The academic unit that owns this visit', to='coredata.Unit', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='advisornote',
             name='nonstudent',
-            field=models.ForeignKey(editable=False, to='advisornotes.NonStudent', help_text=b'The non-student that the note is about', null=True),
+            field=models.ForeignKey(editable=False, to='advisornotes.NonStudent', help_text=b'The non-student that the note is about', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='advisornote',
             name='student',
-            field=models.ForeignKey(related_name='student', editable=False, to='coredata.Person', help_text=b'The student that the note is about', null=True),
+            field=models.ForeignKey(related_name='student', editable=False, to='coredata.Person', help_text=b'The student that the note is about', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='advisornote',
             name='unit',
-            field=models.ForeignKey(help_text=b'The academic unit that owns this note', to='coredata.Unit'),
+            field=models.ForeignKey(help_text=b'The academic unit that owns this note', to='coredata.Unit', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

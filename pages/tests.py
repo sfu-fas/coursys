@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-from testboost.testcase import FastFixtureTestCase as TestCase
-from django.core.urlresolvers import reverse
-from pages.models import Page, PageVersion, brushes_used, MACRO_LABEL, ParserFor
+from django.test import TestCase
+from django.urls import reverse
+from django.utils.safestring import mark_safe, SafeText
+from pages.models import Page, PageVersion, MACRO_LABEL, PagePermission
 from coredata.models import CourseOffering, Member, Person
 from grades.models import Activity
 from courselib.testing import TEST_COURSE_SLUG, Client, test_views
+from courselib.markup import ParserFor, markup_to_html
 import re
 
 wikitext = """Some Python code:
@@ -73,7 +75,7 @@ Line that was inserted
 
 contents3 = "This is just totally different content."
 
-whitespace = re.compile(r"\s+")
+whitespace = re.compile(rb"\s+")
 
 class PagesTest(TestCase):
     fixtures = ['basedata', 'coredata']
@@ -83,33 +85,32 @@ class PagesTest(TestCase):
         p = Page(offering=crs, label="Foo")
         p.save()
         pv = PageVersion(page=p)
-        pv.get_creole()
-        return pv.Creole
+        return ParserFor(crs, pv)
     
     def test_wiki_formatting(self):
         Creole = self._get_creole()
 
         html = Creole.text2html("# one\n#two")
-        html_strip = whitespace.sub('', html)
-        self.assertEqual(html_strip, '<ol><li>one</li><li>two</li></ol>')
+        html_strip = whitespace.sub(b'', html)
+        self.assertEqual(html_strip, b'<ol><li>one</li><li>two</li></ol>')
 
         html = Creole.text2html("good **times**")
-        self.assertEqual(html, '<p>good <strong>times</strong></p>\n')
+        self.assertEqual(html, b'<p>good <strong>times</strong></p>\n')
 
         # a WikiCreole "addition"
         html = Creole.text2html("; A\n: B\n; C: D")
-        html_strip = whitespace.sub('', html)
-        self.assertEqual(html_strip, '<dl><dt>A</dt><dd>B</dd><dt>C</dt><dd>D</dd></dl>')
+        html_strip = whitespace.sub(b'', html)
+        self.assertEqual(html_strip, b'<dl><dt>A</dt><dd>B</dd><dt>C</dt><dd>D</dd></dl>')
         
     def test_codeblock(self):
         Creole = self._get_creole()
-        brushes = brushes_used(Creole.parser.parse(wikitext))
-        self.assertEqual(brushes, set(['shBrushJScript.js', 'shBrushPython.js']))
+        #brushes = brushes_used(Creole.parser.parse(wikitext))
+        #self.assertEqual(brushes, set(['shBrushJScript.js', 'shBrushPython.js']))
         
         html = Creole.text2html(wikitext)
-        self.assertIn('class="brush: python">for i', html)
-        self.assertIn('print i</pre>', html)
-        self.assertIn('i=1; i&lt;4; i++', html)
+        self.assertIn(b'class="highlight lang-python">for i', html)
+        self.assertIn(b'print i</pre>', html)
+        self.assertIn(b'i=1; i&lt;4; i++', html)
 
     def test_version_diffs(self):
         "Test the old version diffing."
@@ -162,7 +163,7 @@ class PagesTest(TestCase):
         from dashboard.models import new_feed_token
         token = new_feed_token()
         
-        updata = u"""{
+        updata = """{
             "userid": "ggbaker",
             "token": "%s",
             "pages": [
@@ -187,18 +188,18 @@ class PagesTest(TestCase):
         
         # make a request with no auth token in place
         c = Client()
-        url = reverse('pages.views.api_import', kwargs={'course_slug': crs.slug})
+        url = reverse('offering:pages:api_import', kwargs={'course_slug': crs.slug})
         response = c.post(url, data=updata.encode('utf8'), content_type="application/json")
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
         
         # create token and try again
         person.config['pages-token'] = token
         person.save()
         response = c.post(url, data=updata.encode('utf8'), content_type="application/json")
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         
         # make sure the data arrived
-        self.assertEquals(Page.objects.filter(offering=crs, label="PageExists").count(), 0)
+        self.assertEqual(Page.objects.filter(offering=crs, label="PageExists").count(), 0)
         p = Page.objects.get(offering=crs, label="PageChanged")
         v = p.current_version()
         self.assertEqual(v.title, "Another Page")
@@ -206,9 +207,9 @@ class PagesTest(TestCase):
         
         p = Page.objects.get(offering=crs, label="Index")
         v = p.current_version()
-        self.assertEqual(v.title, u"The Cours\u00e9 Page")
+        self.assertEqual(v.title, "The Cours\u00e9 Page")
         self.assertEqual(v.get_wikitext(), 'This page is special in **some** way. \\(x~^2+1 = \\frac{1}{2}\\).\n\nGoodbye world!')
-        self.assert_('math' in v.config)
+        self.assertTrue('math' in v.config)
         self.assertEqual(v.config['math'], True)
 
     def _sample_setup(self):
@@ -235,11 +236,123 @@ class PagesTest(TestCase):
         c.login_user('ggbaker')
         
         # test the basic rendering of the core pages
-        test_views(self, c, 'pages.views.', ['index_page', 'all_pages', 'new_page', 'new_file', 'import_site'],
+        test_views(self, c, 'offering:pages:', ['index_page', 'all_pages', 'new_page', 'new_file'],
                 {'course_slug': crs.slug})
 
-        test_views(self, c, 'pages.views.', ['view_page', 'page_history', 'edit_page', 'import_page'],
+        test_views(self, c, 'offering:pages:', ['view_page', 'page_history', 'edit_page'],
                 {'course_slug': crs.slug, 'page_label': 'OtherPage'})
+
+    def test_permissions(self):
+        """
+        Test page access control behaviour.
+        """
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.filter(offering=crs, role='INST').first()
+        inst = memb.person
+        ta = Member.objects.filter(offering=crs, role='TA').first().person
+        stud = Member.objects.filter(offering=crs, role='STUD').first().person
+        non_member = Person.objects.get(userid='dixon')
+        assert not Member.objects.filter(offering=crs, person=non_member)
+
+        p = Page(offering=crs, label="Test", can_read='STAF', can_write='INST')
+        p.save()
+        v = PageVersion(page=p, title="Test Page", wikitext="Page contents", editor=memb)
+        v.save()
+
+        # page-viewing permissions
+        c = Client()
+        url = reverse('offering:pages:view_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
+
+        c.logout()
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        c.login_user(inst.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        c.login_user(ta.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        c.login_user(stud.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        c.login_user(non_member.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        # ... but with a PagePermission object, non_member can access
+        pp = PagePermission(person=non_member, offering=crs, role='INST')
+        pp.save()
+        response = c.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        # page-editing permissions
+        url = reverse('offering:pages:edit_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
+
+        c.logout()
+        response = c.get(url)
+        self.assertEqual(response.status_code, 302) # redirect to log in
+
+        c.login_user(inst.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        c.login_user(ta.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        c.login_user(stud.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        # editing with PagePermission not implemented
+        c.login_user(non_member.userid)
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_form_submission(self):
+        """
+        Check that submitting the page editing form results in the objects we expect.
+        """
+        crs = self._sample_setup()
+        c = Client()
+        c.login_user('ggbaker')
+
+        pg = Page.objects.get(offering=crs, label="Index")
+
+        url = reverse('offering:pages:edit_page', kwargs={'course_slug': crs.slug, 'page_label': pg.label})
+        form_data = {
+            'offering': crs.id,
+            'label': 'NewIndex',
+            'can_read': 'ALL',
+            'can_write': 'INST',
+            'releasedate': '',
+            'title': 'New Index',
+            'markup_content_0': 'Unsafe <script>HTML</script>',
+            'markup_content_1': 'html',
+            'markup_content_2': 'on',
+            'comment': 'the comment',
+        }
+
+        # bad submission: redisplay form
+        resp = c.post(url, {})
+        self.assertEqual(resp.status_code, 200)
+
+        # good submission: save and redirect
+        resp = c.post(url, form_data)
+        self.assertEqual(resp.status_code, 302)
+
+        pg = Page.objects.get(offering=crs, label="NewIndex")
+        vr = pg.current_version()
+
+        self.assertEqual(pg.can_write, 'INST')
+        self.assertEqual(vr.title, 'New Index')
+        self.assertEqual(vr.wikitext, 'Unsafe HTML') # should be cleaned on the way in
+        self.assertEqual(vr.config['markup'], 'html')
+        self.assertEqual(vr.config['math'], True)
 
     def test_macros(self):
         """
@@ -254,7 +367,7 @@ class PagesTest(TestCase):
         v.save()
 
         # no macros defined: rendered as-is
-        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), "<p>one +two+ three +four+</p>")
 
         mp = Page(offering=crs, label=MACRO_LABEL)
         mp.save()
@@ -262,14 +375,43 @@ class PagesTest(TestCase):
         mv.save()
 
         # macros defined: should be substituted
-        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one 22 three 4444</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), "<p>one 22 three 4444</p>")
 
-        mp.safely_delete()
+        mp.label = 'NOT_MACROS'
+        mp.save()
 
         # macros disappear: back to original
-        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
+        self.assertEqual(p.current_version().html_contents().strip(), "<p>one +two+ three +four+</p>")
+
 
     def test_redirect(self):
+        """
+        Redirecting with redirect stub
+        """
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.get(offering=crs, person__userid="ggbaker")
+
+        p = Page(offering=crs, label="Test")
+        p.save()
+        v = PageVersion(page=p, title="Test Page", wikitext="one +two+ three +four+", editor=memb)
+        v.save()
+
+        c = Client()
+        # normal pages still viewable
+        url = reverse('offering:pages:view_page', kwargs={'course_slug': crs.slug, 'page_label': 'Test'})
+        response = c.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        v = PageVersion(page=p, redirect='NewLocation', editor=memb)
+        v.save()
+
+        response = c.get(url)
+        self.assertEqual(response.status_code, 301)
+        redir_url = reverse('offering:pages:view_page', kwargs={'course_slug': crs.slug, 'page_label': 'NewLocation'})
+        self.assertTrue(response['location'].endswith(redir_url))
+
+
+    def test_migration_redirect(self):
         """
         Redirecting after a migration
         """
@@ -283,7 +425,7 @@ class PagesTest(TestCase):
         p.config['migrated_to'] = ['2000sp-subj-000-d1', 'PageLabel']
         p.can_read = 'ALL'
         p.save()
-        url = reverse('pages.views.view_page', kwargs={'course_slug': crs.slug, 'page_label': p.label})
+        url = reverse('offering:pages:view_page', kwargs={'course_slug': crs.slug, 'page_label': p.label})
 
         # without course setting, shouldn't redirect
         resp = c.get(url)
@@ -308,7 +450,6 @@ class PagesTest(TestCase):
         resp = c.get(url)
         self.assertEqual(resp.status_code, 200)
 
-
     def test_entity(self):
         """
         Test creole extension for HTML entities
@@ -317,14 +458,14 @@ class PagesTest(TestCase):
         p = ParserFor(crs)
 
         # things that should be entities
-        inp = u'&amp; &NotRightTriangle; &#8935; &#x1D54B;'
-        outp = u'<p><span>&amp;</span> <span>&NotRightTriangle;</span> <span>&#8935;</span> <span>&#x1D54B;</span></p>'
-        self.assertEquals(p.text2html(inp).strip(), outp)
+        inp = '&amp; &NotRightTriangle; &#8935; &#x1D54B;'
+        outp = b'<p><span>&amp;</span> <span>&NotRightTriangle;</span> <span>&#8935;</span> <span>&#x1D54B;</span></p>'
+        self.assertEqual(p.text2html(inp).strip(), outp)
 
         # things that should NOT be entities
-        inp = u'&hello world; &#000000000123; &#x000000000123; &ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;'
-        outp = u'<p>&amp;hello world; &amp;#000000000123; &amp;#x000000000123; &amp;ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;</p>'
-        self.assertEquals(p.text2html(inp).strip(), outp)
+        inp = '&hello world; &#000000000123; &#x000000000123; &ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;'
+        outp = b'<p>&amp;hello world; &amp;#000000000123; &amp;#x000000000123; &amp;ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;</p>'
+        self.assertEqual(p.text2html(inp).strip(), outp)
 
     def test_extensions(self):
         """
@@ -335,11 +476,91 @@ class PagesTest(TestCase):
         a1 = Activity.objects.get(offering=crs, slug='a1')
 
         html = p.text2html('one <<duedate A1>> two')
-        self.assertIn('>' + a1.due_date.strftime('%A %B %d %Y') + '<', html)
+        self.assertIn(b'>' + a1.due_date.strftime('%A %B %d %Y').encode('utf8') + b'<', html)
 
         html = p.text2html('one <<duedatetime A1>> two')
-        self.assertIn('>' + a1.due_date.strftime('%A %B %d %Y, %H:%M') + '<', html)
+        self.assertIn(b'>' + a1.due_date.strftime('%A %B %d %Y, %H:%M').encode('utf8') + b'<', html)
 
-        html = p.text2html(u'one <<activitylink A1>> two')
-        link = u'<a href="%s">%s' % (a1.get_absolute_url(), a1.name)
+        html = p.text2html('one <<activitylink A1>> two')
+        link = '<a href="%s">%s' % (a1.get_absolute_url(), a1.name)
         self.assertIn(link.encode('utf-8'), html)
+
+    def test_markup_choice(self):
+        """
+        Check the distinction between Creole and Markdown pages
+        """
+        offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.get(offering=offering, person__userid="ggbaker")
+
+        p = Page(offering=offering, label="Test")
+        p.save()
+        v1 = PageVersion(page=p, title="T1", wikitext='A //test//.', editor=memb, comment="original page")
+        v1.save()
+        self.assertEqual(v1.html_contents(), '<p>A <em>test</em>.</p>')
+
+        v2 = PageVersion(page=p, title="T1", wikitext='A *test*.', editor=memb, comment="original page")
+        v2.set_markup('markdown')
+        v2.save()
+        self.assertEqual(v2.html_contents(), '<p>A <em>test</em>.</p>')
+
+    def test_github_markdown(self):
+        """
+        Check that we're getting the Github markdown flavour.
+        """
+        highlighted_code = markup_to_html('```python\ni=1\n```', 'markdown')
+        self.assertEqual(highlighted_code, '<pre lang="python"><code>i=1\n</code></pre>')
+
+    def test_all_markup_langs(self):
+        """
+        Make sure each markup option returns the same way.
+        """
+        correct = '<p>Paragraph <strong>1</strong> \u2605\U0001F600</p>'
+        markup_samples = [
+            ('creole', '''Paragraph **1** \u2605\U0001F600'''),
+            ('markdown', '''Paragraph **1** \u2605\U0001F600'''),
+            ('html', '''<p>Paragraph <strong>1</strong> \u2605\U0001F600'''),
+            ('textile', '''Paragraph *1* \u2605\U0001F600'''),
+        ]
+        for lang, markup in markup_samples:
+            result = markup_to_html(markup, lang)
+            self.assertIsInstance(result, SafeText)
+            self.assertEqual(result.strip(), correct)
+
+        result = markup_to_html('Paragraph <1> \u2605\U0001F600', 'plain')
+        self.assertIsInstance(result, SafeText)
+        self.assertEqual(result.strip(), '<p>Paragraph &lt;1&gt; \u2605\U0001F600</p>')
+
+    def test_html_safety(self):
+        """
+        Check that we're handling HTML in a safe way
+        """
+        html = markup_to_html('<p>Foo</em>', 'html')
+        self.assertEqual(html, '<p>Foo</p>')
+
+        html = markup_to_html('Foo<script>alert()</script>', 'html')
+        self.assertEqual(html, 'Fooalert()')
+
+        # some junky MSWord-like markup
+        html = markup_to_html('Foo<p class="home"><Span style="font-size: 500%">bar</Span></P>', 'html', restricted=True)
+        self.assertEqual(html, 'Foo<p>bar</p>')
+
+        html = markup_to_html('A&nbsp;&nbsp;<p>&nbsp;</p><table cellpadding="10"><tr><td colspan=4>B</td></tr></table>',
+                              'html', restricted=True)
+        self.assertEqual(html, 'A&nbsp;&nbsp;<p>&nbsp;</p>B')
+
+
+        # unsafe if we ask for it
+        html = markup_to_html('Foo<script>alert()</script>', 'html', html_already_safe=True)
+        self.assertEqual(html, 'Foo<script>alert()</script>')
+
+        # PageVersions should be saved only with safe HTML
+        offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.get(offering=offering, person__userid="ggbaker")
+
+        p = Page(offering=offering, label="Test")
+        p.save()
+        v1 = PageVersion(page=p, title="T1", wikitext='<em>Some</em> <script>HTML</script>', editor=memb)
+        v1.set_markup('html')
+        v1.save()
+
+        self.assertEqual(v1.wikitext, '<em>Some</em> HTML')

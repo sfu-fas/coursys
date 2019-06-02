@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}New Contact{% endblock %}
+{% block h1 %}New Contact{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'relationships:index' %}">Relationships</a></li>
+<li>New Contact</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'relationships:new_contact' %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Add Contact" />
+    </p>
+</form>
+{% endblock %}

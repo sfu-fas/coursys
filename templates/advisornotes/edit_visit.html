@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+{% block title %}Edit Visit by {{ visit.get_full_name }}{% endblock %}
+{% block h1 %}Edit Visit by {{ visit.get_full_name }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:student_notes" userid=userid %}">Notes for {{ visit.get_full_name }}</a></li>
+<li>Edit Visit</li>
+{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('#id_end_time_0').datepicker({'dateFormat': 'yy-mm-dd'});
+});
+</script>
+{% endblock %}
+
+
+{% block content %}
+    Visit started {{ visit.created_at }}
+    {% if admin %}
+    <form method="post" action="{% url "advising:edit_visit_admin" visit_slug=visit.slug %}">
+    {% else %}
+    <form method="post" action="{% url "advising:edit_visit_subsequent" visit_slug=visit.slug %}">
+    {% endif %}
+        {% csrf_token %}
+        {{ form|as_dl_inline }}
+        <p>
+            <input type="submit" class="submit" value="Save Visit" />
+        </p>
+    </form>
+{% endblock %}

@@ -5,13 +5,13 @@
 {% block h1 %}Positions{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty Management</a></li>
+<li><a href="{% url "faculty:index" %}">Faculty Management</a></li>
 <li>Position</li>
 {% endblock %}
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#positions').dataTable( {
     'bPaginate': false,
@@ -33,7 +33,7 @@ function confirmDelete(url) {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "faculty.views.new_position" %}">Add New Position</a></li>
+        <li><a href="{% url "faculty:new_position" %}">Add New Position</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -53,19 +53,19 @@ function confirmDelete(url) {
         </thead>
         {% for position in positions %}
             <tr>
-                <td><a href="{% url 'faculty.views.view_position' position_id=position.id %}">{{ position.title }}</a></td>
+                <td><a href="{% url 'faculty:view_position' position_id=position.id %}">{{ position.title }}</a></td>
                 <td>{{ position.projected_start_date }}</td>
                 <td>{{ position.position_number }}</td>
                 <td>{{ position.unit }}</td>
                 <td>
                     <div class="lineform">
                         <button type='submit' class='btn' title="Hide Position"
-                                onclick="confirmDelete('{% url "faculty.views.delete_position" position_id=position.id %}')">
+                                onclick="confirmDelete('{% url "faculty:delete_position" position_id=position.id %}')">
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </div>
                     <form class="lineform" method="GET"
-                        action="{% url "faculty.views.edit_position" position_id=position.id %}">
+                        action="{% url "faculty:edit_position" position_id=position.id %}">
                         <button type='submit' class='btn' title="Edit Position">
                             <i class='fa fa-edit'></i>
                         </button>

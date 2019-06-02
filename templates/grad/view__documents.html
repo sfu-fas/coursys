@@ -1,6 +1,6 @@
-{% if index and can_edit %}
+{% if can_edit %}
 <p class="manage_link">
-    <a href="{% url "grad.views.manage_documents" grad_slug=grad.slug  %}">
+    <a href="{% url "grad:manage_documents" grad_slug=grad.slug  %}">
     Manage Documents
     </a>
 </p>{% endif %}
@@ -12,7 +12,7 @@
                 <th>Name</th>
                 <th>Document</th>
 
-				{% if not index %}
+				{% if can_edit %}
                     <th>Actions</th>
                 {% endif %}
 			</tr>
@@ -39,7 +39,7 @@
                 </td>
 				<td> 
                     {% if not d.removed %}
-                        <a href="{% url "grad.views.download_file" grad_slug=grad.slug d_id=d.id %}">
+                        <a href="{% url "grad:download_file" grad_slug=grad.slug d_id=d.id %}">
                         <i class="fa fa-download"></i>
                         {{d.attachment_filename}}
                         </a>
@@ -49,13 +49,13 @@
                     {% endif %}
                 </td>
         
-				{% if not index %}
+				{% if can_edit %}
                 <td class='miniaction'>
                     {% if not d.removed %}
-                        <form action="{% url "grad.views.remove_document" grad_slug=grad.slug d_id=d.id %}" method="post">
+                        <form action="{% url "grad:remove_document" grad_slug=grad.slug d_id=d.id %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
-                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this document?')" />
+                                    <input type="submit" value="remove" class="confirm-submit" data-submit-action="remove this document" />
                                 </p>
                         </form>
                     {% endif %}

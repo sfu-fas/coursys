@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}CourSys Administration{% endblock %}
-{% block h1 %}CourSys Administration{% endblock %}
+{% block title %}{{ CourSys }} Administration{% endblock %}
+{% block h1 %}{{ CourSys }} Administration{% endblock %}
 
 {% block subbreadcrumbs %}<li>System Admin</li>{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
   $(document).ready(function() {
     offering_autocomplete('id_offering');
@@ -27,22 +27,22 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	    <li><a href="{% url "coredata.views.admin_panel" %}">View Admin Panel</a></li>
-	    <li><a href="{% url "log.views.index" %}">View Logs</a></li>
-	    <li class="newsec"><a href="{% url "coredata.views.role_list" %}">Manage Roles</a></li>
-	    <li><a href="{% url "coredata.views.members_list" %}">Manage Memberships</a></li>
-	    <li><a href="{% url "coredata.views.combined_offerings" %}">Manage Combined Sections</a></li>
-	    <li><a href="{% url "coredata.views.new_person" %}">New Person</a></li>
-        <li><a href="{% url "coredata.views.list_anypersons" %}">Manage AnyPersons</a></li>
-	    <li class="newsec"><a href="{% url "coredata.views.unit_list" %}">Manage Units</a></li>
-	    <li><a href="{% url "coredata.views.semester_list" %}">Manage Semesters</a></li>
-	    <li><a href="{% url "discipline.views.show_templates" %}">Dishonesty Templates</a></li>
+	    <li><a href="{% url "sysadmin:admin_panel" %}">View Admin Panel</a></li>
+	    <li><a href="{% url "sysadmin:index" %}">View Logs</a></li>
+	    <li class="newsec"><a href="{% url "sysadmin:role_list" %}">Manage Roles</a></li>
+	    <li><a href="{% url "sysadmin:members_list" %}">Manage Memberships</a></li>
+	    <li><a href="{% url "sysadmin:combined_offerings" %}">Manage Combined Sections</a></li>
+	    <li><a href="{% url "sysadmin:new_person" %}">New Person</a></li>
+        <li><a href="{% url "sysadmin:list_anypersons" %}">Manage AnyPersons</a></li>
+	    <li class="newsec"><a href="{% url "sysadmin:unit_list" %}">Manage Units</a></li>
+	    <li><a href="{% url "sysadmin:semester_list" %}">Manage Semesters</a></li>
+	    <li><a href="{% url "sysadmin:show_templates" %}">Dishonesty Templates</a></li>
     </ul>
 </div>
 {% endblock %}
 {% block content %}
 <h2 id="search">User Search</h2>
-<form action="{% url "coredata.views.sysadmin" %}" method="get">
+<form action="{% url "sysadmin:sysadmin" %}" method="get">
 {{ form.non_field_errors }}
 <p>Person search: {{ form.user }} {{ form.user.errors }} <input type="submit" name="usersearch" value="Search" class="submit" /></p>
 <div class="clearfix"></div>

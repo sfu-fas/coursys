@@ -32,20 +32,20 @@ def filetype(fh):
     fh.seek(0)
     header = fh.read(10)
     magic = header[0:4]
-    if magic == "PK\003\004" or magic == "PK00":
+    if magic == b"PK\003\004" or magic == b"PK00":
         # it's ZIP-ish: also look for ZIP-contained types
         fh.seek(0)
         try:
             zipf = zipfile.ZipFile(fh, "r")
             try:
                 content_type = zipf.read("mimetype")
-                if content_type == "application/vnd.oasis.opendocument.text":
+                if content_type == b"application/vnd.oasis.opendocument.text":
                     return "OD-TEXT"
-                elif content_type == "application/vnd.oasis.opendocument.presentation":
+                elif content_type == b"application/vnd.oasis.opendocument.presentation":
                     return "OD-PRES"
-                elif content_type == "application/vnd.oasis.opendocument.spreadsheet":
+                elif content_type == b"application/vnd.oasis.opendocument.spreadsheet":
                     return "OD-SS"
-                elif content_type == "application/vnd.oasis.opendocument.graphics":
+                elif content_type == b"application/vnd.oasis.opendocument.graphics":
                     return "OD-GRA"
             except KeyError:
                 pass
@@ -54,9 +54,9 @@ def filetype(fh):
         except (zipfile.BadZipfile, ValueError):
             pass
 
-    elif magic == "Rar!":
+    elif magic == b"Rar!":
         return "RAR"
-    elif magic[0:2] == "\037\213":
+    elif magic[0:2] == b"\037\213":
         fh.seek(0)
         gzfh = gzip.GzipFile(filename="filename", fileobj=fh)
         try:
@@ -65,23 +65,23 @@ def filetype(fh):
             # generic error occurs on invalid gzip data
             return None
 
-        if gzfh.read(5) == "ustar":
+        if gzfh.read(5) == b"ustar":
             return "TGZ"
         else:
             return "GZIP"
-    elif magic == "%PDF":
+    elif magic == b"%PDF":
         return "PDF"
-    elif magic in ["\377\330\377\340", "\377\330\377\356"]:
+    elif magic in [b"\377\330\377\340", b"\377\330\377\356"]:
         return "JPEG"
-    elif header[6:10] == "Exif" and magic[0:2] == "\377\330":
+    elif header[6:10] == b"Exif" and magic[0:2] == b"\377\330":
         return "JPEG"
-    elif magic == "\211PNG":
+    elif magic == b"\211PNG":
         return "PNG"
-    elif magic == "GIF8":
+    elif magic == b"GIF8":
         return "GIF"
 
     fh.seek(257)
-    if fh.read(5) == "ustar":
+    if fh.read(5) == b"ustar":
         return "TAR"
 
     return None
@@ -117,9 +117,9 @@ class SubmissionForm(ModelForm):
         # check that real file type is allowed
         allowed_types = self.instance.Type.Component.allowed_types
         if not ftype:
-            raise forms.ValidationError('Unable to determine file type.  Allowed file types are: %s.' % (", ".join(allowed_types.keys())))
+            raise forms.ValidationError('Unable to determine file type.  Allowed file types are: %s.' % (", ".join(list(allowed_types.keys()))))
         if ftype not in allowed_types:
-            raise forms.ValidationError('Incorrect file type.  File contents appear to be %s.  Allowed file types are: %s.' % (ftype, ", ".join(allowed_types.keys())))
+            raise forms.ValidationError('Incorrect file type.  File contents appear to be %s.  Allowed file types are: %s.' % (ftype, ", ".join(list(allowed_types.keys()))))
 
         # check that extension matches
         extensions = allowed_types[ftype]

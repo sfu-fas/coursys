@@ -1,5 +1,5 @@
 from planning.models import SemesterPlan, PlannedOffering, TeachingIntention, TeachingCapability
-from update_plan import update_plan
+from .update_plan import update_plan
 from courselib.auth import requires_role
 from coredata.models import Person
 from django.shortcuts import get_object_or_404
@@ -111,4 +111,4 @@ def view_instructors(request, semester, plan_slug, planned_offering_slug):
             'current_courses': PlannedOffering.objects.filter(plan=semester_plan, instructor=i, component="LEC")
         })
 
-    return render_to_response("planning/view_instructors.html", {'semester_plan': semester_plan, 'capable_instructors_list': capable_instructors_list, 'all_instructors_list': all_instructors_list, 'planned_offering': planned_offering}, context_instance=RequestContext(request))
+    return render(request, "planning/view_instructors.html", {'semester_plan': semester_plan, 'capable_instructors_list': capable_instructors_list, 'all_instructors_list': all_instructors_list, 'planned_offering': planned_offering})

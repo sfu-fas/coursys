@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load staticfiles %}
 
 {% block title %}Configure Semester {{semester.name}}{% endblock %}
 {% block h1 %}Configure Semester {{semester.name}}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="/media/js/ra.js"></script>
-<link rel="stylesheet" type="text/css" href="/media/ra/ra.css" />
+<script src="{% static 'js/ra.js' %}"></script>
+<link rel="stylesheet" href="{% static 'ra/ra.css' %}" />
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra.views.search" %}">RAs</a></li>
+<li><a href="{% url "ra:search" %}">RAs</a></li>
 <li>Configure Semester {{semester.name}}</li>{% endblock %}
 
 {% block actions %}
@@ -18,10 +19,10 @@
 <h2 class="heading">Actions</h2>
 <ul>
 {% if semester.previous_semester %}
-<li><a href="{% url "ra.views.semester_config" semester_name=semester.previous_semester.name %}">Previous Semester</a></li>
+<li><a href="{% url "ra:semester_config" semester_name=semester.previous_semester.name %}">Previous Semester</a></li>
 {% endif %}
 {% if semester.next_semester %}
-<li><a href="{% url "ra.views.semester_config" semester_name=semester.next_semester.name %}">Next Semester</a></li>
+<li><a href="{% url "ra:semester_config" semester_name=semester.next_semester.name %}">Next Semester</a></li>
 {% endif %}
 </ul>
 </div>

@@ -3,40 +3,38 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
 {% endcomment %}{% load staticfiles %}{% load compress %}<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>{% block wholetitle %}CourSys - {% block title %}{% endblock %}{% endblock %}</title>
-  {% compress js %}
-  <script type="text/javascript" src="{% static "newsfu/jquery.js" %}"></script>
-  <script type="text/javascript" src="{% static "newsfu/jquery-ui.js" %}"></script>
-  <script type="text/javascript" src="{% static "newsfu/head.scripts.js" %}"></script>
-  <script type="text/javascript">var $ = jQuery;</script>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="origin" />
+  <title>{% block wholetitle %}{{ CourSys }} - {% block title %}{% endblock %}{% endblock %}</title>
+  {% compress css %}
+  <link rel="stylesheet" href="{% static "newsfu/head.styles.css" %}" />
+  <link rel="stylesheet" href="{% static "style/main.css" %}" />
+  <link rel="stylesheet" href="{% static "jquery-ui/jquery-ui.min.css" %}" />
+  <link rel="stylesheet" href="{% static "style/print.css" %}" />
+  <link rel="stylesheet" href="{% static "font-awesome/css/font-awesome.min.css" %}" />
+  {% endcompress %}
 
-  <script type="text/javascript" src="{% static "datatables/js/jquery.dataTables.min.js" %}"></script>
-  <script type="text/javascript" src="{% static "js/core.js" %}"></script>
-  <script type="text/javascript" src="{% static "collapsible/js/jQuery.collapsible.js" %}"></script>
+  {% compress js %}
+  <script src="{% static "jquery.min.js" %}"></script>
+  <script src="{% static "jquery-ui/jquery-ui.min.js" %}"></script>
+  <script src="{% static "datatables/js/jquery.dataTables.min.js" %}"></script>
+  <script src="{% static "js/core.js" %}"></script>
+  <script src="{% static "collapsible/js/jQuery.collapsible.js" %}"></script>
   {% endcompress %}
 
   <!--[if lt IE 9]>
   {% compress js %}
-  <script type="text/javascript" src="{% static "newsfu/html5shiv.js" %}"></script>
-  <script type="text/javascript" src="{% static "newsfu/respond.js" %}"></script>
+  <script src="{% static "newsfu/html5shiv.js" %}"></script>
+  <script src="{% static "newsfu/respond.js" %}"></script>
   {% endcompress %}
   <![endif]-->
   <!--[if lte IE 9]>
   {% compress js %}
-  <script type="text/javascript" src="{% static "newsfu/matchmedia.js" %}"></script>
+  <script src="{% static "newsfu/matchmedia.js" %}"></script>
   {% endcompress %}
   <![endif]-->
-
-  {% compress css %}
-  <link rel="stylesheet" href="{% static "newsfu/head.styles.css" %}" type="text/css">
-  <link rel="stylesheet" href="{% static "style/main.css" %}" />
-  <link rel="stylesheet" href="{% static "style/custom-theme/jquery-ui-1.10.4.custom.min.css" %}" />
-  <link rel="stylesheet" href="{% static "style/print.css" %}" />
-  <link rel="stylesheet" href="{% static "font-awesome/css/font-awesome.min.css" %}">
-  {% endcompress %}
 
   <link rel="icon" href="{% static "icons/favicon.ico" %}" type="image/x-icon" />
   <link rel="shortcut icon" href="{% static "icons/favicon.ico" %}" type="image/x-icon" />
@@ -55,14 +53,15 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
             <div class="branding">
               <h1>Simon Fraser University<br>Engaging the World</h1>
             </div></a> <!-- end branding -->
-            <div class="site-title"><h2><a href="/">CourSys</a></h2></div>
+            <div class="site-title"><h2><a href="/">{{ CourSys }}</a></h2></div>
           </div>
         </section>
-        <section class="actionable-header">
+        <section class="actionable-header{% if instr_ta_ab %} ab-yes{% endif %}">
           <div class="search">
-            <form action="{% url "dashboard.views.site_search" %}" method="get">
+            <form action="{% url "dashboard:site_search" %}" method="get">
               <fieldset class="search-field">
-                <input type="search" placeholder="Search" name="q">
+                {% if instr_ta_ab %}<span class="searchlabel"><a href="{% url 'docs:view_doc' doc_slug='search' %}">Search</a> for students, courses, discussion, pages:</span>{% endif %}
+                <input type="search" placeholder="{% if instr_ta_ab %}Search for students, discussion, etc.{% else %}Search{% endif %}" name="q">
               </fieldset>
 
               <fieldset class="search-scope-set">
@@ -82,36 +81,11 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
                   {% if user.is_authenticated %}
                     <a href="{{ LOGOUT_URL }}">Sign Out</a>
 				  {% else %}
-                    <a href="{{ LOGIN_URL }}">Sign In</a>
+                    <a href="{{ LOGIN_URL }}?next={{ request_path }}">Sign In</a>
 				  {% endif %}
                 </li>
               </ul>
             </div>
-
-            <ul class="sf-menu">
-              <li class="header">
-                <a href="/">Courses</a>
-                  {% regroup memberships by offering.semester as by_semester %}
-                    <ul>
-                    {% for semester in by_semester %}
-                    {% for membership in semester.list %}
-                      <li><a href="{{membership.offering.get_absolute_url}}">{{semester.grouper.label}} - {{membership.offering.name}}</a></li>
-                    {% endfor %}
-                    {% endfor %}
-                    </ul>
-              </li>
-              <li>
-                {% if user.is_authenticated %}<a href="{% url "dashboard.views.index" %}">{{user.username}}</a>{% else %}<a href="{{ LOGIN_URL }}">Sign In</a>{% endif %}
-                <ul class="expanded">
-                  <li><a href="{% url "dashboard.views.news_list" %}">All News Items</a></li>
-                  <li><a href="{% url "dashboard.views.calendar" %}">View Calendar</a></li>
-                  <li><a href="{% url "dashboard.views.config" %}">User Configuration</a></li>
-                  {% if 'FAC' in roles or 'SESS' in roles or 'INST' in roles %}
-                  <li><a href="{% url "ta.views.instr_offers" %}">TA Offers</a></li>{% endif %}
-                  {% if user.is_authenticated %}<li><a href="{{ LOGOUT_URL }}">Sign Out</a></li>{% endif %}
-                </ul>
-              </li>
-            </ul>
           </div>
         </section>
       </header>
@@ -121,7 +95,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
 			{% if user.is_authenticated %}
 			Logged in as {{user.username}}. <a href="{{ LOGOUT_URL }}">Logout</a>
 			{% else %}
-			Not logged in. <a href="{{ LOGIN_URL }}">Login</a>
+			Not logged in. <a href="{{ LOGIN_URL }}?next={{ request_path }}">Login</a>
 			{% endif %}
 			</div>
       </div><!-- end header-divider -->
@@ -135,7 +109,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
         {% endblock %}
 
         {% block allbreadcrumbs %}<div class="breadcrumb">
-        {% block breadcrumbs %}<ul><li><a href="/">CourSys</a></li>{% block subbreadcrumbs %}{% endblock %}</ul>{% endblock %}
+        {% block breadcrumbs %}<ul><li><a href="{% url 'dashboard:index' %}">{{ CourSys }}</a></li>{% block subbreadcrumbs %}{% endblock %}</ul>{% endblock %}
         </div>{% endblock %}
 
         <div class="mobile-sub-nav">
@@ -171,6 +145,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
         </section>
 
         <footer>
+            <div>{{ CourSys }} is hosted by <a href="https://www.sfu.ca/computing.html">SFU Computing Science</a>.</div>
           <ul>
             <li><a href="http://www.sfu.ca/admission">Admission</a></li>
             <li><a href="http://www.sfu.ca/programs">Programs</a></li>
@@ -234,8 +209,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
     </div>
   </div>
   {% compress js %}
-  <script type="text/javascript" src="{% static "newsfu/footer.scripts.js" %}"></script>
-  <script type="text/javascript" src="{% static "newsfu/toggleFormContent.js" %}"></script>
+  <script src="{% static "newsfu/toggleFormContent.js" %}"></script>
   {% endcompress %}
 </body>
 </html>

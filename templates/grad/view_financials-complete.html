@@ -7,13 +7,13 @@
 <div id="actions">
 	<h2>Actions</h2>
 	<ul>
-	<li><a href="{% url "grad.views.financials" grad_slug=grad.slug style="compact" %}">View compact format</a></li>
+	<li><a href="{% url "grad:financials" grad_slug=grad.slug style="compact" %}">View compact format</a></li>
 	</ul>
 </div>
 {% endblock %}
 
 {% block gradheadextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 	$(document).ready(function() {
 		{% for semester in semesters %}{% for scholarship in semester.scholarship_details.scholarships %}
 		$('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').hide();
@@ -41,8 +41,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "grad.views.index" %}">Grad</a></li>
-<li><a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>Financial Summary</li>
 {% endblock %}
 
@@ -139,11 +139,11 @@
   <span class="label"> Promised Amount: </span> ${{ semester.promise.amount|floatformat:2 }} <br />
   <span class="label"> Received Amount: </span> ${{ semester.promisereceived|floatformat:2 }} <br />
   <div class="hr"></div>
-  {% if semester.promiseowing == -1 %}
-  <span class="label">Amount Owing: None</span>
+  {% if semester.promiseowing <= 0 %}
+  <span class="label promise-owing-negative">
   {% else %}
-  <span class="label promise-owing">Amount Owing: (${{ semester.promiseowing|floatformat:2 }})</span>
-  {% endif %}
+  <span class="label promise-owing">
+  {% endif %}Amount Owing: (${{ semester.promiseowing|floatformat:2 }})</span>
 </td>
 {% endif %}
 </tr>

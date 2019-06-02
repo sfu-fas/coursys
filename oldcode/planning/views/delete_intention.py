@@ -1,5 +1,5 @@
 from planning.models import TeachingIntention
-from edit_intention import edit_intention
+from .edit_intention import edit_intention
 from courselib.auth import requires_instructor
 from coredata.models import Person, Semester
 from django.http import  HttpResponseRedirect

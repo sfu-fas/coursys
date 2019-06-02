@@ -4,11 +4,11 @@ Replace any entities in all PageVersions with an escaped version (so it displays
 change)
 """
 
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
-from pages.models import HTMLEntity
+from courselib.markup import HTMLEntity
 import re
 
 regex = re.compile(HTMLEntity().re_string())
@@ -44,5 +44,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(escape_page_entities),
+        #migrations.RunPython(escape_page_entities),
     ]

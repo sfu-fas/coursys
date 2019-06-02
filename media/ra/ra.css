@@ -15,10 +15,15 @@ td.salary_first, td.salary_label {
     text-align: right;
     font-weight: bold;
 }
-div#programs {
+div#extra_info {
 	float: right;
 	width: 25%;
 }
+
+div#visa_warning {
+    color: red;
+}
+
 div#programs li {
 	list-style-type: disc;
 }

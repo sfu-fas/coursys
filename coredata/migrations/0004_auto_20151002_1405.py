@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import courselib.json_fields
@@ -46,16 +46,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='anyperson',
             name='future_person',
-            field=models.ForeignKey(to='coredata.FuturePerson'),
+            field=models.ForeignKey(to='coredata.FuturePerson', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='anyperson',
             name='person',
-            field=models.ForeignKey(to='coredata.Person'),
+            field=models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='anyperson',
             name='role_account',
-            field=models.ForeignKey(to='coredata.RoleAccount'),
+            field=models.ForeignKey(to='coredata.RoleAccount', on_delete=models.CASCADE),
         ),
     ]

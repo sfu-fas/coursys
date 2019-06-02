@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Add Content{% endblock %}
+{% block h1 %}Add Content{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url 'relationships:index' %}">Relationships</a></li>
+    <li><a href="{% url 'relationships:view_contact' contact_slug=contact.slug%}">{{ contact.name }}</a></li>
+    <li>Add Event</li>
+{% endblock %}
+
+{% block content %}
+<p>Select the type of content to add:</p>
+<ul>
+  {% for event in events %}
+  <li>
+      <a href="{% url 'relationships:add_event' contact_slug=contact.slug handler_slug=event.slug %}">{{ event.name }}</a>
+  </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

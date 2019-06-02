@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -79,7 +79,7 @@ class Migration(migrations.Migration):
                 ('flags', bitfield.models.BitField([b'write', b'quant', b'bhum', b'bsci', b'bsoc', b'combined'], default=0)),
                 ('config', courselib.json_fields.JSONField(default={})),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
-                ('course', models.ForeignKey(to='coredata.Course')),
+                ('course', models.ForeignKey(to='coredata.Course', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['-semester', 'subject', 'number', 'section'],
@@ -112,7 +112,7 @@ class Migration(migrations.Migration):
                 ('exam', models.BooleanField(default=False)),
                 ('meeting_type', models.CharField(default=b'LEC', max_length=4, choices=[(b'LEC', b'Lecture'), (b'MIDT', b'Midterm Exam'), (b'EXAM', b'Exam'), (b'LAB', b'Lab/Tutorial')])),
                 ('labtut_section', models.CharField(help_text=b'Section should be in the form "C101" or "D103".  None/blank for the non lab/tutorial events.', max_length=4, null=True, blank=True)),
-                ('offering', models.ForeignKey(to='coredata.CourseOffering')),
+                ('offering', models.ForeignKey(to='coredata.CourseOffering', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['weekday'],
@@ -130,7 +130,7 @@ class Migration(migrations.Migration):
                 ('labtut_section', models.CharField(help_text=b'Section should be in the form "C101" or "D103".', max_length=4, null=True, blank=True)),
                 ('official_grade', models.CharField(max_length=2, null=True, blank=True)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('offering', models.ForeignKey(to='coredata.CourseOffering')),
+                ('offering', models.ForeignKey(to='coredata.CourseOffering', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['offering', 'person'],
@@ -163,7 +163,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('role', models.CharField(max_length=4, choices=[(b'ADVS', b'Advisor'), (b'FAC', b'Faculty Member'), (b'SESS', b'Sessional Instructor'), (b'COOP', b'Co-op Staff'), (b'INST', b'Other Instructor'), (b'SUPV', b'Additional Supervisor'), (b'PLAN', b'Planning Administrator'), (b'DISC', b'Discipline Case Administrator'), (b'DICC', b'Discipline Case Filer (email CC)'), (b'ADMN', b'Departmental Administrator'), (b'TAAD', b'TA Administrator'), (b'TADM', b'Teaching Administrator'), (b'GRAD', b'Grad Student Administrator'), (b'GRPD', b'Graduate Program Director'), (b'FUND', b'Grad Funding Administrator'), (b'TECH', b'Tech Staff'), (b'GPA', b'GPA conversion system admin'), (b'SYSA', b'System Administrator'), (b'NONE', b'none')])),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('person', models.ForeignKey(to='coredata.Person')),
+                ('person', models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -188,7 +188,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('week', models.PositiveSmallIntegerField(help_text=b'Week of the semester (typically 1-13)')),
                 ('monday', models.DateField(help_text=b'Monday of this week.')),
-                ('semester', models.ForeignKey(to='coredata.Semester')),
+                ('semester', models.ForeignKey(to='coredata.Semester', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['semester', 'week'],
@@ -204,7 +204,7 @@ class Migration(migrations.Migration):
                 ('acad_org', models.CharField(null=True, max_length=10, blank=True, help_text=b'ACAD_ORG field from SIMS', unique=True, db_index=True)),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
                 ('config', courselib.json_fields.JSONField(default={})),
-                ('parent', models.ForeignKey(blank=True, to='coredata.Unit', help_text=b'Next unit up in the hierarchy.', null=True)),
+                ('parent', models.ForeignKey(blank=True, to='coredata.Unit', help_text=b'Next unit up in the hierarchy.', null=True, on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['label'],
@@ -218,7 +218,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='role',
             name='unit',
-            field=models.ForeignKey(to='coredata.Unit'),
+            field=models.ForeignKey(to='coredata.Unit', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -228,13 +228,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='member',
             name='person',
-            field=models.ForeignKey(related_name='person', to='coredata.Person'),
+            field=models.ForeignKey(related_name='person', to='coredata.Person', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='holiday',
             name='semester',
-            field=models.ForeignKey(to='coredata.Semester'),
+            field=models.ForeignKey(to='coredata.Semester', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -246,13 +246,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='courseoffering',
             name='owner',
-            field=models.ForeignKey(to='coredata.Unit', help_text=b'Unit that controls this offering', null=True),
+            field=models.ForeignKey(to='coredata.Unit', help_text=b'Unit that controls this offering', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='courseoffering',
             name='semester',
-            field=models.ForeignKey(to='coredata.Semester'),
+            field=models.ForeignKey(to='coredata.Semester', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -272,13 +272,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='combinedoffering',
             name='owner',
-            field=models.ForeignKey(to='coredata.Unit', help_text=b'Unit that controls this offering', null=True),
+            field=models.ForeignKey(to='coredata.Unit', help_text=b'Unit that controls this offering', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='combinedoffering',
             name='semester',
-            field=models.ForeignKey(to='coredata.Semester'),
+            field=models.ForeignKey(to='coredata.Semester', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

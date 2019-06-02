@@ -2,28 +2,29 @@ import zipfile
 import tempfile
 import os
 import errno
-import StringIO
-import unicodecsv as csv
+import io
+import csv
 from pipes import quote
 from datetime import datetime
 
-from django.core.servers.basehttp import FileWrapper
+from wsgiref.util import FileWrapper
 from django.http import StreamingHttpResponse
 
-from base import SubmissionComponent, Submission, StudentSubmission, GroupSubmission, SubmittedComponent
+from .base import SubmissionComponent, Submission, StudentSubmission, GroupSubmission, SubmittedComponent
 from coredata.models import Person
 from groups.models import GroupMember
+from courselib.branding import help_email
 
-from url import URL
-from archive import Archive
-from pdf import PDF
-from code import Code
-from word import Word
-from image import Image
-from office import Office
-from codefile import Codefile
-from gittag import GitTag
-from text import Text
+from .url import URL
+from .archive import Archive
+from .pdf import PDF
+from .code import Code
+from .word import Word
+from .image import Image
+from .office import Office
+from .codefile import Codefile
+from .gittag import GitTag
+from .text import Text
 
 ALL_TYPE_CLASSES = [Archive, Code, Codefile, GitTag, Image, Office, PDF, Text, URL, Word]
 
@@ -74,7 +75,7 @@ def get_component(**kwargs):
         res = Type.Component.objects.filter(**kwargs)
         res = list(res)
         if len(res) > 1:
-            raise ValueError, "Search returned multiple values."
+            raise ValueError("Search returned multiple values.")
         elif len(res) == 1:
             return res[0]
 
@@ -89,7 +90,7 @@ def get_submitted_component(**kwargs):
         res = Type.SubmittedComponent.objects.filter(**kwargs)
         res = list(res)
         if len(res) > 1:
-            raise ValueError, "Search returned multiple values."
+            raise ValueError("Search returned multiple values.")
         elif len(res) == 1:
             return res[0]
 
@@ -136,15 +137,18 @@ class SubmissionInfo(object):
         """
         submission, is_group = cls._get_submission(submission_id)
         if not submission:
-            raise ValueError, 'No such submission'
+            raise ValueError('No such submission')
 
         activity = submission.activity
         si = cls(activity=activity)
         si.is_group = is_group
         si.submissions = [submission]
-        si.student = submission.member.person
+
         if is_group:
             si.group = submission.group
+            si.student = None
+        else:
+            si.student = submission.member.person
 
         si.get_most_recent_components()
 
@@ -267,7 +271,7 @@ class SubmissionInfo(object):
         """
         self.ensure_components()
         assert self.submitted_components is not None
-        return zip(self.components, self.submitted_components)
+        return list(zip(self.components, self.submitted_components))
 
     def submissions_and_components(self):
         """
@@ -276,7 +280,7 @@ class SubmissionInfo(object):
         assert self.submissions is not None
         assert self.all_submitted_components is not None
         for sub, subcomps in zip(self.submissions, self.all_submitted_components):
-            yield sub, zip(self.components, subcomps)
+            yield sub, list(zip(self.components, subcomps))
 
     def all_components_and_submitted(self):
         """
@@ -296,7 +300,7 @@ class SubmissionInfo(object):
         assert self.submissions is not None
         from courselib.auth import is_course_staff_by_slug
 
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             return False
 
         elif is_course_staff_by_slug(request, self.activity.offering.slug):
@@ -383,9 +387,9 @@ class SubmissionInfo(object):
                     if e.errno == errno.ENOENT:
                         # Missing file? How did that come up once in five years?
                         fn = os.path.join(prefix, "MISSING_FILE.txt")
-                        zipf.writestr(fn, "A file named '%s' was submitted but can't be found on CourSys. That's weird.\n"
-                                          "Please email coursys-help@sfu.ca and ask us to help track it down."
-                                      % (subcomp.get_filename()))
+                        zipf.writestr(fn, "A file named '%s' was submitted but can't be found. That's weird.\n"
+                                          "Please email %s and ask us to help track it down."
+                                      % (subcomp.get_filename(), help_email(hint='course')))
                     else:
                         raise
 
@@ -432,7 +436,7 @@ class SubmissionInfo(object):
                 individual_subcomps[sub.file_slug()] = scs
 
         # Now add them to the ZIP
-        for slug, subcomps in individual_subcomps.iteritems():
+        for slug, subcomps in individual_subcomps.items():
             lastsub = last_submission[slug]
             p = os.path.join(prefix, slug)
             self._add_to_zip(z, self.activity, subcomps, lastsub.created_at,
@@ -443,9 +447,9 @@ class SubmissionInfo(object):
 
         # produce summary of submission datetimes
         if found or always_summary:
-            slugs = last_submission.keys()
+            slugs = list(last_submission.keys())
             slugs.sort()
-            summarybuffer = StringIO.StringIO()
+            summarybuffer = io.StringIO()
             summarycsv = csv.writer(summarybuffer)
             summarycsv.writerow([Person.userid_header(), "Last Submission"])
             for s in slugs:

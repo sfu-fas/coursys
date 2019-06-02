@@ -77,17 +77,7 @@ Django on.
 
 Okay, crack open a web browser (outside the VM) and navigate to:
 
-    localhost:8001
-
-Why 8001? Well, because I had something running on port 8000 when I wrote
-this. I mean *cough cough* to demonstrate how Vagrant handles port forwarding!
-
-The file `machines/developer/Vagrantfile` controls the Virtual Machine - and
-the line: 
-
-    config.vm.forward_port 8000, 8001
-
-controls the port-forwarding behavior of the VM.
+    localhost:8000
 
 ## Modify the Code
 

@@ -3,7 +3,7 @@
 A utility designed to clean up CSV data. 
 """
 
-from table import Table
+from .table import Table
 
 import argparse
 import os
@@ -19,7 +19,7 @@ parser.add_argument( '--input', dest='input', default=False,
 args = parser.parse_args()
 
 if not os.path.exists( args.input ):
-    print args.input, " is not a valid file path. Please provide an --input x.csv argument to cleaner.py." 
+    print(args.input, " is not a valid file path. Please provide an --input x.csv argument to cleaner.py.") 
     exit()
 
 table = Table.from_csv( args.input )
@@ -148,7 +148,7 @@ def semester_clean( semester_ugly ):
 
     return first_character + second_two_characters + last_character
 
-for group_name, group in groups.iteritems():
+for group_name, group in groups.items():
     
     # Create a table mapping data ("Dr. Mark Peters") to what we assume that data should look like ("3092929292")
     translation_table = {}
@@ -180,7 +180,7 @@ for group_name, group in groups.iteritems():
 
     t.append_column( group_name )
     t.append_column( "canonical" )
-    for key, value in translation_table.iteritems():
+    for key, value in translation_table.items():
         t.append_row( [ key, value ] )
     t.to_csv( group_name + ".csv")
 

@@ -189,7 +189,7 @@ class ActiveInProgramOrPlanQuery(object):
     
     def produce_emplid_table(self, programs, plans):
         emplids = (plans.column_as_list("EMPLID") + programs.column_as_list("EMPLID"))
-        unique_emplids = {}.fromkeys(emplids).keys()
+        unique_emplids = list({}.fromkeys(emplids).keys())
         
         just_emplid_table = Table()
         just_emplid_table.append_column("EMPLID")

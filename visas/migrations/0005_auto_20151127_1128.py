@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('contents', models.FileField(storage=django.core.files.storage.FileSystemStorage(base_url=None, location=b'submitted_files'), max_length=500, upload_to=visas.models.visa_attachment_upload_to)),
                 ('mediatype', models.CharField(max_length=200, null=True, editable=False, blank=True)),
                 ('hidden', models.BooleanField(default=False, editable=False)),
-                ('created_by', models.ForeignKey(help_text=b'Document attachment created by.', to='coredata.Person')),
+                ('created_by', models.ForeignKey(help_text=b'Document attachment created by.', to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('created_at',),
@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='visadocumentattachment',
             name='visa',
-            field=models.ForeignKey(related_name='attachments', to='visas.Visa'),
+            field=models.ForeignKey(related_name='attachments', to='visas.Visa', on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='visadocumentattachment',

@@ -4,13 +4,13 @@ from grad.models import GradStudent, ScholarshipType, Scholarship, FinancialComm
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from grad.forms import ScholarshipForm
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from coredata.models import Semester
 from log.models import LogEntry
 
 get_semester = Semester.get_semester
 
-@requires_role("GRAD", get_only=["GRPD"])
+@requires_role("GRAD")
 def manage_scholarships(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug = grad_slug)
     scholarship_type_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False).order_by('unit__slug', 'name')]
@@ -30,7 +30,7 @@ def manage_scholarships(request, grad_slug):
               related_object=schol )
             l.save()
             
-            return HttpResponseRedirect(reverse('grad.views.manage_scholarships', kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad:manage_scholarships', kwargs={'grad_slug':grad.slug}))
     else:
         form = ScholarshipForm(initial={'student':grad, 'start_semester':get_semester(), 'end_semester':get_semester(), 'amount':'0.00'})
         form.fields['scholarship_type'].choices = scholarship_type_choices
@@ -40,6 +40,7 @@ def manage_scholarships(request, grad_slug):
                 'grad':grad,
                 'form': form,
                 'scholarships': scholarships,
-                'scholarship_comments': comments
+                'scholarship_comments': comments,
+                'can_edit': True,
     }
     return render(request, 'grad/manage_scholarships.html', context)

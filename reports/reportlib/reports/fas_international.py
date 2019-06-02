@@ -28,7 +28,7 @@ class InternationalGPAReport(Report):
                 emplid = r[0]
                 student_data[emplid] = r
 
-        students.rows = student_data.values()
+        students.rows = list(student_data.values())
 
         visits = AdvisorVisits(unit_slugs=['apsc']).result()
         notes = AdvisorNotes(unit_slugs=['apsc']).result()

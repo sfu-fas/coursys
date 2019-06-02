@@ -1,32 +1,34 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load staticfiles %}
 
 {% block headextra %}
-<script type="text/javascript">
-var personinfo_url = "{% url "ra.views.person_info" %}";
-var payperiods_url = "{% url "ra.views.pay_periods" %}";
+<script nonce="{{ CSP_NONCE }}">
+var personinfo_url = "{% url "ra:person_info" %}";
+var payperiods_url = "{% url "ra:pay_periods" %}";
+var personvisas_url = "{% url "ra:person_visas" %}";
 {% if person %}
 var emplid = '{{ person.emplid }}';
 {% else %}
 var emplid = null;
 {% endif %}
 </script>
-<script type="text/javascript" src="/media/js/ra.js"></script>
-<link rel="stylesheet" type="text/css" href="/media/ra/ra.css" />
+<script src="{% static 'js/ra.js' %}"></script>
+<link rel="stylesheet" href="{% static 'ra/ra.css' %}" />
 {% endblock %}
 
 {% block title %}Update RA Appointment for {{ appointment.person.name }}{% endblock %}
 {% block h1 %}Update RA Appointment for {{ appointment.person.name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra.views.search" %}">RAs</a></li>
-<li><a href="{% url "ra.views.student_appointments" userid=appointment.person.userid%}"> {{ appointment.person.name }}</a></li>
-<li><a href="{% url "ra.views.view" ra_slug=appointment.slug %}">{{ appointment.account.title }} starting {{ appointment.start_date|date:GRAD_DATE_FORMAT }}</a></li>
+<li><a href="{% url "ra:search" %}">RAs</a></li>
+<li><a href="{% url "ra:student_appointments" userid=appointment.person.userid%}"> {{ appointment.person.name }}</a></li>
+<li><a href="{% url "ra:view" ra_slug=appointment.slug %}">{{ appointment.account.title }} starting {{ appointment.start_date|date:GRAD_DATE_FORMAT }}</a></li>
 <li>Edit</li>{% endblock %}
 
 {% block content %}
   <div class="form_container">
-    <form action="{% url "ra.views.edit" ra_slug=appointment.slug %}" method="POST">{% csrf_token %}
+    <form action="{% url "ra:edit" ra_slug=appointment.slug %}" method="POST">{% csrf_token %}
       <fieldset>
         <legend>Contract Information</legend>
         {{ raform|as_dl_excludefields:"lump_sum_pay,lump_sum_hours,biweekly_pay,pay_periods,hourly_pay,hours,pay_frequency,reappointment,medical_benefits,dental_benefits,notes,comments,use_hourly" }}
@@ -64,7 +66,7 @@ var emplid = null;
         </table>
         {{ form|required_message }}
         <p><legend>Other Information</legend></p>
-        {{ raform|as_dl_excludefields:"person,sin,visa_verified,hiring_faculty,unit,hiring_category,scholarship,project,account,start_date,end_date,pay_frequency,lump_sum_pay,lump_sum_hours,biweekly_pay,pay_periods,hourly_pay,hours,use_hourly" }}
+        {{ raform|as_dl_excludefields:"person,sin,visa_verified,hiring_faculty,unit,hiring_category,scholarship,project,account,start_date,end_date,pay_frequency,lump_sum_pay,lump_sum_hours,biweekly_pay,pay_periods,hourly_pay,hours,use_hourly,program" }}
         <p><input type="submit" class="submit" value="Submit" /></p>
       </fieldset>
     </form>  

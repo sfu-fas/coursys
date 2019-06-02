@@ -16,7 +16,7 @@ def plans_index(request):
 
     plan_list = SemesterPlan.objects.filter(visibility__in=user).order_by('semester')
 
-    return render_to_response("planning/plans_index.html", {'userid': userid, 'plan_list': plan_list}, context_instance=RequestContext(request))
+    return render(request, "planning/plans_index.html", {'userid': userid, 'plan_list': plan_list})
 
 
 def semester_visibility(roles):

@@ -8,7 +8,7 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#capacity-table').dataTable({
       bPaginate: false,
@@ -38,7 +38,7 @@ $(document).ready(function() {
   <ul class="fa-ul">
     <li>
     {% if form.is_valid %}
-      <a href="{% url 'faculty.views.teaching_capacity_csv' %}?start_semester={{ start_code }}&amp;end_semester={{ end_code }}">
+      <a href="{% url 'faculty:teaching_capacity_csv' %}?start_semester={{ start_code }}&amp;end_semester={{ end_code }}">
         <i class="fa fa-li fa-download"></i> Download CSV
       </a>
     {% else %}
@@ -50,7 +50,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty:index" %}">Faculty</a></li>
 <li>Teaching Capacity by Unit</li>
 {% endblock %}
 
@@ -90,7 +90,7 @@ $(document).ready(function() {
         <td>{{ unit.label }}</td>
         <td>{{ semester.code }}</td>
         <td>
-          <a href="{% url 'faculty.views.teaching_summary' person.userid_or_emplid %}?start_semester={{ semester.code }}&amp;end_semester={{ semester.code }}">
+          <a href="{% url 'faculty:teaching_summary' person.userid_or_emplid %}?start_semester={{ semester.code }}&amp;end_semester={{ semester.code }}">
             {{ person }}
           </a>
         </td>

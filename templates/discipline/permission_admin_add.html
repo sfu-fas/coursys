@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Dishonesty Department Permissions: Add{% endblock %}
+{% block h1 %}Dishonesty Department Permissions: Add{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'discipline:chair_index' %}">Dishonesty Cases</a></li>
+<li><a href="{% url 'discipline:permission_admin' %}">Department Permissions</a></li>
+<li>Add Role</li>
+{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+  $(document).ready(function() {
+    $('#id_person').each(function() {
+      $(this).autocomplete({
+        source: '/data/students',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).data("val", ui.item.value);
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+
+<form action="" method="post">{% csrf_token %}
+<fieldset>
+<legend>New Permission</legend>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+
+{% endblock %}

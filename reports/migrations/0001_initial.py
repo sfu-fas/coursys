@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import autoslug.fields
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('notify', models.BooleanField(default=False, help_text=b'Email this person when a report completes.')),
                 ('config', courselib.json_fields.JSONField(default={})),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('person', models.ForeignKey(to='coredata.Person')),
+                ('person', models.ForeignKey(to='coredata.Person', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
                 ('config', courselib.json_fields.JSONField(default={})),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
-                #('alert', models.ForeignKey(to='alerts.AlertType', null=True)),
+                #('alert', models.ForeignKey(to='alerts.AlertType', null=True, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -91,7 +91,7 @@ class Migration(migrations.Migration):
                 ('success', models.BooleanField(default=False)),
                 ('manual', models.BooleanField(default=False, help_text=b'Was this run requested manually (as opposed to scheduled)?')),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
-                ('report', models.ForeignKey(to='reports.Report')),
+                ('report', models.ForeignKey(to='reports.Report', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -103,7 +103,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('description', models.TextField()),
-                ('run', models.ForeignKey(to='reports.Run')),
+                ('run', models.ForeignKey(to='reports.Run', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -118,7 +118,7 @@ class Migration(migrations.Migration):
                 ('next_run', models.DateTimeField()),
                 ('config', courselib.json_fields.JSONField(default={})),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('report', models.ForeignKey(to='reports.Report')),
+                ('report', models.ForeignKey(to='reports.Report', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -127,25 +127,25 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='result',
             name='run',
-            field=models.ForeignKey(to='reports.Run'),
+            field=models.ForeignKey(to='reports.Run', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='query',
             name='report',
-            field=models.ForeignKey(to='reports.Report'),
+            field=models.ForeignKey(to='reports.Report', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='hardcodedreport',
             name='report',
-            field=models.ForeignKey(to='reports.Report'),
+            field=models.ForeignKey(to='reports.Report', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='accessrule',
             name='report',
-            field=models.ForeignKey(to='reports.Report'),
+            field=models.ForeignKey(to='reports.Report', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

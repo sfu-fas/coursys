@@ -20,6 +20,6 @@ INITIAL_PHOTO_PASSWORD = '' # will be injected into database by 'manage.py insta
 SIMS_USER = 'ggbaker'
 SIMS_PASSWORD = ''
 
-#PIWIK_URL = 'https://.../piwik/piwik.php'
-#PIWIK_TOKEN = '123456789abcdef' # find at Piwik -> user -> API
-#PIWIK_SITEID = 1
+#BACKUP_REMOTE_URL = 'scp://userid@backups.cs.sfu.ca//backups/coursys'
+#BACKUP_KEY_ID = 'coursys-help@sfu.ca'
+#BACKUP_KEY_PASSPHRASE = 'abc123'

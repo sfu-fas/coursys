@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import django.utils.timezone
@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('category', models.CharField(max_length=4, choices=[(b'AUTO', b'Automatic update'), (b'SYST', b'Automatic change by system'), (b'MAIL', b'Email notification sent'), (b'ADMN', b'Administrative action'), (b'FILL', b'User action'), (b'SAVE', b'Saved draft')])),
                 ('description', models.CharField(help_text=b'Description of the action/change', max_length=255)),
                 ('config', courselib.json_fields.JSONField(default=dict)),
-                ('externalFiller', models.ForeignKey(to='onlineforms.NonSFUFormFiller', null=True)),
+                ('externalFiller', models.ForeignKey(to='onlineforms.NonSFUFormFiller', null=True, on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('timestamp',),
@@ -41,16 +41,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='formlogentry',
             name='form_submission',
-            field=models.ForeignKey(to='onlineforms.FormSubmission'),
+            field=models.ForeignKey(to='onlineforms.FormSubmission', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='formlogentry',
             name='sheet_submission',
-            field=models.ForeignKey(to='onlineforms.SheetSubmission', null=True),
+            field=models.ForeignKey(to='onlineforms.SheetSubmission', null=True, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='formlogentry',
             name='user',
-            field=models.ForeignKey(to='coredata.Person', help_text=b'User who took the action/made the change', null=True),
+            field=models.ForeignKey(to='coredata.Person', help_text=b'User who took the action/made the change', null=True, on_delete=models.CASCADE),
         ),
     ]

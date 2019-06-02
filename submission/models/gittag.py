@@ -41,7 +41,7 @@ class GitURLValidator(URLValidator):
 
         # or try to validate it as a git scp-style URL
         if not self.ssh_regex.match(value):
-            raise ValidationError, 'Enter a valid "http://", "https://", or "user@host:path" URL.'
+            raise ValidationError('Enter a valid "http://", "https://", or "user@host:path" URL.')
 
 
 class GitURLField(TextField):
@@ -58,7 +58,7 @@ class GitTagComponent(SubmissionComponent):
         app_label = 'submission'
 
 class SubmittedGitTag(SubmittedComponent):
-    component = models.ForeignKey(GitTagComponent, null=False)
+    component = models.ForeignKey(GitTagComponent, null=False, on_delete=models.PROTECT)
     url = GitURLField(null=False, blank=False, max_length=500, verbose_name='Repository URL', help_text='Clone URL for your repository, like "https://server/user/repo.git" or "git@server:user/repo.git".')
     tag = models.CharField(blank=False, null=False, max_length=200, verbose_name='Tag name', help_text='The tag you\'re submitting: created like "git tag submitted_code; git push origin --tags"')
 
@@ -84,14 +84,14 @@ class SubmittedGitTag(SubmittedComponent):
             dirname = 'repo'
 
         content = []
-        content.append(u"# Submitted Git tag can be retrieved with the command below.")
-        content.append(u"git clone %s %s && cd %s && git checkout tags/%s" % (
+        content.append("# Submitted Git tag can be retrieved with the command below.")
+        content.append("git clone %s %s && cd %s && git checkout tags/%s" % (
             pipes.quote(self.url),
             pipes.quote(dirname), pipes.quote(dirname),
             pipes.quote(self.tag),
         ))
-        content.append(u"# url:%s" % (self.url,))
-        content.append(u"# tag:%s" % (self.tag,))
+        content.append("# url:%s" % (self.url,))
+        content.append("# tag:%s" % (self.tag,))
         return '\n'.join(content)
 
     def download_response(self, slug=None, **kwargs):

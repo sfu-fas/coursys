@@ -8,8 +8,8 @@ Edit Cutoffs of {{ activity.name }}
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<script type="text/javascript">
+<script src="https://www.gstatic.com/charts/loader.js" referrerpolicy="no-referrer"></script>
+<script nonce="{{ CSP_NONCE }}">
 //<![CDATA[
 /**
  * Copyright (c) Mozilla Foundation http://www.mozilla.org/
@@ -38,9 +38,8 @@ if (!Array.prototype.filter) {
 }
 
 
-
-  google.load('visualization', '1.0', {'packages':['corechart']});
-  google.setOnLoadCallback(drawChart);
+  google.charts.load('current', {'packages':['corechart']});
+  google.charts.setOnLoadCallback(drawChart);
   
   var chart, data, rangetitle;
   function drawChart() {
@@ -135,7 +134,7 @@ if (!Array.prototype.filter) {
 //]]></script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li><li>Edit cutoffs</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li><li>Edit cutoffs</li>{% endblock %}
 
 
 {% block content %}
@@ -144,7 +143,7 @@ if (!Array.prototype.filter) {
     {{ cutoff.non_field_errors }}
     {% endif %}
     
-        <form action="{% url "grades.views.edit_cutoffs" course_slug=course.slug activity_slug=activity.slug %}"
+        <form action="{% url "offering:edit_cutoffs" course_slug=course.slug activity_slug=activity.slug %}"
                 method="post" id="cutoffform">{% csrf_token %}
         <p class="cutoffoffset">Adjust all cutoffs: <input type="text" name="offset" value="0.0" size="4" id="id_offset" />
             <input type="button" value="Add to each" id="offsetbutton" /></p>

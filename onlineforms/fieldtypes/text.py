@@ -3,10 +3,8 @@ from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 from django.template.defaultfilters import linebreaksbr
-from pages.models import ParserFor
-from courselib.text import normalize_newlines
+from courselib.markup import MarkupContentField, markup_to_html
 
-MAX_TEXT_LEN = 50 # longest text to output in CSV (for medium/long text)
 
 class SmallTextField(FieldBase):
     more_default_config = {'min_length': 1, 'max_length': 100}
@@ -19,7 +17,7 @@ class SmallTextField(FieldBase):
                 min_r = int(self.data['min_length'])
                 max_r = int(self.data['max_length'])
                 if min_r > max_r:
-                    raise forms.ValidationError, "Minimum length cannot be more than the maximum."
+                    raise forms.ValidationError("Minimum length cannot be more than the maximum.")
             except (ValueError, KeyError):
                 pass # let somebody else worry about that
 
@@ -72,7 +70,7 @@ class MediumTextField(FieldBase):
                 min_r = int(self.data['min_length'])
                 max_r = int(self.data['max_length'])
                 if min_r > max_r:
-                    raise forms.ValidationError, "Minimum length cannot be more than the maximum."
+                    raise forms.ValidationError("Minimum length cannot be more than the maximum.")
             except (ValueError, KeyError):
                 pass # let somebody else worry about that
 
@@ -109,10 +107,7 @@ class MediumTextField(FieldBase):
         return mark_safe('<p>' + linebreaksbr(fieldsubmission.data['info'], autoescape=True) + '</p>')
 
     def to_text(self, fieldsubmission):
-        txt = normalize_newlines(fieldsubmission.data['info'])
-        if len(txt) > MAX_TEXT_LEN:
-            txt = txt[0:MAX_TEXT_LEN] + '...'
-        return txt.replace('\n', '\\\\')
+        return fieldsubmission.data['info']
 
 
 class LargeTextField(FieldBase):
@@ -126,7 +121,7 @@ class LargeTextField(FieldBase):
                 min_r = int(self.data['min_length'])
                 max_r = int(self.data['max_length'])
                 if min_r > max_r:
-                    raise forms.ValidationError, "Minimum length cannot be more than the maximum."
+                    raise forms.ValidationError("Minimum length cannot be more than the maximum.")
             except (ValueError, KeyError):
                 pass # let somebody else worry about that
 
@@ -164,10 +159,7 @@ class LargeTextField(FieldBase):
         return mark_safe('<p>' + linebreaksbr(fieldsubmission.data['info'], autoescape=True) + '</p>')
 
     def to_text(self, fieldsubmission):
-        txt = normalize_newlines(fieldsubmission.data['info'])
-        if len(txt) > MAX_TEXT_LEN:
-            txt = txt[0:MAX_TEXT_LEN] + '...'
-        return txt.replace('\n', '\\\\')
+        return fieldsubmission.data['info']
 
 
 class EmailTextField(FieldBase):
@@ -197,31 +189,46 @@ class EmailTextField(FieldBase):
         return fieldsubmission.data['info']
 
 
+class _ExplanationFieldWidget(forms.Textarea):
+    """
+    A non-widget widget that generates explanation text and not a form input.
+    """
+    def __init__(self, explanation, markup, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.explanation = explanation
+        self.markup = markup
+
+    def render(self, name, value, attrs=None):
+        return mark_safe('<div class="explanation_block">%s</div>' % (markup_to_html(self.explanation, self.markup)))
+
+
 class ExplanationTextField(FieldBase):
     in_summary = False
     class ExplanationTextConfigForm(FieldConfigForm):
-        text_explanation = forms.CharField(required=True, max_length=10000,
-            widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}),
-            help_text='Text to display to the user; formatted in <a href="/docs/pages">WikiCreole markup</a>.')
-        def __init__(self, *args, **kwargs):
-            super(self.__class__, self).__init__(*args, **kwargs)
-            del self.fields['help_text']
+        text_explanation = MarkupContentField(with_wysiwyg=True, allow_math=False, help_text='Text to display to the user.')
 
+        def __init__(self, config, *args, **kwargs):
+            super(self.__class__, self).__init__(config, *args, **kwargs)
+            del self.fields['help_text']
+            # handle transition to markup-with-language-choice field
+            if config and 'text_explanation' in config and 'text_explanation_0' not in config:
+                config['text_explanation_0'] = config['text_explanation']
+                config['text_explanation_1'] = 'creole'
 
     def make_config_form(self):
         return self.ExplanationTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        from onlineforms.forms import ExplanationFieldWidget
+        # before MarkupContentField, text_explanation held the contents; now text_explanation_0.
+        explanation = self.config.get('text_explanation_0', self.config.get('text_explanation', ''))
+        markup = self.config.get('text_explanation_1', 'creole')
 
-        w = ExplanationFieldWidget(attrs={'class': 'disabled', 'readonly': 'readonly'})
+        w = _ExplanationFieldWidget(explanation=explanation, markup=markup,
+                                    attrs={'class': 'disabled', 'readonly': 'readonly'})
         c = forms.CharField(required=False,
             label=self.config['label'],
             help_text='',
             widget=w)
-
-        if 'text_explanation' in self.config:
-            w.explanation = self.config['text_explanation']
 
         return c
 
@@ -229,6 +236,8 @@ class ExplanationTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        parser = ParserFor(offering=None)
-        return mark_safe('<div class="explanation_block">' + parser.text2html(self.config['text_explanation']) + '</div>')
+        # before MarkupContentField, text_explanation held the contents; now text_explanation_0.
+        explanation = self.config.get('text_explanation_0', self.config.get('text_explanation', ''))
+        markup = self.config.get('text_explanation_1', 'creole')
+        return mark_safe('<div class="explanation_block">%s</div>' % (markup_to_html(explanation, markup)))
 

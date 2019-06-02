@@ -1,4 +1,4 @@
-from celery.task import task, periodic_task
+from courselib.celerytasks import periodic_task
 from celery.schedules import crontab
 from grad.models import GradStudent, GradStatus, GradProgramHistory
 from coredata.models import Semester

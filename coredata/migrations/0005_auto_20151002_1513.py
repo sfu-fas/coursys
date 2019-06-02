@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -14,16 +14,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='anyperson',
             name='future_person',
-            field=models.ForeignKey(to='coredata.FuturePerson', null=True),
+            field=models.ForeignKey(to='coredata.FuturePerson', null=True, on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='anyperson',
             name='person',
-            field=models.ForeignKey(to='coredata.Person', null=True),
+            field=models.ForeignKey(to='coredata.Person', null=True, on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='anyperson',
             name='role_account',
-            field=models.ForeignKey(to='coredata.RoleAccount', null=True),
+            field=models.ForeignKey(to='coredata.RoleAccount', null=True, on_delete=models.CASCADE),
         ),
     ]

@@ -90,7 +90,7 @@ class MajorsInCoursesReport(Report):
             plans = list(plans)
             found_plans |= set(plans)
             count = counter(plans)
-            count = [(n,plan) for plan,n in count.iteritems()]
+            count = [(n,plan) for plan,n in count.items()]
             count.sort()
             count.reverse()
             count_str = ', '.join("%i*%s" % (n,plan) for n,plan in count)

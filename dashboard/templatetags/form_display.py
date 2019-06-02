@@ -6,6 +6,8 @@ from django.utils.html import conditional_escape as escape
 from django.utils.functional import Promise
 from django.forms.widgets import RadioSelect
 from grad.forms import SupervisorWidget
+from django.contrib.staticfiles.templatetags.staticfiles import static
+
 
 required_icon = '<i class="reqicon fa fa-star-o"></i>'
 
@@ -13,19 +15,19 @@ required_icon = '<i class="reqicon fa fa-star-o"></i>'
 def field_display(field, safe=False):
     out = []
     if isinstance(field.field.widget, (forms.widgets.RadioSelect, forms.widgets.CheckboxSelectMultiple)):
-        out.append('<div class="field radio">%s</div>' % (unicode(field)))
+        out.append('<div class="field radio">%s</div>' % (str(field)))
     else:
-        out.append('<div class="field">%s</div>' % (unicode(field)))
-    out.append(unicode(field.errors))
+        out.append('<div class="field">%s</div>' % (str(field)))
+    out.append(str(field.errors))
 
     if field.help_text:
         if isinstance(field.help_text, Promise):
-            out.append(u'<div class="helptext">%s</div>' % (escape(field.help_text)))
+            out.append('<div class="helptext">%s</div>' % (escape(field.help_text)))
         else:
             if safe:
-                out.append(u'<div class="helptext">%s</div>' % (field.help_text))
+                out.append('<div class="helptext">%s</div>' % (field.help_text))
             else:
-                out.append(u'<div class="helptext">%s</div>' % (escape(field.help_text)))
+                out.append('<div class="helptext">%s</div>' % (escape(field.help_text)))
     return mark_safe('\n'.join(out))
 
 
@@ -57,15 +59,15 @@ def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlf
     """
     out = []
     # if the form has any widgets that have Media elements, include this
-    out.append(unicode(form.media))
-    out.append(unicode(form.non_field_errors()))
+    out.append(str(form.media))
+    out.append(str(form.non_field_errors()))
     if form.hidden_fields():
         out.append('<div style="display:none">')
         for field in form.hidden_fields():
             if field.name in excludefields or (
                     includefields is not None and field.name not in includefields) :
                 continue
-            out.append(unicode(field))
+            out.append(str(field))
         out.append('</div>')
         
     out.append('<dl class="%s">' % (formclass))
@@ -148,3 +150,12 @@ def as_dl_noreq(form):
 @register.filter
 def as_dl_inline(form):
     return as_dl(form, formclass='dlform inline', reqmessage=False)
+
+
+@register.filter
+def get_js_path(file):
+    """
+    Get the correct path for the js file to include in the form.
+    """
+    path = ''.join(['js/', file])
+    return static(path)

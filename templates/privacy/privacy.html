@@ -4,7 +4,7 @@
 {% block h1 %}Privacy Agreement{% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "dashboard.views.config" %}">User Configuration</a></li>
+    <li><a href="{% url "config:config" %}">User Configuration</a></li>
     <li>Privacy Agreement</li>
 {% endblock %}
 
@@ -12,7 +12,7 @@
 
 {% if good_to_go %}
     <h2>You're good to go!</h2>
-    <form action="{% url "dashboard.views.index" %}" method="get">
+    <form action="{% url 'dashboard:index' %}" method="get">
         <p>
         You've already signed this Privacy Agreement, as of {{privacy_date}}.
         </p>
@@ -24,7 +24,7 @@
         Sorry to bother you, but&hellip;</h2>
     <p>We need you to agree to our privacy policy before continuing.</p>
     <p>This agreement is adapted from the University's privacy statement required for access to the Student Information Management System (SIMS)
-        and we are asking you to agree to it since CourSys gives you access to some data from SIMS (and other private data that is managed by CourSys) as part of your role here.</p>
+        and we are asking you to agree to it since {{ CourSys }} gives you access to some data from SIMS (and other private data that is managed by {{ CourSys }}) as part of your role here.</p>
     </div>
 {% endif %}
 
@@ -35,7 +35,7 @@
     <p>
     As an employee of Simon Fraser University, I understand that I have a 
     legal obligation to protect personal information to which I have access
-    through CourSys - and by extension, a subset of the SIMS Reporting Database.
+    through {{ CourSys }} - and by extension, a subset of the SIMS Reporting Database.
     In accordance with the 
     <a href="http://www.bclaws.ca/Recon/document/ID/freeside/96165_00">
     Freedom of Information and Protection of Privacy Act
@@ -44,7 +44,7 @@
     University Policy I10.04
     </a>, I agree to protect all personal information to which I have
     access during the term of my appointment with the University.
-    I agree to use information contained in CourSys only for the purposes
+    I agree to use information contained in {{ CourSys }} only for the purposes
     for which the personal information was collected and purposes consistent
     with my job duties. I agree that I will disclose personal information
     only as permitted by law. 
@@ -53,7 +53,7 @@
     <h2><i class="fa fa-eye-slash"></i>
     I promise not to look at data that doesn't belong to me.</h2>
     <p>
-    I recognize that CourSys access <em>may</em> provide me with the ability 
+    I recognize that {{ CourSys }} access <em>may</em> provide me with the ability
     to view and retrieve data to which I am prohibited, by law. I agree not
     to do so and understand that discipline, up to and including dismissal, 
     may result if I, without authority, access, collect, use, disclose, or dispose
@@ -65,10 +65,10 @@
     anybody.</h2>
     <p>
     I recognize and understand my responsibilities for protecting any data 
-    that I retrieve from CourSys including, but not limited to:</p>
+    that I retrieve from {{ CourSys }} including, but not limited to:</p>
 
     <ul class="bulleted">
-        <li>ensuring that all information I download from CourSys is retained
+        <li>ensuring that all information I download from {{ CourSys }} is retained
         on a computer that is appropriately secured so that it cannot be 
         accessed by others</li>
         <li>never providing information to others (printing, electronic, or 
@@ -95,8 +95,8 @@
     for ensuring compliance with the policy and privacy rules. </p>
 
     <h2><i class="fa fa-gavel"></i>
-    I won't hold IT Services responsible if CourSys' data is wrong.</h2>
-    <p>The core CourSys data is a copy of data contained in the SIMS reporting database, which in
+    I won't hold IT Services responsible if data in {{ CourSys }} is wrong.</h2>
+    <p>The core {{ CourSys }} data is a copy of data contained in the SIMS reporting database, which in
     its basic form and consists of hundreds of tables and complex 
     interrelationships. Frequently, it is not obvious how the data is 
     structured nor the meaning of individual data elements. All users, including those who

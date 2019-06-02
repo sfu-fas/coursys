@@ -6,8 +6,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li>
-<li><a href="{% url "reports.views.view_report" report=report.slug %}">{{report.name}}</a> </li>
+<li><a href="{% url "reports:view_reports" %}">Reports</a></li>
+<li><a href="{% url "reports:view_report" report=report.slug %}">{{report.name}}</a> </li>
 <li>Run: {{ run.created_at }} </li>
 {% endblock %}
 
@@ -56,9 +56,9 @@
         </tbody>
         </table>
     </div>
-    <a href="{% url "reports.views.view_result" report=report.slug run=run.slug result=result.slug %}">View all {{result.table_rendered.rows|length}} rows</a>
+    <a href="{% url "reports:view_result" report=report.slug run=run.slug result=result.slug %}">View all {{result.table_rendered.rows|length}} rows</a>
     -
-    <a href="{% url "reports.views.csv_result" report=report.slug run=run.slug result=result.slug %}">CSV</a>
+    <a href="{% url "reports:csv_result" report=report.slug run=run.slug result=result.slug %}">CSV</a>
 
 {% endfor %}
 

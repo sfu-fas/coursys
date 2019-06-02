@@ -1,18 +1,19 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load staticfiles %}
 
 {% block headextra %}
-<script type="text/javascript" src="/media/js/ra.js"></script>
-<link rel="stylesheet" type="text/css" href="/media/ra/ra.css" />
+<script src="{% static 'js/ra.js' %}"></script>
+<link rel="stylesheet" href="{% static 'ra/ra.css' %}" />
 {% endblock %}
 
 {% block title %}Edit RA Letter for {{ appointment.person.name }}{% endblock %}
 {% block h1 %}Edit RA Letter for {{ appointment.person.name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra.views.search" %}">RAs</a></li>
-<li><a href="{% url "ra.views.student_appointments" userid=appointment.person.userid%}"> {{ appointment.person.name }}</a></li>
-<li><a href="{% url "ra.views.view" ra_slug=appointment.slug %}">{{ appointment.account.title }} starting {{ appointment.start_date|date:GRAD_DATE_FORMAT }}</a></li>
+<li><a href="{% url "ra:search" %}">RAs</a></li>
+<li><a href="{% url "ra:student_appointments" userid=appointment.person.userid%}"> {{ appointment.person.name }}</a></li>
+<li><a href="{% url "ra:view" ra_slug=appointment.slug %}">{{ appointment.account.title }} starting {{ appointment.start_date|date:GRAD_DATE_FORMAT }}</a></li>
 <li>Edit Letter</li>{% endblock %}
 
 {% block content %}

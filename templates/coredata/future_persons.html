@@ -5,7 +5,7 @@
 
 
 {% block headextra %}
-<script type="text/javascript">
+<script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#futurepersons').dataTable( {
     'bPaginate': false,
@@ -25,8 +25,8 @@ function confirmDelete(url) {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
-    <li><a href="{% url "coredata.views.list_anypersons" %}">AnyPersons</a></li>
+    <li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
+    <li><a href="{% url "sysadmin:list_anypersons" %}">AnyPersons</a></li>
     <li>FuturePersons</li>
 {% endblock %}
 
@@ -35,7 +35,7 @@ function confirmDelete(url) {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "coredata.views.add_futureperson" %}">Add New FuturePerson</a></li>
+        <li><a href="{% url "sysadmin:add_futureperson" %}">Add New FuturePerson</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -58,18 +58,18 @@ function confirmDelete(url) {
             <td>
                 <div class="lineform">
                     <button type='submit' class='btn' title="Delete"
-                            onclick="confirmDelete('{% url "coredata.views.delete_futureperson" futureperson_id=futureperson.id %}')">
+                            onclick="confirmDelete('{% url "sysadmin:delete_futureperson" futureperson_id=futureperson.id %}')">
                         <i class='fa fa-trash-o'></i>
                     </button>
                 </div>
                 <form class="lineform" method="GET"
-                    action="{% url "coredata.views.edit_futureperson" futureperson_id=futureperson.id %}">
+                    action="{% url "sysadmin:edit_futureperson" futureperson_id=futureperson.id %}">
                     <button type='submit' class='btn' title="Edit">
                         <i class='fa fa-edit'></i>
                     </button>
                 </form>
                 <form class="lineform" method="GET"
-                    action="{% url "coredata.views.view_futureperson" futureperson_id=futureperson.id %}">
+                    action="{% url "sysadmin:view_futureperson" futureperson_id=futureperson.id %}">
                     <button type='submit' class='btn' title="View">
                         <i class='fa fa-eye'></i>
                     </button>

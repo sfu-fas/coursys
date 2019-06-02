@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, HttpResponse
 from grad.models import Supervisor
-import unicodecsv as csv
+import csv
 from datetime import datetime
 
 @login_required

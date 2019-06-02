@@ -1,18 +1,17 @@
 import os
 import datetime
+import uuid
 
 from autoslug import AutoSlugField
 from django.db import models
 
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 
-from coredata.models import VISA_STATUSES as REAL_VISA_STATUSES, Person
+from coredata.models import VISA_STATUSES as REAL_VISA_STATUSES, Person, Unit
 from django.utils import timezone
 from courselib.json_fields import JSONField
+from courselib.storage import UploadedFileStorage, upload_path
 from coredata.models import Semester
-from django.db.models.query import QuerySet
-from model_utils.managers import PassThroughManager
 
 # "citizen" isn't truly a visa status, but it's something we want to track here.
 # SIMS has no Work Visa status, so we're adding that here too.
@@ -20,7 +19,6 @@ VISA_STATUSES = (('Citizen', 'Citizen'), ('Work', 'Work Visa')) + REAL_VISA_STAT
 
 EXPIRY_STATUSES = ['Expired', 'Expiring Soon', 'Valid']
 
-NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 def timezone_today():
     """
@@ -30,27 +28,35 @@ def timezone_today():
     return timezone.now().date()
 
 
-class VisaQuerySet(QuerySet):
+class VisaQuerySet(models.QuerySet):
+    def visible(self):
+        return self.filter(hidden=False)
 
-        def visible(self):
-            return self.filter(hidden=False)
+    def visible_by_unit(self, units):
+        return self.visible().filter(unit__in=units)
 
-        def visible_given_user(self, person):
-            return self.filter(hidden=False, person=person)
+    def visible_given_user(self, person):
+        return self.filter(hidden=False, person=person)
 
 
 class Visa (models.Model):
-    person = models.ForeignKey(Person, null=False, blank=False)
+    person = models.ForeignKey(Person, null=False, blank=False, on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
     status = models.CharField(max_length=50, choices=VISA_STATUSES, default='')
     start_date = models.DateField('Start Date', default=timezone_today, help_text='First day of visa validity')
     end_date = models.DateField('End Date', blank=True, null=True, help_text='Expiry of the visa (if known)')
     config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
     hidden = models.BooleanField(default=False, editable=False)
 
-    objects = PassThroughManager.for_queryset_class(VisaQuerySet)()
+    objects = VisaQuerySet.as_manager()
 
     class Meta:
         ordering = ('start_date',)
+
+
+    def is_current(self):
+        return self.start_date <= timezone_today() and \
+                      (self.end_date is not None and timezone_today() < self.end_date) or (self.end_date is None)
 
     # Helper methods to display a proper status we can sort on
     def is_valid(self):
@@ -75,11 +81,14 @@ class Visa (models.Model):
             return EXPIRY_STATUSES[2]
         return "Unknown"  # We'll hit this if the end_date is null.
 
-    def __unicode__(self):
-        return u"%s, %s, %s" % (self.person, self.status, self.start_date)
+    def __str__(self):
+        return "%s, %s, %s" % (self.person, self.status, self.start_date)
 
     def hide(self):
         self.hidden = True
+
+    def has_attachments(self):
+        return VisaDocumentAttachment.objects.visible().filter(visa=self).count() > 0
 
     @staticmethod
     def import_for(people):
@@ -96,9 +105,9 @@ class Visa (models.Model):
             visatype = d[5]
             if country == 'CAN':
                 # Canadian citizen and be done with it.
-                print emplid, 'Citizen'
+                print(emplid, 'Citizen')
             elif visatype:
-                print emplid, visas.get(visatype, None)
+                print(emplid, visas.get(visatype, None))
 
     @staticmethod
     def get_visas(people):
@@ -110,44 +119,34 @@ class Visa (models.Model):
         :return: A list of visas
         :rtype: list
         """
-        return Visa.objects.filter(person__in=people).visible().order_by('start_date')
+        return Visa.objects.visible().filter(person__in=people).order_by('start_date')
 
 
 def visa_attachment_upload_to(instance, filename):
-    """
-    callback to avoid path in the filename(that we have append folder structure to) being striped
-    """
-    fullpath = os.path.join(
-        'visas',
-        instance.visa.person.userid_or_emplid(),
-        str(instance.visa.id),
-        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
-        filename.encode('ascii', 'ignore'))
-    return fullpath
+    return upload_path('visas', filename)
 
 
-class VisaDocumentAttachmentManager(models.Manager):
+class VisaDocumentAttachmentQueryset(models.QuerySet):
     def visible(self):
-        qs = self.get_queryset()
-        return qs.filter(hidden=False)
+        return self.filter(hidden=False)
 
 
 class VisaDocumentAttachment(models.Model):
     """
     Document attached to a CareerEvent.
     """
-    visa = models.ForeignKey(Visa, null=False, blank=False, related_name="attachments")
+    visa = models.ForeignKey(Visa, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
     title = models.CharField(max_length=250, null=False)
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('visa',))
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
-    contents = models.FileField(storage=NoteSystemStorage, upload_to=visa_attachment_upload_to, max_length=500)
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.', on_delete=models.PROTECT)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=visa_attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     hidden = models.BooleanField(default=False, editable=False)
 
-    objects = VisaDocumentAttachmentManager()
+    objects = VisaDocumentAttachmentQueryset.as_manager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.contents.name
 
     class Meta:

@@ -1,0 +1,6 @@
+{% with id=widget.attrs.id %}<span{% if id %} id="{{ id }}"{% endif %} class="field">{% for group, options, index in widget.optgroups %}
+{% for option in options %}
+{% include option.template_name with widget=option %}
+{% endfor %}
+{% endfor %}
+</span>{% endwith %}

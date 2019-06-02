@@ -7,13 +7,13 @@ import datetime, os, glob
 class Command(BaseCommand):
     help = 'Create a database dump'
 
-    option_list = BaseCommand.option_list + (
-        make_option('--clean-old',
+    def add_arguments(self, parser):
+        parser.add_argument('--clean-old',
             dest='clean_old',
             action='store_true',
             default=False,
-            help="Clean old dumps as well?"),
-    )
+            help="Clean old dumps as well?")
+
 
     def handle(self, *args, **options):
         from dbdump.management.commands import dbdump
