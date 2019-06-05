@@ -3430,7 +3430,7 @@ class KeyForm(FormMixin, SFUMediaMixin):
         # Top rectangle
         self.rect(0, 82.5, x_max, 38)
         self.hline(0, x_max, 105.2)
-        self.hline(0, x_max, 94 )
+        self.hline(0, x_max, 94)
         self.vline(x_max/2, 82.5, 120.5)
         self.vline(x_max/4, 82.5, 94)
 
@@ -3442,9 +3442,12 @@ class KeyForm(FormMixin, SFUMediaMixin):
         self.label_small(41, 91, "Room")
         self.label_small(80.1, 91, "Email or telephone")
 
+        self.label_filled_large(80.1, 108.2, datetime.datetime.today().strftime('%Y-%m-%d'))
         self.label_filled_large(2, 97, booking.person.name())
         self.label_filled_large(80.1, 97, str(booking.person.emplid))
         self.label_filled_large(41, 85.5, str(booking.location.room_number))
+        self.label_filled_large(2, 85.5, booking.location.unit.label)
+        self.label_filled_large(80.1, 85.5, booking.person.email())
 
         #  Bottom rectangle
         self.c.setFillGray(0.9)
