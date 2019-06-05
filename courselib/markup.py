@@ -326,7 +326,9 @@ class CodeBlock(creoleparser.elements.BlockElement):
         return creoleparser.core.bldr.tag.__getattr__(self.tag)(
             creoleparser.core.fragmentize(code, self.child_elements,
                                           element_store, environ, remove_escapes=False),
-            class_="highlight lang-" + lang)
+            class_="highlight lang-" + lang,
+            lang=lang # the most restrictive markup rendering strips the class attribute, but not lang.
+        )
 
 
 def _find_activity(offering, arg_string):

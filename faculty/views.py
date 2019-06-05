@@ -357,7 +357,7 @@ def salary_index_csv(request):
 
     for person, unit, pay, salary, fraction, bonus, step, rank in _salary_index_data(request, date):
         csv.writerow([
-            person.name(),
+            person.sortname(),
             rank,
             step,
             unit.informal_name(),
