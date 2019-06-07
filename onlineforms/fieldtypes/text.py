@@ -198,7 +198,7 @@ class _ExplanationFieldWidget(forms.Textarea):
         self.explanation = explanation
         self.markup = markup
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         return mark_safe('<div class="explanation_block">%s</div>' % (markup_to_html(self.explanation, self.markup)))
 
 

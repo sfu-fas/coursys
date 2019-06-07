@@ -1,8 +1,9 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{STATIC_URL}}ta/css/view-tug-noprint.css" media="all" />
-<link rel="stylesheet" href="{{STATIC_URL}}ta/css/view-tug-print.css" media="print" />
+<link rel="stylesheet" href="{% static 'style/ta-tug-noprint.css' %}" media="all" />
+<link rel="stylesheet" href="{% static 'style/ta-tug-print.css' %}" media="print" />
 <script nonce="{{ CSP_NONCE }}">
 	$(document).ready(function() {
 		$('#print-tug').click(function(){

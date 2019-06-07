@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}{% if event %}Change Event{% else %}New {{ name|title }}{% endif %}: {{ person.name }}{% endblock %}
 {% block h1 %}{% if event %}Change Event{% else %}New {{ name|title }}{% endif %}: {{ person.name }}{% endblock %}
