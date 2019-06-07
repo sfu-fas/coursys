@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}
 {% load event_display %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}{{ person.name }}: {{ handler.NAME }}, {{event.start_date.year }}{% endblock %}
 {% block h1 %}{{ person.name }}: {{ handler.NAME }}, {{event.start_date.year }}{% endblock %}

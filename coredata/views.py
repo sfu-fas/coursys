@@ -1054,10 +1054,8 @@ COLUMN_ORDERING = { # column -> ordering info for datatable_view
 class OfferingDataJson(BaseDatatableView):
     model = CourseOffering
     max_display_length = 500
-    
-    def set_columns(self, col_list):
-        self.columns = col_list
-        self.order_columns = [COLUMN_ORDERING[col] for col in self.columns]
+    columns = COLUMNS
+    order_columns = [COLUMN_ORDERING[col] for col in columns]
 
     def render_column(self, offering, column):
         if column == 'coursecode':
@@ -1095,12 +1093,6 @@ class OfferingDataJson(BaseDatatableView):
         qs = qs.filter(semester__in=OfferingFilterForm.allowed_semesters())
         # no locally-merged courses
         qs = qs.exclude(flags=CourseOffering.flags.combined)
-
-        #req_cols = GET.get('columns', '').split(',')
-        #if req_cols == [''] or req_cols == ['null']:
-        #    req_cols = DEFAULT_COLUMNS
-        #columns = UNIVERSAL_COLUMNS + req_cols
-        self.set_columns(COLUMNS)
         
         srch = GET.get('sSearch', None)
         if srch:

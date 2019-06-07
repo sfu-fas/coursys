@@ -87,7 +87,7 @@ class _ClearableFileInput(forms.ClearableFileInput):
     template_with_initial = '<div class="formfileinput">Current file: %(initial)s %(clear_template)s<br />Upload file: %(input)s</div>'
     template_with_clear = '<br /><label class="sublabel" for="%(clear_checkbox_id)s">Remove current file:</label> %(clear)s'
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         name = str(name)
         substitutions = {
             'initial_text': self.initial_text,
@@ -96,7 +96,7 @@ class _ClearableFileInput(forms.ClearableFileInput):
             'clear_checkbox_label': self.clear_checkbox_label,
         }
         template = '%(input)s'
-        substitutions['input'] = super(forms.ClearableFileInput, self).render(name, value, attrs)
+        substitutions['input'] = super(forms.ClearableFileInput, self).render(name, value, attrs, renderer=renderer)
 
         if value and hasattr(value, "url"):
             template = self.template_with_initial
