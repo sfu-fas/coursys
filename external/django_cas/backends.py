@@ -161,7 +161,7 @@ _verify = _PROTOCOLS[settings.CAS_VERSION]
 class CASBackend(object):
     """CAS authentication backend"""
 
-    def authenticate(self, ticket, service, request):
+    def authenticate(self, request, ticket, service):
         """Verifies CAS ticket and gets or creates User object"""
 
         username, attributes = _verify(ticket, service)

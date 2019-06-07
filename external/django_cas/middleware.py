@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.auth.views import login, logout
+
 from django.urls import reverse
 
 from django_cas.views import login as cas_login, logout as cas_logout
@@ -30,11 +30,11 @@ class CASMiddleware(MiddlewareMixin):
         login URL, as well as calls to django.contrib.auth.views.login and
         logout.
         """
-
+        from dashboard.views import login
         if view_func == login:
-            return cas_login(request, *view_args, **view_kwargs)
-        elif view_func == logout:
-            return cas_logout(request, *view_args, **view_kwargs)
+            return login(request, *view_args, **view_kwargs)
+        #elif view_func == logout:
+        #    return cas_logout(request, *view_args, **view_kwargs)
 
         if settings.CAS_ADMIN_PREFIX:
             if not request.path.startswith(settings.CAS_ADMIN_PREFIX):
