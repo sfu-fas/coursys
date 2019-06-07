@@ -51,6 +51,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_cas_ng',
     'compressor',
     'haystack',
     'djcelery_email',
@@ -100,7 +101,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'courselib.middleware.ExceptionIgnorer',
-    'django_cas.middleware.CASMiddleware',
+    'django_cas_ng.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
     'courselib.csp.CSPMiddleware',
 ]
@@ -121,7 +122,7 @@ TEMPLATES = [
 ]
 
 AUTHENTICATION_BACKENDS = (
-    'django_cas.backends.CASBackend',
+    'django_cas_ng.backends.CASBackend',
 )
 OAUTH_AUTHORIZE_VIEW = 'api.views.oauth_authorize'
 OAUTH_CALLBACK_VIEW = 'api.views.oauth_callback'
@@ -339,6 +340,7 @@ if USE_CELERY:
 MAX_SUBMISSION_SIZE = 30000 # kB
 CAS_SERVER_URL = "https://cas.sfu.ca/cas/"
 CAS_VERSION = '2'
+CAS_LOGIN_MSG = None
 EMAIL_HOST = 'localhost'
 DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
@@ -388,9 +390,10 @@ LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_logg
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
-if (DEPLOY_MODE != 'production' or DEBUG) and hostname != 'courses':
+FORCE_CAS = getattr(localsettings, 'FORCE_CAS', False)
+if not FORCE_CAS and (DEPLOY_MODE != 'production' or DEBUG) and hostname != 'courses':
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
-    MIDDLEWARE.remove('django_cas.middleware.CASMiddleware')
+    MIDDLEWARE.remove('django_cas_ng.middleware.CASMiddleware')
     PASSWORD_LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', True)
