@@ -5,7 +5,7 @@ from dashboard.photos import do_photo_fetch, change_photo_password
 from requests.exceptions import RequestException
 
 
-@task(queue='photo', autoretry_for=[RequestException, ConnectionResetError], retry_backoff=True)
+@task(queue='photo', autoretry_for=(RequestException,), retry_backoff=True)
 def fetch_photos_task(emplids):
     return do_photo_fetch(emplids)
 
