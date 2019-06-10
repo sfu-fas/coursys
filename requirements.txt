@@ -28,7 +28,7 @@ django-bitfield==1.9.3
 django-compressor==2.2
 #django-cache-utils==0.7.2
 hg+https://bitbucket.org/ggbaker/django-cache-utils/@8a29823  # python 3 compatibility
-celery==4.3.0
+celery==4.1.1 # <4.2 until proven otherwise. See https://github.com/celery/celery/issues/4867
 django-celery-email==2.0.1
 django_celery_beat==1.4.0
 flower==0.9.3
