@@ -302,7 +302,7 @@ class PositionForm(forms.ModelForm):
     projected_start_date = SemesterField(semester_start=True, required=True)
     teaching_load = AnnualTeachingCreditField(label="Teaching Load", required=False)
     base_salary = AddSalaryField(required=False)
-    add_salary = AddSalaryField(required=False)
+    add_salary = AddSalaryField(label="Market Differential", required=False)
     add_pay = AddPayField(required=False)
     position_number = forms.CharField(max_length=6, required=True)
     rank = forms.ChoiceField(choices=RANK_CHOICES, required=False)
