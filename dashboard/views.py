@@ -52,8 +52,8 @@ def index(request):
 
     # Only CMPT admins should see the one different TA module.  Only non-CMPT TA Admins should see the other.
     # re-factored to take into account the very few people who should see both (mainly FAS Departmental Admins)
-    cmpt_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD', unit__label__in=['CMPT', 'SEE']).exists()
-    other_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD').exclude(unit__label__in=['CMPT', 'SEE']).exists()
+    cmpt_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD', unit__label='CMPT').exists()
+    other_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD').exclude(unit__label='CMPT').exists()
 
     context = {'memberships': memberships,
                'staff_memberships': staff_memberships,
