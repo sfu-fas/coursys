@@ -48,9 +48,7 @@ def new_group(request):
             form = GroupForm(request.POST)
             form.fields['unit'].choices = unit_choices
             if form.is_valid():
-                form.save()
-                name = str(form.cleaned_data['name'])
-                formgroup = FormGroup.objects.get(name=name)
+                formgroup = form.save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                       description=("created form group %s (%i)") % (formgroup, formgroup.id),
