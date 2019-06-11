@@ -24,6 +24,9 @@ class AssetForm(forms.ModelForm):
             'price': DollarInput,
             'last_order_date': CalendarWidget,
             'vendor': forms.Textarea,
+            'service_records': forms.Textarea,
+            'calibration_date': CalendarWidget,
+            'eol_date': CalendarWidget,
         }
 
 
