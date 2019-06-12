@@ -447,13 +447,13 @@ def list_anypersons(request):
 @requires_global_role("SYSA")
 def delete_anyperson(request, anyperson_id):
     anyperson = get_object_or_404(AnyPerson, pk=anyperson_id)
-    anyperson.delete()
-    messages.success(request, 'Deleted anyperson for %s' % anyperson)
-    l = LogEntry(userid=request.user.username,
-                 description="deleted anyperson: %s" % anyperson,
-                 related_object=anyperson)
-    l.save()
-
+    if request.method == 'POST':
+        anyperson.delete()
+        messages.success(request, 'Deleted anyperson for %s' % anyperson)
+        l = LogEntry(userid=request.user.username,
+                     description="deleted anyperson: %s" % anyperson,
+                     related_object=anyperson)
+        l.save()
     return HttpResponseRedirect(reverse('sysadmin:list_anypersons'))
 
 
@@ -510,6 +510,7 @@ def edit_anyperson(request, anyperson_id):
 
     return render(request, 'coredata/edit_anyperson.html', {'form': form, 'anyperson_id': anyperson_id})
 
+
 @requires_global_role("SYSA")
 def delete_empty_anypersons(request):
     if request.method == 'POST':
@@ -537,13 +538,14 @@ def edit_futureperson(request, futureperson_id):
 
 @requires_global_role("SYSA")
 def delete_futureperson(request, futureperson_id):
-    futureperson = FuturePerson.objects.get(pk=futureperson_id)
-    futureperson.delete()
-    messages.success(request, 'Deleted futureperson %s' % futureperson)
-    l = LogEntry(userid=request.user.username,
-                 description="deleted futureperson: %s" % futureperson,
-                 related_object=futureperson)
-    l.save()
+    if request.method == 'POST':
+        futureperson = FuturePerson.objects.get(pk=futureperson_id)
+        futureperson.delete()
+        messages.success(request, 'Deleted futureperson %s' % futureperson)
+        l = LogEntry(userid=request.user.username,
+                     description="deleted futureperson: %s" % futureperson,
+                     related_object=futureperson)
+        l.save()
     return HttpResponseRedirect(reverse('sysadmin:list_futurepersons'))
 
 @requires_global_role("SYSA")
@@ -587,12 +589,13 @@ def list_roleaccounts(request):
 @requires_global_role("SYSA")
 def delete_roleaccount(request, roleaccount_id):
     roleaccount = RoleAccount.objects.get(pk=roleaccount_id)
-    roleaccount.delete()
-    messages.success(request, 'Deleted roleaccount %s' % roleaccount)
-    l = LogEntry(userid=request.user.username,
-                 description="deleted roleaccount: %s" % roleaccount,
-                 related_object=roleaccount)
-    l.save()
+    if request.method == 'POST':
+        roleaccount.delete()
+        messages.success(request, 'Deleted roleaccount %s' % roleaccount)
+        l = LogEntry(userid=request.user.username,
+                     description="deleted roleaccount: %s" % roleaccount,
+                     related_object=roleaccount)
+        l.save()
     return HttpResponseRedirect(reverse('sysadmin:list_roleaccounts'))
 
 @requires_global_role("SYSA")

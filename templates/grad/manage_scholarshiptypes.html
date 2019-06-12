@@ -66,12 +66,11 @@
                             </button>
                         {% endif %}
                         </form>
-                        <form class="lineform" method="GET"
-                            action="{% url "grad:edit_scholarshiptype" st_id=s.id %}">
+                        <a class="lineform" href="{% url "grad:edit_scholarshiptype" st_id=s.id %}">
                             <button type='submit' class='btn' title="Edit Scholarship Type">
                                 <i class='fa fa-edit'></i>
                             </button>
-                        </form>
+                        </a>
                     </td>
                 </tr>
                 {% endfor %}

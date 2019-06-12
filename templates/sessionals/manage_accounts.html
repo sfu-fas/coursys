@@ -13,10 +13,6 @@ $(document).ready(function() {
     'aaSorting': [[1, 'asc']]
   } );
 } );
-
-function confirmDelete() {
-  return confirm("Are you sure you want to delete this account?");
-}
 </script>
 {% endblock %}
 
@@ -54,25 +50,23 @@ function confirmDelete() {
                 <td>{{ account.position_number }}</td>
                 <td>
                     <form class="lineform" method="POST"
-                          action="{% url "sessionals:delete_account" account_id=account.id %}"
-                          onsubmit="return confirmDelete()">
+                          action="{% url "sessionals:delete_account" account_id=account.id %}">
                         {% csrf_token %}
-                        <button type='submit' class='btn' title="Hide Account">
+                        <button type='submit' class='btn confirm-submit' data-submit-action="delete this account"
+                                title="Hide Account">
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>
-                    <form class="lineform" method="GET"
-                        action="{% url "sessionals:edit_account" account_slug=account.slug %}">
+                    <a class="lineform" href="{% url "sessionals:edit_account" account_slug=account.slug %}">
                         <button type='submit' class='btn' title="Edit Account">
                             <i class='fa fa-edit'></i>
                         </button>
-                    </form>
-                    <form class="lineform" method="GET"
-                        action="{% url "sessionals:view_account" account_slug=account.slug %}">
+                    </a>
+                    <a class="lineform" href="{% url "sessionals:view_account" account_slug=account.slug %}">
                         <button type='submit' class='btn' title="View account">
                             <i class='fa fa-eye'></i>
                         </button>
-                    </form>
+                    </a>
                 </td>
             </tr>
         {% endfor %}

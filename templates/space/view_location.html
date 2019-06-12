@@ -20,13 +20,6 @@ $(document).ready(function() {
     'aaSorting': [[1, 'asc']]
   } );
 } );
-function confirmDelete() {
-  return confirm("Are you sure you want to delete this booking?");
-}
-
-function confirmMemo() {
-    return confirm("Are you sure? Clicking 'OK' *will* send an email.");
-}
 </script>
 {% endblock %}
 
@@ -85,40 +78,39 @@ function confirmMemo() {
                         <td>
                         <td>
                             <form class="lineform" method="POST"
-                                  action="{% url "space:delete_booking" booking_id=b.id %}"
-                                  onsubmit="return confirmDelete()">
+                                  action="{% url "space:delete_booking" booking_id=b.id %}">
                                 {% csrf_token %}
-                                <button type='submit' class='btn' title="Delete Booking">
+                                <button type='submit' class='btn confirm-submit'
+                                        data-submit-action="delete this booking" title="Delete Booking">
                                     <i class='fa fa-trash-o'></i>
                                 </button>
                             </form>
                             {% if printkeyform %}
-                            <form class="lineform" method="GET"
-                                action="{% url "space:keyform" booking_slug=b.slug %}">
+                            <a class="lineform"href="{% url "space:keyform" booking_slug=b.slug %}">
                                 <button type='submit' class='btn' title="Print Surrey Key Form">
                                     <i class='fa fa-key'></i>
                                 </button>
-                            </form>
+                            </a>
                             {% endif %}
-                            <form class="lineform" method="GET"
-                                action="{% url "space:send_booking_memo" booking_slug=b.slug from_index=1 %}"
-                                onsubmit="return confirmMemo()">
-                                <button type='submit' class='btn' title="Send Memo">
+                            <form class="lineform" method="POST"
+                                action="{% url "space:send_booking_memo" booking_slug=b.slug from_index=1 %}">
+                                {% csrf_token %}
+                                <button type='submit' class='btn confirm-submit'
+                                        data-submit-action="send a memo? Clicking 'OK' *will* send an email.  Are you sure"
+                                        title="Send Memo">
                                     <i class='fa fa-envelope'></i>
                                 </button>
                             </form>
-                            <form class="lineform" method="GET"
-                                action="{% url "space:edit_booking" booking_slug=b.slug %}">
+                            <a class="lineform" href="{% url "space:edit_booking" booking_slug=b.slug %}">
                                 <button type='submit' class='btn' title="Edit Booking">
                                     <i class='fa fa-edit'></i>
                                 </button>
-                            </form>
-                            <form class="lineform" method="GET"
-                                action="{% url "space:view_booking" booking_slug=b.slug %}">
+                            </a>
+                            <a class="lineform" href="{% url "space:view_booking" booking_slug=b.slug %}">
                                 <button type='submit' class='btn' title="View Booking">
                                     <i class='fa fa-eye'></i>
                                 </button>
-                            </form>
+                            </a>
                         </td>
                     </tr>
                 {% endfor %}

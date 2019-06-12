@@ -58,12 +58,11 @@ $(document).ready(function() {
                                 <i class='fa fa-trash-o'></i>
                             </button>
                         </form>
-                        <form class="lineform" method="GET"
-                            action="{% url "space:edit_safety_item" safety_item_slug=i.slug %}">
+                        <a class="lineform" href="{% url "space:edit_safety_item" safety_item_slug=i.slug %}">
                             <button type='submit' class='btn' title="Edit Room Type">
                                 <i class='fa fa-edit'></i>
                             </button>
-                        </form>
+                        </a>
                     </td>
                 </tr>
             {% endfor %}
