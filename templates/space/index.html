@@ -64,24 +64,21 @@ $(document).ready(function() {
                                     <i class='fa fa-trash-o'></i>
                                 </button>
                             </form>
-                            <form class="lineform" method="GET" target="_blank"
-                                action="{% url "space:add_booking" location_slug=l.slug from_index=1 %}">
+                            <a class="lineform"href="{% url "space:add_booking" location_slug=l.slug from_index=1 %}">
                                 <button type='submit' class='btn' title="Add Booking">
                                     <i class='fa fa-book'></i>
                                 </button>
-                            </form>
-                            <form class="lineform" method="GET" target="_blank"
-                                action="{% url "space:edit_location" location_slug=l.slug from_index=1 %}">
+                            </a>
+                            <a class="lineform" href="{% url "space:edit_location" location_slug=l.slug from_index=1 %}">
                                 <button type='submit' class='btn' title="Edit Location">
                                     <i class='fa fa-edit'></i>
                                 </button>
-                            </form>
-                            <form class="lineform" method="GET" target="_blank"
-                                action="{% url "space:view_location" location_slug=l.slug %}">
+                            </a>
+                            <a class="lineform" href="{% url "space:view_location" location_slug=l.slug %}">
                                 <button type='submit' class='btn' title="View Location">
                                     <i class='fa fa-eye'></i>
                                 </button>
-                            </form>
+                            </a>
 
                         </td>
                     </tr>
