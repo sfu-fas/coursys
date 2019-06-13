@@ -1124,8 +1124,11 @@ class OfferingDataJson(BaseDatatableView):
             off_ids = Member.objects.order_by().filter(person__userid=instructor, role='INST').values_list('offering', flat=True)[:500]
             #qs = qs.filter(id__in=off_ids)
             # above should work, but production mySQL is ancient and can't do IN + LIMIT
-            fake_in = reduce(operator.__or__, (Q(id=oid) for oid in off_ids))
-            qs = qs.filter(fake_in)
+            if off_ids:
+                fake_in = reduce(operator.__or__, (Q(id=oid) for oid in off_ids))
+                qs = qs.filter(fake_in)
+            else:
+                qs = qs.none()
             
         campus = GET.get('campus', None)
         if campus:
