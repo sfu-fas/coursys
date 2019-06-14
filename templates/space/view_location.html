@@ -72,6 +72,9 @@ $(document).ready(function() {
                             {% endif %}
                             {% if b.notes %} <i class="fa fa-pencil" title="This booking has notes"></i>{% endif %}
                             {% if b.is_current %} <i class="fa fa-clock-o" title="This booking is current"></i>{% endif %}
+                            {% if b.has_key_request %}
+                                <i class="fa fa-key" title="Created {{ b.key_request.created_at }} by {{ b.key_request.created_by.name }}."></i>
+                            {% endif %}
                         </td>
                         <td>{{ b.start_time }}</td>
                         <td>{{ b.end_time }}</td>
@@ -85,9 +88,19 @@ $(document).ready(function() {
                                     <i class='fa fa-trash-o'></i>
                                 </button>
                             </form>
-                            {% if printkeyform %}
+                            {% if keyactions %}
+                                {% if b.has_key_request %}
+                                    <form class="lineform" method="POST"
+                                      action="{% url "space:delete_key" booking_slug=b.slug %}">
+                                    {% csrf_token %}
+                                    <button type='submit' class='btn confirm-submit'
+                                            data-submit-action="delete this key request" title="Delete Key Request">
+                                        <i class='fa fa-minus-circle'></i>
+                                    </button>
+                                    </form>
+                                {% endif %}
                             <a class="lineform"href="{% url "space:keyform" booking_slug=b.slug %}">
-                                <button type='submit' class='btn' title="Print Surrey Key Form">
+                                <button type='submit' class='btn' title="Create/Print Surrey Key Request">
                                     <i class='fa fa-key'></i>
                                 </button>
                             </a>
