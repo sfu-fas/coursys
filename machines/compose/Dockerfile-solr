@@ -1,0 +1,14 @@
+FROM solr:8
+
+USER root
+
+# files from Solr example config
+RUN mkdir -p /config \
+  && cd /opt/solr/example/files/conf/ \
+  && cp -r currency.xml elevate.xml protwords.txt solrconfig.xml stopwords.txt synonyms.txt update-script.js lang/ /config/
+
+# the schema from our config
+COPY solr-schema.xml /config/managed-schema
+
+USER $SOLR_USER
+CMD solr-create -c coursys -d /config

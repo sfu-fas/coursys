@@ -27,6 +27,7 @@ RUN mkdir /static
 RUN chown www-data:www-data /static
 
 USER www-data
+ENV PYTHONUNBUFFERED 1
 #CMD /wait && python3 ./manage.py migrate && python3 ./manage.py loaddata fixtures/*.json && python3 ./manage.py runserver 0:8000
 # TODO: the setup commands here should be somewhere else, possibly a dedicated "setup" container
 CMD /wait \

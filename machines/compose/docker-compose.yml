@@ -32,7 +32,6 @@ services:
       - ./localsettings.py:/code/courses/localsettings.py:ro
       - ./secrets.py:/code/courses/secrets.py:ro
     environment:
-      PYTHONUNBUFFERED: 1
       WAIT_HOSTS: db:3306, solr:8983
 
   rabbitmq:
@@ -42,7 +41,7 @@ services:
     # TODO: on first startup, should wait for db migration
     build:
       context: ../..
-      dockerfile: Dockerfile-celery
+      dockerfile: Dockerfile-app
     depends_on:
       - rabbitmq
     volumes:
@@ -50,7 +49,6 @@ services:
       - ./localsettings.py:/code/courses/localsettings.py:ro
       - ./secrets.py:/code/courses/secrets.py:ro
     environment:
-      PYTHONUNBUFFERED: 1
       WAIT_HOSTS: db:3306
 
   web:
@@ -77,12 +75,12 @@ services:
   #    - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
 
   solr:
-    image: "solr:8-alpine"
+    build:
+      context: ./
+      dockerfile: Dockerfile-solr
     ports:
       - "8983:8983"
-    volumes:
-      - ./solr-config:/config:ro
-    command: solr-create -c coursys -d /config
+
 
 volumes:
   coursys_static:
