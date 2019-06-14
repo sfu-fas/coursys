@@ -47,7 +47,8 @@ CATEGORY_CHOICES = (
     ('LTERM', 'Limited-Term'),
     ('TA', 'TA'),
     ('GRAD', 'Grad Student'),
-    ('URA', 'URA')
+    ('URA', 'URA'),
+    ('UND', 'Undergrad Student'),
 )
 
 
@@ -274,6 +275,10 @@ class BookingRecord(models.Model):
     def is_current(self):
         return self.start_time <= timezone_today() and (not self.end_time or self.end_time > timezone_today())
 
+    def has_key_request(self):
+        return hasattr(self, 'key_request')
+
+
 def space_attachment_upload_to(instance, filename):
     return upload_path('space', filename)
 
@@ -326,3 +331,11 @@ class BookingMemo(models.Model):
         msg = EmailMultiAlternatives(subject, template.render(context), from_email,
                                      [self.booking_record.person.email()], headers={'X-coursys-topic': 'space'})
         msg.send()
+
+
+# A stupid object to keep track of the key assignment forms for SEE/Surrey.
+class KeyRequest(models.Model):
+    booking_record = models.OneToOneField(BookingRecord, related_name='key_request', on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person, on_delete=models.PROTECT)
+
