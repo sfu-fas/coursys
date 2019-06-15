@@ -1,14 +1,12 @@
 FROM solr:8
 
 USER root
+RUN mkdir /config \
+  && cd /opt/solr/server/solr/configsets/_default/conf/ \
+  && cp -r solrconfig.xml protwords.txt synonyms.txt stopwords.txt lang /config/ \
+  && cp /opt/solr/example/files/conf/currency.xml /config/
 
-# files from Solr example config
-RUN mkdir -p /config \
-  && cd /opt/solr/example/files/conf/ \
-  && cp -r currency.xml elevate.xml protwords.txt solrconfig.xml stopwords.txt synonyms.txt update-script.js lang/ /config/
+COPY solr-schema.xml /config/schema.xml
 
-# the schema from our config
-COPY solr-schema.xml /config/managed-schema
-
-USER $SOLR_USER
+USER solr
 CMD solr-create -c coursys -d /config

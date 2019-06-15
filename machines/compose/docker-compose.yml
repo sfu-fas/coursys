@@ -50,6 +50,7 @@ services:
       - ./secrets.py:/code/courses/secrets.py:ro
     environment:
       WAIT_HOSTS: db:3306
+    command: sh -c "/wait && /usr/local/bin/celery worker -A courses -l INFO -B"
 
   web:
     image: "nginx:stable"
