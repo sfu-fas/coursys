@@ -32,7 +32,6 @@ services:
       - ./localsettings.py:/code/courses/localsettings.py:ro
       - ./secrets.py:/code/courses/secrets.py:ro
     environment:
-      PYTHONUNBUFFERED: 1
       WAIT_HOSTS: db:3306, solr:8983
 
   rabbitmq:
@@ -42,16 +41,17 @@ services:
     # TODO: on first startup, should wait for db migration
     build:
       context: ../..
-      dockerfile: Dockerfile-celery
+      dockerfile: Dockerfile-app
     depends_on:
       - rabbitmq
+      - db
     volumes:
       - ../../:/code:ro
       - ./localsettings.py:/code/courses/localsettings.py:ro
       - ./secrets.py:/code/courses/secrets.py:ro
     environment:
-      PYTHONUNBUFFERED: 1
       WAIT_HOSTS: db:3306
+    command: bash -c "/wait && /usr/local/bin/celery worker -A courses -l INFO -B"
 
   web:
     image: "nginx:stable"
