@@ -10,10 +10,11 @@
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#locations').dataTable( {
-    'bPaginate': false,
     'bInfo': false,
-    'bLengthChange': false,
+    'bLengthChange': true,
     "bJQueryUI": true,
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
     'aaSorting': [[0, 'asc'], [1, 'asc']]
   } );
 } );
@@ -64,7 +65,7 @@ $(document).ready(function() {
                                     <i class='fa fa-trash-o'></i>
                                 </button>
                             </form>
-                            <a class="lineform"href="{% url "space:add_booking" location_slug=l.slug from_index=1 %}">
+                            <a class="lineform" href="{% url "space:add_booking" location_slug=l.slug from_index=1 %}">
                                 <button type='submit' class='btn' title="Add Booking">
                                     <i class='fa fa-book'></i>
                                 </button>

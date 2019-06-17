@@ -12,11 +12,12 @@
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#assets').dataTable( {
-    'bPaginate': false,
     'bInfo': false,
-    'bLengthChange': false,
+    'bLengthChange': true,
     "bJQueryUI": true,
-    'aaSorting': [[1, 'asc']]
+    'aaSorting': [[1, 'asc']],
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']]
   } );
 } );
 

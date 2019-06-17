@@ -44,6 +44,7 @@ services:
       dockerfile: Dockerfile-app
     depends_on:
       - rabbitmq
+      - db
     volumes:
       - ../../:/code:ro
       - ./localsettings.py:/code/courses/localsettings.py:ro
