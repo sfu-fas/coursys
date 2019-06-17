@@ -949,7 +949,7 @@ def student_search(request):
 
     # do the query with Haystack
     # experimentally, score >= 1 seems to correspond to useful things
-    student_qs = SearchQuerySet().models(Person).filter(text=term)[:20]
+    student_qs = SearchQuerySet().models(Person).filter(text_fuzzy=term)[:20]
     data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs
             if r and r.score >= 1 and str(r.emplid) not in EXCLUDE_EMPLIDS]
     
@@ -1103,7 +1103,7 @@ class OfferingDataJson(BaseDatatableView):
             #qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch))
 
             # get offering set from haystack, and use it to limit our query
-            offering_qs = SearchQuerySet().models(CourseOffering).filter(text=srch)[:500]
+            offering_qs = SearchQuerySet().models(CourseOffering).filter(text__fuzzy=srch)[:500]
             offering_pks = (r.pk for r in offering_qs if r is not None)
             qs = qs.filter(pk__in=offering_pks)
 
@@ -1144,7 +1144,7 @@ class OfferingDataJson(BaseDatatableView):
             #qs = qs.filter(title__icontains=title)
 
             # get offering set from haystack, and use it to limit our query
-            offering_qs = SearchQuerySet().models(CourseOffering).filter(title=title)[:500]
+            offering_qs = SearchQuerySet().models(CourseOffering).filter(title__fuzzy=title)[:500]
             offering_pks = (r.pk for r in offering_qs if r is not None)
             qs = qs.filter(pk__in=offering_pks)
 
@@ -1210,7 +1210,7 @@ def _instructor_autocomplete(request):
     # thing in the Person text index)
     term = ''.join(c for c in term if not c.isdigit())
     # query with haystack
-    person_qs = SearchQuerySet().models(Person).filter(text=term)[:100]
+    person_qs = SearchQuerySet().models(Person).filter(text__fuzzy=term)[:100]
     person_pks = (r.pk for r in person_qs if r is not None)
     # go back to the database to limit to only instructors
     instr_ids = Member.objects.filter(person_id__in=person_pks).filter(role='INST') \
