@@ -37,6 +37,8 @@ class LogEntry(models.Model):
     def save(self, *args, **kwargs):
         # self.content_type might be null if the related item is deleted, but must be created with one.
         assert self.content_type
+        if len(self.description) > 255:
+            self.description = self.description[:252] + '...'
         return super().save(*args, **kwargs)
 
     def display(self):
