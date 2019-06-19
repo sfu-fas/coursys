@@ -30,6 +30,7 @@ space_patterns = [  # prefix /space/
     url(r'^' + LOCATION_SLUG + '/add_booking$', views.add_booking, name='add_booking'),
     url(r'^' + LOCATION_SLUG + '/add_booking/' + FROM_INDEX + '/$', views.add_booking, name='add_booking'),
     url(r'^bookings/' + BOOKING_SLUG + '/keyform$', views.keyform, name='keyform'),
+    url(r'^bookings/' + BOOKING_SLUG + '/delete_key$', views.delete_key, name='delete_key'),
     url(r'^bookings/' + BOOKING_SLUG + '/edit$', views.edit_booking, name='edit_booking'),
     url(r'^bookings/' + BOOKING_SLUG + '/view$', views.view_booking, name='view_booking'),
     url(r'^bookings/' + BOOKING_ID + '/delete$', views.delete_booking, name='delete_booking'),

@@ -22,10 +22,6 @@ $(document).ready(function() {
         'aaSorting': [[2, 'asc']]
     });
 });
-
-function confirmDelete() {
-  return confirm("Are you sure you want to delete this content?");
-}
 </script>
 {% endblock %}
 
@@ -67,27 +63,25 @@ function confirmDelete() {
                 <td>{{ event|get_event_value_direct:'content'|linebreaks }}</td>
                 <td><span class="sort">{{ event.last_modified.isoformat }}</span>{{ event.last_modified }}</td>
                 <td><form class="lineform" method="POST"
-                          action="{% url 'relationships:delete_event' contact_slug=contact.slug event_slug=event.slug %}"
-                          onsubmit="return confirmDelete()">
+                          action="{% url 'relationships:delete_event' contact_slug=contact.slug event_slug=event.slug %}">
                         {% csrf_token %}
-                        <button type='submit' class='btn' title="Delete Content">
+                        <button type='submit' class='btn confirm-submit' title="Delete Content"
+                                data-submit-action="delete this content">
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>
                     {% if event.is_text_based %}
-                        <form class="lineform" method="GET"
-                        action="{% url 'relationships:edit_event' contact_slug=contact.slug event_slug=event.slug %}">
+                        <a class="lineform" href="{% url 'relationships:edit_event' contact_slug=contact.slug event_slug=event.slug %}">
                         <button type='submit' class='btn' title="Edit Content">
                             <i class='fa fa-edit'></i>
                         </button>
-                        </form>
+                        </a>
                     {% endif %}
-                    <form class="lineform" method="GET"
-                        action="{% url "relationships:view_event" contact_slug=contact.slug event_slug=event.slug %}">
+                    <a class="lineform" href="{% url "relationships:view_event" contact_slug=contact.slug event_slug=event.slug %}">
                         <button type='submit' class='btn' title="View Content">
                             <i class='fa fa-eye'></i>
                         </button>
-                    </form>
+                    </a>
                 </td>
             </tr>
         {% endfor %}

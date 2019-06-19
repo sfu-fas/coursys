@@ -43,8 +43,9 @@ class Asset(models.Model):
     brand = models.CharField(max_length=60, null=True, blank=True)
     description = models.CharField(max_length=400, blank=True, null=True)
     serial = models.CharField("Serial Number", max_length=60, null=True, blank=True)
-    tag = models.CharField("Asset Tag Number", max_length=60, null=True, blank=True, help_text="SFU Asset Tag number, "
-                                                                                               "if it exists")
+    tag = models.CharField("Service Tag", max_length=60, null=True, blank=True, help_text="Service Tag, or SFU Asset "
+                                                                                          "Tag number, if it exists")
+    express_service_code = models.CharField(max_length=60, null=True, blank=True)
     quantity = models.PositiveIntegerField(blank=True, null=True)
     min_qty = models.PositiveIntegerField("Minimum re-order quantity", blank=True, null=True,
                                           help_text="The minimum quantity that should be in stock before having to "
@@ -59,7 +60,10 @@ class Asset(models.Model):
     po = models.CharField("PR/PO No.", max_length=60, null=True, blank=True)
     account = models.CharField("Account No.", max_length=60, null=True, blank=True)
     vendor = models.CharField("Supplier/Vendor", max_length=400, null=True, blank=True)
+    calibration_date = models.DateField("Calibration/Service Date", null=True, blank=True)
+    eol_date = models.DateField("End of Life Date", null=True, blank=True)
     notes = models.CharField(max_length=400, null=True, blank=True)
+    service_records = models.CharField(max_length=600, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)

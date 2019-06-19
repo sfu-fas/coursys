@@ -12,11 +12,12 @@
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#assets').dataTable( {
-    'bPaginate': false,
     'bInfo': false,
-    'bLengthChange': false,
+    'bLengthChange': true,
     "bJQueryUI": true,
-    'aaSorting': [[1, 'asc']]
+    'aaSorting': [[1, 'asc']],
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']]
   } );
 } );
 
@@ -64,24 +65,21 @@ $(document).ready(function() {
                         <i class='fa fa-trash-o'></i>
                     </button>
                 </form>
-                <form class="lineform" method="GET"
-                    action="{% url "inventory:add_change_record" asset_slug=asset.slug %}">
+                <a class="lineform" href="{% url "inventory:add_change_record" asset_slug=asset.slug %}">
                     <button type='submit' class='btn' title="Add change record">
                         <i class='fa fa-book'></i>
                     </button>
-                </form>
-                <form class="lineform" method="GET"
-                    action="{% url "inventory:edit_asset" asset_slug=asset.slug %}">
+                </a>
+                <a class="lineform" href="{% url "inventory:edit_asset" asset_slug=asset.slug %}">
                     <button type='submit' class='btn' title="Edit asset">
                         <i class='fa fa-edit'></i>
                     </button>
-                </form>
-                <form class="lineform" method="GET"
-                    action="{% url "inventory:view_asset" asset_slug=asset.slug %}">
+                </a>
+                <a class="lineform" href="{% url "inventory:view_asset" asset_slug=asset.slug %}">
                     <button type='submit' class='btn' title="View asset">
                         <i class='fa fa-eye'></i>
                     </button>
-                </form>
+                </a>
             </td>
         </tr>
     {% endfor %}

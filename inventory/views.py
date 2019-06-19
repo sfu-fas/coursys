@@ -29,14 +29,16 @@ def inventory_download(request):
     response['Content-Disposition'] = 'inline; filename="inventory-%s.csv"' % datetime.datetime.now().strftime('%Y%m%d')
     writer = csv.writer(response)
     if assets:
-        writer.writerow(['Name', 'Unit', 'Brand', 'Description', 'Serial', 'Asset Tag', 'Quantity',
-                         'Minimum Re-Order Quantity', 'Quantity Ordered', 'Minimum Vendor Quantity', 'Price',
-                         'Category', 'Location', 'PR/PO No.', 'Account No.', 'Supplier/Vendor', 'Notes', 'Attachments',
-                         'Change Records'])
+        writer.writerow(['Name', 'Unit', 'Brand', 'Description', 'Serial', 'Service/Asset Tag', 'Express Service Code',
+                         'Quantity', 'Minimum Re-Order Quantity', 'Quantity Ordered', 'Minimum Vendor Quantity',
+                         'Price', 'Category', 'Location', 'PR/PO No.', 'Account No.', 'Supplier/Vendor',
+                         'Calibration/Service Date', 'End of Life Date', 'Notes', 'Service Records',
+                         'Attachments', 'Change Records'])
         for a in assets:
-            writer.writerow([a.name, a.unit, a.brand, a.description, a.serial, a.tag, a.quantity, a.min_qty,
-                             a.qty_ordered, a.min_vendor_qty, a.price, a.get_category_display(), a.location, a.po,
-                             a.account, a.vendor, a.notes, a.has_attachments(), a.has_records()])
+            writer.writerow([a.name, a.unit, a.brand, a.description, a.serial, a.tag, a.express_service_code,
+                             a.quantity, a.min_qty, a.qty_ordered, a.min_vendor_qty, a.price, a.get_category_display(),
+                             a.location, a.po, a.account, a.vendor, a.calibration_date, a.eol_date, a.notes,
+                             a.service_records, a.has_attachments(), a.has_records()])
     return response
 
 

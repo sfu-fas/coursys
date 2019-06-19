@@ -52,8 +52,8 @@ def index(request):
 
     # Only CMPT admins should see the one different TA module.  Only non-CMPT TA Admins should see the other.
     # re-factored to take into account the very few people who should see both (mainly FAS Departmental Admins)
-    cmpt_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD', unit__label__in=['CMPT', 'SEE']).exists()
-    other_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD').exclude(unit__label__in=['CMPT', 'SEE']).exists()
+    cmpt_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD', unit__label='CMPT').exists()
+    other_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD').exclude(unit__label='CMPT').exists()
 
     context = {'memberships': memberships,
                'staff_memberships': staff_memberships,
@@ -950,7 +950,7 @@ def _query_results(query, person):
     if person:
         members = Member.objects.filter(person=person).exclude(role='DROP').select_related('offering')
         offering_slugs = set(m.offering.slug for m in members)
-        offering_results = SearchQuerySet().models(CourseOffering).filter(text=query) # offerings that match the query
+        offering_results = SearchQuerySet().models(CourseOffering).filter(text__fuzzy=query) # offerings that match the query
         offering_results = offering_results.filter(slug__in=offering_slugs) # ... and this person was in
     else:
         members = []
@@ -963,12 +963,12 @@ def _query_results(query, person):
         member_acl = set("%s_%s" % (m.offering.slug, acl) for acl in ACL_ROLES[m.role] if acl != 'ALL')
         page_acl |= member_acl
 
-    page_results = SearchQuerySet().models(Page).filter(text=query) # pages that match the query
+    page_results = SearchQuerySet().models(Page).filter(text__fuzzy=query) # pages that match the query
     page_results = page_results.filter(permission_key__in=page_acl) # ... and are visible to this user
 
     # discussion this person can view (discussion.DiscussionTopic)
     if person:
-        discuss_results = SearchQuerySet().models(DiscussionTopic).filter(text=query) # discussions that match the query
+        discuss_results = SearchQuerySet().models(DiscussionTopic).filter(text__fuzzy=query) # discussions that match the query
         discuss_results = discuss_results.filter(slug__in=offering_slugs) # ... and this person was in
     else:
         discuss_results = []
@@ -978,7 +978,7 @@ def _query_results(query, person):
         .select_related('offering')
     if person and instr_members:
         offering_slugs = set(m.offering.slug for m in instr_members)
-        member_results = SearchQuerySet().models(Member).filter(text=query) # members that match the query
+        member_results = SearchQuerySet().models(Member).filter(text__fuzzy=query) # members that match the query
         member_results = member_results.filter(offering_slug__in=offering_slugs) # ... and this person was the instructor for
         member_results = member_results.load_all()
     else:

@@ -1,1 +1,0 @@
-/opt/solr/server/solr/configsets/_default/conf/synonyms.txt

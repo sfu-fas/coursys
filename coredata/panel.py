@@ -303,6 +303,7 @@ def deploy_checks(request=None):
         8000, # gunicorn
         11211, # memcached
         9200, 9300, # elasticsearch
+        8983,  # solr
     ]
     connected = []
     for p in ports:

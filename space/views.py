@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.contrib import messages
 from django.http import StreamingHttpResponse
 from django.db import transaction
-from .models import Location, RoomType, BookingRecord, BookingMemo, BookingRecordAttachment, RoomSafetyItem
+from .models import Location, RoomType, BookingRecord, BookingMemo, BookingRecordAttachment, RoomSafetyItem, KeyRequest
 from .forms import LocationForm, RoomTypeForm, BookingRecordForm, BookingRecordAttachmentForm, RoomSafetyItemForm
 from courselib.auth import requires_role
 from log.models import LogEntry
@@ -100,10 +100,11 @@ def edit_location(request, location_slug, from_index=0):
 @requires_role('SPAC')
 def view_location(request, location_slug):
     location = get_object_or_404(Location, slug=location_slug, unit__in=Unit.sub_units(request.units))
-    printkeyform = False
+    keyactions = False
+    #  We need access to specific key-related actions for the SEE/Surrey buildings.
     if location.unit.label == 'SEE' or location.building in ['SRY', 'SEE'] or location.campus == 'SURRY':
-        printkeyform = True
-    return render(request, 'space/view_location.html', {'location': location, 'printkeyform': printkeyform})
+        keyactions = True
+    return render(request, 'space/view_location.html', {'location': location, 'keyactions': keyactions})
 
 
 @requires_role('SPAC')
@@ -338,16 +339,17 @@ def delete_booking_attachment(request, booking_slug, attachment_id):
 def send_memo(request, booking_slug, from_index=0):
     booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=Unit.sub_units(request.units))
     editor = get_object_or_404(Person, userid=request.user.username)
-    booking_memo = BookingMemo(booking_record=booking, created_by=editor)
-    booking_memo.email_memo()
-    booking_memo.save()
-    messages.add_message(request,
-                         messages.SUCCESS,
-                         'Memo was sent')
-    l = LogEntry(userid=request.user.username,
-                 description="Send memo to %s" % booking.person,
-                 related_object=booking_memo)
-    l.save()
+    if request.method == 'POST':
+        booking_memo = BookingMemo(booking_record=booking, created_by=editor)
+        booking_memo.email_memo()
+        booking_memo.save()
+        messages.add_message(request,
+                             messages.SUCCESS,
+                             'Memo was sent')
+        l = LogEntry(userid=request.user.username,
+                     description="Send memo to %s" % booking.person,
+                     related_object=booking_memo)
+        l.save()
     if from_index == '1':
         return HttpResponseRedirect(reverse('space:view_location', kwargs={'location_slug': booking.location.slug}))
     return HttpResponseRedirect(reverse('space:view_booking', kwargs={'booking_slug': booking.slug}))
@@ -419,7 +421,28 @@ def delete_room_safety_item(request, safety_item_slug):
 @requires_role('SPAC')
 def keyform(request, booking_slug):
     booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=Unit.sub_units(request.units))
+    user = get_object_or_404(Person, userid=request.user.username)
+    if not booking.has_key_request():
+        k = KeyRequest(booking_record=booking, created_by=user)
+        k.save()
+        l = LogEntry(userid=request.user.username,
+                     description="Added key request for booking %s" % booking,
+                     related_object=k)
+        l.save()
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="keyform-%s-%s.pdf"' % (booking.location.room_number, booking.person.userid)
     key_form(booking, response)
     return response
+
+
+@requires_role('SPAC')
+def delete_key(request, booking_slug):
+    booking = get_object_or_404(BookingRecord, slug=booking_slug, location__unit__in=Unit.sub_units(request.units))
+    if request.method == 'POST':
+        if booking.has_key_request():
+            booking.key_request.delete()
+            l = LogEntry(userid=request.user.username,
+                         description="Deleted key request for booking %s" % booking,
+                         related_object=booking)
+            l.save()
+    return view_location(request, booking.location.slug)
