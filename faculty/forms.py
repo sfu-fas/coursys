@@ -96,7 +96,7 @@ class AttachmentForm(forms.ModelForm):
         }
         help_texts = {
             'contents': "You can enter one or multiple files.  Please note that multiple files will "
-                        "have the same title."
+                        "have the same title if a title is provided."
         }
 
 
