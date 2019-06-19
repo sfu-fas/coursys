@@ -339,7 +339,7 @@ if USE_CELERY:
 
 MAX_SUBMISSION_SIZE = 30000 # kB
 CAS_SERVER_URL = "https://cas.sfu.ca/cas/"
-CAS_VERSION = '2'
+CAS_VERSION = '3'
 CAS_LOGIN_MSG = None
 EMAIL_HOST = 'localhost'
 DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
