@@ -62,6 +62,7 @@ def settings_info():
     info = []
     info.append(('Deploy mode', settings.DEPLOY_MODE))
     info.append(('Database engine', settings.DATABASES['default']['ENGINE']))
+    info.append(('Authentication Backends', settings.AUTHENTICATION_BACKENDS))
     info.append(('Cache backend', settings.CACHES['default']['BACKEND']))
     info.append(('Haystack engine', settings.HAYSTACK_CONNECTIONS['default']['ENGINE']))
     info.append(('Email backend', settings.EMAIL_BACKEND))

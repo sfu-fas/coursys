@@ -59,3 +59,4 @@ gunicorn==19.9.0
 mysqlclient==1.4.2.post1
 paramiko>=2.4.0
 ibm_db==3.0.1
+django-cas-ng==3.6.0
