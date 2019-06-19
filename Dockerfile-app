@@ -18,9 +18,11 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /tmp/
-RUN pip install -r /tmp/requirements.txt && pip install ipython pysolr==3.8.1
+RUN pip install -r /tmp/requirements.txt && pip install ipython
 
-ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.5.0/wait /wait
+RUN mkdir /var/log/celery/ /var/run/celery/ && chown www-data.www-data /var/log/celery/ /var/run/celery/
+
+COPY machines/compose/wait.sh /wait
 RUN chmod +x /wait
 
 RUN mkdir /static
@@ -28,9 +30,8 @@ RUN chown www-data:www-data /static
 
 USER www-data
 ENV PYTHONUNBUFFERED 1
-#CMD /wait && python3 ./manage.py migrate && python3 ./manage.py loaddata fixtures/*.json && python3 ./manage.py runserver 0:8000
 # TODO: the setup commands here should be somewhere else, possibly a dedicated "setup" container
-CMD /wait \
+CMD /wait db 3306 && /wait solr 8983 \
   && python3 ./manage.py migrate \
   && python3 ./manage.py loaddata fixtures/*.json \
   && python3 ./manage.py collectstatic --noinput \
