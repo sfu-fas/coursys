@@ -1552,7 +1552,6 @@ def import_marks(request, course_slug, activity_slug):
             form = ImportMarkFileForm(data=request.POST, files=request.FILES, activity=activity, userid=request.user.username)
             if form.is_valid():
                 found, not_found = activity_marks_from_JSON(activity, request.user.username, form.cleaned_data['file'], save=True)
-
                 messages.add_message(request, messages.SUCCESS, "Successfully imported %i marks." % (len(found)))
 
                 if len(not_found) > 0:
@@ -1560,7 +1559,12 @@ def import_marks(request, course_slug, activity_slug):
                         messages.add_message(request, messages.WARNING,
                                              "The following group/userid was not found in the class list and was "
                                              "ignored: %s." % n)
-                
+                l = LogEntry(userid=request.user.username,
+                             description=("%s bulk marked via JSON file %s for %s. %i grade(s) successfully changed, "
+                                          "%i group/userid not found and ignored.") %
+                                         (request.user.username, request.FILES['file'], activity, len(found), len(not_found)),
+                             related_object=activity)
+                l.save()
                 return _redirct_response(request, course_slug, activity_slug)
         else:
             form = ImportMarkFileForm(activity=activity, userid=request.user.username)
