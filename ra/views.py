@@ -517,7 +517,7 @@ class RADataJson(BaseDatatableView):
         srch = GET.get('sSearch', None)
         if srch:
             # get RA set from haystack, and use it to limit our query.
-            ra_qs = SearchQuerySet().models(RAAppointment).filter(text=srch)[:500]
+            ra_qs = SearchQuerySet().models(RAAppointment).filter(text__fuzzy=srch)[:500]
             ra_qs = [r for r in ra_qs if r is not None]
             if ra_qs:
                 # ignore very low scores: elasticsearch grabs too much sometimes
