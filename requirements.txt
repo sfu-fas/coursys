@@ -60,4 +60,4 @@ mysqlclient==1.4.2.post1
 paramiko>=2.4.0
 ibm_db==3.0.1
 #django-cas-ng==3.6.0
-git+git://github.com/mingchen/django-cas-ng.git@b54223217228b2091f6325d3d5c6f87ab46ad480 # fix for session_key bug in 3.6.0
+git+git://github.com/gregbaker/django-cas-ng.git@08509c3ad23f69d6d4e69a0a66453d0221023f3d # fix for session_key bug (PR #195), and duplicate session_key bug (PR #209)
