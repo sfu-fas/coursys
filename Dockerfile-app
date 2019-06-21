@@ -6,7 +6,7 @@ WORKDIR /code
 
 # adapted from https://github.com/gettyimages/docker-spark/blob/master/Dockerfile
 RUN apt-get update \
- && apt-get install -y locales \
+ && apt-get install -y locales npm \
  && dpkg-reconfigure -f noninteractive locales \
  && locale-gen en_CA.UTF-8 \
  && /usr/sbin/update-locale LANG=C.UTF-8 \

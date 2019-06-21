@@ -26,6 +26,7 @@ django-bitfield==1.9.3
 #git+git://github.com/moggers87/django-bitfield@0910021be2f96cab9687cca2c93a9b612de36a69 # django 2.0 compatibility (PR #81)
 ##django-countries==5.3.3
 django-compressor==2.2
+django-npm==1.0.0
 #django-cache-utils==0.7.2
 hg+https://bitbucket.org/ggbaker/django-cache-utils/@8a29823  # python 3 compatibility
 celery==4.1.1 # <4.2 until proven otherwise. See https://github.com/celery/celery/issues/4867

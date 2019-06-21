@@ -1,4 +1,4 @@
-package ["git", "libxslt1-dev", "sqlite3", "zlib1g-dev", "libjpeg8-dev", "mercurial", "build-essential", "libmysqlclient-dev"]
+package ["git", "libxslt1-dev", "sqlite3", "zlib1g-dev", "libjpeg8-dev", "mercurial", "build-essential", "libmysqlclient-dev", 'npm']
 package ["python3", "python3-pip", "python3-setuptools", "python3-dev", "python3-lxml", 'libffi-dev']
 
 # pip install any listed requirements
