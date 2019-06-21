@@ -25,7 +25,8 @@
 <dt>Brand</dt><dd>{{ asset.brand }}</dd>
 <dt>Description</dt><dd>{{ asset.description }}</dd>
 <dt>Serial Number</dt><dd>{{ asset.serial }}</dd>
-<dt>Asset Tag Number</dt><dd>{{ asset.tag }}</dd>
+<dt>Service/Asset Tag Number</dt><dd>{{ asset.tag }}</dd>
+<dt>Express Service Code</dt><dd>{{ asset.express_service_code }}</dd>
 <dt>Quantity</dt><dd>{{ asset.quantity }}</dd>
 <dt>Minimum Re-Order Quantity</dt><dd>{{ asset.min_qty }}</dd>
 <dt>Quantity Ordered</dt><dd>{{ asset.qty_ordered }}</dd>
@@ -37,7 +38,10 @@
 <dt>PR/PO No.</dt><dd>{{ asset.po }}</dd>
 <dt>Account No.</dt><dd>{{ asset.account }}</dd>
 <dt>Supplied/Vendor</dt><dd>{{ asset.vendor|linebreaks }}</dd>
+<dt>Calibration/Service Date</dt><dd>{{ asset.calibration_date }}</dd>
+<dt>End of life Date</dt><dd>{{ asset.eol_date }}</dd>
 <dt>Notes</dt><dd>{{ asset.notes|linebreaks }}</dd>
+<dt>Service Records</dt><dd>{{ asset.service_records|linebreaks }}</dd>
 <dt>Created at</dt><dd>{{ asset.created_at }}</dd>
 <dt>Last Modified</dt><dd>{{ asset.last_modified }}</dd>
 

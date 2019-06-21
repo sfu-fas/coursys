@@ -1,50 +1,51 @@
-Django==2.0.13
+Django==2.2.2
 
 #Creoleparser==0.7.4  Replaced with version below that incorporates our fix for null headings, and python3 support
 git+git://github.com/gregbaker/creoleparser.git@f2d9ba65a0cd435f5b25347414902b21826999dd
-Genshi==0.7
-Unidecode>=1.0.22
+Genshi==0.7.2
+Unidecode>=1.0.23
 
 django-autoslug==1.9.4
 
-django-otp==0.4.2
-django-dirtyfields==1.3
-qrcode==5.3
-django-debug-toolbar==1.9.1
+django-otp==0.6.0
+django-dirtyfields==1.3.1
+qrcode==6.1
+django-debug-toolbar==1.11
 jsonfield==2.0.2
-pyparsing==2.2.0
-pytz>=2017.3
-textile==3.0.0
+pyparsing==2.4.0
+pytz>=2019.1
+textile==3.0.3
 html5lib==1.0.1
 bleach==3.1.0
-reportlab==3.3.0
+reportlab==3.5.21
 pillow>=5.0.0
-icalendar==4.0.0
-xlwt==1.2.0
-django-datatables-view==1.14.0
+icalendar==4.0.3
+xlwt==1.3.0
+django-datatables-view==1.17.0
 django-bitfield==1.9.3
 #git+git://github.com/moggers87/django-bitfield@0910021be2f96cab9687cca2c93a9b612de36a69 # django 2.0 compatibility (PR #81)
-django-countries==4.0
-django-compressor==2.1
+##django-countries==5.3.3
+django-compressor==2.2
+django-npm==1.0.0
 #django-cache-utils==0.7.2
 hg+https://bitbucket.org/ggbaker/django-cache-utils/@8a29823  # python 3 compatibility
-celery==4.1.0
+celery==4.1.1 # <4.2 until proven otherwise. See https://github.com/celery/celery/issues/4867
 django-celery-email==2.0.1
-django_celery_beat==1.1.0
+django_celery_beat==1.4.0
 flower==0.9.3
-kombu==4.1.0
+kombu==4.5.0
 iso8601==0.1.12
 django-haystack==2.8.1
 whoosh==2.7.4
-djangorestframework==3.7.7
+djangorestframework==3.9.4
 djangorestframework-oauth==1.1.0
 #django-oauth-plus==2.2.9
 hg+https://bitbucket.org/ggbaker/django-oauth-plus/@5865258 # django 2.0 and python3 compatibility
 markdown # for API docs
-django-rest-swagger==2.1.2
-django-ipware==2.0.0
-psutil==5.4.3
-intervaltree==2.1.0
+django-rest-swagger==2.2.0
+django-ipware==2.1.0
+psutil==5.6.2
+intervaltree==3.0.2
 requests
 ntplib==0.3.3
 
@@ -53,8 +54,11 @@ python-memcached==1.59
 #django-dbdump==1.1
 git+git://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
 elasticsearch==6.1.1
-lxml==4.1.1
-gunicorn==19.7.1
-mysqlclient==1.3.12
+pysolr==3.8.1
+lxml==4.3.3
+gunicorn==19.9.0
+mysqlclient==1.4.2.post1
 paramiko>=2.4.0
-ibm_db==2.0.7
+ibm_db==3.0.1
+#django-cas-ng==3.6.0
+git+git://github.com/gregbaker/django-cas-ng.git@08509c3ad23f69d6d4e69a0a66453d0221023f3d # fix for session_key bug (PR #195), and duplicate session_key bug (PR #209)

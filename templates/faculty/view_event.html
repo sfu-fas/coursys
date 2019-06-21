@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}
 {% load event_display %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}{{ person.name }}: {{ handler.NAME }}, {{event.start_date.year }}{% endblock %}
 {% block h1 %}{{ person.name }}: {{ handler.NAME }}, {{event.start_date.year }}{% endblock %}
@@ -65,7 +65,7 @@
 <h2 id="attachments">Attachments</h2>
 <ul>
 {% for a in attachments %}
-<li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
+<li>{% if a.title %}{{ a.title }} ({% endif %}{{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }}{% if a.title %}){% endif %}
   <a href="{% url 'faculty:view_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">View</a> |
   <a href="{% url 'faculty:download_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">Download</a> {% if editor|can_edit:event %} |
   <a href="{% url 'faculty:delete_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug  %}">Delete</a>{% endif %}

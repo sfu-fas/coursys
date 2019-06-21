@@ -16,10 +16,6 @@ $(document).ready(function() {
     'aaSorting': [[0, 'asc']]
   } );
 } );
-function confirmDelete() {
-  return confirm("Are you sure you want to delete this contact?");
-}
-
 </script>
 {% endblock %}
 
@@ -51,25 +47,23 @@ function confirmDelete() {
                 <td>{{ c.unit.name }}</td>
                 <td>
                     <form class="lineform" method="POST"
-                              action="{% url "relationships:delete_contact" contact_slug=c.slug %}"
-                              onsubmit="return confirmDelete()">
-                            {% csrf_token %}
-                            <button type='submit' class='btn' title="Delete Contact">
-                                <i class='fa fa-trash-o'></i>
-                            </button>
-                        </form>
-                        <form class="lineform" method="GET"
-                            action="{% url "relationships:edit_contact" contact_slug=c.slug %}">
-                            <button type='submit' class='btn' title="Edit Contact">
-                                <i class='fa fa-edit'></i>
-                            </button>
-                        </form>
-                        <form class="lineform" method="GET"
-                            action="{% url "relationships:view_contact" contact_slug=c.slug %}">
-                            <button type='submit' class='btn' title="View Contact">
-                                <i class='fa fa-eye'></i>
-                            </button>
-                        </form>
+                          action="{% url "relationships:delete_contact" contact_slug=c.slug %}">
+                        {% csrf_token %}
+                        <button type='submit' class='btn confirm-submit' title="Delete Contact"
+                                data-submit-action="remove this contact">
+                            <i class='fa fa-trash-o'></i>
+                        </button>
+                    </form>
+                    <a class="lineform" href="{% url "relationships:edit_contact" contact_slug=c.slug %}">
+                        <button type='submit' class='btn' title="Edit Contact">
+                            <i class='fa fa-edit'></i>
+                        </button>
+                    </a>
+                    <a class="lineform" href="{% url "relationships:view_contact" contact_slug=c.slug %}">
+                        <button type='submit' class='btn' title="View Contact">
+                            <i class='fa fa-eye'></i>
+                        </button>
+                    </a>
                 </td>
             </tr>
             {% endfor %}

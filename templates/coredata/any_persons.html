@@ -16,17 +16,6 @@ $(document).ready(function() {
   } );
 } );
 
-function confirmDelete(url) {
-    if (confirm("Are you sure you want to delete this record?  This may cause horrible things to happen if the foreign keys are used elsewhere")) {
-        document.location = url;
-    }
-}
-
-function confirmCleanup(url) {
-  if ( confirm("Are you sure you want to delete empty AnyPersons?  This may cause horrible things to happen if the foreign keys are used elsewhere") ) {
-    document.location = url;
-  };
-}
 </script>
 {% endblock %}
 
@@ -62,18 +51,18 @@ function confirmCleanup(url) {
             <td>{{ anyperson.future_person }} {% if anyperson.future_person.hidden %}(hidden){% endif %}</td>
             <td>{{ anyperson.role_account }}</td>
             <td>
-                <div class="lineform">
-                    <button type='submit' class='btn' title="Delete AnyPerson"
-                            onclick="confirmDelete('{% url "sysadmin:delete_anyperson" anyperson_id=anyperson.id %}')">
+                <form method="POST" class="lineform" action="{% url "sysadmin:delete_anyperson" anyperson_id=anyperson.id %}">
+                    {% csrf_token %}
+                    <button type='submit' class='btn confirm-submit' title="Delete AnyPerson"
+                            data-submit-action="delete this AnyPerson">
                         <i class='fa fa-trash-o'></i>
                     </button>
-                </div>
-                <form class="lineform" method="GET"
-                    action="{% url "sysadmin:edit_anyperson" anyperson_id=anyperson.id %}">
+                </form>
+                <a class="lineform" href="{% url "sysadmin:edit_anyperson" anyperson_id=anyperson.id %}">
                     <button type='submit' class='btn' title="Edit Anyperson">
                         <i class='fa fa-edit'></i>
                     </button>
-                </form>
+                </a>
             </td>
         </tr>
         {% endfor %}
@@ -81,11 +70,10 @@ function confirmCleanup(url) {
     </table>
 
     <form method="POST" action={% url "sysadmin:delete_empty_anypersons" %}>
-    {% csrf_token %}
+        {% csrf_token %}
         Remove AnyPersons with no Person, FuturePerson, and RoleAccount
-    <button type="submit" class='btn' title="Clean up empty AnyPersons"
-            onclick="confirmCleanup('{% url "sysadmin:delete_empty_anypersons" %}')">Cleanup</button>
-
+        <button type="submit" class='btn confirm-submit' title="Clean up empty AnyPersons"
+            data-submit-action="delete all empty AnyPersons">Cleanup</button>
     </form>
 {% else %}
     <h2>There are no people to display.</h2>

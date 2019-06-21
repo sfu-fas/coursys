@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %}
 {% load visa_display %}
 
 {% block title %}Visas{% if person %} for {{ person }}{% endif %}{% endblock %}
@@ -70,18 +70,16 @@ $(document).ready(function() {
                                 <i class='fa fa-trash-o'></i>
                             </button>
                         </form>
-                        <form class="lineform" method="GET"
-                            action="{% url "visas:edit_visa" visa_id=visa.id %}">
+                        <a class="lineform" href="{% url "visas:edit_visa" visa_id=visa.id %}">
                             <button type='submit' class='btn' title="Edit Visa">
                                 <i class='fa fa-edit'></i>
                             </button>
-                        </form>
-                        <form class="lineform" method="GET"
-                            action="{% url "visas:view_visa" visa_id=visa.id %}">
+                        </a>
+                        <a class="lineform" href="{% url "visas:view_visa" visa_id=visa.id %}">
                             <button type='submit' class='btn' title="View Visa">
                                 <i class='fa fa-eye'></i>
                             </button>
-                        </form>
+                        </a>
                     </td>
                 </tr>
             {% endfor %}

@@ -16,11 +16,6 @@ $(document).ready(function() {
   } );
 } );
 
-function confirmDelete(url) {
-  if ( confirm("Are you sure you want to delete this record?  This may cause horrible things to happen if the foreign keys are used elsewhere") ) {
-    document.location = url;
-  };
-}
 </script>
 {% endblock %}
 
@@ -56,24 +51,22 @@ function confirmDelete(url) {
             <td>{{ futureperson }} {% if futureperson.hidden %}(hidden){% endif %}</td>
             <td>{{ futureperson.is_anyperson|yesno }}</td>
             <td>
-                <div class="lineform">
-                    <button type='submit' class='btn' title="Delete"
-                            onclick="confirmDelete('{% url "sysadmin:delete_futureperson" futureperson_id=futureperson.id %}')">
+                <form class="lineform" method="POST" action="{% url "sysadmin:delete_futureperson" futureperson_id=futureperson.id %}">
+                    {% csrf_token %}
+                    <button type='submit' class='btn' title="Delete" data-submit-action="delete this FuturePerson">
                         <i class='fa fa-trash-o'></i>
                     </button>
-                </div>
-                <form class="lineform" method="GET"
-                    action="{% url "sysadmin:edit_futureperson" futureperson_id=futureperson.id %}">
+                </form>
+                <a class="lineform" href="{% url "sysadmin:edit_futureperson" futureperson_id=futureperson.id %}">
                     <button type='submit' class='btn' title="Edit">
                         <i class='fa fa-edit'></i>
                     </button>
-                </form>
-                <form class="lineform" method="GET"
-                    action="{% url "sysadmin:view_futureperson" futureperson_id=futureperson.id %}">
+                </a>
+                <a class="lineform" href="{% url "sysadmin:view_futureperson" futureperson_id=futureperson.id %}">
                     <button type='submit' class='btn' title="View">
                         <i class='fa fa-eye'></i>
                     </button>
-                </form>
+                </a>
             </td>
         </tr>
         {% endfor %}

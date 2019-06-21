@@ -248,6 +248,7 @@ def daily_cleanup():
     logger.info('Cleaning up database')
     # cleanup sessions table
     call_command('clearsessions')
+    call_command('django_cas_ng_clean_sessions')
     # cleanup old news items
     NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=365)).delete()
     # cleanup old log entries

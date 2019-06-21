@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}TA Course Descriptions{% endblock %}
 {% block h1 %}TA Course Descriptions{% endblock %}
@@ -57,12 +57,11 @@ $(document).ready(function() {
             <i class='fa fa-trash-o'></i>
         </button>
     </form>
-    <form class="lineform" method="GET"
-        action="{% url "ta:edit_description" description_id=d.id %}">
+    <a class="lineform" href="{% url "ta:edit_description" description_id=d.id %}">
         <button type='submit' class='btn' title="Edit Description">
             <i class='fa fa-edit'></i>
         </button>
-    </form>
+    </a>
   </td>
 </tr>	
 {% endfor %}

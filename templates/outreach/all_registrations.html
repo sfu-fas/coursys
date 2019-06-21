@@ -108,18 +108,16 @@ function togglePast() {
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>
-                    <form class="lineform" method="GET"
-                        action="{% url "outreach:edit_registration" registration_id=registration.id %}">
+                    <a class="lineform" href="{% url "outreach:edit_registration" registration_id=registration.id %}">
                         <button type='submit' class='btn' title="Edit Registration">
                             <i class='fa fa-edit'></i>
                         </button>
-                    </form>
-                    <form class="lineform" method="GET"
-                        action="{% url "outreach:view_registration" registration_id=registration.id %}">
+                    </a>
+                    <a class="lineform" href="{% url "outreach:view_registration" registration_id=registration.id %}">
                         <button type='submit' class='btn' title="View Registration">
                             <i class='fa fa-eye'></i>
                         </button>
-                    </form>
+                    </a>
                 </td>
                 </tr>
             {% endfor %}
@@ -181,18 +179,16 @@ function togglePast() {
                                 <i class='fa fa-trash-o'></i>
                             </button>
                         </form>
-                        <form class="lineform" method="GET"
-                            action="{% url "outreach:edit_registration" registration_id=registration.id %}">
+                        <a class="lineform" href="{% url "outreach:edit_registration" registration_id=registration.id %}">
                             <button type='submit' class='btn' title="Edit Registration">
                                 <i class='fa fa-edit'></i>
                             </button>
-                        </form>
-                        <form class="lineform" method="GET"
-                            action="{% url "outreach:view_registration" registration_id=registration.id %}">
+                        </a>
+                        <a class="lineform" href="{% url "outreach:view_registration" registration_id=registration.id %}">
                             <button type='submit' class='btn' title="View Registration">
                                 <i class='fa fa-eye'></i>
                             </button>
-                        </form>
+                        </a>
                     </td>
                     </tr>
                 {% endfor %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %}
 {% load form_display %}
 {% load currency %}
 {% load bu %}
@@ -59,12 +59,11 @@
                         </button>
                     </form>
                     {% if not category.frozen %}
-                    <form class="lineform" method="GET" 
-                        action="{% url "tacontracts:edit_category" category_slug=category.slug unit_slug=unit_slug semester=semester %}">
+                    <a class="lineform" href="{% url "tacontracts:edit_category" category_slug=category.slug unit_slug=unit_slug semester=semester %}">
                         <button type='submit' class='btn' title="Edit Category">
                             <i class='fa fa-edit'></i>
                         </button>
-                    </form>
+                    </a>
                     {% endif %}
 
                 </td>

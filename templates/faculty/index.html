@@ -22,11 +22,7 @@ $(document).ready(function() {
           event_filter_update('formerfaculty');
         }).change();
 });
-function confirmDelete(url) {
-  if ( confirm("Are you sure you want to delete this future person?") ) {
-    document.location = url;
-  };
-}
+
 </script>
 {% endblock %}
 
@@ -140,18 +136,17 @@ function confirmDelete(url) {
         <td>{{ person.get_position_name }}</td>
         <td>{{ person.assigned|yesno }}</td>
         <td>
-            <div class="lineform">
-                <button type='submit' class='btn' title="Hide Position"
-                        onclick="confirmDelete('{% url "faculty:delete_futureperson" futureperson_id=person.id %}')">
+            <form class="lineform" method="POST" action="{% url "faculty:delete_futureperson" futureperson_id=person.id %}">
+                {% csrf_token %}
+                <button type='submit' class='btn confirm-submit' title="Delete Future Member" data-submit-action="delete this future faculty member">
                     <i class='fa fa-trash-o'></i>
                 </button>
-            </div>
-            <form class="lineform" method="GET"
-                action="{% url "faculty:edit_futureperson" futureperson_id=person.id %}">
+            </form>
+            <a class="lineform" href="{% url "faculty:edit_futureperson" futureperson_id=person.id %}">
                 <button type='submit' class='btn' title="Edit Person">
                     <i class='fa fa-edit'></i>
                 </button>
-            </form>
+            </a>
 
         </td>
         </tr>

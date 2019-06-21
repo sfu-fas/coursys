@@ -29,15 +29,14 @@ from otp.urls import otp_patterns
 
 import dashboard.views as dashboard_views
 import grad.views as grad_views
-from django_cas.views import logout
+from django_cas_ng.views import LogoutView
 
 handler404 = 'courselib.auth.NotFoundResponse'
 
 toplevel_patterns = [
     # system URLs
-    url(r'^login/$', dashboard_views.login, name='login'),
-    url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
-    url(r'^logout/(?P<next_page>.*)/$', logout, name='auth_logout_next'),
+    url(r'^login/$', dashboard_views.LoginView.as_view(), name='login'),
+    url(r'^logout/$', LogoutView.as_view(), name='logout'),
     url(r'^robots.txt$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
     url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL + 'icons/favicon.ico', permanent=True)),
     url(r'^csp-reports', csp_report_view, name='csp_reports'),

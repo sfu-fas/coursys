@@ -52,13 +52,11 @@
                               <i class="fa fa-copy"></i>
                           </button>
                     </form>
-                    <form class="lineform" method="GET"
-                          action="{% url "tacontracts:print_contract" unit_slug=unit_slug semester=semester contract_slug=contract.slug %}">
-                        {% csrf_token %}
-                          <button type="submit" class="btn" title="Print Contract">
-                              <i class="fa fa-print"></i>
-                          </button>
-                    </form>
+                    <a class="lineform" href="{% url "tacontracts:print_contract" unit_slug=unit_slug semester=semester contract_slug=contract.slug %}">
+                      <button type="submit" class="btn" title="Print Contract">
+                          <i class="fa fa-print"></i>
+                      </button>
+                    </a>
                     {% if contract.status == "NEW" %}
                     <form class="lineform" method="POST"
                           action="{% url "tacontracts:sign_contract" unit_slug=unit_slug semester=semester contract_slug=contract.slug %}">

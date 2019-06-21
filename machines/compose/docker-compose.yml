@@ -15,7 +15,7 @@ services:
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
   memcache:
-    image: "memcached:1.5-alpine"
+    image: "memcached:1.5"
 
   app:
     build:
@@ -31,12 +31,11 @@ services:
       - coursys_static:/static:rw
       - ./localsettings.py:/code/courses/localsettings.py:ro
       - ./secrets.py:/code/courses/secrets.py:ro
-    environment:
-      PYTHONUNBUFFERED: 1
-      WAIT_HOSTS: db:3306, solr:8983
 
   rabbitmq:
     image: "rabbitmq:3.7-alpine"
+    volumes:
+      - coursys_rabbitmq:/var/lib/rabbitmq:rw
 
   celery:
     # TODO: on first startup, should wait for db migration
@@ -45,13 +44,13 @@ services:
       dockerfile: Dockerfile-celery
     depends_on:
       - rabbitmq
+      - db
+      - app # to force build order: Dockerfile-celery uses app image
     volumes:
+      #- coursys_logs_celery:/var/logs/celery:rw
       - ../../:/code:ro
       - ./localsettings.py:/code/courses/localsettings.py:ro
       - ./secrets.py:/code/courses/secrets.py:ro
-    environment:
-      PYTHONUNBUFFERED: 1
-      WAIT_HOSTS: db:3306
 
   web:
     image: "nginx:stable"
@@ -65,25 +64,22 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ../chef/cookbooks/coursys_proddev/files/default/self-ssl.key:/etc/nginx/cert.key:ro
       - ../chef/cookbooks/coursys_proddev/files/default/self-ssl.pem:/etc/nginx/cert.pem:ro
-
-  #elasticsearch:
-  #  image: "elasticsearch:6.7.2"
-  #  ports:
-  #    - 9200:9200
-  #    - 9300:9300
-  #  environment:
-  #    discovery.type: single-node
-  #  volumes:
-  #    - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - coursys_logs_nginx:/var/log/nginx:rw
 
   solr:
-    image: "solr:8-alpine"
+    build:
+      context: ./
+      dockerfile: Dockerfile-solr
     ports:
       - "8983:8983"
     volumes:
-      - ./solr-config:/config:ro
-    command: solr-create -c coursys -d /config
+      - coursys_solr:/var/solr/data
+
 
 volumes:
   coursys_static:
   coursys_db:
+  coursys_solr:
+  coursys_rabbitmq:
+  coursys_logs_nginx:
+  coursys_logs_celery:

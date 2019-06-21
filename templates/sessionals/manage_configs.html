@@ -54,12 +54,11 @@ $(document).ready(function() {
                 <td>{{ config.pay_start }}</td>
                 <td>{{ config.pay_end }}</td>
                 <td>
-                    <form class="lineform" method="GET"
-                        action="{% url "sessionals:edit_config" config_slug=config.slug %}">
+                    <a class="lineform" href="{% url "sessionals:edit_config" config_slug=config.slug %}">
                         <button type='submit' class='btn' title="Edit Config">
                             <i class='fa fa-edit'></i>
                         </button>
-                    </form>
+                    </a>
                 </td>
             </tr>
         {% endfor %}

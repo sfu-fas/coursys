@@ -41,27 +41,27 @@ converted into database tables when the application is installed.
 
 First, create an empty SQLite database and populate it with tables:
 
-    python manage.py migrate
+    python3 manage.py migrate
 
 We could stop here, but the site isn't too useful without test data. Good thing
 we have a big bale of it! 
 
-    python manage.py loaddata fixtures/*.json
-    python manage.py update_index
+    python3 manage.py loaddata fixtures/*.json
+    python3 manage.py update_index
 
 If you're ever done something awful to your database, you can steamroll it
 and rebuild it with 
 
     rm db.sqlite
-    python manage.py migrate
-    python manage.py loaddata fixtures/*.json
-    python manage.py update_index
+    python3 manage.py migrate
+    python3 manage.py loaddata fixtures/*.json
+    python3 manage.py update_index
 
 ## Run the server
 
 So let's turn this thing on! 
 
-    python manage.py runserver 0:8000
+    python3 manage.py runserver 0:8000
 
 Wait, why are we doing that thing with the `0:8000` there? Well, by default, 
 Django's development server only allows connections from the same server
@@ -103,12 +103,12 @@ Did you run the tests?
 
 From within the Virtual Machine, you can run all of the tests with 
 
-    python manage.py test
+    python3 manage.py test
 
 Which takes forever, because it tests every nook and cranny of Coursys. So,
 instead, you can test one individual application with: 
 
-    python manage.py test yourapp
+    python3 manage.py test yourapp
 
 ## Shut Down
 

@@ -3,7 +3,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
-from django_cas.views import _redirect_url
+from django_cas_ng.utils import get_redirect_url
 
 from courselib.auth import ForbiddenResponse, NotFoundResponse
 from courselib.branding import help_email
@@ -31,7 +31,7 @@ def _setup_view(request, next_page):
     if not next_page and 'next' in request.GET:
         next_page = request.GET['next']
     if not next_page:
-        next_page = _redirect_url(request)
+        next_page = get_redirect_url(request)
 
     if not request.maybe_stale_user.is_authenticated:
         # Not authenticated at all. Force standard-Django auth.

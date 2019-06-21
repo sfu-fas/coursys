@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}Room Types{% endblock %}
 {% block h1 %}Room Types{% endblock %}
@@ -52,25 +52,22 @@ $(document).ready(function() {
                     <td>{{ r.COU_code_description }}</td>
                     <td>
                         <form class="lineform" method="POST"
-                              action="{% url "space:delete_roomtype" roomtype_id=r.id %}"
-                              onsubmit="return confirmDelete()">
+                              action="{% url "space:delete_roomtype" roomtype_id=r.id %}">
                             {% csrf_token %}
                             <button type='submit' class='btn confirm-submit' title="Delete room type" data-submit-action="remove this room type">
                                 <i class='fa fa-trash-o'></i>
                             </button>
                         </form>
-                        <form class="lineform" method="GET"
-                            action="{% url "space:edit_roomtype" roomtype_slug=r.slug %}">
+                        <a class="lineform" href="{% url "space:edit_roomtype" roomtype_slug=r.slug %}">
                             <button type='submit' class='btn' title="Edit Room Type">
                                 <i class='fa fa-edit'></i>
                             </button>
-                        </form>
-                        <form class="lineform" method="GET"
-                            action="{% url "space:view_roomtype" roomtype_slug=r.slug %}">
+                        </a>
+                        <a class="lineform" href="{% url "space:view_roomtype" roomtype_slug=r.slug %}">
                             <button type='submit' class='btn' title="View Room Type">
                                 <i class='fa fa-eye'></i>
                             </button>
-                        </form>
+                        </a>
                     </td>
                 </tr>
             {% endfor %}

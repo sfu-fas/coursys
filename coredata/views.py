@@ -447,13 +447,13 @@ def list_anypersons(request):
 @requires_global_role("SYSA")
 def delete_anyperson(request, anyperson_id):
     anyperson = get_object_or_404(AnyPerson, pk=anyperson_id)
-    anyperson.delete()
-    messages.success(request, 'Deleted anyperson for %s' % anyperson)
-    l = LogEntry(userid=request.user.username,
-                 description="deleted anyperson: %s" % anyperson,
-                 related_object=anyperson)
-    l.save()
-
+    if request.method == 'POST':
+        anyperson.delete()
+        messages.success(request, 'Deleted anyperson for %s' % anyperson)
+        l = LogEntry(userid=request.user.username,
+                     description="deleted anyperson: %s" % anyperson,
+                     related_object=anyperson)
+        l.save()
     return HttpResponseRedirect(reverse('sysadmin:list_anypersons'))
 
 
@@ -510,6 +510,7 @@ def edit_anyperson(request, anyperson_id):
 
     return render(request, 'coredata/edit_anyperson.html', {'form': form, 'anyperson_id': anyperson_id})
 
+
 @requires_global_role("SYSA")
 def delete_empty_anypersons(request):
     if request.method == 'POST':
@@ -537,13 +538,14 @@ def edit_futureperson(request, futureperson_id):
 
 @requires_global_role("SYSA")
 def delete_futureperson(request, futureperson_id):
-    futureperson = FuturePerson.objects.get(pk=futureperson_id)
-    futureperson.delete()
-    messages.success(request, 'Deleted futureperson %s' % futureperson)
-    l = LogEntry(userid=request.user.username,
-                 description="deleted futureperson: %s" % futureperson,
-                 related_object=futureperson)
-    l.save()
+    if request.method == 'POST':
+        futureperson = FuturePerson.objects.get(pk=futureperson_id)
+        futureperson.delete()
+        messages.success(request, 'Deleted futureperson %s' % futureperson)
+        l = LogEntry(userid=request.user.username,
+                     description="deleted futureperson: %s" % futureperson,
+                     related_object=futureperson)
+        l.save()
     return HttpResponseRedirect(reverse('sysadmin:list_futurepersons'))
 
 @requires_global_role("SYSA")
@@ -587,12 +589,13 @@ def list_roleaccounts(request):
 @requires_global_role("SYSA")
 def delete_roleaccount(request, roleaccount_id):
     roleaccount = RoleAccount.objects.get(pk=roleaccount_id)
-    roleaccount.delete()
-    messages.success(request, 'Deleted roleaccount %s' % roleaccount)
-    l = LogEntry(userid=request.user.username,
-                 description="deleted roleaccount: %s" % roleaccount,
-                 related_object=roleaccount)
-    l.save()
+    if request.method == 'POST':
+        roleaccount.delete()
+        messages.success(request, 'Deleted roleaccount %s' % roleaccount)
+        l = LogEntry(userid=request.user.username,
+                     description="deleted roleaccount: %s" % roleaccount,
+                     related_object=roleaccount)
+        l.save()
     return HttpResponseRedirect(reverse('sysadmin:list_roleaccounts'))
 
 @requires_global_role("SYSA")
@@ -946,7 +949,7 @@ def student_search(request):
 
     # do the query with Haystack
     # experimentally, score >= 1 seems to correspond to useful things
-    student_qs = SearchQuerySet().models(Person).filter(text=term)[:20]
+    student_qs = SearchQuerySet().models(Person).filter(text_fuzzy=term)[:20]
     data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs
             if r and r.score >= 1 and str(r.emplid) not in EXCLUDE_EMPLIDS]
     
@@ -1054,10 +1057,8 @@ COLUMN_ORDERING = { # column -> ordering info for datatable_view
 class OfferingDataJson(BaseDatatableView):
     model = CourseOffering
     max_display_length = 500
-    
-    def set_columns(self, col_list):
-        self.columns = col_list
-        self.order_columns = [COLUMN_ORDERING[col] for col in self.columns]
+    columns = COLUMNS
+    order_columns = [COLUMN_ORDERING[col] for col in columns]
 
     def render_column(self, offering, column):
         if column == 'coursecode':
@@ -1095,12 +1096,6 @@ class OfferingDataJson(BaseDatatableView):
         qs = qs.filter(semester__in=OfferingFilterForm.allowed_semesters())
         # no locally-merged courses
         qs = qs.exclude(flags=CourseOffering.flags.combined)
-
-        #req_cols = GET.get('columns', '').split(',')
-        #if req_cols == [''] or req_cols == ['null']:
-        #    req_cols = DEFAULT_COLUMNS
-        #columns = UNIVERSAL_COLUMNS + req_cols
-        self.set_columns(COLUMNS)
         
         srch = GET.get('sSearch', None)
         if srch:
@@ -1108,7 +1103,7 @@ class OfferingDataJson(BaseDatatableView):
             #qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch))
 
             # get offering set from haystack, and use it to limit our query
-            offering_qs = SearchQuerySet().models(CourseOffering).filter(text=srch)[:500]
+            offering_qs = SearchQuerySet().models(CourseOffering).filter(text__fuzzy=srch)[:500]
             offering_pks = (r.pk for r in offering_qs if r is not None)
             qs = qs.filter(pk__in=offering_pks)
 
@@ -1129,8 +1124,11 @@ class OfferingDataJson(BaseDatatableView):
             off_ids = Member.objects.order_by().filter(person__userid=instructor, role='INST').values_list('offering', flat=True)[:500]
             #qs = qs.filter(id__in=off_ids)
             # above should work, but production mySQL is ancient and can't do IN + LIMIT
-            fake_in = reduce(operator.__or__, (Q(id=oid) for oid in off_ids))
-            qs = qs.filter(fake_in)
+            if off_ids:
+                fake_in = reduce(operator.__or__, (Q(id=oid) for oid in off_ids))
+                qs = qs.filter(fake_in)
+            else:
+                qs = qs.none()
             
         campus = GET.get('campus', None)
         if campus:
@@ -1146,7 +1144,7 @@ class OfferingDataJson(BaseDatatableView):
             #qs = qs.filter(title__icontains=title)
 
             # get offering set from haystack, and use it to limit our query
-            offering_qs = SearchQuerySet().models(CourseOffering).filter(title=title)[:500]
+            offering_qs = SearchQuerySet().models(CourseOffering).filter(title__fuzzy=title)[:500]
             offering_pks = (r.pk for r in offering_qs if r is not None)
             qs = qs.filter(pk__in=offering_pks)
 
@@ -1212,7 +1210,7 @@ def _instructor_autocomplete(request):
     # thing in the Person text index)
     term = ''.join(c for c in term if not c.isdigit())
     # query with haystack
-    person_qs = SearchQuerySet().models(Person).filter(text=term)[:100]
+    person_qs = SearchQuerySet().models(Person).filter(text__fuzzy=term)[:100]
     person_pks = (r.pk for r in person_qs if r is not None)
     # go back to the database to limit to only instructors
     instr_ids = Member.objects.filter(person_id__in=person_pks).filter(role='INST') \

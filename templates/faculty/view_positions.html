@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}Positions{% endblock %}
 {% block h1 %}Positions{% endblock %}
@@ -64,12 +64,11 @@ function confirmDelete(url) {
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </div>
-                    <form class="lineform" method="GET"
-                        action="{% url "faculty:edit_position" position_id=position.id %}">
+                    <a class="lineform" href="{% url "faculty:edit_position" position_id=position.id %}">
                         <button type='submit' class='btn' title="Edit Position">
                             <i class='fa fa-edit'></i>
                         </button>
-                    </form>
+                    </a>
                 </td>
             </tr>
         {% endfor %}

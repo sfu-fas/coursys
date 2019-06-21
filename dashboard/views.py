@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponseForbidden
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
@@ -52,8 +52,8 @@ def index(request):
 
     # Only CMPT admins should see the one different TA module.  Only non-CMPT TA Admins should see the other.
     # re-factored to take into account the very few people who should see both (mainly FAS Departmental Admins)
-    cmpt_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD', unit__label__in=['CMPT', 'SEE']).exists()
-    other_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD').exclude(unit__label__in=['CMPT', 'SEE']).exists()
+    cmpt_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD', unit__label='CMPT').exists()
+    other_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD').exclude(unit__label='CMPT').exists()
 
     context = {'memberships': memberships,
                'staff_memberships': staff_memberships,
@@ -134,63 +134,44 @@ def fake_logout(request):
     return HttpResponseRedirect('/')
 
 
-# copy of django_cas.views.login that doesn't do a message, but does a LogEntry
-from django_cas.views import _redirect_url, _service_url, _login_url, HttpResponseForbidden
-def login(request, next_page=None, required=False):
-    """Forwards to CAS login URL or verifies CAS ticket
+from django_cas_ng.views import LoginView as CasLoginView
+class LoginView(CasLoginView):
+    def successful_login(self, request, next_page):
+        # create a LogEntry when users log in
+        user = request.user
+        l = LogEntry(userid=user.username,
+                     description=("logged in as %s from %s") % (user.username, ip.get_ip(request)),
+                     related_object=user)
+        l.save()
+        return super().successful_login(request, next_page)
 
-    Modified locally: honour next=??? in query string, don't deliver a message, catch HTTPError and IOError,
-    generate LogEntry
-    """
-    if not next_page and 'next' in request.GET:
-        next_page = request.GET['next']
-    if not next_page:
-        next_page = _redirect_url(request)
-    if request.user.is_authenticated:
-        #message = "You are logged in as %s." % request.user.username
-        #messages.success(request, message)
-        return HttpResponseRedirect(next_page)
-    ticket = request.GET.get('ticket')
-    service = _service_url(request, next_page)
-    if ticket:
-        from django.contrib import auth
+    def get(self, request):
+        # Override to catch exceptions caused by CAS server not responding, which happens and is beyond our control.
         try:
-            user = auth.authenticate(ticket=ticket, service=service, request=request)
+            return super().get(request)
         except IOError as e:
-            # Here we want to catch only: connection reset, timeouts, name or service unknown
+            # Ignore a minimal set of errors we have actually seen result from CAS outages
             if e.errno in [104, 110, 'socket error']:
-                user = None
-            # HTTPError is a type of OSError, which IOError is an alias for.
+                pass
+
+            # HTTPError is a subclass of OSError, which IOError is an alias for.
             # Sometimes, the CAS server seems to just return a 500 internal server error.  Let's handle that the
             # same way as the above case.
             elif isinstance(e, HTTPError):
                 if e.code == 500:
-                    user = None
+                    pass
                 else:
                     # Any other HTTPError should bubble up and let us know something horrible has happened.
                     raise HTTPError("Got an HTTP Error when authenticating. The error is: {0!s}.".format(e))
+
             else:
                 raise IOError("The errno is %r: %s." % (e.errno, str(e)))
+
         except ParseError:
-            user = None
+            pass
 
-        if user is not None:
-            auth.login(request, user)
-            #LOG EVENT#
-            l = LogEntry(userid=user.username,
-                  description=("logged in as %s from %s") % (user.username, ip.get_ip(request)),
-                  related_object=user)
-            l.save()
-            return HttpResponseRedirect(next_page)
-        elif settings.CAS_RETRY_LOGIN or required:
-            return HttpResponseRedirect(_login_url(service))
-        else:
-            error = "<h1>Forbidden</h1><p>Login failed.</p>"
-            return HttpResponseForbidden(error)
-    else:
-        return HttpResponseRedirect(_login_url(service))
-
-
+        error = "<h1>Forbidden</h1><p>Login failed because of a CAS error.</p>"
+        return HttpResponseForbidden(error)
 
 
 @login_required
@@ -969,7 +950,7 @@ def _query_results(query, person):
     if person:
         members = Member.objects.filter(person=person).exclude(role='DROP').select_related('offering')
         offering_slugs = set(m.offering.slug for m in members)
-        offering_results = SearchQuerySet().models(CourseOffering).filter(text=query) # offerings that match the query
+        offering_results = SearchQuerySet().models(CourseOffering).filter(text__fuzzy=query) # offerings that match the query
         offering_results = offering_results.filter(slug__in=offering_slugs) # ... and this person was in
     else:
         members = []
@@ -982,12 +963,12 @@ def _query_results(query, person):
         member_acl = set("%s_%s" % (m.offering.slug, acl) for acl in ACL_ROLES[m.role] if acl != 'ALL')
         page_acl |= member_acl
 
-    page_results = SearchQuerySet().models(Page).filter(text=query) # pages that match the query
+    page_results = SearchQuerySet().models(Page).filter(text__fuzzy=query) # pages that match the query
     page_results = page_results.filter(permission_key__in=page_acl) # ... and are visible to this user
 
     # discussion this person can view (discussion.DiscussionTopic)
     if person:
-        discuss_results = SearchQuerySet().models(DiscussionTopic).filter(text=query) # discussions that match the query
+        discuss_results = SearchQuerySet().models(DiscussionTopic).filter(text__fuzzy=query) # discussions that match the query
         discuss_results = discuss_results.filter(slug__in=offering_slugs) # ... and this person was in
     else:
         discuss_results = []
@@ -997,7 +978,7 @@ def _query_results(query, person):
         .select_related('offering')
     if person and instr_members:
         offering_slugs = set(m.offering.slug for m in instr_members)
-        member_results = SearchQuerySet().models(Member).filter(text=query) # members that match the query
+        member_results = SearchQuerySet().models(Member).filter(text__fuzzy=query) # members that match the query
         member_results = member_results.filter(offering_slug__in=offering_slugs) # ... and this person was the instructor for
         member_results = member_results.load_all()
     else:
