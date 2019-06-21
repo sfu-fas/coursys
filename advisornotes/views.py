@@ -715,7 +715,7 @@ def my_visits(request):
 def download_all_visits(request):
     visits = AdvisorVisit.objects.visible(request.units).select_related('student', 'nonstudent', 'advisor', ) \
                  .prefetch_related('categories').order_by("-created_at")[:5000]
-    return _return_visits_pdf(visits=visits, admin=True)
+    return _return_visits_csv(visits=visits, admin=True)
 
 
 @requires_role(['ADVS', 'ADVM'])
@@ -724,10 +724,10 @@ def download_my_visits(request):
     visits = AdvisorVisit.objects.visible(request.units).filter(advisor=advisor) \
                  .select_related('student', 'nonstudent', 'advisor').prefetch_related('categories') \
                  .order_by("-created_at")[:5000]
-    return _return_visits_pdf(visits=visits, admin=False)
+    return _return_visits_csv(visits=visits, admin=False)
 
 
-def _return_visits_pdf(visits=None, admin=False):
+def _return_visits_csv(visits=None, admin=False):
     response = HttpResponse(content_type='text/csv')
     if admin:
         filename_prefix = 'all'
