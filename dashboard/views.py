@@ -21,6 +21,7 @@ from discuss.models import DiscussionTopic
 from onlineforms.models import FormGroup
 from pages.models import Page, ACL_ROLES
 from ra.models import RAAppointment
+from reports.models import AccessRule
 from log.models import LogEntry
 import datetime, json, urllib.parse
 from courselib.auth import requires_role
@@ -49,6 +50,7 @@ def index(request):
     has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).exists()
     form_groups = FormGroup.objects.filter(members__userid=request.user.username).exists()
     has_ras = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username, deleted=False).exists()
+    has_reports = AccessRule.objects.filter(person__userid=request.user.username).exists()
 
     # Only CMPT admins should see the one different TA module.  Only non-CMPT TA Admins should see the other.
     # re-factored to take into account the very few people who should see both (mainly FAS Departmental Admins)
@@ -66,7 +68,8 @@ def index(request):
                'form_groups': form_groups,
                'cmpt_taadmn': cmpt_taadmn,
                'other_taadmn': other_taadmn,
-               'is_instructor': is_instructor}
+               'is_instructor': is_instructor,
+               'has_reports': has_reports}
     return render(request, "dashboard/index.html", context)
 
 @login_required
