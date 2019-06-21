@@ -224,6 +224,7 @@ class AccessRule(models.Model):
 SCHEDULE_TYPE_CHOICES = (
         ('ONE', 'One-Time'),
         ('DAI', 'Daily'),
+        ('WEE', 'Weekly'),
         ('MON', 'Monthly'),
         ('YEA', 'Yearly'),
 )
@@ -275,6 +276,10 @@ def increment_month(date):
                              date.microsecond, date.tzinfo )
 
 
+def increment_week(date):
+    new_date = date + datetime.timedelta(days=7)
+    return new_date
+
 def increment_day(date):
     new_date = date + datetime.timedelta(days=1)
     return new_date
@@ -298,11 +303,13 @@ class ScheduleRule(models.Model):
     def set_next_run(self):
         self.last_run = self.next_run
         if self.schedule_type == 'DAI': 
-            self.next_run = increment_day( self.next_run )
+            self.next_run = increment_day(self.next_run)
+        if self.schedule_type == 'WEE':
+            self.next_run = increment_week(self.next_run)
         if self.schedule_type == 'MON':
-            self.next_run = increment_month( self.next_run )
+            self.next_run = increment_month(self.next_run)
         if self.schedule_type == 'YEA':
-            self.next_run = increment_year( self.next_run )
+            self.next_run = increment_year(self.next_run)
         if self.schedule_type == 'ONE': 
             self.next_run = None
 
