@@ -233,6 +233,7 @@ COMPRESS_ENABLED = getattr(localsettings, 'COMPRESS_ENABLED', DEPLOY_MODE != 'de
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter']
 COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
 COMPRESS_ROOT = getattr(localsettings, 'COMPRESS_ROOT', STATIC_ROOT)
+NPM_ROOT_PATH = getattr(localsettings, 'NPM_ROOT_PATH', '.')
 
 # production-like vs development settings
 if DEPLOY_MODE in ['production', 'proddev']:
