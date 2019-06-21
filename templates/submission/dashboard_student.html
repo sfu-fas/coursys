@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Submission for {{activity.name}}{% endblock %}
 {% block h1 %}Submission for {{activity.name}}{% endblock %}
@@ -7,9 +8,9 @@
 
 
 {% block headextra %}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.47.0/codemirror.min.css" integrity="sha256-I8NyGs4wjbMuBSUE40o55W6k6P7tu/7G28/JGUUYCIs=" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.47.0/theme/eclipse.min.css" integrity="sha256-C2k2AGTJsrRfmmxnfxARIMz6/LK8tCUuFcWsG4kMhu8=" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.47.0/codemirror.min.js" integrity="sha256-2I1PtOi9LsvUCUPXmB064faXMlnry57bYMG9OrM4njM=" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="{% static 'codemirror/lib/codemirror.css' %}" />
+    <link rel="stylesheet" href="{% static 'codemirror/theme/eclipse.css' %}" />
+    <script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
     {% for data in component_form_list %}{% if data.comp.is_live_code %} {# codemirror mode <script> elements for livecode #}
         {{ data.comp.mode_script_element }}
     {% endif %}{% endfor %}
@@ -21,8 +22,6 @@
             var ta = dd.find('textarea').get(0);
             var mode = dd.attr('data-mode');
             dd.css('float', 'none'); // TODO: ug, our CSS
-            console.log(ta);
-            console.log(mode);
             cm = CodeMirror.fromTextArea(ta, {'mode': mode});
         });
     }

@@ -13,7 +13,7 @@ import os, re
 MAX_TEXT_KB = 100
 MAX_TEXT_LENGTH = MAX_TEXT_KB * 1024
 
-LANGUAGE_CHOICES = [(mode, label) for mode, label, _, _ in CODEMIRROR_MODES]
+LANGUAGE_CHOICES = [(mode, label) for mode, label, _ in CODEMIRROR_MODES]
 LANGUAGE_CHOICES = sorted(LANGUAGE_CHOICES, key=lambda c: c[1].lower())
 
 FILE_EXT_RE = re.compile('^[A-Za-z0-9]+$')
@@ -30,8 +30,8 @@ class LiveCodeComponent(SubmissionComponent):
         app_label = 'submission'
 
     def mode_script_element(self):
-        url, integrity = [(url, integrity) for mode, label, url, integrity in CODEMIRROR_MODES if mode == self.language][0]
-        return mark_safe('<script src="%s" integrity="sha256-%s" crossorigin="anonymous" referrerpolicy="no-referrer"></script>' % (url, integrity))
+        url = [url for mode, label, url in CODEMIRROR_MODES if mode == self.language][0]
+        return mark_safe('<script src="%s"></script>' % (url,))
 
 
 class SubmittedLiveCode(SubmittedComponent):
