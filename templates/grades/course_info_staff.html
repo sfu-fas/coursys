@@ -78,7 +78,6 @@ $(document).ready(function() {
 <p class="infomessage">This seems to be joint with another offering. It is possible to combine offerings in {{ CourSys }} so they appear as one large &ldquo;course&rdquo;:
 email <a href="mailto:{{ help_email }}">{{ help_email }}</a> to get it set up <em>before</em> you do any setup here.</p>
 {% endif %}
-<div class="table_container">
     <table class="info">
         <tbody>
             <tr>
@@ -120,11 +119,10 @@ email <a href="mailto:{{ help_email }}">{{ help_email }}</a> to get it set up <e
             </tr>
         </tbody>
     </table>
-</div>
 
     <h2 id="act">Course Activities</h2>
     {% if activities_info %}
-    <table id="activities">
+    <table id="activities" class="display">
         <thead>
             <tr>
                 <th scope="col">Order</th>

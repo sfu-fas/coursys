@@ -7,11 +7,10 @@
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
-	// activate dataTable ui
 	oTable = $('#student_grades').dataTable({
 	    "bJQueryUI": true,
 	    "bPaginate": false,
-	    "aaSorting": [[1, "asc"]],
+	    "aaSorting": [[0, "asc"], [1, "asc"]],
 	    "aoColumns": [
 		    null,
 		    null,
