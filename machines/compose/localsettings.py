@@ -6,6 +6,7 @@ USE_CELERY=True
 #DISABLE_REPORTING_DB=False
 ALLOWED_HOSTS = ['localhost']
 FORCE_MEMCACHED = True
+NPM_ROOT_PATH = '/npm/'
 
 DB_CONNECTION = {
     'HOST': 'db',

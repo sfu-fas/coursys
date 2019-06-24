@@ -5,7 +5,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/xenial64"
   # config.vm.boot_mode = :gui
   config.vm.network "forwarded_port", guest:8000, host:8000
-  config.vm.synced_folder "../..", "/home/ubuntu/courses",
+  config.vm.synced_folder "../..", "/home/vagrant/courses",
       id: "coursys-project",
       owner: "ubuntu",
       group: "www-data",
@@ -19,6 +19,7 @@ Vagrant.configure("2") do |config|
      chef.cookbooks_path = "../chef/cookbooks"
      chef.add_recipe "apt"
      chef.add_recipe "coursys"
+     chef.version = "14.12.9"
   end
 
 end

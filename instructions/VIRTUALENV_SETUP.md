@@ -6,7 +6,7 @@ For this, you'll need to be on a Linux-ish machine.
 
 In order to install the coursys deps, you're going to need some packages.
 
-    sudo apt-get install git python3 python3-pip python3-dev python-lxml libxslt1-dev sqlite3 zlib1g-dev virtualenv libjpeg-dev libmysqlclient-dev
+    sudo apt-get install git python3 python3-pip python3-dev python-lxml libxslt1-dev sqlite3 zlib1g-dev virtualenv libjpeg-dev libmysqlclient-dev npm
 
 ## Create the VirtualEnv
 
@@ -18,6 +18,7 @@ Create a virtualenv for the project and install the Python dependencies:
     git clone git@github.com:sfu-fas/coursys.git coursys
     cd coursys
     pip install -r requirements.txt
+    npm install
 
 Adding the `--upgrade` option might solve some problems if your system is
 complaining because it is already packing some of these libraries from a
