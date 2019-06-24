@@ -82,11 +82,11 @@ class Report(models.Model):
             return
         every_sysadmin = [role.person for role in Role.objects_fresh.filter(role='SYSA')]
         for sysadmin in every_sysadmin:
-            n = NewsItem( user=sysadmin,
-                            source_app='reports',
-                            title="Failed Report: " + self.name, 
-                            url= reverse('reports:can_access_report', kwargs={'report':self.slug, 'run':failed_run.slug}),
-                            content= "A run has failed! \n" + self.description );
+            n = NewsItem(user=sysadmin,
+                         source_app='reports',
+                         title="Failed Report: " + self.name,
+                         url=reverse('reports:view_run', kwargs={'report': self.slug, 'run': failed_run.slug}),
+                         content="A run has failed! \n" + self.description)
             n.save()
 
 def all_reports():
@@ -210,11 +210,11 @@ class AccessRule(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def send_notification(self, run):
-        n = NewsItem( user= self.person, 
-                        source_app='reports',
-                        title="Completed Run: " + self.report.name + " : " + run.slug, 
-                        url= reverse('reports:can_access_report', kwargs={'report':self.report.slug, 'run':run.slug}),
-                        content= "You have a scheduled report that has completed! \n" + self.report.description );
+        n = NewsItem(user= self.person,
+                     source_app='reports',
+                     title="Completed Run: " + self.report.name + " : " + run.slug,
+                     url=reverse('reports:view_run', kwargs={'report': self.report.slug, 'run': run.slug}),
+                     content="You have a scheduled report that has completed! \n" + self.report.description)
         n.save()
 
 
