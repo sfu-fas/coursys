@@ -65,6 +65,7 @@ Vagrant.configure("2") do |config|
      #only for prod-dev, not for production
      chef.add_recipe "coursys_proddev"
      #chef.add_recipe "coursys_true_production"
+     chef.version = "14.12.9"
 
      chef.add_recipe "sfu-db2"
 

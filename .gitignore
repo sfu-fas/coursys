@@ -48,6 +48,7 @@ local_settings.py
 courses/secrets.py
 courses/localsettings.py
 media/CACHE
+node_modules
 whoosh_index
 disabled_features.json
 .project

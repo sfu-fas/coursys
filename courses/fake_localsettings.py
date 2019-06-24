@@ -5,6 +5,7 @@
 #DISABLE_REPORTING_DB=False
 #ALLOWED_HOSTS = ['localhost']
 #FORCE_MEMCACHED = True
+#FORCE_CAS = True
 
 LOGGING = {
     'version': 1,

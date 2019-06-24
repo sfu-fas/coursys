@@ -1,9 +1,9 @@
 {% load static %}{% load compress %}
 {# mathjax can't be in compress block because it dynamically loads other bits and pieces with relative URLs #}
 <script src="{% static 'js/mathjax-config.js' %}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_SVG,Safe" referrerpolicy="no-referrer"></script>
+<script src="{% static 'mathjax/MathJax.js' %}?config=TeX-AMS-MML_SVG,Safe"></script>
 {% compress js %}
 <script src="{% static 'highlightjs/highlight.pack.js' %}"></script>
 <script src="{% static 'js/highlighting.js' %}"></script>
 {% endcompress %}
-<link rel="stylesheet" href="{% static 'highlightjs/vs.css' %}" />
+<link rel="stylesheet" href="{% static 'highlightjs/styles/vs.css' %}" />
