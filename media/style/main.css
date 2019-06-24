@@ -428,52 +428,16 @@ div#newsitems a.collapsible-heading-toggle {
 
 /* DataTable styles */
 
-.dataTables_length {
-  width: 40%;
-  float: left;
-  font-size: 75%;
-  text-align: left;
+body table.dataTable thead th, body table.dataTable tbody td {
+    padding: 5px 9px;
 }
-.dataTables_filter {
-  font-size: 75%;
-  width: 50%;
-  float: right;
-  text-align: right;
+body .dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.25em 0.5em;
+    margin: 0;
 }
-.dataTables_info {
-  font-size: 75%;
-  width: 50%;
-  float: left;
-  text-align: left;
-  height: 22px;
-  line-height: 22px;
+.dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_paginate {
+    font-size: smaller;
 }
-.dataTables_paginate {
-  width: 40%;
-  float: right;
-  text-align: right;
-}
-.dataTables_paginate a {
-  display: inline;
-}
-.dataTables_filter input, .dataTables_length select {
-  display: inline;
-}
-.paging_full_numbers .fg-button {
-    padding: 2px 6px;
-}
-.fg-toolbar {
-    padding: 2px 4px;
-}
-/* makes the datatable sorting icon float to right. */
-.dataTables_wrapper .css_right {
-    float: right;
-}
-.arrow_up, .arrow_down { /* student_info_staff activity reorder arrows */
-  font-size: smaller;
-  font-weight: normal;
-}
-
 
 div.bigdatatable .dataTables_wrapper {
     font-size: smaller;
@@ -485,13 +449,7 @@ div.bigdatatable span.more {
     display: none;
 }
 
-/* DataTables row classes */
-tr.odd {
-    background-color: #F5F5F5;
-}
-tr.even {
-    background-color: white;
-}
+
 
 /* DataTables cell types */
 .iconcell {
