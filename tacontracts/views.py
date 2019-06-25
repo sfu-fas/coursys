@@ -20,7 +20,7 @@ from .models import HiringSemester, TACategory, TAContract, TACourse, \
                     EmailReceipt, NoPreviousSemesterException, CourseDescription, TAContractAttachment
 from .forms import HiringSemesterForm, TACategoryForm, TAContractForm, \
                     TACourseForm, EmailForm, CourseDescriptionForm, TAContracttAttachmentForm
-from dashboard.letters import tacontract_form
+from dashboard.letters import tacontract_form, tacontract_forms
 
 def _home_redirect():
     return HttpResponseRedirect(reverse('tacontracts:list_all_semesters'))
@@ -562,6 +562,34 @@ def print_contract(request, unit_slug, semester, contract_slug):
 
 
 @requires_role(["TAAD", "GRAD"])
+def print_all_contracts(request, unit_slug, semester):
+    hiring_semester = get_object_or_404(HiringSemester,
+                                        semester__name=semester,
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contracts = TAContract.objects.signed(hiring_semester).order_by('person__last_name', 'person__first_name')
+    # If no one has ever checked the 'I've verified the visa info for this person'
+    # box, let's stop them from printing.  We don't want to send this anywhere, but
+    # it's just for our own peace of mind.
+    not_verified=[]
+    for c in contracts:
+        if not c.visa_verified:
+            not_verified.append(c.person.name())
+    if not_verified:
+        messages.error(request, 'You must verify the TA\'s visa information before printing for the following people: ')
+        for name in not_verified:
+            messages.error(request, name)
+        return HttpResponseRedirect(reverse('tacontracts:list_all_contracts',
+                                            kwargs={'unit_slug': unit_slug,
+                                                    'semester': semester,}))
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="tacontracts-%s-%s.pdf"' % (hiring_semester, unit_slug)
+    tacontract_forms(contracts, response)
+    return response
+
+
+
+@requires_role(["TAAD", "GRAD"])
 def new_course(request, unit_slug, semester, contract_slug):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
@@ -891,7 +919,7 @@ def view_financial_summary(request, unit_slug, semester,):
                                         semester__name=semester,
                                         unit__in=request.units,
                                         unit__label=unit_slug)
-    contracts = TAContract.objects.signed(hiring_semester).filter(category__account__unit__in=request.units)
+    contracts = TAContract.objects.signed(hiring_semester)
     pay = 0
     bus = 0
     tac = contracts.count()

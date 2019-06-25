@@ -1336,6 +1336,16 @@ def tacontract_form(contract, outfile):
     doc.save()
 
 
+def tacontract_forms(contracts, outfile):
+    """
+    Generate TA Appointment Form for this list of TAContracts (tacontract module).
+    """
+    doc = TAForm(outfile)
+    for c in contracts:
+        doc.draw_form_contract(c)
+    doc.save()
+
+
 class GradeChangeForm(SFUMediaMixin):
     def __init__(self, outfile):
         self._media_setup()
