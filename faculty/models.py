@@ -917,7 +917,7 @@ class PositionDocumentAttachment(models.Model):
     Document attached to a CareerEvent.
     """
     position = models.ForeignKey(Position, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
-    title = models.CharField(max_length=250, null=False)
+    title = models.CharField(max_length=250, null=True, blank=True)
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('position',))
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.', on_delete=models.PROTECT)

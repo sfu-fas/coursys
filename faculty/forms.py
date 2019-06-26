@@ -105,6 +105,14 @@ class PositionAttachmentForm(forms.ModelForm):
         model = PositionDocumentAttachment
         exclude = ("position", "created_by")
 
+        widgets = {
+            'contents': forms.ClearableFileInput(attrs={'multiple': True})
+        }
+        help_texts = {
+            'contents': "You can enter one or multiple files.  Please note that multiple files will "
+                        "have the same title if a title is provided."
+        }
+
 
 class TextAttachmentForm(forms.ModelForm):
     text_contents = forms.CharField(required=True, widget=forms.Textarea(attrs={'rows': 15, 'cols': 70}))
