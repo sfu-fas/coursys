@@ -57,11 +57,8 @@ class TUGDutyLabelForm(forms.Form):
 # doesn't simply subclass TUGDutyForm so that the label will be listed first
 class TUGDutyOtherForm(TUGDutyLabelForm, TUGDutyForm):
     label_editable = True
+    
     def __init__(self, *args, **kwargs):
-        initial = kwargs.get('initial', None)
-        # allow empty if this is a new TUG or if we're editing and it's empty
-        kwargs['empty_permitted'] = (kwargs.get('empty_permitted', False) or
-                (initial and bool(initial.get('label'))))
         super(TUGDutyOtherForm, self).__init__(*args, **kwargs)
         self.fields['label'].required = False
         self.fields['total'].required = False
