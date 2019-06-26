@@ -193,8 +193,9 @@ def admin_list_all(request):
             wait_lookup[ss.form_submission_id].assigned_to = ss
             # We no longer allow returning/assigning the initial sheet.  Let's find out if the sheet that is waiting
             # is the initial sheet, as this would indicate an unsubmitted form.  We should display that in a separate
-            # list
-            wait_lookup[ss.form_submission_id].is_initial = ss.sheet.is_initial
+            # list.  However, the initial sheet can have been assigned manually via the "Assign a form" link.  In those
+            # cases, treat it as a normal Waiting form.  The cleanup tasks will also not delete those after 14 days.
+            wait_lookup[ss.form_submission_id].is_initial = ss.sheet.is_initial and not ss.assigner()
         #  Let's split up the list between unsubmitted forms and submitted ones.  Most people won't care about the
         # unsubmitted ones.
         unsubmitted_forms = [f for f in wait_submissions if f.is_initial]
@@ -344,7 +345,8 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
             sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
                 sheet=form.initial_sheet,
                 filler=formFiller)
-
+            sheet_submission.set_assigner(admin)
+            sheet_submission.save()
             FormLogEntry.create(sheet_submission=sheet_submission, user=admin, category='ADMN',
                     description='Assigned initial sheet to %s.' % (formFiller.full_email()))
 

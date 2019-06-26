@@ -1026,6 +1026,8 @@ class SheetSubmission(models.Model):
         days = 14
         min_age = datetime.datetime.now() - datetime.timedelta(days=days)
         sheetsubs = SheetSubmission.objects.filter(sheet__is_initial=True, status='WAIT', given_at__lt=min_age)
+        #  Sheets that have specifically been assigned should not be cleared, even if they are the initial sheet.
+        sheetsubs = [s for s in sheetsubs if not s.assigner()]
         for ss in sheetsubs:
             ss.status = 'REJE'
             ss.set_reject_reason('Automatically closed by system after being dormant %i days.' % (days))
