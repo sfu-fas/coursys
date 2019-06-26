@@ -31,7 +31,7 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
-from faculty.models import Grant, TempGrant, GrantOwner, Position, DocumentAttachment
+from faculty.models import Grant, TempGrant, GrantOwner, Position, DocumentAttachment, PositionDocumentAttachment
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, FACULTY_ROLE_EXPIRY
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
     ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
@@ -1986,17 +1986,23 @@ def new_position_attachment(request, position_id):
 
     if request.method == "POST":
         form = PositionAttachmentForm(request.POST, request.FILES)
+        title = request.POST.get('title')
+        files = request.FILES.getlist('contents')
         if form.is_valid():
-            attachment = form.save(commit=False)
-            attachment.position = position
-            attachment.created_by = editor
-            upfile = request.FILES['contents']
-            filetype = upfile.content_type
-            if upfile.charset:
-                filetype += "; charset=" + upfile.charset
-            attachment.mediatype = filetype
-            attachment.save()
-            return HttpResponseRedirect(reverse('faculty:view_position', kwargs={'position_id':position.id}))
+            for f in files:
+                attachment = PositionDocumentAttachment()
+                attachment.title = title
+                attachment.position = position
+                attachment.created_by = editor
+                attachment.contents = f
+                upfile = f
+                filetype = f.content_type
+                if upfile.charset:
+                    filetype += "; charset=" + upfile.charset
+                attachment.mediatype = filetype
+                attachment.save()
+            messages.add_message(request, messages.SUCCESS, ('Uploaded %s attachment(s)' % len(files)))
+            return HttpResponseRedirect(reverse('faculty:view_position', kwargs={'position_id': position.id}))
         else:
             context.update({"attachment_form": form})
 
