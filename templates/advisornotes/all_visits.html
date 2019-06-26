@@ -56,8 +56,8 @@ $(function() {
     <tbody>
         {% for visit in visits %}
         <tr>
-            <td>{{ visit.created_at }}</td>
-            <td>{{ visit.end_time }}</td>
+            <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
+            <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
             <td>{{ visit.get_duration }}</td>
             <td>{{ visit.get_campus_display }}</td>
             <td>
