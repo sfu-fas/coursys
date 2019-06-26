@@ -183,7 +183,7 @@
         {% for visit in visits %}
             <tr>
                 <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
-                <td>{{ visit.end_time }}</td>
+                <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
                 <td>{{ visit.categories_display }}</td>
                 <td>{{ visit.advisor.sortname }}</td>
                 <td><a class="lineform" href="{% url "advising:view_visit" visit_slug=visit.slug %}">
