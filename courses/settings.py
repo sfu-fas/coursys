@@ -352,6 +352,7 @@ SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')
 SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
+MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)
 
 #PIWIK_URL = getattr(secrets, 'PIWIK_URL', None)
 #PIWIK_TOKEN = getattr(secrets, 'PIWIK_TOKEN', None)
