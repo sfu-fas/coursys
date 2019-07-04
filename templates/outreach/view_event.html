@@ -32,6 +32,7 @@
     <dt>Registration Cap</dt><dd>{{ event.registration_cap }}</dd>
     <dt>Registration Count (only includes registrations marked as 'Attending')</dt><dd>{{ event.registration_count }}</dd>
     <dt>Registration Email Confirmation</dt><dd>{{ event.registration_email_text|linebreaks }}</dd>
+    <dt>Private Notes</dt><dd>{{ event.private_notes|linebreaks }}</dd>
     {% if event.extra_questions %}
         <dt>Extra Questions</dt><dd>{{ event.extra_questions|unordered_list }}</dd>
     {% endif %}
