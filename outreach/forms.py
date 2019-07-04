@@ -28,6 +28,7 @@ class OutreachEventForm(forms.ModelForm):
             'resources': forms.Textarea,
             'location': forms.Textarea,
             'notes': forms.Textarea,
+            'private_notes': forms.Textarea,
             'cost': DollarInput,
             'score': forms.NumberInput(attrs={'class': 'smallnumberinput'}),
             'start_date': forms.SplitDateTimeWidget,
