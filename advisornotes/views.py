@@ -1065,6 +1065,7 @@ def merge_nonstudent(request, nonstudent_slug):
         if form.is_valid():
             student = form.cleaned_data['student']
             notes = AdvisorNote.objects.filter(nonstudent=nonstudent)
+            visits = AdvisorVisit.objects.filter(nonstudent=nonstudent)
             for note in notes:
                 note.nonstudent = None
                 note.student = student
@@ -1080,6 +1081,10 @@ def merge_nonstudent(request, nonstudent_slug):
             # to drop it altogether.
             if nonstudent.email_address:
                 student.config['applic_email'] = nonstudent.email_address
+            for visit in visits:
+                visit.nonstudent = None
+                visit.student = student
+                visit.save()
             nonstudent.delete()
             student.save()
             l = LogEntry(userid=request.user.username,
