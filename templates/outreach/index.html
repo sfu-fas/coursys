@@ -68,8 +68,8 @@ function togglePast() {
             {% for event in events %}
             <tr>
                 <td>{{ event.title }}</td>
-                <td>{{ event.start_date }}</td>
-                <td>{{ event.end_date }}</td>
+                <td><span class="sort">{{ event.start_date.isoformat }}</span>{{ event.start_date }}</td>
+                <td><span class="sort">{{ event.end_date.isoformat }}</span>{{ event.end_date }}</td>
                 <td>{{ event.unit }}</td>
                 <td>{{ event.registration_count }}</td>
                 <td style="min-width: 130px">
@@ -125,8 +125,8 @@ function togglePast() {
             {% for event in past_events %}
             <tr>
                 <td>{{ event.title }}</td>
-                <td>{{ event.start_date }}</td>
-                <td>{{ event.end_date }}</td>
+                <td><span class="sort">{{ event.start_date.isoformat }}</span>{{ event.start_date }}</td>
+                <td><span class="sort">{{ event.end_date.isoformat }}</span>{{ event.end_date }}</td>
                 <td>{{ event.unit }}</td>
                 <td>{{ event.registration_count }}</td>
                 <td>
