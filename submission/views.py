@@ -18,6 +18,8 @@ from courselib.db import retry_transaction
 from courselib.search import find_userid_or_emplid
 from featureflags.flags import uses_feature
 
+from submission.models.base import SimilarityResult
+
 
 @login_required
 def show_components(request, course_slug, activity_slug):
@@ -453,3 +455,35 @@ def _override_ownership_confirm(request, course, activity, userid, group_slug, o
     return render(request, "submission/override_ownership_confirm.html",
         {"course":course, "activity":activity, "student":student, "group":group, "old_owner":old_owner, "true":True,
          "urlencode":urlencode, "userid":userid})
+
+
+@requires_course_staff_by_slug
+def similarity(request, course_slug, activity_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
+
+    results = SimilarityResult.objects.filter(activity=activity)
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'results': results,
+    }
+    return render(request, "submission/similarity.html", context)
+
+
+@requires_course_staff_by_slug
+def similarity_result(request, course_slug, activity_slug, result_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
+    result = get_object_or_404(SimilarityResult, activity=activity, generator=result_slug)
+
+
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'result': result,
+    }
+    return render(request, "submission/similarity_result.html", context)
+

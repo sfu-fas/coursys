@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Similarity Reports for {{activity.name}}{% endblock %}
+{% block h1 %}Similarity Reports for {{activity.name}}{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>
+    <li><a href="{% url "offering:activity_info" course_slug=offering.slug activity_slug=activity.slug %}">{{ activity.name }}</a></li>
+    <li>Similarity Reports</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+
+{% block content %}
+    {% for res in results %}
+        <p><a href="{% url "grades:submission:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=res.generator %}">{{ res }}</p>
+    {% endfor %}
+{% endblock %}

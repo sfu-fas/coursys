@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MaxValueValidator
+from django.dispatch import receiver
 from grades.models import Activity
 from coredata.models import Member, Person,CourseOffering
 from groups.models import Group,GroupMember
@@ -13,6 +14,8 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from courselib.slugs import make_slug
 from courselib.storage import upload_path, UploadedFileStorage
+from courselib.json_fields import JSONField, config_property
+
 
 STATUS_CHOICES = [
     ('NEW', 'New'),
@@ -219,6 +222,61 @@ class FileSizeField(models.PositiveIntegerField):
         return field
 
 
+GENERATOR_CHOICES = [ # first elements must be URL-safe slug-like things
+    ('MOSS', 'MOSS'),
+]
 
 
+class SimilarityResult(models.Model):
+    """
+    Model class representing a set of similarity results for an activity.
+    """
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
+    generator = models.CharField(max_length=4, null=False, blank=False, choices=GENERATOR_CHOICES, help_text='tool that generated the similarity results')
+    created_at = models.DateTimeField(auto_now_add=True)
+    config = JSONField(default=dict)
 
+    class Meta:
+        unique_together = [('activity', 'generator')]
+
+
+def similarity_upload_path(instance, filename):
+    return upload_path(instance.result.activity.offering.slug, '_similarity', filename)
+
+
+class SimilarityData(models.Model):
+    """
+    Data for one submission/finding in a SimilarityResult.
+
+    SimilarityData.file may be null if only the JSON data is being used.
+    SimilarityData.label is used to identify in a way the generator understands.
+    SimilarityData.submission may be set if we know the corresponding Submission instance.
+    """
+    result = models.ForeignKey(SimilarityResult, on_delete=models.CASCADE)
+    label = models.CharField(max_length=100, null=False, blank=False, help_text='identifier used to find this file within the SimilarityResult')
+    file = models.FileField(upload_to=similarity_upload_path, blank=True, null=True, max_length=500, storage=UploadedFileStorage)
+    submission = models.ForeignKey(Submission, null=True, on_delete=models.CASCADE, related_name='+')
+    config = JSONField(default=dict)
+
+    class Meta:
+        unique_together = [('result', 'label')]
+
+
+# based on https://stackoverflow.com/a/16041527/6871666
+@receiver(models.signals.post_delete, sender=SimilarityData)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """
+    Deletes file from filesystem when corresponding SimilarityData object is deleted.
+    """
+    if instance.file:
+        path = instance.file.path
+        if os.path.isfile(path):
+            os.remove(path)
+
+        # also containing directory, if empty
+        directory = os.path.split(path)[0]
+        if os.path.isdir(directory):
+            try:
+                os.rmdir(directory)
+            except OSError:
+                pass
