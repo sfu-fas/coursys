@@ -1,3 +1,5 @@
+import itertools
+
 from reports.reportlib import Table
 from ..report import Report
 from ..semester import current_semester
@@ -87,6 +89,17 @@ PLAN_CATEGORY = {
 }
 
 
+def to_acad_year(row):
+    strm = row['ADMIT_TERM']
+    year = int(strm[:3]) + 1900
+    sem = int(strm[-1]) # 1, 4, or 7
+
+    if sem in [1,4]:
+        return '%s/%s' % (year-1, year)
+    else:
+        return '%s/%s' % (year, year+1)
+
+
 class CSGenderTableReport(Report):
     title = "CS Gender Table"
     description = "Summary of gender breakdown in differen CS-related programs, by year"
@@ -111,7 +124,22 @@ class CSGenderTableReport(Report):
         by_gender = ProgramGenderQuery({'plans': list(PLAN_CATEGORY.keys())})
         by_gender_table = by_gender.result()
         by_gender_table.left_join(category_table, 'ACAD_PLAN')
+        by_gender_table.compute_column('ACAD_YEAR', to_acad_year)
 
-        self.artifacts.append(by_gender_table)
+        by_gender_result = Table()
+        by_gender_result.append_column('CATEGORY')
+        by_gender_result.append_column('ACAD_YEAR')
+        by_gender_result.append_column('GENDER')
+        by_gender_result.append_column('COUNT')
+        rows = list(by_gender_table.row_maps())
+        rows.sort(key=lambda r: (r['CATEGORY'], r['ACAD_YEAR'], r['SEX']))
+
+        for k, groups in itertools.groupby(rows, key=lambda r: (r['CATEGORY'], r['ACAD_YEAR'], r['SEX'])):
+            count = sum(g['N'] for g in groups)
+            row = list(k) + [count]
+            by_gender_result.append_row(row)
+
+        self.artifacts.append(by_gender_result)
+
 
         
