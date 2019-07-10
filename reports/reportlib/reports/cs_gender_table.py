@@ -59,34 +59,44 @@ class ProgramGenderQuery(DB2_Query):
         GROUP BY admit.admit_term, plan.acad_plan, personal.sex
     """)
     default_arguments = {
-        'first_strm': '1001',
+        'first_strm': '1007',
         'last_strm': current_semester(),
         'plans': ['CMPTMAJ', 'CMPTMIN'],
         }
 
 
 PLAN_CATEGORY = {
-    'CCMPT': 'Certificate',
+    'CCMPT': 'Minor/Cert',
     'CMPINSYJMA': 'Joint Maj',
     'CMPTBUSJMA': 'Joint Maj',
     'CMPTHON': 'Honours',
-    'CMPTJHO': 'Joint Hon',
+    'CMPTJHO': 'Honours',
     'CMPTJMA': 'Joint Maj',
     'CMPTMAJ': 'Major',
-    'CMPTMATHJH': 'Joint Hon',
+    'CMPTMATHJH': 'Honours',
     'CMPTMBBJMA': 'Joint Maj',
-    'CMPTMIN': 'Minor',
+    'CMPTMIN': 'Minor/Cert',
     'CMPTMSC': 'MSc',
     'CMPTMSCZU': 'MSc',
     'CMPTPHD': 'PhD',
     'CMPTPHDZU': 'PhD',
     'CPMBD': 'MSc',
     'CPMCW': 'MSc',
-    'GISHON': 'Joint Hon',
+    'GISHON': 'Honours',
     'GISMAJ': 'Joint Maj',
     'SOSYMAJ': 'Major',
     'ZUSFU': 'DDP',
 }
+CATEGORIES = [
+    'Major',
+    'Joint Maj',
+    'Honours',
+    'Minor/Cert',
+    'DDP',
+    'MSc',
+    'PhD',
+]
+assert set(PLAN_CATEGORY.values()) == set(CATEGORIES)
 
 
 def to_acad_year(row):
@@ -98,6 +108,14 @@ def to_acad_year(row):
         return '%s/%s' % (year-1, year)
     else:
         return '%s/%s' % (year, year+1)
+
+
+def to_cell(pr):
+    f, t = pr
+    res = '%i/%i' % (f, t)
+    if t != 0:
+        res += ' (%.0f%%)' % (f/t*100)
+    return res
 
 
 class CSGenderTableReport(Report):
@@ -132,7 +150,7 @@ class CSGenderTableReport(Report):
         by_gender_result.append_column('GENDER')
         by_gender_result.append_column('COUNT')
         rows = list(by_gender_table.row_maps())
-        rows.sort(key=lambda r: (r['CATEGORY'], r['ACAD_YEAR'], r['SEX']))
+        rows.sort(key=lambda r: (r['ACAD_YEAR'], r['CATEGORY'], r['SEX']))
 
         for k, groups in itertools.groupby(rows, key=lambda r: (r['CATEGORY'], r['ACAD_YEAR'], r['SEX'])):
             count = sum(g['N'] for g in groups)
@@ -141,5 +159,28 @@ class CSGenderTableReport(Report):
 
         self.artifacts.append(by_gender_result)
 
+        # pivot manually
+        total = {}
+        f_count = {}
+        category_pos = {cat: i for i, cat in enumerate(CATEGORIES)}
+        acad_years = sorted(set(by_gender_result.column_as_list('ACAD_YEAR')))
+        for y in acad_years:
+            total[y] = [0] * len(CATEGORIES)
+            f_count[y] = [0] * len(CATEGORIES)
 
-        
+        for r in by_gender_result.row_maps():
+            total[r['ACAD_YEAR']][category_pos[r['CATEGORY']]] += r['COUNT']
+            if r['GENDER'] == 'F':
+                f_count[r['ACAD_YEAR']][category_pos[r['CATEGORY']]] += r['COUNT']
+
+        pivot = Table()
+        pivot.append_column('YEAR')
+        for c in CATEGORIES:
+            pivot.append_column(c)
+
+        for y in acad_years:
+            row = [y]
+            row.extend(map(to_cell, zip(f_count[y], total[y])))
+            pivot.append_row(row)
+
+        self.artifacts.append(pivot)
