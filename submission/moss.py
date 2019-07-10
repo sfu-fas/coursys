@@ -1,7 +1,15 @@
+from typing import List, Optional
+
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db import transaction
 from django.core.files import File
+from django.http import QueryDict, HttpResponse
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
+
+from coredata.models import CourseOffering
+from grades.models import Activity
 from submission.models.codefile import SubmittedCodefile
 from submission.models.base import SimilarityResult, SimilarityData
 from submission.models import SubmissionInfo
@@ -11,7 +19,7 @@ import io, os.path, tempfile, subprocess, re
 
 # MOSS language choices. Incomplete: included ones I imagine we might use.
 # See @languages in the moss.pl source.
-MOSS_LANGUAGES = { # MOSS language specifier: file extension
+MOSS_LANGUAGES = {  # MOSS language specifier: file extension
     'c': 'c',
     'cc': 'cpp',
     'java': 'java',
@@ -24,7 +32,7 @@ MOSS_LANGUAGES = { # MOSS language specifier: file extension
 }
 
 
-def all_code_submissions(activity):
+def all_code_submissions(activity: Activity) -> List[SubmittedCodefile]:
     """
     Return a list of all files (as SubmittedCodefile instances) for Codefile submissions in this activity.
     """
@@ -41,7 +49,7 @@ def all_code_submissions(activity):
 
 
 @transaction.atomic
-def run_moss(activity, language):
+def run_moss(activity: Activity, language: str) -> SimilarityResult:
     assert language in MOSS_LANGUAGES
     if settings.MOSS_DISTRIBUTION_PATH is None:
         raise ValueError('MOSS_DISTRIBUTION_PATH not set in localsettings')
@@ -150,4 +158,46 @@ def run_moss(activity, language):
         else:
             raise ValueError('unexpected file produced by MOSS')
 
+    return result
 
+
+class MOSS(object):
+    def __init__(self, offering: CourseOffering, activity: Activity, result: SimilarityResult):
+        self.offering = offering
+        self.activity = activity
+        self.result = result
+
+    def render(self, query: QueryDict) -> Optional[HttpResponse]:
+        print(query)
+        #match0-top.html match0-0.html match0-1.html
+
+        if 'match' in query: # reconstruct matchX.html
+            match = query['match'][0]
+            #labels = ['match{}-0.html'.format(match), 'match{}-1.html'.format(match)]
+            #data = SimilarityData.objects.filter(result=self.result, label__in=labels).select_related('submission')
+            #print(data)
+
+            base = reverse('grades:submission:similarity_result',
+                           kwargs={'course_slug': self.offering.slug, 'activity_slug': self.activity.slug, 'result_slug': self.result.generator})
+
+            content = '''<!doctype html><html lang="en"><head><meta charset="utf-8" /><title>???</title></head>
+            <frameset rows="150,*"><frameset cols="1000,*"><frame src="{url_top}" name="top" frameborder=0></frameset>
+            <frameset cols="50%,50%"><frame src="{url_0}" name="0"><frame src="{url_1}" name="1"></frameset></frameset>
+            </html>'''.format(
+                url_top=base + '?top=' + str(match),
+                url_0=base + '?content=' + str(match) + '_0',
+                url_1=base + '?content=' + str(match) + '_1',
+            )
+
+        elif 'top' in query: # reconstruct matchX-top.html
+            match = query['top'][0]
+            data = get_object_or_404(SimilarityData, result=self.result, label='match{}-top.html'.format(match))
+            content = data.file.read().decode('utf8')
+
+        else:
+            content = '?'
+
+        resp = HttpResponse(content)
+        resp.allow_frames_csp = True
+        resp.xframe_options_exempt = True
+        return resp

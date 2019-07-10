@@ -45,6 +45,7 @@ class CSPMiddleware(object):
 
         extra_script_src = " 'nonce-%s'" % (token,)
         extra_style_src = ''
+        extra_csp = ''
         if hasattr(response, 'allow_gstatic_csp') and response.allow_gstatic_csp:
             # pages that use Google charts need to load/run that code...
             extra_script_src += " https://www.gstatic.com https://www.google.com 'unsafe-eval'"
@@ -54,11 +55,15 @@ class CSPMiddleware(object):
             # 'unsafe-inline' is ignored if a nonce value is present in the source list
             extra_script_src = " 'unsafe-inline'"
 
+        if hasattr(response, 'allow_frames_csp') and response.allow_frames_csp:
+            extra_csp += " frame-src 'self'"
+
         value = "default-src 'self' * ; " \
                 "style-src 'self' 'unsafe-inline'%s ; " \
                 "img-src 'self' www.sfu.ca data: ; " \
                 "font-src 'self' www.sfu.ca ; " \
-                "script-src 'self' https://cdnjs.cloudflare.com %s ; " % (extra_style_src, extra_script_src)
+                "script-src 'self' https://cdnjs.cloudflare.com %s ;%s" \
+                % (extra_style_src, extra_script_src, extra_csp)
         value += "report-uri /csp-reports ;"
 
         response[header] = value

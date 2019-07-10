@@ -8,6 +8,7 @@ from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import StudentSubmission, GroupSubmission, SubmissionComponent
 from submission.models import select_all_components, SubmissionInfo, get_component, find_type_by_label, ALL_TYPE_CLASSES
+from submission.moss import MOSS
 from django.urls import reverse
 from django.contrib import messages
 from groups.models import Group, GroupMember
@@ -478,7 +479,14 @@ def similarity_result(request, course_slug, activity_slug, result_slug):
     activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
     result = get_object_or_404(SimilarityResult, activity=activity, generator=result_slug)
 
+    if result.generator == 'MOSS':
+        helper = MOSS(offering, activity, result)
+    else:
+        raise NotImplementedError()
 
+    resp = helper.render(request.GET)
+    if resp is not None:
+        return resp
 
     context = {
         'offering': offering,
