@@ -1807,7 +1807,7 @@ def download_financial(request, post_slug):
     response['Content-Disposition'] = 'inline; filename="%s-financials-%s.csv"' % \
                                       (post_slug, datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
-    writer.writerow(['Offering', 'Instructor(s)', 'Enrolment', 'Campus', 'Number of TAs', 'Assigned BU',
+    writer.writerow(['Offering', 'Instructor(s)', 'Enrollment', 'Campus', 'Number of TAs', 'Assigned BU',
                      'Total Amount'])
     for o in offerings:
         writer.writerow([o.name(), o.instructors_str(), '(%s/%s)' % (o.enrl_tot, o.enrl_cap), o.get_campus_display(),

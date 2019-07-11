@@ -984,10 +984,10 @@ def download_financials(request, unit_slug, semester,):
     response['Content-Disposition'] = 'inline; filename="%s-%s-financials-%s.csv"' % \
                                       (unit_slug, semester, datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
-    writer.writerow(['Offering', 'Instructor(s)', 'Enrolment', 'Campus', 'Number of TAs', 'Assigned BU',
+    writer.writerow(['Offering', 'Instructor(s)', 'Enrollment', 'Campus', 'Number of TAs', 'Assigned BU',
                      'Total Amount'])
     for o in offerings:
-        writer.writerow([o.name(), o.instructors_str(), '%s/%s' % (o.enrl_tot, o.enrl_cap), o.get_campus_display(),
+        writer.writerow([o.name(), o.instructors_str(), '(%s/%s)' % (o.enrl_tot, o.enrl_cap), o.get_campus_display(),
                          o.tas, o.total_bus, o.total_pay])
     return response
 
