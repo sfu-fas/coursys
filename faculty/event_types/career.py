@@ -423,7 +423,9 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
             ('SECONDMENT', 'Secondment'),
         )
         reason = forms.ChoiceField(label='Type', choices=REASONS)
-        leave_fraction = fields.FractionField(help_text="Fraction of salary received during leave eg. '3/4' indicates 75% pay",
+        leave_fraction = fields.FractionField(help_text="Fraction of salary received during leave e.g. '3/4' indicates "
+                                                        "75% pay.  It can also be input as a decimal value, e.g. 0.75 "
+                                                        "for 75%.",
                                               label='Work fraction', initial=1)
         teaching_credits = fields.TeachingCreditField()
         teaching_load_decrease = fields.TeachingReductionField()
