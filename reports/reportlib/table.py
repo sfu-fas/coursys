@@ -501,7 +501,7 @@ class Table():
 
     @staticmethod
     def asciify(thing):
-        if type(thing) is str:
+        if type(thing) is bytes:
             return thing.encode('ascii', 'ignore')
         if type(thing) is not str:
             return str(thing)
