@@ -9,12 +9,30 @@ from django.db import transaction
 from log.models import LogEntry
 from coredata.models import AnyPerson, Role, Person
 from dashboard.letters import sessional_form
+import csv, datetime
 
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
 def sessionals_index(request):
     sessionals = SessionalContract.objects.visible(request.units)
     return render(request, 'sessionals/index.html', {'sessionals': sessionals})
+
+
+@requires_role(["TAAD", "GRAD", "ADMN"])
+def download_sessionals(request):
+    sessionals = SessionalContract.objects.visible(request.units)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="sessionals-%s.csv"' % \
+                                      datetime.datetime.now().strftime('%Y%m%d')
+    writer = csv.writer(response)
+    writer.writerow(['Name', 'Account', 'Unit', 'SIN', 'Appointment Start', 'Appointment End', 'Pay Start', 'Pay End',
+                     'Offering', 'Course Hours Breakdown', 'Appointment Guarantee', 'Appointment Type',
+                     'Weekly Contact Hours', 'Total Salary', 'Notes'])
+    for s in sessionals:
+        writer.writerow([s.sessional.get_person(), s.account, s.unit, s.sin, s.appointment_start, s.appointment_end,
+                         s.pay_start, s.pay_end, s.offering, s.course_hours_breakdown, s.get_appt_guarantee_display(),
+                         s.get_appt_type_display(), s.contact_hours, s.total_salary, s.notes])
+    return response
 
 
 @requires_role(["TAAD", "GRAD", "ADMN"])
