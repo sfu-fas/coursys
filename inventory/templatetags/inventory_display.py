@@ -25,3 +25,15 @@ def item_pluralize(value):
 @register.filter
 def abs_value(value):
     return abs(value)
+
+
+@register.filter
+def add_quantity_status(asset):
+    if asset.out_of_stock():
+        return 0, "Out of stock"
+    elif asset.needs_reorder():
+        return 1, "Low Stock"
+    elif asset.in_stock():
+        return 2, "In Stock"
+    else:
+        return 3, "Unknown"

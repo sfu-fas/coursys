@@ -96,7 +96,7 @@ class SIMSConn(DBConn):
         try:
             dbconn = ibm_db_dbi.connect(self.sims_db, self.sims_user, self.sims_passwd)
         except ibm_db_dbi.Error:
-            raise SIMSProblem("Could not communicate with reporting database.")
+            raise #SIMSProblem("Could not communicate with reporting database.")
         cursor = dbconn.cursor()
         cursor.execute("SET SCHEMA "+self.schema)
         return dbconn, cursor

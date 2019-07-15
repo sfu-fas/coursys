@@ -259,10 +259,10 @@ def download_current_events_csv(request, past=None):
     writer = csv.writer(response)
     if events:
         writer.writerow(['Title', 'Start Date', 'End Date', 'Description', 'Location', 'Unit', 'Resources',
-                         'Cost', 'Notes', 'Email', 'Attendance', 'Registration Link'])
+                         'Cost', 'Notes', 'Email', 'Attendance', 'Private Notes', 'Registration Link'])
         for e in events:
             writer.writerow([e.title, e.start_date, e.end_date, e.description, e.location, e.unit, e.resources, e.cost,
-                             e.notes, e.email, e.registration_count(),
+                             e.notes, e.email, e.registration_count(), e.private_notes,
                              request.build_absolute_uri(reverse('outreach:register', kwargs={'event_slug': e.slug}))])
     return response
 

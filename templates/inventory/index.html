@@ -42,8 +42,10 @@ $(document).ready(function() {
             <td>Name</td>
             <td>Qty</td>
             <td>Category</td>
+            <td>Location</td>
             <td>Price</td>
             <td>Last Modified</td>
+            <td>Stock Status</td>
             <td>Actions</td>
         </tr>
     </thead>
@@ -55,8 +57,13 @@ $(document).ready(function() {
             </td>
             <td>{{ asset.quantity }}</td>
             <td>{{ asset.get_category_display }}</td>
+            <td>{{ asset.location }}</td>
             <td>{% if asset.price %}${% endif %}{{ asset.price }}</td>
             <td>{{ asset.last_modified|date:"M m, Y" }}</td>
+            <td>{% with asset|add_quantity_status as status %}
+                <span class="sort">{{ status.0 }}</span> {{ status.1 }}
+                {% endwith %}
+            </td>
             <td>
                 <form class="lineform" method="POST"
                       action="{% url "inventory:delete_asset" asset_id=asset.id %}">

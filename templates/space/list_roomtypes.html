@@ -41,6 +41,7 @@ $(document).ready(function() {
                     <td>Code</td>
                     <td>COU</td>
                     <td>COU Description</td>
+                    <td>Unit</td>
                     <td>Actions</td>
                 </tr>
             </thead>
@@ -50,6 +51,7 @@ $(document).ready(function() {
                     <td>{{ r.code }}</td>
                     <td>{{ r.COU_code_value }}</td>
                     <td>{{ r.COU_code_description }}</td>
+                    <td>{{ r.unit.label }}</td>
                     <td>
                         <form class="lineform" method="POST"
                               action="{% url "space:delete_roomtype" roomtype_id=r.id %}">
