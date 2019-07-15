@@ -294,7 +294,6 @@ class SemesterTeachingInput(forms.widgets.TextInput):
 class TeachingCreditField(FractionField):
     def __init__(self, **kwargs):
         defaults = {
-            'initial': 0,
             'widget': SemesterTeachingInput(attrs={'size': 5}),
             'help_text': mark_safe('Teaching credit per semester associated with this event. May be a fraction like &ldquo;1/3&rdquo;.'),
         }

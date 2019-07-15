@@ -39,7 +39,7 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
         )
 
         position = forms.ChoiceField(required=True, choices=POSITIONS)
-        teaching_credit = TeachingCreditField(required=False)
+        teaching_credit = TeachingCreditField(required=False, initial=None)
 
     SEARCH_RULES = {
         'position': ChoiceSearchRule,
@@ -52,6 +52,9 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     def get_position_display(self):
         return self.EntryForm.POSITIONS.get(self.get_config('position'), 'N/A')
+
+    def get_teaching_credit_display(self):
+        return self.get_config('teaching_credit', default='N/A')
 
     @classmethod
     def default_title(cls):
