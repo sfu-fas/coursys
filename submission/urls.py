@@ -17,5 +17,5 @@ submission_patterns = [ # prefix /COURSE_SLUG/+ACTIVITY_SLUG/submission/
     url(r'^' + GROUP_SLUG + '/mark$', submission_views.take_ownership_and_mark, name='take_ownership_and_mark'),
     url(r'^' + USERID_SLUG + '/mark$', submission_views.take_ownership_and_mark, name='take_ownership_and_mark'),
     url(r'^similarity/$', submission_views.similarity, name='similarity'),
-    url(r'^similarity/' + RESULT_SLUG + '$', submission_views.similarity_result, name='similarity_result'),
+    url(r'^similarity/' + RESULT_SLUG + '/(?P<path>.*)$', submission_views.similarity_result, name='similarity_result'),
 ]

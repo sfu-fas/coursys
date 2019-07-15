@@ -84,13 +84,14 @@ class Submission(models.Model):
     def delete(self, *args, **kwargs):
         raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
 
-    "Set ownership, and make state = in progree "
     def set_owner(self, course, userid):
+        "Set ownership, and make state = in progree "
         member = Member.objects.filter(person__userid = userid).filter(offering = course)
         if member:
             self.owner = member[0]
             self.status = "INP"
             self.save()
+
 
 class StudentSubmission(Submission):
     member = models.ForeignKey(Member, null=False, on_delete=models.PROTECT)
@@ -102,10 +103,13 @@ class StudentSubmission(Submission):
         return "%s->%s@%s" % (self.member.person.userid, self.activity, self.created_at)
     def short_str(self):
         return "%s submission by %s at %s" % (self.activity.short_str(), self.member.person.userid, self.created_at.strftime("%Y-%m-%d %H:%M"))
+    def creator_str(self):
+        return self.member.person.full_email()
     def get_absolute_url(self):
-        return reverse('offering:submission:show_components_submission_history', kwargs={'course_slug': self.member.offering.slug, 'activity_slug': self.activity.slug, 'userid': self.member.person.userid})
+        return reverse('offering:submission:show_student_submission_staff', kwargs={'course_slug': self.member.offering.slug, 'activity_slug': self.activity.slug, 'userid': self.member.person.userid})
     def file_slug(self):
         return self.member.person.userid_or_emplid()
+
 
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False, on_delete=models.PROTECT)
@@ -119,8 +123,10 @@ class GroupSubmission(Submission):
         return "%s->%s@%s" % (self.group.manager.person.userid, self.activity, self.created_at)
     def short_str(self):
         return "%s submission by %s for group %s at %s" % (self.activity.short_str(), self.creator.person.userid, self.group.name, self.created_at.strftime("%Y-%m-%d %H:%M"))
+    def creator_str(self):
+        return self.group.name
     def get_absolute_url(self):
-        return reverse('offering:submission:show_components_submission_history', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': self.activity.slug, 'userid': self.creator.person.userid})
+        return reverse('offering:submission:show_student_submission_staff', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': self.activity.slug, 'userid': self.creator.person.userid})
     def file_slug(self):
         return self.group.slug
 

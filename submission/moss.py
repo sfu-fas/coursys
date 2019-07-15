@@ -4,8 +4,8 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db import transaction
 from django.core.files import File
-from django.http import QueryDict, HttpResponse
-from django.shortcuts import get_object_or_404
+from django.http import QueryDict, HttpResponse, HttpRequest
+from django.shortcuts import get_object_or_404, render, get_list_or_404
 from django.urls import reverse
 
 from coredata.models import CourseOffering
@@ -32,6 +32,19 @@ MOSS_LANGUAGES = {  # MOSS language specifier: file extension
 }
 
 
+def check_moss_executable(passed, failed):
+    if settings.MOSS_DISTRIBUTION_PATH is None:
+        failed.append(('MOSS subprocess', 'MOSS_DISTRIBUTION_PATH not set in localsettings'))
+        return
+
+    moss_pl = os.path.join(settings.MOSS_DISTRIBUTION_PATH, 'moss.pl')
+    if not os.path.isfile(moss_pl) or not os.access(moss_pl, os.X_OK):
+        failed.append(('MOSS subprocess', 'MOSS_DISTRIBUTION_PATH/moss.py is not an executable'))
+        return
+
+    passed.append(('MOSS subprocess', 'okay'))
+
+
 def all_code_submissions(activity: Activity) -> List[SubmittedCodefile]:
     """
     Return a list of all files (as SubmittedCodefile instances) for Codefile submissions in this activity.
@@ -48,24 +61,27 @@ def all_code_submissions(activity: Activity) -> List[SubmittedCodefile]:
     return sub_comps
 
 
+def _canonical_filename(filename: str, code_dir: str):
+    return filename.replace(code_dir + '/', '')
+
+
+match_base_re = re.compile(r'^(match(\d+))\.html$')
+match_top_re = re.compile(r'^match(\d+)-top\.html$')
+match_file_re = re.compile(r'^match(\d+)-([01])\.html$')
+
+
 @transaction.atomic
 def run_moss(activity: Activity, language: str) -> SimilarityResult:
     assert language in MOSS_LANGUAGES
-    if settings.MOSS_DISTRIBUTION_PATH is None:
-        raise ValueError('MOSS_DISTRIBUTION_PATH not set in localsettings')
-
-    moss_pl = os.path.join(settings.MOSS_DISTRIBUTION_PATH, 'moss.pl')
-    if not os.path.isfile(moss_pl) or not os.access(moss_pl, os.X_OK):
-        raise ValueError('MOSS_DISTRIBUTION_PATH/moss.py is not an executable')
+    ICON_PATH = reverse('dashboard:moss_icon', kwargs={'filename': ''})
 
     # get the submissions
     si = SubmissionInfo.for_activity(activity)
     si.get_all_components()
     found, individual_subcomps, last_submission = si.most_recent_submissions()
 
-    #tmpdir = tempfile.TemporaryDirectory()
-    #tmp = tmpdir.name
-    tmp = '/tmp/foo'
+    tmpdir = tempfile.TemporaryDirectory()
+    tmp = tmpdir.name
     code_dir = os.path.join(tmp, 'code')
     moss_out_dir = os.path.join(tmp, 'moss')
 
@@ -92,6 +108,7 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
             file_submissions[moss_file] = sub.submission_id
 
     # run MOSS
+    moss_pl = os.path.join(settings.MOSS_DISTRIBUTION_PATH, 'moss.pl')
     cmd = [moss_pl, '-l', language, '-o', moss_out_dir, '-m', '100000'] + moss_files
     res = subprocess.run(cmd, cwd=settings.MOSS_DISTRIBUTION_PATH)
     if res.returncode != 0:
@@ -103,12 +120,24 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
     result.save()
 
     # try to deal with MOSS' [profanity suppressed] HTML, and produce SimilarityData objects to represent everything
-    match_base_re = re.compile(r'^(match\d+)\.html$')
-    match_top_re = re.compile(r'^match\d+-top\.html$')
-    match_file_re = re.compile(r'^match\d+-\d+\.html$')
     for f in os.listdir(moss_out_dir):
         if f == 'index.html':
-            pass
+            data = open(os.path.join(moss_out_dir, f), 'rt', encoding='utf8').read()
+            soup = bs4.BeautifulSoup(data, 'lxml')
+            index_data = []
+            for tr in soup.find_all('tr'):
+                if tr.find('th'):
+                    continue
+                m = []
+                for a in tr.find_all('a'):
+                    label = a.get('href')
+                    fn, perc = a.string.split(' ')
+                    fn = _canonical_filename(fn, code_dir)
+                    m.append((label, fn, perc))
+                index_data.append(m)
+            data = SimilarityData(result=result, label='index.html', file=None, config={})
+            data.config['index_data'] = index_data
+            data.save()
 
         elif match_base_re.match(f):
             pass
@@ -123,10 +152,10 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
             del table['cellspacing']
             for th in table.find_all('th'):
                 if th.string is not None:
-                    th.string = th.string.replace(code_dir + '/', '')
+                    th.string = _canonical_filename(th.string, code_dir)
             for img in table.find_all('img'):
                 src = img.get('src')
-                img['src'] = src.replace('../bitmaps/', '/actual_icon_location/')
+                img['src'] = src.replace('../bitmaps/', ICON_PATH)
 
             file = File(file=io.BytesIO(str(table).encode('utf8')), name=f)
             data = SimilarityData(result=result, label=f, file=file, config={})
@@ -149,7 +178,7 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
             pre = soup.find('pre')
             for img in pre.find_all('img'):
                 src = img.get('src')
-                img['src'] = src.replace('../bitmaps/', '/actual_icon_location/')
+                img['src'] = src.replace('../bitmaps/', ICON_PATH)
 
             file = File(file=io.BytesIO(str(pre).encode('utf8')), name=f)
             data = SimilarityData(result=result, label=f, file=file, submission_id=submission_id, config={})
@@ -167,37 +196,60 @@ class MOSS(object):
         self.activity = activity
         self.result = result
 
-    def render(self, query: QueryDict) -> Optional[HttpResponse]:
-        print(query)
-        #match0-top.html match0-0.html match0-1.html
+    def render(self, request: HttpRequest, path: str) -> Optional[HttpResponse]:
+        base_match = match_base_re.match(path)
+        top_match = match_top_re.match(path)
+        file_match = match_file_re.match(path)
 
-        if 'match' in query: # reconstruct matchX.html
-            match = query['match'][0]
-            #labels = ['match{}-0.html'.format(match), 'match{}-1.html'.format(match)]
-            #data = SimilarityData.objects.filter(result=self.result, label__in=labels).select_related('submission')
-            #print(data)
+        if base_match: # reconstruct matchX.html
+            match = base_match.group(2)
 
-            base = reverse('grades:submission:similarity_result',
-                           kwargs={'course_slug': self.offering.slug, 'activity_slug': self.activity.slug, 'result_slug': self.result.generator})
+            match0 = get_object_or_404(SimilarityData.objects.select_related('submission'), result=self.result, label='match{}-0.html'.format(match))
+            match1 = get_object_or_404(SimilarityData.objects.select_related('submission'), result=self.result, label='match{}-1.html'.format(match))
 
-            content = '''<!doctype html><html lang="en"><head><meta charset="utf-8" /><title>???</title></head>
-            <frameset rows="150,*"><frameset cols="1000,*"><frame src="{url_top}" name="top" frameborder=0></frameset>
-            <frameset cols="50%,50%"><frame src="{url_0}" name="0"><frame src="{url_1}" name="1"></frameset></frameset>
-            </html>'''.format(
-                url_top=base + '?top=' + str(match),
-                url_0=base + '?content=' + str(match) + '_0',
-                url_1=base + '?content=' + str(match) + '_1',
-            )
+            sub0, _ = SubmissionInfo._get_submission(match0.submission_id)
+            sub1, _ = SubmissionInfo._get_submission(match1.submission_id)
 
-        elif 'top' in query: # reconstruct matchX-top.html
-            match = query['top'][0]
+            context = {
+                'offering': self.offering,
+                'activity': self.activity,
+                'result': self.result,
+                'match_n': match,
+                'fn_top': 'match{}-top.html'.format(match),
+                'fn_left': 'match{}-0.html'.format(match),
+                'fn_right': 'match{}-1.html'.format(match),
+                'match0': match0,
+                'match1': match1,
+                'sub0': sub0,
+                'sub1': sub1,
+            }
+            resp = render(request, 'submission/similarity-moss-result.html', context=context)
+            #resp.allow_frames_csp = True
+            #resp['X-Frame-Options'] = 'SAMEORIGIN'
+            return resp
+
+        elif top_match: # reconstruct matchX-top.html
+            match = top_match.group(1)
             data = get_object_or_404(SimilarityData, result=self.result, label='match{}-top.html'.format(match))
-            content = data.file.read().decode('utf8')
 
-        else:
-            content = '?'
+        elif file_match: # reconstruct matchX-[01].html
+            match = file_match.group(1)
+            side = file_match.group(2)
+            data = get_object_or_404(SimilarityData, result=self.result, label='match{}-{}.html'.format(match, side))
 
+        else: # index page
+            data = SimilarityData.objects.get(result=self.result, label='index.html')
+            context = {
+                'offering': self.offering,
+                'activity': self.activity,
+                'result': self.result,
+                'data': data,
+            }
+            resp = render(request, 'submission/similarity-moss.html', context=context)
+            return resp
+
+        content = data.file.read().decode('utf8')
         resp = HttpResponse(content)
         resp.allow_frames_csp = True
-        resp.xframe_options_exempt = True
+        resp['X-Frame-Options'] = 'SAMEORIGIN'
         return resp

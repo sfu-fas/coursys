@@ -1,7 +1,10 @@
+import os
+
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404, HttpResponse
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
 from courselib.search import find_member, find_userid_or_emplid
 from submission.forms import make_form_from_list
@@ -474,7 +477,7 @@ def similarity(request, course_slug, activity_slug):
 
 
 @requires_course_staff_by_slug
-def similarity_result(request, course_slug, activity_slug, result_slug):
+def similarity_result(request, course_slug, activity_slug, result_slug, path):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
     result = get_object_or_404(SimilarityResult, activity=activity, generator=result_slug)
@@ -484,7 +487,7 @@ def similarity_result(request, course_slug, activity_slug, result_slug):
     else:
         raise NotImplementedError()
 
-    resp = helper.render(request.GET)
+    resp = helper.render(request, path)
     if resp is not None:
         return resp
 
@@ -494,4 +497,18 @@ def similarity_result(request, course_slug, activity_slug, result_slug):
         'result': result,
     }
     return render(request, "submission/similarity_result.html", context)
+
+
+def moss_icon(request, filename):
+    if settings.MOSS_DISTRIBUTION_PATH is None:
+        raise Http404()
+
+    bitmap_path = os.path.join(settings.MOSS_DISTRIBUTION_PATH, 'bitmaps')
+    fullpath = os.path.normpath(os.path.join(bitmap_path, filename))
+    if not fullpath.startswith(bitmap_path):
+        # make sure we didn't leave the MOSS bitmap path with a '../' or something
+        raise Http404()
+
+    data = open(fullpath, 'rb').read()
+    return HttpResponse(data, content_type='image/gif')
 

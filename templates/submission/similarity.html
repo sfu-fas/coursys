@@ -15,6 +15,6 @@
 
 {% block content %}
     {% for res in results %}
-        <p><a href="{% url "grades:submission:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=res.generator %}">{{ res }}</p>
+        <p><a href="{% url "grades:submission:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=res.generator path='' %}">{{ res }}</a></p>
     {% endfor %}
 {% endblock %}

@@ -30,6 +30,7 @@ from otp.urls import otp_patterns
 import dashboard.views as dashboard_views
 import grad.views as grad_views
 from django_cas_ng.views import LogoutView
+from submission.views import moss_icon
 
 handler404 = 'courselib.auth.NotFoundResponse'
 
@@ -40,6 +41,7 @@ toplevel_patterns = [
     url(r'^robots.txt$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
     url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL + 'icons/favicon.ico', permanent=True)),
     url(r'^csp-reports', csp_report_view, name='csp_reports'),
+    url(r'^mossicon/(?P<filename>.*)$', moss_icon, name='moss_icon'),
 
     # top-level pages
     url(r'^$', dashboard_views.index, name='index'),

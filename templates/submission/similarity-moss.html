@@ -1,0 +1,32 @@
+{% extends "base-wide.html" %}
+
+{% block title %}Similarity Reports for {{activity.name}}{% endblock %}
+{% block h1 %}Similarity Reports for {{activity.name}}{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>
+    <li><a href="{% url "offering:activity_info" course_slug=offering.slug activity_slug=activity.slug %}">{{ activity.name }}</a></li>
+    <li><a href="{% url "grades:submission:similarity" course_slug=offering.slug activity_slug=activity.slug %}">Similarity Reports</a></li>
+    <li>MOSS</li>
+{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(function() {
+  $('#results').dataTable( {
+    'aaSorting': [],
+    'bPaginate': false,
+    'bJQueryUI': true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+<table id="results">
+<thead><tr><th scope="col">Result 1</th><th scope="col">Result 2</th></tr></thead><tbody>
+{% for m in data.config.index_data %}
+    <tr>{% for label,fn,perc in m %}<td><a href="{% url "grades:submission:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=result.generator path=label %}">{{ fn }} {{ perc }}</a></td>{% endfor %}</tr>
+{% endfor %}
+</tbody></table>
+{% endblock %}

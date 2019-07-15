@@ -59,12 +59,12 @@ class CSPMiddleware(object):
             extra_csp += " frame-src 'self'"
 
         value = "default-src 'self' * ; " \
-                "style-src 'self' 'unsafe-inline'%s ; " \
+                "style-src 'self' 'unsafe-inline' %s ; " \
                 "img-src 'self' www.sfu.ca data: ; " \
                 "font-src 'self' www.sfu.ca ; " \
                 "script-src 'self' https://cdnjs.cloudflare.com %s ;%s" \
                 % (extra_style_src, extra_script_src, extra_csp)
-        value += "report-uri /csp-reports ;"
+        value += " report-uri /csp-reports ;"
 
         response[header] = value
         return response
