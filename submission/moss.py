@@ -128,7 +128,7 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
 
     # run MOSS
     moss_pl = os.path.join(settings.MOSS_DISTRIBUTION_PATH, 'moss.pl')
-    cmd = [moss_pl, '-l', language, '-o', moss_out_dir, '-m', '100000'] + moss_files
+    cmd = [moss_pl, '-l', language, '-o', moss_out_dir] + moss_files
     try:
         res = subprocess.run(cmd, cwd=settings.MOSS_DISTRIBUTION_PATH)
     except FileNotFoundError:
