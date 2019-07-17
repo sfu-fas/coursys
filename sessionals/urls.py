@@ -13,6 +13,7 @@ ATTACH_SLUG = '(?P<attach_slug>' + SLUG_RE + ')'
 
 sessionals_patterns = [ # prefix /sessionals/
     url(r'^$', views.sessionals_index, name='sessionals_index'),
+    url(r'^download/$', views.download_sessionals, name='download_sessionals'),
     url(r'^manage_accounts/$', views.manage_accounts, name='manage_accounts'),
     url(r'^new_account/$', views.new_account, name='new_account'),
     url(r'^' + ACCOUNT_SLUG + '/edit$', views.edit_account, name='edit_account'),

@@ -13,6 +13,10 @@ class Command(BaseCommand):
             action='store_true',
             default=False,
             help="Clean old dumps as well?")
+        parser.add_argument('--fast',
+            action='store_true',
+            default=False,
+            help="Produce the fast mysqldump, not the line-by-line diffable dump.")
 
 
     def handle(self, *args, **options):
@@ -28,8 +32,12 @@ class Command(BaseCommand):
         else:
             sslarg = ''
 
+        if options['fast']:
+            format_args = ''
+        else:
+            format_args = '--single-transaction --skip-extended-insert'
         dbdump.Command().handle(backup_directory=path, filename=filename, compression_command='gzip',
-                                raw_args='--single-transaction --skip-extended-insert' + sslarg)
+                                raw_args=format_args + sslarg)
 
         if options['clean_old']:
             dates_covered = set()

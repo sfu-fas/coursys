@@ -922,7 +922,6 @@ def view_financial_summary(request, unit_slug, semester,):
     contracts = TAContract.objects.signed(hiring_semester)
     pay = 0
     bus = 0
-    tac = contracts.count()
     tacourses = TACourse.objects.filter(contract__in=contracts)
     course_offerings = set()
     for course in tacourses:
@@ -932,6 +931,7 @@ def view_financial_summary(request, unit_slug, semester,):
     pay = locale.currency(float(pay))
     pay = '%s' % (pay)
     offerings = []
+    tac = 0
     for o in course_offerings:
         courses = tacourses.filter(course=o)
         total_pay = 0
@@ -946,10 +946,50 @@ def view_financial_summary(request, unit_slug, semester,):
         o.total_pay = total_pay
         o.total_bus = total_bus
         o.tas = tas
+        tac += tas
         offerings.append(o)
-    info = {'course_total': len(tacourses), 'bu_total': bus, 'pay_total': pay, 'ta_count': tac}
-    context = {'hiring_semester': hiring_semester, 'info': info, 'offerings': offerings}
+    info = {'course_total': len(offerings), 'bu_total': bus, 'pay_total': pay, 'ta_count': tac}
+    context = {'hiring_semester': hiring_semester, 'info': info, 'offerings': offerings, 'unit_slug': unit_slug,
+               'semester': semester}
     return render(request, 'tacontracts/view_financial.html', context)
+
+
+@requires_role(["TAAD", "GRAD"])
+def download_financials(request, unit_slug, semester,):
+    hiring_semester = get_object_or_404(HiringSemester,
+                                        semester__name=semester,
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contracts = TAContract.objects.signed(hiring_semester)
+    tacourses = TACourse.objects.filter(contract__in=contracts)
+    course_offerings = set()
+    for course in tacourses:
+        course_offerings.add(course.course)
+    offerings = []
+    for o in course_offerings:
+        courses = tacourses.filter(course=o)
+        total_pay = 0
+        total_bus = decimal.Decimal(0)
+        for c in courses:
+            total_pay += c.total
+            total_bus += c.total_bu
+        total_pay = '%s' % (locale.currency(float(total_pay)))
+        total_bus = "%.2f" % total_bus
+        tas = courses.count()
+        o.total_pay = total_pay
+        o.total_bus = total_bus
+        o.tas = tas
+        offerings.append(o)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-%s-financials-%s.csv"' % \
+                                      (unit_slug, semester, datetime.datetime.now().strftime('%Y%m%d'))
+    writer = csv.writer(response)
+    writer.writerow(['Offering', 'Instructor(s)', 'Enrollment', 'Campus', 'Number of TAs', 'Assigned BU',
+                     'Total Amount'])
+    for o in offerings:
+        writer.writerow([o.name(), o.instructors_str(), '(%s/%s)' % (o.enrl_tot, o.enrl_cap), o.get_campus_display(),
+                         o.tas, o.total_bus, o.total_pay])
+    return response
 
 
 @requires_role(["TAAD", "GRAD"])

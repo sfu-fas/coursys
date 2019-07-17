@@ -1786,7 +1786,7 @@ def view_financial(request, post_slug):
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
     # ignore excluded courses
     excl = set(posting.excluded())
-    offerings = [o for o in all_offerings if o.course_id not in excl]
+    offerings = [o for o in all_offerings if o.course_id not in excl and posting.ta_count(o) > 0]
     excluded = [o for o in all_offerings if o.course_id in excl]
     
     (bu, pay, ta) = posting.all_total()
@@ -1802,12 +1802,12 @@ def download_financial(request, post_slug):
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
     # ignore excluded courses
     excl = set(posting.excluded())
-    offerings = [o for o in all_offerings if o.course_id not in excl]
+    offerings = [o for o in all_offerings if o.course_id not in excl and posting.ta_count(o) > 0]
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s-financials-%s.csv"' % \
                                       (post_slug, datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
-    writer.writerow(['Offering', 'Instructor(s)', 'Enrolment', 'Campus', 'Number of TAs', 'Assigned BU',
+    writer.writerow(['Offering', 'Instructor(s)', 'Enrollment', 'Campus', 'Number of TAs', 'Assigned BU',
                      'Total Amount'])
     for o in offerings:
         writer.writerow([o.name(), o.instructors_str(), '(%s/%s)' % (o.enrl_tot, o.enrl_cap), o.get_campus_display(),

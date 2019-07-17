@@ -46,6 +46,9 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         {% endblock %}
     """
 
+    def get_teaching_credit_display(self):
+        return self.get_config('teaching_credit', default='N/A')
+    
     @classmethod
     def get_fellowship_choices(cls, units, only_active=False):
         """
