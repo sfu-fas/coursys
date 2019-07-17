@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from django import forms
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db import transaction
@@ -30,6 +31,21 @@ MOSS_LANGUAGES = {  # MOSS language specifier: file extension
     'csharp': 'cs',
     'javascript': 'js',
 }
+MOSS_LANGUAGES_CHOICES = sorted([
+    ('c', 'C (*.c)'),
+    ('cc', 'C++ (*.cpp)'),
+    ('java', 'Java (*.java)'),
+    ('ruby', 'Ruby (*.rb)'),
+    ('ocaml', 'OCaml (*.ocaml)'),
+    ('haskell', 'Haskell (*.hs)'),
+    ('python', 'Python (*.py)'),
+    ('csharp', 'C# (*.cs)'),
+    ('javascript', 'JavaScript (*.js)'),
+])
+
+
+class MOSSError(RuntimeError):
+    pass
 
 
 def check_moss_executable(passed, failed):
@@ -73,7 +89,7 @@ match_file_re = re.compile(r'^match(\d+)-([01])\.html$')
 @transaction.atomic
 def run_moss(activity: Activity, language: str) -> SimilarityResult:
     assert language in MOSS_LANGUAGES
-    ICON_PATH = reverse('dashboard:moss_icon', kwargs={'filename': ''})
+    icon_url_path = reverse('dashboard:moss_icon', kwargs={'filename': ''})
 
     # get the submissions
     si = SubmissionInfo.for_activity(activity)
@@ -107,12 +123,18 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
             moss_files.append(moss_file)
             file_submissions[moss_file] = sub.submission_id
 
+    if not moss_files:
+        raise MOSSError('No files found for that language to analyze with MOSS.')
+
     # run MOSS
     moss_pl = os.path.join(settings.MOSS_DISTRIBUTION_PATH, 'moss.pl')
     cmd = [moss_pl, '-l', language, '-o', moss_out_dir, '-m', '100000'] + moss_files
-    res = subprocess.run(cmd, cwd=settings.MOSS_DISTRIBUTION_PATH)
+    try:
+        res = subprocess.run(cmd, cwd=settings.MOSS_DISTRIBUTION_PATH)
+    except FileNotFoundError:
+        raise MOSSError('System not correctly configured with the MOSS executable.')
     if res.returncode != 0:
-        raise RuntimeError('MOSS command failed: ' + str(cmd))
+        raise MOSSError('MOSS command failed: ' + str(cmd))
 
     # save the results, removing any previous MOSS results on this activity
     SimilarityResult.objects.filter(activity=activity, generator='MOSS').delete()
@@ -155,7 +177,7 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
                     th.string = _canonical_filename(th.string, code_dir)
             for img in table.find_all('img'):
                 src = img.get('src')
-                img['src'] = src.replace('../bitmaps/', ICON_PATH)
+                img['src'] = src.replace('../bitmaps/', icon_url_path)
 
             file = File(file=io.BytesIO(str(table).encode('utf8')), name=f)
             data = SimilarityData(result=result, label=f, file=file, config={})
@@ -178,7 +200,7 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
             pre = soup.find('pre')
             for img in pre.find_all('img'):
                 src = img.get('src')
-                img['src'] = src.replace('../bitmaps/', ICON_PATH)
+                img['src'] = src.replace('../bitmaps/', icon_url_path)
 
             file = File(file=io.BytesIO(str(pre).encode('utf8')), name=f)
             data = SimilarityData(result=result, label=f, file=file, submission_id=submission_id, config={})
@@ -195,6 +217,9 @@ class MOSS(object):
         self.offering = offering
         self.activity = activity
         self.result = result
+
+    class CreationForm(forms.Form):
+        language = forms.ChoiceField(label='MOSS language', choices=MOSS_LANGUAGES_CHOICES)
 
     def render(self, request: HttpRequest, path: str) -> Optional[HttpResponse]:
         base_match = match_base_re.match(path)

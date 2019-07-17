@@ -4,7 +4,7 @@ from django.dispatch import receiver
 from grades.models import Activity
 from coredata.models import Member, Person,CourseOffering
 from groups.models import Group,GroupMember
-from datetime import datetime
+from datetime import datetime, timedelta
 from autoslug import AutoSlugField
 from django.db.models import Max
 from dashboard.models import NewsItem
@@ -244,6 +244,15 @@ class SimilarityResult(models.Model):
 
     class Meta:
         unique_together = [('activity', 'generator')]
+
+    @classmethod
+    def cleanup_old(cls, age=timedelta(days=30)):
+        '''
+        Old SimilarityResults will be deleted, but instructor can regenerate if they wish.
+        '''
+        cutoff = datetime.now() - age
+        old = cls.objects.filter(created_at__lt=cutoff)
+        old.delete()
 
 
 def similarity_upload_path(instance, filename):

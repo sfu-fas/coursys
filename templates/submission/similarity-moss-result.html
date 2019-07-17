@@ -6,32 +6,32 @@
 {% block subbreadcrumbs %}
     <li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>
     <li><a href="{% url "offering:activity_info" course_slug=offering.slug activity_slug=activity.slug %}">{{ activity.name }}</a></li>
-    <li><a href="{% url "grades:submission:similarity" course_slug=offering.slug activity_slug=activity.slug %}">Similarity Reports</a></li>
-    <li><a href="{% url "grades:submission:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=result.generator path='' %}">MOSS</a></li>
+    <li><a href="{% url "grades:similarity:similarity" course_slug=offering.slug activity_slug=activity.slug %}">Similarity Reports</a></li>
+    <li><a href="{% url "grades:similarity:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=result.generator path='' %}">MOSS</a></li>
 {% endblock %}
 
 {% block headextra %}
 <style nonce="{{ CSP_NONCE }}">
 #iframe0, #iframe1 {
     display: inline-block;
-    height: calc(100vh - 200px);
+    height: calc(100vh - 250px);
 }
 </style>
 {% endblock %}
 
 {% block content %}
+
 <p>Left: <a href="{{ sub0.get_absolute_url }}">submission from {{ sub0.creator_str }}</a>.<br/>
     Right: <a href="{{ sub1.get_absolute_url }}">submission from {{ sub1.creator_str }}</a>.</p>
 
 <iframe
-  src="{% url "grades:submission:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=result.generator path=fn_top %}"
-  name="top" id="iframetop" width="98%" height="100"></iframe>
+  src="{% url "grades:similarity:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=result.generator path=fn_top %}"
+  name="top" id="iframetop" width="98%" height="150"></iframe>
 <iframe
-  src="{% url "grades:submission:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=result.generator path=fn_left %}"
+  src="{% url "grades:similarity:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=result.generator path=fn_left %}"
   name="0" id="iframe0" width="49%" height="500"></iframe>
 <iframe
-  src="{% url "grades:submission:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=result.generator path=fn_right %}"
+  src="{% url "grades:similarity:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=result.generator path=fn_right %}"
   name="1" id="iframe1" width="49%" height="500"></iframe>
-
 
 {% endblock %}
