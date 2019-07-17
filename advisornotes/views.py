@@ -340,12 +340,12 @@ def student_notes(request, userid):
 
     if request.POST and 'note_id' in request.POST:
         # the "hide note" box was checked: process
-        note = get_object_or_404(AdvisorNote, pk=request.POST['note_id'], unit__in=request.units)
+        note = get_object_or_404(AdvisorNote, pk=request.POST['note_id'], unit__in=Unit.sub_units(request.units))
         note.hidden = request.POST['hide'] == "yes"
         note.save()
 
     if isinstance(student, Person):
-        notes = AdvisorNote.objects.filter(student=student, unit__in=request.units).order_by("-created_at")
+        notes = AdvisorNote.objects.filter(student=student, unit__in=Unit.sub_units(request.units)).order_by("-created_at")
         form_subs = FormSubmission.objects.filter(initiator__sfuFormFiller=student, form__unit__in=Unit.sub_units(request.units),
                                                   form__advisor_visible=True)
         visits = AdvisorVisit.objects.visible(request.units).filter(student=student).order_by('-created_at')
@@ -360,7 +360,7 @@ def student_notes(request, userid):
         items.sort(key=lambda x: x.created_at, reverse=True)
         nonstudent = False
     else:
-        notes = AdvisorNote.objects.filter(nonstudent=student, unit__in=request.units).order_by("-created_at")
+        notes = AdvisorNote.objects.filter(nonstudent=student, unit__in=Unit.sub_units(request.units)).order_by("-created_at")
         visits = AdvisorVisit.objects.filter(nonstudent=student, unit__in=request.units).order_by('-created_at')
         for n in notes:
             n.entry_type = 'NOTE'
