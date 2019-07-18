@@ -1,0 +1,12 @@
+version: '3'
+services:
+  db:
+    image: "mysql:5.7"
+    volumes:
+      - <%= @mysql_data %>:/var/lib/mysql:rw
+    environment:
+      MYSQL_DATABASE: coursys
+      MYSQL_USER: coursysuser
+      MYSQL_PASSWORD: coursyspassword
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
