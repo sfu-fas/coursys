@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -e
+
+[ ! -e <%= @private_mount %> ] && ecryptfs-setup-private
+[ ! -e <%= @private_mount %>/.ismounted ] && ecryptfs-mount-private
+touch <%= @private_mount %>/.ismounted
+mkdir -p <%= @mysql_data %>
+
+docker-compose up
