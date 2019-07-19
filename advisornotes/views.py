@@ -10,6 +10,7 @@ from coredata.queries import find_person, add_person, more_personal_info, more_c
 from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
 from courselib.search import find_userid_or_emplid, get_query
+from grades.views import _has_photo_agreement
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.mail.message import EmailMultiAlternatives
@@ -18,6 +19,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
+from django.utils.html import mark_safe
 from log.models import LogEntry
 from onlineforms.models import FormSubmission
 import datetime
@@ -25,6 +27,7 @@ import json
 from . import rest
 from timeit import itertools
 import csv
+import urllib.parse
 
 
 
@@ -332,6 +335,11 @@ def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None
 
 @requires_role(['ADVS', 'ADVM'])
 def student_notes(request, userid):
+    user = get_object_or_404(Person, userid=request.user.username)
+    if not _has_photo_agreement(user):
+        url = reverse('config:photo_agreement') + '?return=' + urllib.parse.quote(request.path)
+        return ForbiddenResponse(request, mark_safe(
+            'You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
 
     try:
         student = Person.objects.get(find_userid_or_emplid(userid))
@@ -340,12 +348,12 @@ def student_notes(request, userid):
 
     if request.POST and 'note_id' in request.POST:
         # the "hide note" box was checked: process
-        note = get_object_or_404(AdvisorNote, pk=request.POST['note_id'], unit__in=request.units)
+        note = get_object_or_404(AdvisorNote, pk=request.POST['note_id'], unit__in=Unit.sub_units(request.units))
         note.hidden = request.POST['hide'] == "yes"
         note.save()
 
     if isinstance(student, Person):
-        notes = AdvisorNote.objects.filter(student=student, unit__in=request.units).order_by("-created_at")
+        notes = AdvisorNote.objects.filter(student=student, unit__in=Unit.sub_units(request.units)).order_by("-created_at")
         form_subs = FormSubmission.objects.filter(initiator__sfuFormFiller=student, form__unit__in=Unit.sub_units(request.units),
                                                   form__advisor_visible=True)
         visits = AdvisorVisit.objects.visible(request.units).filter(student=student).order_by('-created_at')
@@ -360,7 +368,7 @@ def student_notes(request, userid):
         items.sort(key=lambda x: x.created_at, reverse=True)
         nonstudent = False
     else:
-        notes = AdvisorNote.objects.filter(nonstudent=student, unit__in=request.units).order_by("-created_at")
+        notes = AdvisorNote.objects.filter(nonstudent=student, unit__in=Unit.sub_units(request.units)).order_by("-created_at")
         visits = AdvisorVisit.objects.filter(nonstudent=student, unit__in=request.units).order_by('-created_at')
         for n in notes:
             n.entry_type = 'NOTE'

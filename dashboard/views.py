@@ -210,31 +210,29 @@ def config(request):
         newsconfig = configs[0].value
     
     # advisor note API config
-    advisortoken = None
     advisor = False
-    if has_role('ADVS', request):
+    if has_role('ADVS', request) or has_role('ADVM', request):
         advisor = True
         configs = UserConfig.objects.filter(user=user, key='advisor-token')
-        if len(configs) > 0:
-            advisortoken = configs[0].value['token']
-    
+
     # ID photo agreement
     instructor = False
-    photo_agreement = False
     if Member.objects.filter(person=user, role__in=['INST', 'TA']).count() > 0:
         instructor = True
         configs = UserConfig.objects.filter(user=user, key='photo-agreement')
-        if len(configs) > 0:
-            photo_agreement = configs[0].value['agree']
 
     # privacy config
     roles = Role.all_roles(user.userid)
     roles_with_privacy = [r for r in roles if r in PRIVACY_ROLES]
     privacy_visible = len(roles_with_privacy) > 0
 
-    context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'advisor': advisor, 'advisortoken': advisortoken, 
-             'instructor': instructor, 'photo_agreement': photo_agreement, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL,
-             'privacy_visible': privacy_visible}
+    # DA Privacy config
+    roles_with_da_privacy = [r for r in roles if r == 'ADMN']
+    da_privacy_visible = len(roles_with_da_privacy) > 0
+
+    context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'advisor': advisor,
+             'instructor': instructor, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL,
+             'privacy_visible': privacy_visible, 'da_privacy_visible': da_privacy_visible}
     return render(request, "dashboard/config.html", context)
 
 
@@ -921,8 +919,13 @@ def photo_agreement(request):
             return HttpResponseRedirect(url)
     else:
         form = PhotoAgreementForm({'agree': config.value['agree']})
-        
-    context = {"form": form}
+
+    if 'at' in config.value:
+        agree_date = datetime.datetime.strptime(config.value['at'], '%Y-%m-%dT%H:%M:%S.%f')
+    else:
+        agree_date = None
+
+    context = {"form": form, 'agree': config.value['agree'], 'agree_date': agree_date}
     return render(request, "dashboard/photo_agreement.html", context)
 
 
