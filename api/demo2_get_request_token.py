@@ -18,7 +18,7 @@ def get_request_token(with_callback=True):
     oauth_request.sign_request(oauth.SignatureMethod_HMAC_SHA1(), consumer, None)
 
     response = requests.get(REQUEST_TOKEN_URL, headers=oauth_request.to_header())
-    request_token = dict(urllib.parse.parse_qsl(response.content))
+    request_token = dict(urllib.parse.parse_qsl(response.content.decode('utf8')))
     return request_token
 
 def authorize_token(request_token):
