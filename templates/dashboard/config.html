@@ -24,22 +24,16 @@
 {% endif %}
 <li><a href="{% url "config:manage_tokens" %}"><i class="fa fa-li fa-lock"></i>Manage API Tokens</a></li>
 
-{% if instructor %}
+{% if instructor or advisor %}
 <li class="newsec"><a href="{% url "config:photo_agreement" %}">Display ID Photos</a></li>
 {% endif %}
 {% if privacy_visible %}
 <li><a href="{% url "config:privacy" %}"><i class="fa fa-li fa-lock"></i>Privacy Agreement</a></li>
 {% endif %}
-
-
-{% if advisor %}
-    {% if advisortoken %}
-        <li class="newsec"><a href="{% url "config:disable_advisor_token" %}">Disable advisor notes API</a></li>
-        <li><a href="{% url "config:change_advisor_token" %}">Change advisor notes API token</a></li>
-    {% else %}
-        <li class="newsec"><a href="{% url "config:enable_advisor_token" %}">Enable advisor notes API</a></li>
-    {% endif %}
+{% if da_privacy_visible %}
+<li><a href="{% url "config:privacy_da" %}"><i class="fa fa-li fa-lock"></i>Departmental Admin Privacy Agreement</a></li>
 {% endif %}
+
 </ul>
 </div>
 {% endblock %}

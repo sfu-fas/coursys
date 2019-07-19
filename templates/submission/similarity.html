@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% load form_display %}
+
+{% block title %}Similarity Reports for {{activity.name}}{% endblock %}
+{% block h1 %}Similarity Reports for {{activity.name}}{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>
+    <li><a href="{% url "offering:activity_info" course_slug=offering.slug activity_slug=activity.slug %}">{{ activity.name }}</a></li>
+    <li>Similarity Reports</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<h2>Similarity Reports</h2>
+    {% for res in results %}
+        <p><a href="{% url "grades:similarity:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=res.generator path='' %}">Report from {{ res.generator }}, created {{ res.created_at }}</a></p>
+    {% empty %}
+        <p class="empty">None generated.</p>
+    {% endfor %}
+
+<h2>Generate MOSS Report</h2>
+<form action="" method="post">{% csrf_token %}
+{{ moss_form|as_dl }}
+<p><input class="submit" type="submit" value="Generate Report" /></p>
+</form>
+{% endblock %}

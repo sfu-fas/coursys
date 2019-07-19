@@ -141,7 +141,7 @@ def do_photo_fetch(emplids):
     """
     photos = _get_photos(emplids)
     for emplid in photos:
-        cache.set(_photo_cache_key(emplid), photos[emplid], 3600*24*7)
+        cache.set(_photo_cache_key(emplid), photos[emplid], 3600*24)
 
     missing = set(emplids) - set(photos.keys())
     if missing:

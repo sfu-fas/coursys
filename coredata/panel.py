@@ -190,6 +190,8 @@ def deploy_checks(request=None):
         failed.append(('Reporting DB connection', 'SIMSProblem, %s' % (str(e))))
     except ImportError:
         failed.append(('Reporting DB connection', "couldn't import DB2 module"))
+    except Exception as e:
+        failed.append(('Reporting DB connection', 'Generic exception, %s' % (str(e))))
 
     # compression enabled?
     if settings.COMPRESS_ENABLED:
@@ -342,6 +344,10 @@ def deploy_checks(request=None):
         failed.append(('Markdown subprocess', 'failed to start ruby command: ruby package probably not installed'))
     except RuntimeError:
         failed.append(('Markdown subprocess', 'markdown script failed'))
+
+    # MOSS subprocess
+    from submission.moss import check_moss_executable
+    check_moss_executable(passed, failed)
 
     # locale is UTF-8 (matters for markdown script calls, the SIMS database connection)
     import locale

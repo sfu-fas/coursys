@@ -7,7 +7,7 @@ from discuss.urls import discussion_patterns
 from groups.urls import group_patterns
 from marking.urls import marking_patterns
 from pages.urls import pages_patterns
-from submission.urls import submission_patterns
+from submission.urls import submission_patterns, similarity_patterns
 
 import grades.views as grades_views
 import marking.views as marking_views
@@ -37,6 +37,7 @@ activity_patterns = [ # prefix /COURSE_SLUG/+ACTIVITY_SLUG/
     url(r'^markall/groups$', marking_views.mark_all_groups, name='mark_all_groups'),
 
     url(r'^submission/', include((submission_patterns, 'submission'), namespace='submission')),
+    url(r'^similarity/', include((similarity_patterns, 'similarity'), namespace='similarity')),
     url(r'^marking/', include((marking_patterns, 'marking'), namespace='marking')),
 ]
 

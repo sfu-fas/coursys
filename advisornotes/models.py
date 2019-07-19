@@ -268,7 +268,7 @@ class AdvisorVisitQuerySet(models.QuerySet):
         """
         Only see visible items, in this case also limited by accessible units.
         """
-        return self.filter(hidden=False, unit__in=units)
+        return self.filter(hidden=False, unit__in=Unit.sub_units(units))
 
 
 class AdvisorVisit(models.Model):
