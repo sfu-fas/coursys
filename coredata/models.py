@@ -1037,7 +1037,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     def instructors_str(self):
         @cached(60*60*24*2)
         def _instr_str(pk):
-            return '; '.join(p.sortname() for p in CourseOffering.objects.get(pk=pk).instructors())
+            return '; '.join(p.sortname_pref() for p in CourseOffering.objects.get(pk=pk).instructors())
         return _instr_str(self.pk)
 
     def instructors_printing(self):
