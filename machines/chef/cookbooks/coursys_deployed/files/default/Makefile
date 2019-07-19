@@ -24,3 +24,6 @@ chef:
 
 check_things:
 	LD_LIBRARY_PATH=/home/coursys/sqllib/lib64 ./manage.py check_things
+
+cache:
+	sudo service memcached restart
