@@ -45,6 +45,10 @@ def build_program_map():
     program_map['PSMAP'] = GradProgram.objects.get(label="PSMAP", unit=psychunit)
     program_map['PSPHC'] = GradProgram.objects.get(label="PSPHC", unit=psychunit)
     program_map['PSPHP'] = GradProgram.objects.get(label="PSPHP", unit=psychunit)
+
+    seeunit = Unit.objects.get(label="SEE")
+    program_map['SEMAS'] = GradProgram.objects.get(label="SEE MASc", unit=seeunit)
+    program_map['SEPHD'] = GradProgram.objects.get(label="SEE PhD", unit=seeunit)
     return program_map
 
 
