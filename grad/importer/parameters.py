@@ -3,7 +3,7 @@ from coredata.models import Semester
 from django.conf import settings
 
 # import grads from these units (but CMPT gets special treatment)
-IMPORT_UNIT_SLUGS = ['cmpt', 'ensc', 'mse', 'psyc']
+IMPORT_UNIT_SLUGS = ['cmpt', 'ensc', 'mse', 'psyc', 'see']
 
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=30)
