@@ -54,7 +54,7 @@ class CMPTGradRequirementsReport(Report):
         def get_supervisor_string(student):
             supervisor = senior_supervisors.filter(student=student).first()
             if supervisor:
-                return '%s <%s>' % (supervisor.supervisor.name, supervisor.supervisor.email())
+                return '%s <%s>' % (supervisor.supervisor.name(), supervisor.supervisor.email())
             else:
                 return 'None'
 
