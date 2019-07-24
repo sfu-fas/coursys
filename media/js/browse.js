@@ -134,5 +134,6 @@ function browser_ready(my_url) {
         }
   });
   //$(window).bind('hashchange', function(){restore_form();refresh();});
+  $('#filterform').tooltip();
 }
 

@@ -1032,7 +1032,7 @@ def browse_courses(request):
 
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from django.db.models import Q
+from django.db.models import Q, F
 from django.conf import settings
 import operator
 import pytz
@@ -1164,8 +1164,10 @@ class OfferingDataJson(BaseDatatableView):
         elif mode == 'eve':
             qs = qs.exclude(instr_mode='DE').filter(section__startswith='E')
 
-        #print qs.query
-        #qs = qs[:500] # ignore requests for crazy amounts of data
+        # free space filter
+        if GET.getlist('space'):
+            qs = qs.filter(enrl_tot__lt=F('enrl_cap')).filter(wait_tot=0)
+
         return qs
 
     #def XXX_prepare_results(self, qs):
