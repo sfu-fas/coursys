@@ -95,7 +95,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="idphoto studentinfo"><img src="{% url 'data:student_photo' emplid=student.emplid %}" alt="" /></div>
+{% if student.emplid %}<div class="idphoto studentinfo"><img src="{% url 'data:student_photo' emplid=student.emplid %}" alt="" /></div>{% endif %}
     <table class="info">
         <tbody>
             <tr>
