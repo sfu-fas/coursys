@@ -35,7 +35,7 @@ class CMPTGradRequirementsReport(Report):
         # The GradRequirements we care about:
         requirement1 = GradRequirement.objects.get(program=program, description='Supervisory Committee')
         requirement2 = GradRequirement.objects.get(program=program, description='Depth Exam')
-        requirement3 = GradRequirement.objects.get(program=program, description='Breadth Requirements')
+        requirement3 = GradRequirement.objects.get(program=program, description='Breadth Program Approved')
         requirement4 = GradRequirement.objects.get(program=program, description='Thesis Proposal')
 
         # All three tables will have the same columns, might as well create them quickly.
