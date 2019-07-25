@@ -1,12 +1,23 @@
 version: '3'
 services:
   db:
-    image: "mysql:5.7"
+    build:
+      context: docker
+      dockerfile: Dockerfile-db
     volumes:
       - <%= @mysql_data %>:/var/lib/mysql:rw
+    #ports:
+    #  - "127.0.0.1:3307:3306"
     environment:
       MYSQL_DATABASE: coursys
       MYSQL_USER: coursysuser
-      MYSQL_PASSWORD: coursyspassword
+      MYSQL_PASSWORD: <%= @db_password %>
       MYSQL_RANDOM_ROOT_PASSWORD: "yes"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+  util:
+    build:
+      context: docker
+      dockerfile: Dockerfile-util
+    volumes:
+      - <%= @home %>/.ssh/id_ed25519:/home/util/.ssh/id_ed25519:ro
+      - <%= @home %>/.ssh/id_ed25519.pub:/home/util/.ssh/id_ed25519.pub:ro
