@@ -10,8 +10,8 @@
 
 {% block headextra %}
 {% compress js %}
-<script src="{% static "jquery-ext/jquery.ba-bbq.min.js" %}"></script>
-<script src="{% static "js/browse.js" %}"></script>
+<script src="{% static 'jquery-ext/jquery.ba-bbq.min.js' %}"></script>
+<script src="{% static 'js/browse.js' %}"></script>
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   browser_ready('{% url "browse:browse_courses" %}');

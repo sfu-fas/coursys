@@ -1,6 +1,6 @@
 var table;
 
-function build_calendar(url, y, m ,d) {
+function build_calendar(url, start) {
 	$('#calendar').fullCalendar({
     	header: {
       		left: 'prev,next today',
@@ -16,9 +16,7 @@ function build_calendar(url, y, m ,d) {
     	firstHour: 8,
     	slotMinutes: 60,
     	defaultView: 'agendaWeek',
-    	year: y,
-    	month: m,
-    	day: d,
+        defaultDate: start
   	})
 }
 
@@ -73,16 +71,16 @@ function restore_form() {
     var data = jQuery.deparam(frag.substr(1));
     $.each(data, function (k,v) {
         var input = $('#id_'+k);
-        if ( input.length == 1 ) {
-            input.val(v);
-        } else {
-            // try it as a checkbox
-            if ( typeof(v) == 'string' ) { /* one selection -> string; multiple -> array */
-                v = Array(v);
+        if (input.prop("tagName") == 'SPAN') { // multi-select checkboxes
+            if ( Array.isArray(v) ) {
+                $.each(v, function(kk, vv) {
+                    $('input[name^="' + k + '"][value="' + vv + '"]').prop('checked', true);
+                });
+            } else {
+                $('input[name^="' + k + '"][value="' + v + '"]').prop('checked', true);
             }
-            $(v).each(function (i,cv) {
-                $('input[name^="' + k + '"][value="' + cv + '"]').prop('checked', true);
-            });
+        } else {
+            input.val(v);
         }
     });
 }
