@@ -1097,7 +1097,7 @@ class OfferingDataJson(BaseDatatableView):
         # no locally-merged courses
         qs = qs.exclude(flags=CourseOffering.flags.combined)
         
-        srch = GET.get('sSearch', None)
+        srch = GET.get('search[value]', None)
         if srch:
             # non-haystack version:
             #qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch))
@@ -1107,19 +1107,19 @@ class OfferingDataJson(BaseDatatableView):
             offering_pks = (r.pk for r in offering_qs if r is not None)
             qs = qs.filter(pk__in=offering_pks)
 
-        subject = GET.get('subject', None)
+        subject = GET.get('subject[]', None)
         if subject:
             qs = qs.filter(subject=subject)
 
-        number = GET.get('number', None)
+        number = GET.get('number[]', None)
         if number:
-            qs = qs.filter(number__icontains=number)
+            qs = qs.filter(number__istartswith=number)
             
-        section = GET.get('section', None)
+        section = GET.get('section[]', None)
         if section:
             qs = qs.filter(section__istartswith=section)
 
-        instructor = GET.get('instructor', None)
+        instructor = GET.get('instructor[]', None)
         if instructor:
             off_ids = Member.objects.order_by().filter(person__userid=instructor, role='INST').values_list('offering', flat=True)[:500]
             #qs = qs.filter(id__in=off_ids)
@@ -1130,15 +1130,15 @@ class OfferingDataJson(BaseDatatableView):
             else:
                 qs = qs.none()
             
-        campus = GET.get('campus', None)
+        campus = GET.get('campus[]', None)
         if campus:
             qs = qs.filter(campus=campus)
 
-        semester = GET.get('semester', None)
+        semester = GET.get('semester[]', None)
         if semester:
             qs = qs.filter(semester__name=semester)
 
-        title = GET.get('crstitle', None)
+        title = GET.get('crstitle[]', None)
         if title:
             # non-haystack version:
             #qs = qs.filter(title__icontains=title)
@@ -1148,13 +1148,13 @@ class OfferingDataJson(BaseDatatableView):
             offering_pks = (r.pk for r in offering_qs if r is not None)
             qs = qs.filter(pk__in=offering_pks)
 
-        wqb = GET.getlist('wqb')
+        wqb = GET.getlist('wqb[]')
         for f in wqb:
             if f not in FLAG_DICT:
                 continue # not in our list of flags: not safe to getattr
             qs = qs.filter(flags=getattr(CourseOffering.flags, f))
 
-        mode = GET.get('mode', None)
+        mode = GET.get('mode[]', None)
         if mode == 'dist':
             qs = qs.filter(instr_mode='DE')
         elif mode == 'on':
@@ -1165,8 +1165,11 @@ class OfferingDataJson(BaseDatatableView):
             qs = qs.exclude(instr_mode='DE').filter(section__startswith='E')
 
         # free space filter
-        if GET.getlist('space'):
-            qs = qs.filter(enrl_tot__lt=F('enrl_cap')).filter(wait_tot=0)
+        space_filters = GET.getlist('space[]')
+        if 'seats' in space_filters:
+            qs = qs.filter(enrl_tot__lt=F('enrl_cap'))
+        if 'nowait' in space_filters:
+            qs = qs.filter(wait_tot=0)
 
         return qs
 

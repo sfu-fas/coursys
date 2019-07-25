@@ -99,30 +99,30 @@ function browser_ready(my_url) {
     'order': [[0,'desc'],[1,'asc']],
     'processing': true,
     'serverSide': true,
-    'sAjaxSource': my_url + '?tabledata=yes',
     'columns': [
-      null,
-      null,
-      null,
-      null,
-      {'orderable': false},
-      null,
-     ],
-    'fnServerParams': function ( aoData ) {
-      aoData.push.apply(aoData, server_params());
-    },
-    /* stop cache busting: http://datatables.net/forums/discussion/5714/solved-how-do-i-disable-the-cache-busting-query-parameter-that-datatables-attaches/p1 */
-    'fnServerData': function ( sSource, aoData, fnCallback ) {
-      /* Add some data to send to the source, and send as 'POST' */
-      aoData.push( { "name": "data_type", "value": "json" } );
-      $.ajax( {
-        "dataType": 'json',
-        "type": "GET",
-        "url": sSource,
-        "data": aoData,
-        "success": fnCallback,
-      } );
-    },
+        null,
+        null,
+        null,
+        null,
+        {'orderable': false},
+        null,
+    ],
+    'ajax': {
+        'url': my_url,
+        'type': 'GET',
+        'cache': true,
+        'data': function (data) {
+            // append all of the form filters to the query data, so we can find the server-side
+            server_params().forEach(function(p) {
+                if (!(p.name in data)) {
+                    data[p.name] = [];
+                }
+                data[p.name].push(p.value)
+            });
+            data.tabledata = 'yes';
+            return data;
+        }
+    }
   } );
   $('#filterform').change(refresh);
   $('#id_instructor').autocomplete({

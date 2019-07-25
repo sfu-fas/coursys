@@ -538,7 +538,7 @@ class OfferingFilterForm(forms.Form):
     wqb = forms.MultipleChoiceField(choices=WQB_FLAGS, initial=[], label='WQB',
                                     widget=CheckboxSelectTerse())
     mode = forms.ChoiceField(label='Mode/Time', choices=[('', 'all'), ('dist', 'Distance'), ('on', 'On-Campus'), ('day', 'On-Campus, day'), ('eve', 'On-Campus, evening')])
-    space = forms.MultipleChoiceField(label=mark_safe('<span title="Enrollment not at capacity, and no waiting list">Free Space [?]</span>'), choices=[('free', '')], widget=CheckboxSelectTerse())
+    space = forms.MultipleChoiceField(label=mark_safe('<span title="Filter either enrollment not at capacity, or no waiting list">Free Space [?]</span>'), choices=[('seats', 'seats'), ('nowait', 'no waitlist')], widget=CheckboxSelectTerse())
     
     @classmethod
     @cached(6*3600)
