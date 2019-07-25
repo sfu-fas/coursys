@@ -21,7 +21,7 @@ $(document).ready(function() {
     more_course_info('{% url "browse:browse_courses_info" course_slug=offering.slug %}?data=yes');
     course_outline_info('{% url "browse:browse_courses_info" course_slug=offering.slug %}?outline=yes');
     build_calendar('{% url "browse:browse_courses_info" course_slug=offering.slug %}?caldata=yes',
-        {{ offering.semester.start.year }}, {{ offering.semester.start.month }}, {{ offering.semester.start.day }});
+        '{{ offering.semester.start.isoformat|escapejs }}');
 } );
 </script>
 {% endblock %}
