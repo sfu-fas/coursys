@@ -223,8 +223,8 @@ class BookingRecordManager(models.QuerySet):
 class BookingRecord(models.Model):
     location = models.ForeignKey(Location, related_name='bookings', on_delete=models.PROTECT)
     person = models.ForeignKey(Person, related_name='+', on_delete=models.PROTECT)
-    start_time = models.DateTimeField(default=timezone_today)
-    end_time = models.DateTimeField(null=True, blank=True)
+    start_time = models.DateTimeField("Start date/time", default=timezone_today)
+    end_time = models.DateTimeField("End date/time", null=True, blank=True)
     form_submission_URL = models.CharField(null=True, blank=True, max_length=1000,
                                            help_text="If the user filled in a form to get this booking created, put "
                                                      "its URL here.")
