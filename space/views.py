@@ -213,12 +213,14 @@ def add_booking(request, location_slug, from_index=0):
             return view_location(request, location_slug)
 
         else:
-            form.fields['start_time'].help_text = "Any previous bookings without an end time will also get its " \
-                                                  "end time set to this."
+            for field in [form.fields['start_time'], form.fields['end_time']]:
+                field.help_text = "Please enter date on the left and time on the right. Time should be in 24 hour " \
+                                  "format, HH:MM:SS. Seconds are optional."
     else:
         form = BookingRecordForm()
-        form.fields['start_time'].help_text = "Any previous bookings without an end time will also get its " \
-                                              "end time set to this."
+        for field in [form.fields['start_time'], form.fields['end_time']]:
+            field.help_text = "Please enter date on the left and time on the right. Time should be in 24 hour " \
+                              "format, HH:MM:SS.  Seconds are optional."
 
     return render(request, 'space/new_booking.html', {'form': form, 'location': location, 'from_index': from_index})
 
