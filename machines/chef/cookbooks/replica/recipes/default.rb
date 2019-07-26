@@ -28,7 +28,7 @@ execute 'docker-repo' do
     not_if "grep 'download.docker.com' /etc/apt/sources.list"
 end
 
-package ['ecryptfs-utils', 'docker-ce']
+package ['ecryptfs-utils', 'docker-ce', 'pv']
 
 execute "docker-unmask" do
     command "systemctl unmask docker.service && systemctl unmask docker.socket && service docker start"
@@ -44,12 +44,17 @@ group 'docker' do
     members [username]
     action :create
 end
+directory "#{home}/docker" do
+    owner username
+    mode '0755'
+end
 
 template_files = [
-    ["#{home}/start.sh", '0700'],
+    ["#{home}/start-db.sh", '0700'],
+    ["#{home}/start-forward.sh", '0700'],
     ["#{home}/docker-compose.yml", '0600'],
     ["#{home}/docker/Dockerfile-db", '0600'],
-    ["#{home}/docker/Dockerfile-util", '0600'],
+    ["#{home}/docker/Dockerfile-forwarder", '0600'],
     ["#{home}/docker/mysql-local.cnf", '0644'],
 ]
 template_files.each { |fn_perm|
