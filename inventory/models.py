@@ -15,17 +15,15 @@ from courselib.storage import UploadedFileStorage, upload_path
 
 CATEGORY_CHOICES = {
     ('SWAG', 'Swag'),
-    ('DISP', 'Display'),
-    ('BANN', 'Banners'),
     ('BROC', 'Brochures'),
     ('EVEN', 'Events'),
     ('GEN', 'General'),
     ('OFF', 'Office Supplies'),
-    ('SURP', 'Surplus'),
     ('TEAC', 'Teaching'),
     ('RESR', 'Research'),
     ('ADMN', 'Admin Support'),
     ('TECH', 'Tech Support'),
+    ('ELEC', 'Electronics'),
 }
 
 
