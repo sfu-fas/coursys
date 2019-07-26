@@ -17,7 +17,7 @@ sudo chef-solo -o replica
 
 You should now be able to start up the containers that do the work: secure port forward, and local database.
 ```bash
-docker-compose down; docker system prune -f
+docker-compose down
 screen -S forwarder
 ./start-forward.sh
 # ctrl-A d
@@ -51,3 +51,19 @@ CHANGE MASTER TO
 START SLAVE;
 SHOW SLAVE STATUS;
 ```
+
+
+## Restarting
+
+After a reboot etc, the procedure to restart everything is the same as the initial startup:
+```bash
+docker-compose down
+screen -S forwarder
+./start-forward.sh
+# ctrl-A d
+screen -S db
+./start-db.sh
+# ctrl-A d
+```
+
+
