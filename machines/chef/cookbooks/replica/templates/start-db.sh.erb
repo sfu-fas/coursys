@@ -7,4 +7,5 @@ set -e
 touch <%= @private_mount %>/.ismounted
 mkdir -p <%= @mysql_data %>
 
-docker-compose up
+docker-compose build
+docker-compose up db
