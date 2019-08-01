@@ -935,9 +935,10 @@ class FormSubmission(models.Model):
                     description='Notified group "%s" that form submission was transferred to them.'
                                 % (self.owner.name,))
 
-    def re_open(self, requester=None, admin=None):
+    def reopen(self, requester=None, admin=None):
         """
         A stupid helper method because I'm tired of always doing this manually when people close forms by mistake
+
         :param requester: userid to be used as the person requesting the form be re-opened
         :type requester: basestring
         :param admin: userid to be used as the person who re-opened the form
@@ -960,8 +961,34 @@ class FormSubmission(models.Model):
         else:
             self.status = 'PEND'
             self.save()
-            FormLogEntry.create(form_submission=self, user=requester, category='ADMN',
+            FormLogEntry.create(form_submission=self, user=user, category='ADMN',
                                 description='Re-opened by %s as requested by %s' % (user.userid, admin_person.userid))
+
+    @classmethod
+    def reopen_form(cls, form_slug=None, slug=None, requester=None, admin=None):
+        """
+        Similar to the reopen method in the class itself, but makes it find the FormSubmission object based on the
+        slugs.
+
+        :param form_slug: The slug of the form the submission is using.  First part of the URL after forms/view/
+        :type form_slug: basestring
+        :param slug:  The slug of the actual form submission.  Follows the form slug in the URL
+        :type slug: basestring
+        :param requester: userid to be used as the person requesting the form be re-opened
+        :type requester: basestring
+        :param admin: userid to be used as the person who re-opened the form
+        :type admin: basestring
+        :return:  Nothing
+        """
+        if not form_slug or not slug:
+            print("You must supply a slug for both the form and the submission itself.")
+            return
+        try:
+            fs = FormSubmission.objects.get(form__slug=form_slug, slug=slug)
+        except FormSubmission.DoesNotExist:
+            print("No form found with that form slug and submission slug.")
+            return
+        fs.reopen(requester=requester, admin=admin)
 
 
 class SheetSubmission(models.Model):
