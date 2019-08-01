@@ -5,7 +5,7 @@ from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 
 
-UploadedFileStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
+UploadedFileStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None, file_permissions_mode=0o644)
 
 
 def upload_path(*path_components):

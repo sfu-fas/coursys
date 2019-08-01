@@ -935,6 +935,34 @@ class FormSubmission(models.Model):
                     description='Notified group "%s" that form submission was transferred to them.'
                                 % (self.owner.name,))
 
+    def re_open(self, requester=None, admin=None):
+        """
+        A stupid helper method because I'm tired of always doing this manually when people close forms by mistake
+        :param requester: userid to be used as the person requesting the form be re-opened
+        :type requester: basestring
+        :param admin: userid to be used as the person who re-opened the form
+        :type admin: basestring
+        :return: Nothing.
+        """
+        if not requester or not admin:
+            print("You need to supply userids for both a requester and an admin")
+            return
+        try:
+            user = Person.objects.get(userid=requester)
+            admin_person = Person.objects.get(userid=admin)
+        except Person.DoesNotExist:
+            print("Either requester or admin do not exist.  Please provide correct userids.")
+            return
+        if self.status != 'DONE':
+            print("You cannot reopen a submission which isn't closed.  The current submission is in status %s." %
+                  self.status)
+            return
+        else:
+            self.status = 'PEND'
+            self.save()
+            FormLogEntry.create(form_submission=self, user=requester, category='ADMN',
+                                description='Re-opened by %s as requested by %s' % (user.userid, admin_person.userid))
+
 
 class SheetSubmission(models.Model):
     form_submission = models.ForeignKey(FormSubmission, on_delete=models.PROTECT)
