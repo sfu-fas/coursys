@@ -78,13 +78,27 @@ def new_report(request):
             f.created_by = request.user.username
             f.save()
             messages.success(request, "Created new report: %s." % f.name)
-            return HttpResponseRedirect(reverse('reports:view_report',
-                                                    kwargs={'report':f.slug}))
+            return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report': f.slug}))
     else:
         form = ReportForm()
 
     return render(request, 'reports/new_report.html', {'form': form })
 
+
+@requires_role('SYSA')
+def edit_report(request, report):
+    report = get_object_or_404(Report, slug=report)
+    if request.method == 'POST':
+        form = ReportForm(request.POST, instance=report)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.save()
+            messages.success(request, "Edited report: %s." % f.name)
+            return HttpResponseRedirect(reverse('reports:view_report', kwargs={'report': f.slug}))
+    else:
+        form = ReportForm(instance=report)
+
+    return render(request, 'reports/edit_report.html', {'form': form, 'report': report})
 
 
 @requires_report_access()
