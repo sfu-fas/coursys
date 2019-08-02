@@ -35,7 +35,7 @@ class CMPTGradRequirementsReport(Report):
         # The GradRequirements we care about:
         requirement1 = GradRequirement.objects.get(program=program, description='Supervisory Committee')
         requirement2 = GradRequirement.objects.get(program=program, description='Depth Exam')
-        requirement3 = GradRequirement.objects.get(program=program, description='Breadth Program Approved')
+        requirement3 = GradRequirement.objects.get(program=program, description='Breadth Requirements Approved')
         requirement4 = GradRequirement.objects.get(program=program, description='Thesis Proposal')
 
         # All three tables will have the same columns, might as well create them quickly.
@@ -60,14 +60,14 @@ class CMPTGradRequirementsReport(Report):
 
         # Get the lists of students from the master list who have completed the various requirements.
         students1_completed = CompletedRequirement.objects.values_list('student', flat=True)\
-            .filter(requirement=requirement1, student__in=all_students)
+            .filter(requirement=requirement1, student__in=all_students, removed=False)
         students2_completed = CompletedRequirement.objects.values_list('student', flat=True) \
-            .filter(requirement=requirement2, student__in=all_students)
+            .filter(requirement=requirement2, student__in=all_students, removed=False)
         students3_completed = CompletedRequirement.objects.values_list('student', flat=True) \
-            .filter(requirement=requirement3, student__in=all_students)
+            .filter(requirement=requirement3, student__in=all_students, removed=False)
         # The 4th requirement only really applies to the third list, so might as well limit it:
         students4_completed = CompletedRequirement.objects.values_list('student', flat=True) \
-            .filter(requirement=requirement3, student__in=table3_students)
+            .filter(requirement=requirement3, student__in=table3_students, removed=False)
 
         #  First table, simply everyone in table1_students who doesn't have a completed requirement 1
         for student in [s for s in table1_students if s.id not in students1_completed]:
