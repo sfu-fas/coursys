@@ -10,6 +10,7 @@ report_patterns = [
     url(r'^$', reports_views.view_reports, name='view_reports'),
     url(r'^new$', reports_views.new_report, name='new_report'),
     url(r'^type/' + REPORT_SLUG + '$', reports_views.view_report, name='view_report'),
+    url(r'^type/' + REPORT_SLUG + '/edit$', reports_views.edit_report, name='edit_report'),
     url(r'^type/' + REPORT_SLUG + '/console', reports_views.console, name='console'),
     url(r'^type/' + REPORT_SLUG + '/access/new$', reports_views.new_access_rule, name='new_access_rule'),
     url(r'^type/' + REPORT_SLUG + '/access/delete/(?P<access_rule_id>\d+)$', reports_views.delete_access_rule, name='delete_access_rule'),

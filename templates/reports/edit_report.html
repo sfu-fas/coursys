@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Edit Report: {{ report.name }}{% endblock %}
+{% block h1 %}Edit Report: {{ report.name }}{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "reports:view_reports" %}">Reports</a></li>
+    <li><a href="{% url "reports:view_report" report=report.slug %}">View Report</a></li>
+<li>New Report</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<form action="{% url "reports:edit_report" report=report.slug %}" method="post">{% csrf_token %}
+<fieldset>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+
+{% endblock %}
