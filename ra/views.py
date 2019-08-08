@@ -135,6 +135,10 @@ def new(request):
             appointment = raform.save(commit=False)
             appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
             appointment.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Added RA appointment %s." % appointment,
+                         related_object=appointment)
+            l.save()
             messages.success(request, 'Created RA Appointment for ' + appointment.person.name())
             return HttpResponseRedirect(reverse('ra:student_appointments', kwargs=({'userid': userid})))
     else:
@@ -195,6 +199,10 @@ def edit(request, ra_slug):
             appointment = raform.save(commit=False)
             appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
             appointment.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Edited RA appointment %s." % appointment,
+                         related_object=appointment)
+            l.save()
             messages.success(request, 'Updated RA Appointment for ' + appointment.person.first_name + " " + appointment.person.last_name)
             return HttpResponseRedirect(reverse('ra:student_appointments', kwargs=({'userid': userid})))
     else:
