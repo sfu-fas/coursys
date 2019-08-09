@@ -15,6 +15,7 @@ from django.conf import settings
 from django.core import serializers
 from coredata.models import Person, Unit, Role, Semester, SemesterWeek, Holiday, CourseOffering, Course, Member, \
     MeetingTime, CAMPUS_CHOICES, VISA_STATUSES
+from dashboard.models import UserConfig
 from coredata.importer import import_semester_info, import_offerings, import_offering_members, ensure_member
 from coredata.queries import add_person, SIMSConn, cache_by_args
 from grades.models import NumericActivity
@@ -226,6 +227,8 @@ def create_coredata():
     d = Person.objects.get(userid='dzhao')
     set_privacy_signed(d)
     set_privacy_da_signed(d)
+    config = UserConfig(user=d, key='photo-agreement', value={'agree': True})
+    config.save()
     u = Unit.objects.get(slug='cmpt')
     r1 = Role(person=d, role='ADVS', unit=u, expiry=role_expiry)
     r1.save()
@@ -252,6 +255,7 @@ def create_coredata():
         CourseOffering.objects.all(),
         Person.objects.order_by('emplid'),
         Member.objects.all(),
+        UserConfig.objects.all(),
         [r1, r2, r3, r4, r5, r6, a.activity_ptr, a],
     )
 
