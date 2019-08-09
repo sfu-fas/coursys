@@ -36,7 +36,7 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
     ]
 
     def short_summary(self):
-        load = self.get_config('load')
+        load = self.get_config('load', 0)
         return "Teaching load: {}/year".format(load*3)
 
     def get_load_display(self):
@@ -44,7 +44,7 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
         return str(self.get_config('load', 0)*3)
 
     def teaching_adjust_per_semester(self):
-        load = self.get_config('load')
+        load = self.get_config('load', 0)
         # Normally it's (credits, load_decrease) so if I want a load increase then
         # load_decrease should be negated!
         return TeachingAdjust(0, -load)
