@@ -51,5 +51,10 @@ function calculateCRGPA() {
         totalGP += credits * gpa;
     }
     var CGPA = totalGP / totalCredits;
-    output.val(CGPA.toFixed(2));
+    if (isNaN(CGPA)) {
+        output.val('');
+    }
+    else {
+        output.val(CGPA.toFixed(2));
+    }
 }
