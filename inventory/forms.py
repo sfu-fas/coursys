@@ -1,12 +1,13 @@
 from .models import Asset, AssetDocumentAttachment, AssetChangeRecord, CATEGORY_CHOICES
-from outreach.models import OutreachEvent
 from django import forms
 from coredata.models import Unit
 from coredata.widgets import CalendarWidget, DollarInput
 from coredata.forms import PersonField
-import datetime
+
 
 class AssetForm(forms.ModelForm):
+    user = PersonField(required=False)
+
     def __init__(self, request, *args, **kwargs):
         super(AssetForm, self).__init__(*args, **kwargs)
         unit_ids = [unit.id for unit in request.units]
@@ -27,7 +28,12 @@ class AssetForm(forms.ModelForm):
             'service_records': forms.Textarea,
             'calibration_date': CalendarWidget,
             'eol_date': CalendarWidget,
+            'date_shipped': CalendarWidget,
         }
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(AssetForm, self).is_valid(*args, **kwargs)
 
 
 class AssetAttachmentForm(forms.ModelForm):

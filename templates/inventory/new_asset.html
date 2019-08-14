@@ -10,6 +10,22 @@
 <li>New Event</li>
 {% endblock %}
 
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#id_user').each(function() {
+    $(this).autocomplete({
+      source: '/data/students',
+      minLength: 2,
+      select: function(event, ui){
+        $(this).data("val", ui.item.value);
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
+
 {% block content %}
 <form action="{% url 'inventory:new_asset' %}" method="post">
     {% csrf_token %}
