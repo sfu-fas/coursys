@@ -62,6 +62,10 @@ class Asset(models.Model):
     eol_date = models.DateField("End of Life Date", null=True, blank=True)
     notes = models.CharField(max_length=400, null=True, blank=True)
     service_records = models.CharField(max_length=600, null=True, blank=True)
+    user = models.ForeignKey(Person, blank=True, null=True, help_text="If this item is assigned to a particular user,"
+                                                                      "please add them here.", on_delete=models.PROTECT)
+    date_shipped = models.DateField("Date Shipped/Delivered", null=True, blank=True)
+    in_use = models.BooleanField("Currently in Use", default=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)

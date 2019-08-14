@@ -33,12 +33,12 @@ def inventory_download(request):
                          'Quantity', 'Minimum Re-Order Quantity', 'Quantity Ordered', 'Minimum Vendor Quantity',
                          'Price', 'Category', 'Location', 'PR/PO No.', 'Account No.', 'Supplier/Vendor',
                          'Calibration/Service Date', 'End of Life Date', 'Notes', 'Service Records',
-                         'Attachments', 'Change Records'])
+                         'Attachments', 'Change Records', 'User', 'Date Shipped/Received', 'Currently in Use'])
         for a in assets:
             writer.writerow([a.name, a.unit, a.brand, a.description, a.serial, a.tag, a.express_service_code,
                              a.quantity, a.min_qty, a.qty_ordered, a.min_vendor_qty, a.price, a.get_category_display(),
                              a.location, a.po, a.account, a.vendor, a.calibration_date, a.eol_date, a.notes,
-                             a.service_records, a.has_attachments(), a.has_records()])
+                             a.service_records, a.has_attachments(), a.has_records(), a.user, a.date_shipped, a.in_use])
     return response
 
 
@@ -77,7 +77,13 @@ def edit_asset(request, asset_slug):
             l.save()
             return HttpResponseRedirect(reverse('inventory:inventory_index'))
     else:
-        form = AssetForm(request, instance=asset)
+        if asset.user:
+            print("Yep")
+            user = asset.user.emplid
+        else:
+            print("Nope")
+            user = None
+        form = AssetForm(request, instance=asset, initial={'user': user})
     return render(request, 'inventory/edit_asset.html', {'form': form, 'asset_slug': asset_slug})
 
 
