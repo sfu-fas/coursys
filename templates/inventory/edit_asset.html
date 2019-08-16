@@ -1,23 +1,12 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 
 {% block title %}Edit Asset{% endblock %}
 {% block h1 %}Edit Asset{% endblock %}
 
 {% block headextra %}
-<script nonce="{{ CSP_NONCE }}">
-$(document).ready(function() {
-  $('#id_user').each(function() {
-    $(this).autocomplete({
-      source: '/data/students',
-      minLength: 2,
-      select: function(event, ui){
-        $(this).data("val", ui.item.value);
-      }
-    });
-  });
-});
-</script>
+<script type="text/javascript" src={% static "js/inventory.js"%}></script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
