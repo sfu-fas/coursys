@@ -850,7 +850,7 @@ def download_assign_csv(request, post_slug):
         assigned_strings = []
         for tacrs in o.assigned:
             if tacrs.bu > 0:
-                assigned_strings.append(tacrs.contract.application.person.sortname() + ' (' + tacrs.bu + ')')
+                assigned_strings.append(tacrs.contract.application.person.sortname() + ' (' + str(tacrs.bu) + ')')
         assigned_string = ', '.join(assigned_strings)
         required_bus = str(posting.required_bu(o, count=o.enrl_tot))
         if o.extra_bu() != 0:
