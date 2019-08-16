@@ -23,6 +23,7 @@ ta_patterns = [ # prefix /ta/
     url(r'^' + POST_SLUG + '/bu$', ta_views.edit_bu, name='edit_bu'),
     url(r'^' + POST_SLUG + '/bu_formset$', ta_views.bu_formset, name='bu_formset'),
     url(r'^' + POST_SLUG + '/apps/$', ta_views.assign_tas, name='assign_tas'),
+    url(r'^' + POST_SLUG + '/apps/download$', ta_views.download_assign_csv, name='download_assign'),
     url(r'^' + POST_SLUG + '/' + COURSE_SLUG + '$', ta_views.assign_bus, name='assign_bus'),
     url(r'^' + POST_SLUG + '/all_apps$', ta_views.view_all_applications, name='view_all_applications'),
     url(r'^' + POST_SLUG + '/download_apps$', ta_views.download_all_applications, name='download_all_ta_applications'),
