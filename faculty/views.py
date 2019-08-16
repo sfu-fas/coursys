@@ -1273,7 +1273,8 @@ def _study_credit_events_data(units, person, semester, show_in_table, running_to
                     e += [(semester.code, 'End Study Leave', '', '' , running_total)]
         else:
             credits, load_decrease = FacultySummary(person).teaching_event_info(event)
-            running_total += credits
+            if credits:
+                running_total += credits
             if show_in_table and credits:
                     e += [(semester.code, event.get_event_type_display(), credits, credits, running_total)]
 
