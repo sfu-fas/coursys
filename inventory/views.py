@@ -1,8 +1,8 @@
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
 from django.urls import reverse
 from django.contrib import messages
-from .models import Asset, AssetChangeRecord
-from .forms import AssetForm, AssetAttachmentForm, AssetChangeForm
+from .models import Asset, AssetChangeRecord, assets_from_csv
+from .forms import AssetForm, AssetAttachmentForm, AssetChangeForm, InventoryUploadForm
 from courselib.auth import requires_role
 from log.models import LogEntry
 from coredata.models import Unit, Person
@@ -59,6 +59,23 @@ def new_asset(request):
     else:
         form = AssetForm(request)
     return render(request, 'inventory/new_asset.html', {'form': form})
+
+
+@requires_role('INV')
+def upload_assets_csv(request):
+    if request.method == 'POST':
+        form = InventoryUploadForm(request, data=request.POST, files=request.FILES)
+        if form.is_valid():
+            rows = assets_from_csv(request, form.cleaned_data['file'], save=True)
+            messages.add_message(request, messages.SUCCESS, "Added %i assets from file upload." % str(rows))
+            l = LogEntry(userid=request.user.username,
+                         description="Added %i assets via file upload." % str(rows),
+                         related_object=asset)
+            l.save()
+            return HttpResponseRedirect(reverse('inventory:inventory_index'))
+    else:
+        form = InventoryUploadForm(request)
+    return render(request, 'inventory/upload_assets.html', {'form': form})
 
 
 @requires_role('INV')

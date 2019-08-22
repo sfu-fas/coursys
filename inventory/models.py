@@ -8,9 +8,14 @@ from outreach.models import OutreachEvent
 from autoslug import AutoSlugField
 from django.db import models
 from django.utils import timezone
+from django.forms import ValidationError
+from dateutil import parser
 from courselib.slugs import make_slug
 from courselib.json_fields import JSONField
 from courselib.storage import UploadedFileStorage, upload_path
+from courselib.search import find_userid_or_emplid
+from log.models import LogEntry
+
 
 
 CATEGORY_CHOICES = {
@@ -194,3 +199,158 @@ class AssetDocumentAttachment(models.Model):
     def hide(self):
         self.hidden = True
         self.save()
+
+
+# Helper method to both check and add inventory items from a CSV upload
+def assets_from_csv(request, data, save=False):
+    # Create a unit map so we don't do a lookup for each line, since most likely all items will just be from one or two
+    # units
+    unit_lookup = {}
+
+    # Create a category map, so we can map the given string to a proper category:
+    category_lookup = {}
+    for cat in CATEGORY_CHOICES:
+        category_lookup[cat[1].upper()] = cat[0]
+    # The request should still have the units for which the user has the correct role
+    allowed_units = request.units
+    line_counter = 0
+    ROW_LENGTH = 25
+    for row in data:
+        print(row)
+        line_counter += 1
+        row_length = len(row)
+        if row_length != ROW_LENGTH:
+            raise ValidationError("Row on line %i has %i columns, whereas it should have exactly %i." %
+                                  (line_counter, row_length, ROW_LENGTH))
+        # Instead of raising a validation for any over-long string, simply truncate them.
+        name = row[0][:150]
+        if not name:
+            raise ValidationError("Line %i:  Item has no name." % line_counter)
+        unit_abbrv = row[1][:4].upper()
+        if unit_abbrv in unit_lookup:
+            unit = unit_lookup[unit_abbrv]
+        else:
+            try:
+                unit = Unit.objects.get(label=unit_abbrv.upper())
+            except Unit.DoesNotExist:
+                raise ValidationError("Line %i: Could not find matching unit." % line_counter)
+            unit_lookup[unit_abbrv] = unit
+        if unit not in request.units:
+            raise ValidationError("Line %i: You do not have permission to add items for that unit." % line_counter)
+        brand = row[2][:60]
+        description = row[3][:400]
+        serial = row[4][:60]
+        tag = row[5][:60]
+        express_service_code = row[6][:60]
+        quantity_string = row[7]
+        if quantity_string:
+            try:
+                quantity = int(quantity_string)
+            except ValueError:
+                raise ValidationError("Line %i: Quantity cannot be converted to an integer." % line_counter)
+        else:
+            quantity = None
+        min_qty_string = row[8]
+        if min_qty_string:
+            try:
+                min_qty = int(min_qty_string)
+            except ValueError:
+                raise ValidationError("Line %i: Minimum re-order quantity cannot be converted to an integer." %
+                                      line_counter)
+        else:
+            min_qty = None
+        qty_ordered_string = row[9]
+        if qty_ordered_string:
+            try:
+                qty_ordered = int(qty_ordered_string)
+            except ValueError:
+                raise ValidationError("Line %i: Quantity on order cannot be converted to an integer." % line_counter)
+        else:
+            qty_ordered = None
+        min_vendor_qty_string = row[10]
+        if min_vendor_qty_string:
+            try:
+                min_vendor_qty = int(min_vendor_qty_string)
+            except ValueError:
+                raise ValidationError("Line %i: Minimum vendor quantity cannot be converted to an integer." %
+                                      line_counter)
+        else:
+            min_vendor_qty = None
+        last_order_date_string = row[11]
+        if last_order_date_string:
+            try:
+                last_order_date = parser.parse(last_order_date_string)
+            except ValueError:
+                raise ValidationError("Line %i: Last order date cannot be converted to proper date." % line_counter)
+        else:
+            last_order_date = None
+        price_string = row[12]
+        if price_string:
+            try:
+                price = float(price_string)
+            except ValueError:
+                raise ValidationError("Line %i: Price cannot be converted to proper floating decimal value." % line_counter)
+        else:
+            price = None
+        category_string = row[13]
+        if not category_string:
+            raise ValidationError("Line %i: You must provide a category for your item." % line_counter)
+        if category_string.upper() in category_lookup:
+            category = category_lookup[category_string.upper()]
+        else:
+            raise ValidationError("Line %i:  Category not found." % line_counter)
+        location = row[14][:150]
+        po = row[15][:60]
+        account = row[16][:60]
+        vendor = row[17][:400]
+        calibration_date_string = row[18]
+        if calibration_date_string:
+            try:
+                calibration_date = parser.parse(calibration_date_string)
+            except ValueError:
+                raise ValidationError("Line %i: Calibration date cannot be converted to proper date." % line_counter)
+        else:
+            calibration_date = None
+        eol_date_string = row[19]
+        if eol_date_string:
+            try:
+                eol_date = parser.parse(eol_date_string)
+            except ValueError:
+                raise ValidationError("Line %i: End of Life date cannot be converted to proper date." % line_counter)
+        else:
+            eol_date = None
+        notes = row[20][:400]
+        service_records = row[21][:600]
+        user_string = row[22]
+        if user_string:
+            try:
+                user = Person.objects.get(find_userid_or_emplid(user_string))
+            except Person.DoesNotExist:
+                raise ValidationError("Line %i: User with that user ID or employee ID not found." % line_counter)
+        else:
+            user = None
+        date_shipped_string = row[23]
+        if date_shipped_string:
+            try:
+                date_shipped = parser.parse(date_shipped_string)
+            except ValueError:
+                raise ValidationError("Line %i: Date shipped cannot be converted to proper date." % line_counter)
+        else:
+            date_shipped = None
+        # Common things we would expect to be in the column to mean yes/true
+        in_use = row[24].lower() in ("yes", "true", "y", "t", "1")
+
+        # And now, the world's most repetitively redundant constructor, but it should hopefully be robust.
+        asset = Asset(name=name, unit=unit, brand=brand, description=description, serial=serial, tag=tag,
+                      epress_service_code=express_service_code, quantity=quantity, min_qty=min_qty,
+                      qty_ordered=qty_ordered, min_vendor_qty=min_vendor_qty, last_order_date=last_order_date,
+                      price=price, category=category, location=location, po=po, account=account, vendor=vendor,
+                      calibration_date=calibration_date, eol_date=eol_date, notes=notes,
+                      service_records=service_records, user=user, date_shipped=date_shipped, in_use=in_use)
+        if save:
+            asset.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Added asset %s via upload file." % asset.name,
+                         related_object=asset)
+            l.save()
+        return line_counter

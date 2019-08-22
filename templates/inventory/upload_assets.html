@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block title %}Upload Assets{% endblock %}
+{% block h1 %}Upload Assets{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'inventory:inventory_index' %}">Inventory</a></li>
+<li>New Event</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'inventory:upload_assets' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <p>{{form|as_dl}}</p>
+    <p><input class ="submit" type="submit" value="Submit" /></p>
+</form>
+{% endblock %}
