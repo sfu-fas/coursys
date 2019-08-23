@@ -88,10 +88,11 @@ class InventoryUploadForm(forms.Form):
             raise forms.ValidationError("Bad UTF-8 data in file.")
 
         try:
-            data = csv.reader(data, delimiter=',')
+            # Convert the csv reader data to a list, because we need to use it twice.  If we just leave it as a csv
+            # reader object, the iterator will be exhausted by the time we call this with save=True
+            data = list(csv.reader(data, delimiter=','))
         except csv.Error as e:
             raise forms.ValidationError('CSV decoding error.  Exception was: "' + str(e) + '"')
-
         # actually parse the input to see if it's valid.  If we make it through this without a ValidationError (in
         # the helper method, it's hopefully safe to call it in the view to actually create the assets.
         assets_from_csv(self.request, data, save=False)

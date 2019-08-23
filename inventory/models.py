@@ -212,11 +212,9 @@ def assets_from_csv(request, data, save=False):
     for cat in CATEGORY_CHOICES:
         category_lookup[cat[1].upper()] = cat[0]
     # The request should still have the units for which the user has the correct role
-    allowed_units = request.units
     line_counter = 0
     ROW_LENGTH = 25
     for row in data:
-        print(row)
         line_counter += 1
         row_length = len(row)
         if row_length != ROW_LENGTH:
@@ -226,28 +224,30 @@ def assets_from_csv(request, data, save=False):
         name = row[0][:150]
         if not name:
             raise ValidationError("Line %i:  Item has no name." % line_counter)
-        unit_abbrv = row[1][:4].upper()
+        unit_abbrv = row[1][:4]
         if unit_abbrv in unit_lookup:
-            unit = unit_lookup[unit_abbrv]
+            unit = unit_lookup[unit_abbrv.upper()]
         else:
             try:
                 unit = Unit.objects.get(label=unit_abbrv.upper())
             except Unit.DoesNotExist:
-                raise ValidationError("Line %i: Could not find matching unit." % line_counter)
-            unit_lookup[unit_abbrv] = unit
+                raise ValidationError("Line %i: Could not find unit matching '%s'." % (line_counter, unit_abbrv))
+            unit_lookup[unit_abbrv.upper()] = unit
         if unit not in request.units:
-            raise ValidationError("Line %i: You do not have permission to add items for that unit." % line_counter)
-        brand = row[2][:60]
-        description = row[3][:400]
-        serial = row[4][:60]
-        tag = row[5][:60]
-        express_service_code = row[6][:60]
+            raise ValidationError("Line %i: You do not have permission to add items for the unit %s." %
+                                  (line_counter, unit.name))
+        brand = row[2][:60] or None
+        description = row[3][:400] or None
+        serial = row[4][:60] or None
+        tag = row[5][:60] or None
+        express_service_code = row[6][:60] or None
         quantity_string = row[7]
         if quantity_string:
             try:
                 quantity = int(quantity_string)
             except ValueError:
-                raise ValidationError("Line %i: Quantity cannot be converted to an integer." % line_counter)
+                raise ValidationError("Line %i: Quantity '%s' cannot be converted to an integer." %
+                                      (line_counter, quantity_string))
         else:
             quantity = None
         min_qty_string = row[8]
@@ -255,8 +255,8 @@ def assets_from_csv(request, data, save=False):
             try:
                 min_qty = int(min_qty_string)
             except ValueError:
-                raise ValidationError("Line %i: Minimum re-order quantity cannot be converted to an integer." %
-                                      line_counter)
+                raise ValidationError("Line %i: Minimum re-order quantity '%s' cannot be converted to an integer." %
+                                      (line_counter, min_qty_string))
         else:
             min_qty = None
         qty_ordered_string = row[9]
@@ -264,7 +264,8 @@ def assets_from_csv(request, data, save=False):
             try:
                 qty_ordered = int(qty_ordered_string)
             except ValueError:
-                raise ValidationError("Line %i: Quantity on order cannot be converted to an integer." % line_counter)
+                raise ValidationError("Line %i: Quantity on order '%s' cannot be converted to an integer." %
+                                      (line_counter, qty_ordered_string))
         else:
             qty_ordered = None
         min_vendor_qty_string = row[10]
@@ -272,8 +273,8 @@ def assets_from_csv(request, data, save=False):
             try:
                 min_vendor_qty = int(min_vendor_qty_string)
             except ValueError:
-                raise ValidationError("Line %i: Minimum vendor quantity cannot be converted to an integer." %
-                                      line_counter)
+                raise ValidationError("Line %i: Minimum vendor quantity '%s' cannot be converted to an integer." %
+                                      (line_counter, min_vendor_qty_string))
         else:
             min_vendor_qty = None
         last_order_date_string = row[11]
@@ -281,15 +282,18 @@ def assets_from_csv(request, data, save=False):
             try:
                 last_order_date = parser.parse(last_order_date_string)
             except ValueError:
-                raise ValidationError("Line %i: Last order date cannot be converted to proper date." % line_counter)
+                raise ValidationError("Line %i: Last order date '%s' cannot be converted to proper date." %
+                                      (line_counter, last_order_date_string))
         else:
             last_order_date = None
         price_string = row[12]
         if price_string:
             try:
-                price = float(price_string)
+                price = round(float(price_string), 2)
             except ValueError:
-                raise ValidationError("Line %i: Price cannot be converted to proper floating decimal value." % line_counter)
+                raise ValidationError("Line %i: Price '%s' cannot be converted to proper floating decimal value." %
+                                      (line_counter, price_string))
+
         else:
             price = None
         category_string = row[13]
@@ -298,17 +302,18 @@ def assets_from_csv(request, data, save=False):
         if category_string.upper() in category_lookup:
             category = category_lookup[category_string.upper()]
         else:
-            raise ValidationError("Line %i:  Category not found." % line_counter)
-        location = row[14][:150]
-        po = row[15][:60]
-        account = row[16][:60]
-        vendor = row[17][:400]
+            raise ValidationError("Line %i:  Category '%s' not found." % (line_counter, category_string))
+        location = row[14][:150] or None
+        po = row[15][:60]  or None
+        account = row[16][:60] or None
+        vendor = row[17][:400] or None
         calibration_date_string = row[18]
         if calibration_date_string:
             try:
                 calibration_date = parser.parse(calibration_date_string)
             except ValueError:
-                raise ValidationError("Line %i: Calibration date cannot be converted to proper date." % line_counter)
+                raise ValidationError("Line %i: Calibration date '%s' cannot be converted to proper date." %
+                                      (line_counter, calibration_date_string))
         else:
             calibration_date = None
         eol_date_string = row[19]
@@ -316,17 +321,19 @@ def assets_from_csv(request, data, save=False):
             try:
                 eol_date = parser.parse(eol_date_string)
             except ValueError:
-                raise ValidationError("Line %i: End of Life date cannot be converted to proper date." % line_counter)
+                raise ValidationError("Line %i: End of Life date '%s' cannot be converted to proper date." %
+                                      (line_counter, eol_date_string))
         else:
             eol_date = None
-        notes = row[20][:400]
-        service_records = row[21][:600]
+        notes = row[20][:400] or None
+        service_records = row[21][:600] or None
         user_string = row[22]
         if user_string:
             try:
                 user = Person.objects.get(find_userid_or_emplid(user_string))
             except Person.DoesNotExist:
-                raise ValidationError("Line %i: User with that user ID or employee ID not found." % line_counter)
+                raise ValidationError("Line %i: User with user ID or employee ID '%s' not found." %
+                                      (line_counter, user_string))
         else:
             user = None
         date_shipped_string = row[23]
@@ -334,7 +341,8 @@ def assets_from_csv(request, data, save=False):
             try:
                 date_shipped = parser.parse(date_shipped_string)
             except ValueError:
-                raise ValidationError("Line %i: Date shipped cannot be converted to proper date." % line_counter)
+                raise ValidationError("Line %i: Date shipped '%s' cannot be converted to proper date." %
+                                      (line_counter, date_shipped_string))
         else:
             date_shipped = None
         # Common things we would expect to be in the column to mean yes/true
@@ -342,7 +350,7 @@ def assets_from_csv(request, data, save=False):
 
         # And now, the world's most repetitively redundant constructor, but it should hopefully be robust.
         asset = Asset(name=name, unit=unit, brand=brand, description=description, serial=serial, tag=tag,
-                      epress_service_code=express_service_code, quantity=quantity, min_qty=min_qty,
+                      express_service_code=express_service_code, quantity=quantity, min_qty=min_qty,
                       qty_ordered=qty_ordered, min_vendor_qty=min_vendor_qty, last_order_date=last_order_date,
                       price=price, category=category, location=location, po=po, account=account, vendor=vendor,
                       calibration_date=calibration_date, eol_date=eol_date, notes=notes,
@@ -350,7 +358,7 @@ def assets_from_csv(request, data, save=False):
         if save:
             asset.save()
             l = LogEntry(userid=request.user.username,
-                         description="Added asset %s via upload file." % asset.name,
+                         description="Added asset %s via file upload." % asset.name,
                          related_object=asset)
             l.save()
-        return line_counter
+    return line_counter
