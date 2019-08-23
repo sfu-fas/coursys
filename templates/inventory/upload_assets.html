@@ -18,7 +18,8 @@
     <p><input class ="submit" type="submit" value="Submit" /></p>
 </form>
     <h2>File Format</h2>
-    <p>The file must be a CSV (comma-separated values) file with the following fields, in that order:</p>
+    <p>The file must be a CSV (comma-separated values) file with the following fields, in that order (do not include
+        a header row, just make sure they are in this order):</p>
     <blockquote>
 <pre>name, unit, brand, description, serial number, asset tag, express service code, quantity,
 minimum re-order quantity, quantity on order, minimum vendor quantity, last order date, price,
@@ -73,5 +74,5 @@ end-of-life date, notes, service records, user, date shipped, in-use</pre>
     </tr>
     </table>
     <p>All other fields are just plain text fields, and you can put in basically what you'd like in them. If you put in
-    longer blocks of text than what the regular form would let you, it will be truncated.</p>
+    longer blocks of text than what the regular form would let you, they will be truncated.</p>
 {% endblock %}
