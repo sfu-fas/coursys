@@ -614,11 +614,11 @@ def download_all_applications(request, post_slug):
                                       (posting.semester.name, datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
     if applications:
-        writer.writerow(['Person', 'Category', 'Program', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned'])
+        writer.writerow(['Person', 'Category', 'Program', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned', 'Campus Preferences'])
 
         for a in applications:
             writer.writerow([a.person.sortname(), a.get_category_display(), a.get_current_program_display(), a.base_units_assigned(),
-                             a.base_units, a.course_pref_display(), a.course_assigned_display()])
+                             a.base_units, a.course_pref_display(), a.course_assigned_display(), a.campus_pref_display()])
     return response
 
 
