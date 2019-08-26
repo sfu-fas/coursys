@@ -46,6 +46,7 @@ $(document).ready(function() {
     <dt>Own/Leased</dt><dd>{{ location.get_own_or_lease_display }}</dd>
     {% if location.has_safety_items %}<dt>Safety Infrastructure Items</dt><dd>{{ location.safety_items_display }}</dd>{% endif %}
     <dt>Comments</dt><dd>{{ location.comments|linebreaks }}</dd>
+    <dt>Sub-location/desk/room/cubicle</dt><dd>{{ location.sub_location|yesno|capfirst }}</dd>
 
     {% if location.bookings.count > 0 %}
         <h2>Bookings</h2>
