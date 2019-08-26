@@ -488,6 +488,14 @@ class TAApplication(models.Model):
             .aggregate(Sum('bu'))
         return crs['bu__sum']
 
+    def campus_pref_display(self):
+        cmp = []
+        prefs = self.campuspreference_set.all()
+        for p in prefs:
+            cmp.append(p.get_campus_display() + ': ' + p.get_pref_display())
+        return ', '.join(cmp)
+
+
 PREFERENCE_CHOICES = (
         ('PRF', 'Preferred'),
         ('WIL', 'Willing'),

@@ -34,6 +34,7 @@
 	<th scope="col">Max BUs</th>
 	<th scope="col">Ranked</th>
 	<th scope="col">Assigned</th>
+    <th scope="col">Campus Preferences</th>
   	</tr>
   </thead>
   <tbody>
@@ -46,6 +47,7 @@
   	<td>{{ app.base_units }}</td>
   	<td>{{ app.course_pref_display }}</td>
   	<td>{{ app.course_assigned_display }}</td>
+    <td>{{ app.campus_pref_display }}</td>
   </tr>
   {% endfor %}
   </tbody>
