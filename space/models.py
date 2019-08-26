@@ -142,8 +142,8 @@ class Location(models.Model):
     building = models.CharField(max_length=5, choices=BUILDING_CHOICES, null=False, blank=False)
     floor = models.PositiveIntegerField(null=False, blank=False)
     room_number = models.CharField(max_length=25, null=False, blank=False)
-    square_meters = models.DecimalField(max_digits=8, decimal_places=2)
-    room_type = models.ForeignKey(RoomType, null=False, on_delete=models.PROTECT)
+    square_meters = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    room_type = models.ForeignKey(RoomType, null=True, blank=True, on_delete=models.PROTECT)
     infrastructure = models.CharField(max_length=3, choices=INFRASTRUCTURE_CHOICES, null=True, blank=True)
     room_capacity = models.PositiveIntegerField(null=True, blank=True)
     category = models.CharField(max_length=5, choices=CATEGORY_CHOICES, null=True, blank=True)
@@ -152,6 +152,9 @@ class Location(models.Model):
     field = models.CharField("Research/Teaching Field", max_length=250, null=True, blank=True)
     safety_items = models.ManyToManyField(RoomSafetyItem, blank=True, verbose_name="Safety Infrastructure")
     comments = models.CharField(max_length=400, null=True, blank=True)
+    sub_location = models.BooleanField(default=False, help_text="Check this if this a bookable room/desk/cubicle "
+                                                                "within another room",
+                                       verbose_name="Sub-Location/Room/Desk/Cubicle")
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     config = JSONField(null=False, blank=False, editable=False, default=dict)
 

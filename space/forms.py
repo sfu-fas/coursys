@@ -15,7 +15,7 @@ class LocationForm(forms.ModelForm):
         self.fields['unit'].queryset = units
         self.fields['unit'].empty_label = None
         self.fields['room_type'].queryset = roomtypes
-        self.fields['room_type'].empty_label = None
+        self.fields['room_type'].empty_label = '---------'
         safety_items = RoomSafetyItem.objects.visible(units)
         self.fields['safety_items'].queryset = safety_items
         initial = kwargs.setdefault('initial', {})
