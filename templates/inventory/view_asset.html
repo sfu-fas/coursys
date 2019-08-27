@@ -20,7 +20,7 @@
 {% endblock %}
 
 {% block content %}
-    <p class="helptext">Any fields not shown are not defined for this asset.  You can them by editing this asset.</p>
+    <p class="helptext">Any fields not shown are not defined for this asset.  You can add them by <a href="{% url "inventory:edit_asset" asset_slug=asset.slug %}">editing</a> this asset.</p>
 <dt>Name</dt><dd>{{ asset.name }}</dd>
 <dt>Unit</dt><dd>{{ asset.unit }}</dd>
 {% if asset.brand %}<dt>Brand</dt><dd>{{ asset.brand }}</dd>{% endif %}
