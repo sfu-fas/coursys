@@ -57,7 +57,7 @@ $(document).ready(function() {
             <td>{{ asset.quantity }}</td>
             <td>{{ asset.get_category_display }}</td>
             <td>{{ asset.location }}</td>
-            <td>{{ asset.last_modified|date:"M m, Y" }}</td>
+            <td>{{ asset.last_modified|date:"M d, Y" }}</td>
             <td>{% with asset|add_quantity_status as status %}
                 <span class="sort">{{ status.0 }}</span> {{ status.1 }}
                 {% endwith %}
