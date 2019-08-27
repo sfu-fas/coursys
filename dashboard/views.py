@@ -390,8 +390,9 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
     """
     Data needed to render either calendar AJAX or iCalendar.  Yields series of event dictionaries.
     """
-    memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP").exclude(role="APPR") \
-            .filter(offering__semester__start__lte=end, offering__semester__end__gte=start-datetime.timedelta(days=30))
+    memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP").exclude(role="APPR")\
+        .exclude(offering__component="CAN").filter(offering__semester__start__lte=end,
+                                                   offering__semester__end__gte=start-datetime.timedelta(days=30))
             # start - 30 days to make sure we catch exam/end of semester events
     classes = set((m.offering for m in memberships))
     labsecs = dict(((m.offering_id, m.labtut_section) for m in memberships))
