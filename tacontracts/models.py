@@ -364,6 +364,7 @@ class TAContract(models.Model):
                 course.delete()
             for receipt in self.email_receipt.all():
                 receipt.delete()
+            self.sync_course_member()
             super(TAContract, self).delete(*args, **kwargs)
 
     def copy(self, created_by):
