@@ -568,11 +568,9 @@ def download_ras(request, current=True):
     response['Content-Disposition'] = 'inline; filename="ras-%s-%s.csv"' % (datetime.datetime.now().strftime('%Y%m%d'),
                                                                             'current' if current else 'all')
     writer = csv.writer(response)
-    writer.writerow(['Name', 'Hiring Faculty', 'Unit', 'Project', 'Account', 'Start Date', 'End Date', 'Amount'])
+    writer.writerow(['Name', 'ID', 'Hiring Faculty', 'Unit', 'Project', 'Account', 'Start Date', 'End Date', 'Amount'])
     for ra in ras:
-        person = str('%s, %s' % (ra.person.last_name, ra.person.first_name))
-        faculty = str('%s, %s' % (ra.hiring_faculty.last_name, ra.hiring_faculty.first_name))
-        writer.writerow([person, faculty, ra.unit.label, ra.project, ra.account, ra.start_date, ra.end_date, ra.lump_sum_pay])
+        writer.writerow([ra.person.sortname(), ra.person.emplid, ra.hiring_faculty.sortname(), ra.unit.label, ra.project, ra.account, ra.start_date, ra.end_date, ra.lump_sum_pay])
     return response
 
 
