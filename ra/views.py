@@ -316,7 +316,7 @@ def letter(request, ra_slug):
     letter = OfficialLetter(response, unit=appointment.unit)
     contents = LetterContents(
         to_addr_lines=[appointment.person.name(), 'c/o '+appointment.unit.name], 
-        from_name_lines=[appointment.hiring_faculty.first_name + " " + appointment.hiring_faculty.last_name, appointment.unit.name], 
+        from_name_lines=[appointment.hiring_faculty.letter_name(), appointment.unit.name],
         closing="Yours Truly", 
         signer=appointment.hiring_faculty,
         cosigner_lines=['I agree to the conditions of employment', appointment.person.first_name + " " + appointment.person.last_name])
