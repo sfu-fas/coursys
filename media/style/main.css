@@ -1160,3 +1160,10 @@ p.logentry {
 input:read-only,textarea:read-only {
     background: lightgrey;
 }
+
+/* Make it obvious when we disable a button */
+input[type="submit" i]:disabled {
+    color: graytext;
+    background-color: buttonface;
+    cursor: not-allowed;
+}
