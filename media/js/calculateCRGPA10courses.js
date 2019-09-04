@@ -42,6 +42,7 @@ function enableSubmit() {
 
 function checkConditions(selectedCourses) {
     var titleString = 'You cannot submit this form for the following reason(s): \n';
+    var output = $("#id_13");
     var problemsFound = false;
     if (selectedCourses < 3) {
         problemsFound = true;
