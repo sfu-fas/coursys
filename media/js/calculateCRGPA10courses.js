@@ -8,12 +8,9 @@ about that.  People receiving this form will have to be vigilant.
 
 This is the new 10-course version, without equivalencies.  The old file was calculateCRGPA.js
  */
-var output = $("#id_13");
-var submitButton = $('.submit[name="submit"]');
-// A counter to keep track of how many courses actually have grades selected.
-var selectedCourses = 0;
 
 $(document).ready(function() {
+    var output = $("#id_13");
     // First thing to do is to disable this input to stop students from changing it.
     output.prop("readonly", true);
     // Every time we change a dropdown, recalculate the CRGPA
@@ -22,26 +19,28 @@ $(document).ready(function() {
     });
     // Also check submit button conditions when the CGPA input text changes
     $("#id_14").on('input', function() {
-        checkConditions();
+        calculateCRGPA();
     });
     // Finally, calculate the CRGPA after making these changes the first time we load.  After that, the change handler
     // should take care of this.
     calculateCRGPA();
-    submitButton.tooltip();
+    $('.submit[name="submit"]').tooltip();
 });
 
 
 function disableSubmit(title) {
+    var submitButton = $('.submit[name="submit"]');
     submitButton.attr('disabled', true);
     submitButton.attr('title', title);
 }
 
 function enableSubmit() {
+    var submitButton = $('.submit[name="submit"]');
     submitButton.attr('disabled', false);
     submitButton.attr('title', '');
 }
 
-function checkConditions() {
+function checkConditions(selectedCourses) {
     var titleString = 'You cannot submit this form for the following reason(s): \n';
     var problemsFound = false;
     if (selectedCourses < 3) {
@@ -92,12 +91,12 @@ function calculateCRGPA() {
     var output = $("#id_13");
     var totalCredits = 0;
     var totalGP = 0.00;
-    selectedCourses = 0;
+    var selectedCourses = 0;
     for (var i = 0; i < courseInputs.length; i++)
     {
         var gpa = 0;
         var credits = 0;
-        if (courseInputs[i].val() != '') {
+        if (courseInputs[i].val() !== '') {
             gpa = parseFloat(courseInputs[i].val());
             credits = getCredits(courseInputs[i]);
             selectedCourses += 1;
@@ -113,5 +112,5 @@ function calculateCRGPA() {
         output.val(CGPA.toFixed(2));
     }
     // Every time we recalculate this, check the conditions that check if we should enable/disable the submit button.
-    checkConditions();
+    checkConditions(selectedCourses);
 }
