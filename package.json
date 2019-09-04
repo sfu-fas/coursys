@@ -4,7 +4,7 @@
   "description": "CourSys npm dependancies",
   "main": "index.js",
   "dependencies": {
-    "codemirror": "^5.48.0",
+    "codemirror": "^5.48.4",
     "datatables": "^1.10.18",
     "font-awesome": "^4.7.0",
     "fullcalendar": "^3.10.0",
