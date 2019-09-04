@@ -8,12 +8,12 @@ about that.  People receiving this form will have to be vigilant.
 
 This is the new 10-course version, without equivalencies.  The old file was calculateCRGPA.js
  */
+var output = $("#id_13");
+var submitButton = $('.submit[name="submit"]');
+// A counter to keep track of how many courses actually have grades selected.
+var selectedCourses = 0;
 
 $(document).ready(function() {
-    var output = $("#id_13");
-    var submitButton = $('.submit[name="submit"]');
-    // A counter to keep track of how many courses actually have grades selected.
-    var selectedCourses = 0;
     // First thing to do is to disable this input to stop students from changing it.
     output.prop("readonly", true);
     // Every time we change a dropdown, recalculate the CRGPA
