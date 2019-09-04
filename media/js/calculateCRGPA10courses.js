@@ -11,17 +11,70 @@ This is the new 10-course version, without equivalencies.  The old file was calc
 
 $(document).ready(function() {
     var output = $("#id_13");
+    var submitButton = $('.submit[name="submit"]');
+    // A counter to keep track of how many courses actually have grades selected.
+    var selectedCourses = 0;
     // First thing to do is to disable this input to stop students from changing it.
     output.prop("readonly", true);
     // Every time we change a dropdown, recalculate the CRGPA
     $("select").change(function () {
         calculateCRGPA();
     });
+    // Also check submit button conditions when the CGPA input text changes
+    $("#id_14").on('input', function() {
+        checkConditions();
+    });
     // Finally, calculate the CRGPA after making these changes the first time we load.  After that, the change handler
     // should take care of this.
     calculateCRGPA();
+    submitButton.tooltip();
 });
 
+
+function disableSubmit(title) {
+    submitButton.attr('disabled', true);
+    submitButton.attr('title', title);
+}
+
+function enableSubmit() {
+    submitButton.attr('disabled', false);
+    submitButton.attr('title', '');
+}
+
+function checkConditions() {
+    var titleString = 'You cannot submit this form for the following reason(s): \n';
+    var problemsFound = false;
+    if (selectedCourses < 3) {
+        problemsFound = true;
+        titleString += 'You have added grades for less than 3 courses.\n'
+    }
+    if (output.val() < 2.67) {
+        problemsFound = true;
+        titleString += 'Your CRGPA is below 2.67.\n'
+    }
+    if ($("#id_14").val() < 2.4) {
+        problemsFound = true;
+        titleString += 'Your CGPA is below 2.40.\n'
+    }
+    if ($("#id_15").val() != 'choice_1') {
+        problemsFound = true;
+        titleString += 'You have selected that you do not have at least two CMPT courses and one MACM course.\n'
+    }
+    if ($("#id_16").val() != 'choice_1') {
+        problemsFound = true;
+        titleString += 'You have selected that you have not completed at least two of the above courses at SFU.\n'
+    }
+    if ($("#id_17").val() != 'choice_1') {
+        problemsFound = true;
+        titleString += 'You have selected that you did not provide the first grade for a repeated course.\n'
+    }
+    if (problemsFound) {
+        disableSubmit(titleString);
+    }
+    else {
+        enableSubmit();
+    }
+}
 
 /* All courses except these 2 are 3 credits. */
 function getCredits(selector) {
@@ -39,6 +92,7 @@ function calculateCRGPA() {
     var output = $("#id_13");
     var totalCredits = 0;
     var totalGP = 0.00;
+    selectedCourses = 0;
     for (var i = 0; i < courseInputs.length; i++)
     {
         var gpa = 0;
@@ -46,6 +100,7 @@ function calculateCRGPA() {
         if (courseInputs[i].val() != '') {
             gpa = parseFloat(courseInputs[i].val());
             credits = getCredits(courseInputs[i]);
+            selectedCourses += 1;
         }
         totalCredits += credits;
         totalGP += credits * gpa;
@@ -57,4 +112,6 @@ function calculateCRGPA() {
     else {
         output.val(CGPA.toFixed(2));
     }
+    // Every time we recalculate this, check the conditions that check if we should enable/disable the submit button.
+    checkConditions();
 }
