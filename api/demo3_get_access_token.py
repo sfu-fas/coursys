@@ -11,7 +11,7 @@ def get_access_token(oauth_token, oauth_secret, oauth_verifier):
     oauth_request = oauth.Request.from_consumer_and_token(consumer, token, http_url=ACCESS_TOKEN_URL)
     oauth_request.sign_request(oauth.SignatureMethod_HMAC_SHA1(), consumer, token)
     response = requests.get(ACCESS_TOKEN_URL, headers=oauth_request.to_header())
-    access_token = dict(urllib.parse.parse_qsl(response.content))
+    access_token = dict(urllib.parse.parse_qsl(response.content.decode('utf8')))
 
     return access_token
 

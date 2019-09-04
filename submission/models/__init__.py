@@ -400,22 +400,12 @@ class SubmissionInfo(object):
             zipf.writestr(fn, "Submission was made at %s.\n\nThat is %s after the due date of %s.\n" %
                           (created_at, created_at - activity.due_date, activity.due_date))
 
-    def generate_submission_contents(self, z, prefix='', always_summary=True):
-        """
-        Assemble submissions and put in ZIP file.
-        """
-        self.ensure_components()
-        assert self.submissions is not None
-        assert self.all_submitted_components is not None
-
+    def most_recent_submissions(self):
+        '''
+        Collect all of the SubmittedComponents that we need to output
+        i.e. the most recent of each by student|group and component
+        '''
         multi = self.activity.multisubmit()
-
-        from submission.models.gittag import GitTagComponent
-        any_git_tags = any(isinstance(c, GitTagComponent) for c in self.components)
-        git_tags = []
-
-        # Collect all of the SubmittedComponents that we need to output
-        # i.e. the most recent of each by student|group and component
         found = set()  # (student|group, SubmissionComponent) pairs we have already included
         individual_subcomps = {}  # student|group: [(SubmissionComponent, SubmittedComponent)]
         last_submission = {}  # student|group: final Submission
@@ -435,6 +425,25 @@ class SubmissionInfo(object):
                 scs.append((comp, sc))
 
                 individual_subcomps[sub.file_slug()] = scs
+
+        return found, individual_subcomps, last_submission
+
+    def generate_submission_contents(self, z, prefix='', always_summary=True):
+        """
+        Assemble submissions and put in ZIP file.
+        """
+        self.ensure_components()
+        assert self.submissions is not None
+        assert self.all_submitted_components is not None
+
+        multi = self.activity.multisubmit()
+
+        from submission.models.gittag import GitTagComponent
+        any_git_tags = any(isinstance(c, GitTagComponent) for c in self.components)
+        git_tags = []
+
+        # get SubmittedComponents and metadata
+        found, individual_subcomps, last_submission = self.most_recent_submissions()
 
         # Now add them to the ZIP
         for slug, subcomps in individual_subcomps.items():

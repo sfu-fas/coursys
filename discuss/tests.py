@@ -54,6 +54,10 @@ class SimpleTest(TestCase):
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
+        url = reverse('offering:discussion:download', kwargs={'course_slug': self.offering.slug})
+        response = basic_page_tests(self, client, url, check_valid=False)
+        self.assertEqual(response.status_code, 200)
+
         # as the author of the topic/message
         client = Client()
         client.login_user(self.topic.author.person.userid)
@@ -61,6 +65,7 @@ class SimpleTest(TestCase):
         url = reverse('offering:discussion:edit_topic', kwargs={'course_slug': self.offering.slug, 'topic_slug': self.topic.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
+
 
         client = Client()
         client.login_user(self.message.author.person.userid)
@@ -75,3 +80,11 @@ class SimpleTest(TestCase):
         response = client.post(url)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(DiscussionMessage.objects.get(id=self.message.id).status, 'HID')
+
+        #  Make sure students can't download the json dump of discussions:
+        member = Member.objects.filter(offering=self.offering, role='STUD').exclude(person__userid__isnull=True).first()
+        client = Client()
+        client.login_user(member.person.userid)
+        url = reverse('offering:discussion:download', kwargs={'course_slug': self.offering.slug})
+        response = client.get(url)
+        self.assertEqual(response.status_code, 403)

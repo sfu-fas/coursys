@@ -119,9 +119,10 @@ def is_course_member_by_slug(request, course_slug, **kwargs):
     """
     Return True if user is any kind of member (non-dropped) from course indicated by 'course_slug' keyword.
     """
-    memberships = Member.objects.exclude(role="DROP", offering__component="CAN").filter(offering__slug=course_slug, person__userid=request.user.username, offering__graded=True)
+    memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN")\
+        .filter(offering__slug=course_slug, person__userid=request.user.username, offering__graded=True)
     count = memberships.count()
-    return count>0
+    return count > 0
 
 def requires_course_by_slug(function=None, login_url=None):
     """

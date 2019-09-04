@@ -243,6 +243,7 @@ def import_semester_info():
     logger.info('Importing semester info')
     importer.import_semester_info()
 
+
 @task(queue='sims')
 def daily_cleanup():
     logger.info('Cleaning up database')
@@ -255,6 +256,10 @@ def daily_cleanup():
     LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=365)).delete()
     # cleanup old official grades
     Member.clear_old_official_grades()
+    # cleanup old similarity reports
+    from submission.models.base import SimilarityResult
+    SimilarityResult.cleanup_old()
+
 
 @task(queue='sims')
 def import_active_grad_gpas():

@@ -46,6 +46,9 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         {% endblock %}
     """
 
+    def get_teaching_credit_display(self):
+        return self.get_config('teaching_credit', default='N/A')
+    
     @classmethod
     def get_fellowship_choices(cls, units, only_active=False):
         """
@@ -223,13 +226,13 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
         return 'Recevied Teaching Credit'
 
     def short_summary(self):
-        credit = self.get_config('teaching_credits')
+        credit = self.get_config('teaching_credits', 0)
         length = self.semester_length()
         category = self.get_category_display()
         return 'Received {0} {1}'.format(credit*length, category)
 
     def teaching_adjust_per_semester(self):
-        adjust = self.get_config('teaching_credits')
+        adjust = self.get_config('teaching_credits', 0)
         return TeachingAdjust(adjust, 0)
 
 

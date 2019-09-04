@@ -178,13 +178,13 @@ class Person(models.Model, ConditionalSaveMixin):
         return "Userid"
 
     def __str__(self):
-        return "%s, %s" % (self.last_name, self.first_name)
+        return self.sortname()
 
     def name(self):
-        return "%s %s" % (self.first_name, self.last_name)
+        return "%s %s" % (self.config.get('first_name', self.first_name), self.last_name)
 
     def sortname(self):
-        return "%s, %s" % (self.last_name, self.first_name)
+        return "%s, %s" % (self.last_name, self.config.get('first_name', self.first_name))
 
     def initials(self):
         return "%s%s" % (self.first_name[0], self.last_name[0])
@@ -199,9 +199,9 @@ class Person(models.Model, ConditionalSaveMixin):
         return "%s %s" % (self.real_pref_first(), self.last_name)
 
     def first_with_pref(self):
-        name = self.first_name
+        name = self.config.get('first_name', self.first_name)
         pref = self.real_pref_first()
-        if pref != self.first_name:
+        if pref != name:
             name += ' (%s)' % (pref)
         return name
 
@@ -1037,7 +1037,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     def instructors_str(self):
         @cached(60*60*24*2)
         def _instr_str(pk):
-            return '; '.join(p.sortname() for p in CourseOffering.objects.get(pk=pk).instructors())
+            return '; '.join(p.sortname_pref() for p in CourseOffering.objects.get(pk=pk).instructors())
         return _instr_str(self.pk)
 
     def instructors_printing(self):
@@ -1047,7 +1047,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     def instructors_printing_str(self):
         @cached(60*60*24*2)
         def _instr_printing_str(pk):
-            return '; '.join(p.sortname() for p in CourseOffering.objects.get(pk=pk).instructors_printing())
+            return '; '.join(p.sortname_pref() for p in CourseOffering.objects.get(pk=pk).instructors_printing())
         return _instr_printing_str(self.pk)
 
     def tas(self):

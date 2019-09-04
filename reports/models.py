@@ -82,11 +82,11 @@ class Report(models.Model):
             return
         every_sysadmin = [role.person for role in Role.objects_fresh.filter(role='SYSA')]
         for sysadmin in every_sysadmin:
-            n = NewsItem( user=sysadmin,
-                            source_app='reports',
-                            title="Failed Report: " + self.name, 
-                            url= reverse('reports:can_access_report', kwargs={'report':self.slug, 'run':failed_run.slug}),
-                            content= "A run has failed! \n" + self.description );
+            n = NewsItem(user=sysadmin,
+                         source_app='reports',
+                         title="Failed Report: " + self.name,
+                         url=reverse('reports:view_run', kwargs={'report': self.slug, 'run': failed_run.slug}),
+                         content="A run has failed! \n" + self.description)
             n.save()
 
 def all_reports():
@@ -210,11 +210,11 @@ class AccessRule(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def send_notification(self, run):
-        n = NewsItem( user= self.person, 
-                        source_app='reports',
-                        title="Completed Run: " + self.report.name + " : " + run.slug, 
-                        url= reverse('reports:can_access_report', kwargs={'report':self.report.slug, 'run':run.slug}),
-                        content= "You have a scheduled report that has completed! \n" + self.report.description );
+        n = NewsItem(user= self.person,
+                     source_app='reports',
+                     title="Completed Run: " + self.report.name + " : " + run.slug,
+                     url=reverse('reports:view_run', kwargs={'report': self.report.slug, 'run': run.slug}),
+                     content="You have a scheduled report that has completed! \n" + self.report.description)
         n.save()
 
 
@@ -224,6 +224,7 @@ class AccessRule(models.Model):
 SCHEDULE_TYPE_CHOICES = (
         ('ONE', 'One-Time'),
         ('DAI', 'Daily'),
+        ('WEE', 'Weekly'),
         ('MON', 'Monthly'),
         ('YEA', 'Yearly'),
 )
@@ -275,6 +276,10 @@ def increment_month(date):
                              date.microsecond, date.tzinfo )
 
 
+def increment_week(date):
+    new_date = date + datetime.timedelta(days=7)
+    return new_date
+
 def increment_day(date):
     new_date = date + datetime.timedelta(days=1)
     return new_date
@@ -298,11 +303,13 @@ class ScheduleRule(models.Model):
     def set_next_run(self):
         self.last_run = self.next_run
         if self.schedule_type == 'DAI': 
-            self.next_run = increment_day( self.next_run )
+            self.next_run = increment_day(self.next_run)
+        if self.schedule_type == 'WEE':
+            self.next_run = increment_week(self.next_run)
         if self.schedule_type == 'MON':
-            self.next_run = increment_month( self.next_run )
+            self.next_run = increment_month(self.next_run)
         if self.schedule_type == 'YEA':
-            self.next_run = increment_year( self.next_run )
+            self.next_run = increment_year(self.next_run)
         if self.schedule_type == 'ONE': 
             self.next_run = None
 

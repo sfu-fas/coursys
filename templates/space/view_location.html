@@ -46,10 +46,11 @@ $(document).ready(function() {
     <dt>Own/Leased</dt><dd>{{ location.get_own_or_lease_display }}</dd>
     {% if location.has_safety_items %}<dt>Safety Infrastructure Items</dt><dd>{{ location.safety_items_display }}</dd>{% endif %}
     <dt>Comments</dt><dd>{{ location.comments|linebreaks }}</dd>
+    <dt>Sub-location/desk/room/cubicle</dt><dd>{{ location.sub_location|yesno|capfirst }}</dd>
 
     {% if location.bookings.count > 0 %}
         <h2>Bookings</h2>
-        <table id="bookings">
+        <table id="bookings" class="display">
             <thead>
                 <tr>
                     <th>Person</th>
@@ -78,7 +79,6 @@ $(document).ready(function() {
                         </td>
                         <td>{{ b.start_time }}</td>
                         <td>{{ b.end_time }}</td>
-                        <td>
                         <td>
                             <form class="lineform" method="POST"
                                   action="{% url "space:delete_booking" booking_id=b.id %}">

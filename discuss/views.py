@@ -1,8 +1,8 @@
 from coredata.models import CourseOffering, Member
-from courselib.auth import is_course_student_by_slug, is_course_staff_by_slug
+from courselib.auth import is_course_student_by_slug, is_course_staff_by_slug, ForbiddenResponse
 from discuss.models import DiscussionTopic, DiscussionMessage, DiscussionSubscription
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
+from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.contrib import messages
@@ -240,3 +240,16 @@ def manage_discussion_subscription(request, course_slug):
 
     context = {'course':course, 'form': form}
     return render(request, 'discuss/manage_discussion_subscription.html', context)
+
+
+@uses_feature('discuss')
+@login_required
+def download(request, course_slug):
+    """
+    Unlisted view to return all course discussion in JSON format.
+    """
+    course, view = _get_course_and_view(request, course_slug)
+    if view != 'staff':
+        return ForbiddenResponse(request)
+    data = [t.to_dict() for t in DiscussionMessage.objects.filter(topic__offering=course)]
+    return HttpResponse(json.dumps({"data": data}, indent=2), content_type='application/json')

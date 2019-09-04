@@ -95,7 +95,7 @@
 {% endblock %}
 
 {% block content %}
-{# <div class="idphoto studentinfo"><img src="{% url 'data:student_photo' emplid=student.emplid %}" alt="" /></div>#}
+{% if student.emplid %}<div class="idphoto studentinfo"><img src="{% url 'data:student_photo' emplid=student.emplid %}" alt="" /></div>{% endif %}
     <table class="info">
         <tbody>
             <tr>
@@ -171,7 +171,7 @@
 {% if visits %}
     <div id="visitssection">
     <h2>Visits</h2>
-    <table id="advisingvisits">
+    <table id="advisingvisits" class="display">
         <thead>
             <th scope="col">Start Time</th>
             <th scope="col">End Time</th>
@@ -183,7 +183,7 @@
         {% for visit in visits %}
             <tr>
                 <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
-                <td>{{ visit.end_time }}</td>
+                <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
                 <td>{{ visit.categories_display }}</td>
                 <td>{{ visit.advisor.sortname }}</td>
                 <td><a class="lineform" href="{% url "advising:view_visit" visit_slug=visit.slug %}">

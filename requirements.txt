@@ -1,4 +1,4 @@
-Django==2.2.2
+Django==2.2.4
 
 #Creoleparser==0.7.4  Replaced with version below that incorporates our fix for null headings, and python3 support
 git+git://github.com/gregbaker/creoleparser.git@f2d9ba65a0cd435f5b25347414902b21826999dd
@@ -16,6 +16,7 @@ pyparsing==2.4.0
 pytz>=2019.1
 textile==3.0.3
 html5lib==1.0.1
+beautifulsoup4==4.7.1
 bleach==3.1.0
 reportlab==3.5.21
 pillow>=5.0.0
@@ -40,7 +41,8 @@ whoosh==2.7.4
 djangorestframework==3.9.4
 djangorestframework-oauth==1.1.0
 #django-oauth-plus==2.2.9
-hg+https://bitbucket.org/ggbaker/django-oauth-plus/@5865258 # django 2.0 and python3 compatibility
+hg+https://bitbucket.org/ggbaker/django-oauth-plus/@2d76fb2f300d # django 2.0 and python3 compatibility
+oauth2 @ git+git://github.com/i-kiwamu/python3-oauth2.git@a6b31832ae0427e27e6eda3ce3d121e385c7e9d5 # ensure python3 compatibility
 markdown # for API docs
 django-rest-swagger==2.2.0
 django-ipware==2.1.0

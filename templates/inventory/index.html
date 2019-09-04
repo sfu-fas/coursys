@@ -36,14 +36,15 @@ $(document).ready(function() {
 
 {% block content %}
 {% if assets %}
-    <table id="assets">
+    <table id="assets" class="display">
     <thead>
         <tr>
             <td>Name</td>
             <td>Qty</td>
             <td>Category</td>
-            <td>Price</td>
+            <td>Location</td>
             <td>Last Modified</td>
+            <td>Stock Status</td>
             <td>Actions</td>
         </tr>
     </thead>
@@ -55,8 +56,12 @@ $(document).ready(function() {
             </td>
             <td>{{ asset.quantity }}</td>
             <td>{{ asset.get_category_display }}</td>
-            <td>{% if asset.price %}${% endif %}{{ asset.price }}</td>
-            <td>{{ asset.last_modified|date:"M m, Y" }}</td>
+            <td>{{ asset.location }}</td>
+            <td>{{ asset.last_modified|date:"M d, Y" }}</td>
+            <td>{% with asset|add_quantity_status as status %}
+                <span class="sort">{{ status.0 }}</span> {{ status.1 }}
+                {% endwith %}
+            </td>
             <td>
                 <form class="lineform" method="POST"
                       action="{% url "inventory:delete_asset" asset_id=asset.id %}">

@@ -14,6 +14,7 @@
         <li><a href="{% url 'sessionals:new_contract' %}">New Contract</a></li>
         <li class="newsec"><a href="{% url 'sessionals:manage_accounts' %}">Manage Accounts</a></li>
         <li><a href="{% url 'sessionals:manage_configs' %}">Manage Default Configurations</a></li>
+        <li><a href="{% url 'sessionals:download_sessionals' %}">Download CSV</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -34,7 +35,7 @@ $(document).ready(function() {
 
 {% block content %}
 {% if sessionals %}
-    <table id="sessionals">
+    <table id="sessionals" class="display">
     <thead>
         <tr>
             <td>Name</td>

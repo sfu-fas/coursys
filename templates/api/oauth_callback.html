@@ -16,7 +16,7 @@
 {% endif %}
 {% if token.is_approved %}
 <p>The application can access {{ CourSys }} after you give it this &ldquo;PIN&rdquo; (or &ldquo;verifier&rdquo;):</p>
-<blockquote>
+<blockquote id="verifier">
 {{ token.verifier }}
 </blockquote>
 {% endif %}

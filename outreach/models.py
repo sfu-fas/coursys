@@ -53,8 +53,6 @@ class OutreachEvent(models.Model):
                                     help_text='Event end date and time')
     location = models.CharField(max_length=400, blank=True, null=True)
     description = models.CharField(max_length=800, blank=True, null=True)
-    score = models.DecimalField(max_digits=2, decimal_places=0, max_length=2, null=True, blank=True,
-                                help_text='The score according to the event score matrix')
     unit = models.ForeignKey(Unit, blank=False, null=False, on_delete=models.PROTECT)
     resources = models.CharField(max_length=400, blank=True, null=True, help_text="Resources needed for this event.")
     cost = models.DecimalField(blank=True, null=True, max_digits=8, decimal_places=2, help_text="Cost of this event")
@@ -82,6 +80,10 @@ class OutreachEvent(models.Model):
     show_dietary_question = models.BooleanField(default=True, help_text='If this box is checked, the registration '
                                                                         'forms will show the dietary restrictions '
                                                                         'question.  Otherwise, it\'ll be omitted.')
+
+    private_notes = models.CharField(max_length=400, blank=True, null=True,
+                                     help_text='Private notes only for yourself.  These will not show to registrants '
+                                               'or anywhere else public-facing.')
     config = JSONField(null=False, blank=False, default=dict)
     # 'extra_questions': additional questions to ask registrants
 

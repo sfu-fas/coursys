@@ -52,6 +52,7 @@
 <ul>
 <li><a href="{% url "ta:generate_csv" post_slug=posting.slug %}">Applicant Spreadsheet</a></li>
 <li><a href="{% url "ta:generate_csv_by_course" post_slug=posting.slug %}">Applicant Spreadsheet By Course</a></li>
+<li><a href="{% url "ta:download_assign" post_slug=posting.slug %}">Download CSV</a></li>
 </ul>
 </div>
 {% endblock %}

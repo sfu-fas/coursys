@@ -39,7 +39,7 @@ $(function() {
 {% block content %}
 
 {% if visits %}
-    <div id="messages"><ul><li class="warning">Only showing up to the last 1000 visits due to database limitations.</li></ul></div>
+    <div id="messages"><ul><li class="warning">Only showing up to the last 5000 visits due to database limitations.</li></ul></div>
 <table class="display visits">
     <thead>
         <tr>
@@ -56,8 +56,8 @@ $(function() {
     <tbody>
         {% for visit in visits %}
         <tr>
-            <td>{{ visit.created_at }}</td>
-            <td>{{ visit.end_time }}</td>
+            <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
+            <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
             <td>{{ visit.get_duration }}</td>
             <td>{{ visit.get_campus_display }}</td>
             <td>

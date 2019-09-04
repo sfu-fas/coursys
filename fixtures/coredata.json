@@ -2089,5 +2089,14 @@
  },
  "model": "grades.numericactivity",
  "pk": 1
+},
+{
+ "fields": {
+   "key": "photo-agreement",
+   "user": 5,
+   "value": "{\"agree\":true}"
+ },
+ "model": "dashboard.userconfig",
+ "pk": 1
 }
 ]

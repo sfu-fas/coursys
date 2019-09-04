@@ -8,7 +8,7 @@
 {% block headextra %}
 <link rel="stylesheet" type="text/css" href="{% static 'fullcalendar/dist/fullcalendar.min.css' %}" />
 {% compress js %}
-<script type="text/javascript" src="{% static 'jquery-ext/moment.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'moment/moment.js' %}"></script>
 <script type="text/javascript" src="{% static 'fullcalendar/dist/fullcalendar.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/advisornotes.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/browse.js' %}"></script>
@@ -21,7 +21,7 @@ $(document).ready(function() {
     more_course_info('{% url "browse:browse_courses_info" course_slug=offering.slug %}?data=yes');
     course_outline_info('{% url "browse:browse_courses_info" course_slug=offering.slug %}?outline=yes');
     build_calendar('{% url "browse:browse_courses_info" course_slug=offering.slug %}?caldata=yes',
-        {{ offering.semester.start.year }}, {{ offering.semester.start.month }}, {{ offering.semester.start.day }});
+        '{{ offering.semester.start.isoformat|escapejs }}');
 } );
 </script>
 {% endblock %}
@@ -37,7 +37,7 @@ $(document).ready(function() {
   <tr><th scope="row">Course Home Page</th><td><a href="{{ offering.url }}">{{ offering.url }}</a></td></tr>
   {% endif %}
 </tbody></table>
-<p class="helptext">* updated overnight only: see <a href="https://sis.sfu.ca/">SIS</a> for updated data.</p>
+<p class="helptext">* updated overnight only: see <a href="https://sims.sfu.ca/">goSFU</a> for updated data.</p>
 
 <h2 id="outline">Course Outline</h2>
 <table class="info" id="outlineinfo"><tbody>

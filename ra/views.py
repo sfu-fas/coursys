@@ -135,6 +135,10 @@ def new(request):
             appointment = raform.save(commit=False)
             appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
             appointment.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Added RA appointment %s." % appointment,
+                         related_object=appointment)
+            l.save()
             messages.success(request, 'Created RA Appointment for ' + appointment.person.name())
             return HttpResponseRedirect(reverse('ra:student_appointments', kwargs=({'userid': userid})))
     else:
@@ -195,6 +199,10 @@ def edit(request, ra_slug):
             appointment = raform.save(commit=False)
             appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
             appointment.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Edited RA appointment %s." % appointment,
+                         related_object=appointment)
+            l.save()
             messages.success(request, 'Updated RA Appointment for ' + appointment.person.first_name + " " + appointment.person.last_name)
             return HttpResponseRedirect(reverse('ra:student_appointments', kwargs=({'userid': userid})))
     else:
@@ -308,7 +316,7 @@ def letter(request, ra_slug):
     letter = OfficialLetter(response, unit=appointment.unit)
     contents = LetterContents(
         to_addr_lines=[appointment.person.name(), 'c/o '+appointment.unit.name], 
-        from_name_lines=[appointment.hiring_faculty.first_name + " " + appointment.hiring_faculty.last_name, appointment.unit.name], 
+        from_name_lines=[appointment.hiring_faculty.letter_name(), appointment.unit.name],
         closing="Yours Truly", 
         signer=appointment.hiring_faculty,
         cosigner_lines=['I agree to the conditions of employment', appointment.person.first_name + " " + appointment.person.last_name])
@@ -560,11 +568,9 @@ def download_ras(request, current=True):
     response['Content-Disposition'] = 'inline; filename="ras-%s-%s.csv"' % (datetime.datetime.now().strftime('%Y%m%d'),
                                                                             'current' if current else 'all')
     writer = csv.writer(response)
-    writer.writerow(['Name', 'Hiring Faculty', 'Unit', 'Project', 'Account', 'Start Date', 'End Date', 'Amount'])
+    writer.writerow(['Name', 'ID', 'Hiring Faculty', 'Unit', 'Project', 'Account', 'Start Date', 'End Date', 'Amount'])
     for ra in ras:
-        person = str('%s, %s' % (ra.person.last_name, ra.person.first_name))
-        faculty = str('%s, %s' % (ra.hiring_faculty.last_name, ra.hiring_faculty.first_name))
-        writer.writerow([person, faculty, ra.unit.label, ra.project, ra.account, ra.start_date, ra.end_date, ra.lump_sum_pay])
+        writer.writerow([ra.person.sortname(), ra.person.emplid, ra.hiring_faculty.sortname(), ra.unit.label, ra.project, ra.account, ra.start_date, ra.end_date, ra.lump_sum_pay])
     return response
 
 

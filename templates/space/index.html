@@ -38,7 +38,7 @@ $(document).ready(function() {
         <div>You have no room types defined.  You probably won't be able to do much until you <a href="{% url "space:list_roomtypes" %}">add some</a>.</div>
     {% else %}
         {% if locations %}
-            <table id="locations">
+            <table id="locations" class="display">
                 <thead>
                     <tr>
                         <td>Building</td>

@@ -167,8 +167,9 @@ class Activity(models.Model):
 
             # update the activity
             self.deleted = True
-            self.name = self.name + suffix
-            self.short_name = self.short_name + suffix
+            # Truncate the names if we need to since we are adding a 6 character suffix 
+            self.name = self.name[:24] + suffix
+            self.short_name = self.short_name[:9] + suffix
             self.slug = None
             self.save()
 

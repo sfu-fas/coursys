@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 
 {% block title %}New Asset{% endblock %}
 {% block h1 %}New Asset{% endblock %}
@@ -8,6 +9,10 @@
 {% block subbreadcrumbs %}
 <li><a href="{% url 'inventory:inventory_index' %}">Inventory</a></li>
 <li>New Event</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src={% static "js/inventory.js"%}></script>
 {% endblock %}
 
 {% block content %}

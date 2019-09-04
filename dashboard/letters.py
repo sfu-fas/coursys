@@ -1336,6 +1336,16 @@ def tacontract_form(contract, outfile):
     doc.save()
 
 
+def tacontract_forms(contracts, outfile):
+    """
+    Generate TA Appointment Form for this list of TAContracts (tacontract module).
+    """
+    doc = TAForm(outfile)
+    for c in contracts:
+        doc.draw_form_contract(c)
+    doc.save()
+
+
 class GradeChangeForm(SFUMediaMixin):
     def __init__(self, outfile):
         self._media_setup()
@@ -3418,10 +3428,10 @@ class KeyForm(FormMixin, SFUMediaMixin):
         self.header_label_large_nobold(0,191, "Key Policy")
         self.label(0, 182, "1.  I am accountable for the key listed below.")
         self.label(0, 175.5, "2.  The key is the property of SFU")
-        self.label(0, 168.5, "3.  I will return the ley when it is not needed, or when requested, without delay.")
+        self.label(0, 168.5, "3.  I will return the key when it is not needed, or when requested, without delay.")
         self.label(0, 162, "4.  I will return the key to Facilities Services Surrey or put it in the drop box.")
-        self.label(0, 155, "5.  I will not give the key to another person, exceot as arranged through Facilities.")
-        self.label(0, 148.5, "6.  I will not load the key or attempt to have it copied.")
+        self.label(0, 155, "5.  I will not give the key to another person, except as arranged through Facilities.")
+        self.label(0, 148.5, "6.  I will not loan the key or attempt to have it copied.")
         self.label(0, 142, "7.  I will immediately report a lost or stolen key.")
         self.label(0, 135, "8.  I have not paid a deposit for this key.")
         self.header_label(0, 126, "I  have read and understand the above policy.")
