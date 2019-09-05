@@ -109,6 +109,9 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
     for userid, components in individual_subcomps.items():
         prefix = os.path.join(code_dir, offering_slug, userid)
         for comp, sub in components:
+            if not isinstance(sub, SubmittedCodefile):
+                # we can only deal with Codefile components
+                continue
             if not isinstance(sub.code.storage, FileSystemStorage):
                 raise NotImplementedError('more work necessary to support non-filesystem file storage')
             source_file = os.path.join(sub.code.storage.location, sub.code.name)

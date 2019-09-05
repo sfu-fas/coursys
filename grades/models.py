@@ -234,12 +234,14 @@ class Activity(models.Model):
         """
         comp_count = self.submissioncomponent_set.filter(deleted=False).count()
         return comp_count != 0 and not self.too_old()
+
     def no_submit_too_old(self):
         """
         Returns True if this activity was submittable but is now too old
         """
         comp_count = self.submissioncomponent_set.filter(deleted=False).count()
         return comp_count != 0 and self.too_old()
+
     def too_old(self):
         """
         Returns True if this activity is not submittable because it is too old
@@ -255,6 +257,13 @@ class Activity(models.Model):
             return GroupSubmission
         else:
             return StudentSubmission
+
+    def can_check_similarity(self):
+        """
+        Does it make sense to show the similarity results link for this activity?
+        """
+        from submission.models import Codefile
+        return Codefile.Component.objects.filter(activity=self).exists()
 
     def due_in_future(self):
         return self.due_date and self.due_date > datetime.now()

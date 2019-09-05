@@ -144,6 +144,9 @@ Column logic:
 	    {% if mark_comps %}
 	      <li><a href="{% url "offering:marking:import_marks" course_slug=course.slug activity_slug=activity.slug%}">Import Marking Details</a></li>
 	    {% endif %}
+	    {% if activity.can_check_similarity %}
+	      <li><a href="{% url "grades:similarity:similarity" course_slug=course.slug activity_slug=activity.slug%}">Code Similarity Reports</a></li>
+	    {% endif %}
 
 	    <li class="newsec"><a href="{% url "offering:activity_stat" course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 
 		    	<li><a href="{% url "offering:export_csv" course_slug=course.slug activity_slug=activity.slug%}">Export Grades</a></li>
