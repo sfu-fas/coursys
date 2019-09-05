@@ -1,0 +1,31 @@
+{
+  "name": "coursys",
+  "version": "1.0.0",
+  "description": "CourSys npm dependancies",
+  "main": "index.js",
+  "dependencies": {
+    "codemirror": "^5.48.4",
+    "datatables": "^1.10.18",
+    "font-awesome": "^4.7.0",
+    "fullcalendar": "^3.10.0",
+    "highlightjs": "^9.12.0",
+    "jquery": "^3.4.1",
+    "mathjax": "^2.7.5",
+    "moment": "^2.24.0",
+    "tinymce": "^4.7.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sfu-fas/coursys.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sfu-fas/coursys/issues"
+  },
+  "homepage": "https://github.com/sfu-fas/coursys#readme"
+}

@@ -1,0 +1,32 @@
+table#salary_info, table#salary_info td {
+    border-style: none;
+}
+
+table#salary_info td {
+    padding-right: 0.4em;
+    height: 2.3em;
+}
+
+td.salary_first {
+    width: 10.7em;
+}
+
+td.salary_first, td.salary_label {
+    text-align: right;
+    font-weight: bold;
+}
+div#extra_info {
+	float: right;
+	width: 25%;
+}
+
+div#visa_warning {
+    color: red;
+}
+
+div#programs li {
+	list-style-type: disc;
+}
+dl.dlform dt {
+  clear: none;
+}

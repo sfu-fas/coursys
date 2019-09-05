@@ -8,9 +8,8 @@ Edit Cutoffs of {{ activity.name }}
 {% endblock %}
 
 {% block headextra %}
-<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://www.gstatic.com/charts/loader.js" referrerpolicy="no-referrer"></script>
 <script nonce="{{ CSP_NONCE }}">
-//<![CDATA[
 /**
  * Copyright (c) Mozilla Foundation http://www.mozilla.org/
  * This code is available under the terms of the MIT License
@@ -63,7 +62,7 @@ if (!Array.prototype.filter) {
   }
 
   var source_grades = {{source_grades}};
-  var histo_cells;
+  var histo_cells = new Array();
   var letters = new Array('ap', 'a', 'am', 'bp', 'b', 'bm', 'cp', 'c', 'cm', 'd');
   var nletters = letters.length;
   function valofinput(id) {
@@ -75,7 +74,6 @@ if (!Array.prototype.filter) {
 
   $(document).ready(function() {
     var i;
-    histo_cells = new Array();
     for(var i=0; i<nletters; i++) {
       histo_cells.push(histotd(letters[i]));
     }
@@ -131,7 +129,7 @@ if (!Array.prototype.filter) {
     }
     chart.draw(data, {width: 700, height: 250, axisTitlesPosition: 'none', legend: 'none'});
   }
-//]]></script>
+</script>
 {% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li><li>Edit cutoffs</li>{% endblock %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %}
 {% load inventory_display %}
 
 {% block title %}Inventory{% endblock %}
@@ -12,11 +12,12 @@
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#assets').dataTable( {
-    'bPaginate': false,
     'bInfo': false,
-    'bLengthChange': false,
+    'bLengthChange': true,
     "bJQueryUI": true,
-    'aaSorting': [[1, 'asc']]
+    'aaSorting': [[1, 'asc']],
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']]
   } );
 } );
 
@@ -35,14 +36,15 @@ $(document).ready(function() {
 
 {% block content %}
 {% if assets %}
-    <table id="assets">
+    <table id="assets" class="display">
     <thead>
         <tr>
             <td>Name</td>
             <td>Qty</td>
             <td>Category</td>
-            <td>Price</td>
+            <td>Location</td>
             <td>Last Modified</td>
+            <td>Stock Status</td>
             <td>Actions</td>
         </tr>
     </thead>
@@ -54,8 +56,12 @@ $(document).ready(function() {
             </td>
             <td>{{ asset.quantity }}</td>
             <td>{{ asset.get_category_display }}</td>
-            <td>{% if asset.price %}${% endif %}{{ asset.price }}</td>
-            <td>{{ asset.last_modified|date:"M m, Y" }}</td>
+            <td>{{ asset.location }}</td>
+            <td>{{ asset.last_modified|date:"M d, Y" }}</td>
+            <td>{% with asset|add_quantity_status as status %}
+                <span class="sort">{{ status.0 }}</span> {{ status.1 }}
+                {% endwith %}
+            </td>
             <td>
                 <form class="lineform" method="POST"
                       action="{% url "inventory:delete_asset" asset_id=asset.id %}">
@@ -64,24 +70,21 @@ $(document).ready(function() {
                         <i class='fa fa-trash-o'></i>
                     </button>
                 </form>
-                <form class="lineform" method="GET"
-                    action="{% url "inventory:add_change_record" asset_slug=asset.slug %}">
+                <a class="lineform" href="{% url "inventory:add_change_record" asset_slug=asset.slug %}">
                     <button type='submit' class='btn' title="Add change record">
                         <i class='fa fa-book'></i>
                     </button>
-                </form>
-                <form class="lineform" method="GET"
-                    action="{% url "inventory:edit_asset" asset_slug=asset.slug %}">
+                </a>
+                <a class="lineform" href="{% url "inventory:edit_asset" asset_slug=asset.slug %}">
                     <button type='submit' class='btn' title="Edit asset">
                         <i class='fa fa-edit'></i>
                     </button>
-                </form>
-                <form class="lineform" method="GET"
-                    action="{% url "inventory:view_asset" asset_slug=asset.slug %}">
+                </a>
+                <a class="lineform" href="{% url "inventory:view_asset" asset_slug=asset.slug %}">
                     <button type='submit' class='btn' title="View asset">
                         <i class='fa fa-eye'></i>
                     </button>
-                </form>
+                </a>
             </td>
         </tr>
     {% endfor %}

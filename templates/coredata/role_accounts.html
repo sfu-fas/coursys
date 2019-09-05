@@ -60,18 +60,19 @@ function confirmDelete(url) {
             <td>{{ roleaccount.description }}</td>
             <td>{{ roleaccount.is_anyperson|yesno }}</td>
             <td>
-                <div class="lineform">
-                    <button type='submit' class='btn' title="Delete"
-                            onclick="confirmDelete('{% url "sysadmin:delete_roleaccount" roleaccount_id=roleaccount.id %}')">
+                <form class="lineform" method="POST"
+                      action="{% url "sysadmin:delete_roleaccount" roleaccount_id=roleaccount.id %}">
+                    {% csrf_token %}
+                    <button type='submit' class='btn confirm-submit' title="Delete"
+                            data-submit-action="delete this record">
                         <i class='fa fa-trash-o'></i>
                     </button>
-                </div>
-                <form class="lineform" method="GET"
-                    action="{% url "sysadmin:edit_roleaccount" roleaccount_id=roleaccount.id %}">
+                </form>
+                <a class="lineform" href="{% url "sysadmin:edit_roleaccount" roleaccount_id=roleaccount.id %}">
                     <button type='submit' class='btn' title="Edit">
                         <i class='fa fa-edit'></i>
                     </button>
-                </form>
+                </a>
             </td>
         </tr>
         {% endfor %}

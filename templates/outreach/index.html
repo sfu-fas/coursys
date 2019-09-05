@@ -68,8 +68,8 @@ function togglePast() {
             {% for event in events %}
             <tr>
                 <td>{{ event.title }}</td>
-                <td>{{ event.start_date }}</td>
-                <td>{{ event.end_date }}</td>
+                <td><span class="sort">{{ event.start_date.isoformat }}</span>{{ event.start_date }}</td>
+                <td><span class="sort">{{ event.end_date.isoformat }}</span>{{ event.end_date }}</td>
                 <td>{{ event.unit }}</td>
                 <td>{{ event.registration_count }}</td>
                 <td style="min-width: 130px">
@@ -80,30 +80,26 @@ function togglePast() {
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>
-                    <form class="lineform" method="GET"
-                        action="{% url "outreach:edit_event" event_slug=event.slug %}">
+                    <a class="lineform" href="{% url "outreach:edit_event" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="Edit Event">
                             <i class='fa fa-edit'></i>
                         </button>
-                    </form>
-                    <form class="lineform" method="GET"
-                        action="{% url "outreach:download_registrations" event_slug=event.slug %}">
+                    </a>
+                    <a class="lineform" href="{% url "outreach:download_registrations" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="Download Registrations">
                             <i class='fa fa-download'></i>
                         </button>
-                    </form>
-                    <form class="lineform" method="GET"
-                        action="{% url "outreach:view_event_registrations" event_slug=event.slug %}">
+                    </a>
+                    <a class="lineform" href="{% url "outreach:view_event_registrations" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="View Registrations">
                             <i class='fa fa-book'></i>
                         </button>
-                    </form>
-                    <form class="lineform" method="GET"
-                        action="{% url "outreach:view_event" event_slug=event.slug %}">
+                    </a>
+                    <a class="lineform" href="{% url "outreach:view_event" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="View Event">
                             <i class='fa fa-eye'></i>
                         </button>
-                    </form>
+                    </a>
                 </td>
             </tr>
             {% endfor %}
@@ -129,8 +125,8 @@ function togglePast() {
             {% for event in past_events %}
             <tr>
                 <td>{{ event.title }}</td>
-                <td>{{ event.start_date }}</td>
-                <td>{{ event.end_date }}</td>
+                <td><span class="sort">{{ event.start_date.isoformat }}</span>{{ event.start_date }}</td>
+                <td><span class="sort">{{ event.end_date.isoformat }}</span>{{ event.end_date }}</td>
                 <td>{{ event.unit }}</td>
                 <td>{{ event.registration_count }}</td>
                 <td>
@@ -141,18 +137,16 @@ function togglePast() {
                             <i class='fa fa-trash-o'></i>
                         </button>
                     </form>
-                    <form class="lineform" method="GET"
-                        action="{% url "outreach:edit_event" event_slug=event.slug %}">
+                    <a class="lineform" href="{% url "outreach:edit_event" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="Edit Event">
                             <i class='fa fa-edit'></i>
                         </button>
-                    </form>
-                    <form class="lineform" method="GET"
-                        action="{% url "outreach:view_event" event_slug=event.slug %}">
+                    </a>
+                    <a class="lineform" href="{% url "outreach:view_event" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="View Event">
                             <i class='fa fa-eye'></i>
                         </button>
-                    </form>
+                    </a>
                 </td>
             </tr>
             {% endfor %}

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
@@ -21,6 +22,7 @@ $(document).ready(function() {
 
 var personinfo_url = "{% url "ra:person_info" %}";
 var payperiods_url = "{% url "ra:pay_periods" %}";
+var personvisas_url = "{% url "ra:person_visas" %}";
 {% if person %}
 var emplid = '{{ person.emplid }}';
 {% else %}
@@ -28,7 +30,7 @@ var emplid = null;
 {% endif %}
 //]]</script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/ra.js"></script>
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}ra/ra.css" />
+<link rel="stylesheet" href="{% static 'style/ra.css' %}" />
 {% endblock %}
 
 {% block title %}New RA Appointment{% endblock %}

@@ -31,7 +31,7 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
-from faculty.models import Grant, TempGrant, GrantOwner, Position, DocumentAttachment
+from faculty.models import Grant, TempGrant, GrantOwner, Position, DocumentAttachment, PositionDocumentAttachment
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, FACULTY_ROLE_EXPIRY
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
     ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
@@ -214,11 +214,21 @@ def manage_faculty_roles(request):
             if form.old_role:
                 form.old_role.config['gone'] = False
                 form.old_role.save()
+                l = LogEntry(userid=request.user.username,
+                             description="added faculty role in %s for %s" %
+                                         (form.old_role.unit.label, form.old_role.person),
+                             related_object=form.old_role)
+                l.save()
             else:
                 role = form.save(commit=False)
                 role.role = 'FAC'
                 role.expiry = FACULTY_ROLE_EXPIRY
                 role.save()
+                l = LogEntry(userid=request.user.username,
+                             description="added faculty role in %s for %s" % (role.unit.label, role.person),
+                             related_object=role)
+
+                l.save()
             messages.success(request, 'New faculty role added.')
             return HttpResponseRedirect(reverse('faculty:manage_faculty_roles'))
 
@@ -230,6 +240,11 @@ def manage_faculty_roles(request):
         role = get_object_or_404(Role, id=roleid)
         role.gone = True
         role.save()
+        l = LogEntry(userid=request.user.username,
+                     description="removed faculty role in %s for %s" % (role.unit.label, role.person),
+                     related_object=role)
+
+        l.save()
         messages.success(request, 'Faculty member marked as "gone".')
         return HttpResponseRedirect(reverse('faculty:manage_faculty_roles'))
 
@@ -342,7 +357,7 @@ def salary_index_csv(request):
 
     for person, unit, pay, salary, fraction, bonus, step, rank in _salary_index_data(request, date):
         csv.writerow([
-            person.name(),
+            person.sortname(),
             rank,
             step,
             unit.informal_name(),
@@ -1258,7 +1273,8 @@ def _study_credit_events_data(units, person, semester, show_in_table, running_to
                     e += [(semester.code, 'End Study Leave', '', '' , running_total)]
         else:
             credits, load_decrease = FacultySummary(person).teaching_event_info(event)
-            running_total += credits
+            if credits:
+                running_total += credits
             if show_in_table and credits:
                     e += [(semester.code, event.get_event_type_display(), credits, credits, running_total)]
 
@@ -1971,17 +1987,23 @@ def new_position_attachment(request, position_id):
 
     if request.method == "POST":
         form = PositionAttachmentForm(request.POST, request.FILES)
+        title = request.POST.get('title')
+        files = request.FILES.getlist('contents')
         if form.is_valid():
-            attachment = form.save(commit=False)
-            attachment.position = position
-            attachment.created_by = editor
-            upfile = request.FILES['contents']
-            filetype = upfile.content_type
-            if upfile.charset:
-                filetype += "; charset=" + upfile.charset
-            attachment.mediatype = filetype
-            attachment.save()
-            return HttpResponseRedirect(reverse('faculty:view_position', kwargs={'position_id':position.id}))
+            for f in files:
+                attachment = PositionDocumentAttachment()
+                attachment.title = title
+                attachment.position = position
+                attachment.created_by = editor
+                attachment.contents = f
+                upfile = f
+                filetype = f.content_type
+                if upfile.charset:
+                    filetype += "; charset=" + upfile.charset
+                attachment.mediatype = filetype
+                attachment.save()
+            messages.add_message(request, messages.SUCCESS, ('Uploaded %s attachment(s)' % len(files)))
+            return HttpResponseRedirect(reverse('faculty:view_position', kwargs={'position_id': position.id}))
         else:
             context.update({"attachment_form": form})
 

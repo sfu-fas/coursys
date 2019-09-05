@@ -1,5 +1,6 @@
-from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact
-from coredata.models import Person
+from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory, \
+    ADVISING_CAMPUS_CHOICES
+from coredata.models import Person, Unit
 from coredata.forms import OfferingField, CourseField
 from django import forms
 from django.core import validators
@@ -134,4 +135,110 @@ class MergeStudentField(forms.Field):
 class MergeStudentForm(forms.Form):
 
     student = MergeStudentField(label="Student #")
-    
+
+
+class AdvisorVisitCategoryForm(forms.ModelForm):
+    def __init__(self, request, *args, **kwargs):
+        super(AdvisorVisitCategoryForm, self).__init__(*args, **kwargs)
+        unit_ids = [unit.id for unit in request.units]
+        units = Unit.objects.filter(id__in=unit_ids)
+        self.fields['unit'].queryset = units
+        self.fields['unit'].empty_label = None
+
+    class Meta:
+        model = AdvisorVisitCategory
+        exclude = []
+
+
+class AdvisorVisitFormInitial(forms.ModelForm):
+    programs = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols': '50', 'rows': '5'}),
+                               help_text='This field can not be edited.  To refresh it, click "Refresh SIMS info".')
+
+    cgpa = forms.CharField(label='CGPA', widget=forms.TextInput(attrs={'size': 4}),
+                           required=False, help_text='This field can not be edited.  To refresh it, click "Refresh '
+                                                     'SIMS info".')
+    credits = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': 4}),
+                              help_text='This field can not be edited.  To refresh it, click "Refresh SIMS info".')
+
+    gender = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': 1}),
+                              help_text='This field can not be edited.  To refresh it, click "Refresh SIMS info".')
+
+    citizenship = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': 10}),
+                              help_text='This field can not be edited.  To refresh it, click "Refresh SIMS info".')
+    note = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols': '70', 'rows': '5'}),
+                           help_text='If you want to also create a note, please type its content here.  This is a '
+                                     'plain text note.  If you want more fancy formatting, please create a note in '
+                                     'the main student notes page.')
+    file_attachment = forms.FileField(required=False,
+                                      help_text="If you add a note, you may also add an attachment to it.")
+    email_student = forms.BooleanField(required=False,
+                                       help_text="Should the student be emailed the contents of this note?")
+
+    def __init__(self, *args, **kwargs):
+        super(AdvisorVisitFormInitial, self).__init__(*args, **kwargs)
+        categories = AdvisorVisitCategory.objects.visible([self.instance.unit])
+        self.fields['categories'].queryset = categories
+        initial = kwargs.setdefault('initial', {})
+        initial['categories'] = [c.pk for c in kwargs['instance'].categories.all()]
+        self.fields['programs'].widget.attrs['readonly'] = True
+        self.fields['credits'].widget.attrs['readonly'] = True
+        self.fields['cgpa'].widget.attrs['readonly'] = True
+        self.fields['gender'].widget.attrs['readonly'] = True
+        self.fields['citizenship'].widget.attrs['readonly'] = True
+        # You have to manually reset the choices for the widget not to have the blank line.
+        self.fields['campus'].widget.choices = ADVISING_CAMPUS_CHOICES
+        if categories.count() > 0:
+            self.fields['categories'].required = True
+
+    class Meta:
+        model = AdvisorVisit
+        fields = ['programs', "cgpa", "credits", "gender", "citizenship", "campus", "categories", "note",
+                  "file_attachment", "email_student"]
+        widgets = {
+            'categories': forms.CheckboxSelectMultiple(),
+            'campus': forms.RadioSelect()
+        }
+
+    def clean_email_student(self):
+        email = self.cleaned_data['email_student']
+        if email and not self.instance.get_email():
+            raise ValidationError("We don't have an email address for this student: cannot email them here.")
+        return email
+
+    def clean_note(self):
+        text = self.cleaned_data['note']
+        if 'file_attachment' in self.files and not text:
+            raise ValidationError("You need to add a note in order to save an attachment.")
+        return text
+
+
+class AdvisorVisitFormSubsequent(forms.ModelForm):
+    end_time = forms.SplitDateTimeField()
+
+    def __init__(self, *args, **kwargs):
+        super(AdvisorVisitFormSubsequent, self).__init__(*args, **kwargs)
+        categories = AdvisorVisitCategory.objects.visible([self.instance.unit])
+        self.fields['categories'].queryset = categories
+        initial = kwargs.setdefault('initial', {})
+        initial['categories'] = [c.pk for c in kwargs['instance'].categories.all()]
+        # You have to manually reset the choices for the widget not to have the blank line.
+        self.fields['campus'].widget.choices = ADVISING_CAMPUS_CHOICES
+        if categories.count() > 0:
+            self.fields['categories'].required = True
+
+    class Meta:
+        model = AdvisorVisit
+        fields = ["campus", "end_time", "categories"]
+        widgets = {
+            'categories': forms.CheckboxSelectMultiple(),
+            'end_time': forms.SplitDateTimeWidget(),
+            'campus': forms.RadioSelect()
+        }
+
+    def clean_end_time(self):
+        end_time = self.cleaned_data['end_time']
+        if end_time and end_time <= self.instance.created_at:
+            raise ValidationError("Cannot end the meeting before it started.")
+        elif end_time and end_time > datetime.datetime.now():
+            raise ValidationError("Cannot end a meeting in the future.")
+        return end_time

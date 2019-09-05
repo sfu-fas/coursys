@@ -259,10 +259,10 @@ def download_current_events_csv(request, past=None):
     writer = csv.writer(response)
     if events:
         writer.writerow(['Title', 'Start Date', 'End Date', 'Description', 'Location', 'Unit', 'Resources',
-                         'Cost', 'Notes', 'Email', 'Attendance', 'Registration Link'])
+                         'Cost', 'Notes', 'Email', 'Attendance', 'Private Notes', 'Registration Link'])
         for e in events:
             writer.writerow([e.title, e.start_date, e.end_date, e.description, e.location, e.unit, e.resources, e.cost,
-                             e.notes, e.email, e.registration_count(),
+                             e.notes, e.email, e.registration_count(), e.private_notes,
                              request.build_absolute_uri(reverse('outreach:register', kwargs={'event_slug': e.slug}))])
     return response
 
@@ -303,13 +303,14 @@ def download_registrations(request, event_slug=None, past=None):
                                       (datetime.now().strftime('%Y%m%d'), filestring)
     writer = csv.writer(response)
     if registrations:
-        header_row = header_row_initial + ['Last Name', 'First Name', 'Middle Name', 'Birthdate', 'Parent Name',
-                                           'Parent Phone', 'Email', 'Photo Waiver', 'Previously Attended', 'School',
-                                           'Grade', 'Notes', 'Attended(ing)', 'Waitlisted', 'Registered at', 'Last Modified'] + \
+        header_row = header_row_initial + ['Last Name', 'First Name', 'Birthdate', 'Parent Name', 'Parent Phone',
+                                           'Secondary Name', 'Secondary Phone', 'Email', 'Photo Waiver',
+                                           'Previously Attended', 'School', 'Grade', 'Dietary Restrictions',
+                                           'Attended(ing)', 'Waitlisted', 'Registered at', 'Last Modified'] + \
                      header_row_extras
         writer.writerow(header_row)
         for r in registrations:
-            # Same rationale as
+            # Same rationale as above
             extra_questions_row = []
             if event_slug:
                 initial_registration_row = []
@@ -326,10 +327,10 @@ def download_registrations(request, event_slug=None, past=None):
                 waitlisted = r.waitlisted
             else:
                 waitlisted = 'N/A'
-            registration_row = initial_registration_row + [r.last_name, r.first_name, r.middle_name, r.birthdate,
-                                                          r.parent_name, r.parent_phone, r.email, r.photo_waiver,
-                                                          r.previously_attended, r.school, r.grade, r.notes, r.attended,
-                                                          waitlisted, r.created_at,
-                                                          r.last_modified] + extra_questions_row
+            registration_row = initial_registration_row + [r.last_name, r.first_name, r.birthdate, r.parent_name,
+                                                           r.parent_phone, r.secondary_name, r.secondary_phone,
+                                                           r.email, r.photo_waiver, r.previously_attended, r.school,
+                                                           r.grade, r.notes, r.attended, waitlisted, r.created_at,
+                                                           r.last_modified] + extra_questions_row
             writer.writerow(registration_row)
     return response

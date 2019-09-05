@@ -51,6 +51,16 @@
         $('#moreinfo>a').click(function() {
             get_more_info('{% url "advising:student_more_info" userid=userid %}');
         });
+
+        $('#advisingvisits').dataTable( {
+            'bPaginate': true,
+            'bInfo': false,
+            'bLengthChange': true,
+            "bJQueryUI": true,
+            'lengthMenu': [[5, 10, 25, -1], [5, 10, 25, 'All']],
+            'aaSorting': [[0, 'desc']]
+
+        } );
 	});
 </script>
 {% endblock %}
@@ -71,11 +81,12 @@
         <li><a href="{% url "advising:merge_nonstudent" nonstudent_slug=student.slug %}">Merge with existing student</a></li>
         {% endif %}
         <li><a href="#" class='show_deleted'>Show Deleted Notes</a></li> 
-        <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li> 
+        <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li>
         <li>
             {% for u in units %}
-            <form method="post" action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
-            {% csrf_token %}<p><input type="submit" value="Record visit" title="Record visit to {{ u.informal_name }} advisor" /></p>
+            <form target="_blank" method="post" action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
+            {% csrf_token %}
+                <p><input type="submit" value="Record visit" title="Record visit to {{ u.informal_name }} advisor" /></p>
             </form>
             {% endfor %}
         </li>
@@ -84,7 +95,7 @@
 {% endblock %}
 
 {% block content %}
-{# <div class="idphoto studentinfo"><img src="{% url 'data:student_photo' emplid=student.emplid %}" alt="" /></div>#}
+{% if student.emplid %}<div class="idphoto studentinfo"><img src="{% url 'data:student_photo' emplid=student.emplid %}" alt="" /></div>{% endif %}
     <table class="info">
         <tbody>
             <tr>
@@ -145,8 +156,47 @@
                 <td>{{ student.nonstudent_colg }}</td>
             </tr>
             {% endif %}
+            {% if visits  %}
+                <tr>
+                    <th>Last Visit</th>
+                    <td>{% with visits|first as visit %} {{ visit.created_at }} with {{ visit.advisor }} {% endwith %}</td>
+                </tr>
+            {% endif %}
+            <tr>
+
+            </tr>
         </tbody>
     </table>
+
+{% if visits %}
+    <div id="visitssection">
+    <h2>Visits</h2>
+    <table id="advisingvisits" class="display">
+        <thead>
+            <th scope="col">Start Time</th>
+            <th scope="col">End Time</th>
+            <th scope="col">Categories</th>
+            <th scope="col">Advisor</th>
+            <th>Actions</th>
+        </thead>
+        <tbody>
+        {% for visit in visits %}
+            <tr>
+                <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
+                <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
+                <td>{{ visit.categories_display }}</td>
+                <td>{{ visit.advisor.sortname }}</td>
+                <td><a class="lineform" href="{% url "advising:view_visit" visit_slug=visit.slug %}">
+                    <button type='submit' class='btn' title="View visit">
+                        <i class='fa fa-eye'></i>
+                    </button>
+                </a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+{% endif %}
 
 {% if items %}
 {% for item in items %}

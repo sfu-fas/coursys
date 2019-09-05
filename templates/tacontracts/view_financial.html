@@ -9,6 +9,17 @@
     <li>Financial</li>
 {% endblock %}
 
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+                <li><a href="{% url "tacontracts:download_financials" unit_slug=unit_slug semester=semester %}">Download CSV</a></li>
+
+    </ul>
+</div>
+{% endblock %}
+
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
 	$(function() {
@@ -19,7 +30,6 @@
 		});
 	});
 </script>
-
 {% endblock %}
 
 {% block content %}
@@ -59,6 +69,8 @@
 <thead>
 	<tr>
 		<th scope="col">Offering</th>
+        <th scope="col">Instructor(s)</th>
+        <th scope="col">Enrollment</th>
 		<th scope="col">Campus</th>
 		<th scope="col">Number of TAs</th>
 		<th scope="col">Assigned BU</th>
@@ -69,6 +81,8 @@
 {% for o in offerings %}
 <tr>
   <td scope="row">{{o.name}}</td>
+  <td scope="row">{{ o.instructors_str }}</td>
+  <td scope="row">{{ o.enrl_tot }}/{{ o.enrl_cap }}</td>
   <td class="num">{{o.get_campus_display}}</td>
   <td class="num">{{ o.tas }}</td>
   <td class="num">{{ o.total_bus }}</td>

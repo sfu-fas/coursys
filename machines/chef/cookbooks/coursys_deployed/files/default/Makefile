@@ -7,10 +7,12 @@ restart:
 run:
 	sudo systemctl start gunicorn
 
-big-restart: restart
+big-restart:
+	npm install
+	./manage.py collectstatic --noinput
+	sudo systemctl restart gunicorn
 	sudo /etc/init.d/nginx reload
 	sudo /etc/init.d/celeryd restart
-	./manage.py collectstatic --noinput
 
 pull:
 	git pull
@@ -22,3 +24,6 @@ chef:
 
 check_things:
 	LD_LIBRARY_PATH=/home/coursys/sqllib/lib64 ./manage.py check_things
+
+cache:
+	sudo service memcached restart

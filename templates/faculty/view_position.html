@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% load staticfiles %}
+{% load static %}
 {% load humanize %}
 
 {% block title %}{{ position.title }}{% endblock %}
@@ -59,7 +59,7 @@
     <h2 id="attachments">Attachments</h2>
     <ul>
     {% for a in attachments %}
-    <li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
+    <li>{% if a.title %}{{ a.title }} ({% endif %}{{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }}{% if a.title %}){% endif %}
       <a href="{% url 'faculty:view_position_attachment' position_id=position.id  attach_slug=a.slug %}">View</a> |
       <a href="{% url 'faculty:download_position_attachment' position_id=position.id  attach_slug=a.slug %}">Download</a> |
       <a href="{% url 'faculty:delete_position_attachment' position_id=position.id  attach_slug=a.slug  %}">Delete</a>

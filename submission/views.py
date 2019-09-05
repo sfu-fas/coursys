@@ -1,13 +1,17 @@
+import os
+
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404, HttpResponse, HttpRequest
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
 from courselib.search import find_member, find_userid_or_emplid
 from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import StudentSubmission, GroupSubmission, SubmissionComponent
 from submission.models import select_all_components, SubmissionInfo, get_component, find_type_by_label, ALL_TYPE_CLASSES
+from submission.moss import MOSS, run_moss, MOSSError
 from django.urls import reverse
 from django.contrib import messages
 from groups.models import Group, GroupMember
@@ -17,6 +21,8 @@ from django.db import transaction
 from courselib.db import retry_transaction
 from courselib.search import find_userid_or_emplid
 from featureflags.flags import uses_feature
+
+from submission.models.base import SimilarityResult
 
 
 @login_required
@@ -453,3 +459,76 @@ def _override_ownership_confirm(request, course, activity, userid, group_slug, o
     return render(request, "submission/override_ownership_confirm.html",
         {"course":course, "activity":activity, "student":student, "group":group, "old_owner":old_owner, "true":True,
          "urlencode":urlencode, "userid":userid})
+
+
+@requires_course_staff_by_slug
+def similarity(request, course_slug, activity_slug):
+    '''
+    List of similarity reports & forms to run reports
+    '''
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
+    results = SimilarityResult.objects.filter(activity=activity)
+
+    if request.method == 'POST':
+        moss_form = MOSS.CreationForm(request.POST)
+        if moss_form.is_valid():
+            try:
+                result = run_moss(activity=activity, language=moss_form.cleaned_data['language'])
+                messages.add_message(request, messages.SUCCESS, 'MOSS report generated.')
+                l = LogEntry(userid=request.user.username,
+                             description=("ran MOSS for %s in %s") % (activity, offering),
+                             related_object=activity)
+                l.save()
+                return HttpResponseRedirect(
+                    reverse('grades:similarity:similarity_result',
+                            kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug, 'result_slug': result.generator, 'path': ''}
+                            ))
+            except MOSSError as e:
+                messages.add_message(request, messages.ERROR, str(e))
+    else:
+        moss_form = MOSS.CreationForm()
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'results': results,
+        'moss_form': moss_form,
+    }
+    return render(request, "submission/similarity.html", context)
+
+
+@requires_course_staff_by_slug
+def similarity_result(request: HttpRequest, course_slug, activity_slug, result_slug, path=''):
+    '''
+    Display similarity results, with `path` interpreted according to the generator's own logic.
+    '''
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
+    result = get_object_or_404(SimilarityResult, activity=activity, generator=result_slug)
+
+    if result.generator == 'MOSS':
+        helper = MOSS(offering, activity, result)
+    else:
+        raise NotImplementedError()
+
+    resp = helper.render(request, path)
+    return resp
+
+
+def moss_icon(request: HttpRequest, filename: str):
+    '''
+    Return one of the MOSS bitmap icons
+    '''
+    if settings.MOSS_DISTRIBUTION_PATH is None:
+        raise Http404()
+
+    bitmap_path = os.path.join(settings.MOSS_DISTRIBUTION_PATH, 'bitmaps')
+    fullpath = os.path.normpath(os.path.join(bitmap_path, filename))
+    if not fullpath.startswith(bitmap_path):
+        # make sure we didn't leave the MOSS bitmap path with a '../' or something
+        raise Http404()
+
+    data = open(fullpath, 'rb').read()
+    return HttpResponse(data, content_type='image/gif')
+

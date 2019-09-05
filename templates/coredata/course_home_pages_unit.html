@@ -38,7 +38,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-<table id="offerings">
+<table id="offerings" class="display">
     <thead><tr><th scope="col">Course</th><th scope="col">Title</th><th scope="col">Campus</th><th scope="col">Instructor</th>
         {% if unit.slug == 'cmpt' %}<th scope="col">Maillist Archive</th>{% endif %}</tr></thead>
     <tbody>

@@ -53,6 +53,11 @@ class Visa (models.Model):
     class Meta:
         ordering = ('start_date',)
 
+
+    def is_current(self):
+        return self.start_date <= timezone_today() and \
+                      (self.end_date is not None and timezone_today() < self.end_date) or (self.end_date is None)
+
     # Helper methods to display a proper status we can sort on
     def is_valid(self):
         return self.start_date <= timezone_today() and (self.end_date is not None and timezone_today() < self.end_date)
@@ -118,7 +123,7 @@ class Visa (models.Model):
 
 
 def visa_attachment_upload_to(instance, filename):
-    return upload_path('visas', str(instance.visa.start_date.year), filename)
+    return upload_path('visas', filename)
 
 
 class VisaDocumentAttachmentQueryset(models.QuerySet):

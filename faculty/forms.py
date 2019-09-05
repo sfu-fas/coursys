@@ -96,7 +96,7 @@ class AttachmentForm(forms.ModelForm):
         }
         help_texts = {
             'contents': "You can enter one or multiple files.  Please note that multiple files will "
-                        "have the same title."
+                        "have the same title if a title is provided."
         }
 
 
@@ -104,6 +104,14 @@ class PositionAttachmentForm(forms.ModelForm):
     class Meta:
         model = PositionDocumentAttachment
         exclude = ("position", "created_by")
+
+        widgets = {
+            'contents': forms.ClearableFileInput(attrs={'multiple': True})
+        }
+        help_texts = {
+            'contents': "You can enter one or multiple files.  Please note that multiple files will "
+                        "have the same title if a title is provided."
+        }
 
 
 class TextAttachmentForm(forms.ModelForm):
@@ -302,7 +310,7 @@ class PositionForm(forms.ModelForm):
     projected_start_date = SemesterField(semester_start=True, required=True)
     teaching_load = AnnualTeachingCreditField(label="Teaching Load", required=False)
     base_salary = AddSalaryField(required=False)
-    add_salary = AddSalaryField(required=False)
+    add_salary = AddSalaryField(label="Market Differential", required=False)
     add_pay = AddPayField(required=False)
     position_number = forms.CharField(max_length=6, required=True)
     rank = forms.ChoiceField(choices=RANK_CHOICES, required=False)

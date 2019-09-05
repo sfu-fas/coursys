@@ -1,9 +1,10 @@
 from django.db import models
 from django.core.validators import MaxValueValidator
+from django.dispatch import receiver
 from grades.models import Activity
 from coredata.models import Member, Person,CourseOffering
 from groups.models import Group,GroupMember
-from datetime import datetime
+from datetime import datetime, timedelta
 from autoslug import AutoSlugField
 from django.db.models import Max
 from dashboard.models import NewsItem
@@ -13,6 +14,8 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from courselib.slugs import make_slug
 from courselib.storage import upload_path, UploadedFileStorage
+from courselib.json_fields import JSONField, config_property
+
 
 STATUS_CHOICES = [
     ('NEW', 'New'),
@@ -81,13 +84,14 @@ class Submission(models.Model):
     def delete(self, *args, **kwargs):
         raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
 
-    "Set ownership, and make state = in progree "
     def set_owner(self, course, userid):
+        "Set ownership, and make state = in progree "
         member = Member.objects.filter(person__userid = userid).filter(offering = course)
         if member:
             self.owner = member[0]
             self.status = "INP"
             self.save()
+
 
 class StudentSubmission(Submission):
     member = models.ForeignKey(Member, null=False, on_delete=models.PROTECT)
@@ -99,10 +103,13 @@ class StudentSubmission(Submission):
         return "%s->%s@%s" % (self.member.person.userid, self.activity, self.created_at)
     def short_str(self):
         return "%s submission by %s at %s" % (self.activity.short_str(), self.member.person.userid, self.created_at.strftime("%Y-%m-%d %H:%M"))
+    def creator_str(self):
+        return self.member.person.full_email()
     def get_absolute_url(self):
-        return reverse('offering:submission:show_components_submission_history', kwargs={'course_slug': self.member.offering.slug, 'activity_slug': self.activity.slug, 'userid': self.member.person.userid})
+        return reverse('offering:submission:show_student_submission_staff', kwargs={'course_slug': self.member.offering.slug, 'activity_slug': self.activity.slug, 'userid': self.member.person.userid})
     def file_slug(self):
         return self.member.person.userid_or_emplid()
+
 
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False, on_delete=models.PROTECT)
@@ -116,8 +123,10 @@ class GroupSubmission(Submission):
         return "%s->%s@%s" % (self.group.manager.person.userid, self.activity, self.created_at)
     def short_str(self):
         return "%s submission by %s for group %s at %s" % (self.activity.short_str(), self.creator.person.userid, self.group.name, self.created_at.strftime("%Y-%m-%d %H:%M"))
+    def creator_str(self):
+        return self.group.name
     def get_absolute_url(self):
-        return reverse('offering:submission:show_components_submission_history', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': self.activity.slug, 'userid': self.creator.person.userid})
+        return reverse('offering:submission:show_student_submission_staff', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': self.activity.slug, 'userid': self.creator.person.userid})
     def file_slug(self):
         return self.group.slug
 
@@ -137,7 +146,7 @@ class GroupSubmission(Submission):
 
 
 def submission_upload_path(instance, filename):
-    return upload_path(instance.component.activity.offering.slug, instance.component.activity.slug, filename)
+    return upload_path(instance.component.activity.offering.slug, filename)
 
 
 class SubmittedComponent(models.Model):
@@ -219,6 +228,70 @@ class FileSizeField(models.PositiveIntegerField):
         return field
 
 
+GENERATOR_CHOICES = [ # first elements must be URL-safe slug-like things
+    ('MOSS', 'MOSS'),
+]
 
 
+class SimilarityResult(models.Model):
+    """
+    Model class representing a set of similarity results for an activity.
+    """
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
+    generator = models.CharField(max_length=4, null=False, blank=False, choices=GENERATOR_CHOICES, help_text='tool that generated the similarity results')
+    created_at = models.DateTimeField(auto_now_add=True)
+    config = JSONField(default=dict)
 
+    class Meta:
+        unique_together = [('activity', 'generator')]
+
+    @classmethod
+    def cleanup_old(cls, age=timedelta(days=30)):
+        '''
+        Old SimilarityResults will be deleted, but instructor can regenerate if they wish.
+        '''
+        cutoff = datetime.now() - age
+        old = cls.objects.filter(created_at__lt=cutoff)
+        old.delete()
+
+
+def similarity_upload_path(instance, filename):
+    return upload_path(instance.result.activity.offering.slug, '_similarity', filename)
+
+
+class SimilarityData(models.Model):
+    """
+    Data for one submission/finding in a SimilarityResult.
+
+    SimilarityData.file may be null if only the JSON data is being used.
+    SimilarityData.label is used to identify in a way the generator understands.
+    SimilarityData.submission may be set if we know the corresponding Submission instance.
+    """
+    result = models.ForeignKey(SimilarityResult, on_delete=models.CASCADE)
+    label = models.CharField(max_length=100, null=False, blank=False, help_text='identifier used to find this file within the SimilarityResult')
+    file = models.FileField(upload_to=similarity_upload_path, blank=True, null=True, max_length=500, storage=UploadedFileStorage)
+    submission = models.ForeignKey(Submission, null=True, on_delete=models.CASCADE, related_name='+')
+    config = JSONField(default=dict)
+
+    class Meta:
+        unique_together = [('result', 'label')]
+
+
+# based on https://stackoverflow.com/a/16041527/6871666
+@receiver(models.signals.post_delete, sender=SimilarityData)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """
+    Deletes file from filesystem when corresponding SimilarityData object is deleted.
+    """
+    if instance.file:
+        path = instance.file.path
+        if os.path.isfile(path):
+            os.remove(path)
+
+        # also containing directory, if empty
+        directory = os.path.split(path)[0]
+        if os.path.isdir(directory):
+            try:
+                os.rmdir(directory)
+            except OSError:
+                pass

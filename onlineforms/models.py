@@ -935,6 +935,61 @@ class FormSubmission(models.Model):
                     description='Notified group "%s" that form submission was transferred to them.'
                                 % (self.owner.name,))
 
+    def reopen(self, requester=None, admin=None):
+        """
+        A stupid helper method because I'm tired of always doing this manually when people close forms by mistake
+
+        :param requester: userid to be used as the person requesting the form be re-opened
+        :type requester: basestring
+        :param admin: userid to be used as the person who re-opened the form
+        :type admin: basestring
+        :return: Nothing.
+        """
+        if not requester or not admin:
+            print("You need to supply userids for both a requester and an admin")
+            return
+        try:
+            user = Person.objects.get(userid=requester)
+            admin_person = Person.objects.get(userid=admin)
+        except Person.DoesNotExist:
+            print("Either requester or admin do not exist.  Please provide correct userids.")
+            return
+        if self.status != 'DONE':
+            print("You cannot reopen a submission which isn't closed.  The current submission is in status %s." %
+                  self.status)
+            return
+        else:
+            self.status = 'PEND'
+            self.save()
+            FormLogEntry.create(form_submission=self, user=user, category='ADMN',
+                                description='Re-opened by %s as requested by %s' % (user.userid, admin_person.userid))
+
+    @classmethod
+    def reopen_form(cls, form_slug=None, slug=None, requester=None, admin=None):
+        """
+        Similar to the reopen method in the class itself, but makes it find the FormSubmission object based on the
+        slugs.
+
+        :param form_slug: The slug of the form the submission is using.  First part of the URL after forms/view/
+        :type form_slug: basestring
+        :param slug:  The slug of the actual form submission.  Follows the form slug in the URL
+        :type slug: basestring
+        :param requester: userid to be used as the person requesting the form be re-opened
+        :type requester: basestring
+        :param admin: userid to be used as the person who re-opened the form
+        :type admin: basestring
+        :return:  Nothing
+        """
+        if not form_slug or not slug:
+            print("You must supply a slug for both the form and the submission itself.")
+            return
+        try:
+            fs = FormSubmission.objects.get(form__slug=form_slug, slug=slug)
+        except FormSubmission.DoesNotExist:
+            print("No form found with that form slug and submission slug.")
+            return
+        fs.reopen(requester=requester, admin=admin)
+
 
 class SheetSubmission(models.Model):
     form_submission = models.ForeignKey(FormSubmission, on_delete=models.PROTECT)
@@ -1026,6 +1081,8 @@ class SheetSubmission(models.Model):
         days = 14
         min_age = datetime.datetime.now() - datetime.timedelta(days=days)
         sheetsubs = SheetSubmission.objects.filter(sheet__is_initial=True, status='WAIT', given_at__lt=min_age)
+        #  Sheets that have specifically been assigned should not be cleared, even if they are the initial sheet.
+        sheetsubs = [s for s in sheetsubs if not s.assigner()]
         for ss in sheetsubs:
             ss.status = 'REJE'
             ss.set_reject_reason('Automatically closed by system after being dormant %i days.' % (days))

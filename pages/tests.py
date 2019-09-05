@@ -108,7 +108,7 @@ class PagesTest(TestCase):
         #self.assertEqual(brushes, set(['shBrushJScript.js', 'shBrushPython.js']))
         
         html = Creole.text2html(wikitext)
-        self.assertIn(b'class="highlight lang-python">for i', html)
+        self.assertIn(b'class="highlight lang-python"', html)
         self.assertIn(b'print i</pre>', html)
         self.assertIn(b'i=1; i&lt;4; i++', html)
 

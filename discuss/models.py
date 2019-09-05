@@ -210,6 +210,16 @@ class DiscussionMessage(models.Model):
                 'author': self.author.person.userid, 'status': self.status}
         return data
 
+    def to_dict(self):
+        return {
+            "author": self.author.person.userid,
+            "topic": self.topic.title,
+            "content": self.content,
+            "visibility": self.get_status_display(),
+            "created": str(self.created_at),
+            "modified": str(self.modified_at)
+        }
+
 
 class _DiscussionEmailMixin(object):
     # mixin to avoid copying-and-pasting the email sending logic

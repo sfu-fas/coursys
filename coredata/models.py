@@ -43,6 +43,7 @@ VISA_STATUSES = ( # as taken from SIMS ps_visa_permit_tbl
 
 ROLE_CHOICES = (
         ('ADVS', 'Advisor'),
+        ('ADVM', 'Advisor Manager'),
         ('FAC', 'Faculty Member'),
         ('SESS', 'Sessional Instructor'),
         ('COOP', 'Co-op Staff'),
@@ -72,13 +73,14 @@ ROLE_CHOICES = (
         )
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'GRPD',
+UNIT_ROLES = ['ADVS', 'ADVM', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'GRPD',
               'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR', 'FACA', 'RELA', 'SPAC', 'FORM']
 # roles that give access to SIMS data
-SIMS_ROLES = ['ADVS', 'DISC', 'DICC', 'FUND', 'GRAD', 'GRPD']
+SIMS_ROLES = ['ADVS', 'ADMV', 'DISC', 'DICC', 'FUND', 'GRAD', 'GRPD']
 # help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
+        'ADVM': 'Can manage advisor visit categories.',
         'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
         'DICC': 'Will be copied on all discipline case letters in the unit: include whoever files your discipline cases.',
         'TAAD': 'Can administer TA job postings and appointments.',
@@ -176,13 +178,13 @@ class Person(models.Model, ConditionalSaveMixin):
         return "Userid"
 
     def __str__(self):
-        return "%s, %s" % (self.last_name, self.first_name)
+        return self.sortname()
 
     def name(self):
-        return "%s %s" % (self.first_name, self.last_name)
+        return "%s %s" % (self.config.get('first_name', self.first_name), self.last_name)
 
     def sortname(self):
-        return "%s, %s" % (self.last_name, self.first_name)
+        return "%s, %s" % (self.last_name, self.config.get('first_name', self.first_name))
 
     def initials(self):
         return "%s%s" % (self.first_name[0], self.last_name[0])
@@ -197,9 +199,9 @@ class Person(models.Model, ConditionalSaveMixin):
         return "%s %s" % (self.real_pref_first(), self.last_name)
 
     def first_with_pref(self):
-        name = self.first_name
+        name = self.config.get('first_name', self.first_name)
         pref = self.real_pref_first()
-        if pref != self.first_name:
+        if pref != name:
             name += ' (%s)' % (pref)
         return name
 
@@ -862,6 +864,11 @@ COMPONENT_CHOICES = (
         ('CNV', 'CNV'), # converted from SIMON?
         ('OPL', 'Open Lab'), # ???
         ('EXM', 'Exam'),  # First showed up 2017/09/20 with descr "PhD Oral Candidacy Exam"
+        ('CAP', 'Capstone Required'),  # First showed up 2019/03/24.  go.sfu shows those classes as "Capstone Required"
+        ('INT', 'Internship Required'),  # First encountered 2019/05/16.
+        ('CAP', 'Capstone'),  # First showed up 2019/03/24.  go.sfu shows those classes as "Capstone Required"
+        ('COP', 'Work Integrated Learning'),  # First encountered 2019/05/17.
+        ('THE', 'Thesis Research'),  # First encountered 2019/05/17.
         ('CAN', 'Cancelled')
         )
 COMPONENTS = dict(COMPONENT_CHOICES)
@@ -906,6 +913,7 @@ INSTR_MODE_CHOICES = [ # from ps_instruct_mode in reporting DB
     ('P', 'In Person'),
     ('PO', 'In Person - Off Campus'),
     ('PR', 'Practicum'),
+    ('PF', 'In Person Field School'),
     ]
 INSTR_MODE = dict(INSTR_MODE_CHOICES)
 
@@ -1029,7 +1037,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     def instructors_str(self):
         @cached(60*60*24*2)
         def _instr_str(pk):
-            return '; '.join(p.sortname() for p in CourseOffering.objects.get(pk=pk).instructors())
+            return '; '.join(p.sortname_pref() for p in CourseOffering.objects.get(pk=pk).instructors())
         return _instr_str(self.pk)
 
     def instructors_printing(self):
@@ -1039,7 +1047,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     def instructors_printing_str(self):
         @cached(60*60*24*2)
         def _instr_printing_str(pk):
-            return '; '.join(p.sortname() for p in CourseOffering.objects.get(pk=pk).instructors_printing())
+            return '; '.join(p.sortname_pref() for p in CourseOffering.objects.get(pk=pk).instructors_printing())
         return _instr_printing_str(self.pk)
 
     def tas(self):
@@ -1154,12 +1162,12 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         """
         Should students and groups in this course get Subversion repositories created?
         """
-        if 'uses_svn' in self.config and self.config['uses_svn']:
-            return True
-
-        return self.subject == "CMPT" \
-            and ((self.semester.name == "1117" and self.number in ["470", "379", "882"])
-                 or (self.semester.name >= "1121" and self.number >= "200"))
+        return False
+        #if 'uses_svn' in self.config and self.config['uses_svn']:
+        #    return True
+        #return self.subject == "CMPT" \
+        #    and ((self.semester.name == "1117" and self.number in ["470", "379", "882"])
+        #         or (self.semester.name >= "1121" and self.number >= "200"))
 
     def export_dict(self, instructors=None):
         """

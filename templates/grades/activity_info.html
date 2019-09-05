@@ -47,7 +47,7 @@ Column logic:
 	oTable = $('#student_grades').dataTable({
                 "bPaginate": false,
 		"bJQueryUI": true,
-		"aaSorting": [[0, "asc"]],
+		"aaSorting": [[0, "asc"], [1, "asc"]],
 		"aoColumns": [
 		    null,
 		    null,
@@ -143,6 +143,9 @@ Column logic:
 	    {% endif %}
 	    {% if mark_comps %}
 	      <li><a href="{% url "offering:marking:import_marks" course_slug=course.slug activity_slug=activity.slug%}">Import Marking Details</a></li>
+	    {% endif %}
+	    {% if activity.can_check_similarity %}
+	      <li><a href="{% url "grades:similarity:similarity" course_slug=course.slug activity_slug=activity.slug%}">Code Similarity Reports</a></li>
 	    {% endif %}
 
 	    <li class="newsec"><a href="{% url "offering:activity_stat" course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 

@@ -2,7 +2,7 @@
 {% load currency %}
 {% load bu %}
 {% load form_display %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}TA Contract : {{contract}}{% endblock %}
 {% block h1 %}TA Contract : {{contract}}{% endblock %}
@@ -111,11 +111,17 @@ $(document).ready(function() {
     <p>
     Signing the contract will lock it, disallowing any further changes.
     </p>
+    {% if contract.visa_verified %}
     <button type="submit" class="btn" style="float:right;">
         <i class="fa fa-lock"></i>
         &nbsp;
         Sign the Contract
     </button>
+    {% else %}
+        <p>You cannot mark this contract as signed, as the visa information has not been verified.
+        If you have verified the visa information, please edit the contract and mark it as such, otherwise you would
+        never be able to print the contract.</p>
+    {% endif %}
     <div style="clear:both;"></div>
 </form>
 {% endif %}

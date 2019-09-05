@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Manage Categories{% endblock %}
+{% block h1 %}Manage Categories{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#categories').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "bJQueryUI": true,
+    'aaSorting': [[0, 'asc']]
+  });
+
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li>Manage Categories</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "advising:add_category" %}">Add Category</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    {% if categories %}
+        <table id="categories" class="display">
+            <thead>
+                <tr>
+                    <td>Label</td>
+                    <td>Unit</td>
+                    <td>Description</td>
+                    <td>Actions</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                    <tr>
+                        <td>{{ category.label }}</td>
+                        <td>{{ category.unit }}</td>
+                        <td>{{ category.description }}</td>
+                        <td><form class="lineform" method="POST"
+                              action="{% url "advising:delete_category" category_slug=category.slug %}">
+                                {% csrf_token %}
+                                <button type='submit' class='btn confirm-submit' title="Delete category" data-submit-action="remove this category">
+                                    <i class='fa fa-trash-o'></i>
+                                </button>
+                            </form>
+                            <a class="lineform" href="{% url "advising:edit_category" category_slug=category.slug %}">
+                                <button type='submit' class='btn' title="Edit category">
+                                    <i class='fa fa-edit'></i>
+                                </button>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <div>There are no categories to display.  You probably want to <a href={% url "advising:add_category" %}>add one</a>.</div>
+    {% endif %}
+{% endblock %}

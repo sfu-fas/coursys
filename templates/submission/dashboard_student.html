@@ -1,10 +1,33 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Submission for {{activity.name}}{% endblock %}
 {% block h1 %}Submission for {{activity.name}}{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{course.name}}</a></li><li><a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li><li>Submission</li>{% endblock %}
 
+
+{% block headextra %}
+    <link rel="stylesheet" href="{% static 'codemirror/lib/codemirror.css' %}" />
+    <link rel="stylesheet" href="{% static 'codemirror/theme/eclipse.css' %}" />
+    <script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
+    {% for data in component_form_list %}{% if data.comp.is_live_code %} {# codemirror mode <script> elements for livecode #}
+        {{ data.comp.mode_script_element }}
+    {% endif %}{% endfor %}
+    <script nonce="{{ CSP_NONCE }}">
+    var cm;
+    function activate_codemirror() {
+        $('dd.livecode').each(function(i, dd) {
+            dd = $(dd);
+            var ta = dd.find('textarea').get(0);
+            var mode = dd.attr('data-mode');
+            dd.css('float', 'none'); // TODO: ug, our CSS
+            cm = CodeMirror.fromTextArea(ta, {'mode': mode});
+        });
+    }
+    $(document).ready(activate_codemirror);
+    </script>
+{% endblock %}
 
 {% block actions %}
 {% if any_submissions %}
@@ -59,7 +82,7 @@
                         <legend>{{data.comp.title}}</legend>
                         <dl class="inline">
                         {% for f in data.form.visible_fields %}
-                        <dt>{{ f.label }}</dt><dd>{{ f }}{% if f.help_text %}<p class="helptext">{{ f.help_text }}</p>{% endif %}</dd>
+                        <dt>{{ f.label }}</dt><dd{% if data.comp.is_live_code %} class="livecode" data-mode="{{ data.comp.language }}"{% endif %}>{{ f }}{% if f.help_text %}<p class="helptext">{{ f.help_text }}</p>{% endif %}</dd>
                         {% endfor %}
                         {% if data.comp.description %}<dt>Description</dt><dd>{{data.comp.description|linebreaksbr}}</dd>{% endif %}
                         {% if data.comp.max_size %}<dt>Max File Size</dt><dd>{{data.comp.max_size}} KB</dd>{% endif %}

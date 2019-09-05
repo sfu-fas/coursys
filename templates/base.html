@@ -1,6 +1,6 @@
 {% comment %}
 Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate/important-forms.html
-{% endcomment %}{% load staticfiles %}{% load compress %}<!DOCTYPE html>
+{% endcomment %}{% load static %}{% load compress %}<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -14,14 +14,15 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
   <link rel="stylesheet" href="{% static "jquery-ui/jquery-ui.min.css" %}" />
   <link rel="stylesheet" href="{% static "style/print.css" %}" />
   <link rel="stylesheet" href="{% static "font-awesome/css/font-awesome.min.css" %}" />
+  <link rel="stylesheet" href="{% static "datatables/media/css/jquery.dataTables.css" %}" />
   {% endcompress %}
 
   {% compress js %}
-  <script src="{% static "jquery.min.js" %}"></script>
+  <script src="{% static "jquery/dist/jquery.min.js" %}"></script>
   <script src="{% static "jquery-ui/jquery-ui.min.js" %}"></script>
-  <script src="{% static "datatables/js/jquery.dataTables.min.js" %}"></script>
+  <script src="{% static "datatables/media/js/jquery.dataTables.min.js" %}"></script>
   <script src="{% static "js/core.js" %}"></script>
-  <script src="{% static "collapsible/js/jQuery.collapsible.js" %}"></script>
+  <script src="{% static "jquery-ext/jQuery.collapsible.js" %}"></script>
   {% endcompress %}
 
   <!--[if lt IE 9]>

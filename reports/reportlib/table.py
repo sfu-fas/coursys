@@ -501,7 +501,7 @@ class Table():
 
     @staticmethod
     def asciify(thing):
-        if type(thing) is str:
+        if type(thing) is bytes:
             return thing.encode('ascii', 'ignore')
         if type(thing) is not str:
             return str(thing)
@@ -564,7 +564,7 @@ class Table():
         writer = csv.writer( open(location, 'wt', encoding='utf8') )
         writer.writerow( self.headers )
         for row in self.rows:
-            writer.writerow( [Table.utf8(x) for x in row] )
+            writer.writerow(row)
     
     @staticmethod
     def from_csv(location):
@@ -593,7 +593,7 @@ class Table():
     def to_unicode(thing):
         if type(thing) is str:
             return thing
-        if type(thing) is str:
+        elif type(thing) is bytes:
             return str( thing, 'utf-8' )
         else: 
             return str( thing )

@@ -12,7 +12,7 @@
   "unit": 5
  },
  "model": "space.roomtype",
- "pk": 5
+ "pk": 1
 },
 {
  "fields": {
@@ -21,6 +21,7 @@
   "category": "STAFF",
   "comments": "This is the room with the thing",
   "config": "{}",
+  "field": null,
   "floor": 9,
   "hidden": false,
   "infrastructure": "STD",
@@ -28,13 +29,14 @@
   "own_or_lease": "OWN",
   "room_capacity": 10,
   "room_number": "9971",
-  "room_type": 5,
+  "room_type": 1,
+  "safety_items": [],
   "slug": "cmpt-brnby-asb-9-9971",
   "square_meters": "6.00",
   "unit": 5
  },
  "model": "space.location",
- "pk": 3
+ "pk": 1
 },
 {
  "fields": {
@@ -42,14 +44,15 @@
   "end_time": "2099-01-01T23:59:59",
   "form_submission_URL": null,
   "hidden": false,
-  "last_modified": "2017-10-10T11:48:10.926",
+  "last_modified": "2019-05-13T15:28:01.173",
   "last_modified_by": null,
-  "location": 3,
-  "person": 17,
+  "location": 1,
+  "notes": null,
+  "person": 18,
   "slug": "cmpt-brnby-asb-9-9971-0ggg1-2010-01-01",
   "start_time": "2010-01-01T00:00:00"
  },
  "model": "space.bookingrecord",
- "pk": 15
+ "pk": 1
 }
 ]

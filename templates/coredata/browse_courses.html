@@ -1,6 +1,6 @@
 {% extends "base-wide.html" %}
 {% load browser_display %}
-{% load staticfiles %}
+{% load static %}
 {% load compress %}
 
 {% block title %}Browse Course Offerings{% endblock %}
@@ -10,8 +10,8 @@
 
 {% block headextra %}
 {% compress js %}
-<script src="{% static "jquery-ext/jquery.ba-bbq.min.js" %}"></script>
-<script src="{% static "js/browse.js" %}"></script>
+<script src="{% static 'jquery-ext/jquery.ba-bbq.min.js' %}"></script>
+<script src="{% static 'js/browse.js' %}"></script>
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   browser_ready('{% url "browse:browse_courses" %}');
@@ -32,6 +32,7 @@ $(document).ready(function() {
 {{ form.mode|browser_field }}
 {{ form.crstitle|browser_field }}
 {{ form.wqb|browser_field }}
+{{ form.space|browser_field }}
 </ul>
 </form>
 
@@ -41,7 +42,7 @@ $(document).ready(function() {
     <th scope="col">Semester</th>
     <th scope="col">Course</th>
     <th scope="col">Title</th>
-    <th scope="col">Enroll</th>
+    <th scope="col" title="updated overnight only: see goSFU for updated data">Enroll [?]</th>
     <th scope="col">Instructor(s)</th>
     <th scope="col">Campus</th>
   </tr></thead>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% load staticfiles %}
+{% load static %}
 {% load currency %}
 {% load bu %}
 
@@ -50,6 +50,9 @@ function confirmDelete() {
         <li><a href="{% url "tacontracts:bulk_email" unit_slug=unit_slug semester=semester %}">Bulk Email</a></li>
         <li><a href="{% url "tacontracts:list_all_contracts_by_course" unit_slug=unit_slug semester=semester %}">All Contracts by Course</a></li>
         <li><a href="{% url "tacontracts:view_financials" unit_slug=unit_slug semester=semester %}">View Course Financials</a></li>
+        {% endif %}
+        {% if signed_contracts %}
+            <li><a href="{% url "tacontracts:print_all_contracts" unit_slug=unit_slug semester=semester %}">Print All Signed Contracts</a></li>
         {% endif %}
     </ul>
 </div>

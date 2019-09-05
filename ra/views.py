@@ -13,6 +13,7 @@ from coredata.queries import more_personal_info, SIMSProblem
 from courselib.auth import requires_role, has_role, ForbiddenResponse, user_passes_test
 from courselib.search import find_userid_or_emplid, get_query
 from grad.models import GradStudent, Scholarship
+from visas.models import Visa
 from log.models import LogEntry
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
@@ -134,6 +135,10 @@ def new(request):
             appointment = raform.save(commit=False)
             appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
             appointment.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Added RA appointment %s." % appointment,
+                         related_object=appointment)
+            l.save()
             messages.success(request, 'Created RA Appointment for ' + appointment.person.name())
             return HttpResponseRedirect(reverse('ra:student_appointments', kwargs=({'userid': userid})))
     else:
@@ -194,6 +199,10 @@ def edit(request, ra_slug):
             appointment = raform.save(commit=False)
             appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
             appointment.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Edited RA appointment %s." % appointment,
+                         related_object=appointment)
+            l.save()
             messages.success(request, 'Updated RA Appointment for ' + appointment.person.first_name + " " + appointment.person.last_name)
             return HttpResponseRedirect(reverse('ra:student_appointments', kwargs=({'userid': userid})))
     else:
@@ -307,7 +316,7 @@ def letter(request, ra_slug):
     letter = OfficialLetter(response, unit=appointment.unit)
     contents = LetterContents(
         to_addr_lines=[appointment.person.name(), 'c/o '+appointment.unit.name], 
-        from_name_lines=[appointment.hiring_faculty.first_name + " " + appointment.hiring_faculty.last_name, appointment.unit.name], 
+        from_name_lines=[appointment.hiring_faculty.letter_name(), appointment.unit.name],
         closing="Yours Truly", 
         signer=appointment.hiring_faculty,
         cosigner_lines=['I agree to the conditions of employment', appointment.person.first_name + " " + appointment.person.last_name])
@@ -516,7 +525,7 @@ class RADataJson(BaseDatatableView):
         srch = GET.get('sSearch', None)
         if srch:
             # get RA set from haystack, and use it to limit our query.
-            ra_qs = SearchQuerySet().models(RAAppointment).filter(text=srch)[:500]
+            ra_qs = SearchQuerySet().models(RAAppointment).filter(text__fuzzy=srch)[:500]
             ra_qs = [r for r in ra_qs if r is not None]
             if ra_qs:
                 # ignore very low scores: elasticsearch grabs too much sometimes
@@ -549,7 +558,7 @@ class RADataJson(BaseDatatableView):
 def download_ras(request, current=True):
     ras = RAAppointment.objects.filter(Q(unit__in=request.units)
                                        | Q(hiring_faculty__userid=request.user.username))\
-        .select_related('person', 'hiring_faculty', 'unit').exclude(deleted=True)
+        .select_related('person', 'hiring_faculty', 'unit', 'project', 'account').exclude(deleted=True)
     if current:
         today = datetime.date.today()
         slack = 14  # number of days to fudge the start/end
@@ -559,11 +568,9 @@ def download_ras(request, current=True):
     response['Content-Disposition'] = 'inline; filename="ras-%s-%s.csv"' % (datetime.datetime.now().strftime('%Y%m%d'),
                                                                             'current' if current else 'all')
     writer = csv.writer(response)
-    writer.writerow(['Name', 'Hiring Faculty', 'Unit', 'Project', 'Account', 'Start Date', 'End Date', 'Amount'])
+    writer.writerow(['Name', 'ID', 'Hiring Faculty', 'Unit', 'Project', 'Account', 'Start Date', 'End Date', 'Amount'])
     for ra in ras:
-        person = str('%s, %s' % (ra.person.last_name, ra.person.first_name))
-        faculty = str('%s, %s' % (ra.hiring_faculty.last_name, ra.hiring_faculty.first_name))
-        writer.writerow([person, faculty, ra.unit.label, ra.project, ra.account, ra.start_date, ra.end_date, ra.lump_sum_pay])
+        writer.writerow([ra.person.sortname(), ra.person.emplid, ra.hiring_faculty.sortname(), ra.unit.label, ra.project, ra.account, ra.start_date, ra.end_date, ra.lump_sum_pay])
     return response
 
 
@@ -646,6 +653,29 @@ def person_info(request):
         except SIMSProblem as e:
             result['error'] = str(e)
 
+    return HttpResponse(json.dumps(result), content_type='application/json;charset=utf-8')
+
+
+@requires_role("FUND")
+def person_visas(request):
+    """
+    Get info on this person's current visas, for info in the new RA appointment form.
+    """
+    result = {'visas': []}
+    emplid = request.GET.get('emplid', None)
+    if not emplid or not emplid.isdigit() or len(emplid) != 9:
+        pass
+    else:
+        visas = []
+        personvisas = Visa.objects.visible().filter(person__emplid=emplid, unit__in=request.units)
+        for v in personvisas:
+            if v.is_current():
+                data = {
+                    'start': v.start_date.isoformat(),
+                    'status': v.status,
+                }
+                visas.append(data)
+        result['visas'] = visas
     return HttpResponse(json.dumps(result), content_type='application/json;charset=utf-8')
 
 

@@ -29,6 +29,7 @@
     <ul>
         <li><a href="{% url "onlineforms:summary_csv" form_slug=form.slug %}">Summary of completed submissions</a></li>
         <li><a href="{% url "onlineforms:pending_summary_csv" form_slug=form.slug %}">Summary of pending submissions</a></li>
+        <li><a href="{% url "onlineforms:waiting_summary_csv" form_slug=form.slug %}">Summary of waiting submissions</a></li>
     </ul>
 </div>{% endblock %}
 

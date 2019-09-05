@@ -51,6 +51,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_cas_ng',
     'compressor',
     'haystack',
     'djcelery_email',
@@ -100,7 +101,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'courselib.middleware.ExceptionIgnorer',
-    'django_cas.middleware.CASMiddleware',
+    'django_cas_ng.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
     'courselib.csp.CSPMiddleware',
 ]
@@ -121,7 +122,7 @@ TEMPLATES = [
 ]
 
 AUTHENTICATION_BACKENDS = (
-    'django_cas.backends.CASBackend',
+    'django_cas_ng.backends.CASBackend',
 )
 OAUTH_AUTHORIZE_VIEW = 'api.views.oauth_authorize'
 OAUTH_CALLBACK_VIEW = 'api.views.oauth_callback'
@@ -222,6 +223,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static', 'static')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'npm.finders.NpmFinder',
     'compressor.finders.CompressorFinder',
 )
 STATICFILES_DIRS = (
@@ -230,7 +232,8 @@ STATICFILES_DIRS = (
 COMPRESS_ENABLED = getattr(localsettings, 'COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter']
 COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
-COMPRESS_ROOT = STATIC_ROOT
+COMPRESS_ROOT = getattr(localsettings, 'COMPRESS_ROOT', STATIC_ROOT)
+NPM_ROOT_PATH = getattr(localsettings, 'NPM_ROOT_PATH', '.')
 
 # production-like vs development settings
 if DEPLOY_MODE in ['production', 'proddev']:
@@ -238,6 +241,8 @@ if DEPLOY_MODE in ['production', 'proddev']:
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': '127.0.0.1:11211',
     } }
+    if getattr(localsettings, 'MEMCACHED_HOST', None):
+        CACHES['default']['LOCATION'] = localsettings.MEMCACHED_HOST
     HAYSTACK_CONNECTIONS = {
         'default': {
             'ENGINE': 'courselib.elasticsearch_backend.CustomElasticsearchSearchEngine',
@@ -314,6 +319,7 @@ if USE_CELERY:
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
     CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+    DJANGO_CELERY_BEAT_TZ_AWARE = USE_TZ
     CELERYD_TASK_SOFT_TIME_LIMIT = 1200
     CELERY_ENABLE_UTC = True
 
@@ -335,7 +341,8 @@ if USE_CELERY:
 
 MAX_SUBMISSION_SIZE = 30000 # kB
 CAS_SERVER_URL = "https://cas.sfu.ca/cas/"
-CAS_VERSION = '2'
+CAS_VERSION = '3'
+CAS_LOGIN_MSG = None
 EMAIL_HOST = 'localhost'
 DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
@@ -345,6 +352,7 @@ SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')
 SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
+MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)
 
 #PIWIK_URL = getattr(secrets, 'PIWIK_URL', None)
 #PIWIK_TOKEN = getattr(secrets, 'PIWIK_TOKEN', None)
@@ -385,9 +393,10 @@ LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_logg
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
-if (DEPLOY_MODE != 'production' or DEBUG) and hostname != 'courses':
+FORCE_CAS = getattr(localsettings, 'FORCE_CAS', False)
+if not FORCE_CAS and (DEPLOY_MODE != 'production' or DEBUG) and hostname != 'courses':
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
-    MIDDLEWARE.remove('django_cas.middleware.CASMiddleware')
+    MIDDLEWARE.remove('django_cas_ng.middleware.CASMiddleware')
     PASSWORD_LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', True)

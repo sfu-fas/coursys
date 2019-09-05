@@ -95,8 +95,7 @@
           	  {{ appointment.end_date|date:GRAD_DATE_FORMAT }}</td>
           <td>{{ appointment.account.title }}</td>
           <td>{{ appointment.get_pay_frequency_display }}</td>
-          <td>{{ appointment.hiring_faculty.last_name}}, 
-              {{ appointment.hiring_faculty.first_name }}</td>
+          <td>{{ appointment.hiring_faculty.sortname }}</td>
           <td><a href="{% url "ra:view" ra_slug=appointment.slug %}">View </a> |
               <a href="{% url "ra:edit" ra_slug=appointment.slug %}">Edit</a> |
               <a href="{% url "ra:edit_letter" ra_slug=appointment.slug %}">Edit Letter</a> |

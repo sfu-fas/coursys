@@ -11,4 +11,5 @@ discussion_patterns = [ # prefix /COURSE_SLUG/discussion/
     url(r'^topic/(?P<topic_slug>' + SLUG_RE + ')/change$', discuss_views.change_topic_status, name='change_topic_status'),
     url(r'^topic/(?P<topic_slug>' + SLUG_RE + ')/remove/(?P<message_slug>' + SLUG_RE + ')$', discuss_views.remove_message, name='remove_message'),
     url(r'^topic/(?P<topic_slug>' + SLUG_RE + ')/edit/(?P<message_slug>' + SLUG_RE + ')$', discuss_views.edit_message, name='edit_message'),
+    url(r'^download_json$', discuss_views.download, name='download'),
 ]

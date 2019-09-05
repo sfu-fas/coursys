@@ -1056,7 +1056,7 @@ LETTER_TAGS = {
 
 SUPERVISOR_TYPE_CHOICES = [
     ('SEN', 'Senior Supervisor'),
-    ('COS', 'Co-senior Supervisor'),
+    ('COS', 'Co-Supervisor'),
     ('COM', 'Supervisor'),
     ('CHA', 'Defence Chair'),
     ('EXT', 'External Examiner'),
@@ -1535,7 +1535,7 @@ class ProgressReport(models.Model):
 
 
 def attachment_upload_to(instance, filename):
-    return upload_path('gradnotes', str(datetime.date.today().year), filename)
+    return upload_path('gradnotes', filename)
 
 
 class ExternalDocument(models.Model):

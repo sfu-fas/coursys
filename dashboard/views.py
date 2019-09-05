@@ -1,10 +1,9 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponseForbidden
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.template import TemplateDoesNotExist
-from django.views.decorators.cache import cache_page
 from django.views.decorators.gzip import gzip_page
 from django.conf import settings
 from django.contrib import messages
@@ -22,6 +21,7 @@ from discuss.models import DiscussionTopic
 from onlineforms.models import FormGroup
 from pages.models import Page, ACL_ROLES
 from ra.models import RAAppointment
+from reports.models import AccessRule
 from log.models import LogEntry
 import datetime, json, urllib.parse
 from courselib.auth import requires_role
@@ -35,6 +35,7 @@ import pytz
 import itertools
 import iso8601
 from urllib.parse import urlencode
+from urllib.error import HTTPError
 
 
 @login_required
@@ -49,6 +50,7 @@ def index(request):
     has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).exists()
     form_groups = FormGroup.objects.filter(members__userid=request.user.username).exists()
     has_ras = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username, deleted=False).exists()
+    has_reports = AccessRule.objects.filter(person__userid=request.user.username).exists()
 
     # Only CMPT admins should see the one different TA module.  Only non-CMPT TA Admins should see the other.
     # re-factored to take into account the very few people who should see both (mainly FAS Departmental Admins)
@@ -66,7 +68,8 @@ def index(request):
                'form_groups': form_groups,
                'cmpt_taadmn': cmpt_taadmn,
                'other_taadmn': other_taadmn,
-               'is_instructor': is_instructor}
+               'is_instructor': is_instructor,
+               'has_reports': has_reports}
     return render(request, "dashboard/index.html", context)
 
 @login_required
@@ -134,53 +137,44 @@ def fake_logout(request):
     return HttpResponseRedirect('/')
 
 
-# copy of django_cas.views.login that doesn't do a message, but does a LogEntry
-from django_cas.views import _redirect_url, _service_url, _login_url, HttpResponseForbidden
-def login(request, next_page=None, required=False):
-    """Forwards to CAS login URL or verifies CAS ticket
+from django_cas_ng.views import LoginView as CasLoginView
+class LoginView(CasLoginView):
+    def successful_login(self, request, next_page):
+        # create a LogEntry when users log in
+        user = request.user
+        l = LogEntry(userid=user.username,
+                     description=("logged in as %s from %s") % (user.username, ip.get_ip(request)),
+                     related_object=user)
+        l.save()
+        return super().successful_login(request, next_page)
 
-    Modified locally: honour next=??? in query string, don't deliver a message, catch IOError, generate LogEntry
-    """
-    if not next_page and 'next' in request.GET:
-        next_page = request.GET['next']
-    if not next_page:
-        next_page = _redirect_url(request)
-    if request.user.is_authenticated:
-        #message = "You are logged in as %s." % request.user.username
-        #messages.success(request, message)
-        return HttpResponseRedirect(next_page)
-    ticket = request.GET.get('ticket')
-    service = _service_url(request, next_page)
-    if ticket:
-        from django.contrib import auth
+    def get(self, request):
+        # Override to catch exceptions caused by CAS server not responding, which happens and is beyond our control.
         try:
-            user = auth.authenticate(ticket=ticket, service=service, request=request)
+            return super().get(request)
         except IOError as e:
-            # Here we want to catch only: connection reset, timeouts, name or service unknown
+            # Ignore a minimal set of errors we have actually seen result from CAS outages
             if e.errno in [104, 110, 'socket error']:
-                user = None
+                pass
+
+            # HTTPError is a subclass of OSError, which IOError is an alias for.
+            # Sometimes, the CAS server seems to just return a 500 internal server error.  Let's handle that the
+            # same way as the above case.
+            elif isinstance(e, HTTPError):
+                if e.code == 500:
+                    pass
+                else:
+                    # Any other HTTPError should bubble up and let us know something horrible has happened.
+                    raise HTTPError("Got an HTTP Error when authenticating. The error is: {0!s}.".format(e))
+
             else:
                 raise IOError("The errno is %r: %s." % (e.errno, str(e)))
+
         except ParseError:
-            user = None
+            pass
 
-        if user is not None:
-            auth.login(request, user)
-            #LOG EVENT#
-            l = LogEntry(userid=user.username,
-                  description=("logged in as %s from %s") % (user.username, ip.get_ip(request)),
-                  related_object=user)
-            l.save()
-            return HttpResponseRedirect(next_page)
-        elif settings.CAS_RETRY_LOGIN or required:
-            return HttpResponseRedirect(_login_url(service))
-        else:
-            error = "<h1>Forbidden</h1><p>Login failed.</p>"
-            return HttpResponseForbidden(error)
-    else:
-        return HttpResponseRedirect(_login_url(service))
-
-
+        error = "<h1>Forbidden</h1><p>Login failed because of a CAS error.</p>"
+        return HttpResponseForbidden(error)
 
 
 @login_required
@@ -216,31 +210,29 @@ def config(request):
         newsconfig = configs[0].value
     
     # advisor note API config
-    advisortoken = None
     advisor = False
-    if has_role('ADVS', request):
+    if has_role('ADVS', request) or has_role('ADVM', request):
         advisor = True
         configs = UserConfig.objects.filter(user=user, key='advisor-token')
-        if len(configs) > 0:
-            advisortoken = configs[0].value['token']
-    
+
     # ID photo agreement
     instructor = False
-    photo_agreement = False
     if Member.objects.filter(person=user, role__in=['INST', 'TA']).count() > 0:
         instructor = True
         configs = UserConfig.objects.filter(user=user, key='photo-agreement')
-        if len(configs) > 0:
-            photo_agreement = configs[0].value['agree']
 
     # privacy config
     roles = Role.all_roles(user.userid)
     roles_with_privacy = [r for r in roles if r in PRIVACY_ROLES]
     privacy_visible = len(roles_with_privacy) > 0
 
-    context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'advisor': advisor, 'advisortoken': advisortoken, 
-             'instructor': instructor, 'photo_agreement': photo_agreement, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL,
-             'privacy_visible': privacy_visible}
+    # DA Privacy config
+    roles_with_da_privacy = [r for r in roles if r == 'ADMN']
+    da_privacy_visible = len(roles_with_da_privacy) > 0
+
+    context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'advisor': advisor,
+             'instructor': instructor, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL,
+             'privacy_visible': privacy_visible, 'da_privacy_visible': da_privacy_visible}
     return render(request, "dashboard/config.html", context)
 
 
@@ -250,7 +242,6 @@ def _get_news_list(userid, count):
 
 
 @uses_feature('feeds')
-@cache_page(60 * 15)
 def atom_feed(request, token, userid, course_slug=None):
     """
     Return an Atom feed for this user, authenticated by the token in the URL
@@ -399,8 +390,9 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
     """
     Data needed to render either calendar AJAX or iCalendar.  Yields series of event dictionaries.
     """
-    memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP").exclude(role="APPR") \
-            .filter(offering__semester__start__lte=end, offering__semester__end__gte=start-datetime.timedelta(days=30))
+    memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP").exclude(role="APPR")\
+        .exclude(offering__component="CAN").filter(offering__semester__start__lte=end,
+                                                   offering__semester__end__gte=start-datetime.timedelta(days=30))
             # start - 30 days to make sure we catch exam/end of semester events
     classes = set((m.offering for m in memberships))
     labsecs = dict(((m.offering_id, m.labtut_section) for m in memberships))
@@ -447,7 +439,6 @@ def _ical_datetime(utc, dt):
         return dt
 
 @uses_feature('feeds')
-@cache_page(60*60*6)
 def calendar_ical(request, token, userid):
     """
     Return an iCalendar for this user, authenticated by the token in the URL
@@ -837,7 +828,6 @@ def view_doc(request, doc_slug):
 # public data, so no authentication done
 @uses_feature('feeds')
 @gzip_page
-@cache_page(60 * 60 * 6)
 def courses_json(request, semester):
     offerings = CourseOffering.objects.filter(semester__name=semester)\
         .exclude(component="CAN").exclude(flags=CourseOffering.flags.combined) \
@@ -930,8 +920,13 @@ def photo_agreement(request):
             return HttpResponseRedirect(url)
     else:
         form = PhotoAgreementForm({'agree': config.value['agree']})
-        
-    context = {"form": form}
+
+    if 'at' in config.value:
+        agree_date = datetime.datetime.strptime(config.value['at'], '%Y-%m-%dT%H:%M:%S.%f')
+    else:
+        agree_date = None
+
+    context = {"form": form, 'agree': config.value['agree'], 'agree_date': agree_date}
     return render(request, "dashboard/photo_agreement.html", context)
 
 
@@ -962,7 +957,7 @@ def _query_results(query, person):
     if person:
         members = Member.objects.filter(person=person).exclude(role='DROP').select_related('offering')
         offering_slugs = set(m.offering.slug for m in members)
-        offering_results = SearchQuerySet().models(CourseOffering).filter(text=query) # offerings that match the query
+        offering_results = SearchQuerySet().models(CourseOffering).filter(text__fuzzy=query) # offerings that match the query
         offering_results = offering_results.filter(slug__in=offering_slugs) # ... and this person was in
     else:
         members = []
@@ -975,12 +970,12 @@ def _query_results(query, person):
         member_acl = set("%s_%s" % (m.offering.slug, acl) for acl in ACL_ROLES[m.role] if acl != 'ALL')
         page_acl |= member_acl
 
-    page_results = SearchQuerySet().models(Page).filter(text=query) # pages that match the query
+    page_results = SearchQuerySet().models(Page).filter(text__fuzzy=query) # pages that match the query
     page_results = page_results.filter(permission_key__in=page_acl) # ... and are visible to this user
 
     # discussion this person can view (discussion.DiscussionTopic)
     if person:
-        discuss_results = SearchQuerySet().models(DiscussionTopic).filter(text=query) # discussions that match the query
+        discuss_results = SearchQuerySet().models(DiscussionTopic).filter(text__fuzzy=query) # discussions that match the query
         discuss_results = discuss_results.filter(slug__in=offering_slugs) # ... and this person was in
     else:
         discuss_results = []
@@ -990,7 +985,7 @@ def _query_results(query, person):
         .select_related('offering')
     if person and instr_members:
         offering_slugs = set(m.offering.slug for m in instr_members)
-        member_results = SearchQuerySet().models(Member).filter(text=query) # members that match the query
+        member_results = SearchQuerySet().models(Member).filter(text__fuzzy=query) # members that match the query
         member_results = member_results.filter(offering_slug__in=offering_slugs) # ... and this person was the instructor for
         member_results = member_results.load_all()
     else:

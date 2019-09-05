@@ -362,6 +362,11 @@ class TAContract(models.Model):
         else:
             for course in self.course.all():
                 course.delete()
+            for receipt in self.email_receipt.all():
+                receipt.delete()
+            for attachment in self.attachments.all():
+                attachment.delete()
+            self.sync_course_member()
             super(TAContract, self).delete(*args, **kwargs)
 
     def copy(self, created_by):
@@ -689,7 +694,7 @@ class EmailReceipt(models.Model):
 
 
 def tacontracts_attachment_upload_to(instance, filename):
-    return upload_path('taattachments', str(instance.contract.appointment_start.year), filename)
+    return upload_path('taattachments', filename)
 
 
 class TAContractAttachmentQueryset(models.QuerySet):

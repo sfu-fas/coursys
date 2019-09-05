@@ -1,51 +1,124 @@
 {% extends "base.html" %}
-{% block title %}All Visits{% endblock %}
-{% block h1 %}All Visits{% endblock %}
+
+{% block title %}{% if mine %}My Visits{% elif admin %}All Visits{% endif %}{% endblock %}
+{% block h1 %}{% if mine %}My Visits{% elif admin %}All Visits{% endif %}{% endblock %}
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
 $(function() {
   $('.display').dataTable( {
-    'bPaginate': false,
     'bInfo': false,
     'bLengthChange': true,
     "bJQueryUI": true,
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
+    'aaSorting': [[0, 'desc']]
   } );
-
-  offering_autocomplete('id_course', true);
 } );
 </script>
 {% endblock %}
 
+{% block actions %}
+    <div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        {% if mine %}
+        <li><a href="{% url "advising:download_my_visits" %}">Download CSV</a></li>
+        {% elif admin %}
+        <li><a href="{% url "advising:download_all_visits" %}">Download CSV</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li><a href="{% url "advising:advising" %}">Advising</a></li>
-<li>All Visits</li>
+<li>{% if mine %}My Visits{% elif admin %}All Visits{% endif %}</li>
 {% endblock %}
 
 {% block content %}
 
+{% if visits %}
+    <div id="messages"><ul><li class="warning">Only showing up to the last 5000 visits due to database limitations.</li></ul></div>
 <table class="display visits">
     <thead>
         <tr>
-            <th scope="col">At</th>
+            <th scope="col">Start</th>
+            <th scope="col">End</th>
+            <th scope="col">Duration</th>
+            <th scope="col">Campus</th>
             <th scope="col">Student</th>
-            <!--<th scope="col">Unit</th>-->
             <th scope="col">Advisor</th>
+            <th scope="col">Categories</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         {% for visit in visits %}
         <tr>
             <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
+            <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
+            <td>{{ visit.get_duration }}</td>
+            <td>{{ visit.get_campus_display }}</td>
             <td>
-                {% if visit.student %}{{ visit.student.sortname }}{% endif %}
-                {% if visit.nonstudent %}{{ visit.nonstudent.sortname }}{% endif %}
+                {% if visit.student %}<a href="{% url "advising:student_notes" userid=visit.get_userid %}">{{ visit.student.sortname }} ({{ visit.student.emplid }})</a>{% endif %}
+                {% if visit.nonstudent %}<a href="{% url "advising:student_notes" nonstudent_slug=visit.get_userid %}">{{ visit.nonstudent.sortname }}</a>{% endif %}
             </td>
-            <!--<td>{{ visit.program.label }}</td>-->
             <td>{{ visit.advisor.sortname }}</td>
+            <td>{{ visit.categories_display }}</td>
+            <td style="min-width: 100px">
+                {% if mine %}
+                <form class="lineform" method="POST" action="{% url "advising:delete_visit_mine" visit_slug=visit.slug %}">
+                {% csrf_token %}<button type='submit' class='btn confirm-submit' title="Delete visit" data-submit-action="delete this visit">
+                        <i class='fa fa-trash-o'></i>
+                    </button>
+                </form>
+                {% endif %}
+                {% if admin %}
+                <form class="lineform" method="POST" action="{% url "advising:delete_visit_admin" visit_slug=visit.slug %}">
+                {% csrf_token %}<button type='submit' class='btn confirm-submit' title="Delete visit" data-submit-action="delete this visit">
+                        <i class='fa fa-trash-o'></i>
+                    </button>
+                </form>
+                {% endif %}
+                <a class="lineform" href="{% url "advising:view_visit" visit_slug=visit.slug %}">
+                    <button type='submit' class='btn' title="View visit">
+                        <i class='fa fa-eye'></i>
+                    </button>
+                </a>
+                {% if mine %}
+                <a class="lineform" href="{% url "advising:edit_visit_subsequent" visit_slug=visit.slug %}">
+                    <button type='submit' class='btn' title="Edit visit">
+                        <i class='fa fa-edit'></i>
+                    </button>
+                </a>
+                {% elif admin %}
+                <a class="lineform" href="{% url "advising:edit_visit_admin" visit_slug=visit.slug %}">
+                    <button type='submit' class='btn' title="Edit visit">
+                        <i class='fa fa-edit'></i>
+                    </button>
+                </a>
+                {% endif %}
+                {% if mine and not visit.end_time %}
+                <form class="lineform" method="POST" action="{% url "advising:end_visit_mine" visit_slug=visit.slug %}">
+                {% csrf_token %}<button type='submit' class='btn' title="End visit now">
+                        <i class='fa fa-clock-o'></i>
+                    </button>
+                </form>
+                {% endif %}
+                {% if admin and not visit.end_time %}
+                <form class="lineform" method="POST" action="{% url "advising:end_visit_admin" visit_slug=visit.slug %}">
+                {% csrf_token %}<button type='submit' class='btn' title="End visit now">
+                        <i class='fa fa-clock-o'></i>
+                    </button>
+                </form>
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-
+{% else %}
+<h2>You have no visits to display.</h2>
+{% endif %}
 {% endblock %}

@@ -35,7 +35,7 @@ class APIConsumerPermissions(permissions.BasePermission):
             # re-find the Token, since it isn't stashed in the request
             # could be avoided if: http://code.larlet.fr/django-oauth-plus/issue/40/set-requestconsumer-and-requesttoken-to
             oauth_req = get_oauth_request(request)
-            token = Token.objects.get(key=oauth_req['oauth_token'], consumer__key=oauth_req['oauth_consumer_key'])
+            token = get_object_or_404(Token, key=oauth_req['oauth_token'], consumer__key=oauth_req['oauth_consumer_key'])
 
             # consumer must have asked for all of the permissions being used
             allowed_perms = ConsumerInfo.allowed_permissions(token)
@@ -89,6 +89,8 @@ from django.utils.cache import patch_response_headers, patch_cache_control
 from rest_framework.response import Response
 import hashlib
 MAX_KEY_LENGTH = 200
+
+
 class CacheMixin(object):
     """
     View mixin to cache responses based on username (whether they are authenticated by session, oauth, ...).
@@ -131,7 +133,7 @@ class CacheMixin(object):
         key = '#'.join(('CacheMixin', self.key_prefix, username, method, url))
         if len(key) > MAX_KEY_LENGTH:
             # make sure keys don't get too long
-            key = key[:(MAX_KEY_LENGTH - 33)] + '-' + hashlib.md5(key).hexdigest()
+            key = key[:(MAX_KEY_LENGTH - 33)] + '-' + hashlib.md5(key.encode('utf8')).hexdigest()
 
         return key
 

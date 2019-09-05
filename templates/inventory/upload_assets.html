@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block title %}Upload Assets{% endblock %}
+{% block h1 %}Upload Assets{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'inventory:inventory_index' %}">Inventory</a></li>
+<li>New Event</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'inventory:upload_assets' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <p>{{form|as_dl}}</p>
+    <p><input class ="submit" type="submit" value="Submit" /></p>
+</form>
+    <h2>File Format</h2>
+    <p>The file must be a CSV (comma-separated values) file with the following fields, in that order (do not include
+        a header row, just make sure they are in this order):</p>
+    <blockquote>
+<pre>name, unit, brand, description, serial number, asset tag, express service code, quantity,
+minimum re-order quantity, quantity on order, minimum vendor quantity, last order date, price,
+category, location, PR/PO number, account number, supplier/vendor, calibration/service date,
+end-of-life date, notes, service records, user, date shipped, in-use</pre>
+    </blockquote>
+    <p>The fields <pre>name, unit, category</pre> are required.  All others are optional, but a column must be included for
+        them.</p>
+    <h3>Notes for specific fields:</h3>
+    <table>
+    <tr>
+        <th>Field(s)</th>
+        <th>Notes</th>
+    </tr>
+    <tr>
+        <td>Unit</td>
+        <td>Use the abbreviation for the given unit.  For example, the Faculty of Applied Sciences abbreviation is
+            "APSC". Computing Science is "CMPT", Engineering is "ENSC", Sustainable Energy Engineering is "SEE". Don't
+            worry about capitalization, the code will check regardless.  This is at most 4 characters and will be
+            automatically truncated if you put in one that is too long.</td>
+    </tr>
+    <tr>
+        <td>All dates</td>
+        <td>The code will do its best to parse any common format.  You can use YYYY-MM-DD, YYYY/MM/DD, or even write
+            it out, e.g. 'January 25th, 2057', or anything similar.</td>
+    </tr>
+    <tr>
+        <td>Category</td>
+        <td>You must use one of our internal categories, the same ones visible in the drop-down when adding a single
+            asset via the system.  They are: Swag, Brochures, Events, General, Office Supplies, Teaching, Research,
+            Admin Support, Tech Support, and Electronics.  Don't worry about capitalization, the code will check
+            regardless.</td>
+    </tr>
+    <tr>
+        <td>All quantities</td>
+        <td>These should be whole numbers, obviously, not partials.  E.g. "4", not "4.3".</td>
+    </tr>
+    <tr>
+        <td>Price</td>
+        <td>Either a whole or floating number will work.  Do not add the dollar sign.  E.g. "4.5", "4", all work.  If
+        you've added more than 2 decimals (if the value was calculated, for example), the value will be rounded
+        properly.</td>
+    </tr>
+    <tr>
+        <td>User</td>
+        <td>You can supply either an employee ID (the 9 digit ID), or a user ID (not an email alias or role account).</td>
+    </tr>
+    <tr>
+        <td>In-Use</td>
+        <td>Any case-insensitive version of "Yes", "True", "Y", "T", "1" will be considered as being in use.  Either
+            leaving that field blank or putting any other value will be considered as not in use.</td>
+    </tr>
+    </table>
+    <p>All other fields are just plain text fields, and you can put in basically what you'd like in them. If you put in
+    longer blocks of text than what the regular form would let you, they will be truncated.</p>
+{% endblock %}

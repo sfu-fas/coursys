@@ -24,7 +24,7 @@ $(document).ready(function() {
     <li><a href="{% url "calendar:calendar" %}"><i class="fa fa-li fa-calendar"></i> View Calendar</a></li>
     
     {% if 'DISC' in roles %}<li><a href="{% url "discipline:chair_index" %}"><i class="fa fa-li fa-gavel"></i> Discipline Cases</a></li>{% endif %}
-    {% if 'ADVS' in roles %}<li><a href="{% url "advising:advising" %}"><i class="fa fa-li fa-comments"></i> Advisor Notes</a></li>{% endif %}
+    {% if 'ADVS' in roles or 'ADVM' in roles %}<li><a href="{% url "advising:advising" %}"><i class="fa fa-li fa-comments"></i> Advisor Notes</a></li>{% endif %}
     {% if 'OUTR' in roles %}<li><a href="{% url "outreach:outreach_index" %}"><i class="fa fa-li fa-university"></i> Outreach </a></li>{% endif %}
     {% if 'INV' in roles %}<li><a href="{% url "inventory:inventory_index" %}"><i class="fa fa-li fa-laptop"></i> Inventory </a></li>{% endif %}
     {% if 'SPAC' in roles %}<li><a href="{% url "space:index" %}"><i class="fa fa-li fa-building"></i> Space Management</a></li>{% endif %}
@@ -57,8 +57,8 @@ $(document).ready(function() {
 
     {% if 'SYSA' in roles %}
     <li><a href="{% url "sysadmin:sysadmin" %}"><i class="fa fa-li fa-bolt"></i> System Administration</a></li>{% endif %}
-    {% if 'REPV' in roles or 'SYSA' in roles %}
-    <li><a href="{% url "reports:view_reports" %}"><i class="fa fa-li fa-book"></i> Reporting Database</a></li>{% endif %}
+    {% if has_reports or 'REPV' in roles or 'SYSA' in roles %}
+    <li><a href="{% url "reports:view_reports" %}"><i class="fa fa-li fa-book"></i> Reports</a></li>{% endif %}
     
     <li class="newsec"><a href="{% url "config:config" %}"><i class="fa fa-li fa-wrench"></i> User Configuration</a></li>
     <li><a href="{% url "browse:browse_courses" %}"><i class="fa fa-li fa-eye"></i> Browse Course Offerings</a></li>

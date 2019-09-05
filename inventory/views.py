@@ -1,8 +1,8 @@
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
 from django.urls import reverse
 from django.contrib import messages
-from .models import Asset, AssetChangeRecord
-from .forms import AssetForm, AssetAttachmentForm, AssetChangeForm
+from .models import Asset, AssetChangeRecord, assets_from_csv
+from .forms import AssetForm, AssetAttachmentForm, AssetChangeForm, InventoryUploadForm
 from courselib.auth import requires_role
 from log.models import LogEntry
 from coredata.models import Unit, Person
@@ -29,14 +29,16 @@ def inventory_download(request):
     response['Content-Disposition'] = 'inline; filename="inventory-%s.csv"' % datetime.datetime.now().strftime('%Y%m%d')
     writer = csv.writer(response)
     if assets:
-        writer.writerow(['Name', 'Unit', 'Brand', 'Description', 'Serial', 'Asset Tag', 'Quantity',
-                         'Minimum Re-Order Quantity', 'Quantity Ordered', 'Minimum Vendor Quantity', 'Price',
-                         'Category', 'Location', 'PR/PO No.', 'Account No.', 'Supplier/Vendor', 'Notes', 'Attachments',
-                         'Change Records'])
+        writer.writerow(['Name', 'Unit', 'Brand', 'Description', 'Serial', 'Service/Asset Tag', 'Express Service Code',
+                         'Quantity', 'Minimum Re-Order Quantity', 'Quantity Ordered', 'Minimum Vendor Quantity',
+                         'Price', 'Category', 'Location', 'PR/PO No.', 'Account No.', 'Supplier/Vendor',
+                         'Calibration/Service Date', 'End of Life Date', 'Notes', 'Service Records',
+                         'Attachments', 'Change Records', 'User', 'Date Shipped/Received', 'Currently in Use'])
         for a in assets:
-            writer.writerow([a.name, a.unit, a.brand, a.description, a.serial, a.tag, a.quantity, a.min_qty,
-                             a.qty_ordered, a.min_vendor_qty, a.price, a.get_category_display(), a.location, a.po,
-                             a.account, a.vendor, a.notes, a.has_attachments(), a.has_records()])
+            writer.writerow([a.name, a.unit, a.brand, a.description, a.serial, a.tag, a.express_service_code,
+                             a.quantity, a.min_qty, a.qty_ordered, a.min_vendor_qty, a.price, a.get_category_display(),
+                             a.location, a.po, a.account, a.vendor, a.calibration_date, a.eol_date, a.notes,
+                             a.service_records, a.has_attachments(), a.has_records(), a.user, a.date_shipped, a.in_use])
     return response
 
 
@@ -60,6 +62,23 @@ def new_asset(request):
 
 
 @requires_role('INV')
+def upload_assets_csv(request):
+    if request.method == 'POST':
+        form = InventoryUploadForm(request, data=request.POST, files=request.FILES)
+        if form.is_valid():
+            for row in form.cleaned_data['file']:
+                print(row)
+            rows = assets_from_csv(request, form.cleaned_data['file'], save=True)
+            messages.add_message(request, messages.SUCCESS, "Added %i assets from file upload." % rows)
+            # We don't have a related_object to create a log, but each individually created object will set a log in
+            # the assets_from_csv method if save=True.
+            return HttpResponseRedirect(reverse('inventory:inventory_index'))
+    else:
+        form = InventoryUploadForm(request)
+    return render(request, 'inventory/upload_assets.html', {'form': form})
+
+
+@requires_role('INV')
 def edit_asset(request, asset_slug):
     asset = get_object_or_404(Asset, slug=asset_slug, unit__in=request.units)
     if request.method == 'POST':
@@ -75,7 +94,13 @@ def edit_asset(request, asset_slug):
             l.save()
             return HttpResponseRedirect(reverse('inventory:inventory_index'))
     else:
-        form = AssetForm(request, instance=asset)
+        if asset.user:
+            print("Yep")
+            user = asset.user.emplid
+        else:
+            print("Nope")
+            user = None
+        form = AssetForm(request, instance=asset, initial={'user': user})
     return render(request, 'inventory/edit_asset.html', {'form': form, 'asset_slug': asset_slug})
 
 

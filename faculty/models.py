@@ -441,7 +441,7 @@ CareerEvent.get_event_type_display = CareerEvent.get_event_type_display_
 
 
 def attachment_upload_to(instance, filename):
-    return upload_path('faculty', str(instance.career_event.start_date.year), filename)
+    return upload_path('faculty', filename)
 
 
 def position_attachment_upload_to(instance, filename):
@@ -459,7 +459,7 @@ class DocumentAttachment(models.Model):
     Document attached to a CareerEvent.
     """
     career_event = models.ForeignKey(CareerEvent, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
-    title = models.CharField(max_length=250, null=False)
+    title = models.CharField(max_length=250, null=True, blank=True)
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('career_event',))
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.', on_delete=models.PROTECT)
@@ -917,7 +917,7 @@ class PositionDocumentAttachment(models.Model):
     Document attached to a CareerEvent.
     """
     position = models.ForeignKey(Position, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
-    title = models.CharField(max_length=250, null=False)
+    title = models.CharField(max_length=250, null=True, blank=True)
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('position',))
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.', on_delete=models.PROTECT)

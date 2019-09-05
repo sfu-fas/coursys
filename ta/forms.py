@@ -23,8 +23,8 @@ class LabelledHidden(forms.HiddenInput):
     """
     input_type = 'hidden'
     is_hidden = False
-    def render(self, name, value, attrs=None):
-        res = super(LabelledHidden, self).render(name, value, attrs=attrs) 
+    def render(self, name, value, attrs=None, renderer=None):
+        res = super(LabelledHidden, self).render(name, value, attrs=attrs, renderer=renderer)
         if value:
             res += str(value)
         return res
@@ -57,11 +57,8 @@ class TUGDutyLabelForm(forms.Form):
 # doesn't simply subclass TUGDutyForm so that the label will be listed first
 class TUGDutyOtherForm(TUGDutyLabelForm, TUGDutyForm):
     label_editable = True
+    
     def __init__(self, *args, **kwargs):
-        initial = kwargs.get('initial', None)
-        # allow empty if this is a new TUG or if we're editing and it's empty
-        kwargs['empty_permitted'] = (kwargs.get('empty_permitted', False) or
-                (initial and bool(initial.get('label'))))
         super(TUGDutyOtherForm, self).__init__(*args, **kwargs)
         self.fields['label'].required = False
         self.fields['total'].required = False
@@ -365,7 +362,7 @@ class BaseTACourseFormSet(BaseInlineFormSet):
         #check no duplicate course selection
         courses = []
         for form in self.forms:
-            if form.cleaned_data and form.cleaned_data['course']:
+            if form.cleaned_data and 'course' in form.cleaned_data:
                 course = form.cleaned_data['course']
                 if(course in courses):
                         raise forms.ValidationError("Duplicate course selection")

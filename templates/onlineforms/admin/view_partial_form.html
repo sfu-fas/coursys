@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% load staticfiles %}
+{% load static %}
 
 {% block h1 %}View {{ form.title }}{% endblock %}
 {% block title %}View {{ form.title }}{% endblock %}
@@ -31,11 +31,16 @@
 {% if waiting_sheets %}
 <p>Sheets currently waiting to be completed:</p>
 <ul>
-{% for ss in waiting_sheets %}
-<li>{{ ss.sheet.title }} by {{ ss.filler.name }}</li>
-{% endfor %}
+    {% for ss in waiting_sheets %}
+    <li>    {{ ss.sheet.title }} by {{ ss.filler.name }}{% if can_admin %}
+    <form class="inlineform" action="{% if ss.filler.isSFUPerson %}{% url "onlineforms:reject_sheet_admin" form_slug=ss.sheet.form.slug formsubmit_slug=ss.form_submission.slug sheet_slug=ss.sheet.slug sheetsubmit_slug=ss.slug %}{% else %}{% url "onlineforms:reject_sheet_via_url_admin" secret_url=ss.get_secret.key form_slug=ss.sheet.form.slug %}{% endif %}" method="post">{% csrf_token %}
+        <button type='submit' class='btn confirm-submit' title="Reject sheet" data-submit-action="reject this sheet? This should only be done if you accidentally assigned this sheet to the wrong person. If everything else in the form is completed, mark it 'Done' instead. Are you sure">Reject</button>
+    </form>
+    {% endif %}</li>
+    {% endfor %}
 </ul>
 {% endif %}
+
 {% if form_sub.status == 'DONE' %}
 <p>Closed by: {% if form_sub.closer %}{{ form_sub.closer.name|default_if_none:"unknown"}}{% else %}<span class="empty">nobody</span>{% endif %}.
 {% if form_sub.summary %}Summary given: &ldquo;{{ form_sub.summary }}&rdquo;.{% endif %}

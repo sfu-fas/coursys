@@ -62,6 +62,7 @@ def settings_info():
     info = []
     info.append(('Deploy mode', settings.DEPLOY_MODE))
     info.append(('Database engine', settings.DATABASES['default']['ENGINE']))
+    info.append(('Authentication Backends', settings.AUTHENTICATION_BACKENDS))
     info.append(('Cache backend', settings.CACHES['default']['BACKEND']))
     info.append(('Haystack engine', settings.HAYSTACK_CONNECTIONS['default']['ENGINE']))
     info.append(('Email backend', settings.EMAIL_BACKEND))
@@ -189,6 +190,8 @@ def deploy_checks(request=None):
         failed.append(('Reporting DB connection', 'SIMSProblem, %s' % (str(e))))
     except ImportError:
         failed.append(('Reporting DB connection', "couldn't import DB2 module"))
+    except Exception as e:
+        failed.append(('Reporting DB connection', 'Generic exception, %s' % (str(e))))
 
     # compression enabled?
     if settings.COMPRESS_ENABLED:
@@ -231,23 +234,6 @@ def deploy_checks(request=None):
     else:
         passed.append(('Emplid API', 'okay'))
 
-    # Piwik API
-    #if not request:
-    #    failed.append(('Piwik API', "can only check in web frontend with valid request object"))
-    #elif not settings.PIWIK_URL or not settings.PIWIK_TOKEN:
-    #    failed.append(('Piwik API', "not configured in secrets.py"))
-    #else:
-    #    # try to re-log this request in piwik and see what happens
-    #    from piwik_middleware.tracking import PiwikTrackerLogic, urllib_errors
-    #    tracking_logic = PiwikTrackerLogic()
-    #    kwargs = tracking_logic.get_track_kwargs(request)
-    #    try:
-    #        tracking_logic.do_track_page_view(fail_silently=False, **kwargs)
-    #    except urllib_errors as e:
-    #        failed.append(('Piwik API', "API call failed: %s" % (e)))
-    #    else:
-    #        passed.append(('Piwik API', 'okay'))
-
     # Backup server
     #if not settings.BACKUP_SERVER or not settings.BACKUP_USER or not settings.BACKUP_PATH or not settings.BACKUP_PASSPHRASE:
     #    failed.append(('Backup server', 'Backup server settings not all present'))
@@ -278,23 +264,6 @@ def deploy_checks(request=None):
     if bad_cert == 0:
         passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
 
-    # SVN database
-    if settings.SVN_DB_CONNECT:
-        from courselib.svn import SVN_TABLE, _db_conn
-        import MySQLdb
-        try:
-            db = _db_conn()
-            db.execute('SELECT count(*) FROM '+SVN_TABLE, ())
-            n = list(db)[0][0]
-            if n > 0:
-                passed.append(('SVN database', 'okay'))
-            else:
-                failed.append(('SVN database', "couldn't access records"))
-        except MySQLdb.OperationalError:
-            failed.append(('SVN database', "can't connect to database"))
-    else:
-        failed.append(('SVN database', 'SVN_DB_CONNECT not set in secrets.py'))
-
     # file creation in the necessary places
     dirs_to_check = [
         (settings.DB_BACKUP_DIR, 'DB backup dir'),
@@ -319,6 +288,7 @@ def deploy_checks(request=None):
         8000, # gunicorn
         11211, # memcached
         9200, 9300, # elasticsearch
+        8983,  # solr
     ]
     connected = []
     for p in ports:
@@ -375,6 +345,17 @@ def deploy_checks(request=None):
     except RuntimeError:
         failed.append(('Markdown subprocess', 'markdown script failed'))
 
+    # MOSS subprocess
+    from submission.moss import check_moss_executable
+    check_moss_executable(passed, failed)
+
+    # locale is UTF-8 (matters for markdown script calls, the SIMS database connection)
+    import locale
+    _, encoding = locale.getdefaultlocale()
+    if encoding == 'UTF-8':
+        passed.append(('Locale encoding', 'okay'))
+    else:
+        failed.append(('Locale encoding', "is %r; should be 'UTF-8'" % (encoding,)))
 
     return passed, failed
 

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Infrastructure Safety Items{% endblock %}
+{% block h1 %}Infrastructure Safety Items{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "space:index" %}">Space Management</a></li>
+    <li>Safety Infrastructure Items</li>
+{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#safety_items').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[0, 'asc']]
+  } );
+} );
+
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "space:add_safety_item" %}">Add New Infrastructure Safety Item</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    {% if safety_items %}
+        <table id="safety_items" class="display">
+            <thead>
+                <tr>
+                    <td>Label</td>
+                    <td>Unit</td>
+                    <td>Description</td>
+                    <td>Actions</td>
+                </tr>
+            </thead>
+            {% for i in safety_items %}
+                <tr>
+                    <td>{{ i.label }}</td>
+                    <td>{{ i.unit }}</td>
+                    <td>{{ i.description }}</td>
+                    <td>
+                        <form class="lineform" method="POST"
+                              action="{% url "space:delete_safety_item" safety_item_slug=i.slug %}"
+                              onsubmit="return confirmDelete()">
+                            {% csrf_token %}
+                            <button type='submit' class='btn confirm-submit' title="Delete Safety Item" data-submit-action="remove this safety item">
+                                <i class='fa fa-trash-o'></i>
+                            </button>
+                        </form>
+                        <a class="lineform" href="{% url "space:edit_safety_item" safety_item_slug=i.slug %}">
+                            <button type='submit' class='btn' title="Edit Room Type">
+                                <i class='fa fa-edit'></i>
+                            </button>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+
+    {% else %}
+        <div>There are no safety items to display.</div>
+    {% endif %}
+{% endblock %}

@@ -49,7 +49,8 @@ def _create_news(person, url, from_user, accept_deadline):
         gradstudent = gradstudents[0]
         # See if we can find a supervisor to notify.  The student shouldn't have Senior, CoSenior, and Potential
         #  supervisors, so we'll just get all of those and grab the first one.
-        supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type__in=['SEN', 'COS', 'POT'])
+        supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type__in=['SEN', 'COS', 'POT'],
+                                                removed=False)
         if len(supervisors) > 0:
             supervisor = supervisors[0].supervisor
             n = NewsItem(user=supervisor,
@@ -613,11 +614,11 @@ def download_all_applications(request, post_slug):
                                       (posting.semester.name, datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
     if applications:
-        writer.writerow(['Person', 'Category', 'Program', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned'])
+        writer.writerow(['Person', 'Category', 'Program', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned', 'Campus Preferences'])
 
         for a in applications:
             writer.writerow([a.person.sortname(), a.get_category_display(), a.get_current_program_display(), a.base_units_assigned(),
-                             a.base_units, a.course_pref_display(), a.course_assigned_display()])
+                             a.base_units, a.course_pref_display(), a.course_assigned_display(), a.campus_pref_display()])
     return response
 
 
@@ -816,7 +817,49 @@ def assign_tas(request, post_slug):
     excluded = [o for o in all_offerings if o.course_id in excl]
     
     context = {'posting': posting, 'offerings': offerings, 'excluded': excluded}
-    return render(request, 'ta/assign_tas.html', context) 
+    return render(request, 'ta/assign_tas.html', context)
+
+
+@requires_role("TAAD")
+def download_assign_csv(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    if posting.unit not in request.units:
+        ForbiddenResponse(request, 'You cannot access this page')
+
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
+
+    # decorate offerings with currently-assigned TAs
+    all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course',
+                                                                                        'contract__application__person')
+    for o in all_offerings:
+        o.assigned = [crs for crs in all_assignments if crs.course == o and crs.contract.bu() > 0]
+
+    # ignore excluded courses
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-assigsnment-table.csv"' % (posting.slug)
+    writer = csv.writer(response)
+    writer.writerow(['Offering', 'Instructor', 'Enrollment', 'Campus', 'Assigned', 'Applicants', 'Required BU',
+                     'Assigned BU', 'Diff', 'Required @Cap'])
+    for o in offerings:
+        enrollment_string = '%s/%s' % (o.enrl_tot, o.enrl_cap)
+        if o.wait_tot:
+            enrollment_string += ' (+%s)' % o.wait_tot
+
+        assigned_strings = []
+        for tacrs in o.assigned:
+            if tacrs.bu > 0:
+                assigned_strings.append(tacrs.contract.application.person.sortname() + ' (' + str(tacrs.bu) + ')')
+        assigned_string = ', '.join(assigned_strings)
+        required_bus = str(posting.required_bu(o, count=o.enrl_tot))
+        if o.extra_bu() != 0:
+            required_bus += '(%s +%s)' % (posting.default_bu(o, count=o.enrl_cap), o.extra_bu_str())
+        writer.writerow([o.name(), o.instructors_str(), enrollment_string, o.get_campus_display(), assigned_string,
+                         posting.applicant_count(o),  required_bus, posting.assigned_bu(o),
+                         posting.assigned_bu(o)-posting.required_bu(o), posting.required_bu(o, count=o.enrl_cap)])
+    return response
+
 
 @requires_role("TAAD")
 @transaction.atomic
@@ -1282,7 +1325,7 @@ def view_form(request, post_slug, userid):
 @requires_role("TAAD")
 def contracts_forms(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
-    contracts = TAContract.objects.filter(posting=posting, status='ACC')
+    contracts = TAContract.objects.filter(posting=posting, status__in=['ACC', 'SGN']).order_by('application__person__last_name', 'application__person__first_name')
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (posting.slug)
     ta_forms(contracts, response)
@@ -1418,7 +1461,6 @@ def edit_contract(request, post_slug, userid):
         form = TAContractForm(instance=contract) 
         formset = TACourseFormset(instance=contract)
         if not editing:
-            print("Not editing loop")
             initial={'sin': application.sin,
                      'appt_category': application.category,
                      'position_number': posting.accounts()[posting.cat_index(application.category)],
@@ -1786,7 +1828,7 @@ def view_financial(request, post_slug):
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
     # ignore excluded courses
     excl = set(posting.excluded())
-    offerings = [o for o in all_offerings if o.course_id not in excl]
+    offerings = [o for o in all_offerings if o.course_id not in excl and posting.ta_count(o) > 0]
     excluded = [o for o in all_offerings if o.course_id in excl]
     
     (bu, pay, ta) = posting.all_total()
@@ -1802,12 +1844,12 @@ def download_financial(request, post_slug):
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
     # ignore excluded courses
     excl = set(posting.excluded())
-    offerings = [o for o in all_offerings if o.course_id not in excl]
+    offerings = [o for o in all_offerings if o.course_id not in excl and posting.ta_count(o) > 0]
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s-financials-%s.csv"' % \
                                       (post_slug, datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
-    writer.writerow(['Offering', 'Instructor(s)', 'Enrolment', 'Campus', 'Number of TAs', 'Assigned BU',
+    writer.writerow(['Offering', 'Instructor(s)', 'Enrollment', 'Campus', 'Number of TAs', 'Assigned BU',
                      'Total Amount'])
     for o in offerings:
         writer.writerow([o.name(), o.instructors_str(), '(%s/%s)' % (o.enrl_tot, o.enrl_cap), o.get_campus_display(),

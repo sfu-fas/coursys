@@ -81,6 +81,7 @@
     <h2>Actions</h2>
     <ul>
         {% if not readonly %}
+        <li><a href="{% url "reports:edit_report" report=report.slug %}">Edit</a></li>
         <li><a href="{% url "reports:new_access_rule" report=report.slug %}">New Access Rule</a></li>
         <li><a href="{% url "reports:new_schedule_rule" report=report.slug %}">New Schedule Rule</a></li>
         <li><a href="{% url "reports:new_component" report=report.slug %}">New Report Component</a></li>

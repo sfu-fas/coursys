@@ -6,7 +6,7 @@
 {% block subbreadcrumbs %}<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>{{ activity.name }}</li>{% endblock %}
 
 {% block headextra %}
-<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://www.gstatic.com/charts/loader.js" referrerpolicy="no-referrer"></script>
 <script nonce="{{ CSP_NONCE }}">
 {% if activity_stat %}
 {% if activity.showhisto %}

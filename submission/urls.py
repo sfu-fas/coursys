@@ -1,6 +1,8 @@
 from django.conf.urls import url
-from courselib.urlparts import USERID_SLUG, COMPONENT_SLUG, SUBMISSION_ID, GROUP_SLUG
+from courselib.urlparts import USERID_SLUG, COMPONENT_SLUG, SUBMISSION_ID, GROUP_SLUG, SLUG_RE
 import submission.views as submission_views
+
+RESULT_SLUG = '(?P<result_slug>' + SLUG_RE + ')'
 
 submission_patterns = [ # prefix /COURSE_SLUG/+ACTIVITY_SLUG/submission/
     url(r'^$', submission_views.show_components, name='show_components'),
@@ -14,4 +16,9 @@ submission_patterns = [ # prefix /COURSE_SLUG/+ACTIVITY_SLUG/submission/
     url(r'^' + USERID_SLUG + '/history$', submission_views.show_components_submission_history, name='show_components_submission_history'),
     url(r'^' + GROUP_SLUG + '/mark$', submission_views.take_ownership_and_mark, name='take_ownership_and_mark'),
     url(r'^' + USERID_SLUG + '/mark$', submission_views.take_ownership_and_mark, name='take_ownership_and_mark'),
+]
+
+similarity_patterns = [ # prefix /COURSE_SLUG/+ACTIVITY_SLUG/similarity/
+    url(r'^$', submission_views.similarity, name='similarity'),
+    url(r'^' + RESULT_SLUG + '/(?P<path>.*)$', submission_views.similarity_result, name='similarity_result'),
 ]

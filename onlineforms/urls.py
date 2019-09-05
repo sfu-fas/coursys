@@ -29,6 +29,8 @@ forms_patterns = [
     url(r'^admin/completed/' + FORM_SLUG + '/summary$', onlineforms_views.summary_csv, name='summary_csv'),
     url(r'^admin/completed/' + FORM_SLUG + '/pending_summary$', onlineforms_views.pending_summary_csv,
         name='pending_summary_csv'),
+    url(r'^admin/completed/' + FORM_SLUG + '/waiting_summary$', onlineforms_views.waiting_summary_csv,
+        name='waiting_summary_csv'),
 
     url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/assign$', onlineforms_views.admin_assign, name='admin_assign'),
     url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/assign-nonsfu$', onlineforms_views.admin_assign_nonsfu, name='admin_assign_nonsfu'),
@@ -57,5 +59,9 @@ forms_patterns = [
     url(r'^' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '$', onlineforms_views.sheet_submission_subsequent, name='sheet_submission_subsequent'),
     url(r'^submission/' + SECRET_SUBMIT_URL + '/$', onlineforms_views.sheet_submission_via_url, name='sheet_submission_via_url'),
     url(r'^' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '/reject$', onlineforms_views.reject_sheet_subsequent, name='reject_sheet_subsequent'),
+    url(r'^' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '/admin_reject$',
+        onlineforms_views.reject_sheet_admin, name='reject_sheet_admin'),
+    url(r'^submission' + SECRET_SUBMIT_URL + '/' + FORM_SLUG + '/reject_admin$', onlineforms_views.reject_sheet_via_url_admin,
+        name='reject_sheet_via_url_admin'),
     url(r'^submission/' + SECRET_SUBMIT_URL + '/reject$', onlineforms_views.reject_sheet_via_url, name='reject_sheet_via_url'),
 ]

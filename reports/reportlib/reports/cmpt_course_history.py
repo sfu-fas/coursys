@@ -10,14 +10,15 @@ class CMPTCourseHistoryReport(Report):
 
     def run(self):
         sems = Semester.objects.filter(name__gte='1001', name__lte=Semester.next_starting().name)
-        u = Unit.objects.get(label='CMPT')
-        courses = CourseOffering.objects.prefetch_related('meeting_time').filter(semester__in=sems, owner=u,
+        u = Unit.objects.filter(label__in=['CMPT', 'ENSC', 'MSE'])
+        courses = CourseOffering.objects.prefetch_related('meeting_time').filter(semester__in=sems, owner__in=u,
                                                                                  graded=True).exclude(
             flags=CourseOffering.flags.combined).exclude(subject='DDP').exclude(component='CAN').order_by(
             'semester', 'subject', 'number')
         course_history = Table()
         course_history.append_column('Semester')
         course_history.append_column('Course')
+        course_history.append_column('Units')
         course_history.append_column('Instructor')
         course_history.append_column('Enrolment')
         course_history.append_column('Campus')
@@ -27,6 +28,7 @@ class CMPTCourseHistoryReport(Report):
         for course in courses:
             semester = course.semester.label()
             label = course.name()
+            units = course.units
             instr = course.instructors_printing_str()
             enrl = '%i/%i' % (course.enrl_tot, course.enrl_cap)
             if course.campus in CAMPUSES_SHORT:
@@ -42,7 +44,7 @@ class CMPTCourseHistoryReport(Report):
             if mt:
                 meeting_times = ', '.join(str("%s %s-%s" % (WEEKDAYS[t.weekday], t.start_time, t.end_time)) for t in mt)
             ranks = "; ".join(CareerEvent.ranks_as_of_semester(p.id, course.semester) for p in course.instructors())
-            course_history.append_row([semester, label, instr, enrl, campus, joint, meeting_times, ranks])
+            course_history.append_row([semester, label, units, instr, enrl, campus, joint, meeting_times, ranks])
         self.artifacts.append(course_history)
 
 

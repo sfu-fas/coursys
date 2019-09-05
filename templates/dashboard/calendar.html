@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}Calendar{% endblock %}
 {% block h1 %}Calendar{% endblock %}
@@ -7,9 +7,9 @@
 {% block subbreadcrumbs %}<li>Calendar</li>{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{% static 'fullcalendar/fullcalendar.min.css' %}" />
-<script src="{% static 'moment.min.js' %}"></script>
-<script src="{% static 'fullcalendar/fullcalendar.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'fullcalendar/dist/fullcalendar.min.css' %}" />
+<script src="{% static 'moment/moment.js' %}"></script>
+<script src="{% static 'fullcalendar/dist/fullcalendar.min.js' %}"></script>
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#calendar').fullCalendar({

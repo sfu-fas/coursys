@@ -47,7 +47,8 @@ CATEGORY_CHOICES = (
     ('LTERM', 'Limited-Term'),
     ('TA', 'TA'),
     ('GRAD', 'Grad Student'),
-    ('URA', 'URA')
+    ('URA', 'URA'),
+    ('UND', 'Undergrad Student'),
 )
 
 
@@ -89,6 +90,44 @@ class RoomType(models.Model):
         return "%s-%s-%s" % (self.unit.label, self.code, str(self.COU_code_value))
 
 
+class RoomSafetyItemQuerySet(models.QuerySet):
+    """
+    As usual, define some querysets.
+    """
+
+    def visible(self, units):
+        """
+        Only see visible items, in this case also limited by accessible units.
+        """
+        return self.filter(hidden=False, unit__in=units)
+
+
+class RoomSafetyItem(models.Model):
+    """
+    Allow each unit to manage the categories which are now included in a visit.
+    """
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
+    label = models.CharField(null=False, blank=False, max_length=50)
+    description = models.CharField(null=True, blank=True, max_length=500)
+    hidden = models.BooleanField(null=False, blank=False, default=False, editable=False)
+    config = JSONField(null=False, blank=False, default=dict, editable=False)  # addition configuration stuff:
+
+    def autoslug(self):
+        return make_slug(self.unit.slug + '-' + self.label)
+
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+
+    def __str__(self):
+        return self.label
+
+    objects = RoomSafetyItemQuerySet.as_manager()
+
+    def delete(self):
+        # As usual, only hide stuff, don't delete it.
+        self.hidden = True
+        self.save()
+
+
 class LocationManager(models.QuerySet):
     def visible(self, units):
         """
@@ -103,14 +142,19 @@ class Location(models.Model):
     building = models.CharField(max_length=5, choices=BUILDING_CHOICES, null=False, blank=False)
     floor = models.PositiveIntegerField(null=False, blank=False)
     room_number = models.CharField(max_length=25, null=False, blank=False)
-    square_meters = models.DecimalField(max_digits=8, decimal_places=2)
-    room_type = models.ForeignKey(RoomType, null=False, on_delete=models.PROTECT)
+    square_meters = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    room_type = models.ForeignKey(RoomType, null=True, blank=True, on_delete=models.PROTECT)
     infrastructure = models.CharField(max_length=3, choices=INFRASTRUCTURE_CHOICES, null=True, blank=True)
     room_capacity = models.PositiveIntegerField(null=True, blank=True)
     category = models.CharField(max_length=5, choices=CATEGORY_CHOICES, null=True, blank=True)
     occupancy_count = models.PositiveIntegerField(null=True, blank=True)
     own_or_lease = models.CharField("SFU Owned or Leased", max_length=5, choices=OWN_CHOICES, null=True, blank=True)
+    field = models.CharField("Research/Teaching Field", max_length=250, null=True, blank=True)
+    safety_items = models.ManyToManyField(RoomSafetyItem, blank=True, verbose_name="Safety Infrastructure")
     comments = models.CharField(max_length=400, null=True, blank=True)
+    sub_location = models.BooleanField(default=False, help_text="Check this if this a bookable room/desk/cubicle "
+                                                                "within another room",
+                                       verbose_name="Sub-Location/Room/Desk/Cubicle")
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     config = JSONField(null=False, blank=False, editable=False, default=dict)
 
@@ -124,11 +168,12 @@ class Location(models.Model):
     def __str__(self):
         return "%s, %s - %s" % (CAMPUSES_SHORT[self.campus], BUILDINGS[self.building], self.room_number)
 
-    def get_current_booking(self):
-        latest_booking = self.bookings.visible().filter(start_time__lte=timezone_today()).order_by('start_time').last()
-        if latest_booking and (not latest_booking.end_time or latest_booking.end_time > timezone_today()):
-            return latest_booking
-        return None
+    def get_current_bookings(self):
+        visible_bookings = self.bookings.visible().filter(start_time__lte=timezone_today()).order_by('start_time')
+        return [b for b in visible_bookings if b.is_current()]
+
+    def get_current_bookings_str(self):
+        return "; ".join([b.person.name() for b in self.get_current_bookings()])
 
     def has_bookings(self):
         return self.bookings.filter(hidden=False).count() > 0
@@ -156,6 +201,13 @@ class Location(models.Model):
                     a.conflict = True
             a.save()
 
+    # Template/PDF display helper methods
+    def safety_items_display(self):
+        return '; '.join(c.label for c in self.safety_items.all())
+
+    def has_safety_items(self):
+        return self.safety_items.all().count() > 0
+
 
 class BookingRecordManager(models.QuerySet):
     def visible(self):
@@ -174,8 +226,8 @@ class BookingRecordManager(models.QuerySet):
 class BookingRecord(models.Model):
     location = models.ForeignKey(Location, related_name='bookings', on_delete=models.PROTECT)
     person = models.ForeignKey(Person, related_name='+', on_delete=models.PROTECT)
-    start_time = models.DateTimeField(default=timezone_today)
-    end_time = models.DateTimeField(null=True, blank=True)
+    start_time = models.DateTimeField("Start date/time", default=timezone_today)
+    end_time = models.DateTimeField("End date/time", null=True, blank=True)
     form_submission_URL = models.CharField(null=True, blank=True, max_length=1000,
                                            help_text="If the user filled in a form to get this booking created, put "
                                                      "its URL here.")
@@ -210,14 +262,6 @@ class BookingRecord(models.Model):
         elif not self.last_modified:
             self.last_modified = timezone_today()
         super(BookingRecord, self).save(*args, **kwargs)
-        self.end_date_others()
-
-    # If we have other bookings without and end-date, apply the new one's start date as the end-date.
-    def end_date_others(self):
-        for b in BookingRecord.objects.visible().filter(location=self.location, end_time__isnull=True,
-                                                        start_time__lt=self.start_time).exclude(id=self.id):
-            b.end_time = self.start_time
-            b.save()
 
     def has_attachments(self):
         return self.attachments.visible().count() > 0
@@ -231,8 +275,15 @@ class BookingRecord(models.Model):
     def get_memos(self):
         return self.memos.objects.all().order_by('created_at')
 
+    def is_current(self):
+        return self.start_time <= timezone_today() and (not self.end_time or self.end_time > timezone_today())
+
+    def has_key_request(self):
+        return hasattr(self, 'key_request')
+
+
 def space_attachment_upload_to(instance, filename):
-    return upload_path('space', str(instance.booking_record.start_time.year), filename)
+    return upload_path('space', filename)
 
 
 class BookingRecordAttachmentQueryset(models.QuerySet):
@@ -283,3 +334,11 @@ class BookingMemo(models.Model):
         msg = EmailMultiAlternatives(subject, template.render(context), from_email,
                                      [self.booking_record.person.email()], headers={'X-coursys-topic': 'space'})
         msg.send()
+
+
+# A stupid object to keep track of the key assignment forms for SEE/Surrey.
+class KeyRequest(models.Model):
+    booking_record = models.OneToOneField(BookingRecord, related_name='key_request', on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person, on_delete=models.PROTECT)
+

@@ -1165,9 +1165,9 @@ def _all_grades_output(response, course):
     for a in activities:
         grades[a.slug] = {}
         if hasattr(a, 'numericgrade_set'):
-            gs = a.numericgrade_set.all()
+            gs = a.numericgrade_set.all().select_related('member', 'member__person')
         else:
-            gs = a.lettergrade_set.all()
+            gs = a.lettergrade_set.all().select_related('member', 'member__person')
         for g in gs:
             grades[a.slug][g.member.person.userid] = g
     
@@ -1291,7 +1291,7 @@ def student_photo(request, emplid):
     user = get_object_or_404(Person, userid=request.user.username)
     can_access = False
 
-    if Role.objects_fresh.filter(person=user, role='ADVS'):
+    if Role.objects_fresh.filter(person=user, role__in=['ADVS', 'ADVM']):
         can_access = True
     else:
         if not _has_photo_agreement(user):

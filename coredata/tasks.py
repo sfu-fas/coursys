@@ -243,17 +243,23 @@ def import_semester_info():
     logger.info('Importing semester info')
     importer.import_semester_info()
 
+
 @task(queue='sims')
 def daily_cleanup():
     logger.info('Cleaning up database')
     # cleanup sessions table
     call_command('clearsessions')
+    call_command('django_cas_ng_clean_sessions')
     # cleanup old news items
     NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=365)).delete()
     # cleanup old log entries
     LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=365)).delete()
     # cleanup old official grades
     Member.clear_old_official_grades()
+    # cleanup old similarity reports
+    from submission.models.base import SimilarityResult
+    SimilarityResult.cleanup_old()
+
 
 @task(queue='sims')
 def import_active_grad_gpas():

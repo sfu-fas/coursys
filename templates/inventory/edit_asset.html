@@ -1,9 +1,13 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 
 {% block title %}Edit Asset{% endblock %}
 {% block h1 %}Edit Asset{% endblock %}
 
+{% block headextra %}
+<script type="text/javascript" src={% static "js/inventory.js"%}></script>
+{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url 'inventory:inventory_index' %}">Inventory</a></li>
