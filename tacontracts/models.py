@@ -364,6 +364,8 @@ class TAContract(models.Model):
                 course.delete()
             for receipt in self.email_receipt.all():
                 receipt.delete()
+            for attachment in self.attachments.all():
+                attachment.delete()
             self.sync_course_member()
             super(TAContract, self).delete(*args, **kwargs)
 
