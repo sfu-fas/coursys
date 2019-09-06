@@ -8,17 +8,20 @@
     $(document).ready(function() {
         $("h3.summary_heading").collapsible();
         $('#pend_table').dataTable({
-                    "bPaginate": false,
+                    'bPaginate': true,
+                    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
                     "bJQueryUI": true,
                     "aaSorting": [[2, "asc"]],
         });
         $('#wait_table').dataTable({
-                    "bPaginate": false,
+                    'bPaginate': true,
+                    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
                     "bJQueryUI": true,
                     "aaSorting": [[4, "asc"]],
         });
         $('#unsubmitted_table').dataTable({
-                    "bPaginate": false,
+                    'bPaginate': true,
+                    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
                     "bJQueryUI": true,
                     "aaSorting": [[2, "asc"]],
         });
