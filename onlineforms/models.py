@@ -962,7 +962,8 @@ class FormSubmission(models.Model):
             self.status = 'PEND'
             self.save()
             FormLogEntry.create(form_submission=self, user=user, category='ADMN',
-                                description='Re-opened by %s as requested by %s' % (user.userid, admin_person.userid))
+                                description='Re-opened manually by %s as requested by %s' %
+                                            (admin_person.userid, user.userid))
 
     @classmethod
     def reopen_form(cls, form_slug=None, slug=None, requester=None, admin=None):
