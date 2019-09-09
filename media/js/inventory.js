@@ -72,3 +72,81 @@ $(document).ready(function() {
   // Also do the initial check based on the current dropdown values.
   hide_particular_fields();
 });
+
+/* All the code for server side datatables */
+function inventory_browser_ready(url) {
+    $('#assets').dataTable({
+        'bInfo': false,
+        'bLengthChange': true,
+        "bJQueryUI": true,
+        'aaSorting': [[0, 'asc'], [1, 'asc']],
+        'bPaginate': true,
+        'processing': true,
+        'serverSide': true,
+        'columnDefs': [
+            {
+                name: 'name',
+                orderable: true,
+                searchable: true,
+                targets: [0]
+            },
+            {
+                name: 'qty',
+                orderable: true,
+                searchable: true,
+                targets: [1]
+            },
+            {
+                name: 'category',
+                orderable: true,
+                searchable: true,
+                targets: [2]
+            },
+            {
+                name: 'location',
+                orderable: true,
+                searchable: true,
+                targets: [3]
+            },
+            {
+                name: 'last_modified',
+                orderable: true,
+                searchable: true,
+                targets: [4]
+            },
+            {
+                name: 'stock',
+                orderable: false,
+                searchable: false,
+                targets: [5]
+            },
+            {
+                name: 'actions',
+                orderable: false,
+                searchable: false,
+                targets: [6]
+            },
+        ],
+        'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
+        'ajax': {
+            'url': url + '?tabledata=yes',
+            'type': 'GET',
+            'cache': true,
+            // This is stupidly repeated from core.js, but we have no choice, as the buttons don't exist when it first
+            // gets called, until the data is actually returned from the server.
+            'complete': function() {
+                $('.confirm-submit').click(function(ev) {
+                    var action = $(this).attr('data-submit-action');
+                    if (action == null) {
+                        action = 'complete this action'
+                    }
+                    return confirm("Are you sure you wish to " + action + "?");
+                });
+                // This finds the quantity elements we added the necessary class to and adds it to the whole row.
+                $('.needsreorder').closest('tr').addClass('needsreorder');
+                $('.instock').closest('tr').addClass('instock');
+                $('.outofstock').closest('tr').addClass('outofstock');
+            }
+        }
+  })
+}

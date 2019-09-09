@@ -8,15 +8,93 @@ from log.models import LogEntry
 from coredata.models import Unit, Person
 from django.db import transaction
 from django.http import StreamingHttpResponse
+from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.middleware.csrf import get_token
 import csv, datetime
 
 
 @requires_role('INV')
 def inventory_index(request):
-    unit_ids = [unit.id for unit in request.units]
-    units = Unit.objects.filter(id__in=unit_ids)
-    assets = Asset.objects.visible(units)
-    return render(request, 'inventory/index.html', {'assets': assets})
+    if 'tabledata' in request.GET:
+        return InventoryDataJSON.as_view()(request)
+    return render(request, 'inventory/index.html')
+
+
+# Helper methods moved from template filtering since we are now using server-side code.
+def add_asset_display_class(asset):
+    if asset.out_of_stock():
+        return 'outofstock'
+    elif asset.needs_reorder():
+        return 'needsreorder'
+    elif asset.in_stock():
+        return 'instock'
+    else:
+        return ""
+
+def add_quantity_status(asset):
+    if asset.out_of_stock():
+        return 0, "Out of stock"
+    elif asset.needs_reorder():
+        return 1, "Low Stock"
+    elif asset.in_stock():
+        return 2, "In Stock"
+    else:
+        return 3, "Unknown"
+
+
+class InventoryDataJSON(BaseDatatableView):
+    model = Asset
+    columns = ['name', 'quantity', 'category', 'location', 'last_modified', 'stock', 'actions']
+    order_columns = ['name', 'quantity', 'category', 'location', 'last_modified', 'stock', 'actions']
+
+    def get_initial_queryset(self):
+        qs = Asset.objects.visible(self.request.units)
+        return qs
+
+    def get_filter_method(self):
+        return self.FILTER_ICONTAINS
+
+    def render_column(self, row, column):
+        instockclass = add_asset_display_class(row)
+        if column == 'name':
+            extra_string = ''
+            if row.has_attachments():
+                extra_string += ' &nbsp; <i class="fa fa-paperclip" title="Attachment(s)"></i>'
+            if row.has_records():
+                extra_string += ' &nbsp; <i class="fa fa-book" title="Record(s)"></i>'
+            return row.name + extra_string
+        if column == 'quantity':
+            return str("<span class=" + instockclass + ">%s</span>" % row.quantity)
+        if column == 'stock':
+            status = add_quantity_status(row)
+            return str("<span class='sort'>%s</span>%s" % (status[0], status[1]))
+        elif column == 'last_modified':
+            return str("<span class='sort'>%s</span>%s" % (row.last_modified, row.last_modified.strftime("%b %d, %Y")))
+        elif column == 'actions':
+            return '<form class="lineform" method="POST" action=' +\
+                reverse('inventory:delete_asset', kwargs={'asset_id': row.id}) + '>' +\
+                '<input type="hidden" name="csrfmiddlewaretoken" value="' + get_token(self.request) + '">' +\
+                    '<button type="submit" class="btn confirm-submit" title="Hide asset" data-submit-action="remove this asset">' +\
+                        '<i class="fa fa-trash-o"></i>' +\
+                    '</button>' +\
+                '</form>' +\
+                '<a class="lineform" href="' + reverse('inventory:add_change_record', kwargs={'asset_slug': row.slug}) +'">' +\
+                    '<button type="submit" class="btn" title="Add change record">' +\
+                        '<i class="fa fa-book"></i>' +\
+                    '</button>' +\
+                '</a>' +\
+                '<a class="lineform" href="' + reverse('inventory:edit_asset', kwargs={'asset_slug': row.slug}) + '">' +\
+                    '<button type="submit" class="btn" title="Edit asset">' +\
+                        '<i class="fa fa-edit"></i>' +\
+                    '</button>' +\
+                '</a>' +\
+                '<a class="lineform" href="' + reverse('inventory:view_asset', kwargs={'asset_slug': row.slug}) + '">' +\
+                    '<button type="submit" class="btn" title="View asset">' +\
+                        '<i class="fa fa-eye"></i>' +\
+                    '</button>' +\
+                '</a>'
+        else:
+            return super(InventoryDataJSON, self).render_column(row, column)
 
 
 @requires_role('INV')
