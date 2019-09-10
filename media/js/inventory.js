@@ -115,9 +115,9 @@ function inventory_browser_ready(url) {
                 targets: [4]
             },
             {
-                name: 'stock',
-                orderable: false,
-                searchable: false,
+                name: 'stock_status',
+                orderable: true,
+                searchable: true,
                 targets: [5]
             },
             {

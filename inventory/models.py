@@ -32,6 +32,13 @@ CATEGORY_CHOICES = {
 }
 
 
+STOCK_STATUS_CHOICES = {
+    (0, "Out of stock"),
+    (1, "Low Stock"),
+    (2, "In Stock"),
+    (3, "Unknown"),
+}
+
 class AssetQuerySet(models.QuerySet):
     """
     Only see visible items, in this case also limited by accessible units.
@@ -74,6 +81,8 @@ class Asset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
+    stock_status = models.DecimalField(max_digits=1, decimal_places=0, choices=STOCK_STATUS_CHOICES, blank=True,
+                                       null=True, editable=True)
     # In case we forgot something, this will make it easier to add something in the future without a migration.
     config = JSONField(null=False, blank=False, default=dict, editable=False)
 
@@ -89,6 +98,7 @@ class Asset(models.Model):
 
     def save(self, *args, **kwargs):
         self.last_modified = timezone.now()
+        self.set_stock_status()
         super(Asset, self).save(*args, **kwargs)
 
     def delete(self):
@@ -114,6 +124,15 @@ class Asset(models.Model):
     def has_records(self):
         return self.records.visible().count() > 0
 
+    def set_stock_status(self):
+        if self.out_of_stock():
+            self.stock_status = 0
+        elif self.needs_reorder():
+            self.stock_status = 1
+        elif self.in_stock():
+            self.stock_status = 2
+        else:
+            self.stock_status = 3
 
 class AssetChangeRecordQuerySet(models.QuerySet):
     """

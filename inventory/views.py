@@ -31,21 +31,10 @@ def add_asset_display_class(asset):
     else:
         return ""
 
-def add_quantity_status(asset):
-    if asset.out_of_stock():
-        return 0, "Out of stock"
-    elif asset.needs_reorder():
-        return 1, "Low Stock"
-    elif asset.in_stock():
-        return 2, "In Stock"
-    else:
-        return 3, "Unknown"
-
-
 class InventoryDataJSON(BaseDatatableView):
     model = Asset
-    columns = ['name', 'quantity', 'category', 'location', 'last_modified', 'stock', 'actions']
-    order_columns = ['name', 'quantity', 'category', 'location', 'last_modified', 'stock', 'actions']
+    columns = ['name', 'quantity', 'category', 'location', 'last_modified', 'stock_status', 'actions']
+    order_columns = ['name', 'quantity', 'category', 'location', 'last_modified', 'stock_status', 'actions']
 
     def get_initial_queryset(self):
         qs = Asset.objects.visible(self.request.units)
@@ -65,9 +54,7 @@ class InventoryDataJSON(BaseDatatableView):
             return row.name + extra_string
         if column == 'quantity':
             return str("<span class=" + instockclass + ">%s</span>" % row.quantity)
-        if column == 'stock':
-            status = add_quantity_status(row)
-            return str("<span class='sort'>%s</span>%s" % (status[0], status[1]))
+
         elif column == 'last_modified':
             return str("<span class='sort'>%s</span>%s" % (row.last_modified, row.last_modified.strftime("%b %d, %Y")))
         elif column == 'actions':
