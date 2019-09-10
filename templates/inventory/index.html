@@ -9,17 +9,11 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/inventory.css" %}" type="text/css">
+<script type="text/javascript" src={% static "js/inventory.js"%}></script>
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
-  $('#assets').dataTable( {
-    'bInfo': false,
-    'bLengthChange': true,
-    "bJQueryUI": true,
-    'aaSorting': [[1, 'asc']],
-    'bPaginate': true,
-    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']]
-  } );
-} );
+  inventory_browser_ready({% url 'inventory:inventory_index' %})
+});
 
 </script>
 {% endblock %}
@@ -35,7 +29,6 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-{% if assets %}
     <table id="assets" class="display">
     <thead>
         <tr>
@@ -48,46 +41,7 @@ $(document).ready(function() {
             <td>Actions</td>
         </tr>
     </thead>
-    {% for asset in assets %}
-        <tr {{ asset|add_asset_display_class }}>
-            <td>{{ asset.name }}
-                {% if asset.has_attachments %} &nbsp; <i class="fa fa-paperclip" title="Attachment(s)"></i>{% endif %}
-                {% if asset.has_records %} &nbsp; <i class="fa fa-book" title="Record(s)"></i>{% endif %}
-            </td>
-            <td>{{ asset.quantity }}</td>
-            <td>{{ asset.get_category_display }}</td>
-            <td>{{ asset.location }}</td>
-            <td>{{ asset.last_modified|date:"M d, Y" }}</td>
-            <td>{% with asset|add_quantity_status as status %}
-                <span class="sort">{{ status.0 }}</span> {{ status.1 }}
-                {% endwith %}
-            </td>
-            <td>
-                <form class="lineform" method="POST"
-                      action="{% url "inventory:delete_asset" asset_id=asset.id %}">
-                    {% csrf_token %}
-                    <button type='submit' class='btn confirm-submit' title="Hide asset" data-submit-action="remove this asset">
-                        <i class='fa fa-trash-o'></i>
-                    </button>
-                </form>
-                <a class="lineform" href="{% url "inventory:add_change_record" asset_slug=asset.slug %}">
-                    <button type='submit' class='btn' title="Add change record">
-                        <i class='fa fa-book'></i>
-                    </button>
-                </a>
-                <a class="lineform" href="{% url "inventory:edit_asset" asset_slug=asset.slug %}">
-                    <button type='submit' class='btn' title="Edit asset">
-                        <i class='fa fa-edit'></i>
-                    </button>
-                </a>
-                <a class="lineform" href="{% url "inventory:view_asset" asset_slug=asset.slug %}">
-                    <button type='submit' class='btn' title="View asset">
-                        <i class='fa fa-eye'></i>
-                    </button>
-                </a>
-            </td>
-        </tr>
-    {% endfor %}
+        <tbody></tbody>
     </table>
     <div id="legend">
         <h3>Legend</h3>
@@ -98,8 +52,4 @@ $(document).ready(function() {
             <li>Other items:  Have no quantity and/or no minimum re-order quantity</li>
         </ul>
     </div>
-{% else %}
-    <div>There are no assets to display.</div>
-{% endif %}
-
 {% endblock %}
