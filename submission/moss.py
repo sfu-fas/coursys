@@ -87,7 +87,7 @@ match_file_re = re.compile(r'^match(\d+)-([01])\.html$')
 
 
 @transaction.atomic
-def run_moss(activity: Activity, language: str) -> SimilarityResult:
+def run_moss(activity: Activity, language: str, result: SimilarityResult) -> SimilarityResult:
     assert language in MOSS_LANGUAGES
     icon_url_path = reverse('dashboard:moss_icon', kwargs={'filename': ''})
 
@@ -138,11 +138,6 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
         raise MOSSError('System not correctly configured with the MOSS executable.')
     if res.returncode != 0:
         raise MOSSError('MOSS command failed: ' + str(cmd))
-
-    # save the results, removing any previous MOSS results on this activity
-    SimilarityResult.objects.filter(activity=activity, generator='MOSS').delete()
-    result = SimilarityResult(activity=activity, generator='MOSS', config={'language': language})
-    result.save()
 
     # try to deal with MOSS' [profanity suppressed] HTML, and produce SimilarityData objects to represent everything
     for f in os.listdir(moss_out_dir):
@@ -212,6 +207,23 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
         else:
             raise ValueError('unexpected file produced by MOSS')
 
+    result.config['complete'] = True
+    result.save()
+    return result
+
+
+@transaction.atomic
+def run_moss_as_task(activity: Activity, language: str) -> SimilarityResult:
+    """
+    Start run_moss() in a Celery task.
+    """
+    # save the results, removing any previous MOSS results on this activity
+    SimilarityResult.objects.filter(activity=activity, generator='MOSS').delete()
+    result = SimilarityResult(activity=activity, generator='MOSS', config={'language': language, 'complete': False})
+    result.save()
+
+    from submission.tasks import run_moss_task
+    run_moss_task.delay(activity.id, language, result.id)
     return result
 
 
@@ -225,6 +237,17 @@ class MOSS(object):
         language = forms.ChoiceField(label='MOSS language', choices=MOSS_LANGUAGES_CHOICES)
 
     def render(self, request: HttpRequest, path: str) -> Optional[HttpResponse]:
+        if not self.result.config.get('complete'):
+            # result still pending in Celery: no other data to find yet
+            context = {
+                'complete': False,
+                'offering': self.offering,
+                'activity': self.activity,
+                'result': self.result,
+            }
+            resp = render(request, 'submission/similarity-moss-result.html', context=context)
+            return resp
+
         base_match = match_base_re.match(path)
         top_match = match_top_re.match(path)
         file_match = match_file_re.match(path)
@@ -239,6 +262,7 @@ class MOSS(object):
             sub1, _ = SubmissionInfo._get_submission(match1.submission_id)
 
             context = {
+                'complete': True,
                 'offering': self.offering,
                 'activity': self.activity,
                 'result': self.result,
