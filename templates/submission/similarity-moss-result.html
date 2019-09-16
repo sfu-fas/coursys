@@ -21,6 +21,8 @@
 
 {% block content %}
 
+{% if complete %}
+
 <p>Left: <a href="{{ sub0.get_absolute_url }}">submission from {{ sub0.creator_str }}</a>.<br/>
     Right: <a href="{{ sub1.get_absolute_url }}">submission from {{ sub1.creator_str }}</a>.</p>
 
@@ -33,5 +35,17 @@
 <iframe
   src="{% url "grades:similarity:similarity_result" course_slug=offering.slug activity_slug=activity.slug result_slug=result.generator path=fn_right %}"
   name="1" id="iframe1" width="49%" height="500"></iframe>
+
+{% else %}
+
+<p class="warn">MOSS reports take a few seconds to complete. We're working on it&hellip;</p>
+<script nonce="{{ CSP_NONCE }}">
+setTimeout(
+  function () { window.location.reload(false); },
+  2 * 1000
+);
+</script>
+
+{% endif %}
 
 {% endblock %}

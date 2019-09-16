@@ -11,7 +11,7 @@ from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import StudentSubmission, GroupSubmission, SubmissionComponent
 from submission.models import select_all_components, SubmissionInfo, get_component, find_type_by_label, ALL_TYPE_CLASSES
-from submission.moss import MOSS, run_moss, MOSSError
+from submission.moss import MOSS, MOSSError, run_moss_as_task
 from django.urls import reverse
 from django.contrib import messages
 from groups.models import Group, GroupMember
@@ -474,8 +474,8 @@ def similarity(request, course_slug, activity_slug):
         moss_form = MOSS.CreationForm(request.POST)
         if moss_form.is_valid():
             try:
-                result = run_moss(activity=activity, language=moss_form.cleaned_data['language'])
-                messages.add_message(request, messages.SUCCESS, 'MOSS report generated.')
+                result = run_moss_as_task(activity=activity, language=moss_form.cleaned_data['language'])
+                messages.add_message(request, messages.SUCCESS, 'MOSS report started.')
                 l = LogEntry(userid=request.user.username,
                              description=("ran MOSS for %s in %s") % (activity, offering),
                              related_object=activity)
