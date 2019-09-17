@@ -695,7 +695,7 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
             except Member.DoesNotExist:
                 try:
                     member = Member.objects.get(person__emplid=markdata['userid'], offering=activity.offering, role="STUD")
-                except Member.DoesNotExist:
+                except (Member.DoesNotExist, ValueError):
                     not_found.add(markdata['userid'])
                     continue
             am = StudentActivityMark(activity_id=activity.id, created_by=userid)
