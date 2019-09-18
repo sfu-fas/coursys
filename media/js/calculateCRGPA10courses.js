@@ -88,8 +88,8 @@ function getCredits(selector) {
 
 
 function calculateCRGPA() {
-    var courseInputs = [$("#id_4"), $("#id_5"), $("#id_6"), $("#id_7"), $("#id_8"), $("#id_9"), $("#id_10"), $("#id_11"), $("#id_12")];
-    var output = $("#id_13");
+    var courseInputs = [$("#id_4"), $("#id_5"), $("#id_6"), $("#id_7"), $("#id_8"), $("#id_9"), $("#id_10"), $("#id_11"), $("#id_12"), $("#id_13")];
+    var output = $("#id_14");
     var totalCredits = 0;
     var totalGP = 0.00;
     var selectedCourses = 0;
