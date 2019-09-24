@@ -235,8 +235,9 @@ class MOSS(object):
 
     class CreationForm(forms.Form):
         language = forms.ChoiceField(label='MOSS language', choices=MOSS_LANGUAGES_CHOICES)
+        #other_offerings = forms.MultipleChoiceField(CourseOffering.objects.none())
 
-    def render(self, request: HttpRequest, path: str) -> Optional[HttpResponse]:
+    def render(self, request: HttpRequest, path: str) -> HttpResponse:
         if not self.result.config.get('complete'):
             # result still pending in Celery: no other data to find yet
             context = {
