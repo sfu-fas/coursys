@@ -472,11 +472,13 @@ def similarity(request, course_slug, activity_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
     results = SimilarityResult.objects.filter(activity=activity)
-    other_staff = Member.objects.filter(role__in=['INST', 'TA'], offering__graded=True, #person__userid=request.user.username,
-    ).exclude(offering__component="CAN").exclude(offering__slug=course_slug).select_related('offering')
+    other_staff = Member.objects.filter(offering__subject=offering.subject, offering__number=offering.number, role__in=['INST', 'TA'],
+        offering__graded=True, person__userid=request.user.username) \
+        .exclude(offering__component="CAN").exclude(offering__slug=course_slug).select_related('offering')
     other_offerings = set(m.offering_id for m in other_staff)
     similar_name = Q(name=activity.name) | Q(short_name=activity.short_name)
-    activities = Activity.objects.filter(offering_id__in=other_offerings).filter(similar_name).select_related('offering', 'offering__semester')
+    activities = Activity.objects.filter(offering_id__in=other_offerings).filter(similar_name) \
+        .select_related('offering', 'offering__semester')
     other_activity_choices = [(a.id, str(a)) for a in activities]
 
     if request.method == 'POST':
