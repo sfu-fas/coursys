@@ -2,11 +2,14 @@ import os
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+
 from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, Http404, HttpResponse, HttpRequest
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
 from courselib.search import find_member, find_userid_or_emplid
+from grades.models import Activity
 from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import StudentSubmission, GroupSubmission, SubmissionComponent
@@ -469,9 +472,16 @@ def similarity(request, course_slug, activity_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
     results = SimilarityResult.objects.filter(activity=activity)
+    other_staff = Member.objects.filter(role__in=['INST', 'TA'], offering__graded=True, #person__userid=request.user.username,
+    ).exclude(offering__component="CAN").exclude(offering__slug=course_slug).select_related('offering')
+    other_offerings = set(m.offering for m in other_staff)
+    similar_name = Q(name=activity.name) | Q(short_name=activity.short_name)
+    activities = Activity.objects.filter(offering__in=other_offerings).filter(similar_name)
+    other_activity_choices = [(a.id, str(a)) for a in activities]
 
     if request.method == 'POST':
         moss_form = MOSS.CreationForm(request.POST)
+        moss_form.fields['other_offering_activities'].choices = other_activity_choices
         if moss_form.is_valid():
             try:
                 result = run_moss_as_task(activity=activity, language=moss_form.cleaned_data['language'])
@@ -488,6 +498,7 @@ def similarity(request, course_slug, activity_slug):
                 messages.add_message(request, messages.ERROR, str(e))
     else:
         moss_form = MOSS.CreationForm()
+        moss_form.fields['other_offering_activities'].choices = other_activity_choices
 
     context = {
         'offering': offering,

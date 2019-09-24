@@ -235,7 +235,8 @@ class MOSS(object):
 
     class CreationForm(forms.Form):
         language = forms.ChoiceField(label='MOSS language', choices=MOSS_LANGUAGES_CHOICES)
-        #other_offerings = forms.MultipleChoiceField(CourseOffering.objects.none())
+        other_offering_activities = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
+            help_text='Also compare against submissions for these other activities in other sections')
 
     def render(self, request: HttpRequest, path: str) -> HttpResponse:
         if not self.result.config.get('complete'):
