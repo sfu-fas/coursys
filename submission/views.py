@@ -484,7 +484,10 @@ def similarity(request, course_slug, activity_slug):
         moss_form.fields['other_offering_activities'].choices = other_activity_choices
         if moss_form.is_valid():
             try:
-                result = run_moss_as_task(activity=activity, language=moss_form.cleaned_data['language'])
+                other_ids = moss_form.cleaned_data['other_offering_activities']
+                other_activities = Activity.objects.filter(id__in=other_ids)
+                activities = [activity] + list(other_activities)
+                result = run_moss_as_task(activities=activities, language=moss_form.cleaned_data['language'])
                 messages.add_message(request, messages.SUCCESS, 'MOSS report started.')
                 l = LogEntry(userid=request.user.username,
                              description=("ran MOSS for %s in %s") % (activity, offering),
