@@ -2,7 +2,7 @@
 
 {% block studentinfo %}
 <tr><th scope="row">{% if activity.group %}Submitter's {% endif %}Name:</th><td>{{student.name}}</td></tr>
-<tr><th scope="row">Student Number:</th><td>{{student.emplid}}</td></tr>
+<tr><th scope="row">Student Number:</th><td><a href="{{ member.get_absolute_url }}">{{student.emplid}}</a></td></tr>
 <tr><th scope="row">Email:</th><td><a href="mailto:{{student.email}}">{{student.email}}</td></tr>
 {% endblock %}
 

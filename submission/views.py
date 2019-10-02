@@ -51,8 +51,9 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     if userid == None:
         userid = request.user.username
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set,slug=activity_slug, deleted=False)
+    activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    viewing_member = get_object_or_404(Member, person=student, offering=course, role='STUD')
     cansubmit = True
     submission_configured = SubmissionComponent.objects.filter(activity_id=activity.id).exists()
     if not submission_configured:
@@ -88,7 +89,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         messages.add_message(request, messages.ERROR, "This activity is not submittable.")
         return render(request, "submission/" + template,
         {"course":course, "activity":activity, "submission_info": submission_info, 'any_submissions': any_submissions,
-         "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit})
+         "userid":userid, "late":late, "student":student, 'member': viewing_member, "group":group, "cansubmit":cansubmit})
 
     # get all components of activity
     component_list = select_all_components(activity)
@@ -188,7 +189,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         component_form_list = make_form_from_list(component_list)
         return render(request, "submission/" + template,
         {'component_form_list': component_form_list, "course": course, "activity": activity, "submission_info": submission_info,
-         "userid":userid, "late":late, "student":student, "group":group,
+         "userid":userid, "late":late, "student":student, 'member': viewing_member, "group":group,
          "cansubmit":cansubmit, "is_staff":staff, 'any_submissions': any_submissions})
 
 
