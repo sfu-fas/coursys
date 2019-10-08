@@ -73,7 +73,7 @@ class CMPTGradRequirementsReport(Report):
             .filter(requirement=requirement3, student__in=all_students, removed=False)
         # The 4th requirement only really applies to the third list, so might as well limit it:
         students4_completed = CompletedRequirement.objects.values_list('student', flat=True) \
-            .filter(requirement=requirement3, student__in=table3_students, removed=False)
+            .filter(requirement=requirement4, student__in=table3_students, removed=False)
 
         #  First table, simply everyone in table1_students who doesn't have a completed requirement 1
         for student in [s for s in table1_students if s.id not in students1_completed]:
