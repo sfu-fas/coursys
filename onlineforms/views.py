@@ -477,6 +477,18 @@ def admin_completed_form(request, form_slug):
     context = {'form': form, 'formsubs': formsubs}
     return render(request, "onlineforms/admin/admin_completed_form.html", context)
 
+
+@requires_formgroup()
+def admin_rejected_form(request, form_slug):
+    form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
+    formsubs = FormSubmission.objects.filter(form=form, status='REJE')\
+        .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller') \
+        .annotate(last_sheet_dt=Max('sheetsubmission__completed_at'))
+    context = {'form': form, 'formsubs': formsubs}
+    return render(request, "onlineforms/admin/admin_rejected_form.html", context)
+
+
+
 @requires_formgroup()
 def summary_csv(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -1152,7 +1164,7 @@ def view_submission(request, form_slug, formsubmit_slug):
             raise Http404
 
         sheet_submissions = _readonly_sheets(form_submission)
-        can_admin = not is_advisor and form_submission.status != 'DONE'
+        can_admin = not is_advisor and form_submission.status != 'DONE' and form_submission.status != 'REJE'
         can_reopen = not is_advisor and form_submission.status == 'DONE'
         waiting_sheets = SheetSubmission.objects.filter(form_submission=form_submission, status='WAIT')
 
