@@ -945,12 +945,13 @@ class FormSubmission(models.Model):
         :type admin: basestring
         :return: Nothing.
         """
-        if not requester or not admin:
-            print("You need to supply userids for both a requester and an admin")
+        if not requester:
+            print("You need to supply a userid for at least a requester")
             return
         try:
             user = Person.objects.get(userid=requester)
-            admin_person = Person.objects.get(userid=admin)
+            if admin:
+                admin_person = Person.objects.get(userid=admin)
         except Person.DoesNotExist:
             print("Either requester or admin do not exist.  Please provide correct userids.")
             return
@@ -961,8 +962,13 @@ class FormSubmission(models.Model):
         else:
             self.status = 'PEND'
             self.save()
-            FormLogEntry.create(form_submission=self, user=user, category='ADMN',
-                                description='Re-opened by %s as requested by %s' % (user.userid, admin_person.userid))
+            if admin:
+                log_message = 'Re-opened manually by %s as requested by %s' % (admin_person.userid, user.userid)
+            else:
+                log_message = 'Re-opened by %s' % user.userid
+
+            FormLogEntry.create(form_submission=self, user=user, category='ADMN', description=log_message)
+
 
     @classmethod
     def reopen_form(cls, form_slug=None, slug=None, requester=None, admin=None):

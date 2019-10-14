@@ -1,3 +1,4 @@
+import itertools
 from typing import List, Optional
 
 from django import forms
@@ -87,14 +88,16 @@ match_file_re = re.compile(r'^match(\d+)-([01])\.html$')
 
 
 @transaction.atomic
-def run_moss(activity: Activity, language: str) -> SimilarityResult:
+def run_moss(main_activity: Activity, activities: List[Activity], language: str, result: SimilarityResult) -> SimilarityResult:
+    """
+    Run MOSS for the main_activity's submissions.
+    ... comparing past submission from everything in the activities list.
+    ... looking only at the given programming language.
+    ... storing the results in result.
+    """
     assert language in MOSS_LANGUAGES
+    assert main_activity in activities
     icon_url_path = reverse('dashboard:moss_icon', kwargs={'filename': ''})
-
-    # get the submissions
-    si = SubmissionInfo.for_activity(activity)
-    si.get_all_components()
-    found, individual_subcomps, last_submission = si.most_recent_submissions()
 
     tmpdir = tempfile.TemporaryDirectory()
     tmp = tmpdir.name
@@ -102,29 +105,33 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
     moss_out_dir = os.path.join(tmp, 'moss')
 
     # assemble tmp directory of submissions for MOSS
-    offering_slug = activity.offering.slug
+    offering_slug = main_activity.offering.slug
     extension = '.' + MOSS_LANGUAGES[language]
     moss_files = [] # files that we will give to MOSS
     file_submissions = {} # MOSS input file to submission_id, so we can recover the source later
-    for userid, components in individual_subcomps.items():
-        prefix = os.path.join(code_dir, offering_slug, userid)
-        for comp, sub in components:
-            if not isinstance(sub, SubmittedCodefile):
-                # we can only deal with Codefile components
-                continue
-            if not isinstance(sub.code.storage, FileSystemStorage):
-                raise NotImplementedError('more work necessary to support non-filesystem file storage')
-            source_file = os.path.join(sub.code.storage.location, sub.code.name)
-            moss_file = sub.file_filename(sub.code, prefix)
-            if not moss_file.endswith(extension):
-                # we only handle one language at a time
-                continue
+    for a in activities:
+        si = SubmissionInfo.for_activity(a)
+        si.get_all_components()
+        _, individual_subcomps, _ = si.most_recent_submissions()
+        for userid, components in individual_subcomps.items():
+            prefix = os.path.join(code_dir, a.offering.slug, userid)
+            for comp, sub in components:
+                if not isinstance(sub, SubmittedCodefile):
+                    # we can only deal with Codefile components
+                    continue
+                if not isinstance(sub.code.storage, FileSystemStorage):
+                    raise NotImplementedError('more work necessary to support non-filesystem file storage')
+                source_file = os.path.join(sub.code.storage.location, sub.code.name)
+                moss_file = sub.file_filename(sub.code, prefix)
+                if not moss_file.endswith(extension):
+                    # we only handle one language at a time
+                    continue
 
-            dst_dir, _ = os.path.split(moss_file)
-            os.makedirs(dst_dir, exist_ok=True)
-            os.symlink(source_file, moss_file)
-            moss_files.append(moss_file)
-            file_submissions[moss_file] = sub.submission_id
+                dst_dir, _ = os.path.split(moss_file)
+                os.makedirs(dst_dir, exist_ok=True)
+                os.symlink(source_file, moss_file)
+                moss_files.append(moss_file)
+                file_submissions[moss_file] = sub.submission_id
 
     if not moss_files:
         raise MOSSError('No files found for that language to analyze with MOSS.')
@@ -138,11 +145,6 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
         raise MOSSError('System not correctly configured with the MOSS executable.')
     if res.returncode != 0:
         raise MOSSError('MOSS command failed: ' + str(cmd))
-
-    # save the results, removing any previous MOSS results on this activity
-    SimilarityResult.objects.filter(activity=activity, generator='MOSS').delete()
-    result = SimilarityResult(activity=activity, generator='MOSS', config={'language': language})
-    result.save()
 
     # try to deal with MOSS' [profanity suppressed] HTML, and produce SimilarityData objects to represent everything
     for f in os.listdir(moss_out_dir):
@@ -159,7 +161,11 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
                     fn, perc = a.string.split(' ')
                     fn = _canonical_filename(fn, code_dir)
                     m.append((label, fn, perc))
-                index_data.append(m)
+
+                # Only display if one side is from the main_activity: leave the past behind.
+                if any(fn.startswith(offering_slug+'/') for _,fn,_ in m):
+                    index_data.append(m)
+
             data = SimilarityData(result=result, label='index.html', file=None, config={})
             data.config['index_data'] = index_data
             data.save()
@@ -212,6 +218,26 @@ def run_moss(activity: Activity, language: str) -> SimilarityResult:
         else:
             raise ValueError('unexpected file produced by MOSS')
 
+    result.config['complete'] = True
+    result.save()
+    return result
+
+
+@transaction.atomic
+def run_moss_as_task(activities: List[Activity], language: str) -> SimilarityResult:
+    """
+    Start run_moss() in a Celery task.
+
+    The activities arg: list of all activities to compare with activities[0] being the "main" one for this course.
+    """
+    # save the results, removing any previous MOSS results on this activity
+    activity = activities[0]
+    SimilarityResult.objects.filter(activity=activity, generator='MOSS').delete()
+    result = SimilarityResult(activity=activity, generator='MOSS', config={'language': language, 'complete': False})
+    result.save()
+
+    from submission.tasks import run_moss_task
+    run_moss_task.delay(activity.id, [a.id for a in activities], language, result.id)
     return result
 
 
@@ -223,8 +249,21 @@ class MOSS(object):
 
     class CreationForm(forms.Form):
         language = forms.ChoiceField(label='MOSS language', choices=MOSS_LANGUAGES_CHOICES)
+        other_offering_activities = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, required=False,
+            help_text='Also compare against submissions for these activities from other sections')
 
-    def render(self, request: HttpRequest, path: str) -> Optional[HttpResponse]:
+    def render(self, request: HttpRequest, path: str) -> HttpResponse:
+        if not self.result.config.get('complete'):
+            # result still pending in Celery: no other data to find yet
+            context = {
+                'complete': False,
+                'offering': self.offering,
+                'activity': self.activity,
+                'result': self.result,
+            }
+            resp = render(request, 'submission/similarity-moss-result.html', context=context)
+            return resp
+
         base_match = match_base_re.match(path)
         top_match = match_top_re.match(path)
         file_match = match_file_re.match(path)
@@ -239,6 +278,7 @@ class MOSS(object):
             sub1, _ = SubmissionInfo._get_submission(match1.submission_id)
 
             context = {
+                'complete': True,
                 'offering': self.offering,
                 'activity': self.activity,
                 'result': self.result,

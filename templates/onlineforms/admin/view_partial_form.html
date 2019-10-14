@@ -46,6 +46,12 @@
 {% if form_sub.summary %}Summary given: &ldquo;{{ form_sub.summary }}&rdquo;.{% endif %}
 The initiator {% if form_sub.emailed %}<strong>was</strong>{% else %}was <strong>not</strong>{% endif %} emailed by the system.
 </p>
+    {% if can_reopen %}
+        <form action="{% url "onlineforms:reopen_submission" form_slug=form_slug formsubmit_slug=formsubmit_slug %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn confirm-submit" title="Re-Open Form" data-submit-action="re-open this form and lose the previous summary">Re-Open Form</button>
+        </form>
+    {% endif %}
 {% endif %}
 
 {% if can_admin %}

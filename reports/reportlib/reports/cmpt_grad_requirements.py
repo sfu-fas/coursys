@@ -26,6 +26,7 @@ class CMPTGradRequirementsReport(Report):
         program = GradProgram.objects.get(label="PhD", unit__label='CMPT')
         all_students = GradStudent.objects.filter(program=program, current_status='ACTI')
         senior_supervisors = Supervisor.objects.filter(student__in=all_students, supervisor_type='SEN', removed=False)
+        potential_supervisors = Supervisor.objects.filter(student__in=all_students, supervisor_type='POT', removed=False)
 
         # Split them up between the 3 tables we want:
         table1_students = all_students.filter(start_semester__lte=current_semester.offset(-2))
@@ -56,7 +57,12 @@ class CMPTGradRequirementsReport(Report):
             if supervisor:
                 return '%s <%s>' % (supervisor.supervisor.name(), supervisor.supervisor.email())
             else:
-                return 'None'
+                supervisor = potential_supervisors.filter(student=student).first()
+                if supervisor:
+                    return '%s (potential) <%s>' % (supervisor.supervisor.name(), supervisor.supervisor.email())
+                else:
+                    return 'None'
+
 
         # Get the lists of students from the master list who have completed the various requirements.
         students1_completed = CompletedRequirement.objects.values_list('student', flat=True)\
@@ -67,7 +73,7 @@ class CMPTGradRequirementsReport(Report):
             .filter(requirement=requirement3, student__in=all_students, removed=False)
         # The 4th requirement only really applies to the third list, so might as well limit it:
         students4_completed = CompletedRequirement.objects.values_list('student', flat=True) \
-            .filter(requirement=requirement3, student__in=table3_students, removed=False)
+            .filter(requirement=requirement4, student__in=table3_students, removed=False)
 
         #  First table, simply everyone in table1_students who doesn't have a completed requirement 1
         for student in [s for s in table1_students if s.id not in students1_completed]:

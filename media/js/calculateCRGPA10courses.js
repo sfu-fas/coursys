@@ -10,7 +10,7 @@ This is the new 10-course version, without equivalencies.  The old file was calc
  */
 
 $(document).ready(function() {
-    var output = $("#id_13");
+    var output = $("#id_14");
     // First thing to do is to disable this input to stop students from changing it.
     output.prop("readonly", true);
     // Every time we change a dropdown, recalculate the CRGPA
@@ -18,7 +18,7 @@ $(document).ready(function() {
         calculateCRGPA();
     });
     // Also check submit button conditions when the CGPA input text changes
-    $("#id_14").on('input', function() {
+    $("#id_15").on('input', function() {
         calculateCRGPA();
     });
     // Finally, calculate the CRGPA after making these changes the first time we load.  After that, the change handler
@@ -42,7 +42,7 @@ function enableSubmit() {
 
 function checkConditions(selectedCourses) {
     var titleString = 'You cannot submit this form for the following reason(s): \n';
-    var output = $("#id_13");
+    var output = $("#id_14");
     var problemsFound = false;
     if (selectedCourses < 3) {
         problemsFound = true;
@@ -52,19 +52,19 @@ function checkConditions(selectedCourses) {
         problemsFound = true;
         titleString += 'Your CRGPA is below 2.67.\n'
     }
-    if ($("#id_14").val() < 2.4) {
+    if ($("#id_15").val() < 2.4) {
         problemsFound = true;
         titleString += 'Your CGPA is below 2.40.\n'
     }
-    if ($("#id_15").val() != 'choice_1') {
+    if ($("#id_16").val() != 'choice_1') {
         problemsFound = true;
         titleString += 'You have selected that you do not have at least two CMPT courses and one MACM course.\n'
     }
-    if ($("#id_16").val() != 'choice_1') {
+    if ($("#id_17").val() != 'choice_1') {
         problemsFound = true;
         titleString += 'You have selected that you have not completed at least two of the above courses at SFU.\n'
     }
-    if ($("#id_17").val() != 'choice_1') {
+    if ($("#id_18").val() != 'choice_1') {
         problemsFound = true;
         titleString += 'You have selected that you did not provide the first grade for a repeated course.\n'
     }
@@ -88,8 +88,8 @@ function getCredits(selector) {
 
 
 function calculateCRGPA() {
-    var courseInputs = [$("#id_4"), $("#id_5"), $("#id_6"), $("#id_7"), $("#id_8"), $("#id_9"), $("#id_10"), $("#id_11"), $("#id_12")];
-    var output = $("#id_13");
+    var courseInputs = [$("#id_4"), $("#id_5"), $("#id_6"), $("#id_7"), $("#id_8"), $("#id_9"), $("#id_10"), $("#id_11"), $("#id_12"), $("#id_13")];
+    var output = $("#id_14");
     var totalCredits = 0;
     var totalGP = 0.00;
     var selectedCourses = 0;
