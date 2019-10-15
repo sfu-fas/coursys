@@ -457,7 +457,7 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
         return SalaryAdjust(0, leave_fraction, 0)
 
     def teaching_adjust_per_semester(self):
-        credits = self.get_config('teaching_credits')
+        credits = self.get_config('teaching_credits', 0)
         load_decrease = self.get_config('teaching_load_decrease')
         return TeachingAdjust(credits, load_decrease)
 
@@ -557,7 +557,7 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         return SalaryAdjust(0, pay_fraction, 0)
 
     def teaching_adjust_per_semester(self):
-        credits = self.get_config('teaching_decrease')
+        credits = self.get_config('teaching_decrease', 0)
         return TeachingAdjust(fractions.Fraction(0), credits)
 
     def get_credits_carried_forward(self):

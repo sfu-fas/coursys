@@ -298,7 +298,7 @@ class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         return SalaryAdjust(0, 1, add_pay)
 
     def teaching_adjust_per_semester(self):
-        credits = self.get_config('teaching_credits')
+        credits = self.get_config('teaching_credits', 0)
         return TeachingAdjust(credits, fractions.Fraction(0))
 
 
