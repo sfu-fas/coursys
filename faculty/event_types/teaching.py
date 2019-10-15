@@ -84,5 +84,5 @@ class OneInNineHandler(CareerEventHandlerBase, TeachingCareerEvent):
         return 'One-in-Nine Semester ({})'.format(semester.name)
 
     def teaching_adjust_per_semester(self):
-        credit = self.get_config('credit')
+        credit = self.get_config('credit', 0)
         return TeachingAdjust(credit, 0)
