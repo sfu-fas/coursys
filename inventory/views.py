@@ -160,10 +160,8 @@ def edit_asset(request, asset_slug):
             return HttpResponseRedirect(reverse('inventory:inventory_index'))
     else:
         if asset.user:
-            print("Yep")
             user = asset.user.emplid
         else:
-            print("Nope")
             user = None
         form = AssetForm(request, instance=asset, initial={'user': user})
     return render(request, 'inventory/edit_asset.html', {'form': form, 'asset_slug': asset_slug})
