@@ -49,9 +49,10 @@ class BookingRecordForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(BookingRecordForm, self).clean()
+        print(cleaned_data)
         start_time = cleaned_data.get("start_time")
         end_time = cleaned_data.get("end_time")
-        if end_time is not None and end_time < start_time:
+        if end_time is not None and start_time is not None and end_time < start_time:
             raise forms.ValidationError({'end_time': "End date/time cannot be before start date.",
                                          'start_time': "End date/time cannot be before start date."})
 
