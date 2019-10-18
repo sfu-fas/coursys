@@ -28,6 +28,7 @@
   <thead>
   	<tr>
 	<th scope="col">Person</th>
+    <th scope="col">ID</th>
 	<th scope="col">Category</th>
     <th scope="col">Program</th>
 	<th scope="col">Assigned BUs</th>
@@ -41,6 +42,7 @@
   {% for app in applications %}
   <tr>
   	<td><a href="{% url "ta:view_application" post_slug=posting.slug userid=app.person.userid %}">{{ app.person.sortname }}</a></td>
+    <td>{{ app.person.emplid }}</td>
   	<td>{{ app.get_category_display }}</td>
     <td>{{ app.get_current_program_display }}</td>
   	<td>{{ app.base_units_assigned }}</td>
