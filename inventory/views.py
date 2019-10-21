@@ -131,8 +131,6 @@ def upload_assets_csv(request):
     if request.method == 'POST':
         form = InventoryUploadForm(request, data=request.POST, files=request.FILES)
         if form.is_valid():
-            for row in form.cleaned_data['file']:
-                print(row)
             rows = assets_from_csv(request, form.cleaned_data['file'], save=True)
             messages.add_message(request, messages.SUCCESS, "Added %i assets from file upload." % rows)
             # We don't have a related_object to create a log, but each individually created object will set a log in
