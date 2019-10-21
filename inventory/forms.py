@@ -90,7 +90,10 @@ class InventoryUploadForm(forms.Form):
         try:
             # Convert the csv reader data to a list, because we need to use it twice.  If we just leave it as a csv
             # reader object, the iterator will be exhausted by the time we call this with save=True
-            data = list(csv.reader(data, delimiter=','))
+            # First, read everything:
+            reader = csv.reader(data, delimiter=',')
+            # Then, convert to a list and remove any leading/trailing spaces in individual values.
+            data = [[x.strip() for x in row] for row in reader]
         except csv.Error as e:
             raise forms.ValidationError('CSV decoding error.  Exception was: "' + str(e) + '"')
         # actually parse the input to see if it's valid.  If we make it through this without a ValidationError (in
