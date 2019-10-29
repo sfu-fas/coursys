@@ -396,7 +396,7 @@ class Form(models.Model, _FormCoherenceMixin):
             newform.initiators = 'NON'
             newform.save()
 
-            sheets = Sheet.objects.filter(form=self)
+            sheets = Sheet.objects.filter(form=self, active=True)
             for s in sheets:
                 newsheet = s.clone()
                 newsheet.form = newform
@@ -404,7 +404,7 @@ class Form(models.Model, _FormCoherenceMixin):
                 newsheet.slug = None
                 newsheet.save()
 
-                fields = Field.objects.filter(sheet=s)
+                fields = Field.objects.filter(sheet=s, active=True)
                 for f in fields:
                     newfield = f.clone()
                     newfield.sheet = newsheet
