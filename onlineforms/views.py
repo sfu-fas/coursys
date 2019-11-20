@@ -1021,7 +1021,10 @@ def login(request):
 def participated_in(request):
     loggedin_user = get_object_or_404(Person, userid=request.user.username)
     participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user))\
-        .exclude(form_submission__initiator=_userToFormFiller(loggedin_user))
+        .exclude(form_submission__initiator=_userToFormFiller(loggedin_user)) \
+        .select_related('form_submission', 'form_submission__form', 'form_submission__form__unit',
+                        'form_submission__initiator', 'form_submission__initiator__sfuFormFiller',
+                        'form_submission__initiator__nonSFUFormFiller', 'sheet')
     return render(request, 'onlineforms/submissions/participated.html', {'participated': participated})
 
 
