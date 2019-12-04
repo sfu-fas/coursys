@@ -200,7 +200,7 @@ def view_group(request, course_slug, group_slug):
 @requires_course_staff_by_slug
 def group_photos(request, course_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    allmembers = GroupMember.objects.filter(group__courseoffering=offering).order_by('student__person') \
+    allmembers = GroupMember.objects.filter(group__courseoffering=offering).order_by('group__name', 'student__person') \
         .select_related('group', 'student', 'student__person')
     user = get_object_or_404(Person, userid=request.user.username)
     photo_agreement = _has_photo_agreement(user)
