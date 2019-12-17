@@ -84,6 +84,15 @@ class SessionalContractForm(forms.ModelForm):
         if sin and len(sin) != 9:
             raise forms.ValidationError({'sin': "SIN has to be exactly 9 digits."})
 
+        person = cleaned_data['person']
+        offering = cleaned_data['offering']
+        account = cleaned_data['account']
+        if SessionalContract.objects.filter(sessional__person=person, offering=offering, account=account).exists():
+            raise forms.ValidationError({
+                'person': 'This person already has a contract for this offering.',
+                'offering': 'This person already has a contract for this offering.',
+            })
+
 
 class SessionalConfigForm(forms.ModelForm):
     def __init__(self, request, *args, **kwargs):
