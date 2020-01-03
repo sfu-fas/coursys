@@ -90,7 +90,8 @@ class SessionalContractForm(forms.ModelForm):
             person = None
         offering = cleaned_data['offering']
         account = cleaned_data['account']
-        if SessionalContract.objects.filter(sessional__person=person, offering=offering, account=account).exists():
+        if SessionalContract.objects.filter(sessional__person=person, offering=offering, account=account,
+                                            hidden=False).exists():
             raise forms.ValidationError({
                 'person': 'This person already has a contract for this offering.',
                 'offering': 'This person already has a contract for this offering.',
