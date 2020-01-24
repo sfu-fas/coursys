@@ -23,6 +23,16 @@ Then in `courses/secrets.py`, make sure the broker URL is right. You can use the
 CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 ```
 
+## RabbitMQ Docker
+
+RabbitMQ can be started in a Docker container for development like:
+```
+docker run -d --hostname rabbitmq --name rabbitmq -p 5672:5672 rabbitmq:latest
+# ...
+docker container stop rabbitmq
+docker container rm rabbitmq
+```
+
 ## Starting a Worker
 
 The workers in production are intricate, to handle concurrency and rate limiting just the right way. For development, you can likely start a single worker. If you have a virtualenv, the command will likely be:
