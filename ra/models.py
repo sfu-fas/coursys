@@ -157,6 +157,7 @@ DEFAULT_LETTER_BIWEEKLY = "This is to confirm remuneration of work performed as 
 
 DEFAULT_LETTER_NON_STUDENT = '\n\n'.join([
         """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
+        """Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).""",
         """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
         """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
         """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 40 hours per week.""",

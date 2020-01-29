@@ -3,7 +3,7 @@ from courselib.svn import update_repository
 from django.core.management import call_command
 from courselib.celerytasks import task, periodic_task
 from celery.schedules import crontab
-from coredata.models import Role
+from coredata.models import Role, Unit
 
 # file a periodic task will leave, and the maximum age we'd be happy with
 BEAT_TEST_FILE = '/tmp/celery_beat_test'
@@ -28,8 +28,38 @@ def ping(): # used to check that celery is alive
 # (checked by ping_celery management command)
 @periodic_task(run_every=crontab(minute='*/5', hour='*'))
 def beat_test():
-    with open(BEAT_TEST_FILE, 'w') as fh:
-        fh.write('Celery beat did things on %s.\n' % (datetime.datetime.now()))
+    set_beat_time()
+
+        
+def get_beat_time() -> int:
+    """
+    Retrieve most recent celery beat marker.
+    """
+    # need to record the celery beat time in the DB so we can retrieve and update it as necessary.
+    # This seems like the least-stupid place.
+    u = Unit.objects.get(slug='univ')
+    try:
+        return u.config['celery-beat-time']
+    except KeyError:
+        return 0
+
+
+def beat_time_okay() -> bool:
+    """
+    Is the most-recent run of beat_test acceptable?
+    """
+    last = get_beat_time()
+    now = time.time()
+    return now - last <= BEAT_FILE_MAX_AGE
+
+
+def set_beat_time() -> None:
+    """
+    Set celery beat marker to the current unix time.
+    """
+    u = Unit.objects.get(slug='univ')
+    u.config['celery-beat-time'] = int(time.time())
+    u.save()
 
 
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
