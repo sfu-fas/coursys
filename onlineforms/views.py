@@ -19,7 +19,8 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignFormForm, AdminAssignSheetForm, EditGroupForm, EmployeeSearchForm, \
     AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FormGroupMember, FieldSubmissionFile
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, \
+    FormGroupMember, FieldSubmissionFile, FILE_SECRET_LENGTH
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, FormLogEntry, reorder_sheet_fields
 
@@ -1136,27 +1137,54 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=
 
     return form_submissions[0], is_advisor
 
-@login_required
-def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
-    form_submission, _ = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=file_id)
-    if not form_submission:
-        raise Http404
-    file_sub =  get_object_or_404(FieldSubmissionFile,
-                                  field_submission__sheet_submission__form_submission=form_submission,
-                                  id=file_id)
+
+def _file_field_download(form_submission, file_sub, action):
     file_path = file_sub.file_attachment.file.name
     filename = os.path.basename(file_path)
 
     file_sub.file_attachment.file.open()
     response = HttpResponse(file_sub.file_attachment.file, content_type=file_sub.file_mediatype)
-    
+
     if action == 'download':
         disposition = 'download'
     else:
         disposition = 'inline'
-    
+
     response['Content-Disposition'] = disposition + '; filename="' + filename + '"'
     return response
+
+
+@login_required
+def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
+    form_submission, _ = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=file_id)
+    if not form_submission:
+        raise Http404
+    file_sub = get_object_or_404(FieldSubmissionFile,
+                                  field_submission__sheet_submission__form_submission=form_submission,
+                                  id=file_id)
+    return _file_field_download(form_submission, file_sub, action)
+
+
+def file_field_download_unauth(request, form_slug, formsubmit_slug, file_id, action, secret):
+    """
+    Version of file_field_download that doesn't require authentication, but does require knowing the "secret" URL
+    component. Used to provide URLs in the CSV export.
+    """
+    file_sub =  get_object_or_404(FieldSubmissionFile,
+                                  field_submission__sheet_submission__form_submission__slug=formsubmit_slug,
+                                  field_submission__sheet_submission__form_submission__form__slug=form_slug,
+                                  id=file_id)
+    form_submission = file_sub.field_submission.sheet_submission.form_submission
+
+    field_sub = file_sub.field_submission
+    if ('secret' not in field_sub.data) \
+            or (not field_sub.data['secret']) \
+            or (len(field_sub.data['secret']) != FILE_SECRET_LENGTH) \
+            or (field_sub.data['secret'] != secret):
+        raise Http404
+
+    return _file_field_download(form_submission, file_sub, action)
+
 
 
 @login_required
