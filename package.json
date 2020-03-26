@@ -12,7 +12,7 @@
     "jquery": "^3.4.1",
     "mathjax": "^2.7.5",
     "moment": "^2.24.0",
-    "tinymce": "^4.7.4"
+    "tinymce": "^4.9.7"
   },
   "devDependencies": {},
   "scripts": {
