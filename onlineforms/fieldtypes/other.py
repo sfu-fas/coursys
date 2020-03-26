@@ -17,7 +17,8 @@ def new_file_secret():
     """
     from onlineforms.models import FILE_SECRET_LENGTH
     alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits
-    return ''.join(random.choices(population=alphabet, k=FILE_SECRET_LENGTH))
+    return ''.join(random.choice(alphabet) for _ in range(FILE_SECRET_LENGTH))
+#    return ''.join(random.choices(population=alphabet, k=FILE_SECRET_LENGTH))
 
 
 class CustomMultipleInputField(fields.MultiValueField):

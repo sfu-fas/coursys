@@ -1254,7 +1254,7 @@ class FieldSubmissionFile(models.Model):
     def get_secret_url(self):
         fieldsub = self.field_submission
         if 'secret' not in fieldsub.data or not fieldsub.data['secret'] or len(fieldsub.data['secret']) != FILE_SECRET_LENGTH:
-            return None
+            return ''
         return reverse('onlineforms:file_field_download_unauth',
                        kwargs={'form_slug': self.field_submission.sheet_submission.sheet.form.slug,
                                'formsubmit_slug': self.field_submission.sheet_submission.form_submission.slug,
