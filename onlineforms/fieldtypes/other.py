@@ -1,4 +1,4 @@
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.safestring import mark_safe
 from django.conf import settings
 from django import forms
@@ -162,7 +162,11 @@ class FileCustomField(FieldBase):
 
     def to_text(self, fieldsubmission=None):
         assert 'fieldsubmissionfile' in fieldsubmission._state.fields_cache, "Must .select_related('fieldsubmissionfile')"
-        subfile = fieldsubmission.fieldsubmissionfile
+        try:
+            subfile = fieldsubmission.fieldsubmissionfile
+        except ObjectDoesNotExist:
+            # optional fields: accessing .fieldsubmissionfile throws if there wasn't one created.
+            return ''
         return settings.BASE_ABS_URL + subfile.get_secret_url()
 
 
