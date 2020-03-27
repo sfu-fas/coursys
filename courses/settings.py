@@ -74,6 +74,7 @@ INSTALLED_APPS = (
     'groups',
     'submission',
     'discipline',
+    'quizzes',
     'ta',
     'pages',
     'ra',
