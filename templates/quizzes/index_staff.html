@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ activity.name }} Quiz{% endblock %}
+{% block h1 %}{{ activity.name }} Quiz{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{offering.get_absolute_url}}">{{ offering.name }}</a></li>
+    <li><a href="{{activity.get_absolute_url}}">{{ activity.name }}</a></li>
+    <li>Quiz</li>
+{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url "offering:quiz:edit" course_slug=offering.slug activity_slug=activity.slug %}">Edit Quiz</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+    <table class="info">
+        <tbody>
+	    <tr>
+            <th scope="row">Start Time</th>
+            <td>{{ quiz.start }}</td>
+        </tr>
+	    <tr>
+            <th scope="row">End Time</th>
+            <td>{{ quiz.end }}</td>
+        </tr>
+        </tbody>
+    </table>
+
+
+{% endblock %}
