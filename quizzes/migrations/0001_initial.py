@@ -36,7 +36,6 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('type', models.CharField(choices=[('MC', 'Multiple Choice'), ('MCM', 'Multiple Choice, multiple answer'), ('SHOR', 'Short Answer'), ('LONG', 'Long Answer'), ('NUM', 'Numeric Answer'), ('FILE', 'File Upload'), ('INST', 'Instructions (students enter nothing)')], max_length=4)),
                 ('status', models.CharField(choices=[('V', 'Visible'), ('D', 'Deleted')], default='V', max_length=1)),
-                ('points', models.PositiveSmallIntegerField(default=0)),
                 ('order', models.PositiveSmallIntegerField()),
                 ('config', courselib.json_fields.JSONField(default=dict)),
                 ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='quizzes.Quiz')),

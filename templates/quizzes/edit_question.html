@@ -2,16 +2,16 @@
 {% load form_display %}
 {% load static %}
 
-{% block title %}{% if quiz %}Edit{% else %}Create{% endif %} Quiz{% endblock %}
-{% block h1 %}{% if quiz %}Edit{% else %}Create{% endif %} Quiz{% endblock %}
+{% block title %}{% if question %}Edit{% else %}Add{% endif %} {{ question_helper.name }}{% endblock %}
+{% block h1 %}{% if question %}Edit{% else %}Add{% endif %} {{ question_helper.name }}{% endblock %}
 {% block subbreadcrumbs %}
     <li><a href="{{offering.get_absolute_url}}">{{ offering.name }}</a></li>
     <li><a href="{{activity.get_absolute_url}}">{{ activity.name }}</a></li>
-    {% if quiz %}
     <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
-    <li>Edit</li>
+    {% if question %}
+    <li>Edit Question</li>
     {% else %}
-    <li>Create Quiz</li>
+    <li>Add Question</li>
     {% endif %}
 {% endblock %}
 
@@ -23,7 +23,7 @@
 
 <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
 {{form|as_dl}}
-<p><input class="submit" type="submit" value="{% if quiz %}Update{% else %}Create{% endif %}" /></p>
+<p><input class="submit" type="submit" value="{% if question %}Edit{% else %}Create{% endif %}" /></p>
 </form>
 
 {% endblock %}

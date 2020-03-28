@@ -81,7 +81,7 @@ def markdown_to_html(markup):
 
 
 @cached(36000)
-def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_already_safe=False, restricted=False):
+def markup_to_html(markup, markuplang, math=None, offering=None, pageversion=None, html_already_safe=False, restricted=False):
     """
     Master function to convert one of our markup languages to HTML (safely).
 
@@ -91,6 +91,7 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
     :param pageversion: the PageVersion we're converting for
     :param html_already_safe: markuplang=='html' and markup has already been through sanitize_html()
     :param restricted: use the restricted HTML subset for discussion (preventing format bombs)
+    :param math: If non-None, add appropriate <div> to activate/deactivate MathJax
     :return: HTML markup
     """
     assert isinstance(markup, str)
@@ -132,9 +133,16 @@ def markup_to_html(markup, markuplang, offering=None, pageversion=None, html_alr
         raise NotImplementedError()
 
     assert isinstance(html, str)
-    return mark_safe(html.strip())
+    html = html.strip()
 
+    if math is None:
+        pass
+    elif math:
+        html = '<div class="tex2jax_process">' + html + '</div>'
+    else:
+        html = '<div class="tex2jax_ignore">' + html + '</div>'
 
+    return mark_safe(html)
 
 
 # custom form field
@@ -167,13 +175,14 @@ class MarkupContentField(forms.MultiValueField):
     widget = MarkupContentWidget
 
     def __init__(self, with_wysiwyg=False, rows=20, default_markup='creole', allow_math=True, restricted=False,
-                 max_length=100000, *args, **kwargs):
+                 max_length=100000, required=True, *args, **kwargs):
         choices = MARKUP_CHOICES_WYSIWYG if with_wysiwyg else MARKUP_CHOICES
         fields = [
-            forms.CharField(required=True, max_length=max_length),
+            forms.CharField(required=required, max_length=max_length),
             forms.ChoiceField(choices=choices, required=True),
             forms.BooleanField(required=False),
         ]
+        self.required = required
 
         help_url = '/docs/markup' # hard-coded URL because lazy-evaluating them is hard
         default_help = '<a href="' + help_url + '">Markup language</a> used in the content'
