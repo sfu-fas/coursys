@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ activity.name }} Quiz from {{ member.short_str }}{% endblock %}
+{% block h1 %}{{ activity.name }} Quiz from {{ member.short_str }}{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li><a href="{% url 'offering:quiz:submissions' course_slug=offering.slug activity_slug=activity.slug %}">Submissions</a></li>
+    <li>{{ member.person.userid_or_emplid }}</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+{% include 'pages/markup_view_head.html' %}
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+    {% for q,a in question_answers %}
+        <h2 id="q-{{ forloop.counter }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
+        {% if a %}
+            {{ a.answer_html }}
+        {% else %}
+            <p class="empty">No submission found.</p>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

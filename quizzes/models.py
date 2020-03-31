@@ -154,6 +154,9 @@ class QuestionAnswer(models.Model):
 
     objects = AnswerStatusManager()
 
+    def answer_html(self) -> SafeText:
+        helper = self.question.helper()
+        return helper.to_html(self)
 
 #class QuestionMark(models.Model):
 

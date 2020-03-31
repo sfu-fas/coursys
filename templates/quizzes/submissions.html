@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ activity.name }} Quiz Submissions}{% endblock %}
+{% block h1 %}{{ activity.name }} Quiz Submissions{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li>Submissions</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+{% include 'pages/markup_view_head.html' %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#submission-table').dataTable({
+      "bPaginate": false,
+      "bJQueryUI": true,
+      "aaSorting": [[0, "asc"], [1, "asc"]],
+  });
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+    <table id="submission-table" class="display">
+    <thead><tr>
+        <th scope="col">Last Name</th>
+        <th scope="col">First Name</th>
+        <th scope="col">User ID</th>
+        <th scope="col">Stu #</th>
+        <th scope="col">Submission</th>
+    </tr></thead>
+    <tbody>
+    {% for member, lastmod in submissions %}
+        <tr>
+            <td>{{ member.person.last_name }}</td>
+            <td>{{ member.person.first_name }}</td>
+            <td>{{ member.person.userid }}</td>
+            <td><a href="{{ member.get_absolute_url }}">{{ member.person.emplid }}</a></td>
+            <td><a href="{% url 'offering:quiz:view_submission' course_slug=offering.slug activity_slug=activity.slug userid=member.person.userid_or_emplid %}"><i class="fa fa-search"></i></a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+
+{% endblock %}

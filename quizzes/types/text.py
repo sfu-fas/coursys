@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.safestring import mark_safe
 
-from .base import QuestionHelper, BaseConfigForm
+from .base import QuestionHelper, BaseConfigForm, escape_break
 
 
 class ShortAnswer(QuestionHelper):
@@ -16,6 +16,10 @@ class ShortAnswer(QuestionHelper):
         field = forms.CharField(required=False, max_length=max_length)
         field.widget.attrs.update({'class': 'short-answer'})
         return field
+
+    def to_html(self, questionanswer):
+        text = questionanswer.answer.get('data', '')
+        return escape_break(text)
 
 
 class MediumAnswer(QuestionHelper):
@@ -33,3 +37,7 @@ class MediumAnswer(QuestionHelper):
         field = forms.CharField(required=False, max_length=max_length, widget=forms.Textarea(attrs={'rows': lines, 'cols': 100}))
         field.widget.attrs.update({'class': 'medium-answer'})
         return field
+
+    def to_html(self, questionanswer):
+        text = questionanswer.answer.get('data', '')
+        return escape_break(text)

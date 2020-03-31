@@ -4,14 +4,16 @@ from collections import OrderedDict
 from typing import Optional
 
 from django.contrib import messages
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import FormView
 from django.views.generic.edit import ModelFormMixin, UpdateView
 
-from coredata.models import CourseOffering
+from coredata.models import CourseOffering, Member
 from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug
+from courselib.search import find_member
 from grades.models import Activity
 from quizzes.forms import QuizForm, StudentForm
 from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_CLASSES, Question, QuestionAnswer
@@ -293,8 +295,39 @@ def submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> H
     quiz = get_object_or_404(Quiz, activity=activity)
     questions = Question.objects.filter(quiz=quiz)
 
-    answers = QuestionAnswer.objects.filter(question__in=questions).order_by('student_id')
+    answers = QuestionAnswer.objects.filter(question__in=questions) \
+        .select_related('student__person') \
+        .order_by('student__person')
+
     by_student = itertools.groupby(answers, key=lambda a: a.student)
-    for member, ans in by_student:
-        print(member)
-        print(list(ans))
+    subs = [(member, max(a.modified_at for a in ans)) for member, ans in by_student]
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'submissions': subs,
+    }
+    return render(request, 'quizzes/submissions.html', context=context)
+
+
+@requires_course_staff_by_slug
+def view_submission(request: HttpRequest, course_slug: str, activity_slug: str, userid: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    questions = Question.objects.filter(quiz=quiz)
+    member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
+    answers = QuestionAnswer.objects.filter(student=member, question__in=questions).select_related('question')
+
+    answer_lookup = {a.question_id: a for a in answers}
+    question_answers = [(q, answer_lookup.get(q.id, None)) for q in questions]
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'member': member,
+        'question_answers': question_answers,
+    }
+    return render(request, 'quizzes/view_submission.html', context=context)

@@ -1,12 +1,20 @@
 from typing import Dict, Any, TYPE_CHECKING
 
 from django import forms
-from django.utils.safestring import SafeText
+from django.utils.html import linebreaks, escape
+from django.utils.safestring import SafeText, mark_safe
 
 from courselib.markup import MarkupContentField
 from quizzes import DEFAULT_QUIZ_MARKUP
 if TYPE_CHECKING:
     from quizzes.models import Question, QuestionAnswer
+
+
+def escape_break(text):
+    """
+    Helper to display student-entered text reasonably (and safely).
+    """
+    return mark_safe(linebreaks(escape(text)))
 
 
 class BaseConfigForm(forms.Form):
