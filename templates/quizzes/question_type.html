@@ -18,7 +18,7 @@
     <p>What type of question would you like to add?</p>
     <ul>
     {% for slug,text in question_type_choices %}
-        <li><a href="{% url 'offering:quiz:add_question' course_slug=offering.slug activity_slug=activity.slug %}?type={{ slug }}">{{ text }}</a></li>
+        <li><a href="{% url 'offering:quiz:question_add' course_slug=offering.slug activity_slug=activity.slug %}?type={{ slug }}">{{ text }}</a></li>
     {% endfor %}
     </ul>
 {% endblock %}

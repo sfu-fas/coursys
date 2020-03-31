@@ -1,4 +1,5 @@
 import datetime
+import itertools
 from collections import OrderedDict
 from typing import Optional
 
@@ -21,15 +22,18 @@ def index(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpRes
     role = request.member.role
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+
     if role in ['INST', 'TA']:
         quiz = Quiz.objects.filter(activity=activity).first()  # will be None if no quiz created for this activity
         if not quiz:
             # no quiz created? Only option is to create.
             return redirect('offering:quiz:edit', course_slug=course_slug, activity_slug=activity_slug)
         return _index_instructor(request, offering, activity, quiz)
+
     elif role == 'STUD':
         quiz = get_object_or_404(Quiz, activity=activity)  # will 404 if no quiz created for this activity
         return _index_student(request, offering, activity, quiz)
+
     else:
         raise Http404()
 
@@ -50,11 +54,34 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
     member = request.member
     assert member.role == 'STUD'
 
+    start, end = quiz.get_start_end(member)
+    now = datetime.datetime.now()
+    if start > now:
+        context = {
+            'offering': offering,
+            'activity': activity,
+            'quiz': quiz,
+            'start': start,
+            'end': end,
+            'time': 'before'
+        }
+        return render(request, 'quizzes/unavailable.html', context=context)
+    elif end < now: # TODO: should there be a 30 second grace period or something?
+        context = {
+            'offering': offering,
+            'activity': activity,
+            'quiz': quiz,
+            'start': start,
+            'end': end,
+            'time': 'after'
+        }
+        return render(request, 'quizzes/unavailable.html', context=context)
+
     questions = Question.objects.filter(quiz=quiz)
     question_lookup = {q.ident(): q for q in questions}
     question_number = {q.id: i + 1 for i, q in enumerate(questions)}
 
-    fields = OrderedDict((q.ident(), q.entry_field(questionanswer=None)) for i, q in enumerate(questions))
+    fields = OrderedDict((q.ident(), q.entry_field()) for i, q in enumerate(questions))
 
     answers = list(QuestionAnswer.objects.filter(question__in=questions, student=member))
     answer_lookup = {a.question.ident(): a for a in answers}
@@ -121,6 +148,38 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
         'quiz': quiz,
         'questions': questions,
         'question_data': question_data,
+        'preview': False,
+        'start': start,
+        'end': end,
+    }
+    return render(request, 'quizzes/index_student.html', context=context)
+
+
+@requires_course_staff_by_slug
+def preview_student(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    """
+    Instructor's preview of what students will see
+    """
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    questions = Question.objects.filter(quiz=quiz)
+
+    fields = OrderedDict((q.ident(), q.entry_field()) for i, q in enumerate(questions))
+    form = StudentForm()
+    form.fields = fields
+
+    question_data = list(zip(questions, form.visible_fields()))
+    start, end = quiz.get_start_end(None)
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'questions': questions,
+        'question_data': question_data,
+        'preview': True,
+        'start': start,
+        'end': end,
     }
     return render(request, 'quizzes/index_student.html', context=context)
 
@@ -159,42 +218,83 @@ class EditView(FormView, UpdateView, ModelFormMixin):
 
 
 @requires_course_staff_by_slug
-def question_edit(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+def question_add(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
     quiz = get_object_or_404(Quiz, activity=activity)
+
+    if request.method == 'GET' and 'type' not in request.GET:
+        # ask for type of question
+        context = {
+            'offering': offering,
+            'activity': activity,
+            'quiz': quiz,
+            'question_type_choices': QUESTION_TYPE_CHOICES,
+        }
+        return render(request, 'quizzes/question_type.html', context=context)
+
+    return _question_edit(request, offering, activity, quiz, question=None)
+
+
+@requires_course_staff_by_slug
+def question_edit(request: HttpRequest, course_slug: str, activity_slug: str, question_id: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    question = get_object_or_404(Question, quiz=quiz, id=question_id)
+
+    return _question_edit(request, offering, activity, quiz, question)
+
+
+def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Activity, quiz: Quiz, question: Optional[Question] = None) -> HttpResponse:
+    assert request.member.role in ['INST', 'TA']
+
     context = {
         'offering': offering,
         'activity': activity,
         'quiz': quiz,
+        'editing': True,
     }
 
-    if request.method == 'GET' and 'type' not in request.GET:
-        # ask for type of question
-        context['question_type_choices'] = QUESTION_TYPE_CHOICES
-        return render(request, 'quizzes/question_type.html', context=context)
+    if question is None:
+        context['editing'] = False
+        # creating a new Question: must have ?type= in URL to get here, then create it...
+        if 'type' not in request.GET:
+            raise Http404()
+        qtype = request.GET['type']
+        if qtype not in QUESTION_CLASSES:
+            raise Http404()
 
-    # have type of question: deal with form
-    qtype = request.GET['type']
-    if qtype not in QUESTION_CLASSES:
-        raise Http404()
+        question = Question(quiz=quiz, type=qtype)
 
-    question = Question(quiz=quiz, type=qtype)
-    question_helper = question.helper()
+    helper = question.helper()
 
     if request.method == 'POST':
-        form = question_helper.make_config_form(data=request.POST, files=request.FILES)
+        form = helper.make_config_form(instance=question, data=request.POST, files=request.FILES)
         if form.is_valid():
             question.config = form.to_jsonable()
             question.set_order()
             question.save()
             messages.add_message(request, messages.SUCCESS, 'Question added.')
-            return redirect('offering:quiz:index', course_slug=course_slug, activity_slug=activity_slug)
+            return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
 
     elif request.method == 'GET':
-        form = question_helper.make_config_form()
+        form = helper.make_config_form(instance=question)
 
-    context['question_helper'] = question_helper
+    context['question_helper'] = helper
     context['form'] = form
     return render(request, 'quizzes/edit_question.html', context=context)
 
+
+@requires_course_staff_by_slug
+def submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    questions = Question.objects.filter(quiz=quiz)
+
+    answers = QuestionAnswer.objects.filter(question__in=questions).order_by('student_id')
+    by_student = itertools.groupby(answers, key=lambda a: a.student)
+    for member, ans in by_student:
+        print(member)
+        print(list(ans))

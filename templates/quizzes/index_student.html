@@ -1,13 +1,13 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% load form_display %}
 {% load static %}
 
-{% block title %}{{ activity.name }} Quiz{% endblock %}
-{% block h1 %}{{ activity.name }} Quiz{% endblock %}
+{% block title %}{{ activity.name }} Quiz{% if preview %} [Instructor's Preview]{% endif %}{% endblock %}
+{% block h1 %}{{ activity.name }} Quiz{% if preview %} [Instructor's Preview]{% endif %}{% endblock %}
 {% block subbreadcrumbs %}
     <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
     <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
-    <li>Quiz</li>
+    <li>Quiz{% if preview %} Preview{% endif %}</li>
 {% endblock %}
 
 {% block headextra %}
@@ -24,11 +24,11 @@
         <tbody>
 	    <tr>
             <th scope="row">Start Time</th>
-            <td>{{ quiz.start }}</td>
+            <td>{{ start }}</td>
         </tr>
 	    <tr>
             <th scope="row">End Time</th>
-            <td>{{ quiz.end }}</td>
+            <td>{{ end }}</td>
         </tr>
         </tbody>
     </table>
@@ -43,7 +43,7 @@
         {{ f|field_display }}
     {% endfor %}
 
-    <p><input class="submit" type="submit" value="Submit" /></p>
+    {% if not preview %}<p><input class="submit" type="submit" value="Submit" /></p>{% endif %}
     </form>
 
 {% endblock %}

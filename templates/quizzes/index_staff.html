@@ -18,7 +18,9 @@
     <h2 class="heading">Actions</h2>
     <ul>
     <li><a href="{% url "offering:quiz:edit" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-edit"></i> Edit Quiz Setup</a></li>
-    <li><a href="{% url "offering:quiz:add_question" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-plus-square"></i> Add Question</a></li>
+    <li><a href="{% url "offering:quiz:question_add" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-plus-square"></i> Add Question</a></li>
+    <li><a href="{% url "offering:quiz:preview_student" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-search"></i> Preview Quiz</a></li>
+    <li><a href="{% url "offering:quiz:submissions" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-eye"></i> View Submissions</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -35,17 +37,22 @@
             <th scope="row">End Time</th>
             <td>{{ quiz.end }}</td>
         </tr>
-	    <tr>
-            <th scope="row">Introductory Text</th>
-            <td>{{ quiz.intro_html }}</td>
-        </tr>
         </tbody>
     </table>
+
+    <h2 id="intro">Introduction</h2>
+    {{ quiz.intro_html }}
 
     <h2 id="questions">Questions</h2>
     {% for q in questions %}
         <h3 id="q-{{ forloop.counter }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h3>
-        {{ q.question_html }}
+        <p>Question text:
+        [
+            <a href="{% url "offering:quiz:question_edit" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}">Edit Question #{{ forloop.counter }}</a>
+        ]
+        </p>
+        <blockquote>{{ q.question_html }}</blockquote>
+
     {% endfor %}
 
 {% endblock %}

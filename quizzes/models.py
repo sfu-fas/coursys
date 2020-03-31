@@ -1,8 +1,12 @@
 # TODO: override start/end times for special-case students (somehow)
 # TODO: a QuestionMark model and the UI for TAs to enter marks
 # TODO: prevent editing after quiz starts
+# TODO: reorder questions
+# TODO: delete questions
+
 
 import datetime
+from typing import Optional, Tuple
 
 from django.db import models
 from django.db.models import Max
@@ -67,6 +71,15 @@ class Quiz(models.Model):
     def get_absolute_url(self):
         return resolve_url('offering:quiz:index', course_slug=self.activity.offering.slug, activity_slug=self.activity.slug)
 
+    def get_start_end(self, member: Optional[Member]) -> Tuple[datetime.datetime, datetime.datetime]:
+        """
+        Get the start and end times for this quiz.
+
+        The start/end may have been overridden by the instructor for this student, but default to .start and .end if not
+        """
+        # TODO allow override and honour it here.
+        return self.start, self.end
+
     def intro_html(self) -> SafeText:
         return markup_to_html(self.intro, markuplang=self.markup, math=self.math)
 
@@ -102,8 +115,11 @@ class Question(models.Model):
 
     def set_order(self):
         """
-        Set the .order value to the current max + 1
+        If the question has no .order, set the .order value to the current max + 1
         """
+        if self.order is not None:
+            return
+
         current_max = Question.objects.filter(quiz=self.quiz).aggregate(Max('order'))['order__max']
         if not current_max:
             self.order = 1
@@ -117,9 +133,9 @@ class Question(models.Model):
         text, markup, math = self.question
         return markup_to_html(text, markup, math=math)
 
-    def entry_field(self, questionanswer=None):
+    def entry_field(self):
         helper = self.helper()
-        return helper.get_entry_field(questionanswer=questionanswer)
+        return helper.get_entry_field()
 
 
 class QuestionAnswer(models.Model):
