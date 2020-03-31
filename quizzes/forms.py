@@ -28,3 +28,8 @@ class QuizForm(MarkupContentMixin(field_name='intro'), forms.ModelForm):
         # all Quiz instances must have the activity where we're editing
         self.instance.activity = self.activity
         return cleaned_data
+
+
+class StudentForm(forms.Form):
+    # fields for student responses will be filled dynamically in the view
+    pass

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load form_display %}
 {% load static %}
 
 {% block title %}{{ activity.name }} Quiz{% endblock %}
@@ -10,17 +11,11 @@
 {% endblock %}
 
 {% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
 {% include 'pages/markup_view_head.html' %}
 {% endblock %}
 
 {% block actions %}
-<div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-    <li><a href="{% url "offering:quiz:edit" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-edit"></i> Edit Quiz Setup</a></li>
-    <li><a href="{% url "offering:quiz:add_question" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-plus-square"></i> Add Question</a></li>
-    </ul>
-</div>
 {% endblock %}
 
 {% block content %}
@@ -35,17 +30,20 @@
             <th scope="row">End Time</th>
             <td>{{ quiz.end }}</td>
         </tr>
-	    <tr>
-            <th scope="row">Introductory Text</th>
-            <td>{{ quiz.intro_html }}</td>
-        </tr>
         </tbody>
     </table>
 
-    <h2 id="questions">Questions</h2>
-    {% for q in questions %}
-        <h3 id="q-{{ forloop.counter }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h3>
+    <form action="" method="post" enctype="multipart/form-data" class="quiz">{% csrf_token %}
+    <h2 id="intro">Introduction</h2>
+    {{ quiz.intro_html }}
+
+    {% for q, f in question_data %}
+        <h2 id="q-{{ forloop.counter }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
         {{ q.question_html }}
+        {{ f|field_display }}
     {% endfor %}
+
+    <p><input class="submit" type="submit" value="Submit" /></p>
+    </form>
 
 {% endblock %}
