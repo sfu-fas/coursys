@@ -183,6 +183,7 @@ class MarkupContentField(forms.MultiValueField):
             forms.BooleanField(required=False),
         ]
         self.required = required
+        self.force_display_required = required
 
         help_url = '/docs/markup' # hard-coded URL because lazy-evaluating them is hard
         default_help = '<a href="' + help_url + '">Markup language</a> used in the content'

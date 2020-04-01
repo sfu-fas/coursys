@@ -44,7 +44,7 @@ def label_display(field, prefix=''):
     out.append('<label for="id_%s">' % (labelid,))
     out.append(escape(field.label))
     out.append(':')
-    if field.field.required:
+    if field.field.required or (hasattr(field.field, 'force_display_required') and field.field.force_display_required):
         out.append('&nbsp;' + required_icon)
 
     out.append('</label>')

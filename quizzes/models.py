@@ -1,6 +1,6 @@
 # TODO: override start/end times for special-case students (somehow)
 # TODO: a QuestionMark model and the UI for TAs to enter marks
-# TODO: prevent editing after quiz starts
+# TODO: prevent editing after quiz starts/ends
 # TODO: reorder questions
 # TODO: delete questions
 
@@ -18,6 +18,7 @@ from courselib.json_fields import JSONField, config_property
 from courselib.markup import markup_to_html
 from grades.models import Activity
 from quizzes import DEFAULT_QUIZ_MARKUP
+from quizzes.types.mc import MultipleChoice
 from quizzes.types.text import ShortAnswer, LongAnswer, FormattedAnswer, NumericAnswer
 
 
@@ -34,6 +35,7 @@ QUESTION_TYPE_CHOICES = [
 
 
 QUESTION_CLASSES = {
+    'MC': MultipleChoice,
     'SHOR': ShortAnswer,
     'LONG': LongAnswer,
     'FMT': FormattedAnswer,

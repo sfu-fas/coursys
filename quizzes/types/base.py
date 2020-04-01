@@ -19,7 +19,8 @@ def escape_break(text: str) -> SafeText:
 
 class BaseConfigForm(forms.Form):
     points = forms.IntegerField(min_value=0, max_value=1000, initial=1)
-    question = MarkupContentField(label='Question Text', default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True)
+    question = MarkupContentField(label='Question Text', required=True, default_markup=DEFAULT_QUIZ_MARKUP,
+                                  with_wysiwyg=True, restricted=True)
 
     def to_jsonable(self):
         """

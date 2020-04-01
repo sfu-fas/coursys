@@ -120,9 +120,6 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                 else:
                     # No existing QuestionAnswer: create one.
                     ans = QuestionAnswer(question=quest, student=member)
-                    # keep answer_lookup up to date for filling form initial values below
-                    answer_lookup[quest.ident()] = ans
-
                     ans.modified_at = datetime.datetime.now()
                     ans.answer = answer
                     ans.save()

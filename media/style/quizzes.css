@@ -1,3 +1,7 @@
-form.quiz input.short-answer, form.quiz input.long-answer {
+form.quiz input.short-answer, form.quiz input.long-answer, .mc-option-input {
     width: 100%;
+}
+.mc-letter {
+    display:inline-block;
+    width: 1.5em;
 }
