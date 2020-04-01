@@ -13,6 +13,7 @@
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
 {% include 'pages/markup_view_head.html' %}
+{% include 'pages/markup_edit_head.html' %}
 {% endblock %}
 
 {% block actions %}
@@ -36,6 +37,8 @@
     <form action="" method="post" enctype="multipart/form-data" class="quiz">{% csrf_token %}
     <h2 id="intro">Introduction</h2>
     {{ quiz.intro_html }}
+
+    {{ form.non_field_errors }}
 
     {% for q, f in question_data %}
         <h2 id="q-{{ forloop.counter }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>

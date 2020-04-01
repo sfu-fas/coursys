@@ -195,7 +195,7 @@ class MarkupContentField(forms.MultiValueField):
             help_text=help_text,
             *args, **kwargs)
 
-        self.fields[0].required = True
+        self.fields[0].required = required
         self.widget.widgets[0].attrs['rows'] = rows
         self.fields[1].required = True
         self.widget.widgets[1].choices = choices

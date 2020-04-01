@@ -18,24 +18,26 @@ from courselib.json_fields import JSONField, config_property
 from courselib.markup import markup_to_html
 from grades.models import Activity
 from quizzes import DEFAULT_QUIZ_MARKUP
-from quizzes.types.text import ShortAnswer, MediumAnswer
+from quizzes.types.text import ShortAnswer, LongAnswer, FormattedAnswer, NumericAnswer
 
 
 QUESTION_TYPE_CHOICES = [
     ('MC', 'Multiple Choice, single answer'),
     ('MCM', 'Multiple Choice, multiple answer'),
     ('SHOR', 'Short Answer (one line)'),
-    ('MEDI', 'Medium Answer (a few lines)'),
-    ('LONG', 'Long Answer (longer)'),
+    ('LONG', 'Long Answer (several lines)'),
+    ('FMT', 'Long Answer with formatting'),
     ('NUM', 'Numeric Answer'),
-    ('FILE', 'File Upload'),
-    ('INST', 'Instructions (students enters nothing)'),
+    #('FILE', 'File Upload'),
+    #('INST', 'Instructions (students enters nothing)'),
 ]
 
 
 QUESTION_CLASSES = {
     'SHOR': ShortAnswer,
-    'MEDI': MediumAnswer,
+    'LONG': LongAnswer,
+    'FMT': FormattedAnswer,
+    'NUM': NumericAnswer,
 }
 
 
@@ -133,9 +135,9 @@ class Question(models.Model):
         text, markup, math = self.question
         return markup_to_html(text, markup, math=math)
 
-    def entry_field(self):
+    def entry_field(self, questionanswer: 'QuestionAnswer' = None):
         helper = self.helper()
-        return helper.get_entry_field()
+        return helper.get_entry_field(questionanswer=questionanswer)
 
 
 class QuestionAnswer(models.Model):

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from quizzes.models import Question, QuestionAnswer
 
 
-def escape_break(text):
+def escape_break(text: str) -> SafeText:
     """
     Helper to display student-entered text reasonably (and safely).
     """
@@ -29,10 +29,12 @@ class BaseConfigForm(forms.Form):
 
 
 class QuestionHelper(object):
+    name: str
+
     def __init__(self, question=None):
         self.question = question
 
-    def make_config_form(self, instance: 'Question' = None, data: Dict=None, files: Dict=None) -> BaseConfigForm:
+    def make_config_form(self, instance: 'Question' = None, data: Dict[str, Any] = None, files: Dict = None) -> BaseConfigForm:
         """
         Returns a Django Form instance that can be used to edit this question's details.
 
@@ -45,17 +47,12 @@ class QuestionHelper(object):
             initial = instance.config
         return self.ConfigForm(data=data, files=files, initial=initial)
 
-    def get_entry_field(self) -> forms.Field:
+    def get_entry_field(self, questionanswer: 'QuestionAnswer' = None) -> forms.Field:
         """
-        Returns a Django Field for this question, to be filled in by the student.
+        Returns a Django Field for this question, to be filled in by the student. If questionanswer is given, its
+        .answer contents must be used to set the field's initial value.
         """
         raise NotImplementedError()
-
-    def fill_initial(self, field: forms.Field, questionanswer: 'QuestionAnswer'):
-        """
-        Populate field.initial from the previous QuestionAnswer (used where a student is editing their answer).
-        """
-        field.initial = questionanswer.answer.get('data', '')
 
     def to_jsonable(self, cleaned_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -67,5 +64,12 @@ class QuestionHelper(object):
     def to_html(self, questionanswer) -> SafeText:
         """
         Convert QuestionAnswer to HTML for display to the user.
+        """
+        # default is good enough for plain-text-ish things.
+        return escape_break(self.to_text(questionanswer))
+
+    def to_text(self, questionanswer) -> str:
+        """
+        Convert QuestionAnswer to plain for JSON output.
         """
         raise NotImplementedError

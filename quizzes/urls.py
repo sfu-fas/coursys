@@ -12,4 +12,5 @@ quiz_patterns = [
     url(r'preview$', views.preview_student, name='preview_student'),
     url(r'submissions/$', views.submissions, name='submissions'),
     url(r'submissions/' + USERID_OR_EMPLID + '$', views.view_submission, name='view_submission'),
+    url(r'download$', views.download_submissions, name='download_submissions'),
 ]

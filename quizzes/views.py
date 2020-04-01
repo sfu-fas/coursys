@@ -5,7 +5,7 @@ from typing import Optional
 
 from django.contrib import messages
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse, Http404
+from django.http import HttpRequest, HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import FormView
@@ -83,16 +83,18 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
     question_lookup = {q.ident(): q for q in questions}
     question_number = {q.id: i + 1 for i, q in enumerate(questions)}
 
-    fields = OrderedDict((q.ident(), q.entry_field()) for i, q in enumerate(questions))
 
     answers = list(QuestionAnswer.objects.filter(question__in=questions, student=member))
     answer_lookup = {a.question.ident(): a for a in answers}
 
     if request.method == 'POST':
         form = StudentForm(data=request.POST, files=request.FILES)
+        # Don't need questionanswer when constructing fields here, because the values are already injected from the
+        # form data in the previous line.
+        fields = OrderedDict((q.ident(), q.entry_field(questionanswer=None)) for i, q in enumerate(questions))
         form.fields = fields
-        if form.is_valid():
 
+        if form.is_valid():
             # Iterate through each answer we received, and create/update corresponding QuestionAnswer objects.
             for name, data in form.cleaned_data.items():
                 try:
@@ -131,18 +133,13 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
 
     else:
         form = StudentForm()
+        fields = OrderedDict(
+            (q.ident(), q.entry_field(questionanswer=answer_lookup.get(q.ident(), None)))
+            for i, q in enumerate(questions)
+        )
         form.fields = fields
 
     question_data = list(zip(questions, form.visible_fields()))
-
-    # fill form initial data with existing QuestionAnswer values
-    for quest, field in question_data:
-        if quest.ident() in answer_lookup:
-            ans = answer_lookup[quest.ident()]
-            quest.helper().fill_initial(field, ans)
-        else:
-            # No existing answer: let the field's original .initial persist
-            pass
 
     context = {
         'offering': offering,
@@ -150,6 +147,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
         'quiz': quiz,
         'questions': questions,
         'question_data': question_data,
+        'form': form,
         'preview': False,
         'start': start,
         'end': end,
@@ -309,6 +307,36 @@ def submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> H
         'submissions': subs,
     }
     return render(request, 'quizzes/submissions.html', context=context)
+
+
+@requires_course_staff_by_slug
+def download_submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    questions = Question.objects.filter(quiz=quiz)
+
+    answers = QuestionAnswer.objects.filter(question__in=questions) \
+        .select_related('student__person') \
+        .order_by('student__person')
+
+    by_student = itertools.groupby(answers, key=lambda a: a.student)
+    data = []
+    for m, answers in by_student:
+        answers = list(answers)
+        answers_lookup = {a.question_id: a for a in answers}
+        lastmod = max(a.modified_at for a in answers)
+        d = {
+            'userid': m.person.userid_or_emplid(),
+            'last_submission': lastmod,
+        }
+        d.update({
+            'q-%i'%(i+1): q.helper().to_text(answers_lookup[q.id]) if q.id in answers_lookup else None
+            for i, q in enumerate(questions)
+        })
+        data.append(d)
+
+    return JsonResponse({'submissions': data})
 
 
 @requires_course_staff_by_slug

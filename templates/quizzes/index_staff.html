@@ -21,6 +21,7 @@
     <li><a href="{% url "offering:quiz:question_add" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-plus-square"></i> Add Question</a></li>
     <li><a href="{% url "offering:quiz:preview_student" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-search"></i> Preview Quiz</a></li>
     <li><a href="{% url "offering:quiz:submissions" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-eye"></i> View Submissions</a></li>
+    <li><a href="{% url "offering:quiz:download_submissions" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-download"></i> Download JSON</a></li>
     </ul>
 </div>
 {% endblock %}
