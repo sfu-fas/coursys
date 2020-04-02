@@ -31,6 +31,6 @@ def score_stars(score, maxscore):
 
     return mark_safe(
         wholestars * '<i class="fa fa-star"></i>'
-        + halfstars * '<i class="fa fa-star-half-o"></i>'
+        + halfstars * '<i class="fa fa-star-half"></i>'
         + (STARS - wholestars - halfstars) * '<i class="fa fa-star-o"></i>'
     )
