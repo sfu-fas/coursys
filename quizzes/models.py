@@ -1,8 +1,5 @@
-# TODO: override start/end times for special-case students (somehow)
 # TODO: a QuestionMark model and the UI for TAs to enter marks
-# TODO: reorder questions
-# TODO: delete questions
-
+# TODO: delete Quiz?
 
 import datetime
 from typing import Optional, Tuple
@@ -137,9 +134,9 @@ class Question(models.Model):
 
     class Meta:
         ordering = ['order']
-        unique_together = [['quiz', 'order']]
 
     objects = QuestionStatusManager()
+    all_objects = models.Manager()
 
     def ident(self):
         """

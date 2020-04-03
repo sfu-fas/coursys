@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
 {% include 'pages/markup_view_head.html' %}
 {% endblock %}
 
@@ -51,15 +52,15 @@
     <p class="empty">None.</p>
     {% endif %}
 
-    <h2 id="questions">Questions</h2>
     {% for q in questions %}
-        <h3 id="q-{{ forloop.counter }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h3>
-        <p>Question text:
-        {% if not quiz.completed %}[
+        <h2 id="q-{{ q.id }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
+        {% if not quiz.completed %}<p>[
+
             <a href="{% url "offering:quiz:question_edit" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}">Edit Question #{{ forloop.counter }}</a>
-        ]{% endif %}
-        </p>
-        <blockquote>{{ q.question_html }}</blockquote>
+            | <a href="{% url "offering:quiz:question_reorder" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}?direction=up">Move Up &uarr;</a>
+            | <a href="{% url "offering:quiz:question_reorder" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}?direction=down">Move Down &darr;</a>
+        ]</p>{% endif %}
+        {{ q.question_html }}
 
     {% endfor %}
 

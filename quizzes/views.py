@@ -4,9 +4,10 @@ from collections import OrderedDict
 from typing import Optional
 
 from django.contrib import messages
-from django.db.models import Q
-from django.http import HttpRequest, HttpResponse, Http404, JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.db import transaction
+from django.db.models import Q, Max, Min
+from django.http import HttpRequest, HttpResponse, Http404, JsonResponse, HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 from django.utils.decorators import method_decorator
 from django.views.generic import FormView
 from django.views.generic.edit import ModelFormMixin, UpdateView
@@ -287,7 +288,60 @@ def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Act
 
     context['question_helper'] = helper
     context['form'] = form
+    context['question'] = question
     return render(request, 'quizzes/edit_question.html', context=context)
+
+
+@requires_course_staff_by_slug
+def question_reorder(request: HttpRequest, course_slug: str, activity_slug: str, question_id: str) -> HttpResponse:
+    quiz = get_object_or_404(Quiz, activity__slug=activity_slug, activity__offering__slug=course_slug)
+    question1 = get_object_or_404(Question, quiz=quiz, id=question_id)
+
+    direction = request.GET.get('direction', '')
+    if direction not in ['up', 'down']:
+        raise Http404()
+
+    if quiz.completed():
+        return ForbiddenResponse(request, 'Quiz is completed. You cannot modify questions after the end of the quiz time')
+
+    try:
+        if direction == 'up':
+            # find question before this one
+            prev_order = Question.objects.filter(quiz=quiz, order__lt=question1.order).aggregate(Max('order'))['order__max']
+            question2 = Question.objects.get(quiz=quiz, order=prev_order)
+        else:
+            # find question after this one
+            next_order = Question.objects.filter(quiz=quiz, order__gt=question1.order).aggregate(Min('order'))['order__min']
+            question2 = Question.objects.get(quiz=quiz, order=next_order)
+
+    except Question.DoesNotExist:
+        # moving up past the start, or down past the end: ignore
+        pass
+
+    else:
+        o1 = question1.order
+        o2 = question2.order
+        with transaction.atomic():
+            question2.order = o1
+            question2.save()
+            question1.order = o2
+            question1.save()
+
+    return HttpResponseRedirect(resolve_url('offering:quiz:index', course_slug=course_slug, activity_slug=activity_slug)
+                                + '#q-' + str(question1.id))
+
+
+@requires_course_staff_by_slug
+def question_delete(request: HttpRequest, course_slug: str, activity_slug: str, question_id: str) -> HttpResponse:
+    if request.method in ['POST', 'DELETE']:
+        quiz = get_object_or_404(Quiz, activity__slug=activity_slug, activity__offering__slug=course_slug)
+        question = get_object_or_404(Question, quiz=quiz, id=question_id)
+        question.status = 'D'
+        question.save()
+        messages.add_message(request, messages.SUCCESS, 'Question deleted.')
+        return redirect('offering:quiz:index', course_slug=course_slug, activity_slug=activity_slug)
+    else:
+        return HttpError(request, status=405, title="Method Not Allowed", error='POST or DELETE requests only.')
 
 
 @requires_course_staff_by_slug
