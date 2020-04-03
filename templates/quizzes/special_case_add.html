@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block title %}Add Timing Special Case{% endblock %}
+{% block h1 %}Add Timing Special Case{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{offering.get_absolute_url}}">{{ offering.name }}</a></li>
+    <li><a href="{{activity.get_absolute_url}}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li><a href="{% url 'offering:quiz:special_cases' course_slug=offering.slug activity_slug=activity.slug %}">Timing Special Cases</a></li>
+    <li>Add</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+{% endblock %}
+
+{% block content %}
+<form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+{{form|as_dl}}
+<p><input class="submit" type="submit" value="Save" /></p>
+</form>
+
+{% endblock %}

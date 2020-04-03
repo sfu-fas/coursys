@@ -21,7 +21,9 @@
 {% endblock %}
 
 {% block content %}
-
+{% if quiz.ongoing %}
+    <p class="warningmessage">This quiz is currently in-progress. Editing it now should be done <strong>very</strong> cautiously.</p>
+{% endif %}
 <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
 {{form|as_dl}}
 <p><input class="submit" type="submit" value="{% if editing %}Update{% else %}Create{% endif %}" /></p>

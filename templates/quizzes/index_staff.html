@@ -18,8 +18,11 @@
     <h2 class="heading">Actions</h2>
     <ul>
     <li><a href="{% url "offering:quiz:edit" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-edit"></i> Edit Quiz Setup</a></li>
-    <li><a href="{% url "offering:quiz:question_add" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-plus-square"></i> Add Question</a></li>
+    {% if not quiz.completed %}
+        <li><a href="{% url "offering:quiz:question_add" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-plus"></i> Add Question</a></li>
+    {% endif %}
     <li><a href="{% url "offering:quiz:preview_student" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-search"></i> Preview Quiz</a></li>
+    <li><a href="{% url "offering:quiz:special_cases" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-clock-o"></i> Manage Timing Special Cases</a></li>
     <li><a href="{% url "offering:quiz:submissions" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-eye"></i> View Submissions</a></li>
     <li><a href="{% url "offering:quiz:download_submissions" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-download"></i> Download JSON</a></li>
     </ul>
@@ -42,15 +45,19 @@
     </table>
 
     <h2 id="intro">Introduction</h2>
+    {% if quiz.intro %}
     {{ quiz.intro_html }}
+    {% else %}
+    <p class="empty">None.</p>
+    {% endif %}
 
     <h2 id="questions">Questions</h2>
     {% for q in questions %}
         <h3 id="q-{{ forloop.counter }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h3>
         <p>Question text:
-        [
+        {% if not quiz.completed %}[
             <a href="{% url "offering:quiz:question_edit" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}">Edit Question #{{ forloop.counter }}</a>
-        ]
+        ]{% endif %}
         </p>
         <blockquote>{{ q.question_html }}</blockquote>
 

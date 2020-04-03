@@ -12,11 +12,11 @@ from django.views.generic import FormView
 from django.views.generic.edit import ModelFormMixin, UpdateView
 
 from coredata.models import CourseOffering, Member
-from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug
+from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, ForbiddenResponse, HttpError
 from courselib.search import find_member
 from grades.models import Activity
-from quizzes.forms import QuizForm, StudentForm
-from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_CLASSES, Question, QuestionAnswer
+from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm
+from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_CLASSES, Question, QuestionAnswer, TimeSpecialCase
 
 
 @requires_course_by_slug
@@ -167,7 +167,7 @@ def preview_student(request: HttpRequest, course_slug: str, activity_slug: str) 
     form.fields = fields
 
     question_data = list(zip(questions, form.visible_fields()))
-    start, end = quiz.get_start_end(None)
+    start, end = quiz.get_start_end(member=None)
     context = {
         'offering': offering,
         'activity': activity,
@@ -202,10 +202,11 @@ class EditView(FormView, UpdateView, ModelFormMixin):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['quiz'] = self.object
-        if self.object:
-            context['offering'] = self.object.activity.offering
-            context['activity'] = self.object.activity
+        quiz = self.object
+        context['quiz'] = quiz
+        if quiz:
+            context['offering'] = quiz.activity.offering
+            context['activity'] = quiz.activity
         else:
             context['activity'] = get_object_or_404(Activity, slug=self.kwargs['activity_slug'],
                                                     offering__slug=self.kwargs['course_slug'])
@@ -219,6 +220,9 @@ def question_add(request: HttpRequest, course_slug: str, activity_slug: str) -> 
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
     quiz = get_object_or_404(Quiz, activity=activity)
+
+    if quiz.completed():
+        return ForbiddenResponse(request, 'quiz is completed. You cannot edit questions after the end of the quiz time')
 
     if request.method == 'GET' and 'type' not in request.GET:
         # ask for type of question
@@ -239,6 +243,9 @@ def question_edit(request: HttpRequest, course_slug: str, activity_slug: str, qu
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
     quiz = get_object_or_404(Quiz, activity=activity)
     question = get_object_or_404(Question, quiz=quiz, id=question_id)
+
+    if quiz.completed():
+        return ForbiddenResponse(request, 'quiz is completed. You cannot edit questions after the end of the quiz time')
 
     return _question_edit(request, offering, activity, quiz, question)
 
@@ -356,3 +363,55 @@ def view_submission(request: HttpRequest, course_slug: str, activity_slug: str, 
         'question_answers': question_answers,
     }
     return render(request, 'quizzes/view_submission.html', context=context)
+
+
+@requires_course_staff_by_slug
+def special_cases(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    special_cases = TimeSpecialCase.objects.filter(quiz=quiz).select_related('student', 'student__person')
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'special_cases': special_cases,
+    }
+    return render(request, 'quizzes/special_cases.html', context=context)
+
+
+@requires_course_staff_by_slug
+def special_case_add(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    students = Member.objects.filter(offering=offering, role='STUD').select_related('person')
+
+    if request.method == 'POST':
+        form = TimeSpecialCaseForm(quiz=quiz, students=students, data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request, messages.SUCCESS, 'Special case saved.')
+            return redirect('offering:quiz:special_cases', course_slug=offering.slug, activity_slug=activity.slug)
+    else:
+        start, end = quiz.get_start_end(member=None)
+        form = TimeSpecialCaseForm(quiz=quiz, students=students, initial={'start': start, 'end': end})
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'form': form,
+    }
+    return render(request, 'quizzes/special_case_add.html', context=context)
+
+@requires_course_staff_by_slug
+def special_case_delete(request: HttpRequest, course_slug: str, activity_slug: str, sc_id: str) -> HttpResponse:
+    if request.method in ['POST', 'DELETE']:
+        sc = get_object_or_404(TimeSpecialCase, quiz__activity__offering__slug=course_slug, quiz__activity__slug=activity_slug, id=sc_id)
+        sc.delete()
+        messages.add_message(request, messages.SUCCESS, 'Special case deleted.')
+        return redirect('offering:quiz:special_cases', course_slug=course_slug, activity_slug=activity_slug)
+    else:
+        return HttpError(request, status=405, title="Method Not Allowed", error='POST or DELETE requests only.')

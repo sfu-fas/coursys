@@ -1,6 +1,5 @@
 # TODO: override start/end times for special-case students (somehow)
 # TODO: a QuestionMark model and the UI for TAs to enter marks
-# TODO: prevent editing after quiz starts/ends
 # TODO: reorder questions
 # TODO: delete questions
 
@@ -24,7 +23,7 @@ from quizzes.types.text import ShortAnswer, LongAnswer, FormattedAnswer, Numeric
 
 QUESTION_TYPE_CHOICES = [
     ('MC', 'Multiple Choice, single answer'),
-    ('MCM', 'Multiple Choice, multiple answer'),
+    #('MCM', 'Multiple Choice, multiple answer'),
     ('SHOR', 'Short Answer (one line)'),
     ('LONG', 'Long Answer (several lines)'),
     ('FMT', 'Long Answer with formatting'),
@@ -55,13 +54,13 @@ class Quiz(models.Model):
             return super().get_queryset().select_related('activity', 'activity__offering').filter(status='V')
 
     activity = models.OneToOneField(Activity, on_delete=models.PROTECT)
-    start = models.DateTimeField(help_text='Quiz will be visible to student after this time. Time format: HH:MM:SS, 24-hour time')
+    start = models.DateTimeField(help_text='Quiz will be visible to students after this time. Time format: HH:MM:SS, 24-hour time')
     end = models.DateTimeField(help_text='Quiz will be invisible to students and unsubmittable after this time. Time format: HH:MM:SS, 24-hour time')
     status = models.CharField(max_length=1, null=False, blank=False, default='V', choices=STATUS_CHOICES)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
         # q.config['intro']: introductory text for the quiz
         # q.config['markup']: markup language used: see courselib/markup.py
-        # q.config['math']: page uses MathJax? (boolean)
+        # q.config['math']: intro uses MathJax? (boolean)
 
     intro = config_property('intro', default='')
     markup = config_property('markup', default='')
@@ -81,8 +80,39 @@ class Quiz(models.Model):
 
         The start/end may have been overridden by the instructor for this student, but default to .start and .end if not
         """
-        # TODO allow override and honour it here.
-        return self.start, self.end
+        if not member:
+            # in the generic case, use the defaults
+            return self.start, self.end
+
+        special_case = TimeSpecialCase.objects.filter(quiz=self, student=member).first()
+        if not special_case:
+            # no special case for this student
+            return self.start, self.end
+        else:
+            # student has a special case
+            return special_case.start, special_case.end
+
+    def ongoing(self, member: Optional[Member] = None) -> bool:
+        """
+        Is the quiz currently in-progress?
+        """
+        start, end = self.get_start_end(member=member)
+        if not start or not end:
+            # newly created with start and end not yet filled
+            return False
+        now = datetime.datetime.now()
+        return start <= now <= end
+
+    def completed(self, member: Optional[Member] = None) -> bool:
+        """
+        Is the quiz over?
+        """
+        _, end = self.get_start_end(member=member)
+        if not end:
+            # newly created with end not yet filled
+            return False
+        now = datetime.datetime.now()
+        return now > end
 
     def intro_html(self) -> SafeText:
         return markup_to_html(self.intro, markuplang=self.markup, math=self.math)
@@ -161,6 +191,19 @@ class QuestionAnswer(models.Model):
     def answer_html(self) -> SafeText:
         helper = self.question.helper()
         return helper.to_html(self)
+
+
+class TimeSpecialCase(models.Model):
+    """
+    Model to represent quiz start/end times that are unique to one student, to allow makeup quizzes, accessibility
+    accommodations, etc.
+    """
+    quiz = models.ForeignKey(Quiz, null=False, blank=False, on_delete=models.PROTECT)
+    student = models.ForeignKey(Member, on_delete=models.PROTECT)
+    start = models.DateTimeField(help_text='Quiz will be visible to the student after this time. Time format: HH:MM:SS, 24-hour time')
+    end = models.DateTimeField(help_text='Quiz will be invisible to the student and unsubmittable after this time. Time format: HH:MM:SS, 24-hour time')
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
+
 
 #class QuestionMark(models.Model):
 
