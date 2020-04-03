@@ -353,7 +353,7 @@ div#messages li {
 div#messages li:before {
   font-family: FontAwesome;
   font-style: normal;
-  font-weight: normal;
+  font-weight: inherit;
   line-height: 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
