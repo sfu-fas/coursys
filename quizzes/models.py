@@ -138,6 +138,10 @@ class Question(models.Model):
     objects = QuestionStatusManager()
     all_objects = models.Manager()
 
+    def get_absolute_url(self):
+        return resolve_url('offering:quiz:index', course_slug=self.quiz.activity.offering.slug,
+                           activity_slug=self.quiz.activity.slug) + '#' + self.ident()
+
     def ident(self):
         """
         Unique identifier that can be used as a input name or HTML id value.
@@ -185,6 +189,11 @@ class QuestionAnswer(models.Model):
 
     objects = AnswerStatusManager()
 
+    def get_absolute_url(self):
+        return resolve_url('offering:quiz:view_submission', course_slug=self.question.quiz.activity.offering.slug,
+                           activity_slug=self.question.quiz.activity.slug,
+                           userid=self.student.person.userid_or_emplid()) + '#' + self.question.ident()
+
     def answer_html(self) -> SafeText:
         helper = self.question.helper()
         return helper.to_html(self)
@@ -201,6 +210,8 @@ class TimeSpecialCase(models.Model):
     end = models.DateTimeField(help_text='Quiz will be invisible to the student and unsubmittable after this time. Time format: HH:MM:SS, 24-hour time')
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
+    class Meta:
+        unique_together = [['quiz', 'student']]
 
 #class QuestionMark(models.Model):
 

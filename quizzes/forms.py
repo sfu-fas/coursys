@@ -26,12 +26,6 @@ class QuizTimeBaseForm(forms.ModelForm):
 
         return cleaned_data
 
-    def clean_end(self):
-        end = self.cleaned_data['end']
-        if end <= datetime.datetime.now():
-            raise forms.ValidationError("Quiz must end in the future.")
-        return end
-
 
 class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
     intro = MarkupContentField(required=False, label='Introductory Text (displayed at the top of the quiz)', default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True)
@@ -73,3 +67,10 @@ class TimeSpecialCaseForm(QuizTimeBaseForm):
         # must have the quiz where we're editing
         self.instance.quiz = self.quiz
         return cleaned_data
+
+    def clean_student(self):
+        student = self.cleaned_data['student']
+        # ensure uniqueness of the quiz/student pair
+        if TimeSpecialCase.objects.filter(quiz=self.quiz, student=student).exists():
+            raise forms.ValidationError('This student already has a special case: you must delete it before adding another.')
+        return student

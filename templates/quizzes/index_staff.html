@@ -31,7 +31,6 @@
 {% endblock %}
 
 {% block content %}
-
     <table class="info">
         <tbody>
 	    <tr>
@@ -53,10 +52,10 @@
     {% endif %}
 
     {% for q in questions %}
-        <h2 id="q-{{ q.id }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
+        <h2 id="{{ q.ident }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
         {% if not quiz.completed %}<p>[
 
-            <a href="{% url "offering:quiz:question_edit" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}">Edit Question #{{ forloop.counter }}</a>
+            <a href="{% url "offering:quiz:question_edit" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}">Edit</a>
             | <a href="{% url "offering:quiz:question_reorder" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}?direction=up">Move Up &uarr;</a>
             | <a href="{% url "offering:quiz:question_reorder" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}?direction=down">Move Down &darr;</a>
         ]</p>{% endif %}

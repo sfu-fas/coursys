@@ -124,6 +124,3 @@ class NumericAnswer(QuestionHelper):
 
     def to_text(self, questionanswer):
         return questionanswer.answer.get('data', None)
-
-    #def to_html(self, questionanswer):
-

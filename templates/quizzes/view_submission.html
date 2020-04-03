@@ -21,7 +21,7 @@
 
 {% block content %}
     {% for q,a in question_answers %}
-        <h2 id="q-{{ forloop.counter }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
+        <h2 id="{{ q.ident }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
         {% if a %}
             {{ a.answer_html }}
         {% else %}

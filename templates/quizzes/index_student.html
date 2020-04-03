@@ -43,7 +43,7 @@
     {{ form.non_field_errors }}
 
     {% for q, f in question_data %}
-        <h2 id="q-{{ forloop.counter }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
+        <h2 id="{{ q.ident }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
         {{ q.question_html }}
         {{ f|field_display }}
     {% endfor %}

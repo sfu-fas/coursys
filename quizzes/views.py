@@ -16,6 +16,7 @@ from coredata.models import CourseOffering, Member
 from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, ForbiddenResponse, HttpError
 from courselib.search import find_member
 from grades.models import Activity
+from log.models import LogEntry
 from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm
 from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_CLASSES, Question, QuestionAnswer, TimeSpecialCase
 
@@ -68,7 +69,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             'end': end,
             'time': 'before'
         }
-        return render(request, 'quizzes/unavailable.html', context=context)
+        return render(request, 'quizzes/unavailable.html', context=context, status=403)
     elif end < now: # TODO: should there be a 30 second grace period or something?
         context = {
             'offering': offering,
@@ -78,12 +79,11 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             'end': end,
             'time': 'after'
         }
-        return render(request, 'quizzes/unavailable.html', context=context)
+        return render(request, 'quizzes/unavailable.html', context=context, status=403)
 
     questions = Question.objects.filter(quiz=quiz)
     question_lookup = {q.ident(): q for q in questions}
     question_number = {q.id: i + 1 for i, q in enumerate(questions)}
-
 
     answers = list(QuestionAnswer.objects.filter(question__in=questions, student=member))
     answer_lookup = {a.question.ident(): a for a in answers}
@@ -125,6 +125,8 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                     ans.answer = answer
                     ans.save()
                     messages.add_message(request, messages.INFO, 'Question #%i answer saved.' % (n,))
+                    LogEntry(userid=request.user.username, description='submitted quiz question %i' % (quest.id),
+                             related_object=ans).save()
 
             messages.add_message(request, messages.SUCCESS, 'Quiz answers saved. You can continue to modify them, as long as you submit before the end of the quiz time.')
             return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
@@ -215,6 +217,12 @@ class EditView(FormView, UpdateView, ModelFormMixin):
 
         return context
 
+    def form_valid(self, form):
+        res = super().form_valid(form)
+        LogEntry(userid=self.request.user.username, description='edited quiz id=%i' % (self.object.id),
+                 related_object=self.object).save()
+        return res
+
 
 @requires_course_staff_by_slug
 def question_add(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
@@ -280,7 +288,12 @@ def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Act
             question.config = form.to_jsonable()
             question.set_order()
             question.save()
-            messages.add_message(request, messages.SUCCESS, 'Question added.')
+            if context['editing']:
+                messages.add_message(request, messages.SUCCESS, 'Question updated.')
+            else:
+                messages.add_message(request, messages.SUCCESS, 'Question added.')
+            LogEntry(userid=request.user.username, description='edited quiz question id=%i' % (question.id),
+                     related_object=question).save()
             return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
 
     elif request.method == 'GET':
@@ -335,10 +348,14 @@ def question_reorder(request: HttpRequest, course_slug: str, activity_slug: str,
 def question_delete(request: HttpRequest, course_slug: str, activity_slug: str, question_id: str) -> HttpResponse:
     if request.method in ['POST', 'DELETE']:
         quiz = get_object_or_404(Quiz, activity__slug=activity_slug, activity__offering__slug=course_slug)
+        if quiz.completed():
+            return ForbiddenResponse(request, 'Quiz is completed. You cannot modify questions after the end of the quiz time')
         question = get_object_or_404(Question, quiz=quiz, id=question_id)
         question.status = 'D'
         question.save()
         messages.add_message(request, messages.SUCCESS, 'Question deleted.')
+        LogEntry(userid=request.user.username, description='deleted quiz question id=%i' % (question.id,),
+                 related_object=question).save()
         return redirect('offering:quiz:index', course_slug=course_slug, activity_slug=activity_slug)
     else:
         return HttpError(request, status=405, title="Method Not Allowed", error='POST or DELETE requests only.')
@@ -445,8 +462,11 @@ def special_case_add(request: HttpRequest, course_slug: str, activity_slug: str)
     if request.method == 'POST':
         form = TimeSpecialCaseForm(quiz=quiz, students=students, data=request.POST)
         if form.is_valid():
-            form.save()
+            sc = form.save()
             messages.add_message(request, messages.SUCCESS, 'Special case saved.')
+            LogEntry(userid=request.user.username, description='added timing special case for %s' % (sc.student,),
+                     related_object=sc).save()
+
             return redirect('offering:quiz:special_cases', course_slug=offering.slug, activity_slug=activity.slug)
     else:
         start, end = quiz.get_start_end(member=None)
@@ -460,12 +480,15 @@ def special_case_add(request: HttpRequest, course_slug: str, activity_slug: str)
     }
     return render(request, 'quizzes/special_case_add.html', context=context)
 
+
 @requires_course_staff_by_slug
 def special_case_delete(request: HttpRequest, course_slug: str, activity_slug: str, sc_id: str) -> HttpResponse:
     if request.method in ['POST', 'DELETE']:
         sc = get_object_or_404(TimeSpecialCase, quiz__activity__offering__slug=course_slug, quiz__activity__slug=activity_slug, id=sc_id)
         sc.delete()
         messages.add_message(request, messages.SUCCESS, 'Special case deleted.')
+        LogEntry(userid=request.user.username, description='deleted timing special case for %s' % (sc.student,),
+                 related_object=sc.quiz).save()
         return redirect('offering:quiz:special_cases', course_slug=course_slug, activity_slug=activity_slug)
     else:
         return HttpError(request, status=405, title="Method Not Allowed", error='POST or DELETE requests only.')
