@@ -1,0 +1,80 @@
+{% extends "base-wide.html" %}
+{% load static %}
+
+{% block title %}{{ activity.name }} Quiz from {{ member.short_str }}: Submission History{% endblock %}
+{% block h1 %}{{ activity.name }} Quiz from {{ member.short_str }}: Submission History{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li><a href="{% url 'offering:quiz:submissions' course_slug=offering.slug activity_slug=activity.slug %}">Submissions</a></li>
+    <li><a href="{% url 'offering:quiz:view_submission' course_slug=offering.slug activity_slug=activity.slug userid=member.person.userid_or_emplid %}">{{ member.person.userid_or_emplid }}</a></li>
+    <li>History</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+{% include 'pages/markup_view_head.html' %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('.answer-popup').hide();
+    $('.answer-number').click(function() {
+        var data_id = $(this).attr("data-popup");
+        $( "#" + data_id).dialog({
+            modal: true,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+                }
+            }
+        });
+    });
+    $('#submissions').dataTable({
+        "bPaginate": false,
+        "bJQueryUI": true,
+        "aaSorting": [[0, "asc"]],
+    });
+    $('.browser-fingerprint').tooltip();
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+    <table id="submissions" class="display">
+    <thead><tr>
+        <th scope="col">Time</th>
+        <th scope="col">Questions Updated <a href="#question_help">*</a></th>
+        <th scope="col">Session Fingerprint <a href="#session_help">**</a></th>
+        <th scope="col">Browser Fingerprint <a href="#browser_help">***</a></th>
+        <th scope="col">IP Address</th>
+    </tr></thead>
+    <tbody>
+    {% for sub in quiz_submissions %}
+        <tr>
+            <td><span class="sort">{{ sub.created_at.isoformat }}</span>{{ sub.created_at }}</td>
+            <td>{% for ad in sub.answer_data %}
+                <a class="answer-number"  data-popup="ans-{{ sub.id }}-{{ ad.n }}">#{{ ad.n }}{% if not forloop.last %}, {% endif %}</a>
+                <div class="answer-popup" id="ans-{{ sub.id }}-{{ ad.n }}" title="Question #{{ ad.n }} Answer">{{ ad.answer_html }}</div>
+            {% endfor %}</td>
+            <td>{{ sub.session_fingerprint }}</td>
+            <td><span class="browser-fingerprint" title="{{ sub.config.user_agent }}">{{ sub.browser_fingerprint }}</span></td>
+            <td>{{ sub.ip_address }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+
+    <p id="question_help">* This gives the questions <em>that were modified</em> with this submission.
+        Questions with answers not changed from the previous submission won't appear here.
+        Click the question number to see the answer given with this submission.</p>
+    <p id="session_help">** This value is a fingerprint of the user's session (i.e. work after logging in on a particular browser).
+        If it changes, it's likely that the submission was made after logging out and back in, or from a different browser/computer.
+        Contact <a href="mailto:coursys-help@sfu.ca">coursys-help@sfu.ca</a> if you need help interpreting this value.</p>
+    <p id="browser_help">*** This value is a fingerprint of the user's web browser.
+        If it changes, it's likely that the submission was made from a different web browser (but not necessarily a different computer).
+        Hover over the value for the <q>user agent</q> string the browser gave to identify itself.
+        Contact <a href="mailto:coursys-help@sfu.ca">coursys-help@sfu.ca</a> if you need help interpreting this value.</p>
+{% endblock %}

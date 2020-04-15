@@ -1,6 +1,7 @@
 {% extends "base-wide.html" %}
 {% load form_display %}
 {% load static %}
+{% load compress %}
 
 {% block title %}{{ activity.name }} Quiz{% if preview %} [Instructor's Preview]{% endif %}{% endblock %}
 {% block h1 %}{{ activity.name }} Quiz{% if preview %} [Instructor's Preview]{% endif %}{% endblock %}
@@ -14,6 +15,27 @@
 <link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
 {% include 'pages/markup_view_head.html' %}
 {% include 'pages/markup_edit_head.html' %}
+{% compress js %}
+<script src="{% static "fingerprintjs2/dist/fingerprint2.min.js" %}"></script>
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    var options = {excludes: {canvas: true, webgl: true, enumerateDevices: true}};
+    if (window.requestIdleCallback) {
+        requestIdleCallback(function () {
+            Fingerprint2.get(options, function (components) {
+              $('#fingerprint').val(JSON.stringify(components));
+            })
+        })
+    } else {
+        setTimeout(function () {
+            Fingerprint2.get(options, function (components) {
+              $('#fingerprint').val(JSON.stringify(components));
+            })
+        }, 500)
+    }
+} );
+</script>
+{% endcompress %}
 {% endblock %}
 
 {% block actions %}
@@ -41,6 +63,7 @@
     {% endif %}
 
     {{ form.non_field_errors }}
+    <input type="hidden" name="fingerprint" id="fingerprint" value="" />
 
     {% for q, f in question_data %}
         <h2 id="{{ q.ident }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>

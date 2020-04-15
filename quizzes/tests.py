@@ -82,7 +82,7 @@ class QuizzesTest(TestCase):
         test_views(self, c, 'offering:quiz:', ['question_edit'],
                    {'course_slug': self.offering.slug, 'activity_slug': self.activity.slug, 'question_id': str(self.q2.id)})
 
-        test_views(self, c, 'offering:quiz:', ['view_submission'],
+        test_views(self, c, 'offering:quiz:', ['view_submission', 'submission_history'],
                    {'course_slug': self.offering.slug, 'activity_slug': self.activity.slug, 'userid': self.s1.person.userid})
 
         # test as a student

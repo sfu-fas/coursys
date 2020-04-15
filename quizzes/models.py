@@ -2,12 +2,20 @@
 # TODO: delete Quiz?
 
 import datetime
-from typing import Optional, Tuple
+import json
+from collections import namedtuple
+from importlib import import_module
+from typing import Optional, Tuple, List
 
+from django.conf import settings
+from django.contrib.sessions.backends.db import SessionStore as DatabaseSessionStore
+from django.core.checks import Error
 from django.db import models
 from django.db.models import Max
+from django.http import HttpRequest
 from django.shortcuts import resolve_url
 from django.utils.safestring import SafeText
+from ipware import get_client_ip
 
 from coredata.models import Member
 from courselib.json_fields import JSONField, config_property
@@ -197,6 +205,101 @@ class QuestionAnswer(models.Model):
     def answer_html(self) -> SafeText:
         helper = self.question.helper()
         return helper.to_html(self)
+
+
+class QuizSubmission(models.Model):
+    """
+    Model to log everything we can think of about a quiz submission, for possibly later analysis.
+    """
+    quiz = models.ForeignKey(Quiz, null=False, blank=False, on_delete=models.PROTECT)
+    student = models.ForeignKey(Member, null=False, blank=False, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
+    ip_address = models.GenericIPAddressField(null=False, blank=False)
+    config = JSONField(null=False, blank=False, default=dict)  # additional data about the submission:
+    # .config['answers']: list of QuestionAnswer objects submitted (if changed from prev submission), as [(Question.id, answer)]
+    # .config['user_agent']: HTTP User-Agent header from submission
+    # .config['session']: the session_key from the submission
+    # .config['csrf_token']: the CSRF token being used for the submission
+    # .config['fingerprint']: browser fingerprint provided by fingerprintjs2
+
+    @classmethod
+    def create(cls, request: HttpRequest, quiz: Quiz, student: Member, answers: List[QuestionAnswer], commit: bool = True) -> 'QuizSubmission':
+        qs = cls(quiz=quiz, student=student)
+        ip_addr, _ = get_client_ip(request)
+        qs.ip_address = ip_addr
+        qs.config['answers'] = [(a.question_id, a.answer) for a in answers]
+        qs.config['session'] = request.session.session_key
+        qs.config['csrf_token'] = request.META.get('CSRF_COOKIE')
+        qs.config['user_agent'] = request.META.get('HTTP_USER_AGENT')
+        try:
+            qs.config['fingerprint'] = json.loads(request.POST['fingerprint'])
+        except KeyError:
+            qs.config['fingerprint'] = 'missing'
+        except json.JSONDecodeError:
+            qs.config['fingerprint'] = 'json-error'
+
+        if commit:
+            qs.save()
+        return qs
+
+    @classmethod
+    def check(cls, **kwargs):
+        """
+        We use .session_key and CSRF_COOKIE above: check that they will be there, and fail fast if not.
+        """
+        errors = super().check(**kwargs)
+
+        # Ensure we are using the database session store. (Other SessionStores may also have .session_key?)
+        engine = import_module(settings.SESSION_ENGINE)
+        store = engine.SessionStore
+        if not issubclass(store, DatabaseSessionStore):
+            errors.append(Error(
+                "Quiz logging uses request.session.session_key, which likely implies "
+                "SESSION_ENGINE = 'django.contrib.sessions.backends.db' in settings."
+            ))
+
+        if 'django.middleware.csrf.CsrfViewMiddleware' not in settings.MIDDLEWARE:
+            errors.append(Error(
+                "CsrfViewMiddleware is not enabled in settings: quiz logging uses CSRF_COOKIE and will fail without "
+                "CSRF checking enabled. Also it should be enabled in general."
+            ))
+
+        return errors
+
+    AnswerData = namedtuple('AnswerData', ['question', 'n', 'answer', 'answer_html'])
+
+    def annotate_questions(self, questions: List[Question]) -> None:
+        """
+        Annotate this object to combine .config['answers'] and questions for efficient display later.
+        """
+        answers = self.config['answers']
+        question_lookup = {q.id: (q, i+1) for i,q in enumerate(questions)}
+        answer_data = []
+        for question_id, answer in answers:
+            question, n = question_lookup[question_id]
+            # temporarily reconstruct the QuestionAnswer so we can generate HTML
+            qa = QuestionAnswer(question=question, student=self.student, modified_at=self.created_at, answer=answer)
+            answer_html = question.helper().to_html(qa)
+            data = QuizSubmission.AnswerData(question=question, n=n, answer=answer, answer_html=answer_html)
+            answer_data.append(data)
+
+        self.answer_data = answer_data
+
+    def session_fingerprint(self) -> str:
+        """
+        Return a hash of what we know about the user's session on submission.
+        We could incorporate csrf_token here, but are we *sure* it only changes on login?
+        """
+        ident = self.config['session'] # + '--' + self.config['csrf_token']
+        return '%08x' % (hash(ident) % (16**8),)
+
+    def browser_fingerprint(self) -> str:
+        """
+        Return a hash of what we know about the user's browser on submission.
+        """
+        # including user_agent is generally redundant, but not if the fingerprinting fails for some reason
+        ident = self.config['user_agent'] + '--' + json.dumps(self.config['fingerprint'])
+        return '%08x' % (hash(ident) % (16**8),)
 
 
 class TimeSpecialCase(models.Model):

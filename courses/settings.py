@@ -159,6 +159,7 @@ ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'c
 if DEBUG:
     ALLOWED_HOSTS.append('localhost')
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 1209600 # 2 weeks
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 X_FRAME_OPTIONS = 'DENY'

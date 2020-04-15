@@ -18,7 +18,8 @@ from courselib.search import find_member
 from grades.models import Activity
 from log.models import LogEntry
 from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm
-from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_CLASSES, Question, QuestionAnswer, TimeSpecialCase
+from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_CLASSES, Question, QuestionAnswer, TimeSpecialCase, \
+    QuizSubmission
 
 
 @requires_course_by_slug
@@ -54,6 +55,7 @@ def _index_instructor(request: HttpRequest, offering: CourseOffering, activity: 
     return render(request, 'quizzes/index_staff.html', context=context)
 
 
+@transaction.atomic
 def _index_student(request: HttpRequest, offering: CourseOffering, activity: Activity, quiz: Quiz) -> HttpResponse:
     member = request.member
     assert member.role == 'STUD'
@@ -97,6 +99,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
 
         if form.is_valid():
             # Iterate through each answer we received, and create/update corresponding QuestionAnswer objects.
+            answers = []
             for name, data in form.cleaned_data.items():
                 try:
                     quest = question_lookup[name]
@@ -116,6 +119,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                         ans.modified_at = datetime.datetime.now()
                         ans.answer = answer
                         ans.save()
+                        answers.append(ans)
                         messages.add_message(request, messages.INFO, 'Question #%i answer saved.' % (n,))
 
                 else:
@@ -124,10 +128,12 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                     ans.modified_at = datetime.datetime.now()
                     ans.answer = answer
                     ans.save()
+                    answers.append(ans)
                     messages.add_message(request, messages.INFO, 'Question #%i answer saved.' % (n,))
                     LogEntry(userid=request.user.username, description='submitted quiz question %i' % (quest.id),
                              related_object=ans).save()
 
+            QuizSubmission.create(request=request, quiz=quiz, student=member, answers=answers)
             messages.add_message(request, messages.SUCCESS, 'Quiz answers saved. You can continue to modify them, as long as you submit before the end of the quiz time.')
             return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
 
@@ -435,6 +441,25 @@ def view_submission(request: HttpRequest, course_slug: str, activity_slug: str, 
     }
     return render(request, 'quizzes/view_submission.html', context=context)
 
+
+@requires_course_staff_by_slug
+def submission_history(request: HttpRequest, course_slug: str, activity_slug: str, userid: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    questions = Question.objects.filter(quiz=quiz)
+    member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
+    quiz_submissions = QuizSubmission.objects.filter(quiz=quiz, student=member)
+    [qs.annotate_questions(questions) for qs in quiz_submissions]
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'member': member,
+        'quiz_submissions': quiz_submissions,
+    }
+    return render(request, 'quizzes/submission_history.html', context=context)
 
 @requires_course_staff_by_slug
 def special_cases(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
