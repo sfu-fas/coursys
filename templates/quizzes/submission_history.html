@@ -21,7 +21,7 @@ $(document).ready(function() {
     $('.answer-number').click(function() {
         var data_id = $(this).attr("data-popup");
         $( "#" + data_id).dialog({
-            modal: true,
+            modal: false,
             buttons: {
                 Ok: function () {
                     $(this).dialog("close");
@@ -35,7 +35,7 @@ $(document).ready(function() {
         "aaSorting": [[0, "asc"]],
     });
     $('.browser-fingerprint').tooltip();
-} );
+});
 </script>
 {% endblock %}
 

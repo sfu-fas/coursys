@@ -5,3 +5,6 @@ form.quiz input.short-answer, form.quiz input.long-answer, .mc-option-input {
     display:inline-block;
     width: 1.5em;
 }
+.collapsible-heading-status {
+    display: none;
+}

@@ -19,7 +19,7 @@ from grades.models import Activity
 from log.models import LogEntry
 from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm
 from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_CLASSES, Question, QuestionAnswer, TimeSpecialCase, \
-    QuizSubmission
+    QuizSubmission, QuestionVersion
 
 
 @requires_course_by_slug
@@ -46,6 +46,7 @@ def index(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpRes
 def _index_instructor(request: HttpRequest, offering: CourseOffering, activity: Activity, quiz: Quiz) -> HttpResponse:
     assert request.member.role in ['INST', 'TA']
     questions = Question.objects.filter(quiz=quiz)
+
     context = {
         'offering': offering,
         'activity': activity,
@@ -84,17 +85,22 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
         return render(request, 'quizzes/unavailable.html', context=context, status=403)
 
     questions = Question.objects.filter(quiz=quiz)
-    question_lookup = {q.ident(): q for q in questions}
     question_number = {q.id: i + 1 for i, q in enumerate(questions)}
 
     answers = list(QuestionAnswer.objects.filter(question__in=questions, student=member))
     answer_lookup = {a.question.ident(): a for a in answers}
 
+    versions = QuestionVersion.select(quiz=quiz, questions=questions, student=member, answers=answers)
+    version_lookup = {v.question.ident(): v for v in versions}
+
     if request.method == 'POST':
         form = StudentForm(data=request.POST, files=request.FILES)
         # Don't need questionanswer when constructing fields here, because the values are already injected from the
         # form data in the previous line.
-        fields = OrderedDict((q.ident(), q.entry_field(questionanswer=None)) for i, q in enumerate(questions))
+        fields = OrderedDict(
+            (v.question.ident(), v.entry_field(student=member))
+            for v in versions
+        )
         form.fields = fields
 
         if form.is_valid():
@@ -102,12 +108,12 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             answers = []
             for name, data in form.cleaned_data.items():
                 try:
-                    quest = question_lookup[name]
+                    vers = version_lookup[name]
                 except KeyError:
                     continue # Submitted a question that doesn't exist? Ignore
 
-                n = question_number[quest.id]
-                helper = quest.helper()
+                n = question_number[vers.question.id]
+                helper = vers.helper()
                 answer = helper.to_jsonable(data)
 
                 if name in answer_lookup:
@@ -124,13 +130,13 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
 
                 else:
                     # No existing QuestionAnswer: create one.
-                    ans = QuestionAnswer(question=quest, student=member)
+                    ans = QuestionAnswer(question=vers.question, question_version=vers, student=member)
                     ans.modified_at = datetime.datetime.now()
                     ans.answer = answer
                     ans.save()
                     answers.append(ans)
                     messages.add_message(request, messages.INFO, 'Question #%i answer saved.' % (n,))
-                    LogEntry(userid=request.user.username, description='submitted quiz question %i' % (quest.id),
+                    LogEntry(userid=request.user.username, description='submitted quiz question %i' % (vers.question.id),
                              related_object=ans).save()
 
             QuizSubmission.create(request=request, quiz=quiz, student=member, answers=answers)
@@ -140,12 +146,12 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
     else:
         form = StudentForm()
         fields = OrderedDict(
-            (q.ident(), q.entry_field(questionanswer=answer_lookup.get(q.ident(), None)))
-            for i, q in enumerate(questions)
+            (v.question.ident(), v.entry_field(student=member, questionanswer=answer_lookup.get(v.question.ident(), None)))
+            for v in versions
         )
         form.fields = fields
 
-    question_data = list(zip(questions, form.visible_fields()))
+    question_data = list(zip(questions, versions, form.visible_fields()))
 
     context = {
         'offering': offering,
@@ -170,12 +176,13 @@ def preview_student(request: HttpRequest, course_slug: str, activity_slug: str) 
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
     quiz = get_object_or_404(Quiz, activity=activity)
     questions = Question.objects.filter(quiz=quiz)
+    versions = QuestionVersion.select(quiz=quiz, questions=questions, student=None, answers=None)
 
-    fields = OrderedDict((q.ident(), q.entry_field()) for i, q in enumerate(questions))
+    fields = OrderedDict((v.question.ident(), v.entry_field(student=None)) for i, v in enumerate(versions))
     form = StudentForm()
     form.fields = fields
 
-    question_data = list(zip(questions, form.visible_fields()))
+    question_data = list(zip(questions, versions, form.visible_fields()))
     start, end = quiz.get_start_end(member=None)
     context = {
         'offering': offering,
@@ -249,11 +256,25 @@ def question_add(request: HttpRequest, course_slug: str, activity_slug: str) -> 
         }
         return render(request, 'quizzes/question_type.html', context=context)
 
-    return _question_edit(request, offering, activity, quiz, question=None)
+    return _question_edit(request, offering, activity, quiz, question=None, version=None)
 
 
 @requires_course_staff_by_slug
-def question_edit(request: HttpRequest, course_slug: str, activity_slug: str, question_id: str) -> HttpResponse:
+def question_edit(request: HttpRequest, course_slug: str, activity_slug: str, question_id: str, version_id: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    question = get_object_or_404(Question, quiz=quiz, id=question_id)
+    version = get_object_or_404(QuestionVersion.objects.select_related('question'), question=question, id=version_id)
+
+    if quiz.completed():
+        return ForbiddenResponse(request, 'quiz is completed. You cannot edit questions after the end of the quiz time')
+
+    return _question_edit(request, offering, activity, quiz, question, version)
+
+
+@requires_course_staff_by_slug
+def question_add_version(request: HttpRequest, course_slug: str, activity_slug: str, question_id: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
     quiz = get_object_or_404(Quiz, activity=activity)
@@ -262,10 +283,12 @@ def question_edit(request: HttpRequest, course_slug: str, activity_slug: str, qu
     if quiz.completed():
         return ForbiddenResponse(request, 'quiz is completed. You cannot edit questions after the end of the quiz time')
 
-    return _question_edit(request, offering, activity, quiz, question)
+    return _question_edit(request, offering, activity, quiz, question, version=None)
 
 
-def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Activity, quiz: Quiz, question: Optional[Question] = None) -> HttpResponse:
+@transaction.atomic
+def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Activity, quiz: Quiz,
+                   question: Optional[Question] = None, version: Optional[QuestionVersion] = None) -> HttpResponse:
     assert request.member.role in ['INST', 'TA']
 
     context = {
@@ -276,6 +299,8 @@ def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Act
     }
 
     if question is None:
+        # creating a new Question
+        assert version is None
         context['editing'] = False
         # creating a new Question: must have ?type= in URL to get here, then create it...
         if 'type' not in request.GET:
@@ -285,15 +310,30 @@ def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Act
             raise Http404()
 
         question = Question(quiz=quiz, type=qtype)
+        version = QuestionVersion(question=question)
+    elif version is None:
+        # creating a new QuestionVersion
+        version = QuestionVersion(question=question)
+    else:
+        # editing a QuestionVersion
+        assert version.question_id == question.id
 
-    helper = question.helper()
+    helper = version.helper(question=question)
 
     if request.method == 'POST':
-        form = helper.make_config_form(instance=question, data=request.POST, files=request.FILES)
+        form = helper.make_config_form(data=request.POST, files=request.FILES)
         if form.is_valid():
-            question.config = form.to_jsonable()
+            data = form.to_jsonable()
+            # save the Question
+            question.config['points'] = data['points']
             question.set_order()
             question.save()
+            # save the QuestionVersion
+            del data['points']
+            version.question = question
+            version.config = data
+            version.save()
+
             if context['editing']:
                 messages.add_message(request, messages.SUCCESS, 'Question updated.')
             else:
@@ -303,7 +343,7 @@ def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Act
             return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
 
     elif request.method == 'GET':
-        form = helper.make_config_form(instance=question)
+        form = helper.make_config_form()
 
     context['question_helper'] = helper
     context['form'] = form
@@ -396,9 +436,14 @@ def download_submissions(request: HttpRequest, course_slug: str, activity_slug: 
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
     quiz = get_object_or_404(Quiz, activity=activity)
     questions = Question.objects.filter(quiz=quiz)
+    versions = QuestionVersion.objects.filter(question__in=questions)
+    version_number_lookup = {  # version_number_lookup[question_id][version_id] == version_number
+        q_id: {v.id: i+1 for i,v in enumerate(vs)}
+        for q_id, vs in itertools.groupby(versions, key=lambda v: v.question_id)
+    }
 
     answers = QuestionAnswer.objects.filter(question__in=questions) \
-        .select_related('student__person') \
+        .select_related('student__person', 'question_version', 'question') \
         .order_by('student__person')
 
     by_student = itertools.groupby(answers, key=lambda a: a.student)
@@ -411,8 +456,16 @@ def download_submissions(request: HttpRequest, course_slug: str, activity_slug: 
             'userid': m.person.userid_or_emplid(),
             'last_submission': lastmod,
         }
+        # q.helper().to_text(answers_lookup[q.id])
         d.update({
-            'q-%i'%(i+1): q.helper().to_text(answers_lookup[q.id]) if q.id in answers_lookup else None
+            'q-%i'%(i+1):
+                (
+                    {
+                        'version': version_number_lookup[q.id][answers_lookup[q.id].question_version_id],
+                        'answer': answers_lookup[q.id].question_version.helper(question=q).to_text(answers_lookup[q.id])
+                    }
+                    if q.id in answers_lookup else None
+                )
             for i, q in enumerate(questions)
         })
         data.append(d)
@@ -428,16 +481,17 @@ def view_submission(request: HttpRequest, course_slug: str, activity_slug: str, 
     questions = Question.objects.filter(quiz=quiz)
     member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
     answers = QuestionAnswer.objects.filter(student=member, question__in=questions).select_related('question')
+    versions = QuestionVersion.select(quiz=quiz, questions=questions, student=member, answers=answers)
 
     answer_lookup = {a.question_id: a for a in answers}
-    question_answers = [(q, answer_lookup.get(q.id, None)) for q in questions]
+    version_answers = [(v, answer_lookup.get(v.question.id, None)) for v in versions]
 
     context = {
         'offering': offering,
         'activity': activity,
         'quiz': quiz,
         'member': member,
-        'question_answers': question_answers,
+        'version_answers': version_answers,
     }
     return render(request, 'quizzes/view_submission.html', context=context)
 
@@ -448,9 +502,10 @@ def submission_history(request: HttpRequest, course_slug: str, activity_slug: st
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
     quiz = get_object_or_404(Quiz, activity=activity)
     questions = Question.objects.filter(quiz=quiz)
+    versions = QuestionVersion.objects.filter(question__in=questions)
     member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
     quiz_submissions = QuizSubmission.objects.filter(quiz=quiz, student=member)
-    [qs.annotate_questions(questions) for qs in quiz_submissions]
+    [qs.annotate_questions(questions, versions) for qs in quiz_submissions]
 
     context = {
         'offering': offering,
@@ -460,6 +515,7 @@ def submission_history(request: HttpRequest, course_slug: str, activity_slug: st
         'quiz_submissions': quiz_submissions,
     }
     return render(request, 'quizzes/submission_history.html', context=context)
+
 
 @requires_course_staff_by_slug
 def special_cases(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:

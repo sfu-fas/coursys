@@ -56,26 +56,51 @@ class MultipleTextField(forms.MultiValueField):
             raise forms.ValidationError('Must give at least two options.')
         return options
 
+    def clean(self, value):
+        choices = super().clean(value)
+        if len(choices) != len(set(choices)):
+            raise forms.ValidationError('Choices must be unique')
+        return choices
 
+
+permutation_choices = [
+    ('keep', 'Keep the order as-is'),
+    ('permute', 'Randomly permute the choices'),
+    ('not-last', 'Randomly permute, except the last choice should stay last'),
+]
+
+# TODO: honour permute value
 class MultipleChoice(QuestionHelper):
     name = 'Multiple Choice'
     NA = '' # value used to represent "no answer"
 
     class ConfigForm(BaseConfigForm):
         options = MultipleTextField(required=True, help_text='Options presented to students. Any left blank will not be displayed.')
+        permute = forms.ChoiceField(required=True, choices=permutation_choices, help_text='You will still see the answers as they are above: a student answer of \u201CA\u201D refers to the first choice above, regardless of the order they see.')
 
-    def get_entry_field(self, questionanswer=None):
-        options = self.question.config.get('options', [])
+    def get_entry_field(self, questionanswer=None, student=None):
+        options = self.version.config.get('options', [])
+        permute = self.version.config.get('permute', 'keep')
         if questionanswer:
             initial = questionanswer.answer.get('data', MultipleChoice.NA)
         else:
             initial = MultipleChoice.NA
+
+        if student and permute == 'permute':
+            rand = self.question.quiz.random_generator(str(student.id) + '-' + str(self.question.id) + '-' + str(self.version.id))
+            options = rand.permute(options)
+        elif student and permute == 'not-last':
+            rand = self.question.quiz.random_generator(str(student.id) + '-' + str(self.question.id) + '-' + str(self.version.id))
+            last = options[-1]
+            choices = rand.permute(options[:-1])
+            choices.append(last)
 
         choices = [
             (OPTION_LETTERS[i], mark_safe('<span class="mc-letter">' + OPTION_LETTERS[i] + '.</span> ') + escape(o))
             for i, o
             in enumerate(options)
         ]
+
         choices.append((MultipleChoice.NA, 'no answer'))
 
         field = forms.ChoiceField(required=False, initial=initial, choices=choices, widget=forms.RadioSelect())
@@ -84,3 +109,14 @@ class MultipleChoice(QuestionHelper):
 
     def to_text(self, questionanswer):
         return questionanswer.answer.get('data', MultipleChoice.NA)
+
+    def question_preview_html(self):
+        # override to present options (original order) along with question text
+        options = self.version.config.get('options', [])
+        q_html = self.question_html()
+        choices_html = [
+            '<p><span class="mc-letter">%s.</span> %s</p>' % (OPTION_LETTERS[i], escape(o))
+            for i, o
+            in enumerate(options)
+        ]
+        return mark_safe(q_html + ''.join(choices_html))

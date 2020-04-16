@@ -7,7 +7,8 @@ from . import views
 quiz_patterns = [
     url(r'^$', views.index, name='index'),
     url(r'^edit$', views.EditView.as_view(), name='edit'),
-    url(r'^edit/(?P<question_id>\d+)$', views.question_edit, name='question_edit'),
+    url(r'^edit/(?P<question_id>\d+)$', views.question_add_version, name='question_add_version'),
+    url(r'^edit/(?P<question_id>\d+)-(?P<version_id>\d+)$', views.question_edit, name='question_edit'),
     url(r'^order/(?P<question_id>\d+)$', views.question_reorder, name='question_reorder'),
     url(r'^delete/(?P<question_id>\d+)$', views.question_delete, name='question_delete'),
     url(r'^add$', views.question_add, name='question_add'),

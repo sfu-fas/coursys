@@ -12,6 +12,12 @@
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
 {% include 'pages/markup_view_head.html' %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $(".version").collapsible();
+    //$(".version.first").trigger('expand');
+});
+</script>
 {% endblock %}
 
 {% block actions %}
@@ -52,14 +58,23 @@
     {% endif %}
 
     {% for q in questions %}
+        <hr />
         <h2 id="{{ q.ident }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
         {% if not quiz.completed %}<p>[
-
-            <a href="{% url "offering:quiz:question_edit" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}">Edit</a>
-            | <a href="{% url "offering:quiz:question_reorder" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}?direction=up">Move Up &uarr;</a>
+            <a href="{% url "offering:quiz:question_reorder" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}?direction=up">Move Up &uarr;</a>
             | <a href="{% url "offering:quiz:question_reorder" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}?direction=down">Move Down &darr;</a>
+            | <a href="{% url "offering:quiz:question_add_version" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}">Add Version</a>
         ]</p>{% endif %}
-        {{ q.question_html }}
+
+        {% for v in q.versions.all %}
+            <h3 class="version{% if forloop.counter == 1%} first{% endif %}" id="{{ q.ident }}-{{ v.id }}">Version {{ forloop.counter }}</h3>
+            <div>
+            {% if not quiz.completed %}<p>[
+            <a href="{% url "offering:quiz:question_edit" course_slug=offering.slug activity_slug=activity.slug question_id=q.id version_id=v.id %}">Edit</a>
+            ]</p>{% endif %}
+            {{ v.question_preview_html }}
+            </div>
+        {% endfor %}
 
     {% endfor %}
 

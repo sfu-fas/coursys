@@ -28,7 +28,7 @@ class QuizTimeBaseForm(forms.ModelForm):
 
 
 class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
-    intro = MarkupContentField(required=False, label='Introductory Text (displayed at the top of the quiz)', default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True)
+    intro = MarkupContentField(required=False, label='Introductory Text (displayed at the top of the quiz, optional)', default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True)
 
     class Meta:
         model = Quiz

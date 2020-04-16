@@ -43,6 +43,12 @@ $(document).ready(function() {
 
 {% block content %}
 
+    {% if preview %}
+        <p class="infomessage">Where there are multiple versions of a question, the first has been selected here.
+            Random versions will be selected for students (but a single student will always see the same versions every
+            time they view the quiz.</p>
+    {% endif %}
+
     <table class="info">
         <tbody>
 	    <tr>
@@ -65,9 +71,9 @@ $(document).ready(function() {
     {{ form.non_field_errors }}
     <input type="hidden" name="fingerprint" id="fingerprint" value="" />
 
-    {% for q, f in question_data %}
+    {% for q, v, f in question_data %}
         <h2 id="{{ q.ident }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
-        {{ q.question_html }}
+        {{ v.question_html }}
         {{ f|field_display }}
     {% endfor %}
 

@@ -14,8 +14,8 @@ class ShortAnswer(QuestionHelper):
         max_length = forms.IntegerField(required=True, min_value=1, max_value=1000, initial=500, label='Maximum length',
                                         help_text='Maximum number of characters the students can enter when answering.')
 
-    def get_entry_field(self, questionanswer=None):
-        max_length = self.question.config.get('max_length', 1000)
+    def get_entry_field(self, questionanswer=None, student=None):
+        max_length = self.version.config.get('max_length', 1000)
         if questionanswer:
             initial = questionanswer.answer.get('data', '')
         else:
@@ -38,9 +38,9 @@ class LongAnswer(QuestionHelper):
         lines = forms.IntegerField(required=True, min_value=2, max_value=30, initial=5,
                                    help_text=mark_safe('Number of lines the students will see in the field when answering: this does <strong>not</strong> limit the length of their answer'))
 
-    def get_entry_field(self, questionanswer=None):
-        max_length = self.question.config.get('max_length', 10000)
-        lines = self.question.config.get('lines', 5)
+    def get_entry_field(self, questionanswer=None, student=None):
+        max_length = self.version.config.get('max_length', 10000)
+        lines = self.version.config.get('lines', 5)
         if questionanswer:
             initial = questionanswer.answer.get('data', '')
         else:
@@ -66,9 +66,9 @@ class FormattedAnswer(QuestionHelper):
                                    help_text=mark_safe('Number of lines the students will see in the field when answering: this does <strong>not</strong> limit the length of their answer'))
         #math = forms.BooleanField(required=False, initial=False, help_text='Should answers be formatted with LaTeX formulas (when displayed?')
 
-    def get_entry_field(self, questionanswer=None):
-        max_length = self.question.config.get('max_length', 10000)
-        lines = self.question.config.get('lines', 10)
+    def get_entry_field(self, questionanswer=None, student=None):
+        max_length = self.version.config.get('max_length', 10000)
+        lines = self.version.config.get('lines', 10)
         if questionanswer:
             initial = (questionanswer.answer.get('data', FormattedAnswer.default_initial))
         else:
@@ -107,7 +107,7 @@ class NumericAnswer(QuestionHelper):
         resp_type = forms.ChoiceField(required=True, choices=[('float', 'Real number'), ('int', 'Integer')],
                                       label='Response Type', help_text='Type of number the students can enter.')
 
-    def get_entry_field(self, questionanswer=None):
+    def get_entry_field(self, questionanswer=None, student=None):
         resp_type = self.question.config.get('resp_type', 'float')
         if questionanswer:
             initial = questionanswer.answer.get('data', '')
