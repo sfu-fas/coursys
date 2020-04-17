@@ -86,6 +86,8 @@ class MultipleChoice(QuestionHelper):
         else:
             initial = MultipleChoice.NA
 
+        options = list(enumerate(options)) # keep original positions so the input values match that, but students see a possibly-randomized order
+
         if student and permute == 'permute':
             rand = self.question.quiz.random_generator(str(student.id) + '-' + str(self.question.id) + '-' + str(self.version.id))
             options = rand.permute(options)
@@ -96,8 +98,8 @@ class MultipleChoice(QuestionHelper):
             choices.append(last)
 
         choices = [
-            (OPTION_LETTERS[i], mark_safe('<span class="mc-letter">' + OPTION_LETTERS[i] + '.</span> ') + escape(o))
-            for i, o
+            (OPTION_LETTERS[opos], mark_safe('<span class="mc-letter">' + OPTION_LETTERS[i] + '.</span> ') + escape(o))
+            for i, (opos, o)
             in enumerate(options)
         ]
 

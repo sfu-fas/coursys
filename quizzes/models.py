@@ -1,6 +1,5 @@
 # TODO: a QuestionMark model and the UI for TAs to enter marks
 # TODO: delete Quiz?
-# TODO: delete QuestionVersion
 
 import datetime
 import hashlib
@@ -287,7 +286,11 @@ class QuestionVersion(models.Model):
                 if q.id in answers_lookup:
                     ans = answers_lookup[q.id]
                     v = ans.question_version
-                    v.choice = vs.index(v) + 1
+                    try:
+                        v.choice = vs.index(v) + 1
+                    except ValueError:
+                        # Happens if a student answers a version, but then the instructor deletes it. Hopefully never.
+                        v.choice = 0
                 else:
                     v = vs[n]
                     v.choice = n+1
@@ -469,8 +472,3 @@ class TimeSpecialCase(models.Model):
 
     class Meta:
         unique_together = [['quiz', 'student']]
-
-#class QuestionMark(models.Model):
-
-
-

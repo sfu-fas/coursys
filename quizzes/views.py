@@ -348,6 +348,7 @@ def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Act
     context['question_helper'] = helper
     context['form'] = form
     context['question'] = question
+    context['version'] = version
     return render(request, 'quizzes/edit_question.html', context=context)
 
 
@@ -408,6 +409,24 @@ def question_delete(request: HttpRequest, course_slug: str, activity_slug: str, 
 
 
 @requires_course_staff_by_slug
+def version_delete(request: HttpRequest, course_slug: str, activity_slug: str, question_id: str, version_id: str) -> HttpResponse:
+    if request.method in ['POST', 'DELETE']:
+        quiz = get_object_or_404(Quiz, activity__slug=activity_slug, activity__offering__slug=course_slug)
+        if quiz.completed():
+            return ForbiddenResponse(request, 'Quiz is completed. You cannot modify questions after the end of the quiz time')
+        question = get_object_or_404(Question, quiz=quiz, id=question_id)
+        version = get_object_or_404(QuestionVersion, question=question, id=version_id)
+        version.status = 'D'
+        version.save()
+        messages.add_message(request, messages.SUCCESS, 'Question version deleted.')
+        LogEntry(userid=request.user.username, description='deleted quiz question version id=%i' % (question.id,),
+                 related_object=question).save()
+        return redirect('offering:quiz:index', course_slug=course_slug, activity_slug=activity_slug)
+    else:
+        return HttpError(request, status=405, title="Method Not Allowed", error='POST or DELETE requests only.')
+
+
+@requires_course_staff_by_slug
 def submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
@@ -456,18 +475,18 @@ def download_submissions(request: HttpRequest, course_slug: str, activity_slug: 
             'userid': m.person.userid_or_emplid(),
             'last_submission': lastmod,
         }
-        # q.helper().to_text(answers_lookup[q.id])
         d.update({
             'q-%i'%(i+1):
                 (
                     {
-                        'version': version_number_lookup[q.id][answers_lookup[q.id].question_version_id],
+                        'version': version_number_lookup[q.id].get(answers_lookup[q.id].question_version_id, 0),
                         'answer': answers_lookup[q.id].question_version.helper(question=q).to_text(answers_lookup[q.id])
                     }
                     if q.id in answers_lookup else None
                 )
             for i, q in enumerate(questions)
         })
+        # The .get(...version_id, 0) returns 0 if a student answers a version, then the instructor deletes it. Hopefully never
         data.append(d)
 
     return JsonResponse({'submissions': data})

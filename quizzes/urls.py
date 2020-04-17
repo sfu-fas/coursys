@@ -11,6 +11,7 @@ quiz_patterns = [
     url(r'^edit/(?P<question_id>\d+)-(?P<version_id>\d+)$', views.question_edit, name='question_edit'),
     url(r'^order/(?P<question_id>\d+)$', views.question_reorder, name='question_reorder'),
     url(r'^delete/(?P<question_id>\d+)$', views.question_delete, name='question_delete'),
+    url(r'^delete/(?P<question_id>\d+)-(?P<version_id>\d+)$', views.version_delete, name='version_delete'),
     url(r'^add$', views.question_add, name='question_add'),
     url(r'^preview$', views.preview_student, name='preview_student'),
     url(r'^submissions/$', views.submissions, name='submissions'),
