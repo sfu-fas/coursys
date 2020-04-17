@@ -61,7 +61,7 @@ class AssetChangeForm(forms.ModelForm):
         widgets = {
             'date': CalendarWidget
         }
-        fields = ['person', 'qty', 'date']
+        fields = ['person', 'qty', 'date', 'event']
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
