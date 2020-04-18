@@ -295,13 +295,11 @@ def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Act
         'offering': offering,
         'activity': activity,
         'quiz': quiz,
-        'editing': True,
     }
 
     if question is None:
         # creating a new Question
         assert version is None
-        context['editing'] = False
         # creating a new Question: must have ?type= in URL to get here, then create it...
         if 'type' not in request.GET:
             raise Http404()
@@ -311,12 +309,15 @@ def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Act
 
         question = Question(quiz=quiz, type=qtype)
         version = QuestionVersion(question=question)
+        action = 'new_q'
     elif version is None:
         # creating a new QuestionVersion
         version = QuestionVersion(question=question)
+        action = 'new_v'
     else:
         # editing a QuestionVersion
         assert version.question_id == question.id
+        action = 'edit'
 
     helper = version.helper(question=question)
 
@@ -334,11 +335,11 @@ def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Act
             version.config = data
             version.save()
 
-            if context['editing']:
-                messages.add_message(request, messages.SUCCESS, 'Question updated.')
-            else:
+            if action == 'new_q':
                 messages.add_message(request, messages.SUCCESS, 'Question added.')
-            LogEntry(userid=request.user.username, description='edited quiz question id=%i' % (question.id),
+            else:
+                messages.add_message(request, messages.SUCCESS, 'Question updated.')
+            LogEntry(userid=request.user.username, description='edited quiz question.id=%i, version_id=%i' % (question.id, version.id),
                      related_object=question).save()
             return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
 
@@ -349,6 +350,7 @@ def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Act
     context['form'] = form
     context['question'] = question
     context['version'] = version
+    context['action'] = action
     return render(request, 'quizzes/edit_question.html', context=context)
 
 

@@ -1,5 +1,6 @@
 # TODO: a QuestionMark model and the UI for TAs to enter marks
 # TODO: delete Quiz?
+# TODO: "copy course setup" should also copy quizzes
 
 import datetime
 import hashlib
@@ -30,8 +31,8 @@ from quizzes.types.text import ShortAnswer, LongAnswer, FormattedAnswer, Numeric
 
 QUESTION_TYPE_CHOICES = [
     ('MC', 'Multiple Choice'),
-    ('SHOR', 'Short Answer (one line)'),
-    ('LONG', 'Long Answer (several lines)'),
+    ('SHOR', 'Short Answer'),
+    ('LONG', 'Long Answer'),
     ('FMT', 'Long Answer with formatting'),
     ('NUM', 'Numeric Answer'),
     #('FILE', 'File Upload'),

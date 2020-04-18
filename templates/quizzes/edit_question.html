@@ -2,16 +2,16 @@
 {% load form_display %}
 {% load static %}
 
-{% block title %}{% if editing %}Edit{% else %}Add{% endif %} {{ question_helper.name }} Question{% endblock %}
-{% block h1 %}{% if editing %}Edit{% else %}Add{% endif %} {{ question_helper.name }} Question{% endblock %}
+{% block title %}{% if action == 'edit' %}Edit{% elif action == 'new_v' %}Add Version to{% else %}Add{% endif %} {{ question_helper.name }} Question{% endblock %}
+{% block h1 %}{% if action == 'edit' %}Edit{% elif action == 'new_v' %}Add Version to{% else %}Add{% endif %} {{ question_helper.name }} Question{% endblock %}
 {% block subbreadcrumbs %}
     <li><a href="{{offering.get_absolute_url}}">{{ offering.name }}</a></li>
     <li><a href="{{activity.get_absolute_url}}">{{ activity.name }}</a></li>
     <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
-    {% if editing %}
-    <li>Edit Question</li>
-    {% else %}
+    {% if action == 'new_q' %}
     <li>Add Question</li>
+    {% else %}
+    <li>Edit Question</li>
     {% endif %}
 {% endblock %}
 
@@ -28,10 +28,10 @@
 
 <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
 {{form|as_dl}}
-<p><input class="submit" type="submit" value="{% if editing %}Update{% else %}Create{% endif %}" /></p>
+<p><input class="submit" type="submit" value="{% if action == 'edit' %}Update{% else %}Create{% endif %}" /></p>
 </form>
 
-{% if editing %}
+{% if action == 'edit' %}
 <form action="{% url 'offering:quiz:version_delete' course_slug=offering.slug activity_slug=activity.slug question_id=question.id version_id=version.id %}" method="post" name="deleteform">{% csrf_token %}
 <p><input type="submit" class="submit confirm-submit" value="Delete This Version" data-submit-action="delete this version of the question" /></p>
 </form>
