@@ -1,0 +1,3 @@
+Crowdmark ID,Score URL,Email,Name,Student ID Number,Q1,Q2,2a,MC-1,MC-2,MC-3,MC-4,MC-5,MC-total,Total
+1,https://app.crowdmark.com/score/some-long-uuid,0aaa0@sfu.ca,xêji student,300000300,3,3,4,1,1,0,0,1,3,13
+2,https://app.crowdmark.com/score/some-long-uuid,0aaa1@sfu.ca,incorrectname student,399900301,2.5,0,6,1,1,1,1,0,4,12.5

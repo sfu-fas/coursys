@@ -363,7 +363,7 @@ class TestImportFunctionsNumeric(TestCase):
             sname = _strip_email_userid(sname)
             self.assertIn(sname, list(data_returned.keys()))
             self.assertEqual(data_returned[sname], grade)
-        
+
 
     def test_import_grades_old_format(self):
         inName = 'marking/testfiles/oldformat_noprob.csv'
@@ -374,6 +374,37 @@ class TestImportFunctionsNumeric(TestCase):
         self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
+
+    def test_import_grades_crowdmark(self):
+        inName = 'marking/testfiles/crowdmark_noprob.csv'
+        self.get_test_file(inName)
+        data_to_return = {}
+        with open(inName, 'rb') as inp:
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+        self.assertEqual(err, [])
+        self.assertEqual(len(data_to_return), len(self.values) - 1)
+        self.assertIn('0aaa0', data_to_return)
+        self.assertIn('0aaa1', data_to_return)
+        self.assertEqual(data_to_return['0aaa0'], '13')
+        self.assertEqual(data_to_return['0aaa1'], '12.5')
+
+    def test_import_grades_crowdmark_dup_emplid(self):
+        inName = 'marking/testfiles/crowdmark_dup_emplid.csv'
+        self.get_test_file(inName)
+        data_to_return = {}
+        with open(inName, 'rb') as inp:
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+        self.assertEqual(err, ['Error found in the file (row 2): Second entry found for student (0aaa0).'])
+        self.assertEqual(len(data_to_return), 1)
+
+    def test_import_grades_crowdmark_unknown_emplid(self):
+        inName = 'marking/testfiles/crowdmark_unk_emplid.csv'
+        self.get_test_file(inName)
+        data_to_return = {}
+        with open(inName, 'rb') as inp:
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+        self.assertEqual(err, ['Error found in the file (row 2): Unmatched student number (399900301).'])
+        self.assertEqual(len(data_to_return), 1)
 
     def test_import_grades_old_format_unknown_userid(self):
         inName = 'marking/testfiles/oldformat_unk_uid.csv'
