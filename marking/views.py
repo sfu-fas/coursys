@@ -498,6 +498,12 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                     am = get_group_mark_by_id(activity, group, old_id)
                 else:
                     am = get_activity_mark_by_id(activity, membership, old_id)
+        elif 'load_old' in request.GET:
+            # requested that we find the most-recent marks and load them
+            if groupmark:
+                am = get_group_mark(activity, group)
+            else:
+                am = get_activity_mark_for_student(activity, membership)
 
         # build forms
         form = ActivityMarkForm(instance=am, data=postdata, files=filedata)
