@@ -1219,13 +1219,15 @@ def accept_contract(request, post_slug, userid, preview=False):
     
     #this could be refactored used in multiple places
     pp = posting.payperiods()
-    pdead = posting.config['deadline']
+    pdead = contract.deadline
     salary_sem = (total*contract.pay_per_bu)
     schol_sem = (bu*contract.scholarship_per_bu)
     salary_sem_out = _format_currency(salary_sem)
     schol_sem_out = _format_currency(schol_sem)
     salary_bi = _format_currency(salary_sem / pp)
     schol_bi = _format_currency(schol_sem / pp)
+    today = datetime.date.today()
+    deadline_passed = pdead < today
 
     if request.method == "POST":
         form = TAAcceptanceForm(request.POST, instance=contract)
@@ -1268,6 +1270,7 @@ def accept_contract(request, post_slug, userid, preview=False):
                 'acc_deadline': pdead,
                 'form':form,
                 'preview': preview,
+                'deadline_passed': deadline_passed,
             }
     return render(request, 'ta/accept.html', context)
 

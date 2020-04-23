@@ -88,6 +88,8 @@ If you have any questions, please contact {{ contract.posting.contact.name }} &l
 	  </table>
 
 {% if contract.status == 'ACC'  or contract.status == 'REJ' %}
+    {% elif deadline_passed %}
+    <p>The acceptance deadline for this contract has passed.  You can no longer accept it.  Please contact {{ contract.posting.contact.name }} &lt;{{ contract.posting.contact.email_mailto }}>.</p>
 {% else %}
 <form action="" method="post">{% csrf_token %}
 <p><strong>Social Insurance Number:</strong> {{ form.sin }}
