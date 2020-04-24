@@ -1639,7 +1639,9 @@ def create_event(request, userid, event_type):
             if isinstance(handler, ResumeEventHandler):
                 # The ResumeEventHandler has to create an attachment at this point.
                 ResumeEventHandler.add_attachment(event=handler.event, filedata=request.FILES, editor=editor)
-
+            l = LogEntry(userid=request.user.username, description="Added event %s for %s" % (handler.event, person),
+                         related_object=handler.event)
+            l.save()
             return HttpResponseRedirect(handler.event.get_absolute_url())
         else:
             context.update({"event_form": form})
@@ -1679,6 +1681,9 @@ def change_event(request, userid, event_slug):
             handler.save(editor)
             context.update({"event": handler.event,
                             "event_form": form})
+            l = LogEntry(userid=request.user.username, description="Changed event %s for %s" % (handler.event, person),
+                         related_object=handler.event)
+            l.save()
             return HttpResponseRedirect(handler.event.get_absolute_url())
         else:
             context.update({"event_form": form})
@@ -1709,6 +1714,9 @@ def change_event_status(request, userid, event_slug):
     if form.is_valid():
         event = form.save(commit=False)
         event.get_handler().save(editor)
+        l = LogEntry(userid=request.user.username, description="Changed event %s status for %s" % (event, person),
+                     related_object=event)
+        l.save()
         return HttpResponseRedirect(event.get_absolute_url())
 
 @requires_role(['ADMN', 'FACA'])
