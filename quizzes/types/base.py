@@ -68,7 +68,7 @@ class QuestionHelper(object):
     def question_preview_html(self) -> SafeText:
         return self.question_html()
 
-    def get_entry_field(self, version: 'QuestionVersion', questionanswer: 'QuestionAnswer' = None, student: 'Member' = None) -> forms.Field:
+    def get_entry_field(self, questionanswer: 'QuestionAnswer' = None, student: 'Member' = None) -> forms.Field:
         """
         Returns a Django Field for this question, to be filled in by the student.
 
@@ -81,6 +81,9 @@ class QuestionHelper(object):
         """
         Convert student-submitted cleaned_data (as generated from the .get_entry_field field) to a JSON-friendly format
         that can be stored in QuestionAnswer.answer.
+
+        If returned, the dict key '_file' must be a django.core.files.uploadedfile.UploadedFile instance, and will
+        be moved to QuestionAnswer.file when saving.
         """
         return {'data': cleaned_data}
 

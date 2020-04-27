@@ -23,8 +23,10 @@ from ipware import get_client_ip
 from coredata.models import Member
 from courselib.json_fields import JSONField, config_property
 from courselib.markup import markup_to_html
+from courselib.storage import UploadedFileStorage, upload_path
 from grades.models import Activity
 from quizzes import DEFAULT_QUIZ_MARKUP
+from quizzes.types.file import FileAnswer
 from quizzes.types.mc import MultipleChoice
 from quizzes.types.text import ShortAnswer, LongAnswer, FormattedAnswer, NumericAnswer
 
@@ -36,7 +38,7 @@ QUESTION_TYPE_CHOICES = [
     ('FMT', 'Long Answer with formatting'),
     ('NUM', 'Numeric Answer'),
     #('FILE', 'File Upload'),
-    #('INST', 'Instructions (students enters nothing)'),
+    #('INST', 'Instructions (students enter nothing)'),
 ]
 
 
@@ -46,6 +48,7 @@ QUESTION_CLASSES = {
     'LONG': LongAnswer,
     'FMT': FormattedAnswer,
     'NUM': NumericAnswer,
+    #'FILE': FileAnswer,
 }
 
 
@@ -329,6 +332,10 @@ class QuestionVersion(models.Model):
         return helper.get_entry_field(questionanswer=questionanswer, student=student)
 
 
+def file_upload_to(instance, filename):
+    return upload_path(instance.question.quiz.activity.offering.slug, '_quizzes', filename)
+
+
 class QuestionAnswer(models.Model):
     class AnswerStatusManager(models.Manager):
         def get_queryset(self):
@@ -340,8 +347,10 @@ class QuestionAnswer(models.Model):
     # and the unique_together.
     student = models.ForeignKey(Member, on_delete=models.PROTECT)
     modified_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
-    answer = JSONField(null=False, blank=False, default=dict)
     # format of .answer determined by the corresponding QuestionHelper
+    answer = JSONField(null=False, blank=False, default=dict)
+    # .file used for file upload question types; null otherwise
+    file = models.FileField(blank=True, null=True, storage=UploadedFileStorage, upload_to=file_upload_to, max_length=500)
 
     class Meta:
         unique_together = [['question_version', 'student']]
@@ -350,6 +359,20 @@ class QuestionAnswer(models.Model):
 
     def save(self, *args, **kwargs):
         assert self.question_id == self.question_version.question_id  # ensure denormalized field stays consistent
+
+        if '_file' in self.answer:
+            if self.answer['_file'] is None:
+                # keep current .file
+                pass
+            elif self.answer['_file'] is False:
+                # user requested "clear"
+                self.file = None
+            else:
+                # actually a file
+                self.file = self.answer['_file']
+
+            del self.answer['_file']
+
         return super().save(*args, **kwargs)
 
     def get_absolute_url(self):
