@@ -2,7 +2,7 @@
 {
  "fields": {
   "config": "{}",
-  "expiry": "2022-02-06",
+  "expiry": "2023-01-23",
   "person": 5,
   "role": "GRAD",
   "unit": 5
@@ -13,7 +13,7 @@
 {
  "fields": {
   "config": "{}",
-  "expiry": "2022-02-06",
+  "expiry": "2023-01-23",
   "person": 2,
   "role": "GRPD",
   "unit": 5
@@ -23,7 +23,7 @@
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:49.849",
+  "created_at": "2020-04-28T12:17:34.606",
   "created_by": "",
   "description": "MSc Course option",
   "hidden": false,
@@ -31,14 +31,14 @@
   "modified_by": null,
   "slug": "msccourse",
   "unit": 5,
-  "updated_at": "2019-05-13T15:27:49.849"
+  "updated_at": "2020-04-28T12:17:34.607"
  },
  "model": "grad.gradprogram",
  "pk": 1
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:49.867",
+  "created_at": "2020-04-28T12:17:34.731",
   "created_by": "",
   "description": "MSc Project option",
   "hidden": false,
@@ -46,14 +46,14 @@
   "modified_by": null,
   "slug": "mscproj",
   "unit": 5,
-  "updated_at": "2019-05-13T15:27:49.868"
+  "updated_at": "2020-04-28T12:17:34.731"
  },
  "model": "grad.gradprogram",
  "pk": 2
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:49.888",
+  "created_at": "2020-04-28T12:17:34.872",
   "created_by": "",
   "description": "MSc Thesis option",
   "hidden": false,
@@ -61,14 +61,14 @@
   "modified_by": null,
   "slug": "mscthesis",
   "unit": 5,
-  "updated_at": "2019-05-13T15:27:49.888"
+  "updated_at": "2020-04-28T12:17:34.872"
  },
  "model": "grad.gradprogram",
  "pk": 3
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:49.906",
+  "created_at": "2020-04-28T12:17:35.063",
   "created_by": "",
   "description": "Doctor of Philosophy",
   "hidden": false,
@@ -76,14 +76,14 @@
   "modified_by": null,
   "slug": "phd",
   "unit": 5,
-  "updated_at": "2019-05-13T15:27:49.906"
+  "updated_at": "2020-04-28T12:17:35.063"
  },
  "model": "grad.gradprogram",
  "pk": 4
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:49.918",
+  "created_at": "2020-04-28T12:17:36.072",
   "created_by": "",
   "description": "Qualifying student",
   "hidden": false,
@@ -91,14 +91,14 @@
   "modified_by": null,
   "slug": "qualifying",
   "unit": 5,
-  "updated_at": "2019-05-13T15:27:49.918"
+  "updated_at": "2020-04-28T12:17:36.072"
  },
  "model": "grad.gradprogram",
  "pk": 5
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:49.934",
+  "created_at": "2020-04-28T12:17:36.263",
   "created_by": "",
   "description": "Special Arrangements",
   "hidden": false,
@@ -106,7 +106,7 @@
   "modified_by": null,
   "slug": "special",
   "unit": 5,
-  "updated_at": "2019-05-13T15:27:49.934"
+  "updated_at": "2020-04-28T12:17:36.263"
  },
  "model": "grad.gradprogram",
  "pk": 6
@@ -135,84 +135,84 @@
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:49.949",
+  "created_at": "2020-04-28T12:17:36.383",
   "description": "Achieved Speciality",
   "hidden": false,
   "program": 6,
   "series": 1,
-  "updated_at": "2019-05-13T15:27:49.949"
+  "updated_at": "2020-04-28T12:17:36.383"
  },
  "model": "grad.gradrequirement",
  "pk": 1
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:49.964",
+  "created_at": "2020-04-28T12:17:36.514",
   "description": "Found campus",
   "hidden": false,
   "program": 1,
   "series": 2,
-  "updated_at": "2019-05-13T15:27:49.964"
+  "updated_at": "2020-04-28T12:17:36.514"
  },
  "model": "grad.gradrequirement",
  "pk": 2
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:49.976",
+  "created_at": "2020-04-28T12:17:36.644",
   "description": "Found campus",
   "hidden": false,
   "program": 2,
   "series": 2,
-  "updated_at": "2019-05-13T15:27:49.976"
+  "updated_at": "2020-04-28T12:17:36.644"
  },
  "model": "grad.gradrequirement",
  "pk": 3
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:49.988",
+  "created_at": "2020-04-28T12:17:36.817",
   "description": "Found campus",
   "hidden": false,
   "program": 3,
   "series": 2,
-  "updated_at": "2019-05-13T15:27:49.988"
+  "updated_at": "2020-04-28T12:17:36.817"
  },
  "model": "grad.gradrequirement",
  "pk": 4
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:50.000",
+  "created_at": "2020-04-28T12:17:36.942",
   "description": "Found campus",
   "hidden": false,
   "program": 4,
   "series": 2,
-  "updated_at": "2019-05-13T15:27:50.000"
+  "updated_at": "2020-04-28T12:17:36.942"
  },
  "model": "grad.gradrequirement",
  "pk": 5
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:50.012",
+  "created_at": "2020-04-28T12:17:37.051",
   "description": "Found campus",
   "hidden": false,
   "program": 5,
   "series": 2,
-  "updated_at": "2019-05-13T15:27:50.012"
+  "updated_at": "2020-04-28T12:17:37.051"
  },
  "model": "grad.gradrequirement",
  "pk": 6
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:50.030",
+  "created_at": "2020-04-28T12:17:37.165",
   "description": "Found campus",
   "hidden": false,
   "program": 6,
   "series": 2,
-  "updated_at": "2019-05-13T15:27:50.030"
+  "updated_at": "2020-04-28T12:17:37.166"
  },
  "model": "grad.gradrequirement",
  "pk": 7
@@ -221,7 +221,7 @@
  "fields": {
   "config": "{}",
   "content": "Congratulations, {{first_name}}, we would like to offer you admission to the {{program}} program in Computing Science at SFU.\r\n\r\nThis is g\u00f6\u00f6d news. Really.",
-  "created_at": "2019-05-13T15:27:49.804",
+  "created_at": "2020-04-28T12:17:34.339",
   "created_by": "",
   "hidden": false,
   "label": "offer",
@@ -235,7 +235,7 @@
  "fields": {
   "config": "{}",
   "content": "This is to confirm that {{title}} {{first_name}} {{last_name}} is currently enrolled as a full time student in the {{program}} in the School of Computing Science at SFU.",
-  "created_at": "2019-05-13T15:27:49.818",
+  "created_at": "2020-04-28T12:17:34.423",
   "created_by": "",
   "hidden": false,
   "label": "visa",
@@ -249,7 +249,7 @@
  "fields": {
   "config": "{}",
   "content": "This is to confirm that {{title}} {{first_name}} {{last_name}} is a student in the School of Computing Science's {{program}} program. {{He_She}} has been employed as follows:\r\n\r\n{% if tafunding %}Teaching assistant responsibilities include providing tutorials, office hours and marking assignments. {{title}} {{last_name}}'s assignments have been:\r\n\r\n{{ tafunding }}{% endif %}\r\n{% if rafunding %}Research assistants assist/provide research services to faculty. {{title}} {{last_name}}'s assignments have been:\r\n\r\n{{ rafunding }}{% endif %}\r\n{% if scholarships %}{{title}} {{last_name}} has received the following scholarships:\r\n\r\n{{ scholarships }}{% endif %}\r\n\r\n{{title}} {{last_name}} is making satisfactory progress.",
-  "created_at": "2019-05-13T15:27:49.833",
+  "created_at": "2020-04-28T12:17:34.531",
   "created_by": "",
   "hidden": false,
   "label": "Funding",
@@ -277,48 +277,48 @@
 },
 {
  "fields": {
-  "campus": "SURRY",
+  "campus": "GNWC",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.108",
+  "created_at": "2020-04-28T12:17:37.558",
   "created_by": "",
-  "current_status": "WIDR",
-  "end_semester": 162,
+  "current_status": "ACTI",
+  "end_semester": null,
   "english_fluency": "",
-  "is_canadian": true,
+  "is_canadian": false,
   "modified_by": null,
   "mother_tongue": "",
   "passport_issued_by": "",
-  "person": 22,
-  "program": 5,
-  "research_area": "Oaznutyzology",
-  "slug": "0ggg3-qualifying",
-  "start_semester": 155,
-  "updated_at": "2019-05-13T15:27:50.348"
+  "person": 24,
+  "program": 3,
+  "research_area": "Nfelz\u00fa\u00ea\u00e0ology",
+  "slug": "0ggg0-mscthesis",
+  "start_semester": 160,
+  "updated_at": "2020-04-28T12:17:38.712"
  },
  "model": "grad.gradstudent",
  "pk": 1
 },
 {
  "fields": {
-  "campus": "BRNBY",
+  "campus": "SURRY",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.498",
+  "created_at": "2020-04-28T12:17:39.849",
   "created_by": "",
-  "current_status": "REJE",
+  "current_status": "ACTI",
   "end_semester": null,
   "english_fluency": "",
-  "is_canadian": null,
+  "is_canadian": false,
   "modified_by": null,
   "mother_tongue": "",
   "passport_issued_by": "",
-  "person": 34,
-  "program": 1,
-  "research_area": "Zesgrz\u00e0\u00f5ology",
-  "slug": "0ggg9-msccourse",
-  "start_semester": 155,
-  "updated_at": "2019-05-13T15:27:50.624"
+  "person": 44,
+  "program": 3,
+  "research_area": "Oon\u00ef\u00e0aidology",
+  "slug": "0ggg10-mscthesis",
+  "start_semester": 163,
+  "updated_at": "2020-04-28T12:17:41.043"
  },
  "model": "grad.gradstudent",
  "pk": 2
@@ -328,55 +328,7 @@
   "campus": "OFFST",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.757",
-  "created_by": "",
-  "current_status": "REJE",
-  "end_semester": null,
-  "english_fluency": "",
-  "is_canadian": false,
-  "modified_by": null,
-  "mother_tongue": "",
-  "passport_issued_by": "",
-  "person": 50,
-  "program": 3,
-  "research_area": "D\u00e0soe\u00ea\u00eaaology",
-  "slug": "0ggg17-mscthesis",
-  "start_semester": 161,
-  "updated_at": "2019-05-13T15:27:50.895"
- },
- "model": "grad.gradstudent",
- "pk": 3
-},
-{
- "fields": {
-  "campus": "OFFST",
-  "comments": "",
-  "config": "{}",
-  "created_at": "2019-05-13T15:27:50.994",
-  "created_by": "",
-  "current_status": "ACTI",
-  "end_semester": null,
-  "english_fluency": "",
-  "is_canadian": true,
-  "modified_by": null,
-  "mother_tongue": "",
-  "passport_issued_by": "",
-  "person": 24,
-  "program": 1,
-  "research_area": "Qbb\u00efl\u00f5a\u00eaology",
-  "slug": "0ggg4-msccourse",
-  "start_semester": 157,
-  "updated_at": "2019-05-13T15:27:51.177"
- },
- "model": "grad.gradstudent",
- "pk": 4
-},
-{
- "fields": {
-  "campus": "METRO",
-  "comments": "",
-  "config": "{}",
-  "created_at": "2019-05-13T15:27:51.271",
+  "created_at": "2020-04-28T12:17:42.267",
   "created_by": "",
   "current_status": "ACTI",
   "end_semester": null,
@@ -385,22 +337,70 @@
   "modified_by": null,
   "mother_tongue": "",
   "passport_issued_by": "",
-  "person": 32,
-  "program": 6,
-  "research_area": "Nfj\u00f5khljology",
-  "slug": "0ggg8-special",
-  "start_semester": 158,
-  "updated_at": "2019-05-13T15:27:51.463"
+  "person": 36,
+  "program": 5,
+  "research_area": "Aubeeb\u00e0iology",
+  "slug": "0ggg6-qualifying",
+  "start_semester": 161,
+  "updated_at": "2020-04-28T12:17:43.473"
+ },
+ "model": "grad.gradstudent",
+ "pk": 3
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "comments": "",
+  "config": "{}",
+  "created_at": "2020-04-28T12:17:44.378",
+  "created_by": "",
+  "current_status": "ACTI",
+  "end_semester": null,
+  "english_fluency": "",
+  "is_canadian": null,
+  "modified_by": null,
+  "mother_tongue": "",
+  "passport_issued_by": "",
+  "person": 50,
+  "program": 3,
+  "research_area": "Zedfcxqfology",
+  "slug": "0ggg13-mscthesis",
+  "start_semester": 161,
+  "updated_at": "2020-04-28T12:17:45.538"
+ },
+ "model": "grad.gradstudent",
+ "pk": 4
+},
+{
+ "fields": {
+  "campus": "GNWC",
+  "comments": "",
+  "config": "{}",
+  "created_at": "2020-04-28T12:17:46.620",
+  "created_by": "",
+  "current_status": "ACTI",
+  "end_semester": null,
+  "english_fluency": "",
+  "is_canadian": false,
+  "modified_by": null,
+  "mother_tongue": "",
+  "passport_issued_by": "",
+  "person": 48,
+  "program": 1,
+  "research_area": "Zjz\u00efbqhrology",
+  "slug": "0ggg12-msccourse",
+  "start_semester": 160,
+  "updated_at": "2020-04-28T12:17:48.148"
  },
  "model": "grad.gradstudent",
  "pk": 5
 },
 {
  "fields": {
-  "campus": "OFFST",
+  "campus": "VANCR",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.552",
+  "created_at": "2020-04-28T12:17:49.265",
   "created_by": "",
   "current_status": "REJE",
   "end_semester": null,
@@ -410,21 +410,21 @@
   "mother_tongue": "",
   "passport_issued_by": "",
   "person": 30,
-  "program": 4,
-  "research_area": "Sxyrjbasology",
-  "slug": "0ggg7-phd",
-  "start_semester": 162,
-  "updated_at": "2019-05-13T15:27:51.694"
+  "program": 5,
+  "research_area": "J\u00faayn\u00fac\u00eaology",
+  "slug": "0ggg3-qualifying",
+  "start_semester": 164,
+  "updated_at": "2020-04-28T12:17:50.372"
  },
  "model": "grad.gradstudent",
  "pk": 6
 },
 {
  "fields": {
-  "campus": "SURRY",
+  "campus": "BRNBY",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.811",
+  "created_at": "2020-04-28T12:17:51.445",
   "created_by": "",
   "current_status": "ACTI",
   "end_semester": null,
@@ -433,46 +433,46 @@
   "modified_by": null,
   "mother_tongue": "",
   "passport_issued_by": "",
-  "person": 36,
-  "program": 5,
-  "research_area": "I\u00e0cgtyipology",
-  "slug": "0ggg10-qualifying",
-  "start_semester": 155,
-  "updated_at": "2019-05-13T15:27:51.994"
+  "person": 52,
+  "program": 6,
+  "research_area": "Mi\u00ea\u00fa\u00f5\u00fa\u00eakology",
+  "slug": "0ggg14-special",
+  "start_semester": 161,
+  "updated_at": "2020-04-28T12:17:53.307"
  },
  "model": "grad.gradstudent",
  "pk": 7
 },
 {
  "fields": {
-  "campus": "OFFST",
+  "campus": "SURRY",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.086",
+  "created_at": "2020-04-28T12:17:55.165",
   "created_by": "",
-  "current_status": "ACTI",
+  "current_status": "REJE",
   "end_semester": null,
   "english_fluency": "",
-  "is_canadian": null,
+  "is_canadian": true,
   "modified_by": null,
   "mother_tongue": "",
   "passport_issued_by": "",
-  "person": 26,
+  "person": 60,
   "program": 2,
-  "research_area": "Rmz\u00e0hj\u00e0tology",
-  "slug": "0ggg5-mscproj",
-  "start_semester": 159,
-  "updated_at": "2019-05-13T15:27:52.276"
+  "research_area": "Lp\u00efc\u00f5nmmology",
+  "slug": "0ggg18-mscproj",
+  "start_semester": 164,
+  "updated_at": "2020-04-28T12:17:56.141"
  },
  "model": "grad.gradstudent",
  "pk": 8
 },
 {
  "fields": {
-  "campus": "OFFST",
+  "campus": "VANCR",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.419",
+  "created_at": "2020-04-28T12:17:58.052",
   "created_by": "",
   "current_status": "ACTI",
   "end_semester": null,
@@ -481,120 +481,72 @@
   "modified_by": null,
   "mother_tongue": "",
   "passport_issued_by": "",
-  "person": 18,
+  "person": 56,
   "program": 4,
-  "research_area": "Dqrlvnkmology",
-  "slug": "0ggg1-phd",
-  "start_semester": 159,
-  "updated_at": "2019-05-13T15:27:52.625"
+  "research_area": "Bexujxwsology",
+  "slug": "0ggg16-phd",
+  "start_semester": 162,
+  "updated_at": "2020-04-28T12:17:59.692"
  },
  "model": "grad.gradstudent",
  "pk": 9
 },
 {
  "fields": {
-  "campus": "OFFST",
+  "campus": "VANCR",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.778",
+  "created_at": "2020-04-28T12:18:01.803",
   "created_by": "",
   "current_status": "ACTI",
   "end_semester": null,
   "english_fluency": "",
-  "is_canadian": null,
+  "is_canadian": false,
   "modified_by": null,
   "mother_tongue": "",
   "passport_issued_by": "",
-  "person": 38,
-  "program": 3,
-  "research_area": "Fcmbwlmvology",
-  "slug": "0ggg11-mscthesis",
-  "start_semester": 157,
-  "updated_at": "2019-05-13T15:27:52.974"
+  "person": 62,
+  "program": 5,
+  "research_area": "L\u00eap\u00fagwusology",
+  "slug": "0ggg19-qualifying",
+  "start_semester": 159,
+  "updated_at": "2020-04-28T12:18:03.630"
  },
  "model": "grad.gradstudent",
  "pk": 10
 },
 {
  "fields": {
-  "campus": "BRNBY",
+  "campus": "METRO",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.073",
+  "created_at": "2020-04-28T12:18:05.394",
   "created_by": "",
-  "current_status": "ACTI",
-  "end_semester": null,
+  "current_status": "WIDR",
+  "end_semester": 160,
   "english_fluency": "",
-  "is_canadian": true,
+  "is_canadian": null,
   "modified_by": null,
   "mother_tongue": "",
   "passport_issued_by": "",
   "person": 54,
-  "program": 5,
-  "research_area": "Ut\u00f5eopvaology",
-  "slug": "0ggg19-qualifying",
-  "start_semester": 162,
-  "updated_at": "2019-05-13T15:27:53.227"
+  "program": 3,
+  "research_area": "Esdplyu\u00faology",
+  "slug": "0ggg15-mscthesis",
+  "start_semester": 157,
+  "updated_at": "2020-04-28T12:18:08.063"
  },
  "model": "grad.gradstudent",
  "pk": 11
 },
 {
  "fields": {
-  "campus": "BRNBY",
+  "campus": "METRO",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.336",
+  "created_at": "2020-04-28T12:18:08.974",
   "created_by": "",
-  "current_status": "WIDR",
-  "end_semester": 161,
-  "english_fluency": "",
-  "is_canadian": true,
-  "modified_by": null,
-  "mother_tongue": "",
-  "passport_issued_by": "",
-  "person": 44,
-  "program": 5,
-  "research_area": "Q\u00f5kc\u00f5\u00e0tpology",
-  "slug": "0ggg14-qualifying",
-  "start_semester": 158,
-  "updated_at": "2019-05-13T15:27:53.587"
- },
- "model": "grad.gradstudent",
- "pk": 12
-},
-{
- "fields": {
-  "campus": "BRNBY",
-  "comments": "",
-  "config": "{}",
-  "created_at": "2019-05-13T15:27:53.675",
-  "created_by": "",
-  "current_status": "ACTI",
-  "end_semester": null,
-  "english_fluency": "",
-  "is_canadian": true,
-  "modified_by": null,
-  "mother_tongue": "",
-  "passport_issued_by": "",
-  "person": 20,
-  "program": 2,
-  "research_area": "Iqqe\u00e0k\u00efwology",
-  "slug": "0ggg2-mscproj",
-  "start_semester": 156,
-  "updated_at": "2019-05-13T15:27:53.844"
- },
- "model": "grad.gradstudent",
- "pk": 13
-},
-{
- "fields": {
-  "campus": "VANCR",
-  "comments": "",
-  "config": "{}",
-  "created_at": "2019-05-13T15:27:54.010",
-  "created_by": "",
-  "current_status": "ACTI",
+  "current_status": "REJE",
   "end_semester": null,
   "english_fluency": "",
   "is_canadian": null,
@@ -602,21 +554,93 @@
   "mother_tongue": "",
   "passport_issued_by": "",
   "person": 42,
+  "program": 4,
+  "research_area": "Kepcid\u00eafology",
+  "slug": "0ggg9-phd",
+  "start_semester": 158,
+  "updated_at": "2020-04-28T12:18:09.837"
+ },
+ "model": "grad.gradstudent",
+ "pk": 12
+},
+{
+ "fields": {
+  "campus": "VANCR",
+  "comments": "",
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:10.415",
+  "created_by": "",
+  "current_status": "REJE",
+  "end_semester": null,
+  "english_fluency": "",
+  "is_canadian": true,
+  "modified_by": null,
+  "mother_tongue": "",
+  "passport_issued_by": "",
+  "person": 26,
+  "program": 1,
+  "research_area": "Ziwcosdyology",
+  "slug": "0ggg1-msccourse",
+  "start_semester": 163,
+  "updated_at": "2020-04-28T12:18:11.285"
+ },
+ "model": "grad.gradstudent",
+ "pk": 13
+},
+{
+ "fields": {
+  "campus": "METRO",
+  "comments": "",
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:12.475",
+  "created_by": "",
+  "current_status": "ACTI",
+  "end_semester": null,
+  "english_fluency": "",
+  "is_canadian": false,
+  "modified_by": null,
+  "mother_tongue": "",
+  "passport_issued_by": "",
+  "person": 32,
   "program": 2,
-  "research_area": "Xsthk\u00ea\u00f5mology",
-  "slug": "0ggg13-mscproj",
-  "start_semester": 161,
-  "updated_at": "2019-05-13T15:27:54.202"
+  "research_area": "Vr\u00efdbagnology",
+  "slug": "0ggg4-mscproj",
+  "start_semester": 160,
+  "updated_at": "2020-04-28T12:18:13.745"
  },
  "model": "grad.gradstudent",
  "pk": 14
 },
 {
  "fields": {
-  "campus": "SURRY",
+  "campus": "OFFST",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.290",
+  "created_at": "2020-04-28T12:18:14.714",
+  "created_by": "",
+  "current_status": "ACTI",
+  "end_semester": null,
+  "english_fluency": "",
+  "is_canadian": null,
+  "modified_by": null,
+  "mother_tongue": "",
+  "passport_issued_by": "",
+  "person": 28,
+  "program": 4,
+  "research_area": "H\u00efxnilwqology",
+  "slug": "0ggg2-phd",
+  "start_semester": 164,
+  "updated_at": "2020-04-28T12:18:16.075"
+ },
+ "model": "grad.gradstudent",
+ "pk": 15
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "comments": "",
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:17.502",
   "created_by": "",
   "current_status": "REJE",
   "end_semester": null,
@@ -625,36 +649,12 @@
   "modified_by": null,
   "mother_tongue": "",
   "passport_issued_by": "",
-  "person": 16,
-  "program": 6,
-  "research_area": "F\u00e0cxwotwology",
-  "slug": "0ggg0-special",
-  "start_semester": 158,
-  "updated_at": "2019-05-13T15:27:54.440"
- },
- "model": "grad.gradstudent",
- "pk": 15
-},
-{
- "fields": {
-  "campus": "VANCR",
-  "comments": "",
-  "config": "{}",
-  "created_at": "2019-05-13T15:27:54.556",
-  "created_by": "",
-  "current_status": "WIDR",
-  "end_semester": 162,
-  "english_fluency": "",
-  "is_canadian": true,
-  "modified_by": null,
-  "mother_tongue": "",
-  "passport_issued_by": "",
-  "person": 52,
-  "program": 5,
-  "research_area": "Nhlomh\u00eaeology",
-  "slug": "0ggg18-qualifying",
-  "start_semester": 159,
-  "updated_at": "2019-05-13T15:27:54.829"
+  "person": 38,
+  "program": 2,
+  "research_area": "Ul\u00fa\u00fairekology",
+  "slug": "0ggg7-mscproj",
+  "start_semester": 160,
+  "updated_at": "2020-04-28T12:18:18.376"
  },
  "model": "grad.gradstudent",
  "pk": 16
@@ -664,175 +664,31 @@
   "campus": "SURRY",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.897",
+  "created_at": "2020-04-28T12:18:19.083",
   "created_by": "",
-  "current_status": "REJE",
+  "current_status": "ACTI",
   "end_semester": null,
   "english_fluency": "",
-  "is_canadian": true,
+  "is_canadian": null,
   "modified_by": null,
   "mother_tongue": "",
   "passport_issued_by": "",
-  "person": 46,
-  "program": 3,
-  "research_area": "Glud\u00e0\u00f5loology",
-  "slug": "0ggg15-mscthesis",
+  "person": 58,
+  "program": 4,
+  "research_area": "V\u00f5xiaie\u00e0ology",
+  "slug": "0ggg17-phd",
   "start_semester": 158,
-  "updated_at": "2019-05-13T15:27:55.006"
+  "updated_at": "2020-04-28T12:18:20.630"
  },
  "model": "grad.gradstudent",
  "pk": 17
 },
 {
  "fields": {
-  "campus": "OFFST",
-  "comments": "",
-  "config": "{}",
-  "created_at": "2019-05-13T15:27:55.110",
-  "created_by": "",
-  "current_status": "WIDR",
-  "end_semester": 161,
-  "english_fluency": "",
-  "is_canadian": true,
-  "modified_by": null,
-  "mother_tongue": "",
-  "passport_issued_by": "",
-  "person": 28,
-  "program": 4,
-  "research_area": "Zvayjk\u00efrology",
-  "slug": "0ggg6-phd",
-  "start_semester": 157,
-  "updated_at": "2019-05-13T15:27:55.357"
- },
- "model": "grad.gradstudent",
- "pk": 18
-},
-{
- "fields": {
   "campus": "GNWC",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.475",
-  "created_by": "",
-  "current_status": "REJE",
-  "end_semester": null,
-  "english_fluency": "",
-  "is_canadian": false,
-  "modified_by": null,
-  "mother_tongue": "",
-  "passport_issued_by": "",
-  "person": 48,
-  "program": 2,
-  "research_area": "G\u00efcrznz\u00eaology",
-  "slug": "0ggg16-mscproj",
-  "start_semester": 159,
-  "updated_at": "2019-05-13T15:27:55.617"
- },
- "model": "grad.gradstudent",
- "pk": 19
-},
-{
- "fields": {
-  "campus": "BRNBY",
-  "comments": "",
-  "config": "{}",
-  "created_at": "2019-05-13T15:27:55.761",
-  "created_by": "",
-  "current_status": "ACTI",
-  "end_semester": null,
-  "english_fluency": "",
-  "is_canadian": null,
-  "modified_by": null,
-  "mother_tongue": "",
-  "passport_issued_by": "",
-  "person": 40,
-  "program": 5,
-  "research_area": "Wguajcrbology",
-  "slug": "0ggg12-qualifying",
-  "start_semester": 161,
-  "updated_at": "2019-05-13T15:27:55.957"
- },
- "model": "grad.gradstudent",
- "pk": 20
-},
-{
- "fields": {
-  "campus": "SURRY",
-  "comments": "",
-  "config": "{}",
-  "created_at": "2019-05-13T15:27:56.043",
-  "created_by": "",
-  "current_status": "ACTI",
-  "end_semester": null,
-  "english_fluency": "",
-  "is_canadian": false,
-  "modified_by": null,
-  "mother_tongue": "",
-  "passport_issued_by": "",
-  "person": 36,
-  "program": 3,
-  "research_area": "E\u00faphfgmvology",
-  "slug": "0ggg10-mscthesis",
-  "start_semester": 157,
-  "updated_at": "2019-05-13T15:27:56.252"
- },
- "model": "grad.gradstudent",
- "pk": 21
-},
-{
- "fields": {
-  "campus": "OFFST",
-  "comments": "",
-  "config": "{}",
-  "created_at": "2019-05-13T15:27:56.360",
-  "created_by": "",
-  "current_status": "ACTI",
-  "end_semester": null,
-  "english_fluency": "",
-  "is_canadian": null,
-  "modified_by": null,
-  "mother_tongue": "",
-  "passport_issued_by": "",
-  "person": 44,
-  "program": 2,
-  "research_area": "Xmwziq\u00efbology",
-  "slug": "0ggg14-mscproj",
-  "start_semester": 160,
-  "updated_at": "2019-05-13T15:27:56.564"
- },
- "model": "grad.gradstudent",
- "pk": 22
-},
-{
- "fields": {
-  "campus": "GNWC",
-  "comments": "",
-  "config": "{}",
-  "created_at": "2019-05-13T15:27:56.706",
-  "created_by": "",
-  "current_status": "ACTI",
-  "end_semester": null,
-  "english_fluency": "",
-  "is_canadian": false,
-  "modified_by": null,
-  "mother_tongue": "",
-  "passport_issued_by": "",
-  "person": 20,
-  "program": 3,
-  "research_area": "R\u00eazlpqsrology",
-  "slug": "0ggg2-mscthesis",
-  "start_semester": 161,
-  "updated_at": "2019-05-13T15:27:56.900"
- },
- "model": "grad.gradstudent",
- "pk": 23
-},
-{
- "fields": {
-  "campus": "SURRY",
-  "comments": "",
-  "config": "{}",
-  "created_at": "2019-05-13T15:27:56.990",
+  "created_at": "2020-04-28T12:18:21.729",
   "created_by": "",
   "current_status": "ACTI",
   "end_semester": null,
@@ -842,21 +698,117 @@
   "mother_tongue": "",
   "passport_issued_by": "",
   "person": 34,
-  "program": 1,
-  "research_area": "Srpkysdiology",
-  "slug": "0ggg9-msccourse-2",
-  "start_semester": 160,
-  "updated_at": "2019-05-13T15:27:57.145"
+  "program": 3,
+  "research_area": "Nytqvtuaology",
+  "slug": "0ggg5-mscthesis",
+  "start_semester": 157,
+  "updated_at": "2020-04-28T12:18:23.191"
  },
  "model": "grad.gradstudent",
- "pk": 24
+ "pk": 18
 },
 {
  "fields": {
-  "campus": "OFFST",
+  "campus": "BRNBY",
   "comments": "",
   "config": "{}",
-  "created_at": "2019-05-13T15:27:57.268",
+  "created_at": "2020-04-28T12:18:24.724",
+  "created_by": "",
+  "current_status": "ACTI",
+  "end_semester": null,
+  "english_fluency": "",
+  "is_canadian": false,
+  "modified_by": null,
+  "mother_tongue": "",
+  "passport_issued_by": "",
+  "person": 40,
+  "program": 5,
+  "research_area": "Ngnxirv\u00eaology",
+  "slug": "0ggg8-qualifying",
+  "start_semester": 161,
+  "updated_at": "2020-04-28T12:18:25.895"
+ },
+ "model": "grad.gradstudent",
+ "pk": 19
+},
+{
+ "fields": {
+  "campus": "VANCR",
+  "comments": "",
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:27.197",
+  "created_by": "",
+  "current_status": "ACTI",
+  "end_semester": null,
+  "english_fluency": "",
+  "is_canadian": null,
+  "modified_by": null,
+  "mother_tongue": "",
+  "passport_issued_by": "",
+  "person": 46,
+  "program": 5,
+  "research_area": "Wrgorgagology",
+  "slug": "0ggg11-qualifying",
+  "start_semester": 160,
+  "updated_at": "2020-04-28T12:18:28.850"
+ },
+ "model": "grad.gradstudent",
+ "pk": 20
+},
+{
+ "fields": {
+  "campus": "GNWC",
+  "comments": "",
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:29.990",
+  "created_by": "",
+  "current_status": "ACTI",
+  "end_semester": null,
+  "english_fluency": "",
+  "is_canadian": true,
+  "modified_by": null,
+  "mother_tongue": "",
+  "passport_issued_by": "",
+  "person": 62,
+  "program": 1,
+  "research_area": "Kswzu\u00eak\u00f5ology",
+  "slug": "0ggg19-msccourse",
+  "start_semester": 161,
+  "updated_at": "2020-04-28T12:18:31.121"
+ },
+ "model": "grad.gradstudent",
+ "pk": 21
+},
+{
+ "fields": {
+  "campus": "GNWC",
+  "comments": "",
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:35.032",
+  "created_by": "",
+  "current_status": "ACTI",
+  "end_semester": null,
+  "english_fluency": "",
+  "is_canadian": null,
+  "modified_by": null,
+  "mother_tongue": "",
+  "passport_issued_by": "",
+  "person": 34,
+  "program": 4,
+  "research_area": "Jpnc\u00eagvhology",
+  "slug": "0ggg5-phd",
+  "start_semester": 164,
+  "updated_at": "2020-04-28T12:18:36.247"
+ },
+ "model": "grad.gradstudent",
+ "pk": 22
+},
+{
+ "fields": {
+  "campus": "VANCR",
+  "comments": "",
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:37.479",
   "created_by": "",
   "current_status": "ACTI",
   "end_semester": null,
@@ -867,10 +819,58 @@
   "passport_issued_by": "",
   "person": 46,
   "program": 4,
-  "research_area": "Ixbqcop\u00efology",
-  "slug": "0ggg15-phd",
-  "start_semester": 156,
-  "updated_at": "2019-05-13T15:27:57.449"
+  "research_area": "Liy\u00f5refjology",
+  "slug": "0ggg11-phd",
+  "start_semester": 159,
+  "updated_at": "2020-04-28T12:18:38.724"
+ },
+ "model": "grad.gradstudent",
+ "pk": 23
+},
+{
+ "fields": {
+  "campus": "GNWC",
+  "comments": "",
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:40.130",
+  "created_by": "",
+  "current_status": "ACTI",
+  "end_semester": null,
+  "english_fluency": "",
+  "is_canadian": false,
+  "modified_by": null,
+  "mother_tongue": "",
+  "passport_issued_by": "",
+  "person": 50,
+  "program": 2,
+  "research_area": "Yforrsakology",
+  "slug": "0ggg13-mscproj",
+  "start_semester": 164,
+  "updated_at": "2020-04-28T12:18:41.522"
+ },
+ "model": "grad.gradstudent",
+ "pk": 24
+},
+{
+ "fields": {
+  "campus": "SURRY",
+  "comments": "",
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:42.551",
+  "created_by": "",
+  "current_status": "WIDR",
+  "end_semester": 163,
+  "english_fluency": "",
+  "is_canadian": false,
+  "modified_by": null,
+  "mother_tongue": "",
+  "passport_issued_by": "",
+  "person": 54,
+  "program": 5,
+  "research_area": "It\u00f5\u00efvjh\u00eaology",
+  "slug": "0ggg15-qualifying",
+  "start_semester": 158,
+  "updated_at": "2020-04-28T12:18:44.239"
  },
  "model": "grad.gradstudent",
  "pk": 25
@@ -878,9 +878,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 5,
-  "start_semester": 155,
-  "starting": "2019-05-13",
+  "program": 3,
+  "start_semester": 160,
+  "starting": "2020-04-28",
   "student": 1
  },
  "model": "grad.gradprogramhistory",
@@ -889,9 +889,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 1,
-  "start_semester": 155,
-  "starting": "2019-05-13",
+  "program": 3,
+  "start_semester": 163,
+  "starting": "2020-04-28",
   "student": 2
  },
  "model": "grad.gradprogramhistory",
@@ -900,10 +900,10 @@
 {
  "fields": {
   "config": "{}",
-  "program": 3,
-  "start_semester": 161,
-  "starting": "2019-05-13",
-  "student": 3
+  "program": 5,
+  "start_semester": 165,
+  "starting": "2020-04-28",
+  "student": 2
  },
  "model": "grad.gradprogramhistory",
  "pk": 3
@@ -911,9 +911,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 2,
-  "start_semester": 165,
-  "starting": "2019-05-13",
+  "program": 5,
+  "start_semester": 161,
+  "starting": "2020-04-28",
   "student": 3
  },
  "model": "grad.gradprogramhistory",
@@ -922,9 +922,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 1,
-  "start_semester": 157,
-  "starting": "2019-05-13",
+  "program": 3,
+  "start_semester": 161,
+  "starting": "2020-04-28",
   "student": 4
  },
  "model": "grad.gradprogramhistory",
@@ -933,9 +933,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 2,
-  "start_semester": 158,
-  "starting": "2019-05-13",
+  "program": 1,
+  "start_semester": 160,
+  "starting": "2020-04-28",
   "student": 5
  },
  "model": "grad.gradprogramhistory",
@@ -944,10 +944,10 @@
 {
  "fields": {
   "config": "{}",
-  "program": 6,
-  "start_semester": 159,
-  "starting": "2019-05-13",
-  "student": 5
+  "program": 5,
+  "start_semester": 164,
+  "starting": "2020-04-28",
+  "student": 6
  },
  "model": "grad.gradprogramhistory",
  "pk": 7
@@ -955,10 +955,10 @@
 {
  "fields": {
   "config": "{}",
-  "program": 4,
-  "start_semester": 162,
-  "starting": "2019-05-13",
-  "student": 6
+  "program": 6,
+  "start_semester": 161,
+  "starting": "2020-04-28",
+  "student": 7
  },
  "model": "grad.gradprogramhistory",
  "pk": 8
@@ -966,10 +966,10 @@
 {
  "fields": {
   "config": "{}",
-  "program": 5,
-  "start_semester": 155,
-  "starting": "2019-05-13",
-  "student": 7
+  "program": 2,
+  "start_semester": 164,
+  "starting": "2020-04-28",
+  "student": 8
  },
  "model": "grad.gradprogramhistory",
  "pk": 9
@@ -977,10 +977,10 @@
 {
  "fields": {
   "config": "{}",
-  "program": 2,
-  "start_semester": 159,
-  "starting": "2019-05-13",
-  "student": 8
+  "program": 4,
+  "start_semester": 162,
+  "starting": "2020-04-28",
+  "student": 9
  },
  "model": "grad.gradprogramhistory",
  "pk": 10
@@ -988,10 +988,10 @@
 {
  "fields": {
   "config": "{}",
-  "program": 4,
+  "program": 2,
   "start_semester": 159,
-  "starting": "2019-05-13",
-  "student": 9
+  "starting": "2020-04-28",
+  "student": 10
  },
  "model": "grad.gradprogramhistory",
  "pk": 11
@@ -999,9 +999,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 3,
-  "start_semester": 157,
-  "starting": "2019-05-13",
+  "program": 5,
+  "start_semester": 163,
+  "starting": "2020-04-28",
   "student": 10
  },
  "model": "grad.gradprogramhistory",
@@ -1010,9 +1010,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 5,
-  "start_semester": 162,
-  "starting": "2019-05-13",
+  "program": 3,
+  "start_semester": 157,
+  "starting": "2020-04-28",
   "student": 11
  },
  "model": "grad.gradprogramhistory",
@@ -1021,9 +1021,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 5,
+  "program": 4,
   "start_semester": 158,
-  "starting": "2019-05-13",
+  "starting": "2020-04-28",
   "student": 12
  },
  "model": "grad.gradprogramhistory",
@@ -1032,9 +1032,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 2,
-  "start_semester": 156,
-  "starting": "2019-05-13",
+  "program": 1,
+  "start_semester": 163,
+  "starting": "2020-04-28",
   "student": 13
  },
  "model": "grad.gradprogramhistory",
@@ -1043,9 +1043,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 2,
-  "start_semester": 161,
-  "starting": "2019-05-13",
+  "program": 3,
+  "start_semester": 160,
+  "starting": "2020-04-28",
   "student": 14
  },
  "model": "grad.gradprogramhistory",
@@ -1054,10 +1054,10 @@
 {
  "fields": {
   "config": "{}",
-  "program": 6,
-  "start_semester": 158,
-  "starting": "2019-05-13",
-  "student": 15
+  "program": 2,
+  "start_semester": 164,
+  "starting": "2020-04-28",
+  "student": 14
  },
  "model": "grad.gradprogramhistory",
  "pk": 17
@@ -1066,9 +1066,9 @@
  "fields": {
   "config": "{}",
   "program": 4,
-  "start_semester": 159,
-  "starting": "2019-05-13",
-  "student": 16
+  "start_semester": 164,
+  "starting": "2020-04-28",
+  "student": 15
  },
  "model": "grad.gradprogramhistory",
  "pk": 18
@@ -1076,9 +1076,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 5,
-  "start_semester": 162,
-  "starting": "2019-05-13",
+  "program": 2,
+  "start_semester": 160,
+  "starting": "2020-04-28",
   "student": 16
  },
  "model": "grad.gradprogramhistory",
@@ -1087,9 +1087,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 6,
+  "program": 1,
   "start_semester": 158,
-  "starting": "2019-05-13",
+  "starting": "2020-04-28",
   "student": 17
  },
  "model": "grad.gradprogramhistory",
@@ -1098,9 +1098,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 3,
-  "start_semester": 161,
-  "starting": "2019-05-13",
+  "program": 4,
+  "start_semester": 162,
+  "starting": "2020-04-28",
   "student": 17
  },
  "model": "grad.gradprogramhistory",
@@ -1109,9 +1109,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 4,
+  "program": 3,
   "start_semester": 157,
-  "starting": "2019-05-13",
+  "starting": "2020-04-28",
   "student": 18
  },
  "model": "grad.gradprogramhistory",
@@ -1120,9 +1120,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 2,
-  "start_semester": 159,
-  "starting": "2019-05-13",
+  "program": 5,
+  "start_semester": 161,
+  "starting": "2020-04-28",
   "student": 19
  },
  "model": "grad.gradprogramhistory",
@@ -1131,9 +1131,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 5,
-  "start_semester": 161,
-  "starting": "2019-05-13",
+  "program": 4,
+  "start_semester": 160,
+  "starting": "2020-04-28",
   "student": 20
  },
  "model": "grad.gradprogramhistory",
@@ -1142,10 +1142,10 @@
 {
  "fields": {
   "config": "{}",
-  "program": 3,
-  "start_semester": 157,
-  "starting": "2019-05-13",
-  "student": 21
+  "program": 5,
+  "start_semester": 164,
+  "starting": "2020-04-28",
+  "student": 20
  },
  "model": "grad.gradprogramhistory",
  "pk": 25
@@ -1153,10 +1153,10 @@
 {
  "fields": {
   "config": "{}",
-  "program": 3,
-  "start_semester": 160,
-  "starting": "2019-05-13",
-  "student": 22
+  "program": 1,
+  "start_semester": 161,
+  "starting": "2020-04-28",
+  "student": 21
  },
  "model": "grad.gradprogramhistory",
  "pk": 26
@@ -1164,9 +1164,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 2,
-  "start_semester": 162,
-  "starting": "2019-05-13",
+  "program": 4,
+  "start_semester": 164,
+  "starting": "2020-04-28",
   "student": 22
  },
  "model": "grad.gradprogramhistory",
@@ -1175,9 +1175,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 3,
-  "start_semester": 161,
-  "starting": "2019-05-13",
+  "program": 4,
+  "start_semester": 159,
+  "starting": "2020-04-28",
   "student": 23
  },
  "model": "grad.gradprogramhistory",
@@ -1186,9 +1186,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 1,
-  "start_semester": 160,
-  "starting": "2019-05-13",
+  "program": 2,
+  "start_semester": 164,
+  "starting": "2020-04-28",
   "student": 24
  },
  "model": "grad.gradprogramhistory",
@@ -1197,10 +1197,10 @@
 {
  "fields": {
   "config": "{}",
-  "program": 1,
-  "start_semester": 156,
-  "starting": "2019-05-13",
-  "student": 25
+  "program": 4,
+  "start_semester": 165,
+  "starting": "2020-04-28",
+  "student": 24
  },
  "model": "grad.gradprogramhistory",
  "pk": 30
@@ -1208,9 +1208,9 @@
 {
  "fields": {
   "config": "{}",
-  "program": 4,
+  "program": 3,
   "start_semester": 158,
-  "starting": "2019-05-13",
+  "starting": "2020-04-28",
   "student": 25
  },
  "model": "grad.gradprogramhistory",
@@ -1219,15 +1219,26 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.135",
-  "end": 155,
+  "program": 5,
+  "start_semester": 159,
+  "starting": "2020-04-28",
+  "student": 25
+ },
+ "model": "grad.gradprogramhistory",
+ "pk": 32
+},
+{
+ "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:17:37.791",
+  "end": 160,
   "hidden": false,
   "notes": "",
-  "start": 155,
-  "start_date": "2016-09-26",
+  "start": 160,
+  "start_date": "2018-05-27",
   "status": "COMP",
   "student": 1,
-  "updated_at": "2019-05-13T15:27:50.203"
+  "updated_at": "2020-04-28T12:17:38.188"
  },
  "model": "grad.gradstatus",
  "pk": 1
@@ -1235,15 +1246,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.190",
-  "end": 155,
+  "created_at": "2020-04-28T12:17:38.059",
+  "end": 160,
   "hidden": false,
   "notes": "",
-  "start": 155,
-  "start_date": "2016-10-16",
+  "start": 160,
+  "start_date": "2018-06-16",
   "status": "OFFO",
   "student": 1,
-  "updated_at": "2019-05-13T15:27:50.257"
+  "updated_at": "2020-04-28T12:17:38.548"
  },
  "model": "grad.gradstatus",
  "pk": 2
@@ -1251,15 +1262,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.237",
-  "end": 162,
+  "created_at": "2020-04-28T12:17:38.423",
+  "end": null,
   "hidden": false,
   "notes": "",
-  "start": 155,
-  "start_date": "2017-01-04",
+  "start": 160,
+  "start_date": "2018-09-04",
   "status": "ACTI",
   "student": 1,
-  "updated_at": "2019-05-13T15:27:50.325"
+  "updated_at": "2020-04-28T12:17:38.423"
  },
  "model": "grad.gradstatus",
  "pk": 3
@@ -1267,15 +1278,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.312",
-  "end": null,
+  "created_at": "2020-04-28T12:17:40.180",
+  "end": 163,
   "hidden": false,
   "notes": "",
-  "start": 162,
-  "start_date": "2019-05-06",
-  "status": "WIDR",
-  "student": 1,
-  "updated_at": "2019-05-13T15:27:50.312"
+  "start": 163,
+  "start_date": "2019-05-26",
+  "status": "COMP",
+  "student": 2,
+  "updated_at": "2020-04-28T12:17:40.550"
  },
  "model": "grad.gradstatus",
  "pk": 4
@@ -1283,15 +1294,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.529",
-  "end": 155,
+  "created_at": "2020-04-28T12:17:40.434",
+  "end": 163,
   "hidden": false,
   "notes": "",
-  "start": 155,
-  "start_date": "2016-09-26",
-  "status": "COMP",
+  "start": 163,
+  "start_date": "2019-06-15",
+  "status": "OFFO",
   "student": 2,
-  "updated_at": "2019-05-13T15:27:50.600"
+  "updated_at": "2020-04-28T12:17:40.907"
  },
  "model": "grad.gradstatus",
  "pk": 5
@@ -1299,15 +1310,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.586",
+  "created_at": "2020-04-28T12:17:40.759",
   "end": null,
   "hidden": false,
   "notes": "",
-  "start": 155,
-  "start_date": "2016-10-16",
-  "status": "REJE",
+  "start": 163,
+  "start_date": "2019-09-03",
+  "status": "ACTI",
   "student": 2,
-  "updated_at": "2019-05-13T15:27:50.586"
+  "updated_at": "2020-04-28T12:17:40.759"
  },
  "model": "grad.gradstatus",
  "pk": 6
@@ -1315,7 +1326,7 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.816",
+  "created_at": "2020-04-28T12:17:42.611",
   "end": 161,
   "hidden": false,
   "notes": "",
@@ -1323,7 +1334,7 @@
   "start_date": "2018-09-25",
   "status": "COMP",
   "student": 3,
-  "updated_at": "2019-05-13T15:27:50.877"
+  "updated_at": "2020-04-28T12:17:42.960"
  },
  "model": "grad.gradstatus",
  "pk": 7
@@ -1331,15 +1342,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.863",
-  "end": null,
+  "created_at": "2020-04-28T12:17:42.867",
+  "end": 161,
   "hidden": false,
   "notes": "",
   "start": 161,
   "start_date": "2018-10-15",
-  "status": "REJE",
+  "status": "OFFO",
   "student": 3,
-  "updated_at": "2019-05-13T15:27:50.863"
+  "updated_at": "2020-04-28T12:17:43.348"
  },
  "model": "grad.gradstatus",
  "pk": 8
@@ -1347,15 +1358,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.019",
-  "end": 157,
+  "created_at": "2020-04-28T12:17:43.209",
+  "end": 170,
   "hidden": false,
   "notes": "",
-  "start": 157,
-  "start_date": "2017-05-28",
-  "status": "COMP",
-  "student": 4,
-  "updated_at": "2019-05-13T15:27:51.064"
+  "start": 161,
+  "start_date": "2019-01-03",
+  "status": "ACTI",
+  "student": 3,
+  "updated_at": "2020-04-28T12:17:43.715"
  },
  "model": "grad.gradstatus",
  "pk": 9
@@ -1363,15 +1374,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.051",
-  "end": 157,
+  "created_at": "2020-04-28T12:17:43.584",
+  "end": null,
   "hidden": false,
   "notes": "",
-  "start": 157,
-  "start_date": "2017-06-17",
-  "status": "OFFO",
-  "student": 4,
-  "updated_at": "2019-05-13T15:27:51.140"
+  "start": 170,
+  "start_date": "2022-01-05",
+  "status": "WIDR",
+  "student": 3,
+  "updated_at": "2020-04-28T12:17:43.584"
  },
  "model": "grad.gradstatus",
  "pk": 10
@@ -1379,15 +1390,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.122",
-  "end": null,
+  "created_at": "2020-04-28T12:17:44.657",
+  "end": 161,
   "hidden": false,
   "notes": "",
-  "start": 157,
-  "start_date": "2017-09-05",
-  "status": "ACTI",
+  "start": 161,
+  "start_date": "2018-09-25",
+  "status": "COMP",
   "student": 4,
-  "updated_at": "2019-05-13T15:27:51.122"
+  "updated_at": "2020-04-28T12:17:45.061"
  },
  "model": "grad.gradstatus",
  "pk": 11
@@ -1395,15 +1406,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.317",
-  "end": 158,
+  "created_at": "2020-04-28T12:17:44.909",
+  "end": 161,
   "hidden": false,
   "notes": "",
-  "start": 158,
-  "start_date": "2017-09-25",
-  "status": "COMP",
-  "student": 5,
-  "updated_at": "2019-05-13T15:27:51.389"
+  "start": 161,
+  "start_date": "2018-10-15",
+  "status": "OFFO",
+  "student": 4,
+  "updated_at": "2020-04-28T12:17:45.415"
  },
  "model": "grad.gradstatus",
  "pk": 12
@@ -1411,15 +1422,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.375",
-  "end": 158,
+  "created_at": "2020-04-28T12:17:45.299",
+  "end": null,
   "hidden": false,
   "notes": "",
-  "start": 158,
-  "start_date": "2017-10-15",
-  "status": "OFFO",
-  "student": 5,
-  "updated_at": "2019-05-13T15:27:51.439"
+  "start": 161,
+  "start_date": "2019-01-03",
+  "status": "ACTI",
+  "student": 4,
+  "updated_at": "2020-04-28T12:17:45.299"
  },
  "model": "grad.gradstatus",
  "pk": 13
@@ -1427,15 +1438,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.425",
-  "end": null,
+  "created_at": "2020-04-28T12:17:46.839",
+  "end": 160,
   "hidden": false,
   "notes": "",
-  "start": 158,
-  "start_date": "2018-01-03",
-  "status": "ACTI",
+  "start": 160,
+  "start_date": "2018-05-27",
+  "status": "COMP",
   "student": 5,
-  "updated_at": "2019-05-13T15:27:51.425"
+  "updated_at": "2020-04-28T12:17:47.494"
  },
  "model": "grad.gradstatus",
  "pk": 14
@@ -1443,15 +1454,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.582",
-  "end": 162,
+  "created_at": "2020-04-28T12:17:47.193",
+  "end": 160,
   "hidden": false,
   "notes": "",
-  "start": 162,
-  "start_date": "2019-01-26",
-  "status": "COMP",
-  "student": 6,
-  "updated_at": "2019-05-13T15:27:51.660"
+  "start": 160,
+  "start_date": "2018-06-16",
+  "status": "OFFO",
+  "student": 5,
+  "updated_at": "2020-04-28T12:17:47.969"
  },
  "model": "grad.gradstatus",
  "pk": 15
@@ -1459,15 +1470,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.642",
+  "created_at": "2020-04-28T12:17:47.818",
   "end": null,
   "hidden": false,
   "notes": "",
-  "start": 162,
-  "start_date": "2019-02-15",
-  "status": "REJE",
-  "student": 6,
-  "updated_at": "2019-05-13T15:27:51.642"
+  "start": 160,
+  "start_date": "2018-09-04",
+  "status": "ACTI",
+  "student": 5,
+  "updated_at": "2020-04-28T12:17:47.818"
  },
  "model": "grad.gradstatus",
  "pk": 16
@@ -1475,15 +1486,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.841",
-  "end": 155,
+  "created_at": "2020-04-28T12:17:49.667",
+  "end": 164,
   "hidden": false,
   "notes": "",
-  "start": 155,
-  "start_date": "2016-09-26",
+  "start": 164,
+  "start_date": "2019-09-28",
   "status": "COMP",
-  "student": 7,
-  "updated_at": "2019-05-13T15:27:51.913"
+  "student": 6,
+  "updated_at": "2020-04-28T12:17:50.221"
  },
  "model": "grad.gradstatus",
  "pk": 17
@@ -1491,15 +1502,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.892",
-  "end": 155,
+  "created_at": "2020-04-28T12:17:50.068",
+  "end": null,
   "hidden": false,
   "notes": "",
-  "start": 155,
-  "start_date": "2016-10-16",
-  "status": "OFFO",
-  "student": 7,
-  "updated_at": "2019-05-13T15:27:51.972"
+  "start": 164,
+  "start_date": "2019-10-18",
+  "status": "REJE",
+  "student": 6,
+  "updated_at": "2020-04-28T12:17:50.068"
  },
  "model": "grad.gradstatus",
  "pk": 18
@@ -1507,15 +1518,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.959",
-  "end": null,
+  "created_at": "2020-04-28T12:17:52.075",
+  "end": 161,
   "hidden": false,
   "notes": "",
-  "start": 155,
-  "start_date": "2017-01-04",
-  "status": "ACTI",
+  "start": 161,
+  "start_date": "2018-09-25",
+  "status": "COMP",
   "student": 7,
-  "updated_at": "2019-05-13T15:27:51.959"
+  "updated_at": "2020-04-28T12:17:52.502"
  },
  "model": "grad.gradstatus",
  "pk": 19
@@ -1523,15 +1534,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.116",
-  "end": 159,
+  "created_at": "2020-04-28T12:17:52.341",
+  "end": 161,
   "hidden": false,
   "notes": "",
-  "start": 159,
-  "start_date": "2018-01-27",
-  "status": "COMP",
-  "student": 8,
-  "updated_at": "2019-05-13T15:27:52.185"
+  "start": 161,
+  "start_date": "2018-10-15",
+  "status": "OFFO",
+  "student": 7,
+  "updated_at": "2020-04-28T12:17:53.012"
  },
  "model": "grad.gradstatus",
  "pk": 20
@@ -1539,15 +1550,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.171",
-  "end": 159,
+  "created_at": "2020-04-28T12:17:52.869",
+  "end": 167,
   "hidden": false,
   "notes": "",
-  "start": 159,
-  "start_date": "2018-02-16",
-  "status": "OFFO",
-  "student": 8,
-  "updated_at": "2019-05-13T15:27:52.233"
+  "start": 161,
+  "start_date": "2019-01-03",
+  "status": "ACTI",
+  "student": 7,
+  "updated_at": "2020-04-28T12:17:53.615"
  },
  "model": "grad.gradstatus",
  "pk": 21
@@ -1555,15 +1566,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.220",
+  "created_at": "2020-04-28T12:17:53.452",
   "end": null,
   "hidden": false,
   "notes": "",
-  "start": 159,
-  "start_date": "2018-05-07",
-  "status": "ACTI",
-  "student": 8,
-  "updated_at": "2019-05-13T15:27:52.220"
+  "start": 167,
+  "start_date": "2021-01-05",
+  "status": "WIDR",
+  "student": 7,
+  "updated_at": "2020-04-28T12:17:53.452"
  },
  "model": "grad.gradstatus",
  "pk": 22
@@ -1571,15 +1582,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.449",
-  "end": 159,
+  "created_at": "2020-04-28T12:17:55.460",
+  "end": 164,
   "hidden": false,
   "notes": "",
-  "start": 159,
-  "start_date": "2018-01-27",
+  "start": 164,
+  "start_date": "2019-09-28",
   "status": "COMP",
-  "student": 9,
-  "updated_at": "2019-05-13T15:27:52.519"
+  "student": 8,
+  "updated_at": "2020-04-28T12:17:55.981"
  },
  "model": "grad.gradstatus",
  "pk": 23
@@ -1587,15 +1598,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.505",
-  "end": 159,
+  "created_at": "2020-04-28T12:17:55.759",
+  "end": null,
   "hidden": false,
   "notes": "",
-  "start": 159,
-  "start_date": "2018-02-16",
-  "status": "OFFO",
-  "student": 9,
-  "updated_at": "2019-05-13T15:27:52.581"
+  "start": 164,
+  "start_date": "2019-10-18",
+  "status": "REJE",
+  "student": 8,
+  "updated_at": "2020-04-28T12:17:55.759"
  },
  "model": "grad.gradstatus",
  "pk": 24
@@ -1603,15 +1614,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.557",
-  "end": 166,
+  "created_at": "2020-04-28T12:17:58.366",
+  "end": 162,
   "hidden": false,
   "notes": "",
-  "start": 159,
-  "start_date": "2018-05-07",
-  "status": "ACTI",
+  "start": 162,
+  "start_date": "2019-01-26",
+  "status": "COMP",
   "student": 9,
-  "updated_at": "2019-05-13T15:27:52.651"
+  "updated_at": "2020-04-28T12:17:58.895"
  },
  "model": "grad.gradstatus",
  "pk": 25
@@ -1619,15 +1630,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.637",
-  "end": null,
+  "created_at": "2020-04-28T12:17:58.750",
+  "end": 162,
   "hidden": false,
   "notes": "",
-  "start": 166,
-  "start_date": "2020-09-08",
-  "status": "WIDR",
+  "start": 162,
+  "start_date": "2019-02-15",
+  "status": "OFFO",
   "student": 9,
-  "updated_at": "2019-05-13T15:27:52.637"
+  "updated_at": "2020-04-28T12:17:59.457"
  },
  "model": "grad.gradstatus",
  "pk": 26
@@ -1635,15 +1646,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.808",
-  "end": 157,
+  "created_at": "2020-04-28T12:17:59.294",
+  "end": 168,
   "hidden": false,
   "notes": "",
-  "start": 157,
-  "start_date": "2017-05-28",
-  "status": "COMP",
-  "student": 10,
-  "updated_at": "2019-05-13T15:27:52.879"
+  "start": 162,
+  "start_date": "2019-05-06",
+  "status": "ACTI",
+  "student": 9,
+  "updated_at": "2020-04-28T12:17:59.979"
  },
  "model": "grad.gradstatus",
  "pk": 27
@@ -1651,15 +1662,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.865",
-  "end": 157,
+  "created_at": "2020-04-28T12:17:59.826",
+  "end": null,
   "hidden": false,
   "notes": "",
-  "start": 157,
-  "start_date": "2017-06-17",
-  "status": "OFFO",
-  "student": 10,
-  "updated_at": "2019-05-13T15:27:52.933"
+  "start": 168,
+  "start_date": "2021-05-10",
+  "status": "WIDR",
+  "student": 9,
+  "updated_at": "2020-04-28T12:17:59.826"
  },
  "model": "grad.gradstatus",
  "pk": 28
@@ -1667,15 +1678,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.912",
-  "end": null,
+  "created_at": "2020-04-28T12:18:02.442",
+  "end": 159,
   "hidden": false,
   "notes": "",
-  "start": 157,
-  "start_date": "2017-09-05",
-  "status": "ACTI",
+  "start": 159,
+  "start_date": "2018-01-27",
+  "status": "COMP",
   "student": 10,
-  "updated_at": "2019-05-13T15:27:52.912"
+  "updated_at": "2020-04-28T12:18:02.904"
  },
  "model": "grad.gradstatus",
  "pk": 29
@@ -1683,15 +1694,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.097",
-  "end": 162,
+  "created_at": "2020-04-28T12:18:02.751",
+  "end": 159,
   "hidden": false,
   "notes": "",
-  "start": 162,
-  "start_date": "2019-01-26",
-  "status": "COMP",
-  "student": 11,
-  "updated_at": "2019-05-13T15:27:53.145"
+  "start": 159,
+  "start_date": "2018-02-16",
+  "status": "OFFO",
+  "student": 10,
+  "updated_at": "2020-04-28T12:18:03.427"
  },
  "model": "grad.gradstatus",
  "pk": 30
@@ -1699,15 +1710,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.131",
-  "end": 162,
+  "created_at": "2020-04-28T12:18:03.201",
+  "end": 167,
   "hidden": false,
   "notes": "",
-  "start": 162,
-  "start_date": "2019-02-15",
-  "status": "OFFO",
-  "student": 11,
-  "updated_at": "2019-05-13T15:27:53.199"
+  "start": 159,
+  "start_date": "2018-05-07",
+  "status": "ACTI",
+  "student": 10,
+  "updated_at": "2020-04-28T12:18:04.065"
  },
  "model": "grad.gradstatus",
  "pk": 31
@@ -1715,15 +1726,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.184",
+  "created_at": "2020-04-28T12:18:03.829",
   "end": null,
   "hidden": false,
   "notes": "",
-  "start": 162,
-  "start_date": "2019-05-06",
-  "status": "ACTI",
-  "student": 11,
-  "updated_at": "2019-05-13T15:27:53.184"
+  "start": 167,
+  "start_date": "2021-01-05",
+  "status": "WIDR",
+  "student": 10,
+  "updated_at": "2020-04-28T12:18:03.829"
  },
  "model": "grad.gradstatus",
  "pk": 32
@@ -1731,15 +1742,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.367",
-  "end": 158,
+  "created_at": "2020-04-28T12:18:05.752",
+  "end": 157,
   "hidden": false,
   "notes": "",
-  "start": 158,
-  "start_date": "2017-09-25",
+  "start": 157,
+  "start_date": "2017-05-28",
   "status": "COMP",
-  "student": 12,
-  "updated_at": "2019-05-13T15:27:53.442"
+  "student": 11,
+  "updated_at": "2020-04-28T12:18:06.188"
  },
  "model": "grad.gradstatus",
  "pk": 33
@@ -1747,15 +1758,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.422",
-  "end": 158,
+  "created_at": "2020-04-28T12:18:06.034",
+  "end": 157,
   "hidden": false,
   "notes": "",
-  "start": 158,
-  "start_date": "2017-10-15",
+  "start": 157,
+  "start_date": "2017-06-17",
   "status": "OFFO",
-  "student": 12,
-  "updated_at": "2019-05-13T15:27:53.510"
+  "student": 11,
+  "updated_at": "2020-04-28T12:18:06.835"
  },
  "model": "grad.gradstatus",
  "pk": 34
@@ -1763,15 +1774,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.496",
-  "end": 161,
+  "created_at": "2020-04-28T12:18:06.686",
+  "end": 160,
   "hidden": false,
   "notes": "",
-  "start": 158,
-  "start_date": "2018-01-03",
+  "start": 157,
+  "start_date": "2017-09-05",
   "status": "ACTI",
-  "student": 12,
-  "updated_at": "2019-05-13T15:27:53.561"
+  "student": 11,
+  "updated_at": "2020-04-28T12:18:07.344"
  },
  "model": "grad.gradstatus",
  "pk": 35
@@ -1779,15 +1790,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.546",
+  "created_at": "2020-04-28T12:18:07.197",
   "end": null,
   "hidden": false,
   "notes": "",
-  "start": 161,
-  "start_date": "2019-01-03",
+  "start": 160,
+  "start_date": "2018-09-04",
   "status": "WIDR",
-  "student": 12,
-  "updated_at": "2019-05-13T15:27:53.547"
+  "student": 11,
+  "updated_at": "2020-04-28T12:18:07.197"
  },
  "model": "grad.gradstatus",
  "pk": 36
@@ -1795,15 +1806,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.705",
-  "end": 156,
+  "created_at": "2020-04-28T12:18:09.194",
+  "end": 158,
   "hidden": false,
   "notes": "",
-  "start": 156,
-  "start_date": "2017-01-28",
+  "start": 158,
+  "start_date": "2017-09-25",
   "status": "COMP",
-  "student": 13,
-  "updated_at": "2019-05-13T15:27:53.750"
+  "student": 12,
+  "updated_at": "2020-04-28T12:18:09.717"
  },
  "model": "grad.gradstatus",
  "pk": 37
@@ -1811,15 +1822,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.737",
-  "end": 156,
+  "created_at": "2020-04-28T12:18:09.521",
+  "end": null,
   "hidden": false,
   "notes": "",
-  "start": 156,
-  "start_date": "2017-02-17",
-  "status": "OFFO",
-  "student": 13,
-  "updated_at": "2019-05-13T15:27:53.803"
+  "start": 158,
+  "start_date": "2017-10-15",
+  "status": "REJE",
+  "student": 12,
+  "updated_at": "2020-04-28T12:18:09.521"
  },
  "model": "grad.gradstatus",
  "pk": 38
@@ -1827,15 +1838,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.781",
+  "created_at": "2020-04-28T12:18:10.700",
   "end": 163,
   "hidden": false,
   "notes": "",
-  "start": 156,
-  "start_date": "2017-05-08",
-  "status": "ACTI",
+  "start": 163,
+  "start_date": "2019-05-26",
+  "status": "COMP",
   "student": 13,
-  "updated_at": "2019-05-13T15:27:53.869"
+  "updated_at": "2020-04-28T12:18:11.167"
  },
  "model": "grad.gradstatus",
  "pk": 39
@@ -1843,15 +1854,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.857",
+  "created_at": "2020-04-28T12:18:11.018",
   "end": null,
   "hidden": false,
   "notes": "",
   "start": 163,
-  "start_date": "2019-09-03",
-  "status": "WIDR",
+  "start_date": "2019-06-15",
+  "status": "REJE",
   "student": 13,
-  "updated_at": "2019-05-13T15:27:53.857"
+  "updated_at": "2020-04-28T12:18:11.018"
  },
  "model": "grad.gradstatus",
  "pk": 40
@@ -1859,15 +1870,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.041",
-  "end": 161,
+  "created_at": "2020-04-28T12:18:12.828",
+  "end": 160,
   "hidden": false,
   "notes": "",
-  "start": 161,
-  "start_date": "2018-09-25",
+  "start": 160,
+  "start_date": "2018-05-27",
   "status": "COMP",
   "student": 14,
-  "updated_at": "2019-05-13T15:27:54.109"
+  "updated_at": "2020-04-28T12:18:13.246"
  },
  "model": "grad.gradstatus",
  "pk": 41
@@ -1875,15 +1886,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.097",
-  "end": 161,
+  "created_at": "2020-04-28T12:18:13.127",
+  "end": 160,
   "hidden": false,
   "notes": "",
-  "start": 161,
-  "start_date": "2018-10-15",
+  "start": 160,
+  "start_date": "2018-06-16",
   "status": "OFFO",
   "student": 14,
-  "updated_at": "2019-05-13T15:27:54.178"
+  "updated_at": "2020-04-28T12:18:13.611"
  },
  "model": "grad.gradstatus",
  "pk": 42
@@ -1891,15 +1902,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.164",
+  "created_at": "2020-04-28T12:18:13.487",
   "end": null,
   "hidden": false,
   "notes": "",
-  "start": 161,
-  "start_date": "2019-01-03",
+  "start": 160,
+  "start_date": "2018-09-04",
   "status": "ACTI",
   "student": 14,
-  "updated_at": "2019-05-13T15:27:54.164"
+  "updated_at": "2020-04-28T12:18:13.488"
  },
  "model": "grad.gradstatus",
  "pk": 43
@@ -1907,15 +1918,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.319",
-  "end": 158,
+  "created_at": "2020-04-28T12:18:15.095",
+  "end": 164,
   "hidden": false,
   "notes": "",
-  "start": 158,
-  "start_date": "2017-09-25",
+  "start": 164,
+  "start_date": "2019-09-28",
   "status": "COMP",
   "student": 15,
-  "updated_at": "2019-05-13T15:27:54.402"
+  "updated_at": "2020-04-28T12:18:15.541"
  },
  "model": "grad.gradstatus",
  "pk": 44
@@ -1923,15 +1934,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.380",
-  "end": null,
+  "created_at": "2020-04-28T12:18:15.393",
+  "end": 164,
   "hidden": false,
   "notes": "",
-  "start": 158,
-  "start_date": "2017-10-15",
-  "status": "REJE",
+  "start": 164,
+  "start_date": "2019-10-18",
+  "status": "OFFO",
   "student": 15,
-  "updated_at": "2019-05-13T15:27:54.380"
+  "updated_at": "2020-04-28T12:18:15.947"
  },
  "model": "grad.gradstatus",
  "pk": 45
@@ -1939,15 +1950,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.604",
-  "end": 159,
+  "created_at": "2020-04-28T12:18:15.821",
+  "end": 173,
   "hidden": false,
   "notes": "",
-  "start": 159,
-  "start_date": "2018-01-27",
-  "status": "COMP",
-  "student": 16,
-  "updated_at": "2019-05-13T15:27:54.676"
+  "start": 164,
+  "start_date": "2020-01-06",
+  "status": "ACTI",
+  "student": 15,
+  "updated_at": "2020-04-28T12:18:16.330"
  },
  "model": "grad.gradstatus",
  "pk": 46
@@ -1955,15 +1966,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.662",
-  "end": 159,
+  "created_at": "2020-04-28T12:18:16.179",
+  "end": null,
   "hidden": false,
   "notes": "",
-  "start": 159,
-  "start_date": "2018-02-16",
-  "status": "OFFO",
-  "student": 16,
-  "updated_at": "2019-05-13T15:27:54.740"
+  "start": 173,
+  "start_date": "2023-01-04",
+  "status": "WIDR",
+  "student": 15,
+  "updated_at": "2020-04-28T12:18:16.180"
  },
  "model": "grad.gradstatus",
  "pk": 47
@@ -1971,15 +1982,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.715",
-  "end": 162,
+  "created_at": "2020-04-28T12:18:17.777",
+  "end": 160,
   "hidden": false,
   "notes": "",
-  "start": 159,
-  "start_date": "2018-05-07",
-  "status": "ACTI",
+  "start": 160,
+  "start_date": "2018-05-27",
+  "status": "COMP",
   "student": 16,
-  "updated_at": "2019-05-13T15:27:54.801"
+  "updated_at": "2020-04-28T12:18:18.219"
  },
  "model": "grad.gradstatus",
  "pk": 48
@@ -1987,15 +1998,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.782",
+  "created_at": "2020-04-28T12:18:18.096",
   "end": null,
   "hidden": false,
   "notes": "",
-  "start": 162,
-  "start_date": "2019-05-06",
-  "status": "WIDR",
+  "start": 160,
+  "start_date": "2018-06-16",
+  "status": "REJE",
   "student": 16,
-  "updated_at": "2019-05-13T15:27:54.782"
+  "updated_at": "2020-04-28T12:18:18.096"
  },
  "model": "grad.gradstatus",
  "pk": 49
@@ -2003,7 +2014,7 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.932",
+  "created_at": "2020-04-28T12:18:19.468",
   "end": 158,
   "hidden": false,
   "notes": "",
@@ -2011,7 +2022,7 @@
   "start_date": "2017-09-25",
   "status": "COMP",
   "student": 17,
-  "updated_at": "2019-05-13T15:27:54.984"
+  "updated_at": "2020-04-28T12:18:19.916"
  },
  "model": "grad.gradstatus",
  "pk": 50
@@ -2019,15 +2030,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:54.969",
-  "end": null,
+  "created_at": "2020-04-28T12:18:19.780",
+  "end": 158,
   "hidden": false,
   "notes": "",
   "start": 158,
   "start_date": "2017-10-15",
-  "status": "REJE",
+  "status": "OFFO",
   "student": 17,
-  "updated_at": "2019-05-13T15:27:54.969"
+  "updated_at": "2020-04-28T12:18:20.297"
  },
  "model": "grad.gradstatus",
  "pk": 51
@@ -2035,15 +2046,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.134",
-  "end": 157,
+  "created_at": "2020-04-28T12:18:20.135",
+  "end": null,
   "hidden": false,
   "notes": "",
-  "start": 157,
-  "start_date": "2017-05-28",
-  "status": "COMP",
-  "student": 18,
-  "updated_at": "2019-05-13T15:27:55.208"
+  "start": 158,
+  "start_date": "2018-01-03",
+  "status": "ACTI",
+  "student": 17,
+  "updated_at": "2020-04-28T12:18:20.135"
  },
  "model": "grad.gradstatus",
  "pk": 52
@@ -2051,15 +2062,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.191",
+  "created_at": "2020-04-28T12:18:22.070",
   "end": 157,
   "hidden": false,
   "notes": "",
   "start": 157,
-  "start_date": "2017-06-17",
-  "status": "OFFO",
+  "start_date": "2017-05-28",
+  "status": "COMP",
   "student": 18,
-  "updated_at": "2019-05-13T15:27:55.262"
+  "updated_at": "2020-04-28T12:18:22.609"
  },
  "model": "grad.gradstatus",
  "pk": 53
@@ -2067,15 +2078,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.240",
-  "end": 161,
+  "created_at": "2020-04-28T12:18:22.430",
+  "end": 157,
   "hidden": false,
   "notes": "",
   "start": 157,
-  "start_date": "2017-09-05",
-  "status": "ACTI",
+  "start_date": "2017-06-17",
+  "status": "OFFO",
   "student": 18,
-  "updated_at": "2019-05-13T15:27:55.331"
+  "updated_at": "2020-04-28T12:18:23.057"
  },
  "model": "grad.gradstatus",
  "pk": 54
@@ -2083,15 +2094,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.317",
+  "created_at": "2020-04-28T12:18:22.864",
   "end": null,
   "hidden": false,
   "notes": "",
-  "start": 161,
-  "start_date": "2019-01-03",
-  "status": "WIDR",
+  "start": 157,
+  "start_date": "2017-09-05",
+  "status": "ACTI",
   "student": 18,
-  "updated_at": "2019-05-13T15:27:55.317"
+  "updated_at": "2020-04-28T12:18:22.864"
  },
  "model": "grad.gradstatus",
  "pk": 55
@@ -2099,15 +2110,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.521",
-  "end": 159,
+  "created_at": "2020-04-28T12:18:24.938",
+  "end": 161,
   "hidden": false,
   "notes": "",
-  "start": 159,
-  "start_date": "2018-01-27",
+  "start": 161,
+  "start_date": "2018-09-25",
   "status": "COMP",
   "student": 19,
-  "updated_at": "2019-05-13T15:27:55.593"
+  "updated_at": "2020-04-28T12:18:25.360"
  },
  "model": "grad.gradstatus",
  "pk": 56
@@ -2115,15 +2126,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.579",
-  "end": null,
+  "created_at": "2020-04-28T12:18:25.212",
+  "end": 161,
   "hidden": false,
   "notes": "",
-  "start": 159,
-  "start_date": "2018-02-16",
-  "status": "REJE",
+  "start": 161,
+  "start_date": "2018-10-15",
+  "status": "OFFO",
   "student": 19,
-  "updated_at": "2019-05-13T15:27:55.579"
+  "updated_at": "2020-04-28T12:18:25.760"
  },
  "model": "grad.gradstatus",
  "pk": 57
@@ -2131,15 +2142,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.792",
-  "end": 161,
+  "created_at": "2020-04-28T12:18:25.639",
+  "end": null,
   "hidden": false,
   "notes": "",
   "start": 161,
-  "start_date": "2018-09-25",
-  "status": "COMP",
-  "student": 20,
-  "updated_at": "2019-05-13T15:27:55.866"
+  "start_date": "2019-01-03",
+  "status": "ACTI",
+  "student": 19,
+  "updated_at": "2020-04-28T12:18:25.639"
  },
  "model": "grad.gradstatus",
  "pk": 58
@@ -2147,15 +2158,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.852",
-  "end": 161,
+  "created_at": "2020-04-28T12:18:27.737",
+  "end": 160,
   "hidden": false,
   "notes": "",
-  "start": 161,
-  "start_date": "2018-10-15",
-  "status": "OFFO",
+  "start": 160,
+  "start_date": "2018-05-27",
+  "status": "COMP",
   "student": 20,
-  "updated_at": "2019-05-13T15:27:55.916"
+  "updated_at": "2020-04-28T12:18:28.190"
  },
  "model": "grad.gradstatus",
  "pk": 59
@@ -2163,15 +2174,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.903",
-  "end": null,
+  "created_at": "2020-04-28T12:18:28.030",
+  "end": 160,
   "hidden": false,
   "notes": "",
-  "start": 161,
-  "start_date": "2019-01-03",
-  "status": "ACTI",
+  "start": 160,
+  "start_date": "2018-06-16",
+  "status": "OFFO",
   "student": 20,
-  "updated_at": "2019-05-13T15:27:55.903"
+  "updated_at": "2020-04-28T12:18:28.700"
  },
  "model": "grad.gradstatus",
  "pk": 60
@@ -2179,15 +2190,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:56.074",
-  "end": 157,
+  "created_at": "2020-04-28T12:18:28.545",
+  "end": 165,
   "hidden": false,
   "notes": "",
-  "start": 157,
-  "start_date": "2017-05-28",
-  "status": "COMP",
-  "student": 21,
-  "updated_at": "2019-05-13T15:27:56.145"
+  "start": 160,
+  "start_date": "2018-09-04",
+  "status": "ACTI",
+  "student": 20,
+  "updated_at": "2020-04-28T12:18:29.079"
  },
  "model": "grad.gradstatus",
  "pk": 61
@@ -2195,15 +2206,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:56.133",
-  "end": 157,
+  "created_at": "2020-04-28T12:18:28.946",
+  "end": null,
   "hidden": false,
   "notes": "",
-  "start": 157,
-  "start_date": "2017-06-17",
-  "status": "OFFO",
-  "student": 21,
-  "updated_at": "2019-05-13T15:27:56.209"
+  "start": 165,
+  "start_date": "2020-05-11",
+  "status": "WIDR",
+  "student": 20,
+  "updated_at": "2020-04-28T12:18:28.946"
  },
  "model": "grad.gradstatus",
  "pk": 62
@@ -2211,15 +2222,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:56.189",
-  "end": null,
+  "created_at": "2020-04-28T12:18:30.255",
+  "end": 161,
   "hidden": false,
   "notes": "",
-  "start": 157,
-  "start_date": "2017-09-05",
-  "status": "ACTI",
+  "start": 161,
+  "start_date": "2018-09-25",
+  "status": "COMP",
   "student": 21,
-  "updated_at": "2019-05-13T15:27:56.189"
+  "updated_at": "2020-04-28T12:18:30.614"
  },
  "model": "grad.gradstatus",
  "pk": 63
@@ -2227,15 +2238,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:56.406",
-  "end": 160,
+  "created_at": "2020-04-28T12:18:30.495",
+  "end": 161,
   "hidden": false,
   "notes": "",
-  "start": 160,
-  "start_date": "2018-05-27",
-  "status": "COMP",
-  "student": 22,
-  "updated_at": "2019-05-13T15:27:56.475"
+  "start": 161,
+  "start_date": "2018-10-15",
+  "status": "OFFO",
+  "student": 21,
+  "updated_at": "2020-04-28T12:18:30.954"
  },
  "model": "grad.gradstatus",
  "pk": 64
@@ -2243,15 +2254,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:56.461",
-  "end": 160,
+  "created_at": "2020-04-28T12:18:30.831",
+  "end": 168,
   "hidden": false,
   "notes": "",
-  "start": 160,
-  "start_date": "2018-06-16",
-  "status": "OFFO",
-  "student": 22,
-  "updated_at": "2019-05-13T15:27:56.540"
+  "start": 161,
+  "start_date": "2019-01-03",
+  "status": "ACTI",
+  "student": 21,
+  "updated_at": "2020-04-28T12:18:31.543"
  },
  "model": "grad.gradstatus",
  "pk": 65
@@ -2259,15 +2270,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:56.526",
-  "end": 164,
+  "created_at": "2020-04-28T12:18:31.329",
+  "end": null,
   "hidden": false,
   "notes": "",
-  "start": 160,
-  "start_date": "2018-09-04",
-  "status": "ACTI",
-  "student": 22,
-  "updated_at": "2019-05-13T15:27:56.594"
+  "start": 168,
+  "start_date": "2021-05-10",
+  "status": "WIDR",
+  "student": 21,
+  "updated_at": "2020-04-28T12:18:31.329"
  },
  "model": "grad.gradstatus",
  "pk": 66
@@ -2275,15 +2286,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:56.576",
-  "end": null,
+  "created_at": "2020-04-28T12:18:35.346",
+  "end": 164,
   "hidden": false,
   "notes": "",
   "start": 164,
-  "start_date": "2020-01-06",
-  "status": "WIDR",
+  "start_date": "2019-09-28",
+  "status": "COMP",
   "student": 22,
-  "updated_at": "2019-05-13T15:27:56.576"
+  "updated_at": "2020-04-28T12:18:35.741"
  },
  "model": "grad.gradstatus",
  "pk": 67
@@ -2291,15 +2302,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:56.732",
-  "end": 161,
+  "created_at": "2020-04-28T12:18:35.609",
+  "end": 164,
   "hidden": false,
   "notes": "",
-  "start": 161,
-  "start_date": "2018-09-25",
-  "status": "COMP",
-  "student": 23,
-  "updated_at": "2019-05-13T15:27:56.800"
+  "start": 164,
+  "start_date": "2019-10-18",
+  "status": "OFFO",
+  "student": 22,
+  "updated_at": "2020-04-28T12:18:36.111"
  },
  "model": "grad.gradstatus",
  "pk": 68
@@ -2307,15 +2318,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:56.782",
-  "end": 161,
+  "created_at": "2020-04-28T12:18:35.981",
+  "end": 167,
   "hidden": false,
   "notes": "",
-  "start": 161,
-  "start_date": "2018-10-15",
-  "status": "OFFO",
-  "student": 23,
-  "updated_at": "2019-05-13T15:27:56.862"
+  "start": 164,
+  "start_date": "2020-01-06",
+  "status": "ACTI",
+  "student": 22,
+  "updated_at": "2020-04-28T12:18:36.499"
  },
  "model": "grad.gradstatus",
  "pk": 69
@@ -2323,15 +2334,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:56.849",
+  "created_at": "2020-04-28T12:18:36.340",
   "end": null,
   "hidden": false,
   "notes": "",
-  "start": 161,
-  "start_date": "2019-01-03",
-  "status": "ACTI",
-  "student": 23,
-  "updated_at": "2019-05-13T15:27:56.849"
+  "start": 167,
+  "start_date": "2021-01-05",
+  "status": "WIDR",
+  "student": 22,
+  "updated_at": "2020-04-28T12:18:36.340"
  },
  "model": "grad.gradstatus",
  "pk": 70
@@ -2339,15 +2350,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:57.012",
-  "end": 160,
+  "created_at": "2020-04-28T12:18:37.747",
+  "end": 159,
   "hidden": false,
   "notes": "",
-  "start": 160,
-  "start_date": "2018-05-27",
+  "start": 159,
+  "start_date": "2018-01-27",
   "status": "COMP",
-  "student": 24,
-  "updated_at": "2019-05-13T15:27:57.076"
+  "student": 23,
+  "updated_at": "2020-04-28T12:18:38.156"
  },
  "model": "grad.gradstatus",
  "pk": 71
@@ -2355,15 +2366,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:57.063",
-  "end": 160,
+  "created_at": "2020-04-28T12:18:38.047",
+  "end": 159,
   "hidden": false,
   "notes": "",
-  "start": 160,
-  "start_date": "2018-06-16",
+  "start": 159,
+  "start_date": "2018-02-16",
   "status": "OFFO",
-  "student": 24,
-  "updated_at": "2019-05-13T15:27:57.121"
+  "student": 23,
+  "updated_at": "2020-04-28T12:18:38.571"
  },
  "model": "grad.gradstatus",
  "pk": 72
@@ -2371,15 +2382,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:57.109",
+  "created_at": "2020-04-28T12:18:38.457",
   "end": 165,
   "hidden": false,
   "notes": "",
-  "start": 160,
-  "start_date": "2018-09-04",
+  "start": 159,
+  "start_date": "2018-05-07",
   "status": "ACTI",
-  "student": 24,
-  "updated_at": "2019-05-13T15:27:57.171"
+  "student": 23,
+  "updated_at": "2020-04-28T12:18:39.047"
  },
  "model": "grad.gradstatus",
  "pk": 73
@@ -2387,15 +2398,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:57.157",
+  "created_at": "2020-04-28T12:18:38.874",
   "end": null,
   "hidden": false,
   "notes": "",
   "start": 165,
   "start_date": "2020-05-11",
   "status": "WIDR",
-  "student": 24,
-  "updated_at": "2019-05-13T15:27:57.157"
+  "student": 23,
+  "updated_at": "2020-04-28T12:18:38.874"
  },
  "model": "grad.gradstatus",
  "pk": 74
@@ -2403,15 +2414,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:57.309",
-  "end": 156,
+  "created_at": "2020-04-28T12:18:40.514",
+  "end": 164,
   "hidden": false,
   "notes": "",
-  "start": 156,
-  "start_date": "2017-01-28",
+  "start": 164,
+  "start_date": "2019-09-28",
   "status": "COMP",
-  "student": 25,
-  "updated_at": "2019-05-13T15:27:57.375"
+  "student": 24,
+  "updated_at": "2020-04-28T12:18:40.892"
  },
  "model": "grad.gradstatus",
  "pk": 75
@@ -2419,15 +2430,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:57.360",
-  "end": 156,
+  "created_at": "2020-04-28T12:18:40.755",
+  "end": 164,
   "hidden": false,
   "notes": "",
-  "start": 156,
-  "start_date": "2017-02-17",
+  "start": 164,
+  "start_date": "2019-10-18",
   "status": "OFFO",
-  "student": 25,
-  "updated_at": "2019-05-13T15:27:57.424"
+  "student": 24,
+  "updated_at": "2020-04-28T12:18:41.330"
  },
  "model": "grad.gradstatus",
  "pk": 76
@@ -2435,27 +2446,107 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:57.410",
-  "end": null,
+  "created_at": "2020-04-28T12:18:41.129",
+  "end": 171,
   "hidden": false,
   "notes": "",
-  "start": 156,
-  "start_date": "2017-05-08",
+  "start": 164,
+  "start_date": "2020-01-06",
   "status": "ACTI",
-  "student": 25,
-  "updated_at": "2019-05-13T15:27:57.410"
+  "student": 24,
+  "updated_at": "2020-04-28T12:18:41.755"
  },
  "model": "grad.gradstatus",
  "pk": 77
 },
 {
  "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:41.632",
+  "end": null,
+  "hidden": false,
+  "notes": "",
+  "start": 171,
+  "start_date": "2022-05-09",
+  "status": "WIDR",
+  "student": 24,
+  "updated_at": "2020-04-28T12:18:41.632"
+ },
+ "model": "grad.gradstatus",
+ "pk": 78
+},
+{
+ "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:42.952",
+  "end": 158,
+  "hidden": false,
+  "notes": "",
+  "start": 158,
+  "start_date": "2017-09-25",
+  "status": "COMP",
+  "student": 25,
+  "updated_at": "2020-04-28T12:18:43.316"
+ },
+ "model": "grad.gradstatus",
+ "pk": 79
+},
+{
+ "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:43.199",
+  "end": 158,
+  "hidden": false,
+  "notes": "",
+  "start": 158,
+  "start_date": "2017-10-15",
+  "status": "OFFO",
+  "student": 25,
+  "updated_at": "2020-04-28T12:18:43.688"
+ },
+ "model": "grad.gradstatus",
+ "pk": 80
+},
+{
+ "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:43.557",
+  "end": 163,
+  "hidden": false,
+  "notes": "",
+  "start": 158,
+  "start_date": "2018-01-03",
+  "status": "ACTI",
+  "student": 25,
+  "updated_at": "2020-04-28T12:18:44.071"
+ },
+ "model": "grad.gradstatus",
+ "pk": 81
+},
+{
+ "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:43.965",
+  "end": null,
+  "hidden": false,
+  "notes": "",
+  "start": 163,
+  "start_date": "2019-09-03",
+  "status": "WIDR",
+  "student": 25,
+  "updated_at": "2020-04-28T12:18:43.965"
+ },
+ "model": "grad.gradstatus",
+ "pk": 82
+},
+{
+ "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 157,
+  "end_semester": 162,
   "removed": false,
-  "scholarship_type": 1,
-  "start_semester": 155,
+  "scholarship_type": 2,
+  "start_semester": 160,
   "student": 1
  },
  "model": "grad.scholarship",
@@ -2465,10 +2556,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 157,
+  "end_semester": 165,
   "removed": false,
-  "scholarship_type": 1,
-  "start_semester": 155,
+  "scholarship_type": 2,
+  "start_semester": 163,
   "student": 2
  },
  "model": "grad.scholarship",
@@ -2480,7 +2571,7 @@
   "comments": null,
   "end_semester": 163,
   "removed": false,
-  "scholarship_type": 2,
+  "scholarship_type": 1,
   "start_semester": 161,
   "student": 3
  },
@@ -2491,10 +2582,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 159,
+  "end_semester": 163,
   "removed": false,
   "scholarship_type": 1,
-  "start_semester": 157,
+  "start_semester": 161,
   "student": 4
  },
  "model": "grad.scholarship",
@@ -2504,10 +2595,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 160,
+  "end_semester": 162,
   "removed": false,
   "scholarship_type": 2,
-  "start_semester": 158,
+  "start_semester": 160,
   "student": 5
  },
  "model": "grad.scholarship",
@@ -2517,10 +2608,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 164,
+  "end_semester": 166,
   "removed": false,
   "scholarship_type": 1,
-  "start_semester": 162,
+  "start_semester": 164,
   "student": 6
  },
  "model": "grad.scholarship",
@@ -2530,10 +2621,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 157,
+  "end_semester": 163,
   "removed": false,
-  "scholarship_type": 2,
-  "start_semester": 155,
+  "scholarship_type": 1,
+  "start_semester": 161,
   "student": 7
  },
  "model": "grad.scholarship",
@@ -2543,10 +2634,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 161,
+  "end_semester": 166,
   "removed": false,
   "scholarship_type": 2,
-  "start_semester": 159,
+  "start_semester": 164,
   "student": 8
  },
  "model": "grad.scholarship",
@@ -2556,10 +2647,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 161,
+  "end_semester": 164,
   "removed": false,
   "scholarship_type": 2,
-  "start_semester": 159,
+  "start_semester": 162,
   "student": 9
  },
  "model": "grad.scholarship",
@@ -2569,10 +2660,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 159,
+  "end_semester": 161,
   "removed": false,
-  "scholarship_type": 2,
-  "start_semester": 157,
+  "scholarship_type": 1,
+  "start_semester": 159,
   "student": 10
  },
  "model": "grad.scholarship",
@@ -2582,10 +2673,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 164,
+  "end_semester": 159,
   "removed": false,
-  "scholarship_type": 1,
-  "start_semester": 162,
+  "scholarship_type": 2,
+  "start_semester": 157,
   "student": 11
  },
  "model": "grad.scholarship",
@@ -2597,7 +2688,7 @@
   "comments": null,
   "end_semester": 160,
   "removed": false,
-  "scholarship_type": 2,
+  "scholarship_type": 1,
   "start_semester": 158,
   "student": 12
  },
@@ -2608,10 +2699,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 158,
+  "end_semester": 165,
   "removed": false,
   "scholarship_type": 2,
-  "start_semester": 156,
+  "start_semester": 163,
   "student": 13
  },
  "model": "grad.scholarship",
@@ -2621,10 +2712,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 163,
+  "end_semester": 162,
   "removed": false,
   "scholarship_type": 2,
-  "start_semester": 161,
+  "start_semester": 160,
   "student": 14
  },
  "model": "grad.scholarship",
@@ -2634,10 +2725,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 160,
+  "end_semester": 166,
   "removed": false,
-  "scholarship_type": 2,
-  "start_semester": 158,
+  "scholarship_type": 1,
+  "start_semester": 164,
   "student": 15
  },
  "model": "grad.scholarship",
@@ -2647,10 +2738,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 161,
+  "end_semester": 162,
   "removed": false,
   "scholarship_type": 2,
-  "start_semester": 159,
+  "start_semester": 160,
   "student": 16
  },
  "model": "grad.scholarship",
@@ -2675,7 +2766,7 @@
   "comments": null,
   "end_semester": 159,
   "removed": false,
-  "scholarship_type": 1,
+  "scholarship_type": 2,
   "start_semester": 157,
   "student": 18
  },
@@ -2686,10 +2777,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 161,
+  "end_semester": 163,
   "removed": false,
-  "scholarship_type": 1,
-  "start_semester": 159,
+  "scholarship_type": 2,
+  "start_semester": 161,
   "student": 19
  },
  "model": "grad.scholarship",
@@ -2699,10 +2790,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 163,
+  "end_semester": 162,
   "removed": false,
   "scholarship_type": 2,
-  "start_semester": 161,
+  "start_semester": 160,
   "student": 20
  },
  "model": "grad.scholarship",
@@ -2712,10 +2803,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 159,
+  "end_semester": 163,
   "removed": false,
   "scholarship_type": 2,
-  "start_semester": 157,
+  "start_semester": 161,
   "student": 21
  },
  "model": "grad.scholarship",
@@ -2725,10 +2816,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 162,
+  "end_semester": 166,
   "removed": false,
-  "scholarship_type": 2,
-  "start_semester": 160,
+  "scholarship_type": 1,
+  "start_semester": 164,
   "student": 22
  },
  "model": "grad.scholarship",
@@ -2738,10 +2829,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 163,
+  "end_semester": 161,
   "removed": false,
   "scholarship_type": 2,
-  "start_semester": 161,
+  "start_semester": 159,
   "student": 23
  },
  "model": "grad.scholarship",
@@ -2751,10 +2842,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 162,
+  "end_semester": 166,
   "removed": false,
   "scholarship_type": 2,
-  "start_semester": 160,
+  "start_semester": 164,
   "student": 24
  },
  "model": "grad.scholarship",
@@ -2764,10 +2855,10 @@
  "fields": {
   "amount": "2000.00",
   "comments": null,
-  "end_semester": 158,
+  "end_semester": 160,
   "removed": false,
   "scholarship_type": 2,
-  "start_semester": 156,
+  "start_semester": 158,
   "student": 25
  },
  "model": "grad.scholarship",
@@ -2780,7 +2871,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 158,
+  "semester": 163,
   "student": 1
  },
  "model": "grad.otherfunding",
@@ -2793,7 +2884,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 158,
+  "semester": 166,
   "student": 2
  },
  "model": "grad.otherfunding",
@@ -2819,7 +2910,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 160,
+  "semester": 164,
   "student": 4
  },
  "model": "grad.otherfunding",
@@ -2832,7 +2923,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 161,
+  "semester": 163,
   "student": 5
  },
  "model": "grad.otherfunding",
@@ -2845,7 +2936,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 165,
+  "semester": 167,
   "student": 6
  },
  "model": "grad.otherfunding",
@@ -2858,7 +2949,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 158,
+  "semester": 164,
   "student": 7
  },
  "model": "grad.otherfunding",
@@ -2871,7 +2962,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 162,
+  "semester": 167,
   "student": 8
  },
  "model": "grad.otherfunding",
@@ -2884,7 +2975,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 162,
+  "semester": 165,
   "student": 9
  },
  "model": "grad.otherfunding",
@@ -2897,7 +2988,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 160,
+  "semester": 162,
   "student": 10
  },
  "model": "grad.otherfunding",
@@ -2910,7 +3001,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 165,
+  "semester": 160,
   "student": 11
  },
  "model": "grad.otherfunding",
@@ -2936,7 +3027,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 159,
+  "semester": 166,
   "student": 13
  },
  "model": "grad.otherfunding",
@@ -2949,7 +3040,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 164,
+  "semester": 163,
   "student": 14
  },
  "model": "grad.otherfunding",
@@ -2962,7 +3053,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 161,
+  "semester": 167,
   "student": 15
  },
  "model": "grad.otherfunding",
@@ -2975,7 +3066,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 162,
+  "semester": 163,
   "student": 16
  },
  "model": "grad.otherfunding",
@@ -3014,7 +3105,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 162,
+  "semester": 164,
   "student": 19
  },
  "model": "grad.otherfunding",
@@ -3027,7 +3118,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 164,
+  "semester": 163,
   "student": 20
  },
  "model": "grad.otherfunding",
@@ -3040,7 +3131,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 160,
+  "semester": 164,
   "student": 21
  },
  "model": "grad.otherfunding",
@@ -3053,7 +3144,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 163,
+  "semester": 167,
   "student": 22
  },
  "model": "grad.otherfunding",
@@ -3066,7 +3157,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 164,
+  "semester": 162,
   "student": 23
  },
  "model": "grad.otherfunding",
@@ -3079,7 +3170,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 163,
+  "semester": 167,
   "student": 24
  },
  "model": "grad.otherfunding",
@@ -3092,7 +3183,7 @@
   "description": "Money fell from the sky",
   "eligible": true,
   "removed": false,
-  "semester": 159,
+  "semester": 161,
   "student": 25
  },
  "model": "grad.otherfunding",
@@ -3102,9 +3193,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 156,
+  "end_semester": 161,
   "removed": false,
-  "start_semester": 155,
+  "start_semester": 160,
   "student": 1
  },
  "model": "grad.promise",
@@ -3114,9 +3205,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 158,
+  "end_semester": 163,
   "removed": false,
-  "start_semester": 157,
+  "start_semester": 162,
   "student": 1
  },
  "model": "grad.promise",
@@ -3126,9 +3217,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 156,
+  "end_semester": 164,
   "removed": false,
-  "start_semester": 155,
+  "start_semester": 163,
   "student": 2
  },
  "model": "grad.promise",
@@ -3138,9 +3229,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 158,
+  "end_semester": 166,
   "removed": false,
-  "start_semester": 157,
+  "start_semester": 165,
   "student": 2
  },
  "model": "grad.promise",
@@ -3174,9 +3265,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 158,
+  "end_semester": 162,
   "removed": false,
-  "start_semester": 157,
+  "start_semester": 161,
   "student": 4
  },
  "model": "grad.promise",
@@ -3186,25 +3277,13 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 160,
+  "end_semester": 164,
   "removed": false,
-  "start_semester": 159,
+  "start_semester": 163,
   "student": 4
  },
  "model": "grad.promise",
  "pk": 8
-},
-{
- "fields": {
-  "amount": "10000.00",
-  "comments": null,
-  "end_semester": 159,
-  "removed": false,
-  "start_semester": 158,
-  "student": 5
- },
- "model": "grad.promise",
- "pk": 9
 },
 {
  "fields": {
@@ -3216,7 +3295,7 @@
   "student": 5
  },
  "model": "grad.promise",
- "pk": 10
+ "pk": 9
 },
 {
  "fields": {
@@ -3225,6 +3304,18 @@
   "end_semester": 163,
   "removed": false,
   "start_semester": 162,
+  "student": 5
+ },
+ "model": "grad.promise",
+ "pk": 10
+},
+{
+ "fields": {
+  "amount": "10000.00",
+  "comments": null,
+  "end_semester": 165,
+  "removed": false,
+  "start_semester": 164,
   "student": 6
  },
  "model": "grad.promise",
@@ -3234,9 +3325,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 165,
+  "end_semester": 167,
   "removed": false,
-  "start_semester": 164,
+  "start_semester": 166,
   "student": 6
  },
  "model": "grad.promise",
@@ -3246,9 +3337,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 156,
+  "end_semester": 162,
   "removed": false,
-  "start_semester": 155,
+  "start_semester": 161,
   "student": 7
  },
  "model": "grad.promise",
@@ -3258,9 +3349,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 158,
+  "end_semester": 164,
   "removed": false,
-  "start_semester": 157,
+  "start_semester": 163,
   "student": 7
  },
  "model": "grad.promise",
@@ -3270,9 +3361,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 160,
+  "end_semester": 165,
   "removed": false,
-  "start_semester": 159,
+  "start_semester": 164,
   "student": 8
  },
  "model": "grad.promise",
@@ -3282,9 +3373,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 162,
+  "end_semester": 167,
   "removed": false,
-  "start_semester": 161,
+  "start_semester": 166,
   "student": 8
  },
  "model": "grad.promise",
@@ -3294,9 +3385,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 160,
+  "end_semester": 163,
   "removed": false,
-  "start_semester": 159,
+  "start_semester": 162,
   "student": 9
  },
  "model": "grad.promise",
@@ -3306,25 +3397,13 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 162,
+  "end_semester": 165,
   "removed": false,
-  "start_semester": 161,
+  "start_semester": 164,
   "student": 9
  },
  "model": "grad.promise",
  "pk": 18
-},
-{
- "fields": {
-  "amount": "10000.00",
-  "comments": null,
-  "end_semester": 158,
-  "removed": false,
-  "start_semester": 157,
-  "student": 10
- },
- "model": "grad.promise",
- "pk": 19
 },
 {
  "fields": {
@@ -3336,15 +3415,27 @@
   "student": 10
  },
  "model": "grad.promise",
+ "pk": 19
+},
+{
+ "fields": {
+  "amount": "10000.00",
+  "comments": null,
+  "end_semester": 162,
+  "removed": false,
+  "start_semester": 161,
+  "student": 10
+ },
+ "model": "grad.promise",
  "pk": 20
 },
 {
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 163,
+  "end_semester": 158,
   "removed": false,
-  "start_semester": 162,
+  "start_semester": 157,
   "student": 11
  },
  "model": "grad.promise",
@@ -3354,9 +3445,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 165,
+  "end_semester": 160,
   "removed": false,
-  "start_semester": 164,
+  "start_semester": 159,
   "student": 11
  },
  "model": "grad.promise",
@@ -3390,9 +3481,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 157,
+  "end_semester": 164,
   "removed": false,
-  "start_semester": 156,
+  "start_semester": 163,
   "student": 13
  },
  "model": "grad.promise",
@@ -3402,9 +3493,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 159,
+  "end_semester": 166,
   "removed": false,
-  "start_semester": 158,
+  "start_semester": 165,
   "student": 13
  },
  "model": "grad.promise",
@@ -3414,9 +3505,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 162,
+  "end_semester": 161,
   "removed": false,
-  "start_semester": 161,
+  "start_semester": 160,
   "student": 14
  },
  "model": "grad.promise",
@@ -3426,9 +3517,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 164,
+  "end_semester": 163,
   "removed": false,
-  "start_semester": 163,
+  "start_semester": 162,
   "student": 14
  },
  "model": "grad.promise",
@@ -3438,9 +3529,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 159,
+  "end_semester": 165,
   "removed": false,
-  "start_semester": 158,
+  "start_semester": 164,
   "student": 15
  },
  "model": "grad.promise",
@@ -3450,9 +3541,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 161,
+  "end_semester": 167,
   "removed": false,
-  "start_semester": 160,
+  "start_semester": 166,
   "student": 15
  },
  "model": "grad.promise",
@@ -3462,9 +3553,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 160,
+  "end_semester": 161,
   "removed": false,
-  "start_semester": 159,
+  "start_semester": 160,
   "student": 16
  },
  "model": "grad.promise",
@@ -3474,9 +3565,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 162,
+  "end_semester": 163,
   "removed": false,
-  "start_semester": 161,
+  "start_semester": 162,
   "student": 16
  },
  "model": "grad.promise",
@@ -3534,9 +3625,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 160,
+  "end_semester": 162,
   "removed": false,
-  "start_semester": 159,
+  "start_semester": 161,
   "student": 19
  },
  "model": "grad.promise",
@@ -3546,9 +3637,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 162,
+  "end_semester": 164,
   "removed": false,
-  "start_semester": 161,
+  "start_semester": 163,
   "student": 19
  },
  "model": "grad.promise",
@@ -3558,9 +3649,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 162,
+  "end_semester": 161,
   "removed": false,
-  "start_semester": 161,
+  "start_semester": 160,
   "student": 20
  },
  "model": "grad.promise",
@@ -3570,9 +3661,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 164,
+  "end_semester": 163,
   "removed": false,
-  "start_semester": 163,
+  "start_semester": 162,
   "student": 20
  },
  "model": "grad.promise",
@@ -3582,9 +3673,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 158,
+  "end_semester": 162,
   "removed": false,
-  "start_semester": 157,
+  "start_semester": 161,
   "student": 21
  },
  "model": "grad.promise",
@@ -3594,9 +3685,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 160,
+  "end_semester": 164,
   "removed": false,
-  "start_semester": 159,
+  "start_semester": 163,
   "student": 21
  },
  "model": "grad.promise",
@@ -3606,9 +3697,9 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 161,
+  "end_semester": 165,
   "removed": false,
-  "start_semester": 160,
+  "start_semester": 164,
   "student": 22
  },
  "model": "grad.promise",
@@ -3618,13 +3709,25 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 163,
+  "end_semester": 167,
   "removed": false,
-  "start_semester": 162,
+  "start_semester": 166,
   "student": 22
  },
  "model": "grad.promise",
  "pk": 44
+},
+{
+ "fields": {
+  "amount": "10000.00",
+  "comments": null,
+  "end_semester": 160,
+  "removed": false,
+  "start_semester": 159,
+  "student": 23
+ },
+ "model": "grad.promise",
+ "pk": 45
 },
 {
  "fields": {
@@ -3636,27 +3739,15 @@
   "student": 23
  },
  "model": "grad.promise",
- "pk": 45
-},
-{
- "fields": {
-  "amount": "10000.00",
-  "comments": null,
-  "end_semester": 164,
-  "removed": false,
-  "start_semester": 163,
-  "student": 23
- },
- "model": "grad.promise",
  "pk": 46
 },
 {
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 161,
+  "end_semester": 165,
   "removed": false,
-  "start_semester": 160,
+  "start_semester": 164,
   "student": 24
  },
  "model": "grad.promise",
@@ -3666,25 +3757,13 @@
  "fields": {
   "amount": "10000.00",
   "comments": null,
-  "end_semester": 163,
+  "end_semester": 167,
   "removed": false,
-  "start_semester": 162,
+  "start_semester": 166,
   "student": 24
  },
  "model": "grad.promise",
  "pk": 48
-},
-{
- "fields": {
-  "amount": "10000.00",
-  "comments": null,
-  "end_semester": 157,
-  "removed": false,
-  "start_semester": 156,
-  "student": 25
- },
- "model": "grad.promise",
- "pk": 49
 },
 {
  "fields": {
@@ -3696,146 +3775,243 @@
   "student": 25
  },
  "model": "grad.promise",
+ "pk": 49
+},
+{
+ "fields": {
+  "amount": "10000.00",
+  "comments": null,
+  "end_semester": 161,
+  "removed": false,
+  "start_semester": 160,
+  "student": 25
+ },
+ "model": "grad.promise",
  "pk": 50
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:52.067",
+  "created_at": "2020-04-28T12:17:39.369",
   "date": null,
   "notes": null,
   "removed": false,
   "requirement": 7,
-  "semester": 156,
-  "student": 7,
-  "updated_at": "2019-05-13T15:27:52.067"
+  "semester": 161,
+  "student": 1,
+  "updated_at": "2020-04-28T12:17:39.369"
  },
  "model": "grad.completedrequirement",
  "pk": 1
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:52.747",
+  "created_at": "2020-04-28T12:17:41.711",
   "date": null,
   "notes": null,
   "removed": false,
   "requirement": 7,
-  "semester": 160,
-  "student": 9,
-  "updated_at": "2019-05-13T15:27:52.747"
+  "semester": 164,
+  "student": 2,
+  "updated_at": "2020-04-28T12:17:41.711"
  },
  "model": "grad.completedrequirement",
  "pk": 2
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:53.058",
+  "created_at": "2020-04-28T12:17:46.315",
   "date": null,
   "notes": null,
   "removed": false,
   "requirement": 7,
-  "semester": 158,
-  "student": 10,
-  "updated_at": "2019-05-13T15:27:53.058"
+  "semester": 162,
+  "student": 4,
+  "updated_at": "2020-04-28T12:17:46.315"
  },
  "model": "grad.completedrequirement",
  "pk": 3
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:53.938",
+  "created_at": "2020-04-28T12:17:48.970",
   "date": null,
   "notes": null,
   "removed": false,
   "requirement": 7,
-  "semester": 157,
-  "student": 13,
-  "updated_at": "2019-05-13T15:27:53.938"
+  "semester": 161,
+  "student": 5,
+  "updated_at": "2020-04-28T12:17:48.970"
  },
  "model": "grad.completedrequirement",
  "pk": 4
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:54.523",
+  "created_at": "2020-04-28T12:17:51.103",
   "date": null,
   "notes": null,
   "removed": false,
   "requirement": 7,
-  "semester": 159,
-  "student": 15,
-  "updated_at": "2019-05-13T15:27:54.523"
+  "semester": 165,
+  "student": 6,
+  "updated_at": "2020-04-28T12:17:51.103"
  },
  "model": "grad.completedrequirement",
  "pk": 5
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:55.444",
+  "created_at": "2020-04-28T12:17:54.495",
+  "date": null,
+  "notes": null,
+  "removed": false,
+  "requirement": 7,
+  "semester": 162,
+  "student": 7,
+  "updated_at": "2020-04-28T12:17:54.495"
+ },
+ "model": "grad.completedrequirement",
+ "pk": 6
+},
+{
+ "fields": {
+  "created_at": "2020-04-28T12:17:57.316",
+  "date": null,
+  "notes": null,
+  "removed": false,
+  "requirement": 7,
+  "semester": 165,
+  "student": 8,
+  "updated_at": "2020-04-28T12:17:57.316"
+ },
+ "model": "grad.completedrequirement",
+ "pk": 7
+},
+{
+ "fields": {
+  "created_at": "2020-04-28T12:18:01.051",
+  "date": null,
+  "notes": null,
+  "removed": false,
+  "requirement": 7,
+  "semester": 163,
+  "student": 9,
+  "updated_at": "2020-04-28T12:18:01.051"
+ },
+ "model": "grad.completedrequirement",
+ "pk": 8
+},
+{
+ "fields": {
+  "created_at": "2020-04-28T12:18:08.860",
+  "date": null,
+  "notes": null,
+  "removed": false,
+  "requirement": 7,
+  "semester": 158,
+  "student": 11,
+  "updated_at": "2020-04-28T12:18:08.860"
+ },
+ "model": "grad.completedrequirement",
+ "pk": 9
+},
+{
+ "fields": {
+  "created_at": "2020-04-28T12:18:11.936",
+  "date": null,
+  "notes": null,
+  "removed": false,
+  "requirement": 7,
+  "semester": 164,
+  "student": 13,
+  "updated_at": "2020-04-28T12:18:11.936"
+ },
+ "model": "grad.completedrequirement",
+ "pk": 10
+},
+{
+ "fields": {
+  "created_at": "2020-04-28T12:18:17.211",
+  "date": null,
+  "notes": null,
+  "removed": false,
+  "requirement": 7,
+  "semester": 165,
+  "student": 15,
+  "updated_at": "2020-04-28T12:18:17.211"
+ },
+ "model": "grad.completedrequirement",
+ "pk": 11
+},
+{
+ "fields": {
+  "created_at": "2020-04-28T12:18:24.073",
   "date": null,
   "notes": null,
   "removed": false,
   "requirement": 7,
   "semester": 158,
   "student": 18,
-  "updated_at": "2019-05-13T15:27:55.444"
+  "updated_at": "2020-04-28T12:18:24.073"
  },
  "model": "grad.completedrequirement",
- "pk": 6
+ "pk": 12
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:55.698",
+  "created_at": "2020-04-28T12:18:34.795",
+  "date": null,
+  "notes": null,
+  "removed": false,
+  "requirement": 7,
+  "semester": 162,
+  "student": 21,
+  "updated_at": "2020-04-28T12:18:34.795"
+ },
+ "model": "grad.completedrequirement",
+ "pk": 13
+},
+{
+ "fields": {
+  "created_at": "2020-04-28T12:18:37.155",
+  "date": null,
+  "notes": null,
+  "removed": false,
+  "requirement": 7,
+  "semester": 165,
+  "student": 22,
+  "updated_at": "2020-04-28T12:18:37.155"
+ },
+ "model": "grad.completedrequirement",
+ "pk": 14
+},
+{
+ "fields": {
+  "created_at": "2020-04-28T12:18:39.730",
   "date": null,
   "notes": null,
   "removed": false,
   "requirement": 7,
   "semester": 160,
-  "student": 19,
-  "updated_at": "2019-05-13T15:27:55.699"
+  "student": 23,
+  "updated_at": "2020-04-28T12:18:39.730"
  },
  "model": "grad.completedrequirement",
- "pk": 7
+ "pk": 15
 },
 {
  "fields": {
-  "created_at": "2019-05-13T15:27:56.667",
+  "created_at": "2020-04-28T12:18:44.893",
   "date": null,
   "notes": null,
   "removed": false,
   "requirement": 7,
-  "semester": 161,
-  "student": 22,
-  "updated_at": "2019-05-13T15:27:56.667"
+  "semester": 159,
+  "student": 25,
+  "updated_at": "2020-04-28T12:18:44.893"
  },
  "model": "grad.completedrequirement",
- "pk": 8
-},
-{
- "fields": {
-  "flag": 2,
-  "student": 2,
-  "value": true
- },
- "model": "grad.gradflagvalue",
- "pk": 1
-},
-{
- "fields": {
-  "flag": 2,
-  "student": 5,
-  "value": true
- },
- "model": "grad.gradflagvalue",
- "pk": 2
-},
-{
- "fields": {
-  "flag": 2,
-  "student": 8,
-  "value": true
- },
- "model": "grad.gradflagvalue",
- "pk": 3
+ "pk": 16
 },
 {
  "fields": {
@@ -3844,7 +4020,16 @@
   "value": true
  },
  "model": "grad.gradflagvalue",
- "pk": 4
+ "pk": 1
+},
+{
+ "fields": {
+  "flag": 2,
+  "student": 10,
+  "value": true
+ },
+ "model": "grad.gradflagvalue",
+ "pk": 2
 },
 {
  "fields": {
@@ -3853,16 +4038,7 @@
   "value": true
  },
  "model": "grad.gradflagvalue",
- "pk": 5
-},
-{
- "fields": {
-  "flag": 2,
-  "student": 14,
-  "value": true
- },
- "model": "grad.gradflagvalue",
- "pk": 6
+ "pk": 3
 },
 {
  "fields": {
@@ -3871,16 +4047,25 @@
   "value": true
  },
  "model": "grad.gradflagvalue",
- "pk": 7
+ "pk": 4
 },
 {
  "fields": {
   "flag": 2,
-  "student": 22,
+  "student": 18,
   "value": true
  },
  "model": "grad.gradflagvalue",
- "pk": 8
+ "pk": 5
+},
+{
+ "fields": {
+  "flag": 2,
+  "student": 21,
+  "value": true
+ },
+ "model": "grad.gradflagvalue",
+ "pk": 6
 },
 {
  "fields": {
@@ -3889,20 +4074,29 @@
   "value": true
  },
  "model": "grad.gradflagvalue",
- "pk": 9
+ "pk": 7
+},
+{
+ "fields": {
+  "flag": 2,
+  "student": 25,
+  "value": true
+ },
+ "model": "grad.gradflagvalue",
+ "pk": 8
 },
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.448",
+  "created_at": "2020-04-28T12:17:39.481",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
   "student": 1,
-  "supervisor": 8,
+  "supervisor": 22,
   "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:50.449"
+  "updated_at": "2020-04-28T12:17:39.483"
  },
  "model": "grad.supervisor",
  "pk": 1
@@ -3910,15 +4104,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.463",
+  "created_at": "2020-04-28T12:17:39.630",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
   "student": 1,
-  "supervisor": 8,
+  "supervisor": 22,
   "supervisor_type": "SEN",
-  "updated_at": "2019-05-13T15:27:50.464"
+  "updated_at": "2020-04-28T12:17:39.632"
  },
  "model": "grad.supervisor",
  "pk": 2
@@ -3926,15 +4120,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.478",
+  "created_at": "2020-04-28T12:17:39.740",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
   "student": 1,
-  "supervisor": 1,
+  "supervisor": 11,
   "supervisor_type": "COM",
-  "updated_at": "2019-05-13T15:27:50.479"
+  "updated_at": "2020-04-28T12:17:39.742"
  },
  "model": "grad.supervisor",
  "pk": 3
@@ -3942,15 +4136,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.706",
+  "created_at": "2020-04-28T12:17:41.830",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
   "student": 2,
-  "supervisor": 13,
+  "supervisor": 20,
   "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:50.707"
+  "updated_at": "2020-04-28T12:17:41.830"
  },
  "model": "grad.supervisor",
  "pk": 4
@@ -3958,15 +4152,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.720",
+  "created_at": "2020-04-28T12:17:41.964",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
   "student": 2,
-  "supervisor": 13,
+  "supervisor": 20,
   "supervisor_type": "SEN",
-  "updated_at": "2019-05-13T15:27:50.721"
+  "updated_at": "2020-04-28T12:17:41.965"
  },
  "model": "grad.supervisor",
  "pk": 5
@@ -3974,15 +4168,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.734",
+  "created_at": "2020-04-28T12:17:42.130",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
   "student": 2,
-  "supervisor": 11,
+  "supervisor": 1,
   "supervisor_type": "COM",
-  "updated_at": "2019-05-13T15:27:50.736"
+  "updated_at": "2020-04-28T12:17:42.130"
  },
  "model": "grad.supervisor",
  "pk": 6
@@ -3990,15 +4184,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.956",
+  "created_at": "2020-04-28T12:17:46.515",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 3,
-  "supervisor": 7,
+  "student": 4,
+  "supervisor": 4,
   "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:50.957"
+  "updated_at": "2020-04-28T12:17:46.517"
  },
  "model": "grad.supervisor",
  "pk": 7
@@ -4006,15 +4200,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.968",
+  "created_at": "2020-04-28T12:17:49.123",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 3,
-  "supervisor": 7,
-  "supervisor_type": "SEN",
-  "updated_at": "2019-05-13T15:27:50.968"
+  "student": 5,
+  "supervisor": 11,
+  "supervisor_type": "POT",
+  "updated_at": "2020-04-28T12:17:49.124"
  },
  "model": "grad.supervisor",
  "pk": 8
@@ -4022,15 +4216,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:50.979",
+  "created_at": "2020-04-28T12:17:51.223",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 3,
-  "supervisor": 12,
-  "supervisor_type": "COM",
-  "updated_at": "2019-05-13T15:27:50.980"
+  "student": 6,
+  "supervisor": 11,
+  "supervisor_type": "POT",
+  "updated_at": "2020-04-28T12:17:51.224"
  },
  "model": "grad.supervisor",
  "pk": 9
@@ -4038,15 +4232,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.248",
+  "created_at": "2020-04-28T12:17:54.641",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 4,
-  "supervisor": 8,
+  "student": 7,
+  "supervisor": 17,
   "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:51.249"
+  "updated_at": "2020-04-28T12:17:54.643"
  },
  "model": "grad.supervisor",
  "pk": 10
@@ -4054,15 +4248,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.765",
+  "created_at": "2020-04-28T12:17:54.808",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 6,
-  "supervisor": 9,
-  "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:51.766"
+  "student": 7,
+  "supervisor": 17,
+  "supervisor_type": "SEN",
+  "updated_at": "2020-04-28T12:17:54.810"
  },
  "model": "grad.supervisor",
  "pk": 11
@@ -4070,15 +4264,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.777",
+  "created_at": "2020-04-28T12:17:54.975",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 6,
-  "supervisor": 9,
-  "supervisor_type": "SEN",
-  "updated_at": "2019-05-13T15:27:51.778"
+  "student": 7,
+  "supervisor": 17,
+  "supervisor_type": "COM",
+  "updated_at": "2020-04-28T12:17:54.977"
  },
  "model": "grad.supervisor",
  "pk": 12
@@ -4086,15 +4280,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:51.791",
+  "created_at": "2020-04-28T12:17:57.583",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 6,
+  "student": 8,
   "supervisor": 8,
-  "supervisor_type": "COM",
-  "updated_at": "2019-05-13T15:27:51.792"
+  "supervisor_type": "POT",
+  "updated_at": "2020-04-28T12:17:57.585"
  },
  "model": "grad.supervisor",
  "pk": 13
@@ -4102,15 +4296,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.367",
+  "created_at": "2020-04-28T12:17:57.742",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
   "student": 8,
-  "supervisor": 7,
-  "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:52.368"
+  "supervisor": 8,
+  "supervisor_type": "SEN",
+  "updated_at": "2020-04-28T12:17:57.743"
  },
  "model": "grad.supervisor",
  "pk": 14
@@ -4118,15 +4312,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.382",
+  "created_at": "2020-04-28T12:17:57.891",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
   "student": 8,
   "supervisor": 7,
-  "supervisor_type": "SEN",
-  "updated_at": "2019-05-13T15:27:52.383"
+  "supervisor_type": "COM",
+  "updated_at": "2020-04-28T12:17:57.891"
  },
  "model": "grad.supervisor",
  "pk": 15
@@ -4134,15 +4328,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:52.396",
+  "created_at": "2020-04-28T12:18:01.616",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 8,
-  "supervisor": 8,
-  "supervisor_type": "COM",
-  "updated_at": "2019-05-13T15:27:52.398"
+  "student": 9,
+  "supervisor": 7,
+  "supervisor_type": "POT",
+  "updated_at": "2020-04-28T12:18:01.617"
  },
  "model": "grad.supervisor",
  "pk": 16
@@ -4150,15 +4344,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.313",
+  "created_at": "2020-04-28T12:18:05.200",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 11,
-  "supervisor": 12,
+  "student": 10,
+  "supervisor": 20,
   "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:53.315"
+  "updated_at": "2020-04-28T12:18:05.202"
  },
  "model": "grad.supervisor",
  "pk": 17
@@ -4166,15 +4360,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.960",
+  "created_at": "2020-04-28T12:18:12.318",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
   "student": 13,
-  "supervisor": 11,
+  "supervisor": 21,
   "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:53.962"
+  "updated_at": "2020-04-28T12:18:12.319"
  },
  "model": "grad.supervisor",
  "pk": 18
@@ -4182,15 +4376,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.975",
+  "created_at": "2020-04-28T12:18:14.351",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 13,
-  "supervisor": 11,
-  "supervisor_type": "SEN",
-  "updated_at": "2019-05-13T15:27:53.976"
+  "student": 14,
+  "supervisor": 20,
+  "supervisor_type": "POT",
+  "updated_at": "2020-04-28T12:18:14.351"
  },
  "model": "grad.supervisor",
  "pk": 19
@@ -4198,15 +4392,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:53.990",
+  "created_at": "2020-04-28T12:18:14.459",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 13,
-  "supervisor": 1,
-  "supervisor_type": "COM",
-  "updated_at": "2019-05-13T15:27:53.991"
+  "student": 14,
+  "supervisor": 20,
+  "supervisor_type": "SEN",
+  "updated_at": "2020-04-28T12:18:14.460"
  },
  "model": "grad.supervisor",
  "pk": 20
@@ -4214,15 +4408,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.094",
+  "created_at": "2020-04-28T12:18:14.568",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 17,
-  "supervisor": 11,
-  "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:55.096"
+  "student": 14,
+  "supervisor": 4,
+  "supervisor_type": "COM",
+  "updated_at": "2020-04-28T12:18:14.570"
  },
  "model": "grad.supervisor",
  "pk": 21
@@ -4230,15 +4424,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.455",
+  "created_at": "2020-04-28T12:18:21.201",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 18,
-  "supervisor": 4,
+  "student": 17,
+  "supervisor": 9,
   "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:55.456"
+  "updated_at": "2020-04-28T12:18:21.203"
  },
  "model": "grad.supervisor",
  "pk": 22
@@ -4246,15 +4440,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.711",
+  "created_at": "2020-04-28T12:18:21.394",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 19,
-  "supervisor": 4,
-  "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:55.713"
+  "student": 17,
+  "supervisor": 9,
+  "supervisor_type": "SEN",
+  "updated_at": "2020-04-28T12:18:21.395"
  },
  "model": "grad.supervisor",
  "pk": 23
@@ -4262,15 +4456,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.726",
+  "created_at": "2020-04-28T12:18:21.543",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 19,
-  "supervisor": 4,
-  "supervisor_type": "SEN",
-  "updated_at": "2019-05-13T15:27:55.728"
+  "student": 17,
+  "supervisor": 12,
+  "supervisor_type": "COM",
+  "updated_at": "2020-04-28T12:18:21.545"
  },
  "model": "grad.supervisor",
  "pk": 24
@@ -4278,15 +4472,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:55.741",
+  "created_at": "2020-04-28T12:18:24.327",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 19,
-  "supervisor": 7,
-  "supervisor_type": "COM",
-  "updated_at": "2019-05-13T15:27:55.742"
+  "student": 18,
+  "supervisor": 16,
+  "supervisor_type": "POT",
+  "updated_at": "2020-04-28T12:18:24.327"
  },
  "model": "grad.supervisor",
  "pk": 25
@@ -4294,15 +4488,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:56.337",
+  "created_at": "2020-04-28T12:18:24.470",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 21,
-  "supervisor": 1,
-  "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:56.338"
+  "student": 18,
+  "supervisor": 16,
+  "supervisor_type": "SEN",
+  "updated_at": "2020-04-28T12:18:24.471"
  },
  "model": "grad.supervisor",
  "pk": 26
@@ -4310,15 +4504,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:57.254",
+  "created_at": "2020-04-28T12:18:24.586",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 24,
-  "supervisor": 1,
-  "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:57.254"
+  "student": 18,
+  "supervisor": 15,
+  "supervisor_type": "COM",
+  "updated_at": "2020-04-28T12:18:24.588"
  },
  "model": "grad.supervisor",
  "pk": 27
@@ -4326,15 +4520,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:57.521",
+  "created_at": "2020-04-28T12:18:26.569",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 25,
-  "supervisor": 14,
+  "student": 19,
+  "supervisor": 12,
   "supervisor_type": "POT",
-  "updated_at": "2019-05-13T15:27:57.522"
+  "updated_at": "2020-04-28T12:18:26.569"
  },
  "model": "grad.supervisor",
  "pk": 28
@@ -4342,15 +4536,15 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:57.534",
+  "created_at": "2020-04-28T12:18:26.736",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
-  "student": 25,
-  "supervisor": 14,
+  "student": 19,
+  "supervisor": 12,
   "supervisor_type": "SEN",
-  "updated_at": "2019-05-13T15:27:57.535"
+  "updated_at": "2020-04-28T12:18:26.738"
  },
  "model": "grad.supervisor",
  "pk": 29
@@ -4358,17 +4552,129 @@
 {
  "fields": {
   "config": "{}",
-  "created_at": "2019-05-13T15:27:57.549",
+  "created_at": "2020-04-28T12:18:27.044",
+  "created_by": "",
+  "external": null,
+  "modified_by": null,
+  "removed": false,
+  "student": 19,
+  "supervisor": 22,
+  "supervisor_type": "COM",
+  "updated_at": "2020-04-28T12:18:27.044"
+ },
+ "model": "grad.supervisor",
+ "pk": 30
+},
+{
+ "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:29.835",
+  "created_by": "",
+  "external": null,
+  "modified_by": null,
+  "removed": false,
+  "student": 20,
+  "supervisor": 16,
+  "supervisor_type": "POT",
+  "updated_at": "2020-04-28T12:18:29.835"
+ },
+ "model": "grad.supervisor",
+ "pk": 31
+},
+{
+ "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:37.320",
+  "created_by": "",
+  "external": null,
+  "modified_by": null,
+  "removed": false,
+  "student": 22,
+  "supervisor": 9,
+  "supervisor_type": "POT",
+  "updated_at": "2020-04-28T12:18:37.321"
+ },
+ "model": "grad.supervisor",
+ "pk": 32
+},
+{
+ "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:39.986",
+  "created_by": "",
+  "external": null,
+  "modified_by": null,
+  "removed": false,
+  "student": 23,
+  "supervisor": 8,
+  "supervisor_type": "POT",
+  "updated_at": "2020-04-28T12:18:39.988"
+ },
+ "model": "grad.supervisor",
+ "pk": 33
+},
+{
+ "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:42.420",
+  "created_by": "",
+  "external": null,
+  "modified_by": null,
+  "removed": false,
+  "student": 24,
+  "supervisor": 12,
+  "supervisor_type": "POT",
+  "updated_at": "2020-04-28T12:18:42.422"
+ },
+ "model": "grad.supervisor",
+ "pk": 34
+},
+{
+ "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:45.138",
   "created_by": "",
   "external": null,
   "modified_by": null,
   "removed": false,
   "student": 25,
-  "supervisor": 8,
-  "supervisor_type": "COM",
-  "updated_at": "2019-05-13T15:27:57.550"
+  "supervisor": 11,
+  "supervisor_type": "POT",
+  "updated_at": "2020-04-28T12:18:45.139"
  },
  "model": "grad.supervisor",
- "pk": 30
+ "pk": 35
+},
+{
+ "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:45.255",
+  "created_by": "",
+  "external": null,
+  "modified_by": null,
+  "removed": false,
+  "student": 25,
+  "supervisor": 11,
+  "supervisor_type": "SEN",
+  "updated_at": "2020-04-28T12:18:45.257"
+ },
+ "model": "grad.supervisor",
+ "pk": 36
+},
+{
+ "fields": {
+  "config": "{}",
+  "created_at": "2020-04-28T12:18:45.372",
+  "created_by": "",
+  "external": null,
+  "modified_by": null,
+  "removed": false,
+  "student": 25,
+  "supervisor": 22,
+  "supervisor_type": "COM",
+  "updated_at": "2020-04-28T12:18:45.374"
+ },
+ "model": "grad.supervisor",
+ "pk": 37
 }
 ]

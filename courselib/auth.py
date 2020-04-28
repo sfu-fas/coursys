@@ -212,6 +212,10 @@ def is_form_admin_by_slug(request, form_slug, **kwargs):
     """
     owner_ids = [f['owner'] for f in Form.objects.filter(slug=form_slug).values('owner')]
     groups = FormGroup.objects.filter(members__userid=request.user.username)
+    #  If you're a Form Admin, also add membership to all formgroups within your unit(s).
+    admin_roles = Role.objects_fresh.filter(person__userid=request.user.username, role='FORM').select_related('unit')
+    admin_groups = FormGroup.objects.filter(unit__in=(r.unit for r in admin_roles))
+    groups |= admin_groups
     request.formgroups = groups
     return groups.filter(id__in=owner_ids).count() > 0
 
@@ -230,6 +234,10 @@ def has_formgroup(request, **kwargs):
     Return True is the given user is in any FormGroup
     """
     groups = FormGroup.objects.filter(members__userid=request.user.username)
+    #  If you're a Form Admin, also add membership to all formgroups within your unit(s).
+    admin_roles = Role.objects_fresh.filter(person__userid=request.user.username, role='FORM').select_related('unit')
+    admin_groups = FormGroup.objects.filter(unit__in=(r.unit for r in admin_roles))
+    groups |= admin_groups
     request.formgroups = groups
     return groups.count() > 0
 
