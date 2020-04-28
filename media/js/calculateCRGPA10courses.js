@@ -98,8 +98,11 @@ function calculateCRGPA() {
         var gpa = 0;
         var credits = 0;
         if (courseInputs[i].val() !== '') {
-            gpa = parseFloat(courseInputs[i].val());
-            credits = getCredits(courseInputs[i]);
+            // If the grade is 'P', we need to count it as a selected course, but not in the GPA.
+            if (courseInputs[i].val() !== 'P') {
+                gpa = parseFloat(courseInputs[i].val());
+                credits = getCredits(courseInputs[i]);
+            }
             selectedCourses += 1;
         }
         totalCredits += credits;
