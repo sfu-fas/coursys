@@ -87,6 +87,14 @@ class QuestionHelper(object):
         """
         return {'data': cleaned_data}
 
+    @staticmethod
+    def unchanged_answer(prev_ans: Dict[str, Any], new_ans: Dict[str, Any]) -> bool:
+        """
+        Is the newly-submitted answer (new_ans) unchanged from the old (prev_ans)? Both in the format returned by
+        .to_jsonable().
+        """
+        return prev_ans == new_ans
+
     def to_html(self, questionanswer) -> SafeText:
         """
         Convert QuestionAnswer to HTML for display to the user.

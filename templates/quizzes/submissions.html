@@ -36,15 +36,17 @@ $(document).ready(function() {
         <th scope="col">User ID</th>
         <th scope="col">Stu #</th>
         <th scope="col">Submission</th>
+        <th scope="col">Late?</th>
     </tr></thead>
     <tbody>
-    {% for member, lastmod in submissions %}
+    {% for member, late in subs_late %}
         <tr>
             <td>{{ member.person.last_name }}</td>
             <td>{{ member.person.first_name }}</td>
             <td>{{ member.person.userid }}</td>
             <td><a href="{{ member.get_absolute_url }}">{{ member.person.emplid }}</a></td>
             <td><a href="{% url 'offering:quiz:view_submission' course_slug=offering.slug activity_slug=activity.slug userid=member.person.userid_or_emplid %}"><i class="fa fa-search"></i></a></td>
+            <td>{% if late > timedelta_zero %}{{ late.total_seconds|floatformat:"0" }}&nbsp;s{% endif %}</td>
         </tr>
     {% endfor %}
     </tbody>

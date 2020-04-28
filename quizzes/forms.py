@@ -1,7 +1,8 @@
 import datetime
-from typing import List
+from typing import List, Optional
 
 from django import forms
+from django.utils.safestring import mark_safe
 
 from coredata.models import Member
 from courselib.markup import MarkupContentField, MarkupContentMixin
@@ -28,21 +29,28 @@ class QuizTimeBaseForm(forms.ModelForm):
 
 
 class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
-    intro = MarkupContentField(required=False, label='Introductory Text (displayed at the top of the quiz, optional)', default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True)
+    grace = forms.IntegerField(required=True, min_value=0, max_value=3600, initial=300, label='Grace time',
+                               help_text=mark_safe('Number of seconds after the &ldquo;true&rdquo; end of the quiz that '
+                                                   'students may submit their answers (but not reload the quiz to continue working).'))
+    intro = MarkupContentField(required=False, label='Introductory Text (displayed at the top of the quiz, optional)',
+                               default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True)
 
     class Meta:
         model = Quiz
         fields = ['start', 'end']
         widgets = {}
 
-    def __init__(self, activity: Activity, *args, **kwargs):
+    def __init__(self, activity: Activity, instance: Optional[Quiz] = None, *args, **kwargs):
         self.activity = activity
-        super().__init__(*args, **kwargs)
+        super().__init__(instance=instance, *args, **kwargs)
+        if instance:
+            self.initial['grace'] = instance.grace
 
     def clean(self):
         cleaned_data = super().clean()
         # all Quiz instances must have the activity where we're editing
         self.instance.activity = self.activity
+        self.instance.grace = cleaned_data['grace']
         return cleaned_data
 
 

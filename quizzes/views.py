@@ -6,7 +6,7 @@ from typing import Optional
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q, Max, Min
-from django.http import HttpRequest, HttpResponse, Http404, JsonResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, Http404, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 from django.utils.decorators import method_decorator
 from django.views.generic import FormView
@@ -61,9 +61,13 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
     member = request.member
     assert member.role == 'STUD'
 
+    # Overtime logic: cannot display the quiz (i.e. page with form), period. Submitting form will be accepted up to
+    # 5 minutes late, with timestamp to allow instructor to interpret as they see fit.
     start, end = quiz.get_start_end(member)
     now = datetime.datetime.now()
+    grace = datetime.timedelta(seconds=quiz.grace)
     if start > now:
+        # early
         context = {
             'offering': offering,
             'activity': activity,
@@ -73,7 +77,8 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             'time': 'before'
         }
         return render(request, 'quizzes/unavailable.html', context=context, status=403)
-    elif end < now: # TODO: should there be a 30 second grace period or something?
+    elif (end < now and request.method == 'GET') or (end + grace < now):
+        # late
         context = {
             'offering': offering,
             'activity': activity,
@@ -83,6 +88,8 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             'time': 'after'
         }
         return render(request, 'quizzes/unavailable.html', context=context, status=403)
+
+    am_late = end < now  # checked below to decide message to give to student when submitting during grace period
 
     questions = Question.objects.filter(quiz=quiz)
     question_number = {q.id: i + 1 for i, q in enumerate(questions)}
@@ -95,10 +102,8 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
 
     if request.method == 'POST':
         form = StudentForm(data=request.POST, files=request.FILES)
-        # Don't need questionanswer when constructing fields here, because the values are already injected from the
-        # form data in the previous line.
         fields = OrderedDict(
-            (v.question.ident(), v.entry_field(student=member))
+            (v.question.ident(), v.entry_field(student=member, questionanswer=answer_lookup.get(v.question.ident(), None)))
             for v in versions
         )
         form.fields = fields
@@ -119,7 +124,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                 if name in answer_lookup:
                     # Have an existing QuestionAnswer: update only if answer has changed.
                     ans = answer_lookup[name]
-                    if ans.answer == answer: # TODO: is == enough for all field data we might get?
+                    if helper.unchanged_answer(ans.answer, answer):
                         messages.add_message(request, messages.INFO, 'Question #%i answer unchanged from previous submission.' % (n,))
                     else:
                         ans.modified_at = datetime.datetime.now()
@@ -140,8 +145,18 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                              related_object=ans).save()
 
             QuizSubmission.create(request=request, quiz=quiz, student=member, answers=answers)
-            messages.add_message(request, messages.SUCCESS, 'Quiz answers saved. You can continue to modify them, as long as you submit before the end of the quiz time.')
-            return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
+
+            if am_late:
+                messages.add_message(request, messages.SUCCESS, 'Quiz answers saved, but the quiz is now over and you cannot edit further.')
+                messages.add_message(request, messages.WARNING, 'Your submission was %i seconds after the end of the quiz: the instructor will determine how this will affect the marking.'
+                                     % ((now - end).total_seconds(),))
+                # redirect should be to the "unavailable" logic above.
+                return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
+            else:
+                messages.add_message(request, messages.SUCCESS,
+                                     'Quiz answers saved. You can continue to modify them, as long as you submit before '
+                                     'the end of the quiz time.')
+                return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
 
     else:
         form = StudentForm()
@@ -439,14 +454,17 @@ def submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> H
         .select_related('student__person') \
         .order_by('student__person')
 
+    students = set(a.student for a in answers)
+    starts_ends = quiz.get_starts_ends(students)
     by_student = itertools.groupby(answers, key=lambda a: a.student)
-    subs = [(member, max(a.modified_at for a in ans)) for member, ans in by_student]
+    subs_late = [(member, max(a.modified_at for a in ans) - starts_ends[member][1]) for member, ans in by_student]
 
     context = {
         'offering': offering,
         'activity': activity,
         'quiz': quiz,
-        'submissions': subs,
+        'subs_late': subs_late,
+        'timedelta_zero': datetime.timedelta(seconds=0)
     }
     return render(request, 'quizzes/submissions.html', context=context)
 
@@ -515,6 +533,28 @@ def view_submission(request: HttpRequest, course_slug: str, activity_slug: str, 
         'version_answers': version_answers,
     }
     return render(request, 'quizzes/view_submission.html', context=context)
+
+
+# This view is authorized by knowing the secret not by session, to allow automated downloads of submissions from JSON.
+def submitted_file(request: HttpRequest, course_slug: str, activity_slug: str, userid: str, answer_id: str, secret: str) -> StreamingHttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
+    answer = get_object_or_404(QuestionAnswer, question__quiz__activity=activity, student=member, id=answer_id)
+
+    real_secret = answer.answer['data'].get('secret', '?')
+    if secret != real_secret or real_secret == '?':
+        raise Http404()
+
+    content_type = answer.answer['data'].get('content-type', 'application/octet-stream')
+    charset = answer.answer['data'].get('charset', None)
+    filename = answer.answer['data'].get('filename', None)
+    data = answer.file.open('rb')
+
+    resp = StreamingHttpResponse(streaming_content=data, content_type=content_type, charset=charset, status=200)
+    if filename:
+        resp['Content-Disposition'] = 'inline; filename="%s"' % (filename,)
+    return resp
 
 
 @requires_course_staff_by_slug

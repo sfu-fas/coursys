@@ -8,7 +8,7 @@ import itertools
 import json
 from collections import namedtuple
 from importlib import import_module
-from typing import Optional, Tuple, List, Iterable, Any
+from typing import Optional, Tuple, List, Iterable, Any, Dict
 
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore as DatabaseSessionStore
@@ -37,8 +37,7 @@ QUESTION_TYPE_CHOICES = [
     ('LONG', 'Long Answer'),
     ('FMT', 'Long Answer with formatting'),
     ('NUM', 'Numeric Answer'),
-    #('FILE', 'File Upload'),
-    #('INST', 'Instructions (students enter nothing)'),
+    ('FILE', 'File Upload'),
 ]
 
 
@@ -48,7 +47,7 @@ QUESTION_CLASSES = {
     'LONG': LongAnswer,
     'FMT': FormattedAnswer,
     'NUM': NumericAnswer,
-    #'FILE': FileAnswer,
+    'FILE': FileAnswer,
 }
 
 
@@ -113,11 +112,13 @@ class Quiz(models.Model):
     end = models.DateTimeField(help_text='Quiz will be invisible to students and unsubmittable after this time. Time format: HH:MM:SS, 24-hour time')
     status = models.CharField(max_length=1, null=False, blank=False, default='V', choices=STATUS_CHOICES)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
+    # .config['grace']: length of grace period at the end of the exam (in seconds)
     # .config['intro']: introductory text for the quiz
     # .config['markup']: markup language used: see courselib/markup.py
     # .config['math']: intro uses MathJax? (boolean)
     # .config['secret']: the "secret" used to seed the randomization for this quiz (integer)
 
+    grace = config_property('grace', default=300)
     intro = config_property('intro', default='')
     markup = config_property('markup', default=DEFAULT_QUIZ_MARKUP)
     math = config_property('math', default=False)
@@ -156,6 +157,16 @@ class Quiz(models.Model):
         else:
             # student has a special case
             return special_case.start, special_case.end
+
+    def get_starts_ends(self, members: Iterable[Member]) -> Dict[Member, Tuple[datetime.datetime, datetime.datetime]]:
+        """
+        Get the start and end times for this quiz for each member.
+        """
+        special_cases = TimeSpecialCase.objects.filter(quiz=self, student__in=members).select_related('student')
+        sc_lookup = {sc.student: sc for sc in special_cases}
+        # stub so we can always get a TimeSpecialCase in the comprehension below
+        default = TimeSpecialCase(start=self.start, end=self.end)
+        return {m: (sc_lookup.get(m, default).start, sc_lookup.get(m, default).end) for m in members}
 
     def ongoing(self, member: Optional[Member] = None) -> bool:
         """
@@ -360,6 +371,7 @@ class QuestionAnswer(models.Model):
     def save(self, *args, **kwargs):
         assert self.question_id == self.question_version.question_id  # ensure denormalized field stays consistent
 
+        saving_file = False
         if '_file' in self.answer:
             if self.answer['_file'] is None:
                 # keep current .file
@@ -370,8 +382,15 @@ class QuestionAnswer(models.Model):
             else:
                 # actually a file
                 self.file = self.answer['_file']
+                saving_file = True
 
             del self.answer['_file']
+
+        if saving_file:
+            # Inject the true save path into the .answer. Requires a double .save()
+            super().save(*args, **kwargs)
+            fn = self.file.name
+            self.answer['filepath'] = fn
 
         return super().save(*args, **kwargs)
 

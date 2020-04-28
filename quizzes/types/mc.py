@@ -69,7 +69,7 @@ permutation_choices = [
     ('not-last', 'Randomly permute, except the last choice should stay last'),
 ]
 
-# TODO: honour permute value
+
 class MultipleChoice(QuestionHelper):
     name = 'Multiple Choice'
     NA = '' # value used to represent "no answer"
