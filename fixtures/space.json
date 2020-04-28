@@ -33,6 +33,7 @@
   "safety_items": [],
   "slug": "cmpt-brnby-asb-9-9971",
   "square_meters": "6.00",
+  "sub_location": false,
   "unit": 5
  },
  "model": "space.location",
@@ -44,11 +45,11 @@
   "end_time": "2099-01-01T23:59:59",
   "form_submission_URL": null,
   "hidden": false,
-  "last_modified": "2019-05-13T15:28:01.173",
+  "last_modified": "2020-04-28T12:19:36.481",
   "last_modified_by": null,
   "location": 1,
   "notes": null,
-  "person": 18,
+  "person": 26,
   "slug": "cmpt-brnby-asb-9-9971-0ggg1-2010-01-01",
   "start_time": "2010-01-01T00:00:00"
  },
