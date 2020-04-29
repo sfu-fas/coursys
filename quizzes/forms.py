@@ -1,4 +1,3 @@
-import datetime
 from typing import List, Optional
 
 from django import forms
@@ -7,6 +6,7 @@ from django.utils.safestring import mark_safe
 from coredata.models import Member
 from courselib.markup import MarkupContentField, MarkupContentMixin
 from grades.models import Activity
+from marking.models import StudentActivityMark, ActivityComponentMark, ActivityComponent
 from quizzes import DEFAULT_QUIZ_MARKUP
 from quizzes.models import Quiz, TimeSpecialCase
 
@@ -82,3 +82,29 @@ class TimeSpecialCaseForm(QuizTimeBaseForm):
         if TimeSpecialCase.objects.filter(quiz=self.quiz, student=student).exists():
             raise forms.ValidationError('This student already has a special case: you must delete it before adding another.')
         return student
+
+
+class ComponentForm(forms.ModelForm):
+    class Meta:
+        model = ActivityComponentMark
+        fields = ['value', 'comment']
+
+    def __init__(self, component: ActivityComponent, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.component = component
+
+
+class MarkingForm(forms.ModelForm):
+    class Meta:
+        model = StudentActivityMark
+        fields = ['late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment']
+        widgets = {}
+
+    def __init__(self, activity: Activity, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.activity = activity
+
+    def save(self, commit=True, *args, **kwargs):
+        am = super().save(commit=False)
+
+        return super().save(commit=commit, *args, **kwargs)

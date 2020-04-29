@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load form_display %}
 
 {% block title %}{{ activity.name }} Quiz Marking{% endblock %}
 {% block h1 %}{{ activity.name }} Quiz Marking{% endblock %}
@@ -14,6 +15,12 @@
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
 {% include 'pages/markup_view_head.html' %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $(".version").collapsible();
+    //$(".version.first").trigger('expand');
+});
+</script>
 {% endblock %}
 
 {% block actions %}
@@ -26,14 +33,29 @@
 {% endblock %}
 
 {% block content %}
-    {% for v,a in version_answers %}
-        <h2 id="{{ v.question.ident }}">Question #{{ forloop.counter }} ({{ v.question.points }} point{{ v.question.points|pluralize }})</h2>
-        [Version {{ v.choice }}]
+    <form action="" method="post" enctype="multipart/form-data" class="marking">{% csrf_token %}
+    {% for v,f,a in version_form_answers %}
+        <h2 id="{{ v.question.ident }}">Question #{{ forloop.counter }}</h2>
+
+        <div class="version">[Version {{ v.choice }}]</div>
         {{ v.question_html }}
+
         {% if a %}
             {{ a.answer_html }}
         {% else %}
             <p class="empty">No submission found.</p>
         {% endif %}
+
+        <dl class="dlform">
+        <dt>Mark and comment:</dt>
+        <dd>{{ f.value }} / {{ v.question.points }} {{ f.value.errors }}<br />
+        <dd>{{ f.comment|field_display }}</dd>
+        </dl>
     {% endfor %}
+
+    <h2 id="overall">Overall</h2>
+    {{ form|as_dl }}
+    <p><input class="submit" type="submit" value="Save Marking" /></p>
+    </form>
+
 {% endblock %}

@@ -1,7 +1,8 @@
 import datetime
+import decimal
 import itertools
 import random
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from typing import Optional, Dict, Tuple, Iterable, List
 
 from django.contrib import messages
@@ -16,10 +17,10 @@ from django.views.generic.edit import ModelFormMixin, UpdateView
 from coredata.models import CourseOffering, Member
 from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, ForbiddenResponse, HttpError
 from courselib.search import find_member
-from grades.models import Activity
+from grades.models import Activity, NumericGrade
 from log.models import LogEntry
-from marking.models import ActivityComponent, ActivityComponentMark, StudentActivityMark
-from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm
+from marking.models import ActivityComponent, ActivityComponentMark, StudentActivityMark, get_activity_mark_for_student
+from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm
 from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES, Question, QuestionAnswer, TimeSpecialCase, \
     QuizSubmission, QuestionVersion
 
@@ -669,36 +670,61 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
         marks = [m for m in comp_marks if m.activity_component == comp and m.value is not None]
         question_marks.append((q, marks))
 
+    # data for all marks table
+    answers = QuestionAnswer.objects.filter(question__quiz=quiz).select_related('student__person')
+    student_marks = StudentActivityMark.objects.filter(activity=activity).select_related('numeric_grade')
+    student_mark_lookup = {am.numeric_grade.member_id: am.id for am in student_marks} # map Member.id to ActivityMark.id
+    students = {a.student for a in answers}
+    comp_mark_lookup = {(cm.activity_mark_id, cm.activity_component_id): cm for cm in comp_marks}
+    student_mark_data = [] # pairs of (Member, list of marks for each question)
+    for s in students:
+        student_marks = []
+        for q in questions:
+            # see if we have a mark for student s on question q
+            comp = component_lookup[q]
+            am_id = student_mark_lookup.get(s.id, None)
+            if not am_id:
+                student_marks.append(None)
+            else:
+                student_marks.append(comp_mark_lookup.get((am_id, comp.id), None))
+
+        student_mark_data.append((s, student_marks))
+
     context = {
         'offering': offering,
         'activity': activity,
         'quiz': quiz,
         'question_marks': question_marks,
+        'student_mark_data': student_mark_data,
     }
     return render(request, 'quizzes/marking.html', context=context)
 
 
 @requires_course_staff_by_slug
-def mark_next(request: HttpRequest, course_slug: str, activity_slug: str, question_id: str) -> HttpResponse:
+def mark_next(request: HttpRequest, course_slug: str, activity_slug: str, question_id: Optional[str] = None) -> HttpResponse:
     """
     Mark random quiz with given question unmarked.
     """
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
     quiz = get_object_or_404(Quiz, activity=activity)
-    question = get_object_or_404(Question, quiz=quiz, id=question_id)
-
     component_lookup = quiz.activitycomponents_by_question()
-    try:
-        component = component_lookup[question]
-    except KeyError:
-        # TODO: do better than this.
-        raise
+    if question_id:
+        question = get_object_or_404(Question, quiz=quiz, id=question_id)
+        try:
+            component = component_lookup[question]
+        except KeyError:
+            # TODO: do better than this.
+            raise
 
     # Find QuestionAnswers that don't have a corresponding mark.
     # This is a bit of a pain because of the marking model structure, but it's too late to change that now.
-    answers = QuestionAnswer.objects.filter(question=question).select_related('student')
-    comp_marks = ActivityComponentMark.objects.filter(activity_component=component)
+    if question_id:
+        answers = QuestionAnswer.objects.filter(question=question).select_related('student')
+        comp_marks = ActivityComponentMark.objects.filter(activity_component=component, value__isnull=False)
+    else:
+        answers = QuestionAnswer.objects.filter(question__quiz=quiz).select_related('student')
+        comp_marks = ActivityComponentMark.objects.filter(activity_component__numeric_activity_id=activity.id, value__isnull=False)
     activity_mark_ids = set(cm.activity_mark_id for cm in comp_marks)
     activity_marks = StudentActivityMark.objects.filter(id__in=activity_mark_ids).select_related('numeric_grade__member')
 
@@ -707,12 +733,29 @@ def mark_next(request: HttpRequest, course_slug: str, activity_slug: str, questi
     unmarked_students = answering_students - marked_students
 
     # pick one and redirect to mark them
-    student = random.choice(list(unmarked_students))
-    return redirect('offering:quiz:mark_student', course_slug=course_slug, activity_slug=activity_slug, member_id=student.id)
+    unmarked_students = list(unmarked_students)
+    if unmarked_students:
+        student = random.choice(unmarked_students)
+        url = resolve_url('offering:quiz:mark_student',
+                          course_slug=course_slug, activity_slug=activity_slug, member_id=student.id)
+        if question_id:
+            return HttpResponseRedirect(url + '#' + str(question.ident()))
+        else:
+            return HttpResponseRedirect(url)
+    else:
+        if question_id:
+            messages.add_message(request, messages.INFO, 'That question has been completely marked.')
+        else:
+            messages.add_message(request, messages.INFO, 'Marking complete.')
+        return HttpResponseRedirect(
+            resolve_url('offering:quiz:marking',
+                        course_slug=course_slug, activity_slug=activity_slug))
 
 
 @requires_course_staff_by_slug
+@transaction.atomic
 def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, member_id: str) -> HttpResponse:
+    # using Member.id in the URL instead of Member.person.userid for vague anonymity in the URL.
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
     quiz = get_object_or_404(Quiz, activity=activity)
@@ -722,13 +765,99 @@ def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, mem
     versions = QuestionVersion.select(quiz=quiz, questions=questions, student=member, answers=answers)
 
     answer_lookup = {a.question_id: a for a in answers}
-    version_answers = [(v, answer_lookup.get(v.question.id, None)) for v in versions]
+    component_lookup = quiz.activitycomponents_by_question()
+
+    # find existing marks for this student
+    mark = get_activity_mark_for_student(activity, member)
+    component_marks = ActivityComponentMark.objects.filter(activity_mark=mark)
+    component_mark_lookup = {acm.activity_component_id: acm for acm in component_marks}
+
+    if request.method == 'POST':
+        # build forms from POST data
+        form = MarkingForm(data=request.POST, activity=activity, instance=mark)
+        component_form_lookup = {}
+        by_component_lookup = {}
+        for q in questions:
+            ac = component_lookup[q]
+            acm = component_mark_lookup.get(ac.id, None)
+            f = ComponentForm(data=request.POST, component=ac, prefix=q.ident(), instance=acm)
+            component_form_lookup[q.id] = f
+            by_component_lookup[ac] = f
+
+        if form.is_valid() and all(f.is_valid() for f in component_form_lookup.values()):
+            # NOTE: this logic is largely duplicated from marking.views._marking_view. Ugly, but the least-worst way.
+            # TODO: there is a race here if two TAs are marking different questions simultaneously
+            am = form.save(commit=False)
+            am.pk = None
+            am.id = None
+            am.created_by = request.user.username
+            am.activity_id = activity.id
+
+            # need a corresponding NumericGrade object: find or create one
+            try:
+                ngrade = NumericGrade.objects.get(activity=activity, member=member)
+            except NumericGrade.DoesNotExist:
+                ngrade = NumericGrade(activity_id=activity.id, member=member)
+                ngrade.save(newsitem=False, entered_by=None, is_temporary=True)
+            am.numeric_grade = ngrade
+
+            # calculate grade and save
+            total = decimal.Decimal(0)
+            components_not_all_there = False
+            for component in component_lookup.values():
+                f = by_component_lookup[component]
+                value = f.cleaned_data['value']
+                if value is None:
+                    components_not_all_there = True
+                else:
+                    total += value
+                    if value > component.max_mark:
+                        messages.add_message(request, messages.WARNING,
+                                             "Bonus marks given for %s" % (component.title))
+                    if value < 0:
+                        messages.add_message(request, messages.WARNING,
+                                             "Negative mark given for %s" % (component.title))
+            if not components_not_all_there:
+                mark = (1 - form.cleaned_data['late_penalty'] / decimal.Decimal(100)) * \
+                       (total - form.cleaned_data['mark_adjustment'])
+            else:
+                mark = None
+
+            am.setMark(mark, entered_by=request.user.username)
+            am.save()
+            form.save_m2m()
+            for component in component_lookup.values():
+                f = by_component_lookup[component]
+                c = f.save(commit=False)
+                c.activity_component = component
+                c.activity_mark = am
+                c.save()
+                f.save_m2m()
+
+            messages.add_message(request, messages.SUCCESS, 'Marks saved.')
+            LogEntry(userid=request.user.username, description='marked quiz on %s for %s' % (activity.name, member.person.userid_or_emplid()),
+                     related_object=am).save()
+            return redirect('offering:quiz:mark_next', course_slug=offering.slug, activity_slug=activity.slug)
+
+    else:
+        # build forms from existing marking data
+        form = MarkingForm(activity=activity, instance=mark)
+        component_form_lookup = {}
+        for q in questions:
+            ac = component_lookup[q]
+            acm = component_mark_lookup.get(ac.id, None)
+            f = ComponentForm(component=ac, prefix=q.ident(), instance=acm)
+            component_form_lookup[q.id] = f
+
+    # data struct with all the per-question stuff needed
+    version_form_answers = [(v, component_form_lookup[v.question_id], answer_lookup.get(v.question_id, None)) for v in versions]
 
     context = {
         'offering': offering,
         'activity': activity,
         'quiz': quiz,
         'member': member,
-        'version_answers': version_answers,
+        'version_form_answers': version_form_answers,
+        'form': form,
     }
     return render(request, 'quizzes/mark_student.html', context=context)

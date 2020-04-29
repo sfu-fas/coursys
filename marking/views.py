@@ -523,6 +523,8 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
         if request.method == 'POST':
             # base form *and* all components must be valid to continue
             if form.is_valid() and (False not in [entry['form'].is_valid() for entry in component_data]):
+                # NOTE: this logic is largely duplicated in quizzes.views.mark_student. Ugly, but the least-worst way.
+
                 # set additional ActivityMark info
                 am = form.save(commit=False)
                 #  Let's make sure we create a new object to preserve history.  If we had an instance, this will force

@@ -23,6 +23,7 @@ quiz_patterns = [
     url(r'^special/add$', views.special_case_add, name='special_case_add'),
     url(r'^special/delete/(?P<sc_id>\d+)$', views.special_case_delete, name='special_case_delete'),
     url(r'^mark/$', views.marking, name='marking'),
-    url(r'^mark-next/(?P<question_id>\d+)$', views.mark_next, name='mark_next'),
+    url(r'^mark-next/$', views.mark_next, name='mark_next'),
+    url(r'^mark-next/(?P<question_id>\d+)$', views.mark_next, name='mark_next_question'),
     url(r'^mark/(?P<member_id>\d+)$', views.mark_student, name='mark_student'),
 ]

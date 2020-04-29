@@ -1,6 +1,6 @@
-# TODO: a QuestionMark model and the UI for TAs to enter marks
 # TODO: delete Quiz?
 # TODO: "copy course setup" should also copy quizzes
+# TODO: if marking the quiz here, redirect from the main marking page to avoid confusion
 
 import datetime
 import hashlib

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% load static %}
 
 {% block title %}{{ activity.name }} Quiz Marking{% endblock %}
@@ -13,6 +13,13 @@
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
 <script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('table.display').dataTable({
+      "bPaginate": false,
+      "bJQueryUI": true,
+      "aaSorting": [[0, "asc"]],
+  });
+} );
 </script>
 {% endblock %}
 
@@ -21,17 +28,38 @@
 
 {% block content %}
 
-    <table>
-    <thead><tr><th scope="col">Question</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
+    <h2 id="summary">Summary</h2>
+    <table id="summary-table" class="display">
+    <thead><tr><th scope="col">Question</th><th scope="col">Number Marked</th><th scope="col">Actions</th></tr></thead>
     <tbody>
     {% for quest, marks in question_marks %}
         <tr id="{{ quest.ident }}">
             <td>#{{ forloop.counter }}</td>
-            <td>{{ marks|length }} marked</td>
-            <td><a href="{% url 'offering:quiz:mark_next' course_slug=offering.slug activity_slug=activity.slug question_id=quest.id %}">Next unmarked #{{ forloop.counter }}</a></td>
+            <td>{{ marks|length }}</td>
+            <td><a href="{% url 'offering:quiz:mark_next_question' course_slug=offering.slug activity_slug=activity.slug question_id=quest.id %}">Next unmarked #{{ forloop.counter }}</a></td>
         </tr>
     {% endfor %}
     </tbody>
     </table>
+
+    <h2 id="details">Details</h2>
+    <table id="details-table" class="display">
+    <thead><tr><th scope="col">Student</th>
+        {% for _ in question_marks %}<th scope="col">Q#{{ forloop.counter }}</th>{% endfor %}
+        <th scope="col">Edit</th>
+    </tr></thead>
+    <tbody>
+    {% for student, marks in student_mark_data %}
+        <tr>
+        <td>{{ student.person.sortname_pref }}</td>
+        {% for m in marks %}
+            <td class="num">{% if m %}{{ m.value }}{% else %}&mdash;{% endif %}</td>
+        {% endfor %}
+        <td><a href="{% url 'offering:quiz:mark_student' course_slug=offering.slug activity_slug=activity.slug member_id=student.id %}"><i class="fa fa-edit"></i></a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+
 
 {% endblock %}

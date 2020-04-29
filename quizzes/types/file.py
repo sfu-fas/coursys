@@ -127,11 +127,15 @@ class FileAnswer(QuestionHelper):
         return self.secret_url(questionanswer)
 
     def to_html(self, questionanswer):
-        html = '<a href="%s">%s (%s)</a>' % (
-            self.secret_url(questionanswer),
-            questionanswer.answer['data'].get('filename', 'file'),
-            filesizeformat(questionanswer.answer['data'].get('size', '?')),
-        )
+        data = questionanswer.answer['data']
+        if 'filename' in data and 'secret' in data:
+            html = '<p><a href="%s">%s</a> (%s)</p>' % (
+                self.secret_url(questionanswer),
+                data['filename'],
+                filesizeformat(data['size']),
+            )
+        else:
+            html = '<p class="empty">No submission.</p>'
         return mark_safe(html)
 
     # unused but maybe useful later?

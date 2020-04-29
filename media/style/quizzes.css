@@ -8,3 +8,10 @@ form.quiz input.short-answer, form.quiz input.long-answer, .mc-option-input {
 .collapsible-heading-status {
     display: none;
 }
+form.marking input[type=number] {
+    width: 6em;
+}
+form.marking textarea {
+    height: 5em;
+    width: 100%;
+}
