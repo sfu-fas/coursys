@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ activity.name }} Quiz Marking{% endblock %}
+{% block h1 %}{{ activity.name }} Quiz Marking{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li>Marking</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+<script nonce="{{ CSP_NONCE }}">
+</script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+    <table>
+    <thead><tr><th scope="col">Question</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
+    <tbody>
+    {% for quest, marks in question_marks %}
+        <tr id="{{ quest.ident }}">
+            <td>#{{ forloop.counter }}</td>
+            <td>{{ marks|length }} marked</td>
+            <td><a href="{% url 'offering:quiz:mark_next' course_slug=offering.slug activity_slug=activity.slug question_id=quest.id %}">Next unmarked #{{ forloop.counter }}</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+
+{% endblock %}

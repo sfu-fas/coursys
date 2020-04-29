@@ -13,7 +13,7 @@ from typing import Optional, Tuple, List, Iterable, Any, Dict
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore as DatabaseSessionStore
 from django.core.checks import Error
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Max
 from django.http import HttpRequest
 from django.shortcuts import resolve_url
@@ -24,7 +24,8 @@ from coredata.models import Member
 from courselib.json_fields import JSONField, config_property
 from courselib.markup import markup_to_html
 from courselib.storage import UploadedFileStorage, upload_path
-from grades.models import Activity
+from grades.models import Activity, NumericActivity
+from marking.models import ActivityComponent, ActivityComponentMark
 from quizzes import DEFAULT_QUIZ_MARKUP
 from quizzes.types.file import FileAnswer
 from quizzes.types.mc import MultipleChoice
@@ -41,7 +42,7 @@ QUESTION_TYPE_CHOICES = [
 ]
 
 
-QUESTION_CLASSES = {
+QUESTION_HELPER_CLASSES = {
     'MC': MultipleChoice,
     'SHOR': ShortAnswer,
     'LONG': LongAnswer,
@@ -117,12 +118,14 @@ class Quiz(models.Model):
     # .config['markup']: markup language used: see courselib/markup.py
     # .config['math']: intro uses MathJax? (boolean)
     # .config['secret']: the "secret" used to seed the randomization for this quiz (integer)
+    # .config['use_marking']: integrate with rubric-based marking? (boolean)
 
     grace = config_property('grace', default=300)
     intro = config_property('intro', default='')
     markup = config_property('markup', default=DEFAULT_QUIZ_MARKUP)
     math = config_property('math', default=False)
     secret = config_property('secret', default='not a secret')
+    use_marking = config_property('use_marking', default=False)
 
     class Meta:
         verbose_name_plural = 'Quizzes'
@@ -200,6 +203,66 @@ class Quiz(models.Model):
         seed_str = str(self.secret) + '--' + seed
         return Randomizer(seed_str)
 
+    @transaction.atomic
+    def configure_marking(self, delete_others=True):
+        """
+        Configure the rubric-based marking to be quiz marks.
+        """
+        self.use_marking = True
+        self.save()
+
+        num_activity = NumericActivity.objects.get(id=self.activity_id)
+
+        all_components = ActivityComponent.objects.filter(numeric_activity=num_activity)
+        questions = self.question_set.all()
+
+        for i, q in enumerate(questions):
+            existing_comp = [c for c in all_components if c.config.get('quiz-question-id', None) == q.id]
+            if existing_comp:
+                component = existing_comp[0]
+            else:
+                component = ActivityComponent(numeric_activity=num_activity)
+
+            component.position = i+1
+            component.max_mark = q.points
+            component.title = 'Question #%i' % (i+1,)
+            # component.description = '' # if instructor has entered a description, let it stand
+            component.deleted = False
+            component.config['quiz-question-id'] = q.id
+            component.save()
+
+            component.used = True
+
+        pos = i + 2
+        for c in all_components:
+            if hasattr(c, 'used') and c.used:
+                continue
+            else:
+                if delete_others:
+                    # delete other components if requested
+                    c.deleted = True
+                else:
+                    # or reorder to the bottom if not
+                    c.position = pos
+                    pos += 1
+                c.save()
+
+    def activitycomponents_by_question(self) -> Dict['Question', ActivityComponent]:
+        """
+        Build dict to map Question to corresponding ActivityComponent in marking.
+        """
+        questions = self.question_set.all()
+        components = ActivityComponent.objects.filter(numeric_activity_id=self.activity_id, deleted=False)
+        question_lookup: Dict[int, Question] = {q.id: q for q in questions}
+        component_lookup: Dict[Question, ActivityComponent] = {}
+
+        for c in components:
+            if 'quiz-question-id' in c.config and c.config['quiz-question-id'] in question_lookup:
+                q = question_lookup[c.config['quiz-question-id']]
+                component_lookup[q] = c
+
+        return component_lookup
+
 
 class Question(models.Model):
     class QuestionStatusManager(models.Manager):
@@ -265,7 +328,7 @@ class QuestionVersion(models.Model):
         ordering = ['question', 'created_at', 'id']
 
     def helper(self, question: Optional['Question'] = None):
-        return QUESTION_CLASSES[self.question.type](version=self, question=question)
+        return QUESTION_HELPER_CLASSES[self.question.type](version=self, question=question)
 
     @classmethod
     def select(cls, quiz: Quiz, questions: Iterable[Question], student: Optional[Member],

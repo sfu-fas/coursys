@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ activity.name }} Quiz Marking{% endblock %}
+{% block h1 %}{{ activity.name }} Quiz Marking{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li><a href="{% url 'offering:quiz:marking' course_slug=offering.slug activity_slug=activity.slug %}">Marking</a></li>
+    <li>Unnamed Student</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+{% include 'pages/markup_view_head.html' %}
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+<li><a href="{% url 'offering:quiz:view_submission' course_slug=offering.slug activity_slug=activity.slug userid=member.person.userid_or_emplid %}">See Student Details</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    {% for v,a in version_answers %}
+        <h2 id="{{ v.question.ident }}">Question #{{ forloop.counter }} ({{ v.question.points }} point{{ v.question.points|pluralize }})</h2>
+        [Version {{ v.choice }}]
+        {{ v.question_html }}
+        {% if a %}
+            {{ a.answer_html }}
+        {% else %}
+            <p class="empty">No submission found.</p>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

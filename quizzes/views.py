@@ -1,7 +1,8 @@
 import datetime
 import itertools
+import random
 from collections import OrderedDict
-from typing import Optional
+from typing import Optional, Dict, Tuple, Iterable, List
 
 from django.contrib import messages
 from django.db import transaction
@@ -17,8 +18,9 @@ from courselib.auth import requires_course_by_slug, requires_course_staff_by_slu
 from courselib.search import find_member
 from grades.models import Activity
 from log.models import LogEntry
+from marking.models import ActivityComponent, ActivityComponentMark, StudentActivityMark
 from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm
-from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_CLASSES, Question, QuestionAnswer, TimeSpecialCase, \
+from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES, Question, QuestionAnswer, TimeSpecialCase, \
     QuizSubmission, QuestionVersion
 
 
@@ -247,8 +249,16 @@ class EditView(FormView, UpdateView, ModelFormMixin):
 
     def form_valid(self, form):
         res = super().form_valid(form)
-        LogEntry(userid=self.request.user.username, description='edited quiz id=%i' % (self.object.id),
+        LogEntry(userid=self.request.user.username, description='edited quiz id=%i' % (self.object.id,),
                  related_object=self.object).save()
+
+        messages.add_message(self.request, messages.SUCCESS, 'Quiz details updated.')
+
+        if self.object.activity.due_date != self.object.end:
+            self.object.activity.due_date = self.object.end
+            self.object.activity.save()
+            messages.add_message(self.request, messages.INFO, 'Updated %s due date to match quiz end.' % (self.object.activity.name,))
+
         return res
 
 
@@ -319,7 +329,7 @@ def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Act
         if 'type' not in request.GET:
             raise Http404()
         qtype = request.GET['type']
-        if qtype not in QUESTION_CLASSES:
+        if qtype not in QUESTION_HELPER_CLASSES:
             raise Http404()
 
         question = Question(quiz=quiz, type=qtype)
@@ -634,3 +644,91 @@ def special_case_delete(request: HttpRequest, course_slug: str, activity_slug: s
         return redirect('offering:quiz:special_cases', course_slug=course_slug, activity_slug=activity_slug)
     else:
         return HttpError(request, status=405, title="Method Not Allowed", error='POST or DELETE requests only.')
+
+
+@requires_course_staff_by_slug
+def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    questions = Question.objects.filter(quiz=quiz)
+    components = ActivityComponent.objects.filter(numeric_activity_id=quiz.activity_id, deleted=False)
+    comp_marks = ActivityComponentMark.objects.filter(activity_component__in=components) \
+        .select_related('activity_mark', 'activity_component')
+    comp_marks = list(comp_marks)
+    # TODO ensure that marking is actually configured with quiz.configure_marking()
+
+    # collect existing marks for tally
+    component_lookup = quiz.activitycomponents_by_question()
+    question_marks: List[Tuple[Question, List[ActivityComponentMark]]] = []
+    for q in questions:
+        if q not in component_lookup:
+            # TODO: do better than this.
+            raise ValueError('Marking not fully configured')
+        comp = component_lookup[q]
+        marks = [m for m in comp_marks if m.activity_component == comp and m.value is not None]
+        question_marks.append((q, marks))
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'question_marks': question_marks,
+    }
+    return render(request, 'quizzes/marking.html', context=context)
+
+
+@requires_course_staff_by_slug
+def mark_next(request: HttpRequest, course_slug: str, activity_slug: str, question_id: str) -> HttpResponse:
+    """
+    Mark random quiz with given question unmarked.
+    """
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    question = get_object_or_404(Question, quiz=quiz, id=question_id)
+
+    component_lookup = quiz.activitycomponents_by_question()
+    try:
+        component = component_lookup[question]
+    except KeyError:
+        # TODO: do better than this.
+        raise
+
+    # Find QuestionAnswers that don't have a corresponding mark.
+    # This is a bit of a pain because of the marking model structure, but it's too late to change that now.
+    answers = QuestionAnswer.objects.filter(question=question).select_related('student')
+    comp_marks = ActivityComponentMark.objects.filter(activity_component=component)
+    activity_mark_ids = set(cm.activity_mark_id for cm in comp_marks)
+    activity_marks = StudentActivityMark.objects.filter(id__in=activity_mark_ids).select_related('numeric_grade__member')
+
+    answering_students = set(a.student for a in answers)
+    marked_students = set(am.numeric_grade.member for am in activity_marks)
+    unmarked_students = answering_students - marked_students
+
+    # pick one and redirect to mark them
+    student = random.choice(list(unmarked_students))
+    return redirect('offering:quiz:mark_student', course_slug=course_slug, activity_slug=activity_slug, member_id=student.id)
+
+
+@requires_course_staff_by_slug
+def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, member_id: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    member = get_object_or_404(Member, id=member_id, offering=offering)
+    answers = QuestionAnswer.objects.filter(question__quiz=quiz, student=member)
+    questions = Question.objects.filter(quiz=quiz)
+    versions = QuestionVersion.select(quiz=quiz, questions=questions, student=member, answers=answers)
+
+    answer_lookup = {a.question_id: a for a in answers}
+    version_answers = [(v, answer_lookup.get(v.question.id, None)) for v in versions]
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'member': member,
+        'version_answers': version_answers,
+    }
+    return render(request, 'quizzes/mark_student.html', context=context)
