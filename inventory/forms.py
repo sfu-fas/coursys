@@ -2,7 +2,7 @@ from .models import Asset, AssetDocumentAttachment, AssetChangeRecord, CATEGORY_
 from django import forms
 from coredata.models import Unit
 from coredata.widgets import CalendarWidget, DollarInput
-from coredata.forms import PersonField
+from coredata.forms import PersonField, CheckboxSelectTerse
 import csv
 
 
@@ -101,3 +101,6 @@ class InventoryUploadForm(forms.Form):
         assets_from_csv(self.request, data, save=False)
         return data
 
+
+class InventoryFilterForm(forms.Form):
+    categories = forms.MultipleChoiceField(choices=CATEGORY_CHOICES, initial=[], widget=CheckboxSelectTerse())

@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 {% load inventory_display %}
+{% load browser_display %}
+
 
 {% block title %}Inventory{% endblock %}
 {% block h1 %}Inventory{% endblock %}
@@ -9,6 +11,8 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/inventory.css" %}" type="text/css">
+<script src="{% static 'jquery-ext/jquery.ba-bbq.min.js' %}"></script>
+<script type="text/javascript" src={% static "js/browse.js"%}></script>
 <script type="text/javascript" src={% static "js/inventory.js"%}></script>
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
@@ -29,6 +33,11 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
+    <form action="" id="filterform">
+        <ul>
+        {{ form.categories|browser_field }}
+        </ul>
+    </form>
     <table id="assets" class="display">
     <thead>
         <tr>
