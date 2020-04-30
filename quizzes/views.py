@@ -181,6 +181,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
         'preview': False,
         'start': start,
         'end': end,
+        'seconds_left': (end - datetime.datetime.now()).total_seconds(),
     }
     return render(request, 'quizzes/index_student.html', context=context)
 

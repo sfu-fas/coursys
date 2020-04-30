@@ -17,25 +17,16 @@
 {% include 'pages/markup_edit_head.html' %}
 {% compress js %}
 <script src="{% static "fingerprintjs2/dist/fingerprint2.min.js" %}"></script>
+<script src="{% static "js/quizzes.js" %}"></script>
+{% endcompress %}
 <script nonce="{{ CSP_NONCE }}">
+var load_time = Date.now() / 1000;
+var seconds_left = {{ seconds_left|escapejs }};
 $(document).ready(function() {
-    var options = {excludes: {canvas: true, webgl: true, enumerateDevices: true}};
-    if (window.requestIdleCallback) {
-        requestIdleCallback(function () {
-            Fingerprint2.get(options, function (components) {
-              $('#fingerprint').val(JSON.stringify(components));
-            })
-        })
-    } else {
-        setTimeout(function () {
-            Fingerprint2.get(options, function (components) {
-              $('#fingerprint').val(JSON.stringify(components));
-            })
-        }, 500)
-    }
+    get_fingerprint();
+    update_time_left(load_time + seconds_left);
 } );
 </script>
-{% endcompress %}
 {% endblock %}
 
 {% block actions %}
@@ -58,6 +49,10 @@ $(document).ready(function() {
 	    <tr>
             <th scope="row">End Time</th>
             <td>{{ end }}</td>
+        </tr>
+	    <tr>
+            <th scope="row">Time Left</th>
+            <td id="time-left">{{ seconds_left|floatformat:"0" }}&#8239;s (approximate, when page was loaded)</td>
         </tr>
         </tbody>
     </table>
