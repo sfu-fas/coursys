@@ -27,7 +27,7 @@ $(document).ready(function() {
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
-<li><a href="{% url 'offering:quiz:view_submission' course_slug=offering.slug activity_slug=activity.slug userid=member.person.userid_or_emplid %}">See Student Details</a></li>
+<li><a href="{% url 'offering:quiz:view_submission' course_slug=offering.slug activity_slug=activity.slug userid=member.person.userid_or_emplid %}"><i class="fa fa-eye"></i> See Student Details</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -38,7 +38,7 @@ $(document).ready(function() {
         <h2 id="{{ v.question.ident }}">Question #{{ forloop.counter }}</h2>
 
         <div class="version">[Version {{ v.choice }}]</div>
-        {{ v.question_html }}
+        {{ v.question_preview_html }}
 
         {% if a %}
             {{ a.answer_html }}

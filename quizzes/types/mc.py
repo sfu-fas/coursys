@@ -121,4 +121,9 @@ class MultipleChoice(QuestionHelper):
             for i, o
             in enumerate(options)
         ]
-        return mark_safe(q_html + ''.join(choices_html))
+        return mark_safe(''.join((
+            '<div>',
+            q_html,
+            ''.join(choices_html),
+            '</div>'
+        )))

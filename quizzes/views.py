@@ -29,7 +29,7 @@ from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES,
 def index(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     role = request.member.role
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
 
     if role in ['INST', 'TA']:
         quiz = Quiz.objects.filter(activity=activity).first()  # will be None if no quiz created for this activity
@@ -192,7 +192,7 @@ def preview_student(request: HttpRequest, course_slug: str, activity_slug: str) 
     Instructor's preview of what students will see
     """
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     questions = Question.objects.filter(quiz=quiz)
     versions = QuestionVersion.select(quiz=quiz, questions=questions, student=None, answers=None)
@@ -212,6 +212,7 @@ def preview_student(request: HttpRequest, course_slug: str, activity_slug: str) 
         'preview': True,
         'start': start,
         'end': end,
+        'seconds_left': (end - datetime.datetime.now()).total_seconds(),
     }
     return render(request, 'quizzes/index_student.html', context=context)
 
@@ -224,14 +225,14 @@ class EditView(FormView, UpdateView, ModelFormMixin):
 
     def get_object(self, queryset=None):
         activity = get_object_or_404(Activity, slug=self.kwargs['activity_slug'],
-                                     offering__slug=self.kwargs['course_slug'])
+                                     offering__slug=self.kwargs['course_slug'], group=False)
         quiz = Quiz.objects.filter(activity=activity).first() # None if no Quiz created
         return quiz
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         activity = get_object_or_404(Activity, slug=self.kwargs['activity_slug'],
-                                     offering__slug=self.kwargs['course_slug'])
+                                     offering__slug=self.kwargs['course_slug'], group=False)
         kwargs['activity'] = activity
         return kwargs
 
@@ -267,7 +268,7 @@ class EditView(FormView, UpdateView, ModelFormMixin):
 @requires_course_staff_by_slug
 def question_add(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
 
     if quiz.completed():
@@ -289,7 +290,7 @@ def question_add(request: HttpRequest, course_slug: str, activity_slug: str) -> 
 @requires_course_staff_by_slug
 def question_edit(request: HttpRequest, course_slug: str, activity_slug: str, question_id: str, version_id: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     question = get_object_or_404(Question, quiz=quiz, id=question_id)
     version = get_object_or_404(QuestionVersion.objects.select_related('question'), question=question, id=version_id)
@@ -303,7 +304,7 @@ def question_edit(request: HttpRequest, course_slug: str, activity_slug: str, qu
 @requires_course_staff_by_slug
 def question_add_version(request: HttpRequest, course_slug: str, activity_slug: str, question_id: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     question = get_object_or_404(Question, quiz=quiz, id=question_id)
 
@@ -458,7 +459,7 @@ def version_delete(request: HttpRequest, course_slug: str, activity_slug: str, q
 @requires_course_staff_by_slug
 def submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     questions = Question.objects.filter(quiz=quiz)
 
@@ -484,7 +485,7 @@ def submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> H
 @requires_course_staff_by_slug
 def download_submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     questions = Question.objects.filter(quiz=quiz)
     versions = QuestionVersion.objects.filter(question__in=questions)
@@ -527,7 +528,7 @@ def download_submissions(request: HttpRequest, course_slug: str, activity_slug: 
 @requires_course_staff_by_slug
 def view_submission(request: HttpRequest, course_slug: str, activity_slug: str, userid: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     questions = Question.objects.filter(quiz=quiz)
     member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
@@ -550,7 +551,7 @@ def view_submission(request: HttpRequest, course_slug: str, activity_slug: str, 
 # This view is authorized by knowing the secret not by session, to allow automated downloads of submissions from JSON.
 def submitted_file(request: HttpRequest, course_slug: str, activity_slug: str, userid: str, answer_id: str, secret: str) -> StreamingHttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
     answer = get_object_or_404(QuestionAnswer, question__quiz__activity=activity, student=member, id=answer_id)
 
@@ -572,7 +573,7 @@ def submitted_file(request: HttpRequest, course_slug: str, activity_slug: str, u
 @requires_course_staff_by_slug
 def submission_history(request: HttpRequest, course_slug: str, activity_slug: str, userid: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     questions = Question.objects.filter(quiz=quiz)
     versions = QuestionVersion.objects.filter(question__in=questions)
@@ -593,7 +594,7 @@ def submission_history(request: HttpRequest, course_slug: str, activity_slug: st
 @requires_course_staff_by_slug
 def special_cases(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     special_cases = TimeSpecialCase.objects.filter(quiz=quiz).select_related('student', 'student__person')
 
@@ -609,7 +610,7 @@ def special_cases(request: HttpRequest, course_slug: str, activity_slug: str) ->
 @requires_course_staff_by_slug
 def special_case_add(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     students = Member.objects.filter(offering=offering, role='STUD').select_related('person')
 
@@ -669,7 +670,7 @@ def catch_marking_configuration_error(f):
 
 def marking_setup(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
 
     components = ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False)
@@ -696,19 +697,19 @@ def marking_setup(request: HttpRequest, course_slug: str, activity_slug: str) ->
     return render(request, 'quizzes/marking_setup.html', context=context)
 
 
-
 @requires_course_staff_by_slug
 @catch_marking_configuration_error
 def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     questions = Question.objects.filter(quiz=quiz)
     components = ActivityComponent.objects.filter(numeric_activity_id=quiz.activity_id, deleted=False)
     comp_marks = ActivityComponentMark.objects.filter(activity_component__in=components) \
         .select_related('activity_mark', 'activity_component')
     comp_marks = list(comp_marks)
-    # TODO ensure that marking is actually configured with quiz.configure_marking()
+    if not activity.quiz_marking():
+        raise MarkingNotConfiguredError
 
     # collect existing marks for tally
     component_lookup = quiz.activitycomponents_by_question()
@@ -757,9 +758,12 @@ def mark_next(request: HttpRequest, course_slug: str, activity_slug: str, questi
     Mark random quiz with given question unmarked.
     """
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     component_lookup = quiz.activitycomponents_by_question()
+    if not activity.quiz_marking():
+        raise MarkingNotConfiguredError
+
     if question_id:
         question = get_object_or_404(Question, quiz=quiz, id=question_id)
         try:
@@ -807,12 +811,14 @@ def mark_next(request: HttpRequest, course_slug: str, activity_slug: str, questi
 def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, member_id: str) -> HttpResponse:
     # using Member.id in the URL instead of Member.person.userid for vague anonymity in the URL.
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     member = get_object_or_404(Member, id=member_id, offering=offering)
     answers = QuestionAnswer.objects.filter(question__quiz=quiz, student=member)
     questions = Question.objects.filter(quiz=quiz)
     versions = QuestionVersion.select(quiz=quiz, questions=questions, student=member, answers=answers)
+    if not activity.quiz_marking():
+        raise MarkingNotConfiguredError
 
     answer_lookup = {a.question_id: a for a in answers}
     component_lookup = quiz.activitycomponents_by_question()

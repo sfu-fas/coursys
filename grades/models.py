@@ -66,6 +66,7 @@ LETTER_GRADE_CHOICES = GPA_GRADE_CHOICES + NON_GPA_GRADE_CHOICES
 LETTER_GRADE = dict(LETTER_GRADE_CHOICES)
 LETTER_GRADE_CHOICES_IN = set(LETTER_GRADE.keys())
 
+
 class Activity(models.Model):
     """
     Generic activity (i.e. column in the gradebook that can have a value assigned for each student).
@@ -86,23 +87,23 @@ class Activity(models.Model):
     group = models.BooleanField(null=False, default=False)
     deleted = models.BooleanField(null = False, db_index = True, default=False)
     config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
-        # a.config['url'] (string, default None): URL for more info
-        # a.config['showstats'] (boolean, default True): show students summary stats for this activity?
-        # a.config['showhisto'] (boolean, default True): show students histogram for this activity?
-        # a.config['showformula'] (boolean, default False): show students formula/cutoffs for this activity?
-        # a.config['multisubmit'] (boolean, default False): Use the "submit many times" behaviour?
-        # a.config['calculation_leak'] (boolean, default False): For CalNumericActivity, include unreleased grades when calculating? (Thus possibly leaking URLS values to students)
-        # TODO: showformula not actually implemented yet
-    
+    # .config['url'] (string, default None): URL for more info
+    # .config['showstats'] (boolean, default True): show students summary stats for this activity?
+    # .config['showhisto'] (boolean, default True): show students histogram for this activity?
+    # .config['multisubmit'] (boolean, default False): Use the "submit many times" behaviour?
+    # .config['calculation_leak'] (boolean, default False): For CalNumericActivity, include unreleased grades when calculating? (Thus possibly leaking URLS values to students)
+    # .config['quiz_marking'] (boolean, default False): Does this activity use the quiz marking (not the usual marking module)?
+
     offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     
-    defaults = {'url': '', 'showstats': True, 'showhisto': True, 'showformula': False, 'multisubmit': False, 'calculation_leak': False}
+    defaults = {'url': '', 'showstats': True, 'showhisto': True, 'showformula': False, 'multisubmit': False,
+                'calculation_leak': False, 'quiz_marking': False}
     url, set_url = getter_setter('url')
     showstats, set_showstats = getter_setter('showstats')
     showhisto, set_showhisto = getter_setter('showhisto')
-    showformula, set_showformula = getter_setter('showformula')
     multisubmit, set_multisubmit = getter_setter('multisubmit')
     calculation_leak, set_calculation_leak = getter_setter('calculation_leak')
+    quiz_marking, set_quiz_marking = getter_setter('quiz_marking')
 
     def __str__(self):
         return "%s - %s" % (self.offering, self.name)

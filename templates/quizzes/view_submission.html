@@ -20,7 +20,8 @@
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
-<li><a href="{% url 'offering:quiz:submission_history' course_slug=offering.slug activity_slug=activity.slug userid=member.person.userid_or_emplid %}"><i class="fa fa-history"></i> View History</a></li>
+<li><a href="{% url 'offering:quiz:submission_history' course_slug=offering.slug activity_slug=activity.slug userid=member.person.userid_or_emplid %}"><i class="fa fa-history"></i> View Submission History</a></li>
+<li><a href="{% url 'offering:quiz:mark_student' course_slug=offering.slug activity_slug=activity.slug member_id=member.id %}"><i class="fa fa-check"></i> Mark</a></li>
 </ul>
 </div>
 {% endblock %}

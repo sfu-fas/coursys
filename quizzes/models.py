@@ -1,6 +1,9 @@
 # TODO: delete Quiz?
 # TODO: "copy course setup" should also copy quizzes
-# TODO: if marking the quiz here, redirect from the main marking page to avoid confusion
+# TODO: if marking the quiz here, redirect from the main marking pages to avoid confusion
+# TODO: update rubric if questions are modified
+# TODO: link to quiz (instructor if non-group; students if quiz exists)
+# TODO: student review of quiz results
 
 import datetime
 import hashlib
@@ -207,6 +210,10 @@ class Quiz(models.Model):
         """
         Configure the rubric-based marking to be quiz marks.
         """
+        if not self.activity.quiz_marking():
+            self.activity.set_quiz_marking(True)
+            self.activity.save()
+
         num_activity = NumericActivity.objects.get(id=self.activity_id)
 
         all_components = ActivityComponent.objects.filter(numeric_activity=num_activity)
@@ -472,7 +479,8 @@ class QuizSubmission(models.Model):
     created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     ip_address = models.GenericIPAddressField(null=False, blank=False)
     config = JSONField(null=False, blank=False, default=dict)  # additional data about the submission:
-    # .config['answers']: list of QuestionAnswer objects submitted (if changed from prev submission), as [(QuestionVersion.id, answer)]
+    # .config['answers']: list of answers submitted (where changed from prev submission),
+    #     as [(QuestionVersion.id, Answer.id, Answer.answer)]
     # .config['user_agent']: HTTP User-Agent header from submission
     # .config['session']: the session_key from the submission
     # .config['csrf_token']: the CSRF token being used for the submission
@@ -483,7 +491,7 @@ class QuizSubmission(models.Model):
         qs = cls(quiz=quiz, student=student)
         ip_addr, _ = get_client_ip(request)
         qs.ip_address = ip_addr
-        qs.config['answers'] = [(a.question_version_id, a.answer) for a in answers]
+        qs.config['answers'] = [(a.question_version_id, a.id, a.answer) for a in answers]
         qs.config['session'] = request.session.session_key
         qs.config['csrf_token'] = request.META.get('CSRF_COOKIE')
         qs.config['user_agent'] = request.META.get('HTTP_USER_AGENT')
@@ -532,11 +540,11 @@ class QuizSubmission(models.Model):
         question_lookup = {q.id: (q, i+1) for i,q in enumerate(questions)}
         version_lookup = {v.id: v for v in versions}
         answer_data = []
-        for version_id, answer in answers:
+        for version_id, answer_id, answer in answers:
             version = version_lookup[version_id]
             question, n = question_lookup[version.question_id]
             # temporarily reconstruct the QuestionAnswer so we can generate HTML
-            qa = QuestionAnswer(question=question, question_version=version, student=self.student,
+            qa = QuestionAnswer(id=answer_id, question=question, question_version=version, student=self.student,
                                 modified_at=self.created_at, answer=answer)
             answer_html = version.helper(question=question).to_html(qa)
             data = QuizSubmission.AnswerData(question=question, n=n, answer=answer, answer_html=answer_html)
