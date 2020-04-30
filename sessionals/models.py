@@ -124,10 +124,6 @@ class SessionalContract(models.Model):
     def has_attachments(self):
         return self.attachments.visible().count() > 0
 
-    class Meta:
-        # Presumably, you can only have one contract for the same person, offering, and account/position.
-        unique_together = (('sessional', 'account', 'offering'),)
-
 
 class SessionalConfig(models.Model):
     """

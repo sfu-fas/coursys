@@ -26,6 +26,7 @@ forms_patterns = [
 
     url(r'^admin/completed/$', onlineforms_views.admin_completed, name='admin_completed'),
     url(r'^admin/completed/' + FORM_SLUG + '/$', onlineforms_views.admin_completed_form, name='admin_completed_form'),
+    url(r'^admin/rejected/' + FORM_SLUG + '/$', onlineforms_views.admin_rejected_form, name='admin_rejected_form'),
     url(r'^admin/completed/' + FORM_SLUG + '/summary$', onlineforms_views.summary_csv, name='summary_csv'),
     url(r'^admin/completed/' + FORM_SLUG + '/pending_summary$', onlineforms_views.pending_summary_csv,
         name='pending_summary_csv'),
@@ -54,7 +55,9 @@ forms_patterns = [
     url(r'^login/$', onlineforms_views.login, name='login'),
     url(r'^participated/$', onlineforms_views.participated_in, name='participated_in'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/$', onlineforms_views.view_submission, name='view_submission'),
+    url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/re-open$', onlineforms_views.reopen_submission, name='reopen_submission'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + '(?P<action>\w+)/' + '(?P<file_id>\d+)/$', onlineforms_views.file_field_download, name='file_field_download'),
+    url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + '(?P<action>\w+)/' + '(?P<file_id>\d+)/(?P<secret>\w+)$', onlineforms_views.file_field_download_unauth, name='file_field_download_unauth'),
     url(r'^' + FORM_SLUG + '/$', onlineforms_views.sheet_submission_initial, name='sheet_submission_initial'),
     url(r'^' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '$', onlineforms_views.sheet_submission_subsequent, name='sheet_submission_subsequent'),
     url(r'^submission/' + SECRET_SUBMIT_URL + '/$', onlineforms_views.sheet_submission_via_url, name='sheet_submission_via_url'),

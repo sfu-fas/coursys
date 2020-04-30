@@ -1,4 +1,4 @@
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils.safestring import mark_safe
 from django.conf import settings
 from django import forms
@@ -8,7 +8,18 @@ from django.template import defaultfilters
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from onlineforms.fieldtypes.widgets import CustomMultipleInputWidget
 from coredata.models import Semester
-import datetime, os
+import datetime, random, string
+
+
+def new_file_secret():
+    """
+    A new random secret for unauth access to uploaded files
+    """
+    from onlineforms.models import FILE_SECRET_LENGTH
+    alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits
+    return ''.join(random.choice(alphabet) for _ in range(FILE_SECRET_LENGTH))
+#    return ''.join(random.choices(population=alphabet, k=FILE_SECRET_LENGTH))
+
 
 class CustomMultipleInputField(fields.MultiValueField):
     def __init__(self, max=20, min=2, other_required=False, *args, **kwargs):
@@ -114,10 +125,9 @@ class _ClearableFileInput(forms.ClearableFileInput):
         return mark_safe(template % substitutions)
 
 
-
-
 class FileCustomField(FieldBase):
-    in_summary = False
+    in_summary = True
+
     class FileConfigForm(FieldConfigForm):
         pass
 
@@ -139,7 +149,7 @@ class FileCustomField(FieldBase):
         return f
 
     def serialize_field(self, cleaned_data):
-        return {} # creation of FieldSubmissionFile handed in the view code
+        return {'secret': new_file_secret()} # creation of FieldSubmissionFile handed in the view code
 
     def to_html(self, fieldsubmission=None):
         file_sub = fieldsubmission.file_sub()
@@ -149,6 +159,15 @@ class FileCustomField(FieldBase):
                                 escape(file_sub.display_filename())))
         else:
             return mark_safe('<p class="empty">No file submitted.</p>')
+
+    def to_text(self, fieldsubmission=None):
+        assert 'fieldsubmissionfile' in fieldsubmission._state.fields_cache, "Must .select_related('fieldsubmissionfile')"
+        try:
+            subfile = fieldsubmission.fieldsubmissionfile
+        except ObjectDoesNotExist:
+            # optional fields: accessing .fieldsubmissionfile throws if there wasn't one created.
+            return ''
+        return settings.BASE_ABS_URL + subfile.get_secret_url()
 
 
 class URLCustomField(FieldBase):

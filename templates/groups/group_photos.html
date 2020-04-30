@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+
+});
+</script>
+{% endblock %}
+
+{% block title %}{{course.name}} Group Photos{% if activity %} for {{activity.name}}{% endif %}{% endblock %}
+{% block h1 %}{{course.name}} Group Photos{% if activity %} for {{activity.name}}{% endif %}{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>
+    {% if activity %}<li><a href="{% url "offering:groups:groupmanage" course_slug=offering.slug %}">Groups</a></li><li>for {{activity.name}}</li>
+    {% else %}<li><a href="{% url "offering:groups:groupmanage" course_slug=offering.slug %}">Groups</a></li>{% endif %}
+    <li>Photos</li>
+{% endblock %}
+
+{% block content %}
+{% if not photo_agreement %}
+    <p class="warningmessage">You have not completed <a href="{{ agreement_url }}">the ID Photo Agreement</a>. You must do that before this page can be displayed.</p>
+{% else %}
+
+{% regroup members by group as group_members %}
+<table id="photolist">
+<thead><tr><th>Group</th><th>Members</th></tr></thead>
+{% for gms in group_members %}
+<tr>
+    <td>{{ gms.grouper.name }}</td>
+    <td>
+        {% for gm in gms.list %}
+            <div class="student">
+            <div class="idphoto"><img src="{% url "data:student_photo" emplid=gm.student.person.emplid %}" alt="" /></div>
+            <span>{{ gm.student.person.name_with_pref }}, <a href="{{gm.student.get_absolute_url}}">{{ gm.student.person.emplid }}</a>, {{ gm.student.person.userid }}</span>
+            </div>
+        {% endfor %}
+    </td>
+</tr>
+{% endfor %}
+</table>
+{% endif %}
+
+{% endblock %}

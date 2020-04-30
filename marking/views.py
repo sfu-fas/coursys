@@ -498,6 +498,12 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                     am = get_group_mark_by_id(activity, group, old_id)
                 else:
                     am = get_activity_mark_by_id(activity, membership, old_id)
+        elif 'load_old' in request.GET:
+            # requested that we find the most-recent marks and load them
+            if groupmark:
+                am = get_group_mark(activity, group)
+            else:
+                am = get_activity_mark_for_student(activity, membership)
 
         # build forms
         form = ActivityMarkForm(instance=am, data=postdata, files=filedata)
@@ -1308,7 +1314,7 @@ def _mark_all_students_numeric(request, course, activity):
         
         else: 
             if request.method == 'POST': # for import
-                fileform = UploadGradeFileForm(request.POST, request.FILES, prefix='import-file');
+                fileform = UploadGradeFileForm(request.POST, request.FILES, prefix='import-file')
                 if fileform.is_valid() and fileform.cleaned_data['file'] != None:
                     students = course.members.filter(person__role='STUD')
                     error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data, activity)
@@ -1343,6 +1349,9 @@ def _mark_all_students_numeric(request, course, activity):
                                   'mark_all_rows': rows, 'userid_header': Person.userid_header()})
 
 def _compose_imported_grades(file, students_qset, data_to_return, activity):
+    """
+    Read an uploaded CSV file, deciding between with-headers-style and more bare userid-grade-style.
+    """
     try:
         fh = io.StringIO(file.read().decode('utf-8-sig'), newline=None)
     except UnicodeDecodeError:
@@ -1363,7 +1372,10 @@ def _compose_imported_grades(file, students_qset, data_to_return, activity):
         except UnicodeEncodeError:
             return ["File contains bad UTF-8 data: make sure it has been saved as UTF-8 text."]
     else:
-        return _import_specific_file(fh, students_qset, data_to_return)
+        if 'Student ID Number' in first_line and 'Total' in first_line:
+            return _import_crowdmark_file(fh, students_qset, data_to_return)
+        else:
+            return _import_specific_file(fh, students_qset, data_to_return)
 
 def _CMS_header(line, userid_label, act_label):
     userid_col = None
@@ -1395,6 +1407,9 @@ def _strip_email_userid(s):
     return s
 
 def _import_CMS_output(fh, students_qset, data_to_return, userid_col, activity_col):
+    """
+    Read CSV file with headers indicating userid and activity.
+    """
     reader = csv.reader(fh)
     next(reader) # Skip header line
     error_info = []
@@ -1450,6 +1465,32 @@ def _import_specific_file(fh, students_qset, data_to_return):
                           "\"[student user-id or student number, grade, ]\" and " +
                           "only the first two columns are used.")
     return error_info
+
+
+def _import_crowdmark_file(fh, students_qset, data_to_return):
+    reader = csv.reader(fh)
+    first_row = next(reader)
+    emplid_col = first_row.index('Student ID Number')
+    total_col = first_row.index('Total')
+
+    read = 0
+    error_info = []
+    for row in reader:
+        read += 1
+        emplid = _strip_email_userid(row[emplid_col])
+        target = students_qset.filter(emplid=emplid)
+        if target.count() == 0:
+            error_info.append("Error found in the file (row %s): Unmatched student number (%s)."
+                              % (read, emplid,))
+            continue
+        if target[0].userid in data_to_return:
+            error_info.append("Error found in the file (row %s): Second entry found for student (%s)."
+                              % (read, target[0].userid,))
+            continue
+        data_to_return[target[0].userid] = row[total_col]
+
+    return error_info
+
 
 # adapted from http://stackoverflow.com/questions/1960516/python-json-serialize-a-decimal-object
 class _DecimalEncoder(json.JSONEncoder):

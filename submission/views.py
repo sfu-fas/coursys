@@ -2,16 +2,19 @@ import os
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+
 from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, Http404, HttpResponse, HttpRequest
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
 from courselib.search import find_member, find_userid_or_emplid
+from grades.models import Activity
 from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import StudentSubmission, GroupSubmission, SubmissionComponent
 from submission.models import select_all_components, SubmissionInfo, get_component, find_type_by_label, ALL_TYPE_CLASSES
-from submission.moss import MOSS, run_moss, MOSSError
+from submission.moss import MOSS, MOSSError, run_moss_as_task
 from django.urls import reverse
 from django.contrib import messages
 from groups.models import Group, GroupMember
@@ -48,8 +51,9 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     if userid == None:
         userid = request.user.username
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set,slug=activity_slug, deleted=False)
+    activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    viewing_member = get_object_or_404(Member, person=student, offering=course, role='STUD')
     cansubmit = True
     submission_configured = SubmissionComponent.objects.filter(activity_id=activity.id).exists()
     if not submission_configured:
@@ -85,7 +89,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         messages.add_message(request, messages.ERROR, "This activity is not submittable.")
         return render(request, "submission/" + template,
         {"course":course, "activity":activity, "submission_info": submission_info, 'any_submissions': any_submissions,
-         "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit})
+         "userid":userid, "late":late, "student":student, 'member': viewing_member, "group":group, "cansubmit":cansubmit})
 
     # get all components of activity
     component_list = select_all_components(activity)
@@ -185,7 +189,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         component_form_list = make_form_from_list(component_list)
         return render(request, "submission/" + template,
         {'component_form_list': component_form_list, "course": course, "activity": activity, "submission_info": submission_info,
-         "userid":userid, "late":late, "student":student, "group":group,
+         "userid":userid, "late":late, "student":student, 'member': viewing_member, "group":group,
          "cansubmit":cansubmit, "is_staff":staff, 'any_submissions': any_submissions})
 
 
@@ -469,13 +473,25 @@ def similarity(request, course_slug, activity_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
     results = SimilarityResult.objects.filter(activity=activity)
+    other_staff = Member.objects.filter(offering__subject=offering.subject, offering__number=offering.number, role__in=['INST', 'TA'],
+        offering__graded=True, person__userid=request.user.username) \
+        .exclude(offering__component="CAN").exclude(offering__slug=course_slug).select_related('offering')
+    other_offerings = set(m.offering_id for m in other_staff)
+    similar_name = Q(name=activity.name) | Q(short_name=activity.short_name)
+    activities = Activity.objects.filter(offering_id__in=other_offerings).filter(similar_name) \
+        .select_related('offering', 'offering__semester')
+    other_activity_choices = [(a.id, str(a)) for a in activities]
 
     if request.method == 'POST':
         moss_form = MOSS.CreationForm(request.POST)
+        moss_form.fields['other_offering_activities'].choices = other_activity_choices
         if moss_form.is_valid():
             try:
-                result = run_moss(activity=activity, language=moss_form.cleaned_data['language'])
-                messages.add_message(request, messages.SUCCESS, 'MOSS report generated.')
+                other_ids = moss_form.cleaned_data['other_offering_activities']
+                other_activities = Activity.objects.filter(id__in=other_ids)
+                activities = [activity] + list(other_activities)
+                result = run_moss_as_task(activities=activities, language=moss_form.cleaned_data['language'])
+                messages.add_message(request, messages.SUCCESS, 'MOSS report started.')
                 l = LogEntry(userid=request.user.username,
                              description=("ran MOSS for %s in %s") % (activity, offering),
                              related_object=activity)
@@ -488,6 +504,7 @@ def similarity(request, course_slug, activity_slug):
                 messages.add_message(request, messages.ERROR, str(e))
     else:
         moss_form = MOSS.CreationForm()
+        moss_form.fields['other_offering_activities'].choices = other_activity_choices
 
     context = {
         'offering': offering,

@@ -614,10 +614,10 @@ def download_all_applications(request, post_slug):
                                       (posting.semester.name, datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
     if applications:
-        writer.writerow(['Person', 'Category', 'Program', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned', 'Campus Preferences'])
+        writer.writerow(['Person', 'ID', 'Category', 'Program', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned', 'Campus Preferences'])
 
         for a in applications:
-            writer.writerow([a.person.sortname(), a.get_category_display(), a.get_current_program_display(), a.base_units_assigned(),
+            writer.writerow([a.person.sortname(), a.person.emplid, a.get_category_display(), a.get_current_program_display(), a.base_units_assigned(),
                              a.base_units, a.course_pref_display(), a.course_assigned_display(), a.campus_pref_display()])
     return response
 
@@ -1219,13 +1219,15 @@ def accept_contract(request, post_slug, userid, preview=False):
     
     #this could be refactored used in multiple places
     pp = posting.payperiods()
-    pdead = posting.config['deadline']
+    pdead = contract.deadline
     salary_sem = (total*contract.pay_per_bu)
     schol_sem = (bu*contract.scholarship_per_bu)
     salary_sem_out = _format_currency(salary_sem)
     schol_sem_out = _format_currency(schol_sem)
     salary_bi = _format_currency(salary_sem / pp)
     schol_bi = _format_currency(schol_sem / pp)
+    today = datetime.date.today()
+    deadline_passed = pdead < today
 
     if request.method == "POST":
         form = TAAcceptanceForm(request.POST, instance=contract)
@@ -1268,6 +1270,7 @@ def accept_contract(request, post_slug, userid, preview=False):
                 'acc_deadline': pdead,
                 'form':form,
                 'preview': preview,
+                'deadline_passed': deadline_passed,
             }
     return render(request, 'ta/accept.html', context)
 

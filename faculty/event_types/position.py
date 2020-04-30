@@ -65,5 +65,5 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
         return 'Admin Position: {0}'.format(position)
 
     def teaching_adjust_per_semester(self):
-        credit = self.get_config('teaching_credit')
+        credit = self.get_config('teaching_credit', 0)
         return TeachingAdjust(credit, 0)

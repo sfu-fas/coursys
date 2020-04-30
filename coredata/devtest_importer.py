@@ -42,7 +42,7 @@ def fake_emplids():
     Replace student numbers with fakes
     """
     people = Person.objects.all()
-    fake = 200000100
+    fake = 200000101
     for p in people:
         p.emplid = fake
         if 'lastimport' in p.config: # no need for this in the JSON

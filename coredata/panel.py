@@ -147,9 +147,8 @@ def deploy_checks(request=None):
 
     # celery beat
     try:
-        from coredata.tasks import BEAT_TEST_FILE, BEAT_FILE_MAX_AGE
-        beatfile_age = time.time() - os.stat(BEAT_TEST_FILE).st_mtime
-        if beatfile_age < BEAT_FILE_MAX_AGE:
+        from coredata.tasks import beat_time_okay
+        if beat_time_okay():
             passed.append(('Celery beat', 'okay'))
         else:
             failed.append(('Celery beat', 'marker file is old: celery beat likely not processing tasks'))

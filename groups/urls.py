@@ -7,6 +7,7 @@ group_patterns = [ # prefix /COURSE_SLUG/groups/
     url(r'^new$', groups_views.create, name='create'),
     url(r'^assignStudent$', groups_views.assign_student, name='assign_student'),
     url(r'^submit$', groups_views.submit, name='submit'),
+    url(r'^photos', groups_views.group_photos, name='group_photos'),
     url(r'^data$', groups_views.group_data, name='group_data'),
     url(r'^for/' + ACTIVITY_SLUG + '$', groups_views.groupmanage, name='groupmanage'),
     url(r'^invite/(?P<group_slug>' + SLUG_RE + ')$', groups_views.invite, name='invite'),

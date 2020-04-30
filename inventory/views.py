@@ -98,12 +98,14 @@ def inventory_download(request):
                          'Quantity', 'Minimum Re-Order Quantity', 'Quantity Ordered', 'Minimum Vendor Quantity',
                          'Price', 'Category', 'Location', 'PR/PO No.', 'Account No.', 'Supplier/Vendor',
                          'Calibration/Service Date', 'End of Life Date', 'Notes', 'Service Records',
-                         'Attachments', 'Change Records', 'User', 'Date Shipped/Received', 'Currently in Use'])
+                         'Attachments', 'Change Records', 'User', 'Date Shipped/Received', 'Currently in Use', 'URL'])
         for a in assets:
+            url = request.build_absolute_uri(reverse('inventory:view_asset', kwargs={'asset_slug': a.slug}))
             writer.writerow([a.name, a.unit, a.brand, a.description, a.serial, a.tag, a.express_service_code,
                              a.quantity, a.min_qty, a.qty_ordered, a.min_vendor_qty, a.price, a.get_category_display(),
                              a.location, a.po, a.account, a.vendor, a.calibration_date, a.eol_date, a.notes,
-                             a.service_records, a.has_attachments(), a.has_records(), a.user, a.date_shipped, a.in_use])
+                             a.service_records, a.has_attachments(), a.has_records(), a.user, a.date_shipped, a.in_use,
+                             url])
     return response
 
 
@@ -131,8 +133,6 @@ def upload_assets_csv(request):
     if request.method == 'POST':
         form = InventoryUploadForm(request, data=request.POST, files=request.FILES)
         if form.is_valid():
-            for row in form.cleaned_data['file']:
-                print(row)
             rows = assets_from_csv(request, form.cleaned_data['file'], save=True)
             messages.add_message(request, messages.SUCCESS, "Added %i assets from file upload." % rows)
             # We don't have a related_object to create a log, but each individually created object will set a log in
@@ -160,10 +160,8 @@ def edit_asset(request, asset_slug):
             return HttpResponseRedirect(reverse('inventory:inventory_index'))
     else:
         if asset.user:
-            print("Yep")
             user = asset.user.emplid
         else:
-            print("Nope")
             user = None
         form = AssetForm(request, instance=asset, initial={'user': user})
     return render(request, 'inventory/edit_asset.html', {'form': form, 'asset_slug': asset_slug})

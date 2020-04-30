@@ -1,4 +1,5 @@
 import os
+
 from django.db import models
 import django.db.transaction
 from django.utils.safestring import mark_safe
@@ -105,6 +106,9 @@ STATUS_DESCR = {
     'PEND': 'waiting for admin',
     'NEW': 'newly-created form', # fake value so we can log the new form -> waiting transition correctly
 }
+
+FILE_SECRET_LENGTH = 32
+
 
 class NonSFUFormFiller(models.Model):
     """
@@ -396,7 +400,7 @@ class Form(models.Model, _FormCoherenceMixin):
             newform.initiators = 'NON'
             newform.save()
 
-            sheets = Sheet.objects.filter(form=self)
+            sheets = Sheet.objects.filter(form=self, active=True)
             for s in sheets:
                 newsheet = s.clone()
                 newsheet.form = newform
@@ -404,7 +408,7 @@ class Form(models.Model, _FormCoherenceMixin):
                 newsheet.slug = None
                 newsheet.save()
 
-                fields = Field.objects.filter(sheet=s)
+                fields = Field.objects.filter(sheet=s, active=True)
                 for f in fields:
                     newfield = f.clone()
                     newfield.sheet = newsheet
@@ -521,7 +525,7 @@ class Form(models.Model, _FormCoherenceMixin):
         # collect fieldsubs to output
         fieldsubs = FieldSubmission.objects.filter(sheet_submission__form_submission__form__original_id=self.original_id) \
                 .order_by('sheet_submission__given_at') \
-                .select_related('sheet_submission', 'field')
+                .select_related('sheet_submission', 'field', 'fieldsubmissionfile')
         fieldsub_lookup = dict(
             ((fs.sheet_submission_id, fs.field.original_id), fs)
             for fs in fieldsubs)
@@ -631,7 +635,7 @@ class Form(models.Model, _FormCoherenceMixin):
         # collect fieldsubs to output
         fieldsubs = FieldSubmission.objects.filter(sheet_submission__form_submission__form__original_id=self.original_id) \
                 .order_by('sheet_submission__given_at') \
-                .select_related('sheet_submission', 'field')
+                .select_related('sheet_submission', 'field', 'fieldsubmissionfile')
         fieldsub_lookup = dict(
             ((fs.sheet_submission_id, fs.field.original_id), fs)
             for fs in fieldsubs)
@@ -945,12 +949,13 @@ class FormSubmission(models.Model):
         :type admin: basestring
         :return: Nothing.
         """
-        if not requester or not admin:
-            print("You need to supply userids for both a requester and an admin")
+        if not requester:
+            print("You need to supply a userid for at least a requester")
             return
         try:
             user = Person.objects.get(userid=requester)
-            admin_person = Person.objects.get(userid=admin)
+            if admin:
+                admin_person = Person.objects.get(userid=admin)
         except Person.DoesNotExist:
             print("Either requester or admin do not exist.  Please provide correct userids.")
             return
@@ -961,9 +966,13 @@ class FormSubmission(models.Model):
         else:
             self.status = 'PEND'
             self.save()
-            FormLogEntry.create(form_submission=self, user=user, category='ADMN',
-                                description='Re-opened manually by %s as requested by %s' %
-                                            (admin_person.userid, user.userid))
+            if admin:
+                log_message = 'Re-opened manually by %s as requested by %s' % (admin_person.userid, user.userid)
+            else:
+                log_message = 'Re-opened by %s' % user.userid
+
+            FormLogEntry.create(form_submission=self, user=user, category='ADMN', description=log_message)
+
 
     @classmethod
     def reopen_form(cls, form_slug=None, slug=None, requester=None, admin=None):
@@ -1219,7 +1228,7 @@ class FieldSubmission(models.Model):
             return self.__file_sub_cache
         else:
             return None
-        
+
 
 def attachment_upload_to(instance, filename):
     """
@@ -1227,22 +1236,36 @@ def attachment_upload_to(instance, filename):
     """
     return upload_path('forms', instance.field_submission.sheet_submission.form_submission.form.slug, filename)
 
-    
+
 class FieldSubmissionFile(models.Model):
     field_submission = models.OneToOneField(FieldSubmission, on_delete=models.PROTECT)
     created_at = models.DateTimeField(default=datetime.datetime.now)
     file_attachment = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
-    
+
     def get_file_url(self):
         return reverse('onlineforms:file_field_download',
                        kwargs={'form_slug': self.field_submission.sheet_submission.sheet.form.slug,
                                'formsubmit_slug': self.field_submission.sheet_submission.form_submission.slug,
                                'file_id': self.id,
                                'action': 'get'})
+
+    def get_secret_url(self):
+        fieldsub = self.field_submission
+        if 'secret' not in fieldsub.data or not fieldsub.data['secret'] or len(fieldsub.data['secret']) != FILE_SECRET_LENGTH:
+            return ''
+        return reverse('onlineforms:file_field_download_unauth',
+                       kwargs={'form_slug': self.field_submission.sheet_submission.sheet.form.slug,
+                               'formsubmit_slug': self.field_submission.sheet_submission.form_submission.slug,
+                               'file_id': self.id,
+                               'action': 'get',
+                               'secret': fieldsub.data['secret'],
+                               })
+
     def display_filename(self):
         return os.path.basename(self.file_attachment.file.name)
+
 
 class SheetSubmissionSecretUrl(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission, on_delete=models.PROTECT)

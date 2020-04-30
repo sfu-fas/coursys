@@ -16,8 +16,8 @@ import os
 BUILDING_CHOICES = (
     ('ASB', 'Applied Sciences Building'),
     ('TASC1', 'TASC 1'),
-    ('SRY', 'Surrey'),
-    ('SEE', 'SEE Building'),
+    ('SRY', 'SRYC (Surrey Central)'),
+    ('SEE', 'SRYE (Surrey Engineering)'),
     ('PTECH', 'Powertech'),
     ('BLARD', 'Ballard'),
     ('CC1', 'CC1'),

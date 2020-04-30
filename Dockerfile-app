@@ -12,7 +12,7 @@ RUN apt-get update \
  && /usr/sbin/update-locale LANG=C.UTF-8 \
  && echo "en_CA.UTF-8 UTF-8" >> /etc/locale.gen \
  && locale-gen \
- && apt-get install -y mysql-client ruby ruby-dev \
+ && apt-get install -y default-mysql-client ruby ruby-dev \
  && gem install commonmarker github-markup \
  && curl -sL https://deb.nodesource.com/setup_12.x | bash - \
  && apt-get install -y nodejs \

@@ -150,6 +150,8 @@ class AssetChangeRecord(models.Model):
                                         "For adding items, make it a positive.  e.g. '-2' if someone removed two of "
                                         "this item for something")
     date = models.DateField(null=True, blank=True)
+    event = models.CharField(max_length=400, null=True, blank=True, help_text="If this change is associated with an "
+                                                                              "event, fill in the event name here.")
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)

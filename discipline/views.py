@@ -161,7 +161,7 @@ def showgroup(request, course_slug, group_slug):
     return render(request, "discipline/showgroup.html", context)
 
 
-also_set_re = re.compile("also-(?P<field>[[a-z_]+)-(?P<caseid>\d+)")
+also_set_re = re.compile("also-(?P<field>[a-z_]+)-(?P<caseid>\d+)")
 @requires_discipline_user
 def edit_case_info(request, course_slug, case_slug, field):
     """

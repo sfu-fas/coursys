@@ -19,7 +19,8 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignFormForm, AdminAssignSheetForm, EditGroupForm, EmployeeSearchForm, \
     AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FormGroupMember, FieldSubmissionFile
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, \
+    FormGroupMember, FieldSubmissionFile, FILE_SECRET_LENGTH
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, FormLogEntry, reorder_sheet_fields
 
@@ -476,6 +477,18 @@ def admin_completed_form(request, form_slug):
 
     context = {'form': form, 'formsubs': formsubs}
     return render(request, "onlineforms/admin/admin_completed_form.html", context)
+
+
+@requires_formgroup()
+def admin_rejected_form(request, form_slug):
+    form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
+    formsubs = FormSubmission.objects.filter(form=form, status='REJE')\
+        .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller') \
+        .annotate(last_sheet_dt=Max('sheetsubmission__completed_at'))
+    context = {'form': form, 'formsubs': formsubs}
+    return render(request, "onlineforms/admin/admin_rejected_form.html", context)
+
+
 
 @requires_formgroup()
 def summary_csv(request, form_slug):
@@ -1009,7 +1022,10 @@ def login(request):
 def participated_in(request):
     loggedin_user = get_object_or_404(Person, userid=request.user.username)
     participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user))\
-        .exclude(form_submission__initiator=_userToFormFiller(loggedin_user))
+        .exclude(form_submission__initiator=_userToFormFiller(loggedin_user)) \
+        .select_related('form_submission', 'form_submission__form', 'form_submission__form__unit',
+                        'form_submission__initiator', 'form_submission__initiator__sfuFormFiller',
+                        'form_submission__initiator__nonSFUFormFiller', 'sheet')
     return render(request, 'onlineforms/submissions/participated.html', {'participated': participated})
 
 
@@ -1121,27 +1137,54 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=
 
     return form_submissions[0], is_advisor
 
-@login_required
-def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
-    form_submission, _ = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=file_id)
-    if not form_submission:
-        raise Http404
-    file_sub =  get_object_or_404(FieldSubmissionFile,
-                                  field_submission__sheet_submission__form_submission=form_submission,
-                                  id=file_id)
+
+def _file_field_download(form_submission, file_sub, action):
     file_path = file_sub.file_attachment.file.name
     filename = os.path.basename(file_path)
 
     file_sub.file_attachment.file.open()
     response = HttpResponse(file_sub.file_attachment.file, content_type=file_sub.file_mediatype)
-    
+
     if action == 'download':
         disposition = 'download'
     else:
         disposition = 'inline'
-    
+
     response['Content-Disposition'] = disposition + '; filename="' + filename + '"'
     return response
+
+
+@login_required
+def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
+    form_submission, _ = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=file_id)
+    if not form_submission:
+        raise Http404
+    file_sub = get_object_or_404(FieldSubmissionFile,
+                                  field_submission__sheet_submission__form_submission=form_submission,
+                                  id=file_id)
+    return _file_field_download(form_submission, file_sub, action)
+
+
+def file_field_download_unauth(request, form_slug, formsubmit_slug, file_id, action, secret):
+    """
+    Version of file_field_download that doesn't require authentication, but does require knowing the "secret" URL
+    component. Used to provide URLs in the CSV export.
+    """
+    file_sub =  get_object_or_404(FieldSubmissionFile,
+                                  field_submission__sheet_submission__form_submission__slug=formsubmit_slug,
+                                  field_submission__sheet_submission__form_submission__form__slug=form_slug,
+                                  id=file_id)
+    form_submission = file_sub.field_submission.sheet_submission.form_submission
+
+    field_sub = file_sub.field_submission
+    if ('secret' not in field_sub.data) \
+            or (not field_sub.data['secret']) \
+            or (len(field_sub.data['secret']) != FILE_SECRET_LENGTH) \
+            or (field_sub.data['secret'] != secret):
+        raise Http404
+
+    return _file_field_download(form_submission, file_sub, action)
+
 
 
 @login_required
@@ -1152,7 +1195,8 @@ def view_submission(request, form_slug, formsubmit_slug):
             raise Http404
 
         sheet_submissions = _readonly_sheets(form_submission)
-        can_admin = not is_advisor and form_submission.status != 'DONE'
+        can_admin = not is_advisor and form_submission.status != 'DONE' and form_submission.status != 'REJE'
+        can_reopen = not is_advisor and form_submission.status == 'DONE'
         waiting_sheets = SheetSubmission.objects.filter(form_submission=form_submission, status='WAIT')
 
         if request.method == 'POST' and can_admin:
@@ -1220,12 +1264,37 @@ def view_submission(request, form_slug, formsubmit_slug):
                    'formsubmit_slug': formsubmit_slug,
                    'is_advisor': is_advisor,
                    'can_admin': can_admin,
+                   'can_reopen': can_reopen,
                    'can_advise': can_advise,
                    'close_form': close_form,
                    'waiting_sheets': waiting_sheets,
                    }
         return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
+
+@requires_formgroup()
+def reopen_submission(request, form_slug, formsubmit_slug):
+    # The wording here is tricky.  The _formsubmission_find_and_authz method only returns "is_advisor" if you are
+    # *only* an advisor, but not in the form group that owns the form.  If you are in the form group, is_advisor is
+    # false, and form_submission will be the instance we want to work on.
+    form_submission, is_advisor = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug)
+    if not form_submission:
+        raise Http404
+    # Therefore, if you're not a supervisor and you had a form_submission returned, you're in the form group and
+    # can re-open it.
+    can_reopen = not is_advisor and form_submission.status == 'DONE'
+    if can_reopen and request.method == 'POST':
+        form_submission.reopen(requester=request.user.username)
+        messages.success(request, "Form re-opened")
+        l = LogEntry(userid=request.user.username,
+                     description=("Re-opened Form Submission %s") % form_submission,
+                     related_object=form_submission)
+        l.save()
+    else:
+        messages.error(request, "The form could no be re-opened.  Perhaps it was already re-opened, or you do not "
+                                "have permission to perform this action.")
+    return HttpResponseRedirect(reverse('onlineforms:view_submission', kwargs={'form_slug': form_slug,
+                                                                               'formsubmit_slug': formsubmit_slug}))
 
 @requires_form_admin_by_slug()
 def reject_sheet_admin(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmit_slug):

@@ -4,6 +4,7 @@ from django.db.models import Q
 from coredata.models import Member, Person, CourseOffering
 from groups.models import Group, GroupMember, all_activities
 from grades.models import Activity, all_activities_filter
+from grades.views import _has_photo_agreement
 from django.shortcuts import render, get_object_or_404
 from groups.forms import ActivityForm, GroupForSemesterForm, StudentForm, GroupNameForm
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
@@ -15,6 +16,8 @@ from marking.models import GroupActivityMark, GroupActivityMark_LetterGrade
 from log.models import LogEntry
 from dashboard.models import NewsItem
 from collections import defaultdict
+import urllib.parse
+
 
 @login_required
 def groupmanage(request, course_slug, activity_slug=None):
@@ -192,6 +195,39 @@ def view_group(request, course_slug, group_slug):
         'info': info,
     }
     return render(request, "groups/view_group.html", context)
+
+
+@requires_course_staff_by_slug
+def group_photos(request, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    allmembers = GroupMember.objects.filter(group__courseoffering=offering).order_by('group__name', 'student__person') \
+        .select_related('group', 'student', 'student__person')
+    user = get_object_or_404(Person, userid=request.user.username)
+    photo_agreement = _has_photo_agreement(user)
+    agreement_url = reverse('config:photo_agreement') + '?return=' + urllib.parse.quote(request.path)
+
+    if 'activity' in request.GET:
+        activity = get_object_or_404(Activity, offering=offering, slug=request.GET['activity'])
+        members = allmembers.filter(activity_id=activity.id)
+    else:
+        # keep only distict people
+        activity = None
+        members = []
+        found = set()
+        for gm in allmembers:
+            if gm.student.person not in found:
+                members.append(gm)
+                found.add(gm.student.person)
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'members': members,
+        'photo_agreement': photo_agreement,
+        'agreement_url': agreement_url,
+    }
+    return render(request, 'groups/group_photos.html', context=context)
+
 
 @requires_course_staff_by_slug
 def group_data(request, course_slug):

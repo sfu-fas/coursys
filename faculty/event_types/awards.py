@@ -169,7 +169,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         return SalaryAdjust(add_salary, 1, add_pay)
 
     def teaching_adjust_per_semester(self):
-        adjust = self.get_config('teaching_credit')
+        adjust = self.get_config('teaching_credit', 0)
         return TeachingAdjust(adjust, 0)
 
 
