@@ -75,7 +75,8 @@ $(document).ready(function() {
 
 /* All the code for server side datatables */
 function inventory_browser_ready(url) {
-    $('#assets').dataTable({
+    restore_form();
+    table = $('#assets').dataTable({
         'bInfo': false,
         'bLengthChange': true,
         "bJQueryUI": true,
@@ -146,7 +147,21 @@ function inventory_browser_ready(url) {
                 $('.needsreorder').closest('tr').addClass('needsreorder');
                 $('.instock').closest('tr').addClass('instock');
                 $('.outofstock').closest('tr').addClass('outofstock');
+            },
+            'data': function (data) {
+                // append all of the form filters to the query data, so we can find the server-side
+                server_params().forEach(function (p) {
+                    if (!(p.name in data)) {
+                        data[p.name] = [];
+                    }
+                    data[p.name].push(p.value)
+                });
+                data.tabledata = 'yes';
+                return data;
             }
         }
   })
+  $('#filterform').change(refresh);
 }
+
+
