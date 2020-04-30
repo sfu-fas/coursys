@@ -262,7 +262,7 @@ class DashboardTest(TestCase):
         self.assertIsNotNone(tokenre.match(confs[0].value['token']))
 
     def test_pages(self):
-        person = Person.objects.filter()[0]
+        person = Person.objects.filter(userid__isnull=False)[0]
         c = Client()
         
         # as instructor
