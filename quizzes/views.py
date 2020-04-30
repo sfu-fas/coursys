@@ -20,7 +20,7 @@ from courselib.search import find_member
 from grades.models import Activity, NumericGrade
 from log.models import LogEntry
 from marking.models import ActivityComponent, ActivityComponentMark, StudentActivityMark, get_activity_mark_for_student
-from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm
+from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm, MarkingSetupForm
 from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES, Question, QuestionAnswer, TimeSpecialCase, \
     QuizSubmission, QuestionVersion
 
@@ -647,7 +647,57 @@ def special_case_delete(request: HttpRequest, course_slug: str, activity_slug: s
         return HttpError(request, status=405, title="Method Not Allowed", error='POST or DELETE requests only.')
 
 
+class MarkingNotConfiguredError(ValueError):
+    pass
+
+
+def catch_marking_configuration_error(f):
+    """
+    Decorator to catch MarkingNotConfiguredError and redirect, offering to set things up.
+    """
+    def decorate(request: HttpRequest, course_slug: str, activity_slug: str, *args, **kwargs):
+        with transaction.atomic():
+            try:
+                return f(request=request, course_slug=course_slug, activity_slug=activity_slug, *args, **kwargs)
+            except MarkingNotConfiguredError:
+                messages.add_message(request, messages.WARNING, 'Marking is not configured for this quiz.')
+                return redirect('offering:quiz:marking_setup', course_slug=course_slug, activity_slug=activity_slug)
+
+    return decorate
+
+
+def marking_setup(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
+    quiz = get_object_or_404(Quiz, activity=activity)
+
+    components = ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False)
+    other_components = [c for c in components if c.config.get('quiz-question-id', None) is None]
+
+    if request.method == 'POST':
+        form = MarkingSetupForm(data=request.POST)
+        if form.is_valid():
+            quiz.configure_marking(delete_others=form.cleaned_data['delete_others'])
+            messages.add_message(request, messages.SUCCESS, 'Marking configured for this activity and quiz.')
+            LogEntry(userid=request.user.username, description='configured quiz marking for %s' % (activity.name,),
+                     related_object=quiz).save()
+            return redirect('offering:quiz:marking', course_slug=offering.slug, activity_slug=activity.slug)
+    else:
+        form = MarkingSetupForm()
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'form': form,
+        'other_components': other_components,
+    }
+    return render(request, 'quizzes/marking_setup.html', context=context)
+
+
+
 @requires_course_staff_by_slug
+@catch_marking_configuration_error
 def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering)
@@ -664,8 +714,7 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
     question_marks: List[Tuple[Question, List[ActivityComponentMark]]] = []
     for q in questions:
         if q not in component_lookup:
-            # TODO: do better than this.
-            raise ValueError('Marking not fully configured')
+            raise MarkingNotConfiguredError('Marking not configured')
         comp = component_lookup[q]
         marks = [m for m in comp_marks if m.activity_component == comp and m.value is not None]
         question_marks.append((q, marks))
@@ -701,6 +750,7 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
 
 
 @requires_course_staff_by_slug
+@catch_marking_configuration_error
 def mark_next(request: HttpRequest, course_slug: str, activity_slug: str, question_id: Optional[str] = None) -> HttpResponse:
     """
     Mark random quiz with given question unmarked.
@@ -714,8 +764,7 @@ def mark_next(request: HttpRequest, course_slug: str, activity_slug: str, questi
         try:
             component = component_lookup[question]
         except KeyError:
-            # TODO: do better than this.
-            raise
+            raise MarkingNotConfiguredError('Marking not configured')
 
     # Find QuestionAnswers that don't have a corresponding mark.
     # This is a bit of a pain because of the marking model structure, but it's too late to change that now.
@@ -753,7 +802,7 @@ def mark_next(request: HttpRequest, course_slug: str, activity_slug: str, questi
 
 
 @requires_course_staff_by_slug
-@transaction.atomic
+@catch_marking_configuration_error
 def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, member_id: str) -> HttpResponse:
     # using Member.id in the URL instead of Member.person.userid for vague anonymity in the URL.
     offering = get_object_or_404(CourseOffering, slug=course_slug)
@@ -778,7 +827,10 @@ def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, mem
         component_form_lookup = {}
         by_component_lookup = {}
         for q in questions:
-            ac = component_lookup[q]
+            try:
+                ac = component_lookup[q]
+            except KeyError:
+                raise MarkingNotConfiguredError('Marking not configured')
             acm = component_mark_lookup.get(ac.id, None)
             f = ComponentForm(data=request.POST, component=ac, prefix=q.ident(), instance=acm)
             component_form_lookup[q.id] = f
@@ -844,7 +896,10 @@ def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, mem
         form = MarkingForm(activity=activity, instance=mark)
         component_form_lookup = {}
         for q in questions:
-            ac = component_lookup[q]
+            try:
+                ac = component_lookup[q]
+            except KeyError:
+                raise MarkingNotConfiguredError('Marking not configured')
             acm = component_mark_lookup.get(ac.id, None)
             f = ComponentForm(component=ac, prefix=q.ident(), instance=acm)
             component_form_lookup[q.id] = f

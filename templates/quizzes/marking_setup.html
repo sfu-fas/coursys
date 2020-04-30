@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block title %}{{ activity.name }} Quiz Marking Setup{% endblock %}
+{% block h1 %}{{ activity.name }} Quiz Marking Setup{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li>Marking Setup</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+<script nonce="{{ CSP_NONCE }}">
+</script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    <p>Would you like to configure the marking rubric for quiz marking? This will create marking criteria &ldquo;Question #1&rdquo;, &ldquo;Question #2&rdquo;, etc.</p>
+    {% if other_components %}
+    <p>There are existing marking criteria already configured. Check below if you would like to delete them; otherwise they will left as-is.</p>
+    <p><label for="id_delete_others">Delete other marking criteria:</label> {{ form.delete_others }}</p>
+    {% endif %}
+    <p><input class="submit" type="submit" value="Configure Marking" /></p>
+    </form>
+    <p><a href="{{ quiz.get_absolute_url }}">Nevermind: take me back.</a></p>
+
+{% endblock %}

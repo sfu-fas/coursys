@@ -46,12 +46,13 @@ $(document).ready(function() {
     <table id="details-table" class="display">
     <thead><tr><th scope="col">Student</th>
         {% for _ in question_marks %}<th scope="col">Q#{{ forloop.counter }}</th>{% endfor %}
-        <th scope="col">Edit</th>
+        <th scope="col">Mark</th>
     </tr></thead>
     <tbody>
     {% for student, marks in student_mark_data %}
         <tr>
-        <td>{{ student.person.sortname_pref }}</td>
+        <td>{{ student.person.sortname }} ({{ student.person.userid }},
+                <a href="{{ student.get_absolute_url }}">{{ student.person.emplid }}</a>)</td>
         {% for m in marks %}
             <td class="num">{% if m %}{{ m.value }}{% else %}&mdash;{% endif %}</td>
         {% endfor %}

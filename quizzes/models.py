@@ -118,7 +118,6 @@ class Quiz(models.Model):
     # .config['markup']: markup language used: see courselib/markup.py
     # .config['math']: intro uses MathJax? (boolean)
     # .config['secret']: the "secret" used to seed the randomization for this quiz (integer)
-    # .config['use_marking']: integrate with rubric-based marking? (boolean)
 
     grace = config_property('grace', default=300)
     intro = config_property('intro', default='')
@@ -208,9 +207,6 @@ class Quiz(models.Model):
         """
         Configure the rubric-based marking to be quiz marks.
         """
-        self.use_marking = True
-        self.save()
-
         num_activity = NumericActivity.objects.get(id=self.activity_id)
 
         all_components = ActivityComponent.objects.filter(numeric_activity=num_activity)

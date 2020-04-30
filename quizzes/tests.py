@@ -80,6 +80,8 @@ class QuizzesTest(TestCase):
         self.sc = TimeSpecialCase(quiz=self.quiz, student=self.s1, start=now - hour, end=now + 3*hour)
         self.sc.save()
 
+        self.quiz.configure_marking()
+
     def test_pages(self):
         """
         Render as many pages as possible, to make sure they work, are valid, etc.
@@ -90,7 +92,7 @@ class QuizzesTest(TestCase):
         # test as an instructor
         test_views(self, c, 'offering:quiz:',
                    ['index', 'preview_student', 'edit', 'question_add', 'submissions',
-                    'special_cases', 'special_case_add'],
+                    'special_cases', 'special_case_add', 'marking'],
                    {'course_slug': self.offering.slug, 'activity_slug': self.activity.slug})
 
         test_views(self, c, 'offering:quiz:', ['question_add_version'],
@@ -102,6 +104,8 @@ class QuizzesTest(TestCase):
 
         test_views(self, c, 'offering:quiz:', ['view_submission', 'submission_history'],
                    {'course_slug': self.offering.slug, 'activity_slug': self.activity.slug, 'userid': self.s1.person.userid})
+        test_views(self, c, 'offering:quiz:', ['mark_student'],
+                   {'course_slug': self.offering.slug, 'activity_slug': self.activity.slug, 'member_id': self.s1.id})
 
         # test as a student
         c.login_user(self.s0.person.userid)

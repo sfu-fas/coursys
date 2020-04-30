@@ -94,6 +94,10 @@ class ComponentForm(forms.ModelForm):
         self.component = component
 
 
+class MarkingSetupForm(forms.Form):
+    delete_others = forms.BooleanField(required=False, initial=False)
+
+
 class MarkingForm(forms.ModelForm):
     class Meta:
         model = StudentActivityMark
