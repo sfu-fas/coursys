@@ -71,6 +71,7 @@ $(document).ready(function() {
   });
   // Also do the initial check based on the current dropdown values.
   hide_particular_fields();
+  $('.collapse').collapsible();
 });
 
 /* All the code for server side datatables */

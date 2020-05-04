@@ -1,4 +1,5 @@
-from .models import Asset, AssetDocumentAttachment, AssetChangeRecord, CATEGORY_CHOICES, assets_from_csv
+from .models import Asset, AssetDocumentAttachment, AssetChangeRecord, CATEGORY_CHOICES, STOCK_STATUS_CHOICES,\
+    assets_from_csv
 from django import forms
 from coredata.models import Unit
 from coredata.widgets import CalendarWidget, DollarInput
@@ -104,3 +105,11 @@ class InventoryUploadForm(forms.Form):
 
 class InventoryFilterForm(forms.Form):
     categories = forms.MultipleChoiceField(choices=CATEGORY_CHOICES, initial=[], widget=CheckboxSelectTerse())
+    in_stock_status = forms.MultipleChoiceField(choices=STOCK_STATUS_CHOICES, initial=[], widget=CheckboxSelectTerse())
+    brand = forms.ChoiceField()
+
+    def __init__(self, request, *args, **kwargs):
+        super(InventoryFilterForm, self).__init__(*args, **kwargs)
+        brand_choices = Asset.objects.visible(request.units).values_list('brand', 'brand').order_by('brand')\
+            .distinct().exclude(brand__isnull=True)
+        self.fields['brand'].choices = [('', 'all')] + list(brand_choices)

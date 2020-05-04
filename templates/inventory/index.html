@@ -35,7 +35,18 @@ $(document).ready(function() {
 {% block content %}
     <form action="" id="filterform">
         <ul>
-        {{ form.categories|browser_field }}
+            <h4 class="collapse">Filters</h4>
+            <div>
+                <div class="filter">
+                    {{ form.categories|browser_field }}
+                </div>
+                <div class="filter">
+                    {{ form.in_stock_status|browser_field }}
+                </div>
+                <div class="filter">
+                    {{ form.brand|browser_field }}
+                </div>
+            </div>
         </ul>
     </form>
     <table id="assets" class="display">
