@@ -1,9 +1,9 @@
 # TODO: delete Quiz?
 # TODO: "copy course setup" should also copy quizzes
-# TODO: if marking the quiz here, redirect from the main marking pages to avoid confusion
-# TODO: update rubric if questions are modified
+# TODO: update activity max marks on rubric update
 # TODO: link to quiz (instructor if non-group; students if quiz exists)
 # TODO: student review of quiz results
+# TODO: does UI allow instructor to delete only question version
 
 import datetime
 import hashlib
@@ -24,6 +24,7 @@ from django.utils.safestring import SafeText
 from ipware import get_client_ip
 
 from coredata.models import Member
+from courselib.conditional_save import ConditionalSaveMixin
 from courselib.json_fields import JSONField, config_property
 from courselib.markup import markup_to_html
 from courselib.storage import UploadedFileStorage, upload_path
@@ -215,6 +216,7 @@ class Quiz(models.Model):
             self.activity.save()
 
         num_activity = NumericActivity.objects.get(id=self.activity_id)
+        total = 0
 
         all_components = ActivityComponent.objects.filter(numeric_activity=num_activity)
         questions = self.question_set.all()
@@ -235,20 +237,28 @@ class Quiz(models.Model):
             component.save()
 
             component.used = True
+            total += q.points
 
         pos = i + 2
         for c in all_components:
             if hasattr(c, 'used') and c.used:
                 continue
             else:
-                if delete_others:
-                    # delete other components if requested
+                if delete_others or c.config.get('quiz-question-id', None):
+                    # delete other components if requested, and always delete other quiz-created components
                     c.deleted = True
                 else:
                     # or reorder to the bottom if not
                     c.position = pos
                     pos += 1
+                    if not c.deleted:
+                        total += c.max_mark
                 c.save()
+
+        old_max = num_activity.max_grade
+        if old_max != total:
+            num_activity.max_grade = total
+            num_activity.save()
 
     def activitycomponents_by_question(self) -> Dict['Question', ActivityComponent]:
         """
@@ -267,7 +277,7 @@ class Quiz(models.Model):
         return component_lookup
 
 
-class Question(models.Model):
+class Question(models.Model, ConditionalSaveMixin):
     class QuestionStatusManager(models.Manager):
         def get_queryset(self):
             return super().get_queryset().select_related('quiz').prefetch_related('versions').filter(status='V')

@@ -356,7 +356,12 @@ def _question_edit(request: HttpRequest, offering: CourseOffering, activity: Act
             # save the Question
             question.config['points'] = data['points']
             question.set_order()
-            question.save()
+            if question.is_dirty():
+                question.save()
+                if activity.quiz_marking():
+                    # updated question, and are configured for quiz-based marking: update that
+                    quiz.configure_marking(delete_others=False)
+                    messages.add_message(request, messages.INFO, 'Updated marking rubric to match quiz questions.')
             # save the QuestionVersion
             del data['points']
             version.question = question
@@ -416,6 +421,10 @@ def question_reorder(request: HttpRequest, course_slug: str, activity_slug: str,
             question2.save()
             question1.order = o2
             question1.save()
+            if quiz.activity.quiz_marking():
+                # configured for quiz-based marking: update that so the order matches
+                quiz.configure_marking(delete_others=False)
+                messages.add_message(request, messages.INFO, 'Reordered marking rubric to match quiz questions.')
 
     return HttpResponseRedirect(resolve_url('offering:quiz:index', course_slug=course_slug, activity_slug=activity_slug)
                                 + '#q-' + str(question1.id))
@@ -430,6 +439,10 @@ def question_delete(request: HttpRequest, course_slug: str, activity_slug: str, 
         question = get_object_or_404(Question, quiz=quiz, id=question_id)
         question.status = 'D'
         question.save()
+        if quiz.activity.quiz_marking():
+            # configured for quiz-based marking: update that so the order matches
+            quiz.configure_marking(delete_others=False)
+            messages.add_message(request, messages.INFO, 'Updated marking rubric to match quiz questions.')
         messages.add_message(request, messages.SUCCESS, 'Question deleted.')
         LogEntry(userid=request.user.username, description='deleted quiz question id=%i' % (question.id,),
                  related_object=question).save()
