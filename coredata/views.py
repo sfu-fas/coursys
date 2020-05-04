@@ -197,6 +197,14 @@ def user_summary(request, userid):
     context = {'person': person, 'memberships': memberships, 'roles': roles}
     return render(request, "coredata/user_summary.html", context)
 
+
+@requires_global_role("SYSA")
+def user_config(request, userid):
+    query = find_userid_or_emplid(userid)
+    person = get_object_or_404(Person, query)
+    return render(request, "coredata/user_config.html", {'person': person})
+
+
 @requires_global_role("SYSA")
 def offering_summary(request, course_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)

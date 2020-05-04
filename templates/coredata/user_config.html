@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}User Config {{person.userid}}{% endblock %}
+{% block h1 %}User Config {{person.userid}}{% endblock %}
+
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li>
+    <li><a href="{% url "sysadmin:user_summary" userid=person.userid_or_emplid %}">{{ person.userid_or_emplid }} Summary</a></li>
+    <li>{{ person.userid_or_emplid }} Config</li>
+{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+{%  if person.config %}
+    <h2>Extra Config</h2>
+    <table class="info">
+    {% for k, v in person.config.items %}
+        <tr><th>{{ k }}</th><td>{{ v }}</td></tr>
+    {% endfor %}
+    </table>
+{% else %}
+<p class="empty">No config options.</p>
+{% endif %}
+{% endblock %}
