@@ -54,6 +54,7 @@ sysadmin_patterns = [ # prefix /sysadmin/
     url(r'^semesters/new$', coredata_views.edit_semester, name='edit_semester'),
     url(r'^semesters/edit/(?P<semester_name>\d{4})$', coredata_views.edit_semester, name='edit_semester'),
     url(r'^users/' + USERID_OR_EMPLID + '/$', coredata_views.user_summary, name='user_summary'),
+    url(r'^users/' + USERID_OR_EMPLID + '/config/$', coredata_views.user_config, name='user_config'),
     url(r'^offerings/' + COURSE_SLUG + '/$', coredata_views.offering_summary, name='offering_summary'),
     url(r'^combined/$', coredata_views.combined_offerings, name='combined_offerings'),
     url(r'^combined/new$', coredata_views.new_combined, name='new_combined'),
