@@ -17,7 +17,7 @@ import csv, datetime
 def inventory_index(request):
     if 'tabledata' in request.GET:
         return InventoryDataJSON.as_view()(request)
-    form = InventoryFilterForm()
+    form = InventoryFilterForm(request)
     return render(request, 'inventory/index.html', {'form': form})
 
 
@@ -90,6 +90,12 @@ class InventoryDataJSON(BaseDatatableView):
         categories = requestget.getlist('categories[]')
         if categories:
             qs = qs.filter(category__in=categories)
+        in_stock_status = requestget.getlist('in_stock_status[]')
+        if in_stock_status:
+            qs = qs.filter(stock_status__in=in_stock_status)
+        brand = requestget.get('brand[]', None)
+        if brand:
+            qs = qs.filter(brand=brand)
         return super(InventoryDataJSON, self).filter_queryset(qs)
 
 
