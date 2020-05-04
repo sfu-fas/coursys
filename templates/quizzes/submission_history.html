@@ -18,12 +18,26 @@
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
     $('.answer-popup').hide();
+    $('.photo-popup').hide();
     $('.answer-number').click(function() {
         var data_id = $(this).attr("data-popup");
         $( "#" + data_id).dialog({
             modal: false,
             buttons: {
-                Ok: function () {
+                Close: function () {
+                    $(this).dialog("close");
+                }
+            }
+        });
+    });
+    $('.photo-show').click(function() {
+        var img_id = $(this).attr("data-popup");
+        $( "#" + img_id).dialog({
+            modal: false,
+            minWidth: 360,
+            minHeight: 240,
+            buttons: {
+                Close: function () {
                     $(this).dialog("close");
                 }
             }
@@ -46,6 +60,8 @@ $(document).ready(function() {
     <table id="submissions" class="display">
     <thead><tr>
         <th scope="col">Time</th>
+        {% if quiz.honour_code %}<th scope="col">Honour Code?</th>{% endif %}
+        {% if quiz.photos %}<th scope="col">Photo</th>{% endif %}
         <th scope="col">Questions Updated <a href="#question_help">*</a></th>
         <th scope="col">Session Fingerprint <a href="#session_help">**</a></th>
         <th scope="col">Browser Fingerprint <a href="#browser_help">***</a></th>
@@ -55,8 +71,15 @@ $(document).ready(function() {
     {% for sub in quiz_submissions %}
         <tr>
             <td><span class="sort">{{ sub.created_at.isoformat }}</span>{{ sub.created_at }}</td>
+            {% if quiz.honour_code %}<td>{% if sub.config.honour_code %}<i class="fa fa-check"></i>{% endif %}</td>{% endif %}
+            {% if quiz.photos %}<td>
+                {% if sub.capture %}
+                    <a class="photo-show" data-popup="photo-{{ sub.id }}"><i class="far fa-eye"></i></a>
+                    <div class="photo-popup" id="photo-{{ sub.id }}" title="Captured Photo"><img src="{% url 'offering:quiz:submission_photo' course_slug=offering.slug activity_slug=activity.slug userid=sub.student.person.userid_or_emplid submission_id=sub.id %}" alt="" /></div>
+                {% endif %}
+            </td>{% endif %}
             <td>{% for ad in sub.answer_data %}
-                <a class="answer-number"  data-popup="ans-{{ sub.id }}-{{ ad.n }}">#{{ ad.n }}{% if not forloop.last %}, {% endif %}</a>
+                <a class="answer-number" data-popup="ans-{{ sub.id }}-{{ ad.n }}">#{{ ad.n }}{% if not forloop.last %}, {% endif %}</a>
                 <div class="answer-popup" id="ans-{{ sub.id }}-{{ ad.n }}" title="Question #{{ ad.n }} Answer">{{ ad.answer_html }}</div>
             {% endfor %}</td>
             <td>{{ sub.session_fingerprint }}</td>

@@ -25,6 +25,8 @@ var seconds_left = {{ seconds_left|escapejs }};
 $(document).ready(function() {
     get_fingerprint();
     update_time_left(load_time + seconds_left);
+    {% if quiz.honour_code and not preview %}show_honour_code();{% endif %}
+    {% if quiz.photos %}capture_startup();{% endif %}
 } );
 </script>
 {% endblock %}
@@ -63,6 +65,19 @@ $(document).ready(function() {
         {{ quiz.intro_html }}
     {% endif %}
 
+    {% if quiz.honour_code %}
+    <section id="honour-code">
+    {% include "quizzes/_honour_code.html" %}
+    <p id="honour-agree">Do you agree to this honour code?
+        <button id="honour-yes">YES</button>
+        <button id="honour-no">NO</button>
+        {% if preview %}<span class="infomessage">[Students must click <q>YES</q> before the rest of the quiz appears below.]</span>{% endif %}
+    </p>
+    <input type="hidden" name="honour-code" id="input-honour-code" />
+    </section>
+    {% endif %}
+
+    <section id="quiz-body">
     {{ form.non_field_errors }}
     <input type="hidden" name="fingerprint" id="fingerprint" value="" />
 
@@ -71,6 +86,32 @@ $(document).ready(function() {
         {{ v.question_html }}
         {{ f|field_display }}
     {% endfor %}
+    </section>
+
+    {% if quiz.photos %}
+    <section id="photo-verification">
+    <h2>Photo Verification</h2>
+    <p>You must allow this page to use your webcam to record a verification photo.
+        Only a single image is recorded, as can be seen on the right below (under <q>verification photo</q>).
+        No other camera data is captured, stored, or transmitted by this page.
+        </p>
+    <div id="capture">
+        <div id="capture-camera">
+            <p>Image preview:</p>
+            <video>Video stream not available.</video>
+        </div>
+        <button id="capture-photo">Take photo &rarr;</button>
+        <div id="capture-output">
+            <p>Verification photo:</p>
+            <canvas></canvas>
+            <img alt="The screen capture will appear in this box.">
+            <input type="hidden" name="photo-capture" value="" />
+        </div>
+    </div>
+    <p><button id="restart-capture">Restart Camera</button> if you previously blocked camera access on this page, but have now allowed it.</p>
+    <p><button id="abort-capture">Disable Verification</button> if you are unable to take a verification photo for technical reasons, it will be up to the instructor how to proceed with marking your quiz.</p>
+    </section>
+    {% endif %}
 
     {% if not preview %}<p><input class="submit" type="submit" value="Submit" /></p>{% endif %}
     </form>

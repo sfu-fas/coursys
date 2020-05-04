@@ -2,8 +2,8 @@ import datetime
 import decimal
 import itertools
 import random
-from collections import OrderedDict, defaultdict
-from typing import Optional, Dict, Tuple, Iterable, List
+from collections import OrderedDict
+from typing import Optional, Tuple, List
 
 from django.contrib import messages
 from django.db import transaction
@@ -115,6 +115,9 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             # Iterate through each answer we received, and create/update corresponding QuestionAnswer objects.
             answers = []
             for name, data in form.cleaned_data.items():
+                if name == 'photo-capture':
+                    continue
+
                 try:
                     vers = version_lookup[name]
                 except KeyError:
@@ -606,6 +609,21 @@ def submission_history(request: HttpRequest, course_slug: str, activity_slug: st
         'quiz_submissions': quiz_submissions,
     }
     return render(request, 'quizzes/submission_history.html', context=context)
+
+
+@requires_course_staff_by_slug
+def submission_photo(request: HttpRequest, course_slug: str, activity_slug: str, userid: str, submission_id: str) -> StreamingHttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
+    submission = get_object_or_404(QuizSubmission, id=submission_id, quiz=quiz, student=member)
+    if not submission.capture:
+        raise Http404
+
+    resp = StreamingHttpResponse(streaming_content=submission.capture, content_type='image/png', status=200)
+    resp['Content-Disposition'] = 'inline; filename="%s.png"' % (userid,)
+    return resp
 
 
 @requires_course_staff_by_slug

@@ -32,6 +32,7 @@ class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
     grace = forms.IntegerField(required=True, min_value=0, max_value=3600, initial=300, label='Grace time',
                                help_text=mark_safe('Number of seconds after the &ldquo;true&rdquo; end of the quiz that '
                                                    'students may submit their answers (but not reload the quiz to continue working).'))
+    honour_code = forms.BooleanField(required=False, initial=True, help_text="Require students to agree to the honour code before they can proceed with the quiz?")
     intro = MarkupContentField(required=False, label='Introductory Text (displayed at the top of the quiz, optional)',
                                default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True)
 
@@ -45,12 +46,14 @@ class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
         super().__init__(instance=instance, *args, **kwargs)
         if instance:
             self.initial['grace'] = instance.grace
+            self.initial['honour_code'] = instance.honour_code
 
     def clean(self):
         cleaned_data = super().clean()
         # all Quiz instances must have the activity where we're editing
         self.instance.activity = self.activity
         self.instance.grace = cleaned_data['grace']
+        self.instance.honour_code = cleaned_data['honour_code']
         return cleaned_data
 
 

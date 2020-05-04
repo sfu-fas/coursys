@@ -24,4 +24,11 @@
     {% endif %}
     </p>
 
+    {% if quiz.honour_code and time == 'before' %}
+    <section id="honour-code">
+    {% include "quizzes/_honour_code.html" %}
+    </section>
+    {% endif %}
+
+
 {% endblock %}

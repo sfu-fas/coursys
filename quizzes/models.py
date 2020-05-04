@@ -2,9 +2,11 @@
 # TODO: "copy course setup" should also copy quizzes
 # TODO: link to quiz (instructor if non-group; students if quiz exists)
 # TODO: student review of quiz results
-
+# TODO: let instructor select "one question at a time, no backtracking" presentation
+import base64
 import datetime
 import hashlib
+import io
 import itertools
 import json
 from collections import namedtuple
@@ -14,6 +16,7 @@ from typing import Optional, Tuple, List, Iterable, Any, Dict
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore as DatabaseSessionStore
 from django.core.checks import Error
+from django.core.files import File
 from django.db import models, transaction
 from django.db.models import Max
 from django.http import HttpRequest
@@ -120,13 +123,16 @@ class Quiz(models.Model):
     # .config['markup']: markup language used: see courselib/markup.py
     # .config['math']: intro uses MathJax? (boolean)
     # .config['secret']: the "secret" used to seed the randomization for this quiz (integer)
+    # .config['honour_code']: do we make the student agree to the honour code for this quiz? (boolean)
+    # .config['photos']: do we capture verification images for this quiz? (boolean)
 
     grace = config_property('grace', default=300)
     intro = config_property('intro', default='')
     markup = config_property('markup', default=DEFAULT_QUIZ_MARKUP)
     math = config_property('math', default=False)
     secret = config_property('secret', default='not a secret')
-    use_marking = config_property('use_marking', default=False)
+    honour_code = config_property('honour_code', default=True)
+    photos = config_property('photos', default=False)
 
     class Meta:
         verbose_name_plural = 'Quizzes'
@@ -218,6 +224,7 @@ class Quiz(models.Model):
 
         all_components = ActivityComponent.objects.filter(numeric_activity=num_activity)
         questions = self.question_set.all()
+        i = 0
 
         for i, q in enumerate(questions):
             existing_comp = [c for c in all_components if c.config.get('quiz-question-id', None) == q.id]
@@ -478,14 +485,19 @@ class QuestionAnswer(models.Model):
         return helper.to_html(self)
 
 
+def capture_upload_to(instance, filename):
+    return upload_path(instance.quiz.activity.offering.slug, '_quiz_photos', filename)
+
+
 class QuizSubmission(models.Model):
     """
-    Model to log everything we can think of about a quiz submission, for possibly later analysis.
+    Model to log everything we can think of about a quiz submission, for possible later analysis.
     """
     quiz = models.ForeignKey(Quiz, null=False, blank=False, on_delete=models.PROTECT)
     student = models.ForeignKey(Member, null=False, blank=False, on_delete=models.PROTECT)
     created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     ip_address = models.GenericIPAddressField(null=False, blank=False)
+    capture = models.FileField(null=True, blank=True, storage=UploadedFileStorage, upload_to=capture_upload_to, max_length=500)
     config = JSONField(null=False, blank=False, default=dict)  # additional data about the submission:
     # .config['answers']: list of answers submitted (where changed from prev submission),
     #     as [(QuestionVersion.id, Answer.id, Answer.answer)]
@@ -493,9 +505,11 @@ class QuizSubmission(models.Model):
     # .config['session']: the session_key from the submission
     # .config['csrf_token']: the CSRF token being used for the submission
     # .config['fingerprint']: browser fingerprint provided by fingerprintjs2
+    # .config['honour_code']: did student agree to the honour code?
 
     @classmethod
-    def create(cls, request: HttpRequest, quiz: Quiz, student: Member, answers: List[QuestionAnswer], commit: bool = True) -> 'QuizSubmission':
+    def create(cls, request: HttpRequest, quiz: Quiz, student: Member, answers: List[QuestionAnswer],
+               commit: bool = True) -> 'QuizSubmission':
         qs = cls(quiz=quiz, student=student)
         ip_addr, _ = get_client_ip(request)
         qs.ip_address = ip_addr
@@ -503,12 +517,24 @@ class QuizSubmission(models.Model):
         qs.config['session'] = request.session.session_key
         qs.config['csrf_token'] = request.META.get('CSRF_COOKIE')
         qs.config['user_agent'] = request.META.get('HTTP_USER_AGENT')
+        qs.config['honour_code'] = request.POST.get('honour-code', None)
         try:
             qs.config['fingerprint'] = json.loads(request.POST['fingerprint'])
         except KeyError:
             qs.config['fingerprint'] = 'missing'
         except json.JSONDecodeError:
             qs.config['fingerprint'] = 'json-error'
+
+        try:
+            capture_data_uri = request.POST['photo-capture']
+            # data: parsing from https://stackoverflow.com/a/33870677
+            header, encoded = capture_data_uri.split(",", 1)
+            capture = base64.b64decode(encoded)
+            f = File(file=io.BytesIO(capture), name='%i.png' % (student.id,))
+            qs.capture = f
+        except (KeyError, ValueError):
+            # if there's a problem, let it go.
+            qs.capture = None
 
         if commit:
             qs.save()
