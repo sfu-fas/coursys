@@ -17,7 +17,6 @@ from courselib.search import find_userid_or_emplid
 from log.models import LogEntry
 
 
-
 CATEGORY_CHOICES = {
     ('SWAG', 'Swag'),
     ('BROC', 'Brochures'),
@@ -30,7 +29,6 @@ CATEGORY_CHOICES = {
     ('TECH', 'Tech Support'),
     ('ELEC', 'Electronics'),
 }
-
 
 STOCK_STATUS_CHOICES = {
     (0, "Out of stock"),

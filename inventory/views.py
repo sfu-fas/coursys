@@ -2,7 +2,7 @@ from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, Ht
 from django.urls import reverse
 from django.contrib import messages
 from .models import Asset, AssetChangeRecord, assets_from_csv
-from .forms import AssetForm, AssetAttachmentForm, AssetChangeForm, InventoryUploadForm
+from .forms import AssetForm, AssetAttachmentForm, AssetChangeForm, InventoryUploadForm, InventoryFilterForm
 from courselib.auth import requires_role
 from log.models import LogEntry
 from coredata.models import Unit, Person
@@ -17,7 +17,8 @@ import csv, datetime
 def inventory_index(request):
     if 'tabledata' in request.GET:
         return InventoryDataJSON.as_view()(request)
-    return render(request, 'inventory/index.html')
+    form = InventoryFilterForm(request)
+    return render(request, 'inventory/index.html', {'form': form})
 
 
 # Helper methods moved from template filtering since we are now using server-side code.
@@ -82,6 +83,20 @@ class InventoryDataJSON(BaseDatatableView):
                 '</a>'
         else:
             return super(InventoryDataJSON, self).render_column(row, column)
+
+    def filter_queryset(self, qs):
+        # use request parameters to filter queryset
+        requestget = self.request.GET
+        categories = requestget.getlist('categories[]')
+        if categories:
+            qs = qs.filter(category__in=categories)
+        in_stock_status = requestget.getlist('in_stock_status[]')
+        if in_stock_status:
+            qs = qs.filter(stock_status__in=in_stock_status)
+        brand = requestget.get('brand[]', None)
+        if brand:
+            qs = qs.filter(brand=brand)
+        return super(InventoryDataJSON, self).filter_queryset(qs)
 
 
 @requires_role('INV')

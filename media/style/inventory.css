@@ -9,3 +9,14 @@
 .instock {
     color: green;
 }
+
+#filterform li span.field label {
+    margin-left: 0.5em;
+}
+
+.filter {
+    border: 1px solid black;
+    float: left;
+    margin-bottom: 0.5em;
+    margin-right: 0.5em;
+}
