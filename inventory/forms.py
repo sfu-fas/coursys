@@ -111,5 +111,5 @@ class InventoryFilterForm(forms.Form):
     def __init__(self, request, *args, **kwargs):
         super(InventoryFilterForm, self).__init__(*args, **kwargs)
         brand_choices = Asset.objects.visible(request.units).values_list('brand', 'brand').order_by('brand')\
-            .distinct().exclude(brand__isnull=True)
+            .distinct().exclude(brand__isnull=True).exclude(brand='')
         self.fields['brand'].choices = [('', 'all')] + list(brand_choices)
