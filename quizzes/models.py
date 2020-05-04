@@ -1,9 +1,7 @@
 # TODO: delete Quiz?
 # TODO: "copy course setup" should also copy quizzes
-# TODO: update activity max marks on rubric update
 # TODO: link to quiz (instructor if non-group; students if quiz exists)
 # TODO: student review of quiz results
-# TODO: does UI allow instructor to delete only question version
 
 import datetime
 import hashlib

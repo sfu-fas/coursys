@@ -459,6 +459,10 @@ def version_delete(request: HttpRequest, course_slug: str, activity_slug: str, q
             return ForbiddenResponse(request, 'Quiz is completed. You cannot modify questions after the end of the quiz time')
         question = get_object_or_404(Question, quiz=quiz, id=question_id)
         version = get_object_or_404(QuestionVersion, question=question, id=version_id)
+        other_versions = QuestionVersion.objects.filter(question=question).exclude(id=version_id)
+        if not other_versions.exists():
+            messages.add_message(request, messages.ERROR, 'Cannot delete the only version of a question.')
+            return redirect('offering:quiz:question_edit', course_slug=course_slug, activity_slug=activity_slug, question_id=question_id, version_id=version_id)
         version.status = 'D'
         version.save()
         messages.add_message(request, messages.SUCCESS, 'Question version deleted.')
