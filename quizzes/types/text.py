@@ -4,7 +4,7 @@ from django import forms
 from django.utils.safestring import mark_safe
 
 from courselib.markup import MarkupContentField, markup_to_html
-from .base import QuestionHelper, BaseConfigForm
+from .base import QuestionHelper, BaseConfigForm, MISSING_ANSWER_HTML
 
 
 class ShortAnswer(QuestionHelper):
@@ -27,6 +27,13 @@ class ShortAnswer(QuestionHelper):
 
     def to_text(self, questionanswer):
         return questionanswer.answer.get('data', '')
+
+    def to_html(self, questionanswer):
+        ans = questionanswer.answer.get('data', '')
+        if ans:
+            return ans
+        else:
+            return MISSING_ANSWER_HTML
 
 
 class LongAnswer(QuestionHelper):
@@ -53,6 +60,13 @@ class LongAnswer(QuestionHelper):
 
     def to_text(self, questionanswer):
         return questionanswer.answer.get('data', '')
+
+    def to_html(self, questionanswer):
+        ans = questionanswer.answer.get('data', '')
+        if ans:
+            return ans
+        else:
+            return MISSING_ANSWER_HTML
 
 
 class FormattedAnswer(QuestionHelper):
@@ -96,8 +110,11 @@ class FormattedAnswer(QuestionHelper):
     def to_text(self, questionanswer):
         # our "text" representation is the HTML of the response
         text, markup, math = questionanswer.answer.get('data', FormattedAnswer.default_initial)
-        html = markup_to_html(text, markup, math=None, restricted=True)
-        return html
+        if text:
+            html = markup_to_html(text, markup, math=None, restricted=True)
+            return html
+        else:
+            return MISSING_ANSWER_HTML
 
 
 class NumericAnswer(QuestionHelper):
@@ -124,3 +141,10 @@ class NumericAnswer(QuestionHelper):
 
     def to_text(self, questionanswer):
         return questionanswer.answer.get('data', None)
+
+    def to_html(self, questionanswer):
+        ans = questionanswer.answer.get('data', None)
+        if ans:
+            return ans
+        else:
+            return MISSING_ANSWER_HTML

@@ -32,11 +32,18 @@ $(document).ready(function() {
     <table id="summary-table" class="display">
     <thead><tr><th scope="col">Question</th><th scope="col">Number Marked</th><th scope="col">Actions</th></tr></thead>
     <tbody>
-    {% for quest, marks in question_marks %}
+    {% for quest, marks, versions in question_marks %}
         <tr id="{{ quest.ident }}">
             <td>#{{ forloop.counter }}</td>
             <td>{{ marks|length }}</td>
-            <td><a href="{% url 'offering:quiz:mark_next_question' course_slug=offering.slug activity_slug=activity.slug question_id=quest.id %}">Next unmarked #{{ forloop.counter }}</a></td>
+            <td>
+                <a href="{% url 'offering:quiz:mark_next_question' course_slug=offering.slug activity_slug=activity.slug question_id=quest.id %}">Next unmarked #{{ forloop.counter }}</a>
+                {% if versions|length > 1 %}
+                {% for v in versions %}
+                    [<a href="{% url 'offering:quiz:mark_next_version' course_slug=offering.slug activity_slug=activity.slug question_id=quest.id version_id=v.id %}">Next #{{ forloop.parentloop.counter }} ver{{ forloop.counter }}</a>]
+                {% endfor %}
+                {% endif %}
+            </td>
         </tr>
     {% endfor %}
     </tbody>

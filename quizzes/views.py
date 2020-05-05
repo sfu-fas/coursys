@@ -177,7 +177,6 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
         form.fields = fields
 
     question_data = list(zip(questions, versions, form.visible_fields()))
-    print(previous_honour_code)
 
     context = {
         'offering': offering,
@@ -745,6 +744,7 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
     questions = Question.objects.filter(quiz=quiz)
+    versions = QuestionVersion.objects.filter(question__quiz=quiz)
     components = ActivityComponent.objects.filter(numeric_activity_id=quiz.activity_id, deleted=False)
     comp_marks = ActivityComponentMark.objects.filter(activity_component__in=components) \
         .select_related('activity_mark', 'activity_component')
@@ -754,13 +754,15 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
 
     # collect existing marks for tally
     component_lookup = quiz.activitycomponents_by_question()
+    version_lookup = {q_id: list(vs) for q_id, vs in itertools.groupby(versions, key=lambda v: v.question_id)}
     question_marks: List[Tuple[Question, List[ActivityComponentMark]]] = []
     for q in questions:
         if q not in component_lookup:
             raise MarkingNotConfiguredError('Marking not configured')
         comp = component_lookup[q]
         marks = [m for m in comp_marks if m.activity_component == comp and m.value is not None]
-        question_marks.append((q, marks))
+        vs = version_lookup[q.id]
+        question_marks.append((q, marks, vs))
 
     # data for all marks table
     answers = QuestionAnswer.objects.filter(question__quiz=quiz).select_related('student__person')
@@ -794,7 +796,8 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
 
 @requires_course_staff_by_slug
 @catch_marking_configuration_error
-def mark_next(request: HttpRequest, course_slug: str, activity_slug: str, question_id: Optional[str] = None) -> HttpResponse:
+def mark_next(request: HttpRequest, course_slug: str, activity_slug: str,
+              question_id: Optional[str] = None, version_id: Optional[str] = None) -> HttpResponse:
     """
     Mark random quiz with given question unmarked.
     """
@@ -811,10 +814,20 @@ def mark_next(request: HttpRequest, course_slug: str, activity_slug: str, questi
             component = component_lookup[question]
         except KeyError:
             raise MarkingNotConfiguredError('Marking not configured')
+    else:
+        question = None
+
+    if question and version_id:
+        version = get_object_or_404(QuestionVersion, question=question, id=version_id)
+    else:
+        version = None
 
     # Find QuestionAnswers that don't have a corresponding mark.
     # This is a bit of a pain because of the marking model structure, but it's too late to change that now.
-    if question_id:
+    if version:
+        answers = QuestionAnswer.objects.filter(question=question, question_version=version).select_related('student')
+        comp_marks = ActivityComponentMark.objects.filter(activity_component=component, value__isnull=False)
+    elif question:
         answers = QuestionAnswer.objects.filter(question=question).select_related('student')
         comp_marks = ActivityComponentMark.objects.filter(activity_component=component, value__isnull=False)
     else:
@@ -833,12 +846,14 @@ def mark_next(request: HttpRequest, course_slug: str, activity_slug: str, questi
         student = random.choice(unmarked_students)
         url = resolve_url('offering:quiz:mark_student',
                           course_slug=course_slug, activity_slug=activity_slug, member_id=student.id)
-        if question_id:
+        if question:
             return HttpResponseRedirect(url + '#' + str(question.ident()))
         else:
             return HttpResponseRedirect(url)
     else:
-        if question_id:
+        if version:
+            messages.add_message(request, messages.INFO, 'That version has been completely marked.')
+        elif question:
             messages.add_message(request, messages.INFO, 'That question has been completely marked.')
         else:
             messages.add_message(request, messages.INFO, 'Marking complete.')
@@ -858,6 +873,7 @@ def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, mem
     answers = QuestionAnswer.objects.filter(question__quiz=quiz, student=member)
     questions = Question.objects.filter(quiz=quiz)
     versions = QuestionVersion.select(quiz=quiz, questions=questions, student=member, answers=answers)
+    all_versions = QuestionVersion.objects.filter(question__quiz=quiz).select_related('question')
     if not activity.quiz_marking():
         raise MarkingNotConfiguredError
 
@@ -937,7 +953,19 @@ def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, mem
             messages.add_message(request, messages.SUCCESS, 'Marks saved.')
             LogEntry(userid=request.user.username, description='marked quiz on %s for %s' % (activity.name, member.person.userid_or_emplid()),
                      related_object=am).save()
-            return redirect('offering:quiz:mark_next', course_slug=offering.slug, activity_slug=activity.slug)
+
+            # Where to now? Did they click a "next Q#n" or "next Q#n verm" button?
+            next_q_button = [k for k in request.POST.keys() if k.startswith('mark-next-q-')]
+            next_v_button = [k for k in request.POST.keys() if k.startswith('mark-nextver-q-')]
+            if next_v_button:
+                q_id, v_id = next_v_button[0].replace('mark-nextver-q-', '').split('-')
+                return redirect('offering:quiz:mark_next_version', course_slug=offering.slug, activity_slug=activity.slug, question_id=q_id, version_id=v_id)
+            elif next_q_button:
+                q_id = next_q_button[0].replace('mark-next-q-', '')
+                return redirect('offering:quiz:mark_next_question', course_slug=offering.slug, activity_slug=activity.slug, question_id=q_id)
+            else:
+                # Nope. Go to any "next" quiz.
+                return redirect('offering:quiz:mark_next', course_slug=offering.slug, activity_slug=activity.slug)
 
     else:
         # build forms from existing marking data
@@ -952,8 +980,16 @@ def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, mem
             f = ComponentForm(component=ac, prefix=q.ident(), instance=acm)
             component_form_lookup[q.id] = f
 
+    # enumerate versions of each question, so we know if the "next version n" button is relevant
+    num_versions_lookup = {q_id: len(list(versions)) for q_id, versions in itertools.groupby(all_versions, key=lambda v: v.question_id)}
+
     # data struct with all the per-question stuff needed
-    version_form_answers = [(v, component_form_lookup[v.question_id], answer_lookup.get(v.question_id, None)) for v in versions]
+    version_form_answers = [
+        (v,
+         component_form_lookup[v.question_id],
+         answer_lookup.get(v.question_id, None),
+         num_versions_lookup[v.question_id])
+        for v in versions]
 
     context = {
         'offering': offering,

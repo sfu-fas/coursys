@@ -13,7 +13,7 @@ from django.shortcuts import resolve_url
 from django.template.defaultfilters import filesizeformat
 from django.utils.safestring import mark_safe
 
-from quizzes.types.base import QuestionHelper, BaseConfigForm
+from quizzes.types.base import QuestionHelper, BaseConfigForm, MISSING_ANSWER_HTML
 from submission.models.codefile import FILENAME_TYPES, validate_filename
 
 FILE_SECRET_LENGTH = 32
@@ -135,7 +135,7 @@ class FileAnswer(QuestionHelper):
                 filesizeformat(data['size']),
             )
         else:
-            html = '<p class="empty">No submission.</p>'
+            html = MISSING_ANSWER_HTML
         return mark_safe(html)
 
     # unused but maybe useful later?

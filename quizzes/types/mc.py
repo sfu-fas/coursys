@@ -2,7 +2,7 @@ from django import forms
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
-from .base import QuestionHelper, BaseConfigForm
+from .base import QuestionHelper, BaseConfigForm, MISSING_ANSWER_HTML
 
 OPTION_LETTERS = 'ABCDEFGHIJKLMNOP'
 
@@ -110,7 +110,18 @@ class MultipleChoice(QuestionHelper):
         return field
 
     def to_text(self, questionanswer):
-        return questionanswer.answer.get('data', MultipleChoice.NA)
+        ans = questionanswer.answer.get('data', MultipleChoice.NA)
+        if ans == MultipleChoice.NA:
+            return 'no answer'
+        else:
+            return ans
+
+    def to_html(self, questionanswer):
+        ans = questionanswer.answer.get('data', MultipleChoice.NA)
+        if ans == MultipleChoice.NA:
+            return MISSING_ANSWER_HTML
+        else:
+            return ans
 
     def question_preview_html(self):
         # override to present options (original order) along with question text

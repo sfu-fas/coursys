@@ -27,5 +27,6 @@ quiz_patterns = [
     url(r'^mark/$', views.marking, name='marking'),
     url(r'^mark-next/$', views.mark_next, name='mark_next'),
     url(r'^mark-next/(?P<question_id>\d+)$', views.mark_next, name='mark_next_question'),
+    url(r'^mark-next/(?P<question_id>\d+)-(?P<version_id>\d+)$', views.mark_next, name='mark_next_version'),
     url(r'^mark/(?P<member_id>\d+)$', views.mark_student, name='mark_student'),
 ]

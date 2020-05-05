@@ -34,8 +34,8 @@ $(document).ready(function() {
 
 {% block content %}
     <form action="" method="post" enctype="multipart/form-data" class="marking">{% csrf_token %}
-    {% for v,f,a in version_form_answers %}
-        <h2 id="{{ v.question.ident }}">Question #{{ forloop.counter }}</h2>
+    {% for v,f,a,n_versions in version_form_answers %}
+        <h2 id="{{ v.question.ident }}" style="clear:right;">Question #{{ forloop.counter }}</h2>
 
         <div class="version">[Version {{ v.choice }}]</div>
         {{ v.question_preview_html }}
@@ -51,11 +51,15 @@ $(document).ready(function() {
         <dd>{{ f.value }} / {{ v.question.points }} {{ f.value.errors }}<br />
         <dd>{{ f.comment|field_display }}</dd>
         </dl>
+        <p><input class="submit" type="submit" name="mark-next-{{ v.question.ident }}" value="Save &amp; next Q#{{ forloop.counter }}" /></p>
+        {% if n_versions > 1 %}
+        <p><input class="submit" type="submit" name="mark-nextver-{{ v.question.ident }}-{{ v.id }}" value="Save &amp; next Q#{{ forloop.counter }} ver{{ v.choice }}" /></p>
+        {% endif %}
     {% endfor %}
 
-    <h2 id="overall">Overall</h2>
+    <h2 id="overall" style="clear:right;">Overall</h2>
     {{ form|as_dl }}
-    <p><input class="submit" type="submit" value="Save Marking" /></p>
+    <p><input class="submit" type="submit" name="save" value="Save Marking" /></p>
     </form>
 
 {% endblock %}

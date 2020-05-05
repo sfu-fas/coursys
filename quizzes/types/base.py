@@ -10,6 +10,9 @@ if TYPE_CHECKING:
     from quizzes.models import Question, QuestionAnswer
 
 
+MISSING_ANSWER_HTML = mark_safe('<p class="empty">[No answer.]</p>')
+
+
 def escape_break(text: str) -> SafeText:
     """
     Helper to display student-entered text reasonably (and safely).
