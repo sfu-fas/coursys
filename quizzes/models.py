@@ -1,6 +1,6 @@
 # TODO: delete Quiz?
 # TODO: "copy course setup" should also copy quizzes
-# TODO: link to quiz (instructor if non-group; students if quiz exists)
+# TODO: link to quiz (instructor if non-group activity)
 # TODO: student review of quiz results
 # TODO: let instructor select "one question at a time, no backtracking" presentation
 import base64

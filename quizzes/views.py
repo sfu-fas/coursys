@@ -93,6 +93,8 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
         return render(request, 'quizzes/unavailable.html', context=context, status=403)
 
     am_late = end < now  # checked below to decide message to give to student when submitting during grace period
+    honour_code_key = 'previous_honour_code_' + str(quiz.id)
+    previous_honour_code = request.session.get(honour_code_key, False)  # did student agree to honour code recently?
 
     questions = Question.objects.filter(quiz=quiz)
     question_number = {q.id: i + 1 for i, q in enumerate(questions)}
@@ -151,6 +153,8 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                              related_object=ans).save()
 
             QuizSubmission.create(request=request, quiz=quiz, student=member, answers=answers)
+            if request.POST.get('honour-code', None):
+                request.session[honour_code_key] = True
 
             if am_late:
                 messages.add_message(request, messages.SUCCESS, 'Quiz answers saved, but the quiz is now over and you cannot edit further.')
@@ -173,6 +177,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
         form.fields = fields
 
     question_data = list(zip(questions, versions, form.visible_fields()))
+    print(previous_honour_code)
 
     context = {
         'offering': offering,
@@ -185,6 +190,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
         'start': start,
         'end': end,
         'seconds_left': (end - datetime.datetime.now()).total_seconds(),
+        'previous_honour_code': bool(previous_honour_code),
     }
     return render(request, 'quizzes/index_student.html', context=context)
 

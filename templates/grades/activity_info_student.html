@@ -48,6 +48,9 @@
         <li><a href="{% url "offering:submission:show_components" course.slug activity.slug%}">View Submission</a></li>
 		{% endif %}
 		{% endif %}
+        {% if quiz %}
+        <li><a href="{% url "offering:quiz:index" course.slug activity.slug %}">Take Quiz</a></li>
+        {% endif %}
     </ul>
 </div>
 {% endif %}

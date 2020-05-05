@@ -25,7 +25,7 @@ var seconds_left = {{ seconds_left|escapejs }};
 $(document).ready(function() {
     get_fingerprint();
     update_time_left(load_time + seconds_left);
-    {% if quiz.honour_code and not preview %}show_honour_code();{% endif %}
+    {% if quiz.honour_code and not preview and not previous_honour_code %}show_honour_code();{% endif %}
     {% if quiz.photos %}capture_startup();{% endif %}
 } );
 </script>
@@ -68,12 +68,17 @@ $(document).ready(function() {
     {% if quiz.honour_code %}
     <section id="honour-code">
     {% include "quizzes/_honour_code.html" %}
+    {% if previous_honour_code %}
+    <p id="honour-agree">[Agreed with previous quiz submission.]</p>
+    <input type="hidden" name="honour-code" id="input-honour-code" value="PREV" />
+    {% else %}
     <p id="honour-agree">Do you agree to this honour code?
         <button id="honour-yes">YES</button>
         <button id="honour-no">NO</button>
         {% if preview %}<span class="infomessage">[Students must click <q>YES</q> before the rest of the quiz appears below.]</span>{% endif %}
     </p>
     <input type="hidden" name="honour-code" id="input-honour-code" />
+    {% endif %}
     </section>
     {% endif %}
 

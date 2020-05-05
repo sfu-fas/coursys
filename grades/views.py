@@ -38,6 +38,7 @@ from grades.utils import ValidationError, calculate_numeric_grade, calculate_let
 from marking.models import get_group_mark, StudentActivityMark, GroupActivityMark, ActivityComponent
 
 from groups.models import GroupMember, add_activity_to_group
+from quizzes.models import Quiz
 
 from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, SubmissionInfo, select_all_submitted_components, select_all_components
 
@@ -318,8 +319,13 @@ def _activity_info_student(request, course_slug, activity_slug):
     else:
         activity_stat, reason_msg = generate_letter_activity_stat(activity, 'STUD')
 
+    try:
+        quiz = activity.quiz
+    except Quiz.DoesNotExist:
+        quiz = None
+
     context = {'course': course, 'activity': activity, 'grade': grade,
-               'activity_stat': activity_stat, 'reason_msg': reason_msg}
+               'activity_stat': activity_stat, 'reason_msg': reason_msg, 'quiz': quiz}
     resp = render(request, 'grades/activity_info_student.html', context)
     resp.allow_gstatic_csp = True
     return resp

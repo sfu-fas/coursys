@@ -71,7 +71,9 @@ $(document).ready(function() {
     {% for sub in quiz_submissions %}
         <tr>
             <td><span class="sort">{{ sub.created_at.isoformat }}</span>{{ sub.created_at }}</td>
-            {% if quiz.honour_code %}<td>{% if sub.config.honour_code %}<i class="fa fa-check"></i>{% endif %}</td>{% endif %}
+            {% if quiz.honour_code %}<td>
+                {% if sub.config.honour_code == 'YES' %}<i class="fas fa-check-square" title="Agreed with this submission"></i>
+                {% elif sub.config.honour_code == 'PREV' %}<i class="far fa-check-square" title="Agreed previously"></i>{% endif %}</td>{% endif %}
             {% if quiz.photos %}<td>
                 {% if sub.capture %}
                     <a class="photo-show" data-popup="photo-{{ sub.id }}"><i class="far fa-eye"></i></a>
