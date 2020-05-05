@@ -247,6 +247,7 @@ def edit_case_info(request, course_slug, case_slug, field):
                         # only send the email if text was updated too
                         c0.contacted = form.cleaned_data['contacted']
                         c0.contact_email_text = form.cleaned_data['contact_email_text']
+                        c0.contact_date = datetime.date.today()
                         c0.save()
                         messages.add_message(request, messages.SUCCESS,
                             "Also updated %s for %s." % (STEP_DESC['contacted'], c0.student.name()))

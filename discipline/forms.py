@@ -91,6 +91,7 @@ class CaseNotesForm(forms.ModelForm):
             'notes': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'15'}),
             'notes_public': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'15'}),
         }
+
 class CaseContactedForm(forms.ModelForm):
     def clean(self):
         contacted = self.cleaned_data['contacted']
