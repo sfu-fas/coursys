@@ -1,4 +1,5 @@
-from typing import Dict, Any, TYPE_CHECKING
+from decimal import Decimal
+from typing import Dict, Any, TYPE_CHECKING, Tuple, Optional
 
 from django import forms
 from django.utils.html import linebreaks, escape
@@ -34,6 +35,7 @@ class BaseConfigForm(forms.Form):
 
 class QuestionHelper(object):
     name: str
+    auto_markable = False  # can this question type be auto-marked? Must implement automark() if so.
 
     def __init__(self, question=None, version=None):
         #assert question or hasattr(version, 'question_cached') or hasattr(version, '_question_cache'), "Question must be given explicitly, or QuestionVersion's .question must be pre-fetched with select_related."
@@ -98,15 +100,23 @@ class QuestionHelper(object):
         """
         return prev_ans == new_ans
 
-    def to_html(self, questionanswer) -> SafeText:
+    def to_html(self, questionanswer: 'QuestionAnswer') -> SafeText:
         """
         Convert QuestionAnswer to HTML for display to the user.
         """
         # default is good enough for plain-text-ish things.
         return escape_break(self.to_text(questionanswer))
 
-    def to_text(self, questionanswer) -> str:
+    def to_text(self, questionanswer: 'QuestionAnswer') -> str:
         """
         Convert QuestionAnswer to plain for JSON output.
         """
         raise NotImplementedError
+
+    def automark(self, questionanswer: 'QuestionAnswer') -> Optional[Tuple[Decimal, str]]:
+        """
+        Return marking data for this question: mark (presumably out of the question's max points) and comment.
+
+        Return None if question is not markable.
+        """
+        return None

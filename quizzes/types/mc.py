@@ -73,10 +73,25 @@ permutation_choices = [
 class MultipleChoice(QuestionHelper):
     name = 'Multiple Choice'
     NA = '' # value used to represent "no answer"
+    auto_markable = True
 
     class ConfigForm(BaseConfigForm):
         options = MultipleTextField(required=True, help_text='Options presented to students. Any left blank will not be displayed.')
+        correct_answer = forms.CharField(required=False, help_text='Optional. Correct response (A–J as above) for automatic marking.')
         permute = forms.ChoiceField(required=True, choices=permutation_choices, help_text='You will still see the answers as they are above: a student answer of \u201CA\u201D refers to the first choice above, regardless of the order they see.')
+
+        def clean_correct_answer(self):
+            ans = self.cleaned_data['correct_answer']
+            return ans.upper()
+
+        def clean(self):
+            cleaned_data = super().clean()
+            options = cleaned_data.get('options')
+            correct_answer = cleaned_data.get('correct_answer')
+
+            if options and correct_answer:
+                if correct_answer not in options:
+                    self.add_error('correct_answer', 'Correct answer must correspond to an answer above: ' + ', '.join(options) + '.')
 
     def get_entry_field(self, questionanswer=None, student=None):
         options = self.version.config.get('options', [])
@@ -138,3 +153,11 @@ class MultipleChoice(QuestionHelper):
             ''.join(choices_html),
             '</div>'
         )))
+
+    def automark(self, questionanswer):
+        correct = self.version.config.get('correct_answer', 'fake_correct')
+        ans = questionanswer.answer.get('data', 'fake_answer')
+        if ans == correct:
+            return self.question.points, ''
+        else:
+            return 0, ''

@@ -5,15 +5,18 @@
 # TODO: let instructor select "one question at a time, no backtracking" presentation
 import base64
 import datetime
+import decimal
 import hashlib
 import io
 import itertools
 import json
 from collections import namedtuple
 from importlib import import_module
-from typing import Optional, Tuple, List, Iterable, Any, Dict
+from typing import Optional, Tuple, List, Iterable, Any, Dict, AbstractSet
 
 from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.sessions.backends.db import SessionStore as DatabaseSessionStore
 from django.core.checks import Error
 from django.core.files import File
@@ -29,8 +32,8 @@ from courselib.conditional_save import ConditionalSaveMixin
 from courselib.json_fields import JSONField, config_property
 from courselib.markup import markup_to_html
 from courselib.storage import UploadedFileStorage, upload_path
-from grades.models import Activity, NumericActivity
-from marking.models import ActivityComponent, ActivityComponentMark
+from grades.models import Activity, NumericActivity, NumericGrade
+from marking.models import ActivityComponent, ActivityComponentMark, StudentActivityMark
 from quizzes import DEFAULT_QUIZ_MARKUP
 from quizzes.types.file import FileAnswer
 from quizzes.types.mc import MultipleChoice
@@ -61,6 +64,10 @@ STATUS_CHOICES = [
     ('V', 'Visible'),
     ('D', 'Deleted'),
 ]
+
+
+class MarkingNotConfiguredError(ValueError):
+    pass
 
 
 def string_hash(s: str, n_bytes: int = 8):
@@ -281,6 +288,15 @@ class Quiz(models.Model):
 
         return component_lookup
 
+    def automark_all(self, user: User, zero_missing: bool = False):
+        """
+        Fill in marking for any QuestionVersions that support it.
+        """
+        versions = QuestionVersion.objects.filter(question__quiz=self).select_related('question')
+        activity_components = self.activitycomponents_by_question()
+        for v in versions:
+            v.automark_all(activity_components=activity_components, user=user)
+
 
 class Question(models.Model, ConditionalSaveMixin):
     class QuestionStatusManager(models.Manager):
@@ -422,6 +438,80 @@ class QuestionVersion(models.Model):
         if questionanswer:
             assert questionanswer.question_version_id == self.id
         return helper.get_entry_field(questionanswer=questionanswer, student=student)
+
+    @transaction.atomic
+    def automark_all(self, activity_components: Dict['Question', ActivityComponent], user: User):
+        """
+        Automark everything for this version, if possible.
+        """
+        helper = self.helper(question=self.question)
+        if not helper.auto_markable:
+            # This helper can't do automarking, so don't try.
+            return
+
+        answers = QuestionAnswer.objects.filter(question_version=self).select_related('question', 'student')
+        activity = NumericActivity.objects.get(id=self.question.quiz.activity_id)
+
+        # find any existing marking for this question
+        try:
+            component = activity_components[self.question]
+        except KeyError:
+            raise MarkingNotConfiguredError()
+
+        component_marks = ActivityComponentMark.objects.filter(activity_component=component).select_related('activity_mark')
+        component_mark_lookup = {acm.activity_mark_id: acm for acm in component_marks}
+        student_actmarks = StudentActivityMark.objects.filter(id__in=[cm.activity_mark_id for cm in component_marks]) \
+            .select_related('numeric_grade__member') \
+            .prefetch_related('activitycomponentmark_set')
+        student_actmark_lookup = {am.numeric_grade.member: am for am in student_actmarks}
+        numeric_grades = NumericGrade.objects.filter(activity=activity)
+        numeric_grade_lookup = {ng.member: ng for ng in numeric_grades}
+
+        students_answered = set()
+        for a in answers:
+            mark = helper.automark(a)
+            if mark is None:
+                # helper is allowed to throw up its hands and return None if auto-marking not possible
+                continue
+
+            points, comment = mark
+
+            # We have a mark and comment: ensure we have an ActivityMark that contains it...
+            member = a.student
+            students_answered.add(member)
+            try:
+                ngrade = numeric_grade_lookup[member]
+            except KeyError:
+                ngrade = NumericGrade(activity_id=activity.id, member=member)
+                ngrade.save(newsitem=False, entered_by=None, is_temporary=True)
+
+            try:
+                act_mark = student_actmark_lookup[member]
+                act_mark.numeric_grade = ngrade
+            except KeyError:
+                act_mark = StudentActivityMark(activity=activity, created_by=user.username)
+                act_mark.numeric_grade = ngrade
+                act_mark.save()
+
+            if act_mark.id and act_mark.id in component_mark_lookup:
+                comp_mark = component_mark_lookup[act_mark.id]
+            else:
+                comp_mark = ActivityComponentMark(activity_component=component, activity_mark=act_mark)
+
+            comp_mark.value = points
+            comp_mark.comment = comment
+            comp_mark.save()
+
+            # Get the collection of ActivityComponentMarks: complete and with the just-modified one.
+            components = {acm for acm in act_mark.activitycomponentmark_set.all() if acm.activity_component != component}
+            components.add(comp_mark)
+            if len(components) == len(activity_components):
+                # if we have all components filled, save the total
+                total = act_mark.calculated_mark(components)
+                ngrade.value = total
+                ngrade.save(newsitem=False, entered_by=user.username)
+                act_mark.mark = total
+                act_mark.save()
 
 
 def file_upload_to(instance, filename):

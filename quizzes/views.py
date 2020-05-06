@@ -21,8 +21,9 @@ from grades.models import Activity, NumericGrade
 from log.models import LogEntry
 from marking.models import ActivityComponent, ActivityComponentMark, StudentActivityMark, get_activity_mark_for_student
 from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm, MarkingSetupForm
-from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES, Question, QuestionAnswer, TimeSpecialCase, \
-    QuizSubmission, QuestionVersion
+from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES, Question, QuestionAnswer, \
+    TimeSpecialCase, \
+    QuizSubmission, QuestionVersion, MarkingNotConfiguredError
 
 
 @requires_course_by_slug
@@ -687,10 +688,6 @@ def special_case_delete(request: HttpRequest, course_slug: str, activity_slug: s
         return redirect('offering:quiz:special_cases', course_slug=course_slug, activity_slug=activity_slug)
     else:
         return HttpError(request, status=405, title="Method Not Allowed", error='POST or DELETE requests only.')
-
-
-class MarkingNotConfiguredError(ValueError):
-    pass
 
 
 def catch_marking_configuration_error(f):

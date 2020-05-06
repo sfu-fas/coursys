@@ -124,7 +124,11 @@ class FileAnswer(QuestionHelper):
         )
 
     def to_text(self, questionanswer):
-        return self.secret_url(questionanswer)
+        data = questionanswer.answer['data']
+        if 'filename' in data and 'secret' in data:
+            return self.secret_url(questionanswer)
+        else:
+            return None
 
     def to_html(self, questionanswer):
         data = questionanswer.answer['data']

@@ -134,11 +134,12 @@ class ActivityMark(models.Model):
         """
         return self.activitycomponentmark_set.all()
 
-    def calculated_mark(self):
+    def calculated_mark(self, components=None):
         """
         Actually calculate the mark based on the components so we can check if we need a separate numeric grade
         """
-        components = self.get_components()
+        if not components:
+            components = self.get_components()
         total = decimal.Decimal(0)
         for c in components:
             total += c.value or 0
