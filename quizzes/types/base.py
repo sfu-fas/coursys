@@ -34,7 +34,7 @@ class BaseConfigForm(forms.Form):
 
 
 class QuestionHelper(object):
-    name: str
+    #name: str
     auto_markable = False  # can this question type be auto-marked? Must implement automark() if so.
 
     def __init__(self, question=None, version=None):

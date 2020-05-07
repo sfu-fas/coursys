@@ -278,8 +278,8 @@ class Quiz(models.Model):
         """
         questions = self.question_set.all()
         components = ActivityComponent.objects.filter(numeric_activity_id=self.activity_id, deleted=False)
-        question_lookup: Dict[int, Question] = {q.id: q for q in questions}
-        component_lookup: Dict[Question, ActivityComponent] = {}
+        question_lookup = {q.id: q for q in questions}
+        component_lookup = {}
 
         for c in components:
             if 'quiz-question-id' in c.config and c.config['quiz-question-id'] in question_lookup:

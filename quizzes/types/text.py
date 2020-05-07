@@ -103,7 +103,7 @@ class CodeAnswer(LongAnswer):
 
 class FormattedAnswer(QuestionHelper):
     name = 'Long Answer with formatting'
-    default_initial: Tuple[str, str, bool] = ('', 'html-wysiwyg', False)
+    default_initial = ('', 'html-wysiwyg', False)
 
     class ConfigForm(BaseConfigForm):
         max_length = forms.IntegerField(required=True, min_value=100, max_value=100000, initial=10000, label='Maximum length',

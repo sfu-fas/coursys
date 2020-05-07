@@ -765,7 +765,7 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
     # collect existing marks for tally
     component_lookup = quiz.activitycomponents_by_question()
     version_lookup = {q_id: list(vs) for q_id, vs in itertools.groupby(versions, key=lambda v: v.question_id)}
-    question_marks: List[Tuple[Question, List[ActivityComponentMark]]] = []
+    question_marks = []  # : List[Tuple[Question, List[ActivityComponentMark]]]
     for q in questions:
         if q not in component_lookup:
             raise MarkingNotConfiguredError('Marking not configured')
