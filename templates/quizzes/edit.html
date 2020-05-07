@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block title %}{% if quiz %}Edit{% else %}Create{% endif %} Quiz{% endblock %}
+{% block h1 %}{% if quiz %}Edit{% else %}Create{% endif %} Quiz{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{offering.get_absolute_url}}">{{ offering.name }}</a></li>
+    <li><a href="{{activity.get_absolute_url}}">{{ activity.name }}</a></li>
+    {% if quiz %}
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li>Edit</li>
+    {% else %}
+    <li>Create Quiz</li>
+    {% endif %}
+{% endblock %}
+
+{% block headextra %}
+{% include 'pages/markup_edit_head.html' %}
+{% endblock %}
+
+{% block content %}
+{% if quiz.ongoing %}
+    <p class="warningmessage">This quiz is currently in-progress. Editing it now should be done <strong>very</strong> cautiously.</p>
+{% endif %}
+{% if quiz.completed %}
+    <p class="warningmessage">This quiz has ended. <strong>Editing it is almost certainly not a good idea</strong>, except to change the end time to extend it.</p>
+{% endif %}
+
+<h3>About start and end times</h3>
+<p>
+    Students will not be able to see the quiz until the start time has passed.
+    They can go to <a href="{{ quiz.get_absolute_url }}">the quiz page</a> but will get a message that it isn't yet available.
+</p>
+<p>
+    After the end of the quiz time, students <strong>may not view</strong> (load/reload) the quiz page where they enter answers.
+    They <strong>can submit their answers</strong> after the end time, up to the grace period you set below.
+    The late time is noted along with their submission, and instructors may determine how to proceed with marking.
+</p>
+<p>
+    After the end time + grace period, students <strong>cannot submit their answers</strong>, period.
+    A grace period &gt;0 is recommended to avoid student answers being discarded because of network delays, misaligned clocks, etc.
+</p>
+
+<form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+{{form|as_dl}}
+<p><input class="submit" type="submit" value="{% if quiz %}Update{% else %}Create{% endif %}" /></p>
+</form>
+
+{% endblock %}

@@ -44,6 +44,13 @@ LABEL_REPLACEMENTS = {
     'Tornado': 'Tornado template',
 }
 
+# Cases where hightlight.js labels a language differently from codemirror. Incomplete, but covers common cases.
+HIGHLIGHT_SUBSTITUTIONS = {
+    'clike': 'c',
+    'mllike': 'ocaml',
+    'stex': 'tex',
+}
+
 
 def main():
     page = urllib.request.urlopen(MODE_LIST_URL)
@@ -80,5 +87,6 @@ def main():
         print('    %r,' % (m,))
 
     print(']')
+    print('HIGHLIGHT_SUBSTITUTIONS = ' + repr(HIGHLIGHT_SUBSTITUTIONS))
 
 main()

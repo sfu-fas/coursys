@@ -1,0 +1,6 @@
+{% if widget.is_initial %}Previous submission: <code class="file">{{ widget.value }}</code>{% if not widget.required %}<br>
+<label for="{{ widget.checkbox_id }}">Clear:</label>
+<input type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}">
+    <span class="helptext">(you will <strong>not</strong> have a submitted answer for this question if you clear the file)</span>{% endif %}<br>
+{{ widget.input_text }}:{% endif %}
+<input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>

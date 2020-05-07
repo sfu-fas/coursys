@@ -10,7 +10,7 @@ from coredata.queries import find_person, add_person, more_personal_info, more_c
 from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
 from courselib.search import find_userid_or_emplid, get_query
-from grades.views import _has_photo_agreement
+from grades.views import has_photo_agreement
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.mail.message import EmailMultiAlternatives
@@ -336,7 +336,7 @@ def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None
 @requires_role(['ADVS', 'ADVM'])
 def student_notes(request, userid):
     user = get_object_or_404(Person, userid=request.user.username)
-    if not _has_photo_agreement(user):
+    if not has_photo_agreement(user):
         url = reverse('config:photo_agreement') + '?return=' + urllib.parse.quote(request.path)
         return ForbiddenResponse(request, mark_safe(
             'You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))

@@ -1,0 +1,53 @@
+form.quiz input.short-answer, form.quiz input.long-answer, .mc-option-input {
+    width: 100%;
+}
+.mc-letter {
+    display:inline-block;
+    width: 1.5em;
+}
+input.mc-choice {
+    width: 20em;
+}
+input.mc-mark {
+    width: 3em;
+}
+.collapsible-heading-status {
+    display: none;
+}
+form.marking input[type=number] {
+    width: 6em;
+}
+form.marking textarea {
+    height: 5em;
+    width: 100%;
+}
+
+div.answer {
+    border: thin #b5111b solid;
+    padding: 0 0.5em;
+    background: white;
+}
+div#capture {
+    position: relative;
+}
+div#capture>div>canvas {
+    display: none;
+}
+div#capture video, div#capture img {
+    width: 320px;
+    height: 240px;
+    border: thin solid black;
+}
+div#capture>* {
+    display: inline-block;
+}
+div#capture>div>* {
+    display: block;
+}
+div#capture>div>p {
+    margin: 0;
+    padding: 0;
+}
+div#capture button {
+    vertical-align: bottom;
+}

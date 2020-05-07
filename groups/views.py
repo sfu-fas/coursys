@@ -4,7 +4,7 @@ from django.db.models import Q
 from coredata.models import Member, Person, CourseOffering
 from groups.models import Group, GroupMember, all_activities
 from grades.models import Activity, all_activities_filter
-from grades.views import _has_photo_agreement
+from grades.views import has_photo_agreement
 from django.shortcuts import render, get_object_or_404
 from groups.forms import ActivityForm, GroupForSemesterForm, StudentForm, GroupNameForm
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
@@ -203,7 +203,7 @@ def group_photos(request, course_slug):
     allmembers = GroupMember.objects.filter(group__courseoffering=offering).order_by('group__name', 'student__person') \
         .select_related('group', 'student', 'student__person')
     user = get_object_or_404(Person, userid=request.user.username)
-    photo_agreement = _has_photo_agreement(user)
+    photo_agreement = has_photo_agreement(user)
     agreement_url = reverse('config:photo_agreement') + '?return=' + urllib.parse.quote(request.path)
 
     if 'activity' in request.GET:

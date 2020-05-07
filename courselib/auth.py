@@ -121,8 +121,12 @@ def is_course_member_by_slug(request, course_slug, **kwargs):
     """
     memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN")\
         .filter(offering__slug=course_slug, person__userid=request.user.username, offering__graded=True)
-    count = memberships.count()
-    return count > 0
+    memberships = list(memberships)
+    if memberships:
+        request.member = memberships[0]
+        return True
+    else:
+        return False
 
 def requires_course_by_slug(function=None, login_url=None):
     """

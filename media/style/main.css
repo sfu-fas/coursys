@@ -200,22 +200,22 @@ div.breadcrumb ul li:first-child:before {
   display: none;
 }
 .collapsible-heading:before {
-  font-family: FontAwesome;
+  font-family: "Font Awesome 5 Free";
   font-style: normal;
   font-weight: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   padding-right: 0.25em;
-  content: '\00f147';
+  content: '\00f146';
 }
 .collapsible-heading-collapsed:before {
-  font-family: FontAwesome;
+  font-family: "Font Awesome 5 Free";
   font-style: normal;
   font-weight: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   padding-right: 0.25em;
-  content: '\00f196';
+  content: '\00f0fe';
 }
 div#newsitems .collapsible-heading-status, h2.semester .collapsible-heading-status, h2#data .collapsible-heading-status,
 h2.note .collapsible-heading-status, .collapsiblecomment .collapsible-heading-status,
@@ -351,7 +351,7 @@ div#messages li {
   padding: 0 0 0 0;
 }
 div#messages li:before {
-  font-family: FontAwesome;
+  font-family: "Font Awesome 5 Free";
   font-style: normal;
   font-weight: inherit;
   line-height: 1;

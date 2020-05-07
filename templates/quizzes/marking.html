@@ -1,0 +1,80 @@
+{% extends "base-wide.html" %}
+{% load static %}
+
+{% block title %}{{ activity.name }}: Quiz Marking{% endblock %}
+{% block h1 %}{{ activity.name }}: Quiz Marking{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li>Marking</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('table.display').dataTable({
+      "bPaginate": false,
+      "bJQueryUI": true,
+      "aaSorting": [[0, "asc"]],
+  });
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+    <h2 id="summary">Summary</h2>
+    <table id="summary-table" class="display">
+    <thead><tr><th scope="col">Question</th><th scope="col">Number Marked</th><th scope="col">Actions</th></tr></thead>
+    <tbody>
+    {% for quest, marks, versions in question_marks %}
+        <tr id="{{ quest.ident }}">
+            <td>#{{ forloop.counter }}</td>
+            <td>{{ marks|length }}</td>
+            <td>
+                <a href="{% url 'offering:quiz:mark_next_question' course_slug=offering.slug activity_slug=activity.slug question_id=quest.id %}">Next unmarked #{{ forloop.counter }}</a>
+                {% if versions|length > 1 %}
+                {% for v in versions %}
+                    [<a href="{% url 'offering:quiz:mark_next_version' course_slug=offering.slug activity_slug=activity.slug question_id=quest.id version_id=v.id %}">Next #{{ forloop.parentloop.counter }} ver{{ forloop.counter }}</a>]
+                {% endfor %}
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+
+    {% if automark %}
+        <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+        <input type="hidden" name="automark" value="go" />
+        Some questions can be marked automatically: <input type="submit" value="Auto-mark" />
+        </form>
+    {% endif %}
+
+    <h2 id="details">Details</h2>
+    <table id="details-table" class="display">
+    <thead><tr><th scope="col">Student</th>
+        {% for _ in question_marks %}<th scope="col">Q#{{ forloop.counter }}</th>{% endfor %}
+        <th scope="col">Mark</th>
+    </tr></thead>
+    <tbody>
+    {% for student, marks in student_mark_data %}
+        <tr>
+        <td>{{ student.person.sortname }} ({{ student.person.userid }},
+                <a href="{{ student.get_absolute_url }}">{{ student.person.emplid }}</a>)</td>
+        {% for m in marks %}
+            <td class="num">{% if m %}{{ m.value }}{% else %}&mdash;{% endif %}</td>
+        {% endfor %}
+        <td><a href="{% url 'offering:quiz:mark_student' course_slug=offering.slug activity_slug=activity.slug member_id=student.id %}"><i class="fa fa-edit"></i></a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+
+
+{% endblock %}

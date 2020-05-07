@@ -13,22 +13,22 @@ p.hiddencomment {
 }
 
 .collapsed a:before {
-  font-family: FontAwesome;
+  font-family: "Font Awesome 5 Free";
   font-style: normal;
   font-weight: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   padding-right: 0.25em;
-  content: '\00f196';
+  content: '\00f0fe';
 }
 .displayed a:before {
-  font-family: FontAwesome;
+  font-family: "Font Awesome 5 Free";
   font-style: normal;
   font-weight: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   padding-right: 0.25em;
-  content: '\00f147';
+  content: '\00f146';
 }
 
 tr.current {

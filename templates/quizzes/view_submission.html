@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ activity.name }}: Submission from {{ member.short_str }}{% endblock %}
+{% block h1 %}{{ activity.name }}: Submission from {{ member.short_str }}{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li><a href="{% url 'offering:quiz:submissions' course_slug=offering.slug activity_slug=activity.slug %}">Submissions</a></li>
+    <li>{{ member.person.userid_or_emplid }}</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+{% include 'pages/markup_view_head.html' %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('.code-answer').each(function(i, pre) {
+        hljs.highlightBlock(pre);
+    });
+});
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+<li><a href="{% url 'offering:quiz:submission_history' course_slug=offering.slug activity_slug=activity.slug userid=member.person.userid_or_emplid %}"><i class="fa fa-history"></i> View Submission History</a></li>
+<li><a href="{% url 'offering:quiz:mark_student' course_slug=offering.slug activity_slug=activity.slug member_id=member.id %}"><i class="fa fa-check"></i> Mark</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    {% for v,a in version_answers %}
+        <h2 id="{{ v.question.ident }}">Question #{{ forloop.counter }} ({{ v.question.points }} point{{ v.question.points|pluralize }})</h2>
+        [Version {{ v.choice }}]
+        <div class="question">{{ v.question_html }}</div>
+        <div class="answer">
+        {% if a %}
+            {{ a.answer_html }}
+        {% else %}
+            <p class="empty">No submission found.</p>
+        {% endif %}
+        </div>
+    {% endfor %}
+{% endblock %}

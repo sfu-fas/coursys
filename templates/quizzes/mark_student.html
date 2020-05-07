@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block title %}{{ activity.name }}: Quiz Marking{% endblock %}
+{% block h1 %}{{ activity.name }}: Quiz Marking{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li><a href="{% url 'offering:quiz:marking' course_slug=offering.slug activity_slug=activity.slug %}">Marking</a></li>
+    <li>Unnamed Student</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+{% include 'pages/markup_view_head.html' %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $(".version").collapsible();
+    //$(".version.first").trigger('expand');
+    $('.code-answer').each(function(i, pre) {
+        hljs.highlightBlock(pre);
+    });
+});
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+<li><a href="{% url 'offering:quiz:view_submission' course_slug=offering.slug activity_slug=activity.slug userid=member.person.userid_or_emplid %}"><i class="fa fa-eye"></i> See Student Details</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    <form action="" method="post" enctype="multipart/form-data" class="marking">{% csrf_token %}
+    {% for v,f,a,n_versions in version_form_answers %}
+        <h2 id="{{ v.question.ident }}" style="clear:right;">Question #{{ forloop.counter }}</h2>
+
+        <div class="version">[Version {{ v.choice }}]</div>
+        <div class="question">{{ v.question_preview_html }}</div>
+
+        <div class="answer">
+        {% if a %}
+            {{ a.answer_html }}
+        {% else %}
+            <p class="empty">No submission found.</p>
+        {% endif %}
+        </div>
+
+        <dl class="dlform">
+        <dt>Mark and comment:</dt>
+        <dd>{{ f.value }} / {{ v.question.points }} {{ f.value.errors }}<br />
+        <dd>{{ f.comment|field_display }}</dd>
+        </dl>
+        <p><input class="submit" type="submit" name="mark-next-{{ v.question.ident }}" value="Save &amp; next Q#{{ forloop.counter }}" /></p>
+        {% if n_versions > 1 %}
+        <p><input class="submit" type="submit" name="mark-nextver-{{ v.question.ident }}-{{ v.id }}" value="Save &amp; next Q#{{ forloop.counter }} ver{{ v.choice }}" /></p>
+        {% endif %}
+    {% endfor %}
+
+    <h2 id="overall" style="clear:right;">Overall</h2>
+    {{ form|as_dl }}
+    <p><input class="submit" type="submit" name="save" value="Save Marking" /></p>
+    </form>
+
+{% endblock %}

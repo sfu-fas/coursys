@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ activity.name }}: Quiz Timing Special Cases{% endblock %}
+{% block h1 %}{{ activity.name }}: Quiz Timing Special Cases{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li>Timing Special Cases</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#special-case-table').dataTable({
+      "bPaginate": false,
+      "bJQueryUI": true,
+      "aaSorting": [[0, "asc"]],
+  });
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url "offering:quiz:special_case_add" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-plus"></i> Add Special Case</a></li>
+    </ul>
+</div>{% endblock %}
+
+{% block content %}
+
+    <p>These timing special cases can be used to to allow individual students to do makeup quizzes, have accessibility accommodations, etc.</p>
+
+    <table id="special-case-table" class="display">
+    <thead><tr>
+        <th scope="col">Student</th>
+        <th scope="col">Start Time</th>
+        <th scope="col">End Time</th>
+        <th scope="col">Delete</th>
+    </tr></thead>
+    <tbody>
+        <tr id="default-timing">
+            <td class="empty">Default</td>
+            <td><span class="sort">{{ quiz.start.isoformat }}</span>{{ quiz.start }}</td>
+            <td><span class="sort">{{ quiz.end.isoformat }}</span>{{ quiz.end }}</td>
+            <td></td>
+        </tr>
+    {% for sc in special_cases %}
+        <tr>
+            <td>{{ sc.student.person.sortname }} ({{ sc.student.person.userid }},
+                <a href="{{ sc.student.get_absolute_url }}">{{ sc.student.person.emplid }}</a>)</td>
+            <td><span class="sort">{{ sc.start.isoformat }}</span>{{ sc.start }}</td>
+            <td><span class="sort">{{ sc.end.isoformat }}</span>{{ sc.end }}</td>
+            <td><form class="lineform" method="POST" action="{% url "offering:quiz:special_case_delete" course_slug=offering.slug activity_slug=activity.slug sc_id=sc.id %}">{% csrf_token %}
+                <button type='submit' class='btn confirm-submit' title="Delete special case" data-submit-action="remove this special case">
+                    <i class='fa fa-trash-o'></i>
+                </button>
+            </form></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+
+{% endblock %}

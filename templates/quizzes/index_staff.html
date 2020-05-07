@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ activity.name }}: Quiz Configuration{% endblock %}
+{% block h1 %}{{ activity.name }}: Quiz Configuration{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li>Quiz</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+{% include 'pages/markup_view_head.html' %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $(".version").collapsible();
+    //$(".version.first").trigger('expand');
+});
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url "offering:quiz:edit" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-edit"></i> Edit Quiz Setup</a></li>
+    {% if not quiz.completed %}
+        <li><a href="{% url "offering:quiz:question_add" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-plus"></i> Add Question</a></li>
+    {% endif %}
+    <li><a href="{% url "offering:quiz:preview_student" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-search"></i> Preview Quiz</a></li>
+    <li><a href="{% url "offering:quiz:special_cases" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-clock-o"></i> Manage Timing Special Cases</a></li>
+    <li class="newsec"><a href="{% url "offering:quiz:submissions" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-eye"></i> View Submissions</a></li>
+    <li><a href="{% url "offering:quiz:download_submissions" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-download"></i> Download JSON</a></li>
+    <li class="newsec"><a href="{% url "offering:quiz:marking" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-check-double"></i> Marking</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    <table class="info">
+        <tbody>
+	    <tr>
+            <th scope="row">Start Time</th>
+            <td>{{ quiz.start }}</td>
+        </tr>
+	    <tr>
+            <th scope="row">End Time</th>
+            <td>{{ quiz.end }}</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2 id="intro">Introduction</h2>
+    {% if quiz.intro %}
+    {{ quiz.intro_html }}
+    {% else %}
+    <p class="empty">None.</p>
+    {% endif %}
+
+    {% for q in questions %}
+        <hr />
+        <h2 id="{{ q.ident }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }}, {{ q.get_type_display }})</h2>
+        {% if not quiz.completed %}<p>[
+            <a href="{% url "offering:quiz:question_reorder" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}?direction=up">Move Up &uarr;</a>
+            | <a href="{% url "offering:quiz:question_reorder" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}?direction=down">Move Down &darr;</a>
+            | <a href="{% url "offering:quiz:question_add_version" course_slug=offering.slug activity_slug=activity.slug question_id=q.id %}">Add Version</a>
+        ]</p>{% endif %}
+
+        {% for v in q.versions.all %}
+            <h3 class="version{% if forloop.counter == 1%} first{% endif %}" id="{{ q.ident }}-{{ v.id }}">Version {{ forloop.counter }}</h3>
+            <div>
+            {% if not quiz.completed %}<p>[
+            <a href="{% url "offering:quiz:question_edit" course_slug=offering.slug activity_slug=activity.slug question_id=q.id version_id=v.id %}">Edit</a>
+            ]</p>{% endif %}
+            {{ v.question_preview_html }}
+            </div>
+        {% endfor %}
+
+    {% endfor %}
+
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends "base-wide.html" %}
+{% load form_display %}
+{% load static %}
+{% load compress %}
+
+{% block title %}{{ activity.name }}: Take The Quiz{% if preview %} [Instructor's Preview]{% endif %}{% endblock %}
+{% block h1 %}{{ activity.name }}: Take The Quiz{% if preview %} [Instructor's Preview]{% endif %}{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li>Quiz{% if preview %} Preview{% endif %}</li>
+{% endblock %}
+
+{% block headextra %}
+{% compress css %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+<link rel="stylesheet" href="/static/codemirror/lib/codemirror.css" />
+<link rel="stylesheet" href="/static/codemirror/theme/eclipse.css" />
+{% endcompress %}
+{% include 'pages/markup_view_head.html' %}
+{% include 'pages/markup_edit_head.html' %}
+{% compress js %}
+<script src="{% static 'js/quizzes.js' %}"></script>
+<script src="{% static 'fingerprintjs2/dist/fingerprint2.min.js' %}"></script>
+<script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
+{% endcompress %}
+{% for q, v, f in question_data %}{{ v.entry_head_html }}{% endfor %}
+<script nonce="{{ CSP_NONCE }}">
+var load_time = Date.now() / 1000;
+var seconds_left = {{ seconds_left|escapejs }};
+$(document).ready(function() {
+    get_fingerprint();
+    update_time_left(load_time + seconds_left);
+    {% if quiz.honour_code and not preview and not previous_honour_code %}show_honour_code();{% endif %}
+    {% if quiz.photos %}capture_startup();{% endif %}
+    $('.code-answer').each(function(i, textarea) {
+        var mode = textarea.getAttribute('data-mode');
+        CodeMirror.fromTextArea(textarea, {'mode': mode});
+    });
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+    {% if preview %}
+        <p class="infomessage">Where there are multiple versions of a question, the first has been selected here.
+            Random versions will be selected for students (but a single student will always see the same versions every
+            time they view the quiz).</p>
+    {% endif %}
+
+    <table class="info">
+        <tbody>
+	    <tr>
+            <th scope="row">Start Time</th>
+            <td>{{ start }}</td>
+        </tr>
+	    <tr>
+            <th scope="row">End Time</th>
+            <td>{{ end }}</td>
+        </tr>
+	    <tr>
+            <th scope="row">Time Left</th>
+            <td id="time-left">{{ seconds_left|floatformat:"0" }}&#8239;s (approximate, when page was loaded)</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <form action="" method="post" enctype="multipart/form-data" class="quiz" autocomplete="off">{% csrf_token %}
+
+    {% if quiz.honour_code %}
+    <section id="honour-code">
+    {% include "quizzes/_honour_code.html" %}
+    {% if previous_honour_code %}
+    <p id="honour-agree">[Agreed with previous quiz submission.]</p>
+    <input type="hidden" name="honour-code" id="input-honour-code" value="PREV" />
+    {% else %}
+    <p id="honour-agree">Do you agree to this honour code?
+        <button id="honour-yes">YES</button>
+        <button id="honour-no">NO</button>
+        {% if preview %}<span class="infomessage">[Students must click <q>YES</q> before the rest of the quiz appears below.]</span>{% endif %}
+    </p>
+    <input type="hidden" name="honour-code" id="input-honour-code" />
+    {% endif %}
+    </section>
+    {% endif %}
+
+
+    <section id="quiz-body">
+    {% if quiz.intro %}
+        <h2 id="intro">Introduction</h2>
+        {{ quiz.intro_html }}
+    {% endif %}
+    {{ form.non_field_errors }}
+    <input type="hidden" name="fingerprint" id="fingerprint" value="" />
+
+    {% for q, v, f in question_data %}
+        <h2 id="{{ q.ident }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
+        {{ v.question_html }}
+        {{ f|field_display }}
+    {% endfor %}
+    </section>
+
+    {% if quiz.photos %}
+    <section id="photo-verification">
+    <h2>Photo Verification</h2>
+    <p>You must allow this page to use your webcam to record a verification photo.</p>
+    <div id="capture">
+        <div id="capture-camera">
+            <p>Image preview:</p>
+            <video>Video stream not available.</video>
+        </div>
+        <button id="capture-photo">Take photo &rarr;</button>
+        <div id="capture-output">
+            <p>Verification photo:</p>
+            <canvas></canvas>
+            <img alt="The screen capture will appear in this box.">
+            <input type="hidden" name="photo-capture" value="" />
+        </div>
+    </div>
+    <p><button id="restart-capture">Restart Camera</button> if you previously blocked camera access on this page, but have now allowed it.</p>
+    <p><button id="abort-capture">Disable Verification</button> if you are unable to take a verification photo for technical reasons, it will be up to the instructor how to proceed with marking your quiz.</p>
+    <p class="helptext">The University collects your photo under the legal authority of the University Act and the Freedom of Information and Protection of Privacy. The photo relates directly to and is needed by the University to mitigate academic dishonesty. It will be used to verify your identity and may be used to initiate a process under University policy S10.01. If you have any questions about the collection and use of this personal information, please contact your instructor.</p>
+    <p class="helptext">Only a single image is recorded, as can be seen on the right below (under <q>verification photo</q> above). No other camera data is captured, stored, or transmitted by this page.</p>
+    </section>
+    {% endif %}
+
+    {% if not preview %}<p><input class="submit" type="submit" value="Submit" /></p>{% endif %}
+    </form>
+
+{% endblock %}

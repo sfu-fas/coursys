@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block title %}Add Question{% endblock %}
+{% block h1 %}Add Question{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{offering.get_absolute_url}}">{{ offering.name }}</a></li>
+    <li><a href="{{activity.get_absolute_url}}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li>Add Question</li>
+{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block content %}
+    <p>What type of question would you like to add?</p>
+    <ul>
+    {% for slug,text in question_type_choices %}
+        <li><a href="{% url 'offering:quiz:question_add' course_slug=offering.slug activity_slug=activity.slug %}?type={{ slug }}">{{ text }}</a></li>
+    {% endfor %}
+    </ul>
+{% endblock %}

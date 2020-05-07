@@ -10,7 +10,7 @@ from django.forms.forms import Form
 from django.forms import BooleanField
 from django.db.models import Q, Max, Sum
 import django.db.transaction
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
@@ -242,12 +242,16 @@ def _save_components(formset, activity, user):
             
     return total_mark      
 
+
 @requires_course_staff_by_slug
 def manage_activity_components(request, course_slug, activity_slug):    
     with django.db.transaction.atomic():
         error_info = None
         course = get_object_or_404(CourseOffering, slug = course_slug)   
-        activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)   
+        activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)
+        if activity.quiz_marking():
+            messages.add_message(request, messages.INFO, 'This activity is marked as a quiz: redirecting you there.')
+            return redirect('offering:quiz:index', course_slug=course_slug, activity_slug=activity_slug)
         fields = ('title', 'description', 'max_mark', 'deleted',)
         ComponentsFormSet  = modelformset_factory(ActivityComponent, fields=fields, \
                                                   formset=BaseActivityComponentFormSet, \
@@ -475,7 +479,9 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             group_members = GroupMember.objects.filter(group=group, activity=activity)
         else:
             student = get_object_or_404(Person, find_userid_or_emplid(userid))
-            membership = get_object_or_404(Member, offering=course, person=student, role='STUD') 
+            membership = get_object_or_404(Member, offering=course, person=student, role='STUD')
+            if activity.quiz_marking():
+                return redirect('offering:quiz:mark_student', course_slug=course_slug, activity_slug=activity_slug, member_id=membership.id)
             ActivityMarkForm = StudentActivityMarkForm
         
         # set up forms (all cases handled here to avoid duplicating the logic)
@@ -523,6 +529,8 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
         if request.method == 'POST':
             # base form *and* all components must be valid to continue
             if form.is_valid() and (False not in [entry['form'].is_valid() for entry in component_data]):
+                # NOTE: this logic is largely duplicated in quizzes.views.mark_student. Ugly, but the least-worst way.
+
                 # set additional ActivityMark info
                 am = form.save(commit=False)
                 #  Let's make sure we create a new object to preserve history.  If we had an instance, this will force
@@ -625,11 +633,11 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
 def marking_student(request, course_slug, activity_slug, userid):
     return _marking_view(request, course_slug, activity_slug, userid, groupmark=False)
 
+
 @requires_course_staff_by_slug
 @uses_feature('marking')
 def marking_group(request, course_slug, activity_slug, group_slug):
     return _marking_view(request, course_slug, activity_slug, group_slug, groupmark=True)
-
 
 
 @login_required
@@ -648,6 +656,9 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
     
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     membership = get_object_or_404(Member,offering=course, person=student, role='STUD')
+
+    if is_staff and activity.quiz_marking():
+        return redirect('offering:quiz:mark_student', course_slug=course_slug, activity_slug=activity_slug, member_id=membership.id)
           
     act_mark_id = request.GET.get('activity_mark')
     if act_mark_id != None: # if act_mark_id specified in the url

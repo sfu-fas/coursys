@@ -10,12 +10,42 @@ MEDIA_URL = settings.MEDIA_URL
 from django.template import Context, Template
 import re
 
+
 FILENAME_TYPES = [ # type of filename checking: checked by Codefile.SubmissionForm.clean_code
         ('INS', 'Filename must match, but uppercase and lowercase don\'t matter'),
         ('MAT', 'Filename must match exactly'),
         ('EXT', 'File Extension: the filename must end as specified'),
         ('REX', 'Regular Expression: the "filename" above must be a regular expression to match'),
         ]
+
+
+def validate_filename(config_filename, filename_type, uploaded_filename):
+    if not config_filename:
+        # no filename to check, so pass.
+        pass
+
+    elif filename_type == 'INS':
+        if config_filename.lower() != uploaded_filename.lower():
+            raise forms.ValidationError('File name must be "%s".' % (config_filename,))
+
+    elif filename_type == 'MAT':
+        if config_filename != uploaded_filename:
+            raise forms.ValidationError('File name must be "%s".' % (config_filename,))
+
+    elif filename_type == 'EXT':
+        if not uploaded_filename.endswith(config_filename):
+            raise forms.ValidationError('File name must have extension "%s".' % (config_filename,))
+
+    elif filename_type == 'REX':
+        regex = re.compile(config_filename)
+        if not regex.match(uploaded_filename):
+            raise forms.ValidationError(
+                'The filename is not in the correct format. It must match the regular expression "%s".' % (
+                    config_filename,))
+
+    else:
+        raise ValueError("Unexpected filename_type for submission component.")
+
 
 class CodefileComponent(SubmissionComponent):
     "A Source Code submission component"
@@ -140,31 +170,10 @@ class Codefile(object):
             if not self.check_size(data):
                 raise forms.ValidationError("File size exceeded max size, component can not be uploaded.")
 
-            if not self.component.filename:
-                # no filename to check, so pass.
-                pass
-
-            elif self.component.filename_type == 'INS':
-                if self.component.filename.lower() != data.name.lower():
-                    raise forms.ValidationError('File name must be "%s".' % (self.component.filename))
-
-            elif self.component.filename_type == 'MAT':
-                if self.component.filename != data.name:
-                    raise forms.ValidationError('File name must be "%s".' % (self.component.filename))
-
-            elif self.component.filename_type == 'EXT':
-                if not data.name.endswith(self.component.filename):
-                    raise forms.ValidationError('File name must have extension "%s".' % (self.component.filename))
-
-            elif self.component.filename_type == 'REX':
-                regex = re.compile(self.component.filename)
-                if not regex.match(data.name):
-                    raise forms.ValidationError('The filename is not in the correct format. It must match the regular expression "%s".' % (self.component.filename))
-
-            else:
-                raise ValueError("Unexpected filename_type for submission component.")
+            validate_filename(self.component.filename, self.component.filename_type, data.name)
 
             return data
+
 
 SubmittedCodefile.Type = Codefile
 CodefileComponent.Type = Codefile
