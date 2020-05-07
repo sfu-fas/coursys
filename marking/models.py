@@ -142,7 +142,7 @@ class ActivityMark(models.Model):
             components = self.get_components()
         total = decimal.Decimal(0)
         for c in components:
-            total += c.value or 0
+            total += c.value or decimal.Decimal(0)
         return (1-self.late_penalty/decimal.Decimal(100)) * \
                (total - self.mark_adjustment)
 

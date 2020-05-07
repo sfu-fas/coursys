@@ -1,4 +1,5 @@
 import string
+from decimal import Decimal
 
 from django import forms
 from django.utils.html import escape
@@ -63,7 +64,7 @@ class MultipleChoicesField(forms.MultiValueField):
         options = data_list[:self.n]
         marks = data_list[self.n:]
         options = zip(options, marks)
-        options = [(o, m) for o, m in options if o]
+        options = [(o, str(m)) for o, m in options if o]
         return options
 
     def prepare_value(self, value):
@@ -113,7 +114,7 @@ class MultipleChoice(QuestionHelper):
             data = self.cleaned_data
             if 'points' in data and 'options' in data:
                 points = data['points']
-                marks = [m for o,m in data['options']]
+                marks = [float(m) for o,m in data['options']]
                 if max(marks) > points:
                     raise forms.ValidationError('Auto-marking value greater than question max points.')
                 if min(marks) < -points:
@@ -182,9 +183,10 @@ class MultipleChoice(QuestionHelper):
         )))
 
     def automark(self, questionanswer):
-        correct = self.version.config.get('correct_answer', 'fake_correct')
-        ans = questionanswer.answer.get('data', 'fake_answer')
-        if ans == correct:
-            return self.question.points, ''
+        ans = questionanswer.answer.get('data')
+        if ans and ans in OPTION_LETTERS:
+            i = OPTION_LETTERS.index(ans)
+            mark = Decimal(self.version.config['options'][i][1])
+            return mark, ''
         else:
-            return 0, ''
+            return Decimal(0), ''
