@@ -77,6 +77,10 @@ UNIT_ROLES = ['ADVS', 'ADVM', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'G
               'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR', 'FACA', 'RELA', 'SPAC', 'FORM']
 # roles that give access to SIMS data
 SIMS_ROLES = ['ADVS', 'ADMV', 'DISC', 'DICC', 'FUND', 'GRAD', 'GRPD']
+
+# discipline-related roles.  We notify someone else on top of the DAs for those.
+DISC_ROLES = ['DISC', 'DICC']
+
 # help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
@@ -1680,11 +1684,14 @@ class Role(models.Model):
             .select_related('person', 'unit')
         unit_roles = {} # who do we remind about what?
         global_roles = []
+        discipline_roles = []
 
         for r in expiring_roles:
             if r.unit.slug != 'univ' and r.role in UNIT_ROLES:
                 unit_roles[r.unit] = unit_roles.get(r.unit, [])
                 unit_roles[r.unit].append(r)
+                if r.role in DISC_ROLES:
+                    discipline_roles.append(r)
             else:
                 global_roles.append(r)
 
@@ -1699,6 +1706,12 @@ class Role(models.Model):
                           for r in Role.objects_fresh.filter(role='SYSA', unit__slug='univ').select_related('person')]
             url = settings.BASE_ABS_URL + reverse('sysadmin:role_list')
             Role.expiring_warning_email(recipients, global_roles, url)
+
+        if discipline_roles:
+            recipients = [r.person.full_email()
+                          for r in Role.objects_fresh.filter(role='DISC', unit__slug='univ').select_related('person')]
+            url = settings.BASE_ABS_URL + reverse('discipline:permission_admin')
+            Role.expiring_warning_email(recipients, discipline_roles, url)
 
     @staticmethod
     def purge_expired():
