@@ -19,6 +19,9 @@
 $(document).ready(function() {
     $(".version").collapsible();
     //$(".version.first").trigger('expand');
+    $('.code-answer').each(function(i, pre) {
+        hljs.highlightBlock(pre);
+    });
 });
 </script>
 {% endblock %}

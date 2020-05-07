@@ -5,11 +5,11 @@
   "main": "index.js",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.13.0",
-    "codemirror": "^5.48.4",
+    "codemirror": "^5.53.2",
     "datatables": "^1.10.18",
     "fingerprintjs2": "^2.1.0",
     "fullcalendar": "^3.10.0",
-    "highlightjs": "^9.12.0",
+    "highlightjs": "^10.0.2",
     "jquery": "^3.5.0",
     "mathjax": "^2.7.5",
     "moment": "^2.24.0",

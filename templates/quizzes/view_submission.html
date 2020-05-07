@@ -14,6 +14,13 @@
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
 {% include 'pages/markup_view_head.html' %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('.code-answer').each(function(i, pre) {
+        hljs.highlightBlock(pre);
+    });
+});
+</script>
 {% endblock %}
 
 {% block actions %}

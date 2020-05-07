@@ -1,13 +1,10 @@
 # TODO: delete Quiz?
 # TODO: "copy course setup" should also copy quizzes
-# TODO: link to quiz (instructor if non-group activity)
 # TODO: student review of quiz results
 # TODO: let instructor select "one question at a time, no backtracking" presentation
-# TODO: MC automarking isn't hooked to UI
 # TODO: id photo on submission history for comparison
 # TODO: export of submission history, or auto-flag suspicious
 # TODO: export of student/question mark table
-# TODO: code input questions with syntax hightlighting
 import base64
 import datetime
 import hashlib
@@ -40,14 +37,14 @@ from marking.models import ActivityComponent, ActivityComponentMark, StudentActi
 from quizzes import DEFAULT_QUIZ_MARKUP
 from quizzes.types.file import FileAnswer
 from quizzes.types.mc import MultipleChoice
-from quizzes.types.text import ShortAnswer, LongAnswer, FormattedAnswer, NumericAnswer
-
+from quizzes.types.text import ShortAnswer, LongAnswer, FormattedAnswer, NumericAnswer, CodeAnswer
 
 QUESTION_TYPE_CHOICES = [
     ('MC', 'Multiple Choice'),
     ('SHOR', 'Short Answer'),
     ('LONG', 'Long Answer'),
     ('FMT', 'Long Answer with formatting'),
+    ('CODE', 'Code Entry with syntax highlighting'),
     ('NUM', 'Numeric Answer'),
     ('FILE', 'File Upload'),
 ]
@@ -58,6 +55,7 @@ QUESTION_HELPER_CLASSES = {
     'SHOR': ShortAnswer,
     'LONG': LongAnswer,
     'FMT': FormattedAnswer,
+    'CODE': CodeAnswer,
     'NUM': NumericAnswer,
     'FILE': FileAnswer,
 }
@@ -443,6 +441,13 @@ class QuestionVersion(models.Model):
         if questionanswer:
             assert questionanswer.question_version_id == self.id
         return helper.get_entry_field(questionanswer=questionanswer, student=student)
+
+    def entry_head_html(self) -> SafeText:
+        """
+        Markup this version needs inserted into the <head> on the question page.
+        """
+        helper = self.helper()
+        return helper.entry_head_html()
 
     @transaction.atomic
     def automark_all(self, activity_components: Dict['Question', ActivityComponent], user: User) -> int:

@@ -113,6 +113,9 @@ class QuestionHelper(object):
         """
         raise NotImplementedError
 
+    def entry_head_html(self) -> SafeText:
+        return mark_safe('')
+
     def automark(self, questionanswer: 'QuestionAnswer') -> Optional[Tuple[Decimal, str]]:
         """
         Return marking data for this question: mark (presumably out of the question's max points) and comment.

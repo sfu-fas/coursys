@@ -1,9 +1,12 @@
 from typing import Tuple
 
 from django import forms
+from django.utils.html import escape, linebreaks
 from django.utils.safestring import mark_safe
 
+from courselib.codemirror_language_list import CODEMIRROR_MODES, HIGHLIGHT_SUBSTITUTIONS
 from courselib.markup import MarkupContentField, markup_to_html
+from submission.models.livecode import LANGUAGE_CHOICES
 from .base import QuestionHelper, BaseConfigForm, MISSING_ANSWER_HTML
 
 
@@ -31,7 +34,7 @@ class ShortAnswer(QuestionHelper):
     def to_html(self, questionanswer):
         ans = questionanswer.answer.get('data', '')
         if ans:
-            return ans
+            return escape(ans)
         else:
             return MISSING_ANSWER_HTML
 
@@ -42,7 +45,7 @@ class LongAnswer(QuestionHelper):
     class ConfigForm(BaseConfigForm):
         max_length = forms.IntegerField(required=True, min_value=100, max_value=100000, initial=10000, label='Maximum length',
                                         help_text='Maximum number of characters the students can enter when answering.')
-        lines = forms.IntegerField(required=True, min_value=2, max_value=30, initial=5,
+        lines = forms.IntegerField(required=True, min_value=2, max_value=40, initial=10,
                                    help_text=mark_safe('Number of lines the students will see in the field when answering: this does <strong>not</strong> limit the length of their answer'))
 
     def get_entry_field(self, questionanswer=None, student=None):
@@ -64,7 +67,36 @@ class LongAnswer(QuestionHelper):
     def to_html(self, questionanswer):
         ans = questionanswer.answer.get('data', '')
         if ans:
-            return ans
+            return mark_safe(linebreaks(ans, autoescape=True))
+        else:
+            return MISSING_ANSWER_HTML
+
+
+class CodeAnswer(LongAnswer):
+    class ConfigForm(LongAnswer.ConfigForm):
+        language = forms.ChoiceField(required=True, label='Programming Language',
+                                    choices=LANGUAGE_CHOICES,
+                                    help_text='Syntax highlighting that will be used in the entry box.')
+
+    def get_entry_field(self, questionanswer=None, student=None):
+        field = super().get_entry_field(questionanswer=questionanswer, student=student)
+        field.widget.attrs.update({'class': 'code-answer', 'data-mode': self.version.config.get('language', '')})
+        return field
+
+    def entry_head_html(self):
+        lang = self.version.config.get('language')
+        if lang:
+            url = [url for mode, label, url in CODEMIRROR_MODES if mode == lang][0]
+            return mark_safe('<script src="%s"></script>' % (url,))
+        else:
+            return mark_safe('')
+
+    def to_html(self, questionanswer):
+        ans = questionanswer.answer.get('data', '')
+        if ans:
+            cm_lang = self.version.config.get('language')
+            hl_lang = HIGHLIGHT_SUBSTITUTIONS.get(cm_lang, cm_lang)
+            return mark_safe('<pre class="code-answer language-%s">%s</pre>' % (hl_lang, escape(ans)))
         else:
             return MISSING_ANSWER_HTML
 
@@ -145,6 +177,6 @@ class NumericAnswer(QuestionHelper):
     def to_html(self, questionanswer):
         ans = questionanswer.answer.get('data', None)
         if ans:
-            return ans
+            return escape(ans)
         else:
             return MISSING_ANSWER_HTML
