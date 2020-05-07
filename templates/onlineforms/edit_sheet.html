@@ -24,97 +24,35 @@
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
-//<![CDATA[
-    /*store field ids*/  
-    var field_ids = new Array();
-
     $(document).ready(function() {
+        $('#fetchwait').hide();
         // activate dataTable ui
-    var oTable = $('#fields_table').dataTable({
-        "bJQueryUI": false,
-        "bSort": false,
-        "bPaginate": false,
-        "bFilter": false,
-        "bInfo": false,
+        $('#fields_table').dataTable({
+            "bJQueryUI": false,
+            "bSort": false,
+            "bPaginate": false,
+            "bFilter": false,
+            "bInfo": false,
+        });
+
+        $('#fields_table_body').sortable({
+           axis: 'y',
+           update: function() {
+               $('#fetchwait').show();
+               let data = $(this).sortable('serialize').concat('&csrfmiddlewaretoken={{ csrf_token }}');
+               $.ajax({
+                   data: data,
+                   type: 'POST',
+                   url: "{% url "onlineforms:reorder_field" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}",
+                   success: function() {
+                       $('#fetchwait').hide();
+                   }
+               });
+           }
+        });
     });
 
-    {%for field in fields%}
-        field_ids[{{forloop.counter}}-1] = "{{field.modelField.id}}";
-    {%endfor%}
-
-    for(var r = 1; r <= {{fields|length}}; r++)
-    {
-        /* when javascript is enabled, use ajax call to reorder activity */
-        $('#arrow' + r + ' ' + 'a.arrow_up').attr('href', '#');
-        $('#arrow' + r + ' ' + 'a.arrow_down').attr('href', '#');
-        
-       /* attach position info to the arrow td */
-        $('#arrow' + r).data('pos', r-1);
-    }   
-
-    $('.arrow_up').click(function(){
-         var p = $(this).parent();
-         var i = p.data('pos');          
-         /* post request */
-         if(i > 0){
-            $.post("{% url "onlineforms:reorder_field" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}",
-                {'id_up': field_ids[i], 'id_down': field_ids[i-1], 'csrfmiddlewaretoken': "{{csrf_token}}"}, 
-                function(data){ /* request success callback: swap rows */                                   
-                     /* swap the content of the current row and the previous row(except for the first column) */       
-                     var row = oTable.fnGetNodes(i);
-                     var pre_row = oTable.fnGetNodes(i-1);
-                     var content = oTable.fnGetData(row);
-                     var pre_content = oTable.fnGetData(pre_row);
-                     var temp;
-                     for (var col=1, len = content.length ; col<len ; col++ )
-                     {  
-                        temp = content[col];
-                        oTable.fnUpdate(pre_content[col], i, col);
-                        oTable.fnUpdate(temp, i-1, col); 
-                     }
-                     /* swap the order of the two ids as well */
-                     temp = field_ids[i];
-                     field_ids[i] = field_ids[i-1];
-                     field_ids[i-1] = temp;                            
-                     
-                     oTable.fnDraw();           
-                 
-                });
-            }
-      });
-     
-    $('.arrow_down').click(function(){
-         var p = $(this).parent();
-         var i = p.data('pos');
-         if(i < {{fields|length}}-1){
-         /* post request */
-            $.post("{% url "onlineforms:reorder_field" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}",            
-                {'id_up': field_ids[i+1], 'id_down': field_ids[i], 'csrfmiddlewaretoken': "{{csrf_token}}"},
-                function(data){ /* request success callback: swap rows */            
-                     /* swap the content of the current row and the next row(except for the first column) */
-                     var row = oTable.fnGetNodes(i);
-                     var next_row = oTable.fnGetNodes(i+1);
-                     var content = oTable.fnGetData(row);
-                     var next_content = oTable.fnGetData(next_row);                 
-                     var temp;
-                     for (var col=1, len = content.length ; col<len ; col++ )
-                     {  
-                        temp = content[col];
-                        oTable.fnUpdate(next_content[col], i, col);
-                        oTable.fnUpdate(temp, i+1, col); 
-                     }
-                     /* swap the order of the two ids as well */
-                     temp = field_ids[i];
-                     field_ids[i] = field_ids[i+1];
-                     field_ids[i+1] = temp;   
-                                     
-                     oTable.fnDraw();
-                });      
-            }
-      });
-    });
-
-//]]></script>
+</script>
 {% endblock %}
 
 {% block content %}
@@ -134,32 +72,20 @@
 </div>
 <div class="form_container">
         {% if fields %}
+            <p class="infomessage">To change the order of the fields, simply drag and drop them to their desired
+                position. <span id="fetchwait"><i class="fa fa-spinner fa-spin"></i> Please wait, re-ordering</span></p>
             <table class="display" id="fields_table">
                 <thead>
                     <tr>
-                        <th>Order</th>
                         <th>Label</th>
                         <th>Type</th>
                         <th>Edit</th>
                         <th>Remove</th>
                     </tr>
                 </thead>
+            <tbody id="fields_table_body">
                 {% for field in fields %}
-                <tr>
-                    <td id = "arrow{{forloop.counter}}">
-                        {% if not forloop.first %}
-                        <a class="arrow_up" href="{% url "onlineforms:edit_sheet" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}?order=up&amp;field_slug={{ field.modelField.slug }}">  
-                            <span class="arrow_up"><i class="fa fa-arrow-circle-up"></i></span>
-                        </a>
-                        {% else %}
-                           <span class="position_placeholder"></span>
-                        {% endif %}
-                        {% if not forloop.last %}
-                        <a class="arrow_down" href="{% url "onlineforms:edit_sheet" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}?order=down&amp;field_slug={{ field.modelField.slug }}">
-                            <span class="arrow_down"><i class="fa fa-arrow-circle-down"></i></span>
-                        </a>
-                        {% endif %}
-                    </td>
+                <tr id="field_{{ field.modelField.id }}">
                     <td>
                         {{ field.formField.label }}
                     </td>
@@ -180,11 +106,10 @@
                     </td>
                 </tr>
                 {% endfor %}
+            </tbody>
             </table>
         {% else %}
             <div>There are currently no fields.</div>
         {% endif %} 
-
-    
 </div>
 {% endblock %}

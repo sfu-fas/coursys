@@ -19,7 +19,7 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignFormForm, AdminAssignSheetForm, EditGroupForm, EmployeeSearchForm, \
     AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, \
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, FormGroup, \
     FormGroupMember, FieldSubmissionFile, FILE_SECRET_LENGTH
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, FormLogEntry, reorder_sheet_fields
@@ -743,18 +743,6 @@ def edit_sheet(request, form_slug, sheet_slug):
         owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
         owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
         fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
-        # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
-        order = None
-        field_slug = None
-        if 'order' in request.GET:
-            order = request.GET['order']
-        if 'field_slug' in request.GET:
-            field_slug = request.GET['field_slug']
-        if order and field_slug:
-            reorder_sheet_fields(fields, field_slug, order)
-            return HttpResponseRedirect(
-                reverse('onlineforms:edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug': sheet_slug}))
-
         # check if they are deleting a field from the sheet
         if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
             field_id = request.POST['field_id']
@@ -798,22 +786,17 @@ def reorder_field(request, form_slug, sheet_slug):
         form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
         sheet = get_object_or_404(Sheet, form=form, slug=sheet_slug)
         if request.method == 'POST':
-            neaten_field_positions(sheet)
-            # find the fields in question
-            id_up = request.POST.get('id_up')
-            id_down = request.POST.get('id_down')
-            if id_up == None or id_down == None:
-                return ForbiddenResponse(request)
-                # swap the order of the two fields
-            field_up = get_object_or_404(Field, id=id_up, sheet=sheet)
-            field_down = get_object_or_404(Field, id=id_down, sheet=sheet)
-
-            temp = field_up.order
-            field_up.order = field_down.order
-            field_down.order = temp
-            field_up.save()
-            field_down.save()
-
+            field_ids = request.POST.getlist('field[]')
+            i = 1
+            for field_id in field_ids:
+                field = get_object_or_404(Field, id=field_id, sheet=sheet)
+                field.order = i
+                field.save()
+                i += 1
+            l = LogEntry(userid=request.user.username,
+                         description="Re-ordered fields for sheet %s." % sheet,
+                         related_object=sheet)
+            l.save()
             return HttpResponse("Order updated!")
         return ForbiddenResponse(request)
 
