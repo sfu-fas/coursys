@@ -272,13 +272,15 @@ class RoleForm(forms.ModelForm):
         PersonField.person_data_prep(self)
         return super(RoleForm, self).is_valid(*args, **kwargs)
 
-    def clean_role(self):
-        role = self.cleaned_data['role']
-        if role in SIMS_ROLES:
+    def clean(self):
+        #  Allow sysadmins to assign roles that DAs should assign, but only for the University-wide level.
+        cleaned_data = super(RoleForm, self).clean()
+        role = cleaned_data.get('role')
+        unit = cleaned_data.get('unit')
+        if role in SIMS_ROLES and unit.slug != 'univ':
             url = reverse('admin:unit_admin')
-            raise forms.ValidationError('Admins cannot assign that role. It must be given by their manager at %s%s' %
-                                        (settings.BASE_ABS_URL, url))
-        return role
+            raise forms.ValidationError({'role': 'Admins cannot assign that role. It must be given by their manager '
+                                                 'at %s%s' % (settings.BASE_ABS_URL, url)})
 
     def clean_expiry(self):
         expiry = self.cleaned_data['expiry']
