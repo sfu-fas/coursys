@@ -72,12 +72,14 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
     grace = datetime.timedelta(seconds=quiz.grace)
     if start > now:
         # early
+        wait = (start - datetime.datetime.now()).total_seconds()
         context = {
             'offering': offering,
             'activity': activity,
             'quiz': quiz,
             'start': start,
             'end': end,
+            'wait': wait,
             'time': 'before'
         }
         return render(request, 'quizzes/unavailable.html', context=context, status=403)
@@ -749,6 +751,15 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
     if not activity.quiz_marking():
         raise MarkingNotConfiguredError
 
+    if request.method == 'POST' and 'automark' in request.POST:
+        # clicked the 'auto-mark' button
+        n = quiz.automark_all(user=request.user)
+        messages.add_message(request, messages.SUCCESS, 'Automarked %i answers.' % (n,))
+        LogEntry(userid=request.user.username,
+                 description='automarked quiz %s' % (quiz.id),
+                 related_object=quiz).save()
+        return redirect('offering:quiz:marking', course_slug=offering.slug, activity_slug=activity.slug)
+
     # collect existing marks for tally
     component_lookup = quiz.activitycomponents_by_question()
     version_lookup = {q_id: list(vs) for q_id, vs in itertools.groupby(versions, key=lambda v: v.question_id)}
@@ -781,12 +792,16 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
 
         student_mark_data.append((s, student_marks))
 
+    # any automarking possible?
+    automark = any(v.helper().auto_markable for v in versions)
+
     context = {
         'offering': offering,
         'activity': activity,
         'quiz': quiz,
         'question_marks': question_marks,
         'student_mark_data': student_mark_data,
+        'automark': automark,
     }
     return render(request, 'quizzes/marking.html', context=context)
 

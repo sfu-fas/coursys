@@ -226,6 +226,7 @@ def _activity_info_staff(request, course_slug, activity_slug):
         return NotFoundResponse(request)
     
     activity = activities[0]
+    quiz = Quiz.objects.filter(activity=activity).first()
 
     # build list of all students and grades
     students = Member.objects.filter(role="STUD", offering=activity.offering).select_related('person')
@@ -288,7 +289,9 @@ def _activity_info_staff(request, course_slug, activity_slug):
                'activity_view_type': 'individual', 'group_membership': group_membership,
                'from_page': FROMPAGE['activityinfo'],
                'sub_comps': sub_comps, 'mark_comps': mark_comps,
-               'submitted': submitted, 'marked': marked}
+               'submitted': submitted, 'marked': marked,
+               'quiz': quiz,
+               }
     return render(request, 'grades/activity_info.html', context)
 
 
@@ -321,11 +324,14 @@ def _activity_info_student(request, course_slug, activity_slug):
 
     try:
         quiz = activity.quiz
+        incomplete_quiz = not quiz.completed(student)
     except Quiz.DoesNotExist:
-        quiz = None
+        incomplete_quiz = False
 
     context = {'course': course, 'activity': activity, 'grade': grade,
-               'activity_stat': activity_stat, 'reason_msg': reason_msg, 'quiz': quiz}
+               'activity_stat': activity_stat, 'reason_msg': reason_msg,
+               'incomplete_quiz': incomplete_quiz,
+               }
     resp = render(request, 'grades/activity_info_student.html', context)
     resp.allow_gstatic_csp = True
     return resp

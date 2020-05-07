@@ -1,44 +1,49 @@
+import string
+
 from django import forms
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from .base import QuestionHelper, BaseConfigForm, MISSING_ANSWER_HTML
 
-OPTION_LETTERS = 'ABCDEFGHIJKLMNOP'
+OPTION_LETTERS = string.ascii_uppercase
 
 
-class MCOptionInput(forms.TextInput):
-    # subclass so the text input knows its position and it can be rendered appropriately
-    def __init__(self, position, *args, **kwargs):
-        super().__init__(attrs={'class': 'mc-option-input'}, *args, **kwargs)
-        self.position = position
-
-    def get_context(self, name, value, attrs):
-        context = super().get_context(name=name, value=value, attrs=attrs)
-        context['widget']['letter'] = OPTION_LETTERS[self.position]
-        return context
-
-
-class MultipleTextWidget(forms.MultiWidget):
+class MultipleChoicesWidget(forms.MultiWidget):
     template_name = 'quizzes/mc_option_widget.html'
 
     def __init__(self, n=10, *args, **kwargs):
         self.n = n
-        widgets = [
-            MCOptionInput(position=i)
-            for i in range(self.n)
+        choice_widgets = [
+            forms.TextInput(attrs={'class': 'mc-choice'})
+            for _ in range(self.n)
         ]
-        super().__init__(widgets=widgets, *args, **kwargs)
+        mark_widgets = [
+            forms.TextInput(attrs={'class': 'mc-mark'})
+            for _ in range(self.n)
+        ]
+        super().__init__(widgets=(choice_widgets + mark_widgets), *args, **kwargs)
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name=name, value=value, attrs=attrs)
+
+        # rearrange the subwidgets to we can display them appropriately
+        subwidgets = context['widget']['subwidgets']
+        choice_widgets = [w for w in subwidgets if w['attrs']['class'] == 'mc-choice']
+        mark_widgets = [w for w in subwidgets if w['attrs']['class'] == 'mc-mark']
+
+        context['widget_sets'] = zip(OPTION_LETTERS, choice_widgets, mark_widgets)
+        return context
 
     def decompress(self, value):
         if value is None:
-            return ['' for _ in range(self.n)]
+            return ['' for _ in range(self.n)] + ['0' for _ in range(self.n)]
         else:
             return value
 
 
-class MultipleTextField(forms.MultiValueField):
-    widget = MultipleTextWidget
+class MultipleChoicesField(forms.MultiValueField):
+    widget = MultipleChoicesWidget
 
     def __init__(self, n=10, required=True, *args, **kwargs):
         self.n = n
@@ -47,18 +52,40 @@ class MultipleTextField(forms.MultiValueField):
             forms.CharField(required=False, max_length=1000, initial='')
             for _ in range(self.n)
         ]
+        fields += [
+            forms.DecimalField(required=False, initial=0)
+            for _ in range(self.n)
+        ]
         super().__init__(fields=fields, require_all_fields=False, required=False, *args, **kwargs)
         self.force_display_required = True
 
     def compress(self, data_list):
-        options = [d for d in data_list if d != '']
-        if len(options) < 2:
-            raise forms.ValidationError('Must give at least two options.')
+        options = data_list[:self.n]
+        marks = data_list[self.n:]
+        options = zip(options, marks)
+        options = [(o, m) for o, m in options if o]
         return options
+
+    def prepare_value(self, value):
+        if value is None:
+            return None
+        elif len(value) == 2 * self.n:
+            return value
+
+        initial = ['' for _ in range(self.n)] + ['0' for _ in range(self.n)]
+        if value is not None:
+            options = [o for o,m in value]
+            initial[0:len(options)] = options
+            marks = [m for o,m in value]
+            initial[self.n:len(marks)+self.n] = marks
+        return initial
 
     def clean(self, value):
         choices = super().clean(value)
-        if len(choices) != len(set(choices)):
+        if len(choices) < 2:
+            raise forms.ValidationError('Must give at least two options.')
+        options = [o for o,_ in choices]
+        if len(options) != len(set(options)):
             raise forms.ValidationError('Choices must be unique')
         return choices
 
@@ -75,23 +102,23 @@ class MultipleChoice(QuestionHelper):
     NA = '' # value used to represent "no answer"
     auto_markable = True
 
+    # A MC question's options field is a list of pairs (option_text, marks) where option_text is shown to the student,
+    # and marks is the worth of that answer when automarking.
+
     class ConfigForm(BaseConfigForm):
-        options = MultipleTextField(required=True, help_text='Options presented to students. Any left blank will not be displayed.')
-        correct_answer = forms.CharField(required=False, help_text='Optional. Correct response (A–J as above) for automatic marking.')
+        options = MultipleChoicesField(required=True, label='Options and marks', help_text='Options presented to students, with number of marks to assign with auto-marking. Any options left blank will not be displayed.')
         permute = forms.ChoiceField(required=True, choices=permutation_choices, help_text='You will still see the answers as they are above: a student answer of \u201CA\u201D refers to the first choice above, regardless of the order they see.')
 
-        def clean_correct_answer(self):
-            ans = self.cleaned_data['correct_answer']
-            return ans.upper()
-
         def clean(self):
-            cleaned_data = super().clean()
-            options = cleaned_data.get('options')
-            correct_answer = cleaned_data.get('correct_answer')
-
-            if options and correct_answer:
-                if correct_answer not in options:
-                    self.add_error('correct_answer', 'Correct answer must correspond to an answer above: ' + ', '.join(options) + '.')
+            data = self.cleaned_data
+            if 'points' in data and 'options' in data:
+                points = data['points']
+                marks = [m for o,m in data['options']]
+                if max(marks) > points:
+                    raise forms.ValidationError('Auto-marking value greater than question max points.')
+                if min(marks) < -points:
+                    raise forms.ValidationError('Auto-marking penalty greater than question total max points.')
+            return data
 
     def get_entry_field(self, questionanswer=None, student=None):
         options = self.version.config.get('options', [])
@@ -101,7 +128,7 @@ class MultipleChoice(QuestionHelper):
         else:
             initial = MultipleChoice.NA
 
-        options = list(enumerate(options)) # keep original positions so the input values match that, but students see a possibly-randomized order
+        options = list(enumerate(options))  # keep original positions so the input values match that, but students see a possibly-randomized order
 
         if student and permute == 'permute':
             rand = self.question.quiz.random_generator(str(student.id) + '-' + str(self.question.id) + '-' + str(self.version.id))
@@ -113,7 +140,7 @@ class MultipleChoice(QuestionHelper):
             choices.append(last)
 
         choices = [
-            (OPTION_LETTERS[opos], mark_safe('<span class="mc-letter">' + OPTION_LETTERS[i] + '.</span> ') + escape(o))
+            (OPTION_LETTERS[opos], mark_safe('<span class="mc-letter">' + OPTION_LETTERS[i] + '.</span> ') + escape(o[0]))
             for i, (opos, o)
             in enumerate(options)
         ]
@@ -143,7 +170,7 @@ class MultipleChoice(QuestionHelper):
         options = self.version.config.get('options', [])
         q_html = self.question_html()
         choices_html = [
-            '<p><span class="mc-letter">%s.</span> %s</p>' % (OPTION_LETTERS[i], escape(o))
+            '<p><span class="mc-letter">%s.</span> %s</p>' % (OPTION_LETTERS[i], escape(o[0]))
             for i, o
             in enumerate(options)
         ]

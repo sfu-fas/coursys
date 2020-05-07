@@ -37,7 +37,7 @@
 {% endblock %}
 
 {% block actions %}
-{% if activity.submitable or activity.no_submit_too_old %}
+{% if activity.submitable or activity.no_submit_too_old or incomplete_quiz %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
@@ -48,7 +48,7 @@
         <li><a href="{% url "offering:submission:show_components" course.slug activity.slug%}">View Submission</a></li>
 		{% endif %}
 		{% endif %}
-        {% if quiz %}
+        {% if incomplete_quiz %}
         <li><a href="{% url "offering:quiz:index" course.slug activity.slug %}">Take Quiz</a></li>
         {% endif %}
     </ul>

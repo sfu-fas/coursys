@@ -33,7 +33,7 @@ class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
                                help_text=mark_safe('Number of seconds after the &ldquo;true&rdquo; end of the quiz that '
                                                    'students may submit their answers (but not reload the quiz to continue working).'))
     honour_code = forms.BooleanField(required=False, initial=True, help_text="Require students to agree to the honour code before they can proceed with the quiz?")
-    photo_verification = forms.BooleanField(required=False, initial=False, help_text="Require students to take a photo with their webcam when submitting the quiz?")
+    photo_verification = forms.BooleanField(required=False, initial=True, help_text="Require students to take a photo with their webcam when submitting the quiz?")
     intro = MarkupContentField(required=False, label='Introductory Text (displayed at the top of the quiz, optional)',
                                default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True)
 

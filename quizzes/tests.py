@@ -39,13 +39,12 @@ class QuizzesTest(TestCase):
         self.q2 = Question(quiz=self.quiz, type='MC', order=2, config={'points': 15})
         self.q2.save()
         self.v21 = QuestionVersion(question=self.q2, config={'question': ('Which **one**?', 'creole', False),
-                                                             'options': ['one', 'two', 'three']})
+                                                             'options': [('one', 1), ('two', 0), ('three', 0)]})
         self.v21.save()
 
         self.q3 = Question(quiz=self.quiz, type='LONG', order=3, config={'points': 25})
         self.q3.save()
-        self.v31 = QuestionVersion(question=self.q3, config={'question': ('Which **one**?', 'creole', False),
-                                                             'options': ['one', 'two', 'three']})
+        self.v31 = QuestionVersion(question=self.q3, config={'question': ('Describe it.', 'creole', False),})
         self.v31.save()
 
 

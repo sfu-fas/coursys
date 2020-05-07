@@ -5,6 +5,12 @@ form.quiz input.short-answer, form.quiz input.long-answer, .mc-option-input {
     display:inline-block;
     width: 1.5em;
 }
+input.mc-choice {
+    width: 20em;
+}
+input.mc-mark {
+    width: 3em;
+}
 .collapsible-heading-status {
     display: none;
 }

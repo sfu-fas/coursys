@@ -122,6 +122,9 @@ Column logic:
 	    {% endif %}
 	    {% if not activity.is_calculated %}
 	    <li><a href="{% url "offering:submission:show_components" course_slug=course.slug activity_slug=activity.slug%}">Configure Submission</a></li>
+	    {% if not activity.group %}
+        <li><a href="{% url "offering:quiz:index" course_slug=course.slug activity_slug=activity.slug%}">{% if quiz %}Configure/Mark Quiz{% else %}Create Quiz{% endif %}</a></li>
+        {% endif %}
 	    {% if activity.is_numeric %}
 	    <li class="newsec">
 	    <a href="{% url "offering:marking:manage_activity_components" course_slug=course.slug activity_slug=activity.slug%}">Configure Marking</a>

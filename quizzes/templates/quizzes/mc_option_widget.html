@@ -1,3 +1,5 @@
-{% for widget in widget.subwidgets %}
-<span class="mc-letter">{{ widget.letter }}.</span> {% include widget.template_name %} <br/>
+{% for letter, choice_widget, mark_widget in widget_sets %}
+<span class="mc-letter">{{ letter }}.</span>
+    {% include choice_widget.template_name with widget=choice_widget %}
+    (worth {% include mark_widget.template_name with widget=mark_widget %} marks) <br/>
 {% endfor %}

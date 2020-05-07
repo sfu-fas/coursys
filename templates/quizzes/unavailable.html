@@ -1,7 +1,7 @@
 {% extends "base-wide.html" %}
 
-{% block title %}{{ activity.name }} Quiz{% endblock %}
-{% block h1 %}{{ activity.name }} Quiz{% endblock %}
+{% block title %}{{ activity.name }}: {% if time == 'after' %}Quiz Ended{% else %}Quiz Not Started{% endif %}{% endblock %}
+{% block h1 %}{{ activity.name }}: {% if time == 'after' %}Quiz Ended{% else %}Quiz Not Started{% endif %}{% endblock %}
 {% block subbreadcrumbs %}
     <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
     <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
@@ -9,13 +9,19 @@
 {% endblock %}
 
 {% block headextra %}
+{% if time == 'before' %}
+<script nonce="{{ CSP_NONCE }}">
+// reload when the quiz starts (approximately)
+var wait = {{ wait|escapejs }} * 1000;
+setTimeout(function(){ location.reload(); }, wait + 5000);
+</script>
+{% endif %}
 {% endblock %}
 
 {% block actions %}
 {% endblock %}
 
 {% block content %}
-
     <p class="infomessage">
     {% if time == 'after' %}
         The quiz ended at {{ end }}: it may not be submitted or reviewed.
@@ -26,6 +32,7 @@
 
     {% if quiz.honour_code and time == 'before' %}
     <section id="honour-code">
+    <p class="infomessage">You will be asked to agree to this honour code when the quiz starts&hellip;</p>
     {% include "quizzes/_honour_code.html" %}
     </section>
     {% endif %}

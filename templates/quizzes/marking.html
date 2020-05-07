@@ -49,6 +49,13 @@ $(document).ready(function() {
     </tbody>
     </table>
 
+    {% if automark %}
+        <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+        <input type="hidden" name="automark" value="go" />
+        Some questions can be marked automatically: <input type="submit" value="Auto-mark" />
+        </form>
+    {% endif %}
+
     <h2 id="details">Details</h2>
     <table id="details-table" class="display">
     <thead><tr><th scope="col">Student</th>

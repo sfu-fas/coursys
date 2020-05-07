@@ -3,19 +3,22 @@
 # TODO: link to quiz (instructor if non-group activity)
 # TODO: student review of quiz results
 # TODO: let instructor select "one question at a time, no backtracking" presentation
+# TODO: MC automarking isn't hooked to UI
+# TODO: id photo on submission history for comparison
+# TODO: export of submission history, or auto-flag suspicious
+# TODO: export of student/question mark table
+# TODO: code input questions with syntax hightlighting
 import base64
 import datetime
-import decimal
 import hashlib
 import io
 import itertools
 import json
 from collections import namedtuple
 from importlib import import_module
-from typing import Optional, Tuple, List, Iterable, Any, Dict, AbstractSet
+from typing import Optional, Tuple, List, Iterable, Any, Dict
 
 from django.conf import settings
-from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.sessions.backends.db import SessionStore as DatabaseSessionStore
 from django.core.checks import Error
@@ -288,14 +291,16 @@ class Quiz(models.Model):
 
         return component_lookup
 
-    def automark_all(self, user: User, zero_missing: bool = False):
+    def automark_all(self, user: User) -> int:
         """
-        Fill in marking for any QuestionVersions that support it.
+        Fill in marking for any QuestionVersions that support it. Return number marked.
         """
         versions = QuestionVersion.objects.filter(question__quiz=self).select_related('question')
         activity_components = self.activitycomponents_by_question()
+        marked = 0
         for v in versions:
-            v.automark_all(activity_components=activity_components, user=user)
+            marked += v.automark_all(activity_components=activity_components, user=user)
+        return marked
 
 
 class Question(models.Model, ConditionalSaveMixin):
@@ -440,14 +445,14 @@ class QuestionVersion(models.Model):
         return helper.get_entry_field(questionanswer=questionanswer, student=student)
 
     @transaction.atomic
-    def automark_all(self, activity_components: Dict['Question', ActivityComponent], user: User):
+    def automark_all(self, activity_components: Dict['Question', ActivityComponent], user: User) -> int:
         """
-        Automark everything for this version, if possible.
+        Automark everything for this version, if possible. Return number marked.
         """
         helper = self.helper(question=self.question)
         if not helper.auto_markable:
             # This helper can't do automarking, so don't try.
-            return
+            return 0
 
         answers = QuestionAnswer.objects.filter(question_version=self).select_related('question', 'student')
         activity = NumericActivity.objects.get(id=self.question.quiz.activity_id)
@@ -467,7 +472,7 @@ class QuestionVersion(models.Model):
         numeric_grades = NumericGrade.objects.filter(activity=activity)
         numeric_grade_lookup = {ng.member: ng for ng in numeric_grades}
 
-        students_answered = set()
+        marked = 0
         for a in answers:
             mark = helper.automark(a)
             if mark is None:
@@ -477,8 +482,8 @@ class QuestionVersion(models.Model):
             points, comment = mark
 
             # We have a mark and comment: ensure we have an ActivityMark that contains it...
+            marked += 1
             member = a.student
-            students_answered.add(member)
             try:
                 ngrade = numeric_grade_lookup[member]
             except KeyError:
@@ -513,6 +518,7 @@ class QuestionVersion(models.Model):
                 act_mark.mark = total
                 act_mark.save()
 
+        return marked
 
 def file_upload_to(instance, filename):
     return upload_path(instance.question.quiz.activity.offering.slug, '_quizzes', filename)
