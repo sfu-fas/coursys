@@ -1,5 +1,5 @@
 function get_fingerprint() {
-    var options = {excludes: {canvas: true, webgl: true, enumerateDevices: true}};
+    var options = {excludes: {canvas: true, webgl: true, enumerateDevices: true, availableScreenResolution: true}};
     if (window.requestIdleCallback) {
         requestIdleCallback(function () {
             Fingerprint2.get(options, function (components) {

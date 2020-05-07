@@ -2,7 +2,6 @@
 # TODO: "copy course setup" should also copy quizzes
 # TODO: student review of quiz results
 # TODO: let instructor select "one question at a time, no backtracking" presentation
-# TODO: id photo on submission history for comparison
 # TODO: export of submission history, or auto-flag suspicious
 # TODO: export of student/question mark table
 import base64

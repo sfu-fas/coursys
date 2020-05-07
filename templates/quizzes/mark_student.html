@@ -2,8 +2,8 @@
 {% load static %}
 {% load form_display %}
 
-{% block title %}{{ activity.name }} Quiz Marking{% endblock %}
-{% block h1 %}{{ activity.name }} Quiz Marking{% endblock %}
+{% block title %}{{ activity.name }}: Quiz Marking{% endblock %}
+{% block h1 %}{{ activity.name }}: Quiz Marking{% endblock %}
 {% block subbreadcrumbs %}
     <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
     <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
@@ -41,13 +41,15 @@ $(document).ready(function() {
         <h2 id="{{ v.question.ident }}" style="clear:right;">Question #{{ forloop.counter }}</h2>
 
         <div class="version">[Version {{ v.choice }}]</div>
-        {{ v.question_preview_html }}
+        <div class="question">{{ v.question_preview_html }}</div>
 
+        <div class="answer">
         {% if a %}
             {{ a.answer_html }}
         {% else %}
             <p class="empty">No submission found.</p>
         {% endif %}
+        </div>
 
         <dl class="dlform">
         <dt>Mark and comment:</dt>

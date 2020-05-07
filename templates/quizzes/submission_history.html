@@ -1,8 +1,8 @@
 {% extends "base-wide.html" %}
 {% load static %}
 
-{% block title %}{{ activity.name }} Quiz from {{ member.short_str }}: Submission History{% endblock %}
-{% block h1 %}{{ activity.name }} Quiz from {{ member.short_str }}: Submission History{% endblock %}
+{% block title %}{{ activity.name }} Submission History from {{ member.short_str }}{% endblock %}
+{% block h1 %}{{ activity.name }} Submission History from {{ member.short_str }}{% endblock %}
 {% block subbreadcrumbs %}
     <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
     <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
@@ -57,6 +57,9 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
+    {% if not can_photo %}
+    <p class="infomessage">If you <a href="{% url 'config:photo_agreement' %}?return={{ request.path|urlencode }}">confirm the photo usage agreement</a>, you will be able to see the student's ID photo for comparison.</p>
+    {% endif %}
     <table id="submissions" class="display">
     <thead><tr>
         <th scope="col">Time</th>
@@ -77,7 +80,12 @@ $(document).ready(function() {
             {% if quiz.photos %}<td>
                 {% if sub.capture %}
                     <a class="photo-show" data-popup="photo-{{ sub.id }}"><i class="far fa-eye"></i></a>
-                    <div class="photo-popup" id="photo-{{ sub.id }}" title="Captured Photo"><img src="{% url 'offering:quiz:submission_photo' course_slug=offering.slug activity_slug=activity.slug userid=sub.student.person.userid_or_emplid submission_id=sub.id %}" alt="" /></div>
+                    <div class="photo-popup" id="photo-{{ sub.id }}" title="{% if can_photo %}Photos: ID &amp; Captured{% else %}Captured Photo{% endif %}">
+                        {% if can_photo %}
+                        <div class="idphoto"><img src="{% url 'data:student_photo' emplid=member.person.emplid %}" alt="" /></div>
+                        {% endif %}
+                        <img src="{% url 'offering:quiz:submission_photo' course_slug=offering.slug activity_slug=activity.slug userid=sub.student.person.userid_or_emplid submission_id=sub.id %}" alt="" />
+                    </div>
                 {% endif %}
             </td>{% endif %}
             <td>{% for ad in sub.answer_data %}

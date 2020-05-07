@@ -18,6 +18,7 @@ from coredata.models import CourseOffering, Member
 from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, ForbiddenResponse, HttpError
 from courselib.search import find_member
 from grades.models import Activity, NumericGrade
+from grades.views import has_photo_agreement
 from log.models import LogEntry
 from marking.models import ActivityComponent, ActivityComponentMark, StudentActivityMark, get_activity_mark_for_student
 from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm, MarkingSetupForm
@@ -615,6 +616,7 @@ def submission_history(request: HttpRequest, course_slug: str, activity_slug: st
         'quiz': quiz,
         'member': member,
         'quiz_submissions': quiz_submissions,
+        'can_photo': has_photo_agreement(request.member.person)
     }
     return render(request, 'quizzes/submission_history.html', context=context)
 

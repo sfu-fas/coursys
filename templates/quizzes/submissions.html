@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ activity.name }} Quiz Submissions}{% endblock %}
-{% block h1 %}{{ activity.name }} Quiz Submissions{% endblock %}
+{% block title %}{{ activity.name }}: Quiz Submissions}{% endblock %}
+{% block h1 %}{{ activity.name }}: Quiz Submissions{% endblock %}
 {% block subbreadcrumbs %}
     <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
     <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>

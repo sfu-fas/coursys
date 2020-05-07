@@ -148,6 +148,17 @@ class FormattedAnswer(QuestionHelper):
         else:
             return MISSING_ANSWER_HTML
 
+    @staticmethod
+    def unchanged_answer(prev_ans, new_ans):
+        # normalize 'html' and 'html-wysiwyg' formatting choice
+        prev_data = prev_ans['data']
+        new_data = new_ans['data']
+        if prev_data[1] == 'html':
+            prev_data = [prev_data[0], 'html-wysiwyg', prev_data[2]]
+        if new_data[1] == 'html':
+            new_data = [new_data[0], 'html-wysiwyg', new_data[2]]
+        return prev_data == new_data
+
 
 class NumericAnswer(QuestionHelper):
     name = 'Numeric Answer'

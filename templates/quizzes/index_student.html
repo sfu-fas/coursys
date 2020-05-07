@@ -70,10 +70,6 @@ $(document).ready(function() {
     </table>
 
     <form action="" method="post" enctype="multipart/form-data" class="quiz" autocomplete="off">{% csrf_token %}
-    {% if quiz.intro %}
-        <h2 id="intro">Introduction</h2>
-        {{ quiz.intro_html }}
-    {% endif %}
 
     {% if quiz.honour_code %}
     <section id="honour-code">
@@ -92,7 +88,12 @@ $(document).ready(function() {
     </section>
     {% endif %}
 
+
     <section id="quiz-body">
+    {% if quiz.intro %}
+        <h2 id="intro">Introduction</h2>
+        {{ quiz.intro_html }}
+    {% endif %}
     {{ form.non_field_errors }}
     <input type="hidden" name="fingerprint" id="fingerprint" value="" />
 
@@ -107,8 +108,7 @@ $(document).ready(function() {
     <section id="photo-verification">
     <h2>Photo Verification</h2>
     <p>You must allow this page to use your webcam to record a verification photo.
-        Only a single image is recorded, as can be seen on the right below (under <q>verification photo</q>).
-        No other camera data is captured, stored, or transmitted by this page.
+
         </p>
     <div id="capture">
         <div id="capture-camera">
@@ -127,6 +127,7 @@ $(document).ready(function() {
     <p><button id="abort-capture">Disable Verification</button> if you are unable to take a verification photo for technical reasons, it will be up to the instructor how to proceed with marking your quiz.</p>
     </section>
     <p class="helptext">The University collects your photo under the legal authority of the University Act and the Freedom of Information and Protection of Privacy. The photo relates directly to and is needed by the University to mitigate academic dishonesty. It will be used to verify your identity and may be used to initiate a process under University policy S10.01. If you have any questions about the collection and use of this personal information, please contact your instructor.</p>
+    <p class="helptext">Only a single image is recorded, as can be seen on the right below (under <q>verification photo</q> above). No other camera data is captured, stored, or transmitted by this page.</p>
     {% endif %}
 
     {% if not preview %}<p><input class="submit" type="submit" value="Submit" /></p>{% endif %}

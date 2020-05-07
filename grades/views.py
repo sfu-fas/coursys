@@ -1272,9 +1272,10 @@ def class_list(request, course_slug):
     return render(request, 'grades/class_list.html', context)
 
 
-def _has_photo_agreement(user):
+def has_photo_agreement(user):
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
     return bool(configs and configs[0].value['agree'])
+
 
 PHOTO_LIST_STYLES = set(['table', 'horiz', 'signin'])
 @requires_course_staff_by_slug
@@ -1283,7 +1284,7 @@ def photo_list(request, course_slug, style='horiz'):
     if style not in PHOTO_LIST_STYLES:
         raise Http404
     user = get_object_or_404(Person, userid=request.user.username)
-    if not _has_photo_agreement(user):
+    if not has_photo_agreement(user):
         url = reverse('config:photo_agreement') + '?return=' + urllib.parse.quote(request.path)
         return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
     
@@ -1306,7 +1307,7 @@ def student_photo(request, emplid):
     if Role.objects_fresh.filter(person=user, role__in=['ADVS', 'ADVM']):
         can_access = True
     else:
-        if not _has_photo_agreement(user):
+        if not has_photo_agreement(user):
             url = reverse('config:photo_agreement') + '?return=' + urllib.parse.quote(request.path)
             return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
 
@@ -1448,7 +1449,7 @@ def student_info(request, course_slug, userid):
     #grade_history = GradeHistory.objects.filter(member=member).select_related('entered_by', 'activity', 'group', 'mark')
 
     context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships,
-               'grade_history': grade_history, 'dishonesty_cases': dishonesty_cases, 'can_photo': _has_photo_agreement(requestor.person)}
+               'grade_history': grade_history, 'dishonesty_cases': dishonesty_cases, 'can_photo': has_photo_agreement(requestor.person)}
     return render(request, 'grades/student_info.html', context)
 
 
