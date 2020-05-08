@@ -1,0 +1,13 @@
+deb <%= @mirror %> <%= @release %> main restricted universe multiverse
+#deb-src <%= @mirror %> <%= @release %> main restricted universe multiverse
+deb <%= @mirror %> <%= @release %>-updates main restricted universe multiverse
+#deb-src <%= @mirror %> <%= @release %>-updates main restricted universe multiverse
+deb <%= @mirror %> <%= @release %>-backports main restricted universe multiverse
+#deb-src <%= @mirror %> <%= @release %>-backports main restricted universe multiverse
+
+deb <%= @mirror %> <%= @release %>-security main restricted universe multiverse
+#deb-src <%= @mirror %> <%= @release %>-security main restricted universe multiverse
+
+deb http://archive.canonical.com/ubuntu <%= @release %> partner
+#deb-src http://archive.canonical.com/ubuntu <%= @release %> partner
+

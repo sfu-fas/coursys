@@ -1,0 +1,30 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+ubuntu_release = 'bionic'
+#ubuntu_release = 'focal'
+CONFIG = {
+    'username' => 'vagrant', # username to deploy under in the VM image
+    'coursys_dir' => '/coursys',
+    'deploy_mode' => 'devel',
+}
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/#{ubuntu_release}64"
+  config.vm.network "forwarded_port", guest: 8000, host: 8000, host_ip: "127.0.0.1"
+  config.vm.synced_folder "../", CONFIG['coursys_dir'], owner: CONFIG['username']
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.cpus = 2
+    vb.memory = 2048
+    # speed up boot: https://bugs.launchpad.net/cloud-images/+bug/1829625
+    vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
+    vb.customize ["modifyvm", :id, "--uartmode1", "file", File::NULL]
+  end
+  config.vm.provision :chef_solo do |chef|
+     chef.cookbooks_path = "cookbooks"
+     chef.add_recipe "coursys"
+     chef.json = CONFIG
+     chef.version = "14.12.9"
+  end
+end
