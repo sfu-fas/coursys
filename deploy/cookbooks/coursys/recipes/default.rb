@@ -4,6 +4,8 @@ coursys_dir = node['coursys_dir']
 deploy_mode = node['deploy_mode']
 username = node['username']
 user_home = "/home/#{username}/"
+python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.major, sys.version_info.minor))"`.strip
+python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
 
 template '/etc/apt/sources.list' do
   variables(
@@ -28,12 +30,14 @@ end
 
 execute "install_pip_requirements" do
   command "pip3 install -r #{coursys_dir}/requirements.txt"
+  creates "#{python_lib_dir}/django/__init__.py"
 end
 execute "npm-install" do
   command "npm install"
   cwd coursys_dir
   environment 'HOME' => user_home
   user username
+  creates "#{coursys_dir}/node_modules/jquery/package.json"
 end
 
 # build the locale that a few bits of the system rely on
@@ -48,3 +52,23 @@ execute "github-markdown" do
     command "gem install commonmarker github-markup"
     not_if "ls /usr/local/bin/github-markup"
 end
+
+# docker
+apt_repository 'docker' do
+    uri 'https://download.docker.com/linux/ubuntu/'
+    components ['stable']
+    distribution ubuntu_release
+    arch 'amd64'
+    key '7EA0A9C3F273FCD8'
+    keyserver 'keyserver.ubuntu.com'
+    action :add
+    deb_src false
+end
+package ['docker', 'docker-compose']
+execute "docker group" do
+    command "gpasswd -a #{username} docker && service docker restart"
+    not_if "grep docker /etc/group | grep #{username}"
+end
+
+
+
