@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
-        TemporaryPersonForm, CourseHomePageForm, OneOfferingForm, NewCombinedForm, AnyPersonForm, RoleAccountForm
+        TemporaryPersonForm, CourseHomePageForm, OneOfferingForm, NewCombinedForm, AnyPersonForm, RoleAccountForm, \
+        OffboardForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
         has_formgroup, has_global_role
 from featureflags.flags import uses_feature
@@ -13,6 +14,7 @@ from coredata.models import Person, Semester, CourseOffering, Course, Member, Ro
     AnyPerson, FuturePerson, RoleAccount, CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
 from coredata import panel
 from advisornotes.models import NonStudent
+from onlineforms.models import FormGroup, FormGroupMember
 from log.models import LogEntry
 from django.urls import reverse
 from django.contrib import messages
@@ -739,7 +741,7 @@ def unit_role_list(request):
 
 
 @requires_role("ADMN")
-def new_unit_role(request, role=None):
+def new_unit_role(request):
     role_choices = [(r,ROLES[r]) for r in UNIT_ROLES]
     # Make the form more readable by sorting by role long name.
     role_choices.sort(key=itemgetter(1))
@@ -758,6 +760,7 @@ def new_unit_role(request, role=None):
                   description=("new role: %s as %s in %s") % (form.instance.person.userid, form.instance.role, form.instance.unit),
                   related_object=form.instance)
             l.save()
+            messages.success(request, "Added role: %s as %s in %s." % (r.person, r.get_role_display(), r.unit.name))
             return HttpResponseRedirect(reverse('admin:unit_role_list'))
     else:
         form = UnitRoleForm(initial={'expiry': datetime.date.today() + datetime.timedelta(days=365)})
@@ -766,6 +769,59 @@ def new_unit_role(request, role=None):
         
     context = {'form': form, 'UNIT_ROLES': UNIT_ROLES, 'ROLE_DESCR': ROLE_DESCR}
     return render(request, 'coredata/new_unit_role.html', context)
+
+@requires_role("ADMN")
+def offboard_unit(request):
+    if request.method == 'POST':
+        form = OffboardForm(request.POST)
+        if form.is_valid():
+            person = form.cleaned_data['person']
+            delete_roles = form.cleaned_data['delete_roles']
+            delete_formgroups = form.cleaned_data['delete_formgroups']
+            roles = Role.objects_fresh.filter(person=person, unit__in=Unit.sub_units(request.units),
+                                              role__in=UNIT_ROLES)
+            groups = FormGroup.objects.filter(members=person, unit__in=Unit.sub_units(request.units))
+            if delete_roles:
+                for role in roles:
+                    role.delete()
+                    l = LogEntry(userid=request.user.username,
+                                 description=("Deleted role: %s in %s via offboarding form.") % (role, role.unit),
+                                 related_object=role)
+                    l.save()
+                    messages.success(request, "Removed role %s as %s in %s." % (person, role.get_role_display(), role.unit.label))
+            if delete_formgroups:
+                for group in groups:
+                    member = FormGroupMember.objects.get(person=person, formgroup=group)
+                    member.delete()
+                    l = LogEntry(userid=request.user.username,
+                                 description=("Removed %s from form group %s (%i) via offboarding form.") % (
+                                              person.userid_or_emplid(), group, group.id),
+                                 related_object=group)
+                    l.save()
+                    messages.success(request, "Removed %s from formgroup %s" % (person, group))
+            return HttpResponseRedirect(reverse('admin:unit_role_list'))
+    else:
+        form = OffboardForm()
+    return render(request, 'coredata/offboard_unit.html', {'form': form})
+
+
+@requires_role("ADMN")
+def roles(request, emplid):
+    person = get_object_or_404(Person, emplid=emplid)
+    roles = Role.objects_fresh.filter(person=person, unit__in=Unit.sub_units(request.units), role__in=UNIT_ROLES)
+    groups = FormGroup.objects.filter(members=person, unit__in=Unit.sub_units(request.units))
+    data = {}
+    if roles:
+        data['roles'] = []
+    if groups:
+        data['formgroups'] = []
+    for role in roles:
+        data['roles'].append('%s in %s' % (role.get_role_display(), role.unit.name))
+    for group in groups:
+        data['formgroups'].append(str(group))
+    response = HttpResponse(content_type='application/json')
+    json.dump(data, response, indent=1)
+    return response
 
 
 @requires_role("ADMN")
