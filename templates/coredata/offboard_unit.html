@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load course_display %}
+{% block title %}{{ CourSys }} Roles{% endblock %}
+{% block h1 %}{{ CourSys }} Roles{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "admin:unit_admin" %}">Admin</a></li>
+    <li><a href="{% url "admin:unit_role_list" %}">Roles</a></li>
+    <li>Offboarding</li>
+{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+  function get_roles(value) {
+    let fetchwait = $('#fetchwait');
+    $('#fetchwait').show();
+    let rolesgroups = $('#rolesgroups');
+    rolesgroups.hide();
+    let roles_div = $('#roles');
+    let formgroups_div = $('#formgroups');
+    roles_div.html('');
+    formgroups_div.html('');
+    $.ajax({
+        type: 'GET',
+        url: "/data/roles/" + value,
+        success: function(data) {
+            if (data['roles']) {
+                const roles = data['roles']
+                let res = '';
+                for (let i = 0; i < roles.length; i++) {
+                    res += roles[i] + '<br/>';
+                }
+                roles_div.html(res);
+            }
+            else {
+                roles_div.html('No roles found within your unit(s)');
+            }
+            if (data['formgroups']) {
+                const formgroups = data['formgroups']
+                let res = '';
+                for (let i = 0; i < formgroups.length; i++) {
+                    res += formgroups[i] + '<br/>';
+                }
+                formgroups_div.html(res);
+            }
+            else {
+                formgroups_div.html('No form groups found within your unit(s)');
+            }
+
+        fetchwait.hide();
+        rolesgroups.show();
+        }
+    });
+  }
+
+  $(document).ready(function() {
+    let person_id = $('#id_person');
+    person_id.each(function() {
+      $(this).autocomplete({
+        source: '/data/students',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).data("val", ui.item.value);
+          // It's stupid to call the same function here as well, but we want the AJAX call to be made if the user
+          // simply clicks on the value as well, which doesn't seem to trigger the 'change' event.
+          if (ui.item.value.toString().length === 9)
+          {
+            get_roles(ui.item.value);
+          }
+        }
+      });
+    });
+    person_id.change(function()
+    {
+        if ($(this).val().length === 9)
+        {
+            get_roles($(this).val());
+        }
+    });
+    // Manually call the change handler in case we just got back to the form (e.g. with validation errors) and the
+    // field is already populated.
+    person_id.change();
+
+
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+   <form action="{% url 'admin:offboard_unit' %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit btn confirm-submit" title="Offboard user"
+               data-submit-action="remove this user's roles/formgroups"
+               data-submit-action-affirm="DANGER: THIS CANNOT BE UNDONE!" value="Offboard User" />
+    </p>
+    </form>
+    <div id="fetchwait" style="display:none"><i class="fa fa-spinner fa-spin"></i> Please wait...</div>
+    <div id="rolesgroups" style="display:none">
+        <h2>Roles</h2>
+        <h3>The user has the following roles:</h3>
+        <div id="roles"></div>
+        <h2>Form Groups</h2>
+        <h3>The user is a member of the following form groups:</h3>
+        <div id="formgroups"></div>
+    </div>
+{% endblock %}

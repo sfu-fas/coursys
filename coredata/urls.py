@@ -20,6 +20,7 @@ data_patterns = [ # prefix /data/
     #url(r'^sims_people', coredata_views.sims_person_search, name='sims_person_search'),
     url(r'^scholarships/(?P<student_id>\d{9})$', ra_views.search_scholarships_by_student, name='search_scholarships_by_student'),
     url(r'^photos/' + EMPLID_SLUG + '$', grades_views.student_photo, name='student_photo'),
+    url(r'^roles/' + EMPLID_SLUG + '$', coredata_views.roles, name='roles'),
 ]
 
 admin_patterns = [ # prefix /admin/
@@ -29,6 +30,7 @@ admin_patterns = [ # prefix /admin/
     url(r'^roles/(?P<role_id>\d+)/delete$', coredata_views.delete_unit_role, name='delete_unit_role'),
     url(r'^roles/(?P<role_id>\d+)/renew', coredata_views.renew_unit_role, name='renew_unit_role'),
     url(r'^roles/new$', coredata_views.new_unit_role, name='new_unit_role'),
+    url(r'^roles/offboarding$', coredata_views.offboard_unit, name='offboard_unit'),
     url(r'^signatures/$', dashboard_views.signatures, name='signatures'),
     url(r'^signatures/new$', dashboard_views.new_signature, name='new_signature'),
     url(r'^signatures/' + USERID_SLUG + '/view$', dashboard_views.view_signature, name='view_signature'),

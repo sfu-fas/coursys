@@ -295,8 +295,28 @@ class RoleForm(forms.ModelForm):
 class UnitRoleForm(RoleForm):
     role = forms.ChoiceField(widget=forms.RadioSelect())
 
-    def clean_role(self):
-        return self.cleaned_data['role']
+    def clean(self):
+        return self.cleaned_data
+
+
+class OffboardForm(forms.Form):
+    person = PersonField(label="Emplid", help_text="or type to search")
+    delete_roles = forms.BooleanField(required=False, help_text="Check this box to remove all roles for this user in "
+                                                                "your unit(s).")
+    delete_formgroups = forms.BooleanField(required=False, help_text="Check this box to remove this user from all "
+                                                                     "formgroups in your unit(s).")
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(OffboardForm, self).is_valid(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(OffboardForm, self).clean()
+        delete_roles = cleaned_data.get('delete_roles')
+        delete_formgroups = cleaned_data.get('delete_formgroups')
+        if not delete_roles and not delete_formgroups:
+            raise forms.ValidationError({'delete_roles': 'You must select at least one of these options.',
+                                         'delete_formgroups': 'You must select at least one of these options.'})
 
 
 class InstrRoleForm(forms.Form):

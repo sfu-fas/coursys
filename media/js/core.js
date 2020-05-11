@@ -318,7 +318,13 @@ $(document).ready(function(){
         if ( action == null ) {
             action = 'complete this action'
         }
-        return confirm("Are you sure you wish to " + action + "?");
+        // Sometimes, you want to add something after the "Are you sure you want to X?, but without the question
+        // mark.  e.g. "DANGER, this cannot be undone", etc.
+        var action_affirm = $(this).attr('data-submit-action-affirm');
+        if (action_affirm == null) {
+            action_affirm = ''
+        }
+        return confirm("Are you sure you wish to " + action + "? " + action_affirm);
     });
 
 });
