@@ -36,7 +36,8 @@ django_celery_beat==1.4.0
 flower==0.9.3
 kombu==4.5.0
 iso8601==0.1.12
-django-haystack==2.8.1
+#django-haystack==2.8.1
+git+git://github.com/django-haystack/django-haystack.git@v3.0b2
 whoosh==2.7.4
 djangorestframework==3.9.4
 djangorestframework-oauth==1.1.0
@@ -50,12 +51,13 @@ psutil==5.6.6
 intervaltree==3.0.2
 requests
 ntplib==0.3.4
+ipython
 
 # actually only needed in production-like environments...
 python-memcached==1.59
 #django-dbdump==1.1
 git+git://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
-elasticsearch==6.1.1
+elasticsearch>=5,<6
 pysolr==3.8.1
 lxml==4.3.3
 gunicorn==19.9.0

@@ -193,7 +193,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'NAME': 'coursys',
             'USER': 'coursysuser',
             'PASSWORD': 'coursyspassword',
-            'HOST': 'localhost',
+            'HOST': '127.0.0.1',
             'PORT': 3306,
         })
 
