@@ -55,8 +55,15 @@ function get_roles(value) {
                     formgroups_div.html('No form groups found within your unit(s)');
                 }
                 last_successful_id = value;
-            fetchwait.hide();
-            rolesgroups.show();
+                fetchwait.hide();
+                rolesgroups.show();
+            },
+            error: function(xhr) {
+                roles_div.html("Error retrieving this person's roles. Status: " + xhr.status + " Message: " + xhr.statusText);
+                formgroups_div.html("Error retrieving this person's roles. Status: " + xhr.status + " Message: " + xhr.statusText);
+                last_successful_id = '';
+                fetchwait.hide();
+                rolesgroups.show();
             }
         });
     }
