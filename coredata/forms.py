@@ -272,15 +272,20 @@ class RoleForm(forms.ModelForm):
         PersonField.person_data_prep(self)
         return super(RoleForm, self).is_valid(*args, **kwargs)
 
-    def clean(self):
+    def clean(self, fromunit=False):
         #  Allow sysadmins to assign roles that DAs should assign, but only for the University-wide level.
         cleaned_data = super(RoleForm, self).clean()
         role = cleaned_data.get('role')
         unit = cleaned_data.get('unit')
-        if role in SIMS_ROLES and unit.slug != 'univ':
+        person = cleaned_data.get('person')
+        if not fromunit and role in SIMS_ROLES and unit.slug != 'univ':
             url = reverse('admin:unit_admin')
             raise forms.ValidationError({'role': 'Admins cannot assign that role. It must be given by their manager '
                                                  'at %s%s' % (settings.BASE_ABS_URL, url)})
+        if Role.objects_fresh.filter(person=person, role=role, unit=unit).exists():
+            raise forms.ValidationError({'role': 'This user already has that role for that unit.',
+                                         'person': 'This user already has that role for that unit.',
+                                         'unit': 'This user already has that role for that unit.'})
 
     def clean_expiry(self):
         expiry = self.cleaned_data['expiry']
@@ -296,7 +301,7 @@ class UnitRoleForm(RoleForm):
     role = forms.ChoiceField(widget=forms.RadioSelect())
 
     def clean(self):
-        return self.cleaned_data
+        return super(UnitRoleForm, self).clean(fromunit=True)
 
 
 class OffboardForm(forms.Form):
