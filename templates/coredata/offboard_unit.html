@@ -12,49 +12,57 @@
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
-  function get_roles(value) {
-    let fetchwait = $('#fetchwait');
-    $('#fetchwait').show();
-    let rolesgroups = $('#rolesgroups');
-    rolesgroups.hide();
-    let roles_div = $('#roles');
-    let formgroups_div = $('#formgroups');
-    roles_div.html('');
-    formgroups_div.html('');
-    $.ajax({
-        type: 'GET',
-        url: "/data/roles/" + value,
-        success: function(data) {
-            if (data['roles']) {
-                const roles = data['roles']
-                let res = '';
-                for (let i = 0; i < roles.length; i++) {
-                    res += roles[i] + '<br/>';
-                }
-                roles_div.html(res);
-            }
-            else {
-                roles_div.html('No roles found within your unit(s)');
-            }
-            if (data['formgroups']) {
-                const formgroups = data['formgroups']
-                let res = '';
-                for (let i = 0; i < formgroups.length; i++) {
-                    res += formgroups[i] + '<br/>';
-                }
-                formgroups_div.html(res);
-            }
-            else {
-                formgroups_div.html('No form groups found within your unit(s)');
-            }
 
-        fetchwait.hide();
-        rolesgroups.show();
-        }
-    });
-  }
+// A variable to see the emplid for which the data is currently displayed.  That way, we don't do multiple
+// calls for nothing and cause the page to flicker due to showing/hiding divs if the change event is triggered more
+// than once.
+var last_successful_id = '';
 
-  $(document).ready(function() {
+function get_roles(value) {
+    if (last_successful_id !== value) {
+        let fetchwait = $('#fetchwait');
+        $('#fetchwait').show();
+        let rolesgroups = $('#rolesgroups');
+        rolesgroups.hide();
+        let roles_div = $('#roles');
+        let formgroups_div = $('#formgroups');
+        roles_div.html('');
+        formgroups_div.html('');
+        $.ajax({
+            type: 'GET',
+            url: "/data/roles/" + value,
+            success: function(data) {
+                if (data['roles']) {
+                    const roles = data['roles']
+                    let res = '';
+                    for (let i = 0; i < roles.length; i++) {
+                        res += roles[i] + '<br/>';
+                    }
+                    roles_div.html(res);
+                }
+                else {
+                    roles_div.html('No roles found within your unit(s)');
+                }
+                if (data['formgroups']) {
+                    const formgroups = data['formgroups']
+                    let res = '';
+                    for (let i = 0; i < formgroups.length; i++) {
+                        res += formgroups[i] + '<br/>';
+                    }
+                    formgroups_div.html(res);
+                }
+                else {
+                    formgroups_div.html('No form groups found within your unit(s)');
+                }
+                last_successful_id = value;
+            fetchwait.hide();
+            rolesgroups.show();
+            }
+        });
+    }
+ }
+
+$(document).ready(function() {
     let person_id = $('#id_person');
     person_id.each(function() {
       $(this).autocomplete({
@@ -66,7 +74,7 @@
           // simply clicks on the value as well, which doesn't seem to trigger the 'change' event.
           if (ui.item.value.toString().length === 9)
           {
-            get_roles(ui.item.value);
+            get_roles(ui.item.value.toString());
           }
         }
       });
@@ -81,9 +89,7 @@
     // Manually call the change handler in case we just got back to the form (e.g. with validation errors) and the
     // field is already populated.
     person_id.change();
-
-
-  });
+});
 </script>
 {% endblock %}
 
