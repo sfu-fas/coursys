@@ -221,7 +221,11 @@ else:
 
 # static file settings
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static', 'static')
+if 'COURSYS_STATIC_DIR' in os.environ:
+    STATIC_ROOT = os.environ['COURSYS_STATIC_DIR']
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static', 'static')
+
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',

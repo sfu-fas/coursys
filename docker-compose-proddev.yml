@@ -8,7 +8,7 @@ services:
     ports:
       - "127.0.0.1:3306:3306"
     volumes:
-      - /mysql:/var/lib/mysql:rw
+      - /data/mysql:/var/lib/mysql:rw
     environment:
       - MYSQL_USER=coursysuser
       - MYSQL_PASSWORD=coursyspassword

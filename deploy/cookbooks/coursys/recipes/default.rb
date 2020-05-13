@@ -8,6 +8,7 @@ username = node['username']
 user_home = "/home/#{username}/"
 python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.major, sys.version_info.minor))"`.strip
 python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
+data_root = '/data'
 
 template '/etc/apt/sources.list' do
   variables(
@@ -42,6 +43,13 @@ execute "coursys_git" do
   user username
   command "git clone --branch #{coursys_branch} #{coursys_repo} ."
   creates "#{coursys_dir}/manage.py"
+end
+template '/etc/profile.d/coursys-environment.sh' do
+  variables(
+    :coursys_dir => coursys_dir,
+    :deploy_mode => deploy_mode,
+    :data_root => data_root,
+  )
 end
 
 # Python and JS deps
@@ -92,25 +100,37 @@ if deploy_mode != 'devel'
     creates "/etc/systemd/system/multi-user.target.wants/docker.service"
   end
 
-  directory '/rabbitmq' do
-    owner username
-    mode '0755'
-    action :create
+  for dir in ['', 'static', 'config', 'rabbitmq', 'elasticsearch', 'nginx-logs', 'mysql']
+    directory "#{data_root}/#{dir}" do
+      owner username
+      mode '0755'
+      action :create
+    end
   end
-  directory '/elasticsearch' do
-    owner username
-    mode '0755'
-    action :create
+
+  execute "django-status" do
+    command "python3 manage.py collectstatic --no-input"
+    cwd coursys_dir
+    environment 'COURSYS_STATIC_DIR' => "#{data_root}/static"
+    user username
+    creates "#{data_root}/static/style/main.css"
   end
 
   # There was a conflict between npm and some mysql packages, so using the mariadb client, which should be equivalent.
-  package ['mariadb-client']
+  package ['mariadb-client', 'screen', 'nginx']
+  service 'nginx' do
+    action :nothing
+  end
 end
 
 if deploy_mode == 'proddev'
-  directory '/mysql' do
-    owner username
-    mode '0755'
-    action :create
+  template "/etc/nginx/sites-available/default" do
+    source 'nginx-proddev.conf.erb'
+    variables(
+      :coursys_dir => coursys_dir,
+      :data_root => data_root,
+    )
+    notifies :restart, 'service[nginx]', :immediately
   end
+
 end

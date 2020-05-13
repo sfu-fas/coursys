@@ -7,7 +7,7 @@ services:
     ports:
       - "127.0.0.1:5672:5672"
     volumes:
-      - /rabbitmq:/var/lib/rabbitmq:rw
+      - /data/rabbitmq:/var/lib/rabbitmq:rw
     environment:
       - RABBITMQ_DEFAULT_USER=coursys
       - RABBITMQ_DEFAULT_PASS=supersecretpassword
@@ -20,7 +20,7 @@ services:
       - "127.0.0.1:9200:9200"
       - "127.0.0.1:9300:9300"
     volumes:
-      - /elasticsearch:/usr/share/elasticsearch/data:rw
+      - /data/elasticsearch:/usr/share/elasticsearch/data:rw
     environment:
       - discovery.type=single-node
 
@@ -29,4 +29,3 @@ services:
     restart: always
     ports:
       - "127.0.0.1:11211:11211"
-
