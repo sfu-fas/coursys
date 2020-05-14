@@ -30,8 +30,8 @@ from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES,
 @requires_course_by_slug
 def index(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     role = request.member.role
-    offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
+    activity = get_object_or_404(Activity.objects.select_related('offering'), slug=activity_slug, offering__slug=course_slug, group=False)
+    offering = activity.offering
 
     if role in ['INST', 'TA']:
         quiz = Quiz.objects.filter(activity=activity).first()  # will be None if no quiz created for this activity

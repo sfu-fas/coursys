@@ -100,7 +100,7 @@ if deploy_mode != 'devel'
     creates "/etc/systemd/system/multi-user.target.wants/docker.service"
   end
 
-  for dir in ['', 'static', 'config', 'rabbitmq', 'elasticsearch', 'nginx-logs', 'mysql']
+  for dir in ['', 'static', 'config', 'rabbitmq', 'elasticsearch', 'nginx-logs', 'mysql', 'logs']
     directory "#{data_root}/#{dir}" do
       owner username
       mode '0755'
@@ -121,6 +121,29 @@ if deploy_mode != 'devel'
   service 'nginx' do
     action :nothing
   end
+
+  for service in ['gunicorn', 'celery', 'celerybeat']
+    template "/etc/systemd/system/#{service}.service" do
+      variables(
+        :coursys_dir => coursys_dir,
+        :username => username,
+        :data_root => data_root,
+      )
+    end
+  end
+  template "#{data_root}/config/celery-environment" do
+    variables(
+      :coursys_dir => coursys_dir,
+      :username => username,
+      :data_root => data_root,
+    )
+  end
+  directory '/var/run/celery' do
+    owner username
+    mode '0755'
+    recursive true
+    action :create
+  end
 end
 
 if deploy_mode == 'proddev'
@@ -132,5 +155,6 @@ if deploy_mode == 'proddev'
     )
     notifies :restart, 'service[nginx]', :immediately
   end
-
 end
+
+
