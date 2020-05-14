@@ -216,7 +216,7 @@ def is_form_admin_by_slug(request, form_slug, **kwargs):
     admin_roles = Role.objects_fresh.filter(person__userid=request.user.username, role='FORM').select_related('unit')
     admin_groups = FormGroup.objects.filter(unit__in=(r.unit for r in admin_roles))
     groups |= admin_groups
-    request.formgroups = groups
+    request.formgroups = set(groups)
     return groups.filter(id__in=owner_ids).count() > 0
 
 def requires_form_admin_by_slug(function=None, login_url=None):
@@ -238,7 +238,7 @@ def has_formgroup(request, **kwargs):
     admin_roles = Role.objects_fresh.filter(person__userid=request.user.username, role='FORM').select_related('unit')
     admin_groups = FormGroup.objects.filter(unit__in=(r.unit for r in admin_roles))
     groups |= admin_groups
-    request.formgroups = groups
+    request.formgroups = set(groups)
     return groups.count() > 0
 
 def requires_formgroup(login_url=None):
