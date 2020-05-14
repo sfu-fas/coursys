@@ -19,6 +19,13 @@
 {% include 'pages/markup_edit_head.html' %}
 {% compress js %}
 <script src="{% static 'js/quizzes.js' %}"></script>
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('.code-answer').each(function(i, pre) {
+        hljs.highlightBlock(pre);
+    });
+});
+</script>
 {% endcompress %}
 {% for q, v, f in question_data %}{{ v.entry_head_html }}{% endfor %}
 <script nonce="{{ CSP_NONCE }}">
@@ -33,6 +40,7 @@ $(document).ready(function() {
 {% block content %}
 
     {% for v,a,m in version_answers %}
+
         <h2 id="{{ v.question.ident }}">Question #{{ forloop.counter }} ({{ v.question.points }} point{{ v.question.points|pluralize }})</h2>
         <dl class="review">
         <dt>Question</dt>
@@ -46,7 +54,11 @@ $(document).ready(function() {
             {% endif %}
         </dd>
         <dt>Mark</dt>
-        <dd>{{ m.value }} / {{ m.activity_component.max_mark }}</dd>
+        {% if m %}
+            <dd>{{ m.value }} / {{ m.activity_component.max_mark }}</dd>
+        {% else %}
+            <dd class="empty">&mdash;</dd>
+        {% endif %}
         <dt>Comment</dt>
         {% if m.comment %}
             <dd>{{ m.comment|linebreaks }}</dd>
