@@ -27,6 +27,11 @@ form.marking textarea {
     padding: 0 0.5em;
     background: white;
 }
+dl.review .question {
+    border: thin black solid;
+    padding: 0 0.5em;
+    background: white;
+}
 div#capture {
     position: relative;
 }

@@ -228,12 +228,15 @@ def _student_review(request: HttpRequest, offering: CourseOffering, activity: Ac
 
     answer_lookup = {a.question_id: a for a in answers}
     version_answers = [(v, answer_lookup.get(v.question.id, None), mark_lookup.get(v.question_id, None)) for v in versions]
+    total_marks = sum(q.points for q in questions)
 
     context = {
         'offering': offering,
         'activity': activity,
         'quiz': quiz,
+        'activity_mark': activity_mark,
         'version_answers': version_answers,
+        'total_marks': total_marks,
     }
     return render(request, 'quizzes/student_review.html', context=context)
 

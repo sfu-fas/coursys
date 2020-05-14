@@ -48,9 +48,33 @@ $(document).ready(function() {
         <dt>Mark</dt>
         <dd>{{ m.value }} / {{ m.activity_component.max_mark }}</dd>
         <dt>Comment</dt>
-        <dd>{{ m.comment|linebreaks }}</dd>
+        {% if m.comment %}
+            <dd>{{ m.comment|linebreaks }}</dd>
+        {% else %}
+            <dd class="empty">&mdash;</dd>
+        {% endif %}
         </dl>
 
     {% endfor %}
+
+    <h2 id="overall">Overall</h2>
+    <dl class="review">
+    {% if activity_mark.mark_adjustment != 0 or activity_mark.mark_adjustment_reason != '' %}
+        <dt>Mark Adjustment</dt>
+        <dd>{% if activity_mark.mark_adjustment_neg > 0 %}+{% endif %}{{ activity_mark.mark_adjustment_neg }}</dd>
+        <dt>Reason</dt>
+        <dd>{{ activity_mark.mark_adjustment_reason|linebreaks }}</dd>
+    {% endif %}
+    {% if activity_mark.late_penalty != 0 %}
+        <dt>Late Penalty</dt>
+        <dd>-{{ activity_mark.late_penalty }}%</dd>
+    {% endif %}
+    {% if activity_mark.overall_comment %}
+        <dt>Comment</dt>
+        <dd>{{ activity_mark.overall_comment|linebreaks }}</dd>
+    {% endif %}
+    <dt>Total</dt>
+    <dd>{{ activity_mark.mark }} / {{ total_marks }}</dd>
+    </dl>
 
 {% endblock %}
