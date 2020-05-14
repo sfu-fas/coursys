@@ -214,7 +214,6 @@ def _student_review(request: HttpRequest, offering: CourseOffering, activity: Ac
     component_lookup = quiz.activitycomponents_by_question()
     if activity_mark:
         comp_marks = ActivityComponentMark.objects.filter(activity_mark=activity_mark).select_related('activity_component')
-        print(comp_marks)
         comp_mark_lookup = {acm.activity_component_id: acm for acm in comp_marks}
         mark_lookup = {}
         for q in questions:
