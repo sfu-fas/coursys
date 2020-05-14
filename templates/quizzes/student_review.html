@@ -1,0 +1,56 @@
+{% extends "base-wide.html" %}
+{% load form_display %}
+{% load static %}
+{% load compress %}
+
+{% block title %}{{ activity.name }}: Take The Quiz{% if preview %} [Instructor's Preview]{% endif %}{% endblock %}
+{% block h1 %}{{ activity.name }}: Take The Quiz{% if preview %} [Instructor's Preview]{% endif %}{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li>Quiz{% if preview %} Preview{% endif %}</li>
+{% endblock %}
+
+{% block headextra %}
+{% compress css %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+{% endcompress %}
+{% include 'pages/markup_view_head.html' %}
+{% include 'pages/markup_edit_head.html' %}
+{% compress js %}
+<script src="{% static 'js/quizzes.js' %}"></script>
+{% endcompress %}
+{% for q, v, f in question_data %}{{ v.entry_head_html }}{% endfor %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+    {% for v,a,m in version_answers %}
+        <h2 id="{{ v.question.ident }}">Question #{{ forloop.counter }} ({{ v.question.points }} point{{ v.question.points|pluralize }})</h2>
+        <dl class="review">
+        <dt>Question</dt>
+        <dd class="question">{{ v.question_preview_html }}</dd>
+        <dt>Your Answer</dt>
+        <dd class="answer">
+            {% if a %}
+                {{ a.answer_html }}
+            {% else %}
+                <p class="empty">No submission found.</p>
+            {% endif %}
+        </dd>
+        <dt>Mark</dt>
+        <dd>{{ m.value }} / {{ m.activity_component.max_mark }}</dd>
+        <dt>Comment</dt>
+        <dd>{{ m.comment|linebreaks }}</dd>
+        </dl>
+
+    {% endfor %}
+
+{% endblock %}

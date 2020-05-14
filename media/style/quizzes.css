@@ -22,7 +22,7 @@ form.marking textarea {
     width: 100%;
 }
 
-div.answer {
+.answer {
     border: thin #b5111b solid;
     padding: 0 0.5em;
     background: white;

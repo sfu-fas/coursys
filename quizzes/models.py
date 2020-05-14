@@ -132,6 +132,7 @@ class Quiz(models.Model):
     # .config['secret']: the "secret" used to seed the randomization for this quiz (integer)
     # .config['honour_code']: do we make the student agree to the honour code for this quiz? (boolean)
     # .config['photos']: do we capture verification images for this quiz? (boolean)
+    # .config['reviewable']: can students review questions & answers after grades are released? (boolean)
 
     grace = config_property('grace', default=300)
     intro = config_property('intro', default='')
@@ -140,6 +141,7 @@ class Quiz(models.Model):
     secret = config_property('secret', default='not a secret')
     honour_code = config_property('honour_code', default=True)
     photos = config_property('photos', default=False)
+    reviewable = config_property('reviewable', default=False)
 
     class Meta:
         verbose_name_plural = 'Quizzes'

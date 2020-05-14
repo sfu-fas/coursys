@@ -164,20 +164,28 @@ class MultipleChoice(QuestionHelper):
         if ans == MultipleChoice.NA:
             return MISSING_ANSWER_HTML
         else:
-            return ans
+            return mark_safe('<p>' + ans + '</p>')
 
     def question_preview_html(self):
         # override to present options (original order) along with question text
         options = self.version.config.get('options', [])
+        permute = self.version.config.get('permute', 'keep')
         q_html = self.question_html()
         choices_html = [
             '<p><span class="mc-letter">%s.</span> %s</p>' % (OPTION_LETTERS[i], escape(o[0]))
             for i, o
             in enumerate(options)
         ]
+
+        if permute == 'keep':
+            order_note = ''
+        else:
+            order_note = ' <span class="helptext">[Choices may have been presented in a different order during the quiz.]</span> '
+
         return mark_safe(''.join((
             '<div>',
             q_html,
+            order_note,
             ''.join(choices_html),
             '</div>'
         )))

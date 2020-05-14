@@ -84,8 +84,13 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             'time': 'before'
         }
         return render(request, 'quizzes/unavailable.html', context=context, status=403)
+
     elif (end < now and request.method == 'GET') or (end + grace < now):
-        # late
+        # can student review the marking?
+        if quiz.reviewable and activity.status == 'RLS':
+            return _student_review(request, offering, activity, quiz)
+
+        # if not, then we're just after the quiz.
         context = {
             'offering': offering,
             'activity': activity,
@@ -197,6 +202,40 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
     }
     return render(request, 'quizzes/index_student.html', context=context)
 
+
+def _student_review(request: HttpRequest, offering: CourseOffering, activity: Activity, quiz: Quiz) -> HttpResponse:
+    member = request.member
+    assert member.role == 'STUD'
+
+    questions = Question.objects.filter(quiz=quiz)
+    answers = QuestionAnswer.objects.filter(student=member, question__in=questions).select_related('question')
+    versions = QuestionVersion.select(quiz=quiz, questions=questions, student=member, answers=answers)
+    activity_mark = get_activity_mark_for_student(activity, member)
+    component_lookup = quiz.activitycomponents_by_question()
+    if activity_mark:
+        comp_marks = ActivityComponentMark.objects.filter(activity_mark=activity_mark).select_related('activity_component')
+        print(comp_marks)
+        comp_mark_lookup = {acm.activity_component_id: acm for acm in comp_marks}
+        mark_lookup = {}
+        for q in questions:
+            comp = component_lookup.get(q)
+            if not comp:
+                continue
+            acm = comp_mark_lookup.get(comp.id)
+            mark_lookup[q.id] = acm
+    else:
+        mark_lookup = {}
+
+    answer_lookup = {a.question_id: a for a in answers}
+    version_answers = [(v, answer_lookup.get(v.question.id, None), mark_lookup.get(v.question_id, None)) for v in versions]
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'version_answers': version_answers,
+    }
+    return render(request, 'quizzes/student_review.html', context=context)
 
 @requires_course_staff_by_slug
 def preview_student(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
