@@ -26,7 +26,7 @@ execute 'apt-get upgrade' do
 end
 
 # basic requirements to run/build
-package ['python3', 'python3-pip', 'git', 'mercurial', 'libmariadb-dev-compat', 'npm']
+package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev']
 if deploy_mode == 'devel'
   package ['sqlite3']
 end
@@ -157,4 +157,43 @@ if deploy_mode == 'proddev'
   end
 end
 
+
+
+if deploy_mode != 'devel'
+  # SIMS database connection
+  db2_client_download = 'v10.5fp11_linuxx64_client.tar.gz'
+  # This repository doesn't provide db2_client_download because copyright.
+  # It must be inserted into cookbooks/courses/files/ manually for this to sequence to fire.
+  if File.file?(Chef::Config[:cookbook_path] + '/coursys/files/' + db2_client_download)
+    cookbook_file "#{user_home}/#{db2_client_download}" do
+      owner username
+    end
+  end
+
+  execute "db2-unpack" do
+    command "tar xf #{db2_client_download}"
+    cwd user_home
+    user username
+    creates "#{user_home}/client/db2_install"
+    only_if { ::File.file?("#{user_home}/#{db2_client_download}") } # if we don't have the client, skip
+  end
+
+  execute "i386-arch" do
+    command "dpkg --add-architecture i386"
+    notifies :run, 'execute[apt-get update]', :immediately
+    not_if "grep -q i386 /var/lib/dpkg/arch"
+  end
+
+  package ['libpam0g:i386', 'libaio1', 'lib32stdc++6']
+  # This fails when run from the recipe but succeeds at the command line. For reasons.
+  #execute "db2-install" do
+  #  command "./db2_install"
+  #  cwd "#{user_home}/client/"
+  #  user username
+  #  environment 'HOME' => user_home
+  #  creates "#{user_home}/sqllib/bin/db2"
+  #  only_if { ::File.file?("#{user_home}/client/db2_install") } # if we don't have the client, skip
+  #end
+
+end
 

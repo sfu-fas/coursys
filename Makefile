@@ -9,6 +9,12 @@ proddev-start-all:
 	sudo systemctl start gunicorn
 	sudo systemctl start celery
 	sudo systemctl start celerybeat
+proddev-restart-all:
+	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml restart
+	sudo systemctl restart gunicorn
+	sudo systemctl restart celery
+	sudo systemctl restart celerybeat
+	sudo systemctl restart nginx
 proddev-stop-all:
 	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml stop
 	sudo systemctl stop gunicorn

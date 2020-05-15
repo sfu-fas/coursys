@@ -301,7 +301,6 @@ else:
 
 
 
-
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
 USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
 if USE_CELERY:
