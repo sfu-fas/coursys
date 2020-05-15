@@ -272,15 +272,20 @@ class RoleForm(forms.ModelForm):
         PersonField.person_data_prep(self)
         return super(RoleForm, self).is_valid(*args, **kwargs)
 
-    def clean(self):
+    def clean(self, fromunit=False):
         #  Allow sysadmins to assign roles that DAs should assign, but only for the University-wide level.
         cleaned_data = super(RoleForm, self).clean()
         role = cleaned_data.get('role')
         unit = cleaned_data.get('unit')
-        if role in SIMS_ROLES and unit.slug != 'univ':
+        person = cleaned_data.get('person')
+        if not fromunit and role in SIMS_ROLES and unit.slug != 'univ':
             url = reverse('admin:unit_admin')
             raise forms.ValidationError({'role': 'Admins cannot assign that role. It must be given by their manager '
                                                  'at %s%s' % (settings.BASE_ABS_URL, url)})
+        if Role.objects_fresh.filter(person=person, role=role, unit=unit).exists():
+            raise forms.ValidationError({'role': 'This user already has that role for that unit.',
+                                         'person': 'This user already has that role for that unit.',
+                                         'unit': 'This user already has that role for that unit.'})
 
     def clean_expiry(self):
         expiry = self.cleaned_data['expiry']
@@ -295,8 +300,28 @@ class RoleForm(forms.ModelForm):
 class UnitRoleForm(RoleForm):
     role = forms.ChoiceField(widget=forms.RadioSelect())
 
-    def clean_role(self):
-        return self.cleaned_data['role']
+    def clean(self):
+        return super(UnitRoleForm, self).clean(fromunit=True)
+
+
+class OffboardForm(forms.Form):
+    person = PersonField(label="Emplid", help_text="or type to search")
+    delete_roles = forms.BooleanField(required=False, help_text="Check this box to remove all roles for this user in "
+                                                                "your unit(s).")
+    delete_formgroups = forms.BooleanField(required=False, help_text="Check this box to remove this user from all "
+                                                                     "formgroups in your unit(s).")
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(OffboardForm, self).is_valid(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(OffboardForm, self).clean()
+        delete_roles = cleaned_data.get('delete_roles')
+        delete_formgroups = cleaned_data.get('delete_formgroups')
+        if not delete_roles and not delete_formgroups:
+            raise forms.ValidationError({'delete_roles': 'You must select at least one of these options.',
+                                         'delete_formgroups': 'You must select at least one of these options.'})
 
 
 class InstrRoleForm(forms.Form):
