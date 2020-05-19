@@ -261,11 +261,24 @@ $(document).ready(function() {
 </form>
 {% else %}
     {% if not contract.accepted_by_student %}
-    <form method="post" action="{% url "tacontracts:accept_contract" semester=semester contract_slug=contract.slug %}">
+    <form class="contract_form" method="post" action="{% url "tacontracts:reject_contract" semester=semester contract_slug=contract.slug %}">
         {% csrf_token %}
         <p>
         </p>
-        <button type="submit" class="btn" style="float:right;">
+        <button type="submit" class="btn confirm-submit" title="Reject the Contract"
+               data-submit-action="reject this contract"
+               data-submit-action-affirm="DANGER: THIS CANNOT BE UNDONE!" value="Offboard User">
+            <i class="fa fa-thumbs-o-down"></i>
+            &nbsp;
+            Reject the Contract
+        </button>
+        <div style="clear:both;"></div>
+    </form>
+    <form class="contract_form" method="post" action="{% url "tacontracts:accept_contract" semester=semester contract_slug=contract.slug %}">
+        {% csrf_token %}
+        <p>
+        </p>
+        <button type="submit" class="btn" title="Accept the Contract">
             <i class="fa fa-thumbs-o-up"></i>
             &nbsp;
             Accept the Contract
