@@ -21,7 +21,8 @@ from grades.models import Activity, NumericGrade
 from grades.views import has_photo_agreement
 from log.models import LogEntry
 from marking.models import ActivityComponent, ActivityComponentMark, StudentActivityMark, get_activity_mark_for_student
-from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm, MarkingSetupForm
+from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm, MarkingSetupForm, \
+    QuizImportForm
 from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES, Question, QuestionAnswer, \
     TimeSpecialCase, \
     QuizSubmission, QuestionVersion, MarkingNotConfiguredError
@@ -239,6 +240,7 @@ def _student_review(request: HttpRequest, offering: CourseOffering, activity: Ac
     }
     return render(request, 'quizzes/student_review.html', context=context)
 
+
 @requires_course_staff_by_slug
 def preview_student(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     """
@@ -316,6 +318,54 @@ class EditView(FormView, UpdateView, ModelFormMixin):
             messages.add_message(self.request, messages.INFO, 'Updated %s due date to match quiz end.' % (self.object.activity.name,))
 
         return res
+
+
+@requires_course_staff_by_slug
+def export(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
+    quiz = get_object_or_404(Quiz, activity=activity)
+
+    data = quiz.export()
+    resp = JsonResponse(data, json_dumps_params={'indent': 2})
+    resp['Content-Disposition'] = 'attachment; filename="%s-quiz.json"' % (activity.slug,)
+    return resp
+
+
+@requires_course_staff_by_slug
+def import_(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
+    quiz = get_object_or_404(Quiz, activity=activity)
+
+    if request.method == 'POST':
+        form = QuizImportForm(quiz=quiz, data=request.POST, files=request.FILES)
+        if form.is_valid():
+            quiz, questions, versions = form.cleaned_data['data']
+            with transaction.atomic():
+                quiz.question_set.all().update(status='D')
+                quiz.save()
+                for q in questions:
+                    q.save()
+                for v in versions:
+                    v.question_id = v.question.id
+                    v.save()
+
+            messages.add_message(request, messages.SUCCESS, 'Quiz questions imported.')
+            LogEntry(userid=request.user.username,
+                     description='Imported quiz data for %i' % (quiz.id,),
+                     related_object=quiz).save()
+            return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
+    else:
+        form = QuizImportForm(quiz=quiz)
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'form': form,
+    }
+    return render(request, 'quizzes/import.html', context=context)
 
 
 @requires_course_staff_by_slug
