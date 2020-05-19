@@ -1,14 +1,15 @@
+import json
 from typing import List, Optional
 
 from django import forms
 from django.utils.safestring import mark_safe
 
 from coredata.models import Member
-from courselib.markup import MarkupContentField, MarkupContentMixin
+from courselib.markup import MarkupContentField, MarkupContentMixin, MARKUPS
 from grades.models import Activity
 from marking.models import StudentActivityMark, ActivityComponentMark, ActivityComponent
 from quizzes import DEFAULT_QUIZ_MARKUP
-from quizzes.models import Quiz, TimeSpecialCase
+from quizzes.models import Quiz, TimeSpecialCase, QUESTION_HELPER_CLASSES, Question, QuestionVersion
 
 
 class QuizTimeBaseForm(forms.ModelForm):
@@ -63,6 +64,98 @@ class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
 class StudentForm(forms.Form):
     # fields for student responses will be filled dynamically in the view
     pass
+
+
+class QuizImportForm(forms.Form):
+    data = forms.FileField(label='Quiz JSON Export', help_text='An export file from another quiz that you would like to duplicate here.')
+
+    def __init__(self, quiz: Quiz, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.quiz = quiz
+
+    def clean_data(self):
+        """
+        Actually handle the JSON input; normalizes data to a triple (Quiz, [Question], [Version]), all of which are
+        *unsaved*.
+        """
+        byte_data = self.cleaned_data['data'].read()
+        try:
+            str_data = byte_data.decode('utf-8')
+        except UnicodeDecodeError:
+            raise forms.ValidationError('Bad UTF-8 data')
+
+        try:
+            data = json.loads(str_data)
+        except json.JSONDecodeError:
+            raise forms.ValidationError('Bad JSON data')
+
+        quiz = self.quiz
+        try:
+            config = data['config']
+            if 'secret' in config:
+                del config['secret']
+            quiz.config.update(config)
+        except KeyError:
+            pass
+
+        try:
+            intro = data['intro']
+            if not (
+                isinstance(intro, list) and len(intro) == 3
+                and isinstance(intro[0], str)
+                and isinstance(intro[1], str) and intro[1] in MARKUPS
+                and isinstance(intro[2], bool)
+            ):
+                raise forms.ValidationError('Data["intro"] must be a triple of (text, markup_language, math_bool).')
+            quiz.config['intro'], quiz.config['markup'], quiz.config['math'] = data['intro']
+        except KeyError:
+            pass
+
+        try:
+            questions = data['questions']
+            if not isinstance(questions, list):
+                raise forms.ValidationError('Data["questions"] must be a list of questions.')
+        except KeyError:
+            raise forms.ValidationError('Missing "questions" section in data')
+
+        new_questions = []
+        new_versions = []
+        for i, q in enumerate(questions):
+            qlabel = 'Data["questions"][%i]' % (i,)
+            try:
+                points = q['points']
+                if not isinstance(points, (int,float)):
+                    raise forms.ValidationError(qlabel + '["points"] not a number.')
+            except KeyError:
+                raise forms.ValidationError(qlabel + '["points"] missing.')
+
+            try:
+                qtype = q['type']
+                if not (isinstance(qtype, str) and qtype in QUESTION_HELPER_CLASSES):
+                    raise forms.ValidationError(qlabel + '["type"] must be a valid question type.')
+            except KeyError:
+                raise forms.ValidationError(qlabel + '["type"] missing.')
+
+            question = Question(quiz=quiz, type=qtype)
+            question.points = points
+            question.order = i+1
+            new_questions.append(question)
+
+            try:
+                versions = q['versions']
+                if not (isinstance(versions, list) and len(versions) >= 1):
+                    raise forms.ValidationError(qlabel + '["versions"] must be a list of question versions.')
+            except KeyError:
+                raise forms.ValidationError(qlabel + '["versions"] missing.')
+
+            for j, v in enumerate(versions):
+                vlabel = qlabel + '["versions"][%i]' % (j,)
+                version = QuestionVersion(question=question)
+                helper = version.helper(question=question)
+                version.config = helper.process_import(v)
+                new_versions.append(version)
+
+        return quiz, new_questions, new_versions
 
 
 class TimeSpecialCaseForm(QuizTimeBaseForm):

@@ -21,7 +21,8 @@ from grades.models import Activity, NumericGrade
 from grades.views import has_photo_agreement
 from log.models import LogEntry
 from marking.models import ActivityComponent, ActivityComponentMark, StudentActivityMark, get_activity_mark_for_student
-from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm, MarkingSetupForm
+from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm, MarkingSetupForm, \
+    QuizImportForm
 from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES, Question, QuestionAnswer, \
     TimeSpecialCase, \
     QuizSubmission, QuestionVersion, MarkingNotConfiguredError
@@ -84,8 +85,13 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             'time': 'before'
         }
         return render(request, 'quizzes/unavailable.html', context=context, status=403)
+
     elif (end < now and request.method == 'GET') or (end + grace < now):
-        # late
+        # can student review the marking?
+        if quiz.reviewable and activity.status == 'RLS':
+            return _student_review(request, offering, activity, quiz)
+
+        # if not, then we're just after the quiz.
         context = {
             'offering': offering,
             'activity': activity,
@@ -198,6 +204,43 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
     return render(request, 'quizzes/index_student.html', context=context)
 
 
+def _student_review(request: HttpRequest, offering: CourseOffering, activity: Activity, quiz: Quiz) -> HttpResponse:
+    member = request.member
+    assert member.role == 'STUD'
+
+    questions = Question.objects.filter(quiz=quiz)
+    answers = QuestionAnswer.objects.filter(student=member, question__in=questions).select_related('question')
+    versions = QuestionVersion.select(quiz=quiz, questions=questions, student=member, answers=answers)
+    activity_mark = get_activity_mark_for_student(activity, member)
+    component_lookup = quiz.activitycomponents_by_question()
+    if activity_mark:
+        comp_marks = ActivityComponentMark.objects.filter(activity_mark=activity_mark).select_related('activity_component')
+        comp_mark_lookup = {acm.activity_component_id: acm for acm in comp_marks}
+        mark_lookup = {}
+        for q in questions:
+            comp = component_lookup.get(q)
+            if not comp:
+                continue
+            acm = comp_mark_lookup.get(comp.id)
+            mark_lookup[q.id] = acm
+    else:
+        mark_lookup = {}
+
+    answer_lookup = {a.question_id: a for a in answers}
+    version_answers = [(v, answer_lookup.get(v.question.id, None), mark_lookup.get(v.question_id, None)) for v in versions]
+    total_marks = sum(q.points for q in questions)
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'activity_mark': activity_mark,
+        'version_answers': version_answers,
+        'total_marks': total_marks,
+    }
+    return render(request, 'quizzes/student_review.html', context=context)
+
+
 @requires_course_staff_by_slug
 def preview_student(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     """
@@ -275,6 +318,54 @@ class EditView(FormView, UpdateView, ModelFormMixin):
             messages.add_message(self.request, messages.INFO, 'Updated %s due date to match quiz end.' % (self.object.activity.name,))
 
         return res
+
+
+@requires_course_staff_by_slug
+def export(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
+    quiz = get_object_or_404(Quiz, activity=activity)
+
+    data = quiz.export()
+    resp = JsonResponse(data, json_dumps_params={'indent': 2})
+    resp['Content-Disposition'] = 'attachment; filename="%s-quiz.json"' % (activity.slug,)
+    return resp
+
+
+@requires_course_staff_by_slug
+def import_(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
+    quiz = get_object_or_404(Quiz, activity=activity)
+
+    if request.method == 'POST':
+        form = QuizImportForm(quiz=quiz, data=request.POST, files=request.FILES)
+        if form.is_valid():
+            quiz, questions, versions = form.cleaned_data['data']
+            with transaction.atomic():
+                quiz.question_set.all().update(status='D')
+                quiz.save()
+                for q in questions:
+                    q.save()
+                for v in versions:
+                    v.question_id = v.question.id
+                    v.save()
+
+            messages.add_message(request, messages.SUCCESS, 'Quiz questions imported.')
+            LogEntry(userid=request.user.username,
+                     description='Imported quiz data for %i' % (quiz.id,),
+                     related_object=quiz).save()
+            return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
+    else:
+        form = QuizImportForm(quiz=quiz)
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'form': form,
+    }
+    return render(request, 'quizzes/import.html', context=context)
 
 
 @requires_course_staff_by_slug
