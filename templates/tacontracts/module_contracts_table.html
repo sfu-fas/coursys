@@ -11,6 +11,8 @@
                 <th>Total</th>
                 {% if contracts.0.status == "NEW" %}
                     <th><i class="fa fa-check" title="Has the student accepted this contract?"></i></th>
+                {% elif contracts.0.status == "CAN" %}
+                    <th><i class="fa fa-times" title="Has the student rejected this contract?"></i></th>
                 {% endif %}
                 <th><i class="fa fa-envelope-o" title="How many emails have we sent the student?"></i></th>
                 <th>Actions</th>
@@ -39,6 +41,10 @@
                 {% if contract.status == "NEW" %}
                 <td class='{{contract.accepted_by_student|yesno:"contract_accepted, contract_not_accepted"}}'>
                     {{contract.accepted_by_student|yesno}} 
+                </td>
+                {% elif contract.status == "CAN" %}
+                  <td class='{{contract.rejected|yesno:"contract_rejected, contract_not_rejected"}}'>
+                    {{contract.rejected|yesno}}
                 </td>
                 {% endif %}
                 <td class='number_of_emails'>

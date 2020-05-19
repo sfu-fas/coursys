@@ -9,6 +9,7 @@ from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpRespons
 from django.urls import reverse
 from django.db import transaction, IntegrityError
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 # Local
 from courselib.auth import requires_role
 from coredata.models import Semester, Unit, CourseOffering, Person
@@ -710,13 +711,15 @@ def student_contract(request, semester):
                   'contracts':contracts,
                   })
 
+
 @login_required
+@require_POST
 def accept_contract(request, semester, contract_slug):
     contract = get_object_or_404(TAContract,
                                   category__hiring_semester__semester__name=semester, 
                                   person__userid=request.user.username, 
                                   slug=contract_slug) 
-    if request.POST:
+    if request.method == "POST":
         contract.accepted_by_student = True
         contract.save()
         messages.add_message(request, 
@@ -724,6 +727,29 @@ def accept_contract(request, semester, contract_slug):
                              'Contract Accepted.')
         l = LogEntry(userid=request.user.username,
                      description="Accepted contract %s." % str(contract),
+                     related_object=contract)
+        l.save()
+    return HttpResponseRedirect(reverse('tacontracts:student_contract',
+                                        kwargs={'semester':semester}))
+
+
+@login_required
+@require_POST
+def reject_contract(request, semester, contract_slug):
+    contract = get_object_or_404(TAContract,
+                                 category__hiring_semester__semester__name=semester,
+                                 person__userid=request.user.username,
+                                 slug=contract_slug)
+    if request.method == "POST":
+        contract.accepted_by_student = False
+        contract.rejected = True
+        contract.status = 'CAN'
+        contract.save(always_allow=True)
+        messages.add_message(request,
+                             messages.SUCCESS,
+                             'Contract Rejected.')
+        l = LogEntry(userid=request.user.username,
+                     description="Rejected contract %s." % str(contract),
                      related_object=contract)
         l.save()
     return HttpResponseRedirect(reverse('tacontracts:student_contract',
