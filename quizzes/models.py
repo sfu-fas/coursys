@@ -132,6 +132,7 @@ class Quiz(models.Model):
     # .config['secret']: the "secret" used to seed the randomization for this quiz (integer)
     # .config['honour_code']: do we make the student agree to the honour code for this quiz? (boolean)
     # .config['photos']: do we capture verification images for this quiz? (boolean)
+    # .config['reviewable']: can students review questions & answers after grades are released? (boolean)
 
     grace = config_property('grace', default=300)
     intro = config_property('intro', default='')
@@ -140,6 +141,7 @@ class Quiz(models.Model):
     secret = config_property('secret', default='not a secret')
     honour_code = config_property('honour_code', default=True)
     photos = config_property('photos', default=False)
+    reviewable = config_property('reviewable', default=False)
 
     class Meta:
         verbose_name_plural = 'Quizzes'
@@ -299,6 +301,21 @@ class Quiz(models.Model):
             marked += v.automark_all(activity_components=activity_components, user=user)
         return marked
 
+    def export(self) -> Dict[str, Any]:
+        config = {
+            'grace': self.grace,
+            'honour_code': self.honour_code,
+            'photos': self.photos,
+            'reviewable': self.reviewable,
+        }
+        intro = [self.intro, self.markup, self.math]
+        questions = [q.export() for q in self.question_set.all()]
+        return {
+            'config': config,
+            'intro': intro,
+            'questions': questions,
+        }
+
 
 class Question(models.Model, ConditionalSaveMixin):
     class QuestionStatusManager(models.Manager):
@@ -343,6 +360,13 @@ class Question(models.Model, ConditionalSaveMixin):
         else:
             self.order = current_max + 1
 
+    def export(self) -> Dict[str, Any]:
+        return {
+            'points': self.points,
+            'type': self.type,
+            'versions': [v.export() for v in self.versions.all()]
+        }
+
 
 class QuestionVersion(models.Model):
     class VersionStatusManager(models.Manager):
@@ -365,6 +389,9 @@ class QuestionVersion(models.Model):
 
     def helper(self, question: Optional['Question'] = None):
         return QUESTION_HELPER_CLASSES[self.question.type](version=self, question=question)
+
+    def export(self) -> Dict[str, Any]:
+        return self.config
 
     @classmethod
     def select(cls, quiz: Quiz, questions: Iterable[Question], student: Optional[Member],

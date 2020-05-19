@@ -34,7 +34,7 @@ class ShortAnswer(QuestionHelper):
     def to_html(self, questionanswer):
         ans = questionanswer.answer.get('data', '')
         if ans:
-            return escape(ans)
+            return mark_safe('<p>' + escape(ans) + '</p>')
         else:
             return MISSING_ANSWER_HTML
 
@@ -188,6 +188,6 @@ class NumericAnswer(QuestionHelper):
     def to_html(self, questionanswer):
         ans = questionanswer.answer.get('data', None)
         if ans:
-            return escape(ans)
+            return mark_safe('<p>' + escape(ans) + '</p>')
         else:
             return MISSING_ANSWER_HTML

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}{{ activity.name }}: Import{% endblock %}
+{% block h1 %}{{ activity.name }}: Import{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li>Import</li>
+{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+    <p class="warningmessage">This will <strong>overwrite any questions in this quiz</strong>! It can be used to copy
+        questions from one quiz (where you exported the quiz setup) to this one. For the moment, this doesn't do all of
+        the validation it should on the input file: <strong>do not edit the .json file</strong> between exporting and importing.</p>
+<form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+{{form|as_dl}}
+<p><input class="submit" type="submit" value="Save" /></p>
+</form>
+
+{% endblock %}

@@ -2,10 +2,11 @@ from decimal import Decimal
 from typing import Dict, Any, TYPE_CHECKING, Tuple, Optional
 
 from django import forms
+from django.http import QueryDict
 from django.utils.html import linebreaks, escape
 from django.utils.safestring import SafeText, mark_safe
 
-from courselib.markup import MarkupContentField, markup_to_html
+from courselib.markup import MarkupContentField, markup_to_html, MARKUPS
 from quizzes import DEFAULT_QUIZ_MARKUP
 if TYPE_CHECKING:
     from quizzes.models import Question, QuestionAnswer
@@ -65,6 +66,27 @@ class QuestionHelper(object):
         if self.question.id:
             form.fields['points'].help_text = 'Changing this will update all versions of this question.'
         return form
+
+    def process_import(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Convert the export format (a Version.config) into a Version.config, except validating that everything is legal.
+
+        Raises forms.ValidationError if there are problems. Returns a valid Version.config if not.
+        """
+        if 'text' not in data:
+            raise forms.ValidationError('missing ["text"]')
+        text = data['text']
+        if not (
+                isinstance(text, list) and len(text) == 3
+                and isinstance(text[0], str)
+                and isinstance(text[1], str) and text[1] in MARKUPS
+                and isinstance(text[2], bool)
+        ):
+            raise forms.ValidationError('["text"] must be a triple of (text, markup_language, math_bool).')
+
+        # TODO: other fields for the question .config aren't validated.
+
+        return data
 
     def question_html(self) -> SafeText:
         text, markup, math = self.version.text
