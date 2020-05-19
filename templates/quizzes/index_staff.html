@@ -31,7 +31,8 @@ $(document).ready(function() {
     <li><a href="{% url "offering:quiz:preview_student" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-search"></i> Preview Quiz</a></li>
     <li><a href="{% url "offering:quiz:special_cases" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-clock-o"></i> Manage Timing Special Cases</a></li>
     <li class="newsec"><a href="{% url "offering:quiz:submissions" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-eye"></i> View Submissions</a></li>
-    <li><a href="{% url "offering:quiz:download_submissions" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-download"></i> Download JSON</a></li>
+    <li><a href="{% url "offering:quiz:download_submissions_csv" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-download"></i> Results CSV</a></li>
+    <li><a href="{% url "offering:quiz:download_submissions" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-download"></i> Results JSON</a></li>
     <li class="newsec"><a href="{% url "offering:quiz:marking" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-check-double"></i> Marking</a></li>
     </ul>
 </div>
