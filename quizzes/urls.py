@@ -22,6 +22,7 @@ quiz_patterns = [
     url(r'^submissions/' + USERID_OR_EMPLID + r'/file/(?P<answer_id>\d+)/(?P<secret>\w+)$', views.submitted_file, name='submitted_file'),
     url(r'^submissions/' + USERID_OR_EMPLID + r'/photo/(?P<submission_id>\d+)', views.submission_photo, name='submission_photo'),
     url(r'^download$', views.download_submissions, name='download_submissions'),
+    url(r'^csv$', views.download_submissions_csv, name='download_submissions_csv'),
     url(r'^special/$', views.special_cases, name='special_cases'),
     url(r'^special/add$', views.special_case_add, name='special_case_add'),
     url(r'^special/delete/(?P<sc_id>\d+)$', views.special_case_delete, name='special_case_delete'),

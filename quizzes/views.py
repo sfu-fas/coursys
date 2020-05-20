@@ -1,3 +1,4 @@
+import csv
 import datetime
 import decimal
 import itertools
@@ -338,6 +339,9 @@ def import_(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
 
+    if quiz.completed():
+        return ForbiddenResponse(request, 'Quiz is completed. You cannot modify questions after the end of the quiz time')
+
     if request.method == 'POST':
         form = QuizImportForm(quiz=quiz, data=request.POST, files=request.FILES)
         if form.is_valid():
@@ -602,8 +606,7 @@ def submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> H
     return render(request, 'quizzes/submissions.html', context=context)
 
 
-@requires_course_staff_by_slug
-def download_submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+def _setup_download(request: HttpRequest, course_slug: str, activity_slug: str):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
@@ -619,6 +622,15 @@ def download_submissions(request: HttpRequest, course_slug: str, activity_slug: 
         .order_by('student__person')
 
     by_student = itertools.groupby(answers, key=lambda a: a.student)
+    multiple_versions = len(questions) != len(versions)
+
+    return activity, questions, version_number_lookup, by_student, multiple_versions
+
+
+@requires_course_staff_by_slug
+def download_submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    activity, questions, version_number_lookup, by_student, multiple_versions = _setup_download(request, course_slug, activity_slug)
+
     data = []
     for m, answers in by_student:
         answers = list(answers)
@@ -642,7 +654,49 @@ def download_submissions(request: HttpRequest, course_slug: str, activity_slug: 
         # The .get(...version_id, 0) returns 0 if a student answers a version, then the instructor deletes it. Hopefully never
         data.append(d)
 
-    return JsonResponse({'submissions': data})
+    response = JsonResponse({'submissions': data})
+    response['Content-Disposition'] = 'inline; filename="%s-results.json"' % (activity.slug,)
+    return response
+
+
+@requires_course_staff_by_slug
+def download_submissions_csv(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    activity, questions, version_number_lookup, by_student, multiple_versions = _setup_download(request, course_slug, activity_slug)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-results.csv"' % (activity.slug,)
+
+    writer = csv.writer(response)
+    header = ['Name', 'Emplid', 'Username', 'Last Submission']
+    if multiple_versions:
+        q_headers = [('Version #%i' % (i+1,), 'Answer #%i' % (i+1,)) for i,_ in enumerate(questions)]
+        header.extend(itertools.chain.from_iterable(q_headers))
+    else:
+        q_headers = ['Answer #%i' % (i+1,) for i,_ in enumerate(questions)]
+        header.extend(q_headers)
+    writer.writerow(header)
+
+    for m, answers in by_student:
+        answers = list(answers)
+        answers_lookup = {a.question_id: a for a in answers}
+        lastmod = max(a.modified_at for a in answers)
+
+        row = [m.person.sortname_pref(), m.person.emplid, m.person.userid, lastmod]
+
+        for q in questions:
+            if q.id in answers_lookup:
+                v = version_number_lookup[q.id].get(answers_lookup[q.id].question_version_id, 0)
+                a = answers_lookup[q.id].question_version.helper(question=q).to_text(answers_lookup[q.id])
+            else:
+                v = None
+                a = None
+
+            if multiple_versions:
+                row.append(v)
+            row.append(a)
+
+        writer.writerow(row)
+
+    return response
 
 
 @requires_course_staff_by_slug
