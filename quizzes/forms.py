@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from typing import List, Optional
 
 from django import forms
@@ -123,11 +124,11 @@ class QuizImportForm(forms.Form):
         for i, q in enumerate(questions):
             qlabel = 'Data["questions"][%i]' % (i,)
             try:
-                points = q['points']
-                if not isinstance(points, (int,float)):
-                    raise forms.ValidationError(qlabel + '["points"] not a number.')
+                points = Decimal(q['points'])
             except KeyError:
                 raise forms.ValidationError(qlabel + '["points"] missing.')
+            except ValueError:
+                raise forms.ValidationError(qlabel + '["points"] must be an integer (or decimal represented as a string).')
 
             try:
                 qtype = q['type']
@@ -152,7 +153,11 @@ class QuizImportForm(forms.Form):
                 vlabel = qlabel + '["versions"][%i]' % (j,)
                 version = QuestionVersion(question=question)
                 helper = version.helper(question=question)
-                version.config = helper.process_import(v)
+                try:
+                    version.config = helper.process_import(v, points)
+                except forms.ValidationError as e:
+                    # make the error message a little prettier
+                    raise forms.ValidationError(vlabel + e.message)
                 new_versions.append(version)
 
         return quiz, new_questions, new_versions
