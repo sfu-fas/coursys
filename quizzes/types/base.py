@@ -2,7 +2,6 @@ from decimal import Decimal
 from typing import Dict, Any, TYPE_CHECKING, Tuple, Optional
 
 from django import forms
-from django.http import QueryDict
 from django.utils.datastructures import MultiValueDict
 from django.utils.html import linebreaks, escape
 from django.utils.safestring import SafeText, mark_safe
@@ -90,7 +89,7 @@ class QuestionHelper(object):
         Raises forms.ValidationError if there are problems. Returns a valid Version.config if not.
         """
         if 'text' not in data:
-            raise forms.ValidationError('missing ["text"]')
+            raise forms.ValidationError(' missing "text"')
         text = data['text']
         if not (
                 isinstance(text, list) and len(text) == 3
@@ -109,7 +108,8 @@ class QuestionHelper(object):
             error = error_dict[field][0]
             raise forms.ValidationError('["%s"]: %s' % (field, error))
 
-        return data
+        del form.cleaned_data['points']
+        return form.cleaned_data
 
     def question_html(self) -> SafeText:
         text, markup, math = self.version.text

@@ -143,6 +143,9 @@ class Quiz(models.Model):
     photos = config_property('photos', default=False)
     reviewable = config_property('reviewable', default=False)
 
+    # .config fields allowed in the JSON import
+    ALLOWED_IMPORT_CONFIG = {'grace', 'honour_code', 'photos', 'reviewable'}
+
     class Meta:
         verbose_name_plural = 'Quizzes'
 
