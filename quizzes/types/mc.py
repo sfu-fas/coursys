@@ -155,8 +155,8 @@ class MultipleChoice(QuestionHelper):
         elif student and permute == 'not-last':
             rand = self.question.quiz.random_generator(str(student.id) + '-' + str(self.question.id) + '-' + str(self.version.id))
             last = options[-1]
-            choices = rand.permute(options[:-1])
-            choices.append(last)
+            options = rand.permute(options[:-1])
+            options.append(last)
 
         choices = [
             (OPTION_LETTERS[opos], mark_safe('<span class="mc-letter">' + OPTION_LETTERS[i] + '.</span> ') + escape(o[0]))
