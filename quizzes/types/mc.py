@@ -8,6 +8,7 @@ from django.utils.safestring import mark_safe
 from .base import QuestionHelper, BaseConfigForm, MISSING_ANSWER_HTML
 
 OPTION_LETTERS = string.ascii_uppercase
+MAX_MC_CHOICES = 10
 
 
 class MultipleChoicesWidget(forms.MultiWidget):
@@ -107,7 +108,7 @@ class MultipleChoice(QuestionHelper):
     # and marks is the worth of that answer when automarking.
 
     class ConfigForm(BaseConfigForm):
-        options = MultipleChoicesField(required=True, label='Options and marks', help_text='Options presented to students, with number of marks to assign with auto-marking. Any options left blank will not be displayed.')
+        options = MultipleChoicesField(required=True, n=MAX_MC_CHOICES, label='Options and marks', help_text='Options presented to students, with number of marks to assign with auto-marking. Any options left blank will not be displayed.')
         permute = forms.ChoiceField(required=True, choices=permutation_choices, help_text='You will still see the answers as they are above: a student answer of \u201CA\u201D refers to the first choice above, regardless of the order they see.')
 
         def clean(self):
@@ -120,6 +121,23 @@ class MultipleChoice(QuestionHelper):
                 if min(marks) < -points:
                     raise forms.ValidationError('Auto-marking penalty greater than question total max points.')
             return data
+
+    def config_to_form(self, data, points):
+        # undo the .clean just so it can be re-done for validation
+        formdata = super().config_to_form(data, points)
+        if 'options' not in formdata:
+            raise forms.ValidationError(' missing ["options"]')
+        options = formdata['options']
+        del formdata['options']
+
+        for i, (opt, marks) in enumerate(options):
+            formdata['options_%i' % (i,)] = str(opt)
+            try:
+                formdata['options_%i' % (MAX_MC_CHOICES+i,)] = Decimal(marks)
+            except ValueError:
+                raise forms.ValidationError(' marks must be an integer (or decimal represented as a string).')
+
+        return formdata
 
     def get_entry_field(self, questionanswer=None, student=None):
         options = self.version.config.get('options', [])

@@ -1,4 +1,6 @@
+import decimal
 import json
+from decimal import Decimal
 from typing import List, Optional
 
 from django import forms
@@ -91,9 +93,13 @@ class QuizImportForm(forms.Form):
 
         quiz = self.quiz
         try:
-            config = data['config']
-            if 'secret' in config:
-                del config['secret']
+            if not isinstance(data['config'], dict):
+                raise forms.ValidationError('Data["config"] must be a dict')
+            config = {k: v for k, v in data['config'].items() if k in Quiz.ALLOWED_IMPORT_CONFIG}
+
+            if 'grace' in config and not isinstance(config['grace'], int):
+                raise forms.ValidationError('Data["config"]["grace"] must be an integer')
+
             quiz.config.update(config)
         except KeyError:
             pass
@@ -123,11 +129,11 @@ class QuizImportForm(forms.Form):
         for i, q in enumerate(questions):
             qlabel = 'Data["questions"][%i]' % (i,)
             try:
-                points = q['points']
-                if not isinstance(points, (int,float)):
-                    raise forms.ValidationError(qlabel + '["points"] not a number.')
+                points = decimal.Decimal(q['points'])
             except KeyError:
                 raise forms.ValidationError(qlabel + '["points"] missing.')
+            except decimal.InvalidOperation:
+                raise forms.ValidationError(qlabel + '["points"] must be an integer (or decimal represented as a string).')
 
             try:
                 qtype = q['type']
@@ -150,9 +156,15 @@ class QuizImportForm(forms.Form):
 
             for j, v in enumerate(versions):
                 vlabel = qlabel + '["versions"][%i]' % (j,)
+                if not isinstance(v, dict):
+                    raise forms.ValidationError(vlabel + ' must be a dict')
                 version = QuestionVersion(question=question)
                 helper = version.helper(question=question)
-                version.config = helper.process_import(v)
+                try:
+                    version.config = helper.process_import(v, points)
+                except forms.ValidationError as e:
+                    # make the error message a little prettier
+                    raise forms.ValidationError(vlabel + e.message)
                 new_versions.append(version)
 
         return quiz, new_questions, new_versions

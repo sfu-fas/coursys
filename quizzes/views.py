@@ -339,6 +339,9 @@ def import_(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
 
+    if quiz.completed():
+        return ForbiddenResponse(request, 'Quiz is completed. You cannot modify questions after the end of the quiz time')
+
     if request.method == 'POST':
         form = QuizImportForm(quiz=quiz, data=request.POST, files=request.FILES)
         if form.is_valid():

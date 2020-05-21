@@ -1,11 +1,14 @@
 import datetime
 
+from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
 from coredata.models import CourseOffering, Member
 from courselib.testing import Client, TEST_COURSE_SLUG, test_views
 from grades.models import Activity
+from quizzes.forms import QuizImportForm
 from quizzes.models import Quiz, Question, QuestionAnswer, TimeSpecialCase, QuestionVersion
 
 now = datetime.datetime.now()
@@ -147,3 +150,184 @@ class QuizzesTest(TestCase):
         response = c.get(url)
         self.assertTemplateUsed(response, 'quizzes/index_student.html')
         self.assertEqual(response.status_code, 200)
+
+
+class QuizImportTest(TestCase):
+    fixtures = ['basedata', 'coredata']
+
+    def setUp(self):
+        # create some quiz data for testing
+        self.offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        self.activity = Activity.objects.filter(offering=self.offering).first()
+
+        self.quiz = Quiz(activity=self.activity, start=now - hour, end=now + 2*hour,
+                         config={'intro': 'Quiz intro', 'markup': 'creole', 'math': False})
+        self.quiz.save()
+
+    def run_import(self, json_data: str, bytes_data=None):
+        if bytes_data is not None:
+            file_dict = {'data': SimpleUploadedFile('test.json', bytes_data)}
+        else:
+            file_dict = {'data': SimpleUploadedFile('test.json', json_data.encode('utf-8'))}
+        form = QuizImportForm(quiz=self.quiz, data={}, files=file_dict)
+        if not form.is_valid():
+            error_dict = form.errors
+            msg = error_dict['data'][0]
+            raise ValidationError(msg)
+
+        return form.cleaned_data['data']
+
+    def import_should_raise(self, json_data, message_re, bytes_data=None):
+        with self.assertRaisesRegex(ValidationError, message_re):
+            self.run_import(json_data, bytes_data=bytes_data)
+
+    def test_bad_unicode(self):
+        self.import_should_raise('', r'Bad UTF-8', bytes_data=b'\xf0\x28\x8c\x28')
+
+    def test_bad_json(self):
+        self.import_should_raise("{", r'Bad JSON')
+
+    def test_empty(self):
+        json_data = """{}"""
+        self.import_should_raise(json_data, r'Missing "questions"')
+
+    def test_config(self):
+        json_data = """{ "config": 7, "questions": []}"""
+        self.import_should_raise(json_data, r'must be a dict')
+
+        json_data = """{ "config": {"unknown": "field", "secret": "notsecret"}, "questions": []}"""
+        quiz, questions, versions = self.run_import(json_data)
+        self.assertNotEqual(quiz.secret, 'notsecret')  # only some fields allowed past
+
+        json_data = """{ "config": { "grace": 1234, "honour_code": false }, "questions": []}"""
+        quiz, questions, versions = self.run_import(json_data)
+        self.assertEqual(quiz.grace, 1234)
+        self.assertEqual(quiz.honour_code, False)
+
+    def test_intro(self):
+        json_data = """{ "intro": ["foo", "creole"], "questions": [] }"""
+        self.import_should_raise(json_data, r'must be a triple of')
+
+        json_data = """{ "intro": ["foo", "unknown", true],  "questions": [] }"""
+        self.import_should_raise(json_data, r'must be a triple of')
+
+        json_data = """{ "intro": ["foo", 2, true],  "questions": [] }"""
+        self.import_should_raise(json_data, r'must be a triple of')
+
+        json_data = """{ "intro": ["foo", "unknown", 6],  "questions": [] }"""
+        self.import_should_raise(json_data, r'must be a triple of')
+
+        json_data = """{ "intro": ["foo", "creole", false],  "questions": [] }"""
+        quiz, questions, versions = self.run_import(json_data)
+        self.assertEqual(quiz.intro, 'foo')
+        self.assertEqual(quiz.markup, 'creole')
+        self.assertEqual(quiz.math, False)
+
+    def test_no_q(self):
+        json_data = """{"questions": "many questions"}"""
+        self.import_should_raise(json_data, r'must be a list')
+
+        json_data = """{"questions": []}"""
+        quiz, questions, versions = self.run_import(json_data)
+        self.assertEqual(questions, [])
+        self.assertEqual(versions, [])
+
+    def test_question(self):
+        json_data = """{"questions": [{ }]}"""
+        self.import_should_raise(json_data, r'\["points"\] missing')
+
+        json_data = """{"questions": [{ "points": "numbers" }]}"""
+        self.import_should_raise(json_data, r'\["points"\] must be an integer')
+
+        json_data = """{"questions": [{ "points": 1 }]}"""
+        self.import_should_raise(json_data, r'\["type"\] missing')
+
+        json_data = """{"questions": [{ "points": 1, "type": "unknown" }]}"""
+        self.import_should_raise(json_data, r'\["type"\] must be a valid question type')
+
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR" }]}"""
+        self.import_should_raise(json_data, r'\["versions"\] missing')
+
+    def test_version(self):
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions": 7 }]}"""
+        self.import_should_raise(json_data, r'\["versions"\] must be a list of')
+
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions": [] }]}"""
+        self.import_should_raise(json_data, r'\["versions"\] must be a list of')
+
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions": [1,2,3] }]}"""
+        self.import_should_raise(json_data, r'\["versions"\]\[0\] must be a dict')
+
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions": [{}] }]}"""
+        self.import_should_raise(json_data, r'\[0\] missing "text"')
+
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions":
+            [{ "text": "foo" }] }]}"""
+        self.import_should_raise(json_data, r'\[0\]\["text"\] must be a triple of')
+
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions":
+            [{ "text": ["foo", "creole"]}] }]}"""
+        self.import_should_raise(json_data, r'\[0\]\["text"\] must be a triple of')
+
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions":
+            [{ "text": [7, "creole", false] }] }]}"""
+        self.import_should_raise(json_data, r'\[0\]\["text"\] must be a triple of')
+
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions":
+            [{ "text": ["foo", "unknown", false] }] }]}"""
+        self.import_should_raise(json_data, r'\[0\]\["text"\] must be a triple of')
+
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions":
+            [{ "text": ["foo", "markdown", false], "max_length": 500 }] }]}"""
+        quiz, questions, versions = self.run_import(json_data)
+        self.assertEqual(len(questions), 1)
+        self.assertEqual(len(versions), 1)
+        self.assertEqual(versions[0].config['text'], ('foo', 'markdown', False))
+
+        json_data = """{"questions": [{ "points": 14, "type": "SHOR", "versions":
+            [{ "text": ["foo", "markdown", false], "max_length": 123 },
+            { "text": ["bar", "creole", true], "max_length": 234 }] }]}"""
+        quiz, questions, versions = self.run_import(json_data)
+        self.assertEqual(len(questions), 1)
+        self.assertEqual(len(versions), 2)
+        self.assertEqual(versions[0].config['text'], ('foo', 'markdown', False))
+        self.assertEqual(versions[1].config['text'], ('bar', 'creole', True))
+
+    def test_question_type_validation(self):
+        # ensure that the question types' form validation is doing it's thing
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions":
+            [{ "text": ["foo", "markdown", false] }] }]}"""
+        self.import_should_raise(json_data, r'\[0\]\["max_length"\]: This field is required')
+
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions":
+            [{ "text": ["foo", "markdown", false], "max_length": "long" }] }]}"""
+        self.import_should_raise(json_data, r'\[0\]\["max_length"\]: Enter a whole number')
+
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions":
+            [{ "text": ["foo", "markdown", false], "max_length": 30782398 }] }]}"""
+        self.import_should_raise(json_data, r'\[0\]\["max_length"\]: Ensure this value is less than or equal')
+
+        json_data = """{"questions": [{ "points": 1, "type": "SHOR", "versions":
+            [{ "text": ["foo", "markdown", false], "max_length": 917, "garbage": 9 }] }]}"""
+        quiz, questions, versions = self.run_import(json_data)
+        self.assertEqual(versions[0].config['max_length'], 917)
+        self.assertNotIn('garbage', versions[0].config)
+
+        json_data = """{"questions": [{ "points": 1, "type": "CODE", "versions":
+            [{ "text": ["foo", "markdown", false], "max_length": 917, "lines": 10, "language": "zazzy" }] }]}"""
+        self.import_should_raise(json_data, r'\[0\]\["language"\]: Select a valid choice. zazzy is not one')
+
+        # multiple choice has overrides: let's check that.
+        json_data = """{"questions": [{ "points": 1, "type": "MC", "versions":
+            [{ "text": ["foo", "markdown", false], "options": [] }] }]}"""
+        self.import_should_raise(json_data, r'\[0\]\["options"\]: Must give at least two')
+
+        json_data = """{"questions": [{ "points": 1, "type": "MC", "versions":
+            [{ "text": ["foo", "markdown", false], "permute": "ouch", "options": [["good", 1], ["bad", 0]] }] }]}"""
+        self.import_should_raise(json_data, r'\[0\]\["permute"\]: Select a valid choice. ouch is not')
+
+
+        json_data = """{"questions": [{ "points": 1, "type": "MC", "versions":
+            [{ "text": ["foo", "markdown", false], "permute": "permute", "options": [["good", 1], ["bad", 0]] }] }]}"""
+        quiz, questions, versions = self.run_import(json_data)
+        self.assertEquals(versions[0].config['options'], [('good', '1'), ('bad', '0')])
