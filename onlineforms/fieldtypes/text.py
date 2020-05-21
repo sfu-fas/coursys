@@ -210,6 +210,11 @@ class ExplanationTextField(FieldBase):
         def __init__(self, config, *args, **kwargs):
             super(self.__class__, self).__init__(config, *args, **kwargs)
             del self.fields['help_text']
+            # Required here does nothing
+            del self.fields['required']
+            # Make the label optional, so they can use the explanation block as a big blob of formatted text without a
+            # potentially unnecessary label.
+            self.fields['label'].required = False
             # handle transition to markup-with-language-choice field
             if config and 'text_explanation' in config and 'text_explanation_0' not in config:
                 config['text_explanation_0'] = config['text_explanation']
