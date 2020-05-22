@@ -13,7 +13,7 @@
 <script nonce="{{ CSP_NONCE }}">
 // reload when the quiz starts (approximately)
 var wait = {{ wait|escapejs }} * 1000;
-setTimeout(function(){ location.reload(); }, wait + 5000);
+setTimeout(function(){ location.reload(); }, wait + 1000 + Math.random()*5000);
 </script>
 {% endif %}
 {% endblock %}

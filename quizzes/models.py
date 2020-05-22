@@ -381,9 +381,14 @@ class Quiz(models.Model):
                 total = am.calculated_mark(acms)
                 ngrade.value = total
                 ngrade.flag = 'GRAD'
-                ngrade.save(newsitem=False, entered_by=user.username)
                 am.mark = total
-                am.save()
+            else:
+                ngrade.value = 0
+                ngrade.flag = 'NOGR'
+                am.mark = None
+
+            ngrade.save(newsitem=False, entered_by=user.username)
+            am.save()
 
         return n_marked
 
