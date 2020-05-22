@@ -63,6 +63,7 @@ $(document).ready(function() {
     <table id="submissions" class="display">
     <thead><tr>
         <th scope="col">Time</th>
+        <th scope="col">Autosave?</th>
         {% if quiz.honour_code %}<th scope="col">Honour Code?</th>{% endif %}
         {% if quiz.photos %}<th scope="col">Photo</th>{% endif %}
         <th scope="col">Questions Updated <a href="#question_help">*</a></th>
@@ -74,6 +75,7 @@ $(document).ready(function() {
     {% for sub in quiz_submissions %}
         <tr>
             <td><span class="sort">{{ sub.created_at.isoformat }}</span>{{ sub.created_at }}</td>
+            <td>{%if sub.config.autosave  %}Y{% endif %}</td>
             {% if quiz.honour_code %}<td>
                 {% if sub.config.honour_code == 'YES' %}<i class="fas fa-check-square" title="Agreed with this submission"></i>
                 {% elif sub.config.honour_code == 'PREV' %}<i class="far fa-check-square" title="Agreed previously"></i>{% endif %}</td>{% endif %}

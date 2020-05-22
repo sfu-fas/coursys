@@ -122,6 +122,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             for v in versions
         )
         form.fields = fields
+        autosave = 'autosave' in request.GET
 
         if form.is_valid():
             # Iterate through each answer we received, and create/update corresponding QuestionAnswer objects.
@@ -142,14 +143,19 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                 if name in answer_lookup:
                     # Have an existing QuestionAnswer: update only if answer has changed.
                     ans = answer_lookup[name]
-                    if helper.unchanged_answer(ans.answer, answer):
-                        messages.add_message(request, messages.INFO, 'Question #%i answer unchanged from previous submission.' % (n,))
+                    if not helper.unchanged_answer(ans.answer, answer):
+                        pass  # autosave breaks the "unchanged answer" logic by saving outside the students' view
+                        #if not autosave:
+                        #   messages.add_message(request, messages.INFO, 'Question #%i answer unchanged from previous submission.' % (n,))
                     else:
                         ans.modified_at = datetime.datetime.now()
                         ans.answer = answer
                         ans.save()
                         answers.append(ans)
-                        messages.add_message(request, messages.INFO, 'Question #%i answer saved.' % (n,))
+                        #if not autosave:
+                        #    messages.add_message(request, messages.INFO, 'Question #%i answer saved.' % (n,))
+                        LogEntry(userid=request.user.username, description='submitted quiz question %i' % (vers.question.id),
+                                 related_object=ans).save()
 
                 else:
                     # No existing QuestionAnswer: create one.
@@ -158,15 +164,18 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                     ans.answer = answer
                     ans.save()
                     answers.append(ans)
-                    messages.add_message(request, messages.INFO, 'Question #%i answer saved.' % (n,))
+                    #if not autosave:
+                    #    messages.add_message(request, messages.INFO, 'Question #%i answer saved.' % (n,))
                     LogEntry(userid=request.user.username, description='submitted quiz question %i' % (vers.question.id),
                              related_object=ans).save()
 
-            QuizSubmission.create(request=request, quiz=quiz, student=member, answers=answers)
+            QuizSubmission.create(request=request, quiz=quiz, student=member, answers=answers, autosave=autosave)
             if request.POST.get('honour-code', None):
                 request.session[honour_code_key] = True
 
-            if am_late:
+            if autosave:
+                return JsonResponse({'status': 'ok'})
+            elif am_late:
                 messages.add_message(request, messages.SUCCESS, 'Quiz answers saved, but the quiz is now over and you cannot edit further.')
                 messages.add_message(request, messages.WARNING, 'Your submission was %i seconds after the end of the quiz: the instructor will determine how this will affect the marking.'
                                      % ((now - end).total_seconds(),))
@@ -177,6 +186,10 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                                      'Quiz answers saved. You can continue to modify them, as long as you submit before '
                                      'the end of the quiz time.')
                 return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
+
+        elif autosave:
+            error_data = {k: str(v) for k,v in form.errors.items()} # pre-render the errors
+            return JsonResponse({'status': 'error', 'errors': error_data})
 
     else:
         form = StudentForm()

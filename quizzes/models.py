@@ -681,7 +681,7 @@ class QuizSubmission(models.Model):
 
     @classmethod
     def create(cls, request: HttpRequest, quiz: Quiz, student: Member, answers: List[QuestionAnswer],
-               commit: bool = True) -> 'QuizSubmission':
+               commit: bool = True, autosave: bool = False) -> 'QuizSubmission':
         qs = cls(quiz=quiz, student=student)
         ip_addr, _ = get_client_ip(request)
         qs.ip_address = ip_addr
@@ -690,6 +690,7 @@ class QuizSubmission(models.Model):
         qs.config['csrf_token'] = request.META.get('CSRF_COOKIE')
         qs.config['user_agent'] = request.META.get('HTTP_USER_AGENT')
         qs.config['honour_code'] = request.POST.get('honour-code', None)
+        qs.config['autosave'] = autosave
         try:
             qs.config['fingerprint'] = json.loads(request.POST['fingerprint'])
         except KeyError:
