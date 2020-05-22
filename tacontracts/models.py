@@ -9,7 +9,7 @@ from autoslug import AutoSlugField
 # Local
 from coredata.models import Unit, Person, CourseOffering, Semester, Member
 from courselib.slugs import make_slug
-from courselib.json_fields import JSONField
+from courselib.json_fields import JSONField, config_property
 from courselib.storage import UploadedFileStorage, upload_path
 from grad.models import GradStudent
 from ra.models import Account
@@ -306,7 +306,9 @@ class TAContract(models.Model):
     config = JSONField(null=False, blank=False, editable=False, default=dict)
     
     objects = TAContractManager()
-   
+
+    rejected = config_property('rejected', False)
+
     def __str__(self):
         return "%s" % (self.person,)
 

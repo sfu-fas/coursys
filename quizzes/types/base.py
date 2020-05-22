@@ -2,10 +2,11 @@ from decimal import Decimal
 from typing import Dict, Any, TYPE_CHECKING, Tuple, Optional
 
 from django import forms
+from django.utils.datastructures import MultiValueDict
 from django.utils.html import linebreaks, escape
 from django.utils.safestring import SafeText, mark_safe
 
-from courselib.markup import MarkupContentField, markup_to_html
+from courselib.markup import MarkupContentField, markup_to_html, MARKUPS
 from quizzes import DEFAULT_QUIZ_MARKUP
 if TYPE_CHECKING:
     from quizzes.models import Question, QuestionAnswer
@@ -65,6 +66,50 @@ class QuestionHelper(object):
         if self.question.id:
             form.fields['points'].help_text = 'Changing this will update all versions of this question.'
         return form
+
+    def config_to_form(self, data: Dict[str, Any], points: Decimal) -> Dict[str, Any]:
+        """
+        Convert a QuestionVersion.config value back to a corresponding request.POST style dict, so we can validate
+        JSON imports using existing for validators.
+
+        Will likely need to override this if .ConfigForm has validators that change the data as part of the cleaning.
+        """
+        text = data['text']
+        formdata = MultiValueDict({k: [v] for k,v in data.items() if k != 'text'})
+        formdata['text_0'] = text[0]
+        formdata['text_1'] = text[1]
+        formdata['text_2'] = text[2]
+        formdata['points'] = points
+        return formdata
+
+    def process_import(self, data: Dict[str, Any], points: Decimal) -> Dict[str, Any]:
+        """
+        Convert the export format (a Version.config) into a Version.config, except validating that everything is legal.
+
+        Raises forms.ValidationError if there are problems. Returns a valid Version.config if not.
+        """
+        if 'text' not in data:
+            raise forms.ValidationError(' missing "text"')
+        text = data['text']
+        if not (
+                isinstance(text, list) and len(text) == 3
+                and isinstance(text[0], str)
+                and isinstance(text[1], str) and text[1] in MARKUPS
+                and isinstance(text[2], bool)
+        ):
+            raise forms.ValidationError('["text"] must be a triple of (text, markup_language, math_bool).')
+
+        formdata = self.config_to_form(data, points)
+        form = self.make_config_form(data=formdata, files=None)
+        if not form.is_valid():
+            # If there are errors, pick one and report it.
+            error_dict = form.errors
+            field = list(error_dict.keys())[0]
+            error = error_dict[field][0]
+            raise forms.ValidationError('["%s"]: %s' % (field, error))
+
+        del form.cleaned_data['points']
+        return form.cleaned_data
 
     def question_html(self) -> SafeText:
         text, markup, math = self.version.text

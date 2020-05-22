@@ -10,7 +10,7 @@ import hashlib
 import io
 import itertools
 import json
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from importlib import import_module
 from typing import Optional, Tuple, List, Iterable, Any, Dict
 
@@ -48,7 +48,6 @@ QUESTION_TYPE_CHOICES = [
     ('FILE', 'File Upload'),
 ]
 
-
 QUESTION_HELPER_CLASSES = {
     'MC': MultipleChoice,
     'SHOR': ShortAnswer,
@@ -58,7 +57,6 @@ QUESTION_HELPER_CLASSES = {
     'NUM': NumericAnswer,
     'FILE': FileAnswer,
 }
-
 
 STATUS_CHOICES = [
     ('V', 'Visible'),
@@ -83,6 +81,7 @@ class Randomizer(object):
     A linear congruential generator (~= pseudorandom number generator). Custom implementation to ensure we can recreate
     a sequence of choices from a seed, regardless of Python's random implementation, etc.
     """
+
     # glibc parameters from
     # https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
     def __init__(self, seed_str: str):
@@ -121,8 +120,10 @@ class Quiz(models.Model):
             return super().get_queryset().select_related('activity', 'activity__offering').filter(status='V')
 
     activity = models.OneToOneField(Activity, on_delete=models.PROTECT)
-    start = models.DateTimeField(help_text='Quiz will be visible to students after this time. Time format: HH:MM:SS, 24-hour time')
-    end = models.DateTimeField(help_text='Quiz will be invisible to students and unsubmittable after this time. Time format: HH:MM:SS, 24-hour time')
+    start = models.DateTimeField(
+        help_text='Quiz will be visible to students after this time. Time format: HH:MM:SS, 24-hour time')
+    end = models.DateTimeField(
+        help_text='Quiz will be invisible to students and unsubmittable after this time. Time format: HH:MM:SS, 24-hour time')
     status = models.CharField(max_length=1, null=False, blank=False, default='V', choices=STATUS_CHOICES)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
     # .config['grace']: length of grace period at the end of the exam (in seconds)
@@ -132,6 +133,7 @@ class Quiz(models.Model):
     # .config['secret']: the "secret" used to seed the randomization for this quiz (integer)
     # .config['honour_code']: do we make the student agree to the honour code for this quiz? (boolean)
     # .config['photos']: do we capture verification images for this quiz? (boolean)
+    # .config['reviewable']: can students review questions & answers after grades are released? (boolean)
 
     grace = config_property('grace', default=300)
     intro = config_property('intro', default='')
@@ -140,6 +142,10 @@ class Quiz(models.Model):
     secret = config_property('secret', default='not a secret')
     honour_code = config_property('honour_code', default=True)
     photos = config_property('photos', default=False)
+    reviewable = config_property('reviewable', default=False)
+
+    # .config fields allowed in the JSON import
+    ALLOWED_IMPORT_CONFIG = {'grace', 'honour_code', 'photos', 'reviewable'}
 
     class Meta:
         verbose_name_plural = 'Quizzes'
@@ -147,7 +153,8 @@ class Quiz(models.Model):
     objects = QuizStatusManager()
 
     def get_absolute_url(self):
-        return resolve_url('offering:quiz:index', course_slug=self.activity.offering.slug, activity_slug=self.activity.slug)
+        return resolve_url('offering:quiz:index', course_slug=self.activity.offering.slug,
+                           activity_slug=self.activity.slug)
 
     def save(self, *args, **kwargs):
         res = super().save(*args, **kwargs)
@@ -240,9 +247,9 @@ class Quiz(models.Model):
             else:
                 component = ActivityComponent(numeric_activity=num_activity)
 
-            component.position = i+1
+            component.position = i + 1
             component.max_mark = q.points
-            component.title = 'Question #%i' % (i+1,)
+            component.title = 'Question #%i' % (i + 1,)
             # component.description = '' # if instructor has entered a description, let it stand
             component.deleted = False
             component.config['quiz-question-id'] = q.id
@@ -288,16 +295,117 @@ class Quiz(models.Model):
 
         return component_lookup
 
+    @transaction.atomic()
     def automark_all(self, user: User) -> int:
         """
         Fill in marking for any QuestionVersions that support it. Return number marked.
         """
-        versions = QuestionVersion.objects.filter(question__quiz=self).select_related('question')
+        versions = QuestionVersion.objects.filter(question__quiz=self, question__status='V').select_related('question')
         activity_components = self.activitycomponents_by_question()
-        marked = 0
+        member_component_results = []  # : List[Tuple[Member, ActivityComponentMark]]
         for v in versions:
-            marked += v.automark_all(activity_components=activity_components, user=user)
-        return marked
+            member_component_results.extend(
+                v.automark_all(activity_components=activity_components)
+            )
+
+        # Now the ugly work: combine the just-automarked components with any existing manual marking, and save...
+
+        old_sam_lookup = {  # dict to find old StudentActivityMarks
+            sam.numeric_grade.member: sam
+            for sam
+            in StudentActivityMark.objects.filter(activity=self.activity)
+                .order_by('created_at')
+                .select_related('numeric_grade__member')
+                .prefetch_related('activitycomponentmark_set')
+        }
+
+        # dict to find old ActivityComponentMarks
+        old_acm_by_component_id = defaultdict(dict)  # : Dict[int, Dict[Member, ActivityComponentMark]]
+        old_sam = StudentActivityMark.objects.filter(activity=self.activity).order_by('created_at') \
+            .select_related('numeric_grade__member').prefetch_related('activitycomponentmark_set')
+        for sam in old_sam:
+            for acm in sam.activitycomponentmark_set.all():
+                old_acm_by_component_id[acm.activity_component_id][sam.numeric_grade.member] = acm
+
+        numeric_grade_lookup = {  # dict to find existing NumericGrades
+            ng.member: ng
+            for ng
+            in NumericGrade.objects.filter(activity=self.activity).select_related('member')
+        }
+        all_components = set(ActivityComponent.objects.filter(numeric_activity_id=self.activity_id, deleted=False))
+
+        member_component_results.sort(key=lambda pair: pair[0].id)  # ... get Members grouped together
+        n_marked = 0
+        for member, member_acms in itertools.groupby(member_component_results, lambda pair: pair[0]):
+            # Get a NumericGrade to work with
+            try:
+                ngrade = numeric_grade_lookup[member]
+            except KeyError:
+                ngrade = NumericGrade(activity_id=self.activity_id, member=member, flag='NOGR')
+                ngrade.save(newsitem=False, entered_by=None, is_temporary=True)
+
+            # Create ActivityMark to save under
+            am = StudentActivityMark(numeric_grade=ngrade, activity_id=self.activity_id, created_by=user.username)
+            old_am = old_sam_lookup.get(member)
+            if old_am:
+                am.overall_comment = old_am.overall_comment
+                am.late_penalty = old_am.late_penalty
+                am.mark_adjustment = old_am.mark_adjustment
+                am.mark_adjustment_reason = old_am.mark_adjustment_reason
+            am.save()
+
+            # Find/create ActivityComponentMarks for each component
+            auto_acm_lookup = {acm.activity_component: acm for _, acm in member_acms}
+            any_missing = False
+            acms = []
+            for c in all_components:
+                # For each ActivityComponent, find one of
+                # (1) just-auto-marked ActivityComponentMark,
+                # (2) ActivityComponentMark from previous manual marking,
+                # (3) nothing.
+                if c in auto_acm_lookup:  # (1)
+                    acm = auto_acm_lookup[c]
+                    acm.activity_mark = am
+                    n_marked += 1
+                elif c.id in old_acm_by_component_id and member in old_acm_by_component_id[c.id]:  # (2)
+                    old_acm = old_acm_by_component_id[c.id][member]
+                    acm = ActivityComponentMark(activity_mark=am, activity_component=c, value=old_acm.value, comment=old_acm.comment)
+                else:  # (3)
+                    acm = ActivityComponentMark(activity_mark=am, activity_component=c, value=None, comment=None)
+                    any_missing = True
+
+                acm.save()
+                acms.append(acm)
+
+            if not any_missing:
+                total = am.calculated_mark(acms)
+                ngrade.value = total
+                ngrade.flag = 'GRAD'
+                am.mark = total
+            else:
+                ngrade.value = 0
+                ngrade.flag = 'NOGR'
+                am.mark = None
+
+            ngrade.save(newsitem=False, entered_by=user.username)
+            am.save()
+
+        return n_marked
+
+    def export(self) -> Dict[str, Any]:
+        config = {
+            'grace': self.grace,
+            'honour_code': self.honour_code,
+            'photos': self.photos,
+            'reviewable': self.reviewable,
+        }
+        intro = [self.intro, self.markup, self.math]
+        questions = [q.export() for q in self.question_set.all()]
+        return {
+            'config': config,
+            'intro': intro,
+            'questions': questions,
+        }
 
 
 class Question(models.Model, ConditionalSaveMixin):
@@ -343,6 +451,13 @@ class Question(models.Model, ConditionalSaveMixin):
         else:
             self.order = current_max + 1
 
+    def export(self) -> Dict[str, Any]:
+        return {
+            'points': self.points,
+            'type': self.type,
+            'versions': [v.export() for v in self.versions.all()]
+        }
+
 
 class QuestionVersion(models.Model):
     class VersionStatusManager(models.Manager):
@@ -351,7 +466,7 @@ class QuestionVersion(models.Model):
 
     question = models.ForeignKey(Question, on_delete=models.PROTECT, related_name='versions')
     status = models.CharField(max_length=1, null=False, blank=False, default='V', choices=STATUS_CHOICES)
-    created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False) # used for ordering
+    created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)  # used for ordering
     config = JSONField(null=False, blank=False, default=dict)
     # .config['text']: question as (text, markup, math:bool)
     # others as set by the .question.type (and corresponding QuestionType)
@@ -366,6 +481,9 @@ class QuestionVersion(models.Model):
     def helper(self, question: Optional['Question'] = None):
         return QUESTION_HELPER_CLASSES[self.question.type](version=self, question=question)
 
+    def export(self) -> Dict[str, Any]:
+        return self.config
+
     @classmethod
     def select(cls, quiz: Quiz, questions: Iterable[Question], student: Optional[Member],
                answers: Optional[Iterable['QuestionAnswer']]) -> List['QuestionVersion']:
@@ -373,7 +491,8 @@ class QuestionVersion(models.Model):
         Build a (reproducibly-random) set of question versions. Honour the versions already answered, if instructor
         has been fiddling with questions during the quiz.
         """
-        assert (student is None and answers is None) or (student is not None and answers is not None), 'must give current answers if student is known.'
+        assert (student is None and answers is None) or (
+                    student is not None and answers is not None), 'must give current answers if student is known.'
         if student:
             rand = quiz.random_generator(str(student.id))
 
@@ -407,7 +526,7 @@ class QuestionVersion(models.Model):
                         v.choice = 0
                 else:
                     v = vs[n]
-                    v.choice = n+1
+                    v.choice = n + 1
 
             else:
                 # instructor preview: choose the first
@@ -415,8 +534,6 @@ class QuestionVersion(models.Model):
                 v.choice = 1
 
             v.n_versions = len(vs)
-            #v.question_cached = True  # promise checks that we have the .question pre-fetched
-            #v.question = q
             versions.append(v)
 
         return versions
@@ -448,81 +565,33 @@ class QuestionVersion(models.Model):
         helper = self.helper()
         return helper.entry_head_html()
 
-    @transaction.atomic
-    def automark_all(self, activity_components: Dict['Question', ActivityComponent], user: User) -> int:
+    def automark_all(self, activity_components: Dict['Question', ActivityComponent]) -> Iterable[Tuple[Member, ActivityComponentMark]]:
         """
-        Automark everything for this version, if possible. Return number marked.
+        Automark everything for this version, if possible. Return Student/ActivityComponentMark pairs that need to be saved with an appropriate StudentActivityMark
         """
         helper = self.helper(question=self.question)
         if not helper.auto_markable:
             # This helper can't do automarking, so don't try.
-            return 0
+            return
 
-        answers = QuestionAnswer.objects.filter(question_version=self).select_related('question', 'student')
-        activity = NumericActivity.objects.get(id=self.question.quiz.activity_id)
-
-        # find any existing marking for this question
         try:
             component = activity_components[self.question]
         except KeyError:
             raise MarkingNotConfiguredError()
 
-        component_marks = ActivityComponentMark.objects.filter(activity_component=component).select_related('activity_mark')
-        component_mark_lookup = {acm.activity_mark_id: acm for acm in component_marks}
-        student_actmarks = StudentActivityMark.objects.filter(id__in=[cm.activity_mark_id for cm in component_marks]) \
-            .select_related('numeric_grade__member') \
-            .prefetch_related('activitycomponentmark_set')
-        student_actmark_lookup = {am.numeric_grade.member: am for am in student_actmarks}
-        numeric_grades = NumericGrade.objects.filter(activity=activity)
-        numeric_grade_lookup = {ng.member: ng for ng in numeric_grades}
-
-        marked = 0
+        answers = QuestionAnswer.objects.filter(question_version=self).select_related('question', 'student')
         for a in answers:
             mark = helper.automark(a)
             if mark is None:
                 # helper is allowed to throw up its hands and return None if auto-marking not possible
                 continue
 
+            # We have a mark and comment: create a ActivityComponentMark for it
             points, comment = mark
-
-            # We have a mark and comment: ensure we have an ActivityMark that contains it...
-            marked += 1
             member = a.student
-            try:
-                ngrade = numeric_grade_lookup[member]
-            except KeyError:
-                ngrade = NumericGrade(activity_id=activity.id, member=member)
-                ngrade.save(newsitem=False, entered_by=None, is_temporary=True)
+            comp_mark = ActivityComponentMark(activity_component=component, value=points, comment=comment)
+            yield member, comp_mark
 
-            try:
-                act_mark = student_actmark_lookup[member]
-                act_mark.numeric_grade = ngrade
-            except KeyError:
-                act_mark = StudentActivityMark(activity=activity, created_by=user.username)
-                act_mark.numeric_grade = ngrade
-                act_mark.save()
-
-            if act_mark.id and act_mark.id in component_mark_lookup:
-                comp_mark = component_mark_lookup[act_mark.id]
-            else:
-                comp_mark = ActivityComponentMark(activity_component=component, activity_mark=act_mark)
-
-            comp_mark.value = points
-            comp_mark.comment = comment
-            comp_mark.save()
-
-            # Get the collection of ActivityComponentMarks: complete and with the just-modified one.
-            components = {acm for acm in act_mark.activitycomponentmark_set.all() if acm.activity_component != component}
-            components.add(comp_mark)
-            if len(components) == len(activity_components):
-                # if we have all components filled, save the total
-                total = act_mark.calculated_mark(components)
-                ngrade.value = total
-                ngrade.save(newsitem=False, entered_by=user.username)
-                act_mark.mark = total
-                act_mark.save()
-
-        return marked
 
 def file_upload_to(instance, filename):
     return upload_path(instance.question.quiz.activity.offering.slug, '_quizzes', filename)
@@ -542,7 +611,8 @@ class QuestionAnswer(models.Model):
     # format of .answer determined by the corresponding QuestionHelper
     answer = JSONField(null=False, blank=False, default=dict)
     # .file used for file upload question types; null otherwise
-    file = models.FileField(blank=True, null=True, storage=UploadedFileStorage, upload_to=file_upload_to, max_length=500)
+    file = models.FileField(blank=True, null=True, storage=UploadedFileStorage, upload_to=file_upload_to,
+                            max_length=500)
 
     class Meta:
         unique_together = [['question_version', 'student']]
@@ -597,8 +667,10 @@ class QuizSubmission(models.Model):
     student = models.ForeignKey(Member, null=False, blank=False, on_delete=models.PROTECT)
     created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     ip_address = models.GenericIPAddressField(null=False, blank=False)
-    capture = models.FileField(null=True, blank=True, storage=UploadedFileStorage, upload_to=capture_upload_to, max_length=500)
+    capture = models.FileField(null=True, blank=True, storage=UploadedFileStorage, upload_to=capture_upload_to,
+                               max_length=500)
     config = JSONField(null=False, blank=False, default=dict)  # additional data about the submission:
+
     # .config['answers']: list of answers submitted (where changed from prev submission),
     #     as [(QuestionVersion.id, Answer.id, Answer.answer)]
     # .config['user_agent']: HTTP User-Agent header from submission
@@ -609,7 +681,7 @@ class QuizSubmission(models.Model):
 
     @classmethod
     def create(cls, request: HttpRequest, quiz: Quiz, student: Member, answers: List[QuestionAnswer],
-               commit: bool = True) -> 'QuizSubmission':
+               commit: bool = True, autosave: bool = False) -> 'QuizSubmission':
         qs = cls(quiz=quiz, student=student)
         ip_addr, _ = get_client_ip(request)
         qs.ip_address = ip_addr
@@ -618,6 +690,7 @@ class QuizSubmission(models.Model):
         qs.config['csrf_token'] = request.META.get('CSRF_COOKIE')
         qs.config['user_agent'] = request.META.get('HTTP_USER_AGENT')
         qs.config['honour_code'] = request.POST.get('honour-code', None)
+        qs.config['autosave'] = autosave
         try:
             qs.config['fingerprint'] = json.loads(request.POST['fingerprint'])
         except KeyError:
@@ -671,7 +744,7 @@ class QuizSubmission(models.Model):
         Annotate this object to combine .config['answers'] and questions for efficient display later.
         """
         answers = self.config['answers']
-        question_lookup = {q.id: (q, i+1) for i,q in enumerate(questions)}
+        question_lookup = {q.id: (q, i + 1) for i, q in enumerate(questions)}
         version_lookup = {v.id: v for v in versions}
         answer_data = []
         for version_id, answer_id, answer in answers:
@@ -691,7 +764,7 @@ class QuizSubmission(models.Model):
         Return a hash of what we know about the user's session on submission.
         We could incorporate csrf_token here, but are we *sure* it only changes on login?
         """
-        ident = self.config['session'] # + '--' + self.config['csrf_token']
+        ident = self.config['session']  # + '--' + self.config['csrf_token']
         return '%08x' % (string_hash(ident, 4),)
 
     def browser_fingerprint(self) -> str:
@@ -710,8 +783,10 @@ class TimeSpecialCase(models.Model):
     """
     quiz = models.ForeignKey(Quiz, null=False, blank=False, on_delete=models.PROTECT)
     student = models.ForeignKey(Member, on_delete=models.PROTECT)
-    start = models.DateTimeField(help_text='Quiz will be visible to the student after this time. Time format: HH:MM:SS, 24-hour time')
-    end = models.DateTimeField(help_text='Quiz will be invisible to the student and unsubmittable after this time. Time format: HH:MM:SS, 24-hour time')
+    start = models.DateTimeField(
+        help_text='Quiz will be visible to the student after this time. Time format: HH:MM:SS, 24-hour time')
+    end = models.DateTimeField(
+        help_text='Quiz will be invisible to the student and unsubmittable after this time. Time format: HH:MM:SS, 24-hour time')
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     class Meta:

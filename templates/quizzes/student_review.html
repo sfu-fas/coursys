@@ -1,0 +1,96 @@
+{% extends "base-wide.html" %}
+{% load form_display %}
+{% load static %}
+{% load compress %}
+
+{% block title %}{{ activity.name }}: Review{% endblock %}
+{% block h1 %}{{ activity.name }}: Review{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li>Quiz{% if preview %} Preview{% endif %}</li>
+{% endblock %}
+
+{% block headextra %}
+{% compress css %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+{% endcompress %}
+{% include 'pages/markup_view_head.html' %}
+{% include 'pages/markup_edit_head.html' %}
+{% compress js %}
+<script src="{% static 'js/quizzes.js' %}"></script>
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('.code-answer').each(function(i, pre) {
+        hljs.highlightBlock(pre);
+    });
+});
+</script>
+{% endcompress %}
+{% for q, v, f in question_data %}{{ v.entry_head_html }}{% endfor %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+    {% if quiz.intro %}
+        <h2 id="intro">Introduction</h2>
+        {{ quiz.intro_html }}
+    {% endif %}
+
+    {% for v,a,m in version_answers %}
+
+        <h2 id="{{ v.question.ident }}">Question #{{ forloop.counter }} ({{ v.question.points }} point{{ v.question.points|pluralize }})</h2>
+        <dl class="review">
+        <dt>Question</dt>
+        <dd class="question">{{ v.question_preview_html }}</dd>
+        <dt>Your Answer</dt>
+        <dd class="answer">
+            {% if a %}
+                {{ a.answer_html }}
+            {% else %}
+                <p class="empty">No submission found.</p>
+            {% endif %}
+        </dd>
+        <dt>Mark</dt>
+        {% if m %}
+            <dd>{{ m.value }} / {{ m.activity_component.max_mark }}</dd>
+        {% else %}
+            <dd class="empty">&mdash;</dd>
+        {% endif %}
+        <dt>Comment</dt>
+        {% if m.comment %}
+            <dd>{{ m.comment|linebreaks }}</dd>
+        {% else %}
+            <dd class="empty">&mdash;</dd>
+        {% endif %}
+        </dl>
+
+    {% endfor %}
+
+    <h2 id="overall">Overall</h2>
+    <dl class="review">
+    {% if activity_mark.mark_adjustment != 0 or activity_mark.mark_adjustment_reason != '' %}
+        <dt>Mark Adjustment</dt>
+        <dd>{% if activity_mark.mark_adjustment_neg > 0 %}+{% endif %}{{ activity_mark.mark_adjustment_neg }}</dd>
+        <dt>Reason</dt>
+        <dd>{{ activity_mark.mark_adjustment_reason|linebreaks }}</dd>
+    {% endif %}
+    {% if activity_mark.late_penalty != 0 %}
+        <dt>Late Penalty</dt>
+        <dd>-{{ activity_mark.late_penalty }}%</dd>
+    {% endif %}
+    {% if activity_mark.overall_comment %}
+        <dt>Comment</dt>
+        <dd>{{ activity_mark.overall_comment|linebreaks }}</dd>
+    {% endif %}
+    <dt>Total</dt>
+    <dd>{{ activity_mark.mark }} / {{ total_marks }}</dd>
+    </dl>
+
+{% endblock %}

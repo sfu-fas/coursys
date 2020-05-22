@@ -86,8 +86,19 @@ class FileAnswer(QuestionHelper):
         else:
             initial = None
 
+        helptext = None
+        if filename:
+            if filename_type == 'INS':
+                helptext = "Filename must be “%s” (case doesn't matter)." % (filename,)
+            elif filename_type == 'MAT':
+                helptext = "Filename must be “%s” (case sensitive)." % (filename,)
+            elif filename_type == 'EXT':
+                helptext = "Filename must end with “%s”." % (filename,)
+            elif filename_type == 'REX':
+                helptext = "Filename must match the regular expression “%s”." % (filename,)
+
         field = FileAnswerField(required=False, max_length=100, max_size=max_size, filename=filename,
-                                filename_type=filename_type, initial=initial,
+                                filename_type=filename_type, initial=initial, help_text=helptext,
                                 validators=[lambda upfile: validate_filename(filename, filename_type, upfile.name)])
         field.widget.attrs.update({'class': 'file-answer'})
         return field

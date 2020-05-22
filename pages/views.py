@@ -408,6 +408,10 @@ def _delete_pagefile(request, course_slug, page_label, kind):
         val = URLValidator()
 
         redirect = request.POST.get('redirect', 'Index')
+        #  Technically, the empty string is a valid value for the redirect because the field allows blanks.
+        #  We want to avoid that when deleting a page so we need an extra check here.
+        if not redirect:
+            redirect = 'Index'
         url = request.build_absolute_uri(urljoin(page.get_absolute_url(), redirect))
 
         try:

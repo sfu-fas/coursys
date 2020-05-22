@@ -32,10 +32,10 @@ $(document).ready(function() {
     <table id="summary-table" class="display">
     <thead><tr><th scope="col">Question</th><th scope="col">Number Marked</th><th scope="col">Actions</th></tr></thead>
     <tbody>
-    {% for quest, marks, versions in question_marks %}
+    {% for quest, marked, versions in question_marks %}
         <tr id="{{ quest.ident }}">
             <td>#{{ forloop.counter }}</td>
-            <td>{{ marks|length }}</td>
+            <td>{{ marked }}</td>
             <td>
                 <a href="{% url 'offering:quiz:mark_next_question' course_slug=offering.slug activity_slug=activity.slug question_id=quest.id %}">Next unmarked #{{ forloop.counter }}</a>
                 {% if versions|length > 1 %}
@@ -68,13 +68,12 @@ $(document).ready(function() {
         <td>{{ student.person.sortname }} ({{ student.person.userid }},
                 <a href="{{ student.get_absolute_url }}">{{ student.person.emplid }}</a>)</td>
         {% for m in marks %}
-            <td class="num">{% if m %}{{ m.value }}{% else %}&mdash;{% endif %}</td>
+            <td class="num">{% if m %}{% if m.value == None %}&mdash;{% else %}{{ m.value }}{% endif %}{% else %}&mdash;{% endif %}</td>
         {% endfor %}
         <td><a href="{% url 'offering:quiz:mark_student' course_slug=offering.slug activity_slug=activity.slug member_id=student.id %}"><i class="fa fa-edit"></i></a></td>
         </tr>
     {% endfor %}
     </tbody>
     </table>
-
 
 {% endblock %}

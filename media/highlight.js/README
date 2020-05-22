@@ -1,0 +1,3 @@
+The npm package for highlight.js is server-side only and not built for the browser.
+
+The files here are from the highlight.js site's default "custom package" download (https://highlightjs.org/download/). Kept only what we actually need in this directory.

@@ -14,8 +14,9 @@
 {% block headextra %}
 {% compress css %}
 <link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
-<link rel="stylesheet" href="/static/codemirror/lib/codemirror.css" />
-<link rel="stylesheet" href="/static/codemirror/theme/eclipse.css" />
+<link rel="stylesheet" href="{% static 'codemirror/lib/codemirror.css' %}" />
+<link rel="stylesheet" href="{% static 'codemirror/theme/eclipse.css' %}" />
+<link rel="stylesheet" href="{% static "styled-notifications/dist/notifications.css" %}" />
 {% endcompress %}
 {% include 'pages/markup_view_head.html' %}
 {% include 'pages/markup_edit_head.html' %}
@@ -23,6 +24,7 @@
 <script src="{% static 'js/quizzes.js' %}"></script>
 <script src="{% static 'fingerprintjs2/dist/fingerprint2.min.js' %}"></script>
 <script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
+<script src="{% static 'styled-notifications/dist/notifications.js' %}"></script>
 {% endcompress %}
 {% for q, v, f in question_data %}{{ v.entry_head_html }}{% endfor %}
 <script nonce="{{ CSP_NONCE }}">
@@ -30,6 +32,7 @@ var load_time = Date.now() / 1000;
 var seconds_left = {{ seconds_left|escapejs }};
 $(document).ready(function() {
     get_fingerprint();
+    {% if not preview %}start_autosave(10 * 60000);{% endif %}
     update_time_left(load_time + seconds_left);
     {% if quiz.honour_code and not preview and not previous_honour_code %}show_honour_code();{% endif %}
     {% if quiz.photos %}capture_startup();{% endif %}
@@ -69,6 +72,10 @@ $(document).ready(function() {
         </tbody>
     </table>
 
+    <p>This quiz <strong>may be submitted multiple times before the &ldquo;end time&rdquo;</strong> above.
+        You can click &ldquo;submit&rdquo; at the bottom of the page and continue to work on your answers; whatever
+        is in your last submission will be marked.</p>
+
     <form action="" method="post" enctype="multipart/form-data" class="quiz" autocomplete="off">{% csrf_token %}
 
     {% if quiz.honour_code %}
@@ -98,9 +105,12 @@ $(document).ready(function() {
     <input type="hidden" name="fingerprint" id="fingerprint" value="" />
 
     {% for q, v, f in question_data %}
-        <h2 id="{{ q.ident }}">Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
+        <section id="{{ q.ident }}">
+        <h2>Question #{{ forloop.counter }} ({{ q.points }} point{{ q.points|pluralize }})</h2>
         {{ v.question_html }}
         {{ f|field_display }}
+        <div class="dynamic-errors"></div>
+        </section>
     {% endfor %}
     </section>
 

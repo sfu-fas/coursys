@@ -14,6 +14,7 @@ function get_fingerprint() {
         }, 500)
     }
 }
+
 function update_time_left(ends_at) {
     var now = Date.now() / 1000;
     var seconds_left = ends_at - now;
@@ -27,10 +28,56 @@ function update_time_left(ends_at) {
         }
 
         $('#time-left').html('<span class="' + cls + '">' + m + '&#8239;m ' + s + '&#8239;s</span> (approximate)');
-        setTimeout(function() { update_time_left(ends_at) }, 0.5)
+        setTimeout(function() { update_time_left(ends_at) }, 500)
     } else {
         $('#time-left').html('<span class="errormessage">Time is up. Submit immediately!</span>');
     }
+}
+
+function randomly_perturb(v) {
+    // wiggle +- 10%, to prevent dogpiling on autosave
+    return v - v*0.1 + v*0.2*Math.random()
+}
+function start_autosave(interval) {
+    setTimeout(function() { do_autosave(interval); }, randomly_perturb(interval));
+}
+function do_autosave(interval) {
+    var form = $("form.quiz");
+    var data = new FormData(form.get(0));
+
+    $.ajax({
+        type: "POST",
+        url: form.attr('action') + '?autosave=yes',
+        data: data,
+        processData: false,
+        contentType: false,
+        success: function(resp) {
+            if( resp.status == 'ok' ) {
+                window.createNotification({
+                    theme: 'success',
+                    showDuration: 5000
+                })({ message: 'Answers auto-saved.' });
+            } else {
+                // form validation problem
+                var errors = resp.errors;
+                Object.keys(errors).forEach(function(field) {
+                    var error_div = $('#' + field).find('div.dynamic-errors');
+                    error_div.html(errors[field])
+                });
+                window.createNotification({
+                    theme: 'warning',
+                    showDuration: 5000
+                })({ message: 'Unable to auto-save your answers: there is a problem with one of your answers that cannot be saved.' });
+            }
+            },
+        error: function(msg) {
+            window.createNotification({
+                theme: 'warning',
+                showDuration: 5000
+            })({ message: 'Unable to auto-save your answers: check your network connection.' });
+        }
+    });
+    setTimeout(function() { do_autosave(interval); }, randomly_perturb(interval));
 }
 
 function show_honour_code() {

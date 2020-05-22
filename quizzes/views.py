@@ -1,9 +1,10 @@
+import csv
 import datetime
 import decimal
 import itertools
 import random
-from collections import OrderedDict
-from typing import Optional, Tuple, List
+from collections import OrderedDict, defaultdict
+from typing import Optional
 
 from django.contrib import messages
 from django.db import transaction
@@ -21,10 +22,10 @@ from grades.models import Activity, NumericGrade
 from grades.views import has_photo_agreement
 from log.models import LogEntry
 from marking.models import ActivityComponent, ActivityComponentMark, StudentActivityMark, get_activity_mark_for_student
-from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm, MarkingSetupForm
+from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm, MarkingSetupForm, \
+    QuizImportForm
 from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES, Question, QuestionAnswer, \
-    TimeSpecialCase, \
-    QuizSubmission, QuestionVersion, MarkingNotConfiguredError
+    TimeSpecialCase, QuizSubmission, QuestionVersion, MarkingNotConfiguredError
 
 
 @requires_course_by_slug
@@ -84,8 +85,13 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             'time': 'before'
         }
         return render(request, 'quizzes/unavailable.html', context=context, status=403)
+
     elif (end < now and request.method == 'GET') or (end + grace < now):
-        # late
+        # can student review the marking?
+        if quiz.reviewable and activity.status == 'RLS':
+            return _student_review(request, offering, activity, quiz)
+
+        # if not, then we're just after the quiz.
         context = {
             'offering': offering,
             'activity': activity,
@@ -116,6 +122,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             for v in versions
         )
         form.fields = fields
+        autosave = 'autosave' in request.GET
 
         if form.is_valid():
             # Iterate through each answer we received, and create/update corresponding QuestionAnswer objects.
@@ -137,13 +144,18 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                     # Have an existing QuestionAnswer: update only if answer has changed.
                     ans = answer_lookup[name]
                     if helper.unchanged_answer(ans.answer, answer):
-                        messages.add_message(request, messages.INFO, 'Question #%i answer unchanged from previous submission.' % (n,))
+                        pass  # autosave breaks the "unchanged answer" logic by saving outside the students' view
+                        #if not autosave:
+                        #   messages.add_message(request, messages.INFO, 'Question #%i answer unchanged from previous submission.' % (n,))
                     else:
                         ans.modified_at = datetime.datetime.now()
                         ans.answer = answer
                         ans.save()
                         answers.append(ans)
-                        messages.add_message(request, messages.INFO, 'Question #%i answer saved.' % (n,))
+                        #if not autosave:
+                        #    messages.add_message(request, messages.INFO, 'Question #%i answer saved.' % (n,))
+                        LogEntry(userid=request.user.username, description='submitted quiz question %i' % (vers.question.id),
+                                 related_object=ans).save()
 
                 else:
                     # No existing QuestionAnswer: create one.
@@ -152,15 +164,18 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                     ans.answer = answer
                     ans.save()
                     answers.append(ans)
-                    messages.add_message(request, messages.INFO, 'Question #%i answer saved.' % (n,))
+                    #if not autosave:
+                    #    messages.add_message(request, messages.INFO, 'Question #%i answer saved.' % (n,))
                     LogEntry(userid=request.user.username, description='submitted quiz question %i' % (vers.question.id),
                              related_object=ans).save()
 
-            QuizSubmission.create(request=request, quiz=quiz, student=member, answers=answers)
+            QuizSubmission.create(request=request, quiz=quiz, student=member, answers=answers, autosave=autosave)
             if request.POST.get('honour-code', None):
                 request.session[honour_code_key] = True
 
-            if am_late:
+            if autosave:
+                return JsonResponse({'status': 'ok'})
+            elif am_late:
                 messages.add_message(request, messages.SUCCESS, 'Quiz answers saved, but the quiz is now over and you cannot edit further.')
                 messages.add_message(request, messages.WARNING, 'Your submission was %i seconds after the end of the quiz: the instructor will determine how this will affect the marking.'
                                      % ((now - end).total_seconds(),))
@@ -171,6 +186,10 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                                      'Quiz answers saved. You can continue to modify them, as long as you submit before '
                                      'the end of the quiz time.')
                 return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
+
+        elif autosave:
+            error_data = {k: str(v) for k,v in form.errors.items()} # pre-render the errors
+            return JsonResponse({'status': 'error', 'errors': error_data})
 
     else:
         form = StudentForm()
@@ -196,6 +215,43 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
         'previous_honour_code': bool(previous_honour_code),
     }
     return render(request, 'quizzes/index_student.html', context=context)
+
+
+def _student_review(request: HttpRequest, offering: CourseOffering, activity: Activity, quiz: Quiz) -> HttpResponse:
+    member = request.member
+    assert member.role == 'STUD'
+
+    questions = Question.objects.filter(quiz=quiz)
+    answers = QuestionAnswer.objects.filter(student=member, question__in=questions).select_related('question')
+    versions = QuestionVersion.select(quiz=quiz, questions=questions, student=member, answers=answers)
+    activity_mark = get_activity_mark_for_student(activity, member)
+    component_lookup = quiz.activitycomponents_by_question()
+    if activity_mark:
+        comp_marks = ActivityComponentMark.objects.filter(activity_mark=activity_mark).select_related('activity_component')
+        comp_mark_lookup = {acm.activity_component_id: acm for acm in comp_marks}
+        mark_lookup = {}
+        for q in questions:
+            comp = component_lookup.get(q)
+            if not comp:
+                continue
+            acm = comp_mark_lookup.get(comp.id)
+            mark_lookup[q.id] = acm
+    else:
+        mark_lookup = {}
+
+    answer_lookup = {a.question_id: a for a in answers}
+    version_answers = [(v, answer_lookup.get(v.question.id, None), mark_lookup.get(v.question_id, None)) for v in versions]
+    total_marks = sum(q.points for q in questions)
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'activity_mark': activity_mark,
+        'version_answers': version_answers,
+        'total_marks': total_marks,
+    }
+    return render(request, 'quizzes/student_review.html', context=context)
 
 
 @requires_course_staff_by_slug
@@ -275,6 +331,57 @@ class EditView(FormView, UpdateView, ModelFormMixin):
             messages.add_message(self.request, messages.INFO, 'Updated %s due date to match quiz end.' % (self.object.activity.name,))
 
         return res
+
+
+@requires_course_staff_by_slug
+def export(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
+    quiz = get_object_or_404(Quiz, activity=activity)
+
+    data = quiz.export()
+    resp = JsonResponse(data, json_dumps_params={'indent': 2})
+    resp['Content-Disposition'] = 'attachment; filename="%s-quiz.json"' % (activity.slug,)
+    return resp
+
+
+@requires_course_staff_by_slug
+def import_(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
+    quiz = get_object_or_404(Quiz, activity=activity)
+
+    if quiz.completed():
+        return ForbiddenResponse(request, 'Quiz is completed. You cannot modify questions after the end of the quiz time')
+
+    if request.method == 'POST':
+        form = QuizImportForm(quiz=quiz, data=request.POST, files=request.FILES)
+        if form.is_valid():
+            quiz, questions, versions = form.cleaned_data['data']
+            with transaction.atomic():
+                quiz.question_set.all().update(status='D')
+                quiz.save()
+                for q in questions:
+                    q.save()
+                for v in versions:
+                    v.question_id = v.question.id
+                    v.save()
+
+            messages.add_message(request, messages.SUCCESS, 'Quiz questions imported.')
+            LogEntry(userid=request.user.username,
+                     description='Imported quiz data for %i' % (quiz.id,),
+                     related_object=quiz).save()
+            return redirect('offering:quiz:index', course_slug=offering.slug, activity_slug=activity.slug)
+    else:
+        form = QuizImportForm(quiz=quiz)
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'form': form,
+    }
+    return render(request, 'quizzes/import.html', context=context)
 
 
 @requires_course_staff_by_slug
@@ -511,8 +618,7 @@ def submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> H
     return render(request, 'quizzes/submissions.html', context=context)
 
 
-@requires_course_staff_by_slug
-def download_submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+def _setup_download(request: HttpRequest, course_slug: str, activity_slug: str):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
@@ -528,6 +634,15 @@ def download_submissions(request: HttpRequest, course_slug: str, activity_slug: 
         .order_by('student__person')
 
     by_student = itertools.groupby(answers, key=lambda a: a.student)
+    multiple_versions = len(questions) != len(versions)
+
+    return activity, questions, version_number_lookup, by_student, multiple_versions
+
+
+@requires_course_staff_by_slug
+def download_submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    activity, questions, version_number_lookup, by_student, multiple_versions = _setup_download(request, course_slug, activity_slug)
+
     data = []
     for m, answers in by_student:
         answers = list(answers)
@@ -551,7 +666,49 @@ def download_submissions(request: HttpRequest, course_slug: str, activity_slug: 
         # The .get(...version_id, 0) returns 0 if a student answers a version, then the instructor deletes it. Hopefully never
         data.append(d)
 
-    return JsonResponse({'submissions': data})
+    response = JsonResponse({'submissions': data})
+    response['Content-Disposition'] = 'inline; filename="%s-results.json"' % (activity.slug,)
+    return response
+
+
+@requires_course_staff_by_slug
+def download_submissions_csv(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    activity, questions, version_number_lookup, by_student, multiple_versions = _setup_download(request, course_slug, activity_slug)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-results.csv"' % (activity.slug,)
+
+    writer = csv.writer(response)
+    header = ['Name', 'Emplid', 'Username', 'Last Submission']
+    if multiple_versions:
+        q_headers = [('Version #%i' % (i+1,), 'Answer #%i' % (i+1,)) for i,_ in enumerate(questions)]
+        header.extend(itertools.chain.from_iterable(q_headers))
+    else:
+        q_headers = ['Answer #%i' % (i+1,) for i,_ in enumerate(questions)]
+        header.extend(q_headers)
+    writer.writerow(header)
+
+    for m, answers in by_student:
+        answers = list(answers)
+        answers_lookup = {a.question_id: a for a in answers}
+        lastmod = max(a.modified_at for a in answers)
+
+        row = [m.person.sortname_pref(), m.person.emplid, m.person.userid, lastmod]
+
+        for q in questions:
+            if q.id in answers_lookup:
+                v = version_number_lookup[q.id].get(answers_lookup[q.id].question_version_id, 0)
+                a = answers_lookup[q.id].question_version.helper(question=q).to_text(answers_lookup[q.id])
+            else:
+                v = None
+                a = None
+
+            if multiple_versions:
+                row.append(v)
+            row.append(a)
+
+        writer.writerow(row)
+
+    return response
 
 
 @requires_course_staff_by_slug
@@ -764,15 +921,24 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
 
     # collect existing marks for tally
     component_lookup = quiz.activitycomponents_by_question()
+    members = Member.objects.filter(offering=offering, role='STUD')
+    sams = StudentActivityMark.objects.filter(numeric_grade__member__in=members).order_by('created_at')
+    latest_sam_id = {sam.numeric_grade.member_id: sam.id for sam in sams}  # Member.id: ActivityMark.id so we have the most recent only
+    acms = ActivityComponentMark.objects.filter(activity_mark_id__in=latest_sam_id.values(), value__isnull=False, activity_component__deleted=False).select_related('activity_component')
+    marked_in = defaultdict(set)  # ActivityComponent.id: Set[ActivityComponentMark]
+    for acm in acms:
+        component_id = acm.activity_component_id
+        marked_in[component_id].add(acm)
+
     version_lookup = {q_id: list(vs) for q_id, vs in itertools.groupby(versions, key=lambda v: v.question_id)}
-    question_marks = []  # : List[Tuple[Question, List[ActivityComponentMark]]]
+    question_marks = []  # : List[Tuple[Question, int, List[QuestionVersion]]]  # for each question, (the question, number marked, all versions)
     for q in questions:
         if q not in component_lookup:
             raise MarkingNotConfiguredError('Marking not configured')
-        comp = component_lookup[q]
-        marks = [m for m in comp_marks if m.activity_component == comp and m.value is not None]
+        component = component_lookup[q]
+        marked = marked_in[component.id]
         vs = version_lookup[q.id]
-        question_marks.append((q, marks, vs))
+        question_marks.append((q, len(marked), vs))
 
     # data for all marks table
     answers = QuestionAnswer.objects.filter(question__quiz=quiz).select_related('student__person')
@@ -780,7 +946,7 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
     student_mark_lookup = {am.numeric_grade.member_id: am.id for am in student_marks} # map Member.id to ActivityMark.id
     students = {a.student for a in answers}
     comp_mark_lookup = {(cm.activity_mark_id, cm.activity_component_id): cm for cm in comp_marks}
-    student_mark_data = [] # pairs of (Member, list of marks for each question)
+    student_mark_data = []  # pairs of (Member, list of marks for each question)
     for s in students:
         student_marks = []
         for q in questions:
@@ -902,8 +1068,8 @@ def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, mem
     if request.method == 'POST':
         # build forms from POST data
         form = MarkingForm(data=request.POST, activity=activity, instance=mark)
-        component_form_lookup = {}
-        by_component_lookup = {}
+        component_form_lookup = {} # : Dict[int, ComponentForm]
+        by_component_lookup = {}  # : Dict[ActivityComponent, ComponentForm]
         for q in questions:
             try:
                 ac = component_lookup[q]
@@ -958,10 +1124,12 @@ def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, mem
             form.save_m2m()
             for component in component_lookup.values():
                 f = by_component_lookup[component]
-                c = f.save(commit=False)
-                c.activity_component = component
-                c.activity_mark = am
-                c.save()
+                acm = f.save(commit=False)
+                acm.pk = None
+                acm.id = None
+                acm.activity_component = component
+                acm.activity_mark = am
+                acm.save()
                 f.save_m2m()
 
             messages.add_message(request, messages.SUCCESS, 'Marks saved.')

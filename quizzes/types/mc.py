@@ -8,6 +8,7 @@ from django.utils.safestring import mark_safe
 from .base import QuestionHelper, BaseConfigForm, MISSING_ANSWER_HTML
 
 OPTION_LETTERS = string.ascii_uppercase
+MAX_MC_CHOICES = 10
 
 
 class MultipleChoicesWidget(forms.MultiWidget):
@@ -96,7 +97,10 @@ permutation_choices = [
     ('permute', 'Randomly permute the choices'),
     ('not-last', 'Randomly permute, except the last choice should stay last'),
 ]
-
+no_answer_choices = [
+    ('show', 'Allow students to explicitly select “no answer” to clear their answer.'),
+    ('noshow', 'Only show the options entered above.'),
+]
 
 class MultipleChoice(QuestionHelper):
     name = 'Multiple Choice'
@@ -107,8 +111,9 @@ class MultipleChoice(QuestionHelper):
     # and marks is the worth of that answer when automarking.
 
     class ConfigForm(BaseConfigForm):
-        options = MultipleChoicesField(required=True, label='Options and marks', help_text='Options presented to students, with number of marks to assign with auto-marking. Any options left blank will not be displayed.')
+        options = MultipleChoicesField(required=True, n=MAX_MC_CHOICES, label='Options and marks', help_text='Options presented to students, with number of marks to assign with auto-marking. Any options left blank will not be displayed.')
         permute = forms.ChoiceField(required=True, choices=permutation_choices, help_text='You will still see the answers as they are above: a student answer of \u201CA\u201D refers to the first choice above, regardless of the order they see.')
+        show_no_answer = forms.ChoiceField(required=True, label="Show “no answer” option", choices=no_answer_choices, initial='noshow', help_text='Allow students to explicitly clear their answer (should be on if you have a mark penalty for incorrect answers).')
 
         def clean(self):
             data = self.cleaned_data
@@ -121,9 +126,27 @@ class MultipleChoice(QuestionHelper):
                     raise forms.ValidationError('Auto-marking penalty greater than question total max points.')
             return data
 
+    def config_to_form(self, data, points):
+        # undo the .clean just so it can be re-done for validation
+        formdata = super().config_to_form(data, points)
+        if 'options' not in formdata:
+            raise forms.ValidationError(' missing ["options"]')
+        options = formdata['options']
+        del formdata['options']
+
+        for i, (opt, marks) in enumerate(options):
+            formdata['options_%i' % (i,)] = str(opt)
+            try:
+                formdata['options_%i' % (MAX_MC_CHOICES+i,)] = Decimal(marks)
+            except ValueError:
+                raise forms.ValidationError(' marks must be an integer (or decimal represented as a string).')
+
+        return formdata
+
     def get_entry_field(self, questionanswer=None, student=None):
         options = self.version.config.get('options', [])
         permute = self.version.config.get('permute', 'keep')
+        show_no_answer = self.version.config.get('show_no_answer', 'noshow')
         if questionanswer:
             initial = questionanswer.answer.get('data', MultipleChoice.NA)
         else:
@@ -137,8 +160,8 @@ class MultipleChoice(QuestionHelper):
         elif student and permute == 'not-last':
             rand = self.question.quiz.random_generator(str(student.id) + '-' + str(self.question.id) + '-' + str(self.version.id))
             last = options[-1]
-            choices = rand.permute(options[:-1])
-            choices.append(last)
+            options = rand.permute(options[:-1])
+            options.append(last)
 
         choices = [
             (OPTION_LETTERS[opos], mark_safe('<span class="mc-letter">' + OPTION_LETTERS[i] + '.</span> ') + escape(o[0]))
@@ -146,7 +169,8 @@ class MultipleChoice(QuestionHelper):
             in enumerate(options)
         ]
 
-        choices.append((MultipleChoice.NA, 'no answer'))
+        if show_no_answer == 'show':
+            choices.append((MultipleChoice.NA, 'no answer'))
 
         field = forms.ChoiceField(required=False, initial=initial, choices=choices, widget=forms.RadioSelect())
         field.widget.attrs.update({'class': 'multiple-choice'})
@@ -164,20 +188,28 @@ class MultipleChoice(QuestionHelper):
         if ans == MultipleChoice.NA:
             return MISSING_ANSWER_HTML
         else:
-            return ans
+            return mark_safe('<p>' + ans + '</p>')
 
     def question_preview_html(self):
         # override to present options (original order) along with question text
         options = self.version.config.get('options', [])
+        permute = self.version.config.get('permute', 'keep')
         q_html = self.question_html()
         choices_html = [
             '<p><span class="mc-letter">%s.</span> %s</p>' % (OPTION_LETTERS[i], escape(o[0]))
             for i, o
             in enumerate(options)
         ]
+
+        if permute == 'keep':
+            order_note = ''
+        else:
+            order_note = ' <span class="helptext">[Choices may have been presented in a different order during the quiz.]</span> '
+
         return mark_safe(''.join((
             '<div>',
             q_html,
+            order_note,
             ''.join(choices_html),
             '</div>'
         )))
