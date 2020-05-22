@@ -39,6 +39,7 @@ class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
     photo_verification = forms.BooleanField(required=False, initial=True, help_text="Require students to take a photo with their webcam when submitting the quiz?")
     intro = MarkupContentField(required=False, label='Introductory Text (displayed at the top of the quiz, optional)',
                                default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True)
+    student_review = forms.BooleanField(required=False, initial=False, help_text="Allow students to review the quiz (questions, their answers, marks, and comments) after the grades are released?")
 
     class Meta:
         model = Quiz
@@ -52,6 +53,7 @@ class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
             self.initial['grace'] = instance.grace
             self.initial['honour_code'] = instance.honour_code
             self.initial['photo_verification'] = instance.photos
+            self.initial['student_review'] = instance.reviewable
 
     def clean(self):
         cleaned_data = super().clean()
@@ -60,6 +62,7 @@ class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
         self.instance.grace = cleaned_data['grace']
         self.instance.honour_code = cleaned_data['honour_code']
         self.instance.photos = cleaned_data['photo_verification']
+        self.instance.reviewable = cleaned_data['student_review']
         return cleaned_data
 
 

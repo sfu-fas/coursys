@@ -3,8 +3,8 @@
 {% load static %}
 {% load compress %}
 
-{% block title %}{{ activity.name }}: Take The Quiz{% if preview %} [Instructor's Preview]{% endif %}{% endblock %}
-{% block h1 %}{{ activity.name }}: Take The Quiz{% if preview %} [Instructor's Preview]{% endif %}{% endblock %}
+{% block title %}{{ activity.name }}: Review{% endblock %}
+{% block h1 %}{{ activity.name }}: Review{% endblock %}
 {% block subbreadcrumbs %}
     <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
     <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
@@ -38,6 +38,10 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
+    {% if quiz.intro %}
+        <h2 id="intro">Introduction</h2>
+        {{ quiz.intro_html }}
+    {% endif %}
 
     {% for v,a,m in version_answers %}
 

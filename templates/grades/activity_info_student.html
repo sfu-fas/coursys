@@ -85,14 +85,13 @@
             <tr>
                 <th scope="row">Your Grade</th>
                 <td>
-               <strong>{{ grade.display_with_percentage_student }}</strong>
-               {% if activity.is_numeric %}
-               {% ifnotequal grade.flag 'NOGR' %} 
-               {% ifnotequal grade.flag 'CALC' %} 
-               [<a href="{% url "offering:marking:mark_summary_student" course_slug=course.slug activity_slug=activity.slug userid=grade.member.person.userid %}">Additional Marking Details</a>]
-               {% endifnotequal %}
-               {% endifnotequal %}
-               {% endif %}
+                <strong>{{ grade.display_with_percentage_student }}</strong>
+                {% if activity.is_numeric and grade.flag != 'NOGR' and grade.flag != 'CALC' and not reviewable_quiz %}
+                [<a href="{% url "offering:marking:mark_summary_student" course_slug=course.slug activity_slug=activity.slug userid=grade.member.person.userid %}">Additional Marking Details</a>]
+                {% endif %}
+                {% if reviewable_quiz %}
+                [<a href="{% url "offering:quiz:index" course.slug activity.slug %}">Review Quiz</a>]
+                {% endif %}
                 </td>
             </tr>
             {% if grade.comment %} 

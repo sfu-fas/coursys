@@ -324,13 +324,17 @@ def _activity_info_student(request, course_slug, activity_slug):
 
     try:
         quiz = activity.quiz
-        incomplete_quiz = not quiz.completed(student)
+        completed = quiz.completed(student)
+        incomplete_quiz = not completed
+        reviewable_quiz = completed and quiz.reviewable and activity.status == 'RLS'
     except Quiz.DoesNotExist:
         incomplete_quiz = False
+        reviewable_quiz = False
 
     context = {'course': course, 'activity': activity, 'grade': grade,
                'activity_stat': activity_stat, 'reason_msg': reason_msg,
                'incomplete_quiz': incomplete_quiz,
+               'reviewable_quiz': reviewable_quiz,
                }
     resp = render(request, 'grades/activity_info_student.html', context)
     resp.allow_gstatic_csp = True

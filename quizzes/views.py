@@ -25,8 +25,7 @@ from marking.models import ActivityComponent, ActivityComponentMark, StudentActi
 from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm, MarkingSetupForm, \
     QuizImportForm
 from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES, Question, QuestionAnswer, \
-    TimeSpecialCase, \
-    QuizSubmission, QuestionVersion, MarkingNotConfiguredError
+    TimeSpecialCase, QuizSubmission, QuestionVersion, MarkingNotConfiguredError
 
 
 @requires_course_by_slug
