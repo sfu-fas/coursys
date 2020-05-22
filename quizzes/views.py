@@ -143,7 +143,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
                 if name in answer_lookup:
                     # Have an existing QuestionAnswer: update only if answer has changed.
                     ans = answer_lookup[name]
-                    if not helper.unchanged_answer(ans.answer, answer):
+                    if helper.unchanged_answer(ans.answer, answer):
                         pass  # autosave breaks the "unchanged answer" logic by saving outside the students' view
                         #if not autosave:
                         #   messages.add_message(request, messages.INFO, 'Question #%i answer unchanged from previous submission.' % (n,))
