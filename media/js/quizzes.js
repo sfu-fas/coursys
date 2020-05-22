@@ -43,11 +43,14 @@ function start_autosave(interval) {
 }
 function do_autosave(interval) {
     var form = $("form.quiz");
-    var data = form.serialize();
+    var data = new FormData(form.get(0));
+
     $.ajax({
         type: "POST",
         url: form.attr('action') + '?autosave=yes',
         data: data,
+        processData: false,
+        contentType: false,
         success: function(resp) {
             if( resp.status == 'ok' ) {
                 window.createNotification({
