@@ -97,7 +97,10 @@ permutation_choices = [
     ('permute', 'Randomly permute the choices'),
     ('not-last', 'Randomly permute, except the last choice should stay last'),
 ]
-
+no_answer_choices = [
+    ('show', 'Allow students to explicitly select “no answer” to clear their answer.'),
+    ('noshow', 'Only show the options entered above.'),
+]
 
 class MultipleChoice(QuestionHelper):
     name = 'Multiple Choice'
@@ -110,6 +113,7 @@ class MultipleChoice(QuestionHelper):
     class ConfigForm(BaseConfigForm):
         options = MultipleChoicesField(required=True, n=MAX_MC_CHOICES, label='Options and marks', help_text='Options presented to students, with number of marks to assign with auto-marking. Any options left blank will not be displayed.')
         permute = forms.ChoiceField(required=True, choices=permutation_choices, help_text='You will still see the answers as they are above: a student answer of \u201CA\u201D refers to the first choice above, regardless of the order they see.')
+        show_no_answer = forms.ChoiceField(required=True, label="Show “no answer” option", choices=no_answer_choices, initial='noshow', help_text='Allow students to explicitly clear their answer (should be on if you have a mark penalty for incorrect answers).')
 
         def clean(self):
             data = self.cleaned_data
@@ -142,6 +146,7 @@ class MultipleChoice(QuestionHelper):
     def get_entry_field(self, questionanswer=None, student=None):
         options = self.version.config.get('options', [])
         permute = self.version.config.get('permute', 'keep')
+        show_no_answer = self.version.config.get('show_no_answer', 'noshow')
         if questionanswer:
             initial = questionanswer.answer.get('data', MultipleChoice.NA)
         else:
@@ -164,7 +169,8 @@ class MultipleChoice(QuestionHelper):
             in enumerate(options)
         ]
 
-        choices.append((MultipleChoice.NA, 'no answer'))
+        if show_no_answer == 'show':
+            choices.append((MultipleChoice.NA, 'no answer'))
 
         field = forms.ChoiceField(required=False, initial=initial, choices=choices, widget=forms.RadioSelect())
         field.widget.attrs.update({'class': 'multiple-choice'})
