@@ -3,8 +3,8 @@ import datetime
 import decimal
 import itertools
 import random
-from collections import OrderedDict
-from typing import Optional, Tuple, List
+from collections import OrderedDict, defaultdict
+from typing import Optional
 
 from django.contrib import messages
 from django.db import transaction
@@ -909,15 +909,24 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
 
     # collect existing marks for tally
     component_lookup = quiz.activitycomponents_by_question()
+    members = Member.objects.filter(offering=offering, role='STUD')
+    sams = StudentActivityMark.objects.filter(numeric_grade__member__in=members).order_by('created_at')
+    latest_sam_id = {sam.numeric_grade.member_id: sam.id for sam in sams}  # Member.id: ActivityMark.id so we have the most recent only
+    acms = ActivityComponentMark.objects.filter(activity_mark_id__in=latest_sam_id.values(), value__isnull=False, activity_component__deleted=False).select_related('activity_component')
+    marked_in = defaultdict(set)  # ActivityComponent.id: Set[ActivityComponentMark]
+    for acm in acms:
+        component_id = acm.activity_component_id
+        marked_in[component_id].add(acm)
+
     version_lookup = {q_id: list(vs) for q_id, vs in itertools.groupby(versions, key=lambda v: v.question_id)}
-    question_marks = []  # : List[Tuple[Question, List[ActivityComponentMark]]]
+    question_marks = []  # : List[Tuple[Question, int, List[QuestionVersion]]]  # for each question, (the question, number marked, all versions)
     for q in questions:
         if q not in component_lookup:
             raise MarkingNotConfiguredError('Marking not configured')
-        comp = component_lookup[q]
-        marks = [m for m in comp_marks if m.activity_component == comp and m.value is not None]
+        component = component_lookup[q]
+        marked = marked_in[component.id]
         vs = version_lookup[q.id]
-        question_marks.append((q, marks, vs))
+        question_marks.append((q, len(marked), vs))
 
     # data for all marks table
     answers = QuestionAnswer.objects.filter(question__quiz=quiz).select_related('student__person')
@@ -925,7 +934,7 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
     student_mark_lookup = {am.numeric_grade.member_id: am.id for am in student_marks} # map Member.id to ActivityMark.id
     students = {a.student for a in answers}
     comp_mark_lookup = {(cm.activity_mark_id, cm.activity_component_id): cm for cm in comp_marks}
-    student_mark_data = [] # pairs of (Member, list of marks for each question)
+    student_mark_data = []  # pairs of (Member, list of marks for each question)
     for s in students:
         student_marks = []
         for q in questions:
@@ -1047,8 +1056,8 @@ def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, mem
     if request.method == 'POST':
         # build forms from POST data
         form = MarkingForm(data=request.POST, activity=activity, instance=mark)
-        component_form_lookup = {}
-        by_component_lookup = {}
+        component_form_lookup = {} # : Dict[int, ComponentForm]
+        by_component_lookup = {}  # : Dict[ActivityComponent, ComponentForm]
         for q in questions:
             try:
                 ac = component_lookup[q]
@@ -1103,10 +1112,12 @@ def mark_student(request: HttpRequest, course_slug: str, activity_slug: str, mem
             form.save_m2m()
             for component in component_lookup.values():
                 f = by_component_lookup[component]
-                c = f.save(commit=False)
-                c.activity_component = component
-                c.activity_mark = am
-                c.save()
+                acm = f.save(commit=False)
+                acm.pk = None
+                acm.id = None
+                acm.activity_component = component
+                acm.activity_mark = am
+                acm.save()
                 f.save_m2m()
 
             messages.add_message(request, messages.SUCCESS, 'Marks saved.')
