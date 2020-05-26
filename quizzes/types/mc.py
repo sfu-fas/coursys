@@ -141,6 +141,11 @@ class MultipleChoice(QuestionHelper):
             except ValueError:
                 raise forms.ValidationError(' marks must be an integer (or decimal represented as a string).')
 
+        if 'permute' not in formdata:
+            formdata['permute'] = 'keep'
+        if 'show_no_answer' not in formdata:
+            formdata['show_no_answer'] = 'noshow'
+
         return formdata
 
     def get_entry_field(self, questionanswer=None, student=None):

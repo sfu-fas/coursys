@@ -25,6 +25,9 @@
 {% if quiz.ongoing %}
     <p class="warningmessage">This quiz is currently in-progress. Editing it now should be done <strong>very</strong> cautiously.</p>
 {% endif %}
+{% if quiz.completed %}
+    <p class="warningmessage">This quiz has ended. <strong>Editing it is almost certainly not a good idea</strong>, except to change something marking-related.</p>
+{% endif %}
 
 <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
 {{form|as_dl}}

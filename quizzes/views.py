@@ -414,8 +414,8 @@ def question_edit(request: HttpRequest, course_slug: str, activity_slug: str, qu
     question = get_object_or_404(Question, quiz=quiz, id=question_id)
     version = get_object_or_404(QuestionVersion.objects.select_related('question'), question=question, id=version_id)
 
-    if quiz.completed():
-        return ForbiddenResponse(request, 'quiz is completed. You cannot edit questions after the end of the quiz time')
+    #if quiz.completed():
+    #    return ForbiddenResponse(request, 'quiz is completed. You cannot edit questions after the end of the quiz time')
 
     return _question_edit(request, offering, activity, quiz, question, version)
 
@@ -515,8 +515,8 @@ def question_reorder(request: HttpRequest, course_slug: str, activity_slug: str,
     if direction not in ['up', 'down']:
         raise Http404()
 
-    if quiz.completed():
-        return ForbiddenResponse(request, 'Quiz is completed. You cannot modify questions after the end of the quiz time')
+    #if quiz.completed():
+    #    return ForbiddenResponse(request, 'Quiz is completed. You cannot modify questions after the end of the quiz time')
 
     try:
         if direction == 'up':
