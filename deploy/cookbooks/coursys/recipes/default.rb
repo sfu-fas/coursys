@@ -39,6 +39,7 @@ directory coursys_dir do
   action :create
 end
 execute "coursys_git" do
+  # if the code is mounted externally (by Vagrant or similar), this will leave it alone (because of the "creates" guard)
   cwd coursys_dir
   user username
   command "git clone --branch #{coursys_branch} #{coursys_repo} ."
@@ -100,7 +101,7 @@ if deploy_mode != 'devel'
     creates "/etc/systemd/system/multi-user.target.wants/docker.service"
   end
 
-  for dir in ['', 'static', 'config', 'rabbitmq', 'elasticsearch', 'nginx-logs', 'mysql', 'logs']
+  for dir in ['', 'static', 'config', 'rabbitmq', 'elasticsearch', 'nginx-logs', 'mysql', 'logs', 'db_backup']
     directory "#{data_root}/#{dir}" do
       owner username
       mode '0755'
@@ -117,7 +118,7 @@ if deploy_mode != 'devel'
   end
 
   # There was a conflict between npm and some mysql packages, so using the mariadb client, which should be equivalent.
-  package ['mariadb-client', 'screen', 'nginx']
+  package ['mariadb-client', 'screen', 'nginx', 'ntp', 'ntpdate']
   service 'nginx' do
     action :nothing
   end
@@ -143,6 +144,17 @@ if deploy_mode != 'devel'
     mode '0755'
     recursive true
     action :create
+  end
+
+  for service in ['gunicorn', 'celery', 'nginxcoursys']
+    template "/etc/logrotate.d/#{service}" do
+      source "logrotate-#{service}.erb"
+      variables(
+        :coursys_dir => coursys_dir,
+        :username => username,
+        :data_root => data_root,
+      )
+    end
   end
 end
 
@@ -194,6 +206,21 @@ if deploy_mode != 'devel'
   #  creates "#{user_home}/sqllib/bin/db2"
   #  only_if { ::File.file?("#{user_home}/client/db2_install") } # if we don't have the client, skip
   #end
+
+  # The MOSS source, as moss.zip is also not distributed here for copyright reasons.
+  # It must be inserted into cookbooks/courses/files/ manually and should contain moss/moss.pl.
+  if File.file?(Chef::Config[:cookbook_path] + '/coursys/files/moss.zip')
+    cookbook_file "#{user_home}/moss.zip" do
+      owner username
+    end
+  end
+  execute "moss-unpack" do
+    command "unzip moss.zip"
+    cwd user_home
+    user username
+    creates "#{user_home}/moss/moss.pl"
+    only_if { ::File.file?("#{user_home}/moss.zip") } # if we don't have the code, skip
+  end
 
 end
 

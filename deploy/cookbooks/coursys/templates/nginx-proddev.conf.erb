@@ -7,8 +7,8 @@ server {
         server_name localhost;
         listen   80;
 
-        access_log /var/log/nginx/coursys.access.log;
-        error_log /var/log/nginx/coursys.error.log warn;
+        access_log /data/nginx-logs/coursys.access.log;
+        error_log /data/nginx-logs/coursys.error.log warn;
 
         client_max_body_size 100m;
         client_body_buffer_size 1024k;

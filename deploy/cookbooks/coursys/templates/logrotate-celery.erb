@@ -1,0 +1,9 @@
+<%= @data_root %>/logs/celery*.log {
+        daily
+        rotate 14
+        notifempty
+        copytruncate
+        compress
+        delaycompress
+        missingok
+}
