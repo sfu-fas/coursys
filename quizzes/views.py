@@ -4,7 +4,7 @@ import decimal
 import itertools
 import random
 from collections import OrderedDict, defaultdict
-from typing import Optional
+from typing import Optional, List, Tuple
 
 from django.contrib import messages
 from django.db import transaction
@@ -618,15 +618,6 @@ def submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> H
     return render(request, 'quizzes/submissions.html', context=context)
 
 
-@requires_course_staff_by_slug
-def strange_history(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
-    offering = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
-    quiz = get_object_or_404(Quiz, activity=activity)
-    questions = Question.objects.filter(quiz=quiz)
-    # TODO: find submissions that might need attention: one student multiple IP; multiple student one IP; changed browser; changed session
-
-
 def _setup_download(request: HttpRequest, course_slug: str, activity_slug: str):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
@@ -763,6 +754,58 @@ def submitted_file(request: HttpRequest, course_slug: str, activity_slug: str, u
     if filename:
         resp['Content-Disposition'] = 'inline; filename="%s"' % (filename,)
     return resp
+
+
+@requires_course_staff_by_slug
+def strange_history(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity.objects.select_related('offering'), slug=activity_slug, offering=offering, group=False)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    questions = Question.objects.filter(quiz=quiz)
+    versions = QuestionVersion.objects.filter(question__in=questions)
+
+    quiz_submissions = QuizSubmission.objects.filter(quiz=quiz).select_related('student__person').order_by('student')
+    quiz_submissions = list(quiz_submissions)
+    [qs.annotate_questions(questions, versions) for qs in quiz_submissions]
+
+    # one student, multiple IP addresses
+    multiple_ip = []  # : List[Tuple[Member, Iterable[str]]]
+    for student, subs in itertools.groupby(quiz_submissions, lambda qs: qs.student):
+        ips = {sub.ip_address for sub in subs}
+        if len(ips) > 1:
+            multiple_ip.append((student, ips))
+
+    # one IP address, multiple students
+    multiple_students = []  # : List[Tuple[str, Iterable[Member]]]
+    for ip_address, subs in itertools.groupby(sorted(quiz_submissions, key=lambda qs: qs.ip_address), lambda qs: qs.ip_address):
+        students = {sub.student for sub in subs}
+        if len(students) > 1:
+            multiple_students.append((ip_address, students))
+
+    # changed browser
+    multiple_browsers = []  # : List[Tuple[Member, Iterable[str]]]
+    for student, subs in itertools.groupby(quiz_submissions, lambda qs: qs.student):
+        fingerprints = {sub.browser_fingerprint for sub in subs}
+        if len(fingerprints) > 1:
+            multiple_browsers.append((student, fingerprints))
+
+    # changed session
+    multiple_sessions = []  # : List[Tuple[Member, Iterable[str]]]
+    for student, subs in itertools.groupby(quiz_submissions, lambda qs: qs.student):
+        fingerprints = {sub.session_fingerprint for sub in subs}
+        if len(fingerprints) > 1:
+            multiple_sessions.append((student, fingerprints))
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'multiple_ip': multiple_ip,
+        'multiple_students': multiple_students,
+        'multiple_browsers': multiple_browsers,
+        'multiple_sessions': multiple_sessions,
+    }
+    return render(request, 'quizzes/strange_history.html', context=context)
 
 
 @requires_course_staff_by_slug
@@ -986,7 +1029,9 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
     return render(request, 'quizzes/marking.html', context=context)
 
 
-def _marks_csv(activity: Activity, question_marks, student_mark_data) -> HttpResponse:
+def _marks_csv(activity: Activity,
+               question_marks: List[Tuple[Question, int, List[QuestionVersion]]],
+               student_mark_data: List[Tuple[Member, List]]) -> HttpResponse:
     # reproduce the table from the marking page, as CSV
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'inline; filename="%s-results.csv"' % (activity.slug,)
