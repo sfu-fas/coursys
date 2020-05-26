@@ -618,6 +618,15 @@ def submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> H
     return render(request, 'quizzes/submissions.html', context=context)
 
 
+@requires_course_staff_by_slug
+def strange_history(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    questions = Question.objects.filter(quiz=quiz)
+    # TODO: find submissions that might need attention: one student multiple IP; multiple student one IP; changed browser; changed session
+
+
 def _setup_download(request: HttpRequest, course_slug: str, activity_slug: str):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
@@ -674,7 +683,7 @@ def download_submissions(request: HttpRequest, course_slug: str, activity_slug: 
 @requires_course_staff_by_slug
 def download_submissions_csv(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     activity, questions, version_number_lookup, by_student, multiple_versions = _setup_download(request, course_slug, activity_slug)
-    response = HttpResponse(content_type='text/csv')
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'inline; filename="%s-results.csv"' % (activity.slug,)
 
     writer = csv.writer(response)
@@ -960,6 +969,9 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
 
         student_mark_data.append((s, student_marks))
 
+    if 'csv' in request.GET:
+        return _marks_csv(activity, question_marks, student_mark_data)
+
     # any automarking possible?
     automark = any(v.helper().auto_markable for v in versions)
 
@@ -972,6 +984,23 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
         'automark': automark,
     }
     return render(request, 'quizzes/marking.html', context=context)
+
+
+def _marks_csv(activity: Activity, question_marks, student_mark_data) -> HttpResponse:
+    # reproduce the table from the marking page, as CSV
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'inline; filename="%s-results.csv"' % (activity.slug,)
+    writer = csv.writer(response)
+    header = ['Student', 'Userid', 'Emplid']
+    header.extend(['Q#%i' % (i+1,) for i,_ in enumerate(question_marks)])
+    writer.writerow(header)
+
+    for student, marks in student_mark_data:
+        row = [student.person.sortname(), student.person.userid, student.person.emplid]
+        row.extend([m.value if m else None for m in marks])
+        writer.writerow(row)
+
+    return response
 
 
 @requires_course_staff_by_slug
