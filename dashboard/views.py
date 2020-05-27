@@ -52,10 +52,9 @@ def index(request):
     has_ras = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username, deleted=False).exists()
     has_reports = AccessRule.objects.filter(person__userid=request.user.username).exists()
 
-    # Only CMPT admins should see the one different TA module.  Only non-CMPT TA Admins should see the other.
-    # re-factored to take into account the very few people who should see both (mainly FAS Departmental Admins)
+    # Only CMPT admins should see the one different TA module.  They can now also see the other module as we hope to
+    # transition them over.
     cmpt_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD', unit__label='CMPT').exists()
-    other_taadmn = Role.objects_fresh.filter(person__userid=userid, role='TAAD').exclude(unit__label='CMPT').exists()
 
     context = {'memberships': memberships,
                'staff_memberships': staff_memberships,
@@ -67,7 +66,6 @@ def index(request):
                'excluded': excluded,
                'form_groups': form_groups,
                'cmpt_taadmn': cmpt_taadmn,
-               'other_taadmn': other_taadmn,
                'is_instructor': is_instructor,
                'has_reports': has_reports}
     return render(request, "dashboard/index.html", context)
