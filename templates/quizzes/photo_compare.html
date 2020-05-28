@@ -44,13 +44,13 @@ $(document).ready(function() {
             </td>
             <td>
                 {% if can_photo %}
-                    <div class="idphoto"><img src="{% url 'data:student_photo' emplid=m.grouper.person.emplid %}" alt="" /></div>
+                    <div class="idphoto"><img src="{% url 'data:student_photo' emplid=m.grouper.person.emplid %}" alt="" loading="lazy" /></div>
                 {% endif %}
             </td>
             <td>
                 {% for sub in m.list %}
                     {% if sub.capture %}
-                    <div class="capturephoto"><img src="{% url 'offering:quiz:submission_photo' course_slug=offering.slug activity_slug=activity.slug userid=sub.student.person.userid_or_emplid submission_id=sub.id %}" alt="" /></div>
+                    <div class="capturephoto"><img src="{% url 'offering:quiz:submission_photo' course_slug=offering.slug activity_slug=activity.slug userid=sub.student.person.userid_or_emplid submission_id=sub.id %}" alt="" loading="lazy" /></div>
                     {% endif %}
                 {% endfor %}
             </td>
