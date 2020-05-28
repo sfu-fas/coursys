@@ -809,6 +809,22 @@ def strange_history(request: HttpRequest, course_slug: str, activity_slug: str) 
 
 
 @requires_course_staff_by_slug
+def photo_compare(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity.objects.select_related('offering'), slug=activity_slug, offering=offering, group=False)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    quiz_submissions = QuizSubmission.objects.filter(quiz=quiz).select_related('student__person').order_by('student')
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'quiz_submissions': quiz_submissions,
+        'can_photo': has_photo_agreement(request.member.person)
+    }
+    return render(request, 'quizzes/photo_compare.html', context=context)
+
+
+@requires_course_staff_by_slug
 def submission_history(request: HttpRequest, course_slug: str, activity_slug: str, userid: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)

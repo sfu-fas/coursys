@@ -1,0 +1,61 @@
+{% extends "base-wide.html" %}
+{% load static %}
+
+{% block title %}{{ activity.name }}: Verification Photos{% endblock %}
+{% block h1 %}{{ activity.name }}: Verification Photos{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li><a href="{% url 'offering:quiz:submissions' course_slug=offering.slug activity_slug=activity.slug %}">Submissions</a></li>
+    <li>Photos</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('table#photos').dataTable({
+      "bPaginate": false,
+      "bJQueryUI": true,
+      "aaSorting": [[0, "asc"]],
+  });
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+    <table id="photos" class="display">
+    <thead><tr>
+        <th scope="col">Student</th>
+        <th scope="col">ID Photo</th>
+        <th scope="col">Verification Photos</th>
+    </tr></thead>
+    <tbody>
+    {% regroup quiz_submissions by student as student_submissions %}
+    {% for m in student_submissions %}
+        <tr>
+            <td>
+                {{ m.grouper.person.sortname }} ({{ m.grouper.person.userid }},
+                <a href="{{ m.grouper.get_absolute_url }}">{{ m.grouper.person.emplid }}</a>)
+            </td>
+            <td>
+                {% if can_photo %}
+                    <div class="idphoto"><img src="{% url 'data:student_photo' emplid=m.grouper.person.emplid %}" alt="" /></div>
+                {% endif %}
+            </td>
+            <td>
+                {% for sub in m.list %}
+                    {% if sub.capture %}
+                    <div class="capturephoto"><img src="{% url 'offering:quiz:submission_photo' course_slug=offering.slug activity_slug=activity.slug userid=sub.student.person.userid_or_emplid submission_id=sub.id %}" alt="" /></div>
+                    {% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+{% endblock %}

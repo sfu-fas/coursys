@@ -56,3 +56,10 @@ div#capture>div>p {
 div#capture button {
     vertical-align: bottom;
 }
+div.capturephoto {
+    display: inline-block;
+}
+div.capturephoto img {
+    max-width: 180px;
+    max-height: 120px;
+}
