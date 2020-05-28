@@ -14,15 +14,6 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
-<script nonce="{{ CSP_NONCE }}">
-$(document).ready(function() {
-  $('table.asdfasdf').dataTable({
-      "bPaginate": false,
-      "bJQueryUI": true,
-      "aaSorting": [[0, "asc"]],
-  });
-} );
-</script>
 {% endblock %}
 
 {% block actions %}

@@ -29,6 +29,9 @@ $(document).ready(function() {
     <h2 class="heading">Actions</h2>
     <ul>
         <li><a href="{% url 'offering:quiz:strange_history' course_slug=offering.slug activity_slug=activity.slug %}">Notable Submissions</a></li>
+        {% if quiz.photos %}
+        <li><a href="{% url 'offering:quiz:photo_compare' course_slug=offering.slug activity_slug=activity.slug %}">Compare Verification Photos</a></li>
+        {% endif %}
     </ul>
 </div>
 {% endblock %}

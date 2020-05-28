@@ -94,7 +94,7 @@ class QuizzesTest(TestCase):
         # test as an instructor
         test_views(self, c, 'offering:quiz:',
                    ['index', 'preview_student', 'edit', 'question_add', 'submissions',
-                    'special_cases', 'special_case_add', 'marking'],
+                    'special_cases', 'special_case_add', 'marking', 'strange_history', 'photo_compare'],
                    {'course_slug': self.offering.slug, 'activity_slug': self.activity.slug})
 
         test_views(self, c, 'offering:quiz:', ['question_add_version'],
