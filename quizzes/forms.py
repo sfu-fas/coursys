@@ -11,7 +11,7 @@ from courselib.markup import MarkupContentField, MarkupContentMixin, MARKUPS
 from grades.models import Activity
 from marking.models import StudentActivityMark, ActivityComponentMark, ActivityComponent
 from quizzes import DEFAULT_QUIZ_MARKUP
-from quizzes.models import Quiz, TimeSpecialCase, QUESTION_HELPER_CLASSES, Question, QuestionVersion
+from quizzes.models import Quiz, TimeSpecialCase, QUESTION_HELPER_CLASSES, Question, QuestionVersion, REVIEW_CHOICES
 
 
 class QuizTimeBaseForm(forms.ModelForm):
@@ -39,7 +39,7 @@ class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
     photo_verification = forms.BooleanField(required=False, initial=True, help_text="Require students to take a photo with their webcam when submitting the quiz?")
     intro = MarkupContentField(required=False, label='Introductory Text (displayed at the top of the quiz, optional)',
                                default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True)
-    student_review = forms.BooleanField(required=False, initial=False, help_text="Allow students to review the quiz (questions, their answers, marks, and comments) after the grades are released?")
+    review = forms.ChoiceField(required=True, label='Student Review', initial='none', choices=REVIEW_CHOICES, help_text="Allow students to review the quiz?")
 
     class Meta:
         model = Quiz
@@ -53,7 +53,7 @@ class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
             self.initial['grace'] = instance.grace
             self.initial['honour_code'] = instance.honour_code
             self.initial['photo_verification'] = instance.photos
-            self.initial['student_review'] = instance.reviewable
+            self.initial['review'] = instance.review
 
     def clean(self):
         cleaned_data = super().clean()
@@ -62,7 +62,7 @@ class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
         self.instance.grace = cleaned_data['grace']
         self.instance.honour_code = cleaned_data['honour_code']
         self.instance.photos = cleaned_data['photo_verification']
-        self.instance.reviewable = cleaned_data['student_review']
+        self.instance.review = cleaned_data['review']
         return cleaned_data
 
 

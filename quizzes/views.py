@@ -88,7 +88,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
 
     elif (end < now and request.method == 'GET') or (end + grace < now):
         # can student review the marking?
-        if quiz.reviewable and activity.status == 'RLS':
+        if quiz.review != 'none' and activity.status == 'RLS':
             return _student_review(request, offering, activity, quiz)
 
         # if not, then we're just after the quiz.
