@@ -326,7 +326,7 @@ def _activity_info_student(request, course_slug, activity_slug):
         quiz = activity.quiz
         completed = quiz.completed(student)
         incomplete_quiz = not completed
-        reviewable_quiz = completed and quiz.reviewable and activity.status == 'RLS'
+        reviewable_quiz = completed and (quiz.review != 'none') and (activity.status == 'RLS')
     except Quiz.DoesNotExist:
         incomplete_quiz = False
         reviewable_quiz = False

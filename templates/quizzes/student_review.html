@@ -47,8 +47,11 @@ $(document).ready(function() {
 
         <h2 id="{{ v.question.ident }}">Question #{{ forloop.counter }} ({{ v.question.points }} point{{ v.question.points|pluralize }})</h2>
         <dl class="review">
+        {% if quiz.review == 'all' %}
         <dt>Question</dt>
         <dd class="question">{{ v.question_preview_html }}</dd>
+        {% endif %}
+        {% if quiz.review == 'all' or quiz.review == 'answers' %}
         <dt>Your Answer</dt>
         <dd class="answer">
             {% if a %}
@@ -57,6 +60,8 @@ $(document).ready(function() {
                 <p class="empty">No submission found.</p>
             {% endif %}
         </dd>
+        {% endif %}
+        {% if quiz.review == 'all' or quiz.review == 'answers' or quiz.review == 'marks' %}
         <dt>Mark</dt>
         {% if m %}
             <dd>{{ m.value }} / {{ m.activity_component.max_mark }}</dd>
@@ -68,6 +73,7 @@ $(document).ready(function() {
             <dd>{{ m.comment|linebreaks }}</dd>
         {% else %}
             <dd class="empty">&mdash;</dd>
+        {% endif %}
         {% endif %}
         </dl>
 

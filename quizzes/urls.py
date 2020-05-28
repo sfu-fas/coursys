@@ -16,6 +16,7 @@ quiz_patterns = [
     url(r'^preview$', views.preview_student, name='preview_student'),
     url(r'^export$', views.export, name='export'),
     url(r'^import$', views.import_, name='import'),
+    url(r'^notable-history$', views.strange_history, name='strange_history'),
     url(r'^submissions/$', views.submissions, name='submissions'),
     url(r'^submissions/' + USERID_OR_EMPLID + '$', views.view_submission, name='view_submission'),
     url(r'^submissions/' + USERID_OR_EMPLID + r'/history$', views.submission_history, name='submission_history'),

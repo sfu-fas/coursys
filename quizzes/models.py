@@ -1,9 +1,7 @@
 # TODO: delete Quiz?
 # TODO: "copy course setup" should also copy quizzes
-# TODO: student review of quiz results
 # TODO: let instructor select "one question at a time, no backtracking" presentation
-# TODO: export of submission history, or auto-flag suspicious
-# TODO: export of student/question mark table
+# TODO: export of submission history?
 import base64
 import datetime
 import hashlib
@@ -23,6 +21,7 @@ from django.db import models, transaction
 from django.db.models import Max
 from django.http import HttpRequest
 from django.shortcuts import resolve_url
+from django.utils.functional import cached_property
 from django.utils.safestring import SafeText
 from ipware import get_client_ip
 
@@ -61,6 +60,13 @@ QUESTION_HELPER_CLASSES = {
 STATUS_CHOICES = [
     ('V', 'Visible'),
     ('D', 'Deleted'),
+]
+
+REVIEW_CHOICES = [
+    ('none', 'may not review quizzes'),
+    ('marks', 'may review marks and comments; not the questions or their answers'),
+    ('answers', 'may review their answers, marks, and comments; not the questions'),
+    ('all', 'may review questions, their answers, marks, and comments'),
 ]
 
 
@@ -133,7 +139,8 @@ class Quiz(models.Model):
     # .config['secret']: the "secret" used to seed the randomization for this quiz (integer)
     # .config['honour_code']: do we make the student agree to the honour code for this quiz? (boolean)
     # .config['photos']: do we capture verification images for this quiz? (boolean)
-    # .config['reviewable']: can students review questions & answers after grades are released? (boolean)
+    # .config['reviewable']: defunct. Now maps to True -> .review == 'all'; False -> .review == 'none'
+    # .config['review']: can students review, and what can they see? REVIEW_CHOICES gives options.
 
     grace = config_property('grace', default=300)
     intro = config_property('intro', default='')
@@ -142,10 +149,26 @@ class Quiz(models.Model):
     secret = config_property('secret', default='not a secret')
     honour_code = config_property('honour_code', default=True)
     photos = config_property('photos', default=False)
-    reviewable = config_property('reviewable', default=False)
+    #review = config_property('reviewable', default='none')  # special-cased below
+
+    # Special handling to honour .config['reviewable'] if it was set before .config['review'] existed.
+    def _review_get(self):
+        if 'review' in self.config:
+            return self.config['review']
+        elif 'reviewable' in self.config:
+            return 'all' if self.config['reviewable'] else 'none'
+        else:
+            return 'none'
+
+    def _review_set(self, val):
+        if 'reviewable' in self.config:
+            del self.config['reviewable']
+        self.config['review'] = val
+
+    review = property(_review_get, _review_set)
 
     # .config fields allowed in the JSON import
-    ALLOWED_IMPORT_CONFIG = {'grace', 'honour_code', 'photos', 'reviewable'}
+    ALLOWED_IMPORT_CONFIG = {'grace', 'honour_code', 'photos', 'reviewable', 'review'}
 
     class Meta:
         verbose_name_plural = 'Quizzes'
@@ -397,7 +420,7 @@ class Quiz(models.Model):
             'grace': self.grace,
             'honour_code': self.honour_code,
             'photos': self.photos,
-            'reviewable': self.reviewable,
+            'review': self.review,
         }
         intro = [self.intro, self.markup, self.math]
         questions = [q.export() for q in self.question_set.all()]
@@ -759,6 +782,7 @@ class QuizSubmission(models.Model):
 
         self.answer_data = answer_data
 
+    @cached_property
     def session_fingerprint(self) -> str:
         """
         Return a hash of what we know about the user's session on submission.
@@ -767,6 +791,7 @@ class QuizSubmission(models.Model):
         ident = self.config['session']  # + '--' + self.config['csrf_token']
         return '%08x' % (string_hash(ident, 4),)
 
+    @cached_property
     def browser_fingerprint(self) -> str:
         """
         Return a hash of what we know about the user's browser on submission.

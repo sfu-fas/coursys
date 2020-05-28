@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+{% load quiz_display %}
+
+{% block title %}{{ activity.name }}: Notable Quiz Submissions{% endblock %}
+{% block h1 %}{{ activity.name }}: Notable Quiz Submissions{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li><a href="{% url 'offering:quiz:submissions' course_slug=offering.slug activity_slug=activity.slug %}">Submissions</a></li>
+    <li>Notable</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('table.asdfasdf').dataTable({
+      "bPaginate": false,
+      "bJQueryUI": true,
+      "aaSorting": [[0, "asc"]],
+  });
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<h2 id="multiple_ips">One Student, Multiple IP Addresses</h2>
+<ul class="bulleted">
+{% for student, ip_addrs in multiple_ip %}
+    <li>{{ student|student_submissions:activity }}: {{ ip_addrs|join:', ' }}</li>
+{% empty %}
+    <li class="empty">None</li>
+{% endfor %}
+</ul>
+
+<h2 id="multiple_students">One IP Address, Multiple Students</h2>
+<ul class="bulleted">
+{% for ip_addr, students in multiple_students %}
+    <li>{{ ip_addr }}: {{ students|student_list:activity }}</li>
+{% empty %}
+    <li class="empty">None</li>
+{% endfor %}
+</ul>
+
+<h2 id="multiple_browsers">One Student, Multiple Browsers</h2>
+<ul class="bulleted">
+{% for student, fingerprints in multiple_browsers %}
+    <li>{{ student|student_submissions:activity }}: {{ fingerprints|length }} browsers</li>
+{% empty %}
+    <li class="empty">None</li>
+{% endfor %}
+</ul>
+
+<h2 id="multiple_sessions">One Student, Multiple Sessions</h2>
+<ul class="bulleted">
+{% for student, fingerprints in multiple_sessions %}
+    <li>{{ student|student_submissions:activity }}: {{ fingerprints|length }} sessions</li>
+{% empty %}
+    <li class="empty">None</li>
+{% endfor %}
+</ul>
+
+{% endblock %}

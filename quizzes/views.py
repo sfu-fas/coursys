@@ -4,7 +4,7 @@ import decimal
 import itertools
 import random
 from collections import OrderedDict, defaultdict
-from typing import Optional
+from typing import Optional, List, Tuple
 
 from django.contrib import messages
 from django.db import transaction
@@ -88,7 +88,7 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
 
     elif (end < now and request.method == 'GET') or (end + grace < now):
         # can student review the marking?
-        if quiz.reviewable and activity.status == 'RLS':
+        if quiz.review != 'none' and activity.status == 'RLS':
             return _student_review(request, offering, activity, quiz)
 
         # if not, then we're just after the quiz.
@@ -414,8 +414,8 @@ def question_edit(request: HttpRequest, course_slug: str, activity_slug: str, qu
     question = get_object_or_404(Question, quiz=quiz, id=question_id)
     version = get_object_or_404(QuestionVersion.objects.select_related('question'), question=question, id=version_id)
 
-    if quiz.completed():
-        return ForbiddenResponse(request, 'quiz is completed. You cannot edit questions after the end of the quiz time')
+    #if quiz.completed():
+    #    return ForbiddenResponse(request, 'quiz is completed. You cannot edit questions after the end of the quiz time')
 
     return _question_edit(request, offering, activity, quiz, question, version)
 
@@ -515,8 +515,8 @@ def question_reorder(request: HttpRequest, course_slug: str, activity_slug: str,
     if direction not in ['up', 'down']:
         raise Http404()
 
-    if quiz.completed():
-        return ForbiddenResponse(request, 'Quiz is completed. You cannot modify questions after the end of the quiz time')
+    #if quiz.completed():
+    #    return ForbiddenResponse(request, 'Quiz is completed. You cannot modify questions after the end of the quiz time')
 
     try:
         if direction == 'up':
@@ -674,7 +674,7 @@ def download_submissions(request: HttpRequest, course_slug: str, activity_slug: 
 @requires_course_staff_by_slug
 def download_submissions_csv(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     activity, questions, version_number_lookup, by_student, multiple_versions = _setup_download(request, course_slug, activity_slug)
-    response = HttpResponse(content_type='text/csv')
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'inline; filename="%s-results.csv"' % (activity.slug,)
 
     writer = csv.writer(response)
@@ -754,6 +754,58 @@ def submitted_file(request: HttpRequest, course_slug: str, activity_slug: str, u
     if filename:
         resp['Content-Disposition'] = 'inline; filename="%s"' % (filename,)
     return resp
+
+
+@requires_course_staff_by_slug
+def strange_history(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity.objects.select_related('offering'), slug=activity_slug, offering=offering, group=False)
+    quiz = get_object_or_404(Quiz, activity=activity)
+    questions = Question.objects.filter(quiz=quiz)
+    versions = QuestionVersion.objects.filter(question__in=questions)
+
+    quiz_submissions = QuizSubmission.objects.filter(quiz=quiz).select_related('student__person').order_by('student')
+    quiz_submissions = list(quiz_submissions)
+    [qs.annotate_questions(questions, versions) for qs in quiz_submissions]
+
+    # one student, multiple IP addresses
+    multiple_ip = []  # : List[Tuple[Member, Iterable[str]]]
+    for student, subs in itertools.groupby(quiz_submissions, lambda qs: qs.student):
+        ips = {sub.ip_address for sub in subs}
+        if len(ips) > 1:
+            multiple_ip.append((student, ips))
+
+    # one IP address, multiple students
+    multiple_students = []  # : List[Tuple[str, Iterable[Member]]]
+    for ip_address, subs in itertools.groupby(sorted(quiz_submissions, key=lambda qs: qs.ip_address), lambda qs: qs.ip_address):
+        students = {sub.student for sub in subs}
+        if len(students) > 1:
+            multiple_students.append((ip_address, students))
+
+    # changed browser
+    multiple_browsers = []  # : List[Tuple[Member, Iterable[str]]]
+    for student, subs in itertools.groupby(quiz_submissions, lambda qs: qs.student):
+        fingerprints = {sub.browser_fingerprint for sub in subs}
+        if len(fingerprints) > 1:
+            multiple_browsers.append((student, fingerprints))
+
+    # changed session
+    multiple_sessions = []  # : List[Tuple[Member, Iterable[str]]]
+    for student, subs in itertools.groupby(quiz_submissions, lambda qs: qs.student):
+        fingerprints = {sub.session_fingerprint for sub in subs}
+        if len(fingerprints) > 1:
+            multiple_sessions.append((student, fingerprints))
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'multiple_ip': multiple_ip,
+        'multiple_students': multiple_students,
+        'multiple_browsers': multiple_browsers,
+        'multiple_sessions': multiple_sessions,
+    }
+    return render(request, 'quizzes/strange_history.html', context=context)
 
 
 @requires_course_staff_by_slug
@@ -960,6 +1012,9 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
 
         student_mark_data.append((s, student_marks))
 
+    if 'csv' in request.GET:
+        return _marks_csv(activity, question_marks, student_mark_data)
+
     # any automarking possible?
     automark = any(v.helper().auto_markable for v in versions)
 
@@ -972,6 +1027,25 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
         'automark': automark,
     }
     return render(request, 'quizzes/marking.html', context=context)
+
+
+def _marks_csv(activity: Activity,
+               question_marks: List[Tuple[Question, int, List[QuestionVersion]]],
+               student_mark_data: List[Tuple[Member, List]]) -> HttpResponse:
+    # reproduce the table from the marking page, as CSV
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'inline; filename="%s-results.csv"' % (activity.slug,)
+    writer = csv.writer(response)
+    header = ['Student', 'Userid', 'Emplid']
+    header.extend(['Q#%i' % (i+1,) for i,_ in enumerate(question_marks)])
+    writer.writerow(header)
+
+    for student, marks in student_mark_data:
+        row = [student.person.sortname(), student.person.userid, student.person.emplid]
+        row.extend([m.value if m else None for m in marks])
+        writer.writerow(row)
+
+    return response
 
 
 @requires_course_staff_by_slug
