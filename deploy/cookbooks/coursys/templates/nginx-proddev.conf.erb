@@ -7,16 +7,17 @@ server {
         server_name localhost;
         listen   80;
 
-        access_log /data/nginx-logs/coursys.access.log;
-        error_log /data/nginx-logs/coursys.error.log warn;
+        access_log <%= @data_root %>/nginx-logs/coursys.access.log;
+        error_log <%= @data_root %>/nginx-logs/coursys.error.log warn;
 
         client_max_body_size 100m;
         client_body_buffer_size 1024k;
 
         rewrite ^/media/(.*)$ /static/$1 permanent;
+        root <%= @data_root %>/static;
 
         location /static/ {
-                root <%= @data_root %>/;
+                root <%= @data_root %>/static;
                 expires 1d;
                 gzip             on;
                 gzip_vary        on;
@@ -58,7 +59,7 @@ server {
 
         error_page 503 @maintenance;
         location @maintenance {
-              rewrite ^(.*)$ /error503.html break;
+              rewrite ^(.*)$ /503.html break;
         }
 
 }

@@ -29,5 +29,12 @@ rebuild:
 	sudo systemctl stop ntp && sudo ntpdate pool.ntp.org && sudo systemctl start ntp
 	sudo pip3 install -r ${COURSYS_DIR}/requirements.txt
 	cd ${COURSYS_DIR} && npm install
-	cd ${COURSYS_DIR} && docker-compose pull && docker-compose restart
 	cd ${COURSYS_DIR} && python3 manage.py collectstatic --no-input
+
+rebuild-hardcore:
+	touch ${COURSYS_DIR}/503
+	cd ${COURSYS_DIR} && docker-compose pull && docker-compose restart
+	docker system prune -f
+	rm -rf ${COURSYS_STATIC_DIR}/static
+	make rebuild
+	rm ${COURSYS_DIR}/503

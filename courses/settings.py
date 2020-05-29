@@ -222,7 +222,7 @@ else:
 # static file settings
 STATIC_URL = '/static/'
 if 'COURSYS_STATIC_DIR' in os.environ:
-    STATIC_ROOT = os.environ['COURSYS_STATIC_DIR']
+    STATIC_ROOT = os.path.join(os.environ['COURSYS_STATIC_DIR'], 'static')
 else:
     STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static', 'static')
 

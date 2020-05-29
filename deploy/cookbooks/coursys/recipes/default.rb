@@ -109,12 +109,14 @@ if deploy_mode != 'devel'
     end
   end
 
-  execute "django-status" do
+  execute "django-static" do
     command "python3 manage.py collectstatic --no-input"
     cwd coursys_dir
     environment 'COURSYS_STATIC_DIR' => "#{data_root}/static"
     user username
-    creates "#{data_root}/static/style/main.css"
+    creates "#{data_root}/static/static/style/main.css"
+  end
+  template "#{data_root}/static/503.html" do
   end
 
   # There was a conflict between npm and some mysql packages, so using the mariadb client, which should be equivalent.
