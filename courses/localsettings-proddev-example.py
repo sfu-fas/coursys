@@ -7,3 +7,4 @@ DEPLOY_MODE = 'proddev'
 import os
 MOSS_DISTRIBUTION_PATH = os.path.join(os.environ['HOME'], 'moss')
 DB_BACKUP_DIR = '/data/db_backup'
+SUBMISSION_PATH = '/data/submitted_files'

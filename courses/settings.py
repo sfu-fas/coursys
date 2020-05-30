@@ -294,7 +294,7 @@ if DEPLOY_MODE == 'production':
             'db': 'coursesvn', 'port': 4000}
 
 else:
-    SUBMISSION_PATH = "submitted_files"
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', "submitted_files")
     BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "http://localhost:8000")
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # todo: could use Malm or something
     SVN_DB_CONNECT = None

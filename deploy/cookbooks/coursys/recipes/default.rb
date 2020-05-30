@@ -4,6 +4,7 @@ coursys_dir = node['coursys_dir'] || '/coursys'
 coursys_repo = node['coursys_repo'] || 'https://github.com/sfu-fas/coursys.git'
 coursys_branch = node['coursys_branch'] || 'master'
 deploy_mode = node['deploy_mode'] || 'devel'
+domain_name = 'localhost'
 username = node['username']
 user_home = "/home/#{username}/"
 python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.major, sys.version_info.minor))"`.strip
@@ -101,7 +102,7 @@ if deploy_mode != 'devel'
     creates "/etc/systemd/system/multi-user.target.wants/docker.service"
   end
 
-  for dir in ['', 'static', 'config', 'rabbitmq', 'elasticsearch', 'nginx-logs', 'mysql', 'logs', 'db_backup']
+  for dir in ['', 'static', 'config', 'submitted_files', 'rabbitmq', 'elasticsearch', 'nginx-logs', 'mysql', 'logs', 'db_backup']
     directory "#{data_root}/#{dir}" do
       owner username
       mode '0755'
@@ -122,6 +123,9 @@ if deploy_mode != 'devel'
   # There was a conflict between npm and some mysql packages, so using the mariadb client, which should be equivalent.
   package ['mariadb-client', 'screen', 'nginx', 'ntp', 'ntpdate']
   service 'nginx' do
+    action :nothing
+  end
+  service 'ssh' do
     action :nothing
   end
 
@@ -158,14 +162,77 @@ if deploy_mode != 'devel'
       )
     end
   end
+  # celery checking cron
+  cron "celery check" do
+    user username
+    minute '0'
+    command "python3 #{coursys_dir}/manage.py ping_celery"
+  end
+
+  # nginx setup
+  execute "dh group" do
+    # generate unique DH group, per https://weakdh.org/sysadmin.html
+    command "openssl dhparam -out /etc/nginx/dhparams.pem 2048"
+    creates("/etc/nginx/dhparams.pem")
+  end
+  cookbook_file '/etc/nginx/insecure.key' do
+    mode 0400
+  end
+  cookbook_file '/etc/nginx/insecure.crt' do
+    mode 0400
+  end
+
+  apt_repository 'certbot' do
+    uri 'http://ppa.launchpad.net/certbot/certbot/ubuntu'
+    components ['main']
+    distribution ubuntu_release
+    arch 'amd64'
+    key '8C47BE8E75BCA694'
+    keyserver 'keyserver.ubuntu.com'
+    action :add
+    deb_src false
+  end
+  package ['certbot', 'python3-certbot-nginx']
+  # This recipe doesn't address actually *running* certbot.
+
+  template "/etc/nginx/sites-available/_common.conf" do
+    source 'nginx-common.conf.erb'
+    variables(
+      :coursys_dir => coursys_dir,
+      :data_root => data_root,
+    )
+    notifies :restart, 'service[nginx]', :immediately
+  end
+
+  # mail setup: UNTESTED
+  #package ['postfix', 'debconf-utils']
+  #service "postfix" do
+  #  action :nothing
+  #end
+  #template "#{data_root}/config/package-config.txt" do
+  #  variables(
+  #    :domain_name => domain_name,
+  #  )
+  #end
+  #execute "postfix_conf" do
+  #  command "debconf-set-selections #{data_root}/config/package-config.txt \
+  #      && rm /etc/postfix/main.cf /etc/postfix/master.cf \
+  #      && dpkg-reconfigure -f noninteractive postfix \
+  #      && /usr/sbin/postconf -e \"inet_interfaces = loopback-only\""
+  #  notifies :restart, 'service[postfix]', :immediately
+  #end
 end
 
 if deploy_mode == 'proddev'
+  # proddev-specific nginx config
   template "/etc/nginx/sites-available/default" do
     source 'nginx-proddev.conf.erb'
     variables(
       :coursys_dir => coursys_dir,
       :data_root => data_root,
+      :domain_name => domain_name,
+      :https_port => '8443',
+      :ip_address => '127.0.0.1',
     )
     notifies :restart, 'service[nginx]', :immediately
   end
@@ -224,5 +291,35 @@ if deploy_mode != 'devel'
     only_if { ::File.file?("#{user_home}/moss.zip") } # if we don't have the code, skip
   end
 
+  #package 'stunnel4'
+  #cookbook_file "stunnel.conf" do
+  #  path "/etc/stunnel/stunnel.conf"
+  #end
+  #cookbook_file "default-stunnel" do
+  #  path "/etc/default/stunnel"
+  #end
+
+  execute "ssh_no_passwords" do
+    command "echo '\nPasswordAuthentication no' >> /etc/ssh/sshd_config"
+    not_if "grep -q '^PasswordAuthentication no' /etc/ssh/sshd_config"
+    notifies :restart, 'service[ssh]', :immediately
+  end
+
+  cookbook_file "forward" do
+    path "/root/.forward"
+    owner "root"
+  end
+  cookbook_file "forward" do
+    path "#{user_home}/.forward"
+    owner username
+  end
 end
 
+if deploy_mode == 'production'
+  # this breaks VM setups where we expect to be able to "vagrant ssh" as the CourSys user
+  execute "deny_coursys_ssh" do
+    command "echo '\nDenyUsers #{username}\nDenyUsers www-data' >> /etc/ssh/sshd_config"
+    not_if "grep -q '^DenyUsers #{username}' /etc/ssh/sshd_config"
+    notifies :restart, 'service[ssh]', :immediately
+  end
+end

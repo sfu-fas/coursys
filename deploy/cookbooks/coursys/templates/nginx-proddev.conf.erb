@@ -1,65 +1,43 @@
 
-
-# http://msdn.microsoft.com/en-us/library/ie/gg622941%28v=vs.85%29.aspx
-add_header X-Content-Type-Options nosniff;
+add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains; preload';
+# from https://weakdh.org/sysadmin.html
+ssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA';
+ssl_dhparam /etc/nginx/dhparams.pem;
+# from http://nginx.org/en/docs/http/configuring_https_servers.html
+ssl_session_cache   shared:SSL:10m;
+ssl_session_timeout 10m;
+ssl_protocols TLSv1.3 TLSv1.2 TLSv1.1 TLSv1;
 
 server {
-        server_name localhost;
-        listen   80;
+        server_name <%= @domain_name %>;
+        listen 443 ssl;
+        keepalive_timeout   70;
+        ssl_certificate      /etc/nginx/insecure.crt;
+        ssl_certificate_key  /etc/nginx/insecure.key;
 
-        access_log <%= @data_root %>/nginx-logs/coursys.access.log;
-        error_log <%= @data_root %>/nginx-logs/coursys.error.log warn;
+        access_log <%= @data_root %>/nginx-logs/coursys-https.access.log;
+        error_log <%= @data_root %>/nginx-logs/coursys-https.error.log warn;
 
-        client_max_body_size 100m;
-        client_body_buffer_size 1024k;
+        include /etc/nginx/sites-available/_common.conf;
+}
 
-        rewrite ^/media/(.*)$ /static/$1 permanent;
-        root <%= @data_root %>/static;
 
-        location /static/ {
-                root <%= @data_root %>/static;
-                expires 1d;
-                gzip             on;
-                gzip_vary        on;
-                gzip_min_length  1000;
-                gzip_proxied     expired no-cache no-store private auth;
-                gzip_types       application/x-javascript application/javascript text/javascript text/css;
-                gzip_disable     "MSIE [1-6]\.";
-                add_header Cache-Control "public";
-                location /static/newsfu/fonts {
-                        expires 365d;
-                }
-                location /static/CACHE {
-                        expires 365d;
-                }
-        }
+server {
+        listen 80;
+        access_log <%= @data_root %>/nginx-logs/coursys-http.access.log;
+        error_log <%= @data_root %>/nginx-logs/coursys-http.error.log warn;
+        return 301 https://<%= @domain_name %>:<%= @https_port %>$request_uri;
+}
 
-        location / {
-                set $maintenance 0;
-                if (-f <%= @coursys_dir %>/503) {
-                        set $maintenance 1;
-                }
-                if ($remote_addr = "142.58.1.1") {
-                        set $maintenance 0;
-                }
-                if ($maintenance = 1) {
-                        return 503;
-                }
+server {
+        # redirect IP address to domain name URL (shouldn't happen, and cert will be invalid)
+        server_name <%= @ip_address %>;
+        listen 443 ssl;
+        ssl_certificate      /etc/nginx/insecure.crt;
+        ssl_certificate_key  /etc/nginx/insecure.key;
 
-                # host and port to gunicorn server
-                proxy_pass http://localhost:8000/;
-                proxy_read_timeout 1200;
-                proxy_connect_timeout 1200;
-                proxy_redirect off;
-                proxy_pass_header Server;
-                proxy_set_header Host $host;
-                proxy_set_header X-Forwarded-Ssl on;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        }
+        access_log <%= @data_root %>/nginx-logs/coursys-ipaddr.access.log;
+        error_log <%= @data_root %>/nginx-logs/coursys-ipaddr.error.log warn;
 
-        error_page 503 @maintenance;
-        location @maintenance {
-              rewrite ^(.*)$ /503.html break;
-        }
-
+        return 301 https://<%= @domain_name %>:<%= @https_port %>$request_uri;
 }

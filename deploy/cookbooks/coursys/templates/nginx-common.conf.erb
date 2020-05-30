@@ -1,0 +1,56 @@
+# Configuration common to all functional deployments (courses.sfu.ca and fasit.sfu.ca and proddev)
+
+        client_max_body_size 100m;
+        client_body_buffer_size 1024k;
+
+        # http://msdn.microsoft.com/en-us/library/ie/gg622941%28v=vs.85%29.aspx
+        add_header X-Content-Type-Options nosniff;
+
+        rewrite ^/media/(.*)$ /static/$1 permanent;
+        root <%= @data_root %>/static;
+
+        location /static/ {
+                root <%= @data_root %>/static;
+                expires 1d;
+                gzip             on;
+                gzip_vary        on;
+                gzip_min_length  1000;
+                gzip_proxied     expired no-cache no-store private auth;
+                gzip_types       application/x-javascript application/javascript text/javascript text/css;
+                gzip_disable     "MSIE [1-6]\.";
+                add_header Cache-Control "public";
+                location /static/newsfu/fonts {
+                        expires 365d;
+                }
+                location /static/CACHE {
+                        expires 365d;
+                }
+        }
+
+        location / {
+                set $maintenance 0;
+                if (-f <%= @coursys_dir %>/503) {
+                        set $maintenance 1;
+                }
+                if ($remote_addr = "142.58.1.1") {
+                        set $maintenance 0;
+                }
+                if ($maintenance = 1) {
+                        return 503;
+                }
+
+                # host and port to gunicorn server
+                proxy_pass http://localhost:8000/;
+                proxy_read_timeout 1200;
+                proxy_connect_timeout 1200;
+                proxy_redirect off;
+                proxy_pass_header Server;
+                proxy_set_header Host $host;
+                proxy_set_header X-Forwarded-Ssl on;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        error_page 503 @maintenance;
+        location @maintenance {
+              rewrite ^(.*)$ /503.html break;
+        }
