@@ -30,7 +30,13 @@ class Command(BaseCommand):
         semesters = Semester.objects.all()
         data.append(semesters)
 
-        units = Unit.objects.all()
+        all_units = Unit.objects.all()
+        # Get units in dependancy order, so .parent is there when inserting
+        units = [u for u in all_units if u.parent is None]
+        last_len = 0
+        while len(units) != last_len:
+            last_len = len(units)
+            units.extend([u for u in all_units if u.parent in units and u not in units])
         clear_config(units)
         data.append(units)
 

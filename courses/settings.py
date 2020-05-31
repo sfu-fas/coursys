@@ -158,6 +158,7 @@ if 'test' in sys.argv[1:]:
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca', 'coursys.sfu.ca', 'fasit.sfu.ca'])
 if DEBUG:
     ALLOWED_HOSTS.append('localhost')
+ALLOWED_HOSTS.extend(getattr(localsettings, 'MORE_ALLOWED_HOSTS', []))
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 1209600 # 2 weeks
@@ -199,8 +200,8 @@ if DEPLOY_MODE in ['production', 'proddev']:
 
     DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
     DATABASES['default'].update(getattr(secrets, 'DB_CONNECTION', {}))
-    if getattr(secrets, 'MORE_DATABASES', None):
-        DATABASES.update(secrets.MORE_DATABASES)
+    if getattr(localsettings, 'MORE_DATABASES', None):
+        DATABASES.update(localsettings.MORE_DATABASES)
 
     INSTALLED_APPS = INSTALLED_APPS + ('dbdump',)
 

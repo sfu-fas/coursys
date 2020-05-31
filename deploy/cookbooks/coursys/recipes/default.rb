@@ -4,7 +4,7 @@ coursys_dir = node['coursys_dir'] || '/coursys'
 coursys_repo = node['coursys_repo'] || 'https://github.com/sfu-fas/coursys.git'
 coursys_branch = node['coursys_branch'] || 'master'
 deploy_mode = node['deploy_mode'] || 'devel'
-domain_name = node['hostname'] || 'localhost'
+domain_name = node['external_hostname'] || 'localhost'
 username = node['username']
 user_home = "/home/#{username}/"
 python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.major, sys.version_info.minor))"`.strip
@@ -305,7 +305,7 @@ if deploy_mode != 'devel'
     notifies :restart, 'service[ssh]', :immediately
   end
 
-  cookbook_file "forward-root" do
+  cookbook_file "forward" do
     path "/root/.forward"
     owner "root"
   end
