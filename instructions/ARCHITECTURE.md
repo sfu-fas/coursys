@@ -20,7 +20,7 @@ As the name implies, it does most of the work.
 * nginx:  The web server.
 * elasticsearch:  Does most of the searching, particularly all the auto-complete stuff (like when searching for a person, course offering, etc.)
 * celery:  This allows managing of various asynchronous and periodic tasks in separate queues for stuff that runs in batches and/or in the background.  This includes all our daily import tasks, a lot of the emails, etc.
-*  rabbitmq:  What actually transports the messages to celery.
+* rabbitmq:  What actually transports the messages to celery.
 
 *Important note:*  We are presently working on a new, more automated deployment process.  As such, several of these servers will most likely move to docker containers, for ease of maintenance and portability.
 
@@ -32,7 +32,7 @@ As the name implies, it does most of the work.
   
 **Access:**   We have no direct access to this at all.  Even the production server only talks to it via a private network interface only.  Csilops (or, at least two people for sure) have direct access to it.
 
-This is the actual database for CourSys.  Every bit of data that we save or retrieves lives in there.  It’s rather important!
+This is the actual database for CourSys.  Every bit of data that we save or retrieve lives in there.  It’s rather important!
 
 ## GitHub
 The code repository where the actual code lives.   See:  https://github.com/sfu-fas/coursys/  You probably got this file there!
