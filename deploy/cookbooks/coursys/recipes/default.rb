@@ -11,6 +11,8 @@ python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.majo
 python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
 data_root = '/data'
 
+raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
+
 template '/etc/apt/sources.list' do
   variables(
     :mirror => ubuntu_mirror,
@@ -49,7 +51,7 @@ end
 template '/etc/profile.d/coursys-environment.sh' do
   variables(
     :coursys_dir => coursys_dir,
-    :deploy_mode => deploy_mode,
+    :deploy_mode => deploy_mode == 'demo' ? 'proddev' : deploy_mode,
     :data_root => data_root,
   )
 end
@@ -195,6 +197,10 @@ if deploy_mode != 'devel'
   package ['certbot', 'python3-certbot-nginx']
   # This recipe doesn't address actually *running* certbot.
 
+  execute 'ssl_hands_off' do
+    command 'grep -v "^\s*ssl_" /etc/nginx/nginx.conf > /tmp/nginx.conf && cp /tmp/nginx.conf /etc/nginx/nginx.conf'
+    only_if 'grep -q "^\s*ssl_" /etc/nginx/nginx.conf'
+  end
   template "/etc/nginx/sites-available/_common.conf" do
     source 'nginx-common.conf.erb'
     variables(
@@ -232,6 +238,20 @@ if deploy_mode == 'proddev'
       :data_root => data_root,
       :domain_name => domain_name,
       :https_port => '8443',
+      :ip_address => '127.0.0.1',
+    )
+    notifies :restart, 'service[nginx]', :immediately
+  end
+end
+if deploy_mode == 'demo'
+  # demo-specific nginx config
+  template "/etc/nginx/sites-available/default" do
+    source 'nginx-demo.conf.erb'
+    variables(
+      :coursys_dir => coursys_dir,
+      :data_root => data_root,
+      :domain_name => domain_name,
+      :https_port => '443',
       :ip_address => '127.0.0.1',
     )
     notifies :restart, 'service[nginx]', :immediately

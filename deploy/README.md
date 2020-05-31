@@ -7,6 +7,7 @@ git clone https://github.com/sfu-fas/coursys.git
 cd coursys/
 git checkout some-branch
 sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list.json
+sudo certbot --nginx certonly
 cd
 # rm -rf coursys # probably
 cd /coursys
