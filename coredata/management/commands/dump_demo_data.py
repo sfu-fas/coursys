@@ -23,7 +23,6 @@ class Command(BaseCommand):
         except ValueError:
             pass
 
-
     def _handle(self, *args, **options):
         data = []
         the_past = datetime.date.today() - datetime.timedelta(days=365)
@@ -50,32 +49,7 @@ class Command(BaseCommand):
         clear_config(people)
         for i, p in enumerate(people):
             p.emplid = str(400000000 + i)
+            p.title = 'M'
         data.append(people)
 
-        '''
-        n_fake = 200
-        fake_students = [Person(
-            emplid=str(500000000 + i),
-            userid='fake%03i' % (i,),
-            last_name='Fake',
-            first_name=random_name(8),
-            middle_name=random_name(5),
-            title=random.choice(['Mr', 'M', 'Ms', 'Dr', 'Count'])
-        ) for i in range(n_fake)]
-        for p in fake_students:
-            p.pref_first_name = random.choice([None, p.first_name[:4]])
-        data.append(fake_students)
-
-        students_per_class = 10
-        for o in offerings:
-            student_people = random.choices(fake_students, k=students_per_class)
-            student_members = [
-                Member(person=p, offering=o, role='STUD', added_reason='AUTO', credits=3, career='UGRD')
-                for p in student_people
-            ]
-            data.append(student_members)
-        '''
-
         print(serializers.serialize('json', itertools.chain(*data), indent=2))
-
-

@@ -1,0 +1,7 @@
+{
+  "username": "ubuntu",
+  "deploy_mode": "proddev",
+  "hostname": "coursys-demo.selfip.net",
+  "coursys_branch": "new-deploy",
+  "run_list": ["coursys"]
+}
