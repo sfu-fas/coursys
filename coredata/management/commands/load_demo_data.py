@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 from django.core import serializers
 from django.db import transaction
 
-from coredata.models import CourseOffering, Member, Person
+from coredata.models import CourseOffering, Member, Person, Role, Unit
 
 
 def random_name(l):
@@ -26,7 +26,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         assert settings.DEPLOY_MODE != 'production'
-        assert not Person.objects.all().exists(), 'Must start from a clean database (after migration).'
 
         with transaction.atomic():
             for obj in serializers.deserialize('json', open(options['data_file'], 'rt', encoding='utf8').read()):
@@ -40,7 +39,7 @@ class Command(BaseCommand):
                 last_name='Fake',
                 first_name=random_name(8),
                 middle_name=random_name(5),
-                title=random.choice(['Mr', 'M', 'Ms', 'Dr', 'Count'])
+                title=random.choice(['Mr', 'M', 'Ms', 'Dr'])
             ) for i in range(n_fake)]
             for p in fake_students:
                 p.pref_first_name = random.choice([None, p.first_name[:4]])
@@ -48,7 +47,10 @@ class Command(BaseCommand):
 
             students_per_class = 10
             for o in CourseOffering.objects.all():
-                student_people = random.choices(fake_students, k=students_per_class)
+                student_people = set(random.choices(fake_students, k=students_per_class))
                 for p in student_people:
                     m = Member(person=p, offering=o, role='STUD', added_reason='AUTO', credits=3, career='UGRD')
                     m.save()
+
+            r = Role(person=Person.objects.get(userid='ggbaker'), role='SYSA', unit=Unit.objects.get(label='UNIV'))
+            r.save()

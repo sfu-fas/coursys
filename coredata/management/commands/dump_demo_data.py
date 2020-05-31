@@ -31,7 +31,7 @@ class Command(BaseCommand):
         data.append(semesters)
 
         all_units = Unit.objects.all()
-        # Get units in dependancy order, so .parent is there when inserting
+        # Get units in dependency order, so .parent is there when inserting
         units = [u for u in all_units if u.parent is None]
         last_len = 0
         while len(units) != last_len:
@@ -42,14 +42,13 @@ class Command(BaseCommand):
 
         offerings = CourseOffering.objects.filter(semester__start__gte=the_past).exclude(component="CAN").select_related('course')
         clear_config(offerings)
-        data.append(offerings)
 
         courses = {o.course for o in offerings}
         data.append(courses)
+        data.append(offerings)
 
         instructors = Member.objects.filter(offering__in=offerings, role='INST', added_reason='AUTO').select_related('person')
         clear_config(instructors)
-        data.append(instructors)
 
         people = {m.person for m in instructors}
         clear_config(people)
@@ -57,5 +56,6 @@ class Command(BaseCommand):
             p.emplid = str(400000000 + i)
             p.title = 'M'
         data.append(people)
+        data.append(instructors)
 
         print(serializers.serialize('json', itertools.chain(*data), indent=2))
