@@ -1,3 +1,4 @@
+import datetime
 import itertools
 import string
 import random
@@ -52,5 +53,5 @@ class Command(BaseCommand):
                     m = Member(person=p, offering=o, role='STUD', added_reason='AUTO', credits=3, career='UGRD')
                     m.save()
 
-            r = Role(person=Person.objects.get(userid='ggbaker'), role='SYSA', unit=Unit.objects.get(label='UNIV'))
+            r = Role(person=Person.objects.get(userid='ggbaker'), role='SYSA', unit=Unit.objects.get(label='UNIV'), expiry=datetime.date.today() + datetime.timedelta(days=730))
             r.save()

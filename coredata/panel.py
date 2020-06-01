@@ -251,14 +251,14 @@ def deploy_checks(request=None):
     if res:
         failed.append(('Stunnel cert', res))
         bad_cert += 1
-    res = _check_cert('/etc/nginx/cert.pem')
-    if res:
-        failed.append(('SSL PEM', res))
-        bad_cert += 1
-    res = _check_cert('/etc/nginx/cert.key')
-    if res:
-        failed.append(('SSL KEY', res))
-        bad_cert += 1
+    #res = _check_cert('/etc/nginx/cert.pem')
+    #if res:
+    #    failed.append(('SSL PEM', res))
+    #    bad_cert += 1
+    #res = _check_cert('/etc/nginx/cert.key')
+    #if res:
+    #    failed.append(('SSL KEY', res))
+    #    bad_cert += 1
 
     if bad_cert == 0:
         passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
