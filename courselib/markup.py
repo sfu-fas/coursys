@@ -138,9 +138,9 @@ def markup_to_html(markup, markuplang, math=None, offering=None, pageversion=Non
     if math is None:
         pass
     elif math:
-        html = '<div class="tex2jax_process">' + html + '</div>'
+        html = '<div class="tex2jax_process wikicontents">' + html + '</div>'
     else:
-        html = '<div class="tex2jax_ignore">' + html + '</div>'
+        html = '<div class="tex2jax_ignore wikicontents">' + html + '</div>'
 
     return mark_safe(html)
 
