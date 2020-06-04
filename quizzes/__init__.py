@@ -1,1 +1,1 @@
-DEFAULT_QUIZ_MARKUP = 'creole'
+DEFAULT_QUIZ_MARKUP = 'markdown'

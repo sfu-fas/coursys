@@ -55,3 +55,4 @@ class Command(BaseCommand):
 
             r = Role(person=Person.objects.get(userid='ggbaker'), role='SYSA', unit=Unit.objects.get(label='UNIV'), expiry=datetime.date.today() + datetime.timedelta(days=730))
             r.save()
+

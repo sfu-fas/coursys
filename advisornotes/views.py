@@ -397,7 +397,7 @@ def download_file(request, userid, note_id):
 
 @requires_role(['ADVS', 'ADVM'])
 def download_artifact_file(request, note_id):
-    note = get_object_or_404(AdvisorNote, id=note_id, unit__in=request.units)
+    note = get_object_or_404(ArtifactNote, id=note_id, unit__in=request.units)
     note.file_attachment.open()
     resp = HttpResponse(note.file_attachment, content_type=note.file_mediatype)
     resp['Content-Disposition'] = 'inline; filename="' + note.attachment_filename() + '"'

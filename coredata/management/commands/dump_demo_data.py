@@ -59,3 +59,4 @@ class Command(BaseCommand):
         data.append(instructors)
 
         print(serializers.serialize('json', itertools.chain(*data), indent=2))
+
