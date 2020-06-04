@@ -36,10 +36,7 @@ $(document).ready(function() {
     update_time_left(load_time + seconds_left);
     {% if quiz.honour_code and not preview and not previous_honour_code %}show_honour_code();{% endif %}
     {% if quiz.photos %}capture_startup();{% endif %}
-    $('.code-answer').each(function(i, textarea) {
-        var mode = textarea.getAttribute('data-mode');
-        CodeMirror.fromTextArea(textarea, {'mode': mode});
-    });
+    start_codemirror();
 } );
 </script>
 {% endblock %}

@@ -15,6 +15,13 @@ function get_fingerprint() {
     }
 }
 
+function start_codemirror() {
+    $('.code-answer').each(function(i, textarea) {
+        var mode = textarea.getAttribute('data-mode');
+        CodeMirror.fromTextArea(textarea, {'mode': mode});
+    });
+}
+
 function update_time_left(ends_at) {
     var now = Date.now() / 1000;
     var seconds_left = ends_at - now;
@@ -85,12 +92,16 @@ function show_honour_code() {
     $('#photo-verification').hide();
     $('form.quiz input[type=submit].submit').hide();
     $('#honour-yes').click(function(ev) {
+        ev.preventDefault();
         $('#quiz-body').show();
         $('#photo-verification').show();
         $('form.quiz input[type=submit].submit').show();
         $('#input-honour-code').val('YES');
         $('#honour-agree').hide();
-        ev.preventDefault();
+        // refresh codemirror instances to fix cursor: https://discuss.codemirror.net/t/codemirror-cursor-is-not-partially-visible/648
+        $('.CodeMirror').each(function(i, elt) {
+            elt.CodeMirror.refresh();
+        });
     });
     $('#honour-no').click(function(ev) {
         window.location = '/';
