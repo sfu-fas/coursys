@@ -33,7 +33,8 @@ setTimeout(function(){ location.reload(); }, wait + 1000 + Math.random()*5000);
     {% if quiz.honour_code and time == 'before' %}
     <section id="honour-code">
     <p class="infomessage">You will be asked to agree to this honour code when the quiz starts&hellip;</p>
-    {% include "quizzes/_honour_code.html" %}
+    <h2>Honour Code</h2>
+        {{ quiz.honour_code_html }}
     </section>
     {% endif %}
 

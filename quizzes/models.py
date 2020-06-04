@@ -120,6 +120,21 @@ class Randomizer(object):
         return result
 
 
+HONOUR_CODE_DEFAULT = '''
+In taking this exam you will be required to agree to an honour code statement that affirms your willingness to abide with the course policies. These policies may be adjusted as per your instructor’s discretion, but selecting YES here affirms that you are abiding by the honour code agreement of your course.
+
+I understand that the following activities are prohibited and will be considered cheating. I agree that I will not participate in any of the following activities:
+* Looking at or copying from another student’s exam or materials while writing the exam.
+* Conferring with other students regarding the exam.
+* Having someone else take the exam in your place.
+* Storing, receiving, and/or accessing course subject matter in a calculator, pager, cellular telephone, computer, or other electronic device that can be used during an exam period without instructor authorization.
+* Distributing the exam materials in any way.
+* Using lecture notes, textbooks, learning aids, or electronic devices during an exam when prohibited.
+
+The honour code is an undertaking for students to abide by both individually and collectively. You should do your share and take an active part in seeing to it that you, as well as the peers in your course uphold both the spirit and letter of the honour code.
+'''.strip()
+
+
 class Quiz(models.Model):
     class QuizStatusManager(models.Manager):
         def get_queryset(self):
@@ -141,6 +156,9 @@ class Quiz(models.Model):
     # .config['photos']: do we capture verification images for this quiz? (boolean)
     # .config['reviewable']: defunct. Now maps to True -> .review == 'all'; False -> .review == 'none'
     # .config['review']: can students review, and what can they see? REVIEW_CHOICES gives options.
+    # .config['honour_code_text']: markup of the honour code
+    # .config['honour_code_markup']: honour code markup language
+    # .config['honour_code_math']: honour code uses MathJax? (boolean)
 
     grace = config_property('grace', default=300)
     intro = config_property('intro', default='')
@@ -148,6 +166,9 @@ class Quiz(models.Model):
     math = config_property('math', default=False)
     secret = config_property('secret', default='not a secret')
     honour_code = config_property('honour_code', default=True)
+    honour_code_text = config_property('honour_code_text', default=HONOUR_CODE_DEFAULT)
+    honour_code_markup = config_property('honour_code_markup', default=DEFAULT_QUIZ_MARKUP)
+    honour_code_math = config_property('honour_code_math', default=False)
     photos = config_property('photos', default=False)
     #review = config_property('reviewable', default='none')  # special-cased below
 
@@ -239,6 +260,9 @@ class Quiz(models.Model):
 
     def intro_html(self) -> SafeText:
         return markup_to_html(self.intro, markuplang=self.markup, math=self.math)
+
+    def honour_code_html(self) -> SafeText:
+        return markup_to_html(self.honour_code_text, markuplang=self.honour_code_markup, math=self.honour_code_math)
 
     def random_generator(self, seed: str) -> Randomizer:
         """

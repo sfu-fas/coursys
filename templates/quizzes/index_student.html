@@ -80,7 +80,8 @@ $(document).ready(function() {
 
     {% if quiz.honour_code %}
     <section id="honour-code">
-    {% include "quizzes/_honour_code.html" %}
+        <h2>Honour Code</h2>
+        {{ quiz.honour_code_html }}
     {% if previous_honour_code %}
     <p id="honour-agree">[Agreed with previous quiz submission.]</p>
     <input type="hidden" name="honour-code" id="input-honour-code" value="PREV" />
