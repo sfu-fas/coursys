@@ -1,0 +1,84 @@
+{% extends "base-wide.html" %}
+{% load static %}
+
+{% block title %}{{ activity.name }}: Quiz Instructions{% endblock %}
+{% block h1 %}{{ activity.name }}: Quiz Instructions{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{{ activity.get_absolute_url }}">{{ activity.name }}</a></li>
+    <li><a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">Quiz</a></li>
+    <li>Instructions</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/quizzes.css" %}" />
+<script src="{% static 'js/quizzes.js' %}"></script>
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    {% if quiz.photos %}capture_startup();{% endif %}
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+    {% if is_staff %}
+        <p class="infomessage">This page is visible to students any time before the quiz.
+            You can share this URL with them if you would like to publicise these instructions.</p>
+    {% endif %}
+
+    <p>You should go to <a href="{% url 'offering:quiz:index' course_slug=offering.slug activity_slug=activity.slug %}">the quiz page</a>
+        a few minutes before the quiz starts (at {{ start }}).</p>
+    <p>At the quiz start time, the page <strong>will automatically refresh</strong> and you can start the quiz.</p>
+
+    {% if quiz.honour_code %}
+        <p>You will be asked to agree to an honour code (shown below) when the quiz starts. You must agree to it before you will be shown the quiz questions.</p>
+    {% endif %}
+    <p>You <strong>may submit multiple times before the &ldquo;end time&rdquo;</strong> ({{ end }}).
+        You can click &ldquo;submit&rdquo; at the bottom of the page and continue to work on your answers; whatever
+        is in your last submission will be marked.</p>
+    <p>The quiz will occasionally auto-save, but you are still encouraged to submit occasionally,
+        to mitigate technical failures around the end of the quiz.</p>
+
+    {% if quiz.photos %}
+        <section id="photos">
+        <h2>Verification Photo</h2>
+        <p>This quiz requires a verification photo: you <strong>must have a webcam available</strong>.
+            [Only a single image is recorded. No other camera data is captured, stored, or transmitted.]</p>
+        <p>If your computer doesn't have a webcam, you may be able to use
+            <a href="https://www.dev47apps.com/">DroidCam</a> or <a href="https://www.kinoni.com/">EpocCam</a>
+            to use your phone as one.</p>
+        <p>You must give the quiz page access to access your webcam for this to work: <a href="https://support.google.com/chrome/answer/2693767?co=GENIE.Platform%3DDesktop&hl=en">Chrome: Use your camera &amp; microphone</a>;
+            <a href="https://support.mozilla.org/en-US/kb/how-manage-your-camera-and-microphone-permissions">Firefox: How to manage your camera and microphone permissions</a>;
+            <a href="https://answers.microsoft.com/en-us/edge/forum/all/how-do-i-enable-webcam-access-in-edge/bf44efd9-936d-4565-b84c-759b519ea1b5">Edge: How do I enable webcam access</a>.</p>
+        <p>You <strong>must take the verification photo before submitting the quiz</strong>.</p>
+        <p>Here is what the photo verification interface looks like, if you'd like to ensure your camera is working in this context:
+            [<em>This</em> page doesn't record the photo.]</p>
+    <blockquote>
+    <div id="capture">
+        <div id="capture-camera">
+            <p>Image preview:</p>
+            <video>Video stream not available.</video>
+        </div>
+        <button id="capture-photo">Take photo &rarr;</button>
+        <div id="capture-output">
+            <p>Verification photo:</p>
+            <canvas></canvas>
+            <img alt="The screen capture will appear in this box.">
+            <input type="hidden" name="photo-capture" value="" />
+        </div>
+    </div>
+    </blockquote>
+        </section>
+    {% endif %}
+
+    {% if quiz.honour_code %}
+        <section id="honour-code">
+        {% include "quizzes/_honour_code.html" %}
+        </section>
+    {% endif %}
+
+{% endblock %}

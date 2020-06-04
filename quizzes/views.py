@@ -384,6 +384,30 @@ def import_(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
     return render(request, 'quizzes/import.html', context=context)
 
 
+@requires_course_by_slug
+def instructions(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
+    quiz = get_object_or_404(Quiz, activity=activity)
+
+    start, end = quiz.get_start_end(member=request.member)
+    now = datetime.datetime.now()
+
+    if now > end:
+        return ForbiddenResponse(request, 'quiz is completed.')
+
+    context = {
+        'offering': offering,
+        'activity': activity,
+        'quiz': quiz,
+        'is_staff': request.member.role in ['INST', 'TA'],
+        'start': start,
+        'end': end,
+    }
+    return render(request, 'quizzes/instructions.html', context=context)
+
+
+
 @requires_course_staff_by_slug
 def question_add(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
