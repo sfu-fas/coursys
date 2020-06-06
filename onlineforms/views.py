@@ -749,7 +749,7 @@ def edit_sheet(request, form_slug, sheet_slug):
             fields = Field.objects.filter(id=field_id, sheet=owner_sheet)
             if fields:
                 # need a new version of the form since we're making a change:
-                owner_sheet = owner_sheet.safe_save()
+                owner_sheet = owner_sheet.safe_save_already_transaction()
                 field = fields[0]
                 field = Field.objects.get(sheet=owner_sheet, original=field.original) # get field on new version, not old
                 field.active = False
