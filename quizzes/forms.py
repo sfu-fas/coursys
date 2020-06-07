@@ -10,7 +10,8 @@ from courselib.markup import MarkupContentField, MarkupContentMixin, MARKUPS
 from grades.models import Activity
 from marking.models import StudentActivityMark, ActivityComponentMark, ActivityComponent
 from quizzes import DEFAULT_QUIZ_MARKUP
-from quizzes.models import Quiz, TimeSpecialCase, QUESTION_HELPER_CLASSES, Question, QuestionVersion, REVIEW_CHOICES
+from quizzes.models import Quiz, TimeSpecialCase, QUESTION_HELPER_CLASSES, Question, QuestionVersion, REVIEW_CHOICES, \
+    HONOUR_CODE_DEFAULT
 
 
 class QuizTimeBaseForm(forms.ModelForm):
@@ -39,7 +40,7 @@ class QuizForm(MarkupContentMixin(field_name='intro'), QuizTimeBaseForm):
     intro = MarkupContentField(required=False, label='Introductory Text (displayed at the top of the quiz, optional)',
                                default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True)
     review = forms.ChoiceField(required=True, label='Student Review', initial='none', choices=REVIEW_CHOICES, help_text="Allow students to review the quiz?")
-    honour_code_text = MarkupContentField(required=False, label='Honour Code Text',
+    honour_code_text = MarkupContentField(required=False, label='Honour Code Text', initial=(HONOUR_CODE_DEFAULT, DEFAULT_QUIZ_MARKUP, False),
                                default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True, allow_math=False)
 
     class Meta:
