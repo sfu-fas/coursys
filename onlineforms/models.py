@@ -739,23 +739,30 @@ class Sheet(models.Model, _FormCoherenceMixin):
         unique_together = (("form", "slug"),)
         ordering = ('order',)
 
+    def safe_save_already_transaction(self):
+        """
+        Save a copy of this sheet, and return the copy: does not modify self.
+        This implementation assumes it's called within a transaction.
+        """
+        # clone the sheet
+        sheet2 = self.clone()
+        self.slug = self.slug + "_" + str(self.id)
+        self.save()
+        sheet2.save()
+        sheet2.cleanup_fields()
+        # copy the fields
+        for field1 in Field.objects.filter(sheet=self, active=True):
+            field2 = field1.clone()
+            field2.sheet = sheet2
+            field2.save()
+        return sheet2
+
     def safe_save(self):
         """
         Save a copy of this sheet, and return the copy: does not modify self.
         """
         with django.db.transaction.atomic():
-            # clone the sheet
-            sheet2 = self.clone()
-            self.slug = self.slug + "_" + str(self.id)
-            self.save()
-            sheet2.save()
-            sheet2.cleanup_fields()
-            # copy the fields
-            for field1 in Field.objects.filter(sheet=self, active=True):
-                field2 = field1.clone()
-                field2.sheet = sheet2
-                field2.save()
-            return sheet2       
+            return self.safe_save_already_transaction()
 
     def save(self, *args, **kwargs):
         with django.db.transaction.atomic():

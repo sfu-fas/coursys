@@ -63,8 +63,8 @@ class FileAnswerField(forms.FileField):
 
     def clean(self, data, initial=None):
         cleaned = super().clean(data)
-        if cleaned and cleaned.size > self.max_size:
-            raise forms.ValidationError('Submitted files can be at most %i bytes in size.' % (self.max_size,))
+        if cleaned and cleaned.size > self.max_size * 1024:
+            raise forms.ValidationError('Submitted files can be at most %i kilobytes in size.' % (self.max_size,))
         return cleaned
 
 

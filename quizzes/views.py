@@ -25,7 +25,7 @@ from marking.models import ActivityComponent, ActivityComponentMark, StudentActi
 from quizzes.forms import QuizForm, StudentForm, TimeSpecialCaseForm, MarkingForm, ComponentForm, MarkingSetupForm, \
     QuizImportForm
 from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES, Question, QuestionAnswer, \
-    TimeSpecialCase, QuizSubmission, QuestionVersion, MarkingNotConfiguredError
+    TimeSpecialCase, QuizSubmission, QuestionVersion, MarkingNotConfiguredError, HONOUR_CODE_DEFAULT
 
 
 @requires_course_by_slug
@@ -308,6 +308,7 @@ class EditView(FormView, UpdateView, ModelFormMixin):
         context = super().get_context_data(**kwargs)
         quiz = self.object
         context['quiz'] = quiz
+        context['honour_code_default'] = HONOUR_CODE_DEFAULT
         if quiz:
             context['offering'] = quiz.activity.offering
             context['activity'] = quiz.activity
@@ -405,7 +406,6 @@ def instructions(request: HttpRequest, course_slug: str, activity_slug: str) -> 
         'end': end,
     }
     return render(request, 'quizzes/instructions.html', context=context)
-
 
 
 @requires_course_staff_by_slug
