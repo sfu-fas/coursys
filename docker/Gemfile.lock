@@ -1,0 +1,25 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    amq-protocol (2.3.1)
+    bunny (2.15.0)
+      amq-protocol (~> 2.3, >= 2.3.1)
+    commonmarker (0.21.0)
+      ruby-enum (~> 0.5)
+    concurrent-ruby (1.1.6)
+    github-markup (3.0.4)
+    i18n (1.8.2)
+      concurrent-ruby (~> 1.0)
+    ruby-enum (0.8.0)
+      i18n
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bunny
+  commonmarker
+  github-markup
+
+BUNDLED WITH
+   2.1.4

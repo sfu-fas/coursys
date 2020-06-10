@@ -4,8 +4,8 @@ services:
   rabbitmq:
     image: 'rabbitmq:latest'
     restart: always
-    ports:
-      - "127.0.0.1:5672:5672"
+    #ports:
+    #  - "127.0.0.1:5672:5672"
     volumes:
       - /data/rabbitmq:/var/lib/rabbitmq:rw
     environment:
@@ -16,9 +16,9 @@ services:
   elasticsearch:
     image: 'elasticsearch:5.6.16'
     restart: always
-    ports:
-      - "127.0.0.1:9200:9200"
-      - "127.0.0.1:9300:9300"
+    #ports:
+    #  - "127.0.0.1:9200:9200"
+    #  - "127.0.0.1:9300:9300"
     volumes:
       - /data/elasticsearch:/usr/share/elasticsearch/data:rw
     environment:
@@ -27,5 +27,49 @@ services:
   memcached:
     image: 'memcached:latest'
     restart: always
+    #ports:
+    #  - "127.0.0.1:11211:11211"
+
+  ruby-markup:
+    build:
+      context: .
+      dockerfile: ruby-markup.Dockerfile
+    depends_on:
+      - rabbitmq
+
+  coursys:
+    build:
+      context: .
+      dockerfile: coursys.Dockerfile
     ports:
-      - "127.0.0.1:11211:11211"
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      - memcached
+      - rabbitmq
+      - elasticsearch
+    volumes:
+      #- ../:/code:ro
+      - coursys_static:/static:rw
+      - coursys_node_modules:/node_modules:ro
+
+  npm-installer:
+    build:
+      context: .
+      dockerfile: npm-installer.Dockerfile
+    volumes:
+      - coursys_node_modules:/node_modules:rw
+
+  coursys-static-collector:
+    build:
+      context: .
+      dockerfile: coursys.Dockerfile
+    volumes:
+      #- ../:/code:ro
+      - coursys_static:/static:rw
+      - coursys_node_modules:/node_modules:ro
+    command: "python3 manage.py collectstatic --no-input"
+
+volumes:
+  coursys_static:
+  coursys_node_modules:
+

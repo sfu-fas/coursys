@@ -5,11 +5,13 @@ devel-celery:
 
 proddev-start-all:
 	sudo systemctl start nginx
+	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml build
 	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
 	sudo systemctl start gunicorn
 	sudo systemctl start celery
 	sudo systemctl start celerybeat
 proddev-restart-all:
+	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml build
 	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml restart
 	sudo systemctl restart gunicorn
 	sudo systemctl restart celery
