@@ -209,6 +209,14 @@ if deploy_mode != 'devel'
     )
     notifies :restart, 'service[nginx]', :immediately
   end
+  # certbot renew: will fail when it runs if no certificate is in place
+  cron "certbot" do
+    user 'root'
+    hour 4
+    minute 48
+    weekday 0
+    command "certbot renew"
+  end
 
   # mail setup: UNTESTED
   #package ['postfix', 'debconf-utils']
