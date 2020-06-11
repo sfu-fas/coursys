@@ -18,6 +18,7 @@ $(document).ready(function() {
   $('#submission-table').dataTable({
       "bPaginate": false,
       "bJQueryUI": true,
+      "columns": [null, null, null, null, null, { "type": "num" }],
       "aaSorting": [[0, "asc"], [1, "asc"]],
   });
 } );
