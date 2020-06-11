@@ -2,8 +2,8 @@ import pika
 import uuid
 import json
 
-class MarkdownRpcClient(object):
 
+class MarkdownRpcClient(object):
     def __init__(self):
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(
@@ -22,6 +22,9 @@ class MarkdownRpcClient(object):
             queue=self.callback_queue,
             on_message_callback=self.on_response,
             auto_ack=True)
+
+    def __del__(self):
+        self.connection.close()
 
     def on_response(self, ch, method, props, body):
         if self.corr_id == props.correlation_id:
@@ -43,10 +46,9 @@ class MarkdownRpcClient(object):
         return self.response
 
 
-markdown_rpc = MarkdownRpcClient()
-
 md = "## Hello\U0001F4A9\n\nworld\u2713."
 arg = json.dumps({'md': md})
+markdown_rpc = MarkdownRpcClient()
 response = markdown_rpc.call(arg.encode('utf-8'))
 html = json.loads(response.decode('utf-8'))['html']
 print(html)

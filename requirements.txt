@@ -35,6 +35,7 @@ django-celery-email==2.0.1
 django_celery_beat==1.4.0
 flower==0.9.3
 kombu==4.5.0
+pika==1.1.0
 iso8601==0.1.12
 #django-haystack==2.8.1
 git+git://github.com/django-haystack/django-haystack.git@v3.0b2

@@ -5,8 +5,8 @@ services:
     image: 'mysql:5.7'
     restart: always
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    ports:
-      - "127.0.0.1:3306:3306"
+    #ports:
+    #  - "127.0.0.1:3306:3306"
     volumes:
       - /data/mysql:/var/lib/mysql:rw
     environment:

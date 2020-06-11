@@ -7,21 +7,21 @@ proddev-start-all:
 	sudo systemctl start nginx
 	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml build
 	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
-	sudo systemctl start gunicorn
-	sudo systemctl start celery
-	sudo systemctl start celerybeat
+	#sudo systemctl start gunicorn
+	#sudo systemctl start celery
+	#sudo systemctl start celerybeat
 proddev-restart-all:
 	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml build
 	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml restart
-	sudo systemctl restart gunicorn
-	sudo systemctl restart celery
-	sudo systemctl restart celerybeat
+	#sudo systemctl restart gunicorn
+	#sudo systemctl restart celery
+	#sudo systemctl restart celerybeat
 	sudo systemctl restart nginx
 proddev-stop-all:
 	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml stop
-	sudo systemctl stop gunicorn
-	sudo systemctl stop celery
-	sudo systemctl stop celerybeat
+	#sudo systemctl stop gunicorn
+	#sudo systemctl stop celery
+	#sudo systemctl stop celerybeat
 	sudo systemctl stop nginx
 proddev-rm-all:
 	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml rm
@@ -29,9 +29,9 @@ proddev-rm-all:
 rebuild:
 	sudo apt update && sudo apt upgrade
 	sudo systemctl stop ntp && sudo ntpdate pool.ntp.org && sudo systemctl start ntp
-	sudo pip3 install -r ${COURSYS_DIR}/requirements.txt
-	cd ${COURSYS_DIR} && npm install
-	cd ${COURSYS_DIR} && python3 manage.py collectstatic --no-input
+	#sudo pip3 install -r ${COURSYS_DIR}/requirements.txt
+	#cd ${COURSYS_DIR} && npm install
+	#cd ${COURSYS_DIR} && python3 manage.py collectstatic --no-input
 
 rebuild-hardcore:
 	touch ${COURSYS_DIR}/503
