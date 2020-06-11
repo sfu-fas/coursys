@@ -12,6 +12,8 @@ from django.db.models import Q, Max, Min
 from django.http import HttpRequest, HttpResponse, Http404, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie
 from django.views.generic import FormView
 from django.views.generic.edit import ModelFormMixin, UpdateView
 
@@ -271,6 +273,7 @@ def preview_student(request: HttpRequest, course_slug: str, activity_slug: str) 
 
     question_data = list(zip(questions, versions, form.visible_fields()))
     start, end = quiz.get_start_end(member=None)
+    seconds_left = (end - datetime.datetime.now()).total_seconds()
     context = {
         'offering': offering,
         'activity': activity,
@@ -280,7 +283,7 @@ def preview_student(request: HttpRequest, course_slug: str, activity_slug: str) 
         'preview': True,
         'start': start,
         'end': end,
-        'seconds_left': (end - datetime.datetime.now()).total_seconds(),
+        'seconds_left': seconds_left if seconds_left>0 else 0,
     }
     return render(request, 'quizzes/index_student.html', context=context)
 
@@ -886,7 +889,9 @@ def submission_history(request: HttpRequest, course_slug: str, activity_slug: st
 
 
 @requires_course_staff_by_slug
-def submission_photo(request: HttpRequest, course_slug: str, activity_slug: str, userid: str, submission_id: str) -> StreamingHttpResponse:
+@cache_page(60 * 15)
+@vary_on_cookie
+def submission_photo(request: HttpRequest, course_slug: str, activity_slug: str, userid: str, submission_id: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
@@ -895,7 +900,7 @@ def submission_photo(request: HttpRequest, course_slug: str, activity_slug: str,
     if not submission.capture:
         raise Http404
 
-    resp = StreamingHttpResponse(streaming_content=submission.capture, content_type='image/png', status=200)
+    resp = HttpResponse(content=submission.capture.read(), content_type='image/png', status=200)
     resp['Content-Disposition'] = 'inline; filename="%s.png"' % (userid,)
     return resp
 
