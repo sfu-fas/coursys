@@ -16,9 +16,14 @@
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   $('#submission-table').dataTable({
-      "bPaginate": false,
-      "bJQueryUI": true,
-      "aaSorting": [[0, "asc"], [1, "asc"]],
+      "paging": false,
+      "columnDefs": [{ targets: 5, render: function (data, type, row) {
+        if (type === 'sort') { // strip the "&nbsp;s" units when sorting the late times
+            return data.split('&')[0].padStart(5, '0');
+        }
+        return data;
+      }}],
+      "order": [[0, "asc"], [1, "asc"]],
   });
 } );
 </script>
