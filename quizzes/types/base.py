@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from decimal import Decimal
 from typing import Dict, Any, TYPE_CHECKING, Tuple, Optional
 
@@ -26,6 +27,26 @@ class BaseConfigForm(forms.Form):
     points = forms.IntegerField(min_value=0, max_value=1000, initial=1)
     text = MarkupContentField(label='Question Text', required=True, default_markup=DEFAULT_QUIZ_MARKUP,
                                   with_wysiwyg=True, restricted=True)
+    marking = MarkupContentField(label='Marking Notes (visible only to instructors/TAs when marking, optional)',
+                                 required=False, default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True, restricted=True,
+                                 rows=10)
+    review = MarkupContentField(label='Review Notes (visible to students when reviewing quiz, optional)',
+                                required=False, default_markup=DEFAULT_QUIZ_MARKUP, with_wysiwyg=True, restricted=True,
+                                rows=10)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # reorder the fields, so marking and review are last
+        fields = self.fields
+        assert isinstance(fields, OrderedDict), 'This logic assumes type of the Form.fields which is suddenly wrong'
+        new_fields = fields.__class__()
+        for f in fields:
+            if f in ['marking', 'review']:
+                continue
+            new_fields[f] = fields[f]
+        new_fields['marking'] = fields['marking']
+        new_fields['review'] = fields['review']
+        self.fields = new_fields
 
     def to_jsonable(self):
         """

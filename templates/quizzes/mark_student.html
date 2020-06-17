@@ -18,6 +18,7 @@
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
     $(".version").collapsible();
+    $(".marking-notes").collapsible();
     //$(".version.first").trigger('expand');
     $('.code-answer').each(function(i, pre) {
         hljs.highlightBlock(pre);
@@ -42,6 +43,10 @@ $(document).ready(function() {
 
         <div class="version">[Version {{ v.choice }}]</div>
         <div class="question">{{ v.question_preview_html }}</div>
+        {% if v.marking.0 %}
+        <div class="marking-notes">Marking Notes</div>
+        <div>{{ v.marking_html }}</div>
+        {% endif %}
 
         <div class="answer">
         {% if a %}

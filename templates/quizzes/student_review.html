@@ -74,6 +74,10 @@ $(document).ready(function() {
         {% else %}
             <dd class="empty">&mdash;</dd>
         {% endif %}
+        {% if v.review.0 %}
+        <dt>Review Notes (for this question, not your answer specifically)</dt>
+        <dd class="review-notes">{{ v.review_html }}</dd>
+        {% endif %}
         {% endif %}
         </dl>
 
