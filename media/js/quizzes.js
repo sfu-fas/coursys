@@ -190,7 +190,10 @@ function takepicture() {
 function submit_disable() {
     var submit = $('form.quiz input[type=submit].submit');
     submit.click(function(ev) {
-        alert("You must take a verification photo before submitting.")
+        window.createNotification({
+            theme: 'error',
+            showDuration: 5000
+        })({ message: 'You must take a verification photo before submitting.' });
         ev.preventDefault();
     });
 }
