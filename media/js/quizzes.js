@@ -42,13 +42,14 @@ function update_time_left(ends_at) {
 }
 
 function randomly_perturb(v) {
-    // wiggle +- 10%, to prevent dogpiling on autosave
-    return v - v*0.1 + v*0.2*Math.random()
+    // wiggle to prevent dogpiling on autosave
+    return v - v*0.1*Math.random()
 }
 function start_autosave(interval) {
     setTimeout(function() { do_autosave(interval); }, randomly_perturb(interval));
 }
 function do_autosave(interval) {
+    tinyMCE.triggerSave();
     var form = $("form.quiz");
     var data = new FormData(form.get(0));
 
