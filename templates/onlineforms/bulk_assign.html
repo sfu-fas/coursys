@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block h1 %}Bulk Assign Form{% endblock %}
+{% block title %}Bulk Assign Form{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+<li>Bulk Assign</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<form action="" method="post">{% csrf_token %}
+    {{ form|as_dl }}
+    <p><input type="submit" value="Assign" /></p>
+</form>
+{% endblock %}
