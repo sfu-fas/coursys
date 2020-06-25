@@ -10,15 +10,16 @@ import django.db.transaction
 from django.db.models import Q, Count
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
-from courselib.auth import ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
-    requires_formgroup, login_redirect
+from courselib.auth import ForbiddenResponse, requires_role, requires_form_admin_by_slug, \
+    requires_formgroup, login_redirect, requires_global_role
 from courselib.db import retry_transaction
 from courselib.branding import help_email
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
-from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
+from onlineforms.forms import FormForm, NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignFormForm, AdminAssignSheetForm, EditGroupForm, EmployeeSearchForm, \
-    AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm
+    AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm, \
+    BulkAssignForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, FormGroup, \
     FormGroupMember, FieldSubmissionFile, FILE_SECRET_LENGTH
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
@@ -999,6 +1000,47 @@ def login(request):
     #  This is a dummy view to put in the email reminders.  This ensures that people are actually logged in
     #  if they click on the link in the reminder, thus making sure they see their forms.
     return HttpResponseRedirect(reverse('onlineforms:index'))
+
+
+# Restricted to sysadmins for now: could be opened up somehow with the `admin` field removed from the form and replaced
+# with request.user
+@requires_global_role('SYSA')
+def bulk_assign(request):
+    form_choices = Form.objects.filter(active=True)
+    if request.method == 'POST':
+        form = BulkAssignForm(data=request.POST)
+        form.fields['form'].queryset = form_choices
+        if form.is_valid():
+            admin = form.cleaned_data['admin_userid']
+            f = form.cleaned_data['form']
+            for assignee in form.cleaned_data['people']:
+                formFiller = _userToFormFiller(assignee)
+                form_submission = FormSubmission.objects.create(form=f, initiator=formFiller, owner=f.owner,
+                                                                status='NEW')
+                sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
+                                                                  sheet=f.initial_sheet, filler=formFiller)
+                sheet_submission.set_assigner(admin)
+                sheet_submission.save()
+                FormLogEntry.create(sheet_submission=sheet_submission, user=admin, category='ADMN',
+                                    description='Assigned initial sheet to %s via bulk assignment' % (
+                                        formFiller.full_email()))
+            # LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                         description=("Bulk assigned initial sheet of %s.") % (f,),
+                         related_object=f)
+            l.save()
+            messages.success(request, 'Assigned form to %i users.' % (len(form.cleaned_data['people'],)))
+
+            return HttpResponseRedirect(
+                reverse('onlineforms:index', args=()))
+    else:
+        form = BulkAssignForm()
+        form.fields['form'].queryset = form_choices
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'onlineforms/bulk_assign.html', context)
 
 
 @login_required()

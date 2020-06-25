@@ -31,12 +31,12 @@
 var load_time = Date.now() / 1000;
 var seconds_left = {{ seconds_left|escapejs }};
 $(document).ready(function() {
-    get_fingerprint();
     {% if not preview %}start_autosave(10 * 60000);{% endif %}
     update_time_left(load_time + seconds_left);
     {% if quiz.honour_code and not preview and not previous_honour_code %}show_honour_code();{% endif %}
     {% if quiz.photos %}capture_startup();{% endif %}
     start_codemirror();
+    get_fingerprint();
 } );
 </script>
 {% endblock %}

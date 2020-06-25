@@ -53,6 +53,7 @@ forms_patterns = [
 
     url(r'^$', onlineforms_views.index, name='index'),
     url(r'^login/$', onlineforms_views.login, name='login'),
+    url(r'^bulk$', onlineforms_views.bulk_assign, name='bulk_assign'),
     url(r'^participated/$', onlineforms_views.participated_in, name='participated_in'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/$', onlineforms_views.view_submission, name='view_submission'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/re-open$', onlineforms_views.reopen_submission, name='reopen_submission'),

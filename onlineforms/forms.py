@@ -3,6 +3,10 @@ from django import forms
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms.fields import MultipleChoiceField
 from django.forms.models import ModelForm
+
+from coredata.models import Person
+from coredata.queries import add_person, SIMSProblem
+from courselib.search import find_userid_or_emplid
 from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
 from django.forms.utils import ErrorList
@@ -311,3 +315,38 @@ class DynamicForm(forms.Form):
                 field.clean(post[str(name)])
             except Exception as e:
                 self.errors[name] = str(e)
+
+
+class BulkAssignForm(forms.Form):
+    admin_userid = forms.CharField(required=True, help_text='The user who should be set as the assigner of the sheets')
+    form = forms.ModelChoiceField(required=True, queryset=Form.objects.none(), empty_label=None)
+    people = forms.CharField(required=True, widget=forms.Textarea(attrs={"rows":10, "cols":20}),
+                             help_text='Emplids or userids, one per line, of people who should receive the first sheet.')
+
+    def clean_admin_userid(self):
+        userid = self.cleaned_data['admin_userid']
+        try:
+            person = Person.objects.get(find_userid_or_emplid(userid))
+        except Person.DoesNotExist:
+            raise forms.ValidationError('Cannot find a person with that userid.')
+        return person
+
+    def clean_people(self):
+        text = self.cleaned_data['people']
+        emplids = text.strip().split()
+        people = []
+        for e in emplids:
+            # this is going to be slow if there's a big list
+            try:
+                person = Person.objects.get(find_userid_or_emplid(e))
+            except Person.DoesNotExist:
+                try:
+                    person = add_person(int(e))
+                    if person is None:
+                        raise forms.ValidationError('Cannot find a person emplid/userid %r.' % (e,))
+                except (ValueError, SIMSProblem):
+                    raise forms.ValidationError('Cannot find a person emplid/userid %r.' % (e,))
+
+            people.append(person)
+
+        return people
