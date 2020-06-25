@@ -64,9 +64,9 @@ STATUS_CHOICES = [
 
 REVIEW_CHOICES = [
     ('none', 'may not review quizzes'),
-    ('marks', 'may review marks and comments; not the questions or their answers'),
-    ('answers', 'may review their answers, marks, and comments; not the questions'),
-    ('all', 'may review questions, their answers, marks, and comments'),
+    ('marks', 'may review marks, comments, and marking notes; not the questions or their answers'),
+    ('answers', 'may review their answers, marks, comments, and marking notes; not the questions'),
+    ('all', 'may review questions, their answers, marks, comments, and marking notes'),
 ]
 
 
@@ -516,9 +516,13 @@ class QuestionVersion(models.Model):
     created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)  # used for ordering
     config = JSONField(null=False, blank=False, default=dict)
     # .config['text']: question as (text, markup, math:bool)
+    # .config['marking']: marking notes as (text, markup, math:bool)
+    # .config['review']: review notes as (text, markup, math:bool)
     # others as set by the .question.type (and corresponding QuestionType)
 
     text = config_property('text', default=('', DEFAULT_QUIZ_MARKUP, False))
+    marking = config_property('marking', default=('', DEFAULT_QUIZ_MARKUP, False))
+    review = config_property('review', default=('', DEFAULT_QUIZ_MARKUP, False))
 
     objects = VersionStatusManager()
 
@@ -611,6 +615,14 @@ class QuestionVersion(models.Model):
         """
         helper = self.helper()
         return helper.entry_head_html()
+
+    def marking_html(self) -> SafeText:
+        text, markup, math = self.marking
+        return markup_to_html(text, markup, math=math)
+
+    def review_html(self) -> SafeText:
+        text, markup, math = self.review
+        return markup_to_html(text, markup, math=math)
 
     def automark_all(self, activity_components: Dict['Question', ActivityComponent]) -> Iterable[Tuple[Member, ActivityComponentMark]]:
         """

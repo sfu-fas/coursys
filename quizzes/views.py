@@ -12,6 +12,8 @@ from django.db.models import Q, Max, Min
 from django.http import HttpRequest, HttpResponse, Http404, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie
 from django.views.generic import FormView
 from django.views.generic.edit import ModelFormMixin, UpdateView
 
@@ -271,6 +273,7 @@ def preview_student(request: HttpRequest, course_slug: str, activity_slug: str) 
 
     question_data = list(zip(questions, versions, form.visible_fields()))
     start, end = quiz.get_start_end(member=None)
+    seconds_left = (end - datetime.datetime.now()).total_seconds()
     context = {
         'offering': offering,
         'activity': activity,
@@ -280,7 +283,7 @@ def preview_student(request: HttpRequest, course_slug: str, activity_slug: str) 
         'preview': True,
         'start': start,
         'end': end,
-        'seconds_left': (end - datetime.datetime.now()).total_seconds(),
+        'seconds_left': seconds_left if seconds_left>0 else 0,
     }
     return render(request, 'quizzes/index_student.html', context=context)
 
@@ -758,6 +761,17 @@ def view_submission(request: HttpRequest, course_slug: str, activity_slug: str, 
     return render(request, 'quizzes/view_submission.html', context=context)
 
 
+def _return_submitted_file(answer_data, data):
+    content_type = answer_data.get('content-type', 'application/octet-stream')
+    charset = answer_data.get('charset', None)
+    filename = answer_data.get('filename', None)
+
+    resp = StreamingHttpResponse(streaming_content=data, content_type=content_type, charset=charset, status=200)
+    if filename:
+        resp['Content-Disposition'] = 'inline; filename="%s"' % (filename,)
+    return resp
+
+
 # This view is authorized by knowing the secret not by session, to allow automated downloads of submissions from JSON.
 def submitted_file(request: HttpRequest, course_slug: str, activity_slug: str, userid: str, answer_id: str, secret: str) -> StreamingHttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
@@ -766,18 +780,22 @@ def submitted_file(request: HttpRequest, course_slug: str, activity_slug: str, u
     answer = get_object_or_404(QuestionAnswer, question__quiz__activity=activity, student=member, id=answer_id)
 
     real_secret = answer.answer['data'].get('secret', '?')
-    if secret != real_secret or real_secret == '?':
-        raise Http404()
+    if real_secret != '?' and secret == real_secret:
+        return _return_submitted_file(answer.answer['data'], answer.file.open('rb'))
 
-    content_type = answer.answer['data'].get('content-type', 'application/octet-stream')
-    charset = answer.answer['data'].get('charset', None)
-    filename = answer.answer['data'].get('filename', None)
-    data = answer.file.open('rb')
+    else:
+        # It's not the current submission, but an instructor looking at history might be trying to find an old one...
+        submissions = QuizSubmission.objects.filter(quiz__activity=activity, student=member)
+        for qs in submissions:
+            for answer_config in qs.config['answers']:
+                version_id, answer_id, a = answer_config
+                real_secret = a['data'].get('secret', '?')
+                if answer.question_version_id == version_id and answer.id == answer_id and real_secret != '?' and secret == real_secret:
+                    # aha! Temporarily replace answer.file with the old version (without saving) so we can return it
+                    answer.file = a['filepath']
+                    return _return_submitted_file(a['data'], answer.file.open('rb'))
 
-    resp = StreamingHttpResponse(streaming_content=data, content_type=content_type, charset=charset, status=200)
-    if filename:
-        resp['Content-Disposition'] = 'inline; filename="%s"' % (filename,)
-    return resp
+    raise Http404()
 
 
 @requires_course_staff_by_slug
@@ -871,7 +889,9 @@ def submission_history(request: HttpRequest, course_slug: str, activity_slug: st
 
 
 @requires_course_staff_by_slug
-def submission_photo(request: HttpRequest, course_slug: str, activity_slug: str, userid: str, submission_id: str) -> StreamingHttpResponse:
+@cache_page(60 * 15)
+@vary_on_cookie
+def submission_photo(request: HttpRequest, course_slug: str, activity_slug: str, userid: str, submission_id: str) -> HttpResponse:
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
     quiz = get_object_or_404(Quiz, activity=activity)
@@ -880,7 +900,7 @@ def submission_photo(request: HttpRequest, course_slug: str, activity_slug: str,
     if not submission.capture:
         raise Http404
 
-    resp = StreamingHttpResponse(streaming_content=submission.capture, content_type='image/png', status=200)
+    resp = HttpResponse(content=submission.capture.read(), content_type='image/png', status=200)
     resp['Content-Disposition'] = 'inline; filename="%s.png"' % (userid,)
     return resp
 
