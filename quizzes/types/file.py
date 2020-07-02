@@ -121,7 +121,9 @@ class FileAnswer(QuestionHelper):
     def unchanged_answer(prev_ans, new_ans):
         return (new_ans['_file'] is None
                 or ('sha256' in prev_ans['data'] and 'sha256' in new_ans['data']
-                        and prev_ans['data']['sha256'] == new_ans['data']['sha256'])
+                        and prev_ans['data']['sha256'] == new_ans['data']['sha256']
+                        and 'filename' in prev_ans['data'] and 'filename' in new_ans['data']
+                        and prev_ans['data']['filename'] == new_ans['data']['filename'])
         )
 
     def secret_url(self, questionanswer):

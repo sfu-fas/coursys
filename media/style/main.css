@@ -568,7 +568,7 @@ input.label-field {
 
 /* form and form|as_dl styling */
 
-form .submit {
+form .submit, form .submit:read-only {
   min-width: 6em;
   background-color: #B5111A;
   border: 1px solid #FFF;
@@ -1157,7 +1157,8 @@ p.logentry {
     color: #a6192e;
 }
 
-input:read-only,textarea:read-only {
+input:read-only:not([type=button]):not([type=submit]), textarea:read-only {
+    /* https://stackoverflow.com/a/62634951 */
     background: lightgrey;
 }
 

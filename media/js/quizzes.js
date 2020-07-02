@@ -50,6 +50,9 @@ function start_autosave(interval) {
 }
 function do_autosave(interval) {
     tinyMCE.triggerSave();
+    $('.CodeMirror').each(function(i, elt) {
+        elt.CodeMirror.save();
+    });
     var form = $("form.quiz");
     var data = new FormData(form.get(0));
 
