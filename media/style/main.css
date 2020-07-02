@@ -1157,7 +1157,8 @@ p.logentry {
     color: #a6192e;
 }
 
-input:read-only,textarea:read-only {
+input:read-only:not([type=button]):not([type=submit]), textarea:read-only {
+    /* https://stackoverflow.com/a/62634951 */
     background: lightgrey;
 }
 
