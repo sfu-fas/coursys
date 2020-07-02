@@ -568,7 +568,7 @@ input.label-field {
 
 /* form and form|as_dl styling */
 
-form .submit {
+form .submit, form .submit:read-only {
   min-width: 6em;
   background-color: #B5111A;
   border: 1px solid #FFF;
