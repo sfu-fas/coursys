@@ -789,6 +789,8 @@ def submitted_file(request: HttpRequest, course_slug: str, activity_slug: str, u
         for qs in submissions:
             for answer_config in qs.config['answers']:
                 version_id, answer_id, a = answer_config
+                if not isinstance(a['data'], dict):
+                    continue
                 real_secret = a['data'].get('secret', '?')
                 if answer.question_version_id == version_id and answer.id == answer_id and real_secret != '?' and secret == real_secret:
                     # aha! Temporarily replace answer.file with the old version (without saving) so we can return it
