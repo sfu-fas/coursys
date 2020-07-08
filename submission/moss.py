@@ -194,7 +194,10 @@ def run_moss(main_activity: Activity, activities: List[Activity], language: str,
             data.save()
 
         elif match_file_re.match(f):
-            data = open(os.path.join(moss_out_dir, f), 'rt', encoding='utf8').read()
+            try:
+                data = open(os.path.join(moss_out_dir, f), 'rt', encoding='utf8').read()
+            except UnicodeDecodeError:
+                data = open(os.path.join(moss_out_dir, f), 'rt', encoding='windows-1252').read()
             soup = bs4.BeautifulSoup(data, 'lxml')
 
             # find the input filename, which leads to the submission
