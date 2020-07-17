@@ -1485,6 +1485,8 @@ def import_person(p, commit=True, grad_data=False):
         return None
 
     userid = emplid_to_userid(p.emplid)
+    #if userid and len(userid) > 8:
+    #    raise ValueError('userid too long', "We have a userid >8 characters: %r" % (userid,))
 
     p.last_name = last_name
     p.first_name = first_name
