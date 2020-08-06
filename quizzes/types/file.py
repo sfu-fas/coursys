@@ -136,6 +136,10 @@ class FileAnswer(QuestionHelper):
             secret=questionanswer.answer['data'].get('secret', '?')
         )
 
+    def is_blank(self, questionanswer):
+        data = questionanswer.answer['data']
+        return not ('filename' in data and 'secret' in data)
+
     def to_text(self, questionanswer):
         data = questionanswer.answer['data']
         if 'filename' in data and 'secret' in data:

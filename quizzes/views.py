@@ -94,13 +94,20 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             return _student_review(request, offering, activity, quiz)
 
         # if not, then we're just after the quiz.
+        n_questions = Question.objects.filter(quiz=quiz).count()
+        answers = QuestionAnswer.objects.filter(student=member, question__quiz=quiz).select_related('question', 'question_version')
+        n_answers = sum(not a.question_version.helper().is_blank(a) for a in answers)
+        last_sub = QuizSubmission.objects.filter(quiz=quiz, student=member).order_by('-created_at').first()
         context = {
             'offering': offering,
             'activity': activity,
             'quiz': quiz,
             'start': start,
             'end': end,
-            'time': 'after'
+            'time': 'after',
+            'n_answers': n_answers,
+            'n_questions': n_questions,
+            'last_sub': last_sub,
         }
         return render(request, 'quizzes/unavailable.html', context=context, status=403)
 

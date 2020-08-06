@@ -27,6 +27,7 @@ $(document).ready(function() {
     <li><a href="{% url "offering:quiz:edit" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-edit"></i> Edit Quiz Setup</a></li>
     {% if not quiz.completed %}
         <li><a href="{% url "offering:quiz:question_add" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-plus"></i> Add Question</a></li>
+        <li><a href="{% url "offering:quiz:instructions" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-question"></i> Student Instructions</a></li>
     {% endif %}
     <li><a href="{% url "offering:quiz:preview_student" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-search"></i> Preview Quiz</a></li>
     <li><a href="{% url "offering:quiz:special_cases" course_slug=offering.slug activity_slug=activity.slug %}"><i class="fa fa-clock-o"></i> Manage Timing Special Cases</a></li>

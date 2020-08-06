@@ -179,6 +179,12 @@ class QuestionHelper(object):
         """
         raise NotImplementedError
 
+    def is_blank(self, questionanswer: 'QuestionAnswer') -> bool:
+        """
+        Is this answer "blank"?
+        """
+        raise NotImplementedError
+
     def entry_head_html(self) -> SafeText:
         return mark_safe('')
 

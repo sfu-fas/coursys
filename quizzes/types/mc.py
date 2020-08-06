@@ -181,6 +181,9 @@ class MultipleChoice(QuestionHelper):
         field.widget.attrs.update({'class': 'multiple-choice'})
         return field
 
+    def is_blank(self, questionanswer):
+        return questionanswer.answer.get('data', MultipleChoice.NA) == MultipleChoice.NA
+
     def to_text(self, questionanswer):
         ans = questionanswer.answer.get('data', MultipleChoice.NA)
         if ans == MultipleChoice.NA:
