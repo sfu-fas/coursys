@@ -13,7 +13,7 @@
     "mathjax": "^2.7.5",
     "moment": "^2.24.0",
     "styled-notifications": "^1.0.3",
-    "tinymce": "^4.9.10"
+    "tinymce": "^4.9.11"
   },
   "devDependencies": {},
   "scripts": {
