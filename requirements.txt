@@ -1,4 +1,4 @@
-Django==2.2.11
+Django==2.2.15
 
 #Creoleparser==0.7.4  Replaced with version below that incorporates our fix for null headings, and python3 support
 git+git://github.com/gregbaker/creoleparser.git@f2d9ba65a0cd435f5b25347414902b21826999dd
@@ -29,7 +29,8 @@ django-bitfield==1.9.3
 django-compressor==2.2
 django-npm==1.0.0
 #django-cache-utils==0.7.2
-hg+https://bitbucket.org/ggbaker/django-cache-utils/@8a29823  # python 3 compatibility
+#hg+https://bitbucket.org/ggbaker/django-cache-utils/@8a29823  # python 3 compatibility
+git+git://github.com/gregbaker/django-cache-utils@1ccbffe4bc5a9bee5961c487d39e42da4c166123
 celery==4.1.1 # <4.2 until proven otherwise. See https://github.com/celery/celery/issues/4867
 django-celery-email==2.0.1
 django_celery_beat==1.4.0
@@ -41,7 +42,8 @@ whoosh==2.7.4
 djangorestframework==3.9.4
 djangorestframework-oauth==1.1.0
 #django-oauth-plus==2.2.9
-hg+https://bitbucket.org/ggbaker/django-oauth-plus/@2d76fb2f300d # django 2.0 and python3 compatibility
+#hg+https://bitbucket.org/ggbaker/django-oauth-plus/@2d76fb2f300d # django 2.0 and python3 compatibility
+git+git://github.com/gregbaker/django-oauth-plus@612d166a80e5c0fffe89b6338e84fe96a6e6d4f9
 oauth2 @ git+git://github.com/i-kiwamu/python3-oauth2.git@a6b31832ae0427e27e6eda3ce3d121e385c7e9d5 # ensure python3 compatibility
 markdown # for API docs
 django-rest-swagger==2.2.0
