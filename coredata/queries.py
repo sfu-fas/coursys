@@ -1320,7 +1320,7 @@ def csrpt_update():
     this_sem = Semester.current()
 
     db.execute("""
-        SELECT sfu_clone_dttm FROM ps_sfu_clone_info
+        SELECT sfu_clone_dttm FROM ps_sfu_clone_info FETCH FIRST 1 ROWS ONLY
         """, ())
     row = db.fetchone()
     data.append(('ps_sfu_clone_info.sfu_clone_dttm', row[0]))
