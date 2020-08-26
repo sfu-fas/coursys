@@ -24,6 +24,11 @@ proddev-stop-all:
 proddev-rm-all:
 	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml rm
 
+new-code:
+	sudo systemctl reload gunicorn
+	sudo systemctl reload celery
+	sudo systemctl restart celerybeat
+
 rebuild:
 	sudo apt update && sudo apt upgrade
 	sudo systemctl stop ntp && sudo ntpdate pool.ntp.org && sudo systemctl start ntp

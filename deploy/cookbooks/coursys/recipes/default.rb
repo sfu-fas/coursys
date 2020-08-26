@@ -1,4 +1,4 @@
-ubuntu_mirror = 'https://mirror.its.sfu.ca/mirror/ubuntu/'
+ubuntu_mirror = 'http://mirror.it.ubc.ca/ubuntu/'
 ubuntu_release = `lsb_release -c`.split("\t")[1].strip
 coursys_dir = node['coursys_dir'] || '/coursys'
 coursys_repo = node['coursys_repo'] || 'https://github.com/sfu-fas/coursys.git'
@@ -9,7 +9,7 @@ username = node['username']
 user_home = "/home/#{username}/"
 python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.major, sys.version_info.minor))"`.strip
 python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
-data_root = '/data'
+data_root = '/opt'
 
 raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
 

@@ -11,7 +11,7 @@ from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_upda
 from dashboard.photos import do_photo_fetch
 from log.models import LogEntry
 
-import celery, kombu
+import celery, kombu, amqp
 import random, socket, subprocess, urllib.request, urllib.error, urllib.parse, os, stat, time, copy, pprint
 
 
@@ -125,6 +125,8 @@ def deploy_checks(request=None):
                     t = ping.apply_async()
                 except kombu.exceptions.OperationalError:
                     failed.append(('Celery task', 'Kombu error. Probably RabbitMQ not running.'))
+                except amqp.exceptions.AccessRefused:
+                    failed.append(('Celery task', 'AccessRefused error. Probably bad RabbitMQ auth details.'))
                 else:
                     res = t.get(timeout=5)
                     if res == True:

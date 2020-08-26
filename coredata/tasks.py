@@ -7,7 +7,7 @@ from coredata.models import Role, Unit
 
 
 from celery import Celery
-app = Celery(backend=settings.CELERY_RESULT_BACKEND)  # periodic tasks don't fire without app constructed
+app = Celery(broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND)  # periodic tasks don't fire without app constructed
 
 
 # the maximum beat test age we'd be happy with

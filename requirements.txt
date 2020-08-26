@@ -43,7 +43,7 @@ djangorestframework==3.11.1
 djangorestframework-oauth==1.1.0
 #django-oauth-plus==2.2.9
 #hg+https://bitbucket.org/ggbaker/django-oauth-plus/@2d76fb2f300d # django 2.0 and python3 compatibility
-git+git://github.com/gregbaker/django-oauth-plus@612d166a80e5c0fffe89b6338e84fe96a6e6d4f9
+git+git://github.com/gregbaker/django-oauth-plus@3c47dc758dd1eacd17deceb54ec7a69a8986f263
 oauth2 @ git+git://github.com/i-kiwamu/python3-oauth2.git@a6b31832ae0427e27e6eda3ce3d121e385c7e9d5 # ensure python3 compatibility
 markdown # for API docs
 django-rest-swagger==2.2.0
@@ -58,7 +58,7 @@ ipython
 python-memcached==1.59
 #django-dbdump==1.1
 git+git://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
-elasticsearch==6.1.1
+elasticsearch>=5.0.0,<6.0.0
 #pysolr==3.8.1
 lxml==4.5.2
 gunicorn==20.0.4
