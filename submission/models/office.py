@@ -3,7 +3,8 @@ import submission.forms
 from django.forms.widgets import Textarea, FileInput, SelectMultiple
 from django import forms
 from django.http import HttpResponse
-from jsonfield.fields import JSONField, JSONFormField
+from jsonfield.fields import JSONField
+from jsonfield.forms import JSONField as JSONFormField
 
 OFFICE_TYPES = [ # (label, internal identifier, extensions)
         ('MS Word', 'MS-WORD', ['.doc', '.docx']),
@@ -111,11 +112,12 @@ class Office:
         class Meta:
             model = OfficeComponent
             fields = ['title', 'description', 'allowed', 'max_size', 'specified_filename', 'deleted']
+
         def __init__(self, *args, **kwargs):
             super(Office.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
             self.fields['allowed'].widget = SelectMultiple(choices=OFFICE_CHOICES, attrs={'style':'width:40em', 'size': 15})
-            self.initial['allowed'] = self._initial_allowed
+            self.initial['allowed'] = self._initial_allowed()
 
         def _initial_allowed(self):
             """

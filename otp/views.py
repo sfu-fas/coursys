@@ -21,7 +21,7 @@ import qrcode
 import qrcode.image.svg
 
 from log.models import LogEntry # CourSys-specific
-from ipware import ip
+from ipware import get_client_ip
 
 
 def _setup_view(request, next_page):
@@ -65,7 +65,7 @@ def login_2fa(request, next_page=None):
                 otp_login(request, form.device)
 
                 l = LogEntry(userid=request.user.username,
-                    description=("2FA as %s from %s") % (request.user.username, ip.get_ip(request)),
+                    description=("2FA as %s from %s") % (request.user.username, get_client_ip(request)),
                     related_object=request.user)
                 l.save()
 
@@ -96,7 +96,7 @@ def add_topt(request, next_page=None):
     device.save()
 
     l = LogEntry(userid=request.user.username,
-                 description=("Added TOPT from %s") % (ip.get_ip(request),),
+                 description=("Added TOPT from %s") % (get_client_ip(request),),
                  related_object=device)
     l.save()
 

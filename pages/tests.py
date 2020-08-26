@@ -544,7 +544,7 @@ class PagesTest(TestCase):
         html = markup_to_html('Foo<p class="home"><Span style="font-size: 500%">bar</Span></P>', 'html', restricted=True)
         self.assertEqual(html, 'Foo<p>bar</p>')
 
-        html = markup_to_html('A&nbsp;&nbsp;<p>&nbsp;</p><table cellpadding="10"><tr><td colspan=4>B</td></tr></table>',
+        html = markup_to_html('A&nbsp;&nbsp;<p align="center">&nbsp;</p><h1 align="center">B</h1></table>',
                               'html', restricted=True)
         self.assertEqual(html, 'A&nbsp;&nbsp;<p>&nbsp;</p>B')
 

@@ -30,7 +30,7 @@ from featureflags.flags import uses_feature
 from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery, Exact, Clean
 from xml.etree.ElementTree import ParseError
-from ipware import ip
+from ipware import get_client_ip
 import pytz
 import itertools
 import iso8601
@@ -112,7 +112,7 @@ def fake_login(request, next_page=None):
         login(request, user)
         #LOG EVENT#
         l = LogEntry(userid=user.username,
-              description=("fake login as %s from %s") % (user.username, ip.get_ip(request)),
+              description=("fake login as %s from %s") % (user.username, get_client_ip(request)),
               related_object=user)
         l.save()
         return HttpResponseRedirect(next_page)
@@ -141,7 +141,7 @@ class LoginView(CasLoginView):
         # create a LogEntry when users log in
         user = request.user
         l = LogEntry(userid=user.username,
-                     description=("logged in as %s from %s") % (user.username, ip.get_ip(request)),
+                     description=("logged in as %s from %s") % (user.username, get_client_ip(request)),
                      related_object=user)
         l.save()
         return super().successful_login(request, next_page)
@@ -908,7 +908,7 @@ def photo_agreement(request):
             if config.value['agree']:
                 config.value['version'] = 1
                 config.value['at'] = datetime.datetime.now().isoformat()
-                config.value['from'] = ip.get_ip(request)
+                config.value['from'] = get_client_ip(request)
             config.save()
             messages.add_message(request, messages.SUCCESS, 'Updated your photo agreement status.')
             if 'return' in request.GET:
