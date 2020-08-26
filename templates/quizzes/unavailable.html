@@ -24,7 +24,13 @@ setTimeout(function(){ location.reload(); }, wait + 1000 + Math.random()*5000);
 {% block content %}
     <p class="infomessage">
     {% if time == 'after' %}
-        The quiz ended at {{ end }}: it may not be submitted or reviewed.
+        The quiz ended at {{ end }}: it may not be submitted or reviewed.</p><p class="infomessage">
+        {% if last_sub %}
+            You submitted {{ last_sub.created_at }} {% if last_sub.config.autosave %}(an auto-save){% endif %}
+            with non-blank answers to {{ n_answers }}/{{ n_questions }} questions.
+        {% else %}
+            No submission was received from you for the quiz.
+        {% endif %}
     {% else %}
         The quiz starts at {{ start }}: you cannot view it until then.
     {% endif %}

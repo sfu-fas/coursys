@@ -22,9 +22,34 @@ function start_codemirror() {
     });
 }
 
+var time_warnings_given = 0;
 function update_time_left(ends_at) {
     var now = Date.now() / 1000;
     var seconds_left = ends_at - now;
+
+    if ( seconds_left <= 0 && time_warnings_given < 3 ) {
+        // time's up warning
+        window.createNotification({
+                    theme: 'warning',
+                    showDuration: 10000
+                })({ message: 'Time is up. Submit immediately' });
+        time_warnings_given = 3
+    } else if ( seconds_left <= 60 && time_warnings_given < 2 ) {
+        // one minute warning
+        window.createNotification({
+                    theme: 'warning',
+                    showDuration: 5000
+                })({ message: seconds_left.toFixed(0) + ' seconds remain.' });
+        time_warnings_given = 2
+    } else if ( seconds_left <= 300 && time_warnings_given < 1 ) {
+        // five minute warning
+        window.createNotification({
+                    theme: 'info',
+                    showDuration: 5000
+                })({ message: seconds_left.toFixed(0) + ' seconds remain.' });
+        time_warnings_given = 1
+    }
+
     if ( seconds_left >= 0 ) {
         var m = Math.floor(seconds_left/60);
         var s = "00" + Math.floor(seconds_left % 60); // zero-pad the seconds

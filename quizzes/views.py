@@ -94,13 +94,20 @@ def _index_student(request: HttpRequest, offering: CourseOffering, activity: Act
             return _student_review(request, offering, activity, quiz)
 
         # if not, then we're just after the quiz.
+        n_questions = Question.objects.filter(quiz=quiz).count()
+        answers = QuestionAnswer.objects.filter(student=member, question__quiz=quiz).select_related('question', 'question_version')
+        n_answers = sum(not a.question_version.helper().is_blank(a) for a in answers)
+        last_sub = QuizSubmission.objects.filter(quiz=quiz, student=member).order_by('-created_at').first()
         context = {
             'offering': offering,
             'activity': activity,
             'quiz': quiz,
             'start': start,
             'end': end,
-            'time': 'after'
+            'time': 'after',
+            'n_answers': n_answers,
+            'n_questions': n_questions,
+            'last_sub': last_sub,
         }
         return render(request, 'quizzes/unavailable.html', context=context, status=403)
 
@@ -627,7 +634,7 @@ def submissions(request: HttpRequest, course_slug: str, activity_slug: str) -> H
     questions = Question.objects.filter(quiz=quiz)
 
     answers = QuestionAnswer.objects.filter(question__in=questions) \
-        .select_related('student__person') \
+        .select_related('student__person', 'student__offering') \
         .order_by('student__person')
 
     students = set(a.student for a in answers)
@@ -1035,7 +1042,7 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
 
     # collect existing marks for tally
     component_lookup = quiz.activitycomponents_by_question()
-    members = Member.objects.filter(offering=offering, role='STUD')
+    members = Member.objects.filter(offering=offering, role='STUD')#.select_related('person', 'offering')
     sams = StudentActivityMark.objects.filter(numeric_grade__member__in=members).order_by('created_at')
     latest_sam_id = {sam.numeric_grade.member_id: sam.id for sam in sams}  # Member.id: ActivityMark.id so we have the most recent only
     acms = ActivityComponentMark.objects.filter(activity_mark_id__in=latest_sam_id.values(), value__isnull=False, activity_component__deleted=False).select_related('activity_component')
@@ -1055,7 +1062,7 @@ def marking(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpR
         question_marks.append((q, len(marked), vs))
 
     # data for all marks table
-    answers = QuestionAnswer.objects.filter(question__quiz=quiz).select_related('student__person')
+    answers = QuestionAnswer.objects.filter(question__quiz=quiz).select_related('student__person', 'student__offering')
     student_marks = StudentActivityMark.objects.filter(activity=activity).select_related('numeric_grade')
     student_mark_lookup = {am.numeric_grade.member_id: am.id for am in student_marks} # map Member.id to ActivityMark.id
     students = {a.student for a in answers}

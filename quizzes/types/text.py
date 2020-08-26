@@ -28,6 +28,9 @@ class ShortAnswer(QuestionHelper):
         field.widget.attrs.update({'class': 'short-answer'})
         return field
 
+    def is_blank(self, questionanswer):
+        return questionanswer.answer.get('data', '') == ''
+
     def to_text(self, questionanswer):
         return questionanswer.answer.get('data', '')
 
@@ -60,6 +63,9 @@ class LongAnswer(QuestionHelper):
                                 widget=forms.Textarea(attrs={'rows': lines, 'cols': 100}))
         field.widget.attrs.update({'class': 'long-answer'})
         return field
+
+    def is_blank(self, questionanswer):
+        return questionanswer.answer.get('data', '') == ''
 
     def to_text(self, questionanswer):
         return questionanswer.answer.get('data', '')
@@ -136,6 +142,10 @@ class FormattedAnswer(QuestionHelper):
         text, markup, math = cleaned_data
         return {'data': [text, markup, False]}
 
+    def is_blank(self, questionanswer):
+        text, markup, math = questionanswer.answer.get('data', FormattedAnswer.default_initial)
+        return text == ''
+
     def to_html(self, questionanswer):
         return self.to_text(questionanswer)
 
@@ -181,6 +191,10 @@ class NumericAnswer(QuestionHelper):
 
         field.widget.attrs.update({'class': 'numeric-answer'})
         return field
+
+    def is_blank(self, questionanswer):
+        text = questionanswer.answer.get('data', None)
+        return text is None or text == ''
 
     def to_text(self, questionanswer):
         return questionanswer.answer.get('data', None)

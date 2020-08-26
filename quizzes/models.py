@@ -737,6 +737,7 @@ class QuizSubmission(models.Model):
     # .config['csrf_token']: the CSRF token being used for the submission
     # .config['fingerprint']: browser fingerprint provided by fingerprintjs2
     # .config['honour_code']: did student agree to the honour code?
+    # .config['autosave']: was this an auto-save?
 
     @classmethod
     def create(cls, request: HttpRequest, quiz: Quiz, student: Member, answers: List[QuestionAnswer],
