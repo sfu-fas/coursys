@@ -35,10 +35,10 @@ MARKUPS = dict(MARKUP_CHOICES)
 allowed_tags_restricted = bleach.sanitizer.ALLOWED_TAGS + [ # allowed in discussion, etc
     'h3', 'h4', 'pre', 'p', 'dl', 'dt', 'dd',
     'dfn', 'q', 'del', 'ins', 's', 'sub', 'sup', 'u',
+    'table', 'thead', 'tbody', 'tr', 'th', 'td',
 ]
 allowed_tags = allowed_tags_restricted + [ # allowed on pages and advisor notes
     'h2', 'img', 'div',
-    'table', 'thead', 'tbody', 'tr', 'th', 'td',
 ]
 allowed_attributes = bleach.sanitizer.ALLOWED_ATTRIBUTES
 allowed_attributes['pre'] = ['lang']
