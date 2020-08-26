@@ -5,8 +5,12 @@ from courselib.celerytasks import task, periodic_task
 from celery.schedules import crontab
 from coredata.models import Role, Unit
 
-# file a periodic task will leave, and the maximum age we'd be happy with
-BEAT_TEST_FILE = '/tmp/celery_beat_test'
+
+from celery import Celery
+app = Celery(backend=settings.CELERY_RESULT_BACKEND)  # periodic tasks don't fire without app constructed
+
+
+# the maximum beat test age we'd be happy with
 BEAT_FILE_MAX_AGE = 1200
 
 # hack around dealing with long chains https://github.com/celery/celery/issues/1078
@@ -24,9 +28,10 @@ def update_repository_task(*args, **kwargs):
 def ping(): # used to check that celery is alive
     return True
 
+
 # a periodic job that has enough of an effect that we can see celerybeat working
 # (checked by ping_celery management command)
-@periodic_task(run_every=crontab(minute='*/5', hour='*'))
+@periodic_task(run_every=crontab(minute='*', hour='*'))
 def beat_test():
     set_beat_time()
 

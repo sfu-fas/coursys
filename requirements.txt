@@ -28,12 +28,13 @@ django-compressor==2.4
 django-npm==1.0.0
 #django-cache-utils==0.7.2
 #hg+https://bitbucket.org/ggbaker/django-cache-utils/@8a29823  # python 3 compatibility
-git+git://github.com/gregbaker/django-cache-utils@1ccbffe4bc5a9bee5961c487d39e42da4c166123
-celery==4.1.1 # <4.2 until proven otherwise. See https://github.com/celery/celery/issues/4867
-django-celery-email==2.0.1
-django_celery_beat==1.4.0
-flower==0.9.3
-kombu==4.5.0
+git+git://github.com/gregbaker/django-cache-utils@a64ff6b
+celery==4.4.7
+#django-celery==3.3.1
+django-celery-email==3.0.0
+django_celery_beat==2.0.0
+flower==0.9.5
+kombu==4.6.11
 iso8601==0.1.12
 django-haystack==2.8.1
 whoosh==2.7.4

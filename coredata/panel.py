@@ -139,7 +139,7 @@ def deploy_checks(request=None):
     except socket.error:
         failed.append(('Celery task', "can't communicate with broker"))
     except NotImplementedError:
-        failed.append(('Celery task', 'celery disabled'))
+        failed.append(('Celery task', 'celery failed to start with NotImplementedError'))
     except django.db.utils.ProgrammingError:
         failed.append(('Celery task', 'celery DB tables missing'))
     except django.db.utils.OperationalError:

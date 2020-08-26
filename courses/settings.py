@@ -233,8 +233,10 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'media'),
 )
 COMPRESS_ENABLED = getattr(localsettings, 'COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
-COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter']
-COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
+COMPRESS_FILTERS = {
+    'css': ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter'],
+    'js': ['compressor.filters.jsmin.JSMinFilter']
+}
 COMPRESS_ROOT = getattr(localsettings, 'COMPRESS_ROOT', STATIC_ROOT)
 NPM_ROOT_PATH = getattr(localsettings, 'NPM_ROOT_PATH', '.')
 
@@ -340,7 +342,6 @@ if USE_CELERY:
         'queue': 'email',
         'serializer': 'pickle', # email objects aren't JSON serializable
     }
-
 
 MAX_SUBMISSION_SIZE = 30000 # kB
 CAS_SERVER_URL = "https://cas.sfu.ca/cas/"
