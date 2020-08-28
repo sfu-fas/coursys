@@ -29,15 +29,20 @@ new-code:
 	sudo systemctl reload celery
 	sudo systemctl restart celerybeat
 
+new-code-static:
+	cd ${COURSYS_DIR} && npm install
+	cd ${COURSYS_DIR} && python3 manage.py collectstatic --no-input
+	make new-code
+
 rebuild:
 	sudo apt update && sudo apt upgrade
-	sudo systemctl stop ntp && sudo ntpdate pool.ntp.org && sudo systemctl start ntp
 	sudo pip3 install -r ${COURSYS_DIR}/requirements.txt
 	cd ${COURSYS_DIR} && npm install
 	cd ${COURSYS_DIR} && python3 manage.py collectstatic --no-input
 
 rebuild-hardcore:
 	touch ${COURSYS_DIR}/503
+	sudo systemctl stop ntp && sudo ntpdate pool.ntp.org && sudo systemctl start ntp
 	cd ${COURSYS_DIR} && docker-compose pull && docker-compose restart
 	docker system prune -f
 	rm -rf ${COURSYS_STATIC_DIR}/static

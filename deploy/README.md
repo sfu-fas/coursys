@@ -1,6 +1,6 @@
 ## Proddev VM Setup
 
-Start with a `vagrant up`. In the VM,
+Start with a `vagrant up`. In the VM (`vagrant ssh`),
 ```sh
 cd /coursys
 docker-compose -f docker-compose.yml -f docker-compose-proddev.yml up -d

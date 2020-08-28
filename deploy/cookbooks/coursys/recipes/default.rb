@@ -10,6 +10,7 @@ user_home = "/home/#{username}/"
 python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.major, sys.version_info.minor))"`.strip
 python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
 data_root = '/opt'
+certbot_ubuntu_release = 'disco' # should be ubuntu_release, but disco is newest
 
 raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
 
@@ -115,7 +116,7 @@ if deploy_mode != 'devel'
   execute "django-static" do
     command "python3 manage.py collectstatic --no-input"
     cwd coursys_dir
-    environment 'COURSYS_STATIC_DIR' => "#{data_root}/static"
+    environment ({ 'COURSYS_STATIC_DIR' => "#{data_root}/static", 'COURSYS_DATA_ROOT' => data_root })
     user username
     creates "#{data_root}/static/static/style/main.css"
   end
@@ -187,7 +188,7 @@ if deploy_mode != 'devel'
   apt_repository 'certbot' do
     uri 'http://ppa.launchpad.net/certbot/certbot/ubuntu'
     components ['main']
-    distribution ubuntu_release
+    distribution certbot_ubuntu_release
     arch 'amd64'
     key '8C47BE8E75BCA694'
     keyserver 'keyserver.ubuntu.com'
