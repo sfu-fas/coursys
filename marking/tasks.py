@@ -2,6 +2,7 @@ from coredata.models import CourseOffering
 from marking.models import copy_setup_pages
 from celery.task import task
 
+
 @task(queue='fast')
 def copy_setup_pages_task(copy_from_slug, copy_to_slug):
     """
