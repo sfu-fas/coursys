@@ -503,11 +503,13 @@ def copy_setup_activities(course_copy_from, course_copy_to):
 
         # copy Activities (and related content)
         all_activities = all_activities_filter(offering=course_copy_from)
+        old_to_new = {}
 
         for activity in all_activities:
             Class = activity.__class__
             new_activity = copy_activity(activity, course_copy_from, course_copy_to)
             save_copied_activity(new_activity, Class, course_copy_to)
+            old_to_new[activity.id] = new_activity.id
 
             # should only apply to NumericActivity: others have no ActivityComponents
             for activity_component in ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False):
@@ -559,6 +561,8 @@ def copy_setup_activities(course_copy_from, course_copy_to):
                 activity.exam_activity = a
 
             activity.save()
+
+        return old_to_new
 
 
 def copy_setup_pages(course_copy_from, course_copy_to):
@@ -643,11 +647,13 @@ def copyCourseSetup(course_copy_from, course_copy_to, redirect_pages):
     copy numeric activities with their marking components, common problems and submission components
     """
     from marking.tasks import copy_setup_pages_task
+    from quizzes.models import copy_quizzes
     with django.db.transaction.atomic():
         course_copy_from.config['redirect_pages'] = redirect_pages
         course_copy_from.save()
         copy_setup_base(course_copy_from, course_copy_to)
-        copy_setup_activities(course_copy_from, course_copy_to)
+        old_to_new = copy_setup_activities(course_copy_from, course_copy_to)
+        copy_quizzes(old_to_new)
         # copy pages asynchronously, since it can be slow with many pages.
         copy_setup_pages_task.delay(course_copy_from.slug, course_copy_to.slug)
 

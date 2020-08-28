@@ -1,5 +1,4 @@
 # TODO: delete Quiz?
-# TODO: "copy course setup" should also copy quizzes
 # TODO: let instructor select "one question at a time, no backtracking" presentation
 # TODO: export of submission history?
 import base64
@@ -25,7 +24,7 @@ from django.utils.functional import cached_property
 from django.utils.safestring import SafeText
 from ipware import get_client_ip
 
-from coredata.models import Member
+from coredata.models import Member, CourseOffering
 from courselib.conditional_save import ConditionalSaveMixin
 from courselib.json_fields import JSONField, config_property
 from courselib.markup import markup_to_html
@@ -853,3 +852,49 @@ class TimeSpecialCase(models.Model):
 
     class Meta:
         unique_together = [['quiz', 'student']]
+
+
+def copy_quizzes(old_to_new: Dict[int, int]) -> None:
+    """
+    Copy quiz setup from one offering to another.
+    old_to_new is a map of all old_offering.activity.id -> new_offering.activity.id values.
+    """
+    relevant_activities = Activity.objects.filter(id__in=old_to_new.values())
+    activity_map = {a.id: a for a in relevant_activities}
+    quizzes = Quiz.objects.filter(activity__id__in=old_to_new.keys()).select_related('activity__offering__semester')
+    for old_q in quizzes:
+        old_a = old_q.activity
+        old_o = old_a.offering
+        new_a = activity_map[old_to_new[old_a.id]]
+        new_o = new_a.offering
+        old_questions = Question.objects.filter(quiz=old_q)
+
+        new_q = old_q
+        new_q.id = None
+        new_q.pk = None
+        new_q.activity = new_a
+        del new_q.config['secret']  # force new secret generation on .save()
+
+        # map .start and .end to new semester
+        week, wkday = old_o.semester.week_weekday(old_q.start)
+        new_q.start = new_o.semester.duedate(week, wkday, old_q.start)
+        week, wkday = old_o.semester.week_weekday(old_q.end)
+        new_q.end = new_o.semester.duedate(week, wkday, old_q.end)
+
+        new_q.save()
+
+        for old_quest in old_questions:
+            old_versions = QuestionVersion.objects.filter(question=old_quest)
+            new_quest = old_quest
+            new_quest.id = None
+            new_quest.pk = None
+            new_quest.quiz = new_q
+            new_quest.save()
+
+            for old_v in old_versions:
+                new_v = old_v
+                new_v.id = None
+                new_v.pk = None
+                new_v.question = new_quest
+                new_v.save()
+
