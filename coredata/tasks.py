@@ -31,7 +31,7 @@ def ping(): # used to check that celery is alive
 
 # a periodic job that has enough of an effect that we can see celerybeat working
 # (checked by ping_celery management command)
-@periodic_task(run_every=crontab(minute='*', hour='*'))
+@periodic_task(run_every=crontab(minute='*/5', hour='*'))
 def beat_test():
     set_beat_time()
 
