@@ -1,4 +1,4 @@
-ubuntu_mirror = 'http://mirror.it.ubc.ca/ubuntu/'
+ubuntu_mirror = 'http://mirror.rcg.sfu.ca/ubuntu/'
 ubuntu_release = `lsb_release -c`.split("\t")[1].strip
 coursys_dir = node['coursys_dir'] || '/coursys'
 coursys_repo = node['coursys_repo'] || 'https://github.com/sfu-fas/coursys.git'
@@ -11,6 +11,7 @@ python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.majo
 python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
 data_root = '/opt'
 certbot_ubuntu_release = 'disco' # should be ubuntu_release, but disco is newest
+ip_address = node['ip_address'] || '127.0.0.1'
 
 raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
 
@@ -247,7 +248,7 @@ if deploy_mode == 'proddev'
       :data_root => data_root,
       :domain_name => domain_name,
       :https_port => '8443',
-      :ip_address => '127.0.0.1',
+      :ip_address => ip_address,
     )
     notifies :restart, 'service[nginx]', :immediately
   end
@@ -261,7 +262,21 @@ if deploy_mode == 'demo'
       :data_root => data_root,
       :domain_name => domain_name,
       :https_port => '443',
-      :ip_address => '127.0.0.1',
+      :ip_address => ip_address,
+    )
+    notifies :restart, 'service[nginx]', :immediately
+  end
+end
+if deploy_mode == 'production'
+  # production nginx config
+  template "/etc/nginx/sites-available/default" do
+    source 'nginx-production.conf.erb'
+    variables(
+      :coursys_dir => coursys_dir,
+      :data_root => data_root,
+      :domain_name => domain_name,
+      :https_port => '443',
+      :ip_address => ip_address,
     )
     notifies :restart, 'service[nginx]', :immediately
   end

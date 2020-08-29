@@ -1,0 +1,8 @@
+{
+  "username": "coursys",
+  "deploy_mode": "production",
+  "external_hostname": "coursys-test.cmpt.sfu.ca",
+  "coursys_branch": "deployed-2020",
+  "run_list": ["coursys"],
+  "ip_address": "142.58.23.2"
+}
