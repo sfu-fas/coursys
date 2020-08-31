@@ -262,7 +262,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
         },
     }
     HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
-    DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', '/home/coursys/db_backup')
+    DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', os.path.join(os.environ.get('COURSYS_DATA_ROOT', '.'), 'db_backup'))
 
 else:
     CACHES = { 'default': {
@@ -294,7 +294,7 @@ if DEPLOY_MODE == 'production':
     SUBMISSION_PATH = '/data/submitted_files'
     BASE_ABS_URL = "https://coursys.sfu.ca"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
-    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS'),
+    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS', ''),
             'db': 'coursesvn', 'port': 4000}
 
 else:

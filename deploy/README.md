@@ -41,14 +41,17 @@ git clone -b deployed-2020 https://github.com/sfu-fas/coursys.git
 cd coursys
 # check ./deploy/solo.rb and ./deploy/run-list-production.json
 sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list-production.json
-
-
-sudo su coursys
+# rm -rf ~/coursys # probably: it's in /coursys now 
+sudo certbot --nginx certonly
 ```
 
-Then as the `coursys` user:
+To bootstrap the SSL certificates, either copy appropriate certs from /etc/letsencrypt/live/
+or comment-out the SSL server in /etc/nginx/sites-enabled/default and `sudo certbot --nginx certonly`.
+
+Check local settings:
 ```sh
-
-
-
+sudo nano -w /coursys/courses/localsettings.py
+sudo nano -w /coursys/courses/secrets.py
 ```
+
+TODO: disable coursys user password; coursys user sudo only service restarts; SSH cert only

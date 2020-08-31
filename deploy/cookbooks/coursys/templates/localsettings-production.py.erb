@@ -1,0 +1,10 @@
+DEPLOY_MODE="production"
+#DO_IMPORTING_HERE = True
+
+import os
+MOSS_DISTRIBUTION_PATH = os.path.join(os.environ['HOME'], 'moss')
+
+DB_BACKUP_DIR = os.path.join(os.environ['COURSYS_DATA_ROOT'], 'db_backup')
+SUBMISSION_PATH = '/data'
+
+MORE_ALLOWED_HOSTS = ['coursys-test.cmpt.sfu.ca']

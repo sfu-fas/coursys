@@ -1,4 +1,4 @@
-ubuntu_mirror = 'http://mirror.rcg.sfu.ca/ubuntu/'
+ubuntu_mirror = 'https://mirror.rcg.sfu.ca/mirror/ubuntu/'
 ubuntu_release = `lsb_release -c`.split("\t")[1].strip
 coursys_dir = node['coursys_dir'] || '/coursys'
 coursys_repo = node['coursys_repo'] || 'https://github.com/sfu-fas/coursys.git'

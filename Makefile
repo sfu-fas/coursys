@@ -24,15 +24,33 @@ proddev-stop-all:
 proddev-rm-all:
 	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml rm
 
+start-all:
+	sudo systemctl start nginx
+	docker-compose up -d
+	sudo systemctl start gunicorn
+	sudo systemctl start celery
+	sudo systemctl start celerybeat
+restart-all:
+	docker-compose restart
+	sudo systemctl restart gunicorn
+	sudo systemctl restart celery
+	sudo systemctl restart celerybeat
+	sudo systemctl restart nginx
+
 new-code:
 	sudo systemctl reload gunicorn
 	sudo systemctl reload celery
 	sudo systemctl restart celerybeat
 
 new-code-static:
-	cd ${COURSYS_DIR} && npm install
-	cd ${COURSYS_DIR} && python3 manage.py collectstatic --no-input
+	npm install
+	python3 manage.py collectstatic --no-input
 	make new-code
+
+migrate-safe:
+	python3 manage.py backup_db
+	python3 manage.py migrate
+	python3 manage.py backup_db
 
 rebuild:
 	sudo apt update && sudo apt upgrade
@@ -41,10 +59,12 @@ rebuild:
 	cd ${COURSYS_DIR} && python3 manage.py collectstatic --no-input
 
 rebuild-hardcore:
-	touch ${COURSYS_DIR}/503
+	sudo systemctl daemon-reload
 	sudo systemctl stop ntp && sudo ntpdate pool.ntp.org && sudo systemctl start ntp
-	cd ${COURSYS_DIR} && docker-compose pull && docker-compose restart
-	docker system prune -f
+	cd ${COURSYS_DIR} && docker-compose pull
+	touch ${COURSYS_DIR}/503
+	cd ${COURSYS_DIR} && docker-compose restart
 	rm -rf ${COURSYS_STATIC_DIR}/static
 	make rebuild
 	rm ${COURSYS_DIR}/503
+	docker system prune -f
