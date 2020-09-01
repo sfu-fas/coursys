@@ -12,6 +12,7 @@ python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
 data_root = '/opt'
 certbot_ubuntu_release = 'disco' # should be ubuntu_release, but disco is newest
 ip_address = node['ip_address'] || '127.0.0.1'
+rabbitmq_password = node['rabbitmq_password'] || 'supersecretpassword'
 
 raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
 
@@ -55,6 +56,7 @@ template '/etc/profile.d/coursys-environment.sh' do
     :coursys_dir => coursys_dir,
     :deploy_mode => deploy_mode == 'demo' ? 'proddev' : deploy_mode,
     :data_root => data_root,
+    :rabbitmq_password => rabbitmq_password,
   )
 end
 
