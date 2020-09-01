@@ -63,9 +63,9 @@ STATUS_CHOICES = [
 
 REVIEW_CHOICES = [
     ('none', 'may not review quizzes'),
-    ('marks', 'may review marks, comments, and marking notes; not the questions or their answers'),
-    ('answers', 'may review their answers, marks, comments, and marking notes; not the questions'),
-    ('all', 'may review questions, their answers, marks, comments, and marking notes'),
+    ('marks', 'may review marks, comments, and review notes; not the questions or their answers'),
+    ('answers', 'may review their answers, marks, comments, and review notes; not the questions'),
+    ('all', 'may review questions, their answers, marks, comments, and review notes'),
 ]
 
 
