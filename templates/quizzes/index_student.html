@@ -73,7 +73,7 @@ $(document).ready(function() {
         You can click &ldquo;submit&rdquo; at the bottom of the page and continue to work on your answers; whatever
         is in your last submission will be marked.</p>
 
-    <form action="" method="post" enctype="multipart/form-data" class="quiz" autocomplete="off">{% csrf_token %}
+    <form action="" method="post" enctype="multipart/form-data" class="quiz close-warn" autocomplete="off">{% csrf_token %}
 
     {% if quiz.honour_code %}
     <section id="honour-code">
