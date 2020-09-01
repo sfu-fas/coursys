@@ -37,7 +37,7 @@
     <li class="current"><a href="{% url "offering:marking:manage_activity_components" course_slug=course.slug activity_slug=activity.slug %}">Edit Components Content</a></li>  
     <li><a href="{% url "offering:marking:manage_component_positions" course_slug=course.slug activity_slug=activity.slug %}">Edit Components Order</a></li>  
 </ul>
-<form action="" method="post" class="subtle">{% csrf_token %}
+<form action="" method="post" class="subtle close-warn">{% csrf_token %}
      <div class="datatable_container"> 
      {{ formset.management_form }} 
       <table class="display" id="activity_components">

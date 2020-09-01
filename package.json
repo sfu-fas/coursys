@@ -10,6 +10,7 @@
     "fingerprintjs2": "^2.1.2",
     "fullcalendar": "^3.10.2",
     "jquery": "^3.5.1",
+    "jquery.are-you-sure": "^1.9.0",
     "mathjax": "^2.7.9",
     "moment": "^2.27.0",
     "styled-notifications": "^1.0.3",

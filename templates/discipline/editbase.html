@@ -6,6 +6,10 @@
 <script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}js/discipline.js"></script>
 <script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('form[method=post]').areYouSure();
+});
+
 var templates = {{templatesJSON}};
 var groupmembers = {{groupmembersJSON}};
 var hasRelAct = {{hasRelAct|lower}};

@@ -25,7 +25,7 @@ $(document).ready(function(){
 {% block content %}
 
 
-<form action="{% url "offering:copy_course_setup" course_slug=course.slug %}?copy_from={{source_course.slug}}" method="post">{% csrf_token %}
+<form action="{% url "offering:copy_course_setup" course_slug=course.slug %}?copy_from={{source_course.slug}}" method="post" class="close-warn">{% csrf_token %}
 
 {% if source_pages %}
 <p>These course pages will be copied:</p>

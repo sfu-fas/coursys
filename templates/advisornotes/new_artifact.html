@@ -11,7 +11,7 @@
 
 {% block content %}
 <div class="form_container">
-    <form action="{% url "advising:new_artifact" %}" method="post">
+    <form action="{% url "advising:new_artifact" %}" method="post" class="close-warn">
         {% csrf_token %}
             {{ form|as_dl }}
             <p><input type="submit" class="submit" value="Create" /></p>

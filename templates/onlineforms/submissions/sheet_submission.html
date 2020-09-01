@@ -40,9 +40,9 @@
             {% if sheet %}
                 <div class="form_container">
                 {% if form.is_multipart %}
-                    <form enctype="multipart/form-data" action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post">
+                    <form enctype="multipart/form-data" action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post" class="close-warn">
                 {% else %}
-                    <form action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post">
+                    <form action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post" class="close-warn">
                 {% endif %}
                 {% csrf_token %}
                 {% if nonSFUFormFillerForm %}
