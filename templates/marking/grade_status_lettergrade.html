@@ -42,7 +42,7 @@
 	    </tr> 
 	</tbody>
 	</table>
-    <form action="" method="post">{% csrf_token %}
+    <form action="" method="post" class="close-warn">{% csrf_token %}
 	    <fieldset>
 		 {{status_form|as_dl}}
          <p><input class="submit" type="submit" value="Save" /></p>

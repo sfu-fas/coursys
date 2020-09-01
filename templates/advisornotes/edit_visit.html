@@ -22,9 +22,9 @@ $(document).ready(function() {
 {% block content %}
     Visit started {{ visit.created_at }}
     {% if admin %}
-    <form method="post" action="{% url "advising:edit_visit_admin" visit_slug=visit.slug %}">
+    <form method="post" action="{% url "advising:edit_visit_admin" visit_slug=visit.slug %}" class="close-warn">
     {% else %}
-    <form method="post" action="{% url "advising:edit_visit_subsequent" visit_slug=visit.slug %}">
+    <form method="post" action="{% url "advising:edit_visit_subsequent" visit_slug=visit.slug %}" class="close-warn">
     {% endif %}
         {% csrf_token %}
         {{ form|as_dl_inline }}

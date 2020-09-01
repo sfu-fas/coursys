@@ -17,7 +17,7 @@
 
 {% block content %}
 <div class="form_container">
-    <form action="{% url "offering:discussion:edit_message" course_slug=course.slug topic_slug=topic.slug message_slug=message.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "offering:discussion:edit_message" course_slug=course.slug topic_slug=topic.slug message_slug=message.slug %}" method="post" class="close-warn">{% csrf_token %}
         <fieldset>
             <legend>Edit Discussion Reply</legend>
                 {{ form|as_dl_safe }}

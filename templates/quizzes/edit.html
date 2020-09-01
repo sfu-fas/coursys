@@ -42,7 +42,7 @@
     A grace period &gt;0 is recommended to avoid student answers being discarded because of network delays, misaligned clocks, etc.
 </p>
 
-<form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+<form action="" method="post" enctype="multipart/form-data" class="close-warn">{% csrf_token %}
 {{form|as_dl}}
 <p><input class="submit" type="submit" value="{% if quiz %}Update{% else %}Create{% endif %}" /></p>
 </form>

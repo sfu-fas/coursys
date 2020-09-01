@@ -37,7 +37,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-    <form action="" method="post" enctype="multipart/form-data" class="marking">{% csrf_token %}
+    <form action="" method="post" enctype="multipart/form-data" class="marking close-warn">{% csrf_token %}
     {% for v,f,a,n_versions in version_form_answers %}
         <h2 id="{{ v.question.ident }}" style="clear:right;">Question #{{ forloop.counter }}</h2>
 

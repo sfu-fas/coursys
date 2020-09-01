@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<form action="{% url 'advising:edit_category' category_slug=category_slug %}" method="post">
+<form action="{% url 'advising:edit_category' category_slug=category_slug %}" method="post" class="close-warn">
     {% csrf_token %}
     {{ form|as_dl }}
     <p>

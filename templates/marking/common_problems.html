@@ -11,7 +11,7 @@
 
 {% block content %}
 
-<form action="" class="subtle" method="post">{% csrf_token %}
+<form action="" class="subtle close-warn" method="post">{% csrf_token %}
        {{ formset.management_form }}
        <table class="display" id="common_problems">
         <thead class="form_head">

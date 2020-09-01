@@ -50,7 +50,7 @@ $(document).ready(function() {
     {% endfor %}
     </ul>
     {% endif %}
-<form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+<form action="" method="post" enctype="multipart/form-data" class="close-warn">{% csrf_token %}
 	 {% for entry in component_data %}
 	     <fieldset class="marking">
 	     <legend>{{entry.component.title}}</legend> 

@@ -54,7 +54,7 @@ $(function() {
 {% if artifact %}
 {% url "advising:new_artifact_note" artifact_slug=related.slug %}
 {% endif %}
-" enctype="multipart/form-data" method="post">
+" enctype="multipart/form-data" method="post" class="close-warn">
 {% endspaceless %}
 {% csrf_token %}
 {{ form|as_dl }}

@@ -22,7 +22,7 @@ Macro names (before the colon) cannot contain spaces; replacements (after the co
 </div>
 {% endif %}
 
-<form action="{% if url %}{{url}}{% endif %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+<form action="{% if url %}{{url}}{% endif %}" method="post" enctype="multipart/form-data" class="close-warn">{% csrf_token %}
 {{form|as_dl_safe}}
 <p><input class="submit" type="submit" value="{% if page %}Update {{kind}}{% else %}Create {{kind}}{% endif %}" /></p>
 </form>
