@@ -33,7 +33,7 @@ from quizzes.models import Quiz, QUESTION_TYPE_CHOICES, QUESTION_HELPER_CLASSES,
 @requires_course_by_slug
 def index(request: HttpRequest, course_slug: str, activity_slug: str) -> HttpResponse:
     role = request.member.role
-    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    offering = get_object_or_404(CourseOffering.objects.select_related('semester'), slug=course_slug)
     activity = get_object_or_404(Activity, slug=activity_slug, offering=offering, group=False)
 
     if role in ['INST', 'TA']:
@@ -251,6 +251,12 @@ def _student_review(request: HttpRequest, offering: CourseOffering, activity: Ac
     answer_lookup = {a.question_id: a for a in answers}
     version_answers = [(v, answer_lookup.get(v.question.id, None), mark_lookup.get(v.question_id, None)) for v in versions]
     total_marks = sum(q.points for q in questions)
+
+    # downgrade quiz visibility after the semester
+    today = datetime.date.today()
+    review_cutoff = offering.semester.end + datetime.timedelta(days=30)
+    if today > review_cutoff and quiz.review in ['answers', 'all']:
+        quiz.review = 'marks'
 
     context = {
         'offering': offering,
