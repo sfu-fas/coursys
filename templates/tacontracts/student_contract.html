@@ -293,6 +293,10 @@ $(document).ready(function() {
         <p>
             You will still need to sign a printed copy of the contract.
         </p>
+        <a href="{% url "tacontracts:ta_print_contract" semester=semester contract_slug=contract.slug %}">
+            <b>Print Contract</b>
+        </a>
+
     </form>
     {% endif %}
 {% endif %}

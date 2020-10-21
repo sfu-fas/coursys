@@ -756,6 +756,20 @@ def reject_contract(request, semester, contract_slug):
                                         kwargs={'semester':semester}))
 
 
+@login_required
+def ta_print_contract(request, semester, contract_slug):  
+    contract = get_object_or_404(TAContract,
+                                 category__hiring_semester__semester__name=semester,
+                                 person__userid=request.user.username,
+                                 slug=contract_slug)
+
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % \
+                                        (contract.slug, request.user.username)
+    tacontract_form(contract, response)
+    return response
+
+
 @requires_role(["TAAD", "GRAD"])
 def contracts_csv(request, unit_slug, semester):
     hiring_semester = get_object_or_404(HiringSemester, 
