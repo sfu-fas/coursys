@@ -193,13 +193,14 @@ class MultipleSelectField(FieldBase):
 
         the_choices = [(k, v) for k, v in self.config.items() if k.startswith("choice_") and self.config[k]]
         the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
+        the_choices = dict(the_choices)
 
         initial = []
 
         if fieldsubmission:
             initial = fieldsubmission.data['info']
 
-        display_values = [dict(the_choices)[str(i)] for i in initial]
+        display_values = [the_choices[str(i)] for i in initial if str(i) in the_choices]
 
         if display_values:
             output = '<ul>'

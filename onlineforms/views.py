@@ -178,6 +178,9 @@ def toggle_group_member(request, formgroup_slug, userid):
 def admin_list_all(request):
     admin = get_object_or_404(Person, userid=request.user.username)
     form_groups = FormGroup.objects.filter(members=admin)
+    pend_submissions = []
+    wait_submissions = []
+    unsubmitted_forms = []
     if form_groups:
         pend_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='PEND') \
                 .annotate(last_sheet_dt=Max('sheetsubmission__completed_at')) \
