@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block headextra %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/ra_application.js"></script>
+<link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
+<li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View RA Request for {{ req.get_name }}</a></li>
+<li>Update Admin Notes</li>
+{% endblock %}
+
+{% block title %}Update Admin Notes for {{ req.get_name }}'s RA Request{% endblock %}
+{% block h1 %}
+Update Admin Notes for {{ req.get_name }}'s RA Request
+{% endblock %}
+
+{% block content %}
+  <div class="form_container">
+    <form action="{% url "ra:edit_request_notes" ra_slug=req.slug %}" method="POST">{% csrf_token %}
+      <fieldset>
+        {{ noteform|as_dl_includefields:"admin_notes" }}
+        <p><input type="submit" class="submit" value="Submit" /></p>
+      </fieldset>
+    </form>  
+  </div>
+{% endblock %}

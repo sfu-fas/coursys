@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block title %}
+  RA Request for {{ req.get_name }}
+{% endblock %}
+
+{% block h1 %}
+  RA Request for {{ req.get_name }}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
+<li>View RA Request for {{ req.get_name }}</li>
+{% endblock %}
+
+{% block actions %}
+  <div id="actions">
+    <h2>Actions</h2>
+    <ul>
+      <li><a href="{% url "ra:edit_request" ra_slug=req.slug %}">Edit this Request</a></li>
+    </ul>
+  </div>
+{% endblock %}
+
+{%block content%}
+<div class="table_container">
+  <table class="info">
+    <tr><th>Submission Author:</th><td>{{ author.first_name }} {{ author.last_name }} ({{ author.email_mailto }})</td></tr>
+    <tr><th>Submission Date:</th><td>{{ req.created_at }}</td></tr>
+    </tr></td>
+  </table>
+</div>
+
+<div class="table_container">
+  <h2>Appointee Information</h2>
+  <table class="info">
+    {% if no_id %}
+    <tr><th>ID:</th><td>Appointee does not have an SFU ID</td></tr>
+    <tr><th>First Name:</th><td>{{ req.first_name }}</td></tr>
+    <tr><th>Last Name:</th><td>{{ req.last_name }}</td></tr>
+    <tr><th>Email:</th><td>{{ req.email_address }}</td></tr>
+    {% else %}
+    <tr><th>ID:</th><td>{{ person.emplid }}</td></tr>
+    <tr><th>First Name:</th><td>{{ person.first_name }}</td></tr>
+    <tr><th>Last Name:</th><td>{{ person.last_name }}</td></tr>
+    <tr><th>Email:</th><td>{{ person.email_mailto }}</td></tr>
+    {% endif %}
+    <tr><th>Student Type:</th><td>{{ req.get_student_display }}</td></tr>
+    {% if not nonstudent %}
+    <tr><th>Is Co-Op:</th><td>{{ req.get_coop_display }}</td></tr>
+    <tr><th>Funded by Mitacs:</th><td>{{ req.get_mitacs_display }}</td></tr>
+    {% endif %}
+    {% if thesis %}
+      <tr><th>For Thesis:</th><td>{{ req.get_thesis_display }}</td></tr>
+    {% endif %}
+  </table>
+</div>
+
+<div class="table_container">
+  <h2>Supervisor Information</h2>
+  <table class="info">
+    <tr><th>ID:</th><td>{{ supervisor.emplid }}</td></tr>
+    <tr><th>First Name:</th><td>{{ supervisor.first_name }}</td></tr>
+    <tr><th>Last Name:</th><td>{{ supervisor.last_name }}</td></tr>
+    <tr><th>Email:</th><td>{{ supervisor.email_mailto }}</td></tr>
+    </tr></td>
+  </table>
+</div>
+
+{% if req.comments %}
+<div class="table_container">
+  <h2>Additional Info</h2>
+  <table class="info">
+  <tr><th>Comments:</th><td>{{ req.comments }}</td></tr>
+  </table>    
+</div>
+{% endif %}
+
+<div class="table_container">
+  <h2>Hiring Category</h2>
+  <table class="info">
+    <tr><th>Category:</th><td>{{ req.get_hiring_category_display }}</td></tr>
+  </table>
+</div>
+
+<div class="table_container">
+  <h2>Funding Sources</h2>
+  {% if not req.fs2_option %}
+  <h3>Single Funding Source</h3>
+  {% else %}
+  <h3>Funding Source #1</h3>
+  {% endif %}
+  <table class="info">
+    <tr><th>Unit:</th><td>{{ req.fs1_unit }}</td></tr>
+    <tr><th>Project:</th><td>{{ req.fs1_project }}</td></tr>
+  </table>
+</div>
+
+{% if req.fs2_option %}
+<div class="table_container">
+  <h3>Funding Source #2 (If Selected)</h3>
+  <table class="info">
+    <tr><th>Unit:</th><td>{{ req.fs2_unit }}</td></tr>
+    <tr><th>Project:</th><td>{{ req.fs2_project }}</td></tr>
+  </table>
+</div>
+{% endif %}
+
+<div class="table_container">
+  <h2>Payment Terms</h2>
+  <table class="info">
+    <tr><th>Start Date:</th><td>{{ req.start_date }}</td></tr>
+    <tr><th>End Date:</th><td>{{ req.end_date }}</td></tr>
+
+    {% if not research_assistant %}
+    <tr><th>GRAS Payment Method:</th><td>{{ req.get_gras_payment_method_display }}</td></tr>
+    {% endif %}
+    {% if research_assistant %}
+    <tr><th>RA Payment Method:</th><td>{{ req.get_ra_payment_method_display }}</td></tr>
+    {% endif %}
+
+    {% if gras_lump or ra_bw %}
+    <tr><th>Total Gross:</th><td>$ {{ req.total_gross }}</td></tr>
+    {% endif %}
+    {% if ra_hourly %}
+    <tr><th>Gross Hourly:</th><td>$ {{ req.gross_hourly }}</td></tr>
+    {% endif %}
+    {% if gras_lump or gras_bw or ra_bw %}
+    <tr><th>Days Vacation:</th><td>{{ req.days_vacation }} days</td></tr>
+    {% endif %}
+    {% if ra_hourly %}
+    <tr><th>Vacation Pay (%):</th><td>% {{ req.vacation_pay }}</td></tr>
+    {% endif %}
+    {% if gras_bw %}
+    <tr><th>Bi-Weekly Pay:</th><td>$ {{ req.biweekly_pay }}</td></tr>
+    {% endif %}
+    <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours }} hours</td></tr>
+    <tr><th>Total Pay:</th><td>$ {{ req.total_pay}}</td></tr>
+  </table>
+</div>
+
+<div class="table_container">
+  <h2>Attachments/Funding Comments</h2>
+    <table class="info">
+      {% if req.file_attachment_1 or req.file_attachment_2 %}
+        {% if req.file_attachment_1 %}
+          <tr><th>Attachment #1:</th><td>
+            <a href="{% url 'ra:view_request_attachment_1' ra_slug=req.slug %}">View</a> |
+            <a href="{% url 'ra:download_request_attachment_1' ra_slug=req.slug %}">Download</a>
+            ({{ req.file_attachment_1.file.size|filesizeformat }})
+          </td></tr>      
+        {% endif %}
+        {% if req.file_attachment_2 %}
+          <tr><th>Attachment #2:</th><td>
+            <a href="{% url 'ra:view_request_attachment_2' ra_slug=req.slug %}">View</a> |
+            <a href="{% url 'ra:download_request_attachment_2' ra_slug=req.slug %}">Download</a>
+            ({{ req.file_attachment_2.file.size|filesizeformat }})
+          </td></tr> 
+        {% endif %}
+      {% else %}
+        <tr><td>No additional documents.</td></tr>
+      {% endif %}
+    </table>
+</div>
+
+<div class="table_container">
+  <table class="info">
+    <tr><th>Funding Comments:</th><td>
+      {% if req.funding_comments %}
+        {{ req.funding_comments }}
+      {% else %}
+        No additional funding comments.
+      {% endif %}
+    </td></tr>
+  </table>
+</div>
+
+{% if research_assistant %}
+<div class="table_container">
+  <h2>Duties/Benefits</h2>
+  <table class="info">
+    <tr><td>
+      <ul>
+          {% if req.duties_list or req.ra_other_duties %}
+            {% if req.duties_list %}
+              {% for duty in req.duties_list %}
+                <li>{{ duty }}</li>
+              {% endfor %}
+            {% endif %}
+            {% if req.ra_other_duties %}
+              <li>{{ req.ra_other_duties }}</li>
+            {% endif %}
+          {% else %}
+            No duties selected.
+          {% endif %}
+      </ul>
+    </td></tr>
+  </table>
+  <table class="info">
+    <th>Benefits:</th><td>{{ req.get_ra_benefits_display }}</td></tr>
+  </table>
+</div>
+{% endif %}
+
+<div class="table_container">
+<h2>Admin Notes</h2>
+  <table class="info"><tr><td>
+  {% if req.admin_notes %}
+    {{ req.admin_notes }}
+  {% else %}
+    Notes are empty.
+  {% endif %}<br>
+  (<a href="{% url 'ra:edit_request_notes' ra_slug=req.slug %}">Edit Note</a>)
+  </td></tr></table>
+</div>
+
+<h2>Admin Actions</h2>
+
+<form action="{% url "ra:delete_request" ra_slug=req.slug %}" method="post">
+  {% csrf_token %}
+  <p class="actionbutton">
+      <input type="submit" class="submit confirm-submit" value="Delete Request" data-submit-action="delete this request" />
+  </p>
+</form>
+
+{%endblock content%}
