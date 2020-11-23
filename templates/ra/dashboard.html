@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block title %}RA Request Dashboard{% endblock %}
+{% block h1 %}RA Request Dashboard{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('#reqs').dataTable( {
+    'bPaginate': false,
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']],
+    } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ra:search" %}">RAs</a></li>
+<li>Dashboard</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "ra:new_request" %}">New RA Request</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="datatable_container">
+  <table id="reqs" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Appointee</th>
+        <th scope="col">Supervisor</th>
+        <th scope="col">Hiring Category</th>
+        <th scope="col">Start Date</th>
+        <th scope="col">End Date</th>
+        <th scope="col">Created At</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in reqs %}
+        <tr>
+          <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">
+            {{ req.get_name }}
+          </a></td>
+          <td>{{ req.supervisor }}</td>
+          <td>{{ req.hiring_category }}</td>
+          <td>{{ req.start_date }}</td>
+          <td>{{ req.end_date }}</td>
+          <td>{{ req.created_at }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,9 +1,226 @@
 from django import forms
 from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED, RAAppointmentAttachment, Program
+from ra.models import RARequest, DUTIES_CHOICES_EX, DUTIES_CHOICES_DC, DUTIES_CHOICES_PD, DUTIES_CHOICES_IM, DUTIES_CHOICES_EQ
+from ra.models import DUTIES_CHOICES_SU, DUTIES_CHOICES_WR, DUTIES_CHOICES_PM
+from django.core.exceptions import ValidationError
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
+import ast
+
+class RequestAdminNoteForm(forms.ModelForm):
+    class Meta:
+        model = RARequest
+        fields = ('admin_notes',)
+
+class RARequestForm(forms.ModelForm):
+    person = PersonField(label='Appointee')
+    supervisor = PersonField(label='Supervisor')
+    ra_duties_ex = forms.MultipleChoiceField(choices=DUTIES_CHOICES_EX, widget=forms.CheckboxSelectMultiple,
+                                             label="Experimental/Research Activities")
+    ra_duties_dc = forms.MultipleChoiceField(choices=DUTIES_CHOICES_DC, widget=forms.CheckboxSelectMultiple,
+                                             label="Data Collection/Analysis")
+    ra_duties_pd = forms.MultipleChoiceField(choices=DUTIES_CHOICES_PD, widget=forms.CheckboxSelectMultiple,
+                                             label="Project Development")
+    ra_duties_im = forms.MultipleChoiceField(choices=DUTIES_CHOICES_IM, widget=forms.CheckboxSelectMultiple,
+                                             label="Information Management")
+    ra_duties_eq = forms.MultipleChoiceField(choices=DUTIES_CHOICES_EQ, widget=forms.CheckboxSelectMultiple,
+                                             label="Equipment/Inventory Management and Development")
+    ra_duties_su = forms.MultipleChoiceField(choices=DUTIES_CHOICES_SU, widget=forms.CheckboxSelectMultiple,
+                                             label="Supervision")
+    ra_duties_wr = forms.MultipleChoiceField(choices=DUTIES_CHOICES_WR, widget=forms.CheckboxSelectMultiple,
+                                             label="Writing/Reporting")
+    ra_duties_pm = forms.MultipleChoiceField(choices=DUTIES_CHOICES_PM, widget=forms.CheckboxSelectMultiple,
+                                             label="Project Management")    
+
+    class Meta:
+        model = RARequest
+        exclude = ('config','deleted',) 
+        labels = {
+            'student': "Is the appointee a student?",
+            'first_name': "Appointee First Name",
+            'last_name': "Appointee Last Name",
+            'email_address': "Appointee Email Address",
+            'nonstudent': "Select if appointee does not have an ID",
+            'thesis': "Is the appointment for the student's thesis/project?",
+            'coop': "Is the appointee a co-op student?",
+            'mitacs': "Is the appointee's co-op funded by a Mitacs scholarship in their own name?",
+            'people_comments': "Any comments about the Appointee or Hiring Supervisor?",
+            'fs1_unit': "Department #1",
+            'fs1_fund': "Fund #1",
+            'fs1_project': "Project #1",
+            'fs2_option': "Please select the following if there is an additional funding source",
+            'fs2_unit': "Department #2",
+            'fs2_fund': "Fund #2",
+            'fs2_project': "Project #2",
+            'start_date': "Date Appointment Begins",
+            'end_date': "Date Appointment Ends",
+            'gras_payment_method': "Scholarship (No added benefit & vacation cost)",
+            'ra_payment_method': "Please select from the following",
+            'biweekly_hours': "Bi-Weekly Hours",
+            'biweekly_pay': "Gross Biweekly Pay",
+            'total_salary': "Total Salary (Excludes 10% stat benefits & 4% vacation)",
+            'days_vacation': "Days of Vacation/Year (min 2)",
+            'gross_hourly': "Gross Hourly Rate (min $14.60)",
+            'total_gross': "Total Gross Salary Paid",
+            'vacation_pay': "Vacation Pay % (min 4%)",
+            'file_attachment_1': "Supplementary Document #1",
+            'file_attachment_2': "Supplementary Document #2",
+            'funding_comments': "Any comments about funding?",
+            'ra_benefits': "Are you willing to provide extended health benefits?",
+            'ra_other_duties': "Other Duties"         
+        }
+        widgets = {
+            'student': forms.RadioSelect,
+            'thesis': forms.RadioSelect,
+            'coop': forms.RadioSelect,
+            'mitacs': forms.RadioSelect,
+            'gras_payment_method': forms.RadioSelect,
+            'ra_payment_method': forms.RadioSelect,
+            'ra_benefits': forms.RadioSelect,
+            'hiring_category': forms.HiddenInput(),
+            'total_pay': forms.HiddenInput(),
+            'funding_comments': forms.Textarea(attrs={'rows':3}),
+            'ra_other_duties': forms.Textarea(attrs={'rows':3}),
+            'people_comments': forms.Textarea(attrs={'rows':3}),
+        }
+        help_texts = {
+            'gras_payment_method' : ('Canadian bank status impacts how students will be paid. This generally applies to International' +
+            'students currently working outside of Canada, who do not have banking status in Canada. If the status is' + 
+            'unknown please confirm with the student.'),
+            'file_attachment_1': "Both of these fields are optional.",
+            'file_attachment_2': "If co-op appointment, please upload co-op forms.",
+            'fs1_unit': "CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030",
+            'fs1_fund': "Example: 11, 13, 21, 31",
+            'fs1_project': "Example: N654321, S654321, X654321, R654321. If fund 11 enter X000000",
+            'fs2_unit': "CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030",
+            'fs2_fund': "Example: 11, 13, 21, 31",
+            'fs2_project': "Example: N654321, S654321, X654321, R654321. If fund 11 enter X000000"
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(RARequestForm, self).__init__(*args, **kwargs)
+        not_required = ['person', 'nonstudent', 'first_name', 'last_name', 'email_address', 'coop', 'mitacs', 'thesis', 'people_comments',
+                    'fs2_option', 'fs2_unit', 'fs2_fund', 'fs2_project', 'ra_payment_method', 'gras_payment_method',
+                    'total_gross', 'days_vacation', 'gross_hourly', 'vacation_pay', 'file_attachment_1', 'file_attachment_2',
+                    'funding_comments', 'ra_benefits', 'ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
+                    'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_other_duties', 'admin_notes']
+        for field in not_required:
+            self.fields[field].required = False        
+    
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(RARequestForm, self).is_valid(*args, **kwargs)
+
+
+    # TODO: Make sure total pay and hiring category are calculated properly. Javascript only for now.
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        nonstudent = cleaned_data.get('nonstudent')
+        first_name = cleaned_data.get('first_name')
+        last_name = cleaned_data.get('last_name')
+        email_address = cleaned_data.get('email_address')
+        person = cleaned_data.get('person')
+
+        # TODO: Why isn't this a required field regularly? Not in the list of non-required fields.
+        if nonstudent:
+            error_message = 'If the appointee does not have an SFU ID then you must answer this question.'       
+            if first_name == None:
+                self.add_error('first_name', error_message)
+            if last_name == None:
+                self.add_error('last_name', error_message)
+            if email_address == None:
+                self.add_error('email_address', error_message)
+        else:
+            if person == None:
+                self.add_error('person', 'You must provide an SFU ID. If the appointee does not have an SFU ID, please select the checkbox below.')
+
+        if nonstudent == None and person == None:
+            raise forms.ValidationError("Cannot be a student and not have an SFU ID.")
+
+        student = cleaned_data.get('student')
+        coop = cleaned_data.get('coop')
+        mitacs = cleaned_data.get('mitacs')
+        thesis = cleaned_data.get('thesis')
+        if student == 'U' or student == 'M' or student == 'P':
+            error_message = 'If the appointee is a student then you must answer this question.'
+            if coop == None:
+                self.add_error('coop', error_message)
+            if mitacs == None:
+                self.add_error('mitacs', error_message)
+        if mitacs == False:
+            if thesis == None:
+                self.add_error('thesis', 'You must answer this question.')
+
+        fs2_option = cleaned_data.get('fs2_option')
+        fs2_unit = cleaned_data.get('fs2_unit')
+        fs2_fund = cleaned_data.get('fs2_fund')
+        fs2_project = cleaned_data.get('fs2_project')
+
+        if fs2_option:
+            error_message = 'If you have a second funding source then you must answer this question.'
+            if fs2_unit == None:
+                self.add_error('fs2_unit', error_message)
+            if fs2_fund == None:
+                self.add_error('fs2_fund', error_message)
+            if fs2_project == None:
+                self.add_error('fs2_project', error_message)
+
+        gras_payment_method = cleaned_data.get('gras_payment_method')
+        ra_payment_method = cleaned_data.get('ra_payment_method')
+        total_gross = cleaned_data.get('total_gross')
+        days_vacation = cleaned_data.get('days_vacation')
+        biweekly_pay = cleaned_data.get('biweekly_pay')
+        gross_hourly = cleaned_data.get('gross_hourly')
+        vacation_pay = cleaned_data.get('vacation_pay')
+
+        if gras_payment_method:
+            error_message = "Graduate Research Assistants must answer this question."
+            if gras_payment_method == "LS" or gras_payment_method == "LE":
+                if total_gross == 0 or total_gross == None:
+                    self.add_error('total_gross', error_message)
+                if days_vacation == 0 or days_vacation == None:
+                    self.add_error('days_vacation', error_message)
+            if gras_payment_method == "BW":
+                if biweekly_pay == 0 or biweekly_pay == None:
+                    self.add_error('biweekly_pay', error_message)
+                if days_vacation == 0 or days_vacation == None:
+                    self.add_error('days_vacation', error_message)
+            if ra_payment_method:
+                raise forms.ValidationError("Cannot be both an RA and a GRAS.")
+        
+        if ra_payment_method:
+            error_message = "Research Assistants must answer this question."
+            if ra_payment_method == "H":
+                if gross_hourly == 0 or gross_hourly == None:
+                    self.add_error('gross_hourly', error_message)
+                if vacation_pay == 0 or vacation_pay == None:
+                    self.add_error('vacation_pay', error_message)
+            if ra_payment_method == "BW":
+                if total_gross == 0 or total_gross == None:
+                    self.add_error('total_gross', error_message)
+                if days_vacation == 0 or days_vacation == None:
+                    self.add_error("days_vacation", error_message)
+            if gras_payment_method:
+                raise forms.ValidationError("Cannot be both an RA and a GRAS.")
+
+        # TODO: Why isn't this a required field regularly? Not in the list of non-required fields.
+        biweekly_hours = cleaned_data.get('biweekly_hours')
+        if biweekly_hours == 0 or biweekly_hours == None:
+            self.add_error(biweekly_hours, "You must complete this question.")
+
+        total_pay = cleaned_data.get('total_pay')
+        if total_pay == 0 or total_pay == None:
+            raise forms.ValidationError("Total pay must be calculated.")
+
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        if end_date < start_date:
+            error_message = "Start date must be before end date."
+            self.add_error('end_date', error_message)
+            self.add_error('start_date', error_message)
 
 
 class RAForm(forms.ModelForm):
@@ -11,7 +228,7 @@ class RAForm(forms.ModelForm):
     sin = forms.IntegerField(label='SIN', required=False)
     use_hourly = forms.BooleanField(label='Use Hourly Rate', initial=False, required=False,
                                     help_text='Should the hourly rate be displayed on the contract (or total hours for lump sum contracts)?')
-
+    
     class Meta:
         model = RAAppointment
         exclude = ('config','offer_letter_text','deleted')

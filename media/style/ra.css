@@ -30,3 +30,28 @@ div#programs li {
 dl.dlform dt {
   clear: none;
 }
+
+.hiring_category_rec {
+    color: rgb(100, 0, 0);
+}
+
+.form_section {
+    background-color: #eee;
+    padding-top: 10px;
+    padding-right: 15px;
+    padding-bottom: 10px;
+    padding-left: 15px;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    margin:15px;
+}
+
+.important_info {
+    background-color: rgb(251, 255, 198);
+    padding-top: 15px;
+    padding-right: 15px;
+    padding-bottom: 15px;
+    padding-left: 15px;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+}

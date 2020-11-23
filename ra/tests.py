@@ -1,6 +1,6 @@
 from django.test import TestCase
 from courselib.testing import Client, test_views
-from ra.models import RAAppointment, Account, Project
+from ra.models import RAAppointment, RARequest, Account, Project
 from django.urls import reverse
 
 
@@ -18,7 +18,11 @@ class RATest(TestCase):
                                           'new_project', 'semester_config', 'browse'], {})
         test_views(self, c, 'ra:', ['found'], {}, qs='search=grad')
 
+        test_views(self, c, 'ra:', ['dashboard', 'new_request'], {})
+
         ra = RAAppointment.objects.filter(unit__label='CMPT')[0]
+
+
         p = ra.person
         test_views(self, c, 'ra:', ['student_appointments', 'new_student'], {'userid': p.userid})
         test_views(self, c, 'ra:', ['edit', 'reappoint', 'view',], {'ra_slug': ra.slug})

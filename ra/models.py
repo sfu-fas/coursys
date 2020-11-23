@@ -13,7 +13,6 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 import datetime, os, uuid
 
-
 HIRING_CATEGORY_CHOICES = (
     ('U', 'Undergrad'),
     ('E', 'Grad Employee'),
@@ -41,6 +40,7 @@ PAY_FREQUENCY_CHOICES = (
     ('B', 'Biweekly'),
     ('L', 'Lump Sum'),
 )
+
 
 # If a RA is within SEMESTER_SLIDE days of the border
 # of a semester, it is pushed into that semester.
@@ -188,6 +188,284 @@ DEFAULT_LETTERS = {
     'POSTDOC': ('RA Letter for Post-Doc', DEFAULT_LETTER_POSTDOC_LUMPSUM, DEFAULT_LETTER_POSTDOC_BIWEEKLY),
 }   # note to self: if allowing future configuration per-unit, make sure the keys are globally-unique.
 
+
+### RA REQUEST (APPLICATIONS)
+
+BOOL_CHOICES = ((True, 'Yes'), (False, 'No'))
+
+STUDENT_TYPE = (
+    ('N', 'Appointee is NOT a student'),
+    ('U', 'Undergraduate Student'),
+    ('M', 'Masters Student'),
+    ('P', 'PhD Student')
+)
+
+REQUEST_HIRING_CATEGORY = (
+    ('GRAS', 'Graduate Research Assistant Scholarship'),
+    ('RA', 'Research Assistant')
+)
+
+GRAS_PAYMENT_METHOD_CHOICES = (
+    ('BW', 'Biweekly salary for students with Canadian bank account.'),
+    ('LE', 'Lump sum payment for students with Canadian bank account (Funds will be paid at the end of the appointment term)'),
+    ('LS', 'Lump sum payment for students without Canadian bank account (Funds will be paid at the' +
+    ' START of the appointment term to the individuals student account)')
+)
+
+RA_PAYMENT_METHOD_CHOICES = (
+    ('BW', 'Bi-weekly salary (The Appointee is entitled to a minimum of 10 vacation days a year per FTE. Vacation time will be prorated' +
+    ' based on the appointment terms. An additional 10% will be charged for statutory benefits.)'),
+    ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 10% for statutory benefits. Must submit biweekly' +
+    ' timesheets in order for the Appointee to be paid.)')
+)
+
+RA_VACATION_DAYS_CHOICES = (
+    ('2W', '2 Weeks Per Year (Legal Minimum)'),
+    ('3W', '3 Weeks Per Year'),
+    ('4W', '4 Weeks Per Year'),
+    ('5W', '5 Weeks Per Year')
+)
+
+RA_VACATION_PAY_CHOICES = (
+    ('4P', '4% (Legal Minimum)'),
+    ('5P', '5%'),
+    ('6P', '6%'),
+    ('7P', '7%'),
+    ('8P', '8%'),
+    ('9P', '9%'),
+    ('10P', '10%'),
+    ('11P', '11%'),
+    ('12P', '12%')
+)
+
+RA_BENEFITS_CHOICES = (
+    ('Y', "Yes (The cost will be shared 50/50 between employee and employer and eligibility depends on your funding source." +
+    "An additional 2% to 4% of salary costs will be added to your project. Cost depends on Appointee's dependents and family size.)"),
+    ('NE', 'No - My grant is not eligible.'),
+    ('N', 'No')
+)
+
+DUTIES_CHOICES_EX = (
+    (1, 'Assisting with setting up, conducting or running experiments or research work'),
+    (2, 'Observing, recording and/or coding data or observations of experimental results and reporting the behaviour of specimens or research participants'),
+    (3, 'Performing journal reviewer selection, preparing manuscripts for production and communicating with journal authors, reviewers, etc.'),
+    (4, 'Performing literature or archival research'),
+    (5, 'Performing surveys and/or conducting interviews'),
+    (6, 'Assisting with feed preparation and the daily maintenance and care of study organisms'),
+    (7, 'Editing and translating'),
+    (8, 'Developing processes, protocols and procedures'),
+    (9, 'Providing leadership planning and policy advice'),
+    (10, 'Assisting reporting of findings (e.g. presentation, manuscript writing, final report')
+)
+
+DUTIES_CHOICES_DC = (
+    (1, 'Assisting with/performing data collection, sampling, identification and/or preparation'),
+    (2, 'Administering forms or questionnaires and recording and/or coding data or observations'),
+    (3, 'Maintaining research related records and databases, entering data according to established protocols'),
+    (4, 'Assisting in analysing and interpreting experimental results or research data')
+)
+
+DUTIES_CHOICES_PD = (
+    (1, 'Assisting in the development of models used for research'),
+    (2, 'Assisting with the design of research projects'),
+    (3, 'Assisting in defining the overall direction and priorities of research'),
+    (4, 'Researching and determining the applicability of new technology and systems related to research project work'),
+    (5, 'Designing, modifying and performing research projects'),
+    (6, 'Developing operating protocols and safety procedures')
+)
+
+DUTIES_CHOICES_IM = (
+    (1, 'Organising research information (databases, spreadsheets, written reports, etc.)'),
+    (2, 'Assisting in the design and maintenance of research databases and project management systems'),
+    (3, 'Performing system design, prototyping and development'),
+    (4, 'Performing assigned information and web management tasks'),
+    (5, 'Managing research related social media presence')
+)
+
+DUTIES_CHOICES_EQ = (
+    (1, 'Maintaining research related inventory and distributing supplies'),
+    (2, 'Designing, machining, building and integrating specialized research project equipment'),
+    (3, 'Setting up, testing, operating and maintaining research project equipment'),
+    (4, 'Operating, maintaining and troubleshooting problems with standard equipment'),
+    (5, 'Developing Software'),
+)
+
+DUTIES_CHOICES_SU = (
+    (1, 'Overseeing the progress of projects'),
+    (2, 'Supervising, scheduling and training research staff'),
+    (3, 'Orientating new employees into routines, procedures and operation of equipment'),
+    (4, 'Making recommendations with respect to hiring and providing input into staff performance')
+)
+
+DUTIES_CHOICES_WR = (
+    (1, 'Assisting with report writing and results presentation'),
+    (2, 'Assisting PI with project compliance and ethics and grant applications'),
+    (3, 'Contributing to and/or leading policy reports and academic publications')
+)
+
+DUTIES_CHOICES_PM = (
+    (1, 'Planning and coordinating research related meetings, events and/or liaison'),
+    (2, 'Managing project schedule, resources (human, financial and physical) and/or budget and expenditures'),
+    (3, 'Overseeing laboratory, fieldwork and/or other research-related logistics'),
+    (4, 'Preparing project financial and account reconciliation reports'),
+    (5, 'Assisting in running a laboratory, performing tasks such as, purchasing supplies and minor equipment and maintaining associated accounts')
+)
+
+def ra_request_attachment_upload_to(instance, filename):
+    return upload_path('rarequestattachments', filename)
+
+class RARequest(models.Model):
+    person = models.ForeignKey(Person, related_name='rarequest_person', on_delete=models.PROTECT, null=True)
+
+    nonstudent = models.BooleanField(default=False)
+
+    # only needed if no ID for person
+    first_name = models.CharField(max_length=32, null=True, blank=True)
+    last_name = models.CharField(max_length=32, null=True, blank=True)
+    email_address = models.EmailField(max_length=80, null=True, blank=True)
+
+    # submitter is not always the same as person created the request
+    author = models.ForeignKey(Person, related_name='rarequest_author', on_delete=models.PROTECT, editable=False)
+    supervisor = models.ForeignKey(Person, related_name='rarequest_supervisor', on_delete=models.PROTECT)
+
+    # student information
+    student = models.CharField(max_length=80, default=None, choices=STUDENT_TYPE)
+    coop = models.BooleanField(choices=BOOL_CHOICES, default=None, null=True, blank=True)
+    mitacs = models.BooleanField(choices=BOOL_CHOICES, default=None, null=True, blank=True)
+    thesis = models.BooleanField(choices=BOOL_CHOICES, default=None, null=True, blank=True)
+
+    # comments about supervisor or appointee
+    people_comments = models.TextField(blank=True)
+
+    # hiring category is based on the above student information
+    hiring_category = models.CharField(max_length=80, default=None, choices=REQUEST_HIRING_CATEGORY)
+
+    # payment methods
+    gras_payment_method = models.CharField(max_length=80, default = '', choices=GRAS_PAYMENT_METHOD_CHOICES)
+    ra_payment_method = models.CharField(max_length=80, default = '', choices=RA_PAYMENT_METHOD_CHOICES)
+
+    # payment inputs
+    total_gross = models.DecimalField(max_digits=8, default=0, blank=True, null=True, decimal_places=2)
+    gross_hourly = models.DecimalField(max_digits=8, default=0, blank=True, null=True, decimal_places=2)
+    vacation_pay = models.DecimalField(max_digits=8, default=0, blank=True, null=True, decimal_places=2)
+    biweekly_pay = models.DecimalField(max_digits=8, blank=True, null=True, default=0, decimal_places=2)
+    days_vacation = models.DecimalField(max_digits=8, default=0, blank=True, null=True, decimal_places=2)
+    biweekly_hours = models.DecimalField(max_digits=8, blank=True, null=True, default=0, decimal_places=2)
+
+    # start and end dates
+    start_date = models.DateField(auto_now=False, default = datetime.date.today, auto_now_add=False)
+    end_date = models.DateField(auto_now=False, default = datetime.date.today, auto_now_add=False)
+    
+    total_pay = models.DecimalField(max_digits=8, default=0, decimal_places=2)
+
+    # funding sources
+    fs1_unit = models.CharField(max_length=80)
+    fs1_fund = models.CharField(max_length=80)
+    fs1_project = models.CharField(max_length=80)
+    fs2_option = models.BooleanField(default=False)
+    fs2_unit = models.CharField(max_length=80, null=True, blank=True)
+    fs2_fund = models.CharField(max_length=80, null=True, blank=True)
+    fs2_project = models.CharField(max_length=80, null=True, blank=True)
+
+    # file attachments
+    file_attachment_1 = models.FileField(storage=UploadedFileStorage, null=True,
+                      upload_to=ra_request_attachment_upload_to, blank=True, max_length=500)
+    file_mediatype_1 = models.CharField(null=True, blank=True, max_length=200, editable=False)
+    file_attachment_2 = models.FileField(storage=UploadedFileStorage, null=True,
+                      upload_to=ra_request_attachment_upload_to, blank=True, max_length=500)
+    file_mediatype_2 = models.CharField(null=True, blank=True, max_length=200, editable=False)
+
+    # funding comments 
+    funding_comments = models.TextField(blank=True)
+
+    # ra only options
+    ra_benefits = models.CharField(max_length=80, default='', choices=RA_BENEFITS_CHOICES)
+    ra_duties_ex = models.CharField(blank=True, null=True, max_length=500)
+    ra_duties_dc = models.CharField(blank=True, null=True, max_length=500)
+    ra_duties_pd = models.CharField(blank=True, null=True, max_length=500)
+    ra_duties_im = models.CharField(blank=True, null=True, max_length=500)
+    ra_duties_eq = models.CharField(blank=True, null=True, max_length=500)
+    ra_duties_su = models.CharField(blank=True, null=True, max_length=500)
+    ra_duties_wr = models.CharField(blank=True, null=True, max_length=500)
+    ra_duties_pm = models.CharField(blank=True, null=True, max_length=500)
+    ra_duties = models.TextField(blank=True)
+
+    ra_other_duties = models.TextField(blank=True)
+    
+    admin_notes = models.TextField(blank=True)
+
+    # creation and deletion
+    created_at = models.DateTimeField(auto_now_add=True)
+    deleted = models.BooleanField(null=False, default=False)
+    config = JSONField(null=False, blank=False, default=dict)
+
+    # slugs
+    def autoslug(self):
+        if self.nonstudent:
+            ident = self.first_name + '_' + self.last_name
+        else: 
+            if self.person:
+                if self.person.userid:
+                    ident = self.person.userid
+                else:
+                    ident = str(self.person.emplid)
+        return make_slug('request' + '-' + str(self.start_date.year) + '-' + ident)
+
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+
+    def split_duties(self, duties):
+        split = (duties).replace("[", '').replace("]", '').replace("'", '')
+        if split != '':
+            split = list(map(int, split.split(',')))
+        else:
+            split = []
+        return split
+
+    def duties_list(self):
+        duties = []
+        duties += [duty for val, duty in DUTIES_CHOICES_EX if val in self.split_duties_ex()]
+        duties += [duty for val, duty in DUTIES_CHOICES_DC if val in self.split_duties_dc()]
+        duties += [duty for val, duty in DUTIES_CHOICES_PD if val in self.split_duties_pd()]
+        duties += [duty for val, duty in DUTIES_CHOICES_IM if val in self.split_duties_im()]
+        duties += [duty for val, duty in DUTIES_CHOICES_EQ if val in self.split_duties_eq()]
+        duties += [duty for val, duty in DUTIES_CHOICES_SU if val in self.split_duties_su()]
+        duties += [duty for val, duty in DUTIES_CHOICES_WR if val in self.split_duties_wr()]
+        duties += [duty for val, duty in DUTIES_CHOICES_PM if val in self.split_duties_pm()]
+        return duties
+
+    def split_duties_ex(self):
+        return self.split_duties(self.ra_duties_ex)
+    
+    def split_duties_dc(self):
+        return self.split_duties(self.ra_duties_dc)
+
+    def split_duties_pd(self):
+        return self.split_duties(self.ra_duties_pd)
+        
+    def split_duties_im(self):
+        return self.split_duties(self.ra_duties_im)
+    
+    def split_duties_eq(self):
+        return self.split_duties(self.ra_duties_eq)
+    
+    def split_duties_su(self):
+        return self.split_duties(self.ra_duties_su)
+
+    def split_duties_wr(self):
+        return self.split_duties(self.ra_duties_wr)
+        
+    def split_duties_pm(self):
+        return self.split_duties(self.ra_duties_pm)
+
+    def get_name(self):
+        if self.first_name and self.last_name:
+            name = self.first_name + " " + self.last_name
+        if self.person:
+            name = self.person.name()
+        return name
+
+    def get_absolute_url(self):
+        return reverse('ra:view_request', kwargs={'ra_slug': self.slug})
 
 class RAAppointment(models.Model):
     """
@@ -408,7 +686,6 @@ class RAAppointment(models.Model):
 
 def ra_attachment_upload_to(instance, filename):
     return upload_path('raattachments', filename)
-
 
 class RAAppointmentAttachmentQueryset(models.QuerySet):
     def visible(self):
