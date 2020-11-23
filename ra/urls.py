@@ -10,6 +10,18 @@ ra_patterns = [ # prefix /ra/
     url(r'^$', ra_views.search, name='search'),
     url(r'^search/' + USERID_OR_EMPLID + '/$', ra_views.student_appointments, name='student_appointments'),
     url(r'^new$', ra_views.new, name='new'),
+
+    url(r'^dashboard/$', ra_views.dashboard, name='dashboard'),
+    url(r'^dashboard/' + RA_SLUG + '/view_request$', ra_views.view_request, name='view_request'),
+    url(r'^dashboard/' + RA_SLUG + '/edit_request$', ra_views.edit_request, name='edit_request'),
+    url(r'^dashboard/' + RA_SLUG + '/delete_request$', ra_views.delete_request, name='delete_request'),
+    url(r'^dashboard/' + RA_SLUG + '/edit_request_notes$', ra_views.edit_request_notes, name='edit_request_notes'),
+    url(r'^dashboard/' + RA_SLUG + '/view_request_attachment_1$', ra_views.view_request_attachment_1, name='view_request_attachment_1'),
+    url(r'^dashboard/' + RA_SLUG + '/download_request_attachment_1$', ra_views.download_request_attachment_1, name='download_request_attachment_1'),
+    url(r'^dashboard/' + RA_SLUG + '/view_request_attachment_2$', ra_views.view_request_attachment_2, name='view_request_attachment_2'),
+    url(r'^dashboard/' + RA_SLUG + '/download_request_attachment_2$', ra_views.download_request_attachment_2, name='download_request_attachment_2'), 
+    url(r'^new_request/$', ra_views.new_request, name='new_request'),
+    
     url(r'^browse', ra_views.browse, name='browse'),
     url(r'^download_current', ra_views.download_ras, name='download_current_ras'),
     url(r'^download_all', ra_views.download_ras, kwargs={'current': False}, name='download_all_ras'),
