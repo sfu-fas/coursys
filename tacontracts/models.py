@@ -2,6 +2,7 @@
 import datetime
 import decimal
 import os
+import math
 # Django
 from django.db import models, transaction
 # Third Party
@@ -432,7 +433,7 @@ class TAContract(models.Model):
         if len(self.course.all()) == 0:
             return decimal.Decimal(0)
         else:
-            return decimal.Decimal(self.total_bu * self.pay_per_bu)
+            return decimal.Decimal(math.ceil(self.total_bu * self.pay_per_bu))
 
     @property
     def biweekly_pay(self):
