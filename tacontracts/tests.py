@@ -80,7 +80,7 @@ class TAContractTestCase(TestCase):
                               title="Test Contract Category",
                               hours_per_bu=decimal.Decimal("42"),
                               holiday_hours_per_bu=decimal.Decimal("1.1"),
-                              pay_per_bu=decimal.Decimal("100.00"),
+                              pay_per_bu=decimal.Decimal("125.00"),
                               scholarship_per_bu=decimal.Decimal("25.00"),
                               bu_lab_bonus=decimal.Decimal("0.17"))
         category.save()
@@ -148,11 +148,11 @@ class TAContractTestCase(TestCase):
 
     def test_total_pay(self):
         """
-        5.17 * 100/BU = $517.00
+        5.17 * 125/BU = $646.25. Rounded up, $647.00.
         """
         contract = self.get_contract()
         self.assertEqual(type(contract.total_pay), type(decimal.Decimal("0")))
-        self.assertEqual(contract.total_pay, decimal.Decimal("517.00"))
+        self.assertEqual(contract.total_pay, decimal.Decimal("647.00"))
 
     def test_scholarship_pay(self):
         """
@@ -165,11 +165,11 @@ class TAContractTestCase(TestCase):
 
     def test_payperiods_and_biweekly(self):
         """
-        Okay, so, $517 total_pay divided across 2.5 payperiods should be...
+        Okay, so, $647 total_pay divided across 2.5 payperiods should be...
         """
         contract = self.get_contract()
         self.assertEqual(contract.payperiods, decimal.Decimal("2.5"))
-        self.assertEqual(contract.biweekly_pay, decimal.Decimal("206.80"))
+        self.assertEqual(contract.biweekly_pay, decimal.Decimal("258.8"))
         self.assertEqual(contract.biweekly_scholarship, decimal.Decimal("50"))
     
     def test_tacourse_exists(self):
