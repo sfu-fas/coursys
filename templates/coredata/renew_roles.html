@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ CourSys }} Role Renewal{% endblock %}
+{% block h1 %}{{ CourSys }} Role Renewal{% endblock %}
+
+{% block subbreadcrumbs %}<li><a href="{% url "sysadmin:sysadmin" %}">System Admin</a></li><li>Renew Roles</li>{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $('#roles').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']],
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url "sysadmin:new_role" %}">Add New Role</a></li>
+    <li><a href="{% url "sysadmin:role_list" %}">List Roles</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<form action="{% url "sysadmin:renew_roles" %}" method="post">
+{% csrf_token %}
+<div class="datatable_container">
+  <table id="roles" class="display">
+    <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Expires</th><th scope="col">Unit</th><th scope="col">Renew</th></tr></thead>
+    <tbody>
+    <strong>The following roles are eligible for renewal:</strong>
+    {% for role in roles %}
+    <tr{% if role.expires_soon %} class="warningmessage"{% endif %}>
+    <td scope="row"><span class="sort">{{role.person}}</span><a href="{% url "sysadmin:user_summary" userid=role.person.userid %}">{{role.person}}</a></td>
+    <td>{{role.get_role_display}}</td>
+    <td>{{role.expiry.isoformat}}</td>
+    <td>{{role.unit}}</td>
+    <td>
+      <input type="checkbox" name="renewals" value="{{role.id}}">
+    </td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+<p><input type="submit" class="submit" value="Renew" /></p>
+</form>
+{% endblock %}
