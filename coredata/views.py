@@ -76,27 +76,37 @@ def new_role(request, role=None):
 
     return render(request, 'coredata/new_role.html', {'form': form})
 
+@requires_global_role("SYSA")
+def renew_roles_list(request):
+    """
+    Display list of who has what role
+    """
+    allow_renewal = datetime.timedelta(days=182)+datetime.date.today()
+    roles = Role.objects_fresh.exclude(role="NONE").filter(expiry__lt=allow_renewal).select_related('person', 'unit')
+
+    return render(request, 'coredata/renew_roles.html', {'roles': roles})
 
 @requires_global_role("SYSA")
-def renew_role(request, role_id):
-    if request.method != 'POST':
-        return ForbiddenResponse(request)
+def renew_roles(request, id=None):
+    if request.method == 'POST':
+        to_renew = request.POST.getlist('renewals')
+        if to_renew == []:
+            messages.error(request, 'Please select at least one role to renew.')
+        else: 
+            for role_id in to_renew:
+                role = get_object_or_404(Role, pk=role_id)
+                new_exp = datetime.date.today() + datetime.timedelta(days=182)
+                role.expiry = new_exp
+                role.save()
 
-    role = get_object_or_404(Role, pk=role_id)
-    new_exp = datetime.date.today() + datetime.timedelta(days=365)
-    role.expiry = new_exp
-    role.save()
-
-    messages.success(request, 'Renewed role for %s until %s.' % (role.person.name(), new_exp))
-    # LOG EVENT#
-    l = LogEntry(userid=request.user.username,
-                 description=("renewed role: %s for %s in %s until %s") % (
-                 role.get_role_display(), role.person.name(), role.unit, new_exp),
-                 related_object=role.person)
-    l.save()
-
-    return HttpResponseRedirect(reverse('sysadmin:role_list'))
-
+                messages.success(request, 'Renewed role for %s until %s.' % (role.person.name(), new_exp))
+                # LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                            description=("renewed role: %s for %s in %s until %s") % (
+                            role.get_role_display(), role.person.name(), role.unit, new_exp),
+                            related_object=role.person)
+                l.save()
+    return HttpResponseRedirect(reverse('sysadmin:renew_roles_list'))
 
 @requires_global_role("SYSA")
 def delete_role(request, role_id):
