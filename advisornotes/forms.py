@@ -1,4 +1,4 @@
-from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory, \
+from advisornotes.models import AdvisorNote, Announcement, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory, \
     ADVISING_CAMPUS_CHOICES
 from coredata.models import Person, Unit
 from coredata.forms import OfferingField, CourseField
@@ -33,6 +33,13 @@ class AdvisorNoteForm(MarkupContentMixin(field_name='text'), forms.ModelForm):
         model = AdvisorNote
         exclude = ('hidden', 'emailed', 'created_at', 'config')
 
+
+class AnnouncementForm(MarkupContentMixin(field_name='message'), forms.ModelForm):
+    message = MarkupContentField(default_markup='plain', allow_math=False, restricted=False, with_wysiwyg=True)
+
+    class Meta:
+        model = Announcement
+        exclude = ('hidden', 'author','created_at', 'config')
 
 class ArtifactNoteForm(forms.ModelForm):
     class Meta:

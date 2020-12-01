@@ -34,12 +34,32 @@ $(function() {
             <li><a href="{% url "advising:manage_categories" %}">Manage advisor visit categories</a></li>
             <li><a href="{% url "advising:all_visits" %}">All Visits</a></li>
         {% endif %}
-        <li><a href={% url "advising:my_visits" %}>My visits</a></li>
+        <li><a href="{% url "advising:my_visits" %}" %>My visits</a></li>
+        <li><a href="{% url "advising:news" %}" %>News</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {% block content %}
+<h2>Recent News</h2>
+{% if entries %}
+<div id="advisor_newsitems">
+    {% for entry in entries %}
+    <table><tr><td>
+        <div class="newsitem">
+        <h3>
+        <a href="{% url "advising:news" %}">{{entry.title}}</a>
+        </h3>
+        <div class="newsdate">{{entry.created_at}} by {{entry.author}}</div>
+        </div>
+        </td></tr></table>
+        </button>
+        </form>
+    {% endfor %}
+</div>
+{% else %}
+<p>No recent news.</p>
+{% endif %}
 <h2>Student Search</h2>
 <div class="form_container" style="clear: left;">
     <form action="" method="post">{% csrf_token %}
