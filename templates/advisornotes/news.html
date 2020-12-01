@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block title %}Advising News{% endblock %}
+{% block h1 %}Advising News{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+    <a href="{% url "advising:advising" %}">Advising</a>
+</li>
+<li>Advising News</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url "advising:new_announcement" %}">New Announcement</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if entries %}
+
+<div id="advisor_newsitems">
+    {% for entry in entries %}
+    <table><tr><td>
+        <div class="newsitem">
+        <h3>
+        {{entry.title}}
+        </h3>
+        <div class="newsdate">{{entry.created_at}} by {{entry.author}}</div>
+        <div class="newscontent">{{entry.html_content}}</div>
+      
+        </div>
+        </td><td>
+        <form class="lineform" method="POST" action="{% url "advisornotes:delete_announcement" entry_id=entry.id %}">
+        {% csrf_token %}
+        <button type='submit' class='btn confirm-submit' title="Remove Announcement" data-submit-action="delete this announcement">
+        <i class='fa fa-trash-o'></i>
+        </td></tr></table>
+        </button>
+        </form>
+    {% endfor %}
+</div>
+{% else %}
+<p>There are no announcements.</p>
+{% endif %}
+{% endblock %}
+
+

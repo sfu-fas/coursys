@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+
+{% block title %}New Announcement{% endblock %}
+{% block h1 %}New Announcement{% endblock %}
+
+
+{% block headextra %}
+{% include 'pages/markup_edit_head.html' %}
+{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:news" %}">News</a></li>
+<li>New Announcement</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+    <form action="{% url "advising:new_announcement" %}" method="post">
+        {% csrf_token %}
+        {{ form|as_dl }}
+        <p><input type="submit" class="submit" value="Post" /></p>
+    </form>
+</div>
+{% endblock %}
+
+
