@@ -24,6 +24,31 @@ ADVISING_CAMPUS_CHOICES = (
 def attachment_upload_to(instance, filename):
     return upload_path('advisornotes', filename)
 
+class Announcement(models.Model):
+    title = models.CharField(max_length=100)
+    message = models.TextField(blank=False, null=False)
+    created_at = models.DateTimeField(default=datetime.datetime.now)
+    author = models.ForeignKey(Person, related_name='posted_by', on_delete=models.PROTECT,
+                                help_text='The user who created the news item',
+                                editable=False)
+    hidden = models.BooleanField(null=False, db_index=True, default=False)
+    
+    config = JSONField(null=False, blank=False, default=dict)
+
+    markup = config_property('markup', 'plain')
+    math = config_property('math', False)
+
+    def __str__(self):
+        return "%s" % (self.title)
+
+    class Meta:
+       ordering = ('-created_at',)
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError("This object cannot be deleted, set the hidden flag instead.")
+    
+    def html_content(self):
+        return markup_to_html(self.message, self.markup, restricted=False)
 
 class NonStudent(models.Model):
     """
