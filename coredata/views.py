@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
@@ -1123,6 +1123,12 @@ class OfferingDataJson(BaseDatatableView):
     max_display_length = 500
     columns = COLUMNS
     order_columns = [COLUMN_ORDERING[col] for col in columns]
+
+    def get_context_data(self, *args, **kwargs):
+        try:
+            return super().get_context_data(*args, **kwargs)
+        except:
+            raise Http404()
 
     def render_column(self, offering, column):
         if column == 'coursecode':
