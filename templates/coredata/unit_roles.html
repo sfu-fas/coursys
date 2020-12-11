@@ -24,6 +24,7 @@ $(document).ready(function() {
     <ul>
     <li><a href="{% url "admin:new_unit_role" %}">Add new role</a></li>
     <li><a href="{% url "admin:offboard_unit" %}">Offboarding</a></li>
+    <li><a href="{% url "admin:renew_unit_roles_list" %}">Renew Roles</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -41,11 +42,6 @@ $(document).ready(function() {
   <td>{{role.expiry.isoformat}}</td>
   <td>{{role.unit.name}}</td>
   <td>
-      {% if role.expires_far %}
-      <form class="lineform" method="POST" action="{% url "admin:renew_unit_role" role_id=role.id %}">
-      {% csrf_token %}<button type='submit' class='btn confirmsubmit' title="Renew Role" data-submit-action="renew this role for one year"><i class='fa fa-refresh'></i></button>
-      </form>
-      {% endif %}
       <form class="lineform" method="POST" action="{% url "admin:delete_unit_role" role_id=role.id %}">
       {% csrf_token %}<button type='submit' class='btn confirmsubmit' title="Delete Role" data-submit-action="delete this role"><i class='fa fa-trash-o'></i></button>
       </form>
