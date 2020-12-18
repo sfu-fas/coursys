@@ -32,7 +32,9 @@ class Announcement(models.Model):
                                 help_text='The user who created the news item',
                                 editable=False)
     hidden = models.BooleanField(null=False, db_index=True, default=False)
-    
+    unit = models.ForeignKey(Unit, help_text='Academic unit who owns the note', null=False, blank=False,
+                             on_delete=models.PROTECT)
+
     config = JSONField(null=False, blank=False, default=dict)
 
     markup = config_property('markup', 'plain')
