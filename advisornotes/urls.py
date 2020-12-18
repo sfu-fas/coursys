@@ -71,7 +71,7 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^students/' + USERID_OR_EMPLID + '/transfers-download$', advisornotes_views.student_transfers_download, name='student_transfers_download'),
     
     url(r'^news$', advisornotes_views.news, name='news'),
-    url(r'^(?P<entry_id>\d+)/delete_visa/$', advisornotes_views.delete_announcement, name='delete_announcement'),
+    url(r'^news/delete/(?P<entry_id>\d+)$', advisornotes_views.delete_announcement, name='delete_announcement'),
     url(r'^new_announcement$', advisornotes_views.new_announcement, name='new_announcement'),
     url(r'^new_prospective_student', advisornotes_views.new_nonstudent, name='new_nonstudent'),
     #url(r'^problems/$', advisornotes_views.view_problems, name='view_problems'),

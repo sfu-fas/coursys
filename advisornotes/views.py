@@ -16,7 +16,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail.message import EmailMultiAlternatives
 from django.urls import reverse
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.utils.html import mark_safe
@@ -65,14 +65,15 @@ def advising(request):
     context = {'form': form, 'note_form': note_form, 'artifact_form': artifact_form, 'advisor_admin': advisor_admin, 'entries': entries}
     return render(request, 'advisornotes/student_search.html', context)
 
+
 @requires_role(['ADVS','ADVM'])
-def new_announcement(request):
+def new_announcement(request: HttpRequest) -> HttpResponse:
     """
     View to create a new announcement
     """
     author = get_object_or_404(Person, userid=request.user.username)
     if request.method == 'POST':
-        form = AnnouncementForm(data=request.POST)
+        form = AnnouncementForm(units=request.units, data=request.POST)
         if form.is_valid():
             announcement = form.save(commit=False)
             announcement.author = author
@@ -89,22 +90,24 @@ def new_announcement(request):
             l.save()
             return HttpResponseRedirect(reverse('advising:news'))
     else: 
-        form = AnnouncementForm()
+        form = AnnouncementForm(units=request.units)
 
     return render(request, 'advisornotes/new_announcement.html', {'form': form})
 
+
 @requires_role(['ADVS', 'ADVM'])
-def news(request):
+def news(request: HttpRequest) -> HttpResponse:
     """
     View to show news page
     """
-    entries = Announcement.objects.filter(hidden=False)
+    entries = Announcement.objects.filter(hidden=False, unit__in=request.units)
     return render(request, 'advisornotes/news.html', {'entries': entries})
 
+
 @requires_role(['ADVS', 'ADVM'])
-def delete_announcement(request, entry_id):
+def delete_announcement(request: HttpRequest, entry_id: str) -> HttpResponse:
     if request.method == 'POST':
-        entry = get_object_or_404(Announcement, pk=entry_id)
+        entry = get_object_or_404(Announcement, pk=entry_id, unit__in=request.units)
         messages.add_message(request,
                             messages.SUCCESS,
                             'Announcement removed.'
@@ -117,6 +120,7 @@ def delete_announcement(request, entry_id):
         entry.hidden = True
         entry.save()
     return HttpResponseRedirect(reverse('advising:news'))
+
 
 @requires_role(['ADVS', 'ADVM'])
 def note_search(request):
