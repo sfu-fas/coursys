@@ -392,6 +392,40 @@ div#messages .info:before {
   background-color: #ff0;
 }
 
+/* Advisor News Items */
+
+div#advisor_newsitems {
+  clear: left;
+}
+
+div#advisor_newsitems table {
+  background-color:rgb(240, 240, 240);
+  border-radius:6px;
+}
+
+div#advisor_newsitems td {
+  vertical-align: bottom;
+  padding: 12px;
+}
+
+div#advisor_newsitems .newsitem {
+  line-height: 1.4em;
+}
+div#advisor_newsitems .newsitem h3 {
+  margin: 0.25em 0 0 0;
+}
+div#advisor_newsitems .newsitem p {
+  margin: 0px;
+}
+div#advisor_newsitems .newsitem .newsdate {
+  color: #777;
+  font-size: 0.8em;
+}
+div#advisor_newsitems .newsitem .newscontent {
+margin-bottom: 1em;
+padding-top: 10px;
+}
+
 /* news items on index and "all news items" pages */
 div#newsitems {
   clear: left;
