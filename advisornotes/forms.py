@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from advisornotes.models import AdvisorNote, Announcement, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory, \
     ADVISING_CAMPUS_CHOICES
 from coredata.models import Person, Unit
@@ -40,6 +42,13 @@ class AnnouncementForm(MarkupContentMixin(field_name='message'), forms.ModelForm
     class Meta:
         model = Announcement
         exclude = ('hidden', 'author','created_at', 'config')
+
+    def __init__(self, units: Iterable[Unit], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # force unit choice to be as specified:
+        self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
+        self.fields['unit'].empty_label = None
+
 
 class ArtifactNoteForm(forms.ModelForm):
     class Meta:
