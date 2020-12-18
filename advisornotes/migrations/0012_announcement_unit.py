@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='announcement',
             name='unit',
-            field=models.ForeignKey(default=0, help_text='Academic unit who owns the note', on_delete=django.db.models.deletion.PROTECT, to='coredata.Unit'),
+            field=models.ForeignKey(default=1, help_text='Academic unit who owns the note', on_delete=django.db.models.deletion.PROTECT, to='coredata.Unit'),
             preserve_default=False,
         ),
         migrations.AlterField(
