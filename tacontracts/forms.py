@@ -37,6 +37,8 @@ class HiringSemesterForm(forms.ModelForm):
                     'deadline_for_acceptance': CalendarWidget,
                     'pay_start': CalendarWidget,
                     'pay_end': CalendarWidget,
+                    'appointment_start': CalendarWidget,
+                    'appointment_end': CalendarWidget,
                     'payperiods': GuessPayperiodsWidget,
                 }
 
