@@ -105,8 +105,8 @@ class HiringSemester(models.Model):
     semester = models.ForeignKey(Semester, on_delete=models.PROTECT)
     unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     deadline_for_acceptance = models.DateField()
-    appointment_start = models.DateField()
-    appointment_end = models.DateField()
+#    appointment_start = models.DateField()
+#    appointment_end = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
     payperiods = models.DecimalField(max_digits=4, decimal_places=2,

@@ -129,8 +129,8 @@ def setup_semester(request, semester):
         'semester':semester,
         'pay_start':semester.start, 
         'pay_end':semester.end, 
-        'appointment_start':semester.start, 
-        'appointment_end':semester.end, 
+#        'appointment_start':semester.start, 
+#        'appointment_end':semester.end, 
         'payperiods': 6})
     return render(request, 'tacontracts/new_semester.html', {
                   'form':form})
@@ -377,8 +377,8 @@ def new_contract(request, unit_slug, semester):
     else:
         form = TAContractForm(hiring_semester, initial={
             'deadline_for_acceptance':hiring_semester.deadline_for_acceptance,
-            'appointment_start':hiring_semester.appointment_start,
-            'appointment_end':hiring_semester.appointment_end,
+#            'appointment_start':hiring_semester.appointment_start,
+#            'appointment_end':hiring_semester.appointment_end,
             'pay_start':hiring_semester.pay_start,
             'pay_end':hiring_semester.pay_end,
             'payperiods':hiring_semester.payperiods
