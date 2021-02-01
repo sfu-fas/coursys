@@ -1,7 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from coredata.models import Person, Unit, Semester, Role
-from courselib.json_fields import JSONField
+from courselib.json_fields import JSONField, config_property
 from courselib.json_fields import getter_setter
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
@@ -323,49 +323,80 @@ class RARequest(models.Model):
     first_name = models.CharField(max_length=32, null=True, blank=True)
     last_name = models.CharField(max_length=32, null=True, blank=True)
     email_address = models.EmailField(max_length=80, null=True, blank=True)
+    
+    unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
 
     # submitter is not always the same as person created the request
     author = models.ForeignKey(Person, related_name='rarequest_author', on_delete=models.PROTECT, editable=False)
     supervisor = models.ForeignKey(Person, related_name='rarequest_supervisor', on_delete=models.PROTECT)
 
+    config = JSONField(null=False, blank=False, default=dict)
+
     # student information
-    student = models.CharField(max_length=80, default=None, choices=STUDENT_TYPE)
-    coop = models.BooleanField(choices=BOOL_CHOICES, default=None, null=True, blank=True)
-    mitacs = models.BooleanField(choices=BOOL_CHOICES, default=None, null=True, blank=True)
-    thesis = models.BooleanField(choices=BOOL_CHOICES, default=None, null=True, blank=True)
+    student = config_property('student', default='')
+    coop = config_property('coop', default='')
+    mitacs = config_property('mitacs', default='')
+    thesis = config_property('thesis', default='')
 
     # comments about supervisor or appointee
-    people_comments = models.TextField(blank=True)
+    people_comments = config_property('people_comments', default='')
 
     # hiring category is based on the above student information
     hiring_category = models.CharField(max_length=80, default=None, choices=REQUEST_HIRING_CATEGORY)
 
-    # payment methods
-    gras_payment_method = models.CharField(max_length=80, default = '', choices=GRAS_PAYMENT_METHOD_CHOICES)
-    ra_payment_method = models.CharField(max_length=80, default = '', choices=RA_PAYMENT_METHOD_CHOICES)
+    # funding sources
+    fs1_unit = config_property('fs1_unit', default='')
+    fs1_fund = config_property('fs1_fund', default='')
+    fs1_project = config_property('fs1_project', default='')
+    fs1_percentage = config_property('fs1_percentage', default=100)
 
-    # payment inputs
-    total_gross = models.DecimalField(max_digits=8, default=0, blank=True, null=True, decimal_places=2)
-    gross_hourly = models.DecimalField(max_digits=8, default=0, blank=True, null=True, decimal_places=2)
-    vacation_pay = models.DecimalField(max_digits=8, default=0, blank=True, null=True, decimal_places=2)
-    biweekly_pay = models.DecimalField(max_digits=8, blank=True, null=True, default=0, decimal_places=2)
-    days_vacation = models.DecimalField(max_digits=8, default=0, blank=True, null=True, decimal_places=2)
-    biweekly_hours = models.DecimalField(max_digits=8, blank=True, null=True, default=0, decimal_places=2)
+    fs2_option = config_property('fs2_unit', default=False)
+    fs2_unit = config_property('fs2_unit', default='')
+    fs2_fund = config_property('fs2_fund', default='')
+    fs2_project = config_property('fs2_project', default='')
+    fs2_percentage = config_property('fs2_percentage', default=0)
+
+    fs3_option = config_property('fs3_unit', default=False)
+    fs3_unit = config_property('fs3_unit', default='')
+    fs3_fund = config_property('fs3_fund', default='')
+    fs3_project = config_property('fs3_project', default='')
+    fs3_percentage = config_property('fs3_percentage', default=0)
 
     # start and end dates
     start_date = models.DateField(auto_now=False, default = datetime.date.today, auto_now_add=False)
     end_date = models.DateField(auto_now=False, default = datetime.date.today, auto_now_add=False)
-    
-    total_pay = models.DecimalField(max_digits=8, default=0, decimal_places=2)
 
-    # funding sources
-    fs1_unit = models.CharField(max_length=80)
-    fs1_fund = models.CharField(max_length=80)
-    fs1_project = models.CharField(max_length=80)
-    fs2_option = models.BooleanField(default=False)
-    fs2_unit = models.CharField(max_length=80, null=True, blank=True)
-    fs2_fund = models.CharField(max_length=80, null=True, blank=True)
-    fs2_project = models.CharField(max_length=80, null=True, blank=True)
+    # payment methods
+    gras_payment_method = config_property('gras_payment_method', default='')
+    ra_payment_method = config_property('ra_payment_method', default='')
+
+    # payment inputs (4 types: RA (BW), RA (H), GRAS(LS), GRAS(BW))
+    
+    # RA + BW -> total_gross, weeks_vacation, biweekly_hours... should then calculate biweekly_salary and gross_hourly
+    rabw_total_gross = config_property('rabw_total_gross', default=0)
+    rabw_weeks_vacation = config_property('rabw_weeks_vacation', default=0)
+    rabw_biweekly_hours = config_property('rabw_biweekly_hours', default=0)
+    # should also calculate...
+    rabw_biweekly_salary = config_property('rabw_biweekly_salary', default=0)
+    rabw_gross_hourly = config_property('rabw_gross_hourly', default=0)
+
+    # RA + H -> gross_hourly, vacation_pay, biweekly_hours
+    rah_gross_hourly = config_property('rah_gross_hourly', default=0)
+    rah_vacation_pay = config_property('rah_vacation_pay', default=0)
+    rah_biweekly_hours = config_property('rah_biweekly_hours', default=0)
+
+    # GRAS + LS -> total gross
+    grasls_total_gross = config_property('grasls_total_gross', default=0)
+
+    # GRAS + BW -> total_gross, biweekly_hours... should then calculate biweekly_salary, gross_salary
+    grasbw_total_gross = config_property('grasbw_total_gross', default=0)
+    grasbw_biweekly_hours = config_property('grasbw_biweekly_hours', default=0)
+    # should also calculate...
+    grasbw_biweekly_salary = config_property('grasbw_biweekly_salary', default=0)
+    grasbw_gross_hourly = config_property('grasbw_gross_hourly', default=0)
+
+    # all payment methods need to calculate total pay
+    total_pay = models.DecimalField(max_digits=8, decimal_places=2)
 
     # file attachments
     file_attachment_1 = models.FileField(storage=UploadedFileStorage, null=True,
@@ -376,10 +407,10 @@ class RARequest(models.Model):
     file_mediatype_2 = models.CharField(null=True, blank=True, max_length=200, editable=False)
 
     # funding comments 
-    funding_comments = models.TextField(blank=True)
+    funding_comments = config_property('funding_comments', default='')
 
     # ra only options
-    ra_benefits = models.CharField(max_length=80, default='', choices=RA_BENEFITS_CHOICES)
+    ra_benefits = config_property('ra_benefits', default='')
     ra_duties_ex = models.CharField(blank=True, null=True, max_length=500)
     ra_duties_dc = models.CharField(blank=True, null=True, max_length=500)
     ra_duties_pd = models.CharField(blank=True, null=True, max_length=500)
@@ -388,16 +419,23 @@ class RARequest(models.Model):
     ra_duties_su = models.CharField(blank=True, null=True, max_length=500)
     ra_duties_wr = models.CharField(blank=True, null=True, max_length=500)
     ra_duties_pm = models.CharField(blank=True, null=True, max_length=500)
-    ra_duties = models.TextField(blank=True)
 
-    ra_other_duties = models.TextField(blank=True)
+    ra_other_duties = config_property('ra_other_duties', default='')
     
-    admin_notes = models.TextField(blank=True)
+    # admin
+    funding_available = config_property('funding_available', default=False)
+    grant_active = config_property('grant_active', default=False)
+    salary_allowable = config_property('salary_allowable', default=False)
+    supervisor_check = config_property('supervisor_check', default=False)
+    visa_valid = config_property('visa_valid', default=False)
+    payroll_collected = config_property('payroll_collected', default=False)
+    paf_signed = config_property('paf_signed', default=False)
+    admin_notes = config_property('admin_notes', default=False)
 
-    # creation and deletion
+    # creation, deletion and status
     created_at = models.DateTimeField(auto_now_add=True)
     deleted = models.BooleanField(null=False, default=False)
-    config = JSONField(null=False, blank=False, default=dict)
+    complete = models.BooleanField(null=False, default=False)
 
     # slugs
     def autoslug(self):

@@ -15,11 +15,10 @@ ra_patterns = [ # prefix /ra/
     url(r'^dashboard/' + RA_SLUG + '/view_request$', ra_views.view_request, name='view_request'),
     url(r'^dashboard/' + RA_SLUG + '/edit_request$', ra_views.edit_request, name='edit_request'),
     url(r'^dashboard/' + RA_SLUG + '/delete_request$', ra_views.delete_request, name='delete_request'),
-    url(r'^dashboard/' + RA_SLUG + '/edit_request_notes$', ra_views.edit_request_notes, name='edit_request_notes'),
     url(r'^dashboard/' + RA_SLUG + '/view_request_attachment_1$', ra_views.view_request_attachment_1, name='view_request_attachment_1'),
     url(r'^dashboard/' + RA_SLUG + '/download_request_attachment_1$', ra_views.download_request_attachment_1, name='download_request_attachment_1'),
     url(r'^dashboard/' + RA_SLUG + '/view_request_attachment_2$', ra_views.view_request_attachment_2, name='view_request_attachment_2'),
-    url(r'^dashboard/' + RA_SLUG + '/download_request_attachment_2$', ra_views.download_request_attachment_2, name='download_request_attachment_2'), 
+    url(r'^dashboard/' + RA_SLUG + '/download_request_attachment_2$', ra_views.download_request_attachment_2, name='download_request_attachment_2'),
     url(r'^new_request/$', ra_views.new_request, name='new_request'),
     
     url(r'^browse', ra_views.browse, name='browse'),

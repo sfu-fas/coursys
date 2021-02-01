@@ -5,18 +5,14 @@ var studentFields = ['coop', 'mitacs']
 var studentNonMitacsFields = ['thesis']
 var studentOnlyFields = ['coop', 'mitacs', 'thesis']
 
-var raPaymentHourlyFields = ['gross_hourly', 'vacation_pay']
-var raPaymentBiWeeklyFields = ['total_gross', 'days_vacation']
-var raPaymentFields = ['total_gross', 'gross_hourly', 'days_vacation', 'vacation_pay']
+var grasOptions = ['gras_payment_method']
+var raOptions = ['ra_payment_method']
+
 var raOnlyFields = ['ra_benefits', 'ra_payment_method', 'ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 'ra_duties_eq', 
 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_other_duties']
 
-var grasPaymentLumpSumFields = ['total_gross', 'days_vacation']
-var grasPaymentBiWeeklyFields = ['biweekly_pay', 'days_vacation']
-var grasPaymentFields = ['biweekly_pay', 'total_gross', 'lump_sum', 'days_vacation']
-var grasOnlyFields = ['gras_payment_method']
-
-var fs2Fields = ['fs2_unit', 'fs2_fund', 'fs2_project']
+var fs2Fields = ['fs1_percentage', 'fs2_unit', 'fs2_fund', 'fs2_project', 'fs2_percentage', 'fs3_option']
+var fs3Fields = ['fs3_unit', 'fs3_fund', 'fs3_project', 'fs3_percentage']
 
 function hideInput (field) {
     $('label[for=id_' + field + '_0]').parent().hide()
@@ -44,16 +40,10 @@ function show (fields) {
 }
 
 // set radio select fields to a certain value (usually for setting to None)
-function set (fields, val) {
+function setToNone (fields) {
     for (let i = 0; i < fields.length; i++) {
         var checked = $('input[name=' + fields[i] + ']:checked')
-        checked.val([val])
-    }
-}
-
-function setZero (fields) {
-    for(let i = 0; i < fields.length; i++) {
-        $('#id_'+ + fields[i]).val(0)
+        checked.val(['None'])
     }
 }
 
@@ -85,7 +75,7 @@ function studentFieldsUpdate () {
         show(studentFields)
     } else {
         hide(studentOnlyFields)
-        set(studentOnlyFields, 'None')
+        setToNone(studentOnlyFields)
     }
 }
 
@@ -95,7 +85,7 @@ function mitacsFieldsUpdate () {
         show(studentNonMitacsFields)
     } else {
         hide(studentNonMitacsFields)
-        set(studentNonMitacsFields, 'None')
+        setToNone(studentNonMitacsFields)
     }
 }
 
@@ -107,14 +97,13 @@ function researchAssistant () {
     $('.gras_info').hide()
     $('.ra_section').show()
 
-    // Payment Method
-    hide(grasOnlyFields)
-    set(grasOnlyFields, 'None')
-    hide(grasPaymentFields)
-    setZero(grasPaymentFields)
-    
-    // RA Only Options
-    show(raOnlyFields)
+    show(raOptions)
+
+    hide(grasOptions)
+    setToNone(grasOptions)
+
+    $('.gras_biweekly_fields').hide()
+    $('.gras_lump_sum_fields').hide()
 }
 
 function graduateResearchAssistant () {
@@ -125,48 +114,52 @@ function graduateResearchAssistant () {
     $('.ra_info').hide()
     $('.ra_section').hide()
 
-    hide(raPaymentFields)
-    setZero(raPaymentFields)
-    hide(raOnlyFields)
-    set(raOnlyFields, 'None')
+    show(grasOptions)
 
-    show(grasOnlyFields)
+    hide(raOptions)
+    setToNone(raOptions)
+
+    $('.ra_biweekly_fields').hide()
+    $('.ra_hourly_fields').hide()
 }
 
 function raPaymentMethod() {
     var raPaymentMethod = $('input[name=ra_payment_method]:checked')
-    
+
     if (raPaymentMethod.val() === 'H') {
-        hide(raPaymentBiWeeklyFields)
-        setZero(raPaymentBiWeeklyFields)
-        show(raPaymentHourlyFields)
+        $('.biweekly_info').hide()
+        $('.ra_biweekly_fields').hide()
+        $('.ra_hourly_fields').show()
+        raH()
     } else if (raPaymentMethod.val() === 'BW') {
-        hide(raPaymentHourlyFields)
-        setZero(raPaymentHourlyFields)
-        show(raPaymentBiWeeklyFields)
+        $('.biweekly_info').show()
+        $('.ra_hourly_fields').hide()
+        $('.ra_biweekly_fields').show()
+        raBW()
     } else {
-        hide(raPaymentFields)
-        setZero(raPaymentFields)
-        grasPaymentMethod()
+        $('.ra_biweekly_fields').hide()
+        $('.ra_hourly_fields').hide()
+        $('.biweekly_info').hide()
     }
-    calculateTotalPay()
 }
 
 function grasPaymentMethod () {
     var grasPaymentMethod = $('input[name=gras_payment_method]:checked')
     if (grasPaymentMethod.val() === 'LE' || grasPaymentMethod.val() === 'LS') {
-        hide(grasPaymentBiWeeklyFields)
-        setZero(grasPaymentBiWeeklyFields)
-        show(grasPaymentLumpSumFields)
+        $('.biweekly_info').hide()
+        $('.gras_biweekly_fields').hide()
+        $('.gras_lump_sum_fields').show()
+        grasLS()
     } else if (grasPaymentMethod.val() === 'BW') {
-        hide(grasPaymentLumpSumFields)
-        setZero(grasPaymentLumpSumFields)
-        show(grasPaymentBiWeeklyFields)
+        $('.biweekly_info').show()
+        $('.gras_biweekly_fields').show()
+        $('.gras_lump_sum_fields').hide()
+        grasBW()
     } else {
-        hide(grasPaymentFields)
-        setZero(grasPaymentFields)
+        $('.gras_biweekly_fields').hide()
+        $('.gras_lump_sum_fields').hide()
+        $('.biweekly_info').hide()
     }
-    calculateTotalPay()
 }
 
 function hiringCategoryRec () {
@@ -186,53 +179,125 @@ function hiringCategoryRec () {
         $('.need_more_info').show()
         $('.ra_info').hide()
         $('.gras_info').hide()
-        hide(raOnlyFields)
-        set(raOnlyFields, 'None')
-        hide(grasOnlyFields)
-        set(grasOnlyFields, 'None')
-        hide(grasPaymentFields)
-        setZero(grasPaymentFields)
-        hide(raPaymentFields)
-        setZero(raPaymentFields)
+        $('.ra_section').hide()
+        $('.ra_biweekly_fields').hide()
+        $('.ra_hourly_fields').hide()
+        $('.gras_biweekly_fields').hide()
+        $('.gras_lump_sum_fields').hide()
+
+        hide(raOptions)
+        hide(grasOptions)
+
+        $('.biweekly_info').hide()
+
+        $('#id_total_pay').val(0)
+        $('.total_pay_info').text(0)
+
+        $('.biweekly_rate_info').text(0)
+        $('.hourly_rate_info').text(0)
+
+        $('#id_grasbw_biweekly_salary').val(0)
+        $('#id_grasbw_gross_hourly').val(0)
+
+        $('#id_rabw_biweekly_salary').val(0)
+        $('#id_rabw_gross_hourly').val(0)
+
         $('.ra_section').hide()
     }
 }
 
-function fsChoiceUpdate () {
+function fs2ChoiceUpdate () {
     if ($('#id_fs2_option').is(':checked')) {
         show(fs2Fields)
     } else {
         hide(fs2Fields)
+        hide(fs3Fields)
+        $("#id_fs3_option").prop("checked", false);
     }
 }
 
-function calculateTotalPay () {
-    var grasPaymentMethod = $('input[name=gras_payment_method]:checked')
+function fs3ChoiceUpdate() {
+    if ($('#id_fs3_option').is(':checked')) {
+        show(fs3Fields)
+    } else {
+        hide(fs3Fields)
+    }
+}
+
+function grasLS () {
+    totalPay = $('#id_grasls_total_gross').val()
+    $('#id_total_pay').val(totalPay)
+    $('.total_pay_info').text(totalPay)
+}
+
+function grasBW () {
+    totalPay = $('#id_grasbw_total_gross').val()
+    biweeklyHours = $('#id_grasbw_biweekly_hours').val()
+    var payPeriods = guessPayPeriods()
+    if (payPeriods != 0) {
+        biweeklySalary = totalPay/payPeriods
+    } else {
+        biweeklySalary = 0
+    }
+    if (biweeklyHours != 0) {
+        hourlyRate = biweeklySalary/biweeklyHours
+    } else {
+        hourlyRate = 0
+    }
+    $('#id_grasbw_biweekly_salary').val(biweeklySalary)
+    $('.biweekly_rate_info').text(biweeklySalary)
+    $('#id_grasbw_gross_hourly').val(hourlyRate)
+    $('.hourly_rate_info').text(hourlyRate)
+    $('#id_total_pay').val(totalPay)
+    $('.total_pay_info').text(totalPay)
+}
+
+function raBW () {
+    totalPay = $('#id_rabw_total_gross').val()
+    biweeklyHours = $('#id_rabw_biweekly_hours').val()
+    var payPeriods = guessPayPeriods()
+    if (payPeriods != 0) {
+        biweeklySalary = totalPay/payPeriods
+    } else {
+        biweeklySalary = 0
+    }
+    if (biweeklyHours != 0) {
+        hourlyRate = biweeklySalary/biweeklyHours
+    } else {
+        hourlyRate = 0
+    }
+    $('#id_rabw_biweekly_salary').val(biweeklySalary)
+    $('.biweekly_rate_info').text(biweeklySalary)
+    $('#id_rabw_gross_hourly').val(hourlyRate)
+    $('.hourly_rate_info').text(hourlyRate)
+    $('#id_total_pay').val(totalPay)
+    $('.total_pay_info').text(totalPay)
+}
+
+function raH () {
+    biweeklyHours = $('#id_rah_biweekly_hours').val()
+    hourlyRate = $('#id_rah_gross_hourly').val()
+    vacationPay = $('#id_rah_vacation_pay').val()
+    var payPeriods = guessPayPeriods()
+    totalPay = (payPeriods * biweeklyHours * hourlyRate) * (1 + (vacationPay/100))
+    $('#id_total_pay').val(totalPay)
+    $('.total_pay_info').text(totalPay)
+}
+
+function updatePayPeriods () {
     var raPaymentMethod = $('input[name=ra_payment_method]:checked')
+    var grasPaymentMethod = $('input[name=gras_payment_method]:checked')
     var payPeriods = guessPayPeriods()
     $('.pay_periods_info').text(payPeriods)
-    if (grasPaymentMethod.val() === 'LE' || grasPaymentMethod.val() === 'LS') {
-        totalPay = $('#id_total_gross').val()
-        $('#id_total_pay').val(totalPay)
-        $('.total_pay_info').text(totalPay)
-    } else if (grasPaymentMethod.val() === 'BW') {
-        biweeklyPay = $('#id_biweekly_pay').val()
-        totalPay = biweeklyPay * payPeriods
-        $('#id_total_pay').val(totalPay)
-        $('.total_pay_info').text(totalPay)
-    } else if (raPaymentMethod.val() === 'H') {
-        grossHourly = $('#id_gross_hourly').val()
-        biweeklyHours = $('#id_biweekly_hours').val()
-        totalPay = grossHourly * biweeklyHours * payPeriods
-        $('#id_total_pay').val(totalPay)
-        $('.total_pay_info').text(totalPay)
+
+    if (raPaymentMethod.val() === 'H') {
+        raH()
     } else if (raPaymentMethod.val() === 'BW') {
-        totalPay = $('#id_total_gross').val()
-        $('#id_total_pay').val(totalPay)
-        $('.total_pay_info').text(totalPay)
-    } else {
-        $('#id_total_pay').val(0)
-        $('.total_pay_info').text('0.00')
+        raBW()
+    } else if (grasPaymentMethod.val() === 'LE' || grasPaymentMethod.val() === 'LS') {
+        grasLS()
+    } else if (grasPaymentMethod.val() === 'BW') {
+        grasBW()
     }
 }
 
@@ -255,16 +320,25 @@ $(document).ready(function() {
           }
         })
     }) 
+
     idFieldsUpdate()
     mitacsFieldsUpdate()
     studentFieldsUpdate()
-    idFieldsUpdate()
-    fsChoiceUpdate()
-    hiringCategoryRec()
-    raPaymentMethod()
-    grasPaymentMethod()
-    calculateTotalPay()
 
+    grasPaymentMethod()
+    raPaymentMethod()
+
+    fs2ChoiceUpdate()
+    fs3ChoiceUpdate()
+
+    hiringCategoryRec()
+
+    updatePayPeriods()
+
+    // Start and end dates
+    $('#id_start_date').change(updatePayPeriods)
+    $('#id_end_date').change(updatePayPeriods)
+    
     // start and end dates
     $('#id_start_date').datepicker({'dateFormat': 'yy-mm-dd'})
     $('#id_end_date').datepicker({'dateFormat': 'yy-mm-dd'})
@@ -277,7 +351,8 @@ $(document).ready(function() {
     $('#id_mitacs').change(mitacsFieldsUpdate)
 
     // funding information
-    $('#id_fs2_option').change(fsChoiceUpdate)
+    $('#id_fs2_option').change(fs2ChoiceUpdate)
+    $('#id_fs3_option').change(fs3ChoiceUpdate)
 
     // hiring category changes
     $('#id_student').change(hiringCategoryRec)
@@ -288,15 +363,15 @@ $(document).ready(function() {
     $('#id_ra_payment_method').change(raPaymentMethod)
     $('#id_gras_payment_method').change(grasPaymentMethod)
 
-    // if any of these change, we need to update total pay (which will also update pay periods)
-    $('#id_biweekly_pay').change(calculateTotalPay)
-    $('#id_days_vacation').change(calculateTotalPay)
-    $('#id_gross_hourly').change(calculateTotalPay)
-    $('#id_total_gross').change(calculateTotalPay)
-    $('#id_vacation_pay').change(calculateTotalPay)
-    $('#id_biweekly_hours').change(calculateTotalPay)
-    $('#id_hiring_category').change(calculateTotalPay)
-    $('#id_start_date').change(calculateTotalPay)
-    $('#id_end_date').change(calculateTotalPay)
+    $('#id_rabw_total_gross').change(raBW)
+    $('#id_rabw_biweekly_hours').change(raBW)
 
+    $('#id_rah_gross_hourly').change(raH)
+    $('#id_rah_vacation_pay').change(raH)
+    $('#id_rah_biweekly_hours').change(raH)
+
+    $('#id_grasls_total_gross').change(grasLS)
+    
+    $('#id_grasbw_total_gross').change(grasBW)
+    $('#id_grasbw_biweekly_hours').change(grasBW)
 })

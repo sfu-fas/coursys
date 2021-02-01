@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.utils.html import conditional_escape as escape
 from ra.models import RAAppointment, RARequest, Project, Account, SemesterConfig, Program
 from ra.forms import RAForm, RASearchForm, RARequestForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, \
-    LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RequestAdminNoteForm
+    LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RAAdminForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
@@ -85,18 +85,22 @@ def found(request):
 
 @requires_role("FUND")
 def dashboard(request: HttpRequest) -> HttpResponse:
-    reqs = RARequest.objects.filter(deleted=False)
+    reqs = RARequest.objects.filter(deleted=False, unit__in=request.units)
     return render(request, 'ra/dashboard.html', {'reqs': reqs })
+
+def _req_defaults(units, emplid=None):
+    unit_choices = [(u.id, u.name) for u in units]
+    return unit_choices
 
 @requires_role("FUND")
 def new_request(request: HttpRequest) -> HttpResponse:
     """
     View to create a new RA request.
     """
+    unit_choices = _req_defaults(request.units)
     author = get_object_or_404(Person, userid=request.user.username)
     if request.method == 'POST':
         data = request.POST.copy()
-
         # TODO: zero any irrelevant payment fields
         if 'nonstudent' in data:
             data['person'] = ''    
@@ -111,10 +115,11 @@ def new_request(request: HttpRequest) -> HttpResponse:
             data['fs2_project'] = ''
             
         raform = RARequestForm(data, request.FILES)
-        print(raform.errors)
+
         if raform.is_valid():
             req = raform.save(commit=False)
             req.author = author
+            raform.fields['unit'].choices = unit_choices
 
             # Add attachments
             if request.FILES and 'file_attachment_1' in request.FILES:
@@ -132,7 +137,7 @@ def new_request(request: HttpRequest) -> HttpResponse:
                     attachment_file_type += "; charset=" + attachment.charset
                 req.file_attachment_2 = attachment
                 req.file_mediatype_2 = attachment_file_type
-             
+
             req.save()
             l = LogEntry(userid=request.user.username,
                          description="Created RA Request %s." % req,
@@ -144,6 +149,7 @@ def new_request(request: HttpRequest) -> HttpResponse:
             return HttpResponseRedirect(reverse('ra:dashboard'))
     else:
         raform = RARequestForm()
+        raform.fields['unit'].choices = unit_choices
 
     return render(request, 'ra/new_request.html', { 'raform': raform })
 
@@ -152,10 +158,11 @@ def edit_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """
     View to edit a RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False)
+    unit_choices = _req_defaults(request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
     supervisor = req.supervisor
     person = req.person
-
+    
     if request.method == 'POST':
         data = request.POST.copy()
         
@@ -176,15 +183,24 @@ def edit_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
         raform = RARequestForm(data, request.FILES, instance=req)
         if raform.is_valid():
             req = raform.save(commit=False)
-
-            # Add attachment
-            if request.FILES and 'file_attachment' in request.FILES:
-                attachment = request.FILES['file_attachment']
+            raform.fields['unit'].choices = unit_choices
+            # Add attachments
+            if request.FILES and 'file_attachment_1' in request.FILES:
+                attachment = request.FILES['file_attachment_1']
                 attachment_file_type = attachment.content_type
                 if attachment.charset:
                     attachment_file_type += "; charset=" + attachment.charset
-                req.file_attachment = attachment
-                req.file_mediatype = attachment_file_type
+                req.file_attachment_1 = attachment
+                req.file_mediatype_1 = attachment_file_type
+
+            if request.FILES and 'file_attachment_2' in request.FILES:
+                attachment = request.FILES['file_attachment_2']
+                attachment_file_type = attachment.content_type
+                if attachment.charset:
+                    attachment_file_type += "; charset=" + attachment.charset
+                req.file_attachment_2 = attachment
+                req.file_mediatype_2 = attachment_file_type
+
             req.save()
             l = LogEntry(userid=request.user.username,
                          description="Edited RA Request %s." % req,
@@ -215,6 +231,7 @@ def edit_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
                                                           'ra_duties_su': req.split_duties_su,
                                                           'ra_duties_wr': req.split_duties_wr,
                                                           'ra_duties_pm': req.split_duties_pm})
+        raform.fields['unit'].choices = unit_choices
 
     return render(request, 'ra/edit_request.html', { 'raform': raform, 'req': req, 'supervisor': supervisor })
 
@@ -224,54 +241,46 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """
     View to view a RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False)
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
     person = req.person
     supervisor = req.supervisor
     author = req.author
     no_id = req.nonstudent
     nonstudent = (req.student=="N")
-    thesis = (req.thesis or not req.thesis)
+    thesis = (req.mitacs=="N")
     research_assistant = (req.hiring_category=="RA")
     gras_lump = (req.gras_payment_method=="LS" or req.gras_payment_method=="LE")
     gras_bw = (req.gras_payment_method=="BW")
     ra_hourly = (req.ra_payment_method=="H")
     ra_bw = (req.ra_payment_method=="BW")
 
+    if request.method == 'POST':
+        data = request.POST.copy()
+        adminform = RAAdminForm(data, instance=req)
+        
+        if adminform.is_valid():
+
+            req = adminform.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Updated Admin Details for Request %s." % req,
+                         related_object=req)
+            l.save()
+            messages.success(request, 'Updated Admin Details for RA Request for ' + req.get_name())
+            return HttpResponseRedirect(reverse('ra:dashboard'))
+    else:
+        adminform = RAAdminForm(instance=req)
     return render(request, 'ra/view_request.html',
         {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 
          'author': author, 'research_assistant': research_assistant, 'no_id': no_id,
          'gras_lump': gras_lump, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw,
-         'thesis': thesis })
-
-@requires_role("FUND")
-def edit_request_notes(request: HttpRequest, ra_slug: str) -> HttpResponse:
-    """
-    View to edit admin notes on a RA request.
-    """
-    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False)
-    if request.method == 'POST':
-        data = request.POST.copy()
-        noteform = RequestAdminNoteForm(data, instance=req)
-
-        if noteform.is_valid():
-            req = noteform.save()
-            l = LogEntry(userid=request.user.username,
-                         description="Added Admin Note to Request %s." % req,
-                         related_object=req)
-            l.save()
-            messages.success(request, 'Added Admin Note to RA Request for ' + req.get_name())
-            # TODO: go to view page, not dashboard
-            return HttpResponseRedirect(reverse('ra:dashboard'))
-    else:
-        noteform = RequestAdminNoteForm(instance=req)
-    return render(request, 'ra/edit_request_notes.html', {'noteform': noteform, 'req': req })
+         'thesis': thesis, 'adminform': adminform })
 
 @requires_role("FUND")
 def delete_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """
     View to delete a RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug)
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
     if request.method == 'POST':
         req.deleted = True
         req.save()
@@ -288,7 +297,7 @@ def view_request_attachment_1(request: HttpRequest, ra_slug: str) -> HttpRespons
     """
     View to view the first attachment for an RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug)
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
     attachment = req.file_attachment_1
     filename = attachment.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.chunks(), content_type=req.file_mediatype_1)
@@ -301,7 +310,7 @@ def download_request_attachment_1(request: HttpRequest, ra_slug: str) -> HttpRes
     """
     View to download the first attachment for an RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug)
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
     attachment = req.file_attachment_1
     filename = attachment.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.chunks(), content_type=req.file_mediatype_1)
@@ -314,7 +323,7 @@ def view_request_attachment_2(request: HttpRequest, ra_slug: str) -> HttpRespons
     """
     View to view the second attachment for an RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug)
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
     attachment = req.file_attachment_2
     filename = attachment.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.chunks(), content_type=req.file_mediatype_2)
@@ -327,7 +336,7 @@ def download_request_attachment_2(request: HttpRequest, ra_slug: str) -> HttpRes
     """
     View to download the second attachment for an RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug)
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
     attachment = req.file_attachment_2
     filename = attachment.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.chunks(), content_type=req.file_mediatype_2)
