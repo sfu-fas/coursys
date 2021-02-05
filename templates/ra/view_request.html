@@ -64,7 +64,6 @@
     <tr><th>First Name:</th><td>{{ supervisor.first_name }}</td></tr>
     <tr><th>Last Name:</th><td>{{ supervisor.last_name }}</td></tr>
     <tr><th>Email:</th><td>{{ supervisor.email_mailto }}</td></tr>
-    </tr></td>
   </table>
 </div>
 
@@ -220,7 +219,7 @@
     </td></tr>
   </table>
   <table class="info">
-    <th>Benefits:</th><td>{{ req.get_ra_benefits_display }}</td></tr>
+    <tr><th>Benefits:</th><td>{{ req.get_ra_benefits_display }}</td></tr>
   </table>
 </div>
 {% endif %}
