@@ -158,7 +158,7 @@ class RARequestForm(forms.ModelForm):
             setattr(self.instance, field, cleaned_data[field])
 
         total_pay = cleaned_data.get('total_pay')
-        print(total_pay)
+        #print(total_pay)
 
         nonstudent = cleaned_data.get('nonstudent')
         first_name = cleaned_data.get('first_name')

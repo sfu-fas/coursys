@@ -115,11 +115,11 @@ def new_request(request: HttpRequest) -> HttpResponse:
             data['fs2_project'] = ''
             
         raform = RARequestForm(data, request.FILES)
+        raform.fields['unit'].choices = unit_choices
 
         if raform.is_valid():
             req = raform.save(commit=False)
             req.author = author
-            raform.fields['unit'].choices = unit_choices
 
             # Add attachments
             if request.FILES and 'file_attachment_1' in request.FILES:
@@ -181,9 +181,11 @@ def edit_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
 
 
         raform = RARequestForm(data, request.FILES, instance=req)
+        raform.fields['unit'].choices = unit_choices
+
         if raform.is_valid():
             req = raform.save(commit=False)
-            raform.fields['unit'].choices = unit_choices
+
             # Add attachments
             if request.FILES and 'file_attachment_1' in request.FILES:
                 attachment = request.FILES['file_attachment_1']
