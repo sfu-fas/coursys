@@ -4,9 +4,9 @@ from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpRespons
 from django.contrib import messages
 from django.db.models import Q
 from django.utils.html import conditional_escape as escape
-from ra.models import RAAppointment, Project, Account, SemesterConfig, Program
-from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, \
-    LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm
+from ra.models import RAAppointment, RARequest, Project, Account, SemesterConfig, Program
+from ra.forms import RAForm, RASearchForm, RARequestForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, \
+    LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RAAdminForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
@@ -18,8 +18,8 @@ from log.models import LogEntry
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
 from django.db import transaction
+from django.http import HttpResponse, HttpRequest
 import csv
-
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from haystack.query import SearchQuerySet
@@ -39,7 +39,6 @@ def _can_view_ras():
 
     actual_decorator = user_passes_test(auth_test)
     return actual_decorator
-
 
 #This is the search function that that returns a list of RA Appointments related to the query.
 @requires_role("FUND")
@@ -84,6 +83,266 @@ def found(request):
     context = {'people': people}
     return render(request, 'ra/found.html', context)
 
+@requires_role("FUND")
+def dashboard(request: HttpRequest) -> HttpResponse:
+    reqs = RARequest.objects.filter(deleted=False, unit__in=request.units)
+    return render(request, 'ra/dashboard.html', {'reqs': reqs })
+
+def _req_defaults(units, emplid=None):
+    unit_choices = [(u.id, u.name) for u in units]
+    return unit_choices
+
+@requires_role("FUND")
+def new_request(request: HttpRequest) -> HttpResponse:
+    """
+    View to create a new RA request.
+    """
+    unit_choices = _req_defaults(request.units)
+    author = get_object_or_404(Person, userid=request.user.username)
+    if request.method == 'POST':
+        data = request.POST.copy()
+        # TODO: zero any irrelevant payment fields
+        if 'nonstudent' in data:
+            data['person'] = ''    
+        else:
+            data['first_name'] = ''
+            data['last_name'] = ''
+            data['email_address'] = '' 
+
+        if 'fs2_option' not in data:
+            data['fs2_unit'] = ''
+            data['fs2_fund'] = ''
+            data['fs2_project'] = ''
+            
+        raform = RARequestForm(data, request.FILES)
+
+        if raform.is_valid():
+            req = raform.save(commit=False)
+            req.author = author
+            raform.fields['unit'].choices = unit_choices
+
+            # Add attachments
+            if request.FILES and 'file_attachment_1' in request.FILES:
+                attachment = request.FILES['file_attachment_1']
+                attachment_file_type = attachment.content_type
+                if attachment.charset:
+                    attachment_file_type += "; charset=" + attachment.charset
+                req.file_attachment_1 = attachment
+                req.file_mediatype_1 = attachment_file_type
+
+            if request.FILES and 'file_attachment_2' in request.FILES:
+                attachment = request.FILES['file_attachment_2']
+                attachment_file_type = attachment.content_type
+                if attachment.charset:
+                    attachment_file_type += "; charset=" + attachment.charset
+                req.file_attachment_2 = attachment
+                req.file_mediatype_2 = attachment_file_type
+
+            req.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Created RA Request %s." % req,
+                         related_object=req)
+            l.save()
+        
+            messages.success(request, 'Created RA Request for ' + req.get_name())
+            # TODO: go to view page, not dashboard
+            return HttpResponseRedirect(reverse('ra:dashboard'))
+    else:
+        raform = RARequestForm()
+        raform.fields['unit'].choices = unit_choices
+
+    return render(request, 'ra/new_request.html', { 'raform': raform })
+
+@requires_role("FUND")
+def edit_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    View to edit a RA request.
+    """
+    unit_choices = _req_defaults(request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
+    supervisor = req.supervisor
+    person = req.person
+    
+    if request.method == 'POST':
+        data = request.POST.copy()
+        
+        # TODO: zero any irrelevant payment fields
+        if 'nonstudent' in data:
+            data['person'] = ''    
+        else:
+            data['first_name'] = ''
+            data['last_name'] = ''
+            data['email_address'] = '' 
+
+        if 'fs2_option' not in data:
+            data['fs2_unit'] = ''
+            data['fs2_fund'] = ''
+            data['fs2_project'] = ''
+
+
+        raform = RARequestForm(data, request.FILES, instance=req)
+        if raform.is_valid():
+            req = raform.save(commit=False)
+            raform.fields['unit'].choices = unit_choices
+            # Add attachments
+            if request.FILES and 'file_attachment_1' in request.FILES:
+                attachment = request.FILES['file_attachment_1']
+                attachment_file_type = attachment.content_type
+                if attachment.charset:
+                    attachment_file_type += "; charset=" + attachment.charset
+                req.file_attachment_1 = attachment
+                req.file_mediatype_1 = attachment_file_type
+
+            if request.FILES and 'file_attachment_2' in request.FILES:
+                attachment = request.FILES['file_attachment_2']
+                attachment_file_type = attachment.content_type
+                if attachment.charset:
+                    attachment_file_type += "; charset=" + attachment.charset
+                req.file_attachment_2 = attachment
+                req.file_mediatype_2 = attachment_file_type
+
+            req.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Edited RA Request %s." % req,
+                         related_object=req)
+            l.save()
+            messages.success(request, 'Updated RA Request for ' + req.get_name())
+            # TODO: go to view page, not dashboard
+            return HttpResponseRedirect(reverse('ra:dashboard'))
+    else:
+        if req.nonstudent:
+            raform = RARequestForm(instance=req, initial={'supervisor': supervisor.emplid, 
+                                                          'ra_duties_ex': req.split_duties_ex,
+                                                          'ra_duties_dc': req.split_duties_dc,
+                                                          'ra_duties_pd': req.split_duties_pd,
+                                                          'ra_duties_im': req.split_duties_im,
+                                                          'ra_duties_eq': req.split_duties_eq,
+                                                          'ra_duties_su': req.split_duties_su,
+                                                          'ra_duties_wr': req.split_duties_wr,
+                                                          'ra_duties_pm': req.split_duties_pm})
+        if req.person:
+            raform = RARequestForm(instance=req, initial={'person': person.emplid, 
+                                                          'supervisor': supervisor.emplid, 
+                                                          'ra_duties_ex': req.split_duties_ex,
+                                                          'ra_duties_dc': req.split_duties_dc,
+                                                          'ra_duties_pd': req.split_duties_pd,
+                                                          'ra_duties_im': req.split_duties_im,
+                                                          'ra_duties_eq': req.split_duties_eq,
+                                                          'ra_duties_su': req.split_duties_su,
+                                                          'ra_duties_wr': req.split_duties_wr,
+                                                          'ra_duties_pm': req.split_duties_pm})
+        raform.fields['unit'].choices = unit_choices
+
+    return render(request, 'ra/edit_request.html', { 'raform': raform, 'req': req, 'supervisor': supervisor })
+
+# View RA Request
+@requires_role("FUND")
+def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    View to view a RA request.
+    """
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
+    person = req.person
+    supervisor = req.supervisor
+    author = req.author
+    no_id = req.nonstudent
+    nonstudent = (req.student=="N")
+    thesis = (req.mitacs=="N")
+    research_assistant = (req.hiring_category=="RA")
+    gras_lump = (req.gras_payment_method=="LS" or req.gras_payment_method=="LE")
+    gras_bw = (req.gras_payment_method=="BW")
+    ra_hourly = (req.ra_payment_method=="H")
+    ra_bw = (req.ra_payment_method=="BW")
+
+    if request.method == 'POST':
+        data = request.POST.copy()
+        adminform = RAAdminForm(data, instance=req)
+        
+        if adminform.is_valid():
+
+            req = adminform.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Updated Admin Details for Request %s." % req,
+                         related_object=req)
+            l.save()
+            messages.success(request, 'Updated Admin Details for RA Request for ' + req.get_name())
+            return HttpResponseRedirect(reverse('ra:dashboard'))
+    else:
+        adminform = RAAdminForm(instance=req)
+    return render(request, 'ra/view_request.html',
+        {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 
+         'author': author, 'research_assistant': research_assistant, 'no_id': no_id,
+         'gras_lump': gras_lump, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw,
+         'thesis': thesis, 'adminform': adminform })
+
+@requires_role("FUND")
+def delete_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    View to delete a RA request.
+    """
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    if request.method == 'POST':
+        req.deleted = True
+        req.save()
+        messages.success(request, "Deleted RA Request." )
+        l = LogEntry(userid=request.user.username,
+              description="Deleted RA appointment %s." % (str(req),),
+              related_object=req)
+        l.save()              
+    
+    return HttpResponseRedirect(reverse('ra:dashboard'))
+
+@requires_role("FUND")
+def view_request_attachment_1(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    View to view the first attachment for an RA request.
+    """
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    attachment = req.file_attachment_1
+    filename = attachment.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.chunks(), content_type=req.file_mediatype_1)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.size
+    return resp
+
+@requires_role("FUND")
+def download_request_attachment_1(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    View to download the first attachment for an RA request.
+    """
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    attachment = req.file_attachment_1
+    filename = attachment.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.chunks(), content_type=req.file_mediatype_1)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.size
+    return resp
+
+@requires_role("FUND")
+def view_request_attachment_2(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    View to view the second attachment for an RA request.
+    """
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    attachment = req.file_attachment_2
+    filename = attachment.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.chunks(), content_type=req.file_mediatype_2)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.size
+    return resp
+
+@requires_role("FUND")
+def download_request_attachment_2(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    View to download the second attachment for an RA request.
+    """
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    attachment = req.file_attachment_2
+    filename = attachment.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.chunks(), content_type=req.file_mediatype_2)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.size
+    return resp
 
 #This is an index of all RA Appointments belonging to a given person.
 @requires_role("FUND")
@@ -107,7 +366,6 @@ def _appointment_defaults(units, emplid=None):
     program_choices = [('', "00000, None")] + [(p.id, str(p)) for p in Program.objects.visible_by_unit(units).order_by('program_number')]
     return (scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices,
             program_choices)
-    
 
 #New RA Appointment
 @requires_role("FUND")
@@ -218,7 +476,6 @@ def edit(request, ra_slug):
         raform.fields['program'].choices = program_choices
     return render(request, 'ra/edit.html', { 'raform': raform, 'appointment': appointment, 'person': appointment.person })
 
-
 #Quick Reappoint, The difference between this and edit is that the reappointment box is automatically checked, and date information is filled out as if a new appointment is being created.
 #Since all reappointments will be new appointments, no post method is present, rather the new appointment template is rendered with the existing data which will call the new method above when posting.
 @requires_role("FUND")
@@ -281,7 +538,6 @@ def select_letter(request, ra_slug, print_only=None):
         new_form = LetterSelectForm(choices=letter_choices)
         context = {'form': new_form, 'ra_slug': ra_slug, 'print_only': print_only}
         return render(request, 'ra/select_letter.html', context)
-
 
 #View RA Appointment
 @_can_view_ras()

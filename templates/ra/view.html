@@ -156,11 +156,11 @@
     {% endif %}
     {% endwith %}
 
-                        <form action="{% url "ra:delete_ra" ra_slug=appointment.slug %}" method="post">
-                            {% csrf_token %}
-                                <p class="actionbutton">
-                                    <input type="submit" class="submit confirm-submit" value="Delete Appointment" data-submit-action="remove this appointment" />
-                                </p>
-                        </form>
-    Initial creation: {{ appointment.created_at }}.
+  <form action="{% url "ra:delete_ra" ra_slug=appointment.slug %}" method="post">
+      {% csrf_token %}
+          <p class="actionbutton">
+              <input type="submit" class="submit confirm-submit" value="Delete Appointment" data-submit-action="remove this appointment" />
+          </p>
+  </form>
+  Initial creation: {{ appointment.created_at }}.
 {%endblock content%}
