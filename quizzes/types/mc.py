@@ -2,7 +2,7 @@ import string
 from decimal import Decimal
 
 from django import forms
-from django.utils.html import escape
+from django.utils.html import escape, conditional_escape
 from django.utils.safestring import mark_safe
 
 from .base import QuestionHelper, BaseConfigForm, MISSING_ANSWER_HTML
@@ -102,6 +102,7 @@ no_answer_choices = [
     ('noshow', 'Only show the options entered above.'),
 ]
 
+
 class MultipleChoice(QuestionHelper):
     name = 'Multiple Choice'
     NA = '' # value used to represent "no answer"
@@ -148,14 +149,27 @@ class MultipleChoice(QuestionHelper):
 
         return formdata
 
-    def get_entry_field(self, questionanswer=None, student=None):
-        options = self.version.config.get('options', [])
-        permute = self.version.config.get('permute', 'keep')
-        show_no_answer = self.version.config.get('show_no_answer', 'noshow')
+    @staticmethod
+    def get_initial(questionanswer):
+        # separated into a method so MultipleChoiceMultiple can override
         if questionanswer:
             initial = questionanswer.answer.get('data', MultipleChoice.NA)
         else:
             initial = MultipleChoice.NA
+        return initial
+
+    @staticmethod
+    def get_field(choices, initial):
+        # separated into a method so MultipleChoiceMultiple can override
+        field = forms.ChoiceField(required=False, initial=initial, choices=choices, widget=forms.RadioSelect())
+        field.widget.attrs.update({'class': 'multiple-choice'})
+        return field
+
+    def get_entry_field(self, questionanswer=None, student=None):
+        options = self.version.config.get('options', [])
+        permute = self.version.config.get('permute', 'keep')
+        show_no_answer = self.version.config.get('show_no_answer', 'noshow')
+        initial = self.get_initial(questionanswer)
 
         options = list(enumerate(options))  # keep original positions so the input values match that, but students see a possibly-randomized order
 
@@ -177,9 +191,7 @@ class MultipleChoice(QuestionHelper):
         if show_no_answer == 'show':
             choices.append((MultipleChoice.NA, 'no answer'))
 
-        field = forms.ChoiceField(required=False, initial=initial, choices=choices, widget=forms.RadioSelect())
-        field.widget.attrs.update({'class': 'multiple-choice'})
-        return field
+        return self.get_field(choices, initial)
 
     def is_blank(self, questionanswer):
         return questionanswer.answer.get('data', MultipleChoice.NA) == MultipleChoice.NA
@@ -230,3 +242,67 @@ class MultipleChoice(QuestionHelper):
             return mark, ''
         else:
             return Decimal(0), ''
+
+
+class MultipleChoiceMultiple(MultipleChoice):
+    name = 'Multiple Choice (multiple answer)'
+    NA = []  # value used to represent "no answer"
+
+    @property
+    def auto_markable(self):
+        # promise: if instructor sets all auto-mark values to 0, don't auto-mark.
+        return not all(Decimal(m) == Decimal(0) for _, m in self.version.config.get('options', []))
+
+    class ConfigForm(MultipleChoice.ConfigForm):
+        show_no_answer = None  # "no answer" option doesn't make sense for this sub-type
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            # update help text for options field
+            self.fields['options'].help_text = (
+                    conditional_escape(self.fields['options'].help_text)
+                    + mark_safe(' Automarking behaviour: for each answer given by the student, sum the marks given here. If you <strong>do not want automarking</strong>, set all mark values to zero.')
+            )
+
+    @staticmethod
+    def get_initial(questionanswer):
+        if questionanswer:
+            initial = questionanswer.answer.get('data', [])
+        else:
+            initial = []
+        return initial
+
+    @staticmethod
+    def get_field(choices, initial):
+        field = forms.MultipleChoiceField(
+            required=False, initial=initial, choices=choices, widget=forms.CheckboxSelectMultiple(),
+            help_text='Multiple options may be selected for this question.'
+        )
+        field.widget.attrs.update({'class': 'multiple-choice'})
+        return field
+
+    def is_blank(self, questionanswer):
+        return questionanswer.answer.get('data', MultipleChoiceMultiple.NA) == MultipleChoiceMultiple.NA
+
+    def to_text(self, questionanswer):
+        ans = questionanswer.answer.get('data', MultipleChoiceMultiple.NA)
+        if ans == MultipleChoiceMultiple.NA:
+            return 'no answer'
+        else:
+            return ', '.join(sorted(ans))
+
+    def to_html(self, questionanswer):
+        ans = questionanswer.answer.get('data', MultipleChoiceMultiple.NA)
+        if ans == MultipleChoice.NA:
+            return MISSING_ANSWER_HTML
+        else:
+            return mark_safe('<p>' + ', '.join(sorted(ans)) + '</p>')
+
+    def automark(self, questionanswer):
+        ans = questionanswer.answer.get('data', MultipleChoiceMultiple.NA)
+        total = Decimal(0)
+        for a in ans:
+            if a in OPTION_LETTERS:
+                i = OPTION_LETTERS.index(a)
+                total += Decimal(self.version.config['options'][i][1])
+        return total, ''
