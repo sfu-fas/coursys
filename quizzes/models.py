@@ -33,11 +33,12 @@ from grades.models import Activity, NumericActivity, NumericGrade
 from marking.models import ActivityComponent, ActivityComponentMark, StudentActivityMark
 from quizzes import DEFAULT_QUIZ_MARKUP
 from quizzes.types.file import FileAnswer
-from quizzes.types.mc import MultipleChoice
+from quizzes.types.mc import MultipleChoice, MultipleChoiceMultiple
 from quizzes.types.text import ShortAnswer, LongAnswer, FormattedAnswer, NumericAnswer, CodeAnswer
 
 QUESTION_TYPE_CHOICES = [
     ('MC', 'Multiple Choice'),
+    ('MCM', 'Multiple Choice (multiple answer)'),
     ('SHOR', 'Short Answer'),
     ('LONG', 'Long Answer'),
     ('FMT', 'Long Answer with formatting'),
@@ -48,6 +49,7 @@ QUESTION_TYPE_CHOICES = [
 
 QUESTION_HELPER_CLASSES = {
     'MC': MultipleChoice,
+    'MCM': MultipleChoiceMultiple,
     'SHOR': ShortAnswer,
     'LONG': LongAnswer,
     'FMT': FormattedAnswer,
