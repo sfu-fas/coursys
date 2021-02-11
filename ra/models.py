@@ -430,12 +430,18 @@ class RARequest(models.Model):
     visa_valid = config_property('visa_valid', default=False)
     payroll_collected = config_property('payroll_collected', default=False)
     paf_signed = config_property('paf_signed', default=False)
-    admin_notes = config_property('admin_notes', default=False)
+    admin_notes = config_property('admin_notes', default='')
 
     # creation, deletion and status
     created_at = models.DateTimeField(auto_now_add=True)
     deleted = models.BooleanField(null=False, default=False)
     complete = models.BooleanField(null=False, default=False)
+
+    def get_complete(self):
+        if self.funding_available and self.grant_active and self.salary_allowable and self.supervisor_check and self.visa_valid and self.payroll_collected and self.paf_signed:
+            return True
+        else:
+            return False
 
     # slugs
     def autoslug(self):
@@ -504,6 +510,46 @@ class RARequest(models.Model):
 
     def get_absolute_url(self):
         return reverse('ra:view_request', kwargs={'ra_slug': self.slug})
+    
+    def has_attachments(self):
+        return self.attachments.visible().count() > 0
+
+
+def ra_request_admin_attachment_upload_to(instance, filename):
+    return upload_path('rarequestadminattachments', filename)
+
+class RARequestAttachmentQueryset(models.QuerySet):
+    def visible(self):
+        return self.filter(hidden=False)
+
+class RARequestAttachment(models.Model):
+    """
+    Admins can add attachments to RA Requests.
+    """
+    req = models.ForeignKey(RARequest, null=False, blank=False, related_name="attachments", on_delete=models.PROTECT)
+    title = models.CharField(max_length=250, null=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('req',))
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person, help_text='Attachment created by.', on_delete=models.PROTECT)
+    contents = models.FileField(storage=UploadedFileStorage, upload_to=ra_request_attachment_upload_to, max_length=500)
+    mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = RARequestAttachmentQueryset.as_manager()
+
+    def __str__(self):
+        return self.contents.name
+
+    class Meta:
+        ordering = ("created_at",)
+        unique_together = (("req", "slug"),)
+
+    def contents_filename(self):
+        return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()
 
 class RAAppointment(models.Model):
     """

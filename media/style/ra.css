@@ -43,7 +43,26 @@ dl.dlform dt {
     padding-left: 15px;
     border: 1px solid #bbb;
     border-radius: 8px;
-    margin:15px;
+    margin-top:15px;
+    margin-bottom:15px;
+}
+
+.form_section_complete {
+    background-color: rgb(219, 253, 203);
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    margin-top:15px;
+    margin-bottom:15px;
+    padding-left:10px;
+}
+
+.form_section_incomplete {
+    background-color: rgb(255, 180, 180);
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    margin-top:15px;
+    margin-bottom:15px;
+    padding-left:10px;
 }
 
 .important_info {

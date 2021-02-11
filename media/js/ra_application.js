@@ -47,13 +47,31 @@ function setToNone (fields) {
     }
 }
 
-// guessing pay periods for their info
+// calculating pay periods for their info
+// finds number of days between dates not including saturday & sunday, and divides by 10
+// https://www.sunzala.com/why-the-javascript-date-is-one-day-off/
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset
 function guessPayPeriods () {
     date_1 = new Date ($('#id_start_date').val())
     date_2 = new Date ($('#id_end_date').val())
-    
-    diff = (Math.abs(date_2 - date_1))/(86400000 * 14)
-    payPeriods = diff.toFixed(1)
+    date_1 = new Date(date_1.getTime() + date_1.getTimezoneOffset() * 60000)
+    date_2 = new Date(date_2.getTime() + date_2.getTimezoneOffset() * 60000)
+
+    let workingDays = 0
+
+    while (date_1 <= date_2) {
+        if (date_1.getDay() !== 0 && date_1.getDay() !== 6) {
+            workingDays++;
+        }
+        date_1.setDate(date_1.getDate() + 1)
+    }
+    if (workingDays > 0) {
+        diff = (Math.abs(workingDays))/(10)
+        payPeriods = diff.toFixed(1)
+    }
+    else {
+        payPeriods = 0
+    }
     return payPeriods
 }
 
@@ -226,6 +244,7 @@ function fs3ChoiceUpdate() {
 
 function grasLS () {
     totalPay = $('#id_grasls_total_gross').val()
+    totalPay = parseInt(totalPay).toFixed(2)
     $('#id_total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
 }
@@ -244,6 +263,9 @@ function grasBW () {
     } else {
         hourlyRate = 0
     }
+    hourlyRate = hourlyRate.toFixed(2)
+    biweeklySalary = biweeklySalary.toFixed(2)
+    totalPay = parseInt(totalPay).toFixed(2)
     $('#id_grasbw_biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
     $('#id_grasbw_gross_hourly').val(hourlyRate)
@@ -266,6 +288,9 @@ function raBW () {
     } else {
         hourlyRate = 0
     }
+    biweeklySalary = biweeklySalary.toFixed(2)
+    hourlyRate = hourlyRate.toFixed(2)
+    totalPay = parseInt(totalPay).toFixed(2)
     $('#id_rabw_biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
     $('#id_rabw_gross_hourly').val(hourlyRate)
@@ -280,6 +305,7 @@ function raH () {
     vacationPay = $('#id_rah_vacation_pay').val()
     var payPeriods = guessPayPeriods()
     totalPay = (payPeriods * biweeklyHours * hourlyRate) * (1 + (vacationPay/100))
+    totalPay = parseInt(totalPay).toFixed(2)
     $('#id_total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
 }

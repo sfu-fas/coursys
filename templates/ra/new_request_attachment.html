@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load form_display %}{% load static %}
+{% block title %}Add File Attachment{% endblock %}
+{% block h1 %}Add File Attachment{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li>Add Attachment</li>
+{% endblock %}
+
+
+{% block content %}
+<div class="form_container">
+    <form action="{% url "ra:new_admin_attachment" ra_slug=req.slug  %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset>
+            {{ attachment_form|as_dl }}
+            <p><input type="submit" class="submit" value="Create Attachment" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}
