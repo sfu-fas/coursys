@@ -1,6 +1,7 @@
 from django import forms
 from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED, RAAppointmentAttachment, Program
-from ra.models import RARequest, DUTIES_CHOICES_EX, DUTIES_CHOICES_DC, DUTIES_CHOICES_PD, DUTIES_CHOICES_IM, DUTIES_CHOICES_EQ
+from ra.models import RARequest, RARequestAttachment
+from ra.models import DUTIES_CHOICES_EX, DUTIES_CHOICES_DC, DUTIES_CHOICES_PD, DUTIES_CHOICES_IM, DUTIES_CHOICES_EQ
 from ra.models import DUTIES_CHOICES_SU, DUTIES_CHOICES_WR, DUTIES_CHOICES_PM
 from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES
 from django.core.exceptions import ValidationError
@@ -65,20 +66,20 @@ class RARequestForm(forms.ModelForm):
                                             'unknown please confirm with the student.')
     ra_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
 
-    rabw_total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
-    rabw_weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)")
-    rabw_biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
+    rabw_total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
+    rabw_weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)", max_digits=8, decimal_places=1)
+    rabw_biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
     rabw_biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     rabw_gross_hourly = forms.DecimalField(required=False, widget=forms.HiddenInput)
 
-    rah_gross_hourly = forms.DecimalField(required=False, label="Gross Hourly")
-    rah_vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)")
-    rah_biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
+    rah_gross_hourly = forms.DecimalField(required=False, label="Gross Hourly", max_digits=8, decimal_places=2)
+    rah_vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)", max_digits=8, decimal_places=1)
+    rah_biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=2)
 
-    grasls_total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
+    grasls_total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
 
-    grasbw_total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
-    grasbw_biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
+    grasbw_total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
+    grasbw_biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
     grasbw_biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     grasbw_gross_hourly = forms.DecimalField(required=False, widget=forms.HiddenInput)
 
@@ -128,7 +129,7 @@ class RARequestForm(forms.ModelForm):
                 'rabw_total_gross', 'rabw_weeks_vacation', 'rabw_biweekly_salary', 'rabw_gross_hourly', 'rabw_biweekly_hours',
                 'rah_gross_hourly', 'rah_vacation_pay', 'rah_biweekly_hours',
                 'grasls_total_gross',
-                'grasbw_total_gross', 'grasbw_total_gross', 'grasbw_biweekly_hours', 'grasbw_biweekly_salary',
+                'grasbw_total_gross', 'grasbw_gross_hourly', 'grasbw_biweekly_hours', 'grasbw_biweekly_salary',
                 'ra_payment_method', 'gras_payment_method',
                 'ra_benefits', 'funding_comments', 'ra_other_duties']
 
@@ -150,15 +151,16 @@ class RARequestForm(forms.ModelForm):
                 'rabw_total_gross', 'rabw_weeks_vacation', 'rabw_biweekly_salary', 'rabw_gross_hourly', 'rabw_biweekly_hours',
                 'rah_gross_hourly', 'rah_vacation_pay', 'rah_biweekly_hours',
                 'grasls_total_gross',
-                'grasbw_total_gross', 'grasbw_total_gross', 'grasbw_biweekly_hours', 'grasbw_biweekly_salary',
+                'grasbw_total_gross', 'grasbw_gross_hourly', 'grasbw_biweekly_hours', 'grasbw_biweekly_salary',
                 'ra_payment_method', 'gras_payment_method',
                 'ra_benefits', 'funding_comments', 'ra_other_duties']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
 
-        total_pay = cleaned_data.get('total_pay')
-        #print(total_pay)
+        MIN_WAGE = 14.60
+        MIN_WEEKS_VACATION = 2
+        MIN_VACATION_PAY_PERCENTAGE = 4
 
         nonstudent = cleaned_data.get('nonstudent')
         first_name = cleaned_data.get('first_name')
@@ -207,7 +209,7 @@ class RARequestForm(forms.ModelForm):
                 self.add_error('fs2_unit', error_message)
             if fs2_fund == None:
                 self.add_error('fs2_fund', error_message)
-            if fs2_project == None:
+            if fs2_project == None or fs2_project == '':
                 self.add_error('fs2_project', error_message)
 
         fs3_option = cleaned_data.get('fs3_option')
@@ -221,14 +223,44 @@ class RARequestForm(forms.ModelForm):
                 self.add_error('fs3_unit', error_message)
             if fs3_fund == None:
                 self.add_error('fs3_fund', error_message)
-            if fs3_project == None:
+            if fs3_project == None or fs2_project == '':
                 self.add_error('fs3_project', error_message)
+
+        fs1_percentage = cleaned_data.get('fs1_percentage')
+        fs2_percentage = cleaned_data.get('fs2_percentage')
+        fs3_percentage = cleaned_data.get('fs3_percentage')
+
+        error_message = "Combined Percentages of all Funding Sources Must Add Up to 100%"
+        if fs2_option and not fs3_option:
+            percent_sum = fs1_percentage + fs2_percentage
+            if percent_sum != 100:
+                self.add_error('fs1_percentage', error_message)
+                self.add_error('fs2_percentage', error_message)
+        if fs2_option and fs3_option:
+            percent_sum = fs1_percentage + fs2_percentage + fs3_percentage
+            if percent_sum != 100:
+                self.add_error('fs1_percentage', error_message)
+                self.add_error('fs2_percentage', error_message)
+                self.add_error('fs3_percentage', error_message)
+
+        hiring_category = cleaned_data.get('hiring_category')
 
         gras_payment_method = cleaned_data.get('gras_payment_method')
         ra_payment_method = cleaned_data.get('ra_payment_method')
+
+        if hiring_category == "RA":
+            error_message = "Research Assistants must answer this question."
+            if ra_payment_method == None or ra_payment_method == "":
+                self.add_error('ra_payment_method', error_message)
+        if hiring_category == "GRAS":
+            error_message = "Graduate Research Assistants must answer this question."
+            if gras_payment_method == None or gras_payment_method == "":
+                self.add_error('gras_payment_method', error_message)
+
+        grasbw_total_gross = cleaned_data.get('grasbw_total_gross')
         grasbw_biweekly_hours = cleaned_data.get('grasbw_biweekly_hours')
         grasls_total_gross = cleaned_data.get('grasls_total_gross')
-
+        
         if gras_payment_method:
             error_message = "Graduate Research Assistants must answer this question."
             if gras_payment_method == "LS" or gras_payment_method == "LE":
@@ -237,12 +269,40 @@ class RARequestForm(forms.ModelForm):
             if gras_payment_method == "BW":
                 if grasbw_biweekly_hours == 0 or grasbw_biweekly_hours == None:
                     self.add_error('grasbw_biweekly_hours', error_message)
+                if grasbw_total_gross == 0 or grasbw_total_gross == None:
+                    self.add_error('grasbw_total_gross', error_message)
             if ra_payment_method:
                 raise forms.ValidationError("Cannot be both an RA and a GRAS.")
 
-        #total_pay = cleaned_data.get('total_pay')
-        #if total_pay == 0 or total_pay == None:
-        #    raise forms.ValidationError("Total pay must be calculated.")
+        rabw_total_gross = cleaned_data.get('rabw_total_gross')
+        rabw_weeks_vacation = cleaned_data.get('rabw_weeks_vacation')
+        rabw_biweekly_hours = cleaned_data.get('rabw_biweekly_hours')
+        rah_gross_hourly = cleaned_data.get('rah_gross_hourly')
+        rah_vacation_pay = cleaned_data.get('rah_vacation_pay')
+        rah_biweekly_hours = cleaned_data.get('rah_biweekly_hours')
+
+        if ra_payment_method:
+            error_message = "Research Assistants must answer this question."
+            if ra_payment_method == "BW":
+                if rabw_total_gross == 0 or rabw_total_gross == None:
+                    self.add_error('rabw_total_gross', error_message)
+                if rabw_weeks_vacation == None:
+                    self.add_error('rabw_weeks_vacation', error_message)
+                elif rabw_weeks_vacation < MIN_WEEKS_VACATION:
+                    self.add_error('rabw_weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
+                if rabw_biweekly_hours == None or rabw_biweekly_hours == 0:
+                    self.add_error('rabw_biweekly_hours', error_message)
+            if ra_payment_method == "H":
+                if rah_gross_hourly == None:
+                    self.add_error('rah_gross_hourly', error_message)
+                elif rah_gross_hourly < MIN_WAGE:
+                    self.add_error('rah_gross_hourly', ('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + str(MIN_WAGE) + ')'))
+                if rah_vacation_pay == None:
+                    self.add_error('rah_vacation_pay', error_message)
+                elif rah_vacation_pay < MIN_VACATION_PAY_PERCENTAGE:
+                    self.add_error('rah_vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
+                if rah_biweekly_hours == None or rah_biweekly_hours == 0:
+                    self.add_error('rah_biweekly_hours', error_message)
 
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
@@ -251,31 +311,43 @@ class RARequestForm(forms.ModelForm):
             self.add_error('end_date', error_message)
             self.add_error('start_date', error_message)
 
-class RAAdminForm(forms.ModelForm):
-    funding_available = forms.BooleanField(required=False, label="Funding Available")
-    grant_active = forms.BooleanField(required=False, label="Grant is Active for Duration of Appointment")
-    salary_allowable = forms.BooleanField(required=False, label="Salary is an Allowable Expense")
-    supervisor_check = forms.BooleanField(required=False, label="Supervisor has Signing Authority - (If Not, Individual with Signing Authority is Identified)")
-    visa_valid = forms.BooleanField(required=False, label="Visa is Valid")
-    payroll_collected = forms.BooleanField(required=False, label="Payroll Forms are Collected/Already on File")
-    paf_signed = forms.BooleanField(required=False, label="PAF and Offer Letter (If Applicable) are Signed by Supervisor")
+class RARequestNoteForm(forms.ModelForm):
     admin_notes = forms.CharField(required=False, label="Administrative Notes", widget=forms.Textarea)
-    
+
+    class Meta:
+        model = RARequest
+        fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super(RARequestNoteForm, self).__init__(*args, **kwargs)
+        config_init = ['admin_notes']
+
+        for field in config_init:
+            self.initial[field] = getattr(self.instance, field)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        config_clean = ['admin_notes']
+        for field in config_clean:
+            setattr(self.instance, field, cleaned_data[field])
+
+class RARequestAdminForm(forms.ModelForm):
+    funding_available = forms.BooleanField(required=False, label="")
+    grant_active = forms.BooleanField(required=False, label="")
+    salary_allowable = forms.BooleanField(required=False, label="")
+    supervisor_check = forms.BooleanField(required=False, label="")
+    visa_valid = forms.BooleanField(required=False, label="")
+    payroll_collected = forms.BooleanField(required=False, label="")
+    paf_signed = forms.BooleanField(required=False, label="")
 
     class Meta:
         model = RARequest
         fields = ()
     
     def __init__(self, *args, **kwargs):
-        super(RAAdminForm, self).__init__(*args, **kwargs)
-        not_required = ['funding_available', 'grant_active', 'salary_allowable', 'supervisor_check', 'visa_valid',
-                        'payroll_collected', 'paf_signed', 'admin_notes']
-        
-        for field in not_required:
-            self.fields[field].required = False   
-        
+        super(RARequestAdminForm, self).__init__(*args, **kwargs)
         config_init = ['funding_available', 'grant_active', 'salary_allowable', 'supervisor_check', 'visa_valid',
-                        'payroll_collected', 'paf_signed', 'admin_notes']
+                        'payroll_collected', 'paf_signed']
         
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
@@ -283,10 +355,14 @@ class RAAdminForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         config_clean = ['funding_available', 'grant_active', 'salary_allowable', 'supervisor_check', 'visa_valid',
-                        'payroll_collected', 'paf_signed', 'admin_notes']
+                        'payroll_collected', 'paf_signed']
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
         
+class RARequestAdminAttachmentForm (forms.ModelForm):
+    class Meta:
+        model = RARequestAttachment
+        exclude = ('req', 'created_by')
 
 class RAForm(forms.ModelForm):
     person = PersonField(label='Hire')

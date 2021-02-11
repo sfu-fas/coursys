@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.utils.html import conditional_escape as escape
 from ra.models import RAAppointment, RARequest, Project, Account, SemesterConfig, Program
 from ra.forms import RAForm, RASearchForm, RARequestForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, \
-    LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RAAdminForm
+    LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RARequestAdminForm, RARequestNoteForm, RARequestAdminAttachmentForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
@@ -85,8 +85,9 @@ def found(request):
 
 @requires_role("FUND")
 def dashboard(request: HttpRequest) -> HttpResponse:
-    reqs = RARequest.objects.filter(deleted=False, unit__in=request.units)
-    return render(request, 'ra/dashboard.html', {'reqs': reqs })
+    reqs = RARequest.objects.filter(deleted=False, unit__in=request.units, complete=False)
+    reqs_complete = RARequest.objects.filter(deleted=False, unit__in=request.units, complete=True)
+    return render(request, 'ra/dashboard.html', {'reqs': reqs, 'reqs_complete': reqs_complete })
 
 def _req_defaults(units, emplid=None):
     unit_choices = [(u.id, u.name) for u in units]
@@ -113,6 +114,16 @@ def new_request(request: HttpRequest) -> HttpResponse:
             data['fs2_unit'] = ''
             data['fs2_fund'] = ''
             data['fs2_project'] = ''
+            data['fs2_percentage'] = 0
+        
+        if 'fs3_option' not in data:
+            data['fs3_unit'] = ''
+            data['fs3_fund'] = ''
+            data['fs3_project'] = ''
+            data['fs3_percentage'] = 0
+
+        if 'fs2_option' not in data and 'fs3_option' not in data:
+            data['fs1_percentage'] = 100
             
         raform = RARequestForm(data, request.FILES)
         raform.fields['unit'].choices = unit_choices
@@ -178,7 +189,16 @@ def edit_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
             data['fs2_unit'] = ''
             data['fs2_fund'] = ''
             data['fs2_project'] = ''
+            data['fs2_percentage'] = 0
+        
+        if 'fs3_option' not in data:
+            data['fs3_unit'] = ''
+            data['fs3_fund'] = ''
+            data['fs3_project'] = ''
+            data['fs3_percentage'] = 0
 
+        if 'fs2_option' not in data and 'fs3_option' not in data:
+            data['fs1_percentage'] = 100
 
         raform = RARequestForm(data, request.FILES, instance=req)
         raform.fields['unit'].choices = unit_choices
@@ -210,7 +230,7 @@ def edit_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
             l.save()
             messages.success(request, 'Updated RA Request for ' + req.get_name())
             # TODO: go to view page, not dashboard
-            return HttpResponseRedirect(reverse('ra:dashboard'))
+            return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
     else:
         if req.nonstudent:
             raform = RARequestForm(instance=req, initial={'supervisor': supervisor.emplid, 
@@ -251,30 +271,30 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     nonstudent = (req.student=="N")
     thesis = (req.mitacs=="N")
     research_assistant = (req.hiring_category=="RA")
-    gras_lump = (req.gras_payment_method=="LS" or req.gras_payment_method=="LE")
+    gras_le = req.gras_payment_method=="LS"
+    gras_ls = req.gras_payment_method=="LE"
     gras_bw = (req.gras_payment_method=="BW")
     ra_hourly = (req.ra_payment_method=="H")
     ra_bw = (req.ra_payment_method=="BW")
 
     if request.method == 'POST':
         data = request.POST.copy()
-        adminform = RAAdminForm(data, instance=req)
-        
+        adminform = RARequestAdminForm(data, instance=req)
         if adminform.is_valid():
-
+            req.complete = req.get_complete()
             req = adminform.save()
             l = LogEntry(userid=request.user.username,
-                         description="Updated Admin Details for Request %s." % req,
+                         description="Updated Progress for Request %s." % req,
                          related_object=req)
             l.save()
-            messages.success(request, 'Updated Admin Details for RA Request for ' + req.get_name())
-            return HttpResponseRedirect(reverse('ra:dashboard'))
+            messages.success(request, 'Updated Progress for RA Request for ' + req.get_name())
+            return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
     else:
-        adminform = RAAdminForm(instance=req)
+        adminform = RARequestAdminForm(instance=req)
     return render(request, 'ra/view_request.html',
         {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 
          'author': author, 'research_assistant': research_assistant, 'no_id': no_id,
-         'gras_lump': gras_lump, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw,
+         'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw,
          'thesis': thesis, 'adminform': adminform })
 
 @requires_role("FUND")
@@ -293,6 +313,28 @@ def delete_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
         l.save()              
     
     return HttpResponseRedirect(reverse('ra:dashboard'))
+
+@requires_role("FUND")
+def edit_request_notes(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    View to edit notes of an RA request.
+    """
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    
+    if request.method == 'POST':
+        noteform = RARequestNoteForm(request.POST, instance=req)
+        
+        if noteform.is_valid():
+            noteform.save()
+            messages.success(request, "Edited Note for RA Request." )
+            l = LogEntry(userid=request.user.username,
+                description="Edited Note for RA Request %s" % (str(req),),
+                related_object=req)
+            l.save()              
+            return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
+    else: 
+        noteform = RARequestNoteForm(instance=req)
+    return render(request, 'ra/edit_request_notes.html', {'noteform': noteform, 'req':req})
 
 @requires_role("FUND")
 def view_request_attachment_1(request: HttpRequest, ra_slug: str) -> HttpResponse:
@@ -345,6 +387,73 @@ def download_request_attachment_2(request: HttpRequest, ra_slug: str) -> HttpRes
     resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
     resp['Content-Length'] = attachment.size
     return resp
+
+@requires_role("FUND")
+@transaction.atomic
+def new_admin_attachment(request, ra_slug):
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    form = RARequestAdminAttachmentForm()
+    context = {"req": req,
+               "attachment_form": form}
+
+    if request.method == "POST":
+        form = RARequestAdminAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.req = req
+            attachment.created_by = editor
+            upfile = request.FILES['contents']
+            filetype = upfile.content_type
+            if upfile.charset:
+                filetype += "; charset=" + upfile.charset
+            attachment.mediatype = filetype
+            attachment.save()
+            messages.add_message(request, messages.SUCCESS, 'Admin attachment added.')
+            l = LogEntry(userid=request.user.username, description="Added admin attachment %s" % attachment, related_object=attachment)
+            return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
+        else:
+            context.update({"attachment_form": form})
+
+    return render(request, 'ra/new_request_attachment.html', context)
+
+@requires_role("FUND")
+def view_admin_attachment(request, ra_slug, attach_slug):
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    attachment = get_object_or_404(req.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role("FUND")
+def download_admin_attachment(request, ra_slug, attach_slug):
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    attachment = get_object_or_404(req.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role("FUND")
+def delete_admin_attachment(request, ra_slug, attach_slug):
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    attachment = get_object_or_404(req.attachments.all(), slug=attach_slug)
+    attachment.hide()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         'Admin attachment deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid admin attachment %s" % attachment, related_object=attachment)
+    l.save()
+    return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
+
+
 
 #This is an index of all RA Appointments belonging to a given person.
 @requires_role("FUND")
@@ -597,9 +706,6 @@ def delete_ra(request, ra_slug):
         l.save()              
     
     return HttpResponseRedirect(reverse('ra:student_appointments', kwargs={'userid': appointment.person.emplid}))
-
-
-
 
 # Methods relating to Account creation. These are all straight forward.
 @requires_role(["FUND", "TAAD", "GRAD"])
