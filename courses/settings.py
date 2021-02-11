@@ -297,6 +297,16 @@ if DEPLOY_MODE == 'production':
     SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS', ''),
             'db': 'coursesvn', 'port': 4000}
 
+elif DEPLOY_MODE == 'proddev':
+    MIDDLEWARE = ['courselib.middleware.MonitoringMiddleware'] + MIDDLEWARE
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/data/submitted_files')
+    BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "https://localhost:8443")
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    SVN_DB_CONNECT = None
+
 else:
     SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', "submitted_files")
     BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "http://localhost:8000")
@@ -308,7 +318,7 @@ else:
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
 USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
 if USE_CELERY:
-    AMPQ_PASSWORD = getattr(secrets, 'AMPQ_PASSWORD', 'supersecretpassword')
+    AMPQ_PASSWORD = getattr(secrets, 'RABBITMQ_PASSWORD', 'supersecretpassword')
     if DEPLOY_MODE != 'devel' or getattr(localsettings, 'DEPLOYED_CELERY_SETTINGS', False):
         # use AMPQ in production, and move email sending to Celery
         CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))

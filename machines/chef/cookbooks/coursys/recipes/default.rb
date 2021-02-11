@@ -28,3 +28,6 @@ execute "github-markdown" do
     command "gem install commonmarker github-markup"
     not_if "ls /usr/local/bin/github-markup"
 end
+
+# rabbitmq and memcached, so we can use them if we want
+package ['rabbitmq-server', 'memcached']

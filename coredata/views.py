@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
@@ -51,7 +51,7 @@ def role_list(request):
     Display list of who has what role
     """
     roles = Role.objects_fresh.exclude(role="NONE").select_related('person', 'unit')
-    
+
     return render(request, 'coredata/roles.html', {'roles': roles})
 
 
@@ -76,7 +76,6 @@ def new_role(request, role=None):
 
     return render(request, 'coredata/new_role.html', {'form': form})
 
-
 @requires_global_role("SYSA")
 def renew_role(request, role_id):
     if request.method != 'POST':
@@ -94,9 +93,7 @@ def renew_role(request, role_id):
                  role.get_role_display(), role.person.name(), role.unit, new_exp),
                  related_object=role.person)
     l.save()
-
     return HttpResponseRedirect(reverse('sysadmin:role_list'))
-
 
 @requires_global_role("SYSA")
 def delete_role(request, role_id):
@@ -823,6 +820,41 @@ def roles(request, emplid):
     json.dump(data, response, indent=1)
     return response
 
+@requires_role("ADMN")
+def renew_unit_roles_list(request):
+    """
+    Display list of who has what role
+    """
+    allow_renewal = datetime.timedelta(days=182)+datetime.date.today()
+    roles = Role.objects_fresh.filter(unit__in=Unit.sub_units(request.units), role__in=UNIT_ROLES, expiry__lt=allow_renewal)
+
+    return render(request, 'coredata/renew_unit_roles.html', {'roles': roles})
+
+@requires_role("ADMN")
+def renew_unit_roles(request, id=None):
+    """
+    Renew Multiple Roles
+    """
+    if request.method == 'POST':
+        to_renew = request.POST.getlist('renewals')
+        if to_renew == []:
+            messages.error(request, 'Please select at least one role to renew.')
+        else: 
+            for role_id in to_renew:
+                role = get_object_or_404(Role, pk=role_id, unit__in=Unit.sub_units(request.units), role__in=UNIT_ROLES)
+                new_exp = datetime.date.today() + datetime.timedelta(days=365)
+                role.expiry = new_exp
+                role.save()
+
+                messages.success(request, 'Renewed role for %s until %s.' % (role.person.name(), new_exp))
+                # LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                            description=("renewed role: %s for %s in %s until %s") % (
+                            role.get_role_display(), role.person.name(), role.unit, new_exp),
+                            related_object=role.person)
+                l.save()
+    return HttpResponseRedirect(reverse('admin:renew_unit_roles_list'))
+
 
 @requires_role("ADMN")
 def renew_unit_role(request, role_id):
@@ -843,7 +875,6 @@ def renew_unit_role(request, role_id):
     l.save()
 
     return HttpResponseRedirect(reverse('admin:unit_role_list'))
-
 
 @requires_role("ADMN")
 def delete_unit_role(request, role_id):
@@ -1123,6 +1154,12 @@ class OfferingDataJson(BaseDatatableView):
     max_display_length = 500
     columns = COLUMNS
     order_columns = [COLUMN_ORDERING[col] for col in columns]
+
+    def get_context_data(self, *args, **kwargs):
+        try:
+            return super().get_context_data(*args, **kwargs)
+        except:
+            raise Http404()
 
     def render_column(self, offering, column):
         if column == 'coursecode':

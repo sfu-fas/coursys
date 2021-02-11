@@ -1,6 +1,7 @@
 ## Proddev VM Setup
 
-Start with a `vagrant up`. In the VM (`vagrant ssh`),
+Start with a `vagrant up`. Create `courses/localsettings.py` with `localsettings-proddev-example.py` as a template.
+In the VM (`vagrant ssh`),
 ```sh
 cd /coursys
 docker-compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
@@ -18,13 +19,17 @@ sudo apt install chef
 git clone https://github.com/sfu-fas/coursys.git
 cd coursys/
 git checkout some-branch
-sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list.json
+sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list.json # will fail at nginx step because of missing cert...
+sudo cp deploy/cookbooks/coursys/files/nginx-bootstrap.conf /etc/nginx/sites-enabled/default
 sudo certbot --nginx certonly
+sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list.json
 cd
 # rm -rf coursys # probably
 cd /coursys
-# probably edit /coursys/courses/localsettings.py
-# get demo data dumped from production
+# probably edit /coursys/courses/localsettings.py with localsettings-demo-example.py as a template
+# get demo data dumped from production (./manage.py dump_demo_data > /tmp/demodata.json)
+make proddev-start-all
+./manage.py migrate
 ./manage.py load_demo_data demodata.json 
 ```
 

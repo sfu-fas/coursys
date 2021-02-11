@@ -1,8 +1,8 @@
-from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
+from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, AnnouncementForm, \
     MergeStudentForm, ArtifactNoteForm, ArtifactForm, AdvisorNoteForm, AdvisorVisitFormInitial, \
     EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm, ArtifactSearchForm, AdvisorVisitCategoryForm, \
     AdvisorVisitFormSubsequent
-from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit, AdvisorVisitCategory, \
+from advisornotes.models import AdvisorNote, Announcement, NonStudent, Artifact, ArtifactNote, AdvisorVisit, AdvisorVisitCategory, \
     ADVISOR_VISIT_VERSION
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Role
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, transfer_data,\
@@ -16,7 +16,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail.message import EmailMultiAlternatives
 from django.urls import reverse
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.utils.html import mark_safe
@@ -61,8 +61,65 @@ def advising(request):
     note_form = NoteSearchForm(prefix="text")
     artifact_form = ArtifactSearchForm(prefix="text")
     advisor_admin = Role.objects_fresh.filter(role='ADVM', person__userid=request.user.username).exists()
-    context = {'form': form, 'note_form': note_form, 'artifact_form': artifact_form, 'advisor_admin': advisor_admin}
+    entries = Announcement.objects.filter(created_at__gte=datetime.datetime.now()-datetime.timedelta(days=14), hidden=False)[:3]
+    context = {'form': form, 'note_form': note_form, 'artifact_form': artifact_form, 'advisor_admin': advisor_admin, 'entries': entries}
     return render(request, 'advisornotes/student_search.html', context)
+
+
+@requires_role(['ADVS','ADVM'])
+def new_announcement(request: HttpRequest) -> HttpResponse:
+    """
+    View to create a new announcement
+    """
+    author = get_object_or_404(Person, userid=request.user.username)
+    if request.method == 'POST':
+        form = AnnouncementForm(units=request.units, data=request.POST)
+        if form.is_valid():
+            announcement = form.save(commit=False)
+            announcement.author = author
+            announcement.save()
+            
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 'Announcement was created.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="added advising announcement: %s" % (announcement),
+                         related_object=announcement
+                         )
+            l.save()
+            return HttpResponseRedirect(reverse('advising:news'))
+    else: 
+        form = AnnouncementForm(units=request.units)
+
+    return render(request, 'advisornotes/new_announcement.html', {'form': form})
+
+
+@requires_role(['ADVS', 'ADVM'])
+def news(request: HttpRequest) -> HttpResponse:
+    """
+    View to show news page
+    """
+    entries = Announcement.objects.filter(hidden=False, unit__in=request.units)
+    return render(request, 'advisornotes/news.html', {'entries': entries})
+
+
+@requires_role(['ADVS', 'ADVM'])
+def delete_announcement(request: HttpRequest, entry_id: str) -> HttpResponse:
+    if request.method == 'POST':
+        entry = get_object_or_404(Announcement, pk=entry_id, unit__in=request.units)
+        messages.add_message(request,
+                            messages.SUCCESS,
+                            'Announcement removed.'
+                            )
+        l = LogEntry(userid=request.user.username,
+                     description="deleted announcement: %s" % (entry),
+                     related_object=entry.author
+                     )
+        l.save()
+        entry.hidden = True
+        entry.save()
+    return HttpResponseRedirect(reverse('advising:news'))
 
 
 @requires_role(['ADVS', 'ADVM'])
