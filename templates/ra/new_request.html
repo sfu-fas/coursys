@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/ra_application.js"></script>
+<script type="text/javascript" src="{% static 'js/ra_application.js' %}"></script>
 <link rel="stylesheet" href="{% static 'style/ra.css' %}" />
 {% endblock %}
 
@@ -57,7 +57,7 @@
         <h2><strong>SECTION 3: Start and End Dates</strong></h2>
         {{ raform|as_dl_includefields:"start_date,end_date" }}
         <div class="important_info">
-          <b>Estimated Pay Periods:</b><div class="pay_periods_info"></div>
+          <b>Estimated Pay Periods:</b> <span class="pay_periods_info"></span>
         </div>
       </div>
       <div class ="form_section">
@@ -85,14 +85,14 @@
           {{ raform|as_dl_includefields:"total_pay"}}
         <div class="biweekly_info">
           <p><div class="important_info">
-            <b>Estimated Biweekly Rate:</b><div class="biweekly_rate_info"></div>
+            <b>Estimated Biweekly Rate:</b> $<span class="biweekly_rate_info"></span>
           </div></p>
           <p><div class="important_info">
-            <b>Estimated Hourly Rate:</b><div class="hourly_rate_info"></div>
+            <b>Estimated Hourly Rate:</b> $<span class="hourly_rate_info"></span>
           </div></p>
         </div>
         <p><div class="important_info">
-          <b>Estimated Total Pay:</b><div class="total_pay_info"></div>
+          <b>Estimated Total Pay:</b> $<span class="total_pay_info"></span>
         </div></p>
       </div>
       <div class ="form_section">
@@ -102,7 +102,8 @@
       <div class="ra_section">
         <div class ="form_section">
           <h2><strong>SECTION 6: For Research Assistants</strong></h2>
-          {{ raform|as_dl_includefields:"ra_benefits,ra_duties_ex,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_pm,ra_other_duties"}}
+          {{ raform|as_dl_includefields:"ra_benefits" }}
+          {{ raform|as_dl_includefields:"ra_duties_ex,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_pm,ra_other_duties"}}
         </div>
       </div>
         <p><input type="submit" class="submit" value="Submit" /></p>
