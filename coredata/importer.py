@@ -871,3 +871,21 @@ def import_active_grads_gpas(verbose=False, dry_run=False):
         grad.person.config.update(data)
         if not dry_run:
             grad.person.save()
+
+
+def swap_class_nbr(slug1: str, slug2: str):
+    """
+    Swap the class_nbr values of two offerings: used to fix incorrectly-reused values entered in SIMS when departments
+    change section numbers.
+    """
+    o1 = CourseOffering.objects.get(slug=slug1)
+    o2 = CourseOffering.objects.get(slug=slug2)
+    cn1 = o1.class_nbr
+    cn2 = o2.class_nbr
+    with transaction.atomic():
+        o1.class_nbr = 99999
+        o1.save()
+        o2.class_nbr = cn1
+        o2.save()
+        o1.class_nbr = cn2
+        o1.save()
