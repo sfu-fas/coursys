@@ -305,4 +305,4 @@ class MultipleChoiceMultiple(MultipleChoice):
             if a in OPTION_LETTERS:
                 i = OPTION_LETTERS.index(a)
                 total += Decimal(self.version.config['options'][i][1])
-        return total, ''
+        return max(total, Decimal(0)), ''
