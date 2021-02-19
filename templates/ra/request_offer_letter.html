@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+{% endblock %}
+
+{% block title %}Offer Letter Configuration{% endblock %}
+{% block h1 %}Offer Letter Configuration{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ra:search" %}">RAs</a></li>
+<li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View RA Request for {{ req.get_name }}</a></li>
+<li>Offer Letter Configuration</li>{% endblock %}
+
+{% block content %}
+
+<h2>PAF Configuration</h2>
+<div class="form_container">
+  <form action="{% url "ra:request_offer_letter_update" ra_slug=req.slug %}" method="POST" class="subtle">{% csrf_token %}
+    <fieldset>
+      <div class="form_section">
+      {{ configform|as_dl }}
+      </div>
+      <p><input type="submit" class="submit" value="Update PAF Configuration" /></p>
+    </fieldset>
+  </form>
+</div>
+
+<div class="form_container">
+    <form action="{% url "ra:request_offer_letter" ra_slug=req.slug %}" method="post" class="subtle">{% csrf_token %}
+      <fieldset>
+        <div class="form_section">
+        {{ downloadform|as_dl }}
+        </div>
+        <p><input type="submit" value="View/Download PAF" class="submit" /></p>
+      </fieldset>
+    </form>  
+</div>
+{% endblock %}

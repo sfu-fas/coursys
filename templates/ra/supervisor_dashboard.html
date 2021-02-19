@@ -29,7 +29,6 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra:search" %}">RAs</a></li>
 <li>Dashboard</li>
 {% endblock %}
 
@@ -65,9 +64,9 @@ $(document).ready(function() {
           </a></td>
           <td>{{ req.supervisor }}</td>
           <td>{{ req.hiring_category }}</td>
-          <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
-          <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
-          <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
+          <td>{{ req.start_date }}</td>
+          <td>{{ req.end_date }}</td>
+          <td>{{ req.created_at }}</td>
         </tr>
       {% endfor %}
     </tbody>
@@ -95,9 +94,9 @@ $(document).ready(function() {
           </a></td>
           <td>{{ req.supervisor }}</td>
           <td>{{ req.hiring_category }}</td>
-          <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
-          <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
-          <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
+          <td>{{ req.start_date }}</td>
+          <td>{{ req.end_date }}</td>
+          <td>{{ req.created_at }}</td>
         </tr>
       {% endfor %}
     </tbody>

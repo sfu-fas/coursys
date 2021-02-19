@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load form_display %}
+{% load static %}
+
+{% block head %}
+{{ wizard.form.media }}
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static 'js/ra_application.js' %}"></script>
+<link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+{% endblock %}
+
+{% block title %}
+  {% if edit %}
+    Update RA Request for {{ name }}
+  {% else %}
+    New RA Request
+  {% endif %}
+{% endblock %}
+
+{% block h1 %}
+  {% if edit %}
+  Update RA Request for {{ name }}
+  {% else %}
+  New RA Request
+  {% endif %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+  {% if admin %}
+  <li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
+  {% else %}
+  <li><a href="{% url "ra:supervisor_dashboard" %}">RA Dashboard</a></li>
+  {% endif %}
+  {% if edit %}
+    <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA Request for {{ name }}</a></li>
+    <li>Edit RA Request for {{ name }}</li>
+  {% else %}
+    <li>New RA Request</li>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+  {% if edit %}
+  <form action="{% url "ra:edit_request" ra_slug=slug %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
+  {% elif reappoint %}
+  <form action="{% url "ra:reappoint_request" ra_slug=slug %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
+  {% else %}
+  <form action="{% url "ra:new_request" %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
+  {% endif %}
+    <fieldset>
+      <div class ="form_section">
+        <h2><strong>Appointee/Supervisor Information and Hiring Category</strong></h2>
+          {{ wizard.management_form }}
+          {% if wizard.form.forms %}
+              {{ wizard.form.management_form }}
+              {% for form in wizard.form.forms %}
+                  {{ form }}
+              {% endfor %}
+          {% else %}
+              {{ wizard.form|as_dl }}
+          {% endif %}
+          <div class="important_info">
+            <b>Hiring Category:</b> 
+            <div class="need_more_info">
+              Please complete more information above to show hiring category.
+            </div>
+            <div class="ra_info">
+              <h3>Research Assistant (True RA)</h3>
+              <div class="helptext">
+                <p><b>Examples:</b><br>Non-students of SFU, undergraduate students (unless doing an honors thesis), co-op students (unless named in Mitacs grant), Mitacs funded appointees who are NOT named in the Mitacs grant, and SFU students who are not academically supervised by the Hiring Supervisor.<br>
+                <b>Definition:</b><br>Research Assistants who assist in completing the tasks necessary for the Hiring Supervisor’s research program and/or towards the research group’s general academic deliverables. There is an employer/employee relationship and expectations. Tasks are directed and defined by the Hiring Supervisor and may be broad in range, degree of expertise and complexity. Earnings are considered employment income and employee will receive a T4 tax form.</p>
+              </div>
+            </div>
+            <div class="gras_info">
+              <h3>Graduate Research Assistant Scholarship/Stipend (Trainee)</h3>
+              <div class="helptext">
+                <p><b>Examples:</b><br>Students being academically supervised by the Hiring Supervisor, undergraduate honors students, and both undergraduate and graduate students who are named in a Mitacs grant.<br>
+                <b>Definition:</b><br>Students of the Hiring Supervisor who perform work and research towards the students own academic program/thesis. The purpose of this appointment is to support the student financially and/or to bring the student up to the guaranteed level of funding. The relationship is supervisor/student and academic mentor/mentee. While the research may be related to the Hiring Supervisors overall research program, it is defined by the academic pursuits and outcomes reflected in the student’s thesis or final project. Earnings are considered scholarship funding and students will receive a T4A tax form.</p>
+              </div>
+            </div>
+            <div class="nc_info">
+              <h3>Other Non-Continuing</h3>
+              <div class="helptext">
+                <p><b>Examples:</b><br>Science Alive instructors, co-op students, outreach instructors, high school ambassadors, FAS tour guides, and other appointments initiated by the school.<br>
+                <b>Definition:</b><br>Employees performing work that does not involve research.</p>
+              </div>
+            </div>
+          </div>
+      </div>
+    </fieldset>
+    <div class="directory_buttons">
+      <h3>Section {{ wizard.steps.step1 }} of 5</h3>
+      <input id="save" type="submit" value="Save and Next"/>
+    </div>
+  </form>  
+</div>
+{% endblock %}

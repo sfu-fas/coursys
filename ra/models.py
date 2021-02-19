@@ -202,7 +202,8 @@ STUDENT_TYPE = (
 
 REQUEST_HIRING_CATEGORY = (
     ('GRAS', 'Graduate Research Assistant Scholarship'),
-    ('RA', 'Research Assistant')
+    ('RA', 'Research Assistant'),
+    ('NC', 'Other Non-Continuing')
 )
 
 GRAS_PAYMENT_METHOD_CHOICES = (
@@ -213,6 +214,13 @@ GRAS_PAYMENT_METHOD_CHOICES = (
 )
 
 RA_PAYMENT_METHOD_CHOICES = (
+    ('BW', 'Bi-weekly salary (The Appointee is entitled to a minimum of 10 vacation days a year per FTE. Vacation time will be prorated' +
+    ' based on the appointment terms. An additional 10% will be charged for statutory benefits.)'),
+    ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 10% for statutory benefits. Must submit biweekly' +
+    ' timesheets in order for the Appointee to be paid.)')
+)
+
+NC_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Bi-weekly salary (The Appointee is entitled to a minimum of 10 vacation days a year per FTE. Vacation time will be prorated' +
     ' based on the appointment terms. An additional 10% will be charged for statutory benefits.)'),
     ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 10% for statutory benefits. Must submit biweekly' +
@@ -315,6 +323,30 @@ def ra_request_attachment_upload_to(instance, filename):
     return upload_path('rarequestattachments', filename)
 
 class RARequest(models.Model):
+
+    # coop, mitacs, research, thesis - whether or not the appointment involves these, helps determine hiring category.
+    # people_comments - comments about the appointee or supervisor
+    # fs1_percentage, fs2_percentage, fs3_percentage - percentages that each funding source makes up
+    # fs1_start_date, fs2_start_date, fs3_start_date - start dates of each funding source
+    # fs1_end_date, fs2_end_date, fs3_end_date - end dates of each funding source
+    # fs2_option - whether or not we have more than one funding source
+    # fs3_option - whether or not we have more than two funding sources
+    # position_no - position number for appointment, to be filled out by admin for PAF configuration purposes
+    # object_code - object code for appointment, to be filled out by admin for PAF configuration purposes
+    # fs1_program, fs2_program, fs3_program - programs for each funding source of appointment, to be filled out by admin for PAF configuration purposes
+    # paf_comments - comments to be filled out by admin for PAF configuration purposes
+    # backdate_lump_sum - backdate lump sum amount for appointment
+    # backdate_hours - number of hours the backdate appointment is for
+    # backdate_reason - reason for backdated appointment
+    # funding_comments - comments about funding
+    # ra_benefits - benefits for research assistant appointments
+    # ra_duties_ex, ra_duties_dc, ra_duties_pd, ra_duties_im, ra_duties_eq, ra_duties_su, ra_duties_wr, ra_duties_pm 
+    #   - list of duties of each type for research assistant appointments, stored in an array
+    # nc_duties - duties for non-continuing appointments
+    # pay_periods - pay periods in this appointment, calculated from dates
+    # funding_available, grant_active, salary_allowable, supervisor_check, visa_valid, payroll_collected, paf_signed, admin_notes 
+    #   - whether or not each task has been completed
+
     person = models.ForeignKey(Person, related_name='rarequest_person', on_delete=models.PROTECT, null=True)
 
     nonstudent = models.BooleanField(default=False)
@@ -333,10 +365,12 @@ class RARequest(models.Model):
     config = JSONField(null=False, blank=False, default=dict)
 
     # student information
-    student = config_property('student', default='')
-    coop = config_property('coop', default='')
-    mitacs = config_property('mitacs', default='')
-    thesis = config_property('thesis', default='')
+    position = models.CharField(max_length=64, default='', null=True, blank=True)
+    student = models.CharField(max_length=80, default=None, null=True, choices=STUDENT_TYPE)
+    coop = models.BooleanField(null=True, blank=True)
+    mitacs = models.BooleanField(null=True, blank=True)
+    research = models.BooleanField(null=True, blank=True)
+    thesis = models.BooleanField(null=True, blank=True)
 
     # comments about supervisor or appointee
     people_comments = config_property('people_comments', default='')
@@ -345,82 +379,80 @@ class RARequest(models.Model):
     hiring_category = models.CharField(max_length=80, default=None, choices=REQUEST_HIRING_CATEGORY)
 
     # funding sources
-    fs1_unit = config_property('fs1_unit', default='')
-    fs1_fund = config_property('fs1_fund', default='')
-    fs1_project = config_property('fs1_project', default='')
+    fs1_unit = models.IntegerField(default=0)
+    fs1_fund = models.IntegerField(default=0)
+    fs1_project = models.CharField(max_length=10, default='')
     fs1_percentage = config_property('fs1_percentage', default=100)
+    fs1_start_date = config_property('fs1_start_date', default='')
+    fs1_end_date = config_property('fs1_end_date', default='')
 
-    fs2_option = config_property('fs2_unit', default=False)
-    fs2_unit = config_property('fs2_unit', default='')
-    fs2_fund = config_property('fs2_fund', default='')
-    fs2_project = config_property('fs2_project', default='')
+    fs2_option = config_property('fs2_option', default=False)
+    fs2_unit = models.IntegerField(default=0)
+    fs2_fund = models.IntegerField(default=0)
+    fs2_project = models.CharField(max_length=10, default='')
     fs2_percentage = config_property('fs2_percentage', default=0)
+    fs2_start_date = config_property('fs2_start_date', default='')
+    fs2_end_date = config_property('fs2_end_date', default='')
 
-    fs3_option = config_property('fs3_unit', default=False)
-    fs3_unit = config_property('fs3_unit', default='')
-    fs3_fund = config_property('fs3_fund', default='')
-    fs3_project = config_property('fs3_project', default='')
+    fs3_option = config_property('fs3_option', default=False)
+    fs3_unit = models.IntegerField(default=0)
+    fs3_fund = models.IntegerField(default=0)
+    fs3_project = models.CharField(max_length=10, default='')
     fs3_percentage = config_property('fs3_percentage', default=0)
+    fs3_start_date = config_property('fs3_start_date', default='')
+    fs3_end_date = config_property('fs3_end_date', default='')
 
     # start and end dates
-    start_date = models.DateField(auto_now=False, default = datetime.date.today, auto_now_add=False)
-    end_date = models.DateField(auto_now=False, default = datetime.date.today, auto_now_add=False)
+    start_date = models.DateField(auto_now=False, default=datetime.date.today, auto_now_add=False)
+    end_date = models.DateField(auto_now=False, default=datetime.date.today, auto_now_add=False)
+    # ... should calculate pay_periods
+    pay_periods = config_property('pay_periods', default=0)
 
     # payment methods
-    gras_payment_method = config_property('gras_payment_method', default='')
-    ra_payment_method = config_property('ra_payment_method', default='')
+    gras_payment_method = models.CharField(null=True, blank=True, max_length=80, default=None, choices=GRAS_PAYMENT_METHOD_CHOICES)
+    ra_payment_method = models.CharField(null=True, blank=True, max_length=80, default=None, choices=RA_PAYMENT_METHOD_CHOICES)
+    nc_payment_method = models.CharField(null=True, blank=True, max_length=80, default=None, choices=NC_PAYMENT_METHOD_CHOICES)
 
-    # payment inputs (4 types: RA (BW), RA (H), GRAS(LS), GRAS(BW))
-    
-    # RA + BW -> total_gross, weeks_vacation, biweekly_hours... should then calculate biweekly_salary and gross_hourly
-    rabw_total_gross = config_property('rabw_total_gross', default=0)
-    rabw_weeks_vacation = config_property('rabw_weeks_vacation', default=0)
-    rabw_biweekly_hours = config_property('rabw_biweekly_hours', default=0)
-    # should also calculate...
-    rabw_biweekly_salary = config_property('rabw_biweekly_salary', default=0)
-    rabw_gross_hourly = config_property('rabw_gross_hourly', default=0)
+    total_gross = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    weeks_vacation = models.DecimalField(max_digits=8, decimal_places=1, default=0)
+    biweekly_hours = models.DecimalField(max_digits=8, decimal_places=1, default=0)
+    biweekly_salary = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    gross_hourly = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    vacation_hours = models.DecimalField(max_digits=8, decimal_places=3, default=0)
+    vacation_pay = models.DecimalField(max_digits=8, decimal_places=1, default=0)
 
-    # RA + H -> gross_hourly, vacation_pay, biweekly_hours
-    rah_gross_hourly = config_property('rah_gross_hourly', default=0)
-    rah_vacation_pay = config_property('rah_vacation_pay', default=0)
-    rah_biweekly_hours = config_property('rah_biweekly_hours', default=0)
-
-    # GRAS + LS -> total gross
-    grasls_total_gross = config_property('grasls_total_gross', default=0)
-
-    # GRAS + BW -> total_gross, biweekly_hours... should then calculate biweekly_salary, gross_salary
-    grasbw_total_gross = config_property('grasbw_total_gross', default=0)
-    grasbw_biweekly_hours = config_property('grasbw_biweekly_hours', default=0)
-    # should also calculate...
-    grasbw_biweekly_salary = config_property('grasbw_biweekly_salary', default=0)
-    grasbw_gross_hourly = config_property('grasbw_gross_hourly', default=0)
+    # for backdated appointments
+    backdated = models.BooleanField(default=False)
+    backdate_lump_sum = config_property('backdate_lump_sum', default=0)
+    backdate_hours = config_property('backdate_hours', default=0)
+    backdate_reason = config_property('backdate_reason', default='')
 
     # all payment methods need to calculate total pay
     total_pay = models.DecimalField(max_digits=8, decimal_places=2)
 
-    # file attachments
+    # file attachments 
     file_attachment_1 = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=ra_request_attachment_upload_to, blank=True, max_length=500)
-    file_mediatype_1 = models.CharField(null=True, blank=True, max_length=200, editable=False)
     file_attachment_2 = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=ra_request_attachment_upload_to, blank=True, max_length=500)
-    file_mediatype_2 = models.CharField(null=True, blank=True, max_length=200, editable=False)
 
     # funding comments 
     funding_comments = config_property('funding_comments', default='')
 
     # ra only options
     ra_benefits = config_property('ra_benefits', default='')
-    ra_duties_ex = models.CharField(blank=True, null=True, max_length=500)
-    ra_duties_dc = models.CharField(blank=True, null=True, max_length=500)
-    ra_duties_pd = models.CharField(blank=True, null=True, max_length=500)
-    ra_duties_im = models.CharField(blank=True, null=True, max_length=500)
-    ra_duties_eq = models.CharField(blank=True, null=True, max_length=500)
-    ra_duties_su = models.CharField(blank=True, null=True, max_length=500)
-    ra_duties_wr = models.CharField(blank=True, null=True, max_length=500)
-    ra_duties_pm = models.CharField(blank=True, null=True, max_length=500)
-
+    ra_duties_ex = config_property('ra_duties_ex', default='')
+    ra_duties_dc = config_property('ra_duties_dc', default='')
+    ra_duties_pd = config_property('ra_duties_pd', default='')
+    ra_duties_im = config_property('ra_duties_im', default='')
+    ra_duties_eq = config_property('ra_duties_eq', default='')
+    ra_duties_su = config_property('ra_duties_su', default='')
+    ra_duties_wr = config_property('ra_duties_wr', default='')
+    ra_duties_pm = config_property('ra_duties_pm', default='')
     ra_other_duties = config_property('ra_other_duties', default='')
+
+    # nc only options
+    nc_duties = config_property('ra_other_duties', default='')
     
     # admin
     funding_available = config_property('funding_available', default=False)
@@ -432,10 +464,26 @@ class RARequest(models.Model):
     paf_signed = config_property('paf_signed', default=False)
     admin_notes = config_property('admin_notes', default='')
 
+    # extra PAF configuration fields for admin
+    position_no = config_property('position_no', default='')
+    object_code = config_property('object_code', default='')
+    fs1_program = config_property('fs1_program', default='')
+    fs2_program = config_property('fs2_program', default='')
+    fs3_program = config_property('fs3_program', default='')
+    paf_comments = config_property('paf_comments', default='')
+
+    # offer letters
+    science_alive = models.BooleanField(default=False)
+    offer_letter_text = models.TextField(null=True, default='', help_text="Text of the offer letter to be signed by the RA and supervisor.")
+
     # creation, deletion and status
     created_at = models.DateTimeField(auto_now_add=True)
     deleted = models.BooleanField(null=False, default=False)
     complete = models.BooleanField(null=False, default=False)
+    
+    # last updates
+    last_updated_at = models.DateTimeField(auto_now=True)
+    last_updater = models.ForeignKey(Person, related_name='rarequest_last_updater', default=None, on_delete=models.PROTECT, null=True, editable=False)
 
     def get_complete(self):
         if self.funding_available and self.grant_active and self.salary_allowable and self.supervisor_check and self.visa_valid and self.payroll_collected and self.paf_signed:
@@ -457,49 +505,17 @@ class RARequest(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
-    def split_duties(self, duties):
-        split = (duties).replace("[", '').replace("]", '').replace("'", '')
-        if split != '':
-            split = list(map(int, split.split(',')))
-        else:
-            split = []
-        return split
-
     def duties_list(self):
         duties = []
-        duties += [duty for val, duty in DUTIES_CHOICES_EX if val in self.split_duties_ex()]
-        duties += [duty for val, duty in DUTIES_CHOICES_DC if val in self.split_duties_dc()]
-        duties += [duty for val, duty in DUTIES_CHOICES_PD if val in self.split_duties_pd()]
-        duties += [duty for val, duty in DUTIES_CHOICES_IM if val in self.split_duties_im()]
-        duties += [duty for val, duty in DUTIES_CHOICES_EQ if val in self.split_duties_eq()]
-        duties += [duty for val, duty in DUTIES_CHOICES_SU if val in self.split_duties_su()]
-        duties += [duty for val, duty in DUTIES_CHOICES_WR if val in self.split_duties_wr()]
-        duties += [duty for val, duty in DUTIES_CHOICES_PM if val in self.split_duties_pm()]
+        duties += [duty for val, duty in DUTIES_CHOICES_EX if val in [int(i) for i in self.ra_duties_ex]]
+        duties += [duty for val, duty in DUTIES_CHOICES_DC if val in [int(i) for i in self.ra_duties_dc]]
+        duties += [duty for val, duty in DUTIES_CHOICES_PD if val in [int(i) for i in self.ra_duties_pd]]
+        duties += [duty for val, duty in DUTIES_CHOICES_IM if val in [int(i) for i in self.ra_duties_im]]
+        duties += [duty for val, duty in DUTIES_CHOICES_EQ if val in [int(i) for i in self.ra_duties_eq]]
+        duties += [duty for val, duty in DUTIES_CHOICES_SU if val in [int(i) for i in self.ra_duties_su]]
+        duties += [duty for val, duty in DUTIES_CHOICES_WR if val in [int(i) for i in self.ra_duties_wr]]
+        duties += [duty for val, duty in DUTIES_CHOICES_PM if val in [int(i) for i in self.ra_duties_pm]]
         return duties
-
-    def split_duties_ex(self):
-        return self.split_duties(self.ra_duties_ex)
-    
-    def split_duties_dc(self):
-        return self.split_duties(self.ra_duties_dc)
-
-    def split_duties_pd(self):
-        return self.split_duties(self.ra_duties_pd)
-        
-    def split_duties_im(self):
-        return self.split_duties(self.ra_duties_im)
-    
-    def split_duties_eq(self):
-        return self.split_duties(self.ra_duties_eq)
-    
-    def split_duties_su(self):
-        return self.split_duties(self.ra_duties_su)
-
-    def split_duties_wr(self):
-        return self.split_duties(self.ra_duties_wr)
-        
-    def split_duties_pm(self):
-        return self.split_duties(self.ra_duties_pm)
 
     def get_name(self):
         if self.first_name and self.last_name:
@@ -513,7 +529,6 @@ class RARequest(models.Model):
     
     def has_attachments(self):
         return self.attachments.visible().count() > 0
-
 
 def ra_request_admin_attachment_upload_to(instance, filename):
     return upload_path('rarequestadminattachments', filename)

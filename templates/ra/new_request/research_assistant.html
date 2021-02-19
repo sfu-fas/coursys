@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load form_display %}
+{% load static %}
+
+{% block head %}
+{{ wizard.form.media }}
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static 'js/ra_application.js' %}"></script>
+<link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+{% endblock %}
+
+
+{% block title %}
+  {% if edit %}
+    Update RA Request for {{ name }}
+  {% else %}
+    New RA Request
+  {% endif %}
+{% endblock %}
+
+{% block h1 %}
+  {% if edit %}
+  Update RA Request for {{ name }}
+  {% else %}
+  New RA Request
+  {% endif %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+  {% if admin %}
+  <li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
+  {% else %}
+  <li><a href="{% url "ra:supervisor_dashboard" %}">RA Dashboard</a></li>
+  {% endif %}
+  {% if edit %}
+    <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA Request for {{ name }}</a></li>
+    <li>Edit RA Request for {{ name }}</li>
+  {% else %}
+    <li>New RA Request</li>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="form_container">
+  {% if edit %}
+  <form action="{% url "ra:edit_request" ra_slug=slug %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
+  {% elif reappoint %}
+  <form action="{% url "ra:reappoint_request" ra_slug=slug %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
+  {% else %}
+  <form action="{% url "ra:new_request" %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
+  {% endif %}
+    <fieldset>
+      <div class ="form_section">
+        <h2><strong>Hiring Category: Research Assistant</strong></h2>
+        <div class="helptext">
+          <ul>
+            <li>All numbers are exclusive of statutory benefit rate (Employer portion of EHT, CPP, EI, and WCB) --> 10%</li>
+            <li>All numbers are exclusive of discretionary benefits (extended health and dental) --> 4%</li>
+          </ul>
+        </div>
+        {{ wizard.management_form }}
+        {% if wizard.form.forms %}
+            {{ wizard.form.management_form }}
+            {% for form in wizard.form.forms %}
+                {{ form }}
+            {% endfor %}
+        {% else %}
+            {{ wizard.form|as_dl_excludefields:"ra_benefits,ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
+          <div class="biweekly_info">
+            <p><div class="important_info">
+              <b>Estimated Biweekly Rate:</b> $<span class="biweekly_rate_info"></span>
+            </div></p>
+            <p><div class="important_info">
+              <b>Estimated Hourly Rate:</b> $<span class="hourly_rate_info"></span>
+            </div></p>
+            <p><div class="important_info">
+              <b>Vacation Hours:</b> <span class="vacation_hours_info"></span>
+            </div></p>
+          </div>
+          <p><div class="important_info">
+            <b>Estimated Total Pay:</b> $<span class="total_pay_info"></span>
+          </div></p>
+            {{ wizard.form|as_dl_includefields:"ra_benefits,ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
+        {% endif %} 
+      </div>
+    </fieldset>
+    <div class="directory_buttons">
+        <h3>Section {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</h3>
+        <button id="prev" name="wizard_goto_step" class="btn" type="submit" value="{{ wizard.steps.prev }}" formnovalidate>{% trans "Previous" %}</button>
+        <input id="save" type="submit" value="Save and Next"/>
+    </div>
+  </form>  
+</div>
+{% endblock %}
