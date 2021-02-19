@@ -10,7 +10,6 @@ user_home = "/home/#{username}/"
 python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.major, sys.version_info.minor))"`.strip
 python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
 data_root = '/opt'
-certbot_ubuntu_release = 'disco' # should be ubuntu_release, but disco is newest
 ip_address = node['ip_address'] || '127.0.0.1'
 rabbitmq_password = node['rabbitmq_password'] || 'supersecretpassword'
 
@@ -38,6 +37,11 @@ if deploy_mode == 'devel'
 end
 
 # the code itself
+user username do
+  home user_home
+  shell '/bin/bash'
+  manage_home true
+end
 directory coursys_dir do
   owner username
   mode '0755'
@@ -53,6 +57,7 @@ execute "coursys_git" do
 end
 template '/etc/profile.d/coursys-environment.sh' do
   variables(
+    :coursys_user => username,
     :coursys_dir => coursys_dir,
     :deploy_mode => deploy_mode == 'demo' ? 'proddev' : deploy_mode,
     :data_root => data_root,
@@ -188,17 +193,10 @@ if deploy_mode != 'devel'
     mode 0400
   end
 
-  apt_repository 'certbot' do
-    uri 'http://ppa.launchpad.net/certbot/certbot/ubuntu'
-    components ['main']
-    distribution certbot_ubuntu_release
-    arch 'amd64'
-    key '8C47BE8E75BCA694'
-    keyserver 'keyserver.ubuntu.com'
-    action :add
-    deb_src false
+  execute 'install-certbot' do
+    command 'snap install --classic certbot'
+    creates '/snap/bin/certbot'
   end
-  package ['certbot', 'python3-certbot-nginx']
   # This recipe doesn't address actually *running* certbot.
 
   execute 'ssl_hands_off' do

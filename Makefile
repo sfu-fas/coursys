@@ -1,46 +1,49 @@
+SYSTEMCTL=sudo systemctl
+DOCKERCOMPOSE=sudo -u ${COURSYS_USER} docker-compose
+
 devel-runserver:
 	python3 manage.py runserver 0:8000
 devel-celery:
 	celery -A courses -l INFO worker -B
 
 proddev-start-all:
-	sudo systemctl start nginx
-	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
-	sudo systemctl start gunicorn
-	sudo systemctl start celery
-	sudo systemctl start celerybeat
+	${SYSTEMCTL} start nginx
+	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml up -d
+	${SYSTEMCTL} start gunicorn
+	${SYSTEMCTL} start celery
+	${SYSTEMCTL} start celerybeat
 proddev-restart-all:
-	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml restart
-	sudo systemctl restart gunicorn
-	sudo systemctl restart celery
-	sudo systemctl restart celerybeat
-	sudo systemctl restart nginx
+	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml restart
+	${SYSTEMCTL} restart gunicorn
+	${SYSTEMCTL} restart celery
+	${SYSTEMCTL} restart celerybeat
+	${SYSTEMCTL} restart nginx
 proddev-stop-all:
-	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml stop
-	sudo systemctl stop gunicorn
-	sudo systemctl stop celery
-	sudo systemctl stop celerybeat
-	sudo systemctl stop nginx
+	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml stop
+	${SYSTEMCTL} stop gunicorn
+	${SYSTEMCTL} stop celery
+	${SYSTEMCTL} stop celerybeat
+	${SYSTEMCTL} stop nginx
 proddev-rm-all:
-	docker-compose -f docker-compose.yml -f docker-compose-proddev.yml rm
+	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml rm
 
 start-all:
-	sudo systemctl start nginx
-	docker-compose up -d
-	sudo systemctl start gunicorn
-	sudo systemctl start celery
-	sudo systemctl start celerybeat
+	${SYSTEMCTL} start nginx
+	${DOCKERCOMPOSE} up -d
+	${SYSTEMCTL} start gunicorn
+	${SYSTEMCTL} start celery
+	${SYSTEMCTL} start celerybeat
 restart-all:
-	docker-compose restart
-	sudo systemctl restart gunicorn
-	sudo systemctl restart celery
-	sudo systemctl restart celerybeat
-	sudo systemctl restart nginx
+	${DOCKERCOMPOSE} restart
+	${SYSTEMCTL} restart gunicorn
+	${SYSTEMCTL} restart celery
+	${SYSTEMCTL} restart celerybeat
+	${SYSTEMCTL} restart nginx
 
 new-code:
-	sudo systemctl reload gunicorn
-	sudo systemctl reload celery
-	sudo systemctl restart celerybeat
+	${SYSTEMCTL} reload gunicorn
+	${SYSTEMCTL} reload celery
+	${SYSTEMCTL} restart celerybeat
 
 new-code-static:
 	npm install
@@ -59,8 +62,8 @@ rebuild:
 	cd ${COURSYS_DIR} && python3 manage.py collectstatic --no-input
 
 rebuild-hardcore:
-	sudo systemctl daemon-reload
-	sudo systemctl stop ntp && sudo ntpdate pool.ntp.org && sudo systemctl start ntp
+	${SYSTEMCTL} daemon-reload
+	${SYSTEMCTL} stop ntp && sudo ntpdate pool.ntp.org && ${SYSTEMCTL} start ntp
 	cd ${COURSYS_DIR} && docker-compose pull
 	touch ${COURSYS_DIR}/503
 	cd ${COURSYS_DIR} && docker-compose restart

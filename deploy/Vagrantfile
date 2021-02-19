@@ -1,12 +1,11 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-#ubuntu_release = 'bionic'
 ubuntu_release = 'focal'
 CONFIG = {
     'username' => 'vagrant', # username to deploy under in the VM image
     'coursys_dir' => '/coursys',
-    'coursys_branch' => 'new-deploy',
+    'coursys_branch' => 'deployed-2020',
     
     #'deploy_mode' => 'devel',
     'deploy_mode' => 'proddev',

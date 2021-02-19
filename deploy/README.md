@@ -33,6 +33,25 @@ make proddev-start-all
 ./manage.py load_demo_data demodata.json 
 ```
 
+## Proddev VM Setup: different user
+
+This is used to test having a different login/sudo user from the user running the CourSys code, as we do in production. In the `Vagrantfile`, set the username in `CONFIG` to "coursys" and comment-out the `config.vm.synced_folder` line. 
+
+Start with a `vagrant up`. In the VM (`vagrant ssh`),
+```sh
+sudo su -l coursys
+cd /coursys
+```
+
+Create `courses/localsettings.py` with `localsettings-proddev-example.py` as a template.
+```sh
+docker-compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
+./manage.py migrate
+./manage.py loaddata fixtures/*.json
+./manage.py update_index
+make proddev-start-all
+```
+
 
 ## Production Server Setup
 
@@ -40,18 +59,23 @@ Get a VM. Do a `ssh-copy-id`.
 
 ```sh
 sudo apt install git chef
-sudo adduser coursys
-#sudo gpasswd -a admin coursys
 git clone -b deployed-2020 https://github.com/sfu-fas/coursys.git
 cd coursys
 # check ./deploy/solo.rb and ./deploy/run-list-production.json
-sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list-production.json
-# rm -rf ~/coursys # probably: it's in /coursys now 
-sudo certbot --nginx certonly
+sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list-production.json # will fail at nginx step because of missing cert...
+sudo rm -rf ~/coursys # probably: it's in /coursys now 
+cd /coursys
 ```
 
-To bootstrap the SSL certificates, either copy appropriate certs from /etc/letsencrypt/live/
-or comment-out the SSL server in /etc/nginx/sites-enabled/default and `sudo certbot --nginx certonly`.
+Double-check firewall rules: these recipes do not configure iptables, but only ports 80 and 443 should be open.
+
+To bootstrap the SSL certificates, either copy appropriate certs from /etc/letsencrypt/live/ on a previous production server,
+or:
+```sh
+sudo cp deploy/cookbooks/coursys/files/nginx-bootstrap.conf /etc/nginx/sites-enabled/default
+sudo certbot --nginx certonly
+sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list-production.json
+```
 
 Check local settings:
 ```sh
