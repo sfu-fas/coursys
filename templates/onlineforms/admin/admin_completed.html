@@ -10,6 +10,15 @@
     <li>Completed</li>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url "onlineforms:admin_completed_deleted" %}">Deleted Form Submissions</a></li>
+    </ul>
+</div>
+{% endblock %}
+
 {% block content %}
 <p>You have access to submissions for these forms:</p>
 <ul>
