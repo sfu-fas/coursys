@@ -468,12 +468,11 @@ class Form(models.Model, _FormCoherenceMixin):
         headers = []
         data = []
 
-        # find all sheets (in a sensible order: deleted last)
+        # find all active sheets
         sheets = Sheet.objects.filter(form__original_id=self.original_id).order_by('order', '-created_date')
         active_sheets = [s for s in sheets if s.active]
-        inactive_sheets = [s for s in sheets if not s.active]
         sheet_info = collections.OrderedDict()
-        for s in itertools.chain(active_sheets, inactive_sheets):
+        for s in itertools.chain(active_sheets):
             if s.original_id not in sheet_info:
                 sheet_info[s.original_id] = {
                     'title': s.title,
@@ -481,12 +480,12 @@ class Form(models.Model, _FormCoherenceMixin):
                     'is_initial': s.is_initial,
                 }
 
-        # find all fields in each of those sheets (in a equally-sensible order)
+        # find all active fields in each of those sheets
         fields = Field.objects.filter(sheet__form__original_id=self.original_id).select_related('sheet') \
             .order_by('order', '-created_date').select_related('sheet')
 
         # only show field if both sheet and field is active
-        active_fields = [f for f in fields if f.active and f.sheet.active]
+        active_fields = [f for f in fields if f.active]
         for f in itertools.chain(active_fields):
             if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
                 continue
