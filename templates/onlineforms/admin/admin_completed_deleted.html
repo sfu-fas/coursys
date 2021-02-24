@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Deleted Form Submissions{% endblock %}
+{% block h1 %}Deleted Form Submissions{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms:admin_list_all" %}">Admin Forms</a></li>
+    <li><a href="{% url "onlineforms:admin_completed" %}">Completed Forms</a></li>
+    <li>Deleted Forms</li>
+{% endblock %}
+
+{% block content %}
+<p>You have access to submissions for these deleted forms:</p>
+<ul>
+    {% for f in forms %}
+    <li><a href="{% url 'onlineforms:admin_completed_form' form_slug=f.slug %}">{{ f.title }} [{{ f.unit.label }}]</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}
