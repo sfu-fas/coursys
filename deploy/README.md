@@ -67,7 +67,7 @@ sudo rm -rf ~/coursys # probably: it's in /coursys now
 cd /coursys
 ```
 
-Double-check firewall rules: these recipes do not configure iptables, but only ports 80 and 443 should be open.
+Double-check firewall rules: these recipes do not configure iptables, but only ports 80 and 443 should be open. Port 22 should be open to a limited IP range.
 
 To bootstrap the SSL certificates, either copy appropriate certs from /etc/letsencrypt/live/ on a previous production server,
 or:

@@ -193,6 +193,7 @@ if deploy_mode != 'devel'
     mode 0400
   end
 
+  package 'snapd'
   execute 'install-certbot' do
     command 'snap install --classic certbot'
     creates '/snap/bin/certbot'
