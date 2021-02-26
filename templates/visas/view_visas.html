@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% load static %}
 {% load visa_display %}
 
@@ -14,34 +14,30 @@
 <link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
-  $('#visas').dataTable( {
+    $('#visas').dataTable( {
     'bPaginate': false,
     'bInfo': false,
     'bLengthChange': false,
     "bJQueryUI": true,
-    'aaSorting': [[2, 'asc']]
+    'aaSorting': [[3, 'asc']]
   } );
 } );
 </script>
 {% endblock %}
 
-{% block actions %}
-<div id="actions">
-    <h2>Actions</h2>
-    <ul>
-        <li><a href="{% url "visas:new_visa" %}">Add New Visa</a></li>
-        <li><a href="{% url 'visas:download_visas_csv' %}">Download CSV</a></li>
-    </ul>
-</div>
-{% endblock %}
-
 {% block content %}
+
+<p>
+    <a href="{% url "visas:new_visa" %}">Add New Visa</a>
+    | <a href="{% url 'visas:download_visas_csv' %}">Download CSV</a>
+</p>
 
 {% if visa_list %}
     <table id="visas" class="display">
         <thead>
             <tr>
                 <th>Person</th>
+                <th>ID</th>
                 <th>Unit</th>
                 <th>Start Date</th>
                 <th>End Date</th>
@@ -57,6 +53,7 @@ $(document).ready(function() {
                         {{ visa.person }} {% if visa.has_attachments %} &nbsp;
                         <i class="fa fa-paperclip" title="Attachment(s)"></i>{% endif %}
                     </td>
+                    <td>{{ visa.person.emplid }}</td>
                     <td>{{ visa.unit.label }}</td>
                     <td><span class="sort">{{ visa.start_date.isoformat }}</span>{{ visa.start_date }}</td>
                     <td><span class="sort">{{ visa.end_date.isoformat }}</span>{{ visa.end_date }}</td>

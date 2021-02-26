@@ -294,7 +294,7 @@ class TAContract(models.Model):
     accepted_by_student = models.BooleanField(default=False, 
                   help_text="Has the student accepted the contract?")
 
-    comments = models.TextField(blank=True)
+    comments = models.TextField(max_length=625, blank=True)
     # curtis-lassam-2014-09-01 
     def autoslug(self):
         return make_slug(self.person.first_name + '-' + self.person.last_name \
