@@ -485,9 +485,9 @@ class Form(models.Model, _FormCoherenceMixin):
         fields = Field.objects.filter(sheet__form__original_id=self.original_id).select_related('sheet') \
             .order_by('order', '-created_date').select_related('sheet')
 
+        # only show field if both sheet and field is active
         active_fields = [f for f in fields if f.active and f.sheet.active]
-        inactive_fields = [f for f in fields if not (f.active and f.sheet.active)]
-        for f in itertools.chain(active_fields, inactive_fields):
+        for f in itertools.chain(active_fields):
             if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
                 continue
             info = sheet_info[f.sheet.original_id]
