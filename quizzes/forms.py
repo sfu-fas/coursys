@@ -232,6 +232,18 @@ class MarkingForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.activity = activity
 
+    def clean_late_penalty(self):
+        val = self.cleaned_data['late_penalty']
+        if val is None:
+            return decimal.Decimal(0)
+        return val
+
+    def clean_mark_adjustment(self):
+        val = self.cleaned_data['mark_adjustment']
+        if val is None:
+            return decimal.Decimal(0)
+        return val
+
     def save(self, commit=True, *args, **kwargs):
         am = super().save(commit=False)
 
