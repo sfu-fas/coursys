@@ -874,6 +874,7 @@ COMPONENT_CHOICES = (
         ('COP', 'Work Integrated Learning'),  # First encountered 2019/05/17.
         ('THE', 'Thesis Research'),  # First encountered 2019/05/17.
         ('PHC', 'Unknown'),  # First encountered 2021/03/09. Applied to grad transfer credits and not visible in go.sfu
+        ('PHF', 'Placeholder'),  # First encountered 2021/03/11. Applied to grad placeholder enrolments and not visible in go.sfu
         ('CAN', 'Cancelled')
         )
 COMPONENTS = dict(COMPONENT_CHOICES)
