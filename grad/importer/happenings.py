@@ -80,6 +80,7 @@ def build_program_subplan_map():
     program_subplan_map = {
         ('PMSCS', 'PMSCSBD'): GradProgram.objects.get(label="Prof MSc Big Data", unit=cmptunit),
         ('PMSCS', 'PMSCSVC'): GradProgram.objects.get(label="Prof MSc Visual Comp", unit=cmptunit),
+        ('PMSCS', 'PMSCSCS'): GradProgram.objects.get(label="Prof MSc Cybersec", unit=cmptunit),
     }
     return program_subplan_map
 
