@@ -148,14 +148,15 @@ def deploy_checks(request=None):
         failed.append(('Celery task', 'djkombu tables missing: try migrating'))
 
     # celery beat
-    try:
-        from coredata.tasks import beat_time_okay
-        if beat_time_okay():
-            passed.append(('Celery beat', 'okay'))
-        else:
-            failed.append(('Celery beat', 'marker file is old: celery beat likely not processing tasks'))
-    except OSError:
-        failed.append(('Celery beat', 'marker file is missing: celery beat likely not processing tasks'))
+    if settings.USE_CELERY:
+        try:
+            from coredata.tasks import beat_time_okay
+            if beat_time_okay():
+                passed.append(('Celery beat', 'okay'))
+            else:
+                failed.append(('Celery beat', 'marker file is old: celery beat likely not processing tasks'))
+        except OSError:
+            failed.append(('Celery beat', 'marker file is missing: celery beat likely not processing tasks'))
 
     # Django cache
     # (has a subprocess do something to make sure we're in a persistent shared cache, not DummyCache)
@@ -312,12 +313,15 @@ def deploy_checks(request=None):
 
     # is the server time close to real-time?
     import ntplib
-    c = ntplib.NTPClient()
-    response = c.request('0.ca.pool.ntp.org')
-    if abs(response.offset) > 0.1:
-        failed.append(('Server time', 'Time is %g seconds off NTP pool.' % (response.offset,)))
-    else:
-        passed.append(('Server time', 'okay'))
+    try:
+        c = ntplib.NTPClient()
+        response = c.request('pool.ntp.org')
+        if abs(response.offset) > 0.1:
+            failed.append(('Server time', 'Time is %g seconds off NTP pool.' % (response.offset,)))
+        else:
+            passed.append(('Server time', 'okay'))
+    except ntplib.NTPException as e:
+        failed.append(('Server time', 'Unable to query NTP pool: %s' % (e,)))
 
 
     # library sanity
