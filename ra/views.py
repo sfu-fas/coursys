@@ -12,7 +12,7 @@ from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterFor
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
-from courselib.auth import requires_role, has_role, has_global_role, ForbiddenResponse, user_passes_test
+from courselib.auth import requires_role, has_role, ForbiddenResponse, user_passes_test
 from courselib.search import find_userid_or_emplid, get_query
 from grad.models import GradStudent, Scholarship
 from visas.models import Visa
@@ -189,6 +189,8 @@ class RANewRequestWizard(SessionWizardView):
             ra_slug = self.kwargs['ra_slug']
             req = _reappointment_req(self.request, ra_slug)    
             context.update({'reappoint': True, 'slug': ra_slug, 'admin': has_role('FUND', self.request)})
+        else: 
+            context.update({'admin': has_role('FUND', self.request)})
         return context
 
     def get_form_initial(self, step):
@@ -380,9 +382,7 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """
     View to view a RA request.
     """
-    print(request)
     admin = has_role('FUND', request)
-    print(request)
 
     if admin:
         req = get_object_or_404(RARequest, Q(unit__in=request.units), slug=ra_slug, deleted=False)

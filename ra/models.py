@@ -323,8 +323,6 @@ def ra_request_attachment_upload_to(instance, filename):
     return upload_path('rarequestattachments', filename)
 
 class RARequest(models.Model):
-
-    # coop, mitacs, research, thesis - whether or not the appointment involves these, helps determine hiring category.
     # people_comments - comments about the appointee or supervisor
     # fs1_percentage, fs2_percentage, fs3_percentage - percentages that each funding source makes up
     # fs1_start_date, fs2_start_date, fs3_start_date - start dates of each funding source

@@ -5,8 +5,8 @@
 {% block h1 %}New Account{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
-<li><a href="{% url "ra:request_paf" ra_slug=req.slug %}">Payroll Appointment Form</a></li>
+<li><a href="{% url "ra:search" %}">RAs</a></li>
+<li><a href="{% url "ra:accounts_index" %}">Accounts</a></li>
 <li>New</li>{% endblock %}
 
 {% block content %}

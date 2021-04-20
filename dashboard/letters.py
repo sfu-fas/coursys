@@ -653,6 +653,12 @@ class RARequestForm(SFUMediaMixin):
             biweekhours = "%.1f" % (self.ra.biweekly_hours)
             lumpsum = ''
             lumphours = ''
+        elif self.ra.backdated:
+            hourly = ''
+            biweekly = ''
+            biweekhours = ''
+            lumpsum = "$%.2f" % (self.ra.backdate_lump_sum)
+            lumphours = "%.1f" % (self.ra.backdate_hours)
 
         self.c.setFont("Helvetica-Bold", 7)
         self.c.drawString(3*mm, 130*mm, "Hourly Rate")
@@ -889,10 +895,10 @@ class RARequestForm(SFUMediaMixin):
         vacation = [0, 0]
         weeks_vacation = ''
         vacation_pay = ''
-        if ra_bw:
+        if ra_bw or nc_bw:
             vacation = [1,0]
             weeks_vacation = "%s weeks" % str(self.ra.weeks_vacation)
-        if ra_hourly:
+        if ra_hourly or nc_hourly:
             vacation = [0,1]
             vacation_pay = "%s %%" % str(self.ra.vacation_pay)
 

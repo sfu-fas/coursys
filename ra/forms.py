@@ -398,8 +398,8 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
         backdate_reason = cleaned_data.get('backdate_reason')
 
         if backdated:
-            if backdated_lump_sum == 0 or backdated_lump_sum == None or backdated_lump_sum == '':
-                self.add_error('backdated_lump_sum', error_message)          
+            if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
+                self.add_error('backdate_lump_sum', error_message)          
             if backdate_hours == 0 or backdate_hours == None or backdate_hours == '':
                 self.add_error('backdate_hours', error_message)
             if backdate_reason == '' or backdate_reason == None:
@@ -507,7 +507,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
 
         if backdated:
             if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
-                self.add_error('backdated_lump_sum', error_message)          
+                self.add_error('backdate_lump_sum', error_message)          
             if backdate_hours == 0 or backdate_hours == None or backdate_hours == '':
                 self.add_error('backdate_hours', error_message)
             if backdate_reason == '' or backdate_reason == None:
@@ -643,8 +643,8 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         backdate_reason = cleaned_data.get('backdate_reason')
 
         if backdated:
-            if backdated_lump_sum == 0 or backdated_lump_sum == None or backdated_lump_sum == '':
-                self.add_error('backdated_lump_sum', error_message)          
+            if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
+                self.add_error('backdate_lump_sum', error_message)          
             if backdate_hours == 0 or backdate_hours == None or backdate_hours == '':
                 self.add_error('backdate_hours', error_message)
             if backdate_reason == '' or backdate_reason == None:
