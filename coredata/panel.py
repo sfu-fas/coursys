@@ -250,10 +250,10 @@ def deploy_checks(request=None):
 
     # certificates
     bad_cert = 0
-    res = _check_cert('/etc/stunnel/stunnel.pem')
-    if res:
-        failed.append(('Stunnel cert', res))
-        bad_cert += 1
+    #res = _check_cert('/etc/stunnel/stunnel.pem')
+    #if res:
+    #    failed.append(('Stunnel cert', res))
+    #    bad_cert += 1
     #res = _check_cert('/etc/nginx/cert.pem')
     #if res:
     #    failed.append(('SSL PEM', res))

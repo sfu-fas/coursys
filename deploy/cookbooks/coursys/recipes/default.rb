@@ -148,6 +148,9 @@ if deploy_mode != 'devel'
         :data_root => data_root,
       )
     end
+    execute "systemctl enable #{service}" do
+      creates "/etc/systemd/system/multi-user.target.wants/#{service}.service"
+    end
   end
   template "#{data_root}/config/celery-environment" do
     variables(
@@ -220,24 +223,6 @@ if deploy_mode != 'devel'
     weekday 0
     command "certbot renew"
   end
-
-  # mail setup: UNTESTED
-  #package ['postfix', 'debconf-utils']
-  #service "postfix" do
-  #  action :nothing
-  #end
-  #template "#{data_root}/config/package-config.txt" do
-  #  variables(
-  #    :domain_name => domain_name,
-  #  )
-  #end
-  #execute "postfix_conf" do
-  #  command "debconf-set-selections #{data_root}/config/package-config.txt \
-  #      && rm /etc/postfix/main.cf /etc/postfix/master.cf \
-  #      && dpkg-reconfigure -f noninteractive postfix \
-  #      && /usr/sbin/postconf -e \"inet_interfaces = loopback-only\""
-  #  notifies :restart, 'service[postfix]', :immediately
-  #end
 end
 
 if deploy_mode == 'proddev'
@@ -335,14 +320,6 @@ if deploy_mode != 'devel'
     creates "#{user_home}/moss/moss.pl"
     only_if { ::File.file?("#{user_home}/moss.zip") } # if we don't have the code, skip
   end
-
-  #package 'stunnel4'
-  #cookbook_file "stunnel.conf" do
-  #  path "/etc/stunnel/stunnel.conf"
-  #end
-  #cookbook_file "default-stunnel" do
-  #  path "/etc/default/stunnel"
-  #end
 
   execute "ssh_no_passwords" do
     command "echo '\nPasswordAuthentication no' >> /etc/ssh/sshd_config"
