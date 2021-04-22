@@ -7,7 +7,7 @@ from django.utils.html import conditional_escape as escape
 from ra.models import RAAppointment, RARequest, Project, Account, SemesterConfig, Program
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, \
     LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RARequestAdminForm, RARequestNoteForm, RARequestAdminAttachmentForm, \
-    RARequestPAFForm, RARequestResearchAssistantForm, RARequestGraduateResearchAssistantForm, RARequestNonContinuingForm, \
+    RARequestPAFForm, RARequestLetterForm, RARequestResearchAssistantForm, RARequestGraduateResearchAssistantForm, RARequestNonContinuingForm, \
     RARequestFundingSourceForm, RARequestSupportingForm, RARequestDatesForm, RARequestIntroForm, RARequestAdminPAFForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
@@ -17,7 +17,7 @@ from courselib.search import find_userid_or_emplid, get_query
 from grad.models import GradStudent, Scholarship
 from visas.models import Visa
 from log.models import LogEntry
-from dashboard.letters import ra_form, ra_paf, OfficialLetter, LetterContents
+from dashboard.letters import ra_form, ra_paf, FASOfficialLetter, OfficialLetter, LetterContents
 from django import forms
 from django.db import transaction
 from django.http import HttpResponse, HttpRequest
@@ -267,6 +267,7 @@ class RANewRequestWizard(SessionWizardView):
             req.gras_payment_method = None
             req.ra_payment_method = None
 
+        req.build_letter_text()
         req.save()
 
         description = "Created RA Request %s." % req
@@ -431,6 +432,137 @@ def request_admin_update(request: HttpRequest, ra_slug: str) -> HttpResponse:
     return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
 @requires_role("FUND")
+def delete_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    View to delete a RA request.
+    """
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    if request.method == 'POST':
+        req.deleted = True
+        req.save()
+        messages.success(request, "Deleted RA Request." )
+        l = LogEntry(userid=request.user.username,
+              description="Deleted RA Request %s." % (str(req),),
+              related_object=req)
+        l.save()              
+    
+    return HttpResponseRedirect(reverse('ra:dashboard'))
+
+@requires_role("FUND")
+def edit_request_notes(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    View to edit notes of an RA request.
+    """
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    
+    if request.method == 'POST':
+        noteform = RARequestNoteForm(request.POST, instance=req)
+        
+        if noteform.is_valid():
+            noteform.save()
+            messages.success(request, "Edited Note for " + req.get_name())
+            l = LogEntry(userid=request.user.username,
+                description="Edited Note for RA Request %s" % (str(req),),
+                related_object=req)
+            l.save()              
+            return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
+    else: 
+        noteform = RARequestNoteForm(instance=req)
+    return render(request, 'ra/edit_request_notes.html', {'noteform': noteform, 'req':req})
+
+@requires_role("FUND")
+def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (req.slug)
+    letter = FASOfficialLetter(response)
+    contents = LetterContents(
+        to_addr_lines=[req.get_name(), req.unit.name], 
+        from_name_lines=[req.supervisor.letter_name(), req.unit.name],
+        closing="Yours Truly", 
+        signer=req.supervisor,
+        cosigner_lines=[req.get_cosigner_line(), req.get_first_name() + " " + req.get_last_name()])
+    contents.add_paragraphs(["Dear " + req.get_name()])
+    contents.add_paragraphs(req.letter_paragraphs())
+    letter.add_letter(contents)
+    letter.write()
+    return response
+
+# for offer letters
+@requires_role("FUND")
+def request_offer_letter_update(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+
+    if request.method == 'POST':
+        configform = RARequestLetterForm(request.POST, instance=req)
+        if configform.is_valid():
+            configform.save()
+            messages.success(request, 'Updated Letter Text for ' + req.get_name())
+            l = LogEntry(userid=request.user.username,
+                description="Updated Letter Text for RA Request %s" % (str(req),),
+                related_object=req)
+            l.save()       
+            return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
+    else:
+        configform = RARequestLetterForm(instance=req)
+
+    context = {'req': req, 'configform': configform}
+    return render(request, 'ra/request_offer_letter.html', context) 
+
+@requires_role("FUND")
+def request_default_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    if request.method == 'POST':
+        req.build_letter_text()
+        req.save()
+        messages.success(request, 'Updated Letter Text for ' + req.get_name())
+        l = LogEntry(userid=request.user.username,
+              description="Updated Letter Text for RA Request (To Default) %s" % (str(req),),
+              related_object=req)
+        l.save()              
+
+    return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
+
+@requires_role("FUND")
+def request_science_alive(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    Swtich appointment to science alive, or not science alive.
+    Impacts offer letter generation.
+    """
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    if request.method == 'POST':
+        
+        if req.hiring_category == "RA" or req.hiring_category=="NC":
+            req.science_alive = not req.science_alive
+        
+        req.save()
+        messages.success(request, "Switched Science Alive Status for " + req.get_name())
+        l = LogEntry(userid=request.user.username,
+              description="Switched Science Alive Status for RA Request %s." % (str(req),),
+              related_object=req)
+        l.save()              
+    
+    return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
+
+@requires_role("FUND")
+def request_paf(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
+    if request.method == 'POST':
+        form = RARequestPAFForm(request.POST)
+        if form.is_valid():
+            appointment_type = form.cleaned_data['appointment_type']
+            config = ({'appointment_type': form.cleaned_data['appointment_type']})
+            response = HttpResponse(content_type="application/pdf")
+            response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (req.slug)
+            ra_paf(req, config, response)
+            return response
+    else: 
+        form = RARequestPAFForm()
+        adminpafform = RARequestAdminPAFForm(instance=req)
+    return render(request, 'ra/request_paf.html', {'form':form, 'adminpafform': adminpafform, 'req':req})
+
+
+@requires_role("FUND")
 def request_admin_paf_update(request: HttpRequest, ra_slug: str) -> HttpResponse:
     req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
     if request.method == 'POST':
@@ -452,71 +584,6 @@ def request_admin_paf_update(request: HttpRequest, ra_slug: str) -> HttpResponse
             messages.success(request, 'Updated PAF Config for RA Request for ' + req.get_name())
     
     return HttpResponseRedirect(reverse('ra:request_paf', kwargs={'ra_slug': req.slug}))
-
-# for offer letters
-@requires_role("FUND")
-def request_offer_letter_update(request: HttpRequest, ra_slug: str) -> HttpResponse:
-    return HttpResponseRedirect(reverse('ra:dashboard'))
-
-@requires_role("FUND")
-def request_default_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
-    return HttpResponseRedirect(reverse('ra:dashboard'))
-
-@requires_role("FUND")
-def delete_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
-    """
-    View to delete a RA request.
-    """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
-    if request.method == 'POST':
-        req.deleted = True
-        req.save()
-        messages.success(request, "Deleted RA Request." )
-        l = LogEntry(userid=request.user.username,
-              description="Deleted RA appointment %s." % (str(req),),
-              related_object=req)
-        l.save()              
-    
-    return HttpResponseRedirect(reverse('ra:dashboard'))
-
-@requires_role("FUND")
-def edit_request_notes(request: HttpRequest, ra_slug: str) -> HttpResponse:
-    """
-    View to edit notes of an RA request.
-    """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
-    
-    if request.method == 'POST':
-        noteform = RARequestNoteForm(request.POST, instance=req)
-        
-        if noteform.is_valid():
-            noteform.save()
-            messages.success(request, "Edited Note for RA Request." )
-            l = LogEntry(userid=request.user.username,
-                description="Edited Note for RA Request %s" % (str(req),),
-                related_object=req)
-            l.save()              
-            return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
-    else: 
-        noteform = RARequestNoteForm(instance=req)
-    return render(request, 'ra/edit_request_notes.html', {'noteform': noteform, 'req':req})
-
-@requires_role("FUND")
-def request_paf(request: HttpRequest, ra_slug: str) -> HttpResponse:
-    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
-    if request.method == 'POST':
-        form = RARequestPAFForm(request.POST)
-        if form.is_valid():
-            appointment_type = form.cleaned_data['appointment_type']
-            config = ({'appointment_type': form.cleaned_data['appointment_type']})
-            response = HttpResponse(content_type="application/pdf")
-            response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (req.slug)
-            ra_paf(req, config, response)
-            return response
-    else: 
-        form = RARequestPAFForm()
-        adminpafform = RARequestAdminPAFForm(instance=req)
-    return render(request, 'ra/request_paf.html', {'form':form, 'adminpafform': adminpafform,  'req':req})
 
 @requires_role("FUND")
 def view_request_attachment_1(request: HttpRequest, ra_slug: str) -> HttpResponse:
@@ -610,7 +677,6 @@ def view_admin_attachment(request, ra_slug, attach_slug):
     resp['Content-Length'] = attachment.contents.size
     return resp
 
-
 @requires_role("FUND")
 def download_admin_attachment(request, ra_slug, attach_slug):
     req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
@@ -620,7 +686,6 @@ def download_admin_attachment(request, ra_slug, attach_slug):
     resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
     resp['Content-Length'] = attachment.contents.size
     return resp
-
 
 @requires_role("FUND")
 def delete_admin_attachment(request, ra_slug, attach_slug):
@@ -899,7 +964,6 @@ def new_account(request):
             messages.success(request, 'Created account ' + str(account.account_number))
             return HttpResponseRedirect(reverse('ra:accounts_index'))
     return render(request, 'ra/new_account.html', {'accountform': accountform})
-
 
 @requires_role("FUND")
 def accounts_index(request):

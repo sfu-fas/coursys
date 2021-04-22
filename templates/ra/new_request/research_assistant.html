@@ -84,7 +84,9 @@
           <p><div class="important_info">
             <b>Estimated Total Pay:</b> $<span class="total_pay_info"></span>
           </div></p>
-            {{ wizard.form|as_dl_includefields:"ra_benefits,ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
+            {{ wizard.form|as_dl_includefields:"ra_benefits" }}
+            <a href="http://www.sfu.ca/human-resources/research.html">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan.</a>
+            {{ wizard.form|as_dl_includefields:"ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
         {% endif %} 
       </div>
     </fieldset>

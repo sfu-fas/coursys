@@ -451,6 +451,125 @@ class MemoContents(LetterContents):
             contents.append(cc_table)
         return contents
 
+
+class FASLetterPageTemplate(PageTemplate, SFUMediaMixin):
+    def __init__(self, pagesize, *args, **kwargs):
+        self._set_margins(pagesize)
+        kwargs['frames'] = [self._create_frame(pagesize)]
+        kwargs['pagesize'] = pagesize
+        PageTemplate.__init__(self, *args, **kwargs)
+
+    def _set_margins(self, pagesize):
+        self.pg_w, self.pg_h = pagesize
+        self.lr_margin = 0.75*inch
+        self.top_margin = 0.5*inch
+        self.para_width = self.pg_w - 2*self.lr_margin
+
+    def _create_frame(self, pagesize):
+        frame = Frame(self.lr_margin, inch, self.para_width, self.pg_h-2*inch)
+        return frame
+
+    def _put_lines(self, doc, canvas, lines, x, y, width, style, font_size, leading):
+        """
+        Place these lines, with given leading
+        """
+        ypos = y
+        for line in lines:
+            line = str(line).translate(doc.digit_trans)
+            p = Paragraph(line, style)
+            _,h = p.wrap(width, 1*inch)
+            p.drawOn(canvas, x, ypos-h)
+            ypos -= h + leading
+
+    def beforeDrawPage(self, c, doc):
+        "Draw the letterhead before anything else"
+        # non-first pages only get the footer, not the header
+        self._draw_footer(c, doc)
+
+    def _draw_footer(self, c, doc):
+        """
+        Draw the bottom-of-page part of the letterhead (used on all pages)
+        """
+        c.setFont('BemboMTPro', 12)
+        c.setFillColor(doc.sfu_red)
+        self._drawStringLeading(c, self.lr_margin + 6, 0.5*inch, "Canada's Engaged University".translate(doc.sc_trans_bembo), charspace=0.8)
+
+
+class FASLetterheadTemplate(FASLetterPageTemplate):
+    def __init__(self, *args, **kwargs):
+        FASLetterPageTemplate.__init__(self, *args, **kwargs)
+        self.faculty = "FACULTY OF APPLIED SCIENCES"
+        self.address = ['Applied Science Building 9861', '8888 University Drive', 'Burnaby, B.C. Canada V5A 1S6']
+        self.tel = "+1 778 782 4724"
+        self.fax = "+1 778 782 5802"
+        self.web = "www.sfu.ca/fas"
+
+    def beforeDrawPage(self, c, doc):
+        "Draw the letterhead before anything else"
+        self._draw_header(c, doc)
+        self._draw_footer(c, doc)
+
+    def _create_frame(self, pagesize):
+        frame = Frame(self.lr_margin, inch, self.para_width, self.pg_h-3*inch)
+        return frame
+
+    def _draw_header(self, c, doc):
+        """
+        Draw the top-of-page part of the letterhead (used only on first page of letter)
+        """
+        # SFU logo
+        c.drawImage(logofile, x=self.lr_margin + 6, y=self.pg_h-self.top_margin-0.5*inch, width=1*inch, height=0.5*inch)
+
+        # unit text
+        c.setFont('BemboMTPro', 12)
+        c.setFillColor(doc.sfu_grey)
+        # department with faculty above it: display both
+        self._drawStringLeading(c, 1.9*inch, self.pg_h - self.top_margin - 0.325*inch, "Simon Fraser".translate(doc.sc_trans_bembo), charspace=1.2)
+        self._drawStringLeading(c, 1.9*inch, self.pg_h - self.top_margin - 0.465*inch, "University".translate(doc.sc_trans_bembo), charspace=1.2)
+
+        # address block
+        addr_style = ParagraphStyle(name='Normal',
+                                      fontName='BemboMTPro',
+                                      fontSize=10,
+                                      leading=10,
+                                      textColor=doc.sfu_grey)
+
+        # faculty and web
+        lines = [self.faculty, self.web]
+        self._put_lines(doc, c, lines, 6*inch, self.pg_h - self.top_margin, 2.25*inch, addr_style, 8, 1.5)
+
+        # address
+        self._put_lines(doc, c, self.address, 6*inch, self.pg_h - self.top_margin - 0.5*inch, 2.25*inch, addr_style, 8, 1.5)
+
+        # phone numbers
+        lines = ['Tel'.translate(doc.sc_trans_bembo) + ' ' + self.tel]
+        lines.append('Fax'.translate(doc.sc_trans_bembo) + ' ' + self.fax.replace('-', '.'))
+        self._put_lines(doc, c, lines, 6*inch, self.pg_h - self.top_margin - 1.125*inch, 1.5*inch, addr_style, 8, 1.5)
+
+
+class FASOfficialLetter(BaseDocTemplate, SFUMediaMixin):
+    """
+    Template for a letter on letterhead.
+
+    Implements "2009" version of letterhead in SFU graphic design specs: http://www.sfu.ca/clf/downloads.html
+    """
+    def __init__(self, filename, pagesize=PAPER_SIZE, *args, **kwargs):
+        self._media_setup()
+        kwargs['pagesize'] = pagesize
+        kwargs['pageTemplates'] = [FASLetterheadTemplate(pagesize=pagesize), FASLetterPageTemplate(pagesize=pagesize)]
+        BaseDocTemplate.__init__(self, filename, *args, **kwargs)
+        self.contents = [] # to be a list of Flowables
+
+    def add_letter(self, letter):
+        "Add the given LetterContents object to this document"
+        self.contents.extend(letter._contents(self))
+
+    def write(self):
+        "Write the PDF contents out"
+        self.build(self.contents)
+
+
+
 class RARequestForm(SFUMediaMixin):
     MAIN_WIDTH = 8*inch # size of the main box
     ENTRY_FONT = "Helvetica-Bold"
@@ -858,209 +977,201 @@ class RARequestForm(SFUMediaMixin):
 
         self.c.showPage()
 
+        if research_assistant or non_continuing:
         # PAGE TWO
-
-        self.c.setStrokeColor(black)
-        self.c.translate(6*mm, 16*mm) # origin = bottom-left of the content
-
-        self.c.setFont("Helvetica-Bold", 10)
-        self.c.setFillColor(self.sfu_red)
-        self.c.drawCentredString(self.MAIN_WIDTH/2, 250*mm, "ADDITIONAL INFORMATION REQUIRED FOR RESEARCH ASSISTANTS")
-
-        self.c.setFillColor(black)
-        self.c.setFont("Helvetica", 6)
-        self.c.drawCentredString(self.MAIN_WIDTH/2, 247*mm, "The following information to produce Offers of Employment and process payroll records. This form is not required for scholarship income.")
-
-        # SECTION 1
-
-        self.c.line(0, 245*mm, self.MAIN_WIDTH, 245*mm)
-        self.c.setFont("Helvetica-Bold", 10)
-        self.c.setFillColor(self.sfu_red)
-        self.c.drawString(1*mm, 241*mm, "SECTION 1: NEW APPOINTMENT OR RE-APPOINTMENT")
-        self.c.setFillColor(black)
-
-        self._checkbox(1*mm, 235*mm, text="Check if this is a Fixed Term appointment. NOTE: Will result in full payout to the employee should the appointment end early.", filled=False)
-
-        self.c.setFont("Helvetica-Bold", 7)
-        self.c.drawString(1*mm, 231*mm, "REPORTS TO")
-
-        self.c.drawString(1*mm, 225*mm, "Name:")
-        self.c.drawString(1*mm, 219*mm, "Position/SFU ID:")
-        self.c.drawString(1*mm, 213*mm, "Email:")
-        self._box_entry(11*mm, 223*mm, 80*mm, 6*mm, content=str(self.ra.supervisor.name()))
-        self._box_entry(21*mm, 217*mm, 70*mm, 6*mm, content=str(self.ra.supervisor.emplid))
-        self._box_entry(11*mm, 211*mm, 80*mm, 6*mm, content=str(self.ra.supervisor.email()))
-
-
-        vacation = [0, 0]
-        weeks_vacation = ''
-        vacation_pay = ''
-        if ra_bw or nc_bw:
-            vacation = [1,0]
-            weeks_vacation = "%s weeks" % str(self.ra.weeks_vacation)
-        if ra_hourly or nc_hourly:
-            vacation = [0,1]
-            vacation_pay = "%s %%" % str(self.ra.vacation_pay)
-
-        self.c.drawString(120*mm, 231*mm, "VACATION")
-        self.c.setFont("Helvetica-Oblique", 7)
-        self.c.drawString(142*mm, 231*mm, "(If left blank, the minimum will be applied)")
-        self._checkbox(120*mm, 225*mm, text="Time (min. 10 days/2 weeks) per year:", filled=vacation[0])
-        self._checkbox(120*mm, 219*mm, text="Pay % in lieu (min. 4%)", filled=vacation[1])
-        self._box_entry(168*mm, 224*mm, 18*mm, 5*mm, content=weeks_vacation)
-        self._box_entry(154*mm, 218*mm, 18*mm, 5*mm, content=vacation_pay)
-
-
-        self.c.setFont("Helvetica-Bold", 7)
-        self.c.drawString(1*mm, 207*mm, "JOB DUTIES:")
-        self.c.setFont("Helvetica-Oblique", 7)
-        self.c.drawString(20*mm, 207*mm, "Enter or copy/paste duties below, or attach a supplemental document")
-        self._box_entry(1*mm, 145*mm, 195*mm, 60*mm, content='')
-        
-        self.c.setFont("Helvetica-Bold", 8.5)
-        self.c.setFillColor(self.sfu_red)
-        self.c.drawString(1*mm, 140*mm, "DOCUMENT CHECKLIST")
-        self.c.setFillColor(black)
-        self.c.setFont("Helvetica-Oblique", 7)
-        self.c.drawString(37*mm, 140*mm, "Indicate which forms accompany this PAF for all new appointments:")
-
-        self._checkbox(1*mm, 134*mm, text="Personal Data Form", filled=False)
-        self._checkbox(1*mm, 129*mm, text="Copy of Permanent Resident Card (front and back)", filled=False)
-        self._checkbox(1*mm, 124*mm, text="TD1 (Personal Tax Credits Return)", filled=False)
-        self._checkbox(1*mm, 119*mm, text="TD1BC (BC Personal Tax Credits Return)", filled=False)
-
-        self.c.setFont("Helvetica-Bold", 7)
-        self.c.drawString(110*mm, 134*mm, "Temporary Foreign Worker")
-        self._checkbox(110*mm, 129*mm, text="Work permit/Study permit", filled=False)
-        self._checkbox(110*mm, 124*mm, text="SIN Confirmation Letter with SIN expiry date", filled=False)
-
-        # SECTION 2
-        self.c.line(0, 114*mm, self.MAIN_WIDTH, 114*mm)
-        self.c.setFont("Helvetica-Bold", 10)
-        self.c.setFillColor(self.sfu_red)
-        self.c.drawString(1*mm, 110*mm, "SECTION 2: ENDING AN APPOINTMENT BEFORE CONTRACT END DATE")
-        self.c.setFillColor(black)
-
-        self.c.setFont("Helvetica", 6.5)
-        self.c.drawString(1*mm, 106*mm, "For resignation and contracts being ended early. Not required if appointment is ending according to employment contract.")
-
-        self.c.setFont("Helvetica-Bold", 8)
-        self.c.drawString(1*mm, 98*mm, "Reason for appointment ending:")
-        self._checkbox(1*mm, 92*mm, text="Resignation - please provide notice from employee", filled=False)
-        self._checkbox(1*mm, 86*mm, text="Appointment ended by PI/Supervisor - please provide reason:", filled=False)
-        self._box_entry(76*mm, 72*mm, 115*mm, 17*mm, content='')
-
-        self.c.setFont("Helvetica-Bold", 8)
-        self.c.drawString(96*mm, 98*mm, "Last Day Worked:")
-        self._box_entry(122*mm, 96*mm, 52*mm, 6*mm, content='')
-
-        self.c.setFont("Helvetica", 7)
-        self.c.drawString(175*mm, 98*mm, "YYYY-MM-DD")
-
-        self.c.setFont("Helvetica-Bold", 7)
-        self.c.drawString(1*mm, 75*mm, "Will the employee:")
-        self._checkbox(1*mm, 69*mm, text="Work their notice period", filled=False)
-        self._checkbox(1*mm, 63*mm, text="Be paid out their notice period", filled=False)
-
-        self.c.setFont("Helvetica", 7)
-        self.c.drawString(1*mm, 58*mm, "If applicable, indicate the vacation payout amount (for salaried only): Total vacation payout $ ______ OR number of hours: ______")
-        #self._box_entry(103*mm, 56*mm, 15*mm, 6*mm, content='')
-        #self.c.drawString(120*mm, 58*mm, "OR number of hours:")
-        #self._box_entry(145*mm, 56*mm, 15*mm, 6*mm, content='')
-        
-
-        # SECTION 3
-        self.c.line(0, 54*mm, self.MAIN_WIDTH, 54*mm)
-        self.c.setFont("Helvetica-Bold", 10)
-        self.c.setFillColor(self.sfu_red)
-        self.c.drawString(1*mm, 50*mm, "SECTION 3: CHANGING THE FUNDING SOURCE")
-        self.c.setFillColor(black)
-
-        self.c.setFont("Helvetica", 6.5)
-        self.c.drawString(1*mm, 46*mm, "Changing the funding source end date does not affect the appointment end date.")
-
-        self.c.setFont("Helvetica-Bold", 7)
-        self.c.drawString(1*mm, 40*mm, "Current funding source(s)")
-        
-        self._small_box_entry(1*mm, 30*mm, 42*mm, 8*mm, content="Project (6-8 digits, if applicable)")
-        self._box_entry(1*mm, 25*mm, 42*mm, 5*mm, content='')
-        self._box_entry(1*mm, 20*mm, 42*mm, 5*mm, content='')
-        self._box_entry(1*mm, 15*mm, 42*mm, 5*mm, content='')
-
-        self._small_box_entry(43*mm, 30*mm, 26*mm, 8*mm, content="Object (4 digits)")
-        self._box_entry(43*mm, 25*mm, 26*mm, 5*mm, content='')
-        self._box_entry(43*mm, 20*mm, 26*mm, 5*mm, content='')
-        self._box_entry(43*mm, 15*mm, 26*mm, 5*mm, content='')
-
-        self._small_box_entry(69*mm, 30*mm, 19*mm, 8*mm, content="Fund (2 digits)")
-        self._box_entry(69*mm, 25*mm, 19*mm, 5*mm, content='')
-        self._box_entry(69*mm, 20*mm, 19*mm, 5*mm, content='')
-        self._box_entry(69*mm, 15*mm, 19*mm, 5*mm, content='')
-
-        self._small_box_entry(88*mm, 30*mm, 31*mm, 8*mm, content="Department (4 digits)")
-        self._box_entry(88*mm, 25*mm, 31*mm, 5*mm, content='')
-        self._box_entry(88*mm, 20*mm, 31*mm, 5*mm, content='')
-        self._box_entry(88*mm, 15*mm, 31*mm, 5*mm, content='')
-
-        self._small_box_entry(119*mm, 30*mm, 36*mm, 8*mm, content="Program")
-        self.c.setFont("Helvetica", 6)
-        self.c.drawString(120.5*mm, 32*mm, "(5 digits - if none use 00000)")
-        self._box_entry(119*mm, 25*mm, 36*mm, 5*mm, content='')
-        self._box_entry(119*mm, 20*mm, 36*mm, 5*mm, content='')
-        self._box_entry(119*mm, 15*mm, 36*mm, 5*mm, content='')
-
-        self._small_box_entry(155*mm, 30*mm, 14*mm, 8*mm, content="% Split")
-        self._box_entry(155*mm, 25*mm, 14*mm, 5*mm, content='')
-        self._box_entry(155*mm, 20*mm, 14*mm, 5*mm, content='')
-        self._box_entry(155*mm, 15*mm, 14*mm, 5*mm, content='')
-
-        self._small_box_entry(169*mm, 30*mm, 17*mm, 8*mm, content="Bi-weekly Rate")
-        self.c.setFont("Helvetica-Bold", 5)
-        self.c.drawString(172*mm, 32.5*mm, "(if %Split)")
-        self._box_entry(169*mm, 25*mm, 17*mm, 5*mm, content='')
-        self._box_entry(169*mm, 20*mm, 17*mm, 5*mm, content='')
-        self._box_entry(169*mm, 15*mm, 17*mm, 5*mm, content='')
-
-        self._small_box_entry(186*mm, 30*mm, 16*mm, 8*mm, content="Revised")
-        self.c.setFont("Helvetica-Bold", 6)
-        self.c.drawString(187.5*mm, 33*mm, "End Date")
-        self.c.setFont("Helvetica", 5)
-        self.c.drawString(187.5*mm, 31*mm, "(YYYY-MM-DD)")
-        self._small_box_entry(186*mm, 25*mm, 16*mm, 5*mm, content='')
-        self._small_box_entry(186*mm, 20*mm, 16*mm, 5*mm, content='')
-        self._small_box_entry(186*mm, 15*mm, 16*mm, 5*mm, content='')
-
-        self.c.setFont("Helvetica", 5)
-        self.c.drawString(1*mm, 7.5*mm, "The information on this form is collected under the authority of the University Act (RSBC 1996, C. 468), the Income Tax Act, the Pension Plan Act, the Employment Insurance Act, the Financial Information Act of BC, and the Workers Compensation Act")
-        self.c.drawString(1*mm, 5*mm, "of BC. The information on this form is used by the University for payroll and benefit plan administration, statistical compilations, and operating programs and activities as required by University policies. The information on this form is disclosed to")
-        self.c.drawString(1*mm, 2.5*mm, "government agencies as required by legislation. In accordance with Financial Information Act of BC, your Name, and Remuneration is public information and may be published. If you have any questions about the collection and use of this")
-        self.c.drawString(1*mm, 0*mm, "information, please contact the Manager, Payroll.")
-        self.c.drawString(1*mm, -5*mm, "PAYROLL APPOINTMENT FORM (formerly FPP4) - March 2021 (produced by %s RAForm)" % (product_name(hint='admin'),))
-        
-
-        if research_assistant:
-            self.c.showPage()
-
-            # PAGE THREE
 
             self.c.setStrokeColor(black)
             self.c.translate(6*mm, 16*mm) # origin = bottom-left of the content
 
             self.c.setFont("Helvetica-Bold", 10)
             self.c.setFillColor(self.sfu_red)
-            self.c.drawCentredString(self.MAIN_WIDTH/2, 250*mm, "JOB DUTIES")
+            self.c.drawCentredString(self.MAIN_WIDTH/2, 250*mm, "ADDITIONAL INFORMATION REQUIRED FOR RESEARCH ASSISTANTS")
 
-            self.c.setFont("Helvetica", 7)
+            self.c.setFillColor(black)
+            self.c.setFont("Helvetica", 6)
+            self.c.drawCentredString(self.MAIN_WIDTH/2, 247*mm, "The following information to produce Offers of Employment and process payroll records. This form is not required for scholarship income.")
+
+            # SECTION 1
+
+            self.c.line(0, 245*mm, self.MAIN_WIDTH, 245*mm)
+            self.c.setFont("Helvetica-Bold", 10)
+            self.c.setFillColor(self.sfu_red)
+            self.c.drawString(1*mm, 241*mm, "SECTION 1: NEW APPOINTMENT OR RE-APPOINTMENT")
             self.c.setFillColor(black)
 
-            self._box_entry(1*mm, 1*mm, self.MAIN_WIDTH, 240*mm, content='')
-            f = Frame(1*mm, 1*mm, self.MAIN_WIDTH*mm-1*mm, 239*mm, 0, 0, 0, 0)
-            duties = []
+            self._checkbox(1*mm, 235*mm, text="Check if this is a Fixed Term appointment. NOTE: Will result in full payout to the employee should the appointment end early.", filled=False)
 
-            for duty in self.ra.duties_list():
-                duties.append(Paragraph(duty, style=self.NOTE_STYLE))
+            self.c.setFont("Helvetica-Bold", 7)
+            self.c.drawString(1*mm, 231*mm, "REPORTS TO")
+
+            self.c.drawString(1*mm, 225*mm, "Name:")
+            self.c.drawString(1*mm, 219*mm, "Position/SFU ID:")
+            self.c.drawString(1*mm, 213*mm, "Email:")
+            self._box_entry(11*mm, 223*mm, 80*mm, 6*mm, content=str(self.ra.supervisor.name()))
+            self._box_entry(21*mm, 217*mm, 70*mm, 6*mm, content=str(self.ra.supervisor.emplid))
+            self._box_entry(11*mm, 211*mm, 80*mm, 6*mm, content=str(self.ra.supervisor.email()))
+
+
+            vacation = [0, 0]
+            weeks_vacation = ''
+            vacation_pay = ''
+            if ra_bw or nc_bw:
+                vacation = [1,0]
+                weeks_vacation = "%s weeks" % str(self.ra.weeks_vacation)
+            if ra_hourly or nc_hourly:
+                vacation = [0,1]
+                vacation_pay = "%s %%" % str(self.ra.vacation_pay)
+
+            self.c.drawString(120*mm, 231*mm, "VACATION")
+            self.c.setFont("Helvetica-Oblique", 7)
+            self.c.drawString(142*mm, 231*mm, "(If left blank, the minimum will be applied)")
+            self._checkbox(120*mm, 225*mm, text="Time (min. 10 days/2 weeks) per year:", filled=vacation[0])
+            self._checkbox(120*mm, 219*mm, text="Pay % in lieu (min. 4%)", filled=vacation[1])
+            self._box_entry(168*mm, 224*mm, 18*mm, 5*mm, content=weeks_vacation)
+            self._box_entry(154*mm, 218*mm, 18*mm, 5*mm, content=vacation_pay)
+
+
+            # job duties 
+            self.c.setFont("Helvetica-Bold", 7)
+            self.c.drawString(1*mm, 207*mm, "JOB DUTIES:")
+            self.c.setFont("Helvetica-Oblique", 7)
+            self.c.drawString(20*mm, 207*mm, "Enter or copy/paste duties below, or attach a supplemental document")
+            self._box_entry(1*mm, 145*mm, 195*mm, 60*mm)
+
+            duties = []
+            if research_assistant or non_continuing:
+                if research_assistant:
+                    duties_list = self.ra.duties_list()
+                    for duty in duties_list:
+                        duties.append(Paragraph(duty, style=self.NOTE_STYLE))
+                elif non_continuing:
+                    duties.append(Paragraph(self.ra.nc_duties, style=self.NOTE_STYLE))
+
+            f = Frame(2*mm, 145*mm, 194*mm, 60*mm, 0, 0, 0, 0)
             f.addFromList(duties, self.c)
-        
+
+            self.c.setFont("Helvetica-Bold", 8.5)
+            self.c.setFillColor(self.sfu_red)
+            self.c.drawString(1*mm, 140*mm, "DOCUMENT CHECKLIST")
+            self.c.setFillColor(black)
+            self.c.setFont("Helvetica-Oblique", 7)
+            self.c.drawString(37*mm, 140*mm, "Indicate which forms accompany this PAF for all new appointments:")
+
+            self._checkbox(1*mm, 134*mm, text="Personal Data Form", filled=False)
+            self._checkbox(1*mm, 129*mm, text="Copy of Permanent Resident Card (front and back)", filled=False)
+            self._checkbox(1*mm, 124*mm, text="TD1 (Personal Tax Credits Return)", filled=False)
+            self._checkbox(1*mm, 119*mm, text="TD1BC (BC Personal Tax Credits Return)", filled=False)
+
+            self.c.setFont("Helvetica-Bold", 7)
+            self.c.drawString(110*mm, 134*mm, "Temporary Foreign Worker")
+            self._checkbox(110*mm, 129*mm, text="Work permit/Study permit", filled=False)
+            self._checkbox(110*mm, 124*mm, text="SIN Confirmation Letter with SIN expiry date", filled=False)
+
+            # SECTION 2
+            self.c.line(0, 114*mm, self.MAIN_WIDTH, 114*mm)
+            self.c.setFont("Helvetica-Bold", 10)
+            self.c.setFillColor(self.sfu_red)
+            self.c.drawString(1*mm, 110*mm, "SECTION 2: ENDING AN APPOINTMENT BEFORE CONTRACT END DATE")
+            self.c.setFillColor(black)
+
+            self.c.setFont("Helvetica", 6.5)
+            self.c.drawString(1*mm, 106*mm, "For resignation and contracts being ended early. Not required if appointment is ending according to employment contract.")
+
+            self.c.setFont("Helvetica-Bold", 8)
+            self.c.drawString(1*mm, 98*mm, "Reason for appointment ending:")
+            self._checkbox(1*mm, 92*mm, text="Resignation - please provide notice from employee", filled=False)
+            self._checkbox(1*mm, 86*mm, text="Appointment ended by PI/Supervisor - please provide reason:", filled=False)
+            self._box_entry(76*mm, 72*mm, 115*mm, 17*mm, content='')
+
+            self.c.setFont("Helvetica-Bold", 8)
+            self.c.drawString(96*mm, 98*mm, "Last Day Worked:")
+            self._box_entry(122*mm, 96*mm, 52*mm, 6*mm, content='')
+
+            self.c.setFont("Helvetica", 7)
+            self.c.drawString(175*mm, 98*mm, "YYYY-MM-DD")
+
+            self.c.setFont("Helvetica-Bold", 7)
+            self.c.drawString(1*mm, 75*mm, "Will the employee:")
+            self._checkbox(1*mm, 69*mm, text="Work their notice period", filled=False)
+            self._checkbox(1*mm, 63*mm, text="Be paid out their notice period", filled=False)
+
+            self.c.setFont("Helvetica", 7)
+            self.c.drawString(1*mm, 58*mm, "If applicable, indicate the vacation payout amount (for salaried only): Total vacation payout $ ______ OR number of hours: ______")
+            #self._box_entry(103*mm, 56*mm, 15*mm, 6*mm, content='')
+            #self.c.drawString(120*mm, 58*mm, "OR number of hours:")
+            #self._box_entry(145*mm, 56*mm, 15*mm, 6*mm, content='')
+            
+
+            # SECTION 3
+            self.c.line(0, 54*mm, self.MAIN_WIDTH, 54*mm)
+            self.c.setFont("Helvetica-Bold", 10)
+            self.c.setFillColor(self.sfu_red)
+            self.c.drawString(1*mm, 50*mm, "SECTION 3: CHANGING THE FUNDING SOURCE")
+            self.c.setFillColor(black)
+
+            self.c.setFont("Helvetica", 6.5)
+            self.c.drawString(1*mm, 46*mm, "Changing the funding source end date does not affect the appointment end date.")
+
+            self.c.setFont("Helvetica-Bold", 7)
+            self.c.drawString(1*mm, 40*mm, "Current funding source(s)")
+            
+            self._small_box_entry(1*mm, 30*mm, 42*mm, 8*mm, content="Project (6-8 digits, if applicable)")
+            self._box_entry(1*mm, 25*mm, 42*mm, 5*mm, content='')
+            self._box_entry(1*mm, 20*mm, 42*mm, 5*mm, content='')
+            self._box_entry(1*mm, 15*mm, 42*mm, 5*mm, content='')
+
+            self._small_box_entry(43*mm, 30*mm, 26*mm, 8*mm, content="Object (4 digits)")
+            self._box_entry(43*mm, 25*mm, 26*mm, 5*mm, content='')
+            self._box_entry(43*mm, 20*mm, 26*mm, 5*mm, content='')
+            self._box_entry(43*mm, 15*mm, 26*mm, 5*mm, content='')
+
+            self._small_box_entry(69*mm, 30*mm, 19*mm, 8*mm, content="Fund (2 digits)")
+            self._box_entry(69*mm, 25*mm, 19*mm, 5*mm, content='')
+            self._box_entry(69*mm, 20*mm, 19*mm, 5*mm, content='')
+            self._box_entry(69*mm, 15*mm, 19*mm, 5*mm, content='')
+
+            self._small_box_entry(88*mm, 30*mm, 31*mm, 8*mm, content="Department (4 digits)")
+            self._box_entry(88*mm, 25*mm, 31*mm, 5*mm, content='')
+            self._box_entry(88*mm, 20*mm, 31*mm, 5*mm, content='')
+            self._box_entry(88*mm, 15*mm, 31*mm, 5*mm, content='')
+
+            self._small_box_entry(119*mm, 30*mm, 36*mm, 8*mm, content="Program")
+            self.c.setFont("Helvetica", 6)
+            self.c.drawString(120.5*mm, 32*mm, "(5 digits - if none use 00000)")
+            self._box_entry(119*mm, 25*mm, 36*mm, 5*mm, content='')
+            self._box_entry(119*mm, 20*mm, 36*mm, 5*mm, content='')
+            self._box_entry(119*mm, 15*mm, 36*mm, 5*mm, content='')
+
+            self._small_box_entry(155*mm, 30*mm, 14*mm, 8*mm, content="% Split")
+            self._box_entry(155*mm, 25*mm, 14*mm, 5*mm, content='')
+            self._box_entry(155*mm, 20*mm, 14*mm, 5*mm, content='')
+            self._box_entry(155*mm, 15*mm, 14*mm, 5*mm, content='')
+
+            self._small_box_entry(169*mm, 30*mm, 17*mm, 8*mm, content="Bi-weekly Rate")
+            self.c.setFont("Helvetica-Bold", 5)
+            self.c.drawString(172*mm, 32.5*mm, "(if %Split)")
+            self._box_entry(169*mm, 25*mm, 17*mm, 5*mm, content='')
+            self._box_entry(169*mm, 20*mm, 17*mm, 5*mm, content='')
+            self._box_entry(169*mm, 15*mm, 17*mm, 5*mm, content='')
+
+            self._small_box_entry(186*mm, 30*mm, 16*mm, 8*mm, content="Revised")
+            self.c.setFont("Helvetica-Bold", 6)
+            self.c.drawString(187.5*mm, 33*mm, "End Date")
+            self.c.setFont("Helvetica", 5)
+            self.c.drawString(187.5*mm, 31*mm, "(YYYY-MM-DD)")
+            self._small_box_entry(186*mm, 25*mm, 16*mm, 5*mm, content='')
+            self._small_box_entry(186*mm, 20*mm, 16*mm, 5*mm, content='')
+            self._small_box_entry(186*mm, 15*mm, 16*mm, 5*mm, content='')
+
+            self.c.setFont("Helvetica", 5)
+            self.c.drawString(1*mm, 7.5*mm, "The information on this form is collected under the authority of the University Act (RSBC 1996, C. 468), the Income Tax Act, the Pension Plan Act, the Employment Insurance Act, the Financial Information Act of BC, and the Workers Compensation Act")
+            self.c.drawString(1*mm, 5*mm, "of BC. The information on this form is used by the University for payroll and benefit plan administration, statistical compilations, and operating programs and activities as required by University policies. The information on this form is disclosed to")
+            self.c.drawString(1*mm, 2.5*mm, "government agencies as required by legislation. In accordance with Financial Information Act of BC, your Name, and Remuneration is public information and may be published. If you have any questions about the collection and use of this")
+            self.c.drawString(1*mm, 0*mm, "information, please contact the Manager, Payroll.")
+            self.c.drawString(1*mm, -5*mm, "PAYROLL APPOINTMENT FORM (formerly FPP4) - March 2021 (produced by %s RAForm)" % (product_name(hint='admin'),))
+            
+
+            
         self.c.save()
 
 class RAForm(SFUMediaMixin):

@@ -67,12 +67,12 @@ table td.checkbox {
     text-align:right;
 }
 
-.delete {
-    background-color: #eee;
-    border: 1px solid #bbb;
-    float:right;
+.bottom_admin {
+    border: 12px solid #eee;
     padding:10px;
+
 }
+
 
 .important_info {
     background-color: rgb(251, 255, 198);

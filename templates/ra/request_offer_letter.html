@@ -6,36 +6,40 @@
 <link rel="stylesheet" href="{% static 'style/ra.css' %}" />
 {% endblock %}
 
-{% block title %}Offer Letter Configuration{% endblock %}
-{% block h1 %}Offer Letter Configuration{% endblock %}
+{% block title %}Offer Letter{% endblock %}
+{% block h1 %}Offer Letter{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "ra:search" %}">RAs</a></li>
 <li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View RA Request for {{ req.get_name }}</a></li>
-<li>Offer Letter Configuration</li>{% endblock %}
+<li>Offer Letter</li>{% endblock %}
 
 {% block content %}
-
-<h2>PAF Configuration</h2>
+<h2>Configuration</h2>
 <div class="form_container">
   <form action="{% url "ra:request_offer_letter_update" ra_slug=req.slug %}" method="POST" class="subtle">{% csrf_token %}
     <fieldset>
       <div class="form_section">
       {{ configform|as_dl }}
       </div>
-      <p><input type="submit" class="submit" value="Update PAF Configuration" /></p>
+      <p><input type="submit" class="submit" value="Update Offer Letter Text" /></p>
     </fieldset>
   </form>
 </div>
 
-<div class="form_container">
-    <form action="{% url "ra:request_offer_letter" ra_slug=req.slug %}" method="post" class="subtle">{% csrf_token %}
-      <fieldset>
-        <div class="form_section">
-        {{ downloadform|as_dl }}
-        </div>
-        <p><input type="submit" value="View/Download PAF" class="submit" /></p>
-      </fieldset>
-    </form>  
+<div class="bottom_admin">
+<h2>Update Default</h2>
+<form action="{% url "ra:request_default_offer_letter" ra_slug=req.slug %}" class="subtle" method="post">{% csrf_token %}
+  <i>Resets the offer letter text to default based on hiring category and payment method. You may want to do this after editing a request.</i>
+  <p class="actionbutton">
+    <input type="submit" class="submit confirm-submit" value="Update" data-submit-action="update" />
+  </p>
+</form>
+<h2>View/Download</h2>
+<form action="{% url "ra:request_offer_letter" ra_slug=req.slug %}" class="subtle" method="post">{% csrf_token %}
+  <p class="actionbutton">
+      <input type="submit" value="View/Download Offer Letter" />
+  </p>
+</form>
 </div>
 {% endblock %}

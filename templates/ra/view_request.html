@@ -31,7 +31,7 @@
         <li><a href="{% url "ra:edit_request" ra_slug=req.slug %}">Edit this Request</a></li> 
         <li><a href="{% url "ra:request_paf" ra_slug=req.slug %}">Payroll Appointment Form</a></li>
         {% if not req.backdated %}
-        <li><a href="{% url "ra:request_default_offer_letter" ra_slug=req.slug %}">Offer Letter</a></li>
+        <li><a href="{% url "ra:request_offer_letter_update" ra_slug=req.slug %}">Offer Letter</a></li>
         {% else %}
         <li><i>Offer letters are not available for backdated appointments.</i></li>
         {% endif %}
@@ -546,8 +546,24 @@
 </div>
 
 {% if admin %}
-
-<div class="delete">
+<div class="bottom_admin">
+{% if research_assistant or non_cont %}
+<h2>Science Alive</h2>
+<form action="{% url "ra:request_science_alive" ra_slug=req.slug %}" class="subtle" method="post">
+  {% csrf_token %}
+  {% if req.science_alive %}
+    This <b>is</b> a science alive appointment.
+    <p class="actionbutton">
+        <input type="submit" value="Actually, it's not." />
+    </p>
+  {% else %}
+    This <b>is not</b> a science alive appointment.
+    <p class="actionbutton">
+        <input type="submit" value="Actually, it is." />
+    </p>
+  {% endif %}
+</form>
+{% endif %}
 <h2>Delete</h2>
 <form action="{% url "ra:delete_request" ra_slug=req.slug %}" class="subtle" method="post">
   {% csrf_token %}

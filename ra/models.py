@@ -11,7 +11,7 @@ from courselib.storage import UploadedFileStorage, upload_path
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-import datetime, os, uuid
+import datetime, os, uuid, math
 
 HIRING_CATEGORY_CHOICES = (
     ('U', 'Undergrad'),
@@ -191,6 +191,50 @@ DEFAULT_LETTERS = {
 
 ### RA REQUEST (APPLICATIONS)
 
+# offer letters
+
+DEFAULT_LETTER_NCH_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be $%(gross_hourly)s per hour plus %(vacation_pay)s percent vacation pay. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
+DEFAULT_LETTER_NCBW_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_salary)s for a total amount of $%(total_pay)s, subject to all statutory income tax and benefit deductions. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
+DEFAULT_LETTER_RAH_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be $%(gross_hourly)s per hour plus %(vacation_pay)s percent vacation pay. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions.\n\n"""
+DEFAULT_LETTER_RABW_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. This remuneration will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s. You will be entitled to %(weeks_vacation)s weeks of paid vacation during each full calendar year of service and based on the terms of your appointment, your vacation entitlement is %(vacation_hours)s. You must submit and confirm all vacation requests.\n\n"
+DEFAULT_LETTER_GRASLS_INTRO_OUTSIDE_CAN = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be transferred to you via your student account for a total amount of $%(total_gross)s.\n\n" 
+DEFAULT_LETTER_GRASLS_INTRO_INSIDE_CAN = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you as a lump sum payment of $%(total_gross)s and will be made to you at the end of your term appointment.\n\n"
+DEFAULT_LETTER_GRASBW_INTRO = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s.\n\n"
+
+DEFAULT_LETTER_GRAS = '\n\n'.join([
+    """This agreement exists solely between you as a student and me as your research supervisor. This does not constitute as an offer of employment from Simon Fraser University.""",
+    """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from this income. You should set aside funds to cover your eventual income tax obligation.""",
+    """Hours of work: I expect these hours will not exceed 36 hours per week\n\n"""
+    ])
+DEFAULT_LETTER_NC = '\n\n'.join([
+    """This contract of employment exists solely between the Faculty of Applied Sciences and yourself. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
+    """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 36 hours per week.""",
+    """Your responsibilities and duties (Duties) will be:""",
+    """- %(nc_duties)s\n\n"""
+    ])
+DEFAULT_LETTER_RA = '\n\n'.join([
+    """This agreement exists solely between you as a Research Assistant and myself as the recipient of research funding or manager of this project. This does not constitute as an offer of employment from Simon Fraser University.""",
+    """Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).""",
+    """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
+    """Hours of work: I expect these hours will not exceed 36 hours per week.\n\n"""
+    ])
+
+DEFAULT_LETTER_NCBW_VACATION = "Vacation time: This offer includes %(weeks_vacation)s weeks of vacation per calendar year, which will be __ days prorated for the duration of your appointment.\n\n"
+
+DEFAULT_LETTER_TRAINING = "Mandatory SFU Safety Orientation Training: WorkSafe BC requires all new employees to take complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"
+
+DEFAULT_LETTER_CONCLUDE = "If you accept the terms of this letter, please sign and return the letter, retaining the original for your records.\n\n"
+DEFAULT_LETTER_CONCLUDE_NC = "If you accept the terms of this appointment, please sign and return the letter, retaining the original for your records.\n\n"
+
+DEFAULT_LETTER_NCH = DEFAULT_LETTER_NCH_INTRO + DEFAULT_LETTER_NC + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE_NC
+DEFAULT_LETTER_NCBW = DEFAULT_LETTER_NCBW_INTRO + DEFAULT_LETTER_NC + DEFAULT_LETTER_NCBW_VACATION + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE_NC
+DEFAULT_LETTER_RAH = DEFAULT_LETTER_RAH_INTRO + DEFAULT_LETTER_RA + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
+DEFAULT_LETTER_RABW = DEFAULT_LETTER_RABW_INTRO + DEFAULT_LETTER_RA + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
+DEFAULT_LETTER_GRASLS_OUTSIDE_CAN = DEFAULT_LETTER_GRASLS_INTRO_OUTSIDE_CAN + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
+DEFAULT_LETTER_GRASLS_INSIDE_CAN = DEFAULT_LETTER_GRASLS_INTRO_INSIDE_CAN + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
+DEFAULT_LETTER_GRASBW = DEFAULT_LETTER_GRASBW_INTRO + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
+
+
 BOOL_CHOICES = ((True, 'Yes'), (False, 'No'))
 
 STUDENT_TYPE = (
@@ -247,7 +291,7 @@ RA_VACATION_PAY_CHOICES = (
 )
 
 RA_BENEFITS_CHOICES = (
-    ('Y', "Yes (The cost will be shared 50/50 between employee and employer and eligibility depends on your funding source." +
+    ('Y', "Yes (The cost will be shared 50/50 between employee and employer and eligibility depends on your funding source. " +
     "An additional 2% to 4% of salary costs will be added to your project. Cost depends on Appointee's dependents and family size.)"),
     ('NE', 'No - My grant is not eligible.'),
     ('N', 'No')
@@ -514,6 +558,86 @@ class RARequest(models.Model):
         duties += [duty for val, duty in DUTIES_CHOICES_WR if val in [int(i) for i in self.ra_duties_wr]]
         duties += [duty for val, duty in DUTIES_CHOICES_PM if val in [int(i) for i in self.ra_duties_pm]]
         return duties
+    
+    def build_letter_text(self):
+        """
+        This takes the value passed from the letter selector menu and builds the appropriate
+        default letter based on that.
+        """
+
+        text = ''
+
+        if self.hiring_category == "RA":
+            if self.ra_payment_method == "H":
+                substitutions = {
+                'start_date': self.start_date.strftime("%B %d, %Y"),
+                'end_date': self.end_date.strftime("%B %d, %Y"),
+                'gross_hourly': self.gross_hourly,
+                'vacation_pay': self.vacation_pay
+                }
+                text = DEFAULT_LETTER_RAH % substitutions
+            elif self.ra_payment_method == "BW":
+                substitutions = {
+                    'start_date': self.start_date.strftime("%B %d, %Y"),
+                    'end_date': self.end_date.strftime("%B %d, %Y"),
+                    'position': self.position,
+                    'biweekly_salary': self.biweekly_salary,
+                    'total_pay': self.total_pay,
+                    'vacation_hours': self.total_pay,
+                    'weeks_vacation': self.weeks_vacation
+                }
+                text = DEFAULT_LETTER_RABW % substitutions
+        elif self.hiring_category == "NC":
+            if self.nc_payment_method == "H":
+                substitutions = {
+                    'start_date': self.start_date.strftime("%B %d, %Y"),
+                    'end_date': self.end_date.strftime("%B %d, %Y"),
+                    'position': self.position,
+                    'gross_hourly': self.gross_hourly,
+                    'vacation_pay': self.vacation_pay,
+                    'nc_duties': self.nc_duties
+                }
+                text = DEFAULT_LETTER_NCH % substitutions
+            elif self.nc_payment_method == "BW":
+                substitutions = {
+                    'start_date': self.start_date.strftime("%B %d, %Y"),
+                    'end_date': self.end_date.strftime("%B %d, %Y"),
+                    'position': self.position,
+                    'biweekly_salary': self.biweekly_salary,
+                    'weeks_vacation': self.weeks_vacation,
+                    'total_pay': self.total_pay,
+                    'nc_duties': self.nc_duties
+                }
+                text = DEFAULT_LETTER_NCBW % substitutions
+        elif self.hiring_category == "GRAS":
+            if self.gras_payment_method == "LS" or "LE":
+                substitutions = {
+                    'start_date': self.start_date.strftime("%B %d, %Y"),
+                    'end_date': self.end_date.strftime("%B %d, %Y"),
+                    'total_gross': self.total_gross
+                }
+                text = DEFAULT_LETTER_GRASLS_INSIDE_CAN % substitutions
+            elif self.gras_payment_method == "BW":
+                substitutions = {
+                    'start_date': self.start_date.strftime("%B %d, %Y"),
+                    'end_date': self.end_date.strftime("%B %d, %Y"),
+                    'biweekly_salary': self.biweekly_salary,
+                    'total_pay': self.total_pay,
+                }
+                text = DEFAULT_LETTER_GRASBW % substitutions
+                
+        
+        letter_text = text % substitutions
+
+        self.offer_letter_text = letter_text
+
+    def letter_paragraphs(self):
+        """
+        Return list of paragraphs in the letter (for PDF creation)
+        """
+        text = self.offer_letter_text
+        text = normalize_newlines(text)
+        return text.split("\n\n") 
 
     def get_name(self):
         if self.first_name and self.last_name:
@@ -521,6 +645,28 @@ class RARequest(models.Model):
         if self.person:
             name = self.person.name()
         return name
+    
+    def get_first_name(self):
+        if self.first_name:
+            first_name = self.first_name
+        if self.person:
+            first_name = self.person.first_name
+        return first_name
+             
+    def get_last_name(self):
+        if self.last_name:
+            last_name = self.last_name
+        if self.person:
+            last_name = self.person.last_name
+        return last_name
+
+    def get_cosigner_line(self):
+        if self.hiring_category == "RA" or self.hiring_category == "NC":
+            line = "I agree to the conditions of employment"
+
+        elif self.hiring_category == "GRAS":
+            line = "I agree to the conditions of this contract"
+        return line
 
     def get_absolute_url(self):
         return reverse('ra:view_request', kwargs={'ra_slug': self.slug})

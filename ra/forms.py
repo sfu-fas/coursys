@@ -577,7 +577,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     gross_hourly = forms.DecimalField(required=False, label="Gross Hourly", max_digits=8, decimal_places=2)
     vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)", max_digits=8, decimal_places=1)
     
-    ra_benefits = forms.ChoiceField(required=False, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, label="Are you willing to provide extended health benefits?")
+    ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, label="Are you willing to provide extended health benefits?")
 
     ra_duties_ex = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EX, widget=forms.CheckboxSelectMultiple,
                                              label="Experimental/Research Activities")
@@ -695,7 +695,6 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             elif ra_payment_method == "BW":
                 self.cleaned_data["vacation_pay"] = 0
             
-
 class RARequestSupportingForm(forms.ModelForm):
     funding_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3}), label="Any comments about funding?")
     
@@ -718,7 +717,6 @@ class RARequestSupportingForm(forms.ModelForm):
 
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
-
 
 class RARequestNoteForm(forms.ModelForm):
     admin_notes = forms.CharField(required=False, label="Administrative Notes", widget=forms.Textarea)
@@ -775,6 +773,14 @@ class RARequestAdminAttachmentForm (forms.ModelForm):
 
 class RARequestPAFForm (forms.Form):
     appointment_type = forms.ChoiceField(required=True, choices=APPOINTMENT_TYPE, widget=forms.RadioSelect, label="Type Of Appointment")
+
+class RARequestLetterForm(forms.ModelForm):
+    class Meta:
+        model = RARequest
+        fields = ('offer_letter_text',)
+        widgets = {
+                   'offer_letter_text': forms.Textarea(attrs={'rows': 25, 'cols': 70}),
+                   }
 
 class RARequestAdminPAFForm(forms.ModelForm):
     position_no = forms.IntegerField(required=False, label="Position #")
