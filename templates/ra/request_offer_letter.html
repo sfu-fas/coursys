@@ -15,6 +15,7 @@
 <li>Offer Letter</li>{% endblock %}
 
 {% block content %}
+{% if not req.science_alive %}
 <h2>Configuration</h2>
 <div class="form_container">
   <form action="{% url "ra:request_offer_letter_update" ra_slug=req.slug %}" method="POST" class="subtle">{% csrf_token %}
@@ -26,7 +27,20 @@
     </fieldset>
   </form>
 </div>
+{% else %}
+<div class="form_container">
+  <form action="{% url "ra:request_science_alive_letter" ra_slug=req.slug %}" method="post" class="subtle">{% csrf_token %}
+    <fieldset>
+      <div class="form_section">
+      {{ saform|as_dl }}
+      </div>
+      <p><input type="submit" value="View/Download Offer Letter" class="submit" /></p>
+    </fieldset>
+  </form>  
+</div>
+{% endif %}
 
+{% if not req.science_alive %}
 <div class="bottom_admin">
 <h2>Update Default</h2>
 <form action="{% url "ra:request_default_offer_letter" ra_slug=req.slug %}" class="subtle" method="post">{% csrf_token %}
@@ -42,4 +56,5 @@
   </p>
 </form>
 </div>
+{% endif %}
 {% endblock %}

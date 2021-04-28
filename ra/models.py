@@ -660,6 +660,13 @@ class RARequest(models.Model):
             last_name = self.person.last_name
         return last_name
 
+    def get_email_address(self):
+        if self.email_address:
+            email_address = self.email_address
+        if self.person:
+            email_address = self.person.email()
+        return email_address
+
     def get_cosigner_line(self):
         if self.hiring_category == "RA" or self.hiring_category == "NC":
             line = "I agree to the conditions of employment"

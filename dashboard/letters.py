@@ -490,9 +490,9 @@ class FASLetterPageTemplate(PageTemplate, SFUMediaMixin):
         """
         Draw the bottom-of-page part of the letterhead (used on all pages)
         """
-        c.setFont('BemboMTPro', 12)
+        c.setFont('DINPro-Bold', 8)
         c.setFillColor(doc.sfu_red)
-        self._drawStringLeading(c, self.lr_margin + 6, 0.5*inch, "Canada's Engaged University".translate(doc.sc_trans_bembo), charspace=0.8)
+        self._drawStringLeading(c, 2*inch, 0.5*inch, "Canada's Engaged University".upper(), charspace=0)
 
 
 class FASLetterheadTemplate(FASLetterPageTemplate):
@@ -568,7 +568,157 @@ class FASOfficialLetter(BaseDocTemplate, SFUMediaMixin):
         "Write the PDF contents out"
         self.build(self.contents)
 
+class ScienceAliveLetter(SFUMediaMixin):
+    MAIN_WIDTH = 8*inch # size of the main box
+    ENTRY_FONT = ["Helvetica-Bold"]
+    NOTE_STYLE = ParagraphStyle(name='Normal',
+                            fontName=ENTRY_FONT,
+                            fontSize=9,
+                            leading=11,
+                            alignment=TA_LEFT,
+                            textColor=black)
 
+    def __init__(self, ra, config):
+        self.ra = ra
+        self.config = config
+        self._media_setup()
+        self.date = datetime.date.today()
+
+    def draw_pdf(self, outfile):
+        """
+        Generates PDF in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+        self.c.setStrokeColor(black)
+
+        self.c.translate(6*mm, 16*mm) # origin = bottom-left of the content
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(1)
+
+        # SFU logo
+
+        self.c.setFont("Helvetica", 10)
+        self.c.drawImage(logofile, 12*mm, y=237*mm, width=25*mm, height=12*mm)
+        self.c.setFillColor(self.sfu_blue)
+        self._drawStringLeading(self.c, 39*mm, 242*mm, 'Outreach & Science AL!VE')
+        self.c.setFillColor(black)
+        self._drawStringLeading(self.c, 39*mm, 238*mm, 'Faculty of Applied Science')
+        
+        self.c.setFont("Helvetica", 10)
+        self.c.drawString(12*mm, 225*mm, self.date.strftime('%B %d, %Y').replace(' 0', ' '))
+
+        self.c.drawString(12*mm, 215*mm, 'Dear ' + self.ra.get_first_name() + ',')
+
+        self.c.setFont("Helvetica-Bold", 10)
+        self.c.drawString(12*mm, 205*mm, 'We are pleased to provide the following offer of employment with Applied Sciences Outreach (with')
+        self.c.drawString(12*mm, 200*mm, 'Science AL!VE):')
+
+        self.c.setFont("Helvetica-Bold", 10)
+        self.c.drawString(12*mm, 190*mm, 'Name:')
+        self.c.drawString(12*mm, 185*mm, 'Position Title:')
+        self.c.drawString(12*mm, 180*mm, 'Reports to:')
+        self.c.drawString(12*mm, 175*mm, 'Duration')
+        self.c.drawString(12*mm, 170*mm, 'Part-time/Full-time:')
+        self.c.drawString(12*mm, 165*mm, 'Hours of work:')
+        self.c.drawString(12*mm, 160*mm, 'Rumuneration:')
+
+        letter_type = self.config["letter_type"]
+
+        name = self.ra.get_name()
+        work_hours = "9am - 3pm; " + str(self.ra.biweekly_hours/2) + " hours/week"
+        duration = str(self.ra.start_date) + " to " + str(self.ra.end_date)
+        employment_type = "Temporary full-time"
+        supervisor = self.ra.supervisor.name()
+        payment = "$" + str(self.ra.gross_hourly) + "/hour + 4% in lieu of benefits."
+
+        if letter_type == "TL":
+            position = "Team Lead, Summer Academy"
+            reports_to = supervisor + ", Coordinator, Outreach Programs"
+        elif letter_type == "TE":
+            position = "Instructor, TechEd"
+            reports_to = supervisor + ", Coordinator, Outreach Programs"
+            payment = "$20/hour + 4% in lieu of benefits"
+            work_hours = work_hours + " with 1 hour unpaid lunch"
+        elif letter_type == "DCRS":
+            position = "Instructor, Pathway to STEAM at DiverseCity Resources Society"
+            reports_to = supervisor + ", Coordinator, Outreach Programs"
+        elif letter_type == "SA":
+            position ="Instructor, Summer Academy"
+            reports_to = supervisor + ", Summer Academy and Coordinator, Outreach Programs"
+
+        self.c.setFont("Helvetica", 10)
+        self.c.drawString(60*mm, 190*mm, name)
+        self.c.drawString(60*mm, 185*mm, position)
+        self.c.drawString(60*mm, 180*mm, reports_to)
+        self.c.drawString(60*mm, 175*mm, duration)
+        self.c.drawString(60*mm, 170*mm, employment_type)
+        self.c.drawString(60*mm, 165*mm, work_hours)
+        self.c.drawString(60*mm, 160*mm, payment)
+
+        self.c.setFont("Helvetica-Bold", 10)
+        self.c.drawString(12*mm, 150*mm, "Responsibilities and Duties ('Duties')")
+
+        if letter_type == "TL" or letter_type == "SA":
+            duties_1 = "Under the guidance of the Team Lead, Summer Academy and Coordinator, Outreach Programs, you will be"
+            duties_2 = "responsible for delivering daily activities of Summer Academy online. You will prepare engaging online lessons on"
+            duties_3 = "selected topics in STEAM. In all aspects of your position you must represent SFU, Applied Sciences Outreach"
+            duties_4 = "and Science AL!VE in a professional manner. You are expected to be mindful of deadlines and complete tasks in"
+            duties_5 = "a timely fashion. Additional details are available in the staff manual."
+        elif letter_type == "TE":
+            duties_1 = "Under the guidance of the Coordinator, Outreach Programs, you will be responsible for delivering daily activities"
+            duties_2 = "of App Development Workshops online. You will prepare engaging online lessons on selected topics in STEAM."
+            duties_3 = "In all aspects of your position you must represent SFU and Applied Sciences in a professional manner. You are"
+            duties_4 = "expected to be mindful of deadlines and complete tasks in a timely fashion. Additional details are available in the"
+            duties_5 = "staff manual."
+        elif letter_type == "DCRS":
+            duties_1 = "Under the guidance of the Coordinator, Outreach Programs, you will be responsible for delivering daily activities"
+            duties_2 = "of Pathway to STEAM program online. You will prepare engaging online lessons on selected topics in STEAM. In"
+            duties_3 = "all aspects of your position you must represent SFU, Applied Sciences Outreach and Science AL!VE in a"
+            duties_4 = "professional manner. You are expected to be mindful of deadlines and complete tasks in a timely fashion."
+            duties_5 = "Additional details are available in the staff manual."
+
+        self.c.setFont("Helvetica", 10)
+        self.c.drawString(12*mm, 140*mm, duties_1)
+        self.c.drawString(12*mm, 135*mm, duties_2)
+        self.c.drawString(12*mm, 130*mm, duties_3)
+        self.c.drawString(12*mm, 125*mm, duties_4)
+        self.c.drawString(12*mm, 120*mm, duties_5)
+
+        self.c.setFont("Helvetica-Bold", 10)
+        self.c.drawString(12*mm, 105*mm, "Terms of Contract")
+
+        point_1 = "\u2022 You will be provided with vacation pay of four (4%) percent (equivalent to 10 day vacation per annum)"
+        point_1_2 = "  that will be automatically added to the above hourly rate in each bi-weekly pay period."
+
+        point_2 = "\u2022 Termination of this appointment may be initiated by either party giving two (2) week notice, except in the"
+        point_2_2 = "  case of termination for cause"
+
+        point_3 = "\u2022 You are expected to adhere to the employer's policies and procedures at all times while performing your"
+        point_3_2 = "  'Duties'."
+
+        point_4 = "\u2022 As per the job description, you will be required to be on campus in-person on June 21st, 22nd, and 23rd"
+        point_4_2 = "  for mandatory camp preparation. SFU will follow extensive and detailed COVID-19 protocol to ensure"
+        point_4_3 = "  safe work environment during this time."
+
+        self.c.setFont("Helvetica", 10)
+        self.c.drawString(20*mm, 95*mm, point_1)
+        self.c.drawString(20*mm, 90*mm, point_1_2)
+
+        self.c.drawString(20*mm, 80*mm, point_2)
+        self.c.drawString(20*mm, 75*mm, point_2_2)
+
+        self.c.drawString(20*mm, 65*mm, point_3)
+        self.c.drawString(20*mm, 60*mm, point_3_2)
+        
+        if letter_type == "TL" or letter_type == "SA":
+            self.c.drawString(20*mm, 50*mm, point_4)
+            self.c.drawString(20*mm, 45*mm, point_4_2)
+            self.c.drawString(20*mm, 40*mm, point_4_3)
+
+
+        self.c.setFont('DINPro-Bold', 5)
+        self._drawStringLeading(self.c, 70*mm, -8*mm, 'EngagingtheWorld'.upper(), charspace=2)
+        self.c.save()
 
 class RARequestForm(SFUMediaMixin):
     MAIN_WIDTH = 8*inch # size of the main box
@@ -674,17 +824,14 @@ class RARequestForm(SFUMediaMixin):
         self.c.drawString(1*mm, 182*mm, "*Asterisk indicates required field.")
 
         mi = ''
+        email_address = str(self.ra.get_email_address())
+        last_name = str(self.ra.get_last_name())
+        first_name = str(self.ra.get_first_name())
+
         if self.ra.nonstudent:
             emplid = 'No ID'
-            email = str(self.ra.email_address)
-            last_name = str(self.ra.last_name)
-            first_name = str(self.ra.first_name)
-            
         else:
             emplid = str(self.ra.person.emplid)
-            email = str(self.ra.person.email())
-            last_name =str(self.ra.person.last_name)
-            first_name = str(self.ra.person.first_name)
             if self.ra.person.middle_name:
                 mi = self.ra.person.middle_name[0]
 
@@ -692,7 +839,7 @@ class RARequestForm(SFUMediaMixin):
         self.c.drawString(1*mm, 175*mm, "SFU ID*")
         self._box_entry(14*mm, 173*mm, 52*mm, 6*mm, content=emplid)
         self.c.drawString(90*mm, 175*mm, "*Employee's email address:")
-        self._box_entry(135*mm, 173*mm, 67*mm, 6*mm, content=email)
+        self._box_entry(135*mm, 173*mm, 67*mm, 6*mm, content=email_address)
 
         # personal/position details
         self.c.setFont("Helvetica-Bold", 8)
@@ -1030,26 +1177,6 @@ class RARequestForm(SFUMediaMixin):
             self._box_entry(168*mm, 224*mm, 18*mm, 5*mm, content=weeks_vacation)
             self._box_entry(154*mm, 218*mm, 18*mm, 5*mm, content=vacation_pay)
 
-
-            # job duties 
-            self.c.setFont("Helvetica-Bold", 7)
-            self.c.drawString(1*mm, 207*mm, "JOB DUTIES:")
-            self.c.setFont("Helvetica-Oblique", 7)
-            self.c.drawString(20*mm, 207*mm, "Enter or copy/paste duties below, or attach a supplemental document")
-            self._box_entry(1*mm, 145*mm, 195*mm, 60*mm)
-
-            duties = []
-            if research_assistant or non_continuing:
-                if research_assistant:
-                    duties_list = self.ra.duties_list()
-                    for duty in duties_list:
-                        duties.append(Paragraph(duty, style=self.NOTE_STYLE))
-                elif non_continuing:
-                    duties.append(Paragraph(self.ra.nc_duties, style=self.NOTE_STYLE))
-
-            f = Frame(2*mm, 145*mm, 194*mm, 60*mm, 0, 0, 0, 0)
-            f.addFromList(duties, self.c)
-
             self.c.setFont("Helvetica-Bold", 8.5)
             self.c.setFillColor(self.sfu_red)
             self.c.drawString(1*mm, 140*mm, "DOCUMENT CHECKLIST")
@@ -1170,8 +1297,43 @@ class RARequestForm(SFUMediaMixin):
             self.c.drawString(1*mm, 0*mm, "information, please contact the Manager, Payroll.")
             self.c.drawString(1*mm, -5*mm, "PAYROLL APPOINTMENT FORM (formerly FPP4) - March 2021 (produced by %s RAForm)" % (product_name(hint='admin'),))
             
+            # job duties 
+            self.c.setFont("Helvetica-Bold", 7)
+            self.c.drawString(1*mm, 207*mm, "JOB DUTIES:")
+            self.c.setFont("Helvetica-Oblique", 7)
+            self.c.drawString(20*mm, 207*mm, "Enter or copy/paste duties below, or attach a supplemental document")
+            self._box_entry(1*mm, 145*mm, 195*mm, 60*mm)
 
-            
+            duties = []
+            oversized = False
+            if research_assistant or non_continuing:
+                if research_assistant:
+                    duties_list = self.ra.duties_list()
+                    for duty in duties_list:
+                        duties.append(Paragraph(duty, style=self.NOTE_STYLE))
+                    duties.append(Paragraph(self.ra.ra_other_duties, style=self.NOTE_STYLE))
+                    oversized = len(duties) > 10
+                elif non_continuing:
+                    duties.append(Paragraph(self.ra.nc_duties, style=self.NOTE_STYLE))
+
+            f = Frame(2*mm, 145*mm, 194*mm, 60*mm, 0, 0, 0, 0)
+
+            if oversized:
+                # ADDITIONAL PAGE FOR DUTIES LIST, IF OVERSIZED
+                f.addFromList([Paragraph("See next page.", style=self.NOTE_STYLE)], self.c)
+                self.c.showPage()
+
+                self.c.translate(6*mm, 16*mm) # origin = bottom-left of the content
+                self.c.setFont("Helvetica-Bold", 10)
+                self.c.setFillColor(self.sfu_red)
+                self.c.drawCentredString(self.MAIN_WIDTH/2, 250*mm, "DUTIES LIST")
+
+                f = Frame(2*mm, 2*mm, 194*mm, 239*mm, 0, 0, 0, 0)
+                self._box_entry(1*mm, 1*mm, 194*mm, 240*mm)
+                f.addFromList(duties, self.c)
+            else:
+                f.addFromList(duties, self.c)
+
         self.c.save()
 
 class RAForm(SFUMediaMixin):
@@ -1682,6 +1844,13 @@ def ra_paf(ra, config, outfile):
     Generate PAF form for this RAAppointment.
     """
     form = RARequestForm(ra, config)
+    return form.draw_pdf(outfile)
+
+def ra_science_alive(ra, config, outfile):
+    """
+    Generate PAF form for this RAAppointment.
+    """
+    form = ScienceAliveLetter(ra, config)
     return form.draw_pdf(outfile)
 
 

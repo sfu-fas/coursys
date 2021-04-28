@@ -19,6 +19,13 @@ APPOINTMENT_TYPE = (
     ('LS', 'Lump Sum')
 )
 
+SCIENCE_ALIVE_TYPE = (
+    ('TL', 'Team Lead'),
+    ('TE', 'Tech Ed'),
+    ('DCRS', 'DCRS Instructor'),
+    ('SA', 'Summer Academy Instructor')
+)
+
 # probably want these to be editable at some point
 MIN_WAGE = 14.60
 MIN_WEEKS_VACATION = 2
@@ -781,6 +788,9 @@ class RARequestLetterForm(forms.ModelForm):
         widgets = {
                    'offer_letter_text': forms.Textarea(attrs={'rows': 25, 'cols': 70}),
                    }
+
+class RARequestScienceAliveForm(forms.Form):
+    letter_type = forms.ChoiceField(required=True, choices=SCIENCE_ALIVE_TYPE, widget=forms.RadioSelect, label="Type Of Science Alive Letter")
 
 class RARequestAdminPAFForm(forms.ModelForm):
     position_no = forms.IntegerField(required=False, label="Position #")
