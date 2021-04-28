@@ -1,25 +1,49 @@
 from django.conf.urls import url
 from courselib.urlparts import USERID_OR_EMPLID, ACCOUNT_SLUG, PROJECT_SLUG, RA_SLUG, SLUG_RE, ID_RE
 import ra.views as ra_views
+from ra.views import RANewRequestWizard, RAEditRequestWizard, FORMS, check_gras, check_ra, check_nc
 
 ATTACH_SLUG = '(?P<attach_slug>' + SLUG_RE + ')'
 PROGRAM_SLUG = '(?P<program_slug>' + SLUG_RE + ')'
 PROGRAM_ID = '(?P<program_id>' + ID_RE + ')'
 
+
+
 ra_patterns = [ # prefix /ra/
     url(r'^$', ra_views.search, name='search'),
     url(r'^search/' + USERID_OR_EMPLID + '/$', ra_views.student_appointments, name='student_appointments'),
     url(r'^new$', ra_views.new, name='new'),
-
-    url(r'^new_request/$', ra_views.new_request, name='new_request'),
+    url(r'^new_request/', RANewRequestWizard.as_view(FORMS, 
+                                                condition_dict={'graduate_research_assistant': check_gras, 
+                                                'research_assistant': check_ra, 
+                                                'non_continuing': check_nc}), 
+                                                name='new_request'),
+    url(r'^dashboard/' + RA_SLUG + '/edit_request$', RAEditRequestWizard.as_view(FORMS, 
+                                                condition_dict={'graduate_research_assistant': check_gras, 
+                                                'research_assistant': check_ra, 
+                                                'non_continuing': check_nc}), 
+                                                name='edit_request'),
+    url(r'^dashboard/' + RA_SLUG + '/reappoint_request$', RANewRequestWizard.as_view(FORMS, 
+                                                condition_dict={'graduate_research_assistant': check_gras, 
+                                                'research_assistant': check_ra, 
+                                                'non_continuing': check_nc}), 
+                                                name='reappoint_request'),
     url(r'^dashboard/$', ra_views.dashboard, name='dashboard'),
+    url(r'^supervisor_dashboard/$', ra_views.supervisor_dashboard, name='supervisor_dashboard'),
     url(r'^dashboard/' + RA_SLUG + '/view_request$', ra_views.view_request, name='view_request'),
-    url(r'^dashboard/' + RA_SLUG + '/edit_request$', ra_views.edit_request, name='edit_request'),
     url(r'^dashboard/' + RA_SLUG + '/edit_request_notes$', ra_views.edit_request_notes, name='edit_request_notes'),
     url(r'^dashboard/' + RA_SLUG + '/delete_request$', ra_views.delete_request, name='delete_request'),
+    url(r'^dashboard/' + RA_SLUG + '/request_science_alive$', ra_views.request_science_alive, name='request_science_alive'),
+    url(r'^dashboard/' + RA_SLUG + '/request_science_alive_letter$', ra_views.request_science_alive_letter, name='request_science_alive_letter'),
+    url(r'^dashboard/' + RA_SLUG + '/request_admin_update$', ra_views.request_admin_update, name='request_admin_update'),
+    url(r'^dashboard/' + RA_SLUG + '/request_admin_paf_update$', ra_views.request_admin_paf_update, name='request_admin_paf_update'),
+    url(r'^dashboard/' + RA_SLUG + '/request_paf$', ra_views.request_paf, name='request_paf'),
+    url(r'^dashboard/' + RA_SLUG + '/request_offer_letter_update$', ra_views.request_offer_letter_update, name='request_offer_letter_update'),
+    url(r'^dashboard/' + RA_SLUG + '/request_default_offer_letter$', ra_views.request_default_offer_letter, name='request_default_offer_letter'),
+    url(r'^dashboard/' + RA_SLUG + '/request_offer_letter$', ra_views.request_offer_letter, name='request_offer_letter'),
     url(r'^dashboard/' + RA_SLUG + '/view_request_attachment_1$', ra_views.view_request_attachment_1, name='view_request_attachment_1'),
-    url(r'^dashboard/' + RA_SLUG + '/download_request_attachment_1$', ra_views.download_request_attachment_1, name='download_request_attachment_1'),
     url(r'^dashboard/' + RA_SLUG + '/view_request_attachment_2$', ra_views.view_request_attachment_2, name='view_request_attachment_2'),
+    url(r'^dashboard/' + RA_SLUG + '/download_request_attachment_1$', ra_views.download_request_attachment_1, name='download_request_attachment_1'),
     url(r'^dashboard/' + RA_SLUG + '/download_request_attachment_2$', ra_views.download_request_attachment_2, name='download_request_attachment_2'),
     url(r'^' + RA_SLUG + '/admin_new_attach$', ra_views.new_admin_attachment, name='new_admin_attachment'),
     url(r'^' + RA_SLUG + '/admin_attach/' + ATTACH_SLUG + '/delete$', ra_views.delete_admin_attachment, name='delete_admin_attachment'),

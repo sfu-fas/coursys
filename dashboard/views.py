@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, HttpResponseForbidden
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.template import TemplateDoesNotExist
 from django.views.decorators.gzip import gzip_page
 from django.conf import settings
@@ -20,7 +20,7 @@ from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
 from discuss.models import DiscussionTopic
 from onlineforms.models import FormGroup
 from pages.models import Page, ACL_ROLES
-from ra.models import RAAppointment
+from ra.models import RAAppointment, RARequest
 from reports.models import AccessRule
 from log.models import LogEntry
 import datetime, json, urllib.parse
@@ -50,6 +50,7 @@ def index(request):
     has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).exists()
     form_groups = FormGroup.objects.filter(members__userid=request.user.username).exists()
     has_ras = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username, deleted=False).exists()
+    has_ra_requests = RARequest.objects.filter(Q(supervisor__userid=request.user.username) | Q(author__userid=request.user.username), deleted=False).exists()
     has_reports = AccessRule.objects.filter(person__userid=request.user.username).exists()
 
     # Only CMPT admins should see the one different TA module.  They can now also see the other module as we hope to
@@ -63,6 +64,7 @@ def index(request):
                'is_grad':is_grad,
                'has_grads': has_grads,
                'has_ras': has_ras,
+               'has_ra_requests': has_ra_requests,
                'excluded': excluded,
                'form_groups': form_groups,
                'cmpt_taadmn': cmpt_taadmn,
