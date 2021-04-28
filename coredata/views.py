@@ -1032,7 +1032,7 @@ EXCLUDE_EMPLIDS = set(['953022983']) # exclude these from autocomplete
 def student_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
-    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND', 'SYSA', 'FACA'])
+    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND', 'SYSA', 'FACA', 'FAC'])
     if not(roles & allowed) and not has_formgroup(request) and not has_global_role('DISC', request):
         # doesn't have any allowed roles
         return ForbiddenResponse(request, "Not permitted to do student search.")
@@ -1096,13 +1096,6 @@ def XXX_sims_person_search(request):
     
     json.dump(data, response, indent=1)
     return response
-
-
-
-
-
-
-
 
 @uses_feature('course_browser')
 def browse_courses(request):

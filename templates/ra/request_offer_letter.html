@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+{% endblock %}
+
+{% block title %}Offer Letter{% endblock %}
+{% block h1 %}Offer Letter{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ra:search" %}">RAs</a></li>
+<li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View RA Request for {{ req.get_name }}</a></li>
+<li>Offer Letter</li>{% endblock %}
+
+{% block content %}
+{% if not req.science_alive %}
+<h2>Configuration</h2>
+<div class="form_container">
+  <form action="{% url "ra:request_offer_letter_update" ra_slug=req.slug %}" method="POST" class="subtle">{% csrf_token %}
+    <fieldset>
+      <div class="form_section">
+      {{ configform|as_dl }}
+      </div>
+      <p><input type="submit" class="submit" value="Update Offer Letter Text" /></p>
+    </fieldset>
+  </form>
+</div>
+{% else %}
+<div class="form_container">
+  <form action="{% url "ra:request_science_alive_letter" ra_slug=req.slug %}" method="post" class="subtle">{% csrf_token %}
+    <fieldset>
+      <div class="form_section">
+      {{ saform|as_dl }}
+      </div>
+      <p><input type="submit" value="View/Download Offer Letter" class="submit" /></p>
+    </fieldset>
+  </form>  
+</div>
+{% endif %}
+
+{% if not req.science_alive %}
+<div class="bottom_admin">
+<h2>Update Default</h2>
+<form action="{% url "ra:request_default_offer_letter" ra_slug=req.slug %}" class="subtle" method="post">{% csrf_token %}
+  <i>Resets the offer letter text to default based on hiring category and payment method. You may want to do this after editing a request.</i>
+  <p class="actionbutton">
+    <input type="submit" class="submit confirm-submit" value="Update" data-submit-action="update" />
+  </p>
+</form>
+<h2>View/Download</h2>
+<form action="{% url "ra:request_offer_letter" ra_slug=req.slug %}" class="subtle" method="post">{% csrf_token %}
+  <p class="actionbutton">
+      <input type="submit" value="View/Download Offer Letter" />
+  </p>
+</form>
+</div>
+{% endif %}
+{% endblock %}

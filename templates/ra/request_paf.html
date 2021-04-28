@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+{% endblock %}
+
+{% block title %}Payroll Appointment Form Configuration{% endblock %}
+{% block h1 %}Payroll Appointment Form Configuration{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ra:search" %}">RAs</a></li>
+<li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View RA Request for {{ req.get_name }}</a></li>
+<li>Payroll Appointment Form Configuration</li>{% endblock %}
+
+{% block content %}
+
+  <h2>Configuration</h2>
+  <div class="form_container">
+    <form action="{% url "ra:request_admin_paf_update" ra_slug=req.slug %}" method="POST" class="subtle">{% csrf_token %}
+      <fieldset>
+        <div class="form_section">
+        {{ adminpafform|as_dl_includefields:"position_no,object_code,fs1_program" }}
+        {% if req.fs2_option %}
+        {{ adminpafform|as_dl_includefields:"fs2_program" }}
+        {% endif %}
+        {% if req.fs3_option %}
+        {{ adminpafform|as_dl_includefields:"fs3_program" }}
+        {% endif %}
+        {{ adminpafform|as_dl_includefields:"paf_comments" }}
+        </div>
+        <p><input type="submit" class="submit" value="Update PAF Configuration" /></p>
+      </fieldset>
+    </form>
+  </div>
+
+  <h2>Download</h2>
+  <div class="form_container">
+    <form action="{% url "ra:request_paf" ra_slug=req.slug %}" method="post" class="subtle">{% csrf_token %}
+      <fieldset>
+        <div class="form_section">
+        {{ form|as_dl }}
+        </div>
+        <p><input type="submit" value="View/Download PAF" class="submit" /></p>
+      </fieldset>
+    </form>  
+  </div>
+{% endblock %}

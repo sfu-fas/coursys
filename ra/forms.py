@@ -3,172 +3,92 @@ from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED,
 from ra.models import RARequest, RARequestAttachment
 from ra.models import DUTIES_CHOICES_EX, DUTIES_CHOICES_DC, DUTIES_CHOICES_PD, DUTIES_CHOICES_IM, DUTIES_CHOICES_EQ
 from ra.models import DUTIES_CHOICES_SU, DUTIES_CHOICES_WR, DUTIES_CHOICES_PM
-from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES
+from ra.models import STUDENT_TYPE, GRAS_PAYMENT_METHOD_CHOICES, RA_PAYMENT_METHOD_CHOICES, NC_PAYMENT_METHOD_CHOICES, RA_BENEFITS_CHOICES, BOOL_CHOICES
 from django.core.exceptions import ValidationError
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 
+APPOINTMENT_TYPE = (
+    ('AP', 'Appointment/Re-Appointment'),
+    ('EX', 'Extension'),
+    ('EE', 'Early End'),
+    ('FC', 'Funding Change Only'),
+    ('CO', 'Correction/Update'),
+    ('LS', 'Lump Sum')
+)
 
+SCIENCE_ALIVE_TYPE = (
+    ('TL', 'Team Lead'),
+    ('TE', 'Tech Ed'),
+    ('DCRS', 'DCRS Instructor'),
+    ('SA', 'Summer Academy Instructor')
+)
 
-class RARequestForm(forms.ModelForm):
-    person = PersonField(label='Appointee')
-    supervisor = PersonField(label='Supervisor')
+# probably want these to be editable at some point
+MIN_WAGE = 14.60
+MIN_WEEKS_VACATION = 2
+MIN_VACATION_PAY_PERCENTAGE = 4
 
-    ra_duties_ex = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EX, widget=forms.CheckboxSelectMultiple,
-                                             label="Experimental/Research Activities")
-    ra_duties_dc = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_DC, widget=forms.CheckboxSelectMultiple,
-                                             label="Data Collection/Analysis")
-    ra_duties_pd = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_PD, widget=forms.CheckboxSelectMultiple,
-                                             label="Project Development")
-    ra_duties_im = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_IM, widget=forms.CheckboxSelectMultiple,
-                                             label="Information Management")
-    ra_duties_eq = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EQ, widget=forms.CheckboxSelectMultiple,
-                                             label="Equipment/Inventory Management and Development")
-    ra_duties_su = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_SU, widget=forms.CheckboxSelectMultiple,
-                                             label="Supervision")
-    ra_duties_wr = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_WR, widget=forms.CheckboxSelectMultiple,
-                                             label="Writing/Reporting")
-    ra_duties_pm = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_PM, widget=forms.CheckboxSelectMultiple,
-                                             label="Project Management")    
+class RARequestIntroForm(forms.ModelForm):
+    person = PersonField(label='Appointee', required=False)
+    supervisor = PersonField(label='Supervisor', required=True)
 
+    position = forms.CharField(required=False, label="Position Title")
+    
     people_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3}), label="Any comments about the Appointee or Hiring Supervisor?")
 
     student = forms.ChoiceField(required=True, choices=STUDENT_TYPE, widget=forms.RadioSelect, label="Is the appointee a student?")
     coop = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointee a co-op student?")
     mitacs = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointee's co-op funded by a Mitacs scholarship in their own name?")
+    research = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Will the work performed primarily involve research?")
     thesis = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointment for the student's thesis/project?")
-
-    fs1_unit = forms.IntegerField(required=True, label="Department #1", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
-    fs1_fund = forms.IntegerField(required=True, label="Fund #1", help_text="Example: 11, 13, 21, 31")
-    fs1_project = forms.CharField(required=True, label="Project #1", help_text="Example: N654321, S654321, X654321, R654321. If fund 11 enter X000000")
-    fs1_percentage = forms.IntegerField(required=False, label="Percentage of Funding Source #1 to Total Funding", help_text="Percentages of all funding sources must add up to 100.")
-
-    fs2_option = forms.BooleanField(required=False, label="Please select the following if there is an additional funding source")
-    fs2_unit = forms.IntegerField(required=False, label="Department #2", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
-    fs2_fund = forms.IntegerField(required=False, label="Fund #2", help_text="Example: 11, 13, 21, 31")
-    fs2_project = forms.CharField(required=False, label="Project #2", help_text="Example: N654321, S654321, X654321, R654321. If fund 11 enter X000000")
-    fs2_percentage = forms.IntegerField(required=False, label="Percentage of Funding Source #2 to Total Funding", help_text="Percentages of all funding sources must add up to 100.")
-
-    fs3_option = forms.BooleanField(required=False, label="Please select the following if there is an additional funding source")
-    fs3_unit = forms.IntegerField(required=False, label="Department #3", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
-    fs3_fund = forms.IntegerField(required=False, label="Fund #3", help_text="Example: 11, 13, 21, 31")
-    fs3_project = forms.CharField(required=False, label="Percentage #3", help_text="Example: N654321, S654321, X654321, R654321. If fund 11 enter X000000")
-    fs3_percentage = forms.IntegerField(required=False, label="Percentage of Funding Source #3 to Total Funding", help_text="Percentages of all funding sources must add up to 100.")
-
-    gras_payment_method = forms.ChoiceField(required=False,
-                                            choices=GRAS_PAYMENT_METHOD_CHOICES, 
-                                            widget=forms.RadioSelect, 
-                                            label="Scholarship (No added benefit & vacation cost)",
-                                            help_text='Canadian bank status impacts how students will be paid. This generally applies to International' +
-                                            'students currently working outside of Canada, who do not have banking status in Canada. If the status is' + 
-                                            'unknown please confirm with the student.')
-    ra_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
-
-    rabw_total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
-    rabw_weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)", max_digits=8, decimal_places=1)
-    rabw_biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
-    rabw_biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
-    rabw_gross_hourly = forms.DecimalField(required=False, widget=forms.HiddenInput)
-
-    rah_gross_hourly = forms.DecimalField(required=False, label="Gross Hourly", max_digits=8, decimal_places=2)
-    rah_vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)", max_digits=8, decimal_places=1)
-    rah_biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=2)
-
-    grasls_total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
-
-    grasbw_total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
-    grasbw_biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
-    grasbw_biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
-    grasbw_gross_hourly = forms.DecimalField(required=False, widget=forms.HiddenInput)
-
-    ra_benefits = forms.ChoiceField(required=False, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, label="Are you willing to provide extended health benefits?")
-
-    funding_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3}), label="Any comments about funding?")
-    ra_other_duties = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3}), label="Other RA Duties")
-
 
     class Meta:
         model = RARequest
-        exclude = ('config','deleted','status',) 
+        fields = ('nonstudent', 'first_name', 'last_name', 'email_address', 'person', 'unit', 'hiring_category',)
         labels = {
             'first_name': "Appointee First Name",
             'last_name': "Appointee Last Name",
             'email_address': "Appointee Email Address",
             'nonstudent': "Select if appointee does not have an ID",
-            'department': "Appointee Department",
-            'start_date': "Date Appointment Begins",
-            'end_date': "Date Appointment Ends",
-            'file_attachment_1': "Supplementary Document #1",
-            'file_attachment_2': "Supplementary Document #2",
-            }
+            'unit': "Appointee Department",
+        }
 
         widgets = {
-            'hiring_category': forms.HiddenInput(),
-            'total_pay': forms.HiddenInput()     
+            'hiring_category': forms.HiddenInput(),     
         }
 
-        help_texts = {
-            'file_attachment_1': "Both of these fields are optional.",
-            'file_attachment_2': "If co-op appointment, please upload co-op forms.",
-        }
 
     def __init__(self, *args, **kwargs):
-        super(RARequestForm, self).__init__(*args, **kwargs)
-        not_required = ['person', 'nonstudent', 'first_name', 'last_name', 'email_address', 'file_attachment_1', 'file_attachment_2',
-                    'ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 
-                    'ra_duties_pm', 'ra_other_duties']
-        for field in not_required:
-            self.fields[field].required = False   
+        super(RARequestIntroForm, self).__init__(*args, **kwargs)
         
-        config_init = ['people_comments', 'coop', 'mitacs', 'student', 'thesis',
-                'fs1_unit', 'fs1_fund', 'fs1_project', 'fs1_percentage',
-                'fs2_option', 'fs2_unit', 'fs2_fund', 'fs2_project', 'fs2_percentage',
-                'fs3_option', 'fs3_unit', 'fs3_fund', 'fs3_project', 'fs3_percentage',
-                'rabw_total_gross', 'rabw_weeks_vacation', 'rabw_biweekly_salary', 'rabw_gross_hourly', 'rabw_biweekly_hours',
-                'rah_gross_hourly', 'rah_vacation_pay', 'rah_biweekly_hours',
-                'grasls_total_gross',
-                'grasbw_total_gross', 'grasbw_gross_hourly', 'grasbw_biweekly_hours', 'grasbw_biweekly_salary',
-                'ra_payment_method', 'gras_payment_method',
-                'ra_benefits', 'funding_comments', 'ra_other_duties']
+        config_init = ['people_comments', 'coop', 'mitacs', 'student', 'thesis', 'research', 'position']
 
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
-        return super(RARequestForm, self).is_valid(*args, **kwargs)
+        return super(RARequestIntroForm, self).is_valid(*args, **kwargs)
 
     # TODO: Make sure total pay and hiring category are calculated properly. Javascript only for now.
     def clean(self):
         cleaned_data = super().clean()
 
-        config_clean = ['people_comments', 'coop', 'mitacs', 'student', 'thesis',
-                'fs1_unit', 'fs1_fund', 'fs1_project', 'fs1_percentage',
-                'fs2_option', 'fs2_unit', 'fs2_fund', 'fs2_project', 'fs2_percentage',
-                'fs3_option', 'fs3_unit', 'fs3_fund', 'fs3_project', 'fs3_percentage',
-                'rabw_total_gross', 'rabw_weeks_vacation', 'rabw_biweekly_salary', 'rabw_gross_hourly', 'rabw_biweekly_hours',
-                'rah_gross_hourly', 'rah_vacation_pay', 'rah_biweekly_hours',
-                'grasls_total_gross',
-                'grasbw_total_gross', 'grasbw_gross_hourly', 'grasbw_biweekly_hours', 'grasbw_biweekly_salary',
-                'ra_payment_method', 'gras_payment_method',
-                'ra_benefits', 'funding_comments', 'ra_other_duties']
+        config_clean = ['people_comments', 'coop', 'mitacs', 'student', 'thesis', 'research', 'position']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
-
-        MIN_WAGE = 14.60
-        MIN_WEEKS_VACATION = 2
-        MIN_VACATION_PAY_PERCENTAGE = 4
-
+        
+        # add error messages
         nonstudent = cleaned_data.get('nonstudent')
         first_name = cleaned_data.get('first_name')
         last_name = cleaned_data.get('last_name')
         email_address = cleaned_data.get('email_address')
         person = cleaned_data.get('person')
 
-        # TODO: Why isn't this a required field regularly? Not in the list of non-required fields.
         if nonstudent:
             error_message = 'If the appointee does not have an SFU ID then you must answer this question.'       
             if first_name == None:
@@ -187,21 +107,122 @@ class RARequestForm(forms.ModelForm):
         student = cleaned_data.get('student')
         coop = cleaned_data.get('coop')
         mitacs = cleaned_data.get('mitacs')
+        research = cleaned_data.get('research')
         thesis = cleaned_data.get('thesis')
-        if student == 'U' or student == 'M' or student == 'P':
-            error_message = 'If the appointee is a student then you must answer this question.'
-            if coop == None:
+        error_message = 'You must answer this question.'
+        if (student == 'N'):
+            if research == None or research == '':
+                self.add_error('research', error_message)
+        if (student == 'U' or student == 'M' or student == 'P'):
+            if coop == None or coop == '':
                 self.add_error('coop', error_message)
-            if mitacs == None:
+            if mitacs == None or mitacs == '':
                 self.add_error('mitacs', error_message)
-        if mitacs == False:
-            if thesis == None:
-                self.add_error('thesis', 'You must answer this question.')
+            if mitacs == 'False':
+                if research == None or research == '':
+                    self.add_error('research', error_message)
+                if research == 'True':
+                    if thesis == None or thesis == '':
+                        self.add_error('thesis', error_message)
 
+        # remove irrelevant information
+        if nonstudent:
+            self.cleaned_data['person'] = None
+        else:
+            self.cleaned_data['first_name'] = ''
+            self.cleaned_data['last_name'] = ''
+            self.cleaned_data['email_address'] = ''
+        if (student=='N'):
+            self.cleaned_data['coop'] = False
+            self.cleaned_data['mitacs'] = False
+            self.cleaned_data['thesis'] = False
+        elif (student == 'U' or student == 'M' or student == 'P'):
+            if (mitacs=='True'):
+                self.cleaned_data['research'] = False
+                self.cleaned_data['thesis'] = False
+            elif (research=='False'):
+                self.cleaned_data['thesis'] = False
+
+class RARequestDatesForm(forms.ModelForm):
+    backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
+    pay_periods = forms.DecimalField(required=False, widget=forms.HiddenInput)
+
+    class Meta:
+        model = RARequest
+        fields = ('start_date', 'end_date',)
+        labels = {
+            'start_date': "Date Appointment Begins",
+            'end_date': "Date Appointment Ends",
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        if end_date < start_date:
+            error_message = "Start date must be before end date."
+            self.add_error('end_date', error_message)
+            self.add_error('start_date', error_message)
+
+class RARequestFundingSourceForm(forms.ModelForm):
+    # roll over from DatesForm for validation
+    start_date = forms.DateField(required=False, widget=forms.HiddenInput)
+    end_date = forms.DateField(required=False, widget=forms.HiddenInput)
+
+    fs1_unit = forms.IntegerField(required=True, label="Department #1", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
+    fs1_fund = forms.IntegerField(required=True, label="Fund #1", help_text="Example: 11, 13, 21, 31")
+    fs1_project = forms.CharField(required=True, label="Project #1", help_text="Example: N654321, S654321, X654321, R654321. If fund 11 enter X000000")
+    fs1_percentage = forms.DecimalField(required=False, label="Percentage of Funding Source #1 to Total Funding", help_text="Percentages of all funding sources must add up to 100.")
+    fs1_start_date = forms.DateField(required=False, label="Start Date #1", help_text="Start Date for Funding Source 1")
+    fs1_end_date = forms.DateField(required=False,  label="End Date #1", help_text="End Date for Funding Source 1")
+
+    fs2_option = forms.BooleanField(required=False, label="Please select the following if there is an additional funding source")
+    fs2_unit = forms.IntegerField(required=False, label="Department #2", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
+    fs2_fund = forms.IntegerField(required=False, label="Fund #2", help_text="Example: 11, 13, 21, 31")
+    fs2_project = forms.CharField(required=False, label="Project #2", help_text="Example: N654321, S654321, X654321, R654321. If fund 11 enter X000000")
+    fs2_percentage = forms.DecimalField(required=False, label="Percentage of Funding Source #2 to Total Funding", help_text="Percentages of all funding sources must add up to 100.")
+    fs2_start_date = forms.DateField(required=False, label="Start Date #2", help_text="Start Date for Funding Source 2")
+    fs2_end_date = forms.DateField(required=False,  label="End Date #2", help_text="End Date for Funding Source 2")
+
+    fs3_option = forms.BooleanField(required=False, label="Please select the following if there is an additional funding source")
+    fs3_unit = forms.IntegerField(required=False, label="Department #3", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
+    fs3_fund = forms.IntegerField(required=False, label="Fund #3", help_text="Example: 11, 13, 21, 31")
+    fs3_project = forms.CharField(required=False, label="Project #3", help_text="Example: N654321, S654321, X654321, R654321. If fund 11 enter X000000")
+    fs3_percentage = forms.DecimalField(required=False, label="Percentage of Funding Source #3 to Total Funding", help_text="Percentages of all funding sources must add up to 100.")
+    fs3_start_date = forms.DateField(required=False, label="Start Date #3", help_text="Start Date for Funding Source 3")
+    fs3_end_date = forms.DateField(required=False,  label="End Date #3", help_text="End Date for Funding Source 3")
+
+    class Meta:
+        model = RARequest
+        fields = ('fs1_unit', 'fs2_unit', 'fs3_unit', 'fs1_fund', 'fs2_fund', 'fs3_fund',
+                  'fs1_project', 'fs2_project', 'fs3_project')
+
+    def __init__(self, *args, **kwargs):
+        super(RARequestFundingSourceForm, self).__init__(*args, **kwargs)
+        
+        config_init = ['fs1_percentage','fs2_percentage','fs3_percentage','fs2_option','fs3_option']
+
+        for field in config_init:
+            self.initial[field] = getattr(self.instance, field)
+    
+    def clean(self):
+        cleaned_data = super().clean()
+
+        config_clean = ['fs1_percentage','fs2_option', 'fs2_percentage','fs3_option', 
+                        'fs3_percentage', 'start_date', 'end_date']
+
+        for field in config_clean:
+            setattr(self.instance, field, cleaned_data[field])
+
+        # add error messages
         fs2_option = cleaned_data.get('fs2_option')
         fs2_unit = cleaned_data.get('fs2_unit')
         fs2_fund = cleaned_data.get('fs2_fund')
         fs2_project = cleaned_data.get('fs2_project')
+        fs2_start_date = cleaned_data.get('fs2_start_date')
+        fs2_end_date = cleaned_data.get('fs2_end_date')
 
         if fs2_option:
             error_message = 'If you have a second funding source then you must answer this question.'
@@ -242,74 +263,467 @@ class RARequestForm(forms.ModelForm):
                 self.add_error('fs1_percentage', error_message)
                 self.add_error('fs2_percentage', error_message)
                 self.add_error('fs3_percentage', error_message)
+        
+        start_date = cleaned_data.get('start_date')
+        fs1_start_date = cleaned_data.get('fs1_start_date')
+        fs2_start_date = cleaned_data.get('fs2_start_date')
+        fs3_start_date = cleaned_data.get('fs3_start_date')
 
-        hiring_category = cleaned_data.get('hiring_category')
+        error_message = "Please ensure at least one funding source start date matches up with the appointment start date."
+        if fs2_option and not fs3_option:
+            if (start_date != fs1_start_date) and (start_date != fs2_start_date):
+                self.add_error('fs1_start_date', error_message)
+                self.add_error('fs2_start_date', error_message)
+        if fs2_option and fs3_option:
+            if (start_date != fs1_start_date) and (start_date != fs2_start_date) and (start_date != fs3_start_date):
+                self.add_error('fs1_start_date', error_message)
+                self.add_error('fs2_start_date', error_message)
+                self.add_error('fs3_start_date', error_message)
+
+        end_date = cleaned_data.get('end_date')
+        fs1_end_date = cleaned_data.get('fs1_end_date')
+        fs2_end_date = cleaned_data.get('fs2_end_date')
+        fs3_end_date = cleaned_data.get('fs3_end_date')
+
+        error_message = "Please ensure at least one funding source end date matches up with the appointment end date."
+        if fs2_option and not fs3_option:
+            if (end_date != fs1_end_date) and (end_date != fs2_end_date):
+                self.add_error('fs1_end_date', error_message)
+                self.add_error('fs2_end_date', error_message)
+        if fs2_option and fs3_option:
+            if (end_date != fs1_end_date) and (end_date != fs2_end_date) and (end_date != fs3_end_date):
+                self.add_error('fs1_end_date', error_message)
+                self.add_error('fs2_end_date', error_message)
+                self.add_error('fs3_end_date', error_message)
+
+        error_message = "This date is after the appointment end date."
+        if fs2_option:
+            if fs1_end_date > end_date:
+                self.add_error('fs1_end_date', error_message)
+            if fs2_end_date > end_date:
+                self.add_error('fs2_end_date', error_message)
+        if fs2_option and fs3_option:
+            if fs3_end_date > end_date:
+                self.add_error('fs3_end_date', error_message)
+
+        error_message = "This date is before the appointment start date."
+        if fs2_option:
+            if fs1_start_date < start_date:
+                self.add_error('fs1_start_date', error_message)
+            if fs2_start_date < start_date:
+                self.add_error('fs2_start_date', error_message)
+        if fs2_option and fs3_option:
+            if fs3_start_date < start_date:
+                self.add_error('fs3_start_date', error_message)
+        
+        error_message = "Funding source percentages should be greater than 0."
+        if fs2_option:
+            if fs1_percentage == 0:
+                self.add_error('fs1_percentage', error_message)          
+            if fs2_percentage == 0:
+                self.add_error('fs2_percentage', error_message)
+        if fs3_option:
+            if fs3_percentage == 0:
+                self.add_error('fs3_percentage', error_message)
+
+        # remove irrelevant information
+        if not fs3_option: 
+            self.cleaned_data['fs3_unit'] = 0
+            self.cleaned_data['fs3_fund'] = 0
+            self.cleaned_data['fs3_project'] = ''
+            self.cleaned_data['fs3_percentage'] = 0
+            self.cleaned_data['fs3_start_date'] = ''
+            self.cleaned_data['fs3_end_date'] = ''
+
+        if not fs2_option:
+            self.cleaned_data['fs1_start_date'] = ''
+            self.cleaned_data['fs1_end_date'] = ''
+
+            self.cleaned_data['fs2_unit'] = 0
+            self.cleaned_data['fs2_fund'] = 0
+            self.cleaned_data['fs2_project'] = ''
+            self.cleaned_data['fs2_percentage'] = 0
+            self.cleaned_data['fs2_start_date'] = ''
+            self.cleaned_data['fs2_end_date'] = ''
+
+class RARequestGraduateResearchAssistantForm(forms.ModelForm):
+    pay_periods = forms.DecimalField(required=False, widget=forms.HiddenInput)
+
+    # fill out if backdated
+    backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
+    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum")
+    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?")
+    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':15}), label="Please provide the reason for this backdated appointment")
+    
+    gras_payment_method = forms.ChoiceField(required=False,
+                                            choices=GRAS_PAYMENT_METHOD_CHOICES, 
+                                            widget=forms.RadioSelect, 
+                                            label="Scholarship (No added benefit & vacation cost)",
+                                            help_text='Canadian bank status impacts how students will be paid. This generally applies to International ' +
+                                            'students currently working outside of Canada, who do not have banking status in Canada. If the status is ' + 
+                                            'unknown please confirm with the student.')
+    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
+    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
+    biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
+    gross_hourly = forms.DecimalField(required=False, widget=forms.HiddenInput)
+
+    class Meta:
+        model = RARequest
+        fields = ('gras_payment_method', 'total_pay', 'total_gross', 'biweekly_hours', 'biweekly_salary', 'gross_hourly')
+        widgets = {
+            'total_pay': forms.HiddenInput(),     
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super(RARequestGraduateResearchAssistantForm, self).__init__(*args, **kwargs)
+        
+        config_init = ['backdate_lump_sum', 'backdate_hours', 'backdate_reason']
+
+        for field in config_init:
+            self.initial[field] = getattr(self.instance, field)
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        config_clean = ['backdate_lump_sum', 'backdate_hours', 'backdate_reason']
+
+        for field in config_clean:
+            setattr(self.instance, field, cleaned_data[field])
+        
+        # add error messages
+        error_message = "You must answer this question."
 
         gras_payment_method = cleaned_data.get('gras_payment_method')
-        ra_payment_method = cleaned_data.get('ra_payment_method')
-
-        if hiring_category == "RA":
-            error_message = "Research Assistants must answer this question."
-            if ra_payment_method == None or ra_payment_method == "":
-                self.add_error('ra_payment_method', error_message)
-        if hiring_category == "GRAS":
-            error_message = "Graduate Research Assistants must answer this question."
-            if gras_payment_method == None or gras_payment_method == "":
-                self.add_error('gras_payment_method', error_message)
-
-        grasbw_total_gross = cleaned_data.get('grasbw_total_gross')
-        grasbw_biweekly_hours = cleaned_data.get('grasbw_biweekly_hours')
-        grasls_total_gross = cleaned_data.get('grasls_total_gross')
+        total_gross = cleaned_data.get('total_gross')
+        gross_hourly = cleaned_data.get('gross_hourly')
+        biweekly_hours = cleaned_data.get('biweekly_hours')
+        biweekly_salary = cleaned_data.get('biweekly_salary')
         
-        if gras_payment_method:
-            error_message = "Graduate Research Assistants must answer this question."
+        backdated = cleaned_data.get('backdated')
+        backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
+        backdate_hours = cleaned_data.get('backdate_hours')
+        backdate_reason = cleaned_data.get('backdate_reason')
+
+        if backdated:
+            if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
+                self.add_error('backdate_lump_sum', error_message)          
+            if backdate_hours == 0 or backdate_hours == None or backdate_hours == '':
+                self.add_error('backdate_hours', error_message)
+            if backdate_reason == '' or backdate_reason == None:
+                self.add_error('backdate_reason', error_message)
+        elif gras_payment_method == None or gras_payment_method == "":
+            self.add_error('gras_payment_method', error_message)
+        else:
             if gras_payment_method == "LS" or gras_payment_method == "LE":
-                if grasls_total_gross == 0 or grasls_total_gross == None:
-                    self.add_error('grasls_total_gross', error_message)
+                if total_gross == 0 or total_gross == None:
+                    self.add_error('total_gross', error_message)
             if gras_payment_method == "BW":
-                if grasbw_biweekly_hours == 0 or grasbw_biweekly_hours == None:
-                    self.add_error('grasbw_biweekly_hours', error_message)
-                if grasbw_total_gross == 0 or grasbw_total_gross == None:
-                    self.add_error('grasbw_total_gross', error_message)
-            if ra_payment_method:
-                raise forms.ValidationError("Cannot be both an RA and a GRAS.")
+                if gross_hourly < MIN_WAGE:
+                    raise forms.ValidationError('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + str(MIN_WAGE) + ')')
+                if biweekly_hours == 0 or biweekly_hours == None:
+                    self.add_error('biweekly_hours', error_message)
+                if total_gross == 0 or total_gross == None:
+                    self.add_error('total_gross', error_message)
+        
+        # remove irrelevant information
+        if backdated:
+            self.cleaned_data['gras_payment_method'] = ''
+            self.cleaned_data['total_gross'] = 0
+            self.cleaned_data['biweekly_hours'] = 0
+            self.cleaned_data['biweekly_salary'] = 0
+            self.cleaned_data['gross_hourly'] = 0
+        else: 
+            self.cleaned_data["backdate_lump_sum"] = 0
+            self.cleaned_data["backdate_hours"] = 0
+            self.cleaned_data["backdate_reason"] = ''
+            if gras_payment_method == "LS" or gras_payment_method == "LE":
+                self.cleaned_data['biweekly_hours'] = 0
+                self.cleaned_data['biweekly_salary'] = 0
+                self.cleaned_data['gross_hourly'] = 0
+                
 
-        rabw_total_gross = cleaned_data.get('rabw_total_gross')
-        rabw_weeks_vacation = cleaned_data.get('rabw_weeks_vacation')
-        rabw_biweekly_hours = cleaned_data.get('rabw_biweekly_hours')
-        rah_gross_hourly = cleaned_data.get('rah_gross_hourly')
-        rah_vacation_pay = cleaned_data.get('rah_vacation_pay')
-        rah_biweekly_hours = cleaned_data.get('rah_biweekly_hours')
 
-        if ra_payment_method:
-            error_message = "Research Assistants must answer this question."
+class RARequestNonContinuingForm(forms.ModelForm):
+    # Form for NonContinuing Appointees
+    # BiWeekly Payment Method -> total_gross, weeks_vacation, biweekly_hours, should also calculate biweekly_salary, gross_hourly and vacation_hours
+    # Hourly Payment Method -> gross_hourly, vacation_pay, biweekly_hours
+
+    pay_periods = forms.DecimalField(required=False, widget=forms.HiddenInput)
+    
+    # fill out if backdated
+    backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
+    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum")
+    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?")
+    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':15}), label="Please provide the reason for this backdated appointment")
+
+    nc_duties = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':15}), label="Duties", help_text="Please enter duties in a comma-separated list.")
+    
+    nc_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
+    
+    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
+    weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)", max_digits=8, decimal_places=1)
+    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
+    biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
+    vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
+    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly", max_digits=8, decimal_places=2)
+    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)", max_digits=8, decimal_places=1)
+
+    class Meta:
+        model = RARequest
+        fields = ('nc_payment_method', 'total_pay', 'backdated', 'total_gross','weeks_vacation','biweekly_hours',
+                  'biweekly_salary','vacation_hours','gross_hourly','vacation_pay')
+
+        widgets = {
+            'total_pay': forms.HiddenInput(),     
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(RARequestNonContinuingForm, self).__init__(*args, **kwargs) 
+        
+        config_init = ['nc_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
+
+        for field in config_init:
+            self.initial[field] = getattr(self.instance, field)
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        config_clean = ['nc_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
+
+        for field in config_clean:
+            setattr(self.instance, field, cleaned_data[field])
+
+        error_message = "You must answer this question."
+
+        nc_payment_method = cleaned_data.get('nc_payment_method')
+        total_gross = cleaned_data.get('total_gross')
+        weeks_vacation = cleaned_data.get('weeks_vacation')
+        biweekly_salary = cleaned_data.get('biweekly_salary')
+        gross_hourly = cleaned_data.get('gross_hourly')
+        biweekly_hours = cleaned_data.get('biweekly_hours')
+        vacation_hours = cleaned_data.get('vacation_hours')
+
+        gross_hourly = cleaned_data.get('gross_hourly')
+        vacation_pay = cleaned_data.get('vacation_pay')
+        biweekly_hours = cleaned_data.get('biweekly_hours')
+        
+        backdated = cleaned_data.get('backdated')
+        backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
+        backdate_hours = cleaned_data.get('backdate_hours')
+        backdate_reason = cleaned_data.get('backdate_reason')
+
+        if backdated:
+            if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
+                self.add_error('backdate_lump_sum', error_message)          
+            if backdate_hours == 0 or backdate_hours == None or backdate_hours == '':
+                self.add_error('backdate_hours', error_message)
+            if backdate_reason == '' or backdate_reason == None:
+                self.add_error('backdate_reason', error_message)
+        elif nc_payment_method == None or nc_payment_method == "":
+            self.add_error('nc_payment_method', error_message)
+        else:
+            if nc_payment_method == "BW":
+                if total_gross == 0 or total_gross == None:
+                    self.add_error('total_gross', error_message)
+                if weeks_vacation == None:
+                    self.add_error('weeks_vacation', error_message)
+                elif weeks_vacation < MIN_WEEKS_VACATION:
+                    self.add_error('weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
+                if biweekly_hours == None or biweekly_hours == 0:
+                    self.add_error('biweekly_hours', error_message)
+            if nc_payment_method == "H":
+                if gross_hourly == None:
+                    self.add_error('gross_hourly', error_message)
+                elif gross_hourly < MIN_WAGE:
+                    self.add_error('gross_hourly', ('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + str(MIN_WAGE) + ')'))
+                if vacation_pay == None:
+                    self.add_error('vacation_pay', error_message)
+                elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE:
+                    self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
+                if biweekly_hours == None or biweekly_hours == 0:
+                    self.add_error('biweekly_hours', error_message)
+
+        # remove irrelevant fields
+        if backdated:
+            self.cleaned_data["payment_method"] = ''
+            self.cleaned_data["total_gross"] = 0
+            self.cleaned_data["weeks_vacation"] = 0
+            self.cleaned_data["biweekly_salary"] = 0
+            self.cleaned_data["gross_hourly"] = 0
+            self.cleaned_data["vacation_hours"] = 0
+            self.cleaned_data["vacation_pay"] = 0
+            self.cleaned_data["biweekly_hours"] = 0
+        else: 
+            self.cleaned_data["backdate_lump_sum"] = 0
+            self.cleaned_data["backdate_hours"] = 0
+            self.cleaned_data["backdate_reason"] = ''
+            if nc_payment_method == "H":
+                self.cleaned_data["total_gross"] = 0
+                self.cleaned_data["weeks_vacation"] = 0
+                self.cleaned_data["biweekly_salary"] = 0
+                self.cleaned_data["vacation_hours"] = 0
+            elif nc_payment_method == "BW":
+                self.cleaned_data["vacation_pay"] = 0
+
+class RARequestResearchAssistantForm(forms.ModelForm):
+    pay_periods = forms.DecimalField(required=False, widget=forms.HiddenInput)
+    
+    # fill out if backdated
+    backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
+    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum")
+    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?")
+    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':15}), label="Please provide the reason for this backdated appointment")
+    
+    ra_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
+    
+    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
+    weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)", max_digits=8, decimal_places=1)
+    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
+    biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
+    vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
+    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly", max_digits=8, decimal_places=2)
+    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)", max_digits=8, decimal_places=1)
+    
+    ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, label="Are you willing to provide extended health benefits?")
+
+    ra_duties_ex = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EX, widget=forms.CheckboxSelectMultiple,
+                                             label="Experimental/Research Activities")
+    ra_duties_dc = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_DC, widget=forms.CheckboxSelectMultiple,
+                                             label="Data Collection/Analysis")
+    ra_duties_pd = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_PD, widget=forms.CheckboxSelectMultiple,
+                                             label="Project Development")
+    ra_duties_im = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_IM, widget=forms.CheckboxSelectMultiple,
+                                             label="Information Management")
+    ra_duties_eq = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EQ, widget=forms.CheckboxSelectMultiple,
+                                             label="Equipment/Inventory Management and Development")
+    ra_duties_su = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_SU, widget=forms.CheckboxSelectMultiple,
+                                             label="Supervision")
+    ra_duties_wr = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_WR, widget=forms.CheckboxSelectMultiple,
+                                             label="Writing/Reporting")
+    ra_duties_pm = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_PM, widget=forms.CheckboxSelectMultiple,
+                                             label="Project Management")    
+    ra_other_duties = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3}), label="Other RA Duties")
+
+    class Meta:
+        model = RARequest
+        fields = ('ra_payment_method', 'total_pay', 'backdated', 'total_gross','weeks_vacation','biweekly_hours',
+                  'biweekly_salary','vacation_hours','gross_hourly','vacation_pay')
+
+        widgets = {
+            'total_pay': forms.HiddenInput(),     
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(RARequestResearchAssistantForm, self).__init__(*args, **kwargs)
+        
+        config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
+                'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 
+                'ra_benefits', 'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
+
+        for field in config_init:
+            self.initial[field] = getattr(self.instance, field)
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        config_clean = ['ra_payment_method', 'ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
+                'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_benefits', 'ra_other_duties', 
+                'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'pay_periods']
+
+        for field in config_clean:
+            setattr(self.instance, field, cleaned_data[field])
+
+        error_message = "You must answer this question."
+
+        ra_payment_method = cleaned_data.get('ra_payment_method')
+        total_gross = cleaned_data.get('total_gross')
+        weeks_vacation = cleaned_data.get('weeks_vacation')
+        biweekly_salary = cleaned_data.get('biweekly_salary')
+        gross_hourly = cleaned_data.get('gross_hourly')
+        biweekly_hours = cleaned_data.get('biweekly_hours')
+        vacation_hours = cleaned_data.get('vacation_hours')
+        vacation_pay = cleaned_data.get('vacation_pay')
+        
+        backdated = cleaned_data.get('backdated')
+        backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
+        backdate_hours = cleaned_data.get('backdate_hours')
+        backdate_reason = cleaned_data.get('backdate_reason')
+
+        if backdated:
+            if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
+                self.add_error('backdate_lump_sum', error_message)          
+            if backdate_hours == 0 or backdate_hours == None or backdate_hours == '':
+                self.add_error('backdate_hours', error_message)
+            if backdate_reason == '' or backdate_reason == None:
+                self.add_error('backdate_reason', error_message)
+        elif ra_payment_method == None or ra_payment_method == "":
+            self.add_error('ra_payment_method', error_message)
+        else:
             if ra_payment_method == "BW":
-                if rabw_total_gross == 0 or rabw_total_gross == None:
-                    self.add_error('rabw_total_gross', error_message)
-                if rabw_weeks_vacation == None:
-                    self.add_error('rabw_weeks_vacation', error_message)
-                elif rabw_weeks_vacation < MIN_WEEKS_VACATION:
-                    self.add_error('rabw_weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
-                if rabw_biweekly_hours == None or rabw_biweekly_hours == 0:
-                    self.add_error('rabw_biweekly_hours', error_message)
+                if total_gross == 0 or total_gross == None:
+                    self.add_error('total_gross', error_message)
+                if weeks_vacation == None:
+                    self.add_error('weeks_vacation', error_message)
+                elif weeks_vacation < MIN_WEEKS_VACATION:
+                    self.add_error('weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
+                if biweekly_hours == None or biweekly_hours == 0:
+                    self.add_error('biweekly_hours', error_message)
+            elif ra_payment_method == "H":
+                if gross_hourly == None:
+                    self.add_error('gross_hourly', error_message)
+                elif gross_hourly < MIN_WAGE:
+                    self.add_error('gross_hourly', ('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + str(MIN_WAGE) + ')'))
+                if vacation_pay == None:
+                    self.add_error('vacation_pay', error_message)
+                elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE:
+                    self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
+                if biweekly_hours == None or biweekly_hours == 0:
+                    self.add_error('biweekly_hours', error_message)
+        
+        # remove irrelevant fields
+        if backdated:
+            self.cleaned_data["ra_payment_method"] = ''
+            self.cleaned_data["total_gross"] = 0
+            self.cleaned_data["weeks_vacation"] = 0
+            self.cleaned_data["biweekly_hours"] = 0
+            self.cleaned_data["biweekly_salary"] = 0
+            self.cleaned_data["vacation_hours"] = 0
+            self.cleaned_data["gross_hourly"] = 0
+            self.cleaned_data["vacation_pay"] = 0
+        else: 
+            self.cleaned_data["backdate_lump_sum"] = 0
+            self.cleaned_data["backdate_hours"] = 0
+            self.cleaned_data["backdate_reason"] = ''
             if ra_payment_method == "H":
-                if rah_gross_hourly == None:
-                    self.add_error('rah_gross_hourly', error_message)
-                elif rah_gross_hourly < MIN_WAGE:
-                    self.add_error('rah_gross_hourly', ('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + str(MIN_WAGE) + ')'))
-                if rah_vacation_pay == None:
-                    self.add_error('rah_vacation_pay', error_message)
-                elif rah_vacation_pay < MIN_VACATION_PAY_PERCENTAGE:
-                    self.add_error('rah_vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
-                if rah_biweekly_hours == None or rah_biweekly_hours == 0:
-                    self.add_error('rah_biweekly_hours', error_message)
+                self.cleaned_data["total_gross"] = 0
+                self.cleaned_data["weeks_vacation"] = 0
+                self.cleaned_data["biweekly_salary"] = 0
+                self.cleaned_data["vacation_hours"] = 0
+            elif ra_payment_method == "BW":
+                self.cleaned_data["vacation_pay"] = 0
+            
+class RARequestSupportingForm(forms.ModelForm):
+    funding_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3}), label="Any comments about funding?")
+    
+    class Meta:
+        model = RARequest
+        fields = ('file_attachment_1', 'file_attachment_2',)
+        labels = {'file_attachment_1': "Supplementary Document #1",
+                  'file_attachment_2': "Supplementary Document #2",
+        }
+        
+        help_texts = {
+                    'file_attachment_1': "Both of these fields are optional.",
+                    'file_attachment_2': "If co-op appointment, please upload co-op forms.",
+        }
 
-        start_date = cleaned_data.get('start_date')
-        end_date = cleaned_data.get('end_date')
-        if end_date < start_date:
-            error_message = "Start date must be before end date."
-            self.add_error('end_date', error_message)
-            self.add_error('start_date', error_message)
+    def __init__(self, *args, **kwargs):
+        super(RARequestSupportingForm, self).__init__(*args, **kwargs)  
+        
+        config_init = ['funding_comments']
+
+        for field in config_init:
+            self.initial[field] = getattr(self.instance, field)
 
 class RARequestNoteForm(forms.ModelForm):
     admin_notes = forms.CharField(required=False, label="Administrative Notes", widget=forms.Textarea)
@@ -364,6 +778,46 @@ class RARequestAdminAttachmentForm (forms.ModelForm):
         model = RARequestAttachment
         exclude = ('req', 'created_by')
 
+class RARequestPAFForm (forms.Form):
+    appointment_type = forms.ChoiceField(required=True, choices=APPOINTMENT_TYPE, widget=forms.RadioSelect, label="Type Of Appointment")
+
+class RARequestLetterForm(forms.ModelForm):
+    class Meta:
+        model = RARequest
+        fields = ('offer_letter_text',)
+        widgets = {
+                   'offer_letter_text': forms.Textarea(attrs={'rows': 25, 'cols': 70}),
+                   }
+
+class RARequestScienceAliveForm(forms.Form):
+    letter_type = forms.ChoiceField(required=True, choices=SCIENCE_ALIVE_TYPE, widget=forms.RadioSelect, label="Type Of Science Alive Letter")
+
+class RARequestAdminPAFForm(forms.ModelForm):
+    position_no = forms.IntegerField(required=False, label="Position #")
+    object_code = forms.IntegerField(required=False, label="Object Code for Funding Sources")
+    fs1_program = forms.IntegerField(required=False, label="Program for Funding Source #1")
+    fs2_program = forms.IntegerField(required=False, label="Program for Funding Source #2")
+    fs3_program = forms.IntegerField(required=False, label="Program for Funding Source #3")
+    paf_comments = forms.CharField(required=False, max_length=310, widget=forms.Textarea(attrs={'rows':6}), label="Comments", help_text = "Maximum of 310 characters")
+
+    class Meta:
+        model = RARequest
+        fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super(RARequestAdminPAFForm, self).__init__(*args, **kwargs)
+        config_init = ['position_no', 'object_code', 'fs1_program', 'fs2_program', 'fs3_program', 'paf_comments']
+        
+        for field in config_init:
+            self.initial[field] = getattr(self.instance, field)
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        config_clean = ['position_no', 'object_code', 'fs1_program', 'fs2_program', 'fs3_program', 'paf_comments']
+
+        for field in config_clean:
+            setattr(self.instance, field, cleaned_data[field])
+    
 class RAForm(forms.ModelForm):
     person = PersonField(label='Hire')
     sin = forms.IntegerField(label='SIN', required=False)
@@ -411,8 +865,7 @@ class RAForm(forms.ModelForm):
     def clean(self):
         cleaned_data = self.cleaned_data
         return cleaned_data 
-        
-
+  
 class RALetterForm(forms.ModelForm):
     class Meta:
         model = RAAppointment
