@@ -9,7 +9,7 @@ PRIVACY_VERSION = 1
 PRIVACY_DA_VERSION = 1
 
 # Who has to sign the Privacy statement?
-RELEVANT_ROLES = ['ADVS', 'ADMN', 'TAAD', 'GRAD', 'GRPD', 'FUND']
+RELEVANT_ROLES = ['ADVS', 'ADMN', 'TAAD', 'GRAD', 'GRPD', 'FUND', 'FAC']
 
 
 def set_privacy_signed(person):

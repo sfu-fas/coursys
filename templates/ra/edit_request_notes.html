@@ -23,7 +23,7 @@ Update Admin Notes for {{ req.get_name }}'s RA Request
     <form action="{% url "ra:edit_request_notes" ra_slug=req.slug %}" method="POST">{% csrf_token %}
       <fieldset>
         {{ noteform|as_dl_includefields:"admin_notes" }}
-        <p><input type="submit" class="submit" value="Submit" /></p>
+        <p><input id="done" type="submit" class="submit" value="Submit" /></p>
       </fieldset>
     </form>  
   </div>

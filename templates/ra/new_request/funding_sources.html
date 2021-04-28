@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load form_display %}
+{% load static %}
+
+{% block head %}
+{{ wizard.form.media }}
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static 'js/ra_application.js' %}"></script>
+<link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+{% endblock %}
+
+{% block title %}
+  {% if edit %}
+    Update RA Request for {{ name }}
+  {% else %}
+    New RA Request
+  {% endif %}
+{% endblock %}
+
+{% block h1 %}
+  {% if edit %}
+  Update RA Request for {{ name }}
+  {% else %}
+  New RA Request
+  {% endif %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+  {% if admin %}
+  <li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
+  {% else %}
+  <li><a href="{% url "ra:supervisor_dashboard" %}">RA Dashboard</a></li>
+  {% endif %}
+  {% if edit %}
+    <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA Request for {{ name }}</a></li>
+    <li>Edit RA Request for {{ name }}</li>
+  {% else %}
+    <li>New RA Request</li>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="form_container">
+  {% if edit %}
+  <form action="{% url "ra:edit_request" ra_slug=slug %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
+  {% elif reappoint %}
+  <form action="{% url "ra:reappoint_request" ra_slug=slug %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}  
+  {% else %}
+  <form action="{% url "ra:new_request" %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
+  {% endif %}
+    <fieldset>
+      <div class ="form_section">
+        <h2><strong>Funding Sources</strong></h2>
+        <div class="multiple_funding_sources">
+          <p><div class="important_info">
+            <p style="color:red"><b>Please ensure the grant(s) are active throughout the date range(s) entered:</b></p>
+          <p><b>Appointment Start Date:</b> {{ start_date }}</p>
+          <p><b>Appointment End Date:</b> {{ end_date }}</p>
+          </div></p>
+        </div>
+        {{ wizard.management_form }}
+        {% if wizard.form.forms %}
+            {{ wizard.form.management_form }}
+            {% for form in wizard.form.forms %}
+                {{ form }}
+            {% endfor %}
+        {% else %}
+            {{ wizard.form|as_dl_includefields:"start_date,end_date,fs1_unit,fs1_fund,fs1_project,fs1_percentage,fs1_start_date,fs1_end_date,fs2_option" }}
+      </div>
+            <div class="fs2">
+              <div class ="form_section">
+              {{ wizard.form|as_dl_includefields:"fs2_unit,fs2_fund,fs2_project,fs2_percentage,fs2_start_date,fs2_end_date,fs3_option" }}
+              </div>
+            </div>          
+            <div class="fs3">
+              <div class="form_section">
+              {{ wizard.form|as_dl_includefields:"fs3_unit,fs3_fund,fs3_project,fs3_percentage,fs3_start_date,fs3_end_date" }}
+              </div>        
+            </div>
+        {% endif %} 
+    </fieldset>
+    <div class="directory_buttons">
+        <h3>Section {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</h3>
+        <button id="prev" name="wizard_goto_step" class="btn" type="submit" value="{{ wizard.steps.prev }}" formnovalidate>{% trans "Previous" %}</button>
+        <input id="save" type="submit" value="Save and Next"/>
+    </div>
+  </form>  
+</div>
+{% endblock %}

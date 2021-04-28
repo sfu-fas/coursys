@@ -47,23 +47,32 @@ dl.dlform dt {
     margin-bottom:15px;
 }
 
-.form_section_complete {
+table.form_section_complete {
     background-color: rgb(219, 253, 203);
     border: 1px solid #bbb;
-    border-radius: 8px;
-    margin-top:15px;
-    margin-bottom:15px;
+    margin-top:2px;
+    margin-bottom:2px;
     padding-left:10px;
 }
 
-.form_section_incomplete {
+table.form_section_incomplete {
     background-color: rgb(255, 180, 180);
     border: 1px solid #bbb;
-    border-radius: 8px;
-    margin-top:15px;
-    margin-bottom:15px;
-    padding-left:10px;
+    margin-top:2px;
+    margin-bottom:2px;
+    padding-left:10px;    
 }
+
+table td.checkbox {
+    text-align:right;
+}
+
+.bottom_admin {
+    border: 12px solid #eee;
+    padding:10px;
+
+}
+
 
 .important_info {
     background-color: rgb(251, 255, 198);
@@ -73,4 +82,18 @@ dl.dlform dt {
     padding-left: 15px;
     border: 1px solid #bbb;
     border-radius: 8px;
+}
+
+.directory_buttons h3 {
+    text-align:center;
+}
+
+.directory_buttons button {
+    display:inline; 
+    float:left;
+}
+
+.directory_buttons input {
+    display:inline; 
+    float:right;
 }
