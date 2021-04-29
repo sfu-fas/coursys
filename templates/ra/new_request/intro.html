@@ -44,6 +44,9 @@
 
 {% block content %}
 <div class="form_container">
+  {% if not edit %}
+  <i><a href="{% url "ra:new_request" %}"><u>Click here</u></a> to restart this form and clear all responses.</a> If you have any questions, please contact <b>fasra@sfu.ca.</b></i>
+  {% endif %}
   {% if edit %}
   <form action="{% url "ra:edit_request" ra_slug=slug %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
   {% elif reappoint %}

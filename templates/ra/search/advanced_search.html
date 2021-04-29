@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}RA Request Search{% endblock %}
+{% block h1 %}RA Request Search{% endblock %}
+
+{% block headextra %}<script nonce="{{ CSP_NONCE }}">
+//<![CDATA[
+$(document).ready(function() {
+  student_autocomplete('id_appointee');
+  student_autocomplete('id_supervisor');
+});
+//]]></script>{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
+<li>RA Advanced Search</li>
+{% endblock %}
+
+{% block content %}
+<h2>Search Appointments by Appointee</h2>
+<form action="" method="post">{% csrf_token %}
+{{appointee_form.as_p}}
+<p><input class="submit" name="appointee_submit" type="submit" value="Submit" /></p>
+</form>
+
+<h2>Search Appointments by Supervisor</h2>
+<form action="" method="post">{% csrf_token %}
+{{supervisor_form.as_p}}
+<p><input class="submit" name="supervisor_submit" type="submit" value="Submit" /></p>
+</form>
+{% endblock %}

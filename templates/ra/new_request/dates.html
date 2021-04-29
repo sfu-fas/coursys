@@ -45,6 +45,11 @@
 {% block content %}
 
 <div class="form_container">
+  {% if not edit %}
+  <i><a href="{% url "ra:new_request" %}"><u>Click here</u></a> to restart this form and clear all responses.</a> If you have any questions, please contact <b>fasra@sfu.ca.</b></i>
+  {% else %}
+  <div class="helptext">Just a reminder that backdated appointments will remain backdated, and regular appointments will remain regular, regardless of the dates you select here .</div>
+  {% endif %}
   {% if edit %}
   <form action="{% url "ra:edit_request" ra_slug=slug %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
   {% elif reappoint %}
@@ -65,7 +70,7 @@
             {{ wizard.form|as_dl }}
           {% endif %} 
         <div class="backdated_info" >
-          <p style="color:red"><b>This will be categorized as backdated appointment.</b></p>
+          <p style="color:red"></p><b>This will be categorized as backdated appointment.</b></p>
         </div>
         <div class="important_info">
             <b>Estimated Pay Periods:</b> <span class="pay_periods_info"></span>

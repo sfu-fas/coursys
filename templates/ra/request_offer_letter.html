@@ -46,7 +46,7 @@
 <form action="{% url "ra:request_default_offer_letter" ra_slug=req.slug %}" class="subtle" method="post">{% csrf_token %}
   <i>Resets the offer letter text to default based on hiring category and payment method. You may want to do this after editing a request.</i>
   <p class="actionbutton">
-    <input type="submit" class="submit confirm-submit" value="Update" data-submit-action="update" />
+    <input type="submit" class="btn confirm-submit" value="Update" data-submit-action="update" />
   </p>
 </form>
 <h2>View/Download</h2>

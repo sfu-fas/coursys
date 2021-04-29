@@ -718,6 +718,23 @@ class ScienceAliveLetter(SFUMediaMixin):
 
         self.c.setFont('DINPro-Bold', 5)
         self._drawStringLeading(self.c, 70*mm, -8*mm, 'EngagingtheWorld'.upper(), charspace=2)
+
+        self.c.showPage()
+        self.c.translate(6*mm, 16*mm)
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(1)
+
+        self.c.setFont("Helvetica", 10)
+        self.c.drawString(12*mm, 240*mm, "If you accept the terms of this appointment, please sign and return the letter, retaining the original for your records")
+        self.c.drawString(12*mm, 225*mm, "Yours Truly,")
+        self.c.drawString(12*mm, 195*mm, supervisor)
+        self.c.drawString(12*mm, 190*mm, str(self.ra.unit.informal_name()))
+        self.c.drawString(100*mm, 225*mm, "I agree to the conditions of employment,")
+        self.c.drawString(100*mm, 195*mm, name)
+
+        self.c.setFont('DINPro-Bold', 5)
+        self._drawStringLeading(self.c, 70*mm, -8*mm, 'EngagingtheWorld'.upper(), charspace=2)
+
         self.c.save()
 
 class RARequestForm(SFUMediaMixin):
@@ -850,13 +867,17 @@ class RARequestForm(SFUMediaMixin):
         self._box_entry(75*mm, 161*mm, 69*mm, 6*mm, content=first_name)
         self._box_entry(150*mm, 161*mm, 12*mm, 6*mm, content=mi)
 
+        if self.ra.position_no != None:
+            position_no = str(self.ra.position_no)
+        else:
+            position_no = ''
         self.c.setFont("Helvetica-Bold", 8)
         self.c.drawString(4*mm, 155*mm, "*Department")
         self.c.drawString(73.5*mm, 155*mm, "Position Title")
         self.c.drawString(149*mm, 155*mm, "Position #")
         self._box_entry(22*mm, 153*mm, 50*mm, 6*mm, content=str(self.ra.unit.informal_name()))
         self._box_entry(92*mm, 153*mm, 52*mm, 6*mm, content=str(self.ra.position))
-        self._box_entry(164*mm, 153*mm, 33*mm, 6*mm, content=str(self.ra.position_no))
+        self._box_entry(164*mm, 153*mm, 33*mm, 6*mm, content=position_no)
 
         # dates
         self.c.setFont("Helvetica-Bold", 8)
@@ -896,7 +917,7 @@ class RARequestForm(SFUMediaMixin):
             lumpsum = ''
             lumphours = ''
         elif ra_hourly:
-            hourly = "$%.2f" % (self.ra.rah_gross_hourly)
+            hourly = "$%.2f" % (self.ra.gross_hourly)
             biweekly = ''
             biweekhours = "%.1f" % (self.ra.biweekly_hours)
             lumpsum = ''
@@ -974,16 +995,23 @@ class RARequestForm(SFUMediaMixin):
         self.c.setFont("Helvetica", 8)
         self.c.drawString(1*mm, 87*mm, "IF FUNDING CHANGE, complete this table as well as 'Section 3: CHANGING THE FUNDING SOURCE'.")
 
-        start_date = str(self.ra.start_date)
-
         fs1_project = self.ra.fs1_project
         fs1_fund = str(self.ra.fs1_fund)
         fs1_unit = str(self.ra.fs1_unit)
         fs1_percentage = str(self.ra.fs1_percentage)
-        fs1_start_date = str(self.ra.fs1_start_date)
         fs1_end_date = str(self.ra.fs1_end_date)
-        fs1_program = str(self.ra.fs1_program)
-        fs1_object = str(self.ra.object_code)
+
+        if self.ra.fs1_program != None:
+            fs1_program = str(self.ra.fs1_program)
+        else:
+            fs1_program = ''
+        
+        if self.ra.object_code != None:
+            object_code = str(self.ra.object_code)
+        else:
+            object_code = ''
+        
+        fs1_object = object_code
 
         fs2 = self.ra.fs2_option
         fs2_project = ''
@@ -1005,6 +1033,11 @@ class RARequestForm(SFUMediaMixin):
         fs3_program = ''
         fs3_object = ''
 
+        if not fs2 or fs3:
+            fs1_start_date = str(self.ra.start_date)
+        else:
+            fs1_start_date = str(self.ra.fs1_start_date)
+
         if fs2:
             fs2_project = self.ra.fs2_project
             fs2_fund = str(self.ra.fs2_fund)
@@ -1012,8 +1045,9 @@ class RARequestForm(SFUMediaMixin):
             fs2_percentage = str(self.ra.fs2_percentage)
             fs2_start_date = str(self.ra.fs2_start_date)
             fs2_end_date = str(self.ra.fs2_end_date)
-            fs2_program = str(self.ra.fs2_program)
-            fs2_object = str(self.ra.object_code)
+            fs2_object = object_code
+            if self.ra.fs2_program != None:
+                fs2_program = str(self.ra.fs2_program)
             
         if fs3:
             fs3_project = self.ra.fs3_project
@@ -1022,8 +1056,9 @@ class RARequestForm(SFUMediaMixin):
             fs3_percentage = str(self.ra.fs3_percentage)
             fs3_start_date = str(self.ra.fs3_start_date)
             fs3_end_date = str(self.ra.fs3_end_date)
-            fs3_program = str(self.ra.fs3_program)
-            fs3_object = str(self.ra.object_code)
+            fs3_object = object_code
+            if self.ra.fs3_program != None:
+                fs3_program = str(self.ra.fs3_program)
 
 
         self._small_box_entry(1*mm, 80*mm, 42*mm, 6*mm, content="Project (6-8 digits, if applicable)")

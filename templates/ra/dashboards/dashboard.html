@@ -1,0 +1,148 @@
+{% extends "base-wide.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block title %}RA Request Dashboard - In Progress{% endblock %}
+{% block h1 %}RA Request Dashboard - In Progress{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('#gras').dataTable( {
+    'bPaginate': false,
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']],
+    } );
+    $('#ra').dataTable( {
+    'bPaginate': false,
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']],
+    } );
+    $('#nc').dataTable( {
+    'bPaginate': false,
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']],
+    } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ra:search" %}">RAs</a></li>
+<li>Dashboard</li>
+{% endblock %}
+
+{% block content %}
+
+<h3>Actions</h3>
+<p>
+  <li><a href="{% url "ra:new_request" %}">New RA Request</a></li>
+  <li><a href="{% url "ra:advanced_search" %}">Advanced Search</a></li>
+  <li><a href="{% url "ra:dashboard_complete" %}">Completed Requests</a></li>
+</p>
+
+<h3>Graduate Research Assistant (In Progress)</h3>
+<div class="datatable_container">
+  <table id="gras" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Appointee</th>
+        <th scope="col">Supervisor</th>
+        <th scope="col">Start Date</th>
+        <th scope="col">End Date</th>
+        <th scope="col">Created At</th>
+        <th scope="col">Author</th>
+        <th scope="col">Total Pay</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in graduate_research_assistant %}
+        <tr>
+          <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">
+            {{ req.get_name }}
+          </a></td>
+          <td>{{ req.supervisor }}</td>
+          <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
+          <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
+          <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
+          <td>{{ req.author }}</td>
+          <td>$ {{ req.total_pay }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h3>Research Assistant (In Progress)</h3>
+<div class="datatable_container">
+  <table id="ra" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Appointee</th>
+        <th scope="col">Supervisor</th>
+        <th scope="col">Start Date</th>
+        <th scope="col">End Date</th>
+        <th scope="col">Created At</th>
+        <th scope="col">Author</th>
+        <th scope="col">Total Pay</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in research_assistant %}
+        <tr>
+          <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">
+            {{ req.get_name }}
+          </a></td>
+          <td>{{ req.supervisor }}</td>
+          <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
+          <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
+          <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
+          <td>{{ req.author }}</td>
+          <td>$ {{ req.total_pay }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h3>Non-Continuing (In Progress)</h3>
+<div class="datatable_container">
+  <table id="nc" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Appointee</th>
+        <th scope="col">Supervisor</th>
+        <th scope="col">Start Date</th>
+        <th scope="col">End Date</th>
+        <th scope="col">Created At</th>
+        <th scope="col">Author</th>
+        <th scope="col">Total Pay</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in non_continuing %}
+        <tr>
+          <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">
+            {{ req.get_name }}
+          </a></td>
+          <td>{{ req.supervisor }}</td>
+          <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
+          <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
+          <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
+          <td>{{ req.author }}</td>
+          <td>$ {{ req.total_pay }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -45,6 +45,9 @@
 {% block content %}
 
 <div class="form_container">
+  {% if not edit %}
+  <i><a href="{% url "ra:new_request" %}"><u>Click here</u></a> to restart this form and clear all responses.</a> If you have any questions, please contact <b>fasra@sfu.ca.</b></i>
+  {% endif %}
   {% if edit %}
   <form action="{% url "ra:edit_request" ra_slug=slug %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
   {% elif reappoint %}
@@ -71,17 +74,21 @@
             {{ wizard.form|as_dl_excludefields:"nc_duties" }}
             <div class="biweekly_info">
               <p><div class="important_info">
-                <b>Estimated Biweekly Rate:</b> $<span class="biweekly_rate_info"></span>
+                <b>Estimated Bi-Weekly Rate:</b> $<span class="biweekly_rate_info"></span>
+                <div class="helptext"><span class="biweekly_rate_calc"></span></div>
               </div></p>
               <p><div class="important_info">
                 <b>Estimated Hourly Rate:</b> $<span class="hourly_rate_info"></span>
+                <div class="helptext"><span class="hourly_rate_calc"></span></div>
               </div></p>
               <p><div class="important_info">
                 <b>Vacation Hours:</b> <span class="vacation_hours_info"></span>
+                <div class="helptext"><span class="vacation_hours_calc"></span></div>
               </div></p>
             </div>
             <p><div class="important_info">
               <b>Estimated Total Pay:</b> $<span class="total_pay_info"></span>
+              <div class="helptext"><span class="total_pay_calc"></span></div>
             </div></p>
             {{ wizard.form|as_dl_includefields:"nc_duties" }}
           {% endif %} 
@@ -95,3 +102,4 @@
   </form>  
 </div>
 {% endblock %}
+

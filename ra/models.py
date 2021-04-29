@@ -475,8 +475,10 @@ class RARequest(models.Model):
     # file attachments 
     file_attachment_1 = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=ra_request_attachment_upload_to, blank=True, max_length=500)
+    file_mediatype_1 = models.CharField(max_length=200, default=None, null=True, blank=True, editable=False)
     file_attachment_2 = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=ra_request_attachment_upload_to, blank=True, max_length=500)
+    file_mediatype_2 = models.CharField(max_length=200, default=None, null=True, blank=True, editable=False)
 
     # funding comments 
     funding_comments = config_property('funding_comments', default='')
@@ -565,6 +567,7 @@ class RARequest(models.Model):
         default letter based on that.
         """
 
+        substitutions = {}
         text = ''
 
         if self.hiring_category == "RA":

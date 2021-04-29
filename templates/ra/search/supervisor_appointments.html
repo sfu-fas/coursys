@@ -1,0 +1,147 @@
+{% extends "base-wide.html" %}
+{% block title %}
+  RA Appointments that {{ person.first_name}} {{ person.last_name }} is Supervisor for
+{% endblock %}
+{% block h1 %}
+  RA Appointments that {{ person.first_name}} {{ person.last_name }} is Supervisor for
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "ra:advanced_search" %}">RAs</a></li>
+<li>{{ person.name }}</li>
+{% endblock %}
+
+{% block headextra %}
+  <script nonce="{{ CSP_NONCE }}">
+  $(document).ready(function() {
+    $('#appointments').dataTable( {
+      'bPaginate': false,
+      'bInfo': false,
+      'bLengthChange': false,
+      "bJQueryUI": true,
+      'aaSorting': [[1, 'asc']],
+    } );
+    $('#reqs').dataTable( {
+        'bPaginate': false,
+        'bInfo': true,
+        'bFilter': true,
+        'bLengthChange': false,
+        "bJQueryUI": true,
+        'aaSorting': [[1, 'asc']],
+    } );
+  } );
+  </script>
+{% endblock %}
+
+{% block actions %}
+
+{% endblock %}
+
+{%block content%}
+<div class="table_container">
+    <table class="info">
+      <tbody>
+        <tr>
+          <th scope="row">Last Name</th>
+          <td>{{ person.last_name }}</td>
+        </tr>
+        <tr>
+          <th scope="row">First Name</th>
+          <td>{{ person.first_name }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Middle Name</th>
+          <td>{{ person.middle_name }}</td>
+        </tr>
+        <tr>
+          <th scope="row">ID</th>
+          <td>{{ person.emplid }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Email Address</th>
+          <td>{{ person.email_mailto }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {% if reqs %}
+  <h2>Appointments</h2>
+  <div class="datatable_container">
+    <table id="reqs" class="display">
+      <thead>
+        <tr>
+          <th scope="col">Appointee</th>
+          <th scope="col">Start Date</th>
+          <th scope="col">End Date</th>
+          <th scope="col">Created At</th>
+          <th scope="col">Author</th>
+          <th scope="col">Total Pay</th>
+          <th scope="col">Request Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in reqs %}
+          <tr>
+            <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">{{ req.person }}</a></td>
+            <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
+            <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
+            <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
+            <td>{{ req.author }}</td>
+            <td>$ {{ req.total_pay }}</td>
+            <td>
+                {% if req.complete %}
+                    Complete
+                {% else %}
+                    Incomplete
+                {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+
+  {%if appointments %}
+  <h2>Historic Appointments</h2>
+    <i>These appointments were created prior to the new RA process.</i>
+    <div class="datatable_container">
+      <table id="appointments" class="display">
+        <thead>
+          <tr>
+            <th scope="col">Start Date</th>
+            <th scope="col">End Date</th>
+            <th scope="col">Title</th>
+            <th scope="col">Type</th>
+            <th scope="col">Hiring Faculty</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for appointment in appointments %}
+        <tr>
+          <td scope="row">
+              <span class="sort">{{ appointment.start_date.isoformat }}</span>
+              {{ appointment.start_date|date:GRAD_DATE_FORMAT }}</td>
+          <td><span class="sort">{{ appointment.end_date.isoformat }}</span>
+          	  {{ appointment.end_date|date:GRAD_DATE_FORMAT }}</td>
+          <td>{{ appointment.account.title }}</td>
+          <td>{{ appointment.get_pay_frequency_display }}</td>
+          <td>{{ appointment.hiring_faculty.sortname }}</td>
+          <td><a href="{% url "ra:view" ra_slug=appointment.slug %}">View </a> |
+              <a href="{% url "ra:edit" ra_slug=appointment.slug %}">Edit</a> |
+              <a href="{% url "ra:edit_letter" ra_slug=appointment.slug %}">Edit Letter</a> |
+              <a href="{% url "ra:form" ra_slug=appointment.slug %}">Form</a> |
+              <a href="{% url "ra:letter" ra_slug=appointment.slug %}">Letter</a>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  {% if not reqs and not appointments %}
+  No appointments found.
+  {% endif %}
+{%endblock content%}
