@@ -15,13 +15,13 @@ rabbitmq_password = node['rabbitmq_password'] || 'supersecretpassword'
 
 raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
 
-template '/etc/apt/sources.list' do
-  variables(
-    :mirror => ubuntu_mirror,
-    :release => ubuntu_release
-  )
-  notifies :run, 'execute[apt-get update]', :immediately
-end
+#template '/etc/apt/sources.list' do
+#  variables(
+#    :mirror => ubuntu_mirror,
+#    :release => ubuntu_release
+#  )
+#  notifies :run, 'execute[apt-get update]', :immediately
+#end
 execute 'apt-get update' do
   action :nothing
 end
@@ -131,6 +131,13 @@ if deploy_mode != 'devel'
   template "#{data_root}/static/503.html" do
   end
 
+  package 'snapd'
+  execute 'install-certbot' do
+    command 'snap install --classic certbot'
+    creates '/snap/bin/certbot'
+  end
+  # This recipe doesn't address actually *running* certbot.
+
   # There was a conflict between npm and some mysql packages, so using the mariadb client, which should be equivalent.
   package ['mariadb-client', 'screen', 'nginx', 'ntp', 'ntpdate']
   service 'nginx' do
@@ -195,13 +202,6 @@ if deploy_mode != 'devel'
   cookbook_file '/etc/nginx/insecure.crt' do
     mode 0400
   end
-
-  package 'snapd'
-  execute 'install-certbot' do
-    command 'snap install --classic certbot'
-    creates '/snap/bin/certbot'
-  end
-  # This recipe doesn't address actually *running* certbot.
 
   execute 'ssl_hands_off' do
     command 'grep -v "^\s*ssl_" /etc/nginx/nginx.conf > /tmp/nginx.conf && cp /tmp/nginx.conf /etc/nginx/nginx.conf'

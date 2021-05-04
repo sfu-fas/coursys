@@ -1,5 +1,6 @@
-SYSTEMCTL=sudo systemctl
-DOCKERCOMPOSE=sudo -u ${COURSYS_USER} docker-compose
+SYSTEMCTL="sudo systemctl"
+SUCOURSYS="sudo -E -u ${COURSYS_USER}"
+DOCKERCOMPOSE="${SUCOURSYS} docker-compose"
 
 devel-runserver:
 	python3 manage.py runserver 0:8000
@@ -58,16 +59,16 @@ migrate-safe:
 rebuild:
 	sudo apt update && sudo apt upgrade
 	sudo pip3 install -r ${COURSYS_DIR}/requirements.txt
-	cd ${COURSYS_DIR} && npm install
-	cd ${COURSYS_DIR} && python3 manage.py collectstatic --no-input
+	cd ${COURSYS_DIR} && ${SUCOURSYS} npm install
+	cd ${COURSYS_DIR} && ${SUCOURSYS} python3 manage.py collectstatic --no-input
 
 rebuild-hardcore:
 	${SYSTEMCTL} daemon-reload
 	${SYSTEMCTL} stop ntp && sudo ntpdate pool.ntp.org && ${SYSTEMCTL} start ntp
-	cd ${COURSYS_DIR} && docker-compose pull
-	touch ${COURSYS_DIR}/503
-	cd ${COURSYS_DIR} && docker-compose restart
-	rm -rf ${COURSYS_STATIC_DIR}/static
+	cd ${COURSYS_DIR} && ${DOCKERCOMPOSE} pull
+	${SUCOURSYS} touch ${COURSYS_DIR}/503
+	cd ${COURSYS_DIR} && ${DOCKERCOMPOSE} restart
+	${SUCOURSYS} rm -rf ${COURSYS_STATIC_DIR}/static
 	make rebuild
-	rm ${COURSYS_DIR}/503
-	docker system prune -f
+	${SUCOURSYS} rm ${COURSYS_DIR}/503
+	${SUCOURSYS} docker system prune -f

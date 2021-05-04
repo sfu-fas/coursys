@@ -63,8 +63,9 @@ git clone -b deployed-2020 https://github.com/sfu-fas/coursys.git
 cd coursys
 # check ./deploy/solo.rb and ./deploy/run-list-production.json
 sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list-production.json # will fail at nginx step because of missing cert...
-sudo rm -rf ~/coursys # probably: it's in /coursys now 
+sudo rm -rf ~/coursys # probably: it's in /coursys now
 cd /coursys
+# re-check ./deploy/solo.rb and ./deploy/run-list-production.json from this installation
 ```
 
 Double-check firewall rules: these recipes do not configure iptables, but only ports 80 and 443 should be open. Port 22 should be open to a limited IP range.
