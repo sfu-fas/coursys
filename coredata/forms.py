@@ -80,7 +80,7 @@ class UnitForm(forms.ModelForm):
         model = Unit
         exclude = ('config',)
         widgets = {
-                   'label': forms.TextInput(attrs={'size': 5}),
+                   'label': forms.TextInput(attrs={'size': 5, 'autofocus': True}),
                    'name': forms.TextInput(attrs={'size': 40}),
                    'acad_org': forms.TextInput(attrs={'size': 10}),
                    }
@@ -96,7 +96,7 @@ class UnitForm(forms.ModelForm):
 class PersonForm(forms.ModelForm):
     emplid = forms.CharField(max_length=9,
                     help_text='Employee ID (i.e. student number).  Enter a number starting with "0000" if unknown: will be filled in based on userid at next import',
-                    widget=forms.TextInput(attrs={'size':'9'}))
+                    widget=forms.TextInput(attrs={'size':'9','autofocus': True}))
     email = forms.CharField(max_length=50, required=False,
                     help_text='Person\'s email address (if not userid@sfu.ca)',
                     widget=forms.TextInput(attrs={'size':'20'}))
@@ -236,7 +236,10 @@ class SysAdminSearchForm(forms.Form):
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(SysAdminSearchForm, self).is_valid(*args, **kwargs)
-
+    def __init__(self, *args, **kwargs):
+        super(SysAdminSearchForm, self).__init__(*args, **kwargs)
+        self.fields['user'].widget.attrs.update({'autofocus': 'autofocus'})
+        
 class MemberForm(forms.ModelForm):
     person = PersonField()
     offering = OfferingField()
@@ -256,7 +259,9 @@ class NewCombinedForm(forms.ModelForm):
     class Meta:
         model = CombinedOffering
         exclude = ('semester', 'crse_id', 'class_nbr', 'config', 'offerings')
-
+    def __init__(self, *args, **kwargs):
+        super(NewCombinedForm, self).__init__(*args, **kwargs)
+        self.fields['subject'].widget.attrs.update({'autofocus': 'autofocus'})
 
 class RoleForm(forms.ModelForm):
     person = PersonField(label="Emplid", help_text="or type to search")
@@ -475,7 +480,7 @@ class SemesterForm(forms.ModelForm):
         model = Semester
         exclude = []
         widgets = {
-                'name': forms.TextInput(attrs={'size': 4, 'max_length': 4})
+                'name': forms.TextInput(attrs={'size': 4, 'max_length': 4, 'autofocus': True})
                 }
 
 
@@ -621,10 +626,15 @@ class AnyPersonForm(forms.ModelForm):
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(AnyPersonForm, self).is_valid(*args, **kwargs)
-
+    def __init__(self, *args, **kwargs):
+        super(AnyPersonForm, self).__init__(*args, **kwargs)
+        self.fields['person'].widget.attrs.update({'autofocus': 'autofocus'})
 
 class RoleAccountForm(forms.ModelForm):
     description = forms.CharField(widget=forms.Textarea, required=False)
     class Meta:
         model = RoleAccount
         exclude = ['config']
+    def __init__(self, *args, **kwargs):
+        super(RoleAccountForm, self).__init__(*args, **kwargs)
+        self.fields['userid'].widget.attrs.update({'autofocus': 'autofocus'})
