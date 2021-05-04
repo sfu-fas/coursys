@@ -23,7 +23,7 @@ raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].includ
 #  notifies :run, 'execute[apt-get update]', :immediately
 #end
 execute 'apt-get update' do
-  action :nothing
+  action :run
 end
 execute 'apt-get upgrade' do
   command 'apt-get dist-upgrade -y'
