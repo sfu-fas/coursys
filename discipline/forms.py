@@ -66,6 +66,7 @@ class TemplateForm(forms.ModelForm):
         exclude = []
         widgets = {
             'text': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'20'}),
+            'field': forms.Select(attrs={'autofocus': True}),
         }
 
 
