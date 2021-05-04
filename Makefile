@@ -1,6 +1,6 @@
-SYSTEMCTL="sudo systemctl"
-SUCOURSYS="sudo -E -u ${COURSYS_USER}"
-DOCKERCOMPOSE="${SUCOURSYS} docker-compose"
+SYSTEMCTL=sudo systemctl
+SUCOURSYS=sudo -E -u ${COURSYS_USER}
+DOCKERCOMPOSE=${SUCOURSYS} docker-compose
 
 devel-runserver:
 	python3 manage.py runserver 0:8000
