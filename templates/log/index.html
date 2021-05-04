@@ -26,7 +26,7 @@ $(document).ready(function() {
 
 {% block content %}
 <form method="get" action="">
-<p><input type="text" name="q" value="{{ q }}" size="30" /> <input type="submit" value="Search" class="submit"/></p>
+<p><input type="text" name="q" value="{{ q }}" size="30" autofocus/> <input type="submit" value="Search" class="submit"/></p>
 </form>
 
 {% if logs %}
