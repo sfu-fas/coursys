@@ -14,11 +14,11 @@ LANG=en_CA.UTF-8
 export LANG
 
 # imitate ~/sqllib/db2profile
-DB2INSTANCE=${USER}
-DB2_HOME=${HOME}/sqllib
-LD_LIBRARY_PATH=${DB2_HOME}/lib64:${DB2_HOME}/lib64/gskit:${DB2_HOME}/lib32
-DB2LIB=${DB2_HOME}/lib
-IBM_DB_DIR=${DB2_HOME}
-IBM_DB_HOME=${DB2_HOME}
-IBM_DB_INCLUDE=${DB2_HOME}/include
-IBM_DB_LIB=${DB2_HOME}/lib
+DB2INSTANCE="<%= @coursys_user %>"
+DB2_HOME=/home/<%= @coursys_user %>/sqllib
+LD_LIBRARY_PATH=/home/<%= @coursys_user %>/sqllib/lib64:/home/<%= @coursys_user %>/sqllib/lib64/gskit:/home/<%= @coursys_user %>/sqllib/lib32
+DB2LIB=/home/<%= @coursys_user %>/sqllib/lib
+IBM_DB_DIR=/home/<%= @coursys_user %>/sqllib
+IBM_DB_HOME=/home/<%= @coursys_user %>/sqllib
+IBM_DB_INCLUDE=/home/<%= @coursys_user %>/sqllib/include
+IBM_DB_LIB=/home/<%= @coursys_user %>/sqllib/lib
