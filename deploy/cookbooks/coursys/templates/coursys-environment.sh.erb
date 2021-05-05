@@ -12,3 +12,13 @@ RABBITMQ_PASSWORD="<%= @rabbitmq_password %>"
 export RABBITMQ_PASSWORD
 LANG=en_CA.UTF-8
 export LANG
+
+# imitate ~/sqllib/db2profile
+DB2INSTANCE=${USER}
+DB2_HOME=${HOME}/sqllib
+LD_LIBRARY_PATH=${DB2_HOME}/lib64:${DB2_HOME}/lib64/gskit:${DB2_HOME}/lib32
+DB2LIB=${DB2_HOME}/lib
+IBM_DB_DIR=${DB2_HOME}
+IBM_DB_HOME=${DB2_HOME}
+IBM_DB_INCLUDE=${DB2_HOME}/include
+IBM_DB_LIB=${DB2_HOME}/lib
