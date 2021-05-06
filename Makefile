@@ -1,5 +1,5 @@
 SYSTEMCTL=sudo systemctl
-SUCOURSYS=sudo -E -u ${COURSYS_USER} HOME=~${COURSYS_USER}
+SUCOURSYS=sudo -E -u ${COURSYS_USER} HOME=${COURSYS_USER_HOME}
 DOCKERCOMPOSE=${SUCOURSYS} docker-compose
 
 devel-runserver:
