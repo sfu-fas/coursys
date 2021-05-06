@@ -33,7 +33,7 @@ server {
 server {
         # redirect any other requests to domain name URL (shouldn't happen, and cert will be invalid)
         server_name _;
-        listen 443 ssl;
+        listen 443 ssl default_server;
         ssl_certificate      /etc/nginx/insecure.crt;
         ssl_certificate_key  /etc/nginx/insecure.key;
 

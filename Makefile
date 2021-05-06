@@ -41,20 +41,26 @@ restart-all:
 	${SYSTEMCTL} restart celerybeat
 	${SYSTEMCTL} restart nginx
 
+pull:
+	${SUCOURSYS} cp deploy/run-list-production.json deploy/run-list-production.bak
+	${SUCOURSYS} git checkout -- deploy/run-list-production.json
+	${SUCOURSYS} git pull
+	${SUCOURSYS} cp deploy/run-list-production.bak deploy/run-list-production.json
+
 new-code:
 	${SYSTEMCTL} reload gunicorn
 	${SYSTEMCTL} reload celery
 	${SYSTEMCTL} restart celerybeat
 
 new-code-static:
-	npm install
-	python3 manage.py collectstatic --no-input
+	${SUCOURSYS} npm install
+	${SUCOURSYS} python3 manage.py collectstatic --no-input
 	make new-code
 
 migrate-safe:
-	python3 manage.py backup_db
-	python3 manage.py migrate
-	python3 manage.py backup_db
+	${SUCOURSYS} python3 manage.py backup_db
+	${SUCOURSYS} python3 manage.py migrate
+	${SUCOURSYS} python3 manage.py backup_db
 
 rebuild:
 	sudo apt update && sudo apt upgrade
@@ -72,3 +78,6 @@ rebuild-hardcore:
 	make rebuild
 	${SUCOURSYS} rm ${COURSYS_DIR}/503
 	${SUCOURSYS} docker system prune -f
+
+production-chef:
+	cd ${COURSYS_DIR} && sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list-production.json
