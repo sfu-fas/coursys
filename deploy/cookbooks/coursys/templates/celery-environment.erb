@@ -17,12 +17,12 @@ CELERYD_OPTS="-Q:batch batch -Q:fast fast -Q:email email -Q:photo photo -Q:sims 
 # - %n will be replaced with the first part of the nodename.
 # - %I will be replaced with the current child process index
 #   and is important when using the prefork pool to avoid race conditions.
-CELERYD_PID_FILE="/var/run/celery/%n.pid"
+CELERYD_PID_FILE="/opt/run/celery/%n.pid"
 CELERYD_LOG_FILE="<%= @data_root %>/logs/celery-%n%I.log"
 CELERYD_LOG_LEVEL="INFO"
 
 # you may wish to add these options for Celery Beat
-CELERYBEAT_PID_FILE="/var/run/celery/beat.pid"
+CELERYBEAT_PID_FILE="/opt/run/celery/beat.pid"
 CELERYBEAT_LOG_FILE="<%= @data_root %>/logs/celery-beat.log"
 
 

@@ -166,7 +166,7 @@ if deploy_mode != 'devel'
       :data_root => data_root,
     )
   end
-  directory '/var/run/celery' do
+  directory '/opt/run/celery' do
     owner username
     mode '0755'
     recursive true
