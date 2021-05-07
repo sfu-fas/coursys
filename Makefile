@@ -81,3 +81,9 @@ rebuild-hardcore:
 
 production-chef:
 	cd ${COURSYS_DIR} && sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list-production.json
+
+shell:
+	${SUCOURSYS} python3 manage.py shell
+
+dbshell:
+	${SUCOURSYS} python3 manage.py dbshell
