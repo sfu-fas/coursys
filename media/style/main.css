@@ -202,7 +202,7 @@ div.breadcrumb ul li:first-child:before {
 .collapsible-heading:before {
   font-family: "Font Awesome 5 Free";
   font-style: normal;
-  font-weight: normal;
+  font-weight: 900;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   padding-right: 0.25em;
@@ -211,7 +211,7 @@ div.breadcrumb ul li:first-child:before {
 .collapsible-heading-collapsed:before {
   font-family: "Font Awesome 5 Free";
   font-style: normal;
-  font-weight: normal;
+  font-weight: 900;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   padding-right: 0.25em;
