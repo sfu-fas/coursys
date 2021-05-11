@@ -22,6 +22,19 @@ server {
 }
 
 server {
+        server_name fasit.sfu.ca;
+        listen 443 ssl http2;
+        keepalive_timeout   70;
+        ssl_certificate      /etc/letsencrypt/live/<%= @domain_name %>/fullchain.pem;
+        ssl_certificate_key  /etc/letsencrypt/live/<%= @domain_name %>/privkey.pem;
+
+        access_log <%= @data_root %>/nginx-logs/fasit-https.access.log;
+        error_log <%= @data_root %>/nginx-logs/fasit-https.error.log warn;
+
+        include /etc/nginx/sites-available/_common.conf;
+}
+
+server {
         # redirect HTTP to HTTPS
         listen 80;
         server_name _;
@@ -37,8 +50,8 @@ server {
         ssl_certificate      /etc/nginx/insecure.crt;
         ssl_certificate_key  /etc/nginx/insecure.key;
 
-        access_log <%= @data_root %>/nginx-logs/coursys-default.access.log;
-        error_log <%= @data_root %>/nginx-logs/coursys-default.error.log warn;
+        access_log <%= @data_root %>/nginx-logs/default-https.access.log;
+        error_log <%= @data_root %>/nginx-logs/default-https.error.log warn;
 
         return 301 https://<%= @domain_name %>:<%= @https_port %>$request_uri;
 }
