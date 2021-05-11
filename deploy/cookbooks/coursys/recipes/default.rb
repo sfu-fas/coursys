@@ -172,6 +172,9 @@ if deploy_mode != 'devel'
     recursive true
     action :create
   end
+  file "#{coursys_dir}/.env" do
+    content "RABBITMQ_PASSWORD=#{rabbitmq_password}\n"
+  end
 
   for service in ['gunicorn', 'celery', 'nginxcoursys']
     template "/etc/logrotate.d/#{service}" do
@@ -184,6 +187,10 @@ if deploy_mode != 'devel'
     end
   end
   # celery checking cron
+  execute "cron.allow" do
+    command "echo #{username} >> /etc/cron.allow"
+    not_if "grep -q #{username} /etc/cron.allow"
+  end
   cron "celery check" do
     user username
     minute '0'

@@ -6,6 +6,7 @@ CONFIG = {
     'username' => 'vagrant', # username to deploy under in the VM image
     'coursys_dir' => '/coursys',
     'coursys_branch' => 'deployed-2020',
+    'rabbitmq_password' => 'the_rabbitmq_password',
     
     #'deploy_mode' => 'devel',
     'deploy_mode' => 'proddev',

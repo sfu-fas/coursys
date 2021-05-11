@@ -5,5 +5,5 @@
   "coursys_branch": "deployed-2020",
   "run_list": ["coursys"],
   "ip_address": "142.58.23.2",
-  "rabbitmq_password": "supersecretpassword"
+  "rabbitmq_password": "the_rabbitmq_password"
 }

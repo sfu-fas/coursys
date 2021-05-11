@@ -57,7 +57,7 @@ pull:
 
 new-code:
 	${SYSTEMCTL} reload gunicorn
-	${SYSTEMCTL} reload celery
+	${SYSTEMCTL} restart celery
 	${SYSTEMCTL} restart celerybeat
 
 new-code-static:
