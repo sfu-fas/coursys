@@ -11,7 +11,7 @@ from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_upda
 from dashboard.photos import do_photo_fetch
 from log.models import LogEntry
 
-import celery, kombu
+import celery, kombu, amqp
 import random, socket, subprocess, urllib.request, urllib.error, urllib.parse, os, stat, time, copy, pprint
 
 
@@ -125,6 +125,8 @@ def deploy_checks(request=None):
                     t = ping.apply_async()
                 except kombu.exceptions.OperationalError:
                     failed.append(('Celery task', 'Kombu error. Probably RabbitMQ not running.'))
+                except amqp.exceptions.AccessRefused:
+                    failed.append(('Celery task', 'AccessRefused error. Probably bad RabbitMQ auth details.'))
                 else:
                     res = t.get(timeout=5)
                     if res == True:
@@ -248,18 +250,18 @@ def deploy_checks(request=None):
 
     # certificates
     bad_cert = 0
-    res = _check_cert('/etc/stunnel/stunnel.pem')
-    if res:
-        failed.append(('Stunnel cert', res))
-        bad_cert += 1
-    res = _check_cert('/etc/nginx/cert.pem')
-    if res:
-        failed.append(('SSL PEM', res))
-        bad_cert += 1
-    res = _check_cert('/etc/nginx/cert.key')
-    if res:
-        failed.append(('SSL KEY', res))
-        bad_cert += 1
+    #res = _check_cert('/etc/stunnel/stunnel.pem')
+    #if res:
+    #    failed.append(('Stunnel cert', res))
+    #    bad_cert += 1
+    #res = _check_cert('/etc/nginx/cert.pem')
+    #if res:
+    #    failed.append(('SSL PEM', res))
+    #    bad_cert += 1
+    #res = _check_cert('/etc/nginx/cert.key')
+    #if res:
+    #    failed.append(('SSL KEY', res))
+    #    bad_cert += 1
 
     if bad_cert == 0:
         passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
@@ -494,7 +496,7 @@ def ps_info():
     return data
 
 def pip_info():
-    pip = subprocess.Popen(['pip', 'freeze'], stdout=subprocess.PIPE)
+    pip = subprocess.Popen(['pip3', 'freeze'], stdout=subprocess.PIPE)
     output = pip.stdout.read().decode('utf8')
     result = '<pre>' + escape(output) + '</pre>'
     return [('PIP freeze', mark_safe(result))]

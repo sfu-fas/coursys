@@ -1,3 +1,5 @@
+import datetime
+
 from django.test import TestCase
 
 from django.urls import reverse
@@ -120,7 +122,8 @@ class AdvisorNotestest(TestCase):
     def test_new_nonstudent_post_success(self):
         client = Client()
         client.login_user("dzhao")
-        response = client.post(reverse('advising:new_nonstudent'), {'first_name': 'test123', 'last_name': 'test_new_nonstudent_post', 'start_year': 2020})
+        year = datetime.date.today().year
+        response = client.post(reverse('advising:new_nonstudent'), {'first_name': 'test123', 'last_name': 'test_new_nonstudent_post', 'start_year': year})
         self.assertEqual(response.status_code, 302, 'Should have been redirected')
         q = NonStudent.objects.filter(first_name='test123')
         self.assertEqual(len(q), 1, "There should only be one result")

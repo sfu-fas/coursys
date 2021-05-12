@@ -66,6 +66,13 @@ class DashboardTest(TestCase):
         """
         Check the requires_course_staff_by_slug decorator.
         """
+        # force the test course's semester to be "current" so the TA still has access
+        semester = CourseOffering.objects.get(slug=TEST_COURSE_SLUG).semester
+        today = datetime.date.today()
+        semester.start = today
+        semester.end = today + datetime.timedelta(days=90)
+        semester.save()
+
         # a URL and some members/non-members
         url = reverse('offering:class_list', kwargs={'course_slug': TEST_COURSE_SLUG})
         instr = "ggbaker"

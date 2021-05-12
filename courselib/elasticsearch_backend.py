@@ -1,6 +1,7 @@
-from haystack.backends.elasticsearch_backend import ElasticsearchSearchEngine, ElasticsearchSearchBackend
+from haystack.backends.elasticsearch5_backend import Elasticsearch5SearchBackend, Elasticsearch5SearchEngine
 
-class CustomElasticsearchBackend(ElasticsearchSearchBackend):
+
+class CustomElasticsearchBackend(Elasticsearch5SearchBackend):
     """
     The default ElasticsearchSearchBackend settings don't tokenize strings of digits the same way as words, so emplids
     get lost: the lowercase tokenizer is the culprit. Switching to the standard tokenizer and doing the case-
@@ -13,5 +14,5 @@ class CustomElasticsearchBackend(ElasticsearchSearchBackend):
         super(CustomElasticsearchBackend, self).__init__(connection_alias, **connection_options)
 
 
-class CustomElasticsearchSearchEngine(ElasticsearchSearchEngine):
+class CustomElasticsearchSearchEngine(Elasticsearch5SearchEngine):
     backend = CustomElasticsearchBackend

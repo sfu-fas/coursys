@@ -55,8 +55,9 @@ def check_moss_executable(passed, failed):
         return
 
     moss_pl = os.path.join(settings.MOSS_DISTRIBUTION_PATH, 'moss.pl')
+    print(moss_pl)
     if not os.path.isfile(moss_pl) or not os.access(moss_pl, os.X_OK):
-        failed.append(('MOSS subprocess', 'MOSS_DISTRIBUTION_PATH/moss.py is not an executable'))
+        failed.append(('MOSS subprocess', 'MOSS_DISTRIBUTION_PATH/moss.pl is not an executable'))
         return
 
     passed.append(('MOSS subprocess', 'okay'))

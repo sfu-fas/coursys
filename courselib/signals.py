@@ -16,18 +16,18 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
 
         if cls == 'Page':
             # reindex object in the standard way
-            logger.debug('Reindexing Page %s' % (instance))
+            #logger.debug('Reindexing Page %s' % (instance))
             super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
 
         elif cls == 'PageVersion':
             # reindex corresponding Page
-            logger.debug('Reindexing PageVersion %s' % (instance))
+            #logger.debug('Reindexing PageVersion %s' % (instance))
             Page = get_model('pages', 'Page')
             page = instance.page
             self.handle_save(sender=Page, instance=page)
 
         elif cls == 'DiscussionTopic':
-            logger.debug('Reindexing DiscussionTopic %s' % (instance))
+            #logger.debug('Reindexing DiscussionTopic %s' % (instance))
             if instance.status == 'HID':
                 # hidden is deletion
                 self.handle_delete(sender=sender, instance=instance, **kwargs)
@@ -36,12 +36,12 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
 
         elif cls == 'DiscussionMessage':
             # reindex the containing topic
-            logger.debug('Reindexing DiscussionMessage %s' % (instance))
+            #logger.debug('Reindexing DiscussionMessage %s' % (instance))
             DiscussionTopic = get_model('discuss', 'DiscussionTopic')
             self.handle_save(sender=DiscussionTopic, instance=instance.topic, **kwargs)
 
         elif cls == 'CourseOffering':
-            logger.debug('Reindexing CourseOffering %s' % (instance))
+            #logger.debug('Reindexing CourseOffering %s' % (instance))
             if instance.component == 'CAN':
                 # cancelling is our version of deleting
                 self.handle_delete(sender=sender, instance=instance)
@@ -50,7 +50,7 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
                 super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
 
         elif cls == 'Member':
-            logger.debug('Reindexing Member %s' % (instance))
+            #logger.debug('Reindexing Member %s' % (instance))
             if instance.role == 'DROP':
                 # dropping is our version of deleting
                 self.handle_delete(sender=sender, instance=instance)
@@ -63,7 +63,7 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
                 self.handle_save(sender=CourseOffering, instance=instance.offering, **kwargs)
 
         elif cls == 'Person':
-            logger.debug('Reindexing Person %s' % (instance))
+            #logger.debug('Reindexing Person %s' % (instance))
             # reindex the person themself
             super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
             # ... and reindex this person as a member of the courses they're in
@@ -73,7 +73,7 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
                 self.handle_save(sender=Member, instance=m, **kwargs)
 
         elif cls == 'RAAppointment':
-            logger.debug('Reindexing RAAppointment %s' % (instance))
+            #logger.debug('Reindexing RAAppointment %s' % (instance))
             if instance.deleted:
                 # deleted contract
                 self.handle_delete(sender=sender, instance=instance, **kwargs)

@@ -1,0 +1,44 @@
+#add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains; preload';
+
+# from https://ssl-config.mozilla.org/
+ssl_session_timeout 1d;
+ssl_session_cache shared:MozSSL:10m;  # about 40000 sessions
+ssl_session_tickets off;
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+ssl_prefer_server_ciphers off;
+
+
+server {
+        server_name <%= @domain_name %>;
+        listen 443 ssl http2;
+        keepalive_timeout   70;
+        ssl_certificate      /etc/nginx/insecure.crt;
+        ssl_certificate_key  /etc/nginx/insecure.key;
+
+        access_log <%= @data_root %>/nginx-logs/coursys-https.access.log;
+        error_log <%= @data_root %>/nginx-logs/coursys-https.error.log warn;
+
+        include /etc/nginx/sites-available/_common.conf;
+}
+
+
+server {
+        listen 80;
+        access_log <%= @data_root %>/nginx-logs/coursys-http.access.log;
+        error_log <%= @data_root %>/nginx-logs/coursys-http.error.log warn;
+        return 301 https://<%= @domain_name %>:<%= @https_port %>$request_uri;
+}
+
+server {
+        # redirect IP address to domain name URL (shouldn't happen, and cert will be invalid)
+        server_name <%= @ip_address %>;
+        listen 443 ssl;
+        ssl_certificate      /etc/nginx/insecure.crt;
+        ssl_certificate_key  /etc/nginx/insecure.key;
+
+        access_log <%= @data_root %>/nginx-logs/coursys-ipaddr.access.log;
+        error_log <%= @data_root %>/nginx-logs/coursys-ipaddr.error.log warn;
+
+        return 301 https://<%= @domain_name %>:<%= @https_port %>$request_uri;
+}

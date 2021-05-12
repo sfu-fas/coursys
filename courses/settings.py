@@ -158,6 +158,7 @@ if 'test' in sys.argv[1:]:
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca', 'coursys.sfu.ca', 'fasit.sfu.ca'])
 if DEBUG:
     ALLOWED_HOSTS.append('localhost')
+ALLOWED_HOSTS.extend(getattr(localsettings, 'MORE_ALLOWED_HOSTS', []))
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 1209600 # 2 weeks
@@ -194,14 +195,14 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'NAME': 'coursys',
             'USER': 'coursysuser',
             'PASSWORD': 'coursyspassword',
-            'HOST': 'localhost',
+            'HOST': '127.0.0.1',
             'PORT': 3306,
         })
 
     DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
     DATABASES['default'].update(getattr(secrets, 'DB_CONNECTION', {}))
-    if getattr(secrets, 'MORE_DATABASES', None):
-        DATABASES.update(secrets.MORE_DATABASES)
+    if getattr(localsettings, 'MORE_DATABASES', None):
+        DATABASES.update(localsettings.MORE_DATABASES)
 
     INSTALLED_APPS = INSTALLED_APPS + ('dbdump',)
 
@@ -222,7 +223,11 @@ else:
 
 # static file settings
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static', 'static')
+if 'COURSYS_STATIC_DIR' in os.environ:
+    STATIC_ROOT = os.path.join(os.environ['COURSYS_STATIC_DIR'], 'static')
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static', 'static')
+
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -257,7 +262,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
         },
     }
     HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
-    DB_BACKUP_DIR = '/home/coursys/db_backup'
+    DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', os.path.join(os.environ.get('COURSYS_DATA_ROOT', '.'), 'db_backup'))
 
 else:
     CACHES = { 'default': {
@@ -275,7 +280,7 @@ else:
         },
     }
     HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
-    DB_BACKUP_DIR = os.path.join(BASE_DIR, 'db_backup')
+    DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', os.path.join(BASE_DIR, 'db_backup'))
 
 HAYSTACK_SIGNAL_PROCESSOR = getattr(localsettings, 'HAYSTACK_SIGNAL_PROCESSOR', HAYSTACK_SIGNAL_PROCESSOR)
 HAYSTACK_CONNECTIONS = getattr(localsettings, 'HAYSTACK_CONNECTIONS', HAYSTACK_CONNECTIONS)
@@ -289,22 +294,31 @@ if DEPLOY_MODE == 'production':
     SUBMISSION_PATH = '/data/submitted_files'
     BASE_ABS_URL = "https://coursys.sfu.ca"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
-    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS'),
+    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS', ''),
             'db': 'coursesvn', 'port': 4000}
 
+elif DEPLOY_MODE == 'proddev':
+    MIDDLEWARE = ['courselib.middleware.MonitoringMiddleware'] + MIDDLEWARE
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/data/submitted_files')
+    BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "https://localhost:8443")
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    SVN_DB_CONNECT = None
+
 else:
-    SUBMISSION_PATH = "submitted_files"
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', "submitted_files")
     BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "http://localhost:8000")
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # todo: could use Malm or something
     SVN_DB_CONNECT = None
 
 
 
-
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
 USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
 if USE_CELERY:
-    AMPQ_PASSWORD = getattr(secrets, 'AMPQ_PASSWORD', 'supersecretpassword')
+    AMPQ_PASSWORD = getattr(secrets, 'RABBITMQ_PASSWORD', 'supersecretpassword')
     if DEPLOY_MODE != 'devel' or getattr(localsettings, 'DEPLOYED_CELERY_SETTINGS', False):
         # use AMPQ in production, and move email sending to Celery
         CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
@@ -347,7 +361,9 @@ MAX_SUBMISSION_SIZE = 30000 # kB
 CAS_SERVER_URL = "https://cas.sfu.ca/cas/"
 CAS_VERSION = '3'
 CAS_LOGIN_MSG = None
-EMAIL_HOST = 'localhost'
+EMAIL_HOST = getattr(localsettings, 'EMAIL_HOST', 'mailgate.sfu.ca')
+EMAIL_PORT = getattr(localsettings, 'EMAIL_PORT', 465)
+EMAIL_USE_SSL = getattr(localsettings, 'EMAIL_USE_SSL', True)
 DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"

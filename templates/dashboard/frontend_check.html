@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Frontend Check{% endblock %}
+{% block h1 %}Frontend Check{% endblock %}
+
+{% block headextra %}
+    <link rel="stylesheet" href="{% static 'codemirror/lib/codemirror.css' %}" />
+    <link rel="stylesheet" href="{% static 'codemirror/theme/eclipse.css' %}" />
+    <script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
+    <script src="{% static 'codemirror/mode/python/python.js' %}"></script>
+    <script src="{% static 'js/quizzes.js' %}"></script>
+
+    <link rel="stylesheet" href="{% static 'fullcalendar/dist/fullcalendar.min.css' %}" />
+    <script src="{% static 'moment/moment.js' %}"></script>
+    <script src="{% static 'fullcalendar/dist/fullcalendar.min.js' %}"></script>
+
+    {% include 'pages/markup_view_head.html' %}
+    {% include 'pages/markup_edit_head.html' %}
+
+    <script nonce="{{ CSP_NONCE }}">
+    $(document).ready(function() {
+        start_codemirror();
+
+        $('#datatable').dataTable({
+            "bPaginate": false,
+            "bJQueryUI": true,
+            "aaSorting": [[0, "asc"]],
+        });
+
+        $('#calendar').fullCalendar({
+            header: {
+              left: 'prev,next today',
+              center: 'title',
+              right: 'month,agendaWeek,agendaDay'
+            },
+            events: {
+              url: '{% url "calendar:calendar_data" %}',
+              cache: true,
+              ignoreTimezone: false,
+            },
+            slotMinutes: 60,
+        })
+
+        $("div.collapse h4").collapsible();
+        $("div.inital-uncollapse h4").trigger('expand');
+    } );
+    </script>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li>Frontend Check</li>{% endblock %}
+
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<p>This page contains various sanity checks on frontend libraries and dependancies, which are not covered by our unit tests.</p>
+
+<section><h3>Are You Sure?</h3>
+<p>Typing something on this form and trying to navigate away from this page should cause an "are you sure?" warning.</p>
+    <blockquote>
+        <form action="" method="post" class="close-warn">
+            <input type="text" name="foo" />
+        </form>
+    </blockquote>
+</section>
+
+
+<section><h3>Collapsibles</h3>
+<div id="newsitems">
+<p>This should be a collapsible section (initially collapsed):</p>
+    <blockquote>
+    <div class="collapse">
+        <h4>Collapsible Section 1</h4>
+        <p>The contents</p>
+    </div>
+    </blockquote>
+<p>This should be a collapsible section (initially uncollapsed):</p>
+    <blockquote>
+    <div class="collapse inital-uncollapse">
+        <h4>Collapsible Section 2</h4>
+        <p>The contents</p>
+    </div>
+    </blockquote>
+</div>
+</section>
+
+
+<section><h3>Font Awesome</h3>
+<ul class="bulleted">
+<li>This should be a Font Awesome info icon: <i class="fa fa-info-circle"></i> [checks basic Font Awesome display]</li>
+<li>This should be a Font Awesome info icon: <i class="fa fa-info-circle collapsible-heading"></i> [checks Font Awesome bold display]</li>
+</ul>
+</section>
+
+<section><h3>CodeMirror</h3>
+<p>This should be a CodeMirror syntax-highlighted entry (with Python highlighting):</p>
+<blockquote>
+    <form action="">
+        <textarea class="code-answer" cols="20" rows="3" data-mode="python">def f(x):
+    return x+1</textarea>
+    </form>
+</blockquote>
+</section>
+
+<section><h3>DataTables</h3>
+<p>This should be a DataTables table:</p>
+<blockquote>
+<table id="datatable">
+    <thead><tr><th scope="col">Column 1</th><th scope="col">Column 2</th></tr></thead>
+    <tbody>
+        <tr><td>One</td><td>Two</td></tr>
+        <tr><td>Three</td><td>Four</td></tr>
+        <tr><td>Five</td><td>Six</td></tr>
+    </tbody>
+</table>
+</blockquote>
+</section>
+
+
+<section><h3>DataTables</h3>
+<p>This should be a calendar:</p>
+<blockquote><div id='calendar' style="width:60%"></div></blockquote>
+</section>
+
+<section><h3>MathJax</h3>
+<div class="wikicontents tex2jax_process">
+<p>This should be an inline LaTeX formula with MathJax: \(\frac{x+1}{2}\). And this should be a display formula: \[\frac{x+1}{2}\]</p>
+</div>
+</section>
+
+
+<section><h3>Highlight.js</h3>
+<div class="wikicontents">
+<p>This should be syntax-highlighted Python code, with highlight.js:</p>
+<pre lang="python"><code>def f(x):
+    return x+1
+</code></pre></div>
+</section>
+
+
+<section><h3>TinyMCE</h3>
+    <p>This should toggle between a TinyMCE WYSIWYG editor, and a simple textarea when changing the selection.</p>
+    <div class="markup-content">
+    <form action="">
+        <select>
+            <option value="html-wysiwyg" selected="selected">TinyMCE</option>
+            <option value="markdown">Markdown</option>
+        </select>
+        <textarea cols="30" rows="10"></textarea>
+    </form>
+    </div>
+</section>
+
+
+{% endblock %}

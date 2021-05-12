@@ -1,0 +1,34 @@
+# Name of nodes to start
+CELERYD_NODES="batch fast email photo sims"
+
+# Absolute or relative path to the 'celery' command:
+CELERY_BIN="python3 /usr/local/bin/celery"
+
+# App instance to use
+CELERY_APP="courses"
+#CELERY_APP="proj.tasks:app"
+
+# How to call manage.py
+CELERYD_MULTI="multi"
+
+# Extra command-line arguments to the worker
+CELERYD_OPTS="-Q:batch batch -Q:fast fast -Q:email email -Q:photo photo -Q:sims sims -c 2 -c:photo 5 -c:sims 2"
+
+# - %n will be replaced with the first part of the nodename.
+# - %I will be replaced with the current child process index
+#   and is important when using the prefork pool to avoid race conditions.
+CELERYD_PID_FILE="/opt/run/celery/%n.pid"
+CELERYD_LOG_FILE="<%= @data_root %>/logs/celery-%n%I.log"
+CELERYD_LOG_LEVEL="INFO"
+
+# you may wish to add these options for Celery Beat
+CELERYBEAT_PID_FILE="/opt/run/celery/beat.pid"
+CELERYBEAT_LOG_FILE="<%= @data_root %>/logs/celery-beat.log"
+
+
+LD_LIBRARY_PATH=/home/coursys/sqllib/lib64
+export LD_LIBRARY_PATH
+LANG="en_CA.UTF-8" # DB2 doesn't return UTF-8 strings otherwise
+export LANG
+
+COURSYS_DATA_ROOT="<%= @data_root %>"
