@@ -41,6 +41,7 @@ ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
     ('Phil Boutros', 'philb@sfu.ca'),
     ('sumo Kindersley', 'sumo@cs.sfu.ca'),
+    ('FAS Software Developer', 'fas_developer@sfu.ca'),
 )
 SERVER_EMAIL = 'ggbaker@sfu.ca'
 
