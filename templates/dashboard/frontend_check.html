@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="{% static 'codemirror/theme/eclipse.css' %}" />
     <script src="{% static 'codemirror/lib/codemirror.js' %}"></script>
     <script src="{% static 'codemirror/mode/python/python.js' %}"></script>
+    <script src="{% static '@fingerprintjs/fingerprintjs/dist/fingerprint2.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static "styled-notifications/dist/notifications.css" %}" />
+    <script src="{% static 'styled-notifications/dist/notifications.js' %}"></script>
     <script src="{% static 'js/quizzes.js' %}"></script>
 
     <link rel="stylesheet" href="{% static 'fullcalendar/dist/fullcalendar.min.css' %}" />
@@ -21,6 +24,7 @@
     <script nonce="{{ CSP_NONCE }}">
     $(document).ready(function() {
         start_codemirror();
+        get_fingerprint();
 
         $('#datatable').dataTable({
             "bPaginate": false,
@@ -44,6 +48,13 @@
 
         $("div.collapse h4").collapsible();
         $("div.inital-uncollapse h4").trigger('expand');
+
+        $("#notify-warn").click(function() {
+            window.createNotification({
+              theme: 'warning',
+              showDuration: 5000
+            })({ message: 'You have been warned!' });
+        });
     } );
     </script>
 {% endblock %}
@@ -86,6 +97,15 @@
 </div>
 </section>
 
+
+<section><h3>Fingerprint</h3>
+<p>This should be filled in with a JSON-encoded browser fingerprint shortly after page load:</p>
+<blockquote>
+    <form action="">
+        <textarea id="fingerprint" cols="40" rows="4"></textarea>
+    </form>
+</blockquote>
+</section>
 
 <section><h3>Font Awesome</h3>
 <ul class="bulleted">
@@ -137,6 +157,10 @@
 <pre lang="python"><code>def f(x):
     return x+1
 </code></pre></div>
+</section>
+
+<section><h3>Notifications</h3>
+<p>Clicking this buton should produce a notification popup which disappears after 5 seconds: <button id="notify-warn">Warn Me</button></p>
 </section>
 
 
