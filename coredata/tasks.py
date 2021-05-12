@@ -3,6 +3,7 @@ from typing import Optional
 from django.conf import settings
 
 from coredata.queries import SIMSConn, SIMSProblem
+from courselib.search import haystack_update_index, haystack_rebuild_index
 from courselib.svn import update_repository
 from django.core.management import call_command
 from courselib.celerytasks import task, periodic_task
@@ -132,6 +133,15 @@ def expiring_roles():
     Role.purge_expired()
 
 
+@task()
+def haystack_update():
+    haystack_update_index()
+
+
+@task
+def haystack_rebuild():
+    haystack_rebuild_index()
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -197,6 +207,7 @@ def import_task():
         #get_import_offerings_task(),
         #import_combined_sections.si(),
         #send_report.si()
+        haystack_rebuild(),
     ]
 
     chain(*tasks).apply_async()

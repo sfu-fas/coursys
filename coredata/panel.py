@@ -198,11 +198,14 @@ def deploy_checks(request=None):
     if settings.USE_CELERY:
         from coredata.tasks import check_sims_task
         t = check_sims_task.apply_async()
-        res = t.get(timeout=5)
-        if res:
-            failed.append(('Celery Reporting DB', res))
-        else:
-            passed.append(('Celery Reporting DB', 'okay'))
+        try:
+            res = t.get(timeout=5)
+            if res:
+                failed.append(('Celery Reporting DB', res))
+            else:
+                passed.append(('Celery Reporting DB', 'okay'))
+        except celery.exceptions.TimeoutError:
+            failed.append(('Celery Reporting DB', "didn't get result before timeout: maybe reporting database is slow?"))
 
     # compression enabled?
     if settings.COMPRESS_ENABLED:
