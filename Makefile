@@ -12,24 +12,28 @@ devel-celery:
 # For production-like development (possibly in a VM)
 
 proddev-start-all:
+	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
 	${SYSTEMCTL} start nginx
 	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml up -d
 	${SYSTEMCTL} start gunicorn
 	${SYSTEMCTL} start celery
 	${SYSTEMCTL} start celerybeat
 proddev-restart-all:
+	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
 	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml restart
 	${SYSTEMCTL} restart gunicorn
 	${SYSTEMCTL} restart celery
 	${SYSTEMCTL} restart celerybeat
 	${SYSTEMCTL} restart nginx
 proddev-stop-all:
+	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
 	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml stop
 	${SYSTEMCTL} stop gunicorn
 	${SYSTEMCTL} stop celery
 	${SYSTEMCTL} stop celerybeat
 	${SYSTEMCTL} stop nginx
 proddev-rm-all:
+	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
 	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml rm
 
 # Production server tasks
@@ -55,15 +59,15 @@ pull:
 
 # New code/configuration tasks
 
-new-code:
+new-code-lite:
 	${SYSTEMCTL} reload gunicorn
 	${SYSTEMCTL} restart celery
 	${SYSTEMCTL} restart celerybeat
 
-new-code-static:
+new-code:
 	${SUCOURSYS} npm install
 	${SUCOURSYS} python3 manage.py collectstatic --no-input
-	make new-code
+	make new-code-lite
 
 migrate-safe:
 	${SUCOURSYS} python3 manage.py backup_db
@@ -72,28 +76,32 @@ migrate-safe:
 
 503:
 	${SUCOURSYS} touch ${COURSYS_DIR}/503
+	${SYSTEMCTL} stop celery
+	${SYSTEMCTL} stop celerybeat
 rm503:
 	${SUCOURSYS} rm ${COURSYS_DIR}/503
+	${SYSTEMCTL} start celery
+	${SYSTEMCTL} start celerybeat
 
 rebuild:
 	sudo apt update && sudo apt upgrade
 	sudo pip3 install -r ${COURSYS_DIR}/requirements.txt
-	cd ${COURSYS_DIR} && ${SUCOURSYS} npm install
-	cd ${COURSYS_DIR} && ${SUCOURSYS} python3 manage.py collectstatic --no-input
+	make new-code
 
 rebuild-hardcore:
+	make production-chef
 	${SYSTEMCTL} daemon-reload
 	${SYSTEMCTL} stop ntp && sudo ntpdate pool.ntp.org && ${SYSTEMCTL} start ntp
-	cd ${COURSYS_DIR} && ${DOCKERCOMPOSE} pull
+	${DOCKERCOMPOSE} pull
 	make 503
-	cd ${COURSYS_DIR} && ${DOCKERCOMPOSE} restart
+	${DOCKERCOMPOSE} restart
 	${SUCOURSYS} rm -rf ${COURSYS_STATIC_DIR}/static
 	make rebuild
 	make rm503
 	${SUCOURSYS} docker system prune -f
 
 production-chef:
-	cd ${COURSYS_DIR} && sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list-production.json
+	sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list-production.json
 
 # Utility helpers
 
