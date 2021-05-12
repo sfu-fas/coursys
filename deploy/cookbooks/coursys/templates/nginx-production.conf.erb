@@ -25,8 +25,8 @@ server {
         server_name fasit.sfu.ca;
         listen 443 ssl http2;
         keepalive_timeout   70;
-        ssl_certificate      /etc/letsencrypt/live/<%= @domain_name %>/fullchain.pem;
-        ssl_certificate_key  /etc/letsencrypt/live/<%= @domain_name %>/privkey.pem;
+        ssl_certificate      /etc/letsencrypt/live/fasit.sfu.ca/fullchain.pem;
+        ssl_certificate_key  /etc/letsencrypt/live/fasit.sfu.ca/privkey.pem;
 
         access_log <%= @data_root %>/nginx-logs/fasit-https.access.log;
         error_log <%= @data_root %>/nginx-logs/fasit-https.error.log warn;
