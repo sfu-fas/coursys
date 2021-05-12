@@ -24,9 +24,9 @@ def _time_delta_to_string(time):
     td = datetime.datetime.now() - time
     days, hours, minutes, seconds = td.days, td.seconds / 3600, (td.seconds / 60) % 60, td.seconds
     
-    if days is 0:
-        if hours is 0:
-            if minutes is 0:
+    if days == 0:
+        if hours == 0:
+            if minutes == 0:
                 return '%d seconds ago' % seconds
             elif minutes is 1:
                 return '1 minute ago'
@@ -36,7 +36,7 @@ def _time_delta_to_string(time):
             return '1 hour ago'
         else:
             return '%d hours ago' % hours
-    elif days is 1:
+    elif days == 1:
         return '1 day ago'
     elif days < 8:
         return '%d days ago' % days
