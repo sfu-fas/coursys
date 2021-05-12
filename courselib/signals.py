@@ -7,7 +7,8 @@ get_model = apps.get_model
 import logging
 logger = logging.getLogger(__name__)
 
-class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
+
+class DISABLED_SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
     """
     Index changes in real time, but in the specific way we need them updated.
     """

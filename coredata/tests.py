@@ -1,13 +1,14 @@
 from django.test import TestCase
+from haystack.query import SearchQuerySet
+
 from coredata.models import CourseOffering, Semester, Person, SemesterWeek, \
                             Member, Role, Unit, EnrolmentHistory, ROLE_CHOICES
 
 from django.urls import reverse
-from django.core.management import call_command
 
+from courselib.search import haystack_update_index, haystack_clear_index, haystack_rebuild_index
 from courselib.testing import basic_page_tests, validate_content, Client, \
                               TEST_COURSE_SLUG, TEST_ROLE_EXPIRY
-#from django.conf import settings
 
 from django.db import IntegrityError
 from datetime import date, datetime, timedelta
@@ -343,7 +344,7 @@ class SlowCoredataTest(TestCase):
     
     def test_ajax(self):
         client = Client()
-        call_command('update_index', 'coredata', verbosity=0) # make sure we have the same data in DB and haystack
+        haystack_update_index() # make sure we have the same data in DB and haystack
 
         # test person autocomplete
         client.login_user("dzhao")
@@ -407,6 +408,52 @@ class EnrolmentHistoryTest(TestCase):
         self.assertEqual(eh2[0].enrl_vals, (20, 25, 7))
         self.assertEqual(eh2[1].date, date(2017, 1, 5))
         self.assertEqual(eh2[1].enrl_vals, (20, 30, 7))
+
+
+class SearchTest(TestCase):
+    fixtures = ['basedata', 'coredata']
+
+    def test_search_updates(self):
+        """
+        Make sure indexing in Haystack is working as we expect.
+        """
+        fname = 'TestStudentUnusualName'
+        s, c = create_offering()
+
+        # clear the search index and query: we shouldn't find anything.
+        haystack_clear_index()
+        results = SearchQuerySet().models(Member).filter(text__fuzzy=fname)
+        self.assertEqual(results.count(), 0)
+
+        # add something searchable and query: we don't expect it to appear in real-time
+        p = Person(last_name='Test', first_name=fname, userid='0aaa99999', emplid=123456)
+        p.save()
+        m = Member(person=p, offering=c, role='STUD')
+        m.save()
+
+        results = SearchQuerySet().models(Member).filter(text__fuzzy=fname)
+        self.assertEqual(results.count(), 0)
+
+        # ... but after update_index.we do.
+        haystack_update_index()
+        results = SearchQuerySet().models(Member).filter(text__fuzzy=fname)
+        self.assertEqual(results.count(), 1)
+
+        # same for removing from the index.
+        m.role = 'DROP'
+        m.save()
+        results = SearchQuerySet().models(Member).filter(text__fuzzy=fname)
+        self.assertEqual(results.count(), 1)
+
+        # update_index doesn't detect a data change that excludes the object from the index_queryset
+        haystack_update_index()
+        results = SearchQuerySet().models(Member).filter(text__fuzzy=fname)
+        self.assertEqual(results.count(), 1)
+
+        # but rebuild_index will fix that up.
+        haystack_rebuild_index()
+        results = SearchQuerySet().models(Member).filter(text__fuzzy=fname)
+        self.assertEqual(results.count(), 0)
 
 
 class DependencyTest(TestCase):

@@ -265,7 +265,6 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'TIMEOUT': 60,
         },
     }
-    HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
     DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', os.path.join(os.environ.get('COURSYS_DATA_ROOT', '.'), 'db_backup'))
 
 else:
@@ -283,10 +282,10 @@ else:
             'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
         },
     }
-    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
     DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', os.path.join(BASE_DIR, 'db_backup'))
 
-HAYSTACK_SIGNAL_PROCESSOR = getattr(localsettings, 'HAYSTACK_SIGNAL_PROCESSOR', HAYSTACK_SIGNAL_PROCESSOR)
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
+HAYSTACK_SIGNAL_PROCESSOR = getattr(localsettings, 'HAYSTACK_SIGNAL_PROCESSOR', 'haystack.signals.BaseSignalProcessor')
 HAYSTACK_CONNECTIONS = getattr(localsettings, 'HAYSTACK_CONNECTIONS', HAYSTACK_CONNECTIONS)
 #HAYSTACK_SILENTLY_FAIL = False
 
