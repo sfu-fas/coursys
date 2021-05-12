@@ -195,6 +195,15 @@ def deploy_checks(request=None):
     except Exception as e:
         failed.append(('Reporting DB connection', 'Generic exception, %s' % (str(e))))
 
+    if settings.USE_CELERY:
+        from coredata.tasks import check_sims_task
+        t = check_sims_task.apply_async()
+        res = t.get(timeout=5)
+        if res:
+            failed.append(('Celery Reporting DB', res))
+        else:
+            passed.append(('Celery Reporting DB', 'okay'))
+
     # compression enabled?
     if settings.COMPRESS_ENABLED:
         passed.append(('Asset compression enabled', 'okay'))

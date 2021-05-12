@@ -1,4 +1,8 @@
+from typing import Optional
+
 from django.conf import settings
+
+from coredata.queries import SIMSConn, SIMSProblem
 from courselib.svn import update_repository
 from django.core.management import call_command
 from courselib.celerytasks import task, periodic_task
@@ -92,6 +96,33 @@ def check_sims_connection():
     db.execute("SELECT descr FROM dbcsown.PS_TERM_TBL WHERE strm='1111'", ())
     if len(list(db)) == 0:
         raise SIMSProblem("Didn't get any data back from SIMS query.")
+
+
+@task(queue='sims')
+def check_sims_task() -> Optional[str]:
+    """
+    Check SIMS queries for sanity, when run in a Celery task. Returns None if successful, or an error message.
+    """
+    try:
+        db = SIMSConn()
+        db.execute("SELECT last_name FROM ps_names WHERE emplid=301355288", ())
+        result = list(db)
+        # whoever this is, they have non-ASCII in their name: let's hope they don't change it.
+        lname = result[0][0]
+        if not isinstance(lname, str):
+            return 'string result not a string: check Unicode decoding'
+        elif lname[1] != u'\u00e4':
+            return 'returned incorrectly-decoded Unicode'
+        elif len(result) == 0:
+            return 'query inexplicably returned nothing'
+        else:
+            return None
+    except SIMSProblem as e:
+        return 'SIMSProblem, %s' % (str(e),)
+    except ImportError:
+        return "couldn't import DB2 module"
+    except Exception as e:
+        return 'Generic exception, %s' % (str(e))
 
 
 @periodic_task(run_every=crontab(minute='30', hour='7', day_of_week='mon,thu'))
