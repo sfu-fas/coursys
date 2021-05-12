@@ -161,6 +161,7 @@ if deploy_mode != 'devel'
   end
   template "#{data_root}/config/celery-environment" do
     variables(
+      :coursys_user => username,
       :coursys_dir => coursys_dir,
       :username => username,
       :data_root => data_root,
