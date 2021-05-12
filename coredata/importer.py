@@ -19,7 +19,7 @@ import itertools, random
 
 today = datetime.date.today()
 past_cutoff = today - datetime.timedelta(days=30)
-future_cutoff = today + datetime.timedelta(days=110)
+future_cutoff = today + datetime.timedelta(days=140)
 
 
 @transaction.atomic
