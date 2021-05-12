@@ -32,3 +32,13 @@ LANG="en_CA.UTF-8" # DB2 doesn't return UTF-8 strings otherwise
 export LANG
 
 COURSYS_DATA_ROOT="<%= @data_root %>"
+
+# imitate ~/sqllib/db2profile
+DB2INSTANCE="<%= @coursys_user %>"
+DB2_HOME=/home/<%= @coursys_user %>/sqllib
+LD_LIBRARY_PATH=/home/<%= @coursys_user %>/sqllib/lib64:/home/<%= @coursys_user %>/sqllib/lib64/gskit:/home/<%= @coursys_user %>/sqllib/lib32
+DB2LIB=/home/<%= @coursys_user %>/sqllib/lib
+IBM_DB_DIR=/home/<%= @coursys_user %>/sqllib
+IBM_DB_HOME=/home/<%= @coursys_user %>/sqllib
+IBM_DB_INCLUDE=/home/<%= @coursys_user %>/sqllib/include
+IBM_DB_LIB=/home/<%= @coursys_user %>/sqllib/lib
