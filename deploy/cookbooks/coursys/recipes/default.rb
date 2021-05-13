@@ -10,7 +10,6 @@ user_home = "/home/#{username}/"
 python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.major, sys.version_info.minor))"`.strip
 python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
 data_root = '/opt'
-ip_address = node['ip_address'] || '127.0.0.1'
 rabbitmq_password = node['rabbitmq_password'] || 'supersecretpassword'
 
 raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
@@ -23,7 +22,7 @@ raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].includ
 #  notifies :run, 'execute[apt-get update]', :immediately
 #end
 execute 'apt-get update' do
-  action :run
+  action :nothing
 end
 execute 'apt-get upgrade' do
   command 'apt-get dist-upgrade -y'
@@ -223,6 +222,82 @@ if deploy_mode != 'devel'
     )
     notifies :restart, 'service[nginx]', :immediately
   end
+
+  # the different personalities of nginx that we can deploy...
+  if deploy_mode == 'proddev'
+    serve_names = [domain_name, 'localhost']
+    redirect_names = ['foo.bar']
+    https_port = '443'
+    hsts = false
+  end
+  if deploy_mode == 'demo'
+    serve_names = [domain_name]
+    redirect_names = []
+    https_port = '443'
+    hsts = true
+  end
+  if deploy_mode == 'production'
+    raise "We expect the canonical domain name to be coursys.sfu.ca here: adjust server_names if something changed." unless domain_name == 'coursys.sfu.ca'
+    serve_names = ['coursys.sfu.ca', 'fasit.sfu.ca']
+    redirect_names = ['coursys.cs.sfu.ca', 'courses.cs.sfu.ca']
+    https_port = '443'
+    hsts = true
+  end
+
+  if deploy_mode == 'proddev'
+    # In proddev, use the insecure keys. In all other cases, demand that someone get a proper key in place, outside this recipe.
+    for name in serve_names+redirect_names do
+      directory "/etc/letsencrypt/live/#{name}" do
+        recursive true
+      end
+      cookbook_file "/etc/letsencrypt/live/#{name}/fullchain.pem" do
+        source 'insecure.crt'
+        mode 0400
+      end
+      cookbook_file "/etc/letsencrypt/live/#{name}/privkey.pem" do
+        source 'insecure.key'
+        mode 0400
+      end
+    end
+  end
+
+  # create a partial config files /etc/nginx/sites-available/#{name}.conf for each domain name we handle
+  for name in serve_names do
+    template "/etc/nginx/sites-available/#{name}.conf" do
+      source 'nginx__server.conf.erb'
+      variables(
+        :domain_name => name,
+        :https_port => https_port,
+        :data_root => data_root,
+      )
+    end
+  end
+  for name in redirect_names do
+    template "/etc/nginx/sites-available/#{name}.conf" do
+      source 'nginx__redirect.conf.erb'
+      variables(
+        :domain_name => name,
+        :https_port => https_port,
+        :true_domain_name => domain_name,
+        :data_root => data_root,
+      )
+    end
+  end
+
+  # main nginx config
+  template "/etc/nginx/sites-available/default" do
+    source 'nginx.conf.erb'
+    variables(
+      :hsts => hsts,
+      :serve_names => serve_names,
+      :redirect_names => redirect_names,
+      :data_root => data_root,
+      :true_domain_name => domain_name,
+      :https_port => https_port,
+    )
+    notifies :restart, 'service[nginx]', :immediately
+  end
+
   # certbot renew: will fail when it runs if no certificate is in place
   cron "certbot" do
     user 'root'
@@ -232,50 +307,6 @@ if deploy_mode != 'devel'
     command "certbot renew"
   end
 end
-
-if deploy_mode == 'proddev'
-  # proddev-specific nginx config
-  template "/etc/nginx/sites-available/default" do
-    source 'nginx-proddev.conf.erb'
-    variables(
-      :coursys_dir => coursys_dir,
-      :data_root => data_root,
-      :domain_name => domain_name,
-      :https_port => '8443',
-      :ip_address => ip_address,
-    )
-    notifies :restart, 'service[nginx]', :immediately
-  end
-end
-if deploy_mode == 'demo'
-  # demo-specific nginx config
-  template "/etc/nginx/sites-available/default" do
-    source 'nginx-demo.conf.erb'
-    variables(
-      :coursys_dir => coursys_dir,
-      :data_root => data_root,
-      :domain_name => domain_name,
-      :https_port => '443',
-      :ip_address => ip_address,
-    )
-    notifies :restart, 'service[nginx]', :immediately
-  end
-end
-if deploy_mode == 'production'
-  # production nginx config
-  template "/etc/nginx/sites-available/default" do
-    source 'nginx-production.conf.erb'
-    variables(
-      :coursys_dir => coursys_dir,
-      :data_root => data_root,
-      :domain_name => domain_name,
-      :https_port => '443',
-      :ip_address => ip_address,
-    )
-    notifies :restart, 'service[nginx]', :immediately
-  end
-end
-
 
 
 if deploy_mode != 'devel'
