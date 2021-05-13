@@ -5,7 +5,7 @@ ubuntu_release = 'focal'
 CONFIG = {
     'username' => 'vagrant', # username to deploy under in the VM image
     'coursys_dir' => '/coursys',
-    'coursys_branch' => 'deployed-2020',
+    'coursys_branch' => '', # ignored: uses branch in current directory
     'rabbitmq_password' => 'the_rabbitmq_password',
     
     #'deploy_mode' => 'devel',
