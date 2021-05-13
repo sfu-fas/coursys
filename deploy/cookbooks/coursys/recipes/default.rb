@@ -264,22 +264,25 @@ if deploy_mode != 'devel'
   # create a partial config files /etc/nginx/sites-available/#{name}.conf for each domain name we handle
   for name in serve_names do
     template "/etc/nginx/sites-available/#{name}.conf" do
-      source 'nginx__server.conf.erb'
-      variables(
-        :domain_name => name,
-        :https_port => https_port,
-        :data_root => data_root,
-      )
-    end
-  end
-  for name in redirect_names do
-    template "/etc/nginx/sites-available/#{name}.conf" do
-      source 'nginx__redirect.conf.erb'
+      source 'nginx-site.conf.erb'
       variables(
         :domain_name => name,
         :https_port => https_port,
         :true_domain_name => domain_name,
         :data_root => data_root,
+        :serve => true, # actually serve pages on this name
+      )
+    end
+  end
+  for name in redirect_names do
+    template "/etc/nginx/sites-available/#{name}.conf" do
+      source 'nginx-site.conf.erb'
+      variables(
+        :domain_name => name,
+        :https_port => https_port,
+        :true_domain_name => domain_name,
+        :data_root => data_root,
+        :serve => false, # don't serve pages; redirect to https://domain_name
       )
     end
   end
@@ -289,8 +292,7 @@ if deploy_mode != 'devel'
     source 'nginx.conf.erb'
     variables(
       :hsts => hsts,
-      :serve_names => serve_names,
-      :redirect_names => redirect_names,
+      :all_names => serve_names + redirect_names,
       :data_root => data_root,
       :true_domain_name => domain_name,
       :https_port => https_port,
