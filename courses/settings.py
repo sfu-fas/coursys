@@ -156,7 +156,10 @@ if 'test' in sys.argv[1:]:
         MIGRATION_MODULES[m] = None
 
 # security-related settings
-ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca', 'coursys.sfu.ca', 'fasit.sfu.ca'])
+CANONICAL_HOST = 'coursys.sfu.ca'  # the one true hostname to forward to
+SERVE_HOSTS = ['coursys.sfu.ca', 'fasit.sfu.ca']  # hosts where we actually serve pages
+REDIRECT_HOSTS = ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca']  # hosts that actually forward to the coursys.sfu.ca domain
+ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', SERVE_HOSTS + REDIRECT_HOSTS)
 if DEBUG:
     ALLOWED_HOSTS.append('localhost')
 ALLOWED_HOSTS.extend(getattr(localsettings, 'MORE_ALLOWED_HOSTS', []))
