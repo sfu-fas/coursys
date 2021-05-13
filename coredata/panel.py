@@ -302,8 +302,9 @@ def deploy_checks(request=None):
     if settings.DEPLOY_MODE == 'production':
         production_host_fails = 0
         for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
+            # check HTTPS serving/redirect
             try:
-                url = 'https://' + host + reverse('docs:list_docs')
+                url = 'https://' + host + reverse('docs:list_docs')  # must be a URL that doesn't require auth
                 resp = requests.get(url, allow_redirects=False, timeout=5)
                 if host in settings.SERVE_HOSTS and resp.status_code != 200:
                     failed.append(('HTTPS Serving', 'expected 200 okay, but got %i at %s' % (resp.status_code, url)))
@@ -316,6 +317,17 @@ def deploy_checks(request=None):
                 production_host_fails += 1
             except requests.exceptions.RequestException:
                 failed.append(('HTTPS Serving', 'unable to connect to request %s' % (url,)))
+                production_host_fails += 1
+
+            # check HTTP redirect
+            try:
+                url = 'http://' + host + reverse('docs:list_docs')  # must be a URL that doesn't require auth
+                resp = requests.get(url, allow_redirects=False, timeout=5)
+                if resp.status_code != 301:
+                    failed.append(('HTTP Serving', 'expected 301 redirect to https://, but got %i at %s' % (resp.status_code, url)))
+                    production_host_fails += 1
+            except requests.exceptions.RequestException:
+                failed.append(('HTTP Serving', 'unable to connect to request %s' % (url,)))
                 production_host_fails += 1
 
         if production_host_fails == 0:
