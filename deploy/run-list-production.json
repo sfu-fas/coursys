@@ -4,6 +4,5 @@
   "external_hostname": "coursys.sfu.ca",
   "coursys_branch": "deployed-2020",
   "run_list": ["coursys"],
-  "ip_address": "142.58.22.31",
   "rabbitmq_password": "the_rabbitmq_password"
 }
