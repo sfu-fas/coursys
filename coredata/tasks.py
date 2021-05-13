@@ -207,7 +207,7 @@ def import_task():
         #get_import_offerings_task(),
         #import_combined_sections.si(),
         #send_report.si()
-        haystack_rebuild(),
+        haystack_rebuild.si(),
     ]
 
     chain(*tasks).apply_async()
