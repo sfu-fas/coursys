@@ -114,6 +114,38 @@ def deploy_checks(request=None):
         else:
             failed.append(('Unicode handling in database', 'non-BMP character not stored correctly'))
 
+    # check that all database tables are utf8mb4, if mysql
+    if settings.DATABASES['default']['ENGINE'].endswith('.mysql'):
+        from django.apps import apps
+        from django.db import connection
+
+        CORRECT_CHARSET_COLLATION = ('utf8mb4', 'utf8mb4_unicode_ci')
+        db_name = settings.DATABASES['default']['NAME']
+
+        with connection.cursor() as cursor:
+            # check database defaults
+            cursor.execute("SELECT @@character_set_database, @@collation_database;")
+            if cursor.fetchone() != CORRECT_CHARSET_COLLATION:
+                failed.append(('MySQL database charset',
+                               'database default CHARACTER SET and COLLATION incorrect: consider "ALTER DATABASE %s CHARACTER SET %s COLLATE %s;"'
+                               % (db_name, CORRECT_CHARSET_COLLATION[0], CORRECT_CHARSET_COLLATION[1])))
+
+            # check each table
+            table_names = [model._meta.db_table for model in apps.get_models()]
+            # inspect table charset and collations, adapted from https://stackoverflow.com/a/1049958/6871666
+            cursor.execute('''SELECT T.table_name, CCSA.character_set_name, CCSA.collation_name
+                FROM information_schema.`TABLES` T,
+                    information_schema.`COLLATION_CHARACTER_SET_APPLICABILITY` CCSA
+                WHERE CCSA.collation_name=T.table_collation
+                    AND T.table_schema=%s
+                    AND T.table_name IN %s
+            ''', (db_name, table_names))
+            for table, charset, collation in cursor.fetchall():
+                if (charset, collation) != CORRECT_CHARSET_COLLATION:
+                    failed.append(('MySQL database charset',
+                                   'table %s has incorrect CHARACTER SET and COLLATION: consider "ALTER TABLE %s CHARACTER SET=%s COLLATE=%s;"'
+                                   % (table, table, CORRECT_CHARSET_COLLATION[0], CORRECT_CHARSET_COLLATION[1])))
+
     # Celery tasks
     celery_okay = False
     sims_task = None
