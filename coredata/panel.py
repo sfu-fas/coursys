@@ -119,16 +119,18 @@ def deploy_checks(request=None):
         from django.apps import apps
         from django.db import connection
 
-        CORRECT_CHARSET_COLLATION = ('utf8mb4', 'utf8mb4_unicode_ci')
+        CORRECT_CHARSET = 'utf8mb4'
+        CORRECT_COLLATION = 'utf8mb4_unicode_ci'
         db_name = settings.DATABASES['default']['NAME']
 
         with connection.cursor() as cursor:
             # check database defaults
             cursor.execute("SELECT @@character_set_database, @@collation_database;")
-            if cursor.fetchone() != CORRECT_CHARSET_COLLATION:
+            row = cursor.fetchone()
+            if row != (CORRECT_CHARSET, CORRECT_COLLATION):
                 failed.append(('MySQL database charset',
-                               'database default CHARACTER SET and COLLATION incorrect: consider "ALTER DATABASE %s CHARACTER SET %s COLLATE %s;"'
-                               % (db_name, CORRECT_CHARSET_COLLATION[0], CORRECT_CHARSET_COLLATION[1])))
+                               'database default CHARACTER SET and COLLATION incorrect (it is %s): consider "ALTER DATABASE %s CHARACTER SET %s COLLATE %s;"'
+                               % (row, db_name, CORRECT_CHARSET, CORRECT_COLLATION)))
 
             # check each table
             table_names = [model._meta.db_table for model in apps.get_models()]
@@ -141,10 +143,21 @@ def deploy_checks(request=None):
                     AND T.table_name IN %s
             ''', (db_name, table_names))
             for table, charset, collation in cursor.fetchall():
-                if (charset, collation) != CORRECT_CHARSET_COLLATION:
+                if (charset, collation) != (CORRECT_CHARSET, CORRECT_COLLATION):
                     failed.append(('MySQL database charset',
                                    'table %s has incorrect CHARACTER SET and COLLATION: consider "ALTER TABLE %s CHARACTER SET=%s COLLATE=%s;"'
-                                   % (table, table, CORRECT_CHARSET_COLLATION[0], CORRECT_CHARSET_COLLATION[1])))
+                                   % (table, table, CORRECT_CHARSET, CORRECT_COLLATION)))
+
+            cursor.execute('''SELECT table_name, column_name, character_set_name, collation_name
+                FROM information_schema.`COLUMNS`
+                WHERE table_schema=%s
+                    AND (character_set_name IS NOT NULL OR collation_name IS NOT NULL)
+                    AND (character_set_name!=%s OR collation_name!=%s);
+                ''', (db_name, CORRECT_CHARSET, CORRECT_COLLATION))
+            for table, column, charset, collation in cursor.fetchall():
+                failed.append(('MySQL database charset',
+                               'table %s has incorrect CHARACTER SET and COLLATION on a column (%s and %s): consider "ALTER TABLE %s CONVERT TO CHARACTER SET %s COLLATE %s;"'
+                               % (table, table, charset, collation, CORRECT_CHARSET, CORRECT_COLLATION)))
 
     # Celery tasks
     celery_okay = False
