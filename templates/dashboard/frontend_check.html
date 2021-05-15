@@ -14,9 +14,9 @@
     <script src="{% static 'styled-notifications/dist/notifications.js' %}"></script>
     <script src="{% static 'js/quizzes.js' %}"></script>
 
-    <link rel="stylesheet" href="{% static 'fullcalendar/dist/fullcalendar.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'fullcalendar/main.min.css' %}" />
     <script src="{% static 'moment/moment.js' %}"></script>
-    <script src="{% static 'fullcalendar/dist/fullcalendar.min.js' %}"></script>
+    <script src="{% static 'fullcalendar/main.min.js' %}"></script>
 
     {% include 'pages/markup_view_head.html' %}
     {% include 'pages/markup_edit_head.html' %}
@@ -32,19 +32,14 @@
             "aaSorting": [[0, "asc"]],
         });
 
-        $('#calendar').fullCalendar({
-            header: {
-              left: 'prev,next today',
-              center: 'title',
-              right: 'month,agendaWeek,agendaDay'
-            },
+        var calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
             events: {
               url: '{% url "calendar:calendar_data" %}',
               cache: true,
               ignoreTimezone: false,
             },
-            slotMinutes: 60,
-        })
+        });
+        calendar.render();
 
         $("div.collapse h4").collapsible();
         $("div.inital-uncollapse h4").trigger('expand');

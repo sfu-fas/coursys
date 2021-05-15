@@ -1,4 +1,5 @@
 var MathJax = {
+  loader: {load: ['ui/safe']},
   displayAlign: "left",
   displayIndent: "2em",
   "HTML-CSS": { scale: 100 },

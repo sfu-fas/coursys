@@ -138,7 +138,7 @@ def haystack_update():
     haystack_update_index()
 
 
-@task
+@task()
 def haystack_rebuild():
     haystack_rebuild_index()
 
