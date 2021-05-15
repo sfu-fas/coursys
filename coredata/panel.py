@@ -157,7 +157,7 @@ def deploy_checks(request=None):
             for table, column, charset, collation in cursor.fetchall():
                 failed.append(('MySQL database charset',
                                'table %s has incorrect CHARACTER SET and COLLATION on a column (%s and %s): consider "ALTER TABLE %s CONVERT TO CHARACTER SET %s COLLATE %s;"'
-                               % (table, table, charset, collation, CORRECT_CHARSET, CORRECT_COLLATION)))
+                               % (table, charset, collation, table, CORRECT_CHARSET, CORRECT_COLLATION)))
 
     # Celery tasks
     celery_okay = False

@@ -52,10 +52,7 @@ restart-all:
 	${SYSTEMCTL} restart nginx
 
 pull:
-	${SUCOURSYS} cp deploy/run-list-production.json deploy/run-list-production.bak
-	${SUCOURSYS} git checkout -- deploy/run-list-production.json
 	${SUCOURSYS} git pull
-	${SUCOURSYS} cp deploy/run-list-production.bak deploy/run-list-production.json
 
 # New code/configuration tasks
 
@@ -89,19 +86,19 @@ rebuild:
 	make new-code
 
 rebuild-hardcore:
-	make production-chef
-	${SYSTEMCTL} daemon-reload
+	make chef
+	${SYSTEMCTL} daemon-reload # catches any changed service definitions
 	${SYSTEMCTL} stop ntp && sudo ntpdate pool.ntp.org && ${SYSTEMCTL} start ntp
-	${DOCKERCOMPOSE} pull
+	${DOCKERCOMPOSE} pull # update docker images
 	make 503
 	${DOCKERCOMPOSE} restart
-	${SUCOURSYS} rm -rf ${COURSYS_STATIC_DIR}/static
+	${SUCOURSYS} rm -rf ${COURSYS_STATIC_DIR}/static # to clear out any orphaned static files and freshen
 	make rebuild
 	make rm503
-	${SUCOURSYS} docker system prune -f
+	${SUCOURSYS} docker system prune -f # clear any orphaned docker images/containers
 
-production-chef:
-	sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list-production.json
+chef:
+	sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list.json
 
 # Utility helpers
 
