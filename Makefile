@@ -11,27 +11,15 @@ devel-celery:
 
 # For production-like development (possibly in a VM)
 
-proddev-start-all:
+proddev-start:
 	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
-	${SYSTEMCTL} start nginx
-	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml up -d
-	${SYSTEMCTL} start gunicorn
-	${SYSTEMCTL} start celery
-	${SYSTEMCTL} start celerybeat
-proddev-restart-all:
+	${DOCKERCOMPOSE} -f docker-compose-proddev.yml up -d
+proddev-restart:
 	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
-	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml restart
-	${SYSTEMCTL} restart gunicorn
-	${SYSTEMCTL} restart celery
-	${SYSTEMCTL} restart celerybeat
-	${SYSTEMCTL} restart nginx
-proddev-stop-all:
+	${DOCKERCOMPOSE} -f docker-compose-proddev.yml restart
+proddev-stop:
 	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
-	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml stop
-	${SYSTEMCTL} stop gunicorn
-	${SYSTEMCTL} stop celery
-	${SYSTEMCTL} stop celerybeat
-	${SYSTEMCTL} stop nginx
+	${DOCKERCOMPOSE} -f docker-compose-proddev.yml stop
 proddev-rm-all:
 	test `hostname` != 'coursys' && test ${COURSYS_DEPLOY_MODE} != 'production'
 	${DOCKERCOMPOSE} -f docker-compose.yml -f docker-compose-proddev.yml rm
@@ -108,3 +96,5 @@ shell:
 	${SUCOURSYS} python3 manage.py shell
 dbshell:
 	${SUCOURSYS} python3 manage.py dbshell
+backup_db:
+	${SUCOURSYS} python3 manage.py backup_db
