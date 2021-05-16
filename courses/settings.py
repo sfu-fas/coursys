@@ -343,7 +343,8 @@ if USE_CELERY:
     CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
     DJANGO_CELERY_BEAT_TZ_AWARE = USE_TZ
     CELERYD_TASK_SOFT_TIME_LIMIT = 1200
-    CELERY_ENABLE_UTC = True
+    CELERY_ENABLE_UTC = False
+    CELERY_TIMEZONE = TIME_ZONE
 
     CELERY_TASK_DEFAULT_QUEUE = 'batch'
     CELERY_TASK_QUEUES = { # any new queues should be reflected in the /etc/defaults/celery setup

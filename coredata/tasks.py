@@ -39,7 +39,7 @@ def ping(): # used to check that celery is alive
 def beat_test():
     set_beat_time()
 
-        
+
 def get_beat_time() -> int:
     """
     Retrieve most recent celery beat marker.
@@ -138,7 +138,8 @@ def haystack_update():
     haystack_update_index()
 
 
-@task()
+# purge and rebuild the search index occasionally to get any orphaned records
+@periodic_task(run_every=crontab(minute='0', hour='2', day_of_week='saturday'))
 def haystack_rebuild():
     haystack_rebuild_index()
 
@@ -207,7 +208,7 @@ def import_task():
         #get_import_offerings_task(),
         #import_combined_sections.si(),
         #send_report.si()
-        haystack_rebuild.si(),
+        haystack_update.si(),
     ]
 
     chain(*tasks).apply_async()

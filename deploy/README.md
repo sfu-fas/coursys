@@ -52,7 +52,8 @@ docker-compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
 ./manage.py migrate
 ./manage.py loaddata fixtures/*.json
 ./manage.py update_index
-make proddev-start-all
+make proddev-start
+make start-all
 ```
 
 

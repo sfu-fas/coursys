@@ -530,6 +530,7 @@ def crseid_offering_map(strm):
     '''
     Map things-from-SIMS to CourseOfferings we have, to lookup quickly later.
     '''
+    # TODO: evaluate this for .select_related
     return {(o.semester.name, "%06i" % (int(o.crse_id)), o.section): o
             for o in CourseOffering.objects.filter(semester__name=strm)}
 
