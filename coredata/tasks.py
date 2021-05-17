@@ -8,7 +8,7 @@ from courselib.svn import update_repository
 from django.core.management import call_command
 from courselib.celerytasks import task, periodic_task
 from celery.schedules import crontab
-from coredata.models import Role, Unit
+from coredata.models import Role, Unit, EnrolmentHistory
 from celery import Celery
 
 app = Celery(broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND)  # periodic tasks don't fire without app constructed
@@ -336,6 +336,8 @@ def daily_cleanup():
     # cleanup old similarity reports
     from submission.models.base import SimilarityResult
     SimilarityResult.cleanup_old()
+    # deduplicate EnrolmentHistory
+    EnrolmentHistory.deduplicate(start_date=datetime.date.today() - datetime.timedelta(days=30))
 
 
 @task(queue='sims')
