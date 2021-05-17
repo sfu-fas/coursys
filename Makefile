@@ -54,6 +54,9 @@ new-code:
 	${SUCOURSYS} python3 manage.py collectstatic --no-input
 	make new-code-lite
 
+clear-cache:
+	${SUCOURSYS} docker-compose restart memcached
+
 migrate-safe:
 	${SUCOURSYS} python3 manage.py backup_db
 	${SUCOURSYS} python3 manage.py migrate

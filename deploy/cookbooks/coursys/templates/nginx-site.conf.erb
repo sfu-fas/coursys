@@ -4,6 +4,7 @@ server {
         keepalive_timeout   70;
         ssl_certificate      /etc/letsencrypt/live/<%= @domain_name %>/fullchain.pem;
         ssl_certificate_key  /etc/letsencrypt/live/<%= @domain_name %>/privkey.pem;
+        ssl_trusted_certificate  /etc/letsencrypt/live/<%= @domain_name %>/chain.pem;
 
         access_log <%= @data_root %>/nginx-logs/<%= @domain_name %>-https.access.log;
         error_log <%= @data_root %>/nginx-logs/<%= @domain_name %>-https.error.log warn;
