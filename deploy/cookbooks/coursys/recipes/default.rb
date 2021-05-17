@@ -112,12 +112,22 @@ if deploy_mode != 'devel'
     creates "/etc/systemd/system/multi-user.target.wants/docker.service"
   end
 
-  for dir in ['', 'static', 'config', 'submitted_files', 'rabbitmq', 'elasticsearch', 'nginx-logs', 'mysql', 'logs', 'db_backup']
+  for dir in ['', 'static', 'config', 'rabbitmq', 'elasticsearch', 'nginx-logs', 'mysql', 'logs', 'db_backup']
     directory "#{data_root}/#{dir}" do
       owner username
       mode '0755'
       action :create
     end
+  end
+  directory "/data" do
+    owner 'root'
+    mode '0755'
+    action :create
+  end
+  directory "/data/submitted_files" do
+    owner username
+    mode '0755'
+    action :create
   end
 
   execute "django-static" do
