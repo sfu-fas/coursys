@@ -258,6 +258,10 @@ if deploy_mode != 'devel'
         source 'insecure.key'
         mode 0400
       end
+      cookbook_file "/etc/letsencrypt/live/#{name}/chain.pem" do
+        source 'insecure.crt'
+        mode 0400
+      end
     end
   end
 
