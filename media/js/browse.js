@@ -1,12 +1,8 @@
 var table;
 
 function build_calendar(url, start) {
-	$('#calendar').fullCalendar({
-    	header: {
-      		left: 'prev,next today',
-	      	center: 'title',
-      		right: 'month,agendaWeek'
-    	},
+	var calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+    	initialView: 'dayGridWeek',
     	events: {
       		url: url,
 	      	cache: true,
@@ -15,9 +11,9 @@ function build_calendar(url, start) {
     	height: 500,
     	firstHour: 8,
     	slotMinutes: 60,
-    	defaultView: 'agendaWeek',
         defaultDate: start
-  	})
+  	});
+	calendar.render();
 }
 
 // from http://stackoverflow.com/questions/9235304/how-to-replace-the-location-hash-and-only-keep-the-last-history-entry

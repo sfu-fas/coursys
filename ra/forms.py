@@ -232,6 +232,19 @@ class RARequestFundingSourceForm(forms.ModelForm):
         start_date = self.initial['start_date']
         end_date = self.initial['end_date']
 
+        for field in config_init:
+            self.initial[field] = getattr(self.instance, field)
+    
+    def clean(self):
+        cleaned_data = super().clean()
+
+        config_clean = ['fs1_percentage','fs2_option', 'fs2_percentage','fs3_option', 
+                        'fs3_percentage', 'start_date', 'end_date']
+
+        for field in config_clean:
+            setattr(self.instance, field, cleaned_data[field])
+
+        # add error messages
         fs2_option = cleaned_data.get('fs2_option')
         fs2_unit = cleaned_data.get('fs2_unit')
         fs2_fund = cleaned_data.get('fs2_fund')
@@ -386,6 +399,11 @@ class RARequestFundingSourceForm(forms.ModelForm):
         if fs3_option:
             if fs3_percentage == 0:
                 self.add_error('fs3_percentage', error_message)
+        
+        start_date = cleaned_data.get('start_date')
+        fs1_start_date = cleaned_data.get('fs1_start_date')
+        fs2_start_date = cleaned_data.get('fs2_start_date')
+        fs3_start_date = cleaned_data.get('fs3_start_date')
 
         # remove irrelevant information
         if not fs3_option: 

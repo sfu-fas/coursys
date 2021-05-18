@@ -11,3 +11,9 @@ CSRF_TRUSTED_ORIGINS = ['localhost:8443']
 #INTERNAL_IPS = ['127.0.0.1']
 #DISABLE_REPORTING_DB = False
 #FORCE_CAS = True
+
+# mail to a smtp4dev server: mail viewable at http://localhost:8025
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 2525
+EMAIL_USE_SSL = False

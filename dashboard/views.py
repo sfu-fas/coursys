@@ -10,8 +10,8 @@ from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime, Holiday
 from grades.models import Activity, NumericActivity
 from privacy.models import RELEVANT_ROLES as PRIVACY_ROLES
-from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
-    has_role
+from courselib.auth import requires_course_staff_by_slug, NotFoundResponse, \
+    has_role, requires_global_role
 from courselib.auth import get_person
 from courselib.branding import product_name
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
@@ -36,7 +36,6 @@ import itertools
 import iso8601
 from urllib.parse import urlencode
 from urllib.error import HTTPError
-
 
 @login_required
 def index(request):
@@ -1041,3 +1040,9 @@ def site_search(request):
     }
 
     return render(request, "dashboard/site_search.html", context)
+
+
+@requires_global_role('SYSA')
+def frontend_check(request):
+    context = {}
+    return render(request, "dashboard/frontend_check.html", context)

@@ -41,6 +41,7 @@ ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
     ('Phil Boutros', 'philb@sfu.ca'),
     ('sumo Kindersley', 'sumo@cs.sfu.ca'),
+    ('FAS Software Developer', 'fas_developer@sfu.ca'),
 )
 SERVER_EMAIL = 'ggbaker@sfu.ca'
 
@@ -155,7 +156,10 @@ if 'test' in sys.argv[1:]:
         MIGRATION_MODULES[m] = None
 
 # security-related settings
-ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca', 'coursys.sfu.ca', 'fasit.sfu.ca'])
+CANONICAL_HOST = 'coursys.sfu.ca'  # the one true hostname to forward to
+SERVE_HOSTS = ['coursys.sfu.ca', 'fasit.sfu.ca']  # hosts where we actually serve pages
+REDIRECT_HOSTS = ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca']  # hosts that actually forward to the coursys.sfu.ca domain
+ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', SERVE_HOSTS + REDIRECT_HOSTS)
 if DEBUG:
     ALLOWED_HOSTS.append('localhost')
 ALLOWED_HOSTS.extend(getattr(localsettings, 'MORE_ALLOWED_HOSTS', []))
@@ -261,7 +265,6 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'TIMEOUT': 60,
         },
     }
-    HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
     DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', os.path.join(os.environ.get('COURSYS_DATA_ROOT', '.'), 'db_backup'))
 
 else:
@@ -279,10 +282,10 @@ else:
             'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
         },
     }
-    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
     DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', os.path.join(BASE_DIR, 'db_backup'))
 
-HAYSTACK_SIGNAL_PROCESSOR = getattr(localsettings, 'HAYSTACK_SIGNAL_PROCESSOR', HAYSTACK_SIGNAL_PROCESSOR)
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
+HAYSTACK_SIGNAL_PROCESSOR = getattr(localsettings, 'HAYSTACK_SIGNAL_PROCESSOR', 'haystack.signals.BaseSignalProcessor')
 HAYSTACK_CONNECTIONS = getattr(localsettings, 'HAYSTACK_CONNECTIONS', HAYSTACK_CONNECTIONS)
 #HAYSTACK_SILENTLY_FAIL = False
 
@@ -304,13 +307,13 @@ elif DEPLOY_MODE == 'proddev':
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/data/submitted_files')
     BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "https://localhost:8443")
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
     SVN_DB_CONNECT = None
 
 else:
     SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', "submitted_files")
     BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "http://localhost:8000")
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # todo: could use Malm or something
+    EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
     SVN_DB_CONNECT = None
 
 
@@ -340,7 +343,8 @@ if USE_CELERY:
     CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
     DJANGO_CELERY_BEAT_TZ_AWARE = USE_TZ
     CELERYD_TASK_SOFT_TIME_LIMIT = 1200
-    CELERY_ENABLE_UTC = True
+    CELERY_ENABLE_UTC = False
+    CELERY_TIMEZONE = TIME_ZONE
 
     CELERY_TASK_DEFAULT_QUEUE = 'batch'
     CELERY_TASK_QUEUES = { # any new queues should be reflected in the /etc/defaults/celery setup
@@ -361,7 +365,9 @@ MAX_SUBMISSION_SIZE = 30000 # kB
 CAS_SERVER_URL = "https://cas.sfu.ca/cas/"
 CAS_VERSION = '3'
 CAS_LOGIN_MSG = None
-EMAIL_HOST = 'localhost'
+EMAIL_HOST = getattr(localsettings, 'EMAIL_HOST', 'mailgate.sfu.ca')
+EMAIL_PORT = getattr(localsettings, 'EMAIL_PORT', 465)
+EMAIL_USE_SSL = getattr(localsettings, 'EMAIL_USE_SSL', True)
 DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"

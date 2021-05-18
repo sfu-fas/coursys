@@ -14,7 +14,7 @@ class SimpleTest(TestCase):
         self.offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         self.offering.set_discussion(True)
         self.offering.save()
-        members = Member.objects.filter(offering=self.offering).exclude(role='DROP').exclude(person__userid__isnull=True)
+        members = Member.objects.filter(offering=self.offering).exclude(role='DROP').exclude(role='TA').exclude(person__userid__isnull=True)
         members = list(members)
         
         # create a bunch of discussion
@@ -65,7 +65,6 @@ class SimpleTest(TestCase):
         url = reverse('offering:discussion:edit_topic', kwargs={'course_slug': self.offering.slug, 'topic_slug': self.topic.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-
 
         client = Client()
         client.login_user(self.message.author.person.userid)

@@ -1902,10 +1902,11 @@ class TAForm(object):
     CONTENT_SIZE = 12
     NOTE_STYLE = ParagraphStyle(name='Normal',
                                 fontName='Helvetica',
-                                fontSize=9,
+                                fontSize=7,
                                 leading=10,
                                 alignment=TA_LEFT,
                                 textColor=black)
+                        
 
     def __init__(self, outfile):
         """
@@ -2167,10 +2168,11 @@ class TAForm(object):
         self.c.drawString(114*mm, 125*mm, "THESE RATES INCLUDE 4%")
         self.c.drawString(114*mm, 123*mm, "VACATION PAY")
 
+        # As usual, work will be assigned using the Time Use Guidelines, and you are expected to track and report your hours in the normal manner.
         # remarks
         self.c.setFont("Helvetica-Bold", self.LABEL_SIZE)
-        self.c.drawString(1*mm, 103*mm, "REMARKS")
-        f = Frame(3*mm, 82*mm, main_width - 6*mm, 22*mm) #, showBoundary=1
+        self.c.drawString(1*mm, 106*mm, "REMARKS")
+        f = Frame(3*mm, 79*mm, main_width - 6*mm, 27*mm) #, showBoundary=1
         notes = []
         notes.append(Paragraph(remarks, style=self.NOTE_STYLE))
         f.addFromList(notes, self.c)

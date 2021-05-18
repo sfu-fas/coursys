@@ -1,8 +1,8 @@
-
 {
   "username": "ubuntu",
   "deploy_mode": "demo",
   "external_hostname": "coursys-demo.selfip.net",
-  "coursys_branch": "new-deploy",
+  "coursys_branch": "master",
+  "rabbitmq_password": "the_rabbitmq_password",
   "run_list": ["coursys"]
 }

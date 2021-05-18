@@ -8,6 +8,7 @@ from django.core.mail import mail_admins
 from functools import wraps
 import sys, traceback
 
+
 def task(*d_args, **d_kwargs):
     # behaves like @task, but emails about exceptions.
     def real_decorator(f):

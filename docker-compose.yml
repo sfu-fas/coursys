@@ -10,7 +10,7 @@ services:
       - /data/rabbitmq:/var/lib/rabbitmq:rw
     environment:
       - RABBITMQ_DEFAULT_USER=coursys
-      - RABBITMQ_DEFAULT_PASS=supersecretpassword
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
       - RABBITMQ_DEFAULT_VHOST=myvhost
 
   elasticsearch:

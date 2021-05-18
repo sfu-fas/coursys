@@ -468,9 +468,15 @@ def _userToFormFiller(user):
 
 @requires_formgroup()
 def admin_completed(request):
-    forms = Form.objects.filter(owner__in=request.formgroups).order_by('unit__slug', 'title').select_related('unit')
+    forms = Form.objects.filter(owner__in=request.formgroups, active=True).order_by('unit__slug', 'title').select_related('unit')
     context = {'forms': forms}
     return render(request, "onlineforms/admin/admin_completed.html", context)
+
+@requires_formgroup()
+def admin_completed_deleted(request):
+    forms = Form.objects.filter(owner__in=request.formgroups, active=False).order_by('unit__slug', 'title').select_related('unit')
+    context = {'forms': forms}
+    return render(request, "onlineforms/admin/admin_completed_deleted.html", context)
 
 @requires_formgroup()
 def admin_completed_form(request, form_slug):

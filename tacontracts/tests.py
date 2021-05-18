@@ -70,6 +70,8 @@ class TAContractTestCase(TestCase):
         hiring_semester = HiringSemester(semester=semester,
                                   unit=unit,
                                   deadline_for_acceptance=datetime.date.today(),
+                                  appointment_start=datetime.date.today(),
+                                  appointment_end=datetime.date.today(),
                                   pay_start=datetime.date.today(),
                                   pay_end=four_weeks_later,
                                   payperiods=2.5)

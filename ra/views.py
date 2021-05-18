@@ -157,6 +157,29 @@ TEMPLATES = {"intro": "ra/new_request/intro.html",
              "supporting": "ra/new_request/supporting.html"
              }
 
+@_can_view_ra_requests()
+def supervisor_dashboard(request: HttpRequest) -> HttpResponse:
+    reqs = RARequest.objects.filter(Q(supervisor__userid=request.user.username) | Q(author__userid=request.user.username), deleted=False, complete=False)
+    reqs_complete = RARequest.objects.filter(Q(supervisor__userid=request.user.username) | Q(author__userid=request.user.username), deleted=False, complete=True)
+    return render(request, 'ra/supervisor_dashboard.html', {'reqs': reqs, 'reqs_complete': reqs_complete })
+
+FORMS = [("intro", RARequestIntroForm),
+         ("dates", RARequestDatesForm),
+         ("funding_sources", RARequestFundingSourceForm),
+         ("graduate_research_assistant", RARequestGraduateResearchAssistantForm),
+         ("non_continuing", RARequestNonContinuingForm),
+         ("research_assistant", RARequestResearchAssistantForm),
+         ("supporting", RARequestSupportingForm)]
+
+TEMPLATES = {"intro": "ra/new_request/intro.html",
+             "dates": "ra/new_request/dates.html",
+             "funding_sources": "ra/new_request/funding_sources.html",
+             "graduate_research_assistant": "ra/new_request/graduate_research_assistant.html",
+             "non_continuing": "ra/new_request/non_continuing.html",
+             "research_assistant": "ra/new_request/research_assistant.html",
+             "supporting": "ra/new_request/supporting.html"
+             }
+
 def _req_defaults(units, emplid=None):
     unit_choices = [(u.id, u.name) for u in units]
     return unit_choices
@@ -817,7 +840,7 @@ def download_request_attachment_2(request: HttpRequest, ra_slug: str) -> HttpRes
     req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
     attachment = req.file_attachment_2
     filename = attachment.name.rsplit('/')[-1]
-    resp = StreamingHttpResponse(attachment.chunks())
+    resp = StreamingHttpResponse(attachment.chunks(), content_type=req.file_mediatype_2)
     resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
     resp['Content-Length'] = attachment.size
     return resp

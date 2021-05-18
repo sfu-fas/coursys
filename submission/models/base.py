@@ -177,7 +177,7 @@ class SubmittedComponent(models.Model):
         return res
     def get_submitter(self):
         group = GroupSubmission.objects.filter(id=self.submission.id)
-        if len(group) is 0:
+        if len(group) == 0:
             student = StudentSubmission.objects.filter(id=self.submission.id)
             return student.member.person
         return group[0].creator.person

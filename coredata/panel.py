@@ -1,7 +1,9 @@
+import requests
 from django.conf import settings
 from django.core.cache import cache
 from django.core.mail import send_mail
 import django
+from django.urls import reverse
 
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
@@ -112,8 +114,54 @@ def deploy_checks(request=None):
         else:
             failed.append(('Unicode handling in database', 'non-BMP character not stored correctly'))
 
+    # check that all database tables are utf8mb4, if mysql
+    if settings.DATABASES['default']['ENGINE'].endswith('.mysql'):
+        from django.apps import apps
+        from django.db import connection
+
+        CORRECT_CHARSET = 'utf8mb4'
+        CORRECT_COLLATION = 'utf8mb4_unicode_ci'
+        db_name = settings.DATABASES['default']['NAME']
+
+        with connection.cursor() as cursor:
+            # check database defaults
+            cursor.execute("SELECT @@character_set_database, @@collation_database;")
+            row = cursor.fetchone()
+            if row != (CORRECT_CHARSET, CORRECT_COLLATION):
+                failed.append(('MySQL database charset',
+                               'database default CHARACTER SET and COLLATION incorrect (it is %s): consider "ALTER DATABASE %s CHARACTER SET %s COLLATE %s;"'
+                               % (row, db_name, CORRECT_CHARSET, CORRECT_COLLATION)))
+
+            # check each table
+            table_names = [model._meta.db_table for model in apps.get_models()]
+            # inspect table charset and collations, adapted from https://stackoverflow.com/a/1049958/6871666
+            cursor.execute('''SELECT T.table_name, CCSA.character_set_name, CCSA.collation_name
+                FROM information_schema.`TABLES` T,
+                    information_schema.`COLLATION_CHARACTER_SET_APPLICABILITY` CCSA
+                WHERE CCSA.collation_name=T.table_collation
+                    AND T.table_schema=%s
+                    AND T.table_name IN %s
+            ''', (db_name, table_names))
+            for table, charset, collation in cursor.fetchall():
+                if (charset, collation) != (CORRECT_CHARSET, CORRECT_COLLATION):
+                    failed.append(('MySQL database charset',
+                                   'table %s has incorrect CHARACTER SET and COLLATION: consider "ALTER TABLE %s CHARACTER SET=%s COLLATE=%s;"'
+                                   % (table, table, CORRECT_CHARSET, CORRECT_COLLATION)))
+
+            cursor.execute('''SELECT table_name, column_name, character_set_name, collation_name
+                FROM information_schema.`COLUMNS`
+                WHERE table_schema=%s
+                    AND (character_set_name IS NOT NULL OR collation_name IS NOT NULL)
+                    AND (character_set_name!=%s OR collation_name!=%s);
+                ''', (db_name, CORRECT_CHARSET, CORRECT_COLLATION))
+            for table, column, charset, collation in cursor.fetchall():
+                failed.append(('MySQL database charset',
+                               'table %s has incorrect CHARACTER SET and COLLATION on a column (%s and %s): consider "ALTER TABLE %s CONVERT TO CHARACTER SET %s COLLATE %s;"'
+                               % (table, charset, collation, table, CORRECT_CHARSET, CORRECT_COLLATION)))
+
     # Celery tasks
     celery_okay = False
+    sims_task = None
     try:
         if settings.USE_CELERY:
             try:
@@ -122,13 +170,15 @@ def deploy_checks(request=None):
                 failed.append(('Celery task', "Couldn't import task: probably missing MySQLdb module"))
             else:
                 try:
-                    t = ping.apply_async()
+                    task = ping.apply_async()
                 except kombu.exceptions.OperationalError:
                     failed.append(('Celery task', 'Kombu error. Probably RabbitMQ not running.'))
                 except amqp.exceptions.AccessRefused:
                     failed.append(('Celery task', 'AccessRefused error. Probably bad RabbitMQ auth details.'))
                 else:
-                    res = t.get(timeout=5)
+                    from coredata.tasks import check_sims_task
+                    sims_task = check_sims_task.apply_async() # start here, in case it's slow
+                    res = task.get(timeout=5)
                     if res == True:
                         passed.append(('Celery task', 'okay'))
                         celery_okay = True
@@ -148,14 +198,15 @@ def deploy_checks(request=None):
         failed.append(('Celery task', 'djkombu tables missing: try migrating'))
 
     # celery beat
-    try:
-        from coredata.tasks import beat_time_okay
-        if beat_time_okay():
-            passed.append(('Celery beat', 'okay'))
-        else:
-            failed.append(('Celery beat', 'marker file is old: celery beat likely not processing tasks'))
-    except OSError:
-        failed.append(('Celery beat', 'marker file is missing: celery beat likely not processing tasks'))
+    if settings.USE_CELERY:
+        try:
+            from coredata.tasks import beat_time_okay
+            if beat_time_okay():
+                passed.append(('Celery beat', 'okay'))
+            else:
+                failed.append(('Celery beat', 'marker file is old: celery beat likely not processing tasks'))
+        except OSError:
+            failed.append(('Celery beat', 'marker file is missing: celery beat likely not processing tasks'))
 
     # Django cache
     # (has a subprocess do something to make sure we're in a persistent shared cache, not DummyCache)
@@ -193,6 +244,19 @@ def deploy_checks(request=None):
         failed.append(('Reporting DB connection', "couldn't import DB2 module"))
     except Exception as e:
         failed.append(('Reporting DB connection', 'Generic exception, %s' % (str(e))))
+
+    if settings.USE_CELERY and sims_task:
+        # sims_task started above, so we can double-up on any wait
+        try:
+            res = sims_task.get(timeout=5)
+            if res:
+                failed.append(('Celery Reporting DB', res))
+            else:
+                passed.append(('Celery Reporting DB', 'okay'))
+        except celery.exceptions.TimeoutError:
+            failed.append(('Celery Reporting DB', "didn't get result before timeout: maybe reporting database is slow?"))
+    elif sims_task is None:
+        failed.append(('Celery Reporting DB', "didn't check because of Celery failure"))
 
     # compression enabled?
     if settings.COMPRESS_ENABLED:
@@ -234,36 +298,6 @@ def deploy_checks(request=None):
         failed.append(('Emplid API', 'incorrect emplid returned'))
     else:
         passed.append(('Emplid API', 'okay'))
-
-    # Backup server
-    #if not settings.BACKUP_SERVER or not settings.BACKUP_USER or not settings.BACKUP_PATH or not settings.BACKUP_PASSPHRASE:
-    #    failed.append(('Backup server', 'Backup server settings not all present'))
-    #else:
-    #    from coredata.management.commands.backup_remote import do_check
-    #    try:
-    #        do_check()
-    #    except RuntimeError as e:
-    #        failed.append(('Backup server', unicode(e)))
-    #    passed.append(('Backup server', 'okay'))
-
-
-    # certificates
-    bad_cert = 0
-    res = _check_cert('/etc/stunnel/stunnel.pem')
-    if res:
-        failed.append(('Stunnel cert', res))
-        bad_cert += 1
-    #res = _check_cert('/etc/nginx/cert.pem')
-    #if res:
-    #    failed.append(('SSL PEM', res))
-    #    bad_cert += 1
-    #res = _check_cert('/etc/nginx/cert.key')
-    #if res:
-    #    failed.append(('SSL KEY', res))
-    #    bad_cert += 1
-
-    if bad_cert == 0:
-        passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
 
     # file creation in the necessary places
     dirs_to_check = [
@@ -309,16 +343,52 @@ def deploy_checks(request=None):
     else:
         passed.append(('Ports listening externally', 'okay'))
 
+    # correct serving/redirecting of production domains
+    if settings.DEPLOY_MODE == 'production':
+        production_host_fails = 0
+        for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
+            # check HTTPS serving/redirect
+            try:
+                url = 'https://' + host + reverse('docs:list_docs')  # must be a URL that doesn't require auth
+                resp = requests.get(url, allow_redirects=False, timeout=5)
+                if host in settings.SERVE_HOSTS and resp.status_code != 200:
+                    failed.append(('HTTPS Serving', 'expected 200 okay, but got %i at %s' % (resp.status_code, url)))
+                    production_host_fails += 1
+                elif host in settings.REDIRECT_HOSTS and resp.status_code != 301:
+                    failed.append(('HTTPS Serving', 'expected 301 redirect, but got %i at %s' % (resp.status_code, url)))
+                    production_host_fails += 1
+            except requests.exceptions.SSLError:
+                failed.append(('HTTPS Serving', 'bad SSL/TLS certificate for %s' % (url,)))
+                production_host_fails += 1
+            except requests.exceptions.RequestException:
+                failed.append(('HTTPS Serving', 'unable to connect to request %s' % (url,)))
+                production_host_fails += 1
+
+            # check HTTP redirect
+            try:
+                url = 'http://' + host + reverse('docs:list_docs')  # must be a URL that doesn't require auth
+                resp = requests.get(url, allow_redirects=False, timeout=5)
+                if resp.status_code != 301:
+                    failed.append(('HTTP Serving', 'expected 301 redirect to https://, but got %i at %s' % (resp.status_code, url)))
+                    production_host_fails += 1
+            except requests.exceptions.RequestException:
+                failed.append(('HTTP Serving', 'unable to connect to request %s' % (url,)))
+                production_host_fails += 1
+
+        if production_host_fails == 0:
+            passed.append(('HTTPS Serving', 'okay: certs and redirects as expected, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
 
     # is the server time close to real-time?
     import ntplib
-    c = ntplib.NTPClient()
-    response = c.request('0.ca.pool.ntp.org')
-    if abs(response.offset) > 0.1:
-        failed.append(('Server time', 'Time is %g seconds off NTP pool.' % (response.offset,)))
-    else:
-        passed.append(('Server time', 'okay'))
-
+    try:
+        c = ntplib.NTPClient()
+        response = c.request('pool.ntp.org')
+        if abs(response.offset) > 0.1:
+            failed.append(('Server time', 'Time is %g seconds off NTP pool.' % (response.offset,)))
+        else:
+            passed.append(('Server time', 'okay'))
+    except ntplib.NTPException as e:
+        failed.append(('Server time', 'Unable to query NTP pool: %s' % (e,)))
 
     # library sanity
     err = bitfield_check()
@@ -330,7 +400,6 @@ def deploy_checks(request=None):
             failed.append(('Library sanity', 'django cache: ' + err))
         else:
             passed.append(('Library sanity', 'okay'))
-
 
     # github-flavoured markdown subprocess
     from courselib.markup import markdown_to_html
@@ -492,7 +561,7 @@ def ps_info():
     return data
 
 def pip_info():
-    pip = subprocess.Popen(['pip', 'freeze'], stdout=subprocess.PIPE)
+    pip = subprocess.Popen(['pip3', 'freeze'], stdout=subprocess.PIPE)
     output = pip.stdout.read().decode('utf8')
     result = '<pre>' + escape(output) + '</pre>'
     return [('PIP freeze', mark_safe(result))]

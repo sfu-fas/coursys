@@ -387,7 +387,13 @@ class DisciplineCaseBase(models.Model):
 
         return string.Template(template).substitute(self.infodict)
 
-
+    def unfinalize(self):
+        """
+        Un-close the case, so the instructor can edit again.
+        """
+        self.letter_sent = 'WAIT'
+        self.penalty_implemented = False
+        self.save()
 
 
 

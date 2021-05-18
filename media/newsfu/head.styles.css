@@ -137,7 +137,7 @@ a{color:#a6192e;text-decoration:none;}
 a img{border:none;}
 #page-content p a:hover,#page-content h1 a:hover,#page-content h2 a:hover,#page-content h3 a:hover,#page-content h4 a:hover,#page-content h5 a:hover,#page-content li a:hover,#page-content table a:hover,.breadcrumb a:hover{opacity:.8;}
 fieldset{border:none;}
-body{font:normal 100% Cambria,Georgia,"Times New Roman",Times,serif;line-height:1.5em;margin:0;background:#a6192e url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/assets/textured-red-01-small.png) top left repeat;}
+body{font:normal 100% Cambria,Georgia,"Times New Roman",Times,serif;line-height:1.5em;margin:0;background:#a6192e url(textured-red-01-small.png) top left repeat;}
 @text Colour;.brand-font-italic{font-family:"DINWebItalic";}
 @font-face{font-family:'DINWebLight';src:url('fonts/DINWeb-Light.eot');src:url('fonts/DINWeb-Light.eot?#iefix') format('embedded-opentype'),url('fonts/DINWeb-Light.woff') format('woff');}
 @font-face{font-family:'DINWeb';src:url('fonts/DINWeb.eot');src:url('fonts/DINWeb.eot?#iefix') format('embedded-opentype'),url('fonts/DINWeb.woff') format('woff');}
@@ -183,7 +183,7 @@ header{position:relative;width:100%;background-color:#eee;background:-webkit-gra
 header fieldset{border:none;padding:0;width:100%;}
 .heading{float:left;width:77.7777%;padding-top:93px;position:relative;}
 .brand-title{position:absolute;top:0;left:0;}
-.branding{width:300px;height:46px;background:transparent url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/assets/sfu-logo.png) top left no-repeat;background-size:contain;}
+.branding{width:300px;height:46px;background:transparent url(sfu-logo.png) top left no-repeat;background-size:contain;}
 .brand-title>a{width:300px;display:block;}
 .branding h1{display:none;}
 .site-title{color:#3d3935;clear:left;margin-left:102px;}
@@ -202,7 +202,7 @@ header fieldset{border:none;padding:0;width:100%;}
 .sf-menu ul{background-color:#fff;}
 .mobile-global-links-container{display:none;}
 .expanded a{font-family:"DINWebMedium",sans-serif;}
-.header-divider{clear:left;height:25px;width:100%;background:#3d3935 url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/assets/bg-small.png) -70px 0 no-repeat;}
+.header-divider{clear:left;height:25px;width:100%;background:#3d3935 url(bg-small.png) -70px 0 no-repeat;}
 .search{position:relative;z-index:999;}
 .search form{background:none;border:none;margin:0;padding:0;}
 .search .search-field{margin-top:0;}
@@ -362,7 +362,7 @@ footer ul{width:50%;}
 footer ul:nth-child(3),footer ul:last-child{clear:left;}
 table td,table th{padding:.125em .25em;}
 }
-@media(-webkit-min-device-pixel-ratio:1.25),(min-device-pixel-ratio:1.25),(min-resolution:96dpi){.branding{background-image:url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/assets/sfu-logo@2x.png);}
+@media(-webkit-min-device-pixel-ratio:1.25),(min-device-pixel-ratio:1.25),(min-resolution:96dpi){.branding{background-image:url(sfu-logo@2x.png);}
 }
 .ext-ie6 .toggle-search-control,.ext-ie7 .toggle-search-control,.ext-ie8 .toggle-search-control{background-image:url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/assets/search-icon.png);}
 .ext-ie6 .nav-revealed,.ext-ie7 .nav-revealed,.ext-ie8 .nav-revealed{background-image:url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/assets/menu-icon.png);}
@@ -376,7 +376,7 @@ header{border-top:none;}
 .cq-colctrl-lt8>div,.cq-colctrl-lt2>div{float:left!important;width:50%!important;}
 .cq-colctrl-lt8-c2{clear:both;}
 .page-content{clear:both;margin-top:50px;}
-.site-title:before{display:block;margin-left:-33.33%!important;content:url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/assets/sfu-logo@2x.png);-webkit-transform:scale(0.5)!important;-ms-transform:scale(0.5)!important;transform:scale(0.5)!important;margin-top:-20px!important;}
+.site-title:before{display:block;margin-left:-33.33%!important;content:url(sfu-logo@2x.png);-webkit-transform:scale(0.5)!important;-ms-transform:scale(0.5)!important;transform:scale(0.5)!important;margin-top:-20px!important;}
 .site-title h2{width:100%;margin-top:-20px;font-size:1em;}
 .main a{text-decoration:none;}
 .main a[href^=http]:after{content:"\00a0(" attr(href) ") ";font-style:italic;}

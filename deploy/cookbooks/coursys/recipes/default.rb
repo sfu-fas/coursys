@@ -10,19 +10,17 @@ user_home = "/home/#{username}/"
 python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.major, sys.version_info.minor))"`.strip
 python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
 data_root = '/opt'
-certbot_ubuntu_release = 'disco' # should be ubuntu_release, but disco is newest
-ip_address = node['ip_address'] || '127.0.0.1'
 rabbitmq_password = node['rabbitmq_password'] || 'supersecretpassword'
 
 raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
 
-template '/etc/apt/sources.list' do
-  variables(
-    :mirror => ubuntu_mirror,
-    :release => ubuntu_release
-  )
-  notifies :run, 'execute[apt-get update]', :immediately
-end
+#template '/etc/apt/sources.list' do
+#  variables(
+#    :mirror => ubuntu_mirror,
+#    :release => ubuntu_release
+#  )
+#  notifies :run, 'execute[apt-get update]', :immediately
+#end
 execute 'apt-get update' do
   action :nothing
 end
@@ -38,6 +36,11 @@ if deploy_mode == 'devel'
 end
 
 # the code itself
+user username do
+  home user_home
+  shell '/bin/bash'
+  manage_home true
+end
 directory coursys_dir do
   owner username
   mode '0755'
@@ -53,6 +56,7 @@ execute "coursys_git" do
 end
 template '/etc/profile.d/coursys-environment.sh' do
   variables(
+    :coursys_user => username,
     :coursys_dir => coursys_dir,
     :deploy_mode => deploy_mode == 'demo' ? 'proddev' : deploy_mode,
     :data_root => data_root,
@@ -108,12 +112,22 @@ if deploy_mode != 'devel'
     creates "/etc/systemd/system/multi-user.target.wants/docker.service"
   end
 
-  for dir in ['', 'static', 'config', 'submitted_files', 'rabbitmq', 'elasticsearch', 'nginx-logs', 'mysql', 'logs', 'db_backup']
+  for dir in ['', 'static', 'config', 'rabbitmq', 'elasticsearch', 'nginx-logs', 'mysql', 'logs', 'db_backup']
     directory "#{data_root}/#{dir}" do
       owner username
       mode '0755'
       action :create
     end
+  end
+  directory "/data" do
+    owner 'root'
+    mode '0755'
+    action :create
+  end
+  directory "/data/submitted_files" do
+    owner username
+    mode '0755'
+    action :create
   end
 
   execute "django-static" do
@@ -125,6 +139,13 @@ if deploy_mode != 'devel'
   end
   template "#{data_root}/static/503.html" do
   end
+
+  package 'snapd'
+  execute 'install-certbot' do
+    command 'snap install --classic certbot'
+    creates '/snap/bin/certbot'
+  end
+  # This recipe doesn't address actually *running* certbot.
 
   # There was a conflict between npm and some mysql packages, so using the mariadb client, which should be equivalent.
   package ['mariadb-client', 'screen', 'nginx', 'ntp', 'ntpdate']
@@ -143,19 +164,26 @@ if deploy_mode != 'devel'
         :data_root => data_root,
       )
     end
+    execute "systemctl enable #{service}" do
+      creates "/etc/systemd/system/multi-user.target.wants/#{service}.service"
+    end
   end
   template "#{data_root}/config/celery-environment" do
     variables(
+      :coursys_user => username,
       :coursys_dir => coursys_dir,
       :username => username,
       :data_root => data_root,
     )
   end
-  directory '/var/run/celery' do
+  directory '/opt/run/celery' do
     owner username
     mode '0755'
     recursive true
     action :create
+  end
+  file "#{coursys_dir}/.env" do
+    content "RABBITMQ_PASSWORD=#{rabbitmq_password}\n"
   end
 
   for service in ['gunicorn', 'celery', 'nginxcoursys']
@@ -169,6 +197,10 @@ if deploy_mode != 'devel'
     end
   end
   # celery checking cron
+  execute "cron.allow" do
+    command "echo #{username} >> /etc/cron.allow"
+    not_if "grep -q #{username} /etc/cron.allow"
+  end
   cron "celery check" do
     user username
     minute '0'
@@ -188,19 +220,6 @@ if deploy_mode != 'devel'
     mode 0400
   end
 
-  apt_repository 'certbot' do
-    uri 'http://ppa.launchpad.net/certbot/certbot/ubuntu'
-    components ['main']
-    distribution certbot_ubuntu_release
-    arch 'amd64'
-    key '8C47BE8E75BCA694'
-    keyserver 'keyserver.ubuntu.com'
-    action :add
-    deb_src false
-  end
-  package ['certbot', 'python3-certbot-nginx']
-  # This recipe doesn't address actually *running* certbot.
-
   execute 'ssl_hands_off' do
     command 'grep -v "^\s*ssl_" /etc/nginx/nginx.conf > /tmp/nginx.conf && cp /tmp/nginx.conf /etc/nginx/nginx.conf'
     only_if 'grep -q "^\s*ssl_" /etc/nginx/nginx.conf'
@@ -213,6 +232,88 @@ if deploy_mode != 'devel'
     )
     notifies :restart, 'service[nginx]', :immediately
   end
+
+  # the different personalities of nginx that we can deploy...
+  if deploy_mode == 'proddev'
+    serve_names = [domain_name, 'localhost']
+    redirect_names = ['foo.bar']
+    https_port = '443'
+    hsts = false
+  end
+  if deploy_mode == 'demo'
+    serve_names = [domain_name]
+    redirect_names = []
+    https_port = '443'
+    hsts = true
+  end
+  if deploy_mode == 'production'
+    raise "We expect the canonical domain name to be coursys.sfu.ca here: adjust server_names if something changed." unless domain_name == 'coursys.sfu.ca'
+    serve_names = ['coursys.sfu.ca', 'fasit.sfu.ca']
+    redirect_names = ['coursys.cs.sfu.ca', 'courses.cs.sfu.ca']
+    https_port = '443'
+    hsts = true
+  end
+
+  if deploy_mode == 'proddev'
+    # In proddev, use the insecure keys. In all other cases, demand that someone get a proper key in place, outside this recipe.
+    for name in serve_names+redirect_names do
+      directory "/etc/letsencrypt/live/#{name}" do
+        recursive true
+      end
+      cookbook_file "/etc/letsencrypt/live/#{name}/fullchain.pem" do
+        source 'insecure.crt'
+        mode 0400
+      end
+      cookbook_file "/etc/letsencrypt/live/#{name}/privkey.pem" do
+        source 'insecure.key'
+        mode 0400
+      end
+      cookbook_file "/etc/letsencrypt/live/#{name}/chain.pem" do
+        source 'insecure.crt'
+        mode 0400
+      end
+    end
+  end
+
+  # create a partial config files /etc/nginx/sites-available/#{name}.conf for each domain name we handle
+  for name in serve_names do
+    template "/etc/nginx/sites-available/#{name}.conf" do
+      source 'nginx-site.conf.erb'
+      variables(
+        :domain_name => name,
+        :https_port => https_port,
+        :true_domain_name => domain_name,
+        :data_root => data_root,
+        :serve => true, # actually serve pages on this name
+      )
+    end
+  end
+  for name in redirect_names do
+    template "/etc/nginx/sites-available/#{name}.conf" do
+      source 'nginx-site.conf.erb'
+      variables(
+        :domain_name => name,
+        :https_port => https_port,
+        :true_domain_name => domain_name,
+        :data_root => data_root,
+        :serve => false, # don't serve pages; redirect to https://domain_name
+      )
+    end
+  end
+
+  # main nginx config
+  template "/etc/nginx/sites-available/default" do
+    source 'nginx.conf.erb'
+    variables(
+      :hsts => hsts,
+      :all_names => serve_names + redirect_names,
+      :data_root => data_root,
+      :true_domain_name => domain_name,
+      :https_port => https_port,
+    )
+    notifies :restart, 'service[nginx]', :immediately
+  end
+
   # certbot renew: will fail when it runs if no certificate is in place
   cron "certbot" do
     user 'root'
@@ -221,69 +322,7 @@ if deploy_mode != 'devel'
     weekday 0
     command "certbot renew"
   end
-
-  # mail setup: UNTESTED
-  #package ['postfix', 'debconf-utils']
-  #service "postfix" do
-  #  action :nothing
-  #end
-  #template "#{data_root}/config/package-config.txt" do
-  #  variables(
-  #    :domain_name => domain_name,
-  #  )
-  #end
-  #execute "postfix_conf" do
-  #  command "debconf-set-selections #{data_root}/config/package-config.txt \
-  #      && rm /etc/postfix/main.cf /etc/postfix/master.cf \
-  #      && dpkg-reconfigure -f noninteractive postfix \
-  #      && /usr/sbin/postconf -e \"inet_interfaces = loopback-only\""
-  #  notifies :restart, 'service[postfix]', :immediately
-  #end
 end
-
-if deploy_mode == 'proddev'
-  # proddev-specific nginx config
-  template "/etc/nginx/sites-available/default" do
-    source 'nginx-proddev.conf.erb'
-    variables(
-      :coursys_dir => coursys_dir,
-      :data_root => data_root,
-      :domain_name => domain_name,
-      :https_port => '8443',
-      :ip_address => ip_address,
-    )
-    notifies :restart, 'service[nginx]', :immediately
-  end
-end
-if deploy_mode == 'demo'
-  # demo-specific nginx config
-  template "/etc/nginx/sites-available/default" do
-    source 'nginx-demo.conf.erb'
-    variables(
-      :coursys_dir => coursys_dir,
-      :data_root => data_root,
-      :domain_name => domain_name,
-      :https_port => '443',
-      :ip_address => ip_address,
-    )
-    notifies :restart, 'service[nginx]', :immediately
-  end
-end
-if deploy_mode == 'production'
-  # production nginx config
-  template "/etc/nginx/sites-available/default" do
-    source 'nginx-production.conf.erb'
-    variables(
-      :coursys_dir => coursys_dir,
-      :data_root => data_root,
-      :domain_name => domain_name,
-      :https_port => '443',
-      :ip_address => ip_address,
-    )
-    notifies :restart, 'service[nginx]', :immediately
-  end
-end
-
 
 
 if deploy_mode != 'devel'
@@ -336,14 +375,6 @@ if deploy_mode != 'devel'
     creates "#{user_home}/moss/moss.pl"
     only_if { ::File.file?("#{user_home}/moss.zip") } # if we don't have the code, skip
   end
-
-  #package 'stunnel4'
-  #cookbook_file "stunnel.conf" do
-  #  path "/etc/stunnel/stunnel.conf"
-  #end
-  #cookbook_file "default-stunnel" do
-  #  path "/etc/default/stunnel"
-  #end
 
   execute "ssh_no_passwords" do
     command "echo '\nPasswordAuthentication no' >> /etc/ssh/sshd_config"

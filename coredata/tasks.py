@@ -1,12 +1,16 @@
+from typing import Optional
+
 from django.conf import settings
+
+from coredata.queries import SIMSConn, SIMSProblem
+from courselib.search import haystack_update_index, haystack_rebuild_index
 from courselib.svn import update_repository
 from django.core.management import call_command
 from courselib.celerytasks import task, periodic_task
 from celery.schedules import crontab
-from coredata.models import Role, Unit
-
-
+from coredata.models import Role, Unit, EnrolmentHistory
 from celery import Celery
+
 app = Celery(broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND)  # periodic tasks don't fire without app constructed
 
 
@@ -35,7 +39,7 @@ def ping(): # used to check that celery is alive
 def beat_test():
     set_beat_time()
 
-        
+
 def get_beat_time() -> int:
     """
     Retrieve most recent celery beat marker.
@@ -88,11 +92,40 @@ def backup_to_remote():
 
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
 def check_sims_connection():
+    if settings.DISABLE_REPORTING_DB:
+        return
     from coredata.queries import SIMSConn, SIMSProblem
     db = SIMSConn()
     db.execute("SELECT descr FROM dbcsown.PS_TERM_TBL WHERE strm='1111'", ())
     if len(list(db)) == 0:
         raise SIMSProblem("Didn't get any data back from SIMS query.")
+
+
+@task(queue='sims')
+def check_sims_task() -> Optional[str]:
+    """
+    Check SIMS queries for sanity, when run in a Celery task. Returns None if successful, or an error message.
+    """
+    try:
+        db = SIMSConn()
+        db.execute("SELECT last_name FROM ps_names WHERE emplid=301355288", ())
+        result = list(db)
+        # whoever this is, they have non-ASCII in their name: let's hope they don't change it.
+        lname = result[0][0]
+        if not isinstance(lname, str):
+            return 'string result not a string: check Unicode decoding'
+        elif lname[1] != u'\u00e4':
+            return 'returned incorrectly-decoded Unicode'
+        elif len(result) == 0:
+            return 'query inexplicably returned nothing'
+        else:
+            return None
+    except SIMSProblem as e:
+        return 'SIMSProblem, %s' % (str(e),)
+    except ImportError:
+        return "couldn't import DB2 module"
+    except Exception as e:
+        return 'Generic exception, %s' % (str(e))
 
 
 @periodic_task(run_every=crontab(minute='30', hour='7', day_of_week='mon,thu'))
@@ -101,6 +134,16 @@ def expiring_roles():
         Role.warn_expiring()
     Role.purge_expired()
 
+
+@task()
+def haystack_update():
+    haystack_update_index()
+
+
+# purge and rebuild the search index occasionally to get any orphaned records
+@periodic_task(run_every=crontab(minute='0', hour='2', day_of_week='saturday'))
+def haystack_rebuild():
+    haystack_rebuild_index()
 
 
 import logging
@@ -167,6 +210,7 @@ def import_task():
         #get_import_offerings_task(),
         #import_combined_sections.si(),
         #send_report.si()
+        haystack_update.si(),
     ]
 
     chain(*tasks).apply_async()
@@ -294,6 +338,8 @@ def daily_cleanup():
     # cleanup old similarity reports
     from submission.models.base import SimilarityResult
     SimilarityResult.cleanup_old()
+    # deduplicate EnrolmentHistory
+    EnrolmentHistory.deduplicate(start_date=datetime.date.today() - datetime.timedelta(days=30))
 
 
 @task(queue='sims')

@@ -1,4 +1,4 @@
-# Configuration common to all functional deployments (courses.sfu.ca and fasit.sfu.ca and proddev)
+        # Configuration common to all functional deployments that actually serve the site
 
         client_max_body_size 100m;
         client_body_buffer_size 1024k;
@@ -44,7 +44,6 @@
                 proxy_read_timeout 1200;
                 proxy_connect_timeout 1200;
                 proxy_redirect off;
-                proxy_pass_header Server;
                 proxy_set_header Host $host;
                 proxy_set_header X-Forwarded-Ssl on;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

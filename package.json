@@ -5,16 +5,16 @@
   "main": "index.js",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.14.0",
-    "codemirror": "^5.57.0",
+    "codemirror": "^5.61.0",
     "datatables": "^1.10.18",
-    "fingerprintjs2": "^2.1.2",
-    "fullcalendar": "^3.10.2",
-    "jquery": "^3.5.1",
+    "@fingerprintjs/fingerprintjs": "^2.1.4",
+    "fullcalendar": "^5.7.0",
+    "jquery": "^3.6.0",
     "jquery.are-you-sure": "^1.9.0",
-    "mathjax": "^2.7.9",
-    "moment": "^2.27.0",
+    "mathjax": "^3.1.4",
+    "moment": "^2.29.1",
     "styled-notifications": "^1.0.3",
-    "tinymce": "^5.6.0"
+    "tinymce": "^5.8.0"
   },
   "devDependencies": {},
   "scripts": {

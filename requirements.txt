@@ -1,44 +1,42 @@
-Django==2.2.15
+Django==2.2.22
 
 Creoleparser==0.7.5 # Replaced with version below that incorporates our fix for null headings, and python3 support
-Genshi==0.7.3
-Unidecode>=1.1.1
+Genshi==0.7.5
+Unidecode>=1.2.0
 
 django-autoslug==1.9.8
-django-formtools==2.2
+django-formtools==2.3
 django-otp==0.6.0
-django-dirtyfields==1.4
+django-dirtyfields==1.7.0
 qrcode==6.1
-django-debug-toolbar==2.2
+django-debug-toolbar==3.2.1
 jsonfield==3.1.0
 pyparsing==2.4.7
-pytz>=2020.1
+pytz>=2021.1
 textile==4.0.1
 html5lib==1.1
-beautifulsoup4==4.9.1
-bleach==3.1.5
-reportlab==3.5.28
+beautifulsoup4==4.9.3
+bleach==3.3.0
+reportlab==3.5.67
 pillow>=7.2.0
-icalendar==4.0.6
+icalendar==4.0.7
 xlwt==1.3.0
 django-datatables-view==1.19.1
 django-bitfield==2.0.1
 ##django-countries==5.3.3
-django-compressor==2.4
+django-compressor==2.4.1
 django-npm==1.0.0
 #django-cache-utils==0.7.2
 #hg+https://bitbucket.org/ggbaker/django-cache-utils/@8a29823  # python 3 compatibility
 git+git://github.com/gregbaker/django-cache-utils@a64ff6b
 celery==4.4.7
 django-celery-email==3.0.0
-django_celery_beat==2.0.0
-flower==0.9.5
+django_celery_beat==2.2.0
 kombu==4.6.11
-iso8601==0.1.12
-#django-haystack==2.8.1
-git+git://github.com/django-haystack/django-haystack.git@v3.0b2
+iso8601==0.1.14
+django-haystack==3.0
 whoosh==2.7.4
-djangorestframework==3.11.1
+djangorestframework==3.12.4
 djangorestframework-oauth==1.1.0
 #django-oauth-plus==2.2.9
 #hg+https://bitbucket.org/ggbaker/django-oauth-plus/@2d76fb2f300d # django 2.0 and python3 compatibility
@@ -46,8 +44,8 @@ git+git://github.com/gregbaker/django-oauth-plus@3c47dc758dd1eacd17deceb54ec7a69
 oauth2 @ git+git://github.com/i-kiwamu/python3-oauth2.git@a6b31832ae0427e27e6eda3ce3d121e385c7e9d5 # ensure python3 compatibility
 markdown # for API docs
 django-rest-swagger==2.2.0
-django-ipware==3.0.1
-psutil==5.7.2
+django-ipware==3.0.2
+psutil==5.8.0
 intervaltree==3.1.0
 requests
 ntplib==0.3.4
@@ -59,9 +57,9 @@ python-memcached==1.59
 git+git://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
 elasticsearch>=5.0.0,<6.0.0
 #pysolr==3.8.1
-lxml==4.5.2
-gunicorn==20.0.4
-mysqlclient==2.0.1
+lxml==4.6.3
+gunicorn==20.1.0
+mysqlclient==2.0.3
 paramiko>=2.7.1
 ibm_db==3.0.1
 #django-cas-ng==3.6.0

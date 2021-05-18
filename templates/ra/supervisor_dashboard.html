@@ -1,4 +1,4 @@
-{% extends "base-wide.html" %}
+{% extends "base.html" %}
 {% load static %}
 {% load form_display %}
 
@@ -32,15 +32,16 @@ $(document).ready(function() {
 <li>Dashboard</li>
 {% endblock %}
 
-{% block content %}
-</i>
-<p>This page will display any RA requests/appointments that you have created or are a supervisor for.<p>
-<p>If you have the correct permissions, you may also create/reappoint new requests here.</p>
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "ra:new_request" %}">New RA Request</a></li>
+    </ul>
+</div>
+{% endblock %}
 
-<h3>Actions</h3>
-<p>
-  <li><a href="{% url "ra:new_request" %}">New RA Request</a></li>
-</p>
+{% block content %}
 
 <h3>Open Requests</h3>
 <div class="datatable_container">
@@ -53,8 +54,6 @@ $(document).ready(function() {
         <th scope="col">Start Date</th>
         <th scope="col">End Date</th>
         <th scope="col">Created At</th>
-        <th scope="col">Author</th>
-        <th scope="col">Total Pay</th>
       </tr>
     </thead>
     <tbody>
@@ -65,11 +64,9 @@ $(document).ready(function() {
           </a></td>
           <td>{{ req.supervisor }}</td>
           <td>{{ req.hiring_category }}</td>
-          <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
-          <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
-          <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
-          <td>{{ req.author }}</td>
-          <td>$ {{ req.total_pay }}</td>
+          <td>{{ req.start_date }}</td>
+          <td>{{ req.end_date }}</td>
+          <td>{{ req.created_at }}</td>
         </tr>
       {% endfor %}
     </tbody>
@@ -87,8 +84,6 @@ $(document).ready(function() {
         <th scope="col">Start Date</th>
         <th scope="col">End Date</th>
         <th scope="col">Created At</th>
-        <th scope="col">Author</th>
-        <th scope="col">Total Pay</th>
       </tr>
     </thead>
     <tbody>
@@ -99,11 +94,9 @@ $(document).ready(function() {
           </a></td>
           <td>{{ req.supervisor }}</td>
           <td>{{ req.hiring_category }}</td>
-          <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
-          <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
-          <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
-          <td>{{ req.author }}</td>
-          <td>$ {{ req.total_pay }}</td>
+          <td>{{ req.start_date }}</td>
+          <td>{{ req.end_date }}</td>
+          <td>{{ req.created_at }}</td>
         </tr>
       {% endfor %}
     </tbody>
