@@ -13,28 +13,7 @@ make proddev-start-all
 
 ## Demo Server Setup
 
-Create a VM.
-```sh
-sudo apt install chef
-git clone https://github.com/sfu-fas/coursys.git
-cd coursys/
-git checkout some-branch
-sudo cp ./deploy/run-list-demo.json ./deploy/run-list.json # check run-list.json to make sure it's correct
-make chef # will fail at nginx step because of missing cert...
-sudo cp deploy/cookbooks/coursys/files/nginx-bootstrap.conf /etc/nginx/sites-enabled/default
-sudo certbot --nginx certonly
-make chef
-cd
-# rm -rf coursys # probably
-cd /coursys
-sudo cp ./deploy/run-list-demo.json ./deploy/run-list.json # again check run-list.json
-# probably edit /coursys/courses/localsettings.py with localsettings-demo-example.py as a template
-# get demo data dumped from production (./manage.py dump_demo_data > /tmp/demodata.json)
-make proddev-start-all
-make start-all
-./manage.py migrate
-./manage.py load_demo_data demodata.json 
-```
+See `instructions/DEMO_SERVER_SETUP.md`.
 
 ## Proddev VM Setup: different user
 

@@ -92,6 +92,8 @@ def backup_to_remote():
 
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
 def check_sims_connection():
+    if settings.DISABLE_REPORTING_DB:
+        return
     from coredata.queries import SIMSConn, SIMSProblem
     db = SIMSConn()
     db.execute("SELECT descr FROM dbcsown.PS_TERM_TBL WHERE strm='1111'", ())
