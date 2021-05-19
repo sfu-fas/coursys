@@ -231,20 +231,6 @@ class RARequestFundingSourceForm(forms.ModelForm):
         # add error messages
         start_date = self.initial['start_date']
         end_date = self.initial['end_date']
-
-        for field in config_init:
-            self.initial[field] = getattr(self.instance, field)
-    
-    def clean(self):
-        cleaned_data = super().clean()
-
-        config_clean = ['fs1_percentage','fs2_option', 'fs2_percentage','fs3_option', 
-                        'fs3_percentage', 'start_date', 'end_date']
-
-        for field in config_clean:
-            setattr(self.instance, field, cleaned_data[field])
-
-        # add error messages
         fs2_option = cleaned_data.get('fs2_option')
         fs2_unit = cleaned_data.get('fs2_unit')
         fs2_fund = cleaned_data.get('fs2_fund')
