@@ -247,6 +247,7 @@ COMPRESS_FILTERS = {
     'js': ['compressor.filters.jsmin.JSMinFilter']
 }
 COMPRESS_ROOT = getattr(localsettings, 'COMPRESS_ROOT', STATIC_ROOT)
+COMPRESS_STORAGE = 'courselib.compress.CompressorFileStorage'
 NPM_ROOT_PATH = getattr(localsettings, 'NPM_ROOT_PATH', '.')
 
 # production-like vs development settings
