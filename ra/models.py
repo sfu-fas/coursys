@@ -560,7 +560,7 @@ class RARequest(models.Model):
         duties += [duty for val, duty in DUTIES_CHOICES_WR if val in [int(i) for i in self.ra_duties_wr]]
         duties += [duty for val, duty in DUTIES_CHOICES_PM if val in [int(i) for i in self.ra_duties_pm]]
         return duties
-    
+        
     def build_letter_text(self):
         """
         This takes the value passed from the letter selector menu and builds the appropriate
@@ -644,11 +644,18 @@ class RARequest(models.Model):
 
     def get_name(self):
         if self.first_name and self.last_name:
-            name = self.first_name + " " + self.last_name
+            name = "%s %s" % (self.first_name, self.last_name)
         if self.person:
             name = self.person.name()
         return name
     
+    def get_sort_name(self):
+        if self.first_name and self.last_name:
+            name = "%s, %s" % (self.last_name, self.first_name)
+        if self.person:
+            name = self.person.sortname()
+        return name
+
     def get_first_name(self):
         if self.first_name:
             first_name = self.first_name
