@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ offering.name }}: Discussion Forum{% endblock %}
+{% block h1 %}{{ offering.name }}: Discussion Forum{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li>Discussion</li>
+{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block content %}
+    <p><a href="{% url 'offering:forum:new_thread' course_slug=offering.slug %}">New Post</a></p>
+
+    <ul>
+    {% for thread in threads %}
+        <li>&ldquo;{{ thread.title }}&rdquo; by {{ thread.post.visible_author }}</li>
+    {% endfor %}
+    </ul>
+
+{% endblock %}
