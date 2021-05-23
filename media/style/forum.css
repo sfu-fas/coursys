@@ -1,0 +1,12 @@
+#forum-app {
+    display: grid;
+    grid-template-columns: minmax(10em, 25%) 1fr;
+}
+#thread-list {
+    grid-column: 1;
+    grid-row: 1;
+}
+.main-panel {
+    grid-column: 2;
+    grid-row: 1;
+}
