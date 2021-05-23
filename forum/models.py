@@ -1,10 +1,12 @@
 import datetime
-from typing import Dict
+from typing import Dict, Any
 
 from autoslug import AutoSlugField
 from django.db import models, transaction, IntegrityError
 from django.core.cache import cache
 from django.db.models import Max
+from django.http import Http404
+from django.urls import reverse
 
 from coredata.models import CourseOffering, Member
 from courselib.json_fields import JSONField, config_property
@@ -17,6 +19,9 @@ from forum.names_generator import get_random_name
 # TODO: subscriptions
 # TODO: pinned comments
 # TODO: read/unread tracking
+# TODO: topics aren't functional
+# TODO: instructor-private questions
+# TODO: text search
 
 
 IDENTITY_CHOICES = [  # AnonymousIdentity.identity_choices should reflect any logical changes here
@@ -37,21 +42,25 @@ THREAD_STATUS_CHOICES = [
 
 class Forum(models.Model):
     """
-    A discussion/Q&A board for the offering, with config
+    A discussion/Q&A board for the offering, with config.
+
+    Semantics: forum is only enabled for the course if a Forum object exists and Forum.enabled is True.
     """
     offering = models.OneToOneField(CourseOffering, on_delete=models.PROTECT)
     config = JSONField(null=False, blank=False, default=dict)
 
+    enabled = config_property('enabled', default=True)  # use the discussion forum for this course?
     identity = config_property('identity', default='INST')  # level of anonymity allowed in this course
 
     @classmethod
-    def for_offering(cls, offering: CourseOffering) -> 'Forum':
+    def for_offering_or_404(cls, offering: CourseOffering) -> 'Forum':
         try:
-            return Forum.objects.get(offering=offering)
-        except Forum.DoesNotExist:
-            f = Forum(offering=offering)
-            f.save()
+            f = Forum.objects.get(offering=offering)
+            if not f.enabled:
+                raise Http404('The discussion forum is disabled for this course offering.')
             return f
+        except Forum.DoesNotExist:
+            raise Http404('The discussion forum is disabled for this course offering.')
 
 
 class AnonymousIdentity(models.Model):
@@ -199,19 +208,22 @@ class Post(models.Model):
                 self.number = maxnum + 1
                 try:
                     result = super().save(*args, **kwargs)
-                    return result
                 except IntegrityError:
                     pass
+                else:
+                    return result
 
     def html_content(self):
-        text, markuplang, math = self.content
-        return markup_to_html(text, markuplang, math=math, restricted=True)
+        return markup_to_html(self.content, self.markup, math=self.math, restricted=True)
 
     def visible_author(self, is_instr=False):
         if self.identity == 'NAME' or (self.identity == 'INST' and is_instr):
             return AnonymousIdentity.real_name(self.author)
         else:
-            return AnonymousIdentity.for_member(self.author)
+            return '“' + AnonymousIdentity.for_member(self.author) + '”'
+
+    def was_edited(self):
+        return (self.modified_at - self.created_at) > datetime.timedelta(seconds=5)
 
 
 class PostStatusManager(models.Manager):
@@ -241,6 +253,29 @@ class Thread(models.Model):
             self.post_id = self.post.id
             result = super().save(*args, **kwargs)
         return result
+
+    def get_absolute_url(self):
+        return reverse('offering:forum:view_thread', kwargs={'course_slug': self.post.offering.slug, 'thread_slug': self.slug})
+
+    def summary_json(self) -> Dict[str, Any]:
+        """
+        Data for a JSON representation that summarizes the thread (for the menu of threads).
+        """
+        data = {
+            'id': self.id,
+            'title': self.title,
+            'author': self.post.visible_author(),
+            'number': self.post.number,
+        }
+        return data
+
+    def detail_json(self) -> Dict[str, Any]:
+        """
+        Data for a JSON representation that is complete thread info. Should be a superset of .summary_json
+        """
+        data = self.summary_json()
+        data['html_content'] = self.post.html_content()
+        return data
 
 
 class Reply(models.Model):
