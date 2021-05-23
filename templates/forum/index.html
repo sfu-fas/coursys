@@ -1,5 +1,6 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% load static %}
+{% load compress %}
 
 {% block title %}{{ offering.name }}: Discussion Forum{% endblock %}
 {% block h1 %}{{ offering.name }}: Discussion Forum{% endblock %}
@@ -9,15 +10,31 @@
 {% endblock %}
 
 {% block headextra %}
+    {{ data|json_script:"initial-data" }}
+    {% url 'offering:forum:index' course_slug=offering.slug as dataurl %}{{ dataurl|json_script:"forum-url" }}
+
+    {% compress css %}
+    <link rel="stylesheet" href="{% static 'style/forum.css' %}" />
+    {% endcompress %}
+
+    {% include 'pages/markup_view_head.html' %}
+    {% compress js %}
+    {% if DEBUG %}{# the non-prod versions of these libs leave data for vue-devtools #}
+    <script src="{% static 'vue/dist/vue.global.js' %}"></script>
+    <script src="{% static 'vuex/dist/vuex.global.js' %}"></script>
+    <script src="{% static 'vue-router/dist/vue-router.global.js' %}"></script>
+    {% else %}
+    <script src="{% static 'vue/dist/vue.global.prod.js' %}"></script>
+    <script src="{% static 'vuex/dist/vuex.global.prod.js' %}"></script>
+    <script src="{% static 'vue-router/dist/vue-router.global.prod.js' %}"></script>
+    {% endif %}
+    <script src="{% static 'axios/dist/axios.min.js' %}"></script>
+    <script src="{% static 'js/forum.js' %}"></script>
+    {% endcompress %}
 {% endblock %}
 
 {% block content %}
-    <p><a href="{% url 'offering:forum:new_thread' course_slug=offering.slug %}">New Post</a></p>
-
-    <ul>
-    {% for thread in threads %}
-        <li>&ldquo;{{ thread.title }}&rdquo; by {{ thread.post.visible_author }}</li>
-    {% endfor %}
-    </ul>
-
+    <section id="forum-app">
+        {% verbatim %}<Forum></Forum>{% endverbatim %}
+    </section>
 {% endblock %}

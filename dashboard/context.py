@@ -30,4 +30,5 @@ def media(request):
             'request_path': request.path,
             'CourSys': product_name(request),
             'help_email': help_email(request),
+            'DEBUG': settings.DEBUG,
             }

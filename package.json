@@ -4,17 +4,21 @@
   "description": "CourSys npm dependancies",
   "main": "index.js",
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^2.1.4",
     "@fortawesome/fontawesome-free": "^5.14.0",
+    "axios": "^0.21.1",
     "codemirror": "^5.61.0",
     "datatables": "^1.10.18",
-    "@fingerprintjs/fingerprintjs": "^2.1.4",
     "fullcalendar": "^5.7.0",
     "jquery": "^3.6.0",
     "jquery.are-you-sure": "^1.9.0",
     "mathjax": "^3.1.4",
     "moment": "^2.29.1",
     "styled-notifications": "^1.0.3",
-    "tinymce": "^5.8.0"
+    "tinymce": "^5.8.0",
+    "vue": "^3.0.11",
+    "vue-router": "^4.0.8",
+    "vuex": "^4.0.0"
   },
   "devDependencies": {},
   "scripts": {

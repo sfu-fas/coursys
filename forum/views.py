@@ -24,7 +24,7 @@ def index(request: HttpRequest, course_slug: str, number : Optional[int] = None)
 
     # data object for vue.js: delivered in template as initial data, or JSON later if requested with ?data=yes
     data = {
-        'threads': [t.summary_json() for t in threads]
+        'threadList': [t.summary_json() for t in threads]
     }
 
     if 'data' in request.GET:

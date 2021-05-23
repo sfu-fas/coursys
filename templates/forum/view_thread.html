@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block title %}{{ offering.name }} Discussion: Post #{{ post.number }}{% endblock %}
+{% block h1 %}{{ offering.name }} Discussion: Post #{{ post.number }}{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{% url 'offering:forum:index' course_slug=offering.slug %}">Discussion</a></li>
+    <li>Post #{{ post.number }}</li>
+{% endblock %}
+
+{% block headextra %}
+    {% include 'pages/markup_view_head.html' %}
+{% endblock %}
+
+{% block content %}
+
+    <p>
+        By {{ post.visible_author }},
+        {{ post.created_at }}{% if post.was_edited %} (edited {{ post.modified_at }}){% endif %}
+    </p>
+    <h3>{{ thread.title }}</h3>
+
+    {{ post.html_content }}
+
+{% endblock %}
