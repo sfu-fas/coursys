@@ -10,32 +10,75 @@ from forum.models import Thread, AnonymousIdentity, Forum
 
 
 @requires_course_by_slug
-def index(request: HttpRequest, course_slug: str, post_number : Optional[int] = None) -> HttpResponse:
+def _forum_omni_view(
+        request: HttpRequest, *, course_slug: str, view: str,
+        post_number : Optional[int] = None,
+):
+    """
+    All of the main forum views (thread list + main panel) are handled server-side here.
+    """
     member = request.member
     offering = member.offering
     forum = Forum.for_offering_or_404(offering)
+    context = {
+        'view': view,
+        'offering': offering,
+        'post_number': post_number,
+    }
+    fragment = 'fragment' in request.GET
 
-    threads = Thread.objects.filter(post__offering=offering).select_related('post', 'post__author', 'post__offering')
+    if view == 'new_thread':
+        if request.method == 'POST':
+            form = ThreadForm(data=request.POST, member=member, offering_identity=forum.identity)
+            if form.is_valid():
+                post = form.save(commit=False)
+                post.offering = offering
+                post.author = member
+                post.status = 'OPEN'
+                thread = Thread(post=post, title=form.cleaned_data['title'])
+                thread.save()  # also saves the thread.post
+
+                messages.add_message(request, messages.SUCCESS, 'Forum thread posted.')
+                return redirect('offering:forum:index', course_slug=offering.slug)
+
+        else:
+            form = ThreadForm(member=member, offering_identity=forum.identity)
+
+        context['form'] = form
+
+    else:
+        context['form'] = None
 
     if post_number is not None:
-        current_thread = get_object_or_404(
+        thread = get_object_or_404(
             Thread.objects.select_related('post', 'post__author', 'post__offering'),
             post__offering=offering, post__number=post_number
         )
     else:
-        current_thread = None
+        thread = None
+    context['thread'] = thread
+    context['post'] = thread.post if thread else None
 
-    context = {
-        'offering': offering,
-        'threads': threads,
-        'post_number': post_number,
-        'current_thread': current_thread,
-    }
+    threads = Thread.objects.filter(post__offering=offering).select_related('post', 'post__author', 'post__offering')
+    context['threads'] = threads
+
+    if fragment:
+        return render(request, 'forum/_'+view+'.html', context=context)
+
     return render(request, 'forum/index.html', context=context)
 
 
-@requires_course_by_slug
+def index(request: HttpRequest, course_slug: str) -> HttpResponse:
+    return _forum_omni_view(request, course_slug=course_slug, view='index')
+
+
+def view_thread(request: HttpRequest, course_slug: str, post_number : Optional[int] = None) -> HttpResponse:
+    return _forum_omni_view(request, course_slug=course_slug, view='view_thread', post_number=post_number)
+
+
 def new_thread(request: HttpRequest, course_slug: str) -> HttpResponse:
+    return _forum_omni_view(request, course_slug=course_slug, view='new_thread')
+
     member = request.member
     offering = member.offering
     forum = Forum.for_offering_or_404(offering)
@@ -62,17 +105,3 @@ def new_thread(request: HttpRequest, course_slug: str) -> HttpResponse:
     }
     return render(request, 'forum/new_thread.html', context=context)
 
-
-@requires_course_by_slug
-def view_thread(request: HttpRequest, course_slug: str, thread_slug: str) -> HttpResponse:
-    member = request.member
-    offering = member.offering
-    forum = Forum.for_offering_or_404(offering)
-
-    thread = get_object_or_404(Thread, post__offering=offering, slug=thread_slug)
-    context = {
-        'offering': offering,
-        'thread': thread,
-        'post': thread.post,
-    }
-    return render(request, 'forum/view_thread.html', context=context)

@@ -11,8 +11,8 @@
 
 {% block headextra %}
     {% url 'offering:forum:index' course_slug=offering.slug as dataurl %}{{ dataurl|json_script:"forum-url" }}
-
     {% include 'pages/markup_view_head.html' %}
+    {% include 'pages/markup_edit_head.html' %}
     {% compress css %}
     <link rel="stylesheet" href="{% static 'style/forum.css' %}" />
     {% endcompress %}
@@ -24,12 +24,16 @@
 {% block content %}
 
     <section id="forum">
-    <section id="thread-list">{% include "forum/_thread_list.html" with offering=offering threads=threads %}</section>
+    <section id="thread-list">
+        {% include "forum/_thread_list.html" %}
+    </section>
     <section id="main-panel">
-        {% if current_thread %}
-            {% include "forum/_thread_detail.html" with thread=current_thread post=current_thread.post %}
-        {% else %}
-            {% include "forum/_forum_summary.html" %}
+        {% if view == 'index' %}
+            {% include "forum/_index.html" %}
+        {% elif view == 'view_thread' %}
+            {% include "forum/_view_thread.html" %}
+        {% elif view == 'new_thread' %}
+            {% include "forum/_new_thread.html" %}
         {% endif %}
     </section>
     </section>
