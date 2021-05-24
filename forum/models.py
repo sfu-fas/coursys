@@ -236,13 +236,13 @@ class Thread(models.Model):
     title = models.CharField(max_length=255, null=False, blank=False)
     post = models.OneToOneField(Post, on_delete=models.CASCADE)
     pin = models.PositiveSmallIntegerField(default=0)
-    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=['post__offering'])
+    #slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=['post__offering'])
     config = JSONField(null=False, blank=False, default=dict)
 
     objects = PostStatusManager()
 
-    def autoslug(self):
-        return make_slug(self.title)
+    #def autoslug(self):
+    #    return make_slug(self.title)
 
     class Meta:
         ordering = ('-pin', '-post__modified_at')
@@ -255,7 +255,7 @@ class Thread(models.Model):
         return result
 
     def get_absolute_url(self):
-        return reverse('offering:forum:view_thread', kwargs={'course_slug': self.post.offering.slug, 'thread_slug': self.slug})
+        return reverse('offering:forum:view_thread', kwargs={'course_slug': self.post.offering.slug, 'post_number': self.post.number})
 
     def summary_json(self) -> Dict[str, Any]:
         """

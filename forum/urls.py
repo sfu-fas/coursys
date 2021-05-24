@@ -8,7 +8,8 @@ COMPONENT_SLUG = '(?P<thread_slug>' + SLUG_RE + ')'
 
 
 forum_patterns = [ # prefix /COURSE_SLUG/forum/
-    url(r'^(?P<number>\d+)?$', views.index, name='index'),
+    url(r'^$', views.index, name='index'),
+    url(r'^(?P<post_number>\d+)?$', views.index, name='view_thread'),
     url(r'^new', views.new_thread, name='new_thread'),
     #url(r'^view/' + COMPONENT_SLUG, views.view_thread, name='view_thread'),
 ]

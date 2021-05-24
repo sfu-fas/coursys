@@ -1,0 +1,6 @@
+<ul>
+<li><a href="{% url 'offering:forum:index' course_slug=offering.slug %}">Forum Summary</a></li>
+{% for thread in threads %}
+<li>#{{ thread.post.number }} <a href="{{ thread.get_absolute_url }}">{{ thread.title }}</a> by {{ thread.post.visible_author }}</li>
+{% endfor %}
+</ul>
