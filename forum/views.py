@@ -10,30 +10,26 @@ from forum.models import Thread, AnonymousIdentity, Forum
 
 
 @requires_course_by_slug
-def index(request: HttpRequest, course_slug: str, number : Optional[int] = None) -> HttpResponse:
+def index(request: HttpRequest, course_slug: str, post_number : Optional[int] = None) -> HttpResponse:
     member = request.member
     offering = member.offering
     forum = Forum.for_offering_or_404(offering)
 
-    if 'data' in request.GET and number:
-        # if number is in the URL and JSON data was requested, give more detail on that thread
-        thread = get_object_or_404(Thread, post__offering=offering, post__number=number)
-        return JsonResponse({'thread': thread.detail_json()})
-
     threads = Thread.objects.filter(post__offering=offering).select_related('post', 'post__author', 'post__offering')
 
-    # data object for vue.js: delivered in template as initial data, or JSON later if requested with ?data=yes
-    data = {
-        'threadList': [t.summary_json() for t in threads]
-    }
-
-    if 'data' in request.GET:
-        return JsonResponse(data)
+    if post_number is not None:
+        current_thread = get_object_or_404(
+            Thread.objects.select_related('post', 'post__author', 'post__offering'),
+            post__offering=offering, post__number=post_number
+        )
+    else:
+        current_thread = None
 
     context = {
         'offering': offering,
         'threads': threads,
-        'data': data,
+        'post_number': post_number,
+        'current_thread': current_thread,
     }
     return render(request, 'forum/index.html', context=context)
 
