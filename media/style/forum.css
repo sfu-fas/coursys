@@ -21,3 +21,17 @@ a i.forum-button {
     background: #a6192e;
     color: white;
 }
+
+.forum-form label {
+    font-weight: bold;
+}
+.forum-form .radio label {
+    font-weight: normal;
+}
+.forum-form div.field {
+    display: inline-block;
+    vertical-align: top;
+}
+.forum-form div.field > * {
+    margin-top: 0;
+}

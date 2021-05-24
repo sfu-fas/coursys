@@ -39,7 +39,7 @@ def _forum_omni_view(
                 thread.save()  # also saves the thread.post
 
                 messages.add_message(request, messages.SUCCESS, 'Forum thread posted.')
-                return redirect('offering:forum:index', course_slug=offering.slug)
+                return redirect('offering:forum:view_thread', course_slug=offering.slug, post_number=post.number)
 
         else:
             form = ThreadForm(member=member, offering_identity=forum.identity)
@@ -63,6 +63,7 @@ def _forum_omni_view(
     context['threads'] = threads
 
     if fragment:
+        # we have been asked for a page fragment: deliver only that.
         return render(request, 'forum/_'+view+'.html', context=context)
 
     return render(request, 'forum/index.html', context=context)
@@ -78,30 +79,3 @@ def view_thread(request: HttpRequest, course_slug: str, post_number : Optional[i
 
 def new_thread(request: HttpRequest, course_slug: str) -> HttpResponse:
     return _forum_omni_view(request, course_slug=course_slug, view='new_thread')
-
-    member = request.member
-    offering = member.offering
-    forum = Forum.for_offering_or_404(offering)
-
-    if request.method == 'POST':
-        form = ThreadForm(data=request.POST, member=member, offering_identity=forum.identity)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.offering = offering
-            post.author = member
-            post.status = 'OPEN'
-            thread = Thread(post=post, title=form.cleaned_data['title'])
-            thread.save()  # also saves the thread.post
-
-            messages.add_message(request, messages.SUCCESS, 'Forum thread posted.')
-            return redirect('offering:forum:index', course_slug=offering.slug)
-
-    else:
-        form = ThreadForm(member=member, offering_identity=forum.identity)
-
-    context = {
-        'offering': offering,
-        'form': form
-    }
-    return render(request, 'forum/new_thread.html', context=context)
-

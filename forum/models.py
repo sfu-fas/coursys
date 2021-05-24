@@ -19,7 +19,7 @@ from forum.names_generator import get_random_name
 # TODO: subscriptions
 # TODO: pinned comments
 # TODO: read/unread tracking
-# TODO: topics aren't functional
+# TODO: thread topics
 # TODO: instructor-private questions
 # TODO: text search
 
@@ -154,21 +154,21 @@ class AnonymousIdentity(models.Model):
         return choices
 
 
-class Topic(models.Model):
-    """
-    A thread category created by the instructor (like "assignments" or "social").
-    """
-    offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
-    name = models.CharField(max_length=100, null=False, blank=False)
-    order = models.PositiveSmallIntegerField(null=False, blank=False)
-
-    config = JSONField(null=False, blank=False, default=dict)
-
-    class Meta:
-        ordering = ['order']
-        unique_together = [
-            ('offering', 'order'),
-        ]
+# class Topic(models.Model):
+#     """
+#     A thread category created by the instructor (like "assignments" or "social").
+#     """
+#     offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
+#     name = models.CharField(max_length=100, null=False, blank=False)
+#     order = models.PositiveSmallIntegerField(null=False, blank=False)
+#
+#     config = JSONField(null=False, blank=False, default=dict)
+#
+#     class Meta:
+#         ordering = ['order']
+#         unique_together = [
+#             ('offering', 'order'),
+#         ]
 
 
 class Post(models.Model):
