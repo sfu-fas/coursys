@@ -493,46 +493,6 @@ def advanced_search(request):
     context = {'supervisor_form': supervisor_form, 'appointee_form': appointee_form}
     return render(request, 'ra/search/advanced_search.html', context)
 
-"""
-@requires_role("FUND")
-def search_appointments(request, student_id=None):
-    if student_id:
-        student = get_object_or_404(Person, id=student_id)
-    else:
-        student = None
-    if request.method == 'POST':
-        form = RASearchForm(request.POST)
-        if not form.is_valid():
-            return HttpResponseRedirect(reverse('ra:found') + "?search=" + urllib.parse.quote_plus(form.data['search']))
-        search = form.cleaned_data['search']
-        # deal with people without active computing accounts
-        if search.userid:
-            userid = search.userid
-        else:
-            userid = search.emplid
-        return HttpResponseRedirect(reverse('ra:student_appointments', kwargs={'userid': userid}))
-    if student_id:
-        form = RASearchForm(instance=student, initial={'student': student.userid})
-    else:
-        form = RASearchForm()
-    context = {'form': form}
-    return render(request, 'ra/search_a.html', context)
-
-@requires_role("FUND")
-def found_appointments(request):
-    if 'search' not in request.GET:
-        return ForbiddenResponse(request, 'must give search in query')
-    search = request.GET['search']
-    studentQuery = get_query(search, ['userid', 'emplid', 'first_name', 'last_name'])
-    people = Person.objects.filter(studentQuery)[:200]
-    for p in people:
-        # decorate with RAAppointment count
-        p.ras = RAAppointment.objects.filter(unit__in=request.units, person=p, deleted=False).count()
-
-    context = {'people': people}
-    return render(request, 'ra/found.html', context)
-"""
-
 # View RA Request
 @_can_view_ra_requests()
 def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
