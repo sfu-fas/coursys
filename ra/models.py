@@ -292,7 +292,7 @@ RA_VACATION_PAY_CHOICES = (
 
 RA_BENEFITS_CHOICES = (
     ('Y', "Yes (The cost will be shared 50/50 between employee and employer and eligibility depends on your funding source. " +
-    "An additional 2% to 4% of salary costs will be added to your project. Cost depends on Appointee's dependents and family size.)"),
+    "Cost depends on Appointee's dependents and family size.)"),
     ('NE', 'No - My grant is not eligible.'),
     ('N', 'No')
 )
@@ -475,8 +475,10 @@ class RARequest(models.Model):
     # file attachments 
     file_attachment_1 = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=ra_request_attachment_upload_to, blank=True, max_length=500)
+    file_mediatype_1 = models.CharField(max_length=200, default=None, null=True, blank=True, editable=False)
     file_attachment_2 = models.FileField(storage=UploadedFileStorage, null=True,
                       upload_to=ra_request_attachment_upload_to, blank=True, max_length=500)
+    file_mediatype_2 = models.CharField(max_length=200, default=None, null=True, blank=True, editable=False)
 
     # funding comments 
     funding_comments = config_property('funding_comments', default='')
@@ -558,13 +560,14 @@ class RARequest(models.Model):
         duties += [duty for val, duty in DUTIES_CHOICES_WR if val in [int(i) for i in self.ra_duties_wr]]
         duties += [duty for val, duty in DUTIES_CHOICES_PM if val in [int(i) for i in self.ra_duties_pm]]
         return duties
-    
+
     def build_letter_text(self):
         """
         This takes the value passed from the letter selector menu and builds the appropriate
         default letter based on that.
         """
 
+        substitutions = {}
         text = ''
 
         if self.hiring_category == "RA":
@@ -641,11 +644,18 @@ class RARequest(models.Model):
 
     def get_name(self):
         if self.first_name and self.last_name:
-            name = self.first_name + " " + self.last_name
+            name = "%s %s" % (self.first_name, self.last_name)
         if self.person:
             name = self.person.name()
         return name
     
+    def get_sort_name(self):
+        if self.first_name and self.last_name:
+            name = "%s, %s" % (self.last_name, self.first_name)
+        if self.person:
+            name = self.person.sortname()
+        return name
+
     def get_first_name(self):
         if self.first_name:
             first_name = self.first_name

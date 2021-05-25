@@ -7,20 +7,20 @@
 {% endblock %}
 
 {% block title %}
-  RA Request for {{ req.get_name }}
+  RA {{ status }} for {{ req.get_name }}
 {% endblock %}
 
 {% block h1 %}
-  RA Request for {{ req.get_name }}
+  RA {{ status }} for {{ req.get_name }}
 {% endblock %}
 
 {% block subbreadcrumbs %}
 {% if admin %}
 <li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
 {% else %}
-<li><a href="{% url "ra:supervisor_dashboard" %}">RA Dashboard</a></li>
+<li><a href="{% url "ra:browse_appointments" %}">RA Dashboard</a></li>
 {% endif %}
-<li>View RA Request for {{ req.get_name }}</li>
+<li>View RA {{ status }} for {{ req.get_name }}</li>
 {% endblock %}
 
 {% block actions %}
@@ -28,7 +28,7 @@
     <h2>Actions</h2>
     <ul>
       {% if admin %}
-        <li><a href="{% url "ra:edit_request" ra_slug=req.slug %}">Edit this Request</a></li> 
+        <li><a href="{% url "ra:edit_request" ra_slug=req.slug %}">Edit this {{ status }}</a></li> 
         <li><a href="{% url "ra:request_paf" ra_slug=req.slug %}">Payroll Appointment Form</a></li>
         {% if not req.backdated %}
         <li><a href="{% url "ra:request_offer_letter_update" ra_slug=req.slug %}">Offer Letter</a></li>
@@ -58,15 +58,18 @@
 </div>
 
 <div class="table_container">
-  <h2>Appointee Information</h2>
+  <h2>Appointee Information</h2> 
   <table class="info">
+    {% if not no_id and admin %} 
+    (<i>Click <a href="{% url "ra:appointee_appointments" userid=req.person.userid %}">here</a> to view all appointments for {{ person.name }})</i></td></tr>
+    {% endif %}
     {% if no_id %}
     <tr><th>ID:</th><td>Appointee does not have an SFU ID</td></tr>
     <tr><th>First Name:</th><td>{{ req.first_name }}</td></tr>
     <tr><th>Last Name:</th><td>{{ req.last_name }}</td></tr>
     <tr><th>Email:</th><td>{{ req.email_address }}</td></tr>
     {% else %}
-    <tr><th>ID:</th><td>{{ person.emplid }}</td></tr>
+    <tr><th>ID:</th><td>{{ person.emplid }}
     <tr><th>First Name:</th><td>{{ person.first_name }}</td></tr>
     <tr><th>Last Name:</th><td>{{ person.last_name }}</td></tr>
     <tr><th>Email:</th><td>{{ person.email_mailto }}</td></tr>
@@ -105,6 +108,9 @@
 
 <div class="table_container">
   <h2>Supervisor Information</h2>
+  {% if admin %}
+  (<i>Click <a href="{% url "ra:supervisor_appointments" userid=req.supervisor.userid %}">here</a> to view all appointments that {{ supervisor.name }} is supervisor for)</i></td></tr>
+  {% endif %}
   <table class="info">
     <tr><th>ID:</th><td>{{ supervisor.emplid }}</td></tr>
     <tr><th>First Name:</th><td>{{ supervisor.first_name }}</td></tr>
@@ -378,6 +384,7 @@
 <h2>Checklist</h2>
 {% else %}
 <h2>Progress</h2>
+<div class="helptext">This section will change as admin processes your request.</div>
 {% endif %}
 
 <div class="form_container">
@@ -568,7 +575,7 @@
 <form action="{% url "ra:delete_request" ra_slug=req.slug %}" class="subtle" method="post">
   {% csrf_token %}
   <p class="actionbutton">
-      <input type="submit" class="submit confirm-submit" value="Delete Request" data-submit-action="delete this request" />
+      <input type="submit" class="btn confirm-submit" value="Delete Request" data-submit-action="delete this request" />
   </p>
 </form>
 </div>

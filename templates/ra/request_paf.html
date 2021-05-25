@@ -35,6 +35,44 @@
     </form>
   </div>
 
+  <h2>Important Information about Appointee</h2>
+  <div class="form_container">
+    {% if req.nonstudent %}
+      <i>This appointment is not associated with anyone in the system (appointee does not have an ID).</i> 
+    {% else %}
+      <h3>Program(s)</h3><ul>
+        {% if info.programs %}
+          {% for program in info.programs %}
+            <li>{{ program.program }}, {{ program.unit }} ({{program.status}})</li>
+          {% endfor %}
+        {% else %}
+          <li class="empty">No grad program in system</li>
+        {% endif %}
+        <p>
+          {% if citizenshipUnknown %}
+              Citizenship: Unknown
+          {% else %}
+              Citizenship: {{ citizenship }}
+          {% endif %}
+        </p>
+      </ul>
+      <h3>Currently Valid Visa(s)</h3><ul>
+        {% if info.visas %}
+          {% for visa in info.visas %}
+            <li>{{ visa.status }} starting {{ visa.start }}</li>
+          {% endfor %}
+        {% else %}
+          <li class="empty">No currently valid visa in system</li>
+          {% if citizenshipUnknown %}
+          <div id="visa_warning"><p>WARNING:  We do not have any currently valid visa for this person, and we have no way to verify they are Canadian.  Please make sure you check/add this person's visa information in the Visas module. </p></div>
+          {% elif not isCanadian %}
+          <div id="visa_warning"><p>WARNING:  We do not have any currently valid visa for this person, and they are not Canadian.  Please make sure you check/add this person's visa information in the Visas module. </p></div>
+          {% endif %}
+        {% endif %}
+      {% endif %}
+    </ul>
+  </div>
+
   <h2>Download</h2>
   <div class="form_container">
     <form action="{% url "ra:request_paf" ra_slug=req.slug %}" method="post" class="subtle">{% csrf_token %}

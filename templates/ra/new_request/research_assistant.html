@@ -33,7 +33,7 @@
   {% if admin %}
   <li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
   {% else %}
-  <li><a href="{% url "ra:supervisor_dashboard" %}">RA Dashboard</a></li>
+  <li><a href="{% url "ra:browse_appointments" %}">RA Dashboard</a></li>
   {% endif %}
   {% if edit %}
     <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA Request for {{ name }}</a></li>
@@ -46,6 +46,9 @@
 {% block content %}
 
 <div class="form_container">
+  {% if not edit %}
+  <i><a href="{% url "ra:new_request" %}"><u>Click here</u></a> to restart this form and clear all responses.</a> If you have any questions, please contact <b>{{ fas_contact }}.</b></i>
+  {% endif %}
   {% if edit %}
   <form action="{% url "ra:edit_request" ra_slug=slug %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
   {% elif reappoint %}
@@ -72,21 +75,23 @@
             {{ wizard.form|as_dl_excludefields:"ra_benefits,ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
           <div class="biweekly_info">
             <p><div class="important_info">
-              <b>Estimated Biweekly Rate:</b> $<span class="biweekly_rate_info"></span>
+              <b>Estimated Bi-Weekly Rate:</b> $<span class="biweekly_rate_info"></span>
+              <div class="helptext"><span class="biweekly_rate_calc"></span></div>
             </div></p>
             <p><div class="important_info">
               <b>Estimated Hourly Rate:</b> $<span class="hourly_rate_info"></span>
+              <div class="helptext"><span class="hourly_rate_calc"></span></div>
             </div></p>
             <p><div class="important_info">
               <b>Vacation Hours:</b> <span class="vacation_hours_info"></span>
+              <div class="helptext"><span class="vacation_hours_calc"></span></div>
             </div></p>
           </div>
           <p><div class="important_info">
             <b>Estimated Total Pay:</b> $<span class="total_pay_info"></span>
+            <div class="helptext"><span class="total_pay_calc"></span></div>
           </div></p>
-            {{ wizard.form|as_dl_includefields:"ra_benefits" }}
-            <a href="http://www.sfu.ca/human-resources/research.html">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan.</a>
-            {{ wizard.form|as_dl_includefields:"ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
+            {{ wizard.form|as_dl_includefields:"ra_benefits,ra_duties_ex,ra_duties_pm,ra_duties_dc,ra_duties_pd,ra_duties_im,ra_duties_eq,ra_duties_su,ra_duties_wr,ra_duties_dm,ra_other_duties" }}
         {% endif %} 
       </div>
     </fieldset>

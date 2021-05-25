@@ -1,4 +1,4 @@
-from ra.models import RAAppointment
+from ra.models import RAAppointment, RARequest
 from haystack import indexes
 
 # Any additions here should be reflected in courselib.signals.SelectiveRealtimeSignalProcessor so reindexing happens
@@ -34,3 +34,31 @@ class RAIndex(indexes.SearchIndex, indexes.Indexable):
 
     def prepare_search_display(self, ra):
         return "%s hired by %s" % (ra.person.name(), ra.hiring_faculty.name())
+
+class RARequestIndex(indexes.SearchIndex, indexes.Indexable):
+    text = indexes.EdgeNgramField(document=True)
+    url = indexes.CharField(indexed=False, null=False)
+    search_display = indexes.CharField(indexed=False)
+
+    def get_model(self):
+        return RARequest
+
+    def index_queryset(self, using=None):
+        return self.get_model().objects.exclude(deleted=True, complete=False) \
+            .select_related('person', 'supervisor', 'unit')
+
+    def prepare_text(self, ra):
+        pieces = [
+            ra.get_name(),
+            ra.supervisor.name(),
+            str(ra.total_pay),
+            ra.unit.label,
+            ra.unit.name,
+        ]
+        return '\n'.join(pieces)
+
+    def prepare_url(self, ra):
+        return ra.get_absolute_url()
+
+    def prepare_search_display(self, ra):
+        return "%s hired by %s" % (ra.get_name(), ra.supervisor.name())
