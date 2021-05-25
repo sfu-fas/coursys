@@ -1653,7 +1653,7 @@ def new_attachment(request, ra_slug):
                 filetype += "; charset=" + upfile.charset
             attachment.mediatype = filetype
             attachment.save()
-            return HttpResponseRedirect(reverse('ra:view_view', kwargs={'ra_slug': appointment.slug}))
+            return HttpResponseRedirect(reverse('ra:view', kwargs={'ra_slug': appointment.slug}))
         else:
             context.update({"attachment_form": form})
 
@@ -1693,7 +1693,7 @@ def delete_attachment(request, ra_slug, attach_slug):
                          )
     l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
     l.save()
-    return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': appointment.slug}))
+    return HttpResponseRedirect(reverse('ra:view', kwargs={'ra_slug': appointment.slug}))
 
 
 @requires_role("FUND")
