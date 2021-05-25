@@ -32,11 +32,18 @@ SCIENCE_ALIVE_TYPE = (
 MIN_WAGE = 15.20
 MIN_WEEKS_VACATION = 2
 MIN_VACATION_PAY_PERCENTAGE = 4
+# unit contacts 
 CS_CONTACT = "cs_surrey_assistant@sfu.ca"
 MSE_CONTACT = "msedsec@sfu.ca"
 ENSC_CONTACT = "enscfin@sfu.ca"
 SEE_CONTACT = "fas_admin_manager@sfu.ca"
+DEANS_CONTACT = "mrahinsk@sfu.ca"
+# general ra contact
 FAS_CONTACT = "fasra@sfu.ca"
+# intro contacts
+URA_CONTACT = "fas_academic_relations@sfu.ca"
+PD_CONTACT = "fas_postdoc_support@sfu.ca"
+
 
 class RARequestIntroForm(forms.ModelForm):
     person = PersonField(label='Appointee', required=False, help_text="Please ensure you are appointing the correct student.")
@@ -151,7 +158,7 @@ class RARequestIntroForm(forms.ModelForm):
                 self.cleaned_data['thesis'] = False
 
 class RARequestDatesForm(forms.ModelForm):
-    backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
+    backdated = forms.BooleanField(required=False, label="Is this a backdated appointment?")
     pay_periods = forms.DecimalField(required=False, widget=forms.HiddenInput)
 
     class Meta:
@@ -162,6 +169,11 @@ class RARequestDatesForm(forms.ModelForm):
             'end_date': "Date Appointment Ends",
         }
 
+    def __init__(self, edit=False, *args, **kwargs):
+        super(RARequestDatesForm, self).__init__(*args, **kwargs)
+        if not edit:
+            self.fields['backdated'].widget=forms.HiddenInput()
+    
     def clean(self):
         cleaned_data = super().clean()
 
@@ -208,7 +220,6 @@ class RARequestFundingSourceForm(forms.ModelForm):
 
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
-
 
     def clean(self):
         cleaned_data = super(RARequestFundingSourceForm, self).clean()
@@ -650,7 +661,9 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     gross_hourly = forms.DecimalField(required=False, label="Gross Hourly", max_digits=8, decimal_places=2)
     vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)", max_digits=8, decimal_places=1)
     
-    ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, label="Are you willing to provide extended health benefits?")
+    ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
+                                    label='Are you willing to provide extended health benefits?', 
+                                    help_text=mark_safe('<a href="http://www.sfu.ca/human-resources/research.html">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
 
     ra_duties_ex = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EX, widget=forms.CheckboxSelectMultiple,
                                              label="Experimental/Research Activities")
@@ -890,9 +903,16 @@ class RARequestAdminPAFForm(forms.ModelForm):
 class AppointeeSearchForm(forms.Form):
     appointee = PersonField(required=True, label="Appointee", help_text="Type to search for a student's appointments/requests.")
 
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(AppointeeSearchForm, self).is_valid(*args, **kwargs)
 
 class SupervisorSearchForm(forms.Form):
     supervisor = PersonField(required=True, label="Supervisor", help_text="Type to search for an appointee's appointments/requests.")
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(SupervisorSearchForm, self).is_valid(*args, **kwargs)
 
 class RAForm(forms.ModelForm):
     person = PersonField(label='Hire')

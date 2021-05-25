@@ -14,13 +14,6 @@
 {% block headextra %}
   <script nonce="{{ CSP_NONCE }}">
   $(document).ready(function() {
-    $('#appointments').dataTable( {
-      'bPaginate': false,
-      'bInfo': false,
-      'bLengthChange': false,
-      "bJQueryUI": true,
-      'aaSorting': [[1, 'asc']],
-    } );
     $('#reqs').dataTable( {
         'bPaginate': false,
         'bInfo': true,
@@ -28,6 +21,20 @@
         'bLengthChange': false,
         "bJQueryUI": true,
         'aaSorting': [[1, 'asc']],
+    } );
+    $('#appointments').dataTable( {
+      'bPaginate': false,
+      'bInfo': false,
+      'bLengthChange': false,
+      "bJQueryUI": true,
+      'aaSorting': [[1, 'asc']],
+    } );
+    $('#historic_appointments').dataTable( {
+      'bPaginate': false,
+      'bInfo': false,
+      'bLengthChange': false,
+      "bJQueryUI": true,
+      'aaSorting': [[1, 'asc']],
     } );
   } );
   </script>
@@ -64,8 +71,39 @@
       </tbody>
     </table>
   </div>
-  {% if reqs %}
+  
+  {% if appointments %}
   <h2>Appointments</h2>
+  <div class="datatable_container">
+    <table id="appointments" class="display">
+      <thead>
+        <tr>
+          <th scope="col">Appointee</th>
+          <th scope="col">Start Date</th>
+          <th scope="col">End Date</th>
+          <th scope="col">Created At</th>
+          <th scope="col">Author</th>
+          <th scope="col">Total Pay</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in appointments %}
+          <tr>
+            <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">{{ req.get_sort_name }}</a></td>
+            <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
+            <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
+            <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
+            <td>{{ req.author }}</td>
+            <td>$ {{ req.total_pay }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if reqs %}
+  <h2>Requests</h2>
   <div class="datatable_container">
     <table id="reqs" class="display">
       <thead>
@@ -76,25 +114,17 @@
           <th scope="col">Created At</th>
           <th scope="col">Author</th>
           <th scope="col">Total Pay</th>
-          <th scope="col">Request Status</th>
         </tr>
       </thead>
       <tbody>
         {% for req in reqs %}
           <tr>
-            <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">{{ req.person }}</a></td>
+            <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">{{ req.get_sort_name }}</a></td>
             <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
             <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
             <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
             <td>{{ req.author }}</td>
             <td>$ {{ req.total_pay }}</td>
-            <td>
-                {% if req.complete %}
-                    Complete
-                {% else %}
-                    Incomplete
-                {% endif %}
-            </td>
           </tr>
         {% endfor %}
       </tbody>
@@ -103,11 +133,11 @@
   {% endif %}
 
 
-  {%if appointments %}
+  {%if historic_appointments %}
   <h2>Historic Appointments</h2>
-    <i>These appointments were created prior to the new RA process.</i>
+    <div class="helptext">These appointments were created prior to the new RA process.</div>
     <div class="datatable_container">
-      <table id="appointments" class="display">
+      <table id="historic_appointments" class="display">
         <thead>
           <tr>
             <th scope="col">Start Date</th>
@@ -119,7 +149,7 @@
           </tr>
         </thead>
         <tbody>
-        {% for appointment in appointments %}
+        {% for appointment in historic_appointments %}
         <tr>
           <td scope="row">
               <span class="sort">{{ appointment.start_date.isoformat }}</span>

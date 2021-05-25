@@ -1883,7 +1883,7 @@ def ra_paf(ra, config, outfile):
 
 def ra_science_alive(ra, config, outfile):
     """
-    Generate PAF form for this RAAppointment.
+    Generate Science Alive form for this RARequest.
     """
     form = ScienceAliveLetter(ra, config)
     return form.draw_pdf(outfile)

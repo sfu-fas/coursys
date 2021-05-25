@@ -215,6 +215,15 @@ function updateBackDated () {
     var backDated = getBackDated($('#id_dates-end_date').val())
     $('#id_dates-backdated').val(backDated)
     if (backDated == true) {
+        $("#id_dates-backdated").prop("checked", true);
+    } else {
+        $("#id_dates-backdated").prop("checked", false);
+    }
+}
+
+function updateBackDatedInfo () {
+    var backDated = getBackDated($('#id_dates-end_date').val())
+    if (backDated == true) {
         $('.backdated_info').show()
     } else {
         $('.backdated_info').hide()
@@ -563,12 +572,14 @@ $(document).ready(function() {
     // Start and end dates
 
     updatePayPeriods()
-    updateBackDated()
+    updateBackDatedInfo()
 
     $('#id_dates-start_date').change(updatePayPeriods)
     $('#id_dates-end_date').change(updatePayPeriods)
     $('#id_dates-start_date').change(updateBackDated)
+    $('#id_dates-start_date').change(updateBackDatedInfo)
     $('#id_dates-end_date').change(updateBackDated)
+    $('#id_dates-end_date').change(updateBackDatedInfo)
     
     $('#id_dates-start_date').datepicker({'dateFormat': 'yy-mm-dd'})
     $('#id_dates-end_date').datepicker({'dateFormat': 'yy-mm-dd'})

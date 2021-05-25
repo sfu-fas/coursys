@@ -2,8 +2,8 @@
 {% load static %}
 {% load form_display %}
 
-{% block title %}RA Request Dashboard - In Progress{% endblock %}
-{% block h1 %}RA Request Dashboard - In Progress{% endblock %}
+{% block title %}RA Request Dashboard{% endblock %}
+{% block h1 %}RA Request Dashboard{% endblock %}
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
@@ -46,10 +46,11 @@ $(document).ready(function() {
 <div class="actionlist">
 <a class="btn" href="{% url "ra:new_request" %}">New RA Request</a>
 <a class="btn" href="{% url "ra:advanced_search" %}">Advanced Search</a>
-<a class="btn" href="{% url "ra:dashboard_complete" %}">Completed Requests</a>
+<a class="btn" href="{% url "ra:browse_appointments" %}">Browse Appointments</a>
+<a class="btn" href="{% url "ra:active_appointments" %}">Active Appointments</a>
 </div>
 
-<h3>Graduate Research Assistant (In Progress)</h3>
+<h3>Graduate Research Assistant</h3>
 <div class="datatable_container">
   <table id="gras" class="display">
     <thead>
@@ -83,7 +84,7 @@ $(document).ready(function() {
   </table>
 </div>
 
-<h3>Research Assistant (In Progress)</h3>
+<h3>Research Assistant</h3>
 <div class="datatable_container">
   <table id="ra" class="display">
     <thead>
@@ -117,7 +118,7 @@ $(document).ready(function() {
   </table>
 </div>
 
-<h3>Non-Continuing (In Progress)</h3>
+<h3>Non-Continuing</h3>
 <div class="datatable_container">
   <table id="nc" class="display">
     <thead>

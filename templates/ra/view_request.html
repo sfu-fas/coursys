@@ -7,20 +7,20 @@
 {% endblock %}
 
 {% block title %}
-  RA Request for {{ req.get_name }}
+  RA {{ status }} for {{ req.get_name }}
 {% endblock %}
 
 {% block h1 %}
-  RA Request for {{ req.get_name }}
+  RA {{ status }} for {{ req.get_name }}
 {% endblock %}
 
 {% block subbreadcrumbs %}
 {% if admin %}
 <li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
 {% else %}
-<li><a href="{% url "ra:supervisor_dashboard" %}">RA Dashboard</a></li>
+<li><a href="{% url "ra:browse_appointments" %}">RA Dashboard</a></li>
 {% endif %}
-<li>View RA Request for {{ req.get_name }}</li>
+<li>View RA {{ status }} for {{ req.get_name }}</li>
 {% endblock %}
 
 {% block actions %}
@@ -28,7 +28,7 @@
     <h2>Actions</h2>
     <ul>
       {% if admin %}
-        <li><a href="{% url "ra:edit_request" ra_slug=req.slug %}">Edit this Request</a></li> 
+        <li><a href="{% url "ra:edit_request" ra_slug=req.slug %}">Edit this {{ status }}</a></li> 
         <li><a href="{% url "ra:request_paf" ra_slug=req.slug %}">Payroll Appointment Form</a></li>
         {% if not req.backdated %}
         <li><a href="{% url "ra:request_offer_letter_update" ra_slug=req.slug %}">Offer Letter</a></li>
@@ -61,7 +61,7 @@
   <h2>Appointee Information</h2> 
   <table class="info">
     {% if not no_id and admin %} 
-    (<i>Click <a href="{% url "ra:appointee_appointments" userid=req.person.userid %}">here</a> to see all appointments for {{ person.name }})</i></td></tr>
+    (<i>Click <a href="{% url "ra:appointee_appointments" userid=req.person.userid %}">here</a> to view all appointments for {{ person.name }})</i></td></tr>
     {% endif %}
     {% if no_id %}
     <tr><th>ID:</th><td>Appointee does not have an SFU ID</td></tr>
@@ -109,7 +109,7 @@
 <div class="table_container">
   <h2>Supervisor Information</h2>
   {% if admin %}
-  (<i>Click <a href="{% url "ra:supervisor_appointments" userid=req.supervisor.userid %}">here</a> to all appointments that {{ supervisor.name }} is supervisor for)</i></td></tr>
+  (<i>Click <a href="{% url "ra:supervisor_appointments" userid=req.supervisor.userid %}">here</a> to view all appointments that {{ supervisor.name }} is supervisor for)</i></td></tr>
   {% endif %}
   <table class="info">
     <tr><th>ID:</th><td>{{ supervisor.emplid }}</td></tr>
@@ -384,6 +384,7 @@
 <h2>Checklist</h2>
 {% else %}
 <h2>Progress</h2>
+<div class="helptext">This section will change as admin processes your request.</div>
 {% endif %}
 
 <div class="form_container">

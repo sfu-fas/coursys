@@ -292,7 +292,7 @@ RA_VACATION_PAY_CHOICES = (
 
 RA_BENEFITS_CHOICES = (
     ('Y', "Yes (The cost will be shared 50/50 between employee and employer and eligibility depends on your funding source. " +
-    "An additional 2% to 4% of salary costs will be added to your project. Cost depends on Appointee's dependents and family size.)"),
+    "Cost depends on Appointee's dependents and family size.)"),
     ('NE', 'No - My grant is not eligible.'),
     ('N', 'No')
 )
@@ -560,7 +560,7 @@ class RARequest(models.Model):
         duties += [duty for val, duty in DUTIES_CHOICES_WR if val in [int(i) for i in self.ra_duties_wr]]
         duties += [duty for val, duty in DUTIES_CHOICES_PM if val in [int(i) for i in self.ra_duties_pm]]
         return duties
-        
+
     def build_letter_text(self):
         """
         This takes the value passed from the letter selector menu and builds the appropriate
@@ -787,7 +787,7 @@ class RAAppointment(models.Model):
         super(RAAppointment, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse('ra:view', kwargs={'ra_slug': self.slug})
+        return reverse('ra:view_request', kwargs={'ra_slug': self.slug})
 
     def mark_reminded(self):
         self.config['reminded'] = True

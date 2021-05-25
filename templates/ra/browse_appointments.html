@@ -1,0 +1,103 @@
+{% extends "base-wide.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block title %}Browse RA Appointments{% endblock %}
+{% block h1 %}Browse RA Appointments{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static "jquery-ext/jquery.ba-bbq.min.js" %}"></script>
+<script src="{% static 'js/ra.js' %}"></script>
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  ra_browser_setup("{% url 'ra:browse_appointments' %}");
+  $('#reqs').dataTable( {
+    'bPaginate': false,
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']],
+    } );
+});
+</script>
+<link rel="stylesheet" href="{% static 'style/ra.css' %}" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+{% if admin %}
+<li><a href="{% url "ra:dashboard" %}">RA Dashboard</a></li>
+{% endif %}
+<li>Browse</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="actionlist">
+    <a class="btn" href="{% url "ra:new_request" %}">New RA Request</a>
+    {% if admin %}
+    <a class="btn" href="{% url "ra:advanced_search" %}">Advanced Search</a>
+    <a class="btn" href="{% url "ra:dashboard" %}">In Progress Requests</a>
+    <a class="btn" href="{% url "ra:active_appointments" %}">Active Appointments</a>
+    {% endif %}
+</div>
+
+{% if not admin %}
+<div class="helptext">
+<p><b>This page is currently in TEST.</b></p>
+This page will display any RA requests/appointments that you have created or are a supervisor for. 
+If you have the correct permissions, so you may also create/reappoint new requests here.
+</div>
+{% endif %}
+
+{% if reqs %}
+<h2>In Progress Requests</h2>
+<div class="datatable_container">
+  <table id="reqs" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Appointee</th>
+        <th scope="col">Supervisor</th>
+        <th scope="col">Hiring Category</th>
+        <th scope="col">Start Date</th>
+        <th scope="col">End Date</th>
+        <th scope="col">Created At</th>
+        <th scope="col">Author</th>
+        <th scope="col">Total Pay</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in reqs %}
+        <tr>
+          <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">
+            {{ req.get_name }}
+          </a></td>
+          <td>{{ req.supervisor }}</td>
+          <td>{{ req.hiring_category }}</td>
+          <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
+          <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
+          <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
+          <td>{{ req.author }}</td>
+          <td>$ {{ req.total_pay }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<h2>Appointments</h2>
+
+<form action="" id="filterform">{{ form.as_ul }}</form>
+<table class="display" id="ra_table">
+<thead>
+<tr><th scope="col">Appointee</th><th scope="col">Supervisor</th><th scope="col">Unit</th>
+<th scope="col">Start Date</th><th scope="col">End Date</th><th scope="col">Total Pay</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+<div class="actionlist">
+<a class="btn" href="{% url "ra:browse" %}">Browse Historic Appointments</a>
+</div>
+{% endblock %}

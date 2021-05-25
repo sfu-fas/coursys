@@ -32,7 +32,7 @@
   {% if admin %}
   <li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
   {% else %}
-  <li><a href="{% url "ra:supervisor_dashboard" %}">RA Dashboard</a></li>
+  <li><a href="{% url "ra:browse_appointments" %}">RA Dashboard</a></li>
   {% endif %}
   {% if edit %}
     <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA Request for {{ name }}</a></li>
@@ -45,7 +45,47 @@
 {% block content %}
 <div class="form_container">
   {% if not edit %}
-  <i><a href="{% url "ra:new_request" %}"><u>Click here</u></a> to restart this form and clear all responses.</a> If you have any questions, please contact <b>fasra@sfu.ca.</b></i>
+    <p><i><a href="{% url "ra:new_request" %}"><u>Click here</u></a> to restart this form and clear all responses.</a></i></p>
+    <!-- Would like this intro to be editable -->
+    <div class="bottom_admin">
+      <!-- Begin intro -->
+      <p>Thank you for submitting an appointment request. Please allow 5 to 10 business days for your request to be processed and returned to you for signature.</p>
+      <p><strong> Do not use this form for:</strong></p>
+      <ul>
+        <li>University Research Associates (contact <u>{{ ura_contact }}</u> instead)</li>
+        <li>Post-Doctoral Fellows (contact <u>{{ pd_contact }}</u> instead)</li>
+        <li>Work-Study appointments (contact your School's representative below)</li>
+      </ul>
+      <p>If you have questions about your grant and project number please contact your school's representative at:</p>
+      <table><tr>
+      <td><strong>School/Office</strong></td>
+      <td></td>
+      <td><strong>Contact Email</strong></td>
+      <tr> 
+      <td>CS</td>
+      <td>CS Financial and Administrative Assistant</td>
+      <td><u>{{ cs_contact }}</u></td>
+      </tr><tr> 
+      <td>MSE</td>
+      <td>Confidential Assistant to the Director</td>
+      <td><u>{{  mse_contact }}</u></td>
+      </tr><tr>
+      <td>ENSC</td>
+      <td>Finance and Administration Assistant</td>
+      <td><u>{{ ensc_contact }}</u></td>
+      </tr><tr>
+      <td>SEE</td>
+      <td>Operation and Administrative Services Manager</td>
+      <td><u>{{ see_contact }}</u></td>
+      </tr><tr>
+      <td>Deans Office</td>
+      <td>Manager, Budget and Financial Analysis</td>
+      <td><u>{{ deans_contact }}</u></td>
+      </tr></table>
+      <p>For all other questions, please contact <u>{{ fas_contact }}</u></p>
+      <p>Please review the information carefully before submitting. Complete and accurate information will reduce the processing time.</p>
+      <!-- End intro -->
+    </div>
   {% endif %}
   {% if edit %}
   <form action="{% url "ra:edit_request" ra_slug=slug %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
@@ -55,8 +95,8 @@
   <form action="{% url "ra:new_request" %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
   {% endif %}
     <fieldset>
-      <div class ="form_section">
-        <h2><strong>Appointee/Supervisor Information and Hiring Category</strong></h2>
+        <div class ="form_section">
+          <h2><strong>Appointee/Supervisor Information and Hiring Category</strong></h2>
           {{ wizard.management_form }}
           {% if wizard.form.forms %}
               {{ wizard.form.management_form }}
