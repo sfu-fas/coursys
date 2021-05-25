@@ -26,13 +26,27 @@ SCIENCE_ALIVE_TYPE = (
     ('SA', 'Summer Academy Instructor')
 )
 
-# probably want these to be editable at some point
-MIN_WAGE = 14.60
+# TODO: Settings - would really like all of the following to be editable by funding admins (or even sys admins)
+# it should be the same across all units, and doesn't change with the semester
+# model with a single entry doesn't seem quite right? django-dbsettings?
+MIN_WAGE = 15.20
 MIN_WEEKS_VACATION = 2
 MIN_VACATION_PAY_PERCENTAGE = 4
+# unit contacts 
+CS_CONTACT = "cs_surrey_assistant@sfu.ca"
+MSE_CONTACT = "msedsec@sfu.ca"
+ENSC_CONTACT = "enscfin@sfu.ca"
+SEE_CONTACT = "fas_admin_manager@sfu.ca"
+DEANS_CONTACT = "mrahinsk@sfu.ca"
+# general ra contact
+FAS_CONTACT = "fasra@sfu.ca"
+# intro contacts
+URA_CONTACT = "fas_academic_relations@sfu.ca"
+PD_CONTACT = "fas_postdoc_support@sfu.ca"
+
 
 class RARequestIntroForm(forms.ModelForm):
-    person = PersonField(label='Appointee', required=False)
+    person = PersonField(label='Appointee', required=False, help_text="Please ensure you are appointing the correct student.")
     supervisor = PersonField(label='Supervisor', required=True)
 
     position = forms.CharField(required=False, label="Position Title")
@@ -144,17 +158,22 @@ class RARequestIntroForm(forms.ModelForm):
                 self.cleaned_data['thesis'] = False
 
 class RARequestDatesForm(forms.ModelForm):
-    backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
+    backdated = forms.BooleanField(required=False, label="Is this a backdated appointment?")
     pay_periods = forms.DecimalField(required=False, widget=forms.HiddenInput)
 
     class Meta:
         model = RARequest
-        fields = ('start_date', 'end_date',)
+        fields = ('start_date', 'end_date', 'backdated')
         labels = {
             'start_date': "Date Appointment Begins",
             'end_date': "Date Appointment Ends",
         }
 
+    def __init__(self, edit=False, *args, **kwargs):
+        super(RARequestDatesForm, self).__init__(*args, **kwargs)
+        if not edit:
+            self.fields['backdated'].widget=forms.HiddenInput()
+    
     def clean(self):
         cleaned_data = super().clean()
 
@@ -167,13 +186,9 @@ class RARequestDatesForm(forms.ModelForm):
             self.add_error('start_date', error_message)
 
 class RARequestFundingSourceForm(forms.ModelForm):
-    # roll over from DatesForm for validation
-    start_date = forms.DateField(required=False, widget=forms.HiddenInput)
-    end_date = forms.DateField(required=False, widget=forms.HiddenInput)
-
     fs1_unit = forms.IntegerField(required=True, label="Department #1", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
     fs1_fund = forms.IntegerField(required=True, label="Fund #1", help_text="Example: 11, 13, 21, 31")
-    fs1_project = forms.CharField(required=True, label="Project #1", help_text="Example: N654321, S654321, X654321, R654321. If fund 11 enter X000000")
+    fs1_project = forms.CharField(required=False, label="Project #1", help_text="Example: N654321, S654321, X654321, R654321. If fund 11, you may leave blank.")
     fs1_percentage = forms.DecimalField(required=False, label="Percentage of Funding Source #1 to Total Funding", help_text="Percentages of all funding sources must add up to 100.")
     fs1_start_date = forms.DateField(required=False, label="Start Date #1", help_text="Start Date for Funding Source 1")
     fs1_end_date = forms.DateField(required=False,  label="End Date #1", help_text="End Date for Funding Source 1")
@@ -181,7 +196,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
     fs2_option = forms.BooleanField(required=False, label="Please select the following if there is an additional funding source")
     fs2_unit = forms.IntegerField(required=False, label="Department #2", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
     fs2_fund = forms.IntegerField(required=False, label="Fund #2", help_text="Example: 11, 13, 21, 31")
-    fs2_project = forms.CharField(required=False, label="Project #2", help_text="Example: N654321, S654321, X654321, R654321. If fund 11 enter X000000")
+    fs2_project = forms.CharField(required=False, label="Project #2", help_text="Example: N654321, S654321, X654321, R654321. If fund 11, you may leave blank.")
     fs2_percentage = forms.DecimalField(required=False, label="Percentage of Funding Source #2 to Total Funding", help_text="Percentages of all funding sources must add up to 100.")
     fs2_start_date = forms.DateField(required=False, label="Start Date #2", help_text="Start Date for Funding Source 2")
     fs2_end_date = forms.DateField(required=False,  label="End Date #2", help_text="End Date for Funding Source 2")
@@ -189,7 +204,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
     fs3_option = forms.BooleanField(required=False, label="Please select the following if there is an additional funding source")
     fs3_unit = forms.IntegerField(required=False, label="Department #3", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
     fs3_fund = forms.IntegerField(required=False, label="Fund #3", help_text="Example: 11, 13, 21, 31")
-    fs3_project = forms.CharField(required=False, label="Project #3", help_text="Example: N654321, S654321, X654321, R654321. If fund 11 enter X000000")
+    fs3_project = forms.CharField(required=False, label="Project #3", help_text="Example: N654321, S654321, X654321, R654321. If fund 11, you may leave blank.")
     fs3_percentage = forms.DecimalField(required=False, label="Percentage of Funding Source #3 to Total Funding", help_text="Percentages of all funding sources must add up to 100.")
     fs3_start_date = forms.DateField(required=False, label="Start Date #3", help_text="Start Date for Funding Source 3")
     fs3_end_date = forms.DateField(required=False,  label="End Date #3", help_text="End Date for Funding Source 3")
@@ -201,120 +216,176 @@ class RARequestFundingSourceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(RARequestFundingSourceForm, self).__init__(*args, **kwargs)
-        
         config_init = ['fs1_percentage','fs2_percentage','fs3_percentage','fs2_option','fs3_option']
 
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
-    
-    def clean(self):
-        cleaned_data = super().clean()
 
+    def clean(self):
+        cleaned_data = super(RARequestFundingSourceForm, self).clean()
+  
         config_clean = ['fs1_percentage','fs2_option', 'fs2_percentage','fs3_option', 
-                        'fs3_percentage', 'start_date', 'end_date']
+                        'fs3_percentage']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
 
+        # for fund 11s, do not require fund
+        project_exception_fund = 11
+
+        fs1_fund = cleaned_data.get('fs1_fund')
+        fs1_project = cleaned_data.get('fs1_project')
+
+        if fs1_fund != project_exception_fund and (fs1_project == None or fs1_project == ''):
+            self.add_error('fs1_project', 'You must answer this question.')
+
         # add error messages
+        start_date = self.initial['start_date']
+        end_date = self.initial['end_date']
         fs2_option = cleaned_data.get('fs2_option')
         fs2_unit = cleaned_data.get('fs2_unit')
         fs2_fund = cleaned_data.get('fs2_fund')
         fs2_project = cleaned_data.get('fs2_project')
+        fs1_start_date = cleaned_data.get('fs1_start_date')
+        fs1_end_date = cleaned_data.get('fs1_end_date')
         fs2_start_date = cleaned_data.get('fs2_start_date')
         fs2_end_date = cleaned_data.get('fs2_end_date')
+        fs1_percentage = cleaned_data.get('fs1_percentage')
+        fs2_percentage = cleaned_data.get('fs2_percentage')
+        fs3_percentage = cleaned_data.get('fs3_percentage')
 
         if fs2_option:
             error_message = 'If you have a second funding source then you must answer this question.'
-            if fs2_unit == None:
+            if fs2_unit == None or fs2_unit == '':
                 self.add_error('fs2_unit', error_message)
-            if fs2_fund == None:
+            if fs2_fund == None or fs2_fund == '':
                 self.add_error('fs2_fund', error_message)
             if fs2_project == None or fs2_project == '':
-                self.add_error('fs2_project', error_message)
+                if fs2_fund != project_exception_fund:
+                    self.add_error('fs2_project', error_message)
+            if fs1_start_date == None or fs1_start_date == '':
+                self.add_error('fs1_start_date', error_message)
+            if fs1_end_date == None or fs1_end_date == '':
+                self.add_error('fs1_end_date', error_message)
+            if fs2_start_date == None or fs2_start_date == '':
+                self.add_error('fs2_start_date', error_message)
+            if fs2_end_date == None or fs2_end_date == '':
+                self.add_error('fs2_end_date', error_message)
+            if fs1_percentage == None or fs1_percentage == '':
+                self.add_error('fs1_percentage', error_message)
+            if fs2_percentage == None or fs2_percentage == '':
+                self.add_error('fs2_percentage', error_message)
 
         fs3_option = cleaned_data.get('fs3_option')
         fs3_unit = cleaned_data.get('fs3_unit')
         fs3_fund = cleaned_data.get('fs3_fund')
         fs3_project = cleaned_data.get('fs3_project')
+        fs3_start_date = cleaned_data.get('fs3_start_date')
+        fs3_end_date = cleaned_data.get('fs3_end_date')
 
         if fs3_option:
             error_message = 'If you have a third funding source then you must answer this question.'
-            if fs3_unit == None:
+            if fs3_unit == None or fs3_unit == '':
                 self.add_error('fs3_unit', error_message)
-            if fs3_fund == None:
+            if fs3_fund == None or fs3_fund == '':
                 self.add_error('fs3_fund', error_message)
-            if fs3_project == None or fs2_project == '':
-                self.add_error('fs3_project', error_message)
-
-        fs1_percentage = cleaned_data.get('fs1_percentage')
-        fs2_percentage = cleaned_data.get('fs2_percentage')
-        fs3_percentage = cleaned_data.get('fs3_percentage')
+            if fs3_project == None or fs3_project == '':
+                if fs3_fund != project_exception_fund:
+                    self.add_error('fs3_project', error_message)
+            if fs3_start_date == None or fs3_start_date == '':
+                self.add_error('fs3_start_date', error_message)
+            if fs3_end_date == None or fs3_end_date == '':
+                self.add_error('fs3_end_date', error_message)
+            if fs3_percentage == None or fs3_percentage == '':
+                self.add_error('fs3_percentage', error_message)
 
         error_message = "Combined Percentages of all Funding Sources Must Add Up to 100%"
         if fs2_option and not fs3_option:
-            percent_sum = fs1_percentage + fs2_percentage
-            if percent_sum != 100:
-                self.add_error('fs1_percentage', error_message)
-                self.add_error('fs2_percentage', error_message)
+            if fs1_percentage and fs2_percentage:
+                percent_sum = fs1_percentage + fs2_percentage
+                if percent_sum != 100:
+                    self.add_error('fs1_percentage', error_message)
+                    self.add_error('fs2_percentage', error_message)
         if fs2_option and fs3_option:
-            percent_sum = fs1_percentage + fs2_percentage + fs3_percentage
-            if percent_sum != 100:
-                self.add_error('fs1_percentage', error_message)
-                self.add_error('fs2_percentage', error_message)
-                self.add_error('fs3_percentage', error_message)
+            if fs1_percentage and fs2_percentage and fs3_percentage:
+                percent_sum = fs1_percentage + fs2_percentage + fs3_percentage
+                if percent_sum != 100:
+                    self.add_error('fs1_percentage', error_message)
+                    self.add_error('fs2_percentage', error_message)
+                    self.add_error('fs3_percentage', error_message)
         
-        start_date = cleaned_data.get('start_date')
         fs1_start_date = cleaned_data.get('fs1_start_date')
         fs2_start_date = cleaned_data.get('fs2_start_date')
         fs3_start_date = cleaned_data.get('fs3_start_date')
 
         error_message = "Please ensure at least one funding source start date matches up with the appointment start date."
         if fs2_option and not fs3_option:
-            if (start_date != fs1_start_date) and (start_date != fs2_start_date):
-                self.add_error('fs1_start_date', error_message)
-                self.add_error('fs2_start_date', error_message)
+            if fs1_start_date and fs2_start_date:
+                if (start_date != fs1_start_date) and (start_date != fs2_start_date):
+                    self.add_error('fs1_start_date', error_message)
+                    self.add_error('fs2_start_date', error_message)
         if fs2_option and fs3_option:
-            if (start_date != fs1_start_date) and (start_date != fs2_start_date) and (start_date != fs3_start_date):
-                self.add_error('fs1_start_date', error_message)
-                self.add_error('fs2_start_date', error_message)
-                self.add_error('fs3_start_date', error_message)
+            if fs1_start_date and fs2_start_date and fs3_start_date:
+                if (start_date != fs1_start_date) and (start_date != fs2_start_date) and (start_date != fs3_start_date):
+                    self.add_error('fs1_start_date', error_message)
+                    self.add_error('fs2_start_date', error_message)
+                    self.add_error('fs3_start_date', error_message)
 
-        end_date = cleaned_data.get('end_date')
         fs1_end_date = cleaned_data.get('fs1_end_date')
         fs2_end_date = cleaned_data.get('fs2_end_date')
         fs3_end_date = cleaned_data.get('fs3_end_date')
 
         error_message = "Please ensure at least one funding source end date matches up with the appointment end date."
         if fs2_option and not fs3_option:
-            if (end_date != fs1_end_date) and (end_date != fs2_end_date):
-                self.add_error('fs1_end_date', error_message)
-                self.add_error('fs2_end_date', error_message)
+            if fs1_end_date and fs2_end_date:
+                if (end_date != fs1_end_date) and (end_date != fs2_end_date):
+                    self.add_error('fs1_end_date', error_message)
+                    self.add_error('fs2_end_date', error_message)
         if fs2_option and fs3_option:
-            if (end_date != fs1_end_date) and (end_date != fs2_end_date) and (end_date != fs3_end_date):
-                self.add_error('fs1_end_date', error_message)
-                self.add_error('fs2_end_date', error_message)
-                self.add_error('fs3_end_date', error_message)
+            if fs1_end_date and fs2_end_date and fs3_end_date:
+                if (end_date != fs1_end_date) and (end_date != fs2_end_date) and (end_date != fs3_end_date):
+                    self.add_error('fs1_end_date', error_message)
+                    self.add_error('fs2_end_date', error_message)
+                    self.add_error('fs3_end_date', error_message)
 
         error_message = "This date is after the appointment end date."
         if fs2_option:
-            if fs1_end_date > end_date:
-                self.add_error('fs1_end_date', error_message)
-            if fs2_end_date > end_date:
-                self.add_error('fs2_end_date', error_message)
+            if fs1_end_date:
+                if fs1_end_date > end_date:
+                    self.add_error('fs1_end_date', error_message)
+            if fs2_end_date:
+                if fs2_end_date > end_date:
+                    self.add_error('fs2_end_date', error_message)
         if fs2_option and fs3_option:
-            if fs3_end_date > end_date:
-                self.add_error('fs3_end_date', error_message)
+            if fs3_end_date:
+                if fs3_end_date > end_date:
+                    self.add_error('fs3_end_date', error_message)
 
         error_message = "This date is before the appointment start date."
         if fs2_option:
-            if fs1_start_date < start_date:
-                self.add_error('fs1_start_date', error_message)
-            if fs2_start_date < start_date:
-                self.add_error('fs2_start_date', error_message)
+            if fs1_start_date:
+                if fs1_start_date < start_date:
+                    self.add_error('fs1_start_date', error_message)
+            if fs2_start_date:
+                if fs2_start_date < start_date:
+                        self.add_error('fs2_start_date', error_message)
         if fs2_option and fs3_option:
-            if fs3_start_date < start_date:
-                self.add_error('fs3_start_date', error_message)
+            if fs3_start_date:
+                if fs3_start_date < start_date:
+                    self.add_error('fs3_start_date', error_message)
+
+        error_message = "Ensure start date is before end date."
+        if fs2_option:
+            if fs1_start_date and fs1_end_date:
+                if fs1_start_date > fs1_end_date:
+                    self.add_error('fs1_start_date', error_message)
+            if fs2_start_date and fs2_end_date:
+                if fs2_start_date > fs2_end_date:
+                    self.add_error('fs2_start_date', error_message)
+        if fs2_option and fs3_option:
+            if fs3_start_date and fs3_end_date:
+                if fs3_start_date > fs3_end_date:
+                    self.add_error('fs3_start_date', error_message)
         
         error_message = "Funding source percentages should be greater than 0."
         if fs2_option:
@@ -325,6 +396,11 @@ class RARequestFundingSourceForm(forms.ModelForm):
         if fs3_option:
             if fs3_percentage == 0:
                 self.add_error('fs3_percentage', error_message)
+        
+        start_date = cleaned_data.get('start_date')
+        fs1_start_date = cleaned_data.get('fs1_start_date')
+        fs2_start_date = cleaned_data.get('fs2_start_date')
+        fs3_start_date = cleaned_data.get('fs3_start_date')
 
         # remove irrelevant information
         if not fs3_option: 
@@ -399,7 +475,7 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
         biweekly_hours = cleaned_data.get('biweekly_hours')
         biweekly_salary = cleaned_data.get('biweekly_salary')
         
-        backdated = cleaned_data.get('backdated')
+        backdated = self.initial["backdated"]
         backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
         backdate_hours = cleaned_data.get('backdate_hours')
         backdate_reason = cleaned_data.get('backdate_reason')
@@ -419,7 +495,7 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
                     self.add_error('total_gross', error_message)
             if gras_payment_method == "BW":
                 if gross_hourly < MIN_WAGE:
-                    raise forms.ValidationError('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + str(MIN_WAGE) + ')')
+                    raise forms.ValidationError('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')')
                 if biweekly_hours == 0 or biweekly_hours == None:
                     self.add_error('biweekly_hours', error_message)
                 if total_gross == 0 or total_gross == None:
@@ -507,7 +583,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
         vacation_pay = cleaned_data.get('vacation_pay')
         biweekly_hours = cleaned_data.get('biweekly_hours')
         
-        backdated = cleaned_data.get('backdated')
+        backdated = self.initial["backdated"]
         backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
         backdate_hours = cleaned_data.get('backdate_hours')
         backdate_reason = cleaned_data.get('backdate_reason')
@@ -531,11 +607,13 @@ class RARequestNonContinuingForm(forms.ModelForm):
                     self.add_error('weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
+                if gross_hourly < MIN_WAGE:
+                    raise forms.ValidationError('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')')
             if nc_payment_method == "H":
                 if gross_hourly == None:
                     self.add_error('gross_hourly', error_message)
                 elif gross_hourly < MIN_WAGE:
-                    self.add_error('gross_hourly', ('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + str(MIN_WAGE) + ')'))
+                    self.add_error('gross_hourly', ('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')'))
                 if vacation_pay == None:
                     self.add_error('vacation_pay', error_message)
                 elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE:
@@ -567,7 +645,6 @@ class RARequestNonContinuingForm(forms.ModelForm):
 
 class RARequestResearchAssistantForm(forms.ModelForm):
     pay_periods = forms.DecimalField(required=False, widget=forms.HiddenInput)
-    
     # fill out if backdated
     backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
     backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum")
@@ -584,7 +661,9 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     gross_hourly = forms.DecimalField(required=False, label="Gross Hourly", max_digits=8, decimal_places=2)
     vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)", max_digits=8, decimal_places=1)
     
-    ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, label="Are you willing to provide extended health benefits?")
+    ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
+                                    label='Are you willing to provide extended health benefits?', 
+                                    help_text=mark_safe('<a href="http://www.sfu.ca/human-resources/research.html">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
 
     ra_duties_ex = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EX, widget=forms.CheckboxSelectMultiple,
                                              label="Experimental/Research Activities")
@@ -610,7 +689,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                   'biweekly_salary','vacation_hours','gross_hourly','vacation_pay')
 
         widgets = {
-            'total_pay': forms.HiddenInput(),     
+            'total_pay': forms.HiddenInput() 
         }
 
     def __init__(self, *args, **kwargs):
@@ -619,7 +698,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 
                 'ra_benefits', 'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
-
+        
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
 
@@ -628,7 +707,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
 
         config_clean = ['ra_payment_method', 'ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_benefits', 'ra_other_duties', 
-                'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'pay_periods']
+                'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
@@ -668,11 +747,13 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
+                if gross_hourly < MIN_WAGE:
+                    raise forms.ValidationError('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')')
             elif ra_payment_method == "H":
                 if gross_hourly == None:
                     self.add_error('gross_hourly', error_message)
                 elif gross_hourly < MIN_WAGE:
-                    self.add_error('gross_hourly', ('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + str(MIN_WAGE) + ')'))
+                    self.add_error('gross_hourly', ('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')'))
                 if vacation_pay == None:
                     self.add_error('vacation_pay', error_message)
                 elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE:
@@ -818,6 +899,21 @@ class RARequestAdminPAFForm(forms.ModelForm):
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
     
+
+class AppointeeSearchForm(forms.Form):
+    appointee = PersonField(required=True, label="Appointee", help_text="Type to search for a student's appointments/requests.")
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(AppointeeSearchForm, self).is_valid(*args, **kwargs)
+
+class SupervisorSearchForm(forms.Form):
+    supervisor = PersonField(required=True, label="Supervisor", help_text="Type to search for an appointee's appointments/requests.")
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(SupervisorSearchForm, self).is_valid(*args, **kwargs)
+
 class RAForm(forms.ModelForm):
     person = PersonField(label='Hire')
     sin = forms.IntegerField(label='SIN', required=False)

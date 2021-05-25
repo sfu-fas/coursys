@@ -32,7 +32,7 @@
   {% if admin %}
   <li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
   {% else %}
-  <li><a href="{% url "ra:supervisor_dashboard" %}">RA Dashboard</a></li>
+  <li><a href="{% url "ra:browse_appointments" %}">RA Dashboard</a></li>
   {% endif %}
   {% if edit %}
     <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA Request for {{ name }}</a></li>
@@ -45,6 +45,9 @@
 {% block content %}
 
 <div class="form_container">
+  {% if not edit %}
+  <i><a href="{% url "ra:new_request" %}"><u>Click here</u></a> to restart this form and clear all responses.</a> If you have any questions, please contact <b>{{ fas_contact }}.</b></i>
+  {% endif %}
   {% if edit %}
   <form action="{% url "ra:edit_request" ra_slug=slug %}" method="POST" enctype="multipart/form-data" class="subtle">{% csrf_token %}
   {% elif reappoint %}

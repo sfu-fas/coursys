@@ -70,9 +70,7 @@ table td.checkbox {
 .bottom_admin {
     border: 12px solid #eee;
     padding:10px;
-
 }
-
 
 .important_info {
     background-color: rgb(251, 255, 198);
@@ -96,4 +94,16 @@ table td.checkbox {
 .directory_buttons input {
     display:inline; 
     float:right;
+}
+
+.actionlist {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.actionlist .btn{
+    display: inline;
+    padding: 12px;
+    margin-right: 5px;
+    margin-left: 0px;
 }

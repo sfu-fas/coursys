@@ -11,6 +11,7 @@ PROGRAM_ID = '(?P<program_id>' + ID_RE + ')'
 
 ra_patterns = [ # prefix /ra/
     url(r'^$', ra_views.search, name='search'),
+    url(r'^browse_appointments', ra_views.browse_appointments, name='browse_appointments'),
     url(r'^search/' + USERID_OR_EMPLID + '/$', ra_views.student_appointments, name='student_appointments'),
     url(r'^new$', ra_views.new, name='new'),
     url(r'^new_request/', RANewRequestWizard.as_view(FORMS, 
@@ -29,7 +30,11 @@ ra_patterns = [ # prefix /ra/
                                                 'non_continuing': check_nc}), 
                                                 name='reappoint_request'),
     url(r'^dashboard/$', ra_views.dashboard, name='dashboard'),
-    url(r'^supervisor_dashboard/$', ra_views.supervisor_dashboard, name='supervisor_dashboard'),
+    url(r'^active_appointments/$', ra_views.active_appointments, name='active_appointments'),
+    url(r'^browse_appointments/$', ra_views.browse_appointments, name='browse_appointments'),
+    url(r'^advanced_search/$', ra_views.advanced_search, name='advanced_search'),
+    url(r'^advanced_search/appointee_appointments/' + USERID_OR_EMPLID + '/$', ra_views.appointee_appointments, name='appointee_appointments'),
+    url(r'^advanced_search/supervisor_appointments/' + USERID_OR_EMPLID + '/$', ra_views.supervisor_appointments, name='supervisor_appointments'),
     url(r'^dashboard/' + RA_SLUG + '/view_request$', ra_views.view_request, name='view_request'),
     url(r'^dashboard/' + RA_SLUG + '/edit_request_notes$', ra_views.edit_request_notes, name='edit_request_notes'),
     url(r'^dashboard/' + RA_SLUG + '/delete_request$', ra_views.delete_request, name='delete_request'),

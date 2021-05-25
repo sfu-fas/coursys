@@ -215,6 +215,15 @@ function updateBackDated () {
     var backDated = getBackDated($('#id_dates-end_date').val())
     $('#id_dates-backdated').val(backDated)
     if (backDated == true) {
+        $("#id_dates-backdated").prop("checked", true);
+    } else {
+        $("#id_dates-backdated").prop("checked", false);
+    }
+}
+
+function updateBackDatedInfo () {
+    var backDated = getBackDated($('#id_dates-end_date').val())
+    if (backDated == true) {
         $('.backdated_info').show()
     } else {
         $('.backdated_info').hide()
@@ -259,7 +268,6 @@ function raPaymentMethod() {
         show(rabw_fields)
         raBW()
     } else {
-        $('.biweekly_info').hide()
         hide(rah_fields)
         hide(rabw_fields)
     }
@@ -280,7 +288,6 @@ function ncPaymentMethod() {
     } else {
         hide(nch_fields)
         hide(ncbw_fields)
-        $('.biweekly_info').hide()
     }
 }
 
@@ -297,7 +304,6 @@ function grasPaymentMethod () {
         show(grasbw_fields)
         grasBW()
     } else {
-        $('.biweekly_info').hide()
         hide(grasbw_fields)
         hide(grasls_fields)
     }
@@ -317,22 +323,36 @@ function grasBW () {
     } else {
         hourlyRate = 0
     }
+    
     hourlyRate = hourlyRate.toFixed(2)
     biweeklySalary = biweeklySalary.toFixed(2)
-    totalPay = parseInt(totalPay).toFixed(2)
+
+    if (totalPay == '') {
+        totalPay = parseInt(0).toFixed(2)
+    } else {
+        totalPay = parseInt(totalPay).toFixed(2)
+    }
     $('#id_graduate_research_assistant-biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
+    $('.biweekly_rate_calc').text('Total Pay (' + totalPay + ') / Pay Periods (' + payPeriods + ')')
     $('#id_graduate_research_assistant-gross_hourly').val(hourlyRate)
     $('.hourly_rate_info').text(hourlyRate)
+    $('.hourly_rate_calc').text('Bi-Weekly Rate (' + biweeklySalary + ') / Bi-Weekly Hours (' + biweeklyHours + ')')
     $('#id_graduate_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
+    $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
 }
 
 function grasLS () {
     totalPay = $('#id_graduate_research_assistant-total_gross').val()
-    totalPay = parseInt(totalPay).toFixed(2)
+    if (totalPay == '') {
+        totalPay = parseInt(0).toFixed(2)
+    } else {
+        totalPay = parseInt(totalPay).toFixed(2)
+    }
     $('#id_graduate_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
+    $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
 }
 
 function raBW () {
@@ -355,15 +375,23 @@ function raBW () {
     vacationHours = vacationHours.toFixed(3)
     biweeklySalary = biweeklySalary.toFixed(2)
     hourlyRate = hourlyRate.toFixed(2)
-    totalPay = parseInt(totalPay).toFixed(2)
+    if (totalPay == '') {
+        totalPay = parseInt(0).toFixed(2)
+    } else {
+        totalPay = parseInt(totalPay).toFixed(2)
+    }
     $('#id_research_assistant-biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
+    $('.biweekly_rate_calc').text('Total Pay (' + totalPay + ') / Pay Periods (' + payPeriods + ')')
     $('#id_research_assistant-vacation_hours').val(vacationHours)
     $('.vacation_hours_info').text(vacationHours)
+    $('.vacation_hours_calc').text('Pay Periods (' + payPeriods + ') x (Weeks Vacation (' + weeksVacation + ') / 52.14) x Bi-Weekly Hours (' + biweeklyHours + ')')
     $('#id_research_assistant-gross_hourly').val(hourlyRate)
     $('.hourly_rate_info').text(hourlyRate)
+    $('.hourly_rate_calc').text('Bi-Weekly Rate (' + biweeklySalary + ') / Bi-Weekly Hours (' + biweeklyHours + ')')
     $('#id_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
+    $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
 }
 
 function raH () {
@@ -375,6 +403,7 @@ function raH () {
     totalPay = parseInt(totalPay).toFixed(2)
     $('#id_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
+    $('.total_pay_calc').text('Pay Periods (' + payPeriods + ') x Bi-Weekly Hours (' + biweeklyHours + ') x Hourly Rate (' + hourlyRate + ') x (1 + (Vacation Pay (' + vacationPay + ')/100))')
 }
 
 function ncBW () {
@@ -397,15 +426,23 @@ function ncBW () {
     vacationHours = vacationHours.toFixed(3)
     biweeklySalary = biweeklySalary.toFixed(2)
     hourlyRate = hourlyRate.toFixed(2)
-    totalPay = parseInt(totalPay).toFixed(2)
+    if (totalPay == '') {
+        totalPay = parseInt(0).toFixed(2)
+    } else {
+        totalPay = parseInt(totalPay).toFixed(2)
+    }
     $('#id_non_continuing-biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
+    $('.biweekly_rate_calc').text('Total Pay (' + totalPay + ') / Pay Periods (' + payPeriods + ')')
     $('#id_non_continuing-vacation_hours').val(vacationHours)
     $('.vacation_hours_info').text(vacationHours)
+    $('.vacation_hours_calc').text('Pay Periods (' + payPeriods + ') x (Weeks Vacation (' + weeksVacation + ') / 52.14) x Bi-Weekly Hours (' + biweeklyHours + ')')
     $('#id_non_continuing-gross_hourly').val(hourlyRate)
     $('.hourly_rate_info').text(hourlyRate)
+    $('.hourly_rate_calc').text('Bi-Weekly Rate (' + biweeklySalary + ') / Bi-Weekly Hours (' + biweeklyHours + ')')
     $('#id_non_continuing-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
+    $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
 }
 
 function ncH () {
@@ -417,6 +454,7 @@ function ncH () {
     totalPay = parseInt(totalPay).toFixed(2)
     $('#id_non_continuing-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
+    $('.total_pay_calc').text('Pay Periods (' + payPeriods + ') x Bi-Weekly Hours (' + biweeklyHours + ') x Hourly Rate (' + hourlyRate + ') x (1 + (Vacation Pay (' + vacationPay + ')/100))')
 }
 
 // for any hiring category, if it is backdated, show relevant fields for backdating an appointment
@@ -457,18 +495,22 @@ function raBackDated(){
     totalPay = $('#id_research_assistant-backdate_lump_sum').val()
     $('#id_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
+    $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
+
 }
 
 function grasBackDated(){
     totalPay = $('#id_graduate_research_assistant-backdate_lump_sum').val()
     $('#id_graduate_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
+    $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
 }
 
 function ncBackDated(){
     totalPay = $('#id_non_continuing-backdate_lump_sum').val()
     $('#id_non_continuing-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
+    $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
 }
 
 $(document).ready(function() {
@@ -530,12 +572,14 @@ $(document).ready(function() {
     // Start and end dates
 
     updatePayPeriods()
-    updateBackDated()
+    updateBackDatedInfo()
 
     $('#id_dates-start_date').change(updatePayPeriods)
     $('#id_dates-end_date').change(updatePayPeriods)
     $('#id_dates-start_date').change(updateBackDated)
+    $('#id_dates-start_date').change(updateBackDatedInfo)
     $('#id_dates-end_date').change(updateBackDated)
+    $('#id_dates-end_date').change(updateBackDatedInfo)
     
     $('#id_dates-start_date').datepicker({'dateFormat': 'yy-mm-dd'})
     $('#id_dates-end_date').datepicker({'dateFormat': 'yy-mm-dd'})
@@ -547,8 +591,8 @@ $(document).ready(function() {
     $('#id_funding_sources-fs3_end_date').datepicker({'dateFormat': 'yy-mm-dd'})
 
     grasPaymentMethod()
-    raPaymentMethod()
     ncPaymentMethod()
+    raPaymentMethod()
     backDatedPaymentMethod()
 
     // select if appointee does not have an ID
@@ -570,31 +614,24 @@ $(document).ready(function() {
 
     // ra payment method
     $('#id_research_assistant-ra_payment_method').change(raPaymentMethod)
-
-    $('#id_research_assistant-total_gross').change(raBW)
-    $('#id_research_assistant-biweekly_hours').change(raBW)
-    $('#id_research_assistant-weeks_vacation').change(raBW)
-
-    $('#id_research_assistant-gross_hourly').change(raH)
-    $('#id_research_assistant-vacation_pay').change(raH)
-    $('#id_research_assistant-biweekly_hours').change(raH)
+    $('#id_research_assistant-total_gross').change(raPaymentMethod)
+    $('#id_research_assistant-biweekly_hours').change(raPaymentMethod)
+    $('#id_research_assistant-weeks_vacation').change(raPaymentMethod)
+    $('#id_research_assistant-gross_hourly').change(raPaymentMethod)
+    $('#id_research_assistant-vacation_pay').change(raPaymentMethod)
 
     // nc payment method
     $('#id_non_continuing-nc_payment_method').change(ncPaymentMethod)
-
-    $('#id_non_continuing-total_gross').change(ncBW)
-    $('#id_non_continuing-biweekly_hours').change(ncBW)
-    $('#id_non_continuing-weeks_vacation').change(ncBW)
-
-    $('#id_non_continuing-gross_hourly').change(ncH)
-    $('#id_non_continuing-vacation_pay').change(ncH)
-    $('#id_non_continuing-biweekly_hours').change(ncH)
+    $('#id_non_continuing-total_gross').change(ncPaymentMethod)
+    $('#id_non_continuing-biweekly_hours').change(ncPaymentMethod)
+    $('#id_non_continuing-weeks_vacation').change(ncPaymentMethod)
+    $('#id_non_continuing-gross_hourly').change(ncPaymentMethod)
+    $('#id_non_continuing-vacation_pay').change(ncPaymentMethod)
 
     // gras payment method
     $('#id_graduate_research_assistant-gras_payment_method').change(grasPaymentMethod)
-    $('#id_graduate_research_assistant-total_gross').change(grasLS)
-    $('#id_graduate_research_assistant-total_gross').change(grasBW)
-    $('#id_graduate_research_assistant-biweekly_hours').change(grasBW)
+    $('#id_graduate_research_assistant-total_gross').change(grasPaymentMethod)
+    $('#id_graduate_research_assistant-biweekly_hours').change(grasPaymentMethod)
 
     // backdated appointments
     $('#id_non_continuing-backdate_lump_sum').change(ncBackDated)
