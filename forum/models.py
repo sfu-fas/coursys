@@ -22,6 +22,9 @@ from forum.names_generator import get_random_name
 # TODO: thread topics
 # TODO: instructor-private questions
 # TODO: text search
+# TODO: re-roll of anonymousidentity if reasonably early
+# TODO: should a Reply have type for followup-question?
+# TODO: ensure AnonymousIdentity is unique within a course
 
 
 IDENTITY_CHOICES = [  # AnonymousIdentity.identity_choices should reflect any logical changes here
@@ -33,10 +36,11 @@ THREAD_TYPE_CHOICES = [
     ('QUES', 'Question (i.e. an answer is required)'),
     ('DISC', 'Discussion'),
 ]
-THREAD_STATUS_CHOICES = [
+POST_STATUS_CHOICES = [
     ('OPEN', 'Open'),
-    ('CLOS', 'Closed'),
-    ('HIDD', 'Hidden')
+    ('ANSW', 'Answered'),
+    ('NORE', 'No Reply Needed'),
+    ('HIDD', 'Hidden'),
 ]
 
 
@@ -75,12 +79,17 @@ class AnonymousIdentity(models.Model):
     class Meta:
         unique_together = [
             ('offering', 'member'),
+            ('offering', 'name'),
         ]
 
     @classmethod
     def new(cls, offering: CourseOffering, member: Member, save: bool = True) -> 'AnonymousIdentity':
         assert offering.id == member.offering_id
-        name = get_random_name()
+        while True:
+            name = get_random_name()
+            if not cls.objects.filter(offering=offering, name=name).exists():
+                # Ensure unique name within offering. Technically races with other instances, but I'll take my chances.
+                break
         ident = cls(offering=offering, member=member, name=name, regen_count=0)
         if save:
             ident.save()
@@ -176,12 +185,12 @@ class Post(models.Model):
     Functionality common to both threads (the starting message) and replies (followup).
     Separated so we can refer to a post (by URL or similar) regardless of its role.
     """
-    offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)  # used to enforce unique number within an offering
+    offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)  # used to enforce unique .number within an offering
     author = models.ForeignKey(Member, on_delete=models.PROTECT)
     created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     modified_at = models.DateTimeField(auto_now=True)
     type = models.CharField(max_length=4, null=False, blank=False, default='DISC', choices=THREAD_TYPE_CHOICES)
-    status = models.CharField(max_length=4, null=False, blank=False, default='OPEN', choices=THREAD_STATUS_CHOICES)
+    status = models.CharField(max_length=4, null=False, blank=False, default='OPEN', choices=POST_STATUS_CHOICES)
     number = models.PositiveIntegerField(null=False, blank=False)
     config = JSONField(null=False, blank=False, default=dict)
 
@@ -216,11 +225,13 @@ class Post(models.Model):
     def html_content(self):
         return markup_to_html(self.content, self.markup, math=self.math, restricted=True)
 
-    def visible_author(self, is_instr=False):
-        if self.identity == 'NAME' or (self.identity == 'INST' and is_instr):
+    def visible_author(self, viewer: Member):
+        if self.identity == 'NAME':
             return AnonymousIdentity.real_name(self.author)
+        elif self.identity == 'INST' and viewer.role != 'STUD':
+            return '%s (“%s” to students)' % (AnonymousIdentity.real_name(self.author), AnonymousIdentity.for_member(self.author),)
         else:
-            return '“' + AnonymousIdentity.for_member(self.author) + '”'
+            return '“%s”' % (AnonymousIdentity.for_member(self.author),)
 
     def was_edited(self):
         return (self.modified_at - self.created_at) > datetime.timedelta(seconds=5)
@@ -232,39 +243,37 @@ class PostStatusManager(models.Manager):
 
 
 class Thread(models.Model):
-    #offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     title = models.CharField(max_length=255, null=False, blank=False)
     post = models.OneToOneField(Post, on_delete=models.CASCADE)
     pin = models.PositiveSmallIntegerField(default=0)
-    #slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=['post__offering'])
+    # most recent post under this thread, so we can easily order by activity
+    last_activity = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     config = JSONField(null=False, blank=False, default=dict)
 
     objects = PostStatusManager()
 
-    #def autoslug(self):
-    #    return make_slug(self.title)
-
     class Meta:
-        ordering = ('-pin', '-post__modified_at')
+        ordering = ('-pin', '-last_activity')
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
             self.post.save()
             self.post_id = self.post.id
+            self.last_activity = datetime.datetime.now()
             result = super().save(*args, **kwargs)
         return result
 
     def get_absolute_url(self):
         return reverse('offering:forum:view_thread', kwargs={'course_slug': self.post.offering.slug, 'post_number': self.post.number})
 
-    def summary_json(self) -> Dict[str, Any]:
+    def summary_json(self, viewer: Member) -> Dict[str, Any]:
         """
         Data for a JSON representation that summarizes the thread (for the menu of threads).
         """
         data = {
             'id': self.id,
             'title': self.title,
-            'author': self.post.visible_author(),
+            'author': self.post.visible_author(viewer),
             'number': self.post.number,
         }
         return data
@@ -293,5 +302,7 @@ class Reply(models.Model):
         with transaction.atomic():
             self.post.save()
             self.post_id = self.post.id
+            # the .update should be an one-field update, not risking racing some other process
+            Thread.objects.filter(id=self.thread_id).update(last_activity=datetime.datetime.now())
             result = super().save(*args, **kwargs)
         return result

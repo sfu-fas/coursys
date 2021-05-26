@@ -1,7 +1,33 @@
-<h3>{{ thread.title }}</h3>
+{% load forum_display %}
+
+<section id="post-{{ post.number }}">
+<h2>{{ thread.title }}</h2>
 <p>
-    By {{ post.visible_author }},
+    By {{ post|visible_author:viewer }},
     {{ post.created_at }}{% if post.was_edited %} (edited {{ post.modified_at }}){% endif %}
 </p>
-
 {{ post.html_content }}
+</section>
+
+<h2>Replies</h2>
+
+{% for reply in replies %}
+<section id="post-{{ reply.post.number }}">
+<p>
+    By {{ reply.post|visible_author:viewer }},
+    {{ reply.post.created_at }}{% if reply.post.was_edited %} (edited {{ reply.post.modified_at }}){% endif %}
+</p>
+{{ reply.post.html_content }}
+</section>
+{% endfor %}
+
+<section id="reply">
+<h3>Reply</h3>
+
+<form action="" method="post" enctype="multipart/form-data" class="close-warn">{% csrf_token %}
+{{ reply_form | forum_form:"Reply" }}
+</form>
+<p><a href="{% url 'offering:forum:anon_identity' course_slug=offering.slug %}">About discussion forum anonymous identities</a></p>
+
+
+</section>

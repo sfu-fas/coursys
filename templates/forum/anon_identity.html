@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}{{ offering.name }}: Discussion Anonymous Identities{% endblock %}
+{% block h1 %}{{ offering.name }}: Discussion Anonymous Identities{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{% url 'offering:forum:index' course_slug=offering.slug %}">Discussion</a></li>
+    <li>Anonymous Identities</li>
+{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block content %}
+
+    <p>
+        The CourSys discussion forum allows posting under a pseudonym, if configured by the instructor.
+        For this course, the instructor has allowed: <strong>{{ offering_identity_description }}</strong>.
+    </p>
+    <p>
+        Note that in all cases, the actual author identity is recorded by the system and may be recovered in case of abuse/misconduct.
+        Instructors and TAs may not post under a pseudonym, only students.
+    </p>
+
+    {% if member.role == 'STUD' %}
+    <p>Your pseudonym will be consistent across all of your posts on this forum. Your randomly chosen pseudonym: <strong>{{ ident }}</strong>.</p>
+    {% else %}
+    <p>Pseudonyms will be consistent across all of your posts by an individual student: even though anonymous, we enforce an <q>identity</q> for authors.</p>
+    {% endif %}
+
+    <p>
+        The randomly generated pseudonyms consist of an adjective followed by the surname of a notable scientists or hackers.
+        This method was borrowed from the random names generated for <a href="https://www.docker.com/">Docker</a> containers,
+        and you can <a href="https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go">examine the original source</a> if you like.
+    </p>
+    <p>Here are a few randomly generated pseudonyms, so you can get a sense of how they look:</p>
+    <ul class="bulleted">
+        {% for name in sample_names %}
+        <li>&ldquo;{{ name }}&rdquo;</li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

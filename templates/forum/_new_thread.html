@@ -1,4 +1,7 @@
-{% load forum_forms %}
+{% load forum_display %}
+
 <form action="" method="post" enctype="multipart/form-data" class="close-warn">{% csrf_token %}
-{{ form | forum_form:"Post" }}
+{{ thread_form | forum_form:"Post" }}
 </form>
+
+<p><a href="{% url 'offering:forum:anon_identity' course_slug=offering.slug %}">About discussion forum anonymous identities</a></p>
