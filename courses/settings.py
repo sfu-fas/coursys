@@ -85,7 +85,6 @@ INSTALLED_APPS = (
     'onlineforms',
     'faculty',
     'tacontracts',
-    'api',
     'visas',
     'outreach',
     'sessionals',

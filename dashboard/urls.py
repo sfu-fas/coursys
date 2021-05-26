@@ -3,7 +3,6 @@ from django.views.generic import RedirectView
 from courselib.urlparts import USERID_SLUG, COURSE_SLUG, SLUG_RE, USERID_OR_EMPLID
 from privacy.urls import privacy_patterns
 import dashboard.views as dashboard_views
-import api.views as api_views
 
 config_patterns = [ # prefix /config/
     url(r'^$', dashboard_views.config, name='config'),
@@ -17,7 +16,6 @@ config_patterns = [ # prefix /config/
     url(r'^news$', dashboard_views.news_config, name='news_config'),
     url(r'^photos$', dashboard_views.photo_agreement, name='photo_agreement'),
     url(r'^privacy/', include(privacy_patterns)),
-    url(r'^tokens/', api_views.manage_tokens, name='manage_tokens'),
 ]
 
 news_patterns = [ # prefix /news/

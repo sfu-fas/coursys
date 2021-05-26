@@ -22,7 +22,6 @@
 {% else %}
 <li><a href="{% url "config:create_calendar_url" %}">Activate external calendar</a></li>
 {% endif %}
-<li><a href="{% url "config:manage_tokens" %}"><i class="fa fa-li fa-lock"></i>Manage API Tokens</a></li>
 
 {% if instructor or advisor %}
 <li class="newsec"><a href="{% url "config:photo_agreement" %}">Display ID Photos</a></li>

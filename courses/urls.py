@@ -24,7 +24,6 @@ from inventory.urls import inventory_pattern
 from relationships.urls import relationship_patterns
 from space.urls import space_patterns
 from reminders.urls import reminders_patterns
-from api.urls import api_patterns
 from otp.urls import otp_patterns
 
 import dashboard.views as dashboard_views
@@ -57,7 +56,6 @@ urlpatterns = [
     url(r'', include((toplevel_patterns, 'dashboard'), namespace='dashboard')),
 
     # top-level paths from dashboard and coredata
-    url(r'^api/', include((api_patterns, 'api'), namespace='api')),
     url(r'^admin/', include((admin_patterns, 'admin'), namespace='admin')),
     url(r'^browse/', include((browse_patterns, 'browse'), namespace='browse')),
     url(r'^calendar/', include((calendar_patterns, 'calendar'), namespace='calendar')),
