@@ -2,6 +2,7 @@ import datetime
 from typing import Dict, Any
 
 from autoslug import AutoSlugField
+from dirtyfields import DirtyFieldsMixin
 from django.db import models, transaction, IntegrityError
 from django.core.cache import cache
 from django.db.models import Max
@@ -19,12 +20,12 @@ from forum.names_generator import get_random_name
 # TODO: subscriptions
 # TODO: pinned comments
 # TODO: read/unread tracking
+# TODO: reactions to posts
 # TODO: thread topics
 # TODO: instructor-private questions
 # TODO: text search
 # TODO: re-roll of anonymousidentity if reasonably early
 # TODO: should a Reply have type for followup-question?
-# TODO: ensure AnonymousIdentity is unique within a course
 
 
 IDENTITY_CHOICES = [  # AnonymousIdentity.identity_choices should reflect any logical changes here
@@ -180,7 +181,7 @@ class AnonymousIdentity(models.Model):
 #         ]
 
 
-class Post(models.Model):
+class Post(models.Model, DirtyFieldsMixin):
     """
     Functionality common to both threads (the starting message) and replies (followup).
     Separated so we can refer to a post (by URL or similar) regardless of its role.
@@ -188,7 +189,7 @@ class Post(models.Model):
     offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)  # used to enforce unique .number within an offering
     author = models.ForeignKey(Member, on_delete=models.PROTECT)
     created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
-    modified_at = models.DateTimeField(auto_now=True)
+    modified_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     type = models.CharField(max_length=4, null=False, blank=False, default='DISC', choices=THREAD_TYPE_CHOICES)
     status = models.CharField(max_length=4, null=False, blank=False, default='OPEN', choices=POST_STATUS_CHOICES)
     number = models.PositiveIntegerField(null=False, blank=False)
@@ -205,7 +206,14 @@ class Post(models.Model):
         ]
 
     def save(self, *args, **kwargs):
+        if self.is_dirty():
+            # something changed
+            self.modified_at = datetime.datetime.now()
+            if self.id:
+                HaveRead.objects.filter(post_id=self.id).delete()
+
         if self.number:
+            # is we already have our unique post number, it's easy.
             return super().save(*args, **kwargs)
 
         # generate a sequential .number value within this offering
@@ -221,6 +229,18 @@ class Post(models.Model):
                     pass
                 else:
                     return result
+
+    def get_absolute_url(self):
+        # The URL depends on this post's personality (Thread or Reply), so calling this is a little expensive.
+        threads = list(Thread.objects.filter(post=self).select_related('post'))
+        if threads:
+            thread = threads[0]
+            url = thread.get_absolute_url()
+        else:
+            reply = Reply.objects.select_related('thread', 'thread__post__offering').get(post=self)
+            url = reply.thread.get_absolute_url() + '#post-' + str(self.number)
+
+        return url
 
     def html_content(self):
         return markup_to_html(self.content, self.markup, math=self.math, restricted=True)
@@ -306,3 +326,65 @@ class Reply(models.Model):
             Thread.objects.filter(id=self.thread_id).update(last_activity=datetime.datetime.now())
             result = super().save(*args, **kwargs)
         return result
+
+
+class HaveRead(models.Model):
+    """
+    This user has read this post.
+    """
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    updated_at = models.DateTimeField(auto_now=True, null=False, blank=False)
+
+    class Meta:
+        unique_together = [
+            ('member', 'post'),
+        ]
+
+
+REACTION_CHOICES = [
+    ('NONE', 'no reaction'),
+    ('UP', 'Thumbs Up'),
+    ('LOVE', 'Love'),
+    ('CLAP', 'Clap'),
+    ('LAUG', 'Laugh'),
+    ('CONF', 'Confused'),
+    ('DOWN', 'Thumbs Down'),
+]
+REACTION_ICONS = {  # emoji for the reaction
+    'NONE': '',
+    'UP': '\U0001F44D',
+    'DOWN': '\U0001F44E',
+    'LAUG': '\U0001F923',
+    'LOVE': '\U00002764\U0000FE0F',
+    'CLAP': '\U0001F44F',
+    'CONF': '\U0001F615',
+}
+REACTION_SCORES = {  # score for the reaction, for "sort by best" and any values >=1 mean "answered".
+    'NONE': 0,
+    'UP': 1,
+    'DOWN': -1,
+    'LAUG': 0.5,
+    'LOVE': 1,
+    'CLAP': 1,
+    'CONF': -0.5,
+}
+SCORE_STAFF_FACTOR = 2  # weight factor for score of an instructor/TA reaction
+
+
+class Reaction(models.Model):
+    """
+    User has reacted to this post, and how.
+    """
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    reaction = models.CharField(max_length=4, null=False, blank=False, choices=REACTION_CHOICES)
+    created_at = models.DateTimeField(auto_now=True, null=False, blank=False)
+
+    class Meta:
+        unique_together = [
+            ('member', 'post'),
+        ]
+
+    def __str__(self):
+        return '%s says %s' % (self.member.person.name_pref(), REACTION_ICONS[self.reaction])

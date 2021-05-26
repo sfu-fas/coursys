@@ -1,0 +1,10 @@
+{% load forum_display %}
+<p>
+    By {{ post|visible_author:viewer }},
+    {{ post.created_at }}{% if post.was_edited %} (edited {{ post.modified_at }}){% endif %}
+</p>
+{{ post.html_content }}
+
+{{ post|reaction_display:post_reactions }}
+
+{{ post|reaction_widget:viewer }}

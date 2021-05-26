@@ -1,12 +1,14 @@
-from typing import Optional
+import itertools
+from typing import Optional, Dict, List
 
 from django.contrib import messages
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.db import IntegrityError
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 
 from courselib.auth import requires_course_by_slug
 from forum.forms import ThreadForm, ReplyForm
-from forum.models import Thread, AnonymousIdentity, Forum, Reply, IDENTITY_CHOICES
+from forum.models import Thread, AnonymousIdentity, Forum, Reply, IDENTITY_CHOICES, Reaction, Post
 from forum.names_generator import get_random_name
 
 
@@ -64,6 +66,14 @@ def _forum_omni_view(
     if view == 'view_thread':
         replies = Reply.objects.filter(thread=thread).select_related('post', 'post__author')
 
+        # collect all reactions for the thread
+        all_post_ids = [thread.post_id] + [r.post_id for r in replies]
+        all_reactions = Reaction.objects.exclude(reaction='NONE').filter(post_id__in=all_post_ids).select_related('member').order_by('post')
+        post_reactions: Dict[int, List[Reaction]] = {}
+        for post_id, reactions in itertools.groupby(all_reactions, lambda r: r.post_id):
+            reactions = list(reactions)
+            post_reactions[post_id] = reactions
+
         # view_thread view has a form to reply to this thread
         if request.method == 'POST':
             reply_form = ReplyForm(data=request.POST, member=member, offering_identity=forum.identity)
@@ -80,9 +90,11 @@ def _forum_omni_view(
 
         context['reply_form'] = reply_form
         context['replies'] = replies
+        context['post_reactions'] = post_reactions
     else:
         context['reply_form'] = None
         context['replies'] = None
+        context['post_reactions'] = None
 
     threads = Thread.objects.filter(post__offering=offering).select_related('post', 'post__author', 'post__offering')
     context['threads'] = threads
@@ -98,12 +110,31 @@ def index(request: HttpRequest, course_slug: str) -> HttpResponse:
     return _forum_omni_view(request, course_slug=course_slug, view='index')
 
 
-def view_thread(request: HttpRequest, course_slug: str, post_number : Optional[int] = None) -> HttpResponse:
+def view_thread(request: HttpRequest, course_slug: str, post_number: int) -> HttpResponse:
     return _forum_omni_view(request, course_slug=course_slug, view='view_thread', post_number=post_number)
 
 
 def new_thread(request: HttpRequest, course_slug: str) -> HttpResponse:
     return _forum_omni_view(request, course_slug=course_slug, view='new_thread')
+
+
+@requires_course_by_slug
+def react(request: HttpRequest, course_slug: str, post_number: int, reaction: str) -> HttpResponse:
+    member = request.member
+    offering = member.offering
+    forum = Forum.for_offering_or_404(offering)
+    post = get_object_or_404(Post, offering=offering, number=post_number)
+
+    if post.author_id != member.id:
+        try:
+            r = Reaction(member=member, post=post, reaction=reaction)
+            r.save()
+        except IntegrityError:
+            Reaction.objects.filter(member=member, post=post).update(reaction=reaction)
+
+        messages.add_message(request, messages.SUCCESS, 'Reaction recorded.')
+
+    return HttpResponseRedirect(post.get_absolute_url())
 
 
 @requires_course_by_slug

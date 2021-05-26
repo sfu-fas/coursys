@@ -14,9 +14,11 @@
     {% include 'pages/markup_view_head.html' %}
     {% include 'pages/markup_edit_head.html' %}
     {% compress css %}
+    <link rel="stylesheet" href="{% static "styled-notifications/dist/notifications.css" %}" />
     <link rel="stylesheet" href="{% static 'style/forum.css' %}" />
     {% endcompress %}
     {% compress js %}
+    <script src="{% static 'styled-notifications/dist/notifications.js' %}"></script>
     <script src="{% static 'js/forum.js' %}"></script>
     {% endcompress %}
 {% endblock %}

@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from coredata.models import CourseOffering
 from courselib.testing import Client, test_views, TEST_COURSE_SLUG
-from forum.models import Forum
+from forum.models import Forum, REACTION_CHOICES, REACTION_ICONS, REACTION_SCORES
 
 
 class ForumTest(TestCase):
@@ -14,6 +14,11 @@ class ForumTest(TestCase):
         f = Forum(offering=o)
         f.enabled = True
         f.save()
+
+    def test_coherence(self):
+        all_reactions = set(k for k, v in REACTION_CHOICES)
+        self.assertEqual(set(REACTION_ICONS.keys()), all_reactions)
+        self.assertEqual(set(REACTION_SCORES.keys()), all_reactions)
 
     def test_pages(self):
         """
@@ -27,7 +32,7 @@ class ForumTest(TestCase):
                    ['index', 'new_thread', 'anon_identity'],
                    {'course_slug': self.offering.slug})
 
-        # test as an instructor
+        # test as a student
         c.login_user('0aaa0')
         test_views(self, c, 'offering:forum:',
                    ['index', 'new_thread', 'anon_identity'],
