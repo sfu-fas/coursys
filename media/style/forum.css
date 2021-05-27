@@ -35,3 +35,19 @@ a i.forum-button {
 .forum-form div.field > * {
     margin-top: 0;
 }
+
+.thread-reply {
+    border: thin solid #ddd;
+    margin: 0.5em 0;
+    padding: 0 0.5em;
+}
+span.reaction {
+    border: thin solid #ddd;
+    padding: 0.1em;
+    margin: 0 0.25em;
+}
+.react-widget a {
+    border: thin solid #ddd;
+    padding: 0.1em;
+    margin: 0 0.25em;
+}

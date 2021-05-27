@@ -8,6 +8,8 @@ from django.core.cache import cache
 from django.db.models import Max
 from django.http import Http404
 from django.urls import reverse
+from django.utils.html import escape
+from django.utils.safestring import SafeString, mark_safe
 
 from coredata.models import CourseOffering, Member
 from courselib.json_fields import JSONField, config_property
@@ -43,6 +45,36 @@ POST_STATUS_CHOICES = [
     ('NORE', 'No Reply Needed'),
     ('HIDD', 'Hidden'),
 ]
+
+
+def how_long_ago(time: datetime.datetime) -> SafeString:
+    """
+    Human-readable description of how long ago this was.
+    """
+    td = datetime.datetime.now() - time
+    days, hours, minutes, seconds = td.days, td.seconds / 3600, (td.seconds / 60) % 60, td.seconds
+
+    if days < 1:
+        if hours < 1:
+            if minutes < 1:
+                descr = 'just now'
+            elif minutes is 1:
+                descr = '1 minute ago'
+            else:
+                descr = '%d minutes ago' % (minutes,)
+        elif hours == 1:
+            descr = '1 hour ago'
+        else:
+            descr = '%d hours ago' % (hours,)
+    elif days == 1:
+        descr = '1 day ago'
+    elif days < 8:
+        descr = '%d days ago' % (days,)
+    else:
+        descr = time.strftime('%b %d, %Y')
+
+    iso8601 = time.strftime("%Y-%m-%dT%H:%M:%S")
+    return mark_safe('<time datetime="%s" title="%s">%s</time>' % (iso8601, iso8601, escape(descr)))
 
 
 class Forum(models.Model):
@@ -256,6 +288,12 @@ class Post(models.Model, DirtyFieldsMixin):
     def was_edited(self):
         return (self.modified_at - self.created_at) > datetime.timedelta(seconds=5)
 
+    def created_at_html(self) -> SafeString:
+        return how_long_ago(self.created_at)
+
+    def modified_at_html(self) -> SafeString:
+        return how_long_ago(self.created_at)
+
 
 class PostStatusManager(models.Manager):
     def get_queryset(self):
@@ -349,12 +387,12 @@ REACTION_CHOICES = [
     ('CLAP', 'Clap'),
     ('LAUG', 'Laugh'),
     ('CONF', 'Confused'),
-    ('DOWN', 'Thumbs Down'),
+    #('DOWN', 'Thumbs Down'),
 ]
 REACTION_ICONS = {  # emoji for the reaction
     'NONE': '',
     'UP': '\U0001F44D',
-    'DOWN': '\U0001F44E',
+    #'DOWN': '\U0001F44E',
     'LAUG': '\U0001F923',
     'LOVE': '\U00002764\U0000FE0F',
     'CLAP': '\U0001F44F',
@@ -363,7 +401,7 @@ REACTION_ICONS = {  # emoji for the reaction
 REACTION_SCORES = {  # score for the reaction, for "sort by best" and any values >=1 mean "answered".
     'NONE': 0,
     'UP': 1,
-    'DOWN': -1,
+    #'DOWN': -1,
     'LAUG': 0.5,
     'LOVE': 1,
     'CLAP': 1,

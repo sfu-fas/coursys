@@ -3,7 +3,7 @@ from django import forms
 from coredata.models import Member
 from courselib.markup import MarkupContentMixin, MarkupContentField
 from forum import DEFAULT_FORUM_MARKUP
-from forum.models import Thread, Post, AnonymousIdentity, Reply
+from forum.models import Post, AnonymousIdentity
 
 
 class ThreadForm(MarkupContentMixin(field_name='content'), forms.ModelForm):

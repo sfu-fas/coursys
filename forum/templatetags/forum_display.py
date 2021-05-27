@@ -70,14 +70,17 @@ def reaction_display(post: Post, post_reactions: Dict[int, List[Reaction]]) -> S
         REACTION_SCORES[r.reaction] * (SCORE_STAFF_FACTOR if r.member.role in ['INST', 'TA'] else 1)
         for r in reactions
     )
-    out.append('<div class="reactions" data-score="%g">' % (score,))
+    out.append('<span class="reactions" data-score="%g">' % (score,))
 
     counts = [(n, reaction) for reaction, n in Counter(r.reaction for r in reactions).items()]
     counts.sort(key=lambda c: (-c[0], c[1]))  # decreasing frequency
-    visible_counts = ['<span class="reaction">%s&times;%i</span> ' % (escape(REACTION_ICONS[r]), n) for n, r in counts]
+    visible_counts = ['<span class="reaction">%s&times;%i</span>' % (escape(REACTION_ICONS[r]), n) for n, r in counts]
     out.extend(visible_counts)
 
-    out.append('</div>')
+    if not reactions:
+        out.append('<span class="empty">[No so far.]</span>')
+
+    out.append('</span>')
 
     return mark_safe(''.join(out))
 
@@ -88,18 +91,19 @@ def reaction_widget(post: Post, viewer: Member) -> SafeString:
     Produce the collection of links associated with "reacting" to a post.
     """
     if post.author_id == viewer.id:
-        return ''
+        return mark_safe('<span class="empty">[cannot react to your own post]</span>')
 
     out = []
-    out.append('<p>React: ')
     for react, descr in REACTION_CHOICES:
+        if react == 'NONE':
+            continue
+
         url = reverse(
             'offering:forum:react',
             kwargs={'course_slug': post.offering.slug, 'post_number': post.number, 'reaction': react}
         )
-        html = '<a href="%s" title="react &ldquo;%s&rdquo; to this">%s</a>\n' % (escape(url), escape(descr), escape(REACTION_ICONS[react]))
+        html = '<a href="%s" title="react &ldquo;%s&rdquo;">%s</a>\n' % (escape(url), escape(descr), escape(REACTION_ICONS[react]))
         out.append(html)
 
-    out.append('</p>')
     return mark_safe('\n'.join(out))
 

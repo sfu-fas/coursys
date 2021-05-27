@@ -8,7 +8,7 @@
 <h2>Replies</h2>
 
 {% for reply in replies %}
-<section id="post-{{ reply.post.number }}" data-score="">
+<section id="post-{{ reply.post.number }}" class="thread-reply">
 {% include 'forum/_post_fragment.html' with post=reply.post viewer=viewer %}
 </section>
     {{ post_scores.post_id }}

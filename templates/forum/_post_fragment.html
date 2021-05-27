@@ -1,10 +1,10 @@
 {% load forum_display %}
 <p>
     By {{ post|visible_author:viewer }},
-    {{ post.created_at }}{% if post.was_edited %} (edited {{ post.modified_at }}){% endif %}
+    {{ post.created_at_html }}{% if post.was_edited %} (edited {{ post.modified_at_html }}){% endif %}
 </p>
 {{ post.html_content }}
 
-{{ post|reaction_display:post_reactions }}
+<p class="reactions">Reactions: {{ post|reaction_display:post_reactions }}</p>
 
-{{ post|reaction_widget:viewer }}
+<p class="react-widget">React: {{ post|reaction_widget:viewer }}</p>
