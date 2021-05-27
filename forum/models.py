@@ -313,6 +313,10 @@ class Thread(models.Model):
     class Meta:
         ordering = ('-pin', '-last_activity')
 
+    @staticmethod
+    def sort_key(self):  # so we can take a list of Thread and .sort(key=Thread.sort_key)
+        return (-self.pin, -self.last_activity.timestamp())
+
     def save(self, *args, **kwargs):
         with transaction.atomic():
             self.post.save()
@@ -408,6 +412,7 @@ REACTION_SCORES = {  # score for the reaction, for "sort by best" and any values
     'CONF': -0.5,
 }
 SCORE_STAFF_FACTOR = 2  # weight factor for score of an instructor/TA reaction
+APPROVAL_REACTIONS = set(reaction for reaction,score in REACTION_SCORES.items() if score >= 1)
 
 
 class Reaction(models.Model):

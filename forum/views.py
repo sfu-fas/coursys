@@ -2,16 +2,18 @@ import itertools
 from typing import Optional, Dict, List
 
 from django.contrib import messages
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 
 from courselib.auth import requires_course_by_slug
 from forum.forms import ThreadForm, ReplyForm
-from forum.models import Thread, AnonymousIdentity, Forum, Reply, IDENTITY_CHOICES, Reaction, Post
+from forum.models import Thread, AnonymousIdentity, Forum, Reply, IDENTITY_CHOICES, Reaction, Post, HaveRead, \
+    APPROVAL_REACTIONS
 from forum.names_generator import get_random_name
 
 
+@transaction.atomic
 @requires_course_by_slug
 def _forum_omni_view(
         request: HttpRequest, *, course_slug: str, view: str,
@@ -66,14 +68,6 @@ def _forum_omni_view(
     if view == 'view_thread':
         replies = Reply.objects.filter(thread=thread).select_related('post', 'post__author')
 
-        # collect all reactions for the thread
-        all_post_ids = [thread.post_id] + [r.post_id for r in replies]
-        all_reactions = Reaction.objects.exclude(reaction='NONE').filter(post_id__in=all_post_ids).select_related('member').order_by('post')
-        post_reactions: Dict[int, List[Reaction]] = {}
-        for post_id, reactions in itertools.groupby(all_reactions, lambda r: r.post_id):
-            reactions = list(reactions)
-            post_reactions[post_id] = reactions
-
         # view_thread view has a form to reply to this thread
         if request.method == 'POST':
             reply_form = ReplyForm(data=request.POST, member=member, offering_identity=forum.identity)
@@ -88,9 +82,25 @@ def _forum_omni_view(
         else:
             reply_form = ReplyForm(member=member, offering_identity=forum.identity)
 
+        # mark everything we're sending to the user as read
+        HaveRead.objects.bulk_create(
+            [HaveRead(member=member, post_id=thread.post_id)]
+            + [HaveRead(member=member, post_id=r.post_id) for r in replies],
+            ignore_conflicts=True
+        )
+
+        # collect all reactions for the thread: we can do it here in one query, not one for each reply later
+        all_post_ids = [thread.post_id] + [r.post_id for r in replies]
+        all_reactions = Reaction.objects.exclude(reaction='NONE').filter(post_id__in=all_post_ids).select_related('member').order_by('post')
+        post_reactions: Dict[int, List[Reaction]] = {}
+        for post_id, reactions in itertools.groupby(all_reactions, lambda r: r.post_id):
+            reactions = list(reactions)
+            post_reactions[post_id] = reactions
+
         context['reply_form'] = reply_form
         context['replies'] = replies
         context['post_reactions'] = post_reactions
+
     else:
         context['reply_form'] = None
         context['replies'] = None
@@ -99,15 +109,56 @@ def _forum_omni_view(
     threads = Thread.objects.filter(post__offering=offering).select_related('post', 'post__author', 'post__offering')
     context['threads'] = threads
 
+    if view in 'summary':
+        # Find threads with unread activity
+        reads = HaveRead.objects.filter(member=member).values_list('post_id', flat=True)
+        unread_post_ids = Post.objects.filter(offering=offering).exclude(id__in=reads).values_list('id', flat=True)
+        # TODO: this creates three-level nested queries. Should we convert to a list here to simplify?
+        #unread_post_ids = list(unread_post_ids)
+
+        # we have all Post.id values that this user hasn't read. Now find corresponding Threads
+        unread_threads = Thread.objects.filter(post_id__in=unread_post_ids) \
+            .select_related('post', 'post__author', 'post__offering')
+        unread_replies = Reply.objects.filter(post_id__in=unread_post_ids) \
+            .select_related('thread', 'thread__post', 'thread__post__author', 'thread__post__offering')
+        unread_threads = set(unread_threads) | set(r.thread for r in unread_replies)
+        unread_threads = list(unread_threads)
+        unread_threads.sort(key=Thread.sort_key)
+
+        # monkey-patch annotate each Thread so we know what's unread?
+        #for t in unread_threads:
+        #    t.contains_unread = t.id in unread_thread_ids
+
+        approved_post_ids = Reaction.objects.filter(
+            post__offering=offering,
+            member__role__in=['INST', 'TA'],
+            reaction__in=APPROVAL_REACTIONS
+        ).values_list('post_id', flat=True)
+        # TODO: should exclude questions with an instructor/TA answer
+        # TODO: ... or if the thread author approves an answer
+        unanswered_threads = Thread.objects.filter(post__type='QUES', post__status='OPEN') \
+            .exclude(post_id__in=approved_post_ids) \
+            .select_related('post', 'post__author', 'post__offering')
+
+        context['unread_threads'] = unread_threads
+        context['unanswered_threads'] = unanswered_threads
+
+    else:
+        context['unread_threads'] = None
+        context['unanswered_threads'] = None
+
+
     if fragment:
         # we have been asked for a page fragment: deliver only that.
         return render(request, 'forum/_'+view+'.html', context=context)
 
-    return render(request, 'forum/index.html', context=context)
+    else:
+        # render the entire index page server-side
+        return render(request, 'forum/index.html', context=context)
 
 
-def index(request: HttpRequest, course_slug: str) -> HttpResponse:
-    return _forum_omni_view(request, course_slug=course_slug, view='index')
+def summary(request: HttpRequest, course_slug: str) -> HttpResponse:
+    return _forum_omni_view(request, course_slug=course_slug, view='summary')
 
 
 def view_thread(request: HttpRequest, course_slug: str, post_number: int) -> HttpResponse:

@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block headextra %}
-    {% url 'offering:forum:index' course_slug=offering.slug as dataurl %}{{ dataurl|json_script:"forum-url" }}
+    {% url 'offering:forum:summary' course_slug=offering.slug as dataurl %}{{ dataurl|json_script:"forum-url" }}
     {% include 'pages/markup_view_head.html' %}
     {% include 'pages/markup_edit_head.html' %}
     {% compress css %}
@@ -30,8 +30,8 @@
         {% include "forum/_thread_list.html" %}
     </section>
     <section id="main-panel">
-        {% if view == 'index' %}
-            {% include "forum/_index.html" %}
+        {% if view == 'summary' %}
+            {% include "forum/_summary.html" %}
         {% elif view == 'view_thread' %}
             {% include "forum/_view_thread.html" %}
         {% elif view == 'new_thread' %}

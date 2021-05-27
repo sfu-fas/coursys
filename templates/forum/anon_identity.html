@@ -4,7 +4,7 @@
 {% block h1 %}{{ offering.name }}: Discussion Anonymous Identities{% endblock %}
 {% block subbreadcrumbs %}
     <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
-    <li><a href="{% url 'offering:forum:index' course_slug=offering.slug %}">Discussion</a></li>
+    <li><a href="{% url 'offering:forum:summary' course_slug=offering.slug %}">Discussion</a></li>
     <li>Anonymous Identities</li>
 {% endblock %}
 

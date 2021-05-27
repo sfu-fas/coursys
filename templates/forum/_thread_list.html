@@ -1,11 +1,15 @@
 {% load forum_display %}
 
 <div class="forum-icons">
-<a href="{% url 'offering:forum:index' course_slug=offering.slug %}" title="Forum Summary"><i class="forum-button fa fa-book-open"></i></a>
+<a href="{% url 'offering:forum:summary' course_slug=offering.slug %}" title="Forum Summary"><i class="forum-button fa fa-book-open"></i></a>
 <a href="{% url 'offering:forum:new_thread' course_slug=offering.slug %}" title="New Thread"><i class="forum-button fa fa-plus"></i></a>
 </div>
 <ul>
 {% for thread in threads %}
-<li>#{{ thread.post.number }} <a href="{{ thread.get_absolute_url }}">{{ thread.title }}</a> by {{ thread.post|visible_author:viewer }}</li>
+<li>
+    #{{ thread.post.number }}
+    <a href="{{ thread.get_absolute_url }}">{{ thread.title }}</a>
+    by {{ thread.post|visible_author:viewer }}
+</li>
 {% endfor %}
 </ul>

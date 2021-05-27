@@ -1,0 +1,30 @@
+{% load forum_display %}
+
+<h2 id="unanswered">Unanswered Questions</h2>
+<p>These questions have neither an answer from an instructor/TA, or an answer with a positive reaction from them.</p>
+<ul>
+{% for thread in unanswered_threads %}
+<li>
+    #{{ thread.post.number }}
+    <a href="{{ thread.get_absolute_url }}">{{ thread.title }}</a>
+    by {{ thread.post|visible_author:viewer }}
+</li>
+{% empty %}
+<li class="empty">None</li>
+{% endfor %}
+</ul>
+
+
+
+<h2 id="unread">Unread Activity</h2>
+<ul>
+{% for thread in unread_threads %}
+<li>
+    #{{ thread.post.number }}
+    <a href="{{ thread.get_absolute_url }}">{{ thread.title }}</a>
+    by {{ thread.post|visible_author:viewer }}
+</li>
+{% empty %}
+<li class="empty">None</li>
+{% endfor %}
+</ul>
