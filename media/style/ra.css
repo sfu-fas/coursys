@@ -107,3 +107,9 @@ table td.checkbox {
     margin-right: 5px;
     margin-left: 0px;
 }
+
+.actionlist .pressed {
+    background-color: #777777;
+    border-bottom: 3px solid #464646;
+    cursor: default;
+}

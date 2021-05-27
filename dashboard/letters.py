@@ -919,7 +919,7 @@ class RARequestForm(SFUMediaMixin):
         elif ra_hourly:
             hourly = "$%.2f" % (self.ra.gross_hourly)
             biweekly = ''
-            biweekhours = "%.1f" % (self.ra.biweekly_hours)
+            biweekhours = ''
             lumpsum = ''
             lumphours = ''
         elif ra_bw:
@@ -931,7 +931,7 @@ class RARequestForm(SFUMediaMixin):
         elif nc_hourly:
             hourly = "$%.2f" % (self.ra.gross_hourly)
             biweekly = ''
-            biweekhours = "%.1f" % (self.ra.biweekly_hours)
+            biweekhours = ''
             lumpsum = ''
             lumphours = ''
         elif nc_bw:
@@ -946,6 +946,9 @@ class RARequestForm(SFUMediaMixin):
             biweekhours = ''
             lumpsum = "$%.2f" % (self.ra.backdate_lump_sum)
             lumphours = "%.1f" % (self.ra.backdate_hours)
+
+        if ra_hourly or nc_hourly:
+            self.c.drawString(3*mm, 120*mm, "(Biweekly Hours: %.1f)" % (self.ra.biweekly_hours))
 
         self.c.setFont("Helvetica-Bold", 7)
         self.c.drawString(3*mm, 130*mm, "Hourly Rate")

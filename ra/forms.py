@@ -47,7 +47,7 @@ PD_CONTACT = "fas_postdoc_support@sfu.ca"
 
 class RARequestIntroForm(forms.ModelForm):
     person = PersonField(label='Appointee', required=False, help_text="Please ensure you are appointing the correct student.")
-    supervisor = PersonField(label='Supervisor', required=True)
+    supervisor = PersonField(label='Hiring Supervisor', required=True)
 
     position = forms.CharField(required=False, label="Position Title")
     
@@ -67,7 +67,7 @@ class RARequestIntroForm(forms.ModelForm):
             'last_name': "Appointee Last Name",
             'email_address': "Appointee Email Address",
             'nonstudent': "Select if appointee does not have an ID",
-            'unit': "Appointee Department",
+            'unit': "Hiring Supervisor's Unit/School",
         }
 
         widgets = {

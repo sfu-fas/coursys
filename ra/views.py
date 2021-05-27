@@ -887,6 +887,38 @@ def delete_admin_attachment(request, ra_slug, attach_slug):
     l.save()
     return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
+# download RA appointments
+@_can_view_ra_requests()
+def download(request, current=False, incomplete=False):
+    admin = has_role('FUND', request)
+
+    if admin:
+        ras = RARequest.objects.filter(Q(unit__in=request.units), deleted=False)
+    else:
+        ras = RARequest.objects.filter(Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), deleted=False)
+
+    if incomplete:
+        ras = ras.filter(complete=False)
+    else:
+        ras = ras.filter(complete=True)
+
+    if current:
+        today = datetime.date.today()
+        slack = 14  # number of days to fudge the start/end
+        ras = ras.filter(start_date__lte=today + datetime.timedelta(days=slack),
+                         end_date__gte=today - datetime.timedelta(days=slack))
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="ras-%s-%s.csv"' % (datetime.datetime.now().strftime('%Y%m%d'),
+                                                                            'current' if current else 'all')
+                                                                                
+    writer = csv.writer(response)
+    writer.writerow(['Name', 'ID', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'Unit'])
+
+    for ra in ras:
+        writer.writerow([ra.get_sort_name(), ra.get_id(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay, ra.unit.label])
+    return response
+
 # altered RADataJson, to make a very similar browse page, but for RARequests
 class RARequestDataJson(BaseDatatableView):
     model = RARequest

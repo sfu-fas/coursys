@@ -37,8 +37,9 @@ $(document).ready(function() {
     <a class="btn" href="{% url "ra:new_request" %}">New RA Request</a>
     {% if admin %}
     <a class="btn" href="{% url "ra:advanced_search" %}">Advanced Search</a>
-    <a class="btn" href="{% url "ra:dashboard" %}">In Progress Requests</a>
+    <div class="btn pressed">Browse Appointments</div>
     <a class="btn" href="{% url "ra:active_appointments" %}">Active Appointments</a>
+    <a class="btn" href="{% url "ra:dashboard" %}">In Progress Requests</a>
     {% endif %}
 </div>
 
@@ -70,7 +71,7 @@ If you have the correct permissions, so you may also create/reappoint new reques
       {% for req in reqs %}
         <tr>
           <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">
-            {{ req.get_name }}
+            {{ req.get_sort_name }}
           </a></td>
           <td>{{ req.supervisor }}</td>
           <td>{{ req.hiring_category }}</td>
@@ -78,7 +79,7 @@ If you have the correct permissions, so you may also create/reappoint new reques
           <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
           <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
           <td>{{ req.author }}</td>
-          <td>$ {{ req.total_pay }}</td>
+          <td>${{ req.total_pay }}</td>
         </tr>
       {% endfor %}
     </tbody>
@@ -99,5 +100,7 @@ If you have the correct permissions, so you may also create/reappoint new reques
 </table>
 <div class="actionlist">
 <a class="btn" href="{% url "ra:browse" %}">Browse Historic Appointments</a>
+<a class="btn" href="{% url "ra:download_current" %}">Download Active Appointments</a>
+<a class="btn" href="{% url "ra:download_all" %}">Download All Appointments</a>
 </div>
 {% endblock %}
