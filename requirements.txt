@@ -33,6 +33,7 @@ celery==4.4.7
 django-celery-email==3.0.0
 django_celery_beat==2.2.0
 kombu==4.6.11
+amqp  # let kombu choose the version, but ensure we have it
 iso8601==0.1.14
 django-haystack==3.0
 whoosh==2.7.4

@@ -74,6 +74,7 @@ rm503:
 rebuild:
 	sudo apt update && sudo apt upgrade
 	sudo pip3 install -r ${COURSYS_DIR}/requirements.txt
+	${DOCKERCOMPOSE} build
 	make new-code
 
 rebuild-hardcore:
