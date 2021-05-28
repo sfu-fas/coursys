@@ -48,7 +48,7 @@ class ForumTest(TestCase):
         # test as an instructor
         c.login_user('ggbaker')
         test_views(self, c, 'offering:forum:',
-                   ['index', 'new_thread', 'anon_identity'],
+                   ['summary', 'new_thread', 'anon_identity'],
                    {'course_slug': self.offering.slug})
         test_views(self, c, 'offering:forum:',
                    ['view_thread'],
@@ -57,7 +57,7 @@ class ForumTest(TestCase):
         # test as a student
         c.login_user('0aaa0')
         test_views(self, c, 'offering:forum:',
-                   ['index', 'new_thread', 'anon_identity'],
+                   ['summary', 'new_thread', 'anon_identity'],
                    {'course_slug': self.offering.slug})
         test_views(self, c, 'offering:forum:',
                    ['view_thread'],

@@ -1,9 +1,8 @@
 {% load forum_display %}
 
-<div class="forum-icons">
-<a href="{% url 'offering:forum:summary' course_slug=offering.slug %}" title="Forum Summary"><i class="forum-button fa fa-book-open"></i></a>
-<a href="{% url 'offering:forum:new_thread' course_slug=offering.slug %}" title="New Thread"><i class="forum-button fa fa-plus"></i></a>
-</div>
+<p>[<a href="{% url 'offering:forum:summary' course_slug=offering.slug %}" title="Forum Summary">Forum Summary</a>]</p>
+<p>[<a href="{% url 'offering:forum:new_thread' course_slug=offering.slug %}" title="New Thread">New Thread</a>]</p>
+
 <ul>
 {% for thread in threads %}
 <li>

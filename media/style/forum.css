@@ -10,17 +10,6 @@
     grid-column: 2;
     grid-row: 1;
 }
-a i.forum-button {
-    font-size: 100%;
-    display: inline-block;
-    padding: 0.2em;
-    height: 1.5em;
-    width: 1.5em;
-    text-align: center;
-    vertical-align: middle;
-    background: #a6192e;
-    color: white;
-}
 
 .forum-form label {
     font-weight: bold;

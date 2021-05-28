@@ -1,7 +1,8 @@
 {% load forum_display %}
 
+{% if show_unanswered %}
 <h2 id="unanswered">Unanswered Questions</h2>
-<p>These questions have neither an answer from an instructor/TA, or an answer with a positive reaction from them.</p>
+
 <ul>
 {% for thread in unanswered_threads %}
 <li>
@@ -13,8 +14,13 @@
 <li class="empty">None</li>
 {% endfor %}
 </ul>
-
-
+<p class="helptext">
+    A question is considered &ldquo;answered&rdquo; if
+    (1) an instructor/TA has given an answer,
+    (2) an instructor/TA has reacted positively ({{ approval_icons }}) to a student answer, or
+    (3) the question-asker has marked it answered.
+</p>
+{% endif %}
 
 <h2 id="unread">Unread Activity</h2>
 <ul>

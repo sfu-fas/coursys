@@ -14,20 +14,21 @@ from django.utils.safestring import SafeString, mark_safe
 from coredata.models import CourseOffering, Member
 from courselib.json_fields import JSONField, config_property
 from courselib.markup import markup_to_html
-from courselib.slugs import make_slug
 from forum import DEFAULT_FORUM_MARKUP
 from forum.names_generator import get_random_name
 
 
 # TODO: subscriptions
 # TODO: pinned comments
-# TODO: read/unread tracking
-# TODO: reactions to posts
-# TODO: thread topics
+# TODO: thread categories
 # TODO: instructor-private questions
 # TODO: text search
 # TODO: re-roll of anonymousidentity if reasonably early
 # TODO: should a Reply have type for followup-question?
+# TODO: asker should be able to explicitly mark "answered"
+# TODO: editing posts by author, with history
+# TODO: instructors/TAs should be able to edit/hide as well.
+# TODO: gravatars?
 
 
 IDENTITY_CHOICES = [  # AnonymousIdentity.identity_choices should reflect any logical changes here
@@ -36,13 +37,13 @@ IDENTITY_CHOICES = [  # AnonymousIdentity.identity_choices should reflect any lo
     ('ANON', 'Students may be anonymous to instructors and students'),
 ]
 THREAD_TYPE_CHOICES = [
-    ('QUES', 'Question (i.e. an answer is required)'),
+    ('QUES', 'Question'),
     ('DISC', 'Discussion'),
 ]
 POST_STATUS_CHOICES = [
     ('OPEN', 'Open'),
     ('ANSW', 'Answered'),
-    ('NORE', 'No Reply Needed'),
+    ('NOAN', 'No Answer Needed'),
     ('HIDD', 'Hidden'),
 ]
 
@@ -58,7 +59,7 @@ def how_long_ago(time: datetime.datetime) -> SafeString:
         if hours < 1:
             if minutes < 1:
                 descr = 'just now'
-            elif minutes is 1:
+            elif minutes == 1:
                 descr = '1 minute ago'
             else:
                 descr = '%d minutes ago' % (minutes,)
@@ -192,7 +193,7 @@ class AnonymousIdentity(models.Model):
         if member.role == 'STUD' and offering_identity == 'ANON':
             choices.append(('ANON', 'Anonymously (as “%s”)' % (anon_name,)))
         if member.role == 'STUD' and offering_identity in ['ANON', 'INST']:
-            choices.append(('INST', 'Anonymously to students (as “%s”) but not to instructors (as “%s”)' % (anon_name, real_name)))
+            choices.append(('INST', 'Anonymously to students (as “%s”) but not to instructors/TAs (as “%s”)' % (anon_name, real_name)))
         return choices
 
 
@@ -231,6 +232,8 @@ class Post(models.Model, DirtyFieldsMixin):
     markup = config_property('markup', default=DEFAULT_FORUM_MARKUP)
     math = config_property('math', default=False)
     identity = config_property('identity', default='INST')  # what level of anonymity does this post have?
+    marked_answered = config_property('marked_answered', default=False)  # has the asker explicitly marked this as "answered"?
+    answered_reason = config_property('answered_reason', default=None)  # why is this considered "answered"?
 
     class Meta:
         unique_together = [
@@ -263,16 +266,8 @@ class Post(models.Model, DirtyFieldsMixin):
                     return result
 
     def get_absolute_url(self):
-        # The URL depends on this post's personality (Thread or Reply), so calling this is a little expensive.
-        threads = list(Thread.objects.filter(post=self).select_related('post'))
-        if threads:
-            thread = threads[0]
-            url = thread.get_absolute_url()
-        else:
-            reply = Reply.objects.select_related('thread', 'thread__post__offering').get(post=self)
-            url = reply.thread.get_absolute_url() + '#post-' + str(self.number)
-
-        return url
+        # if view_thread encounters a Reply and not a Thread, it will redirect
+        return reverse('offering:forum:view_thread', kwargs={'course_slug': self.offering.slug, 'post_number': self.number})
 
     def html_content(self):
         return markup_to_html(self.content, self.markup, math=self.math, restricted=True)
@@ -294,21 +289,78 @@ class Post(models.Model, DirtyFieldsMixin):
     def modified_at_html(self) -> SafeString:
         return how_long_ago(self.created_at)
 
+    def update_status(self, commit=False) -> None:
+        """
+        Update self.status with the rules of the system:
+        - non-questions don't need an answer
+        - questions are answered if:
+            - an instructor/TA has given an answer
+            - an instructor/TA has reacted positively an answer
+            - the question-asker has marked it answered.
+        - other questions are unanswered.
+        """
+        replies = Reply.objects.filter(parent=self).select_related('post', 'post__author')
+        if self.status == 'HIDD':
+            pass
 
-class PostStatusManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().select_related('post').exclude(post__status='HIDD')
+        elif self.type != 'QUES':
+            self.status = 'NOAN'
+
+        elif self.marked_answered:
+            # asker has marked it answered
+            self.status = 'ANSW'
+            self.answered_reason = 'ASKER'
+
+        elif replies.filter(post__author__role__in=APPROVAL_ROLES).exists():
+            # there's an answer from an instructor
+            self.status = 'ANSW'
+            self.answered_reason = 'INST'
+
+        else:
+            post_ids = [r.post_id for r in replies]
+            approvals = Reaction.objects.filter(
+                post_id__in=post_ids,
+                member__role__in=APPROVAL_ROLES,
+                reaction__in=APPROVAL_REACTIONS
+            )
+            if approvals.exists():
+                # there's an instructor-approved answer
+                self.status = 'ANSW'
+                self.answered_reason = 'REACT'
+            else:
+                self.status = 'OPEN'
+
+        if commit:
+            self.save()
+
+
+VISIBILITY_CHOICES = [
+    ('ALL', 'Viewable by students'),
+    ('INST', 'Private question to instructors/TAs')
+]
 
 
 class Thread(models.Model):
+    class ThreadQuerySet(models.QuerySet):
+        def filter_for(self, member: Member):
+            qs = self.filter(post__offering_id=member.offering_id)
+            if member.role == 'STUD':
+                qs = qs.filter(visibility='ALL')
+            return qs
+
+    class ThreadManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().select_related('post').exclude(post__status='HIDD')
+
     title = models.CharField(max_length=255, null=False, blank=False)
     post = models.OneToOneField(Post, on_delete=models.CASCADE)
     pin = models.PositiveSmallIntegerField(default=0)
+    visibility = models.CharField(max_length=4, null=False, blank=False, default='ALL', choices=VISIBILITY_CHOICES)
     # most recent post under this thread, so we can easily order by activity
     last_activity = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     config = JSONField(null=False, blank=False, default=dict)
 
-    objects = PostStatusManager()
+    objects = ThreadManager.from_queryset(ThreadQuerySet)()
 
     class Meta:
         ordering = ('-pin', '-last_activity')
@@ -317,57 +369,118 @@ class Thread(models.Model):
     def sort_key(self):  # so we can take a list of Thread and .sort(key=Thread.sort_key)
         return (-self.pin, -self.last_activity.timestamp())
 
-    def save(self, *args, **kwargs):
+    def save(self, create_history=False, *args, **kwargs):
         with transaction.atomic():
             self.post.save()
             self.post_id = self.post.id
             self.last_activity = datetime.datetime.now()
             result = super().save(*args, **kwargs)
+
+            if create_history:
+                history = PostHistory.from_thread(self)
+                history.save()
+
         return result
 
     def get_absolute_url(self):
-        return reverse('offering:forum:view_thread', kwargs={'course_slug': self.post.offering.slug, 'post_number': self.post.number})
+        return self.post.get_absolute_url()
 
-    def summary_json(self, viewer: Member) -> Dict[str, Any]:
-        """
-        Data for a JSON representation that summarizes the thread (for the menu of threads).
-        """
-        data = {
-            'id': self.id,
-            'title': self.title,
-            'author': self.post.visible_author(viewer),
-            'number': self.post.number,
-        }
-        return data
-
-    def detail_json(self) -> Dict[str, Any]:
-        """
-        Data for a JSON representation that is complete thread info. Should be a superset of .summary_json
-        """
-        data = self.summary_json()
-        data['html_content'] = self.post.html_content()
-        return data
+    # def summary_json(self, viewer: Member) -> Dict[str, Any]:
+    #     """
+    #     Data for a JSON representation that summarizes the thread (for the menu of threads).
+    #     """
+    #     data = {
+    #         'id': self.id,
+    #         'title': self.title,
+    #         'author': self.post.visible_author(viewer),
+    #         'number': self.post.number,
+    #     }
+    #     return data
+    #
+    # def detail_json(self) -> Dict[str, Any]:
+    #     """
+    #     Data for a JSON representation that is complete thread info. Should be a superset of .summary_json
+    #     """
+    #     data = self.summary_json()
+    #     data['html_content'] = self.post.html_content()
+    #     return data
 
 
 class Reply(models.Model):
+    class ReplyQuerySet(models.QuerySet):
+        def filter_for(self, member: Member):
+            qs = self.filter(post__offering_id=member.offering_id)
+            if member.role == 'STUD':
+                qs = qs.filter(thread__visibility='ALL')
+            return qs
+
+    class ReplyManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().select_related('post').exclude(post__status='HIDD')
+
     thread = models.ForeignKey(Thread, on_delete=models.PROTECT)
     parent = models.ForeignKey(Post, on_delete=models.PROTECT, related_name='parent')
     post = models.OneToOneField(Post, on_delete=models.CASCADE)
     config = JSONField(null=False, blank=False, default=dict)
 
-    objects = PostStatusManager()
+    objects = ReplyManager.from_queryset(ReplyQuerySet)()
 
     class Meta:
         ordering = ('post__modified_at',)
 
-    def save(self, *args, **kwargs):
+    def save(self, create_history=False, *args, **kwargs):
         with transaction.atomic():
             self.post.save()
             self.post_id = self.post.id
             # the .update should be an one-field update, not risking racing some other process
             Thread.objects.filter(id=self.thread_id).update(last_activity=datetime.datetime.now())
             result = super().save(*args, **kwargs)
+
+            if create_history:
+                history = PostHistory.from_reply(self)
+                history.save()
+
         return result
+
+    def get_absolute_url(self):
+        return self.thread.get_absolute_url() + '#post-' + str(self.post.number)
+
+
+class PostHistory(models.Model):
+    """
+    A historic record of the state of a Post (and associated Thread or Reply).
+    """
+    post = models.ForeignKey(Post, on_delete=models.PROTECT, null=False, blank=False)
+    thread = models.ForeignKey(Thread, on_delete=models.PROTECT, null=True, blank=True)
+    reply = models.ForeignKey(Reply, on_delete=models.PROTECT, null=True, blank=True)
+    created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
+    config = JSONField(null=False, blank=False, default=dict)
+
+    def save(self, *args, **kwargs):
+        assert self.thread or self.reply
+        assert (not self.thread) or self.thread.post_id == self.post_id
+        assert (not self.reply) or self.reply.post_id == self.post_id
+
+        return super().save(*args, **kwargs)
+
+    @classmethod
+    def from_thread(cls, thread: Thread) -> 'PostHistory':
+        h = PostHistory(thread=thread, post=thread.post, reply=None)
+        h.config = thread.post.config.copy()
+        h.config.update(thread.config)
+        h.config['title'] = thread.title
+        h.config['visibility'] = thread.visibility
+        h.config['pin'] = thread.pin
+        h.config['type'] = thread.post.type
+        h.config['status'] = thread.post.status
+        return h
+
+    @classmethod
+    def from_reply(cls, reply: Reply) -> 'PostHistory':
+        h = PostHistory(reply=reply, post=reply.post, thread=None)
+        h.config = reply.post.config.copy()
+        h.config.update(reply.config)
+        return h
 
 
 class HaveRead(models.Model):
@@ -385,16 +498,16 @@ class HaveRead(models.Model):
 
 
 REACTION_CHOICES = [
-    ('NONE', 'no reaction'),
     ('UP', 'Thumbs Up'),
     ('LOVE', 'Love'),
     ('CLAP', 'Clap'),
     ('LAUG', 'Laugh'),
     ('CONF', 'Confused'),
     #('DOWN', 'Thumbs Down'),
+    ('NONE', 'no reaction'),
 ]
 REACTION_ICONS = {  # emoji for the reaction
-    'NONE': '',
+    'NONE': '\U0000274C',
     'UP': '\U0001F44D',
     #'DOWN': '\U0001F44E',
     'LAUG': '\U0001F923',
@@ -411,8 +524,10 @@ REACTION_SCORES = {  # score for the reaction, for "sort by best" and any values
     'CLAP': 1,
     'CONF': -0.5,
 }
+REACTION_DESCRIPTIONS = dict(REACTION_CHOICES)
 SCORE_STAFF_FACTOR = 2  # weight factor for score of an instructor/TA reaction
-APPROVAL_REACTIONS = set(reaction for reaction,score in REACTION_SCORES.items() if score >= 1)
+APPROVAL_REACTIONS = [reaction for reaction,score in REACTION_SCORES.items() if score >= 1]
+APPROVAL_ROLES = ['INST', 'TA']  # Member.role value we consider to be automatic-answerers or approvers
 
 
 class Reaction(models.Model):

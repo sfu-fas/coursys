@@ -8,7 +8,8 @@ from django.utils.safestring import SafeString, mark_safe
 
 from coredata.models import Member
 from dashboard.templatetags.form_display import required_message, label_display, field_display
-from forum.models import Post, REACTION_CHOICES, REACTION_ICONS, Reaction, REACTION_SCORES, SCORE_STAFF_FACTOR
+from forum.models import Post, REACTION_CHOICES, REACTION_ICONS, Reaction, REACTION_SCORES, SCORE_STAFF_FACTOR, \
+    REACTION_DESCRIPTIONS
 
 register = template.Library()
 
@@ -74,7 +75,7 @@ def reaction_display(post: Post, post_reactions: Dict[int, List[Reaction]]) -> S
 
     counts = [(n, reaction) for reaction, n in Counter(r.reaction for r in reactions).items()]
     counts.sort(key=lambda c: (-c[0], c[1]))  # decreasing frequency
-    visible_counts = ['<span class="reaction">%s&times;%i</span>' % (escape(REACTION_ICONS[r]), n) for n, r in counts]
+    visible_counts = ['<span class="reaction" title="%s">%s&times;%i</span>' % (escape(REACTION_DESCRIPTIONS[r]), escape(REACTION_ICONS[r]), n) for n, r in counts]
     out.extend(visible_counts)
 
     if not reactions:
@@ -95,14 +96,11 @@ def reaction_widget(post: Post, viewer: Member) -> SafeString:
 
     out = []
     for react, descr in REACTION_CHOICES:
-        if react == 'NONE':
-            continue
-
         url = reverse(
             'offering:forum:react',
             kwargs={'course_slug': post.offering.slug, 'post_number': post.number, 'reaction': react}
         )
-        html = '<a href="%s" title="react &ldquo;%s&rdquo;">%s</a>\n' % (escape(url), escape(descr), escape(REACTION_ICONS[react]))
+        html = '<a href="%s" title="%s">%s</a>\n' % (escape(url), escape(descr), escape(REACTION_ICONS[react]))
         out.append(html)
 
     return mark_safe('\n'.join(out))

@@ -2,6 +2,7 @@
 <p>
     By {{ post|visible_author:viewer }},
     {{ post.created_at_html }}{% if post.was_edited %} (edited {{ post.modified_at_html }}){% endif %}
+    [<a href="{{ post.get_absolute_url }}">Post #{{ post.number}}</a>]
 </p>
 {{ post.html_content }}
 
