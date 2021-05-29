@@ -5,21 +5,20 @@
 # TODO: just a "text with line breaks" markup
 # TODO: ... and then use for grade/marking comments?
 # TODO: the markup choice dropdown is going to be confusing for some people: simplify or something?
-
 from django.db import models
 from django.utils.safestring import mark_safe, SafeText
 from django.utils.html import linebreaks
 from django.conf import settings
 from cache_utils.decorators import cached
 
+from courselib.github_markdown import markdown_to_html
 from grades.models import Activity
 
-import re, os, subprocess
+import re
 import pytz
 import creoleparser
 import bleach
 from textile import textile_restricted
-import uuid, amqp, json
 
 
 MARKUP_CHOICES = [
@@ -69,32 +68,6 @@ def ensure_sanitary_markup(markup, markuplang, restricted=False):
 
     # otherwise, we trust the markup language processor to safe output.
     return markup
-
-
-def markdown_to_html(markup):
-    sub = subprocess.Popen([os.path.join(settings.BASE_DIR, 'courselib', 'markdown2html.rb')], stdin=subprocess.PIPE,
-                           stdout=subprocess.PIPE)
-    stdoutdata, stderrdata = sub.communicate(input=markup.encode('utf8'))
-    ret = sub.wait()
-    if ret != 0:
-        raise RuntimeError('markdown2html.rb did not return successfully')
-    return stdoutdata.decode('utf8')
-
-
-def markdown_to_html_docker_rpc(markup):
-    """
-    Convert github markdown to HTML, by RPC over rabbitmq
-    """
-    try:
-        markdown_client = MarkdownRpcClient()
-    except AttributeError:
-        # we aren't configured for RPC: TODO then what?
-        return ''
-    else:
-        arg = json.dumps({'md': markup})
-        response = markdown_client.call(arg.encode('utf-8'))
-        html = json.loads(response.decode('utf-8'))['html']
-        return html
 
 
 @cached(36000)
@@ -498,41 +471,3 @@ class ParserFor(object):
 
         self.parser = creoleparser.core.Parser(CreoleDialect)
         self.text2html = self.parser.render
-
-
-class MarkdownRpcClient(object):
-    # Started here: https://www.rabbitmq.com/tutorials/tutorial-six-python.html
-    # ... then adapted from pika to pyamqp since that is already here for Celery
-    QUEUE_NAME = 'markdown2html_queue'
-
-    def __init__(self):
-        self.connection = amqp.connection.Connection(
-            host=settings.RABBITMQ_HOSTPORT,
-            userid=settings.RABBITMQ_USER,
-            password=settings.RABBITMQ_PASSWORD,
-            virtual_host=settings.RABBITMQ_VHOST,
-        )
-        self.connection.connect()
-        self.channel = amqp.channel.Channel(self.connection)
-        self.channel.open()
-
-        result = self.channel.queue_declare('', auto_delete=False, exclusive=True)
-        self.callback_queue = result.queue
-        self.response = None
-        self.corr_id = None
-
-        self.channel.basic_consume(queue=self.callback_queue, callback=self.on_response, no_ack=True)
-
-    def __del__(self):
-        self.connection.close()
-
-    def on_response(self, message: amqp.Message):
-        if self.corr_id == message.correlation_id:
-            self.response = message.body
-
-    def call(self, args):
-        self.corr_id = str(uuid.uuid4())
-        message = amqp.Message(body=args, correlation_id=self.corr_id, reply_to=self.callback_queue)
-        self.channel.basic_publish(message, exchange='', routing_key=MarkdownRpcClient.QUEUE_NAME)
-        self.connection.drain_events()
-        return self.response
