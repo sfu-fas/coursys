@@ -25,7 +25,7 @@ import markdown
 from django.conf import settings
 
 
-TIMEOUT = 1  # all IO operations time out in this many seconds
+TIMEOUT = 5  # all IO operations time out in this many seconds
 markdown_client = None
 
 
