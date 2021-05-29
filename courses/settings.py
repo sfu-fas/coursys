@@ -318,20 +318,17 @@ else:
     SVN_DB_CONNECT = None
 
 
-
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
 USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
 if USE_CELERY:
-    AMPQ_PASSWORD = getattr(secrets, 'RABBITMQ_PASSWORD', 'supersecretpassword')
-    if DEPLOY_MODE != 'devel' or getattr(localsettings, 'DEPLOYED_CELERY_SETTINGS', False):
-        # use AMPQ in production, and move email sending to Celery
-        CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
-        CELERY_RESULT_BACKEND = 'rpc://'
-        CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
-    else:
-        CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', "amqp://guest:guest@localhost:5672/")
-        CELERY_RESULT_BACKEND = 'rpc://'
-        CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
+    RABBITMQ_USER = getattr(localsettings, 'RABBITMQ_USER', 'coursys')
+    RABBITMQ_PASSWORD = getattr(secrets, 'RABBITMQ_PASSWORD', 'supersecretpassword')
+    RABBITMQ_HOSTPORT = getattr(localsettings, 'RABBITMQ_HOSTPORT', 'localhost:5672')
+    RABBITMQ_VHOST = getattr(localsettings, 'RABBITMQ_VHOST', 'myvhost')
+
+    CELERY_BROKER_URL = 'amqp://%s:%s@%s/%s' % (RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_HOSTPORT, RABBITMQ_VHOST)
+    CELERY_RESULT_BACKEND = 'rpc://'
+    CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
 
     CELERY_EMAIL = getattr(localsettings, 'CELERY_EMAIL', DEPLOY_MODE != 'devel')
     if CELERY_EMAIL:

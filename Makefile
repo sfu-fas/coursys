@@ -74,13 +74,14 @@ rm503:
 rebuild:
 	sudo apt update && sudo apt upgrade
 	sudo pip3 install -r ${COURSYS_DIR}/requirements.txt
+	${DOCKERCOMPOSE} build --pull
 	make new-code
 
 rebuild-hardcore:
 	#make chef
 	${SYSTEMCTL} daemon-reload # catches any changed service definitions
 	${SYSTEMCTL} stop ntp && sudo ntpdate pool.ntp.org && ${SYSTEMCTL} start ntp
-	${DOCKERCOMPOSE} pull # update docker images
+	${DOCKERCOMPOSE} pull
 	make 503
 	${DOCKERCOMPOSE} restart
 	${SUCOURSYS} rm -rf ${COURSYS_STATIC_DIR}/static # to clear out any orphaned static files and freshen: must purge memcached around the same time so compressor knows to look for changes

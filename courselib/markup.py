@@ -5,16 +5,16 @@
 # TODO: just a "text with line breaks" markup
 # TODO: ... and then use for grade/marking comments?
 # TODO: the markup choice dropdown is going to be confusing for some people: simplify or something?
-
 from django.db import models
 from django.utils.safestring import mark_safe, SafeText
 from django.utils.html import linebreaks
 from django.conf import settings
 from cache_utils.decorators import cached
 
+from courselib.github_markdown import markdown_to_html
 from grades.models import Activity
 
-import re, os, subprocess
+import re
 import pytz
 import creoleparser
 import bleach
@@ -68,16 +68,6 @@ def ensure_sanitary_markup(markup, markuplang, restricted=False):
 
     # otherwise, we trust the markup language processor to safe output.
     return markup
-
-
-def markdown_to_html(markup):
-    sub = subprocess.Popen([os.path.join(settings.BASE_DIR, 'courselib', 'markdown2html.rb')], stdin=subprocess.PIPE,
-                           stdout=subprocess.PIPE)
-    stdoutdata, stderrdata = sub.communicate(input=markup.encode('utf8'))
-    ret = sub.wait()
-    if ret != 0:
-        raise RuntimeError('markdown2html.rb did not return successfully')
-    return stdoutdata.decode('utf8')
 
 
 @cached(36000)
