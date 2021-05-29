@@ -20,7 +20,7 @@ GEM
       set (~> 1.0)
 
 PLATFORMS
-  ruby
+  x86_64-linux
 
 DEPENDENCIES
   bunny
@@ -28,4 +28,4 @@ DEPENDENCIES
   github-markup
 
 BUNDLED WITH
-   2.1.4
+   2.2.15
