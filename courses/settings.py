@@ -58,9 +58,6 @@ INSTALLED_APPS = (
     'djcelery_email',
     'django_celery_beat',
     'featureflags',
-    'rest_framework',
-    'oauth_provider',
-    'rest_framework_swagger',
     'django_otp',
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
@@ -125,17 +122,7 @@ TEMPLATES = [
 AUTHENTICATION_BACKENDS = (
     'django_cas_ng.backends.CASBackend',
 )
-OAUTH_AUTHORIZE_VIEW = 'api.views.oauth_authorize'
-OAUTH_CALLBACK_VIEW = 'api.views.oauth_callback'
-OAUTH_SIGNATURE_METHODS = ['hmac-sha1',]
-OAUTH_UNSAFE_REDIRECTS = True
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework_oauth.authentication.OAuthAuthentication',
-    )
-}
-SWAGGER_SETTINGS = { "api_version": '1' }
+
 
 # basic app setup
 ROOT_URLCONF = 'courses.urls'
