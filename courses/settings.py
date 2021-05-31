@@ -57,7 +57,6 @@ INSTALLED_APPS = (
     'haystack',
     'djcelery_email',
     'django_celery_beat',
-    'featureflags',
     'django_otp',
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
@@ -308,7 +307,7 @@ else:
 USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
 if USE_CELERY:
     RABBITMQ_USER = getattr(localsettings, 'RABBITMQ_USER', 'coursys')
-    RABBITMQ_PASSWORD = getattr(secrets, 'RABBITMQ_PASSWORD', 'supersecretpassword')
+    RABBITMQ_PASSWORD = getattr(secrets, 'RABBITMQ_PASSWORD', 'the_rabbitmq_password')
     RABBITMQ_HOSTPORT = getattr(localsettings, 'RABBITMQ_HOSTPORT', 'localhost:5672')
     RABBITMQ_VHOST = getattr(localsettings, 'RABBITMQ_VHOST', 'myvhost')
 
@@ -388,14 +387,6 @@ LOGIN_REDIRECT_URL = "/"
 
 DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', False)
 DO_IMPORTING_HERE = getattr(localsettings, 'DO_IMPORTING_HERE', False)
-
-# Feature flags to temporarily limit server load, aka "feature flags"
-# Possible values for the set documented in server-setup/index.html#flags
-FEATUREFLAGS_LOADER = 'featureflags.loaders.settings_loader'
-FEATUREFLAGS_DISABLED_VIEW = 'courselib.auth.service_unavailable'
-FEATUREFLAGS_DISABLE = set([])
-FEATUREFLAGS_PANIC_DISABLE = set(['course_browser', 'sims', 'feeds', 'photos'])
-FEATUREFLAGS_PANIC_TIMEOUT = 300
 
 LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_loggers': False})
 

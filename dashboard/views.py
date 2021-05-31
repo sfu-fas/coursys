@@ -26,7 +26,6 @@ from log.models import LogEntry
 import datetime, json, urllib.parse
 from courselib.auth import requires_role
 from icalendar import Calendar, Event
-from featureflags.flags import uses_feature
 from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery, Exact, Clean
 from xml.etree.ElementTree import ParseError
@@ -240,7 +239,6 @@ def _get_news_list(userid, count):
     return NewsItem.objects.filter(user__userid=userid, updated__gte=past_1mo).order_by('-updated').select_related('course')[:count]
 
 
-@uses_feature('feeds')
 def atom_feed(request, token, userid, course_slug=None):
     """
     Return an Atom feed for this user, authenticated by the token in the URL
@@ -437,7 +435,7 @@ def _ical_datetime(utc, dt):
     else:
         return dt
 
-@uses_feature('feeds')
+
 def calendar_ical(request, token, userid):
     """
     Return an iCalendar for this user, authenticated by the token in the URL
@@ -492,7 +490,6 @@ def calendar_ical(request, token, userid):
     return resp
 
 
-@uses_feature('feeds')
 @login_required
 def calendar(request):
     """
@@ -503,7 +500,6 @@ def calendar(request):
     return render(request, "dashboard/calendar.html", context)
 
 
-@uses_feature('feeds')
 @login_required
 def calendar_data(request):
     """
@@ -825,7 +821,6 @@ def view_doc(request, doc_slug):
 
 # data export views
 # public data, so no authentication done
-@uses_feature('feeds')
 @gzip_page
 def courses_json(request, semester):
     offerings = CourseOffering.objects.filter(semester__name=semester)\
