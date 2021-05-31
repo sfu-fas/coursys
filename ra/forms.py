@@ -623,7 +623,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
 
         # remove irrelevant fields
         if backdated:
-            self.cleaned_data["payment_method"] = ''
+            self.cleaned_data["nc_payment_method"] = ''
             self.cleaned_data["total_gross"] = 0
             self.cleaned_data["weeks_vacation"] = 0
             self.cleaned_data["biweekly_salary"] = 0
@@ -872,7 +872,9 @@ class RARequestLetterForm(forms.ModelForm):
 
 class RARequestScienceAliveForm(forms.Form):
     letter_type = forms.ChoiceField(required=True, choices=SCIENCE_ALIVE_TYPE, widget=forms.RadioSelect, label="Type Of Science Alive Letter")
-
+    final_bullet = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':6}), help_text="Leave blank if none.", 
+                                   label="If you have anything to add in an additional bullet point, please enter here")
+    
 class RARequestAdminPAFForm(forms.ModelForm):
     position_no = forms.IntegerField(required=False, label="Position #")
     object_code = forms.IntegerField(required=False, label="Object Code for Funding Sources")

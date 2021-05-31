@@ -679,7 +679,7 @@ def request_science_alive_letter(request: HttpRequest, ra_slug: str) -> HttpResp
     req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
     form = RARequestScienceAliveForm(request.POST)
     if form.is_valid():
-        config = ({'letter_type': form.cleaned_data['letter_type']})
+        config = ({'letter_type': form.cleaned_data['letter_type'], 'final_bullet': form.cleaned_data['final_bullet']})
         response = HttpResponse(content_type="application/pdf")
         response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (req.slug)
         ra_science_alive(req, config, response)
