@@ -47,7 +47,7 @@ PD_CONTACT = "fas_postdoc_support@sfu.ca"
 
 class RARequestIntroForm(forms.ModelForm):
     person = PersonField(label='Appointee', required=False, help_text="Please ensure you are appointing the correct student.")
-    supervisor = PersonField(label='Supervisor', required=True)
+    supervisor = PersonField(label='Hiring Supervisor', required=True)
 
     position = forms.CharField(required=False, label="Position Title")
     
@@ -67,7 +67,7 @@ class RARequestIntroForm(forms.ModelForm):
             'last_name': "Appointee Last Name",
             'email_address': "Appointee Email Address",
             'nonstudent': "Select if appointee does not have an ID",
-            'unit': "Appointee Department",
+            'unit': "Hiring Supervisor's Unit/School",
         }
 
         widgets = {
@@ -623,7 +623,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
 
         # remove irrelevant fields
         if backdated:
-            self.cleaned_data["payment_method"] = ''
+            self.cleaned_data["nc_payment_method"] = ''
             self.cleaned_data["total_gross"] = 0
             self.cleaned_data["weeks_vacation"] = 0
             self.cleaned_data["biweekly_salary"] = 0
@@ -872,7 +872,9 @@ class RARequestLetterForm(forms.ModelForm):
 
 class RARequestScienceAliveForm(forms.Form):
     letter_type = forms.ChoiceField(required=True, choices=SCIENCE_ALIVE_TYPE, widget=forms.RadioSelect, label="Type Of Science Alive Letter")
-
+    final_bullet = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':6}), help_text="Leave blank if none.", 
+                                   label="If you have anything to add in an additional bullet point, please enter here")
+    
 class RARequestAdminPAFForm(forms.ModelForm):
     position_no = forms.IntegerField(required=False, label="Position #")
     object_code = forms.IntegerField(required=False, label="Object Code for Funding Sources")
