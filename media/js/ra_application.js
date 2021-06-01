@@ -329,8 +329,6 @@ function grasBW () {
 
     if (totalPay == '') {
         totalPay = parseInt(0).toFixed(2)
-    } else {
-        totalPay = parseInt(totalPay).toFixed(2)
     }
     $('#id_graduate_research_assistant-biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
@@ -347,9 +345,7 @@ function grasLS () {
     totalPay = $('#id_graduate_research_assistant-total_gross').val()
     if (totalPay == '') {
         totalPay = parseInt(0).toFixed(2)
-    } else {
-        totalPay = parseInt(totalPay).toFixed(2)
-    }
+    } 
     $('#id_graduate_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
     $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
@@ -377,8 +373,6 @@ function raBW () {
     hourlyRate = hourlyRate.toFixed(2)
     if (totalPay == '') {
         totalPay = parseInt(0).toFixed(2)
-    } else {
-        totalPay = parseInt(totalPay).toFixed(2)
     }
     $('#id_research_assistant-biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
@@ -400,7 +394,7 @@ function raH () {
     vacationPay = $('#id_research_assistant-vacation_pay').val()
     payPeriods = $('#id_research_assistant-pay_periods').val()
     totalPay = (payPeriods * biweeklyHours * hourlyRate) * (1 + (vacationPay/100))
-    totalPay = parseInt(totalPay).toFixed(2)
+    totalPay = totalPay.toFixed(2)
     $('#id_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
     $('.total_pay_calc').text('Pay Periods (' + payPeriods + ') x Bi-Weekly Hours (' + biweeklyHours + ') x Hourly Rate (' + hourlyRate + ') x (1 + (Vacation Pay (' + vacationPay + ')/100))')
@@ -428,8 +422,6 @@ function ncBW () {
     hourlyRate = hourlyRate.toFixed(2)
     if (totalPay == '') {
         totalPay = parseInt(0).toFixed(2)
-    } else {
-        totalPay = parseInt(totalPay).toFixed(2)
     }
     $('#id_non_continuing-biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
@@ -451,7 +443,7 @@ function ncH () {
     vacationPay = $('#id_non_continuing-vacation_pay').val()
     payPeriods = $('#id_non_continuing-pay_periods').val()
     totalPay = (payPeriods * biweeklyHours * hourlyRate) * (1 + (vacationPay/100))
-    totalPay = parseInt(totalPay).toFixed(2)
+    totalPay = totalPay.toFixed(2)
     $('#id_non_continuing-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
     $('.total_pay_calc').text('Pay Periods (' + payPeriods + ') x Bi-Weekly Hours (' + biweeklyHours + ') x Hourly Rate (' + hourlyRate + ') x (1 + (Vacation Pay (' + vacationPay + ')/100))')

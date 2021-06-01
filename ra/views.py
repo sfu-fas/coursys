@@ -442,6 +442,15 @@ def browse_appointments(request):
     context = {'form': form, 'reqs': reqs, 'admin': admin}
     return render(request, 'ra/browse_appointments.html', context)
 
+# Get all RA Requests/Appointments whith a specific fund
+@requires_role("FUND")
+def fund_appointments(request: HttpRequest, fund) -> HttpResponse:
+
+    reqs = RARequest.objects.filter(Q(fs1_fund=fund) | Q(fs2_fund=fund) | Q(fs3_fund=fund), unit__in=request.units, deleted=False, complete=False).order_by("-created_at")
+    appointments = RARequest.objects.filter(Q(fs1_fund=fund) | Q(fs2_fund=fund) | Q(fs3_fund=fund), unit__in=request.units, deleted=False, complete=True).order_by("-created_at")
+    historic_appointments = RAAppointment.objects.filter(person=person, unit__in=request.units, deleted=False).order_by("-created_at")
+    context = {'reqs': reqs, 'appointments': appointments, 'historic_appointments': historic_appointments, 'person': person}
+    return render(request, 'ra/search/appointee_appointments.html', context)
 
 # Get all RA Requests/Appointments where a specific person is an appointee.
 @requires_role("FUND")
@@ -679,7 +688,7 @@ def request_science_alive_letter(request: HttpRequest, ra_slug: str) -> HttpResp
     req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
     form = RARequestScienceAliveForm(request.POST)
     if form.is_valid():
-        config = ({'letter_type': form.cleaned_data['letter_type']})
+        config = ({'letter_type': form.cleaned_data['letter_type'], 'final_bullet': form.cleaned_data['final_bullet']})
         response = HttpResponse(content_type="application/pdf")
         response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (req.slug)
         ra_science_alive(req, config, response)
@@ -887,10 +896,42 @@ def delete_admin_attachment(request, ra_slug, attach_slug):
     l.save()
     return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
+# download RA appointments
+@_can_view_ra_requests()
+def download(request, current=False, incomplete=False):
+    admin = has_role('FUND', request)
+
+    if admin:
+        ras = RARequest.objects.filter(Q(unit__in=request.units), deleted=False)
+    else:
+        ras = RARequest.objects.filter(Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), deleted=False)
+
+    if incomplete:
+        ras = ras.filter(complete=False)
+    else:
+        ras = ras.filter(complete=True)
+
+    if current:
+        today = datetime.date.today()
+        slack = 14  # number of days to fudge the start/end
+        ras = ras.filter(start_date__lte=today + datetime.timedelta(days=slack),
+                         end_date__gte=today - datetime.timedelta(days=slack))
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="ras-%s-%s.csv"' % (datetime.datetime.now().strftime('%Y%m%d'),
+                                                                            'current' if current else 'all')
+                                                                                
+    writer = csv.writer(response)
+    writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
+
+    for ra in ras:
+        writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay])
+    return response
+
 # altered RADataJson, to make a very similar browse page, but for RARequests
 class RARequestDataJson(BaseDatatableView):
     model = RARequest
-    columns = ['person', 'supervisor', 'unit', 'start_date', 'end_date', 'total_pay']
+    columns = ['person', 'supervisor', 'unit', 'fund', 'project', 'start_date', 'end_date', 'total_pay']
     order_columns = [
         ['person__get_sort_name'],
         ['supervisor__last_name', 'supervisor__first_name'],
@@ -941,7 +982,6 @@ class RARequestDataJson(BaseDatatableView):
                 qs = qs.filter(pk__in=ra_pks)
             else:
                 qs = qs.none()
-
         return qs
 
     def render_column(self, ra, column):
@@ -957,6 +997,10 @@ class RARequestDataJson(BaseDatatableView):
             return '<a href="%s">%s%s</a>' % (escape(url), escape(name), extra_string)
         elif column == 'unit':
             return ra.unit.label
+        elif column == 'fund':
+            return ra.get_funds()
+        elif column == 'project':
+            return ra.get_projects()
 
         return str(getattr(ra, column))
 

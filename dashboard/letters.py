@@ -570,19 +570,26 @@ class FASOfficialLetter(BaseDocTemplate, SFUMediaMixin):
 
 class ScienceAliveLetter(SFUMediaMixin):
     MAIN_WIDTH = 8*inch # size of the main box
-    ENTRY_FONT = ["Helvetica-Bold"]
+    ENTRY_FONT = "Helvetica"
     NOTE_STYLE = ParagraphStyle(name='Normal',
-                            fontName=ENTRY_FONT,
-                            fontSize=9,
-                            leading=11,
-                            alignment=TA_LEFT,
-                            textColor=black)
+                                fontName=ENTRY_FONT,
+                                fontSize=10,
+                                leading=11,
+                                alignment=TA_LEFT,
+                                textColor=black)
 
     def __init__(self, ra, config):
         self.ra = ra
         self.config = config
         self._media_setup()
         self.date = datetime.date.today()
+
+    def _box_entry(self, x, y, width, height, content=None):
+        self.c.setLineWidth(1)
+        self.c.rect(x, y, width, height)
+        if content:
+            self.c.setFont(self.ENTRY_FONT, 9)
+            self.c.drawString(x+2*mm, y+height-3.5*mm, content)
 
     def draw_pdf(self, outfile):
         """
@@ -623,6 +630,7 @@ class ScienceAliveLetter(SFUMediaMixin):
         self.c.drawString(12*mm, 160*mm, 'Rumuneration:')
 
         letter_type = self.config["letter_type"]
+        final_bullet = self.config["final_bullet"]
 
         name = self.ra.get_name()
         work_hours = "9am - 3pm; " + str(self.ra.biweekly_hours/2) + " hours/week"
@@ -633,18 +641,17 @@ class ScienceAliveLetter(SFUMediaMixin):
 
         if letter_type == "TL":
             position = "Team Lead, Summer Academy"
-            reports_to = supervisor + ", Coordinator, Outreach Programs"
+            reports_to = "Coordinator, Outreach Programs"
         elif letter_type == "TE":
             position = "Instructor, TechEd"
-            reports_to = supervisor + ", Coordinator, Outreach Programs"
-            payment = "$20/hour + 4% in lieu of benefits"
+            reports_to = "Coordinator, Outreach Programs"
             work_hours = work_hours + " with 1 hour unpaid lunch"
         elif letter_type == "DCRS":
             position = "Instructor, Pathway to STEAM at DiverseCity Resources Society"
-            reports_to = supervisor + ", Coordinator, Outreach Programs"
+            reports_to = "Coordinator, Outreach Programs"
         elif letter_type == "SA":
             position ="Instructor, Summer Academy"
-            reports_to = supervisor + ", Summer Academy and Coordinator, Outreach Programs"
+            reports_to = "Summer Academy and Coordinator, Outreach Programs"
 
         self.c.setFont("Helvetica", 10)
         self.c.drawString(60*mm, 190*mm, name)
@@ -658,34 +665,25 @@ class ScienceAliveLetter(SFUMediaMixin):
         self.c.setFont("Helvetica-Bold", 10)
         self.c.drawString(12*mm, 150*mm, "Responsibilities and Duties ('Duties')")
 
-        if letter_type == "TL" or letter_type == "SA":
-            duties_1 = "Under the guidance of the Team Lead, Summer Academy and Coordinator, Outreach Programs, you will be"
-            duties_2 = "responsible for delivering daily activities of Summer Academy online. You will prepare engaging online lessons on"
-            duties_3 = "selected topics in STEAM. In all aspects of your position you must represent SFU, Applied Sciences Outreach"
-            duties_4 = "and Science AL!VE in a professional manner. You are expected to be mindful of deadlines and complete tasks in"
-            duties_5 = "a timely fashion. Additional details are available in the staff manual."
-        elif letter_type == "TE":
-            duties_1 = "Under the guidance of the Coordinator, Outreach Programs, you will be responsible for delivering daily activities"
-            duties_2 = "of App Development Workshops online. You will prepare engaging online lessons on selected topics in STEAM."
-            duties_3 = "In all aspects of your position you must represent SFU and Applied Sciences in a professional manner. You are"
-            duties_4 = "expected to be mindful of deadlines and complete tasks in a timely fashion. Additional details are available in the"
-            duties_5 = "staff manual."
-        elif letter_type == "DCRS":
-            duties_1 = "Under the guidance of the Coordinator, Outreach Programs, you will be responsible for delivering daily activities"
-            duties_2 = "of Pathway to STEAM program online. You will prepare engaging online lessons on selected topics in STEAM. In"
-            duties_3 = "all aspects of your position you must represent SFU, Applied Sciences Outreach and Science AL!VE in a"
-            duties_4 = "professional manner. You are expected to be mindful of deadlines and complete tasks in a timely fashion."
-            duties_5 = "Additional details are available in the staff manual."
+        cat = self.ra.hiring_category
+        research_assistant = (cat=="RA")
+        non_continuing = (cat=="NC")
 
         self.c.setFont("Helvetica", 10)
-        self.c.drawString(12*mm, 140*mm, duties_1)
-        self.c.drawString(12*mm, 135*mm, duties_2)
-        self.c.drawString(12*mm, 130*mm, duties_3)
-        self.c.drawString(12*mm, 125*mm, duties_4)
-        self.c.drawString(12*mm, 120*mm, duties_5)
+        duties = []
+        if research_assistant:
+            duties_list = self.ra.duties_list()
+            for duty in duties_list:
+                duties.append(Paragraph(duty, style=self.NOTE_STYLE))
+            duties.append(Paragraph(self.ra.ra_other_duties, style=self.NOTE_STYLE))
+        elif non_continuing:
+            duties.append(Paragraph(self.ra.nc_duties, style=self.NOTE_STYLE))
+
+        f = Frame(12*mm, 90*mm, 184*mm, 58*mm, 0, 0, 0, 0)
+        f.addFromList(duties, self.c) 
 
         self.c.setFont("Helvetica-Bold", 10)
-        self.c.drawString(12*mm, 105*mm, "Terms of Contract")
+        self.c.drawString(12*mm, 85*mm, "Terms of Contract")
 
         point_1 = "\u2022 You will be provided with vacation pay of four (4%) percent (equivalent to 10 day vacation per annum)"
         point_1_2 = "  that will be automatically added to the above hourly rate in each bi-weekly pay period."
@@ -696,25 +694,23 @@ class ScienceAliveLetter(SFUMediaMixin):
         point_3 = "\u2022 You are expected to adhere to the employer's policies and procedures at all times while performing your"
         point_3_2 = "  'Duties'."
 
-        point_4 = "\u2022 As per the job description, you will be required to be on campus in-person on June 21st, 22nd, and 23rd"
-        point_4_2 = "  for mandatory camp preparation. SFU will follow extensive and detailed COVID-19 protocol to ensure"
-        point_4_3 = "  safe work environment during this time."
+        point_4 = []
+        if final_bullet:
+            self.c.drawString(20*mm, 32*mm, "\u2022 ")
+            point_4.append(Paragraph(final_bullet, style=self.NOTE_STYLE))
+        
+        f = Frame(22*mm, 0*mm, 170*mm, 35*mm, 0, 0, 0, 0)
+        f.addFromList(point_4, self.c)
 
         self.c.setFont("Helvetica", 10)
-        self.c.drawString(20*mm, 95*mm, point_1)
-        self.c.drawString(20*mm, 90*mm, point_1_2)
+        self.c.drawString(20*mm, 75*mm, point_1)
+        self.c.drawString(20*mm, 70*mm, point_1_2)
 
-        self.c.drawString(20*mm, 80*mm, point_2)
-        self.c.drawString(20*mm, 75*mm, point_2_2)
+        self.c.drawString(20*mm, 60*mm, point_2)
+        self.c.drawString(20*mm, 55*mm, point_2_2)
 
-        self.c.drawString(20*mm, 65*mm, point_3)
-        self.c.drawString(20*mm, 60*mm, point_3_2)
-        
-        if letter_type == "TL" or letter_type == "SA":
-            self.c.drawString(20*mm, 50*mm, point_4)
-            self.c.drawString(20*mm, 45*mm, point_4_2)
-            self.c.drawString(20*mm, 40*mm, point_4_3)
-
+        self.c.drawString(20*mm, 45*mm, point_3)
+        self.c.drawString(20*mm, 40*mm, point_3_2)
 
         self.c.setFont('DINPro-Bold', 5)
         self._drawStringLeading(self.c, 70*mm, -8*mm, 'EngagingtheWorld'.upper(), charspace=2)
@@ -728,7 +724,7 @@ class ScienceAliveLetter(SFUMediaMixin):
         self.c.drawString(12*mm, 240*mm, "If you accept the terms of this appointment, please sign and return the letter, retaining the original for your records")
         self.c.drawString(12*mm, 225*mm, "Yours Truly,")
         self.c.drawString(12*mm, 195*mm, supervisor)
-        self.c.drawString(12*mm, 190*mm, str(self.ra.unit.informal_name()))
+        self.c.drawString(12*mm, 190*mm, "Faculty of Applied Sciences")
         self.c.drawString(100*mm, 225*mm, "I agree to the conditions of employment,")
         self.c.drawString(100*mm, 195*mm, name)
 
@@ -919,7 +915,7 @@ class RARequestForm(SFUMediaMixin):
         elif ra_hourly:
             hourly = "$%.2f" % (self.ra.gross_hourly)
             biweekly = ''
-            biweekhours = "%.1f" % (self.ra.biweekly_hours)
+            biweekhours = ''
             lumpsum = ''
             lumphours = ''
         elif ra_bw:
@@ -931,7 +927,7 @@ class RARequestForm(SFUMediaMixin):
         elif nc_hourly:
             hourly = "$%.2f" % (self.ra.gross_hourly)
             biweekly = ''
-            biweekhours = "%.1f" % (self.ra.biweekly_hours)
+            biweekhours = ''
             lumpsum = ''
             lumphours = ''
         elif nc_bw:
@@ -946,6 +942,15 @@ class RARequestForm(SFUMediaMixin):
             biweekhours = ''
             lumpsum = "$%.2f" % (self.ra.backdate_lump_sum)
             lumphours = "%.1f" % (self.ra.backdate_hours)
+        
+        # override if lump sum is selected, if not check if hourly
+        if appointment_type == "LS":
+            hourly = ''
+            biweekly = ''
+            biweekhours = ''
+            lumpsum = "$%.2f" % (self.ra.total_pay)
+        elif ra_hourly or nc_hourly:
+            self.c.drawString(3*mm, 120*mm, "(Biweekly Hours: %.1f)" % (self.ra.biweekly_hours))
 
         self.c.setFont("Helvetica-Bold", 7)
         self.c.drawString(3*mm, 130*mm, "Hourly Rate")
@@ -1350,7 +1355,6 @@ class RARequestForm(SFUMediaMixin):
                     oversized = len(duties) > 10
                 elif non_continuing:
                     duties.append(Paragraph(self.ra.nc_duties, style=self.NOTE_STYLE))
-
             f = Frame(2*mm, 145*mm, 194*mm, 60*mm, 0, 0, 0, 0)
 
             if oversized:

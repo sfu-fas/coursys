@@ -204,16 +204,16 @@
 
     {% if ra_bw %}
     <tr><th>Payment Method:</th><td>Bi-Weekly</td></tr>
-    <tr><th>Total Gross:</th><td>$ {{ req.total_gross|floatformat:2 }}</td></tr>
+    <tr><th>Total Gross:</th><td>${{ req.total_gross|floatformat:2 }}</td></tr>
     <tr><th>Weeks Vacation:</th><td>{{ req.weeks_vacation|floatformat:1 }}</td></tr>
     <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }}</td></tr>
-    <tr><th>Biweekly Salary:</th><td>$ {{ req.biweekly_salary|floatformat:2 }}</td></tr>
-    <tr><th>Vacation Hours:</th><td>{{ req.vacation_hours|floatformat:6 }}</td></tr>
-    <tr><th>Gross Hourly:</th><td>$ {{ req.gross_hourly|floatformat:2 }}</td></tr>
+    <tr><th>Biweekly Salary:</th><td>${{ req.biweekly_salary|floatformat:2 }}</td></tr>
+    <tr><th>Vacation Hours:</th><td>{{ req.vacation_hours|floatformat:3 }}</td></tr>
+    <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
     {% endif %}
     {% if ra_hourly %}
     <tr><th>Payment Method:</th><td>Hourly</td></tr>
-    <tr><th>Gross Hourly:</th><td>$ {{ req.gross_hourly|floatformat:2 }}</td></tr>
+    <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
     <tr><th>Vacation Pay:</th><td>{{ req.vacation_pay|floatformat:1 }}%</td></tr>
     <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }}</td></tr>
     {% endif %}
@@ -224,33 +224,33 @@
     {% endif %} 
     {% if gras_bw %}
     <tr><th>Payment Method:</th><td>Bi-Weekly</td></tr>
-    <tr><th>Total Gross:</th><td>$ {{ req.total_gross|floatformat:2 }}</td></tr>
+    <tr><th>Total Gross:</th><td>${{ req.total_gross|floatformat:2 }}</td></tr>
     <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }}</td></tr>
-    <tr><th>Biweekly Salary:</th><td>$ {{ req.biweekly_salary|floatformat:2 }}</td></tr>
-    <tr><th>Gross Hourly:</th><td>$ {{ req.gross_hourly|floatformat:2 }}</td></tr>
+    <tr><th>Biweekly Salary:</th><td>${{ req.biweekly_salary|floatformat:2 }}</td></tr>
+    <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
     {% endif %}
     {% if nc_bw %}
     <tr><th>Payment Method:</th><td>Bi-Weekly</td></tr>
-    <tr><th>Total Gross:</th><td>$ {{ req.total_gross|floatformat:2 }}</td></tr>
+    <tr><th>Total Gross:</th><td>${{ req.total_gross|floatformat:2 }}</td></tr>
     <tr><th>Weeks Vacation:</th><td>{{ req.weeks_vacation|floatformat:1 }}</td></tr>
     <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }}</td></tr>
-    <tr><th>Biweekly Salary:</th><td>$ {{ req.biweekly_salary|floatformat:2 }}</td></tr>
-    <tr><th>Vacation Hours:</th><td>{{ req.vacation_hours|floatformat:6 }}</td></tr>
-    <tr><th>Gross Hourly:</th><td>$ {{ req.gross_hourly|floatformat:2 }}</td></tr>
+    <tr><th>Biweekly Salary:</th><td>${{ req.biweekly_salary|floatformat:2 }}</td></tr>
+    <tr><th>Vacation Hours:</th><td>{{ req.vacation_hours|floatformat:3 }}</td></tr>
+    <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
     {% endif %}
     {% if nc_hourly %}
     <tr><th>Payment Method:</th><td>Hourly</td></tr>
-    <tr><th>Gross Hourly:</th><td>$ {{ req.gross_hourly|floatformat:2 }}</td></tr>
+    <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
     <tr><th>Vacation Pay:</th><td>{{ req.vacation_pay|floatformat:1 }}%</td></tr>
     <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }}</td></tr>
     {% endif %}
     {% if req.backdated %}
     <b>This is a backdated appointment!</b>
-    <tr><th>Lump Sum:</th><td>$ {{ req.backdate_lump_sum|floatformat:2 }}</td></tr>
+    <tr><th>Lump Sum:</th><td>${{ req.backdate_lump_sum|floatformat:2 }}</td></tr>
     <tr><th>Hours:</th><td>{{ req.backdate_hours|floatformat:1 }}</td></tr>
     <tr><th>Reason:</th><td>{{ req.backdate_reason }}</td></tr>
     {% endif %}
-    <tr><th>Total Pay:</th><td>$ {{ req.total_pay}}</td></tr>
+    <tr><th>Total Pay:</th><td>${{ req.total_pay}}</td></tr>
   </table>
 </div>
 

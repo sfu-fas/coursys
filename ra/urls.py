@@ -10,10 +10,10 @@ PROGRAM_ID = '(?P<program_id>' + ID_RE + ')'
 
 
 ra_patterns = [ # prefix /ra/
-    url(r'^$', ra_views.search, name='search'),
     url(r'^browse_appointments', ra_views.browse_appointments, name='browse_appointments'),
-    url(r'^search/' + USERID_OR_EMPLID + '/$', ra_views.student_appointments, name='student_appointments'),
-    url(r'^new$', ra_views.new, name='new'),
+    url(r'^download_current', ra_views.download, kwargs={'current': True}, name='download_current'),
+    url(r'^download_all', ra_views.download, name='download_all'),
+    url(r'^download_requests', ra_views.download, kwargs={'incomplete': True}, name='download_requests'),
     url(r'^new_request/', RANewRequestWizard.as_view(FORMS, 
                                                 condition_dict={'graduate_research_assistant': check_gras, 
                                                 'research_assistant': check_ra, 
@@ -55,6 +55,9 @@ ra_patterns = [ # prefix /ra/
     url(r'^' + RA_SLUG + '/admin_attach/' + ATTACH_SLUG + '/view', ra_views.view_admin_attachment, name='view_admin_attachment'),
     url(r'^' + RA_SLUG + '/admin_attach/' + ATTACH_SLUG + '/download$', ra_views.download_admin_attachment, name='download_admin_attachment'),
     
+    url(r'^$', ra_views.search, name='search'),
+    url(r'^search/' + USERID_OR_EMPLID + '/$', ra_views.student_appointments, name='student_appointments'),
+    url(r'^new$', ra_views.new, name='new'),
     url(r'^browse', ra_views.browse, name='browse'),
     url(r'^download_current', ra_views.download_ras, name='download_current_ras'),
     url(r'^download_all', ra_views.download_ras, kwargs={'current': False}, name='download_all_ras'),

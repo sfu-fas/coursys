@@ -2,8 +2,8 @@
 {% load static %}
 {% load form_display %}
 
-{% block title %}RA Request Dashboard{% endblock %}
-{% block h1 %}RA Request Dashboard{% endblock %}
+{% block title %}RA Dashboard - Requests{% endblock %}
+{% block h1 %}RA Dashboard - Requests{% endblock %}
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
@@ -48,6 +48,7 @@ $(document).ready(function() {
 <a class="btn" href="{% url "ra:advanced_search" %}">Advanced Search</a>
 <a class="btn" href="{% url "ra:browse_appointments" %}">Browse Appointments</a>
 <a class="btn" href="{% url "ra:active_appointments" %}">Active Appointments</a>
+<div class="btn pressed">In Progress Requests</div>
 </div>
 
 <h3>Graduate Research Assistant</h3>
@@ -76,7 +77,7 @@ $(document).ready(function() {
           <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
           <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
           <td>{{ req.author }}</td>
-          <td>$ {{ req.total_pay }}</td>
+          <td>${{ req.total_pay }}</td>
           <td>{{ req.unit.label }}</td>
         </tr>
       {% endfor %}
@@ -110,7 +111,7 @@ $(document).ready(function() {
           <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
           <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
           <td>{{ req.author }}</td>
-          <td>$ {{ req.total_pay }}</td>
+          <td>${{ req.total_pay }}</td>
           <td>{{ req.unit.label }}</td>
         </tr>
       {% endfor %}
@@ -144,7 +145,7 @@ $(document).ready(function() {
           <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
           <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
           <td>{{ req.author }}</td>
-          <td>$ {{ req.total_pay }}</td>
+          <td>${{ req.total_pay }}</td>
           <td>{{ req.unit.label }}</td>
         </tr>
       {% endfor %}
