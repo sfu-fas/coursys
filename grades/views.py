@@ -47,7 +47,7 @@ from pages.models import Page, ACL_ROLES
 from dashboard.models import UserConfig, NewsItem
 from dashboard.photos import pre_fetch_photos, photo_for_view
 from discuss import activity as discuss_activity
-from featureflags.flags import uses_feature
+
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 
@@ -1283,7 +1283,6 @@ def has_photo_agreement(user):
 
 PHOTO_LIST_STYLES = set(['table', 'horiz', 'signin'])
 @requires_course_staff_by_slug
-@uses_feature('photos')
 def photo_list(request, course_slug, style='horiz'):
     if style not in PHOTO_LIST_STYLES:
         raise Http404
@@ -1301,8 +1300,8 @@ def photo_list(request, course_slug, style='horiz'):
     context = {'course': course, 'members': members}
     return render(request, 'grades/photo_list_%s.html' % (style), context)
 
+
 @login_required
-@uses_feature('photos')
 def student_photo(request, emplid):
     # confirm user's photo agreement
     user = get_object_or_404(Person, userid=request.user.username)

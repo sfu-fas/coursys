@@ -8,7 +8,6 @@ from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm,
         OffboardForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
         has_formgroup, has_global_role
-from featureflags.flags import uses_feature
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
     AnyPerson, FuturePerson, RoleAccount, CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
@@ -1097,7 +1096,7 @@ def XXX_sims_person_search(request):
     json.dump(data, response, indent=1)
     return response
 
-@uses_feature('course_browser')
+
 def browse_courses(request):
     """
     Interactive CourseOffering browser
@@ -1279,11 +1278,9 @@ class OfferingDataJson(BaseDatatableView):
     #    data['colinfo'] = [(c, COLUMN_NAMES.get(c, '???')) for c in self.get_columns()]
     #    return data
 
-_offering_data = uses_feature('course_browser')(OfferingDataJson.as_view())
+_offering_data = OfferingDataJson.as_view()
 
 
-
-@uses_feature('course_browser')
 def _instructor_autocomplete(request):
     """
     Responses for the jQuery autocomplete for instructor search: key by userid not emplid for privacy
@@ -1323,7 +1320,6 @@ def _instructor_autocomplete(request):
     return response
 
 
-@uses_feature('course_browser')
 def browse_courses_info(request, course_slug):
     """
     Browsing info about a single course offering.

@@ -23,7 +23,6 @@ from django.forms.utils import ErrorList
 from django.db import transaction
 from courselib.db import retry_transaction
 from courselib.search import find_userid_or_emplid
-from featureflags.flags import uses_feature
 
 from submission.models.base import SimilarityResult
 
@@ -320,7 +319,6 @@ def add_component(request, course_slug, activity_slug):
 
 
 @requires_course_by_slug
-@uses_feature('submit-get')
 def download_file(request, course_slug, activity_slug, component_slug=None, submission_id=None, userid=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug, deleted=False)
@@ -363,7 +361,6 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
         return submission_info.generate_student_zip()
 
 @requires_course_staff_by_slug
-@uses_feature('submit-get')
 def download_activity_files(request, course_slug, activity_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)

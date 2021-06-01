@@ -310,10 +310,6 @@ def requires_instructor(function=None, login_url=None):
         return actual_decorator
 
 
-def service_unavailable(request, *args, **kwargs):
-    # view called by featureflags when something is disabled
-    return HttpError(request, status=503, title="Service Unavailable", error="This feature has been temporarily disabled due to server maintenance or load.", errormsg=None, simple=False)
-
 def login_redirect(next_url):
     """
     Send the user to log in, and then to next_url

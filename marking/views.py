@@ -28,7 +28,6 @@ from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slu
     ForbiddenResponse, NotFoundResponse
 from courselib.db import retry_transaction
 from courselib.search import find_userid_or_emplid, find_member
-from featureflags.flags import uses_feature
 
 from marking.forms import BaseCommonProblemFormSet, BaseActivityComponentFormSet
 from marking.forms import ActivityRenameForm
@@ -117,7 +116,6 @@ def _check_and_save_renamed_activities(all_activities, conflicting_activities, r
     return None
 
 
-@uses_feature('marking')
 @requires_course_staff_by_slug
 def copy_course_setup(request, course_slug):
     with django.db.transaction.atomic():
@@ -289,8 +287,7 @@ def manage_activity_components(request, course_slug, activity_slug):
 
 
 @requires_course_staff_by_slug
-@uses_feature('marking')
-def manage_common_problems(request, course_slug, activity_slug):    
+def manage_common_problems(request, course_slug, activity_slug):
     with django.db.transaction.atomic():
         error_info = None
         course = get_object_or_404(CourseOffering, slug = course_slug)
@@ -327,8 +324,7 @@ def manage_common_problems(request, course_slug, activity_slug):
                                   'components': components, 'formset' : formset })
 
 @requires_course_staff_by_slug
-@uses_feature('marking')
-def manage_component_positions(request, course_slug, activity_slug): 
+def manage_component_positions(request, course_slug, activity_slug):
     with django.db.transaction.atomic():
         course = get_object_or_404(CourseOffering, slug = course_slug)
         activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)
@@ -359,7 +355,6 @@ def manage_component_positions(request, course_slug, activity_slug):
 
 
 @requires_course_staff_by_slug
-@uses_feature('marking')
 def change_grade_status(request, course_slug, activity_slug, userid):
     """
     Grade status form.  Calls numeric/letter view as appropriate.
@@ -462,7 +457,6 @@ def _change_grade_status_letter(request, course, activity, userid):
 
 
 @retry_transaction()
-@uses_feature('marking')
 def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
     """
     Function to handle all of the marking views (individual/group, new/editing, GET/POST).
@@ -629,13 +623,11 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
     
 
 @requires_course_staff_by_slug
-@uses_feature('marking')
 def marking_student(request, course_slug, activity_slug, userid):
     return _marking_view(request, course_slug, activity_slug, userid, groupmark=False)
 
 
 @requires_course_staff_by_slug
-@uses_feature('marking')
 def marking_group(request, course_slug, activity_slug, group_slug):
     return _marking_view(request, course_slug, activity_slug, group_slug, groupmark=True)
 
@@ -935,7 +927,6 @@ def export_sims(request, course_slug, activity_slug):
 
 
 @requires_course_staff_by_slug
-@uses_feature('marking')
 def mark_all_groups(request, course_slug, activity_slug):
     """
     Mark the whole class (by group).  Calls numeric/letter view as appropriate.
@@ -1211,7 +1202,6 @@ def _mark_all_students_letter(request, course, activity):
 
 
 @requires_course_staff_by_slug
-@uses_feature('marking')
 def calculate_lettergrade(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(LetterActivity, offering = course, slug = activity_slug, deleted=False)
@@ -1235,7 +1225,6 @@ def calculate_lettergrade(request, course_slug, activity_slug):
 
 
 @requires_course_staff_by_slug
-@uses_feature('marking')
 def mark_all_students(request, course_slug, activity_slug):
     """
     Mark the whole class (by student).  Calls numeric/letter view as appropriate.
@@ -1588,7 +1577,6 @@ def export_marks(request, course_slug, activity_slug):
 
 
 @requires_course_staff_by_slug
-@uses_feature('marking')
 def import_marks(request, course_slug, activity_slug):
     """
     Import JSON marking data

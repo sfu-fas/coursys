@@ -1,10 +1,5 @@
 # coding=utf-8
 
-# importer to create fake data for development
-# suggestion execution:
-#   rm db.sqlite && ./manage.py migrate && cp db.sqlite db.empty
-#   rm fixtures/*; cp db.empty db.sqlite && python coredata/devtest_importer.py
-
 import os, sys
 from django.core.wsgi import get_wsgi_application
 sys.path.append('.')

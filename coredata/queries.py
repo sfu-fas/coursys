@@ -4,7 +4,6 @@ from django.core.mail import mail_admins
 import django.db.transaction
 from django.core.cache import cache
 from django.utils.html import conditional_escape as e
-from featureflags.flags import feature_disabled
 import re, hashlib, datetime, string, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, http.client, time, json
 import socket, decimal
 
@@ -84,8 +83,6 @@ class SIMSConn(DBConn):
     def get_connection(self):
         if settings.DISABLE_REPORTING_DB:
             raise SIMSProblem("Reporting database access has been disabled in this deployment.")
-        elif feature_disabled('sims'):
-            raise SIMSProblem("Reporting database access has been temporarily disabled due to server maintenance or load.")
 
         try:
             import ibm_db_dbi

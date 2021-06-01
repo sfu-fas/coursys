@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
-from featureflags.flags import uses_feature
 from discuss.forms import discussion_topic_form_factory,\
     DiscussionTopicStatusForm, DiscussionMessageForm, DiscussionSubscriptionForm
 import datetime, itertools, json
@@ -31,14 +30,14 @@ def _get_member(username, discussion_view, course_slug):
     """
     Retrieves the Member object for a discussion topic/message
     """
-    if discussion_view is 'student':
+    if discussion_view == 'student':
         return Member.objects.filter(offering__slug=course_slug, person__userid=username, role="STUD", offering__graded=True).exclude(offering__component="CAN")[0]
-    elif discussion_view is 'staff':
+    elif discussion_view == 'staff':
         return Member.objects.filter(offering__slug=course_slug, person__userid=username, role__in=['INST', 'TA', 'APPR'], offering__graded=True).exclude(offering__component="CAN")[0]
     else:
         raise ValueError("Discussion view type must be either 'student' or 'staff'")
 
-@uses_feature('discuss')
+
 @login_required
 def discussion_index(request, course_slug):
     """
@@ -62,7 +61,7 @@ def discussion_index(request, course_slug):
     context = {'course': course, 'topics': topics, 'view': view, 'paginator': paginator, 'page': page}
     return render(request, 'discuss/index.html', context)
     
-@uses_feature('discuss')
+
 @login_required
 def create_topic(request, course_slug):
     """
@@ -85,7 +84,7 @@ def create_topic(request, course_slug):
         form = discussion_topic_form_factory(view)
     return render(request, 'discuss/create_topic.html', {'course': course, 'form': form})
 
-@uses_feature('discuss')
+
 @login_required()
 def edit_topic(request, course_slug, topic_slug):
     """
@@ -112,7 +111,7 @@ def edit_topic(request, course_slug, topic_slug):
     
     return render(request, 'discuss/edit_topic.html', {'course': course, 'topic': topic, 'form': form})
 
-@uses_feature('discuss')
+
 @login_required
 def view_topic(request, course_slug, topic_slug):
     """
@@ -144,7 +143,7 @@ def view_topic(request, course_slug, topic_slug):
                'username': request.user.username}
     return render(request, 'discuss/topic.html', context)
 
-@uses_feature('discuss')
+
 @login_required
 def change_topic_status(request, course_slug, topic_slug):
     """
@@ -155,7 +154,7 @@ def change_topic_status(request, course_slug, topic_slug):
         # course is an HttpResponse in this case
         return course
     topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
-    if view is not 'staff':
+    if view != 'staff':
         return HttpResponseForbidden()
     if request.method == 'POST':
         form = DiscussionTopicStatusForm(request.POST, instance=topic)
@@ -168,7 +167,7 @@ def change_topic_status(request, course_slug, topic_slug):
     return render(request, 'discuss/change_topic.html', {'course': course, 'topic': topic, 'form': form})
 
 
-@uses_feature('discuss')
+
 @login_required()
 def edit_message(request, course_slug, topic_slug, message_slug):
     """
@@ -195,7 +194,7 @@ def edit_message(request, course_slug, topic_slug, message_slug):
         form = DiscussionMessageForm(instance=message)
     return render(request, 'discuss/edit_reply.html', {'course':course, 'topic': topic, 'message': message, 'form': form})
 
-@uses_feature('discuss')
+
 @login_required
 def remove_message(request, course_slug, topic_slug, message_slug):
     """
@@ -217,7 +216,7 @@ def remove_message(request, course_slug, topic_slug, message_slug):
     else:
         return HttpResponseForbidden()
     
-@uses_feature('discuss')
+
 @login_required()
 def manage_discussion_subscription(request, course_slug):
     course, view = _get_course_and_view(request, course_slug)
@@ -242,7 +241,6 @@ def manage_discussion_subscription(request, course_slug):
     return render(request, 'discuss/manage_discussion_subscription.html', context)
 
 
-@uses_feature('discuss')
 @login_required
 def download(request, course_slug):
     """
