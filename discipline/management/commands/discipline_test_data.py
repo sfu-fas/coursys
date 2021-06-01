@@ -6,7 +6,7 @@ from django.conf import settings
 
 from coredata.models import CourseOffering, Member
 from courselib.testing import TEST_COURSE_SLUG
-from discipline.models import DisciplineCaseInstrStudent, DisciplineCaseInstrNonStudent
+from discipline.models import DisciplineCaseInstrStudent, DisciplineCaseInstrNonStudent, DisciplineGroup
 
 
 class Command(BaseCommand):
@@ -23,12 +23,17 @@ class Command(BaseCommand):
         instr = Member.objects.filter(offering=o, role='INST')[0].person
         students = [m.person for m in Member.objects.filter(offering=o, role='STUD')]
 
+        group = DisciplineGroup(name='Group ' + str(random.randint(1,10000)), offering=o)
+        group.save()
+
         for i in range(options['cases']):
             if random.choice(['student', 'student', 'student', 'nonstudent']) == 'nonstudent':
                 c = DisciplineCaseInstrNonStudent(owner=instr, offering=o, emplid=0, userid='fakeuser', email='fake@example.com', last_name='Lname', first_name='Fname')
             else:
                 p = random.choice(students)
                 c = DisciplineCaseInstrStudent(owner=instr, offering=o, student=p)
+
+            c.group = random.choice([None, group])
 
             if random.choice(['completed', 'incomplete']) == 'completed':
                 c.contact_email_text = 'Did you?'
