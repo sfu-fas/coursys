@@ -642,6 +642,28 @@ class RARequest(models.Model):
         text = normalize_newlines(text)
         return text.split("\n\n") 
 
+    # get projects in a comma-separated list
+    def get_projects(self):
+        projects = []
+        projects.append(self.fs1_project)
+        if self.fs2_option and self.fs2_project:
+            projects.append(self.fs2_project)
+        if self.fs3_option and self.fs3_project:
+            projects.append(self.fs3_project)
+        projects = ', '.join(str(p) for p in set(projects))
+        return projects
+
+    # get funds in a comma-separated list
+    def get_funds(self):
+        funds = []
+        funds.append(self.fs1_fund)
+        if self.fs2_option and self.fs2_fund:
+            funds.append(self.fs2_fund)
+        if self.fs3_option and self.fs3_fund:
+            funds.append(self.fs3_fund)
+        funds = ', '.join(str(f) for f in set(funds))
+        return funds
+
     def get_name(self):
         if self.first_name and self.last_name:
             name = "%s %s" % (self.first_name, self.last_name)

@@ -943,14 +943,13 @@ class RARequestForm(SFUMediaMixin):
             lumpsum = "$%.2f" % (self.ra.backdate_lump_sum)
             lumphours = "%.1f" % (self.ra.backdate_hours)
         
-        # override if lump sum is selected
+        # override if lump sum is selected, if not check if hourly
         if appointment_type == "LS":
             hourly = ''
             biweekly = ''
             biweekhours = ''
             lumpsum = "$%.2f" % (self.ra.total_pay)
-
-        if ra_hourly or nc_hourly:
+        elif ra_hourly or nc_hourly:
             self.c.drawString(3*mm, 120*mm, "(Biweekly Hours: %.1f)" % (self.ra.biweekly_hours))
 
         self.c.setFont("Helvetica-Bold", 7)

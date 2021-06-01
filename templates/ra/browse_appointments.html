@@ -59,11 +59,11 @@ If you have the correct permissions, so you may also create/reappoint new reques
       <tr>
         <th scope="col">Appointee</th>
         <th scope="col">Supervisor</th>
-        <th scope="col">Hiring Category</th>
+        <th scope="col">Unit</th>
+        <th scope="col">Fund</th>
+        <th scope="col">Project</th>
         <th scope="col">Start Date</th>
         <th scope="col">End Date</th>
-        <th scope="col">Created At</th>
-        <th scope="col">Author</th>
         <th scope="col">Total Pay</th>
       </tr>
     </thead>
@@ -74,11 +74,11 @@ If you have the correct permissions, so you may also create/reappoint new reques
             {{ req.get_sort_name }}
           </a></td>
           <td>{{ req.supervisor }}</td>
-          <td>{{ req.hiring_category }}</td>
+          <td>{{ req.unit.label }}</td>
+          <td>{{ req.get_funds }}</td>
+          <td>{{ req.get_projects }}</td>
           <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
           <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
-          <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
-          <td>{{ req.author }}</td>
           <td>${{ req.total_pay }}</td>
         </tr>
       {% endfor %}
@@ -93,7 +93,8 @@ If you have the correct permissions, so you may also create/reappoint new reques
 <table class="display" id="ra_table">
 <thead>
 <tr><th scope="col">Appointee</th><th scope="col">Supervisor</th><th scope="col">Unit</th>
-<th scope="col">Start Date</th><th scope="col">End Date</th><th scope="col">Total Pay</th>
+<th scope="col">Fund</th><th scope="col">Project</th><th scope="col">Start Date</th>
+<th scope="col">End Date</th><th scope="col">Total Pay</th>
 </tr>
 </thead>
 <tbody></tbody>

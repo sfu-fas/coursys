@@ -51,6 +51,8 @@ class RARequestIndex(indexes.SearchIndex, indexes.Indexable):
         pieces = [
             ra.get_name(),
             ra.supervisor.name(),
+            ra.get_projects(),
+            ra.get_funds(),
             str(ra.total_pay),
             ra.unit.label,
             ra.unit.name,

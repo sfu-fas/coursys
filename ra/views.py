@@ -442,6 +442,15 @@ def browse_appointments(request):
     context = {'form': form, 'reqs': reqs, 'admin': admin}
     return render(request, 'ra/browse_appointments.html', context)
 
+# Get all RA Requests/Appointments whith a specific fund
+@requires_role("FUND")
+def fund_appointments(request: HttpRequest, fund) -> HttpResponse:
+
+    reqs = RARequest.objects.filter(Q(fs1_fund=fund) | Q(fs2_fund=fund) | Q(fs3_fund=fund), unit__in=request.units, deleted=False, complete=False).order_by("-created_at")
+    appointments = RARequest.objects.filter(Q(fs1_fund=fund) | Q(fs2_fund=fund) | Q(fs3_fund=fund), unit__in=request.units, deleted=False, complete=True).order_by("-created_at")
+    historic_appointments = RAAppointment.objects.filter(person=person, unit__in=request.units, deleted=False).order_by("-created_at")
+    context = {'reqs': reqs, 'appointments': appointments, 'historic_appointments': historic_appointments, 'person': person}
+    return render(request, 'ra/search/appointee_appointments.html', context)
 
 # Get all RA Requests/Appointments where a specific person is an appointee.
 @requires_role("FUND")
@@ -913,16 +922,16 @@ def download(request, current=False, incomplete=False):
                                                                             'current' if current else 'all')
                                                                                 
     writer = csv.writer(response)
-    writer.writerow(['Name', 'ID', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'Unit'])
+    writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
 
     for ra in ras:
-        writer.writerow([ra.get_sort_name(), ra.get_id(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay, ra.unit.label])
+        writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay])
     return response
 
 # altered RADataJson, to make a very similar browse page, but for RARequests
 class RARequestDataJson(BaseDatatableView):
     model = RARequest
-    columns = ['person', 'supervisor', 'unit', 'start_date', 'end_date', 'total_pay']
+    columns = ['person', 'supervisor', 'unit', 'fund', 'project', 'start_date', 'end_date', 'total_pay']
     order_columns = [
         ['person__get_sort_name'],
         ['supervisor__last_name', 'supervisor__first_name'],
@@ -973,7 +982,6 @@ class RARequestDataJson(BaseDatatableView):
                 qs = qs.filter(pk__in=ra_pks)
             else:
                 qs = qs.none()
-
         return qs
 
     def render_column(self, ra, column):
@@ -989,6 +997,10 @@ class RARequestDataJson(BaseDatatableView):
             return '<a href="%s">%s%s</a>' % (escape(url), escape(name), extra_string)
         elif column == 'unit':
             return ra.unit.label
+        elif column == 'fund':
+            return ra.get_funds()
+        elif column == 'project':
+            return ra.get_projects()
 
         return str(getattr(ra, column))
 
