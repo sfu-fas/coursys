@@ -94,7 +94,7 @@
             <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
             <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
             <td>{{ req.author }}</td>
-            <td>$ {{ req.total_pay }}</td>
+            <td>${{ req.total_pay }}</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -124,7 +124,7 @@
             <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
             <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
             <td>{{ req.author }}</td>
-            <td>$ {{ req.total_pay }}</td>
+            <td>${{ req.total_pay }}</td>
           </tr>
         {% endfor %}
       </tbody>

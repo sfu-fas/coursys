@@ -204,11 +204,11 @@ DEFAULT_LETTER_GRASBW_INTRO = "This is to confirm your funding as a Research Tra
 DEFAULT_LETTER_GRAS = '\n\n'.join([
     """This agreement exists solely between you as a student and me as your research supervisor. This does not constitute as an offer of employment from Simon Fraser University.""",
     """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from this income. You should set aside funds to cover your eventual income tax obligation.""",
-    """Hours of work: I expect these hours will not exceed 36 hours per week\n\n"""
+    """Hours of work: I expect these hours will not exceed 40 hours per week\n\n"""
     ])
 DEFAULT_LETTER_NC = '\n\n'.join([
     """This contract of employment exists solely between the Faculty of Applied Sciences and yourself. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
-    """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 36 hours per week.""",
+    """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 40 hours per week.""",
     """Your responsibilities and duties (Duties) will be:""",
     """- %(nc_duties)s\n\n"""
     ])
@@ -216,7 +216,7 @@ DEFAULT_LETTER_RA = '\n\n'.join([
     """This agreement exists solely between you as a Research Assistant and myself as the recipient of research funding or manager of this project. This does not constitute as an offer of employment from Simon Fraser University.""",
     """Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).""",
     """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
-    """Hours of work: I expect these hours will not exceed 36 hours per week.\n\n"""
+    """Hours of work: I expect these hours will not exceed 40 hours per week.\n\n"""
     ])
 
 DEFAULT_LETTER_NCBW_VACATION = "Vacation time: This offer includes %(weeks_vacation)s weeks of vacation per calendar year, which will be __ days prorated for the duration of your appointment.\n\n"
@@ -642,6 +642,28 @@ class RARequest(models.Model):
         text = normalize_newlines(text)
         return text.split("\n\n") 
 
+    # get projects in a comma-separated list
+    def get_projects(self):
+        projects = []
+        projects.append(self.fs1_project)
+        if self.fs2_option and self.fs2_project:
+            projects.append(self.fs2_project)
+        if self.fs3_option and self.fs3_project:
+            projects.append(self.fs3_project)
+        projects = ', '.join(str(p) for p in set(projects))
+        return projects
+
+    # get funds in a comma-separated list
+    def get_funds(self):
+        funds = []
+        funds.append(self.fs1_fund)
+        if self.fs2_option and self.fs2_fund:
+            funds.append(self.fs2_fund)
+        if self.fs3_option and self.fs3_fund:
+            funds.append(self.fs3_fund)
+        funds = ', '.join(str(f) for f in set(funds))
+        return funds
+
     def get_name(self):
         if self.first_name and self.last_name:
             name = "%s %s" % (self.first_name, self.last_name)
@@ -676,6 +698,12 @@ class RARequest(models.Model):
         if self.person:
             email_address = self.person.email()
         return email_address
+
+    def get_id(self):
+        ident = "None"
+        if not self.nonstudent and self.person.emplid:
+            ident = self.person.emplid
+        return ident
 
     def get_cosigner_line(self):
         if self.hiring_category == "RA" or self.hiring_category == "NC":

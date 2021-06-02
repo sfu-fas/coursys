@@ -20,8 +20,12 @@ def index(request, course_slug):
     Instructor's list of cases for the course
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    cases = DisciplineCaseInstr.objects.filter(offering=course)
-    cases = [c.subclass() for c in cases]
+    student_cases = DisciplineCaseInstrStudent.objects.filter(offering=course) \
+        .select_related('owner', 'offering', 'offering__owner', 'offering__semester', 'group', 'student')
+    nonstudent_cases = DisciplineCaseInstrNonStudent.objects.filter(offering=course) \
+        .select_related('owner', 'offering', 'offering__owner', 'offering__semester', 'group')
+    cases = itertools.chain(student_cases, nonstudent_cases)
+
     groups = DisciplineGroup.objects.filter(offering=course)
     
     context = {'course': course, 'cases': cases, 'groups': groups}
@@ -565,10 +569,14 @@ def chair_index(request):
     subunit_ids = Unit.sub_unit_ids(request.units)
     has_global_role = 'UNIV' in (u.label for u in request.units)
 
-    instr_cases = DisciplineCaseInstr.objects.filter(offering__owner__id__in=subunit_ids).select_related('owner')
+    instr_student_cases = DisciplineCaseInstrStudent.objects.filter(offering__owner__id__in=subunit_ids) \
+        .select_related('owner', 'offering', 'offering__owner', 'offering__semester', 'group', 'student')
+    instr_nonstudent_cases = DisciplineCaseInstrNonStudent.objects.filter(offering__owner__id__in=subunit_ids) \
+        .select_related('owner', 'offering', 'offering__owner', 'offering__semester', 'group')
+    instr_cases = itertools.chain(instr_student_cases, instr_nonstudent_cases)
+
     # can see cases either (1) in your unit, or (2) in subunits if the letter has been sent
-    instr_cases = [c for c in instr_cases if (c.owner in request.units) or (c.letter_sent != 'WAIT')]
-    instr_cases = [c.subclass() for c in instr_cases]
+    instr_cases = [c for c in instr_cases if (c.offering.owner in request.units) or (c.letter_sent != 'WAIT')]
 
     context = {'instr_cases': instr_cases, 'has_global_role': has_global_role}
     return render(request, "discipline/chair-index.html", context)
