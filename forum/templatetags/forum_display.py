@@ -56,52 +56,59 @@ def visible_author(post: Post, viewer: Member) -> str:
     return post.visible_author(viewer)
 
 
-@register.filter
-def reaction_display(post: Post, post_reactions: Dict[int, List[Reaction]]) -> SafeString:
+@register.simple_tag
+def reaction_display(post: Post, post_reactions: Dict[int, List[Reaction]], viewer_reactions: Dict[int, str]) -> SafeString:
     """
-    Produce the display of reactions on this post, given a dict of post.id -> [Reaction].
+    Produce the display of reactions on this post
     """
     out = []
-    if post.id in post_reactions:
-        reactions = post_reactions[post.id]
-    else:
-        reactions = []
+    reactions = post_reactions.get(post.id, [])
+    viewer_reaction = viewer_reactions.get(post.id, 'NONE')
 
     score = sum(
         REACTION_SCORES[r.reaction] * (SCORE_STAFF_FACTOR if r.member.role in ['INST', 'TA'] else 1)
         for r in reactions
     )
-    out.append('<span class="reactions" data-score="%g">' % (score,))
+    if not reactions:
+        return mark_safe('<span class="reactions empty" data-score="%g"></span>' % (score,))
+
+    out.append('<p class="reactions" data-score="%g">Reactions: ' % (score,))
 
     counts = [(n, reaction) for reaction, n in Counter(r.reaction for r in reactions).items()]
     counts.sort(key=lambda c: (-c[0], c[1]))  # decreasing frequency
-    visible_counts = ['<span class="reaction" title="%s">%s&times;%i</span>' % (escape(REACTION_DESCRIPTIONS[r]), escape(REACTION_ICONS[r]), n) for n, r in counts]
+    visible_counts = [
+        '<span class="reaction %s" title="%s">%s&times;%i</span>'
+        % ( 'active' if r==viewer_reaction else '', escape(REACTION_DESCRIPTIONS[r]), (REACTION_ICONS[r]), n)
+        for n, r in counts
+    ]
     out.extend(visible_counts)
 
-    if not reactions:
-        out.append('<span class="empty">[No so far.]</span>')
-
-    out.append('</span>')
+    out.append('</p>')
 
     return mark_safe(''.join(out))
 
 
-@register.filter
-def reaction_widget(post: Post, viewer: Member) -> SafeString:
+@register.simple_tag
+def reaction_widget(post: Post, viewer: Member, viewer_reactions: Dict[int, str]) -> SafeString:
     """
     Produce the collection of links associated with "reacting" to a post.
     """
     if post.author_id == viewer.id:
-        return mark_safe('<span class="empty">[cannot react to your own post]</span>')
+        #return mark_safe('<p class="react-widget"><span class="empty">[cannot react to your own post]</span></p>')
+        return mark_safe('')
 
-    out = []
+    viewer_reaction = viewer_reactions.get(post.id, 'NONE')
+
+    out = ['<p class="react-widget">React: ']
     for react, descr in REACTION_CHOICES:
         url = reverse(
             'offering:forum:react',
             kwargs={'course_slug': post.offering.slug, 'post_number': post.number, 'reaction': react}
         )
-        html = '<a href="%s" title="%s">%s</a>\n' % (escape(url), escape(descr), escape(REACTION_ICONS[react]))
+        cls = 'active' if viewer_reaction == react else ''
+        html = '<a href="%s" title="%s" class="%s">%s</a>\n' % (escape(url), escape(descr), cls, escape(REACTION_ICONS[react]))
         out.append(html)
 
+    out.append('</p>')
     return mark_safe('\n'.join(out))
 

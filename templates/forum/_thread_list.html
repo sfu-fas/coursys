@@ -3,12 +3,18 @@
 <p>[<a href="{% url 'offering:forum:summary' course_slug=offering.slug %}" title="Forum Summary">Forum Summary</a>]</p>
 <p>[<a href="{% url 'offering:forum:new_thread' course_slug=offering.slug %}" title="New Thread">New Thread</a>]</p>
 
-<ul>
+<ul class="thread-list">
 {% for thread in threads %}
 <li>
-    #{{ thread.post.number }}
-    <a href="{{ thread.get_absolute_url }}">{{ thread.title }}</a>
-    by {{ thread.post|visible_author:viewer }}
+    <span class="title"><a href="{{ thread.get_absolute_url }}">#{{ thread.post.number }} {{ thread.title_short }}</a></span>
+    <span class="author">{{ thread.post.visible_author_short }}, {{ thread.post.created_at_html }}</span>
+    <span class="icons">
+        {% if thread.post.type == 'DISC' %}<i class="far fa-comments disc" title="discussion"></i>{% endif %}
+        {% if thread.post.status == 'OPEN' %}<i class="fas fa-question open" title="unanswered"></i>{% endif %}
+        {% if thread.post.instr_answer %}<i class="fas fa-chalkboard-teacher answ" title="instructor answer"></i>{% endif %}
+        {% if thread.post.approved_answer %}<i class="fas fa-thumbs-up answ" title="instructor-approved answer"></i>{% endif %}
+        {% if thread.post.marked_answered or thread.post.asker_approved_answer %}<i class="far fa-thumbs-up answ" title="asker-approved answer"></i>{% endif %}
+    </span>
 </li>
 {% endfor %}
 </ul>

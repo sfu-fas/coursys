@@ -18,7 +18,7 @@ from forum import DEFAULT_FORUM_MARKUP
 from forum.names_generator import get_random_name
 
 
-# TODO: subscriptions
+# TODO: subscriptions/configurable digest emails
 # TODO: pinned comments
 # TODO: thread categories
 # TODO: instructor-private questions
@@ -29,6 +29,8 @@ from forum.names_generator import get_random_name
 # TODO: editing posts by author, with history
 # TODO: instructors/TAs should be able to edit/hide as well.
 # TODO: gravatars?
+# TODO: "#123" should be a link to post 123
+# TODO: need instructor reply form: no identity field, and "don't consider this an answer" check
 
 
 IDENTITY_CHOICES = [  # AnonymousIdentity.identity_choices should reflect any logical changes here
@@ -46,14 +48,15 @@ POST_STATUS_CHOICES = [
     ('NOAN', 'No Answer Needed'),
     ('HIDD', 'Hidden'),
 ]
+TITLE_SHORT_LEN = 60  # characters to truncate a title for summary display
 
 
 def how_long_ago(time: datetime.datetime) -> SafeString:
     """
-    Human-readable description of how long ago this was.
+    Human-readable HTML description of how long ago this was.
     """
     td = datetime.datetime.now() - time
-    days, hours, minutes, seconds = td.days, td.seconds / 3600, (td.seconds / 60) % 60, td.seconds
+    days, hours, minutes = td.days, td.seconds // 3600, (td.seconds // 60) % 60
 
     if days < 1:
         if hours < 1:
@@ -72,10 +75,10 @@ def how_long_ago(time: datetime.datetime) -> SafeString:
     elif days < 8:
         descr = '%d days ago' % (days,)
     else:
-        descr = time.strftime('%b %d, %Y')
+        descr = time.strftime('%b %d')
 
-    iso8601 = time.strftime("%Y-%m-%dT%H:%M:%S")
-    return mark_safe('<time datetime="%s" title="%s">%s</time>' % (iso8601, iso8601, escape(descr)))
+    isodate = time.isoformat()
+    return mark_safe('<time datetime="%s" title="%s">%s</time>' % (isodate, isodate, escape(descr)))
 
 
 class Forum(models.Model):
@@ -234,6 +237,9 @@ class Post(models.Model, DirtyFieldsMixin):
     identity = config_property('identity', default='INST')  # what level of anonymity does this post have?
     marked_answered = config_property('marked_answered', default=False)  # has the asker explicitly marked this as "answered"?
     answered_reason = config_property('answered_reason', default=None)  # why is this considered "answered"?
+    instr_answer = config_property('instr_answer', default=False)  # an instructor-written answer exists
+    approved_answer = config_property('approved_answer', default=False)  # an instructor-approved answer exists
+    asker_approved_answer = config_property('asker_approved_answer', default=False)  # an asker-approved answer exists
 
     class Meta:
         unique_together = [
@@ -272,11 +278,17 @@ class Post(models.Model, DirtyFieldsMixin):
     def html_content(self):
         return markup_to_html(self.content, self.markup, math=self.math, restricted=True)
 
-    def visible_author(self, viewer: Member):
+    def visible_author(self, viewer: Member) -> str:
         if self.identity == 'NAME':
             return AnonymousIdentity.real_name(self.author)
         elif self.identity == 'INST' and viewer.role != 'STUD':
             return '%s (“%s” to students)' % (AnonymousIdentity.real_name(self.author), AnonymousIdentity.for_member(self.author),)
+        else:
+            return '“%s”' % (AnonymousIdentity.for_member(self.author),)
+
+    def visible_author_short(self) -> str:
+        if self.identity == 'NAME':
+            return AnonymousIdentity.real_name(self.author)
         else:
             return '“%s”' % (AnonymousIdentity.for_member(self.author),)
 
@@ -287,48 +299,64 @@ class Post(models.Model, DirtyFieldsMixin):
         return how_long_ago(self.created_at)
 
     def modified_at_html(self) -> SafeString:
-        return how_long_ago(self.created_at)
+        return how_long_ago(self.modified_at)
 
     def update_status(self, commit=False) -> None:
         """
-        Update self.status with the rules of the system:
+        Update self.status (and friends) with the rules of the system:
         - non-questions don't need an answer
         - questions are answered if:
-            - an instructor/TA has given an answer
-            - an instructor/TA has reacted positively an answer
+            - an instructor/TA has given an answer,
+            - an instructor/TA has reacted positively an answer,
+            - the question-asker has reacted positively an answer,
             - the question-asker has marked it answered.
-        - other questions are unanswered.
+        - other questions are unanswered (open).
+
+        Post.update_status should be called from any code that affects these factors.
         """
         replies = Reply.objects.filter(parent=self).select_related('post', 'post__author')
         if self.status == 'HIDD':
-            pass
+            return
 
-        elif self.type != 'QUES':
+        if self.type != 'QUES':
             self.status = 'NOAN'
+            return
 
-        elif self.marked_answered:
-            # asker has marked it answered
+        self.status = 'OPEN'
+
+        post_ids = [r.post_id for r in replies]
+        approvals = Reaction.objects.filter(
+            post_id__in=post_ids,
+            member__role__in=APPROVAL_ROLES,
+            reaction__in=APPROVAL_REACTIONS
+        )
+        self.approved_answer = approvals.exists()
+        if self.approved_answer:
+            # there's an instructor-approved answer
             self.status = 'ANSW'
-            self.answered_reason = 'ASKER'
+            self.answered_reason = 'REACT'
 
-        elif replies.filter(post__author__role__in=APPROVAL_ROLES).exists():
+        approvals = Reaction.objects.filter(
+            post_id__in=post_ids,
+            member=self.author,
+            reaction__in=APPROVAL_REACTIONS
+        )
+        self.asker_approved_answer = approvals.exists()
+        if self.asker_approved_answer:
+            # there's an asker-approved answer
+            self.status = 'ANSW'
+            self.answered_reason = 'AREACT'
+
+        self.instr_answer = replies.filter(post__author__role__in=APPROVAL_ROLES).exists()
+        if self.instr_answer:
             # there's an answer from an instructor
             self.status = 'ANSW'
             self.answered_reason = 'INST'
 
-        else:
-            post_ids = [r.post_id for r in replies]
-            approvals = Reaction.objects.filter(
-                post_id__in=post_ids,
-                member__role__in=APPROVAL_ROLES,
-                reaction__in=APPROVAL_REACTIONS
-            )
-            if approvals.exists():
-                # there's an instructor-approved answer
-                self.status = 'ANSW'
-                self.answered_reason = 'REACT'
-            else:
-                self.status = 'OPEN'
+        if self.marked_answered:
+            # asker has marked it answered
+            self.status = 'ANSW'
+            self.answered_reason = 'ASKER'
 
         if commit:
             self.save()
@@ -384,6 +412,12 @@ class Thread(models.Model):
 
     def get_absolute_url(self):
         return self.post.get_absolute_url()
+
+    def title_short(self) -> str:
+        if len(self.title) < TITLE_SHORT_LEN:
+            return self.title
+        else:
+            return self.title[:TITLE_SHORT_LEN] + '\u2026'
 
     # def summary_json(self, viewer: Member) -> Dict[str, Any]:
     #     """

@@ -1,11 +1,11 @@
 {% load forum_display %}
-<p>
+<div class="post-header" data-datetime="{{ post.created_at.isoformat }}">
     By {{ post|visible_author:viewer }},
     {{ post.created_at_html }}{% if post.was_edited %} (edited {{ post.modified_at_html }}){% endif %}
     [<a href="{{ post.get_absolute_url }}">Post #{{ post.number}}</a>]
-</p>
+</div>
 {{ post.html_content }}
 
-<p class="reactions">Reactions: {{ post|reaction_display:post_reactions }}</p>
+{% reaction_display post post_reactions viewer_reactions %}
 
-<p class="react-widget">React: {{ post|reaction_widget:viewer }}</p>
+{% reaction_widget post viewer viewer_reactions %}

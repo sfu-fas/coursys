@@ -7,12 +7,20 @@
 
 <h2>Replies</h2>
 
+<p class="sorting">
+    <button class="sort-button" id="sort-score">By Score</button>
+    <button class="sort-button" id="sort-time">By Post Time</button>
+    <button class="sort-button" id="sort-time-newest">By Post Time, newest</button>
+</p>
+
+<section id="replies">
 {% for reply in replies %}
 <section id="post-{{ reply.post.number }}" class="thread-reply">
 {% include 'forum/_post_fragment.html' with post=reply.post viewer=viewer %}
 </section>
     {{ post_scores.post_id }}
 {% endfor %}
+</section>
 
 <section id="reply">
 <h3>Reply</h3>

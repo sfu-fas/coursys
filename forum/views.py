@@ -28,7 +28,6 @@ def _forum_omni_view(
     context = {
         'view': view,
         'offering': offering,
-        'post_number': post_number,
         'viewer': member,
     }
     fragment = 'fragment' in request.GET
@@ -74,6 +73,7 @@ def _forum_omni_view(
         if member.role == 'STUD' and thread.visibility == 'INST':
             raise Http404
 
+        context['post_number'] = post_number
         context['post'] = thread.post
         context['thread'] = thread
 
@@ -115,13 +115,19 @@ def _forum_omni_view(
         for post_id, reactions in itertools.groupby(all_reactions, lambda r: r.post_id):
             post_reactions[post_id] = list(reactions)
 
+        # ... and the viewer's reactions
+        viewer_reactions = Reaction.objects.exclude(reaction='NONE').filter(post_id__in=all_post_ids, member=member)
+        viewer_reactions = {r.post_id: r.reaction for r in viewer_reactions}
+
         context['reply_form'] = reply_form
         context['replies'] = replies
         context['post_reactions'] = post_reactions
+        context['viewer_reactions'] = viewer_reactions
 
-    threads = Thread.objects.filter_for(member) \
-        .select_related('post', 'post__author', 'post__offering', 'post__author__person')
-    context['threads'] = threads
+    if not fragment or view == 'thread_list':
+        threads = Thread.objects.filter_for(member) \
+            .select_related('post', 'post__author', 'post__offering', 'post__author__person')
+        context['threads'] = threads
 
     if view == 'summary':
         # Find threads with unread activity
@@ -140,10 +146,6 @@ def _forum_omni_view(
         unread_threads.sort(key=Thread.sort_key)
 
         context['unread_threads'] = unread_threads
-
-        # monkey-patch annotate each Thread so we know what's unread?
-        #for t in unread_threads:
-        #    t.contains_unread = t.id in unread_thread_ids
 
         if member.role in APPROVAL_ROLES:
             unanswered_threads = Thread.objects.filter(post__type='QUES', post__status='OPEN').filter_for(member) \
@@ -168,6 +170,10 @@ def _forum_omni_view(
 
 def summary(request: HttpRequest, course_slug: str) -> HttpResponse:
     return _forum_omni_view(request, course_slug=course_slug, view='summary')
+
+
+def thread_list(request: HttpRequest, course_slug: str) -> HttpResponse:
+    return _forum_omni_view(request, course_slug=course_slug, view='thread_list')
 
 
 def view_thread(request: HttpRequest, course_slug: str, post_number: int) -> HttpResponse:
