@@ -1,13 +1,19 @@
+import datetime
+import random
+
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
 from coredata.models import CourseOffering, Member
 from courselib.testing import TEST_COURSE_SLUG
-from forum.models import Forum, Post, Thread, Reply
+from forum.models import Forum, Post, Thread, Reply, Reaction
 
 
 class Command(BaseCommand):
     help = 'Build some test data for development.'
+
+    def add_arguments(self, parser):
+        parser.add_argument('--threads', type=int, default=30)
 
     def handle(self, *args, **options):
         assert not settings.DO_IMPORTING_HERE
@@ -16,24 +22,46 @@ class Command(BaseCommand):
         o = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         f, _ = Forum.objects.get_or_create(offering=o)
         f.enabled = True
-        f.identity = 'INST'
+        f.identity = 'ANON'
         f.save()
 
         instr = Member.objects.get(offering=o, person__userid='ggbaker')
-        student = Member.objects.get(offering=o, person__userid='0aaa0')
+        students = list(Member.objects.filter(offering=o, role='STUD'))
 
-        p = Post(offering=o, author=student, type='QUES')
-        p.content = "Can I or not?\n\nI'm not really sure."
-        p.markup = 'markdown'
-        p.identity = 'INST'
-        t = Thread(title='A Question', post=p)
-        t.save()
-        self.thread = t
+        for i in range(options['threads'], 0, -1):
+            asker = random.choice(students)
+            ptype = random.choice(['QUES', 'QUES', 'DISC'])
+            time = datetime.datetime.now() - datetime.timedelta(hours=i)
+            p = Post(offering=o, author=asker, type=ptype, created_at=time, modified_at=time)
+            if ptype == 'QUES':
+                thread = Thread(title='A Question', post=p)
+                p.content = "Can I or not?\n\nI'm not really sure."
+            else:
+                thread = Thread(title="Let's discuss", post=p)
+                p.content = "Do we all agree?"
+            p.markup = 'markdown'
+            p.identity = random.choice(['INST', 'ANON', 'NAME'])
+            thread.save()
 
-        p = Post(offering=o, author=instr)
-        p.content = 'Yeah, probably.'
-        p.markup = 'markdown'
-        p.identity = 'NAME'
-        r = Reply(thread=t, parent=t.post, post=p)
-        r.save()
-        self.reply = r
+            p = Post(offering=o, author=random.choice(students), created_at=time, modified_at=time)
+            p.content = 'Yeah, probably.'
+            p.markup = 'markdown'
+            p.identity = random.choice(['INST', 'ANON', 'NAME'])
+            reply = Reply(thread=thread, parent=thread.post, post=p)
+            reply.save()
+
+            if random.random() < 0.4:
+                # asker thumbs-up on student reply
+                react = Reaction(member=asker, post=p, reaction='UP')
+                react.save()
+
+            if random.random() < 0.4:
+                # instructor reply
+                p = Post(offering=o, author=instr)
+                p.content = 'Yes.'
+                p.markup = 'markdown'
+                p.identity = 'NAME'
+                reply = Reply(thread=thread, parent=thread.post, post=p)
+                reply.save()
+
+            thread.post.update_status(commit=True)

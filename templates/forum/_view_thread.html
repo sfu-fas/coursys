@@ -8,17 +8,17 @@
 <h2>Replies</h2>
 
 <p class="sorting">
-    <button class="sort-button" id="sort-score">By Score</button>
-    <button class="sort-button" id="sort-time">By Post Time</button>
-    <button class="sort-button" id="sort-time-newest">By Post Time, newest</button>
+    Sort by:
+    <button class="sort-button active" id="sort-time">Oldest First</button>
+    <button class="sort-button" id="sort-time-newest">Newest First</button>
+    <button class="sort-button" id="sort-score">Best First</button>
 </p>
 
 <section id="replies">
 {% for reply in replies %}
-<section id="post-{{ reply.post.number }}" class="thread-reply">
 {% include 'forum/_post_fragment.html' with post=reply.post viewer=viewer %}
-</section>
-    {{ post_scores.post_id }}
+{% empty %}
+    <p class="empty">No replies.</p>
 {% endfor %}
 </section>
 
@@ -29,6 +29,5 @@
 {{ reply_form | forum_form:"Reply" }}
 </form>
 <p><a href="{% url 'offering:forum:anon_identity' course_slug=offering.slug %}">About discussion forum anonymous identities</a></p>
-
 
 </section>

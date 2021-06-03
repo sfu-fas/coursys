@@ -320,43 +320,43 @@ class Post(models.Model, DirtyFieldsMixin):
 
         if self.type != 'QUES':
             self.status = 'NOAN'
-            return
 
-        self.status = 'OPEN'
+        else:
+            self.status = 'OPEN'
 
-        post_ids = [r.post_id for r in replies]
-        approvals = Reaction.objects.filter(
-            post_id__in=post_ids,
-            member__role__in=APPROVAL_ROLES,
-            reaction__in=APPROVAL_REACTIONS
-        )
-        self.approved_answer = approvals.exists()
-        if self.approved_answer:
-            # there's an instructor-approved answer
-            self.status = 'ANSW'
-            self.answered_reason = 'REACT'
+            post_ids = [r.post_id for r in replies]
+            approvals = Reaction.objects.filter(
+                post_id__in=post_ids,
+                member__role__in=APPROVAL_ROLES,
+                reaction__in=APPROVAL_REACTIONS
+            )
+            self.approved_answer = approvals.exists()
+            if self.approved_answer:
+                # there's an instructor-approved answer
+                self.status = 'ANSW'
+                self.answered_reason = 'REACT'
 
-        approvals = Reaction.objects.filter(
-            post_id__in=post_ids,
-            member=self.author,
-            reaction__in=APPROVAL_REACTIONS
-        )
-        self.asker_approved_answer = approvals.exists()
-        if self.asker_approved_answer:
-            # there's an asker-approved answer
-            self.status = 'ANSW'
-            self.answered_reason = 'AREACT'
+            approvals = Reaction.objects.filter(
+                post_id__in=post_ids,
+                member=self.author,
+                reaction__in=APPROVAL_REACTIONS
+            )
+            self.asker_approved_answer = approvals.exists()
+            if self.asker_approved_answer:
+                # there's an asker-approved answer
+                self.status = 'ANSW'
+                self.answered_reason = 'AREACT'
 
-        self.instr_answer = replies.filter(post__author__role__in=APPROVAL_ROLES).exists()
-        if self.instr_answer:
-            # there's an answer from an instructor
-            self.status = 'ANSW'
-            self.answered_reason = 'INST'
+            self.instr_answer = replies.filter(post__author__role__in=APPROVAL_ROLES).exists()
+            if self.instr_answer:
+                # there's an answer from an instructor
+                self.status = 'ANSW'
+                self.answered_reason = 'INST'
 
-        if self.marked_answered:
-            # asker has marked it answered
-            self.status = 'ANSW'
-            self.answered_reason = 'ASKER'
+            if self.marked_answered:
+                # asker has marked it answered
+                self.status = 'ANSW'
+                self.answered_reason = 'ASKER'
 
         if commit:
             self.save()
@@ -418,6 +418,9 @@ class Thread(models.Model):
             return self.title
         else:
             return self.title[:TITLE_SHORT_LEN] + '\u2026'
+
+    def last_activity_html(self) -> SafeString:
+        return how_long_ago(self.last_activity)
 
     # def summary_json(self, viewer: Member) -> Dict[str, Any]:
     #     """

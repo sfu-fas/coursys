@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block headextra %}
-    {% url 'offering:forum:summary' course_slug=offering.slug as dataurl %}{{ dataurl|json_script:"forum-url" }}
+    {% url 'offering:forum:thread_list' course_slug=offering.slug as listurl %}{{ listurl|json_script:"thread-list-url" }}
     {% include 'pages/markup_view_head.html' %}
     {% include 'pages/markup_edit_head.html' %}
     {% compress css %}

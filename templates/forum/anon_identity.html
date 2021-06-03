@@ -25,15 +25,15 @@
     {% if member.role == 'STUD' %}
     <p>Your pseudonym will be consistent across all of your posts on this forum. Your randomly chosen pseudonym: <strong>{{ ident }}</strong>.</p>
     {% else %}
-    <p>Pseudonyms will be consistent across all of your posts by an individual student: even though anonymous, we enforce an <q>identity</q> for authors.</p>
+    <p>Pseudonyms will be consistent across all of the posts by an individual student: even though anonymous, we enforce an <q>identity</q> for authors.</p>
     {% endif %}
 
     <p>
-        The randomly generated pseudonyms consist of an adjective followed by the surname of a notable scientists or hackers.
-        This method was borrowed from the random names generated for <a href="https://www.docker.com/">Docker</a> containers,
-        and you can <a href="https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go">examine the original source</a> if you like.
+        The randomly generated pseudonyms consist of an adjective followed by the surname of a notable scientist or hacker.
+        (This method was borrowed from the random names generated for <a href="https://www.docker.com/">Docker</a> containers,
+        and you can <a href="https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go">examine the original source</a> if you like.)
+        Here are a few randomly generated pseudonyms, so you can get a sense of how they look:
     </p>
-    <p>Here are a few randomly generated pseudonyms, so you can get a sense of how they look:</p>
     <ul class="bulleted">
         {% for name in sample_names %}
         <li>&ldquo;{{ name }}&rdquo;</li>

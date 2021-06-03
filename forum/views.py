@@ -1,15 +1,16 @@
+import datetime
 import itertools
 from typing import Optional, Dict, List
 
 from django.contrib import messages
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 
 from courselib.auth import requires_course_by_slug
 from forum.forms import ThreadForm, ReplyForm
-from forum.models import Thread, AnonymousIdentity, Forum, Reply, IDENTITY_CHOICES, Reaction, Post, HaveRead, \
-    APPROVAL_REACTIONS, REACTION_ICONS, APPROVAL_ROLES
+from forum.models import Thread, AnonymousIdentity, Forum, Reply, Reaction, Post, HaveRead, \
+    APPROVAL_REACTIONS, REACTION_ICONS, APPROVAL_ROLES, IDENTITY_CHOICES
 from forum.names_generator import get_random_name
 
 
@@ -17,8 +18,7 @@ from forum.names_generator import get_random_name
 @requires_course_by_slug
 def _forum_omni_view(
         request: HttpRequest, *, course_slug: str, view: str,
-        post_number : Optional[int] = None,
-):
+        post_number : Optional[int] = None):
     """
     All of the main forum views (thread list + main panel) are handled server-side here.
     """
@@ -31,6 +31,7 @@ def _forum_omni_view(
         'viewer': member,
     }
     fragment = 'fragment' in request.GET
+    thread_list_update = False  # have we done anything while building a partial fragment that might change the thread_list?
 
     if view == 'new_thread':
         if request.method == 'POST':
@@ -107,6 +108,7 @@ def _forum_omni_view(
             + [HaveRead(member=member, post_id=r.post_id) for r in replies],
             ignore_conflicts=True
         )
+        thread_list_update = True
 
         # collect all reactions for the thread: we can do it here in one query, not one for each reply later
         all_post_ids = [thread.post_id] + [r.post_id for r in replies]
@@ -129,7 +131,6 @@ def _forum_omni_view(
             .select_related('post', 'post__author', 'post__offering', 'post__author__person')
         context['threads'] = threads
 
-    if view == 'summary':
         # Find threads with unread activity
         reads = HaveRead.objects.filter(member=member).values_list('post_id', flat=True)
         unread_post_ids = Post.objects.filter(offering=offering).exclude(id__in=reads).values_list('id', flat=True)
@@ -138,18 +139,19 @@ def _forum_omni_view(
 
         # we have all Post.id values that this user hasn't read. Now find corresponding Threads
         unread_threads = Thread.objects.filter(post_id__in=unread_post_ids).filter_for(member) \
-            .select_related('post', 'post__author', 'post__offering')
+            .select_related('post', 'post__author', 'post__offering', 'post__author__person')
         unread_replies = Reply.objects.filter(post_id__in=unread_post_ids).filter_for(member) \
-            .select_related('thread', 'thread__post', 'thread__post__author', 'thread__post__offering')
+            .select_related('thread', 'thread__post', 'thread__post__author', 'thread__post__offering', 'post__author__person')
         unread_threads = set(unread_threads) | set(r.thread for r in unread_replies)
         unread_threads = list(unread_threads)
         unread_threads.sort(key=Thread.sort_key)
 
         context['unread_threads'] = unread_threads
 
+    if view == 'summary':
         if member.role in APPROVAL_ROLES:
             unanswered_threads = Thread.objects.filter(post__type='QUES', post__status='OPEN').filter_for(member) \
-                .select_related('post', 'post__author', 'post__offering')
+                .select_related('post', 'post__author', 'post__offering', 'post__author__person')
 
             approval_icons = ', '.join(REACTION_ICONS[r] for r in APPROVAL_REACTIONS)
 
@@ -161,7 +163,10 @@ def _forum_omni_view(
 
     if fragment:
         # we have been asked for a page fragment: deliver only that.
-        return render(request, 'forum/_'+view+'.html', context=context)
+        resp = render(request, 'forum/_'+view+'.html', context=context)
+        assert view != 'thread_list' or not thread_list_update  # no infinite loops, please
+        resp['X-update-thread-list'] = 'yes' if thread_list_update else 'no'
+        return resp
 
     else:
         # render the entire index page server-side
@@ -190,6 +195,8 @@ def react(request: HttpRequest, course_slug: str, post_number: int, reaction: st
     member = request.member
     offering = member.offering
     forum = Forum.for_offering_or_404(offering)
+    fragment = 'fragment' in request.GET
+
     try:
         reply = get_object_or_404(Reply.objects.filter_for(member).select_related('post'), post__number=post_number)
         post = reply.post
@@ -204,14 +211,17 @@ def react(request: HttpRequest, course_slug: str, post_number: int, reaction: st
             r = Reaction(member=member, post=post, reaction=reaction)
             r.save()
 
-        if member.role in APPROVAL_ROLES:
-            # update the .status of the parent post
-            for r in Reply.objects.filter(post=post).select_related('parent'):
-                r.parent.update_status(commit=True)
+        # update the .status of the parent post
+        for r in Reply.objects.filter(post=post).select_related('parent'):
+            r.parent.update_status(commit=True)
 
-        messages.add_message(request, messages.SUCCESS, 'Reaction recorded.')
+        if not fragment:
+            messages.add_message(request, messages.SUCCESS, 'Reaction recorded.')
 
-    return HttpResponseRedirect(post.get_absolute_url())
+    if fragment:
+        return HttpResponseRedirect(post.get_absolute_url() + '?fragment=yes')
+    else:
+        return HttpResponseRedirect(post.get_absolute_url())
 
 
 @requires_course_by_slug

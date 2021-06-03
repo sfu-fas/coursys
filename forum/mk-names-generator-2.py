@@ -25,10 +25,21 @@ def get_random_name() -> str:
     return l.title() + ' ' + r.title()
 """
 
+NEGATIVES = [  # remove a few negative-sounding adjectives, to maximize positivity.
+    'angry',
+    'condescending',
+    'cranky',
+    'distracted',
+    'naughty',
+    'pedantic',
+    'sad',
+    'stupefied',
+]
+
 import json
 
 names = json.load(open('names.json'))
-left = names['Left']
+left = [n for n in names['Left'] if n not in NEGATIVES]
 right = names['Right']
 with open(OUTPUT_FILE, 'wb') as fh:
     fh.write((TEMPLATE % (left, right)).encode('utf-8'))

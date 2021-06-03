@@ -106,7 +106,7 @@ def reaction_widget(post: Post, viewer: Member, viewer_reactions: Dict[int, str]
             kwargs={'course_slug': post.offering.slug, 'post_number': post.number, 'reaction': react}
         )
         cls = 'active' if viewer_reaction == react else ''
-        html = '<a href="%s" title="%s" class="%s">%s</a>\n' % (escape(url), escape(descr), cls, escape(REACTION_ICONS[react]))
+        html = '<a href="%s" title="%s" class="%s" data-target="main-panel">%s</a>\n' % (escape(url), escape(descr), cls, escape(REACTION_ICONS[react]))
         out.append(html)
 
     out.append('</p>')

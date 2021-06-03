@@ -1,4 +1,5 @@
 {% load forum_display %}
+<section class="post" id="post-{{ post.number }}">
 <div class="post-header" data-datetime="{{ post.created_at.isoformat }}">
     By {{ post|visible_author:viewer }},
     {{ post.created_at_html }}{% if post.was_edited %} (edited {{ post.modified_at_html }}){% endif %}
@@ -9,3 +10,4 @@
 {% reaction_display post post_reactions viewer_reactions %}
 
 {% reaction_widget post viewer viewer_reactions %}
+</section>

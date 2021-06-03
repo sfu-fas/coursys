@@ -1,13 +1,13 @@
 {% load forum_display %}
 
-<p>[<a href="{% url 'offering:forum:summary' course_slug=offering.slug %}" title="Forum Summary">Forum Summary</a>]</p>
-<p>[<a href="{% url 'offering:forum:new_thread' course_slug=offering.slug %}" title="New Thread">New Thread</a>]</p>
+<p>[<a href="{% url 'offering:forum:summary' course_slug=offering.slug %}" data-target="main-panel">Forum Summary</a>]</p>
+<p>[<a href="{% url 'offering:forum:new_thread' course_slug=offering.slug %}" data-target="main-panel">New Thread</a>]</p>
 
 <ul class="thread-list">
 {% for thread in threads %}
-<li>
-    <span class="title"><a href="{{ thread.get_absolute_url }}">#{{ thread.post.number }} {{ thread.title_short }}</a></span>
-    <span class="author">{{ thread.post.visible_author_short }}, {{ thread.post.created_at_html }}</span>
+<li class="{% if thread in unread_threads  %}unread{% endif %}">
+    <span class="title"><a href="{{ thread.get_absolute_url }}" data-target="main-panel">#{{ thread.post.number }} {{ thread.title_short }}</a></span>
+    <span class="author">{{ thread.post.visible_author_short }}, last activity {{ thread.last_activity_html }}</span>
     <span class="icons">
         {% if thread.post.type == 'DISC' %}<i class="far fa-comments disc" title="discussion"></i>{% endif %}
         {% if thread.post.status == 'OPEN' %}<i class="fas fa-question open" title="unanswered"></i>{% endif %}

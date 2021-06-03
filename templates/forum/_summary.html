@@ -7,7 +7,7 @@
 {% for thread in unanswered_threads %}
 <li>
     #{{ thread.post.number }}
-    <a href="{{ thread.get_absolute_url }}">{{ thread.title }}</a>
+    <a href="{{ thread.get_absolute_url }}" data-target="main-panel">{{ thread.title }}</a>
     by {{ thread.post|visible_author:viewer }}
 </li>
 {% empty %}
@@ -27,7 +27,7 @@
 {% for thread in unread_threads %}
 <li>
     #{{ thread.post.number }}
-    <a href="{{ thread.get_absolute_url }}">{{ thread.title }}</a>
+    <a href="{{ thread.get_absolute_url }}" data-target="main-panel">{{ thread.title }}</a>
     by {{ thread.post|visible_author:viewer }}
 </li>
 {% empty %}
