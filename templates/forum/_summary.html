@@ -34,3 +34,10 @@
 <li class="empty">None</li>
 {% endfor %}
 </ul>
+
+<h2 id="search">Search Posts</h2>
+
+<form action="{% url 'offering:forum:search' course_slug=offering.slug %}" method="get">
+{{ search_form.as_p }}
+    <p><input type="submit" value="Search" /></p>
+</form>

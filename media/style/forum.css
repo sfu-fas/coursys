@@ -94,6 +94,9 @@ span.reaction {
     grid-row: 1;
     overflow: hidden;
 }
+.privacy-note {
+    font-style: italic;
+}
 .thread-list .author {
     grid-column: 1;
     grid-row: 2;

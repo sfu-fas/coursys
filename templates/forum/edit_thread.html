@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load forum_display %}
+{% load static %}
+{% load compress %}
+
+{% block title %}{{ offering.name }}: Discussion Search{% endblock %}
+{% block h1 %}{{ offering.name }}: Discussion Search{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{% url 'offering:forum:summary' course_slug=offering.slug %}">Discussion</a></li>
+    <li>Edit Post</li>
+{% endblock %}
+
+{% block headextra %}
+    {% compress css %}
+    <link rel="stylesheet" href="{% static 'style/forum.css' %}" />
+    {% endcompress %}
+{% endblock %}
+
+{% block content %}
+
+<form action="" method="post" enctype="multipart/form-data" class="close-warn">{% csrf_token %}
+{{ thread_form | forum_form:"Update" }}
+</form>
+
+{% endblock %}

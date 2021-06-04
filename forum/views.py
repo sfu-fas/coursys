@@ -6,12 +6,16 @@ from django.contrib import messages
 from django.db import transaction
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404
 from django.shortcuts import render, redirect, get_object_or_404
+from haystack.query import SearchQuerySet
 
 from courselib.auth import requires_course_by_slug
-from forum.forms import ThreadForm, ReplyForm
+from forum.forms import ThreadForm, ReplyForm, SearchForm
 from forum.models import Thread, AnonymousIdentity, Forum, Reply, Reaction, Post, HaveRead, \
     APPROVAL_REACTIONS, REACTION_ICONS, APPROVAL_ROLES, IDENTITY_CHOICES
 from forum.names_generator import get_random_name
+
+
+THREAD_LIST_MAX = 100
 
 
 # last_time = datetime.datetime.now()
@@ -49,7 +53,7 @@ def _forum_omni_view(
                 post.offering = offering
                 post.author = member
                 post.update_status(commit=False)
-                thread = Thread(post=post, title=thread_form.cleaned_data['title'])
+                thread = Thread(post=post, title=thread_form.cleaned_data['title'], privacy=thread_form.cleaned_data['privacy'])
                 thread.save(create_history=True, real_change=True)  # also saves the thread.post
 
                 # mark it as self-read
@@ -78,9 +82,6 @@ def _forum_omni_view(
                 return HttpResponsePermanentRedirect(replies[0].get_absolute_url())
             else:
                 raise
-
-        if member.role == 'STUD' and thread.visibility == 'INST':
-            raise Http404
 
         context['post_number'] = post_number
         context['post'] = thread.post
@@ -137,6 +138,7 @@ def _forum_omni_view(
     if not fragment or view == 'thread_list':
         threads = Thread.objects.filter_for(member) \
             .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__anon_identity')
+        threads = threads[:THREAD_LIST_MAX]
         context['threads'] = threads
 
         # Find threads with unread activity
@@ -157,6 +159,9 @@ def _forum_omni_view(
         context['unread_threads'] = unread_threads
 
     if view == 'summary':
+        search_form = SearchForm()
+        context['search_form'] = search_form
+
         if member.role in APPROVAL_ROLES:
             unanswered_threads = Thread.objects.filter(post__type='QUES', post__status='OPEN').filter_for(member) \
                 .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__anon_identity')
@@ -195,6 +200,62 @@ def view_thread(request: HttpRequest, course_slug: str, post_number: int) -> Htt
 
 def new_thread(request: HttpRequest, course_slug: str) -> HttpResponse:
     return _forum_omni_view(request, course_slug=course_slug, view='new_thread')
+
+
+@transaction.atomic
+@requires_course_by_slug
+def edit_post(request: HttpRequest, course_slug: str, post_number: int) -> HttpResponse:
+    member = request.member
+    offering = member.offering
+    forum = Forum.for_offering_or_404(offering)
+    try:
+        thread = get_object_or_404(
+            Thread.objects.select_related('post', 'post__author', 'post__offering', 'post__author__person',
+                                          'post__offering', 'post__anon_identity__member__person').filter_for(member),
+            post__number=post_number
+        )
+        post = thread.post
+    except Http404:
+        # if we got a reply's number, redirect to its true location
+        replies = list(Reply.objects.filter(post__number=post_number).filter_for(member)
+                       .select_related('post', 'post__offering', 'thread'))
+        if replies:
+            raise NotImplementedError()
+        else:
+            raise
+
+    if not thread.post.editable_by(member):
+        raise Http404()
+
+
+    if request.method == 'POST':
+        thread_form = ThreadForm(instance=post, data=request.POST, member=member, offering_identity=forum.identity)
+        if thread_form.is_valid():
+            post = thread_form.save(commit=False)
+            post.offering = offering
+            post.update_status(commit=False)
+            thread.title = thread_form.cleaned_data['title']
+            thread.privacy = thread_form.cleaned_data['privacy']
+            #print(post.author_id, post.anon_identity.member_id)
+            thread.save(create_history=True, real_change=True)  # also saves the thread.post
+
+            # mark it as self-read
+            HaveRead.objects.bulk_create([HaveRead(member=member, post_id=post.id)], ignore_conflicts=True)
+
+            messages.add_message(request, messages.SUCCESS, 'Forum thread updated.')
+            return redirect('offering:forum:view_thread', course_slug=offering.slug, post_number=post.number)
+
+    else:
+        thread_form = ThreadForm(instance=post, offering_identity=forum.identity, member=member,
+                                 initial={'title': thread.title, 'privacy': thread.privacy})
+
+    context = {
+        'member': member,
+        'offering': offering,
+        'post': post,
+        'thread_form': thread_form,
+    }
+    return render(request, 'forum/edit_thread.html', context=context)
 
 
 @transaction.atomic
@@ -250,3 +311,34 @@ def anon_identity(request: HttpRequest, course_slug: str) -> HttpResponse:
         'sample_names': sample_names,
     }
     return render(request, 'forum/anon_identity.html', context=context)
+
+
+@requires_course_by_slug
+def search(request: HttpRequest, course_slug: str) -> HttpResponse:
+    member = request.member
+    offering = member.offering
+    forum = Forum.for_offering_or_404(offering)
+
+    search_form = SearchForm(request.GET)
+    if search_form.is_valid():
+        q = search_form.cleaned_data['q']
+        results = SearchQuerySet().models(Thread).filter(offering_slug=offering.slug).exclude(status='HIDD')
+        if member.role == 'STUD':
+            results = results.filter(privacy='ALL')
+
+        results = results.filter(text__fuzzy=q)
+        results = list(results)
+        results.sort(key=lambda r: -r.score)
+        results = results[:THREAD_LIST_MAX]
+    else:
+        results = []
+
+    context = {
+        'member': member,
+        'offering': offering,
+        'search_form': search_form,
+        'results': results,
+    }
+    return render(request, 'forum/search.html', context=context)
+
+

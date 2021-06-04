@@ -27,6 +27,7 @@ from forum.names_generator import get_random_name
 # TODO: gravatars?
 # TODO: "#123" should be a link to post 123
 # TODO: need instructor reply form: no identity field, and "don't consider this an answer" check
+# TODO: something if there are more than THREAD_LIST_MAX threads in the menu
 
 
 IDENTITY_CHOICES = [  # AnonymousIdentity.identity_choices should reflect any logical changes here
@@ -34,7 +35,7 @@ IDENTITY_CHOICES = [  # AnonymousIdentity.identity_choices should reflect any lo
     ('INST', 'Names must be visible to instructors, but may be anonymous to other students'),
     ('ANON', 'Students may be anonymous to instructors and students'),
 ]
-THREAD_TYPE_CHOICES = [
+POST_TYPE_CHOICES = [
     ('QUES', 'Question'),
     ('DISC', 'Discussion'),
 ]
@@ -159,7 +160,7 @@ class AnonymousIdentity(models.Model):
         Allowed identity.choices for an offering with this identity restrictions.
         """
         real_name = AnonymousIdentity.real_name(member)
-        anon_name = AnonymousIdentity.for_member(member)
+        anon_name = AnonymousIdentity.for_member(member).name
         choices = [
             ('NAME', 'Post with your real name (as “%s”)' % (real_name,))
         ]
@@ -190,7 +191,7 @@ class AnonymousIdentity(models.Model):
 class Post(models.Model):
     """
     Functionality common to both threads (the starting message) and replies (followup).
-    Separated so we can refer to a post (by URL or similar) regardless of its role.
+    Separated so we can refer to a post (by URL or similar) regardless of its role, and unify other functionality.
     """
     offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)  # used to enforce unique .number within an offering
     author = models.ForeignKey(Member, on_delete=models.PROTECT)
@@ -198,7 +199,7 @@ class Post(models.Model):
     anon_identity = models.ForeignKey(AnonymousIdentity, on_delete=models.PROTECT, null=True, blank=True)
     created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     modified_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
-    type = models.CharField(max_length=4, null=False, blank=False, default='DISC', choices=THREAD_TYPE_CHOICES)
+    type = models.CharField(max_length=4, null=False, blank=False, default='DISC', choices=POST_TYPE_CHOICES)
     status = models.CharField(max_length=4, null=False, blank=False, default='OPEN', choices=POST_STATUS_CHOICES)
     number = models.PositiveIntegerField(null=False, blank=False)
     config = JSONField(null=False, blank=False, default=dict)
@@ -226,16 +227,15 @@ class Post(models.Model):
                 HaveRead.objects.filter(post_id=self.id).delete()
 
         # enforce rules for the .anon_identity field
-        if not self.anon_identity:  # not really needed if self.identity == 'NAME' but it lets us use the helpers
+        if not self.anon_identity:  # not really needed if self.identity=='NAME' but it lets us use the helpers
             # not filled: do it ourselves
             self.anon_identity = AnonymousIdentity.for_member(self.author)
         else:
-            assert self.anon_identity
             assert self.author_id == self.anon_identity.member_id
             assert self.offering_id == self.anon_identity.offering_id
 
         if self.number:
-            # is we already have our unique post number, it's easy.
+            # we already have our unique post number: the rest is easy.
             return super().save(*args, **kwargs)
 
         # generate a sequential .number value within this offering
@@ -275,6 +275,9 @@ class Post(models.Model):
 
     def was_edited(self):
         return (self.modified_at - self.created_at) > datetime.timedelta(seconds=5)
+
+    def editable_by(self, member: Member) -> bool:
+        return self.author == member or member.role in ['INST', 'TA']
 
     def created_at_html(self) -> SafeString:
         return how_long_ago(self.created_at)
@@ -343,7 +346,7 @@ class Post(models.Model):
             self.save()
 
 
-VISIBILITY_CHOICES = [
+THREAD_PRIVACY_CHOICES = [
     ('ALL', 'Viewable by students'),
     ('INST', 'Private question to instructors/TAs')
 ]
@@ -354,7 +357,7 @@ class Thread(models.Model):
         def filter_for(self, member: Member):
             qs = self.filter(post__offering_id=member.offering_id)
             if member.role == 'STUD':
-                qs = qs.filter(visibility='ALL')
+                qs = qs.filter(models.Q(privacy='ALL') | models.Q(post__author=member))
             return qs
 
     class ThreadManager(models.Manager):
@@ -364,7 +367,7 @@ class Thread(models.Model):
     title = models.CharField(max_length=255, null=False, blank=False)
     post = models.OneToOneField(Post, on_delete=models.CASCADE)
     pin = models.PositiveSmallIntegerField(default=0)
-    visibility = models.CharField(max_length=4, null=False, blank=False, default='ALL', choices=VISIBILITY_CHOICES)
+    privacy = models.CharField(max_length=4, null=False, blank=False, default='ALL', choices=THREAD_PRIVACY_CHOICES)
     # most recent post under this thread, so we can easily order by activity
     last_activity = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     config = JSONField(null=False, blank=False, default=dict)
@@ -429,7 +432,7 @@ class Reply(models.Model):
         def filter_for(self, member: Member):
             qs = self.filter(post__offering_id=member.offering_id)
             if member.role == 'STUD':
-                qs = qs.filter(thread__visibility='ALL')
+                qs = qs.filter(models.Q(thread__privacy='ALL') | models.Q(thread__post__author=member))
             return qs
 
     class ReplyManager(models.Manager):
@@ -487,7 +490,7 @@ class PostHistory(models.Model):
         h.config = thread.post.config.copy()
         h.config.update(thread.config)
         h.config['title'] = thread.title
-        h.config['visibility'] = thread.visibility
+        h.config['privacy'] = thread.privacy
         h.config['pin'] = thread.pin
         h.config['type'] = thread.post.type
         h.config['status'] = thread.post.status

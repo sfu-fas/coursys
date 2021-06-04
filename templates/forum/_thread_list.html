@@ -6,7 +6,10 @@
 <ul class="thread-list">
 {% for thread in threads %}
 <li class="{% if thread in unread_threads  %}unread{% endif %}">
-    <span class="title"><a href="{{ thread.get_absolute_url }}" data-target="main-panel">#{{ thread.post.number }} {{ thread.title_short }}</a></span>
+    <span class="title">
+        <a href="{{ thread.get_absolute_url }}" data-target="main-panel">#{{ thread.post.number }} {{ thread.title_short }}</a>
+        {% if thread.privacy == 'INST' %}<span class="privacy-note">[Private]</span>{% endif %}
+    </span>
     <span class="author">{{ thread.post.visible_author_short }}, last activity {{ thread.last_activity_html }}</span>
     <span class="icons">
         {% if thread.post.type == 'DISC' %}<i class="far fa-comments disc" title="discussion"></i>{% endif %}

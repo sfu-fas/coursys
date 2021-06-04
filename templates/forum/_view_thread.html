@@ -1,7 +1,10 @@
 {% load forum_display %}
 
 <section id="post-{{ post.number }}">
-<h2>{{ thread.title }}</h2>
+<h2>
+    {{ thread.title }}
+    {% if thread.privacy != 'ALL' %}<span class="privacy-note">[Private to instructors/TAs]</span>{% endif %}
+</h2>
     {% include 'forum/_post_fragment.html' with post=post viewer=viewer %}
 </section>
 

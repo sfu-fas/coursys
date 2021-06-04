@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}{{ offering.name }}: Discussion Search{% endblock %}
+{% block h1 %}{{ offering.name }}: Discussion Search{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{% url 'offering:forum:summary' course_slug=offering.slug %}">Discussion</a></li>
+    <li>Search</li>
+{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block content %}
+
+<form action="{% url 'offering:forum:search' course_slug=offering.slug %}" method="get">
+{{ search_form.as_p }}
+    <p><input type="submit" value="Search" /></p>
+</form>
+
+<ul>
+{% for thread in results %}{# Note that thread is a haystack SearchResult object, not an actual Thread #}
+<li>
+    #{{ thread.number }}
+    <a href="{{ thread.url }}">{{ thread.title }}</a>
+    by {{ thread.visible_author }}
+</li>
+{% empty %}
+<li class="empty">None</li>
+{% endfor %}
+</ul>
+
+{% endblock %}

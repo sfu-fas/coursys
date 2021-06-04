@@ -56,6 +56,11 @@ def visible_author(post: Post, viewer: Member) -> str:
     return post.visible_author(viewer)
 
 
+@register.filter
+def editable_by(post: Post, viewer: Member) -> bool:
+    return post.editable_by(viewer)
+
+
 @register.simple_tag
 def reaction_display(post: Post, post_reactions: Dict[int, List[Reaction]], viewer_reactions: Dict[int, str]) -> SafeString:
     """
