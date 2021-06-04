@@ -14,6 +14,14 @@ from forum.models import Thread, AnonymousIdentity, Forum, Reply, Reaction, Post
 from forum.names_generator import get_random_name
 
 
+# last_time = datetime.datetime.now()
+# def _print_time(marker):
+#     global last_time
+#     now = datetime.datetime.now()
+#     print(marker, now - last_time)
+#     last_time = now
+
+
 @transaction.atomic
 @requires_course_by_slug
 def _forum_omni_view(
@@ -42,7 +50,7 @@ def _forum_omni_view(
                 post.author = member
                 post.update_status(commit=False)
                 thread = Thread(post=post, title=thread_form.cleaned_data['title'])
-                thread.save(create_history=True)  # also saves the thread.post
+                thread.save(create_history=True, real_change=True)  # also saves the thread.post
 
                 # mark it as self-read
                 HaveRead.objects.bulk_create([HaveRead(member=member, post_id=post.id)], ignore_conflicts=True)
@@ -59,7 +67,7 @@ def _forum_omni_view(
         try:
             thread = get_object_or_404(
                 Thread.objects.select_related('post', 'post__author', 'post__offering', 'post__author__person',
-                                              'post__offering').filter_for(member),
+                                              'post__offering', 'post__anon_identity__member__person').filter_for(member),
                 post__number=post_number
             )
         except Http404:
@@ -79,7 +87,7 @@ def _forum_omni_view(
         context['thread'] = thread
 
         replies = Reply.objects.filter(thread=thread).filter_for(member) \
-            .select_related('post', 'post__author', 'post__author__person', 'post__offering')
+            .select_related('post', 'post__author', 'post__author__person', 'post__offering', 'post__anon_identity__member')
 
         # view_thread view has a form to reply to this thread
         if request.method == 'POST':
@@ -91,7 +99,7 @@ def _forum_omni_view(
                 rep_post.type = 'DISC'
                 rep_post.status = 'NOAN'
                 reply = Reply(post=rep_post, thread=thread, parent=thread.post)
-                reply.save(create_history=True)  # also saves the reply.post
+                reply.save(create_history=True, real_change=True)  # also saves the reply.post
 
                 reply.thread.post.update_status(commit=True)
 
@@ -128,7 +136,7 @@ def _forum_omni_view(
 
     if not fragment or view == 'thread_list':
         threads = Thread.objects.filter_for(member) \
-            .select_related('post', 'post__author', 'post__offering', 'post__author__person')
+            .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__anon_identity')
         context['threads'] = threads
 
         # Find threads with unread activity
@@ -139,9 +147,9 @@ def _forum_omni_view(
 
         # we have all Post.id values that this user hasn't read. Now find corresponding Threads
         unread_threads = Thread.objects.filter(post_id__in=unread_post_ids).filter_for(member) \
-            .select_related('post', 'post__author', 'post__offering', 'post__author__person')
+            .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__anon_identity')
         unread_replies = Reply.objects.filter(post_id__in=unread_post_ids).filter_for(member) \
-            .select_related('thread', 'thread__post', 'thread__post__author', 'thread__post__offering', 'post__author__person')
+            .select_related('thread', 'thread__post', 'thread__post__author', 'thread__post__offering', 'post__author__person', 'post__anon_identity')
         unread_threads = set(unread_threads) | set(r.thread for r in unread_replies)
         unread_threads = list(unread_threads)
         unread_threads.sort(key=Thread.sort_key)
@@ -151,7 +159,7 @@ def _forum_omni_view(
     if view == 'summary':
         if member.role in APPROVAL_ROLES:
             unanswered_threads = Thread.objects.filter(post__type='QUES', post__status='OPEN').filter_for(member) \
-                .select_related('post', 'post__author', 'post__offering', 'post__author__person')
+                .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__anon_identity')
 
             approval_icons = ', '.join(REACTION_ICONS[r] for r in APPROVAL_REACTIONS)
 
@@ -166,11 +174,11 @@ def _forum_omni_view(
         resp = render(request, 'forum/_'+view+'.html', context=context)
         assert view != 'thread_list' or not thread_list_update  # no infinite loops, please
         resp['X-update-thread-list'] = 'yes' if thread_list_update else 'no'
-        return resp
-
     else:
         # render the entire index page server-side
-        return render(request, 'forum/index.html', context=context)
+        resp = render(request, 'forum/index.html', context=context)
+
+    return resp
 
 
 def summary(request: HttpRequest, course_slug: str) -> HttpResponse:
@@ -231,7 +239,7 @@ def anon_identity(request: HttpRequest, course_slug: str) -> HttpResponse:
     forum = Forum.for_offering_or_404(offering)
 
     identity_description = dict(IDENTITY_CHOICES)[forum.identity]
-    ident = AnonymousIdentity.for_member(member)
+    ident = AnonymousIdentity.for_member(member).name
     sample_names = [get_random_name() for _ in range(10)]
 
     context = {

@@ -1,10 +1,6 @@
 import datetime
-from typing import Dict, Any
 
-from autoslug import AutoSlugField
-from dirtyfields import DirtyFieldsMixin
 from django.db import models, transaction, IntegrityError
-from django.core.cache import cache
 from django.db.models import Max
 from django.http import Http404
 from django.urls import reverse
@@ -139,42 +135,16 @@ class AnonymousIdentity(models.Model):
             self.save()
 
     @classmethod
-    def _offering_cache_key(cls, offering_id):
-        # we cache .for_offering by this key, for fast retrieval
-        return 'AnonymousIdentity-offering-%i' % (offering_id,)
-
-    def save(self, *args, **kwargs):
-        result = super().save(*args, **kwargs)
-        # invalidate .for_offering cache
-        key = AnonymousIdentity._offering_cache_key(self.offering_id)
-        cache.delete(key)
-        return result
-
-    @classmethod
-    def for_offering(cls, offering_id: int) -> Dict[int, str]:
+    def for_member(cls, member: Member) -> 'AnonymousIdentity':
         """
-        Build a mapping of AnonymousIdentity.member.id -> AnonymousIdentity.name, caching it because of frequent usage.
+        Get an AnonymousIdentity for this member, creating if necessary.
         """
-        key = AnonymousIdentity._offering_cache_key(offering_id)
-        anon_map = cache.get(key)
-        if not anon_map:
-            anons = cls.objects.filter(offering_id=offering_id).select_related('member')
-            anon_map = {a.member_id: a.name for a in anons}
-            cache.set(key, anon_map, timeout=3600)
-        return anon_map
-
-    @classmethod
-    def for_member(cls, member: Member) -> str:
-        """
-        Get an AnonymousIdentity.name for this member, creating if necessary.
-        """
-        anon_map = AnonymousIdentity.for_offering(member.offering_id)
-        if member.id in anon_map:
-            return anon_map[member.id]
-        else:
+        try:
+            return AnonymousIdentity.objects.get(member=member)
+        except AnonymousIdentity.DoesNotExist:
             # no AnonymousIdentity for this user: create it.
             ident = AnonymousIdentity.new(offering=member.offering, member=member, save=True)
-            return ident.name
+            return ident
 
     @staticmethod
     def real_name(member: Member) -> str:
@@ -217,13 +187,15 @@ class AnonymousIdentity(models.Model):
 #         ]
 
 
-class Post(models.Model, DirtyFieldsMixin):
+class Post(models.Model):
     """
     Functionality common to both threads (the starting message) and replies (followup).
     Separated so we can refer to a post (by URL or similar) regardless of its role.
     """
     offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)  # used to enforce unique .number within an offering
     author = models.ForeignKey(Member, on_delete=models.PROTECT)
+    # Anonymous identity used: technically redundant, but allows .select_related for display
+    anon_identity = models.ForeignKey(AnonymousIdentity, on_delete=models.PROTECT, null=True, blank=True)
     created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     modified_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     type = models.CharField(max_length=4, null=False, blank=False, default='DISC', choices=THREAD_TYPE_CHOICES)
@@ -246,12 +218,21 @@ class Post(models.Model, DirtyFieldsMixin):
             ('offering', 'number'),
         ]
 
-    def save(self, *args, **kwargs):
-        if self.is_dirty():
-            # something changed
+    def save(self, real_change=False, *args, **kwargs):
+        if real_change:
+            # something worth noting changed
             self.modified_at = datetime.datetime.now()
             if self.id:
                 HaveRead.objects.filter(post_id=self.id).delete()
+
+        # enforce rules for the .anon_identity field
+        if not self.anon_identity:  # not really needed if self.identity == 'NAME' but it lets us use the helpers
+            # not filled: do it ourselves
+            self.anon_identity = AnonymousIdentity.for_member(self.author)
+        else:
+            assert self.anon_identity
+            assert self.author_id == self.anon_identity.member_id
+            assert self.offering_id == self.anon_identity.offering_id
 
         if self.number:
             # is we already have our unique post number, it's easy.
@@ -280,17 +261,17 @@ class Post(models.Model, DirtyFieldsMixin):
 
     def visible_author(self, viewer: Member) -> str:
         if self.identity == 'NAME':
-            return AnonymousIdentity.real_name(self.author)
+            return self.anon_identity.real_name(self.author)
         elif self.identity == 'INST' and viewer.role != 'STUD':
-            return '%s (“%s” to students)' % (AnonymousIdentity.real_name(self.author), AnonymousIdentity.for_member(self.author),)
+            return '%s (“%s” to students)' % (self.anon_identity.real_name(self.author), self.anon_identity.name,)
         else:
-            return '“%s”' % (AnonymousIdentity.for_member(self.author),)
+            return '“%s”' % (self.anon_identity.name,)
 
     def visible_author_short(self) -> str:
         if self.identity == 'NAME':
-            return AnonymousIdentity.real_name(self.author)
+            return self.anon_identity.real_name(self.author)
         else:
-            return '“%s”' % (AnonymousIdentity.for_member(self.author),)
+            return '“%s”' % (self.anon_identity.name,)
 
     def was_edited(self):
         return (self.modified_at - self.created_at) > datetime.timedelta(seconds=5)
@@ -397,9 +378,9 @@ class Thread(models.Model):
     def sort_key(self):  # so we can take a list of Thread and .sort(key=Thread.sort_key)
         return (-self.pin, -self.last_activity.timestamp())
 
-    def save(self, create_history=False, *args, **kwargs):
+    def save(self, real_change=False, create_history=False, *args, **kwargs):
         with transaction.atomic():
-            self.post.save()
+            self.post.save(real_change=real_change)
             self.post_id = self.post.id
             self.last_activity = datetime.datetime.now()
             result = super().save(*args, **kwargs)
@@ -465,9 +446,9 @@ class Reply(models.Model):
     class Meta:
         ordering = ('post__modified_at',)
 
-    def save(self, create_history=False, *args, **kwargs):
+    def save(self, real_change=False, create_history=False, *args, **kwargs):
         with transaction.atomic():
-            self.post.save()
+            self.post.save(real_change=real_change)
             self.post_id = self.post.id
             # the .update should be an one-field update, not risking racing some other process
             Thread.objects.filter(id=self.thread_id).update(last_activity=datetime.datetime.now())
@@ -532,6 +513,14 @@ class HaveRead(models.Model):
         unique_together = [
             ('member', 'post'),
         ]
+
+    @staticmethod
+    def mark_all_read(member: Member):
+        posts = Post.objects.filter(offering_id=member.offering_id)
+        HaveRead.objects.bulk_create(
+            [HaveRead(member=member, post_id=p.id) for p in posts],
+            ignore_conflicts=True
+        )
 
 
 REACTION_CHOICES = [

@@ -10,6 +10,21 @@
     grid-column: 2;
     grid-row: 1;
 }
+@media (max-width: 480px) {
+    #forum {
+        grid-template-columns: 1fr;
+    }
+    #thread-list {
+        grid-column: 1;
+        grid-row: 1;
+        max-height: 50vh;
+        overflow: scroll;
+    }
+    #main-panel {
+        grid-column: 1;
+        grid-row: 2;
+    }
+}
 
 .forum-form label {
     font-weight: bold;
