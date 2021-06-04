@@ -4,8 +4,19 @@
 <h2>
     {{ thread.title }}
     {% if thread.privacy != 'ALL' %}<span class="privacy-note">[Private to instructors/TAs]</span>{% endif %}
+    {% if thread.pin %}<i class="fas fa-thumbtack pin"></i>{% endif %}
+    {% if instr_pinnable %}
+        {% if thread.pin %}
+            <span class="pin">[<a href="{% url 'offering:forum:pin' course_slug=offering.slug post_number=post.number %}?unpin=yes">Unpin</a>]</span>
+        {% else %}
+            <span class="pin">[<a href="{% url 'offering:forum:pin' course_slug=offering.slug post_number=post.number %}?pin=yes"><i class="fas fa-thumbtack"></i> Pin</a>]</span>
+        {% endif %}
+    {% else %}
+
+    {% endif %}
 </h2>
-    {% include 'forum/_post_fragment.html' with post=post viewer=viewer %}
+
+{% include 'forum/_post_fragment.html' with post=post viewer=viewer instr_pinnable=instr_pinnable %}
 </section>
 
 <h2>Replies</h2>
@@ -19,7 +30,7 @@
 
 <section id="replies">
 {% for reply in replies %}
-{% include 'forum/_post_fragment.html' with post=reply.post viewer=viewer %}
+{% include 'forum/_post_fragment.html' with post=reply.post viewer=viewer instr_pinnable=False %}
 {% empty %}
     <p class="empty">No replies.</p>
 {% endfor %}

@@ -17,6 +17,7 @@
         {% if thread.post.instr_answer %}<i class="fas fa-chalkboard-teacher answ" title="instructor answer"></i>{% endif %}
         {% if thread.post.approved_answer %}<i class="fas fa-thumbs-up answ" title="instructor-approved answer"></i>{% endif %}
         {% if thread.post.marked_answered or thread.post.asker_approved_answer %}<i class="far fa-thumbs-up answ" title="asker-approved answer"></i>{% endif %}
+        {% if thread.pin %}<i class="fas fa-thumbtack pin" title="pinned"></i>{% endif %}
     </span>
 </li>
 {% endfor %}

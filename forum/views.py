@@ -134,6 +134,7 @@ def _forum_omni_view(
         context['replies'] = replies
         context['post_reactions'] = post_reactions
         context['viewer_reactions'] = viewer_reactions
+        context['instr_pinnable'] = member.role in APPROVAL_ROLES
 
     if not fragment or view == 'thread_list':
         threads = Thread.objects.filter_for(member) \
@@ -215,45 +216,57 @@ def edit_post(request: HttpRequest, course_slug: str, post_number: int) -> HttpR
             post__number=post_number
         )
         post = thread.post
+        reply = None
+        header_thread = None
+        Form = ThreadForm
     except Http404:
-        # if we got a reply's number, redirect to its true location
+        # if we got a reply's number, deal with that
         replies = list(Reply.objects.filter(post__number=post_number).filter_for(member)
-                       .select_related('post', 'post__offering', 'thread'))
+                       .select_related('post', 'post__offering', 'thread__post'))
         if replies:
-            raise NotImplementedError()
+            reply = replies[0]
+            post = reply.post
+            thread = None
+            header_thread = reply.thread
+            Form = ReplyForm
         else:
             raise
 
-    if not thread.post.editable_by(member):
+    if not post.editable_by(member):
         raise Http404()
 
-
     if request.method == 'POST':
-        thread_form = ThreadForm(instance=post, data=request.POST, member=member, offering_identity=forum.identity)
-        if thread_form.is_valid():
-            post = thread_form.save(commit=False)
+        form = Form(instance=post, data=request.POST, member=member, offering_identity=forum.identity)
+        if form.is_valid():
+            post = form.save(commit=False)
             post.offering = offering
             post.update_status(commit=False)
-            thread.title = thread_form.cleaned_data['title']
-            thread.privacy = thread_form.cleaned_data['privacy']
-            #print(post.author_id, post.anon_identity.member_id)
-            thread.save(create_history=True, real_change=True)  # also saves the thread.post
+            if thread:
+                thread.title = form.cleaned_data['title']
+                thread.privacy = form.cleaned_data['privacy']
+                thread.save(create_history=True, real_change=True)  # also saves the thread.post
+            else:
+                reply.save(create_history=True, real_change=True)  # also saves the reply.post
 
             # mark it as self-read
             HaveRead.objects.bulk_create([HaveRead(member=member, post_id=post.id)], ignore_conflicts=True)
 
-            messages.add_message(request, messages.SUCCESS, 'Forum thread updated.')
+            messages.add_message(request, messages.SUCCESS, 'Post updated.')
             return redirect('offering:forum:view_thread', course_slug=offering.slug, post_number=post.number)
 
     else:
-        thread_form = ThreadForm(instance=post, offering_identity=forum.identity, member=member,
-                                 initial={'title': thread.title, 'privacy': thread.privacy})
+        if thread:
+            form = Form(instance=post, offering_identity=forum.identity, member=member,
+                                     initial={'title': thread.title, 'privacy': thread.privacy})
+        else:
+            form = Form(instance=post, offering_identity=forum.identity, member=member)
 
     context = {
         'member': member,
         'offering': offering,
         'post': post,
-        'thread_form': thread_form,
+        'header_thread': header_thread,
+        'form': form,
     }
     return render(request, 'forum/edit_thread.html', context=context)
 
@@ -291,6 +304,23 @@ def react(request: HttpRequest, course_slug: str, post_number: int, reaction: st
         return HttpResponseRedirect(post.get_absolute_url() + '?fragment=yes')
     else:
         return HttpResponseRedirect(post.get_absolute_url())
+
+
+@transaction.atomic
+@requires_course_by_slug
+def pin(request: HttpRequest, course_slug: str, post_number: int) -> HttpResponse:
+    member = request.member
+    if member.role not in APPROVAL_ROLES:
+        raise Http404
+
+    offering = member.offering
+    forum = Forum.for_offering_or_404(offering)
+    thread = get_object_or_404(Thread.objects.filter_for(member).select_related('post'), post__number=post_number)
+
+    pin = 'pin' in request.GET
+    thread.pin = 1 if pin else 0
+    thread.save()
+    return HttpResponseRedirect(thread.get_absolute_url())
 
 
 @requires_course_by_slug

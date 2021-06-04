@@ -97,6 +97,17 @@ span.reaction {
 .privacy-note {
     font-style: italic;
 }
+h2 .pin {
+    margin-left: 1em;
+    font-size: 60%;
+}
+h2 span.pin {
+    margin-left: 0;
+    font-size: 50%;
+}
+i.pin {
+    color: #777;
+}
 .thread-list .author {
     grid-column: 1;
     grid-row: 2;

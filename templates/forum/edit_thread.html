@@ -3,8 +3,8 @@
 {% load static %}
 {% load compress %}
 
-{% block title %}{{ offering.name }}: Discussion Search{% endblock %}
-{% block h1 %}{{ offering.name }}: Discussion Search{% endblock %}
+{% block title %}{{ offering.name }}: Edit Post{% endblock %}
+{% block h1 %}{{ offering.name }}: Edit Post{% endblock %}
 {% block subbreadcrumbs %}
     <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
     <li><a href="{% url 'offering:forum:summary' course_slug=offering.slug %}">Discussion</a></li>
@@ -18,9 +18,17 @@
 {% endblock %}
 
 {% block content %}
+{% if header_thread %}
+    <section id="post-{{ header_thread.post.number }}">
+    <h2>
+    {{ header_thread.title }}
+    </h2>
+    {% include 'forum/_post_fragment.html' with post=header_thread.post viewer=member no_reactions=True %}
+    </section>
+{% endif %}
 
 <form action="" method="post" enctype="multipart/form-data" class="close-warn">{% csrf_token %}
-{{ thread_form | forum_form:"Update" }}
+{{ form | forum_form:"Update" }}
 </form>
 
 {% endblock %}

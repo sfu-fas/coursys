@@ -17,13 +17,10 @@ from forum.names_generator import get_random_name
 # TODO: subscriptions/configurable digest emails
 # TODO: pinned comments
 # TODO: thread categories
-# TODO: instructor-private questions
-# TODO: text search
 # TODO: re-roll of anonymousidentity if reasonably early
 # TODO: should a Reply have type for followup-question?
 # TODO: asker should be able to explicitly mark "answered"
-# TODO: editing posts by author, with history
-# TODO: instructors/TAs should be able to edit/hide as well.
+# TODO: actual deleting of posts (status='HIDD') by instructors
 # TODO: gravatars?
 # TODO: "#123" should be a link to post 123
 # TODO: need instructor reply form: no identity field, and "don't consider this an answer" check

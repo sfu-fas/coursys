@@ -9,7 +9,7 @@
 
 {{ post.html_content }}
 
-{% reaction_display post post_reactions viewer_reactions %}
-{% reaction_widget post viewer viewer_reactions %}
+{% if not no_reactions %}{% reaction_display post post_reactions viewer_reactions %}{% endif %}
+{% if not no_reactions %}{% reaction_widget post viewer viewer_reactions %}{% endif %}
 
 </section>
