@@ -39,7 +39,8 @@ class MarkdownServer
       puts Time.now.strftime("%Y-%m-%d %H:%M:%S") + ' Received request'
       arg = JSON.parse(data.encode('utf-8'))
       md = arg['md']
-      result = GitHub::Markup.render_s(GitHub::Markups::MARKUP_MARKDOWN, md)
+      # allowing UNSAFE here, because we sanitize with bleach in Python
+      result = GitHub::Markup.render_s(GitHub::Markups::MARKUP_MARKDOWN, md, options: {commonmarker_opts: [:UNSAFE]})
       exchange.publish(
         JSON.generate({:html => result}).encode('utf-8'),
         routing_key: properties.reply_to,
