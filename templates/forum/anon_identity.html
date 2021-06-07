@@ -1,7 +1,10 @@
 {% extends "base.html" %}
+{% load static %}
+{% load compress %}
+{% load forum_display %}
 
-{% block title %}{{ offering.name }}: Discussion Anonymous Identities{% endblock %}
-{% block h1 %}{{ offering.name }}: Discussion Anonymous Identities{% endblock %}
+{% block title %}{{ offering.name }}: Discussion Identities{% endblock %}
+{% block h1 %}{{ offering.name }}: Discussion Identities{% endblock %}
 {% block subbreadcrumbs %}
     <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
     <li><a href="{% url 'offering:forum:summary' course_slug=offering.slug %}">Discussion</a></li>
@@ -9,6 +12,9 @@
 {% endblock %}
 
 {% block headextra %}
+    {% compress css %}
+    <link rel="stylesheet" href="{% static 'style/forum.css' %}" />
+    {% endcompress %}
 {% endblock %}
 
 {% block content %}
@@ -23,7 +29,7 @@
     </p>
 
     {% if member.role == 'STUD' %}
-    <p>Your pseudonym will be consistent across all of your posts on this forum. Your randomly chosen pseudonym: <strong>{{ ident }}</strong>.</p>
+    <p>Your pseudonym will be consistent across all of your posts on this forum. Your randomly chosen pseudonym: <strong>&ldquo;{{ ident.name }}&rdquo;</strong>.</p>
     {% else %}
     <p>Pseudonyms will be consistent across all of the posts by an individual student: even though anonymous, we enforce an <q>identity</q> for authors.</p>
     {% endif %}
@@ -40,4 +46,16 @@
         {% endfor %}
     </ul>
 
+    <section id="avatar">
+    <h2>Avatar Images</h2>
+    <p>
+        We use avatar images from <a href="https://en.gravatar.com/">Gravatar</a>. If you would like to customize your
+        image, you can upload an image associated with your email address, &ldquo;{{ ident.member.person.email }}&rdquo;.
+    </p>
+    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    <input type="hidden" name="form" value="avatar" />
+    {{ avatar_form | forum_form:"Change" }}
+    </form>
+
+    </section>
 {% endblock %}

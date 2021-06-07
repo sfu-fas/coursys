@@ -24,6 +24,11 @@
         grid-column: 1;
         grid-row: 2;
     }
+    textarea {
+        box-sizing: border-box;
+
+        max-width: 100%;
+    }
 }
 
 .forum-form label {
@@ -86,7 +91,7 @@ span.reaction {
     font-size: 90%;
     line-height: 125%;
 }
-.thread-list > li.unread {
+.thread-list > li.read {
     background-color: #eee;
 }
 .thread-list .title {
@@ -116,6 +121,19 @@ i.pin {
     grid-column: 2;
     grid-row: 2;
     text-align: right;
+}
+section.post {
+    overflow: hidden;
+}
+img.avatar {
+    max-height: 80px;
+    max-width: 80px;
+    float: right;
+    margin: 0.25em;
+    clear: right;
+}
+ul#id_avatar_type>li, ul#id_anon_avatar_type>li {
+    clear: right;
 }
 
 .thread-list .icons .disc {

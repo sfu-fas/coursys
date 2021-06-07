@@ -9,7 +9,7 @@ from django.utils.safestring import SafeString, mark_safe
 from coredata.models import Member
 from dashboard.templatetags.form_display import required_message, label_display, field_display
 from forum.models import Post, REACTION_CHOICES, REACTION_ICONS, Reaction, REACTION_SCORES, SCORE_STAFF_FACTOR, \
-    REACTION_DESCRIPTIONS
+    REACTION_DESCRIPTIONS, Identity
 
 register = template.Library()
 
@@ -59,6 +59,20 @@ def visible_author(post: Post, viewer: Member) -> str:
 @register.filter
 def editable_by(post: Post, viewer: Member) -> bool:
     return post.editable_by(viewer)
+
+
+@register.simple_tag
+def avatar_image(post: Post, viewer: Member, avatar_type=None) -> SafeString:
+    # avatar_type argument used for the selection form, so user can preview.
+    if not avatar_type:
+        if post.sees_real_name(viewer):
+            avatar_type = post.anon_identity.avatar_type
+        else:
+            avatar_type = post.anon_identity.anon_avatar_type
+
+    url = post.anon_identity.avatar_image_url(avatar_type=avatar_type, anon=not post.sees_real_name(viewer))
+    return mark_safe(
+        '<img src="' + escape(url) + '" alt="" class="avatar" loading="lazy" referrerpolicy="no-referrer" />')
 
 
 @register.simple_tag

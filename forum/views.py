@@ -9,8 +9,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from haystack.query import SearchQuerySet
 
 from courselib.auth import requires_course_by_slug
-from forum.forms import ThreadForm, ReplyForm, SearchForm
-from forum.models import Thread, AnonymousIdentity, Forum, Reply, Reaction, Post, HaveRead, \
+from forum.forms import ThreadForm, ReplyForm, SearchForm, AvatarForm
+from forum.models import Thread, Identity, Forum, Reply, Reaction, Post, HaveRead, \
     APPROVAL_REACTIONS, REACTION_ICONS, APPROVAL_ROLES, IDENTITY_CHOICES
 from forum.names_generator import get_random_name
 
@@ -316,11 +316,21 @@ def pin(request: HttpRequest, course_slug: str, post_number: int) -> HttpRespons
     offering = member.offering
     forum = Forum.for_offering_or_404(offering)
     thread = get_object_or_404(Thread.objects.filter_for(member).select_related('post'), post__number=post_number)
+    fragment = 'fragment' in request.GET
 
     pin = 'pin' in request.GET
     thread.pin = 1 if pin else 0
     thread.save()
-    return HttpResponseRedirect(thread.get_absolute_url())
+    if not fragment:
+        if pin:
+            messages.add_message(request, messages.SUCCESS, 'Thread pinned.')
+        else:
+            messages.add_message(request, messages.SUCCESS, 'Thread unpinned.')
+
+    if fragment:
+        return HttpResponseRedirect(thread.get_absolute_url() + '?fragment=yes')
+    else:
+        return HttpResponseRedirect(thread.get_absolute_url())
 
 
 @requires_course_by_slug
@@ -330,8 +340,19 @@ def anon_identity(request: HttpRequest, course_slug: str) -> HttpResponse:
     forum = Forum.for_offering_or_404(offering)
 
     identity_description = dict(IDENTITY_CHOICES)[forum.identity]
-    ident = AnonymousIdentity.for_member(member).name
+    ident = Identity.for_member(member)
     sample_names = [get_random_name() for _ in range(10)]
+
+    if request.method == 'POST' and request.POST.get('form', '') == 'avatar':
+        avatar_form = AvatarForm(identity=ident, data=request.POST)
+        if avatar_form.is_valid():
+            ident.avatar_type = avatar_form.cleaned_data['avatar_type']
+            ident.anon_avatar_type = avatar_form.cleaned_data['anon_avatar_type']
+            ident.save()
+            messages.add_message(request, messages.SUCCESS, 'Avatar updated.')
+            return redirect('offering:forum:anon_identity', course_slug=offering.slug)
+    else:
+        avatar_form = AvatarForm(identity=ident)
 
     context = {
         'member': member,
@@ -339,6 +360,7 @@ def anon_identity(request: HttpRequest, course_slug: str) -> HttpResponse:
         'offering_identity_description': identity_description,
         'ident': ident,
         'sample_names': sample_names,
+        'avatar_form': avatar_form,
     }
     return render(request, 'forum/anon_identity.html', context=context)
 

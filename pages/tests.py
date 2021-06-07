@@ -514,21 +514,21 @@ class PagesTest(TestCase):
         """
         Make sure each markup option returns the same way.
         """
-        correct = '<p>Paragraph <strong>1</strong> \u2605\U0001F600</p>'
+        correct = '<p>Paragraph <strong>#1</strong> \u2605\U0001F600</p>'
         markup_samples = [
-            ('creole', '''Paragraph **1** \u2605\U0001F600'''),
-            ('markdown', '''Paragraph **1** \u2605\U0001F600'''),
-            ('html', '''<p>Paragraph <strong>1</strong> \u2605\U0001F600'''),
-            ('textile', '''Paragraph *1* \u2605\U0001F600'''),
+            ('creole', '''Paragraph **#1** \u2605\U0001F600'''),
+            ('markdown', '''Paragraph **#1** \u2605\U0001F600'''),
+            ('html', '''<p>Paragraph <strong>#1</strong> \u2605\U0001F600'''),
+            ('textile', '''Paragraph *#1* \u2605\U0001F600'''),
         ]
         for lang, markup in markup_samples:
             result = markup_to_html(markup, lang)
             self.assertIsInstance(result, SafeText)
             self.assertEqual(result.strip(), correct)
 
-        result = markup_to_html('Paragraph <1> \u2605\U0001F600', 'plain')
+        result = markup_to_html('Paragraph <#1> \u2605\U0001F600', 'plain')
         self.assertIsInstance(result, SafeText)
-        self.assertEqual(result.strip(), '<p>Paragraph &lt;1&gt; \u2605\U0001F600</p>')
+        self.assertEqual(result.strip(), '<p>Paragraph &lt;#1&gt; \u2605\U0001F600</p>')
 
     def test_html_safety(self):
         """

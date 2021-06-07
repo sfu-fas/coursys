@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 
 from django.db import models, transaction, IntegrityError
 from django.db.models import Max
@@ -15,19 +16,18 @@ from forum.names_generator import get_random_name
 
 
 # TODO: subscriptions/configurable digest emails
-# TODO: pinned comments
 # TODO: thread categories
 # TODO: re-roll of anonymousidentity if reasonably early
 # TODO: should a Reply have type for followup-question?
 # TODO: asker should be able to explicitly mark "answered"
 # TODO: actual deleting of posts (status='HIDD') by instructors
-# TODO: gravatars?
 # TODO: "#123" should be a link to post 123
 # TODO: need instructor reply form: no identity field, and "don't consider this an answer" check
 # TODO: something if there are more than THREAD_LIST_MAX threads in the menu
+# TODO: instr edit shouldn't see/change anon identity setting
 
 
-IDENTITY_CHOICES = [  # AnonymousIdentity.identity_choices should reflect any logical changes here
+IDENTITY_CHOICES = [  # Identity.identity_choices should reflect any logical changes here
     ('NAME', 'Names must be fully visible to instructors and students'),
     ('INST', 'Names must be visible to instructors, but may be anonymous to other students'),
     ('ANON', 'Students may be anonymous to instructors and students'),
@@ -98,50 +98,63 @@ class Forum(models.Model):
             raise Http404('The discussion forum is disabled for this course offering.')
 
 
-class AnonymousIdentity(models.Model):
+AVATAR_TYPE_CHOICES = [
+    ('none', 'No avatar image'),
+    ('gravatar', 'Gravatar'),
+    ('wavatar', 'Gravatar “wavatar” generated avatar'),
+    ('retro', 'Gravatar “retro” generated avatar'),
+    ('robohash', 'Gravatar “robohash” generated avatar'),
+]
+
+
+class Identity(models.Model):
     """
-    A student's anonymous identity, used throughout this offering.
+    A forum identity, used throughout this offering. Created for all users, whether .name is used or not.
     """
     offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     member = models.ForeignKey(Member, on_delete=models.PROTECT)
-    name = models.CharField(max_length=100, null=False, blank=False)
+    pseudonym = models.CharField(max_length=100, null=False, blank=False)
     regen_count = models.PositiveIntegerField(default=0)
+    config = JSONField(null=False, blank=False, default=dict)
+
+    avatar_type = config_property('avatar_type', default='none')
+    anon_avatar_type = config_property('anon_avatar_type', default='none')
 
     class Meta:
         unique_together = [
             ('offering', 'member'),
-            ('offering', 'name'),
+            ('offering', 'pseudonym'),
         ]
 
     @classmethod
-    def new(cls, offering: CourseOffering, member: Member, save: bool = True) -> 'AnonymousIdentity':
+    def new(cls, offering: CourseOffering, member: Member, save: bool = True) -> 'Identity':
         assert offering.id == member.offering_id
         while True:
             name = get_random_name()
-            if not cls.objects.filter(offering=offering, name=name).exists():
+            if not cls.objects.filter(offering=offering, pseudonym=name).exists():
                 # Ensure unique name within offering. Technically races with other instances, but I'll take my chances.
                 break
-        ident = cls(offering=offering, member=member, name=name, regen_count=0)
+        ident = cls(offering=offering, member=member, pseudonym=name, regen_count=0)
         if save:
             ident.save()
         return ident
 
     def regenerate(self, save: bool = True):
-        self.name = get_random_name()
+        self.pseudonym = get_random_name()
         self.regen_count += 1
         if save:
             self.save()
 
     @classmethod
-    def for_member(cls, member: Member) -> 'AnonymousIdentity':
+    def for_member(cls, member: Member) -> 'Identity':
         """
-        Get an AnonymousIdentity for this member, creating if necessary.
+        Get an Identity for this member, creating if necessary.
         """
         try:
-            return AnonymousIdentity.objects.get(member=member)
-        except AnonymousIdentity.DoesNotExist:
-            # no AnonymousIdentity for this user: create it.
-            ident = AnonymousIdentity.new(offering=member.offering, member=member, save=True)
+            return Identity.objects.get(member=member)
+        except Identity.DoesNotExist:
+            # no Identity for this user: create it.
+            ident = Identity.new(offering=member.offering, member=member, save=True)
             return ident
 
     @staticmethod
@@ -156,8 +169,8 @@ class AnonymousIdentity(models.Model):
         """
         Allowed identity.choices for an offering with this identity restrictions.
         """
-        real_name = AnonymousIdentity.real_name(member)
-        anon_name = AnonymousIdentity.for_member(member).name
+        real_name = Identity.real_name(member)
+        anon_name = Identity.for_member(member).pseudonym
         choices = [
             ('NAME', 'Post with your real name (as “%s”)' % (real_name,))
         ]
@@ -166,6 +179,24 @@ class AnonymousIdentity(models.Model):
         if member.role == 'STUD' and offering_identity in ['ANON', 'INST']:
             choices.append(('INST', 'Anonymously to students (as “%s”) but not to instructors/TAs (as “%s”)' % (anon_name, real_name)))
         return choices
+
+    def avatar_image_url(self, anon: bool, avatar_type=None) -> str:
+        if not avatar_type:
+            avatar_type = self.avatar_type
+
+        email = self.member.person.email().strip().lower()
+        if anon:
+            # use a fake not-really-email but consistent string for anonymous gravatars
+            email += email
+        md5 = hashlib.md5(email.encode('ascii', errors='ignore')).hexdigest()
+
+        if avatar_type == 'gravatar':
+            # https://en.gravatar.com/site/implement/images/
+            return 'https://www.gravatar.com/avatar/' + md5 + '?r=g&s=160'
+        elif avatar_type in ['wavatar', 'retro', 'robohash']:
+            return 'https://www.gravatar.com/avatar/' + md5 + '?r=g&s=160&d=' + avatar_type + '&f=y'
+        else:
+            return ''
 
 
 # class Topic(models.Model):
@@ -193,7 +224,7 @@ class Post(models.Model):
     offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)  # used to enforce unique .number within an offering
     author = models.ForeignKey(Member, on_delete=models.PROTECT)
     # Anonymous identity used: technically redundant, but allows .select_related for display
-    anon_identity = models.ForeignKey(AnonymousIdentity, on_delete=models.PROTECT, null=True, blank=True)
+    anon_identity = models.ForeignKey(Identity, on_delete=models.PROTECT, null=True, blank=True)
     created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     modified_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     type = models.CharField(max_length=4, null=False, blank=False, default='DISC', choices=POST_TYPE_CHOICES)
@@ -226,7 +257,7 @@ class Post(models.Model):
         # enforce rules for the .anon_identity field
         if not self.anon_identity:  # not really needed if self.identity=='NAME' but it lets us use the helpers
             # not filled: do it ourselves
-            self.anon_identity = AnonymousIdentity.for_member(self.author)
+            self.anon_identity = Identity.for_member(self.author)
         else:
             assert self.author_id == self.anon_identity.member_id
             assert self.offering_id == self.anon_identity.offering_id
@@ -254,21 +285,24 @@ class Post(models.Model):
         return reverse('offering:forum:view_thread', kwargs={'course_slug': self.offering.slug, 'post_number': self.number})
 
     def html_content(self):
-        return markup_to_html(self.content, self.markup, math=self.math, restricted=True)
+        return markup_to_html(self.content, self.markup, math=self.math, restricted=True, forum_links=True)
+
+    def sees_real_name(self, viewer: Member) -> bool:
+        return self.identity == 'NAME' or (self.identity == 'INST' and viewer.role != 'STUD')
 
     def visible_author(self, viewer: Member) -> str:
         if self.identity == 'NAME':
             return self.anon_identity.real_name(self.author)
         elif self.identity == 'INST' and viewer.role != 'STUD':
-            return '%s (“%s” to students)' % (self.anon_identity.real_name(self.author), self.anon_identity.name,)
+            return '%s (“%s” to students)' % (self.anon_identity.real_name(self.author), self.anon_identity.pseudonym,)
         else:
-            return '“%s”' % (self.anon_identity.name,)
+            return '“%s”' % (self.anon_identity.pseudonym,)
 
     def visible_author_short(self) -> str:
         if self.identity == 'NAME':
             return self.anon_identity.real_name(self.author)
         else:
-            return '“%s”' % (self.anon_identity.name,)
+            return '“%s”' % (self.anon_identity.pseudonym,)
 
     def was_edited(self):
         return (self.modified_at - self.created_at) > datetime.timedelta(seconds=5)
