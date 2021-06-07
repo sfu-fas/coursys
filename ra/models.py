@@ -519,6 +519,7 @@ class RARequest(models.Model):
     # offer letters
     science_alive = models.BooleanField(default=False)
     offer_letter_text = models.TextField(null=True, default='', help_text="Text of the offer letter to be signed by the RA and supervisor.")
+    additional_supervisor = config_property('additional_supervisor', default='')
 
     # creation, deletion and status
     created_at = models.DateTimeField(auto_now_add=True)
@@ -586,7 +587,7 @@ class RARequest(models.Model):
                     'position': self.position,
                     'biweekly_salary': self.biweekly_salary,
                     'total_pay': self.total_pay,
-                    'vacation_hours': self.total_pay,
+                    'vacation_hours': self.vacation_hours,
                     'weeks_vacation': self.weeks_vacation
                 }
                 text = DEFAULT_LETTER_RABW % substitutions
@@ -708,7 +709,6 @@ class RARequest(models.Model):
     def get_cosigner_line(self):
         if self.hiring_category == "RA" or self.hiring_category == "NC":
             line = "I agree to the conditions of employment"
-
         elif self.hiring_category == "GRAS":
             line = "I agree to the conditions of this contract"
         return line

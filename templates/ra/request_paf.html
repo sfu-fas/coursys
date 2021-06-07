@@ -59,7 +59,10 @@
       <h3>Currently Valid Visa(s)</h3><ul>
         {% if info.visas %}
           {% for visa in info.visas %}
-            <li>{{ visa.status }} starting {{ visa.start }}</li>
+            <p><u><li><b>Type:</b> {{ visa.status }}</li></u>
+            <li><b>Starts:</b> {{ visa.start }}</li>
+            <li><b>Ends:</b> {{ visa.end }}</li>
+            <li><b>Validity:</b> {{ visa.validity }}</li></p>
           {% endfor %}
         {% else %}
           <li class="empty">No currently valid visa in system</li>

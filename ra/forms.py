@@ -863,12 +863,27 @@ class RARequestPAFForm (forms.Form):
     appointment_type = forms.ChoiceField(required=True, choices=APPOINTMENT_TYPE, widget=forms.RadioSelect, label="Type Of Appointment")
 
 class RARequestLetterForm(forms.ModelForm):
+    additional_supervisor = forms.CharField(required=False, label="Co-Signing Supervisor (Optional)")
+   
     class Meta:
         model = RARequest
         fields = ('offer_letter_text',)
         widgets = {
                    'offer_letter_text': forms.Textarea(attrs={'rows': 25, 'cols': 70}),
                    }
+
+    def __init__(self, *args, **kwargs):
+        super(RARequestLetterForm, self).__init__(*args, **kwargs)
+        config_init = ['additional_supervisor']
+        
+        for field in config_init:
+            self.initial[field] = getattr(self.instance, field)
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        config_clean = ['additional_supervisor']
+        for field in config_clean:
+            setattr(self.instance, field, cleaned_data[field])
 
 class RARequestScienceAliveForm(forms.Form):
     letter_type = forms.ChoiceField(required=True, choices=SCIENCE_ALIVE_TYPE, widget=forms.RadioSelect, label="Type Of Science Alive Letter")

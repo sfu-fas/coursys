@@ -612,9 +612,13 @@ def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (req.slug)
     letter = FASOfficialLetter(response)
+    if req.additional_supervisor:
+        from_name_lines = [req.supervisor.letter_name(), req.additional_supervisor, req.unit.name]
+    else:
+        from_name_lines = [req.supervisor.letter_name(), req.unit.name]
     contents = LetterContents(
         to_addr_lines=[req.get_name(), req.unit.name], 
-        from_name_lines=[req.supervisor.letter_name(), req.unit.name],
+        from_name_lines=from_name_lines,
         closing="Yours Truly", 
         signer=req.supervisor,
         cosigner_lines=[req.get_cosigner_line(), req.get_first_name() + " " + req.get_last_name()])
@@ -738,9 +742,15 @@ def request_paf(request: HttpRequest, ra_slug: str) -> HttpResponse:
         personvisas = Visa.objects.visible().filter(person__emplid=emplid)
         for v in personvisas:
             if v.is_current():
+                if v.end_date:
+                    end_date = v.end_date.isoformat()
+                else:
+                    end_date = "Unknown"
                 data = {
                     'start': v.start_date.isoformat(),
+                    'end': end_date,
                     'status': v.status,
+                    'validity': v.get_validity
                 }
                 visas.append(data)
         info['visas'] = visas

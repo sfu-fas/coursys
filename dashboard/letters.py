@@ -609,7 +609,7 @@ class ScienceAliveLetter(SFUMediaMixin):
         self.c.setFillColor(self.sfu_blue)
         self._drawStringLeading(self.c, 39*mm, 242*mm, 'Outreach & Science AL!VE')
         self.c.setFillColor(black)
-        self._drawStringLeading(self.c, 39*mm, 238*mm, 'Faculty of Applied Science')
+        self._drawStringLeading(self.c, 39*mm, 238*mm, 'Faculty of Applied Sciences')
         
         self.c.setFont("Helvetica", 10)
         self.c.drawString(12*mm, 225*mm, self.date.strftime('%B %d, %Y').replace(' 0', ' '))
