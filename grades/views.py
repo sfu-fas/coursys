@@ -20,6 +20,7 @@ from coredata.models import Member, CourseOffering, Person, Semester, Role
 from courselib.auth import ForbiddenResponse, NotFoundResponse, is_course_student_by_slug
 from courselib.auth import is_course_staff_by_slug, requires_course_staff_by_slug
 from courselib.search import find_member
+from forum.models import Forum
 
 from grades.models import all_activities_filter
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, GradeHistory
@@ -99,7 +100,12 @@ def _course_info_staff(request, course_slug):
     member = Member.objects.get(offering=course, person__userid=request.user.username, role__in=['INST','TA','APPR'])
     activities = all_activities_filter(offering=course)
     any_group = True in [a.group for a in activities]
-    
+    try:
+        forum = Forum.objects.get(offering=course)
+        forum_enabled = forum.enabled
+    except Forum.DoesNotExist:
+        forum_enabled = False
+
     # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
     order = None  
     act = None  
@@ -138,25 +144,34 @@ def _course_info_staff(request, course_slug):
     
     context = {'course': course, 'member': member, 'activities_info': activities_info, 'from_page': FROMPAGE['course'],
                'order_type': ORDER_TYPE, 'any_group': any_group, 'total_percent': total_percent, 'discussion_activity': discussion_activity,
-               'offer_combined': offer_combined}
+               'offer_combined': offer_combined, 'forum_enabled': forum_enabled}
     return render(request, "grades/course_info_staff.html", context)
 
 
 @requires_course_staff_by_slug
 def course_config(request, course_slug):
+    from forum.models import Forum
     course = get_object_or_404(CourseOffering, slug=course_slug)
+    try:
+        forum = Forum.objects.get(offering=course)
+    except Forum.DoesNotExist:
+        forum = Forum(offering=course)
+        forum.enabled = False
+
     if request.method=="POST":
         form = CourseConfigForm(request.POST)
         if form.is_valid():
             course.set_url(form.cleaned_data['url'])
             course.set_taemail(form.cleaned_data['taemail'])
-            course.set_discussion(form.cleaned_data['discussion'])
-            if course.uses_svn():
-                course.set_indiv_svn(form.cleaned_data['indiv_svn'])
-                course.set_instr_rw_svn(form.cleaned_data['instr_rw_svn'])
+            #if course.uses_svn():
+            #    course.set_indiv_svn(form.cleaned_data['indiv_svn'])
+            #    course.set_instr_rw_svn(form.cleaned_data['instr_rw_svn'])
             course.set_group_min(form.cleaned_data['group_min'])
             course.set_group_max(form.cleaned_data['group_max'])
             course.save()
+            forum.enabled = form.cleaned_data['forum']
+            forum.identity = form.cleaned_data['forum_identity']
+            forum.save()
             messages.success(request, 'Course config updated')
 
             #LOG EVENT#
@@ -167,7 +182,7 @@ def course_config(request, course_slug):
 
             return HttpResponseRedirect(reverse('offering:course_info', kwargs={'course_slug': course_slug}))
     else:
-        form = CourseConfigForm({'url': course.url(), 'taemail': course.taemail(), 'discussion': course.discussion(),
+        form = CourseConfigForm({'url': course.url(), 'taemail': course.taemail(), 'forum': forum.enabled, 'forum_identity': forum.identity,
                 'indiv_svn': course.indiv_svn(), 'instr_rw_svn': course.instr_rw_svn(), 'group_min': course.group_min(),'group_max': course.group_max()})
     
     context = {'course': course, 'form': form}
@@ -181,7 +196,12 @@ def _course_info_student(request, course_slug):
     activities = [a for a in activities if a.status in ['RLS', 'URLS']]
     any_group = True in [a.group for a in activities]
     has_index = bool(Page.objects.filter(offering=course, label="Index", can_read__in=ACL_ROLES['STUD']))
-    
+    try:
+        forum = Forum.objects.get(offering=course)
+        forum_enabled = forum.enabled
+    except Forum.DoesNotExist:
+        forum_enabled = False
+
     activity_data = []
     student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
     for activity in activities:
@@ -196,7 +216,8 @@ def _course_info_student(request, course_slug):
         discussion_activity = discuss_activity.recent_activity(member)
         
     context = {'course': course, 'member': student, 'activity_data': activity_data, 'any_group': any_group, 
-               'has_index': has_index, 'from_page': FROMPAGE['course'], 'discussion_activity': discussion_activity}
+               'has_index': has_index, 'from_page': FROMPAGE['course'], 'discussion_activity': discussion_activity,
+               'forum_enabled': forum_enabled}
     
     return render(request, "grades/course_info_student.html", context)
 

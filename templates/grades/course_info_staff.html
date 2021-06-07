@@ -59,6 +59,7 @@ $(document).ready(function() {
         	{% if discussion_activity %}<i class="fa fa-comments infomessage"></i>{% endif %}
         	</a></li>
         {% endif %}
+    {% if forum_enabled %}<li><a href="{% url "offering:forum:summary" course_slug=course.slug %}"><i class="far fa-li fa-comments"></i> Discussion Forum</a></li>{% endif %}
         <li class="newsec"><a href="{% url "offering:class_list" course_slug=course.slug %}"><i class="fa fa-li fa-list"></i>Display Class List</a></li>
     {% if member.role == "INST" %}<li><a href="{% url "offering:photo_list" course_slug=course.slug %}"><i class="fa fa-li fa-picture-o"></i>Photo Class List</a></li>{% endif %}
         <li><a href="{% url "offering:all_grades" course_slug=course.slug %}"><i class="fa fa-li fa-table"></i>Display All Grades</a></li>

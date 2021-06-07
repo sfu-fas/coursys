@@ -21,6 +21,7 @@
     	</a>
     </li>    
     {% endif %}
+	{% if forum_enabled %}<li><a href="{% url "offering:forum:summary" course_slug=course.slug %}">Discussion Forum</a></li>{% endif %}
 	{% if has_index %}<li><a href="{% url "offering:pages:index_page" course_slug=course.slug %}">View Pages</a></li>{% endif %}
     </ul>
 </div>
