@@ -5,7 +5,7 @@
 
 <ul class="thread-list">
 {% for thread in threads %}
-<li class="{% if thread in unread_threads  %}unread{% else %}read{% endif %}">
+<li class="{% if thread in unread_threads  %}unread{% else %}read{% endif %} {% if thread.pin %}pinned{% endif %}">
     <span class="title">
         <a href="{{ thread.get_absolute_url }}" data-target="main-panel">#{{ thread.post.number }} {{ thread.title_short }}</a>
         {% if thread.privacy == 'INST' %}<span class="privacy-note">[Private]</span>{% endif %}

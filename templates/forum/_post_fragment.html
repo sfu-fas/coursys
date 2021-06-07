@@ -1,5 +1,5 @@
 {% load forum_display %}
-<section class="post" id="post-{{ post.number }}">
+<section class="post{% if extra_class %} {{ extra_class }}{% endif %}" id="post-{{ post.number }}">
 <div class="post-header" data-datetime="{{ post.created_at.isoformat }}">
     {% avatar_image post=post viewer=viewer %}
     By {{ post|visible_author:viewer }},
@@ -10,7 +10,8 @@
 
 {{ post.html_content }}
 
+<div class="reaction-stuff">
 {% if not no_reactions %}{% reaction_display post post_reactions viewer_reactions %}{% endif %}
 {% if not no_reactions %}{% reaction_widget post viewer viewer_reactions %}{% endif %}
-
+</div>
 </section>

@@ -30,7 +30,7 @@
 
 <section id="replies">
 {% for reply in replies %}
-{% include 'forum/_post_fragment.html' with post=reply.post viewer=viewer instr_pinnable=False %}
+{% include 'forum/_post_fragment.html' with post=reply.post viewer=viewer instr_pinnable=False extra_class='thread-reply' %}
 {% empty %}
     <p class="empty">No replies.</p>
 {% endfor %}

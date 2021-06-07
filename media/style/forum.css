@@ -64,6 +64,12 @@ section.post {
     padding: 0.5em 0.5em 0 0.5em;
 }
 
+.reaction-stuff {
+    border-top: thin solid #ddd;
+}
+.reaction-stuff p {
+    margin: 0.5em 0;
+}
 span.reaction {
     border: thin solid #ddd;
     padding: 0.1em;
@@ -81,7 +87,7 @@ span.reaction {
 
 .thread-list > li {
     display: grid;
-    grid-template-columns: 3fr 1fr;
+    grid-template-columns: 1fr 3em;
     grid-template-rows: auto;
 
     margin: -1px 1em 0 0; /* -1px to border collapse */
@@ -91,8 +97,8 @@ span.reaction {
     font-size: 90%;
     line-height: 125%;
 }
-.thread-list > li.read {
-    background-color: #eee;
+.thread-list > li.unread .title {
+    font-weight: bold;
 }
 .thread-list .title {
     grid-column: 1 / 3;
@@ -111,7 +117,10 @@ h2 span.pin {
     font-size: 50%;
 }
 i.pin {
-    color: #777;
+    color: #444;
+}
+.thread-list li.pinned {
+    background-color: #eee;
 }
 .thread-list .author {
     grid-column: 1;

@@ -25,6 +25,8 @@ from forum.names_generator import get_random_name
 # TODO: need instructor reply form: no identity field, and "don't consider this an answer" check
 # TODO: something if there are more than THREAD_LIST_MAX threads in the menu
 # TODO: instr edit shouldn't see/change anon identity setting
+# TODO: refactor HaveRead for easier read: ReadThread and ReadReply?
+# TODO: UI for instructor to enable (and not discussions); copy in course copy
 
 
 IDENTITY_CHOICES = [  # Identity.identity_choices should reflect any logical changes here
