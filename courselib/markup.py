@@ -45,6 +45,7 @@ allowed_tags = allowed_tags_restricted + [ # allowed on pages and advisor notes
 ]
 allowed_attributes = bleach.sanitizer.ALLOWED_ATTRIBUTES
 allowed_attributes['pre'] = ['lang']
+allowed_attributes['img'] = ['src', 'alt', 'width', 'height']
 
 
 def sanitize_html(html, restricted=False):
@@ -155,8 +156,7 @@ def markup_to_html(markup, markuplang, math=None, offering=None, pageversion=Non
     elif markuplang == 'markdown':
         # TODO: the due_date etc tricks that are available in wikicreole
         html = markdown_to_html(markup)
-        if restricted:
-            html = sanitize_html(html, restricted=True)
+        html = sanitize_html(html, restricted=restricted)
 
     elif markuplang == 'textile':
         html = textile_restricted(markup, lite=False)
