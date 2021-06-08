@@ -21,10 +21,12 @@ class _PostForm(MarkupContentMixin(field_name='content'), forms.ModelForm):
 
     def __init__(self, offering_identity: str, member: Member, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['identity'].choices = Identity.identity_choices(offering_identity, member)
+        if 'identity' in self.fields:
+            self.fields['identity'].choices = Identity.identity_choices(offering_identity, member)
 
     def save(self, *args, **kwargs):
-        self.instance.identity = self.cleaned_data['identity']
+        if 'identity' in self.fields:
+            self.instance.identity = self.cleaned_data['identity']
         return super().save(*args, **kwargs)
 
 
@@ -37,15 +39,32 @@ class ThreadForm(_PostForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        identity = cleaned_data.get('identity')
-        privacy = cleaned_data.get('privacy')
-        if identity == 'ANON' and privacy == 'I':
-            self.add_error('identity', 'Private questions cannot be anonymous.')
+        if 'identity' in self.fields:
+            identity = cleaned_data.get('identity')
+            privacy = cleaned_data.get('privacy')
+            if identity == 'ANON' and privacy == 'I':
+                self.add_error('identity', 'Private questions cannot be anonymous.')
+
+
+class InstrThreadForm(ThreadForm):
+    # instructors can't see/edit anonymity setting
+    identity = None
+
+    class Meta(ThreadForm.Meta):
+        fields = ('title', 'type', 'privacy', 'content')
 
 
 class ReplyForm(_PostForm):
     class Meta(_PostForm.Meta):
         fields = ('identity', 'content')
+
+
+class InstrReplyForm(ReplyForm):
+    # instructors can't see/edit anonymity setting
+    identity = None
+
+    class Meta(ReplyForm.Meta):
+        fields = ('content',)
 
 
 class SearchForm(forms.Form):

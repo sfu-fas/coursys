@@ -479,7 +479,7 @@ class Reply(models.Model):
     objects = ReplyManager.from_queryset(ReplyQuerySet)()
 
     class Meta:
-        ordering = ('post__modified_at',)
+        ordering = ('post__created_at',)
 
     def save(self, real_change=False, create_history=False, *args, **kwargs):
         with transaction.atomic():

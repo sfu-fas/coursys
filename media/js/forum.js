@@ -4,7 +4,7 @@ function by_score(a, b) {
     const ascore = parseFloat(a.getElementsByClassName('reactions')[0].dataset.score);
     const bscore = parseFloat(b.getElementsByClassName('reactions')[0].dataset.score);
     if ( ascore == bscore ) {
-        return by_time(a, b);
+        return by_time_oldest(a, b);
     } else {
         return bscore - ascore;
     }

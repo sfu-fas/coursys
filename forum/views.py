@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from haystack.query import SearchQuerySet
 
 from courselib.auth import requires_course_by_slug
-from forum.forms import ThreadForm, ReplyForm, SearchForm, AvatarForm
+from forum.forms import ThreadForm, ReplyForm, SearchForm, AvatarForm, InstrThreadForm, InstrReplyForm
 from forum.models import Thread, Identity, Forum, Reply, Reaction, Post, HaveRead, \
     APPROVAL_REACTIONS, REACTION_ICONS, APPROVAL_ROLES, IDENTITY_CHOICES
 from forum.names_generator import get_random_name
@@ -77,7 +77,7 @@ def _forum_omni_view(
         except Http404:
             # if we got a reply's number, redirect to its true location
             replies = list(Reply.objects.filter(post__number=post_number).filter_for(member)
-                           .select_related('post', 'post__offering', 'thread'))
+                           .select_related('post', 'post__offering', 'thread').order_by('post__created_at'))
             if replies:
                 return HttpResponsePermanentRedirect(replies[0].get_absolute_url())
             else:
@@ -218,7 +218,10 @@ def edit_post(request: HttpRequest, course_slug: str, post_number: int) -> HttpR
         post = thread.post
         reply = None
         header_thread = None
-        Form = ThreadForm
+        if post.author == member:
+            Form = ThreadForm
+        else:
+            Form = InstrThreadForm
     except Http404:
         # if we got a reply's number, deal with that
         replies = list(Reply.objects.filter(post__number=post_number).filter_for(member)
@@ -228,7 +231,10 @@ def edit_post(request: HttpRequest, course_slug: str, post_number: int) -> HttpR
             post = reply.post
             thread = None
             header_thread = reply.thread
-            Form = ReplyForm
+            if post.author == member:
+                Form = ReplyForm
+            else:
+                Form = InstrReplyForm
         else:
             raise
 
