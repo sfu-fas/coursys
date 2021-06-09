@@ -52,24 +52,23 @@
       {% else %}
       Never updated.
       {% endif %}
-      </td></tr>
-    </tr></td>
+    </td></tr>
   </table>
 </div>
 
 <div class="table_container">
   <h2>Appointee Information</h2> 
+  {% if not no_id and admin %} 
+    <i>(Click <a href="{% url "ra:appointee_appointments" userid=req.person.userid %}">here</a> to view all appointments for {{ person.name }})</i>
+  {% endif %}
   <table class="info">
-    {% if not no_id and admin %} 
-    (<i>Click <a href="{% url "ra:appointee_appointments" userid=req.person.userid %}">here</a> to view all appointments for {{ person.name }})</i></td></tr>
-    {% endif %}
     {% if no_id %}
     <tr><th>ID:</th><td>Appointee does not have an SFU ID</td></tr>
     <tr><th>First Name:</th><td>{{ req.first_name }}</td></tr>
     <tr><th>Last Name:</th><td>{{ req.last_name }}</td></tr>
     <tr><th>Email:</th><td>{{ req.email_address }}</td></tr>
     {% else %}
-    <tr><th>ID:</th><td>{{ person.emplid }}
+    <tr><th>ID:</th><td>{{ person.emplid }}</td></tr>
     <tr><th>First Name:</th><td>{{ person.first_name }}</td></tr>
     <tr><th>Last Name:</th><td>{{ person.last_name }}</td></tr>
     <tr><th>Email:</th><td>{{ person.email_mailto }}</td></tr>
@@ -109,7 +108,7 @@
 <div class="table_container">
   <h2>Supervisor Information</h2>
   {% if admin %}
-  (<i>Click <a href="{% url "ra:supervisor_appointments" userid=req.supervisor.userid %}">here</a> to view all appointments that {{ supervisor.name }} is supervisor for)</i></td></tr>
+    <i>(Click <a href="{% url "ra:supervisor_appointments" userid=req.supervisor.userid %}">here</a> to view all appointments that {{ supervisor.name }} is supervisor for)</i>
   {% endif %}
   <table class="info">
     <tr><th>ID:</th><td>{{ supervisor.emplid }}</td></tr>
@@ -343,7 +342,7 @@
 {% endif %}
 
 {% if admin %}
-<h2><b><u>ADMINISTRATIVE</u></h2></b>
+<h3>ADMINISTRATIVE</h3>
 
 <div class="table_container">
   <h2>Notes</h2>
@@ -427,7 +426,7 @@
         <table class="form_section_incomplete"><tr><td><b>Grant is Active for Duration of Appointment</b></td>
           <td class="checkbox">
           {% if admin %}  
-          {{ adminform|as_dl_includefields:"grant_active"}}</td>
+          {{ adminform|as_dl_includefields:"grant_active"}}
           {% else %}
             <i>Incomplete</i>
           {% endif %}
