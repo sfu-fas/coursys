@@ -66,11 +66,11 @@ def avatar_image(post: Post, viewer: Member, avatar_type=None) -> SafeString:
     # avatar_type argument used for the selection form, so user can preview.
     if not avatar_type:
         if post.sees_real_name(viewer):
-            avatar_type = post.anon_identity.avatar_type
+            avatar_type = post.author_identity.avatar_type
         else:
-            avatar_type = post.anon_identity.anon_avatar_type
+            avatar_type = post.author_identity.anon_avatar_type
 
-    url = post.anon_identity.avatar_image_url(avatar_type=avatar_type, anon=not post.sees_real_name(viewer))
+    url = post.author_identity.avatar_image_url(avatar_type=avatar_type, anon=not post.sees_real_name(viewer))
     return mark_safe(
         '<img src="' + escape(url) + '" alt="" class="avatar" loading="lazy" referrerpolicy="no-referrer" />')
 

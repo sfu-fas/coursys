@@ -24,8 +24,6 @@ from forum.names_generator import get_random_name
 # TODO: "#123" should be a link to post 123
 # TODO: need instructor reply form: no identity field, and "don't consider this an answer" check
 # TODO: something if there are more than THREAD_LIST_MAX threads in the menu
-# TODO: instr edit shouldn't see/change anon identity setting
-# TODO: refactor HaveRead for easier read: ReadThread and ReadReply?
 
 
 IDENTITY_CHOICES = [  # Identity.identity_choices should reflect any logical changes here
@@ -110,7 +108,9 @@ AVATAR_TYPE_CHOICES = [
 
 class Identity(models.Model):
     """
-    A forum identity, used throughout this offering. Created for all users, whether .name is used or not.
+    A forum identity, used throughout this offering. Created for all users, whether .pseudonym is used or not.
+
+    .offering is technically redundant, but allows the correct unique_together keys
     """
     offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     member = models.ForeignKey(Member, on_delete=models.PROTECT)
@@ -152,7 +152,7 @@ class Identity(models.Model):
         Get an Identity for this member, creating if necessary.
         """
         try:
-            return Identity.objects.get(member=member)
+            return Identity.objects.get(offering_id=member.offering_id, member=member)
         except Identity.DoesNotExist:
             # no Identity for this user: create it.
             ident = Identity.new(offering=member.offering, member=member, save=True)
@@ -224,8 +224,8 @@ class Post(models.Model):
     """
     offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)  # used to enforce unique .number within an offering
     author = models.ForeignKey(Member, on_delete=models.PROTECT)
-    # Anonymous identity used: technically redundant, but allows .select_related for display
-    anon_identity = models.ForeignKey(Identity, on_delete=models.PROTECT, null=True, blank=True)
+    # Identity used: technically redundant, but allows .select_related for display
+    author_identity = models.ForeignKey(Identity, on_delete=models.PROTECT, null=False, blank=False)
     created_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     modified_at = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     type = models.CharField(max_length=4, null=False, blank=False, default='DISC', choices=POST_TYPE_CHOICES)
@@ -252,16 +252,14 @@ class Post(models.Model):
         if real_change:
             # something worth noting changed
             self.modified_at = datetime.datetime.now()
-            if self.id:
-                HaveRead.objects.filter(post_id=self.id).delete()
 
-        # enforce rules for the .anon_identity field
-        if not self.anon_identity:  # not really needed if self.identity=='NAME' but it lets us use the helpers
+        # enforce rules for the .author_identity field
+        if not self.author_identity_id:
             # not filled: do it ourselves
-            self.anon_identity = Identity.for_member(self.author)
+            self.author_identity = Identity.for_member(self.author)
         else:
-            assert self.author_id == self.anon_identity.member_id
-            assert self.offering_id == self.anon_identity.offering_id
+            assert self.author_id == self.author_identity.member_id
+            assert self.offering_id == self.author_identity.offering_id
 
         if self.number:
             # we already have our unique post number: the rest is easy.
@@ -293,17 +291,17 @@ class Post(models.Model):
 
     def visible_author(self, viewer: Member) -> str:
         if self.identity == 'NAME':
-            return self.anon_identity.real_name(self.author)
+            return self.author_identity.real_name(self.author)
         elif self.identity == 'INST' and viewer.role != 'STUD':
-            return '%s (“%s” to students)' % (self.anon_identity.real_name(self.author), self.anon_identity.pseudonym,)
+            return '%s (“%s” to students)' % (self.author_identity.real_name(self.author), self.author_identity.pseudonym,)
         else:
-            return '“%s”' % (self.anon_identity.pseudonym,)
+            return '“%s”' % (self.author_identity.pseudonym,)
 
     def visible_author_short(self) -> str:
         if self.identity == 'NAME':
-            return self.anon_identity.real_name(self.author)
+            return self.author_identity.real_name(self.author)
         else:
-            return '“%s”' % (self.anon_identity.pseudonym,)
+            return '“%s”' % (self.author_identity.pseudonym,)
 
     def was_edited(self):
         return (self.modified_at - self.created_at) > datetime.timedelta(seconds=5)
@@ -414,6 +412,7 @@ class Thread(models.Model):
         return (-self.pin, -self.last_activity.timestamp())
 
     def save(self, real_change=False, create_history=False, *args, **kwargs):
+        # real_change: user-noticeable changes that should bump last_updated and clear "read" statuses
         with transaction.atomic():
             self.post.save(real_change=real_change)
             self.post_id = self.post.id
@@ -423,6 +422,10 @@ class Thread(models.Model):
             if create_history:
                 history = PostHistory.from_thread(self)
                 history.save()
+
+            if real_change:
+                # something worth noting changed: mark unread for everybody
+                ReadThread.objects.filter(thread_id=self.id).delete()
 
         return result
 
@@ -482,6 +485,7 @@ class Reply(models.Model):
         ordering = ('post__created_at',)
 
     def save(self, real_change=False, create_history=False, *args, **kwargs):
+        # real_change: user-noticeable changes that should bump last_updated and clear "read" statuses
         with transaction.atomic():
             self.post.save(real_change=real_change)
             self.post_id = self.post.id
@@ -492,6 +496,11 @@ class Reply(models.Model):
             if create_history:
                 history = PostHistory.from_reply(self)
                 history.save()
+
+            if real_change:
+                # something worth noting changed: mark unread for everybody
+                ReadThread.objects.filter(thread_id=self.thread_id).delete()
+                ReadReply.objects.filter(reply_id=self.id).delete()
 
         return result
 
@@ -536,26 +545,40 @@ class PostHistory(models.Model):
         return h
 
 
-class HaveRead(models.Model):
+class ReadThread(models.Model):
     """
-    This user has read this post.
+    This user has read this Thread *and* and Replies, as they exist (i.e. should be deleted on a reply edit)
     """
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    thread = models.ForeignKey(Thread, on_delete=models.CASCADE)
     updated_at = models.DateTimeField(auto_now=True, null=False, blank=False)
 
     class Meta:
         unique_together = [
-            ('member', 'post'),
+            ('member', 'thread'),
         ]
 
     @staticmethod
     def mark_all_read(member: Member):
-        posts = Post.objects.filter(offering_id=member.offering_id)
-        HaveRead.objects.bulk_create(
-            [HaveRead(member=member, post_id=p.id) for p in posts],
+        threads = Thread.objects.filter(post__offering_id=member.offering_id)
+        ReadThread.objects.bulk_create(
+            [ReadThread(member=member, thread_id=t.id) for t in threads],
             ignore_conflicts=True
         )
+
+
+class ReadReply(models.Model):
+    """
+    This user has read this Reply, as it exists (i.e. should be deleted on edit)
+    """
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    reply = models.ForeignKey(Reply, on_delete=models.CASCADE)
+    updated_at = models.DateTimeField(auto_now=True, null=False, blank=False)
+
+    class Meta:
+        unique_together = [
+            ('member', 'reply'),
+        ]
 
 
 REACTION_CHOICES = [

@@ -1,4 +1,3 @@
-import datetime
 import itertools
 from typing import Optional, Dict, List
 
@@ -10,8 +9,8 @@ from haystack.query import SearchQuerySet
 
 from courselib.auth import requires_course_by_slug
 from forum.forms import ThreadForm, ReplyForm, SearchForm, AvatarForm, InstrThreadForm, InstrReplyForm
-from forum.models import Thread, Identity, Forum, Reply, Reaction, Post, HaveRead, \
-    APPROVAL_REACTIONS, REACTION_ICONS, APPROVAL_ROLES, IDENTITY_CHOICES
+from forum.models import Thread, Identity, Forum, Reply, Reaction, Post, \
+    APPROVAL_REACTIONS, REACTION_ICONS, APPROVAL_ROLES, IDENTITY_CHOICES, ReadThread, ReadReply
 from forum.names_generator import get_random_name
 
 
@@ -57,7 +56,7 @@ def _forum_omni_view(
                 thread.save(create_history=True, real_change=True)  # also saves the thread.post
 
                 # mark it as self-read
-                HaveRead.objects.bulk_create([HaveRead(member=member, post_id=post.id)], ignore_conflicts=True)
+                ReadThread(member=member, thread_id=thread.id).save()
 
                 messages.add_message(request, messages.SUCCESS, 'Forum thread posted.')
                 return redirect('offering:forum:view_thread', course_slug=offering.slug, post_number=post.number)
@@ -71,7 +70,7 @@ def _forum_omni_view(
         try:
             thread = get_object_or_404(
                 Thread.objects.select_related('post', 'post__author', 'post__offering', 'post__author__person',
-                                              'post__offering', 'post__anon_identity__member__person').filter_for(member),
+                                              'post__offering', 'post__author_identity__member__person').filter_for(member),
                 post__number=post_number
             )
         except Http404:
@@ -88,7 +87,7 @@ def _forum_omni_view(
         context['thread'] = thread
 
         replies = Reply.objects.filter(thread=thread).filter_for(member) \
-            .select_related('post', 'post__author', 'post__author__person', 'post__offering', 'post__anon_identity__member')
+            .select_related('post', 'post__author', 'post__author__person', 'post__offering', 'post__author_identity__member')
 
         # view_thread view has a form to reply to this thread
         if request.method == 'POST':
@@ -105,16 +104,19 @@ def _forum_omni_view(
                 reply.thread.post.update_status(commit=True)
 
                 # mark it as self-read
-                HaveRead.objects.bulk_create([HaveRead(member=member, post_id=rep_post.id)], ignore_conflicts=True)
+                ReadReply(member=member, reply_id=reply.id).save()
 
                 return redirect('offering:forum:view_thread', course_slug=offering.slug, post_number=thread.post.number)
         else:
             reply_form = ReplyForm(member=member, offering_identity=forum.identity)
 
         # mark everything we're sending to the user as read
-        HaveRead.objects.bulk_create(
-            [HaveRead(member=member, post_id=thread.post_id)]
-            + [HaveRead(member=member, post_id=r.post_id) for r in replies],
+        ReadThread.objects.bulk_create(
+            [ReadThread(member=member, thread_id=thread.id)],
+            ignore_conflicts=True
+        )
+        ReadReply.objects.bulk_create(
+            [ReadReply(member=member, reply_id=r.id) for r in replies],
             ignore_conflicts=True
         )
         thread_list_update = True
@@ -138,25 +140,13 @@ def _forum_omni_view(
 
     if not fragment or view == 'thread_list':
         threads = Thread.objects.filter_for(member) \
-            .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__anon_identity')
+            .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__author_identity')
+
+        read_thread_ids = ReadThread.objects.filter(member=member).values_list('thread_id', flat=True)
+        unread_threads = threads.exclude(id__in=read_thread_ids)
+
         threads = threads[:THREAD_LIST_MAX]
         context['threads'] = threads
-
-        # Find threads with unread activity
-        reads = HaveRead.objects.filter(member=member).values_list('post_id', flat=True)
-        unread_post_ids = Post.objects.filter(offering=offering).exclude(id__in=reads).values_list('id', flat=True)
-        # TODO: this creates three-level nested queries. Should we convert to a list here to simplify?
-        #unread_post_ids = list(unread_post_ids)
-
-        # we have all Post.id values that this user hasn't read. Now find corresponding Threads
-        unread_threads = Thread.objects.filter(post_id__in=unread_post_ids).filter_for(member) \
-            .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__anon_identity')
-        unread_replies = Reply.objects.filter(post_id__in=unread_post_ids).filter_for(member) \
-            .select_related('thread', 'thread__post', 'thread__post__author', 'thread__post__offering', 'post__author__person', 'post__anon_identity')
-        unread_threads = set(unread_threads) | set(r.thread for r in unread_replies)
-        unread_threads = list(unread_threads)
-        unread_threads.sort(key=Thread.sort_key)
-
         context['unread_threads'] = unread_threads
 
     if view == 'summary':
@@ -165,7 +155,7 @@ def _forum_omni_view(
 
         if member.role in APPROVAL_ROLES:
             unanswered_threads = Thread.objects.filter(post__type='QUES', post__status='OPEN').filter_for(member) \
-                .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__anon_identity')
+                .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__author_identity')
 
             approval_icons = ', '.join(REACTION_ICONS[r] for r in APPROVAL_REACTIONS)
 
@@ -212,7 +202,7 @@ def edit_post(request: HttpRequest, course_slug: str, post_number: int) -> HttpR
     try:
         thread = get_object_or_404(
             Thread.objects.select_related('post', 'post__author', 'post__offering', 'post__author__person',
-                                          'post__offering', 'post__anon_identity__member__person').filter_for(member),
+                                          'post__offering', 'post__author_identity__member__person').filter_for(member),
             post__number=post_number
         )
         post = thread.post
@@ -251,11 +241,12 @@ def edit_post(request: HttpRequest, course_slug: str, post_number: int) -> HttpR
                 thread.title = form.cleaned_data['title']
                 thread.privacy = form.cleaned_data['privacy']
                 thread.save(create_history=True, real_change=True)  # also saves the thread.post
+                # mark it as self-read
+                ReadThread.objects.bulk_create([ReadThread(member=member, thread_id=thread.id)], ignore_conflicts=True)
             else:
                 reply.save(create_history=True, real_change=True)  # also saves the reply.post
-
-            # mark it as self-read
-            HaveRead.objects.bulk_create([HaveRead(member=member, post_id=post.id)], ignore_conflicts=True)
+                # mark it as self-read
+                ReadReply.objects.bulk_create([ReadReply(member=member, reply_id=reply.id)], ignore_conflicts=True)
 
             messages.add_message(request, messages.SUCCESS, 'Post updated.')
             return redirect('offering:forum:view_thread', course_slug=offering.slug, post_number=post.number)
