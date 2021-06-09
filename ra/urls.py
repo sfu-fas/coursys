@@ -10,7 +10,6 @@ PROGRAM_ID = '(?P<program_id>' + ID_RE + ')'
 
 
 ra_patterns = [ # prefix /ra/
-    url(r'^browse_appointments', ra_views.browse_appointments, name='browse_appointments'),
     url(r'^download_current', ra_views.download, kwargs={'current': True}, name='download_current'),
     url(r'^download_all', ra_views.download, name='download_all'),
     url(r'^download_requests', ra_views.download, kwargs={'incomplete': True}, name='download_requests'),

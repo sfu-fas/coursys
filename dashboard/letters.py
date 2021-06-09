@@ -909,7 +909,7 @@ class RARequestForm(SFUMediaMixin):
         elif gras_bw:
             hourly = ''
             biweekly = "$%.2f" % (self.ra.biweekly_salary)
-            biweekhours = "%.1f" % (self.ra.biweekly_hours)
+            biweekhours = self.ra.get_biweekly_hours()
             lumpsum = ''
             lumphours = ''
         elif ra_hourly:
@@ -921,7 +921,7 @@ class RARequestForm(SFUMediaMixin):
         elif ra_bw:
             hourly = ''
             biweekly = "$%.2f" % (self.ra.biweekly_salary)
-            biweekhours = "%.1f" % (self.ra.biweekly_hours)
+            biweekhours = self.ra.get_biweekly_hours()
             lumpsum = ''
             lumphours = ''
         elif nc_hourly:
@@ -933,7 +933,7 @@ class RARequestForm(SFUMediaMixin):
         elif nc_bw:
             hourly = ''
             biweekly = "$%.2f" % (self.ra.biweekly_salary)
-            biweekhours = "%.1f" % (self.ra.biweekly_hours)
+            biweekhours = self.ra.get_biweekly_hours()
             lumpsum = ''
             lumphours = ''
         elif self.ra.backdated:
@@ -941,7 +941,7 @@ class RARequestForm(SFUMediaMixin):
             biweekly = ''
             biweekhours = ''
             lumpsum = "$%.2f" % (self.ra.backdate_lump_sum)
-            lumphours = "%.1f" % (self.ra.backdate_hours)
+            lumphours = self.ra.get_backdate_hours()
         
         # override if lump sum is selected, if not check if hourly
         if appointment_type == "LS":
@@ -950,7 +950,8 @@ class RARequestForm(SFUMediaMixin):
             biweekhours = ''
             lumpsum = "$%.2f" % (self.ra.total_pay)
         elif ra_hourly or nc_hourly:
-            self.c.drawString(3*mm, 120*mm, "(Biweekly Hours: %.1f)" % (self.ra.biweekly_hours))
+            self.c.drawString(3*mm, 120*mm, "Bi-Weekly:")
+            self.c.drawString(3*mm, 117*mm, "(%s)" % (self.ra.get_biweekly_hours()))
 
         self.c.setFont("Helvetica-Bold", 7)
         self.c.drawString(3*mm, 130*mm, "Hourly Rate")
@@ -971,8 +972,8 @@ class RARequestForm(SFUMediaMixin):
 
         self.c.drawString(51*mm, 117*mm, "Enter hours and minutes:")
 
-        self._box_entry(51.5*mm, 110*mm, 15.5*mm, 6*mm, content=biweekhours)
-        self._box_entry(100.5*mm, 110*mm, 15.5*mm, 6*mm, content=lumphours)
+        self._box_entry(51.5*mm, 110*mm, 40*mm, 6*mm, content=biweekhours)
+        self._box_entry(100.5*mm, 110*mm, 40*mm, 6*mm, content=lumphours)
 
         health_benefits = [0,1]       
         if research_assistant and self.ra.ra_benefits == "Y":
@@ -1197,7 +1198,6 @@ class RARequestForm(SFUMediaMixin):
             self._box_entry(11*mm, 223*mm, 80*mm, 6*mm, content=str(self.ra.supervisor.name()))
             self._box_entry(21*mm, 217*mm, 70*mm, 6*mm, content=str(self.ra.supervisor.emplid))
             self._box_entry(11*mm, 211*mm, 80*mm, 6*mm, content=str(self.ra.supervisor.email()))
-
 
             vacation = [0, 0]
             weeks_vacation = ''

@@ -587,7 +587,7 @@ class RARequest(models.Model):
                     'position': self.position,
                     'biweekly_salary': self.biweekly_salary,
                     'total_pay': self.total_pay,
-                    'vacation_hours': self.vacation_hours,
+                    'vacation_hours': self.get_vacation_hours(),
                     'weeks_vacation': self.weeks_vacation
                 }
                 text = DEFAULT_LETTER_RABW % substitutions
@@ -664,6 +664,33 @@ class RARequest(models.Model):
             funds.append(self.fs3_fund)
         funds = ', '.join(str(f) for f in set(funds))
         return funds
+
+    def get_biweekly_hours(self):
+        mins = round(60 * (self.biweekly_hours % 1))
+        hours = int(self.biweekly_hours)
+        if mins != 0:
+            biweekly_hours = str(hours) + " hours and " + str(mins) + " minutes"
+        else:
+            biweekly_hours = str(hours) + " hours"  
+        return biweekly_hours
+
+    def get_vacation_hours(self):
+        mins = round(60 * (self.vacation_hours % 1))
+        hours = int(self.vacation_hours)
+        if mins != 0:
+            vacation_hours = str(hours) + " hours and " + str(mins) + " minutes"
+        else:
+            vacation_hours = str(hours) + " hours"  
+        return vacation_hours
+
+    def get_backdate_hours(self):
+        mins = round(60 * (self.backdate_hours % 1))
+        hours = int(self.backdate_hours)
+        if mins != 0:
+            backdate_hours = str(hours) + " hours and " + str(mins) + " minutes"
+        else:
+            backdate_hours = str(hours) + " hours"  
+        return backdate_hours
 
     def get_name(self):
         if self.first_name and self.last_name:
