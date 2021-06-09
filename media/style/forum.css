@@ -26,7 +26,6 @@
     }
     textarea {
         box-sizing: border-box;
-
         max-width: 100%;
     }
 }
@@ -140,6 +139,7 @@ img.avatar {
     float: right;
     margin: 0.25em;
     clear: right;
+    overflow: hidden;
 }
 ul#id_avatar_type>li, ul#id_anon_avatar_type>li {
     clear: right;

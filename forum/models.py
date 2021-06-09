@@ -21,7 +21,6 @@ from forum.names_generator import get_random_name
 # TODO: should a Reply have type for followup-question?
 # TODO: asker should be able to explicitly mark "answered"
 # TODO: actual deleting of posts (status='HIDD') by instructors
-# TODO: "#123" should be a link to post 123
 # TODO: need instructor reply form: no identity field, and "don't consider this an answer" check
 # TODO: something if there are more than THREAD_LIST_MAX threads in the menu
 
