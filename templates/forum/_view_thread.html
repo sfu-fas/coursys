@@ -42,6 +42,6 @@
 <form action="" method="post" enctype="multipart/form-data" class="close-warn">{% csrf_token %}
 {{ reply_form | forum_form:"Reply" }}
 </form>
-<p><a href="{% url 'offering:forum:anon_identity' course_slug=offering.slug %}">About discussion forum anonymous identities</a></p>
+<p><a href="{% url 'offering:forum:identity' course_slug=offering.slug %}">About discussion forum identities</a></p>
 
 </section>

@@ -8,6 +8,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, HttpRes
 from django.shortcuts import render, redirect, get_object_or_404
 from haystack.query import SearchQuerySet
 
+from coredata.models import Member, CourseOffering
 from courselib.auth import user_passes_test, is_course_member_by_slug
 from forum.forms import ThreadForm, ReplyForm, SearchForm, AvatarForm, InstrThreadForm, InstrReplyForm
 from forum.models import Thread, Identity, Forum, Reply, Reaction, \
@@ -26,6 +27,13 @@ THREAD_LIST_MAX = 100
 #     last_time = now
 
 
+class ForumHttpRequest(HttpRequest):
+    # subclass of HttpRequest that promises the fies the @forum_view decorator provides
+    member: Member
+    offering: CourseOffering
+    forum: Forum
+
+
 def forum_view(view):
     """
     Decorator for all forum views: ensures Forum.enabled, pre-fetches request.member and request.offering.
@@ -34,17 +42,17 @@ def forum_view(view):
     auth_decorator = user_passes_test(is_course_member_by_slug)
 
     @functools.wraps(view)
-    def the_view(request: HttpRequest, course_slug: str, **kwargs):
-        request.offering = request.member.offering
-        request.forum = Forum.for_offering_or_404(request.offering)
+    def the_view(request: ForumHttpRequest, course_slug: str, **kwargs):
         with transaction.atomic():
-            resp = view(request, **kwargs)
-        return resp
+            request.offering = request.member.offering
+            request.forum = Forum.for_offering_or_404(request.offering)
+            response = view(request, **kwargs)
+        return response
 
     return auth_decorator(the_view)
 
 
-def _render_forum_page(request: HttpRequest, context: Dict[str, Any]) -> HttpResponse:
+def _render_forum_page(request: ForumHttpRequest, context: Dict[str, Any]) -> HttpResponse:
     context['offering'] = request.offering
     context['viewer'] = request.member
     fragment = 'fragment' in request.GET
@@ -57,13 +65,16 @@ def _render_forum_page(request: HttpRequest, context: Dict[str, Any]) -> HttpRes
         resp['X-update-thread-list'] = 'yes' if thread_list_update else 'no'
     else:
         # render the entire index page server-side
-        context.update(_thread_list_context(request))
+        context.update(_thread_list_context(request))  # full pages include the thread list: fetch it
         resp = render(request, 'forum/index.html', context=context)
 
     return resp
 
 
-def _thread_list_context(request: HttpRequest) -> Dict[str, Any]:
+def _thread_list_context(request: ForumHttpRequest) -> Dict[str, Any]:
+    """
+    Provide the context necessary to render a template with the thread list sidebar.
+    """
     threads = Thread.objects.filter_for(request.member) \
         .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__author_identity')
 
@@ -78,7 +89,7 @@ def _thread_list_context(request: HttpRequest) -> Dict[str, Any]:
 
 
 @forum_view
-def summary(request: HttpRequest) -> HttpResponse:
+def summary(request: ForumHttpRequest) -> HttpResponse:
     context = {
         'view': 'summary',
     }
@@ -100,12 +111,18 @@ def summary(request: HttpRequest) -> HttpResponse:
     return _render_forum_page(request, context)
 
 
-def thread_list(request: HttpRequest, course_slug: str) -> HttpResponse:
-    return _forum_omni_view(request, course_slug=course_slug, view='thread_list')
+@forum_view
+def thread_list(request: ForumHttpRequest) -> HttpResponse:
+    context = {
+        'view': 'thread_list',
+        'thread_list_update': False,
+    }
+    context.update(_thread_list_context(request))
+    return _render_forum_page(request, context)
 
 
 @forum_view
-def view_thread(request: HttpRequest, post_number: int) -> HttpResponse:
+def view_thread(request: ForumHttpRequest, post_number: int) -> HttpResponse:
     context = {
         'view': 'view_thread',
         'thread_list_update': False,
@@ -189,7 +206,7 @@ def view_thread(request: HttpRequest, post_number: int) -> HttpResponse:
 
 
 @forum_view
-def new_thread(request: HttpRequest) -> HttpResponse:
+def new_thread(request: ForumHttpRequest) -> HttpResponse:
     context = {
         'view': 'new_thread',
     }
@@ -220,7 +237,7 @@ def new_thread(request: HttpRequest) -> HttpResponse:
 
 @transaction.atomic
 @forum_view
-def edit_post(request: HttpRequest, post_number: int) -> HttpResponse:
+def edit_post(request: ForumHttpRequest, post_number: int) -> HttpResponse:
     try:
         thread = get_object_or_404(
             Thread.objects.select_related('post', 'post__author', 'post__offering', 'post__author__person',
@@ -281,17 +298,18 @@ def edit_post(request: HttpRequest, post_number: int) -> HttpResponse:
             form = Form(instance=post, offering_identity=request.forum.identity, member=request.member)
 
     context = {
+        'view': 'edit_post',
         'member': request.member,
         'offering': request.offering,
         'post': post,
         'header_thread': header_thread,
         'form': form,
     }
-    return render(request, 'forum/edit_thread.html', context=context)
+    return _render_forum_page(request, context)
 
 
 @forum_view
-def react(request: HttpRequest, post_number: int, reaction: str) -> HttpResponse:
+def react(request: ForumHttpRequest, post_number: int, reaction: str) -> HttpResponse:
     fragment = 'fragment' in request.GET
 
     try:
@@ -322,7 +340,7 @@ def react(request: HttpRequest, post_number: int, reaction: str) -> HttpResponse
 
 
 @forum_view
-def pin(request: HttpRequest, post_number: int) -> HttpResponse:
+def pin(request: ForumHttpRequest, post_number: int) -> HttpResponse:
     if request.member.role not in APPROVAL_ROLES:
         raise Http404
 
@@ -345,7 +363,7 @@ def pin(request: HttpRequest, post_number: int) -> HttpResponse:
 
 
 @forum_view
-def anon_identity(request: HttpRequest) -> HttpResponse:
+def identity(request: ForumHttpRequest) -> HttpResponse:
     identity_description = dict(IDENTITY_CHOICES)[request.forum.identity]
     ident = Identity.for_member(request.member)
     sample_names = [get_random_name() for _ in range(10)]
@@ -357,11 +375,12 @@ def anon_identity(request: HttpRequest) -> HttpResponse:
             ident.anon_avatar_type = avatar_form.cleaned_data['anon_avatar_type']
             ident.save()
             messages.add_message(request, messages.SUCCESS, 'Avatar updated.')
-            return redirect('offering:forum:anon_identity', course_slug=request.offering.slug)
+            return redirect('offering:forum:identity', course_slug=request.offering.slug)
     else:
         avatar_form = AvatarForm(identity=ident)
 
     context = {
+        'view': 'identity',
         'member': request.member,
         'offering': request.offering,
         'offering_identity_description': identity_description,
@@ -369,11 +388,11 @@ def anon_identity(request: HttpRequest) -> HttpResponse:
         'sample_names': sample_names,
         'avatar_form': avatar_form,
     }
-    return render(request, 'forum/anon_identity.html', context=context)
+    return _render_forum_page(request, context)
 
 
 @forum_view
-def search(request: HttpRequest) -> HttpResponse:
+def search(request: ForumHttpRequest) -> HttpResponse:
     search_form = SearchForm(request.GET)
     if search_form.is_valid():
         q = search_form.cleaned_data['q']
@@ -389,11 +408,12 @@ def search(request: HttpRequest) -> HttpResponse:
         results = []
 
     context = {
+        'view': 'search',
         'member': request.member,
         'offering': request.offering,
         'search_form': search_form,
         'results': results,
     }
-    return render(request, 'forum/search.html', context=context)
+    return _render_forum_page(request, context)
 
 

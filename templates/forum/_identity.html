@@ -1,23 +1,4 @@
-{% extends "base.html" %}
-{% load static %}
-{% load compress %}
 {% load forum_display %}
-
-{% block title %}{{ offering.name }}: Discussion Identities{% endblock %}
-{% block h1 %}{{ offering.name }}: Discussion Identities{% endblock %}
-{% block subbreadcrumbs %}
-    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
-    <li><a href="{% url 'offering:forum:summary' course_slug=offering.slug %}">Discussion</a></li>
-    <li>Anonymous Identities</li>
-{% endblock %}
-
-{% block headextra %}
-    {% compress css %}
-    <link rel="stylesheet" href="{% static 'style/forum.css' %}" />
-    {% endcompress %}
-{% endblock %}
-
-{% block content %}
 
     <p>
         The CourSys discussion forum allows posting under a pseudonym, if configured by the instructor.
@@ -58,4 +39,3 @@
     </form>
 
     </section>
-{% endblock %}

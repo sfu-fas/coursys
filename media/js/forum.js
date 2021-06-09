@@ -62,6 +62,7 @@ function partial_links_setup() {
     document.querySelectorAll('a[data-target]').forEach((a) => {
         a.onclick = function(e) {
             e.preventDefault();
+            console.log(a)
             fragment_update(this.dataset.target, this.getAttribute('href'))
         };
     });
