@@ -1,7 +1,9 @@
+import datetime
 import functools
 import itertools
 from typing import Optional, Dict, List, Any
 
+from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404
@@ -9,14 +11,19 @@ from django.shortcuts import render, redirect, get_object_or_404
 from haystack.query import SearchQuerySet
 
 from coredata.models import Member, CourseOffering
-from courselib.auth import user_passes_test, is_course_member_by_slug
+from courselib.auth import user_passes_test, is_course_member_by_slug, ForbiddenResponse
 from forum.forms import ThreadForm, ReplyForm, SearchForm, AvatarForm, InstrThreadForm, InstrReplyForm
 from forum.models import Thread, Identity, Forum, Reply, Reaction, \
     APPROVAL_REACTIONS, REACTION_ICONS, APPROVAL_ROLES, IDENTITY_CHOICES, ReadThread, ReadReply
 from forum.names_generator import get_random_name
 
 
-THREAD_LIST_MAX = 100
+THREAD_LIST_MAX = 100  # maximum number of threads to display in the thread list
+# how long after Semester.end can TAs and student access the forum?
+if settings.DEPLOY_MODE == 'production':
+    ACCESS_AFTER_SEMESTER = datetime.timedelta(days=30)
+else:
+    ACCESS_AFTER_SEMESTER = datetime.timedelta(days=365)
 
 
 # last_time = datetime.datetime.now()
@@ -28,7 +35,7 @@ THREAD_LIST_MAX = 100
 
 
 class ForumHttpRequest(HttpRequest):
-    # subclass of HttpRequest that promises the fies the @forum_view decorator provides
+    # subclass of HttpRequest that promises the fields the @forum_view decorator provides
     member: Member
     offering: CourseOffering
     forum: Forum
@@ -46,6 +53,11 @@ def forum_view(view):
         with transaction.atomic():
             request.offering = request.member.offering
             request.forum = Forum.for_offering_or_404(request.offering)
+            # students and TAs are locked out of the forum reasonably-after the semester ends
+            if request.member.role != 'INST':
+                after_semester = datetime.date.today() - request.member.offering.semester.end
+                if after_semester > ACCESS_AFTER_SEMESTER:
+                    return ForbiddenResponse(request, errormsg='the forum is locked after the semester is over')
             response = view(request, **kwargs)
         return response
 
@@ -158,6 +170,7 @@ def view_thread(request: ForumHttpRequest, post_number: int) -> HttpResponse:
             rep_post = reply_form.save(commit=False)
             rep_post.offering = request.offering
             rep_post.author = request.member
+            # for now at least: replies are not answer-requiring questions
             rep_post.type = 'DISC'
             rep_post.status = 'NOAN'
             reply = Reply(post=rep_post, thread=thread, parent=thread.post)
