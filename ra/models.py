@@ -530,8 +530,16 @@ class RARequest(models.Model):
     last_updated_at = models.DateTimeField(auto_now=True)
     last_updater = models.ForeignKey(Person, related_name='rarequest_last_updater', default=None, on_delete=models.PROTECT, null=True, editable=False)
 
+    # all checks need to be checked off for an appointment to be complete
     def get_complete(self):
         if self.funding_available and self.grant_active and self.salary_allowable and self.supervisor_check and self.visa_valid and self.payroll_collected and self.paf_signed:
+            return True
+        else:
+            return False
+
+    # encourage completion of the checklist before downloading the paf
+    def get_paf(self):
+        if self.funding_available and self.grant_active and self.salary_allowable and self.supervisor_check and self.visa_valid and self.payroll_collected:
             return True
         else:
             return False

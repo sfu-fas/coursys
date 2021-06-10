@@ -77,6 +77,8 @@
   </div>
 
   <h2>Download</h2>
+
+  {% if req.get_paf %}
   <div class="form_container">
     <form action="{% url "ra:request_paf" ra_slug=req.slug %}" method="post" class="subtle">{% csrf_token %}
       <fieldset>
@@ -87,4 +89,8 @@
       </fieldset>
     </form>  
   </div>
+{% else %}
+  <p><b>Please complete more of the <a href="{% url "ra:view_request" ra_slug=req.slug %}">administrative checklist</a> before downloading the PAF.</b></p> 
+  <p>(You must complete up to and including "Payroll Forms are Collected/Already on File")</p>
+{% endif %}
 {% endblock %}
