@@ -82,6 +82,12 @@ table td.checkbox {
     border-radius: 8px;
 }
 
+.row p {
+    display:inline;
+    text-align:center;
+    padding:5%;
+}
+
 .directory_buttons h3 {
     text-align:center;
 }

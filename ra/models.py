@@ -368,7 +368,7 @@ def ra_request_attachment_upload_to(instance, filename):
 
 class RARequest(models.Model):
     # people_comments - comments about the appointee or supervisor
-    # fs1_percentage, fs2_percentage, fs3_percentage - percentages that each funding source makes up
+    # fs1_amount, fs2_amount, fs3_amount - amount of total pay that each funding source makes up
     # fs1_start_date, fs2_start_date, fs3_start_date - start dates of each funding source
     # fs1_end_date, fs2_end_date, fs3_end_date - end dates of each funding source
     # fs2_option - whether or not we have more than one funding source
@@ -376,6 +376,8 @@ class RARequest(models.Model):
     # position_no - position number for appointment, to be filled out by admin for PAF configuration purposes
     # object_code - object code for appointment, to be filled out by admin for PAF configuration purposes
     # fs1_program, fs2_program, fs3_program - programs for each funding source of appointment, to be filled out by admin for PAF configuration purposes
+    # fs1_biweekly_rate, fs2_biweekly_rate, fs3_biweekly_rate - biweekly rate for each funding source of appointment, to be filled out by admin for PAF configuration purposes
+    # fs1_percentage, fs2_percentage, fs3_percentage - percentages for each funding source of appointment, to be filled out by admin for PAF configuration purposes
     # paf_comments - comments to be filled out by admin for PAF configuration purposes
     # backdate_lump_sum - backdate lump sum amount for appointment
     # backdate_hours - number of hours the backdate appointment is for
@@ -425,6 +427,8 @@ class RARequest(models.Model):
     fs1_fund = models.IntegerField(default=0)
     fs1_project = models.CharField(max_length=10, default='')
     fs1_percentage = config_property('fs1_percentage', default=100)
+    fs1_amount = config_property('fs1_amount', default=0)
+    fs1_biweekly_rate = config_property('fs1_biweekly_rate', default=0)
     fs1_start_date = config_property('fs1_start_date', default='')
     fs1_end_date = config_property('fs1_end_date', default='')
 
@@ -433,6 +437,8 @@ class RARequest(models.Model):
     fs2_fund = models.IntegerField(default=0)
     fs2_project = models.CharField(max_length=10, default='')
     fs2_percentage = config_property('fs2_percentage', default=0)
+    fs2_amount = config_property('fs2_amount', default=0)
+    fs2_biweekly_rate = config_property('fs2_biweekly_rate', default=0)
     fs2_start_date = config_property('fs2_start_date', default='')
     fs2_end_date = config_property('fs2_end_date', default='')
 
@@ -441,6 +447,8 @@ class RARequest(models.Model):
     fs3_fund = models.IntegerField(default=0)
     fs3_project = models.CharField(max_length=10, default='')
     fs3_percentage = config_property('fs3_percentage', default=0)
+    fs3_amount = config_property('fs3_amount', default=0)
+    fs3_biweekly_rate = config_property('fs3_biweekly_rate', default=0)
     fs3_start_date = config_property('fs3_start_date', default='')
     fs3_end_date = config_property('fs3_end_date', default='')
 

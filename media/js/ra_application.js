@@ -3,7 +3,7 @@ var idFields = ['intro-person']
 
 var studentFields = ['intro-coop', 'intro-mitacs', 'intro-thesis', 'intro-research']
 
-var fs1MultiFields = ['funding_sources-fs1_start_date', 'funding_sources-fs1_end_date', 'funding_sources-fs1_percentage']
+var fs1MultiFields = ['funding_sources-fs1_start_date', 'funding_sources-fs1_end_date', 'funding_sources-fs1_amount']
 
 var rabw_fields = ['research_assistant-total_gross', 'research_assistant-weeks_vacation', 'research_assistant-biweekly_hours']
 var rah_fields = ['research_assistant-gross_hourly', 'research_assistant-vacation_pay', 'research_assistant-biweekly_hours']

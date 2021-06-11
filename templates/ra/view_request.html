@@ -158,7 +158,7 @@
     <tr><th>Unit:</th><td>{{ req.fs1_unit }}</td></tr>
     <tr><th>Fund:</th><td>{{ req.fs1_fund }}</td></tr>
     <tr><th>Project:</th><td>{{ req.fs1_project }}</td></tr>
-    <tr><th>Funding Percentage:</th><td>{{ req.fs1_percentage }}%</td></tr>
+    <tr><th>Funding Amount:</th><td>${{ req.fs1_amount|floatformat:2 }}</td></tr>
     {% if req.fs2_option %} 
     <tr><th>Start Date:</th><td>{{ req.fs1_start_date }}</td></tr>
     <tr><th>End Date:</th><td>{{ req.fs1_end_date }}</td></tr>
@@ -173,7 +173,7 @@
     <tr><th>Unit:</th><td>{{ req.fs2_unit }}</td></tr>
     <tr><th>Fund:</th><td>{{ req.fs2_fund }}</td></tr>
     <tr><th>Project:</th><td>{{ req.fs2_project }}</td></tr>
-    <tr><th>Funding Percentage:</th><td>{{ req.fs2_percentage }}%</td></tr>
+    <tr><th>Funding Amount:</th><td>${{ req.fs2_amount|floatformat:2 }}</td></tr>
     <tr><th>Start Date:</th><td>{{ req.fs2_start_date }}</td></tr>
     <tr><th>End Date:</th><td>{{ req.fs2_end_date }}</td></tr>
   </table>
@@ -187,7 +187,7 @@
     <tr><th>Unit:</th><td>{{ req.fs3_unit }}</td></tr>
     <tr><th>Fund:</th><td>{{ req.fs3_fund }}</td></tr>
     <tr><th>Project:</th><td>{{ req.fs3_project }}</td></tr>
-    <tr><th>Funding Percentage:</th><td>{{ req.fs3_percentage }}%</td></tr>
+    <tr><th>Funding Amount:</th><td>${{ req.fs3_amount|floatformat:2 }}</td></tr>
     <tr><th>Start Date:</th><td>{{ req.fs3_start_date }}</td></tr>
     <tr><th>End Date:</th><td>{{ req.fs3_end_date }}</td></tr>
   </table>
@@ -200,7 +200,7 @@
   <table class="info">
     <tr><th>Start Date:</th><td>{{ req.start_date }}</td></tr>
     <tr><th>End Date:</th><td>{{ req.end_date }}</td></tr>
-
+    <tr><th>Pay Periods:</th><td>{{ req.pay_periods}}</td></tr>
     {% if ra_bw %}
     <tr><th>Payment Method:</th><td>Bi-Weekly</td></tr>
     <tr><th>Total Gross:</th><td>${{ req.total_gross|floatformat:2 }}</td></tr>
@@ -239,7 +239,7 @@
     {% endif %}
     {% if nc_hourly %}
     <tr><th>Payment Method:</th><td>Hourly</td></tr>
-    <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
+    <tr><th>Gross Hourly:</th><td>{{ req.gross_hourly|floatformat:2 }}</td></tr>
     <tr><th>Vacation Pay:</th><td>{{ req.vacation_pay|floatformat:1 }}%</td></tr>
     <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }} ({{req.get_biweekly_hours}})</td></tr>
     {% endif %}

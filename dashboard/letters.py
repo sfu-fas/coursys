@@ -1011,11 +1011,17 @@ class RARequestForm(SFUMediaMixin):
             fs1_program = str(self.ra.fs1_program)
         else:
             fs1_program = ''
+
+        if self.ra.fs1_biweekly_rate != None:
+            fs1_biweekly_rate = str(self.ra.fs1_biweekly_rate)
+        else:
+            fs1_biweekly_rate = ''
         
         if self.ra.object_code != None:
             object_code = str(self.ra.object_code)
         else:
             object_code = ''
+        
         
         fs1_object = object_code
 
@@ -1024,6 +1030,7 @@ class RARequestForm(SFUMediaMixin):
         fs2_fund = ''
         fs2_unit = ''
         fs2_percentage = ''
+        fs2_biweekly_rate = ''
         fs2_start_date = ''
         fs2_end_date = ''
         fs2_program = ''
@@ -1034,6 +1041,7 @@ class RARequestForm(SFUMediaMixin):
         fs3_fund = ''
         fs3_unit = ''
         fs3_percentage = ''
+        fs3_biweekly_rate = ''
         fs3_start_date = ''
         fs3_end_date = ''
         fs3_program = ''
@@ -1049,6 +1057,7 @@ class RARequestForm(SFUMediaMixin):
             fs2_fund = str(self.ra.fs2_fund)
             fs2_unit = str(self.ra.fs2_unit)
             fs2_percentage = str(self.ra.fs2_percentage)
+            fs2_biweekly_rate = str(self.ra.fs2_biweekly_rate)
             fs2_start_date = str(self.ra.fs2_start_date)
             fs2_end_date = str(self.ra.fs2_end_date)
             fs2_object = object_code
@@ -1060,6 +1069,7 @@ class RARequestForm(SFUMediaMixin):
             fs3_fund = str(self.ra.fs3_fund)
             fs3_unit = str(self.ra.fs3_unit)
             fs3_percentage = str(self.ra.fs3_percentage)
+            fs3_biweekly_rate = str(self.ra.fs3_biweekly_rate)
             fs3_start_date = str(self.ra.fs3_start_date)
             fs3_end_date = str(self.ra.fs3_end_date)
             fs3_object = object_code
@@ -1108,9 +1118,9 @@ class RARequestForm(SFUMediaMixin):
         self._small_box_entry(169*mm, 80*mm, 17*mm, 6*mm, content="Bi-weekly Rate")
         self.c.setFont("Helvetica", 5)
         self.c.drawString(173*mm, 81*mm, "(if %Split)")
-        self._box_entry(169*mm, 75*mm, 17*mm, 5*mm, content='')
-        self._box_entry(169*mm, 70*mm, 17*mm, 5*mm, content='')
-        self._box_entry(169*mm, 65*mm, 17*mm, 5*mm, content='')
+        self._box_entry(169*mm, 75*mm, 17*mm, 5*mm, content=fs1_biweekly_rate)
+        self._box_entry(169*mm, 70*mm, 17*mm, 5*mm, content=fs2_biweekly_rate)
+        self._box_entry(169*mm, 65*mm, 17*mm, 5*mm, content=fs3_biweekly_rate)
         self._box_entry(169*mm, 60*mm, 17*mm, 5*mm, content='')
 
         self._small_box_entry(186*mm, 80*mm, 16*mm, 6*mm, content="Start Date")

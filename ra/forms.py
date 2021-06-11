@@ -189,7 +189,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
     fs1_unit = forms.IntegerField(required=True, label="Department #1", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
     fs1_fund = forms.IntegerField(required=True, label="Fund #1", help_text="Example: 11, 13, 21, 31")
     fs1_project = forms.CharField(required=False, label="Project #1", help_text="Example: N654321, S654321, X654321, R654321. If fund 11, you may leave blank.")
-    fs1_percentage = forms.DecimalField(required=False, label="Percentage of Funding Source #1 to Total Funding", help_text="Percentages of all funding sources must add up to 100.")
+    fs1_amount = forms.DecimalField(required=False, label="Amount of Funding Source #1 to Total Funding", help_text="Amount of all funding sources must add up to total pay.")
     fs1_start_date = forms.DateField(required=False, label="Start Date #1", help_text="Start Date for Funding Source 1")
     fs1_end_date = forms.DateField(required=False,  label="End Date #1", help_text="End Date for Funding Source 1")
 
@@ -197,7 +197,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
     fs2_unit = forms.IntegerField(required=False, label="Department #2", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
     fs2_fund = forms.IntegerField(required=False, label="Fund #2", help_text="Example: 11, 13, 21, 31")
     fs2_project = forms.CharField(required=False, label="Project #2", help_text="Example: N654321, S654321, X654321, R654321. If fund 11, you may leave blank.")
-    fs2_percentage = forms.DecimalField(required=False, label="Percentage of Funding Source #2 to Total Funding", help_text="Percentages of all funding sources must add up to 100.")
+    fs2_amount = forms.DecimalField(required=False, label="Amount of Funding Source #2 to Total Funding", help_text="Amount of all funding sources must add up to total pay.")
     fs2_start_date = forms.DateField(required=False, label="Start Date #2", help_text="Start Date for Funding Source 2")
     fs2_end_date = forms.DateField(required=False,  label="End Date #2", help_text="End Date for Funding Source 2")
 
@@ -205,7 +205,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
     fs3_unit = forms.IntegerField(required=False, label="Department #3", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
     fs3_fund = forms.IntegerField(required=False, label="Fund #3", help_text="Example: 11, 13, 21, 31")
     fs3_project = forms.CharField(required=False, label="Project #3", help_text="Example: N654321, S654321, X654321, R654321. If fund 11, you may leave blank.")
-    fs3_percentage = forms.DecimalField(required=False, label="Percentage of Funding Source #3 to Total Funding", help_text="Percentages of all funding sources must add up to 100.")
+    fs3_amount = forms.DecimalField(required=False, label="Amount of Funding Source #3 to Total Funding", help_text="Amount of all funding sources must add up to total pay.")
     fs3_start_date = forms.DateField(required=False, label="Start Date #3", help_text="Start Date for Funding Source 3")
     fs3_end_date = forms.DateField(required=False,  label="End Date #3", help_text="End Date for Funding Source 3")
 
@@ -216,7 +216,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(RARequestFundingSourceForm, self).__init__(*args, **kwargs)
-        config_init = ['fs1_percentage','fs2_percentage','fs3_percentage','fs2_option','fs3_option']
+        config_init = ['fs1_amount', 'fs2_option', 'fs2_amount', 'fs3_option', 'fs3_amount']
 
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
@@ -224,8 +224,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(RARequestFundingSourceForm, self).clean()
   
-        config_clean = ['fs1_percentage','fs2_option', 'fs2_percentage','fs3_option', 
-                        'fs3_percentage']
+        config_clean = ['fs1_amount', 'fs2_option', 'fs2_amount', 'fs3_option', 'fs3_amount']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
@@ -240,6 +239,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
             self.add_error('fs1_project', 'You must answer this question.')
 
         # add error messages
+        total_pay = self.initial['total_pay']
         start_date = self.initial['start_date']
         end_date = self.initial['end_date']
         fs2_option = cleaned_data.get('fs2_option')
@@ -250,9 +250,9 @@ class RARequestFundingSourceForm(forms.ModelForm):
         fs1_end_date = cleaned_data.get('fs1_end_date')
         fs2_start_date = cleaned_data.get('fs2_start_date')
         fs2_end_date = cleaned_data.get('fs2_end_date')
-        fs1_percentage = cleaned_data.get('fs1_percentage')
-        fs2_percentage = cleaned_data.get('fs2_percentage')
-        fs3_percentage = cleaned_data.get('fs3_percentage')
+        fs1_amount = cleaned_data.get('fs1_amount')
+        fs2_amount = cleaned_data.get('fs2_amount')
+        fs3_amount = cleaned_data.get('fs3_amount')
 
         if fs2_option:
             error_message = 'If you have a second funding source then you must answer this question.'
@@ -271,10 +271,10 @@ class RARequestFundingSourceForm(forms.ModelForm):
                 self.add_error('fs2_start_date', error_message)
             if fs2_end_date == None or fs2_end_date == '':
                 self.add_error('fs2_end_date', error_message)
-            if fs1_percentage == None or fs1_percentage == '':
-                self.add_error('fs1_percentage', error_message)
-            if fs2_percentage == None or fs2_percentage == '':
-                self.add_error('fs2_percentage', error_message)
+            if fs1_amount == None or fs1_amount == '':
+                self.add_error('fs1_amount', error_message)
+            if fs2_amount == None or fs2_amount == '':
+                self.add_error('fs2_amount', error_message)
 
         fs3_option = cleaned_data.get('fs3_option')
         fs3_unit = cleaned_data.get('fs3_unit')
@@ -296,23 +296,23 @@ class RARequestFundingSourceForm(forms.ModelForm):
                 self.add_error('fs3_start_date', error_message)
             if fs3_end_date == None or fs3_end_date == '':
                 self.add_error('fs3_end_date', error_message)
-            if fs3_percentage == None or fs3_percentage == '':
-                self.add_error('fs3_percentage', error_message)
+            if fs3_amount == None or fs3_amount == '':
+                self.add_error('fs3_amount', error_message)
 
-        error_message = "Combined Percentages of all Funding Sources Must Add Up to 100%"
+        error_message = "Combined Amount of all Funding Sources Must Add Up to Total Pay"
         if fs2_option and not fs3_option:
-            if fs1_percentage and fs2_percentage:
-                percent_sum = fs1_percentage + fs2_percentage
-                if percent_sum != 100:
-                    self.add_error('fs1_percentage', error_message)
-                    self.add_error('fs2_percentage', error_message)
+            if fs1_amount and fs2_amount:
+                amount_sum = fs1_amount + fs2_amount
+                if amount_sum != total_pay:
+                    self.add_error('fs1_amount', error_message + ". Currently adds to: " + ("$%.2f" % amount_sum))
+                    self.add_error('fs2_amount', error_message + ". Currently adds to: " + ("$%.2f" % amount_sum))
         if fs2_option and fs3_option:
-            if fs1_percentage and fs2_percentage and fs3_percentage:
-                percent_sum = fs1_percentage + fs2_percentage + fs3_percentage
-                if percent_sum != 100:
-                    self.add_error('fs1_percentage', error_message)
-                    self.add_error('fs2_percentage', error_message)
-                    self.add_error('fs3_percentage', error_message)
+            if fs1_amount and fs2_amount and fs3_amount:
+                amount_sum = fs1_amount + fs2_amount + fs3_amount
+                if amount_sum != total_pay:
+                    self.add_error('fs1_amount', error_message + ". Currently adds to: " + ("$%.2f" % amount_sum))
+                    self.add_error('fs2_amount', error_message + ". Currently adds to: " + ("$%.2f" % amount_sum))
+                    self.add_error('fs3_amount', error_message + ". Currently adds to: " + ("$%.2f" % amount_sum))
         
         fs1_start_date = cleaned_data.get('fs1_start_date')
         fs2_start_date = cleaned_data.get('fs2_start_date')
@@ -387,15 +387,15 @@ class RARequestFundingSourceForm(forms.ModelForm):
                 if fs3_start_date > fs3_end_date:
                     self.add_error('fs3_start_date', error_message)
         
-        error_message = "Funding source percentages should be greater than 0."
+        error_message = "Funding source amounts should be greater than 0."
         if fs2_option:
-            if fs1_percentage == 0:
-                self.add_error('fs1_percentage', error_message)          
-            if fs2_percentage == 0:
-                self.add_error('fs2_percentage', error_message)
+            if fs1_amount == 0:
+                self.add_error('fs1_amount', error_message)          
+            if fs2_amount == 0:
+                self.add_error('fs2_amount', error_message)
         if fs3_option:
-            if fs3_percentage == 0:
-                self.add_error('fs3_percentage', error_message)
+            if fs3_amount == 0:
+                self.add_error('fs3_amount', error_message)
         
         start_date = cleaned_data.get('start_date')
         fs1_start_date = cleaned_data.get('fs1_start_date')
@@ -407,18 +407,19 @@ class RARequestFundingSourceForm(forms.ModelForm):
             self.cleaned_data['fs3_unit'] = 0
             self.cleaned_data['fs3_fund'] = 0
             self.cleaned_data['fs3_project'] = ''
-            self.cleaned_data['fs3_percentage'] = 0
+            self.cleaned_data['fs3_amount'] = 0
             self.cleaned_data['fs3_start_date'] = ''
             self.cleaned_data['fs3_end_date'] = ''
 
         if not fs2_option:
             self.cleaned_data['fs1_start_date'] = ''
             self.cleaned_data['fs1_end_date'] = ''
+            self.cleaned_data['fs1_amount'] = total_pay
 
             self.cleaned_data['fs2_unit'] = 0
             self.cleaned_data['fs2_fund'] = 0
             self.cleaned_data['fs2_project'] = ''
-            self.cleaned_data['fs2_percentage'] = 0
+            self.cleaned_data['fs2_amount'] = 0
             self.cleaned_data['fs2_start_date'] = ''
             self.cleaned_data['fs2_end_date'] = ''
 
@@ -893,10 +894,16 @@ class RARequestScienceAliveForm(forms.Form):
 class RARequestAdminPAFForm(forms.ModelForm):
     position_no = forms.IntegerField(required=False, label="Position #")
     object_code = forms.IntegerField(required=False, label="Object Code for Funding Sources")
+    paf_comments = forms.CharField(required=False, max_length=310, widget=forms.Textarea(attrs={'rows':6}), label="Comments", help_text = "Maximum of 310 characters")
     fs1_program = forms.IntegerField(required=False, label="Program for Funding Source #1")
     fs2_program = forms.IntegerField(required=False, label="Program for Funding Source #2")
     fs3_program = forms.IntegerField(required=False, label="Program for Funding Source #3")
-    paf_comments = forms.CharField(required=False, max_length=310, widget=forms.Textarea(attrs={'rows':6}), label="Comments", help_text = "Maximum of 310 characters")
+    fs1_biweekly_rate = forms.DecimalField(required=False, label="Bi-Weekly Rate for Funding Source #1")
+    fs1_percentage = forms.DecimalField(required=False, label="Percentage for Funding Source #1")
+    fs2_biweekly_rate = forms.DecimalField(required=False, label="Bi-Weekly Rate for Funding Source #2")
+    fs2_percentage = forms.DecimalField(required=False, label="Percentage for Funding Source #2")
+    fs3_biweekly_rate = forms.DecimalField(required=False, label="Bi-Weekly Rate for Funding Source #3")
+    fs3_percentage = forms.DecimalField(required=False, label="Percentage for Funding Source #3")
 
     class Meta:
         model = RARequest
@@ -904,14 +911,18 @@ class RARequestAdminPAFForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(RARequestAdminPAFForm, self).__init__(*args, **kwargs)
-        config_init = ['position_no', 'object_code', 'fs1_program', 'fs2_program', 'fs3_program', 'paf_comments']
+        config_init = ['position_no', 'object_code', 'fs1_program', 'fs2_program', 'fs3_program',
+                       'fs1_percentage', 'fs2_percentage', 'fs3_percentage', 
+                       'fs1_biweekly_rate', 'fs2_biweekly_rate', 'fs3_biweekly_rate', 'paf_comments']
         
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
     
     def clean(self):
         cleaned_data = super().clean()
-        config_clean = ['position_no', 'object_code', 'fs1_program', 'fs2_program', 'fs3_program', 'paf_comments']
+        config_clean = ['position_no', 'object_code', 'fs1_program', 'fs2_program', 'fs3_program',
+                       'fs1_percentage', 'fs2_percentage', 'fs3_percentage', 
+                       'fs1_biweekly_rate', 'fs2_biweekly_rate', 'fs3_biweekly_rate', 'paf_comments']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])

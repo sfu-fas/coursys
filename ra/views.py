@@ -83,18 +83,18 @@ def _can_view_ra_requests():
 
 FORMS = [("intro", RARequestIntroForm),
          ("dates", RARequestDatesForm),
-         ("funding_sources", RARequestFundingSourceForm),
          ("graduate_research_assistant", RARequestGraduateResearchAssistantForm),
          ("non_continuing", RARequestNonContinuingForm),
          ("research_assistant", RARequestResearchAssistantForm),
+         ("funding_sources", RARequestFundingSourceForm),
          ("supporting", RARequestSupportingForm)]
 
 TEMPLATES = {"intro": "ra/new_request/intro.html",
              "dates": "ra/new_request/dates.html",
-             "funding_sources": "ra/new_request/funding_sources.html",
              "graduate_research_assistant": "ra/new_request/graduate_research_assistant.html",
              "non_continuing": "ra/new_request/non_continuing.html",
              "research_assistant": "ra/new_request/research_assistant.html",
+             "funding_sources": "ra/new_request/funding_sources.html",
              "supporting": "ra/new_request/supporting.html"
              }
 
@@ -169,6 +169,16 @@ class RANewRequestWizard(SessionWizardView):
         if self.steps.current == 'funding_sources':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             context.update({'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']})
+            cleaned_data_intro = self.get_cleaned_data_for_step('intro')
+            hiring_category = cleaned_data_intro['hiring_category']
+            pay_data = {}
+            if hiring_category == "GRAS":
+                pay_data = self.get_cleaned_data_for_step('graduate_research_assistant')
+            elif hiring_category == "RA":
+                pay_data = self.get_cleaned_data_for_step('research_assistant')
+            elif hiring_category == "NC":
+                pay_data = self.get_cleaned_data_for_step('non_continuing')
+            context.update({'total_pay': pay_data['total_pay']})
         if reappoint:
             ra_slug = self.kwargs['ra_slug']
             req = _reappointment_req(self.request, ra_slug)    
@@ -188,17 +198,6 @@ class RANewRequestWizard(SessionWizardView):
                 init = {'supervisor': req.supervisor.emplid}
             if req.person:
                 init = {'supervisor': req.supervisor.emplid, 'person': req.person.emplid}
-        if step == 'funding_sources':
-            cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            # roll over start and end dates for validation, and initialize start dates of funding sources to overall start and end dates if not edit
-            if reappoint:
-                init = {'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'],
-                'fs1_start_date': req.fs1_start_date, 'fs2_start_date': req.fs2_start_date, 'fs3_start_date': req.fs3_start_date,
-                'fs1_end_date': req.fs1_end_date, 'fs2_end_date': req.fs2_end_date, 'fs3_end_date': req.fs3_end_date}
-            else:
-                init = {'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'],
-                'fs1_start_date': cleaned_data['start_date'], 'fs2_start_date': cleaned_data['start_date'], 'fs3_start_date': cleaned_data['start_date'],
-                'fs1_end_date': cleaned_data['end_date'], 'fs2_end_date': cleaned_data['end_date'], 'fs3_end_date': cleaned_data['end_date']}
         if step == 'non_continuing':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated']}
@@ -208,6 +207,26 @@ class RANewRequestWizard(SessionWizardView):
         if step == 'graduate_research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated']}
+        if step == 'funding_sources':
+            cleaned_data = self.get_cleaned_data_for_step('dates') or {}
+            cleaned_data_intro = self.get_cleaned_data_for_step('intro')
+            hiring_category = cleaned_data_intro['hiring_category']
+            pay_data = {}
+            if hiring_category == "GRAS":
+                pay_data = self.get_cleaned_data_for_step('graduate_research_assistant')
+            elif hiring_category == "RA":
+                pay_data = self.get_cleaned_data_for_step('research_assistant')
+            elif hiring_category == "NC":
+                pay_data = self.get_cleaned_data_for_step('non_continuing')
+            # roll over start and end dates for validation, and initialize start dates of funding sources to overall start and end dates if not edit
+            if reappoint:
+                init = {'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'],
+                'fs1_start_date': req.fs1_start_date, 'fs2_start_date': req.fs2_start_date, 'fs3_start_date': req.fs3_start_date,
+                'fs1_end_date': req.fs1_end_date, 'fs2_end_date': req.fs2_end_date, 'fs3_end_date': req.fs3_end_date, 'total_pay': pay_data['total_pay']}
+            else:
+                init = {'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'],
+                'fs1_start_date': cleaned_data['start_date'], 'fs2_start_date': cleaned_data['start_date'], 'fs3_start_date': cleaned_data['start_date'],
+                'fs1_end_date': cleaned_data['end_date'], 'fs2_end_date': cleaned_data['end_date'], 'fs3_end_date': cleaned_data['end_date'], 'total_pay': pay_data['total_pay']}
         return self.initial_dict.get(step, init)
 
     def get_form_instance(self, step):
@@ -306,7 +325,16 @@ class RAEditRequestWizard(SessionWizardView):
         if self.steps.current == 'funding_sources':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             context.update({'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']})
-
+            cleaned_data_intro = self.get_cleaned_data_for_step('intro')
+            hiring_category = cleaned_data_intro['hiring_category']
+            pay_data = {}
+            if hiring_category == "GRAS":
+                pay_data = self.get_cleaned_data_for_step('graduate_research_assistant')
+            elif hiring_category == "RA":
+                pay_data = self.get_cleaned_data_for_step('research_assistant')
+            elif hiring_category == "NC":
+                pay_data = self.get_cleaned_data_for_step('non_continuing')
+            context.update({'total_pay': pay_data['total_pay']})
         ra_slug = self.kwargs['ra_slug']
         req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=self.request.units)
         context.update({'edit': True, 'slug': ra_slug, 'name': req.get_name()})
@@ -328,11 +356,6 @@ class RAEditRequestWizard(SessionWizardView):
                 init = {'supervisor': req.supervisor.emplid}
             if req.person:
                 init = {'supervisor': req.supervisor.emplid, 'person': req.person.emplid}
-        if step == 'funding_sources':
-            cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'],
-                'fs1_start_date': req.fs1_start_date, 'fs2_start_date': req.fs2_start_date, 'fs3_start_date': req.fs3_start_date,
-                'fs1_end_date': req.fs1_end_date, 'fs2_end_date': req.fs2_end_date, 'fs3_end_date': req.fs3_end_date}
         if step == 'non_continuing':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated']}
@@ -342,6 +365,20 @@ class RAEditRequestWizard(SessionWizardView):
         if step == 'graduate_research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated']}
+        if step == 'funding_sources':
+            cleaned_data = self.get_cleaned_data_for_step('dates') or {}
+            cleaned_data_intro = self.get_cleaned_data_for_step('intro')
+            hiring_category = cleaned_data_intro['hiring_category']
+            pay_data = {}
+            if hiring_category == "GRAS":
+                pay_data = self.get_cleaned_data_for_step('graduate_research_assistant')
+            elif hiring_category == "RA":
+                pay_data = self.get_cleaned_data_for_step('research_assistant')
+            elif hiring_category == "NC":
+                pay_data = self.get_cleaned_data_for_step('non_continuing')
+            init = {'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date'],
+                'fs1_start_date': req.fs1_start_date, 'fs2_start_date': req.fs2_start_date, 'fs3_start_date': req.fs3_start_date,
+                'fs1_end_date': req.fs1_end_date, 'fs2_end_date': req.fs2_end_date, 'fs3_end_date': req.fs3_end_date, 'total_pay': pay_data['total_pay']}
         return self.initial_dict.get(step, init)
 
     def get_form_instance(self, step):
@@ -785,7 +822,21 @@ def request_paf(request: HttpRequest, ra_slug: str) -> HttpResponse:
         citizenshipUnknown = True
         citizenship = None
 
-    return render(request, 'ra/request_paf.html', {'form':form, 'adminpafform': adminpafform, 'req':req, 'info': info, 'isCanadian': isCanadian, 'citizenshipUnknown': citizenshipUnknown, 'citizenship': citizenship})
+    # pay periods for funds
+    if req.fs2_option:
+        fs1_pay_periods = fund_pay_periods(req.fs1_start_date, req.fs1_end_date)
+        fs2_pay_periods = fund_pay_periods(req.fs2_start_date, req.fs2_end_date)
+    else:
+        fs1_pay_periods = ""
+        fs2_pay_periods = ""
+    if req.fs3_option:
+        fs3_pay_periods = fund_pay_periods(req.fs3_start_date, req.fs3_end_date)
+    else:
+        fs3_pay_periods = ""
+
+    return render(request, 'ra/request_paf.html', {'form':form, 'adminpafform': adminpafform, 'req':req, 'info': info, 'isCanadian': isCanadian, 
+                'citizenshipUnknown': citizenshipUnknown, 'citizenship': citizenship, 'fs1_pay_periods': fs1_pay_periods, 'fs2_pay_periods': fs2_pay_periods,
+                'fs3_pay_periods': fs3_pay_periods})
 
 
 @requires_role("FUND")
@@ -797,11 +848,17 @@ def request_admin_paf_update(request: HttpRequest, ra_slug: str) -> HttpResponse
     if request.method == 'POST':
         data = request.POST.copy()
         if not req.fs2_option:
+            data['fs1_biweekly_split'] = 0
+            data['fs1_percentage'] = 100    
             data['fs2_object'] = ''
-            data['fs2_program'] = ''    
+            data['fs2_program'] = ''
+            data['fs2_biweekly_split'] = 0
+            data['fs2_percentage'] = 0   
         if not req.fs3_option:
             data['fs3_object'] = ''
             data['fs3_program'] = ''
+            data['fs3_biweekly_split'] = 0
+            data['fs3_percentage'] = 0   
 
         adminform = RARequestAdminPAFForm(data, instance=req)
         if adminform.is_valid():
@@ -1573,7 +1630,6 @@ def download_ras(request, current=True):
         writer.writerow([ra.person.sortname(), ra.person.emplid, ra.hiring_faculty.sortname(), ra.unit.label, ra.project, ra.account, ra.start_date, ra.end_date, ra.lump_sum_pay])
     return response
 
-
 def pay_periods(request):
     """
     Calculate number of pay periods between contract start and end dates.
@@ -1620,6 +1676,42 @@ def pay_periods(request):
     
     return HttpResponse(result, content_type='text/plain;charset=utf-8')
 
+# altered from pay_periods to display on paf config for reference
+def fund_pay_periods(start_date, end_date):
+    """
+    Calculate number of pay periods between some start and end dates.
+    i.e. number of work days in period / 10
+    """
+    day = datetime.timedelta(days=1)
+    week = datetime.timedelta(days=7)
+
+    start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
+    end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
+
+    if start_date.weekday() == 5:
+        start_date += 2*day
+    elif start_date.weekday() == 6:
+        start_date += day
+    if end_date.weekday() == 5:
+        end_date -= day
+    elif end_date.weekday() == 6:
+        end_date -= 2*day
+
+    # number of full weeks (until sameday: last same weekday before end date)
+    weeks = ((end_date-start_date)/7).days
+    sameday = start_date + weeks*week
+    assert sameday <= end_date < sameday + week
+    
+    # number of days remaining
+    days = (end_date - sameday).days
+    if sameday.weekday() > end_date.weekday():
+        # don't count weekend days in between
+        days -= 2
+    
+    days += 1 # count both start and end days
+    result = (weeks*5 + days)/10.0
+    
+    return result
 
 @requires_role("FUND")
 def person_info(request):
