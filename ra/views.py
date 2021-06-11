@@ -296,6 +296,14 @@ class RANewRequestWizard(SessionWizardView):
             req.file_attachment_2 = upfile
             req.file_mediatype_2 = upfile.content_type
 
+        # check to make sure ClearableFileField did not set file to False when clearing
+        if req.file_attachment_1 == False:
+            req.file_attachment_1 = ''
+            req.file_mediatype_1 = ''
+        if req.file_attachment_2 == False:
+            req.file_attachment_2 = ''
+            req.file_mediatype_2 = ''
+
         req.build_letter_text()
         req.save()
         
@@ -428,6 +436,14 @@ class RAEditRequestWizard(SessionWizardView):
             upfile = self.request.FILES['supporting-file_attachment_2']
             req.file_attachment_2 = upfile
             req.file_mediatype_2 = upfile.content_type
+
+        # check to make sure ClearableFileField did not set file to False when clearing
+        if req.file_attachment_1 == False:
+            req.file_attachment_1 = ''
+            req.file_mediatype_1 = ''
+        if req.file_attachment_2 == False:
+            req.file_attachment_2 = ''
+            req.file_mediatype_2 = ''
 
         if req.hiring_category=="GRAS":
             req.ra_payment_method = None
