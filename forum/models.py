@@ -21,6 +21,7 @@ from forum.names_generator import get_random_name
 # TODO: should a Reply have type for followup-question?
 # TODO: asker should be able to explicitly mark "answered"
 # TODO: actual deleting of posts (status='HIDD') by instructors/askers
+# TODO: instructors should be able to "close" a thread, so no more activity (by students)
 # TODO: need instructor reply form: no identity field, and "don't consider this an answer" check
 # TODO: something if there are more than THREAD_LIST_MAX threads in the menu
 
@@ -103,6 +104,12 @@ AVATAR_TYPE_CHOICES = [
     ('retro', 'Gravatar “retro” generated avatar'),
     ('robohash', 'Gravatar “robohash” generated avatar'),
 ]
+REMINDER_FREQUENCY_CHOICES = [  # tasks in forum/tasks.py must handle all of these choices
+    (1, 'every hour'),
+    (3, 'every 3 hours'),
+    (6, 'every 6 hours'),
+    (24, 'every 24 hours'),
+]
 
 
 class Identity(models.Model):
@@ -115,6 +122,8 @@ class Identity(models.Model):
     member = models.ForeignKey(Member, on_delete=models.PROTECT)
     pseudonym = models.CharField(max_length=100, null=False, blank=False)
     regen_count = models.PositiveIntegerField(default=0)
+    reminder_frequency = models.PositiveIntegerField(default=None, null=True, blank=True, choices=REMINDER_FREQUENCY_CHOICES)
+    last_reminder = models.DateTimeField(default=None, null=True, blank=True)  # when was user last sent an email with recent activity?
     config = JSONField(null=False, blank=False, default=dict)
 
     avatar_type = config_property('avatar_type', default='none')
@@ -503,8 +512,8 @@ class Reply(models.Model):
 
         return result
 
-    def get_absolute_url(self):
-        return self.thread.get_absolute_url() + '#post-' + str(self.post.number)
+    def get_absolute_url(self, fragment=False):
+        return self.thread.get_absolute_url() + ('?fragment=yes' if fragment else '') + '#post-' + str(self.post.number)
 
 
 class PostHistory(models.Model):

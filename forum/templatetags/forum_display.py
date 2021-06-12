@@ -7,7 +7,7 @@ from django.utils.html import escape
 from django.utils.safestring import SafeString, mark_safe
 
 from coredata.models import Member
-from dashboard.templatetags.form_display import required_message, label_display, field_display
+from dashboard.templatetags.form_display import required_message, label_display, field_display, as_dl
 from forum.models import Post, REACTION_CHOICES, REACTION_ICONS, Reaction, REACTION_SCORES, SCORE_STAFF_FACTOR, \
     REACTION_DESCRIPTIONS, Identity
 
@@ -15,40 +15,8 @@ register = template.Library()
 
 
 @register.filter
-def forum_form(form: forms.Form, submit_verb='Submit', form_class='forum-form') -> SafeString:
-    out = []
-    # if the form has any widgets that have Media elements, include this
-    out.append(str(form.media))
-    out.append(str(form.non_field_errors()))
-
-    if form.hidden_fields():
-        out.append('<div style="display:none">')
-        for field in form.hidden_fields():
-            out.append(str(field))
-        out.append('</div>')
-
-    reqcount = 0
-    out.append('<div class="%s">' % (form_class,))
-    for field in form.visible_fields():
-        if field.field.required:
-            reqcount += 1
-
-        out.append('<div class="form-field">')
-        if field.label:
-            out.append(label_display(field, form.prefix))
-        out.append('</div>')
-
-        #out.append('<dd>')
-        out.append(field_display(field))
-        #out.append('</dd>')
-    out.append('</div>')
-
-    if reqcount > 0:
-        out.append(required_message(None))
-
-    out.append('<p><input class="submit" type="submit" value="%s" /></p>' % (escape(submit_verb),))
-
-    return mark_safe('\n'.join(out))
+def forum_form(form: forms.Form, submit_verb: str = 'Submit') -> SafeString:
+    return as_dl(form, submit_verb=submit_verb)
 
 
 @register.filter
@@ -125,7 +93,7 @@ def reaction_widget(post: Post, viewer: Member, viewer_reactions: Dict[int, str]
             kwargs={'course_slug': post.offering.slug, 'post_number': post.number, 'reaction': react}
         )
         cls = 'active' if viewer_reaction == react else ''
-        html = '<a href="%s" title="%s" class="%s" data-target="main-panel">%s</a>\n' % (escape(url), escape(descr), cls, escape(REACTION_ICONS[react]))
+        html = '<a href="%s" title="%s" class="%s" data-target="main-panel" data-inplace="yes">%s</a>\n' % (escape(url), escape(descr), cls, escape(REACTION_ICONS[react]))
         out.append(html)
 
     out.append('</p>')

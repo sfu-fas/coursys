@@ -36,15 +36,24 @@ function sort_setup(button_id, cmp) {
     button.click(() => sort_replies(button_id, cmp));
 }
 
-function fragment_update(target_id, url) {
+function fragment_update(target_id, url, inplace) {
     // update #target_id with content fetched from url?fragment=yes
+    // if inplace, we're refreshing the current content, else it's a new page and scroll to the top
     // TODO https://stackoverflow.com/questions/7949040/restoring-content-when-clicking-back-button-with-history-js
     let oReq = new XMLHttpRequest();
-    oReq.open("GET", url + '?fragment=yes');
+    if ( url.indexOf('?') > -1 ) {
+        oReq.open("GET", url + '&fragment=yes');
+    } else {
+        oReq.open("GET", url + '?fragment=yes');
+    }
+
     oReq.addEventListener("load", function() {
         if ( this.readyState == 4 && this.status == 200 ) {
             document.getElementById(target_id).innerHTML = this.responseText;
             if ( target_id == 'main-panel' ) {
+                if ( ! inplace ) {
+                    window.scroll({top: 0, left: 0, behavior: 'smooth'});
+                }
                 const real_url = this.responseURL.replace('fragment=yes', '');
                 history.pushState({}, '', real_url);
             }
@@ -63,7 +72,15 @@ function partial_links_setup() {
         a.onclick = function(e) {
             e.preventDefault();
             console.log(a)
-            fragment_update(this.dataset.target, this.getAttribute('href'))
+            fragment_update(this.dataset.target, this.getAttribute('href'), a.hasAttribute('data-inplace'))
+        };
+    });
+    // and forum class="xref" links
+    document.querySelectorAll('a.xref').forEach((a) => {
+        a.onclick = function(e) {
+            e.preventDefault();
+            console.log(a)
+            fragment_update('main-panel', this.getAttribute('href'), false)
         };
     });
 }

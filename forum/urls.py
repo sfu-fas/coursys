@@ -17,4 +17,5 @@ forum_patterns = [ # prefix /COURSE_SLUG/forum/
     url(r'^'+POST_NUMBER+r'/react/(?P<reaction>\w+)$', views.react, name='react'),
     url(r'^identity', views.identity, name='identity'),
     url(r'^search', views.search, name='search'),
+    url(r'^_reminder', views.reminder, name='reminder'),
 ]

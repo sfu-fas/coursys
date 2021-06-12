@@ -7,9 +7,9 @@
     {% if thread.pin %}<i class="fas fa-thumbtack pin"></i>{% endif %}
     {% if instr_pinnable %}
         {% if thread.pin %}
-            <span class="pin">[<a href="{% url 'offering:forum:pin' course_slug=offering.slug post_number=post.number %}?unpin=yes">Unpin</a>]</span>
+            <span class="pin">[<a href="{% url 'offering:forum:pin' course_slug=offering.slug post_number=post.number %}?unpin=yes" data-target="main-panel" data-inplace="yes">Unpin</a>]</span>
         {% else %}
-            <span class="pin">[<a href="{% url 'offering:forum:pin' course_slug=offering.slug post_number=post.number %}?pin=yes"><i class="fas fa-thumbtack"></i> Pin</a>]</span>
+            <span class="pin">[<a href="{% url 'offering:forum:pin' course_slug=offering.slug post_number=post.number %}?pin=yes" data-target="main-panel" data-inplace="yes"><i class="fas fa-thumbtack"></i> Pin</a>]</span>
         {% endif %}
     {% else %}
 
@@ -42,6 +42,6 @@
 <form action="" method="post" enctype="multipart/form-data" class="close-warn">{% csrf_token %}
 {{ reply_form | forum_form:"Reply" }}
 </form>
-<p><a href="{% url 'offering:forum:identity' course_slug=offering.slug %}">About discussion forum identities</a></p>
+<p><a href="{% url 'offering:forum:identity' course_slug=offering.slug %}" data-target="main-panel">About discussion forum identities</a></p>
 
 </section>

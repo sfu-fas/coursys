@@ -14,6 +14,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--threads', type=int, default=30)
+        parser.add_argument('--replies', type=int, default=30)
 
     def handle(self, *args, **options):
         assert not settings.DO_IMPORTING_HERE
@@ -65,3 +66,12 @@ class Command(BaseCommand):
                 reply.save()
 
             thread.post.update_status(commit=True)
+
+        # the last thread also get a bunch of replies
+        for _ in range(options['replies']):
+            p = Post(offering=o, author=random.choice(students))
+            p.content = 'Another reply.'
+            p.markup = 'markdown'
+            p.identity = random.choice(['INST', 'ANON', 'NAME'])
+            reply = Reply(thread=thread, parent=thread.post, post=p)
+            reply.save()

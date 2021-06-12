@@ -39,6 +39,7 @@ class ForumHttpRequest(HttpRequest):
     member: Member
     offering: CourseOffering
     forum: Forum
+    fragment_request: bool
 
 
 def forum_view(view):
@@ -53,6 +54,7 @@ def forum_view(view):
         with transaction.atomic():
             request.offering = request.member.offering
             request.forum = Forum.for_offering_or_404(request.offering)
+            request.fragment_request = 'fragment' in request.GET
             # students and TAs are locked out of the forum reasonably-after the semester ends
             if request.member.role != 'INST':
                 after_semester = datetime.date.today() - request.member.offering.semester.end
@@ -67,30 +69,32 @@ def forum_view(view):
 def _render_forum_page(request: ForumHttpRequest, context: Dict[str, Any]) -> HttpResponse:
     context['offering'] = request.offering
     context['viewer'] = request.member
-    fragment = 'fragment' in request.GET
 
-    if fragment:
+    if request.fragment_request:
         # we have been asked for a page fragment: deliver only that.
-        thread_list_update = context.get('thread_list_update', False)
+        if context['view'] == 'summary':
+            context.update(thread_list_context(request.member))
         resp = render(request, 'forum/_'+context['view']+'.html', context=context)
+        # if thread_list_update, trigger a refresh of the thread_list view by the frontend
+        thread_list_update = context.get('thread_list_update', False)
         assert context['view'] != 'thread_list' or not thread_list_update  # no infinite loops, please
         resp['X-update-thread-list'] = 'yes' if thread_list_update else 'no'
     else:
         # render the entire index page server-side
-        context.update(_thread_list_context(request))  # full pages include the thread list: fetch it
+        context.update(thread_list_context(request.member))  # full pages include the thread list: fetch it
         resp = render(request, 'forum/index.html', context=context)
 
     return resp
 
 
-def _thread_list_context(request: ForumHttpRequest) -> Dict[str, Any]:
+def thread_list_context(member: Member) -> Dict[str, Any]:
     """
     Provide the context necessary to render a template with the thread list sidebar.
     """
-    threads = Thread.objects.filter_for(request.member) \
+    threads = Thread.objects.filter_for(member) \
         .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__author_identity')
 
-    read_thread_ids = ReadThread.objects.filter(member=request.member).values_list('thread_id', flat=True)
+    read_thread_ids = ReadThread.objects.filter(member=member).values_list('thread_id', flat=True)
     unread_threads = threads.exclude(id__in=read_thread_ids)
 
     threads = threads[:THREAD_LIST_MAX]
@@ -129,7 +133,7 @@ def thread_list(request: ForumHttpRequest) -> HttpResponse:
         'view': 'thread_list',
         'thread_list_update': False,
     }
-    context.update(_thread_list_context(request))
+    context.update(thread_list_context(request.member))
     return _render_forum_page(request, context)
 
 
@@ -151,7 +155,9 @@ def view_thread(request: ForumHttpRequest, post_number: int) -> HttpResponse:
         replies = list(Reply.objects.filter(post__number=post_number).filter_for(request.member)
                        .select_related('post', 'post__offering', 'thread').order_by('post__created_at'))
         if replies:
-            return HttpResponsePermanentRedirect(replies[0].get_absolute_url())
+            url = replies[0].get_absolute_url(fragment=request.fragment_request)
+            return HttpResponseRedirect(url)
+            #return HttpResponsePermanentRedirect(url)
         else:
             raise
 
@@ -161,7 +167,7 @@ def view_thread(request: ForumHttpRequest, post_number: int) -> HttpResponse:
 
     replies = Reply.objects.filter(thread=thread).filter_for(request.member) \
         .select_related('post', 'post__author', 'post__author__person', 'post__offering',
-                        'post__author_identity__member')
+                        'post__author_identity__member__person')
 
     # view_thread view has a form to reply to this thread
     if request.method == 'POST':
@@ -323,8 +329,6 @@ def edit_post(request: ForumHttpRequest, post_number: int) -> HttpResponse:
 
 @forum_view
 def react(request: ForumHttpRequest, post_number: int, reaction: str) -> HttpResponse:
-    fragment = 'fragment' in request.GET
-
     try:
         reply = get_object_or_404(Reply.objects.filter_for(request.member).select_related('post'), post__number=post_number)
         post = reply.post
@@ -343,10 +347,10 @@ def react(request: ForumHttpRequest, post_number: int, reaction: str) -> HttpRes
         for r in Reply.objects.filter(post=post).select_related('parent'):
             r.parent.update_status(commit=True)
 
-        if not fragment:
+        if not request.fragment_request:
             messages.add_message(request, messages.SUCCESS, 'Reaction recorded.')
 
-    if fragment:
+    if request.fragment_request:
         return HttpResponseRedirect(post.get_absolute_url() + '?fragment=yes')
     else:
         return HttpResponseRedirect(post.get_absolute_url())
@@ -358,18 +362,17 @@ def pin(request: ForumHttpRequest, post_number: int) -> HttpResponse:
         raise Http404
 
     thread = get_object_or_404(Thread.objects.filter_for(request.member).select_related('post'), post__number=post_number)
-    fragment = 'fragment' in request.GET
 
     pin = 'pin' in request.GET
     thread.pin = 1 if pin else 0
     thread.save()
-    if not fragment:
+    if not request.fragment_request:
         if pin:
             messages.add_message(request, messages.SUCCESS, 'Thread pinned.')
         else:
             messages.add_message(request, messages.SUCCESS, 'Thread unpinned.')
 
-    if fragment:
+    if request.fragment_request:
         return HttpResponseRedirect(thread.get_absolute_url() + '?fragment=yes')
     else:
         return HttpResponseRedirect(thread.get_absolute_url())
@@ -430,3 +433,10 @@ def search(request: ForumHttpRequest) -> HttpResponse:
     return _render_forum_page(request, context)
 
 
+from forum.tasks import reminder_content
+@forum_view
+def reminder(request: ForumHttpRequest) -> HttpResponse:
+    "Temporary view: preview of reminder email"
+    ident = Identity.for_member(request.member)
+
+    return HttpResponse(reminder_content(ident))
