@@ -201,7 +201,7 @@ class MarkupContentWidget(forms.MultiWidget):
     template_name = 'markup-content-widget.html'
     def __init__(self):
         widgets = (
-            forms.Textarea(attrs={'cols': 70, 'rows': 20}),
+            forms.Textarea(attrs={'rows': 20}),
             forms.Select(),
             forms.CheckboxInput(),
         )

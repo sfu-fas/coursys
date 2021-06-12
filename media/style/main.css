@@ -16,7 +16,7 @@ blockquote {
 	margin: 1em 2.5em;
 }
 dd {
-	margin: 0 2.5em;
+	margin: 0 2.0em;
 }
 div#main dl.docs dd>p:first-child {
 	margin-top: 0;
@@ -77,6 +77,8 @@ div.markup-content textarea {
     font-family: "Consolas", "Bitstream Vera Sans Mono", "Courier New", "Courier", monospace;
     font-size: 90%;
     max-width: 100%;
+    width: 100%;
+    max-width: 50em;
 }
 a img {
     border-style: none;
