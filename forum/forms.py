@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from coredata.models import Member
 from courselib.markup import MarkupContentMixin, MarkupContentField
 from forum import DEFAULT_FORUM_MARKUP
-from forum.models import Post, Identity, THREAD_PRIVACY_CHOICES, AVATAR_TYPE_CHOICES
+from forum.models import Post, Identity, THREAD_PRIVACY_CHOICES, AVATAR_TYPE_CHOICES, DIGEST_FREQUENCY_CHOICES
 
 
 class _PostForm(MarkupContentMixin(field_name='content'), forms.ModelForm):
@@ -103,3 +103,12 @@ class AvatarForm(forms.Form):
             if value != 'gravatar'
         ]
         self.fields['anon_avatar_type'].choices = choices
+
+
+DIGEST_CHOICES = [(0, 'never: no digest emails')] + DIGEST_FREQUENCY_CHOICES
+
+
+class DigestForm(forms.Form):
+    digest_frequency = forms.ChoiceField(label='Digest Email Frequency', choices=DIGEST_CHOICES,
+                                         widget=forms.RadioSelect,
+                                         help_text='How often would you like to receive digests of forum activity?')

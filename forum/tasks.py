@@ -88,8 +88,9 @@ def send_digest(ident_id: int) -> None:
             body=plain,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[ident.member.person.full_email()],
+            headers={'X-coursys-topic': 'forum', 'X-course': ident.offering.slug},
         )
-        email.attach_alternative(html, "text/html")
+        email.attach_alternative(html, 'text/html')
         email.send(fail_silently=False)
 
 

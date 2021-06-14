@@ -1,0 +1,5 @@
+{% load forum_display %}
+
+<form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+{{ form | forum_form:"Update" }}
+</form>

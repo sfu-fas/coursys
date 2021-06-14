@@ -22,3 +22,6 @@
 </li>
 {% endfor %}
 </ul>
+
+<p>[<a href="{% url 'offering:forum:identity' course_slug=offering.slug %}" data-target="main-panel">Discussion forum identities</a>]</p>
+<p>[<a href="{% url 'offering:forum:digest' course_slug=offering.slug %}" data-target="main-panel">Activity digest</a>]</p>

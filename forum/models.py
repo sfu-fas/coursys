@@ -104,7 +104,7 @@ AVATAR_TYPE_CHOICES = [
     ('retro', 'Gravatar “retro” generated avatar'),
     ('robohash', 'Gravatar “robohash” generated avatar'),
 ]
-DIGEST_FREQUENCY_CHOICES = [  # tasks in forum/tasks.py must handle all of these choices
+DIGEST_FREQUENCY_CHOICES = [
     (1, 'every hour'),
     (3, 'every 3 hours'),
     (6, 'every 6 hours'),

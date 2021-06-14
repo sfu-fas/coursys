@@ -12,7 +12,7 @@ from haystack.query import SearchQuerySet
 
 from coredata.models import Member, CourseOffering
 from courselib.auth import user_passes_test, is_course_member_by_slug, ForbiddenResponse
-from forum.forms import ThreadForm, ReplyForm, SearchForm, AvatarForm, InstrThreadForm, InstrReplyForm
+from forum.forms import ThreadForm, ReplyForm, SearchForm, AvatarForm, InstrThreadForm, InstrReplyForm, DigestForm
 from forum.models import Thread, Identity, Forum, Reply, Reaction, \
     APPROVAL_REACTIONS, REACTION_ICONS, APPROVAL_ROLES, IDENTITY_CHOICES, ReadThread, ReadReply
 from forum.names_generator import get_random_name
@@ -403,6 +403,27 @@ def identity(request: ForumHttpRequest) -> HttpResponse:
         'ident': ident,
         'sample_names': sample_names,
         'avatar_form': avatar_form,
+    }
+    return _render_forum_page(request, context)
+
+
+@forum_view
+def digest(request: ForumHttpRequest) -> HttpResponse:
+    ident = Identity.for_member(request.member)
+    if request.method == 'POST':
+        form = DigestForm(data=request.POST)
+        if form.is_valid():
+            ident.digest_frequency = form.cleaned_data['digest_frequency']
+            if ident.digest_frequency in [0, '0']:
+                ident.digest_frequency = None
+            ident.save()
+            messages.add_message(request, messages.SUCCESS, 'Digest setting updated.')
+            return redirect('offering:forum:digest', course_slug=request.offering.slug)
+    else:
+        form = DigestForm(initial={'digest_frequency': ident.digest_frequency if ident.digest_frequency else 0})
+    context = {
+        'view': 'digest',
+        'form': form,
     }
     return _render_forum_page(request, context)
 
