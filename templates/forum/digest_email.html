@@ -1,0 +1,18 @@
+<html><body>
+{# https://mailchimp.com/help/limitations-of-html-email/ #}
+<p>These threads have new activity in the <a href="{{ BASE_ABS_URL }}{% url 'offering:forum:summary' course_slug=offering.slug %}">{{ offering.subject }} {{ offering.number }} {{ offering.section }} discussion forum</a>:</p>
+<ul>
+{% for thread,replies in activity %}
+    <li>
+        <a href="{{ BASE_ABS_URL }}{{ thread.get_absolute_url }}"><em>{{ thread.title }}</em> by {{ thread.post.visible_author_short }}</a>,
+        {{ thread.post.created_at_html }}{% if thread.post.was_edited %} (edited {{ thread.post.modified_at_html }}){% endif %}
+        {% if replies %}<ul>{% for r in replies %}
+            <li>
+                Reply from {{ r.post.visible_author_short }},
+                {{ r.post.created_at_html }}{% if r.post.was_edited %} (edited {{ r.post.modified_at_html }}){% endif %}
+            </li>
+        {% endfor %}</ul>{% endif %}
+    </li>
+{% endfor %}
+</ul>
+</body></html>

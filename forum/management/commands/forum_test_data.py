@@ -6,7 +6,7 @@ from django.conf import settings
 
 from coredata.models import CourseOffering, Member
 from courselib.testing import TEST_COURSE_SLUG
-from forum.models import Forum, Post, Thread, Reply, Reaction
+from forum.models import Forum, Post, Thread, Reply, Reaction, Identity
 
 
 class Command(BaseCommand):
@@ -28,6 +28,12 @@ class Command(BaseCommand):
 
         instr = Member.objects.get(offering=o, person__userid='ggbaker')
         students = list(Member.objects.filter(offering=o, role='STUD'))
+
+        ident = Identity.for_member(instr)
+        ident.digest_frequency = 1
+        ident.avatar_type = 'gravatar'
+        ident.anon_avatar_type = 'robohash'
+        ident.save()
 
         for i in range(options['threads'], 0, -1):
             asker = random.choice(students)

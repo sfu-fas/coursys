@@ -431,12 +431,3 @@ def search(request: ForumHttpRequest) -> HttpResponse:
         'results': results,
     }
     return _render_forum_page(request, context)
-
-
-from forum.tasks import reminder_content
-@forum_view
-def reminder(request: ForumHttpRequest) -> HttpResponse:
-    "Temporary view: preview of reminder email"
-    ident = Identity.for_member(request.member)
-
-    return HttpResponse(reminder_content(ident))

@@ -104,7 +104,7 @@ AVATAR_TYPE_CHOICES = [
     ('retro', 'Gravatar “retro” generated avatar'),
     ('robohash', 'Gravatar “robohash” generated avatar'),
 ]
-REMINDER_FREQUENCY_CHOICES = [  # tasks in forum/tasks.py must handle all of these choices
+DIGEST_FREQUENCY_CHOICES = [  # tasks in forum/tasks.py must handle all of these choices
     (1, 'every hour'),
     (3, 'every 3 hours'),
     (6, 'every 6 hours'),
@@ -122,8 +122,8 @@ class Identity(models.Model):
     member = models.ForeignKey(Member, on_delete=models.PROTECT)
     pseudonym = models.CharField(max_length=100, null=False, blank=False)
     regen_count = models.PositiveIntegerField(default=0)
-    reminder_frequency = models.PositiveIntegerField(default=None, null=True, blank=True, choices=REMINDER_FREQUENCY_CHOICES)
-    last_reminder = models.DateTimeField(default=None, null=True, blank=True)  # when was user last sent an email with recent activity?
+    digest_frequency = models.PositiveIntegerField(default=None, null=True, blank=True, choices=DIGEST_FREQUENCY_CHOICES)
+    last_digest = models.DateTimeField(default='2000-01-01', null=True, blank=True)  # when was user last sent an email with recent activity?
     config = JSONField(null=False, blank=False, default=dict)
 
     avatar_type = config_property('avatar_type', default='none')
