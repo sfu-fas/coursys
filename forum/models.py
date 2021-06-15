@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+from collections import Counter
 from typing import Dict, Any, List
 
 from django.db import models, transaction, IntegrityError
@@ -397,14 +398,15 @@ class Post(models.Model):
             'number': self.number,
             'author': self.visible_author(viewer),
             'author_username': self.author_userid(viewer),
-            'content': self.html_content(),
+            'content_html': self.html_content(),
             'created_at': self.created_at.isoformat(),
             'modified_at': self.modified_at.isoformat(),
             'type': self.type,
             'identity': self.identity,
-            'student_reactions': [],
-            'instructor_reactions': [],
         }
+        reactions = reaction_data.get(self.id, [])
+        data['instructor_reactions'] = Counter(r.reaction for r in reactions if r.member.role in APPROVAL_ROLES)
+        data['student_reactions'] = Counter(r.reaction for r in reactions if r.member.role not in APPROVAL_ROLES)
         return data
 
 

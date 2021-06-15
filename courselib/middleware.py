@@ -67,3 +67,25 @@ class ExceptionIgnorer(MiddlewareMixin):
         elif isinstance(exception, AssertionError) and "The Django CAS middleware requires authentication middleware" in format:
             # wacky authentication thing that means the database is missing, or something
             return HttpError(request, status=500, title="Database Error", error="Unable to connect to database.")
+
+
+# adapted from  https://gist.github.com/fabiosussetto/c534d84cbbf7ab60b025
+class NonHtmlDebugToolbarMiddleware(object):
+    """
+    The Django Debug Toolbar usually only works for views that return HTML.
+    This middleware wraps any JSON response in HTML if the request
+    has a 'debug' query parameter (e.g. http://localhost/foo?debug)
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        import json
+        from django.http import HttpResponse
+        from django.utils.html import escape
+        response = self.get_response(request)
+        if request.GET.get('debug'):
+            if response['Content-Type'] == 'application/json':
+                content = json.dumps(json.loads(response.content), sort_keys=True, indent=2)
+                response = HttpResponse(u'<html><body><pre>{}</pre></body></html>'.format(escape(content)))
+        return response

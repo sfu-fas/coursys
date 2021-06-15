@@ -412,7 +412,7 @@ if DEPLOY_MODE == 'production':
 DEBUG_TOOLBAR = getattr(localsettings, 'DEBUG_TOOLBAR', False)
 if DEBUG_TOOLBAR:
     INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
-    MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware', 'courselib.middleware.NonHtmlDebugToolbarMiddleware']
     INTERNAL_IPS = getattr(localsettings, 'INTERNAL_IPS', [])
     #DEBUG_TOOLBAR_CONFIG = {
     #    'INTERCEPT_REDIRECTS': False,

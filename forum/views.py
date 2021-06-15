@@ -1,7 +1,7 @@
 import datetime
 import functools
 import itertools
-from typing import Optional, Dict, List, Any
+from typing import Dict, List, Any
 
 from django.conf import settings
 from django.contrib import messages
@@ -460,19 +460,20 @@ def dump(request: ForumHttpRequest) -> JsonResponse:
     if request.member.role not in ['INST', 'TA']:
         return JsonResponse({})
 
-    reactions = Reaction.objects.filter(post__offering=request.offering).order_by('post_id')
+    reactions = Reaction.objects.filter(post__offering=request.offering).select_related('member').order_by('post_id')
     reaction_data = {post_id: list(rs) for post_id, rs in itertools.groupby(reactions, lambda r: r.post_id)}
 
-    threads = Thread.objects.filter_for(request.member).select_related('post', 'post__author__person')
+    threads = Thread.objects.filter_for(request.member).select_related('post', 'post__author__person', 'post__author_identity')
     thread_data = {t.id: t.as_json(request.member, reaction_data=reaction_data) for t in threads}
 
-    replies = Reply.objects.filter_for(request.member).select_related('post', 'post__author__person')
+    replies = Reply.objects.filter_for(request.member).select_related('post', 'post__author__person', 'post__author_identity')
     for r in replies:
         rs = thread_data[r.thread_id]['replies']
         rs.append(r.as_json(request.member, reaction_data=reaction_data))
 
-
     data = {
         'threads': thread_data,
     }
-    return JsonResponse(data)
+    response = JsonResponse(data)
+    response['Content-Disposition'] = 'inline; filename="forum-%s.json"' % (request.offering.slug,)
+    return response
