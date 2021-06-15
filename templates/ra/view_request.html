@@ -52,24 +52,23 @@
       {% else %}
       Never updated.
       {% endif %}
-      </td></tr>
-    </tr></td>
+    </td></tr>
   </table>
 </div>
 
 <div class="table_container">
   <h2>Appointee Information</h2> 
+  {% if not no_id and admin %} 
+    <i>(Click <a href="{% url "ra:appointee_appointments" userid=req.person.userid %}">here</a> to view all appointments for {{ person.name }})</i>
+  {% endif %}
   <table class="info">
-    {% if not no_id and admin %} 
-    (<i>Click <a href="{% url "ra:appointee_appointments" userid=req.person.userid %}">here</a> to view all appointments for {{ person.name }})</i></td></tr>
-    {% endif %}
     {% if no_id %}
     <tr><th>ID:</th><td>Appointee does not have an SFU ID</td></tr>
     <tr><th>First Name:</th><td>{{ req.first_name }}</td></tr>
     <tr><th>Last Name:</th><td>{{ req.last_name }}</td></tr>
     <tr><th>Email:</th><td>{{ req.email_address }}</td></tr>
     {% else %}
-    <tr><th>ID:</th><td>{{ person.emplid }}
+    <tr><th>ID:</th><td>{{ person.emplid }}</td></tr>
     <tr><th>First Name:</th><td>{{ person.first_name }}</td></tr>
     <tr><th>Last Name:</th><td>{{ person.last_name }}</td></tr>
     <tr><th>Email:</th><td>{{ person.email_mailto }}</td></tr>
@@ -109,7 +108,7 @@
 <div class="table_container">
   <h2>Supervisor Information</h2>
   {% if admin %}
-  (<i>Click <a href="{% url "ra:supervisor_appointments" userid=req.supervisor.userid %}">here</a> to view all appointments that {{ supervisor.name }} is supervisor for)</i></td></tr>
+    <i>(Click <a href="{% url "ra:supervisor_appointments" userid=req.supervisor.userid %}">here</a> to view all appointments that {{ supervisor.name }} is supervisor for)</i>
   {% endif %}
   <table class="info">
     <tr><th>ID:</th><td>{{ supervisor.emplid }}</td></tr>
@@ -159,7 +158,7 @@
     <tr><th>Unit:</th><td>{{ req.fs1_unit }}</td></tr>
     <tr><th>Fund:</th><td>{{ req.fs1_fund }}</td></tr>
     <tr><th>Project:</th><td>{{ req.fs1_project }}</td></tr>
-    <tr><th>Funding Percentage:</th><td>{{ req.fs1_percentage }}%</td></tr>
+    <tr><th>Funding Amount:</th><td>${{ req.fs1_amount|floatformat:2 }}</td></tr>
     {% if req.fs2_option %} 
     <tr><th>Start Date:</th><td>{{ req.fs1_start_date }}</td></tr>
     <tr><th>End Date:</th><td>{{ req.fs1_end_date }}</td></tr>
@@ -174,7 +173,7 @@
     <tr><th>Unit:</th><td>{{ req.fs2_unit }}</td></tr>
     <tr><th>Fund:</th><td>{{ req.fs2_fund }}</td></tr>
     <tr><th>Project:</th><td>{{ req.fs2_project }}</td></tr>
-    <tr><th>Funding Percentage:</th><td>{{ req.fs2_percentage }}%</td></tr>
+    <tr><th>Funding Amount:</th><td>${{ req.fs2_amount|floatformat:2 }}</td></tr>
     <tr><th>Start Date:</th><td>{{ req.fs2_start_date }}</td></tr>
     <tr><th>End Date:</th><td>{{ req.fs2_end_date }}</td></tr>
   </table>
@@ -188,7 +187,7 @@
     <tr><th>Unit:</th><td>{{ req.fs3_unit }}</td></tr>
     <tr><th>Fund:</th><td>{{ req.fs3_fund }}</td></tr>
     <tr><th>Project:</th><td>{{ req.fs3_project }}</td></tr>
-    <tr><th>Funding Percentage:</th><td>{{ req.fs3_percentage }}%</td></tr>
+    <tr><th>Funding Amount:</th><td>${{ req.fs3_amount|floatformat:2 }}</td></tr>
     <tr><th>Start Date:</th><td>{{ req.fs3_start_date }}</td></tr>
     <tr><th>End Date:</th><td>{{ req.fs3_end_date }}</td></tr>
   </table>
@@ -201,21 +200,21 @@
   <table class="info">
     <tr><th>Start Date:</th><td>{{ req.start_date }}</td></tr>
     <tr><th>End Date:</th><td>{{ req.end_date }}</td></tr>
-
+    <tr><th>Pay Periods:</th><td>{{ req.pay_periods}}</td></tr>
     {% if ra_bw %}
     <tr><th>Payment Method:</th><td>Bi-Weekly</td></tr>
     <tr><th>Total Gross:</th><td>${{ req.total_gross|floatformat:2 }}</td></tr>
     <tr><th>Weeks Vacation:</th><td>{{ req.weeks_vacation|floatformat:1 }}</td></tr>
-    <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }}</td></tr>
+    <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }} ({{req.get_biweekly_hours}})</td></tr>
     <tr><th>Biweekly Salary:</th><td>${{ req.biweekly_salary|floatformat:2 }}</td></tr>
-    <tr><th>Vacation Hours:</th><td>{{ req.vacation_hours|floatformat:3 }}</td></tr>
+    <tr><th>Vacation Hours:</th><td>{{ req.vacation_hours|floatformat:3 }} ({{req.get_vacation_hours}})</td></tr>
     <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
     {% endif %}
     {% if ra_hourly %}
     <tr><th>Payment Method:</th><td>Hourly</td></tr>
     <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
     <tr><th>Vacation Pay:</th><td>{{ req.vacation_pay|floatformat:1 }}%</td></tr>
-    <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }}</td></tr>
+    <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }} ({{req.get_biweekly_hours}})</td></tr>
     {% endif %}
     {% if gras_le %}
       <tr><th>Payment Method:</th><td>Lump Sum - End of Term</td></tr>
@@ -225,7 +224,7 @@
     {% if gras_bw %}
     <tr><th>Payment Method:</th><td>Bi-Weekly</td></tr>
     <tr><th>Total Gross:</th><td>${{ req.total_gross|floatformat:2 }}</td></tr>
-    <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }}</td></tr>
+    <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }} ({{req.get_biweekly_hours}})</td></tr>
     <tr><th>Biweekly Salary:</th><td>${{ req.biweekly_salary|floatformat:2 }}</td></tr>
     <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
     {% endif %}
@@ -233,21 +232,21 @@
     <tr><th>Payment Method:</th><td>Bi-Weekly</td></tr>
     <tr><th>Total Gross:</th><td>${{ req.total_gross|floatformat:2 }}</td></tr>
     <tr><th>Weeks Vacation:</th><td>{{ req.weeks_vacation|floatformat:1 }}</td></tr>
-    <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }}</td></tr>
+    <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }} ({{req.get_biweekly_hours}})</td></tr>
     <tr><th>Biweekly Salary:</th><td>${{ req.biweekly_salary|floatformat:2 }}</td></tr>
-    <tr><th>Vacation Hours:</th><td>{{ req.vacation_hours|floatformat:3 }}</td></tr>
+    <tr><th>Vacation Hours:</th><td>{{ req.vacation_hours|floatformat:3 }} ({{req.get_vacation_hours}})</td></tr>
     <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
     {% endif %}
     {% if nc_hourly %}
     <tr><th>Payment Method:</th><td>Hourly</td></tr>
-    <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
+    <tr><th>Gross Hourly:</th><td>{{ req.gross_hourly|floatformat:2 }}</td></tr>
     <tr><th>Vacation Pay:</th><td>{{ req.vacation_pay|floatformat:1 }}%</td></tr>
-    <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }}</td></tr>
+    <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }} ({{req.get_biweekly_hours}})</td></tr>
     {% endif %}
     {% if req.backdated %}
     <b>This is a backdated appointment!</b>
     <tr><th>Lump Sum:</th><td>${{ req.backdate_lump_sum|floatformat:2 }}</td></tr>
-    <tr><th>Hours:</th><td>{{ req.backdate_hours|floatformat:1 }}</td></tr>
+    <tr><th>Hours:</th><td>{{ req.backdate_hours|floatformat:1 }} ({{req.get_backdate_hours}})</td></tr>
     <tr><th>Reason:</th><td>{{ req.backdate_reason }}</td></tr>
     {% endif %}
     <tr><th>Total Pay:</th><td>${{ req.total_pay}}</td></tr>
@@ -343,7 +342,7 @@
 {% endif %}
 
 {% if admin %}
-<h2><b><u>ADMINISTRATIVE</u></h2></b>
+<h3>ADMINISTRATIVE</h3>
 
 <div class="table_container">
   <h2>Notes</h2>
@@ -427,7 +426,7 @@
         <table class="form_section_incomplete"><tr><td><b>Grant is Active for Duration of Appointment</b></td>
           <td class="checkbox">
           {% if admin %}  
-          {{ adminform|as_dl_includefields:"grant_active"}}</td>
+          {{ adminform|as_dl_includefields:"grant_active"}}
           {% else %}
             <i>Incomplete</i>
           {% endif %}
@@ -554,23 +553,6 @@
 
 {% if admin %}
 <div class="bottom_admin">
-{% if research_assistant or non_cont %}
-<h2>Science Alive</h2>
-<form action="{% url "ra:request_science_alive" ra_slug=req.slug %}" class="subtle" method="post">
-  {% csrf_token %}
-  {% if req.science_alive %}
-    This <b>is</b> a science alive appointment.
-    <p class="actionbutton">
-        <input type="submit" value="Actually, it's not." />
-    </p>
-  {% else %}
-    This <b>is not</b> a science alive appointment.
-    <p class="actionbutton">
-        <input type="submit" value="Actually, it is." />
-    </p>
-  {% endif %}
-</form>
-{% endif %}
 <h2>Delete</h2>
 <form action="{% url "ra:delete_request" ra_slug=req.slug %}" class="subtle" method="post">
   {% csrf_token %}

@@ -609,7 +609,7 @@ class ScienceAliveLetter(SFUMediaMixin):
         self.c.setFillColor(self.sfu_blue)
         self._drawStringLeading(self.c, 39*mm, 242*mm, 'Outreach & Science AL!VE')
         self.c.setFillColor(black)
-        self._drawStringLeading(self.c, 39*mm, 238*mm, 'Faculty of Applied Science')
+        self._drawStringLeading(self.c, 39*mm, 238*mm, 'Faculty of Applied Sciences')
         
         self.c.setFont("Helvetica", 10)
         self.c.drawString(12*mm, 225*mm, self.date.strftime('%B %d, %Y').replace(' 0', ' '))
@@ -909,7 +909,7 @@ class RARequestForm(SFUMediaMixin):
         elif gras_bw:
             hourly = ''
             biweekly = "$%.2f" % (self.ra.biweekly_salary)
-            biweekhours = "%.1f" % (self.ra.biweekly_hours)
+            biweekhours = self.ra.get_biweekly_hours()
             lumpsum = ''
             lumphours = ''
         elif ra_hourly:
@@ -921,7 +921,7 @@ class RARequestForm(SFUMediaMixin):
         elif ra_bw:
             hourly = ''
             biweekly = "$%.2f" % (self.ra.biweekly_salary)
-            biweekhours = "%.1f" % (self.ra.biweekly_hours)
+            biweekhours = self.ra.get_biweekly_hours()
             lumpsum = ''
             lumphours = ''
         elif nc_hourly:
@@ -933,7 +933,7 @@ class RARequestForm(SFUMediaMixin):
         elif nc_bw:
             hourly = ''
             biweekly = "$%.2f" % (self.ra.biweekly_salary)
-            biweekhours = "%.1f" % (self.ra.biweekly_hours)
+            biweekhours = self.ra.get_biweekly_hours()
             lumpsum = ''
             lumphours = ''
         elif self.ra.backdated:
@@ -941,7 +941,7 @@ class RARequestForm(SFUMediaMixin):
             biweekly = ''
             biweekhours = ''
             lumpsum = "$%.2f" % (self.ra.backdate_lump_sum)
-            lumphours = "%.1f" % (self.ra.backdate_hours)
+            lumphours = self.ra.get_backdate_hours()
         
         # override if lump sum is selected, if not check if hourly
         if appointment_type == "LS":
@@ -950,7 +950,8 @@ class RARequestForm(SFUMediaMixin):
             biweekhours = ''
             lumpsum = "$%.2f" % (self.ra.total_pay)
         elif ra_hourly or nc_hourly:
-            self.c.drawString(3*mm, 120*mm, "(Biweekly Hours: %.1f)" % (self.ra.biweekly_hours))
+            self.c.drawString(3*mm, 120*mm, "Bi-Weekly:")
+            self.c.drawString(3*mm, 117*mm, "(%s)" % (self.ra.get_biweekly_hours()))
 
         self.c.setFont("Helvetica-Bold", 7)
         self.c.drawString(3*mm, 130*mm, "Hourly Rate")
@@ -971,8 +972,8 @@ class RARequestForm(SFUMediaMixin):
 
         self.c.drawString(51*mm, 117*mm, "Enter hours and minutes:")
 
-        self._box_entry(51.5*mm, 110*mm, 15.5*mm, 6*mm, content=biweekhours)
-        self._box_entry(100.5*mm, 110*mm, 15.5*mm, 6*mm, content=lumphours)
+        self._box_entry(51.5*mm, 110*mm, 40*mm, 6*mm, content=biweekhours)
+        self._box_entry(100.5*mm, 110*mm, 40*mm, 6*mm, content=lumphours)
 
         health_benefits = [0,1]       
         if research_assistant and self.ra.ra_benefits == "Y":
@@ -1010,11 +1011,17 @@ class RARequestForm(SFUMediaMixin):
             fs1_program = str(self.ra.fs1_program)
         else:
             fs1_program = ''
+
+        if self.ra.fs1_biweekly_rate != None:
+            fs1_biweekly_rate = str(self.ra.fs1_biweekly_rate)
+        else:
+            fs1_biweekly_rate = ''
         
         if self.ra.object_code != None:
             object_code = str(self.ra.object_code)
         else:
             object_code = ''
+        
         
         fs1_object = object_code
 
@@ -1023,6 +1030,7 @@ class RARequestForm(SFUMediaMixin):
         fs2_fund = ''
         fs2_unit = ''
         fs2_percentage = ''
+        fs2_biweekly_rate = ''
         fs2_start_date = ''
         fs2_end_date = ''
         fs2_program = ''
@@ -1033,6 +1041,7 @@ class RARequestForm(SFUMediaMixin):
         fs3_fund = ''
         fs3_unit = ''
         fs3_percentage = ''
+        fs3_biweekly_rate = ''
         fs3_start_date = ''
         fs3_end_date = ''
         fs3_program = ''
@@ -1048,6 +1057,7 @@ class RARequestForm(SFUMediaMixin):
             fs2_fund = str(self.ra.fs2_fund)
             fs2_unit = str(self.ra.fs2_unit)
             fs2_percentage = str(self.ra.fs2_percentage)
+            fs2_biweekly_rate = str(self.ra.fs2_biweekly_rate)
             fs2_start_date = str(self.ra.fs2_start_date)
             fs2_end_date = str(self.ra.fs2_end_date)
             fs2_object = object_code
@@ -1059,6 +1069,7 @@ class RARequestForm(SFUMediaMixin):
             fs3_fund = str(self.ra.fs3_fund)
             fs3_unit = str(self.ra.fs3_unit)
             fs3_percentage = str(self.ra.fs3_percentage)
+            fs3_biweekly_rate = str(self.ra.fs3_biweekly_rate)
             fs3_start_date = str(self.ra.fs3_start_date)
             fs3_end_date = str(self.ra.fs3_end_date)
             fs3_object = object_code
@@ -1107,9 +1118,9 @@ class RARequestForm(SFUMediaMixin):
         self._small_box_entry(169*mm, 80*mm, 17*mm, 6*mm, content="Bi-weekly Rate")
         self.c.setFont("Helvetica", 5)
         self.c.drawString(173*mm, 81*mm, "(if %Split)")
-        self._box_entry(169*mm, 75*mm, 17*mm, 5*mm, content='')
-        self._box_entry(169*mm, 70*mm, 17*mm, 5*mm, content='')
-        self._box_entry(169*mm, 65*mm, 17*mm, 5*mm, content='')
+        self._box_entry(169*mm, 75*mm, 17*mm, 5*mm, content=fs1_biweekly_rate)
+        self._box_entry(169*mm, 70*mm, 17*mm, 5*mm, content=fs2_biweekly_rate)
+        self._box_entry(169*mm, 65*mm, 17*mm, 5*mm, content=fs3_biweekly_rate)
         self._box_entry(169*mm, 60*mm, 17*mm, 5*mm, content='')
 
         self._small_box_entry(186*mm, 80*mm, 16*mm, 6*mm, content="Start Date")
@@ -1197,7 +1208,6 @@ class RARequestForm(SFUMediaMixin):
             self._box_entry(11*mm, 223*mm, 80*mm, 6*mm, content=str(self.ra.supervisor.name()))
             self._box_entry(21*mm, 217*mm, 70*mm, 6*mm, content=str(self.ra.supervisor.emplid))
             self._box_entry(11*mm, 211*mm, 80*mm, 6*mm, content=str(self.ra.supervisor.email()))
-
 
             vacation = [0, 0]
             weeks_vacation = ''
