@@ -13,9 +13,11 @@ from haystack.query import SearchQuerySet
 
 from coredata.models import Member, CourseOffering
 from courselib.auth import user_passes_test, is_course_member_by_slug, ForbiddenResponse
-from forum.forms import ThreadForm, ReplyForm, SearchForm, AvatarForm, InstrThreadForm, InstrReplyForm, DigestForm
+from forum.forms import ThreadForm, ReplyForm, SearchForm, AvatarForm, InstrThreadForm, InstrReplyForm, DigestForm, \
+    PseudonymForm
 from forum.models import Thread, Identity, Forum, Reply, Reaction, \
-    APPROVAL_REACTIONS, REACTION_ICONS, APPROVAL_ROLES, IDENTITY_CHOICES, ReadThread, ReadReply
+    APPROVAL_REACTIONS, REACTION_ICONS, APPROVAL_ROLES, IDENTITY_CHOICES, ReadThread, ReadReply, Post, REGEN_MAX, \
+    REGEN_POST_MAX
 from forum.names_generator import get_random_name
 
 
@@ -383,7 +385,7 @@ def pin(request: ForumHttpRequest, post_number: int) -> HttpResponse:
 def identity(request: ForumHttpRequest) -> HttpResponse:
     identity_description = dict(IDENTITY_CHOICES)[request.forum.identity]
     ident = Identity.for_member(request.member)
-    sample_names = [get_random_name() for _ in range(10)]
+    sample_names = [get_random_name() for _ in range(6)]
 
     if request.method == 'POST' and request.POST.get('form', '') == 'avatar':
         avatar_form = AvatarForm(identity=ident, data=request.POST)
@@ -396,6 +398,19 @@ def identity(request: ForumHttpRequest) -> HttpResponse:
     else:
         avatar_form = AvatarForm(identity=ident)
 
+    posts_made = Post.objects.filter(author=request.member).exclude(status='HIDD').count()
+    regen_remaining = REGEN_MAX - ident.regen_count
+    can_regen = posts_made <= REGEN_POST_MAX and regen_remaining > 0
+
+    if request.method == 'POST' and request.POST.get('form', '') == 'pseudonym':
+        pseudonym_form = PseudonymForm(data=request.POST)
+        if pseudonym_form.is_valid() and can_regen and request.member.role == 'STUD':
+            ident.regenerate(save=True)
+            messages.add_message(request, messages.SUCCESS, 'Pseudonym regenerated: %s.' % (ident.pseudonym,))
+            return redirect('offering:forum:identity', course_slug=request.offering.slug)
+    else:
+        pseudonym_form = PseudonymForm()
+
     context = {
         'view': 'identity',
         'member': request.member,
@@ -403,7 +418,13 @@ def identity(request: ForumHttpRequest) -> HttpResponse:
         'offering_identity_description': identity_description,
         'ident': ident,
         'sample_names': sample_names,
+        'posts_made': posts_made,
+        'regen_remaining': regen_remaining,
+        'REGEN_MAX': REGEN_MAX,
+        'REGEN_POST_MAX': REGEN_POST_MAX,
+        'can_regen': can_regen,
         'avatar_form': avatar_form,
+        'pseudonym_form': pseudonym_form,
     }
     return _render_forum_page(request, context)
 
@@ -463,16 +484,16 @@ def dump(request: ForumHttpRequest) -> JsonResponse:
     reactions = Reaction.objects.filter(post__offering=request.offering).select_related('member').order_by('post_id')
     reaction_data = {post_id: list(rs) for post_id, rs in itertools.groupby(reactions, lambda r: r.post_id)}
 
-    threads = Thread.objects.filter_for(request.member).select_related('post', 'post__author__person', 'post__author_identity')
+    threads = Thread.objects.filter_for(request.member).select_related('post', 'post__author__person', 'post__author_identity').order_by('post__number')
     thread_data = {t.id: t.as_json(request.member, reaction_data=reaction_data) for t in threads}
 
-    replies = Reply.objects.filter_for(request.member).select_related('post', 'post__author__person', 'post__author_identity')
+    replies = Reply.objects.filter_for(request.member).select_related('post', 'post__author__person', 'post__author_identity').order_by('post__number')
     for r in replies:
         rs = thread_data[r.thread_id]['replies']
         rs.append(r.as_json(request.member, reaction_data=reaction_data))
 
     data = {
-        'threads': thread_data,
+        'threads': list(thread_data.values()),
     }
     response = JsonResponse(data)
     response['Content-Disposition'] = 'inline; filename="forum-%s.json"' % (request.offering.slug,)

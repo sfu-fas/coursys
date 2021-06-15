@@ -18,14 +18,14 @@ from forum.names_generator import get_random_name
 
 
 # TODO: thread categories
-# TODO: re-roll of Identity.pseudonym if reasonably early
 # TODO: should a Reply have type for followup-question?
 # TODO: asker should be able to explicitly mark "answered"
 # TODO: actual deleting of posts (status='HIDD') by instructors/askers
 # TODO: instructors should be able to "close" a thread, so no more activity (by students)
 # TODO: need instructor reply form: no identity field, and "don't consider this an answer" check
 # TODO: something if there are more than THREAD_LIST_MAX threads in the menu
-# TODO: instructor data dump
+# TODO: digest email should have a config link
+# TODO: instructor/TA should have default 24h digest
 
 
 IDENTITY_CHOICES = [  # Identity.identity_choices should reflect any logical changes here
@@ -99,6 +99,8 @@ class Forum(models.Model):
             raise Http404('The discussion forum is disabled for this course offering.')
 
 
+REGEN_MAX = 5  # maximum number of times a user may regenerate their pseudonym
+REGEN_POST_MAX = 5  # maximum number of posts before regeneration locked
 AVATAR_TYPE_CHOICES = [
     ('none', 'No avatar image'),
     ('gravatar', 'Gravatar'),
@@ -123,13 +125,13 @@ class Identity(models.Model):
     offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
     member = models.ForeignKey(Member, on_delete=models.PROTECT)
     pseudonym = models.CharField(max_length=100, null=False, blank=False)
-    regen_count = models.PositiveIntegerField(default=0)
     digest_frequency = models.PositiveIntegerField(default=None, null=True, blank=True, choices=DIGEST_FREQUENCY_CHOICES)
-    last_digest = models.DateTimeField(default='2000-01-01', null=True, blank=True)  # when was user last sent an email with recent activity?
+    last_digest = models.DateTimeField(default='2000-01-01', null=False, blank=False)  # when was user last sent an email with recent activity?
     config = JSONField(null=False, blank=False, default=dict)
 
     avatar_type = config_property('avatar_type', default='none')
     anon_avatar_type = config_property('anon_avatar_type', default='none')
+    regen_count = config_property('regen_count', default=0)
 
     class Meta:
         unique_together = [
@@ -152,7 +154,7 @@ class Identity(models.Model):
 
     def regenerate(self, save: bool = True):
         self.pseudonym = get_random_name()
-        self.regen_count += 1
+        self.regen_count = self.regen_count + 1
         if save:
             self.save()
 

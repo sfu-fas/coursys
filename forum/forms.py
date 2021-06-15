@@ -71,7 +71,12 @@ class SearchForm(forms.Form):
     q = forms.CharField(label='Search posts')
 
 
+class PseudonymForm(forms.Form):
+    form = forms.CharField(initial='pseudonym', widget=forms.HiddenInput)
+
+
 class AvatarForm(forms.Form):
+    form = forms.CharField(initial='avatar', widget=forms.HiddenInput)
     avatar_type = forms.ChoiceField(label='Avatar type', choices=AVATAR_TYPE_CHOICES, widget=forms.RadioSelect,
                                     help_text='Avatar image used when you post non-anonymously')
     anon_avatar_type = forms.ChoiceField(label='Anonymous avatar type', choices=AVATAR_TYPE_CHOICES, widget=forms.RadioSelect,
