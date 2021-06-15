@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+from typing import Dict, Any, List
 
 from django.db import models, transaction, IntegrityError
 from django.db.models import Max
@@ -15,7 +16,6 @@ from forum import DEFAULT_FORUM_MARKUP
 from forum.names_generator import get_random_name
 
 
-# TODO: subscriptions/configurable digest emails
 # TODO: thread categories
 # TODO: re-roll of Identity.pseudonym if reasonably early
 # TODO: should a Reply have type for followup-question?
@@ -24,6 +24,7 @@ from forum.names_generator import get_random_name
 # TODO: instructors should be able to "close" a thread, so no more activity (by students)
 # TODO: need instructor reply form: no identity field, and "don't consider this an answer" check
 # TODO: something if there are more than THREAD_LIST_MAX threads in the menu
+# TODO: instructor data dump
 
 
 IDENTITY_CHOICES = [  # Identity.identity_choices should reflect any logical changes here
@@ -301,7 +302,7 @@ class Post(models.Model):
         if self.identity == 'NAME':
             return self.author_identity.real_name(self.author)
         elif self.identity == 'INST' and viewer.role != 'STUD':
-            return '%s (“%s” to students)' % (self.author_identity.real_name(self.author), self.author_identity.pseudonym,)
+            return '%s (anonymous to students)' % (self.author_identity.real_name(self.author),)
         else:
             return '“%s”' % (self.author_identity.pseudonym,)
 
@@ -310,6 +311,14 @@ class Post(models.Model):
             return self.author_identity.real_name(self.author)
         else:
             return '“%s”' % (self.author_identity.pseudonym,)
+
+    def author_userid(self, viewer: Member) -> str:
+        if self.identity == 'NAME':
+            return self.author.person.userid
+        elif self.identity == 'INST' and viewer.role != 'STUD':
+            return self.author.person.userid
+        else:
+            return None
 
     def was_edited(self):
         return (self.modified_at - self.created_at) > datetime.timedelta(seconds=5)
@@ -383,6 +392,21 @@ class Post(models.Model):
         if commit:
             self.save()
 
+    def as_json(self, viewer: Member, reaction_data: Dict[int, List['Reaction']]) -> Dict[str, Any]:
+        data = {
+            'number': self.number,
+            'author': self.visible_author(viewer),
+            'author_username': self.author_userid(viewer),
+            'content': self.html_content(),
+            'created_at': self.created_at.isoformat(),
+            'modified_at': self.modified_at.isoformat(),
+            'type': self.type,
+            'identity': self.identity,
+            'student_reactions': [],
+            'instructor_reactions': [],
+        }
+        return data
+
 
 THREAD_PRIVACY_CHOICES = [
     ('ALL', 'Viewable by students'),
@@ -449,25 +473,16 @@ class Thread(models.Model):
     def last_activity_html(self) -> SafeString:
         return how_long_ago(self.last_activity)
 
-    # def summary_json(self, viewer: Member) -> Dict[str, Any]:
-    #     """
-    #     Data for a JSON representation that summarizes the thread (for the menu of threads).
-    #     """
-    #     data = {
-    #         'id': self.id,
-    #         'title': self.title,
-    #         'author': self.post.visible_author(viewer),
-    #         'number': self.post.number,
-    #     }
-    #     return data
-    #
-    # def detail_json(self) -> Dict[str, Any]:
-    #     """
-    #     Data for a JSON representation that is complete thread info. Should be a superset of .summary_json
-    #     """
-    #     data = self.summary_json()
-    #     data['html_content'] = self.post.html_content()
-    #     return data
+    def as_json(self, viewer: Member, reaction_data: Dict[int, List['Reaction']]) -> Dict[str, Any]:
+        """
+        Data for a JSON representation that summarizes the thread (for JSON dump).
+        """
+        data = self.post.as_json(viewer=viewer, reaction_data=reaction_data)
+        data.update({
+            'title': self.title,
+            'replies': [],
+        })
+        return data
 
 
 class Reply(models.Model):
@@ -514,6 +529,12 @@ class Reply(models.Model):
 
     def get_absolute_url(self, fragment=False):
         return self.thread.get_absolute_url() + ('?fragment=yes' if fragment else '') + '#post-' + str(self.post.number)
+
+    def as_json(self, viewer: Member, reaction_data: Dict[int, List['Reaction']]) -> Dict[str, Any]:
+        """
+        Data for a JSON representation that summarizes the thread (for JSON dump).
+        """
+        return self.post.as_json(viewer=viewer, reaction_data=reaction_data)
 
 
 class PostHistory(models.Model):

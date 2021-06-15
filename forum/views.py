@@ -6,7 +6,8 @@ from typing import Optional, Dict, List, Any
 from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, \
+    JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from haystack.query import SearchQuerySet
 
@@ -452,3 +453,26 @@ def search(request: ForumHttpRequest) -> HttpResponse:
         'results': results,
     }
     return _render_forum_page(request, context)
+
+
+@forum_view
+def dump(request: ForumHttpRequest) -> JsonResponse:
+    if request.member.role not in ['INST', 'TA']:
+        return JsonResponse({})
+
+    reactions = Reaction.objects.filter(post__offering=request.offering).order_by('post_id')
+    reaction_data = {post_id: list(rs) for post_id, rs in itertools.groupby(reactions, lambda r: r.post_id)}
+
+    threads = Thread.objects.filter_for(request.member).select_related('post', 'post__author__person')
+    thread_data = {t.id: t.as_json(request.member, reaction_data=reaction_data) for t in threads}
+
+    replies = Reply.objects.filter_for(request.member).select_related('post', 'post__author__person')
+    for r in replies:
+        rs = thread_data[r.thread_id]['replies']
+        rs.append(r.as_json(request.member, reaction_data=reaction_data))
+
+
+    data = {
+        'threads': thread_data,
+    }
+    return JsonResponse(data)
