@@ -36,6 +36,7 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - rabbitmq
+    restart: always
     environment:
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
 
