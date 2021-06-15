@@ -1,7 +1,8 @@
 from django.test import TestCase
 from courselib.testing import Client, test_views
-from ra.models import RAAppointment, RARequest, Account, Project
+from ra.models import RAAppointment, RARequest, Account, Project, Unit, Person
 from django.urls import reverse
+from datetime import date
 
 
 class RATest(TestCase):
@@ -21,7 +22,6 @@ class RATest(TestCase):
         test_views(self, c, 'ra:', ['dashboard', 'new_request'], {})
 
         ra = RAAppointment.objects.filter(unit__label='CMPT')[0]
-
 
         p = ra.person
         test_views(self, c, 'ra:', ['student_appointments', 'new_student'], {'userid': p.userid})
@@ -46,5 +46,20 @@ class RATest(TestCase):
         proj = Project.objects.filter(unit__label='CMPT')[0]
         test_views(self, c, 'ra:', ['edit_project'], {'project_slug': proj.slug})
 
+        # NEW RA
 
+        # test basic pages
+        test_views(self, c, 'ra:', ['browse_appointments', 'new_request', 'dashboard', 'active_appointments', 'advanced_search'], {})
+        # test search
+        test_views(self, c, 'ra:', ['appointee_appointments', 'supervisor_appointments'], {'userid': p.userid})
+
+        # create test rarequest
+        u = Unit.objects.get(slug='cmpt')
+        s = Person.objects.get(userid='dzhao')
+        req = RARequest(person=p, unit=u, author=s, supervisor=s, config={}, hiring_category='RA', start_date=date(2021, 6, 1), end_date=date(2021, 9, 1), total_pay=1000)
+        req.save()
+
+        # test pages associated with an rarequest
+        test_views(self, c, 'ra:', ['view_request', 'edit_request', 'reappoint_request', 'edit_request_notes',
+                                    'request_paf', 'request_offer_letter_update', 'new_admin_attachment'], {'ra_slug': req.slug})
 

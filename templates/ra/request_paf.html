@@ -21,15 +21,43 @@
     <form action="{% url "ra:request_admin_paf_update" ra_slug=req.slug %}" method="POST" class="subtle">{% csrf_token %}
       <fieldset>
         <div class="form_section">
-        {{ adminpafform|as_dl_includefields:"position_no,object_code,fs1_program" }}
+        {{ adminpafform|as_dl_includefields:"position_no,object_code,paf_comments,fs1_program"}}
         {% if req.fs2_option %}
         {{ adminpafform|as_dl_includefields:"fs2_program" }}
         {% endif %}
         {% if req.fs3_option %}
         {{ adminpafform|as_dl_includefields:"fs3_program" }}
         {% endif %}
-        {{ adminpafform|as_dl_includefields:"paf_comments" }}
+        {% if req.fs2_option %}
+        <h3>Bi-Weekly Rates and Percentages for Multiple Funding Sources</h3>
+        <h4>Funding Source #1</h4>
+        <div class="important_info row">
+        <p><b>Total Pay:</b> ${{ req.fs1_amount|floatformat:2 }}</p>
+        <p><b>Start Date:</b> {{ req.fs1_start_date }}</p>
+        <p><b>End Date:</b> {{ req.fs1_end_date }}</p>
+        <p><b>Pay Periods:</b> {{ fs1_pay_periods }}</p>
         </div>
+        {{ adminpafform|as_dl_includefields:"fs1_percentage,fs1_biweekly_rate"}}
+        <h4>Funding Source #2</h4>
+        <div class="important_info row">
+        <p><b>Total Pay:</b> ${{ req.fs2_amount|floatformat:2 }}</p>
+        <p><b>Start Date:</b> {{ req.fs2_start_date }}</p>
+        <p><b>End Date:</b> {{ req.fs2_end_date }}</p>
+        <p><b>Pay Periods:</b> {{ fs2_pay_periods }}</p>
+        </div>
+        {{ adminpafform|as_dl_includefields:"fs2_percentage,fs2_biweekly_rate" }}
+        {% endif %}
+        {% if req.fs3_option %}
+        <h4>Funding Source #3</h4>
+        <div class="important_info row">
+        <p><b>Total Pay:</b> ${{ req.fs3_amount|floatformat:2 }}</p>
+        <p><b>Start Date:</b> {{ req.fs3_start_date }}</p>
+        <p><b>End Date:</b> {{ req.fs3_end_date }}</p>
+        <p><b>Pay Periods:</b> {{ fs3_pay_periods }}</p>
+        </div>
+        {{ adminpafform|as_dl_includefields:"fs3_percentage,fs3_biweekly_rate" }}
+        {% endif %}
+        </div> 
         <p><input type="submit" class="submit" value="Update PAF Configuration" /></p>
       </fieldset>
     </form>
@@ -59,7 +87,10 @@
       <h3>Currently Valid Visa(s)</h3><ul>
         {% if info.visas %}
           {% for visa in info.visas %}
-            <li>{{ visa.status }} starting {{ visa.start }}</li>
+            <p><u><li><b>Type:</b> {{ visa.status }}</li></u>
+            <li><b>Starts:</b> {{ visa.start }}</li>
+            <li><b>Ends:</b> {{ visa.end }}</li>
+            <li><b>Validity:</b> {{ visa.validity }}</li></p>
           {% endfor %}
         {% else %}
           <li class="empty">No currently valid visa in system</li>
@@ -74,6 +105,8 @@
   </div>
 
   <h2>Download</h2>
+
+  {% if req.get_paf %}
   <div class="form_container">
     <form action="{% url "ra:request_paf" ra_slug=req.slug %}" method="post" class="subtle">{% csrf_token %}
       <fieldset>
@@ -84,4 +117,8 @@
       </fieldset>
     </form>  
   </div>
+{% else %}
+  <p><b>Please complete more of the <a href="{% url "ra:view_request" ra_slug=req.slug %}">administrative checklist</a> before downloading the PAF.</b></p> 
+  <p>(You must complete up to and including "Payroll Forms are Collected/Already on File")</p>
+{% endif %}
 {% endblock %}

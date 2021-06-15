@@ -206,6 +206,12 @@ if deploy_mode != 'devel'
     minute '0'
     command "python3 #{coursys_dir}/manage.py ping_celery"
   end
+  cron "celery restart" do
+    user 'root'
+    minute '0'
+    hour '7'
+    command "systemctl restart celery celerybeat"
+  end
 
   # nginx setup
   execute "dh group" do

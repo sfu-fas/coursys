@@ -368,7 +368,7 @@ def ra_request_attachment_upload_to(instance, filename):
 
 class RARequest(models.Model):
     # people_comments - comments about the appointee or supervisor
-    # fs1_percentage, fs2_percentage, fs3_percentage - percentages that each funding source makes up
+    # fs1_amount, fs2_amount, fs3_amount - amount of total pay that each funding source makes up
     # fs1_start_date, fs2_start_date, fs3_start_date - start dates of each funding source
     # fs1_end_date, fs2_end_date, fs3_end_date - end dates of each funding source
     # fs2_option - whether or not we have more than one funding source
@@ -376,6 +376,8 @@ class RARequest(models.Model):
     # position_no - position number for appointment, to be filled out by admin for PAF configuration purposes
     # object_code - object code for appointment, to be filled out by admin for PAF configuration purposes
     # fs1_program, fs2_program, fs3_program - programs for each funding source of appointment, to be filled out by admin for PAF configuration purposes
+    # fs1_biweekly_rate, fs2_biweekly_rate, fs3_biweekly_rate - biweekly rate for each funding source of appointment, to be filled out by admin for PAF configuration purposes
+    # fs1_percentage, fs2_percentage, fs3_percentage - percentages for each funding source of appointment, to be filled out by admin for PAF configuration purposes
     # paf_comments - comments to be filled out by admin for PAF configuration purposes
     # backdate_lump_sum - backdate lump sum amount for appointment
     # backdate_hours - number of hours the backdate appointment is for
@@ -425,6 +427,8 @@ class RARequest(models.Model):
     fs1_fund = models.IntegerField(default=0)
     fs1_project = models.CharField(max_length=10, default='')
     fs1_percentage = config_property('fs1_percentage', default=100)
+    fs1_amount = config_property('fs1_amount', default=0)
+    fs1_biweekly_rate = config_property('fs1_biweekly_rate', default=0)
     fs1_start_date = config_property('fs1_start_date', default='')
     fs1_end_date = config_property('fs1_end_date', default='')
 
@@ -433,6 +437,8 @@ class RARequest(models.Model):
     fs2_fund = models.IntegerField(default=0)
     fs2_project = models.CharField(max_length=10, default='')
     fs2_percentage = config_property('fs2_percentage', default=0)
+    fs2_amount = config_property('fs2_amount', default=0)
+    fs2_biweekly_rate = config_property('fs2_biweekly_rate', default=0)
     fs2_start_date = config_property('fs2_start_date', default='')
     fs2_end_date = config_property('fs2_end_date', default='')
 
@@ -441,6 +447,8 @@ class RARequest(models.Model):
     fs3_fund = models.IntegerField(default=0)
     fs3_project = models.CharField(max_length=10, default='')
     fs3_percentage = config_property('fs3_percentage', default=0)
+    fs3_amount = config_property('fs3_amount', default=0)
+    fs3_biweekly_rate = config_property('fs3_biweekly_rate', default=0)
     fs3_start_date = config_property('fs3_start_date', default='')
     fs3_end_date = config_property('fs3_end_date', default='')
 
@@ -519,6 +527,7 @@ class RARequest(models.Model):
     # offer letters
     science_alive = models.BooleanField(default=False)
     offer_letter_text = models.TextField(null=True, default='', help_text="Text of the offer letter to be signed by the RA and supervisor.")
+    additional_supervisor = config_property('additional_supervisor', default='')
 
     # creation, deletion and status
     created_at = models.DateTimeField(auto_now_add=True)
@@ -529,8 +538,16 @@ class RARequest(models.Model):
     last_updated_at = models.DateTimeField(auto_now=True)
     last_updater = models.ForeignKey(Person, related_name='rarequest_last_updater', default=None, on_delete=models.PROTECT, null=True, editable=False)
 
+    # all checks need to be checked off for an appointment to be complete
     def get_complete(self):
         if self.funding_available and self.grant_active and self.salary_allowable and self.supervisor_check and self.visa_valid and self.payroll_collected and self.paf_signed:
+            return True
+        else:
+            return False
+
+    # encourage completion of the checklist before downloading the paf
+    def get_paf(self):
+        if self.funding_available and self.grant_active and self.salary_allowable and self.supervisor_check and self.visa_valid and self.payroll_collected:
             return True
         else:
             return False
@@ -586,7 +603,7 @@ class RARequest(models.Model):
                     'position': self.position,
                     'biweekly_salary': self.biweekly_salary,
                     'total_pay': self.total_pay,
-                    'vacation_hours': self.total_pay,
+                    'vacation_hours': self.get_vacation_hours(),
                     'weeks_vacation': self.weeks_vacation
                 }
                 text = DEFAULT_LETTER_RABW % substitutions
@@ -664,6 +681,33 @@ class RARequest(models.Model):
         funds = ', '.join(str(f) for f in set(funds))
         return funds
 
+    def get_biweekly_hours(self):
+        mins = round(60 * (self.biweekly_hours % 1))
+        hours = int(self.biweekly_hours)
+        if mins != 0:
+            biweekly_hours = str(hours) + " hours and " + str(mins) + " minutes"
+        else:
+            biweekly_hours = str(hours) + " hours"  
+        return biweekly_hours
+
+    def get_vacation_hours(self):
+        mins = round(60 * (self.vacation_hours % 1))
+        hours = int(self.vacation_hours)
+        if mins != 0:
+            vacation_hours = str(hours) + " hours and " + str(mins) + " minutes"
+        else:
+            vacation_hours = str(hours) + " hours"  
+        return vacation_hours
+
+    def get_backdate_hours(self):
+        mins = round(60 * (self.backdate_hours % 1))
+        hours = int(self.backdate_hours)
+        if mins != 0:
+            backdate_hours = str(hours) + " hours and " + str(mins) + " minutes"
+        else:
+            backdate_hours = str(hours) + " hours"  
+        return backdate_hours
+
     def get_name(self):
         if self.first_name and self.last_name:
             name = "%s %s" % (self.first_name, self.last_name)
@@ -708,7 +752,6 @@ class RARequest(models.Model):
     def get_cosigner_line(self):
         if self.hiring_category == "RA" or self.hiring_category == "NC":
             line = "I agree to the conditions of employment"
-
         elif self.hiring_category == "GRAS":
             line = "I agree to the conditions of this contract"
         return line

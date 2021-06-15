@@ -23,7 +23,7 @@
       <div class="form_section">
       {{ configform|as_dl }}
       </div>
-      <p><input type="submit" class="submit" value="Update Offer Letter Text" /></p>
+      <p><input type="submit" class="submit" value="Update Offer Letter Configuration" /></p>
     </fieldset>
   </form>
 </div>
@@ -57,4 +57,27 @@
 </form>
 </div>
 {% endif %}
+
+{% if research_assistant or non_cont %}
+  {% if not req.backdated %}
+    <h2>Science Alive</h2>
+    <form action="{% url "ra:request_science_alive" ra_slug=req.slug %}" class="subtle" method="post">
+      {% csrf_token %}
+      {% if req.science_alive %}
+        This offer letter is currently set to Science Alive.
+        <p class="actionbutton">
+            <input type="submit" value="This is not a Science Alive appointment" />
+        </p>
+      {% else %}
+        This is a regular offer letter. Click below if should be set to Science Alive.
+        <p class="actionbutton">
+            <input type="submit" value="This is a Science Alive appointment." />
+        </p>
+      {% endif %}
+    </form>
+  {% endif %}
+{% endif %}
+
+
 {% endblock %}
+
