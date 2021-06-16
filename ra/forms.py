@@ -9,6 +9,7 @@ from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
+import os
 
 APPOINTMENT_TYPE = (
     ('AP', 'Appointment/Re-Appointment'),
@@ -43,7 +44,6 @@ FAS_CONTACT = "fasra@sfu.ca"
 # intro contacts
 URA_CONTACT = "fas_academic_relations@sfu.ca"
 PD_CONTACT = "fas_postdoc_support@sfu.ca"
-
 
 class RARequestIntroForm(forms.ModelForm):
     person = PersonField(label='Appointee', required=False, help_text="Please ensure you are appointing the correct student.")
@@ -428,10 +428,10 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
 
     # fill out if backdated
     backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
-    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum")
-    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?")
-    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':15}), label="Please provide the reason for this backdated appointment")
-    
+    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
+    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
+    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10}), label="Please provide the reason for this backdated appointment", max_length=500)
+
     gras_payment_method = forms.ChoiceField(required=False,
                                             choices=GRAS_PAYMENT_METHOD_CHOICES, 
                                             widget=forms.RadioSelect, 
@@ -439,8 +439,8 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
                                             help_text='Canadian bank status impacts how students will be paid. This generally applies to International ' +
                                             'students currently working outside of Canada, who do not have banking status in Canada. If the status is ' + 
                                             'unknown please confirm with the student.')
-    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
-    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
+    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
+    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     gross_hourly = forms.DecimalField(required=False, widget=forms.HiddenInput)
 
@@ -529,21 +529,21 @@ class RARequestNonContinuingForm(forms.ModelForm):
     
     # fill out if backdated
     backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
-    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum")
-    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?")
-    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':15}), label="Please provide the reason for this backdated appointment")
+    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
+    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
+    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10}), label="Please provide the reason for this backdated appointment", max_length=500)
 
-    nc_duties = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':15}), label="Duties", help_text="Please enter duties in a comma-separated list.")
+    nc_duties = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10}), label="Duties", help_text="Please enter duties in a comma-separated list.", max_length=500)
     
     nc_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
     
-    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
-    weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)", max_digits=8, decimal_places=1)
-    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
+    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
+    weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)")
+    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
-    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly", max_digits=8, decimal_places=2)
-    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)", max_digits=8, decimal_places=1)
+    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly")
+    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)")
 
     class Meta:
         model = RARequest
@@ -648,19 +648,19 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     pay_periods = forms.DecimalField(required=False, widget=forms.HiddenInput)
     # fill out if backdated
     backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
-    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum")
-    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?")
-    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':15}), label="Please provide the reason for this backdated appointment")
+    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
+    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
+    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10}), label="Please provide the reason for this backdated appointment", max_length=500)
     
     ra_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
     
-    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
-    weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)", max_digits=8, decimal_places=1)
-    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
+    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
+    weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)")
+    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
-    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly", max_digits=8, decimal_places=2)
-    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)", max_digits=8, decimal_places=1)
+    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly")
+    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)")
     
     ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
                                     label='Are you willing to provide extended health benefits?', 
@@ -784,6 +784,22 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             elif ra_payment_method == "BW":
                 self.cleaned_data["vacation_pay"] = 0
             
+class ShortClearableFileInput(forms.ClearableFileInput):
+    """
+    File input that has the "clear" checkbox, but with no link to the file and only the file name (no file path).
+    Adapted from CleanClearableFileInput in quizzes/types/file.py
+    """
+
+    template_name = 'short_clearable_file_input.html'
+
+    def format_value(self, value):
+        # format as just the filename
+        if value and value.name:
+            _, filename = os.path.split(value.name)
+            return filename
+        else:
+            return 'none'
+
 class RARequestSupportingForm(forms.ModelForm):
     funding_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3}), label="Any comments about funding?")
     
@@ -793,6 +809,10 @@ class RARequestSupportingForm(forms.ModelForm):
         labels = {'file_attachment_1': "Supplementary Document #1",
                   'file_attachment_2': "Supplementary Document #2",
         }
+        widgets = {
+            'file_attachment_1': ShortClearableFileInput,
+            'file_attachment_2': ShortClearableFileInput
+        }      
         
         help_texts = {
                     'file_attachment_1': "Both of these fields are optional.",

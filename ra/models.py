@@ -465,10 +465,10 @@ class RARequest(models.Model):
 
     total_gross = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     weeks_vacation = models.DecimalField(max_digits=8, decimal_places=1, default=0)
-    biweekly_hours = models.DecimalField(max_digits=8, decimal_places=1, default=0)
+    biweekly_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     biweekly_salary = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     gross_hourly = models.DecimalField(max_digits=8, decimal_places=2, default=0)
-    vacation_hours = models.DecimalField(max_digits=8, decimal_places=3, default=0)
+    vacation_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     vacation_pay = models.DecimalField(max_digits=8, decimal_places=1, default=0)
 
     # for backdated appointments

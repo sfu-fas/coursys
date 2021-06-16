@@ -32,7 +32,7 @@ import json, datetime, urllib.request, urllib.parse, urllib.error
 from django.shortcuts import render
 from formtools.wizard.views import SessionWizardView
 from django.conf import settings
-from courselib.storage import UploadedFileStorage
+from courselib.storage import UploadedFileStorage, TemporaryFileStorage
 from django.utils.decorators import method_decorator
 from django.core.mail.message import EmailMultiAlternatives
 import os
@@ -149,7 +149,8 @@ def _email_request_notification(req, url):
 
 @method_decorator(requires_role(["FUND", "FAC"]), name='dispatch')
 class RANewRequestWizard(SessionWizardView):
-    file_storage = UploadedFileStorage
+
+    file_storage = TemporaryFileStorage
 
     def get_template_names(self):
         return [TEMPLATES[self.steps.current]]
@@ -269,6 +270,7 @@ class RANewRequestWizard(SessionWizardView):
                     form = super(RANewRequestWizard, self).get_form(step, data)
         return form
 
+
     def done(self, form_list, **kwargs):
         req = RARequest()
         for form in form_list:
@@ -289,11 +291,10 @@ class RANewRequestWizard(SessionWizardView):
 
         if 'supporting-file_attachment_1' in self.request.FILES:
             upfile = self.request.FILES['supporting-file_attachment_1']
-            req.file_attachment_1 = upfile
             req.file_mediatype_1 = upfile.content_type
+
         if 'supporting-file_attachment_2' in self.request.FILES:
             upfile = self.request.FILES['supporting-file_attachment_2']
-            req.file_attachment_2 = upfile
             req.file_mediatype_2 = upfile.content_type
 
         # check to make sure ClearableFileField did not set file to False when clearing
@@ -323,7 +324,7 @@ class RANewRequestWizard(SessionWizardView):
 
 @method_decorator(requires_role("FUND"), name='dispatch')
 class RAEditRequestWizard(SessionWizardView):
-    file_storage = UploadedFileStorage
+    file_storage = TemporaryFileStorage
 
     def get_template_names(self):
         return [TEMPLATES[self.steps.current]]
@@ -354,6 +355,10 @@ class RAEditRequestWizard(SessionWizardView):
         if step == 'dates':
             kwargs['edit'] = True
         return kwargs
+
+    def get_step_files(self, step):
+        files_mval = MultiValueDict(files)
+        return files_mval
 
     def get_form_initial(self, step):
         init = {}
@@ -421,20 +426,19 @@ class RAEditRequestWizard(SessionWizardView):
 
     def done(self, form_list, **kwargs):
         ra_slug = self.kwargs['ra_slug']
-        req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=self.request.units)  
+        req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=self.request.units) 
         for form in form_list:
             for field, value in form.cleaned_data.items():
                 setattr(req, field, value)
-        
+         
         req.last_updater = get_object_or_404(Person, userid=self.request.user.username)
 
         if 'supporting-file_attachment_1' in self.request.FILES:
             upfile = self.request.FILES['supporting-file_attachment_1']
-            req.file_attachment_1 = upfile
             req.file_mediatype_1 = upfile.content_type
+
         if 'supporting-file_attachment_2' in self.request.FILES:
             upfile = self.request.FILES['supporting-file_attachment_2']
-            req.file_attachment_2 = upfile
             req.file_mediatype_2 = upfile.content_type
 
         # check to make sure ClearableFileField did not set file to False when clearing

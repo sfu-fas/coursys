@@ -368,7 +368,7 @@ function raBW () {
     }
     vacationHours = payPeriods * (weeksVacation / 52.14) * biweeklyHours
 
-    vacationHours = vacationHours.toFixed(3)
+    vacationHours = vacationHours.toFixed(2)
     biweeklySalary = biweeklySalary.toFixed(2)
     hourlyRate = hourlyRate.toFixed(2)
     if (totalPay == '') {
@@ -417,7 +417,7 @@ function ncBW () {
     }
     vacationHours = payPeriods * (weeksVacation / 52.14) * biweeklyHours
 
-    vacationHours = vacationHours.toFixed(3)
+    vacationHours = vacationHours.toFixed(2)
     biweeklySalary = biweeklySalary.toFixed(2)
     hourlyRate = hourlyRate.toFixed(2)
     if (totalPay == '') {
