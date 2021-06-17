@@ -32,28 +32,34 @@
         <h3>Bi-Weekly Rates and Percentages for Multiple Funding Sources</h3>
         <h4>Funding Source #1</h4>
         <div class="important_info row">
-        <p><b>Total Pay:</b> ${{ req.fs1_amount|floatformat:2 }}</p>
-        <p><b>Start Date:</b> {{ req.fs1_start_date }}</p>
-        <p><b>End Date:</b> {{ req.fs1_end_date }}</p>
-        <p><b>Pay Periods:</b> {{ fs1_pay_periods }}</p>
+        <b>Total Pay:</b> ${{ req.fs1_amount|floatformat:2 }} | 
+        <b>Start:</b> {{ req.fs1_start_date }} | 
+        <b>End:</b> {{ req.fs1_end_date }} | 
+        <b>Est. Pay Periods:</b> {{ req.fs1_info.pay_periods }} | 
+        <b>Est. Bi-Weekly Rate:</b> {{ req.fs1_info.biweekly_rate }} | 
+        <b>Est. Percentage:</b> {{ req.fs1_info.percentage }}
         </div>
         {{ adminpafform|as_dl_includefields:"fs1_percentage,fs1_biweekly_rate"}}
         <h4>Funding Source #2</h4>
         <div class="important_info row">
-        <p><b>Total Pay:</b> ${{ req.fs2_amount|floatformat:2 }}</p>
-        <p><b>Start Date:</b> {{ req.fs2_start_date }}</p>
-        <p><b>End Date:</b> {{ req.fs2_end_date }}</p>
-        <p><b>Pay Periods:</b> {{ fs2_pay_periods }}</p>
+        <b>Total Pay:</b> ${{ req.fs2_amount|floatformat:2 }} | 
+        <b>Start:</b> {{ req.fs2_start_date }} | 
+        <b>End:</b> {{ req.fs2_end_date }} | 
+        <b>Est. Pay Periods:</b> {{ req.fs2_info.pay_periods }} | 
+        <b>Est. Bi-Weekly Rate:</b> {{ req.fs2_info.biweekly_rate }} | 
+        <b>Est. Percentage:</b> {{ req.fs2_info.percentage }}
         </div>
         {{ adminpafform|as_dl_includefields:"fs2_percentage,fs2_biweekly_rate" }}
         {% endif %}
         {% if req.fs3_option %}
         <h4>Funding Source #3</h4>
         <div class="important_info row">
-        <p><b>Total Pay:</b> ${{ req.fs3_amount|floatformat:2 }}</p>
-        <p><b>Start Date:</b> {{ req.fs3_start_date }}</p>
-        <p><b>End Date:</b> {{ req.fs3_end_date }}</p>
-        <p><b>Pay Periods:</b> {{ fs3_pay_periods }}</p>
+        <b>Total Pay:</b> ${{ req.fs3_amount|floatformat:2 }} | 
+        <b>Start:</b> {{ req.fs3_start_date }} | 
+        <b>End:</b> {{ req.fs3_end_date }} | 
+        <b>Est. Pay Periods:</b> {{ req.fs3_info.pay_periods }} | 
+        <b>Est. Bi-Weekly Rate:</b> {{ req.fs3_info.biweekly_rate }} | 
+        <b>Est. Percentage:</b> {{ req.fs3_info.percentage }}
         </div>
         {{ adminpafform|as_dl_includefields:"fs3_percentage,fs3_biweekly_rate" }}
         {% endif %}
@@ -107,18 +113,18 @@
   <h2>Download</h2>
 
   {% if req.get_paf %}
-  <div class="form_container">
-    <form action="{% url "ra:request_paf" ra_slug=req.slug %}" method="post" class="subtle">{% csrf_token %}
-      <fieldset>
-        <div class="form_section">
-        {{ form|as_dl }}
-        </div>
-        <p><input type="submit" value="View/Download PAF" class="submit" /></p>
-      </fieldset>
-    </form>  
-  </div>
-{% else %}
-  <p><b>Please complete more of the <a href="{% url "ra:view_request" ra_slug=req.slug %}">administrative checklist</a> before downloading the PAF.</b></p> 
-  <p>(You must complete up to and including "Payroll Forms are Collected/Already on File")</p>
-{% endif %}
+    <div class="form_container">
+      <form action="{% url "ra:request_paf" ra_slug=req.slug %}" method="post" class="subtle">{% csrf_token %}
+        <fieldset>
+          <div class="form_section">
+          {{ form|as_dl }}
+          </div>
+          <p><input type="submit" value="View/Download PAF" class="submit" /></p>
+        </fieldset>
+      </form>  
+    </div>
+  {% else %}
+    <p><b>Please complete more of the <a href="{% url "ra:view_request" ra_slug=req.slug %}">administrative checklist</a> before downloading the PAF.</b></p> 
+    <p>(You must complete up to and including "Payroll Forms are Collected/Already on File")</p>
+  {% endif %}
 {% endblock %}

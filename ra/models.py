@@ -366,6 +366,57 @@ DUTIES_CHOICES_PM = (
 def ra_request_attachment_upload_to(instance, filename):
     return upload_path('rarequestattachments', filename)
 
+# altered from pay_periods to display on paf config for reference
+def _fund_pay_periods(start_date, end_date):
+    """
+    Calculate number of pay periods between some start and end dates.
+    i.e. number of work days in period / 10
+    """
+    day = datetime.timedelta(days=1)
+    week = datetime.timedelta(days=7)
+
+    start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
+    end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
+
+    if start_date.weekday() == 5:
+        start_date += 2*day
+    elif start_date.weekday() == 6:
+        start_date += day
+    if end_date.weekday() == 5:
+        end_date -= day
+    elif end_date.weekday() == 6:
+        end_date -= 2*day
+
+    # number of full weeks (until sameday: last same weekday before end date)
+    weeks = ((end_date-start_date)/7).days
+    sameday = start_date + weeks*week
+    assert sameday <= end_date < sameday + week
+    
+    # number of days remaining
+    days = (end_date - sameday).days
+    if sameday.weekday() > end_date.weekday():
+        # don't count weekend days in between
+        days -= 2
+    
+    days += 1 # count both start and end days
+    result = (weeks*5 + days)/10.0
+    
+    return result
+
+def _fund_biweekly_rate(pay_periods, amount):
+    if pay_periods <= 0 or amount <= 0:
+        biweekly_rate = 0
+    else: 
+        biweekly_rate = amount / pay_periods
+    return biweekly_rate
+
+def _fund_percentage(total_biweekly_rate, biweekly_rate):
+    if total_biweekly_rate <= 0 or biweekly_rate <= 0:
+        percentage = 0
+    else:
+        percentage = (biweekly_rate / float(total_biweekly_rate)) * 100 
+    return percentage
+
 class RARequest(models.Model):
     # people_comments - comments about the appointee or supervisor
     # fs1_amount, fs2_amount, fs3_amount - amount of total pay that each funding source makes up
@@ -646,7 +697,6 @@ class RARequest(models.Model):
                 }
                 text = DEFAULT_LETTER_GRASBW % substitutions
                 
-        
         letter_text = text % substitutions
 
         self.offer_letter_text = letter_text
@@ -657,7 +707,7 @@ class RARequest(models.Model):
         """
         text = self.offer_letter_text
         text = normalize_newlines(text)
-        return text.split("\n\n") 
+        return text.split("\n\n")
 
     # get projects in a comma-separated list
     def get_projects(self):
@@ -748,6 +798,27 @@ class RARequest(models.Model):
         if not self.nonstudent and self.person.emplid:
             ident = self.person.emplid
         return ident
+
+    def fs1_info(self):
+        pay_periods = round(_fund_pay_periods(self.fs1_start_date, self.fs1_end_date), 2)
+        biweekly_rate = round(_fund_biweekly_rate(pay_periods, self.fs1_amount), 2)
+        percentage = round(_fund_percentage(self.biweekly_salary, biweekly_rate), 2)
+        info = {'pay_periods': pay_periods, 'biweekly_rate': biweekly_rate, 'percentage': percentage}
+        return info
+
+    def fs2_info(self):
+        pay_periods = round(_fund_pay_periods(self.fs2_start_date, self.fs2_end_date), 2)
+        biweekly_rate = round(_fund_biweekly_rate(pay_periods, self.fs2_amount), 2)
+        percentage = round(_fund_percentage(self.biweekly_salary, biweekly_rate), 2)
+        info = {'pay_periods': pay_periods, 'biweekly_rate': biweekly_rate, 'percentage': percentage}
+        return info
+
+    def fs3_info(self):
+        pay_periods = round(_fund_pay_periods(self.fs3_start_date, self.fs3_end_date), 2)
+        biweekly_rate = round(_fund_biweekly_rate(pay_periods, self.fs3_amount), 2)
+        percentage = round(_fund_percentage(self.biweekly_salary, biweekly_rate), 2)
+        info = {'pay_periods': pay_periods, 'biweekly_rate': biweekly_rate, 'percentage': percentage}
+        return info
 
     def get_cosigner_line(self):
         if self.hiring_category == "RA" or self.hiring_category == "NC":
