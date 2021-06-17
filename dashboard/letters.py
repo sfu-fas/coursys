@@ -993,7 +993,8 @@ class RARequestForm(SFUMediaMixin):
         f = Frame(23*mm, 92*mm, 179*mm, 16*mm, 0, 0, 0, 0)
 
         comments = []
-        comments.append(Paragraph(self.ra.paf_comments, style=self.NOTE_STYLE))
+        init_comment = "For total amount of $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
+        comments.append(Paragraph(init_comment + self.ra.paf_comments, style=self.NOTE_STYLE))
         f.addFromList(comments, self.c)
         
         # funding sources

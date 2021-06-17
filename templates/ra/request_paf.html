@@ -15,7 +15,6 @@
 <li>Payroll Appointment Form Configuration</li>{% endblock %}
 
 {% block content %}
-
   <h2>Configuration</h2>
   <div class="form_container">
     <form action="{% url "ra:request_admin_paf_update" ra_slug=req.slug %}" method="POST" class="subtle">{% csrf_token %}

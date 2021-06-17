@@ -681,7 +681,7 @@ class RARequest(models.Model):
                 }
                 text = DEFAULT_LETTER_NCBW % substitutions
         elif self.hiring_category == "GRAS":
-            if self.gras_payment_method == "LS" or "LE":
+            if self.gras_payment_method == "LS" or self.gras_payment_method == "LE":
                 substitutions = {
                     'start_date': self.start_date.strftime("%B %d, %Y"),
                     'end_date': self.end_date.strftime("%B %d, %Y"),
