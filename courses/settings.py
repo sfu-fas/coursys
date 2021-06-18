@@ -271,7 +271,6 @@ else:
     }
     DB_BACKUP_DIR = getattr(localsettings, 'DB_BACKUP_DIR', os.path.join(BASE_DIR, 'db_backup'))
 
-HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
 HAYSTACK_SIGNAL_PROCESSOR = getattr(localsettings, 'HAYSTACK_SIGNAL_PROCESSOR', 'haystack.signals.BaseSignalProcessor')
 HAYSTACK_CONNECTIONS = getattr(localsettings, 'HAYSTACK_CONNECTIONS', HAYSTACK_CONNECTIONS)
 #HAYSTACK_SILENTLY_FAIL = False
@@ -361,6 +360,8 @@ SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)
+SERVER_MESSAGE_INDEX = getattr(localsettings, 'SERVER_MESSAGE_INDEX', '')
+SERVER_MESSAGE = getattr(localsettings, 'SERVER_MESSAGE', '')
 
 #PIWIK_URL = getattr(secrets, 'PIWIK_URL', None)
 #PIWIK_TOKEN = getattr(secrets, 'PIWIK_TOKEN', None)
