@@ -5,6 +5,7 @@
 
         # http://msdn.microsoft.com/en-us/library/ie/gg622941%28v=vs.85%29.aspx
         add_header X-Content-Type-Options nosniff;
+        add_header Permissions-Policy "interest-cohort=()";
 
         rewrite ^/media/(.*)$ /static/$1 permanent;
         root <%= @data_root %>/static;

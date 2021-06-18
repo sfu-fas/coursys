@@ -23,7 +23,7 @@ The services running in production are either docker containers (configured in `
 * RabbitMQ (docker container): message queue used by Celery.
 * ElasticSearch (docker container): used for the site search and autocomplete (through the Django haystack library).
 * Memcached (docker container): temporary caching (through the Django caching framework). May be safely restarted any time.
-
+* Ruby Markup microservice (docker container): a microservice to let us user the (Ruby-only) library for github-flavoured markdown.
 
 ## Web Server
 
@@ -40,6 +40,16 @@ python3 manage.py check_things
 ```
 Or visit https://coursys.sfu.ca/sysadmin/panel (as an account with system admin role) and check the "Deployment Checks" tab.
 
+## CSRPT Tunnel
+
+An SSH tunnel to the reporting database must be created manually on system restart (or if it drops).
+The most effective way to do this seems to be to start a screen session (`screen`), start this command, and exit the screen session (ctrl-a d).
+```shell
+ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -o ServerAliveInterval=60 -N USERNAME@pf.sfu.ca
+```
+A periodic task will email `settings.ADMINS` if the tunnel is down.
+
+
 ## Common Tasks
 
 The `Makefile` in the repository root is basically a collection of useful scripts.
@@ -55,7 +65,8 @@ make new-code
 * `make pull`: do a `git pull`, preserving the runlist file that likely contains local modifications. 
 * `make new-code`: restart everything that's necessary when deploying modified code.
 * `make rebuild`: make sure things are up-to-date: apt upgrade, install dependencies (Python libs), `make new-code`. 
-* `make rebuild-hardcore`: do everything we know how to do to get the system into a coherent state with the system in "503 unavailable" mode when critical: run the Chef recipe; update docker images, restart everything
+* `make rebuild-hardcore`: try very hard to do to get the system into a coherent state with the system in "503 unavailable" mode when critical: update docker images, restart everything
+* `make chef`: run the Chef recipe that configures the system (the only thing not done by rebuild-hardcore).
 * `make 503`: put the whole system into "503 unavailable" mode (and stop celery tasks, which might also be doing things) so nothing is happening in the database or filesystem.
 * `make rm503`: undo `make 503`
 * `make restart-all`: a more serious restart than should generally be necessary: the docker containers and all CourSys-related services.
