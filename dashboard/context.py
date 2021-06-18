@@ -30,4 +30,6 @@ def media(request):
             'request_path': request.path,
             'CourSys': product_name(request),
             'help_email': help_email(request),
+            'SERVER_MESSAGE_INDEX': settings.SERVER_MESSAGE_INDEX,
+            'SERVER_MESSAGE': settings.SERVER_MESSAGE,
             }
