@@ -26,6 +26,7 @@ from forum.names_generator import get_random_name
 # TODO: something if there are more than THREAD_LIST_MAX threads in the menu
 # TODO: digest email should have a config link
 # TODO: instructor/TA should have default 24h digest
+# TODO: nice to have instructor interaction: make public and anonymous
 
 
 IDENTITY_CHOICES = [  # Identity.identity_choices should reflect any logical changes here
