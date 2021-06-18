@@ -1,0 +1,62 @@
+{% load forum_display %}
+
+    <p>
+        The CourSys discussion forum allows posting under a pseudonym, if configured by the instructor.
+        For this course, the instructor has allowed: <strong>{{ offering_identity_description }}</strong>.
+    </p>
+    <p>
+        Note that in all cases, the actual author identity is recorded by the system and may be recovered in case of abuse/misconduct.
+        Instructors and TAs may not post under a pseudonym, only students.
+    </p>
+
+    <section id="pseudonym">
+    <h2>Pseudonyms</h2>
+    <p>
+        The randomly generated pseudonyms consist of an adjective followed by the surname of a notable scientist or hacker.
+        (This method was borrowed from the random names generated for <a href="https://www.docker.com/">Docker</a> containers,
+        and you can <a href="https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go">examine the original source</a> if you like.)
+        Here are a few randomly generated pseudonyms, so you can get a sense of how they look:
+    </p>
+    <ul class="bulleted">
+        {% for name in sample_names %}
+        <li>&ldquo;{{ name }}&rdquo;</li>
+        {% endfor %}
+    </ul>
+
+    {% if member.role == 'STUD' %}
+    <p>
+        Your pseudonym will be consistent across all of your posts on this forum.
+    </p>
+    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+        <p>Your randomly chosen pseudonym: <strong>&ldquo;{{ ident.pseudonym }}&rdquo;</strong>.</p>
+        <p>You may re-generate your pseudonym under these conditions:</p>
+        <ul class="bulleted">
+            <li>
+                You have made at most {{ REGEN_POST_MAX }} posts in this forum: you have made {{ posts_made }}.
+                {% if posts_made <= REGEN_POST_MAX %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-times"></i>{% endif %}
+            </li>
+            <li>
+                You can re-generate at most {{ REGEN_MAX }} times: you have {{ regen_remaining }} remaining.
+                {% if regen_remaining > 0 %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-times"></i>{% endif %}
+            </li>
+        </ul>
+        {% if can_regen %}{{ pseudonym_form | forum_form:"Change Pseudonym" }}{% endif %}
+    </form>
+    {% else %}
+        <p>
+            Pseudonyms will be consistent across all of the posts by an individual student: even though anonymous, we enforce an <q>identity</q> for authors.
+            Students may generate a new pseudonym (1) if they have made at most {{ REGEN_POST_MAX }} posts in this forum, and (2) up to {{ REGEN_MAX }} times.
+        </p>
+    {% endif %}
+    </section>
+
+
+    <section id="avatar">
+    <h2>Avatar Images</h2>
+    <p>
+        We use avatar images from <a href="https://en.gravatar.com/">Gravatar</a>. If you would like to customize your
+        image, you can upload an image associated with your email address, &ldquo;{{ ident.member.person.email }}&rdquo;.
+    </p>
+    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    {{ avatar_form | forum_form:"Change" }}
+    </form>

@@ -489,6 +489,21 @@ def copy_setup_base(course_copy_from, course_copy_to):
             if f in course_copy_from.config:
                 course_copy_to.config[f] = course_copy_from.config[f]
 
+        from forum.models import Forum
+        if 'discussion' in course_copy_to.config and course_copy_to.config['discussion']:
+            # old discussion module disallowed for new offerings: disable and replace with new.
+            del course_copy_to.config['discussion']
+            forum_to = Forum(offering=course_copy_to)
+            forum_to.enabled = True
+            forum_to.save()
+        else:
+            forums = Forum.objects.filter(offering=course_copy_from)
+            if forums.exists():
+                forum_from = forums[0]
+                forum_to, _ = Forum.objects.get_or_create(offering=course_copy_to)
+                forum_to.config = forum_from.config.copy()
+                forum_to.save()
+
         if 'url' in course_copy_to.config:
             # if slug is in URL, replace it, to heuristically adapt to moved course pages.
             course_copy_to.config['url'] = course_copy_to.config['url'] \
@@ -656,7 +671,6 @@ def copyCourseSetup(course_copy_from, course_copy_to, redirect_pages):
         copy_quizzes(old_to_new)
         # copy pages asynchronously, since it can be slow with many pages.
         copy_setup_pages_task.delay(course_copy_from.slug, course_copy_to.slug)
-
 
 
 from django.forms import ValidationError

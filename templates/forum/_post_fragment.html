@@ -1,0 +1,17 @@
+{% load forum_display %}
+<section class="post{% if extra_class %} {{ extra_class }}{% endif %}" id="post-{{ post.number }}">
+<div class="post-header" data-datetime="{{ post.created_at.isoformat }}">
+    {% avatar_image post=post viewer=viewer %}
+    By {{ post|visible_author:viewer }},
+    {{ post.created_at_html }}{% if post.was_edited %} (edited {{ post.modified_at_html }}){% endif %}
+    [<a href="{{ post.get_absolute_url }}">Post&nbsp;#{{ post.number}}</a>]
+    {% if post|editable_by:viewer %}[<a href="{% url 'offering:forum:edit_post' course_slug=offering.slug post_number=post.number %}" data-target="main-panel">Edit</a>]{% endif %}
+</div>
+
+{{ post.html_content }}
+
+<div class="post-footer">
+    {% reaction_display post post_reactions viewer_reactions %}
+    {% reaction_widget post viewer viewer_reactions %}
+</div>
+</section>

@@ -75,6 +75,7 @@ rebuild:
 	sudo apt update && sudo apt upgrade
 	sudo pip3 install -r ${COURSYS_DIR}/requirements.txt
 	${DOCKERCOMPOSE} build --pull
+	${DOCKERCOMPOSE} up -d
 	make new-code
 
 rebuild-hardcore:

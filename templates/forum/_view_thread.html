@@ -1,0 +1,46 @@
+{% load forum_display %}
+
+<section id="post-{{ post.number }}">
+<h2>
+    {{ thread.title }}
+    {% if thread.privacy != 'ALL' %}<span class="privacy-note">[Private to instructors/TAs]</span>{% endif %}
+    {% if thread.pin %}<i class="fas fa-thumbtack pin"></i>{% endif %}
+    {% if instr_pinnable %}
+        {% if thread.pin %}
+            <span class="pin">[<a href="{% url 'offering:forum:pin' course_slug=offering.slug post_number=post.number %}?unpin=yes" data-target="main-panel" data-inplace="yes">Unpin</a>]</span>
+        {% else %}
+            <span class="pin">[<a href="{% url 'offering:forum:pin' course_slug=offering.slug post_number=post.number %}?pin=yes" data-target="main-panel" data-inplace="yes"><i class="fas fa-thumbtack"></i> Pin</a>]</span>
+        {% endif %}
+    {% else %}
+
+    {% endif %}
+</h2>
+
+{% include 'forum/_post_fragment.html' with post=post viewer=viewer instr_pinnable=instr_pinnable %}
+</section>
+
+<h2>Replies</h2>
+
+<p class="sorting">
+    Sort by:
+    <button class="sort-button active" id="sort-time">Oldest First</button>
+    <button class="sort-button" id="sort-time-newest">Newest First</button>
+    <button class="sort-button" id="sort-score">Best First</button>
+</p>
+
+<section id="replies">
+{% for reply in replies %}
+{% include 'forum/_post_fragment.html' with post=reply.post viewer=viewer instr_pinnable=False extra_class='thread-reply' %}
+{% empty %}
+    <p class="empty">No replies.</p>
+{% endfor %}
+</section>
+
+<section id="reply">
+<h3>Reply</h3>
+
+<form action="" method="post" enctype="multipart/form-data" class="close-warn">{% csrf_token %}
+{{ reply_form | forum_form:"Reply" }}
+</form>
+
+</section>

@@ -9,6 +9,7 @@ from marking.urls import marking_patterns
 from pages.urls import pages_patterns
 from submission.urls import submission_patterns, similarity_patterns
 from quizzes.urls import quiz_patterns
+from forum.urls import forum_patterns
 
 import grades.views as grades_views
 import marking.views as marking_views
@@ -75,6 +76,7 @@ offering_patterns = [ # prefix /COURSE_SLUG/
     url(r'^groups$', RedirectView.as_view(url='/%(course_slug)s/groups/', permanent=True)),
     url(r'^groups/', include((group_patterns, 'groups'), namespace='groups')),
     url(r'^discussion/', include((discussion_patterns, 'discussion'), namespace='discussion')),
+    url(r'^forum/', include((forum_patterns, 'forum'), namespace='forum')),
 
     url(r'^\+' + ACTIVITY_SLUG + '/', include(activity_patterns)),
     url(r'^dishonesty/', include((discipline_offering_patterns, 'discipline'), namespace='discipline')),

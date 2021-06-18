@@ -923,6 +923,7 @@ INSTR_MODE_CHOICES = [ # from ps_instruct_mode in reporting DB
     ]
 INSTR_MODE = dict(INSTR_MODE_CHOICES)
 
+
 class CourseOffering(models.Model, ConditionalSaveMixin):
     subject = models.CharField(max_length=8, null=False, db_index=True,
         help_text='Subject code, like "CMPT" or "FAN"')
@@ -973,6 +974,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         # 'joint_with': list of offerings this one is combined with (as CourseOffering.slug)
         # 'maillist': course mailing list (@sfu.ca). Used for CMPT in course homepage list
         # 'redirect_pages': If a Page has a migrated_to, should we redirect to the new location? Set by copy_course_setup.
+        # 'discussion': uses the (old) discussion module
 
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,

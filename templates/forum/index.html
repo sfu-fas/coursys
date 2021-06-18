@@ -1,0 +1,53 @@
+{% extends "base-wide.html" %}
+{% load static %}
+{% load compress %}
+
+{% block title %}{{ offering.name }}: Discussion Forum{% endblock %}
+{% block h1 %}{{ offering.name }}: Discussion Forum{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{{ offering.get_absolute_url }}">{{ offering.name }}</a></li>
+    <li><a href="{% url 'offering:forum:summary' course_slug=offering.slug %}">Discussion</a></li>
+{% endblock %}
+
+{% block headextra %}
+    {% url 'offering:forum:thread_list' course_slug=offering.slug as listurl %}{{ listurl|json_script:"thread-list-url" }}
+    {% include 'pages/markup_view_head.html' %}
+    {% include 'pages/markup_edit_head.html' %}
+    {% compress css %}
+    <link rel="stylesheet" href="{% static "styled-notifications/dist/notifications.css" %}" />
+    <link rel="stylesheet" href="{% static 'style/forum.css' %}" />
+    {% endcompress %}
+    {% compress js %}
+    <script src="{% static 'styled-notifications/dist/notifications.js' %}"></script>
+    <script src="{% static 'js/forum.js' %}"></script>
+    {% endcompress %}
+{% endblock %}
+
+{% block content %}
+
+    <section id="forum">
+    <section id="thread-list">
+        {% include "forum/_thread_list.html" %}
+    </section>
+    <section id="main-panel">
+        {% if view == 'summary' %}
+            {% include "forum/_summary.html" %}
+        {% elif view == 'view_thread' %}
+            {% include "forum/_view_thread.html" %}
+        {% elif view == 'new_thread' %}
+            {% include "forum/_new_thread.html" %}
+        {% elif view == 'edit_post' %}
+            {% include "forum/_edit_post.html" %}
+        {% elif view == 'search' %}
+            {% include "forum/_search.html" %}
+        {% elif view == 'search' %}
+            {% include "forum/_search.html" %}
+        {% elif view == 'identity' %}
+            {% include "forum/_identity.html" %}
+        {% elif view == 'digest' %}
+            {% include "forum/_digest.html" %}
+        {% endif %}
+    </section>
+    </section>
+
+{% endblock %}

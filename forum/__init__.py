@@ -1,0 +1,1 @@
+DEFAULT_FORUM_MARKUP = 'markdown'

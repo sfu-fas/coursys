@@ -4,10 +4,10 @@
   "description": "CourSys npm dependancies",
   "main": "index.js",
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^2.1.4",
     "@fortawesome/fontawesome-free": "^5.14.0",
     "codemirror": "^5.61.0",
     "datatables": "^1.10.18",
-    "@fingerprintjs/fingerprintjs": "^2.1.4",
     "fullcalendar": "^5.7.0",
     "jquery": "^3.6.0",
     "jquery.are-you-sure": "^1.9.0",
