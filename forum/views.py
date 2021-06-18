@@ -456,6 +456,7 @@ def search(request: ForumHttpRequest) -> HttpResponse:
     if search_form.is_valid():
         q = search_form.cleaned_data['q']
         results = SearchQuerySet().models(Thread).filter(offering_slug=request.offering.slug).exclude(status='HIDD')
+        # enforce privacy here: no analogue of .filter_for on the SearchQuerySet
         if request.member.role == 'STUD':
             results = results.filter(privacy='ALL')
 

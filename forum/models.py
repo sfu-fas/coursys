@@ -421,6 +421,7 @@ THREAD_PRIVACY_CHOICES = [
 class Thread(models.Model):
     class ThreadQuerySet(models.QuerySet):
         def filter_for(self, member: Member):
+            # logic here is replicated in views.search for the SearchQuerySet
             qs = self.filter(post__offering_id=member.offering_id)
             if member.role == 'STUD':
                 qs = qs.filter(models.Q(privacy='ALL') | models.Q(post__author=member))
