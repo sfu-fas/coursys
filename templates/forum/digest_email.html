@@ -15,4 +15,7 @@
     </li>
 {% endfor %}
 </ul>
+<p style="font-size: smaller; border-top: 1px solid black;">
+    You received this email from CourSys. If you do not wish to receive these notifications by email, you can
+    <a href="{{ BASE_ABS_URL }}{% url 'offering:forum:digest' course_slug=offering.slug %}">change your forum digest settings</a>.</p>
 </body></html>

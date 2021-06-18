@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class QaConfig(AppConfig):
-    name = 'qa'
+class ForumConfig(AppConfig):
+    name = 'forum'

@@ -20,6 +20,8 @@
         {% if thread.pin %}<i class="fas fa-thumbtack pin" title="pinned"></i>{% endif %}
     </span>
 </li>
+{% empty %}
+<li class="empty">Nothing posted yet.</li>
 {% endfor %}
 </ul>
 

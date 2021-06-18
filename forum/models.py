@@ -24,9 +24,9 @@ from forum.names_generator import get_random_name
 # TODO: instructors should be able to "close" a thread, so no more activity (by students)
 # TODO: need instructor reply form: no identity field, and "don't consider this an answer" check
 # TODO: something if there are more than THREAD_LIST_MAX threads in the menu
-# TODO: digest email should have a config link
 # TODO: instructor/TA should have default 24h digest
 # TODO: nice to have instructor interaction: make public and anonymous
+# TODO: instructors can't be anonymous, so don't configure in avatar_form
 
 
 IDENTITY_CHOICES = [  # Identity.identity_choices should reflect any logical changes here
@@ -42,6 +42,7 @@ POST_STATUS_CHOICES = [
     ('OPEN', 'Open'),
     ('ANSW', 'Answered'),
     ('NOAN', 'No Answer Needed'),
+    ('LOCK', 'Closed to further replies'),  # not implemented
     ('HIDD', 'Hidden'),
 ]
 TITLE_SHORT_LEN = 60  # characters to truncate a title for summary display
