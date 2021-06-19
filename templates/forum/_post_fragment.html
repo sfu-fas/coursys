@@ -10,8 +10,10 @@
 
 {{ post.html_content }}
 
+{% if not no_reactions %}
 <div class="post-footer">
     {% reaction_display post post_reactions viewer_reactions %}
     {% reaction_widget post viewer viewer_reactions %}
 </div>
+{% endif %}
 </section>

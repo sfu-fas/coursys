@@ -27,6 +27,10 @@ from forum.names_generator import get_random_name
 # TODO: instructor/TA should have default 24h digest
 # TODO: nice to have instructor interaction: make public and anonymous
 # TODO: instructors can't be anonymous, so don't configure in avatar_form
+# TODO: better highlighting of unread replies
+# TODO: better highlighting of instructor content
+# TODO: better highlighting of "approved" answers or instructor approvals
+# TODO: some kind of display of post history
 
 
 IDENTITY_CHOICES = [  # Identity.identity_choices should reflect any logical changes here
