@@ -356,10 +356,6 @@ class RAEditRequestWizard(SessionWizardView):
             kwargs['edit'] = True
         return kwargs
 
-    def get_step_files(self, step):
-        files_mval = MultiValueDict(files)
-        return files_mval
-
     def get_form_initial(self, step):
         init = {}
         ra_slug = self.kwargs['ra_slug']
@@ -517,7 +513,8 @@ def appointee_appointments(request: HttpRequest, userid) -> HttpResponse:
     reqs = RARequest.objects.filter(person=person, unit__in=request.units, deleted=False, complete=False).order_by("-created_at")
     appointments = RARequest.objects.filter(person=person, unit__in=request.units, deleted=False, complete=True).order_by("-created_at")
     historic_appointments = RAAppointment.objects.filter(person=person, unit__in=request.units, deleted=False).order_by("-created_at")
-    context = {'reqs': reqs, 'appointments': appointments, 'historic_appointments': historic_appointments, 'person': person}
+    grads = GradStudent.objects.filter(person=person, program__unit__in=request.units)
+    context = {'reqs': reqs, 'appointments': appointments, 'historic_appointments': historic_appointments, 'person': person, 'grads': grads}
     return render(request, 'ra/search/appointee_appointments.html', context)
 
 @requires_role("FUND")

@@ -833,6 +833,62 @@ class RARequest(models.Model):
     def has_attachments(self):
         return self.attachments.visible().count() > 0
 
+    @classmethod
+    def semester_guess(cls, date):
+        """
+        Guess the semester for a date, in the way that financial people do (without regard to class start/end dates)
+        """
+        mo = date.month
+        if mo <= 4:
+            se = 1
+        elif mo <= 8:
+            se = 4
+        else:
+            se = 7
+        semname = str((date.year-1900)*10 + se)
+        return Semester.objects.get(name=semname)
+
+    @classmethod
+    def start_end_dates(cls, semester):
+        """
+        First and last days of the semester, in the way that financial people do (without regard to class start/end dates)
+        Same method as in RAAppointment
+        """
+        return Semester.start_end_dates(semester)
+        
+    def start_semester(self):
+        """
+        Guess the starting semester of this appointment
+        Same method as in RAAppointment
+        """
+        start_semester = RARequest.semester_guess(self.start_date)
+        # We do this to eliminate hang - if you're starting N days before 
+        # semester 1134, you aren't splitting that payment across 2 semesters. 
+        start, end = RARequest.start_end_dates(start_semester)
+        if end - self.start_date < datetime.timedelta(SEMESTER_SLIDE):
+            return start_semester.next_semester()
+        return start_semester
+
+    def end_semester(self):
+        """
+        Guess the ending semester of this appointment
+        Same method as in RAAppointment
+        """
+        end_semester = RARequest.semester_guess(self.end_date)
+        # We do this to eliminate hang - if you're starting N days after 
+        # semester 1134, you aren't splitting that payment across 2 semesters. 
+        start, end = RARequest.start_end_dates(end_semester)
+        if self.end_date - start < datetime.timedelta(SEMESTER_SLIDE):
+            return end_semester.previous_semester()
+        return end_semester
+
+    def semester_length(self):
+        """
+        The number of semesters this contracts lasts for
+        Same method as in RAAppointment
+        """
+        return self.end_semester() - self.start_semester() + 1
+
 def ra_request_admin_attachment_upload_to(instance, filename):
     return upload_path('rarequestadminattachments', filename)
 

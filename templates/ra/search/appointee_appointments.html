@@ -69,6 +69,16 @@
           <th scope="row">Email Address</th>
           <td>{{ person.email_mailto }}</td>
         </tr>
+        {% if grads %}
+        <tr>
+          <th scope="row">Financial Summary</th>
+          <td>
+          	{% for gs in grads %}
+            <a href="{% url "grad:financials" grad_slug=gs.slug %}">{{ gs.program.label }}</a> ({{ gs.get_current_status_display }})
+            {% endfor %}
+          </td>
+        </tr>        
+        {% endif %}
       </tbody>
     </table>
   </div>
