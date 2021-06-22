@@ -79,6 +79,14 @@ function do_autosave(interval) {
         elt.CodeMirror.save();
     });
     var form = $("form.quiz");
+    if ( ! form.hasClass('dirty') ) {
+        window.createNotification({
+            theme: 'warning',
+            showDuration: 5000
+        })({ message: 'No changes since last auto-save.' });
+        setTimeout(function() { do_autosave(interval); }, randomly_perturb(interval));
+        return;
+    }
     var data = new FormData(form.get(0));
 
     $.ajax({
@@ -93,6 +101,7 @@ function do_autosave(interval) {
                     theme: 'success',
                     showDuration: 5000
                 })({ message: 'Answers auto-saved.' });
+                form.removeClass('dirty'); // will mean no "are you sure" warning if autosave and no changes since then
             } else {
                 // form validation problem
                 var errors = resp.errors;
