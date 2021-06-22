@@ -28,14 +28,4 @@ class Migration(migrations.Migration):
             name='preference_comment',
             field=models.TextField(blank=True, help_text='If you are applying for a course with multiple sections, please indicate which section you prefer.', null=True, verbose_name='Course preference comment'),
         ),
-        migrations.AlterField(
-            model_name='taapplication',
-            name='resume',
-            field=models.FileField(blank=True, help_text='Please attach your Curriculum Vitae (CV).', max_length=500, null=True, storage=django.core.files.storage.FileSystemStorage(base_url=None, file_permissions_mode=420, location='submitted_files'), upload_to=ta.models._file_upload_to, verbose_name='Curriculum Vitae (CV)'),
-        ),
-        migrations.AlterField(
-            model_name='taapplication',
-            name='transcript',
-            field=models.FileField(blank=True, help_text='Please attach your unofficial transcript.', max_length=500, null=True, storage=django.core.files.storage.FileSystemStorage(base_url=None, file_permissions_mode=420, location='submitted_files'), upload_to=ta.models._file_upload_to),
-        ),
     ]
