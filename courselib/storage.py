@@ -4,6 +4,9 @@ import os.path
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 
+# temporary storage for applications such as form wizard, to be periodically cleaned
+# organized --> /temp/year/month/filename
+TemporaryFileStorage = FileSystemStorage(location=settings.SUBMISSION_PATH + '/temp/' + datetime.date.today().strftime('%Y/') + datetime.date.today().strftime('%m/'), base_url=None, file_permissions_mode=0o600)
 
 UploadedFileStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None, file_permissions_mode=0o600)
 

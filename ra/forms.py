@@ -9,6 +9,7 @@ from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
+import os
 
 APPOINTMENT_TYPE = (
     ('AP', 'Appointment/Re-Appointment'),
@@ -25,6 +26,27 @@ SCIENCE_ALIVE_TYPE = (
     ('DCRS', 'DCRS Instructor'),
     ('SA', 'Summer Academy Instructor')
 )
+
+FUND_CHOICES = (
+    ('', '-----------'), (11, '11'), (13, '13'), (21, '21'), (23, '23'), (24, '24'), (29, '29'), (31, '31'), (32, '32'), (35, '35'), (36, '36'), (37, '37'), (38, '38'), (40, '40')
+)
+
+DEPT_CHOICES = (
+    ('', '-----------'), (2110, '2110 (CMPT)'), (2130, '2130 (ENSC)'), (2140, '2140 (MSE)'), (2150, '2150 (SEE)'), (2020, "2020 (Dean's Office)"), (2030, "2030 (Dean's Office)")
+)
+
+PROGRAM_CHOICES = (
+    ('', '-----------'), (00000, '00000 - None'), (90140, '90140 - Research Support')
+)
+
+OBJECT_CHOICES = (
+    ('', '-----------'), (5164, '5164 - University Research Associate'), (5372, '5372 - Hourly Staff - Student'), (5378, '5378 - Salaried Staff-Students'), (5412, '5412 - Salaries Research Scientists'),
+    (5414, '5414 - Salaries Visiting Scientists'), (5416, '5416 - Salaries Research Assoc'), (5418, '5418 - Salaries Research Technician'), (5430, '5430 - Sals Non-Students RA'), (5432, '5432 - Sals Undergrad RA Cdn'),
+    (5434, '5434 - Sals Undergrad RA Foreign'), (5436, '5436 - Sals Masters RA Cdn'), (5438, '5438 - Sals Masters RA Foreign'), (5440, '5440 - Sals Doctorate RA Cdn'), (5442, '5442 - Sals Doctorate RA Foreign'),
+    (5444, '5444 - Sals Post-Doc RA Cdn'), (5446, '5446 - Sals Post-Doc RA Foreign'), (5460, '5460 - Sals Non-Students Hourly'), (5462, '5462 - Sals Non-Students Salaried'), (5842, '5842 - Speaker and Consult Fee'),
+    (5844, '5844 - Invited Speakers Honoraria')
+)
+
 
 # TODO: Settings - would really like all of the following to be editable by funding admins (or even sys admins)
 # it should be the same across all units, and doesn't change with the semester
@@ -44,12 +66,11 @@ FAS_CONTACT = "fasra@sfu.ca"
 URA_CONTACT = "fas_academic_relations@sfu.ca"
 PD_CONTACT = "fas_postdoc_support@sfu.ca"
 
-
 class RARequestIntroForm(forms.ModelForm):
     person = PersonField(label='Appointee', required=False, help_text="Please ensure you are appointing the correct student.")
     supervisor = PersonField(label='Hiring Supervisor', required=True)
 
-    position = forms.CharField(required=False, label="Position Title")
+    position = forms.CharField(required=False, label="Appointee Position Title")
     
     people_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3}), label="Any comments about the Appointee or Hiring Supervisor?")
 
@@ -186,24 +207,24 @@ class RARequestDatesForm(forms.ModelForm):
             self.add_error('start_date', error_message)
 
 class RARequestFundingSourceForm(forms.ModelForm):
-    fs1_unit = forms.IntegerField(required=True, label="Department #1", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
-    fs1_fund = forms.IntegerField(required=True, label="Fund #1", help_text="Example: 11, 13, 21, 31")
+    fs1_unit = forms.ChoiceField(required=True, label="Department #1", choices=DEPT_CHOICES)
+    fs1_fund = forms.ChoiceField(required=True, label="Fund #1", choices=FUND_CHOICES)
     fs1_project = forms.CharField(required=False, label="Project #1", help_text="Example: N654321, S654321, X654321, R654321. If fund 11, you may leave blank.")
     fs1_amount = forms.DecimalField(required=False, label="Amount of Funding Source #1 to Total Funding", help_text="Amount of all funding sources must add up to total pay.")
     fs1_start_date = forms.DateField(required=False, label="Start Date #1", help_text="Start Date for Funding Source 1")
     fs1_end_date = forms.DateField(required=False,  label="End Date #1", help_text="End Date for Funding Source 1")
 
     fs2_option = forms.BooleanField(required=False, label="Please select the following if there is an additional funding source")
-    fs2_unit = forms.IntegerField(required=False, label="Department #2", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
-    fs2_fund = forms.IntegerField(required=False, label="Fund #2", help_text="Example: 11, 13, 21, 31")
+    fs2_unit = forms.ChoiceField(required=False, label="Department #2", choices=DEPT_CHOICES)
+    fs2_fund = forms.ChoiceField(required=False, label="Fund #2", choices=FUND_CHOICES)
     fs2_project = forms.CharField(required=False, label="Project #2", help_text="Example: N654321, S654321, X654321, R654321. If fund 11, you may leave blank.")
     fs2_amount = forms.DecimalField(required=False, label="Amount of Funding Source #2 to Total Funding", help_text="Amount of all funding sources must add up to total pay.")
     fs2_start_date = forms.DateField(required=False, label="Start Date #2", help_text="Start Date for Funding Source 2")
     fs2_end_date = forms.DateField(required=False,  label="End Date #2", help_text="End Date for Funding Source 2")
 
     fs3_option = forms.BooleanField(required=False, label="Please select the following if there is an additional funding source")
-    fs3_unit = forms.IntegerField(required=False, label="Department #3", help_text="CS = 2110; ENSC = 2130; MSE = 2140; SEE = 2150; Dean's Office = 2010, 2020 or 2030")
-    fs3_fund = forms.IntegerField(required=False, label="Fund #3", help_text="Example: 11, 13, 21, 31")
+    fs3_unit = forms.ChoiceField(required=False, label="Department #3", choices=DEPT_CHOICES)
+    fs3_fund = forms.ChoiceField(required=False, label="Fund #3", choices=FUND_CHOICES)
     fs3_project = forms.CharField(required=False, label="Project #3", help_text="Example: N654321, S654321, X654321, R654321. If fund 11, you may leave blank.")
     fs3_amount = forms.DecimalField(required=False, label="Amount of Funding Source #3 to Total Funding", help_text="Amount of all funding sources must add up to total pay.")
     fs3_start_date = forms.DateField(required=False, label="Start Date #3", help_text="Start Date for Funding Source 3")
@@ -230,7 +251,7 @@ class RARequestFundingSourceForm(forms.ModelForm):
             setattr(self.instance, field, cleaned_data[field])
 
         # for fund 11s, do not require fund
-        project_exception_fund = 11
+        project_exception_fund = '11'
 
         fs1_fund = cleaned_data.get('fs1_fund')
         fs1_project = cleaned_data.get('fs1_project')
@@ -428,10 +449,10 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
 
     # fill out if backdated
     backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
-    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum")
-    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?")
-    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':15}), label="Please provide the reason for this backdated appointment")
-    
+    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
+    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
+    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10}), label="Please provide the reason for this backdated appointment", max_length=500)
+
     gras_payment_method = forms.ChoiceField(required=False,
                                             choices=GRAS_PAYMENT_METHOD_CHOICES, 
                                             widget=forms.RadioSelect, 
@@ -439,8 +460,8 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
                                             help_text='Canadian bank status impacts how students will be paid. This generally applies to International ' +
                                             'students currently working outside of Canada, who do not have banking status in Canada. If the status is ' + 
                                             'unknown please confirm with the student.')
-    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
-    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
+    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
+    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     gross_hourly = forms.DecimalField(required=False, widget=forms.HiddenInput)
 
@@ -529,21 +550,21 @@ class RARequestNonContinuingForm(forms.ModelForm):
     
     # fill out if backdated
     backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
-    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum")
-    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?")
-    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':15}), label="Please provide the reason for this backdated appointment")
+    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
+    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
+    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10}), label="Please provide the reason for this backdated appointment", max_length=500)
 
-    nc_duties = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':15}), label="Duties", help_text="Please enter duties in a comma-separated list.")
+    nc_duties = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10}), label="Duties", help_text="Please enter duties in a comma-separated list.", max_length=500)
     
     nc_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
     
-    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
-    weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)", max_digits=8, decimal_places=1)
-    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
+    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
+    weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)")
+    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
-    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly", max_digits=8, decimal_places=2)
-    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)", max_digits=8, decimal_places=1)
+    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly")
+    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)")
 
     class Meta:
         model = RARequest
@@ -648,19 +669,19 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     pay_periods = forms.DecimalField(required=False, widget=forms.HiddenInput)
     # fill out if backdated
     backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
-    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum")
-    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?")
-    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':15}), label="Please provide the reason for this backdated appointment")
+    backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
+    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
+    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10}), label="Please provide the reason for this backdated appointment", max_length=500)
     
     ra_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
     
-    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid", max_digits=8, decimal_places=2)
-    weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)", max_digits=8, decimal_places=1)
-    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours", max_digits=8, decimal_places=1)
+    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
+    weeks_vacation = forms.DecimalField(required=False, label="Weeks Vacation (Minimum 2)")
+    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
-    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly", max_digits=8, decimal_places=2)
-    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)", max_digits=8, decimal_places=1)
+    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly")
+    vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)")
     
     ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
                                     label='Are you willing to provide extended health benefits?', 
@@ -784,6 +805,22 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             elif ra_payment_method == "BW":
                 self.cleaned_data["vacation_pay"] = 0
             
+class ShortClearableFileInput(forms.ClearableFileInput):
+    """
+    File input that has the "clear" checkbox, but with no link to the file and only the file name (no file path).
+    Adapted from CleanClearableFileInput in quizzes/types/file.py
+    """
+
+    template_name = 'short_clearable_file_input.html'
+
+    def format_value(self, value):
+        # format as just the filename
+        if value and value.name:
+            _, filename = os.path.split(value.name)
+            return filename
+        else:
+            return 'none'
+
 class RARequestSupportingForm(forms.ModelForm):
     funding_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3}), label="Any comments about funding?")
     
@@ -793,6 +830,10 @@ class RARequestSupportingForm(forms.ModelForm):
         labels = {'file_attachment_1': "Supplementary Document #1",
                   'file_attachment_2': "Supplementary Document #2",
         }
+        widgets = {
+            'file_attachment_1': ShortClearableFileInput,
+            'file_attachment_2': ShortClearableFileInput
+        }      
         
         help_texts = {
                     'file_attachment_1': "Both of these fields are optional.",
@@ -893,11 +934,11 @@ class RARequestScienceAliveForm(forms.Form):
     
 class RARequestAdminPAFForm(forms.ModelForm):
     position_no = forms.IntegerField(required=False, label="Position #")
-    object_code = forms.IntegerField(required=False, label="Object Code for Funding Sources")
+    object_code = forms.ChoiceField(required=False, label="Object Code for Funding Sources", choices=OBJECT_CHOICES)
     paf_comments = forms.CharField(required=False, max_length=310, widget=forms.Textarea(attrs={'rows':6}), label="Comments", help_text = "Maximum of 310 characters")
-    fs1_program = forms.IntegerField(required=False, label="Program for Funding Source #1")
-    fs2_program = forms.IntegerField(required=False, label="Program for Funding Source #2")
-    fs3_program = forms.IntegerField(required=False, label="Program for Funding Source #3")
+    fs1_program = forms.ChoiceField(required=False, label="Program for Funding Source #1", choices=PROGRAM_CHOICES)
+    fs2_program = forms.ChoiceField(required=False, label="Program for Funding Source #2", choices=PROGRAM_CHOICES)
+    fs3_program = forms.ChoiceField(required=False, label="Program for Funding Source #3", choices=PROGRAM_CHOICES)
     fs1_biweekly_rate = forms.DecimalField(required=False, label="Bi-Weekly Rate for Funding Source #1")
     fs1_percentage = forms.DecimalField(required=False, label="Percentage for Funding Source #1")
     fs2_biweekly_rate = forms.DecimalField(required=False, label="Bi-Weekly Rate for Funding Source #2")

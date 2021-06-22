@@ -104,6 +104,14 @@ $(document).ready(function() {
   <td>{{ ra.lump_sum_pay }}</td>
   </tr>
   {% endfor %}
+  {% for ra in reqs %}
+  <tr>
+  <td scope="row">{{ ra.get_sort_name }}</td>
+  <td><span class="sort">{{ra.start_date.isoformat}}</span>{{ ra.start_date }}</td>
+  <td><span class="sort">{{ra.end_date.isoformat}}</span>{{ ra.end_date }}</td>
+  <td>{{ ra.total_pay }}</td>
+  </tr>
+  {% endfor %}
   </tbody>
 </table>
 </div>

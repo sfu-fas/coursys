@@ -28,7 +28,7 @@ from courselib.search import find_userid_or_emplid
 
 from coredata.models import Person, Unit, Role, Member, CourseOffering, Semester, FuturePerson
 from grad.models import Supervisor
-from ra.models import RAAppointment
+from ra.models import RAAppointment, RARequest
 
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
 from faculty.models import Grant, TempGrant, GrantOwner, Position, DocumentAttachment, PositionDocumentAttachment
@@ -1364,6 +1364,7 @@ def otherinfo(request, userid):
     # RA appointments supervised
     ras = RAAppointment.objects.filter(deleted=False, hiring_faculty=person, unit__in=units) \
             .select_related('person', 'project', 'account')
+    reqs = RARequest.objects.filter(deleted=False, complete=True, supervisor=person, unit__in=units)
 
     services = CareerEvent.objects.not_deleted().filter(event_type='COMMITTEE', person=person,
                                                         unit__in=Unit.sub_units(request.units))
@@ -1379,6 +1380,7 @@ def otherinfo(request, userid):
         'instructed': instructed,
         'supervised': supervised,
         'ras': ras,
+        'reqs': reqs,
         'services': services,
         'bookings': bookings,
     }
