@@ -584,6 +584,9 @@ class RARequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     deleted = models.BooleanField(null=False, default=False)
     complete = models.BooleanField(null=False, default=False)
+
+    # email reminders
+    reminded = config_property('reminded', default=False)
     
     # last updates
     last_updated_at = models.DateTimeField(auto_now=True)
@@ -837,6 +840,7 @@ class RARequest(models.Model):
     def semester_guess(cls, date):
         """
         Guess the semester for a date, in the way that financial people do (without regard to class start/end dates)
+        Same method as in RAAppointment
         """
         mo = date.month
         if mo <= 4:
@@ -888,6 +892,54 @@ class RARequest(models.Model):
         Same method as in RAAppointment
         """
         return self.end_semester() - self.start_semester() + 1
+
+    @classmethod
+    def expiring_appointments(cls):
+        """
+        Get the list of RA Appointments that will expire in the next few weeks so we can send a reminder email
+        """
+        today = datetime.datetime.now()
+        min_age = datetime.datetime.now() + datetime.timedelta(days=28)
+        expiring_ras = RARequest.objects.filter(end_date__gt=today, end_date__lte=min_age, deleted=False, complete=True)
+        ras = [ra for ra in expiring_ras if 'reminded' not in ra.config or not ra.config['reminded']]
+        return ras
+
+    def mark_reminded(self):
+        self.config['reminded'] = True
+        self.save()
+
+    @classmethod
+    def email_expiring_ras(cls):
+        """
+        Emails the supervisors of the RAs who have appointments that are about to expire.
+        Same method as in RAAppointment
+        """
+        subject = 'RA Appointment Expiry Reminder'
+        from_email = settings.DEFAULT_FROM_EMAIL
+
+        expiring_ras = cls.expiring_appointments()
+        template = get_template('ra/emails/new_reminder.txt')
+
+        for raappt in expiring_ras:
+            supervisor = raappt.supervisor
+            context = {'supervisor': supervisor, 'raappt': raappt}
+            # Let's see if we have any Funding CC supervisors that should also get the reminder.
+            cc = None
+            fund_cc_roles = Role.objects_fresh.filter(unit=raappt.unit, role='FDCC')
+            # If we do, let's add them to the CC list, but let's also make sure to use their role account email for
+            # the given role type if it exists.
+            if fund_cc_roles:
+                people = []
+                for role in fund_cc_roles:
+                    people.append(role.person)
+                people = list(set(people))
+                cc = []
+                for person in people:
+                    cc.append(person.role_account_email('FDCC'))
+            msg = EmailMultiAlternatives(subject, template.render(context), from_email, [supervisor.email()],
+                                         headers={'X-coursys-topic': 'ra'}, cc=cc)
+            msg.send()
+            raappt.mark_reminded()
 
 def ra_request_admin_attachment_upload_to(instance, filename):
     return upload_path('rarequestadminattachments', filename)
