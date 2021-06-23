@@ -424,12 +424,18 @@ class TAApplication(models.Model):
     """
     TA application filled out by students
     """
+    VALIDSIN_CHOICES = (
+        ('Yes', 'Yes'),
+        ('No', 'No'),
+    )
+
     posting = models.ForeignKey(TAPosting, on_delete=models.PROTECT)
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
     category = models.CharField(max_length=4, blank=False, null=False, choices=CATEGORY_CHOICES, verbose_name='Program')
     current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Department", choices=DEPT_CHOICES,
         help_text='In what department are you a student?')
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN",help_text="Social insurance number (required for receiving payments)")
+    validsin = models.CharField(choices=VALIDSIN_CHOICES, max_length=3, verbose_name="SIN",help_text='Do you have valid SIN at the time of employment?')
     base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,
             help_text='Maximum number of base units (BU\'s) you would accept. Each BU represents a maximum of 42 hours of work for the semester. TA appointments can consist of 2 to 5 base units and are based on course enrollments and department requirements.')
     experience =  models.TextField(blank=True, null=True,
@@ -441,7 +447,7 @@ class TAApplication(models.Model):
         verbose_name="Other financial support",
         help_text='Do you have a merit based scholarship or fellowship (e.g. FAS Graduate Fellowship) in the semester that you are applying for? ')
     comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
-    preference_comment = models.TextField(verbose_name='Course preference comment', null=True, blank=True)
+    preference_comment = models.TextField(verbose_name='Course preference comment', null=True, blank=True, help_text='If you are applying for a course with multiple sections, please indicate which section you prefer.')
     rank = models.IntegerField(blank=False, default=0)
     late = models.BooleanField(blank=False, default=False)
     resume = models.FileField("Curriculum Vitae (CV)", storage=UploadedFileStorage, upload_to=_resume_upload_to, max_length=500,
@@ -498,8 +504,9 @@ class TAApplication(models.Model):
 
 PREFERENCE_CHOICES = (
         ('PRF', 'Preferred'),
-        ('WIL', 'Willing'),
-        ('NOT', 'Not willing'),
+        ('NOP', 'No Preference'),
+        #('WIL', 'Willing'),
+        #('NOT', 'Not willing'),
 )
 PREFERENCES = dict(PREFERENCE_CHOICES)
 
