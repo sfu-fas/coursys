@@ -1070,7 +1070,7 @@ class RASearchForm(forms.Form):
 
 
 class RABrowseForm(forms.Form):
-    current = forms.BooleanField(label='Only current appointments', initial=True, help_text='Appointments active now (or within two weeks).')
+    current = forms.BooleanField(label='Only current appointments', initial=False, help_text='Appointments active now (or within two weeks).')
 
 
 class AccountForm(forms.ModelForm):
