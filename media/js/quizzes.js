@@ -74,11 +74,19 @@ function start_autosave(interval) {
     setTimeout(function() { do_autosave(interval); }, randomly_perturb(interval));
 }
 function do_autosave(interval) {
-    tinyMCE.triggerSave();
+    var form = $("form.quiz");
+    tinyMCE.each(tinyMCE.editors, (editor) => {
+        if ( editor.isDirty() ) {
+            form.addClass('dirty');
+        }
+        editor.save();
+    });
     $('.CodeMirror').each(function(i, elt) {
+        if ( ! elt.CodeMirror.isClean() ) {
+            form.addClass('dirty');
+        }
         elt.CodeMirror.save();
     });
-    var form = $("form.quiz");
     if ( ! form.hasClass('dirty') ) {
         window.createNotification({
             theme: 'warning',
