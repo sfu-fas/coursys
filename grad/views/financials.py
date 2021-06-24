@@ -6,7 +6,7 @@ from grad.models import Promise, OtherFunding, GradStatus, Scholarship, \
 from coredata.models import Semester
 from ta.models import TAContract, TACourse, STATUSES_NOT_TAING
 from tacontracts.models import TAContract as NewTAContract
-from ra.models import RAAppointment
+from ra.models import RAAppointment, RARequest
 import itertools, decimal
 from grad.views.view import _can_view_student
 
@@ -33,6 +33,8 @@ def financials(request, grad_slug, style='complete'):
                     .select_related('category')\
                     .prefetch_related('course')
     appointments = RAAppointment.objects.filter(person=grad.person, deleted=False)
+    # new ra
+    reqs = RARequest.objects.filter(person=grad.person, deleted=False, complete=True)
     program_history = GradProgramHistory.objects.filter(student=grad).select_related('start_semester', 'program')
     financial_comments = FinancialComment.objects.filter(student=grad, removed=False).select_related('semester')
     
@@ -50,6 +52,8 @@ def financials(request, grad_slug, style='complete'):
                       (c.semester for c in financial_comments),
                       (get_semester(a.start_date) for a in appointments),
                       (get_semester(a.end_date) for a in appointments),
+                      (get_semester(r.start_date) for r in reqs),
+                      (get_semester(r.end_date) for r in reqs),
                       (ph.start_semester for ph in program_history),
                     )
     all_semesters = filter(lambda x: isinstance(x, Semester), all_semesters)
@@ -148,6 +152,7 @@ def financials(request, grad_slug, style='complete'):
         # RAs
         ra_total = 0
         appt = []
+        req = []
         for appointment in appointments:
             app_start_sem = appointment.start_semester()
             app_end_sem = appointment.end_semester()
@@ -157,7 +162,16 @@ def financials(request, grad_slug, style='complete'):
                 ra_total += sem_pay
                 appt.append({'desc':"RA for %s - %s" % (appointment.hiring_faculty.name(), appointment.project),
                              'amount':sem_pay, 'semesters': appointment.semester_length() })
-        ra = {'appt':appt, 'amount':ra_total}
+        for appointment in reqs:
+            app_start_sem = appointment.start_semester()
+            app_end_sem = appointment.end_semester()
+            length = appointment.semester_length()
+            if app_start_sem <= semester and app_end_sem >= semester:
+                sem_pay = appointment.total_pay/length
+                ra_total += sem_pay
+                req.append({'desc':"RA for %s" % (appointment.supervisor.name()), 
+                            'amount':sem_pay, 'semesters': appointment.semester_length()})
+        ra = {'appt':appt, 'req':req, 'amount':ra_total}
         semester_total += ra_total
         
         # promises (ending in this semester, so we display them in the right spot)

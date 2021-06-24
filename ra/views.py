@@ -32,7 +32,7 @@ import json, datetime, urllib.request, urllib.parse, urllib.error
 from django.shortcuts import render
 from formtools.wizard.views import SessionWizardView
 from django.conf import settings
-from courselib.storage import UploadedFileStorage
+from courselib.storage import UploadedFileStorage, TemporaryFileStorage
 from django.utils.decorators import method_decorator
 from django.core.mail.message import EmailMultiAlternatives
 import os
@@ -149,7 +149,8 @@ def _email_request_notification(req, url):
 
 @method_decorator(requires_role(["FUND", "FAC"]), name='dispatch')
 class RANewRequestWizard(SessionWizardView):
-    file_storage = UploadedFileStorage
+
+    file_storage = TemporaryFileStorage
 
     def get_template_names(self):
         return [TEMPLATES[self.steps.current]]
@@ -269,6 +270,7 @@ class RANewRequestWizard(SessionWizardView):
                     form = super(RANewRequestWizard, self).get_form(step, data)
         return form
 
+
     def done(self, form_list, **kwargs):
         req = RARequest()
         for form in form_list:
@@ -289,11 +291,10 @@ class RANewRequestWizard(SessionWizardView):
 
         if 'supporting-file_attachment_1' in self.request.FILES:
             upfile = self.request.FILES['supporting-file_attachment_1']
-            req.file_attachment_1 = upfile
             req.file_mediatype_1 = upfile.content_type
+
         if 'supporting-file_attachment_2' in self.request.FILES:
             upfile = self.request.FILES['supporting-file_attachment_2']
-            req.file_attachment_2 = upfile
             req.file_mediatype_2 = upfile.content_type
 
         # check to make sure ClearableFileField did not set file to False when clearing
@@ -323,7 +324,7 @@ class RANewRequestWizard(SessionWizardView):
 
 @method_decorator(requires_role("FUND"), name='dispatch')
 class RAEditRequestWizard(SessionWizardView):
-    file_storage = UploadedFileStorage
+    file_storage = TemporaryFileStorage
 
     def get_template_names(self):
         return [TEMPLATES[self.steps.current]]
@@ -421,20 +422,19 @@ class RAEditRequestWizard(SessionWizardView):
 
     def done(self, form_list, **kwargs):
         ra_slug = self.kwargs['ra_slug']
-        req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=self.request.units)  
+        req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=self.request.units) 
         for form in form_list:
             for field, value in form.cleaned_data.items():
                 setattr(req, field, value)
-        
+         
         req.last_updater = get_object_or_404(Person, userid=self.request.user.username)
 
         if 'supporting-file_attachment_1' in self.request.FILES:
             upfile = self.request.FILES['supporting-file_attachment_1']
-            req.file_attachment_1 = upfile
             req.file_mediatype_1 = upfile.content_type
+
         if 'supporting-file_attachment_2' in self.request.FILES:
             upfile = self.request.FILES['supporting-file_attachment_2']
-            req.file_attachment_2 = upfile
             req.file_mediatype_2 = upfile.content_type
 
         # check to make sure ClearableFileField did not set file to False when clearing
@@ -513,7 +513,8 @@ def appointee_appointments(request: HttpRequest, userid) -> HttpResponse:
     reqs = RARequest.objects.filter(person=person, unit__in=request.units, deleted=False, complete=False).order_by("-created_at")
     appointments = RARequest.objects.filter(person=person, unit__in=request.units, deleted=False, complete=True).order_by("-created_at")
     historic_appointments = RAAppointment.objects.filter(person=person, unit__in=request.units, deleted=False).order_by("-created_at")
-    context = {'reqs': reqs, 'appointments': appointments, 'historic_appointments': historic_appointments, 'person': person}
+    grads = GradStudent.objects.filter(person=person, program__unit__in=request.units)
+    context = {'reqs': reqs, 'appointments': appointments, 'historic_appointments': historic_appointments, 'person': person, 'grads': grads}
     return render(request, 'ra/search/appointee_appointments.html', context)
 
 @requires_role("FUND")
@@ -769,7 +770,6 @@ def request_science_alive_letter(request: HttpRequest, ra_slug: str) -> HttpResp
         return response
     return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
 
-
 @requires_role("FUND")
 def request_paf(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """
@@ -838,22 +838,8 @@ def request_paf(request: HttpRequest, ra_slug: str) -> HttpResponse:
         citizenshipUnknown = True
         citizenship = None
 
-    # pay periods for funds
-    if req.fs2_option:
-        fs1_pay_periods = fund_pay_periods(req.fs1_start_date, req.fs1_end_date)
-        fs2_pay_periods = fund_pay_periods(req.fs2_start_date, req.fs2_end_date)
-    else:
-        fs1_pay_periods = ""
-        fs2_pay_periods = ""
-    if req.fs3_option:
-        fs3_pay_periods = fund_pay_periods(req.fs3_start_date, req.fs3_end_date)
-    else:
-        fs3_pay_periods = ""
-
     return render(request, 'ra/request_paf.html', {'form':form, 'adminpafform': adminpafform, 'req':req, 'info': info, 'isCanadian': isCanadian, 
-                'citizenshipUnknown': citizenshipUnknown, 'citizenship': citizenship, 'fs1_pay_periods': fs1_pay_periods, 'fs2_pay_periods': fs2_pay_periods,
-                'fs3_pay_periods': fs3_pay_periods})
-
+                'citizenshipUnknown': citizenshipUnknown, 'citizenship': citizenship})
 
 @requires_role("FUND")
 def request_admin_paf_update(request: HttpRequest, ra_slug: str) -> HttpResponse:
@@ -1691,43 +1677,6 @@ def pay_periods(request):
             result = "%.1f" % ((weeks*5 + days)/10.0)
     
     return HttpResponse(result, content_type='text/plain;charset=utf-8')
-
-# altered from pay_periods to display on paf config for reference
-def fund_pay_periods(start_date, end_date):
-    """
-    Calculate number of pay periods between some start and end dates.
-    i.e. number of work days in period / 10
-    """
-    day = datetime.timedelta(days=1)
-    week = datetime.timedelta(days=7)
-
-    start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
-    end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
-
-    if start_date.weekday() == 5:
-        start_date += 2*day
-    elif start_date.weekday() == 6:
-        start_date += day
-    if end_date.weekday() == 5:
-        end_date -= day
-    elif end_date.weekday() == 6:
-        end_date -= 2*day
-
-    # number of full weeks (until sameday: last same weekday before end date)
-    weeks = ((end_date-start_date)/7).days
-    sameday = start_date + weeks*week
-    assert sameday <= end_date < sameday + week
-    
-    # number of days remaining
-    days = (end_date - sameday).days
-    if sameday.weekday() > end_date.weekday():
-        # don't count weekend days in between
-        days -= 2
-    
-    days += 1 # count both start and end days
-    result = (weeks*5 + days)/10.0
-    
-    return result
 
 @requires_role("FUND")
 def person_info(request):

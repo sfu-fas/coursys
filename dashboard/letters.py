@@ -872,7 +872,10 @@ class RARequestForm(SFUMediaMixin):
         self.c.drawString(73.5*mm, 155*mm, "Position Title")
         self.c.drawString(149*mm, 155*mm, "Position #")
         self._box_entry(22*mm, 153*mm, 50*mm, 6*mm, content=str(self.ra.unit.informal_name()))
-        self._box_entry(92*mm, 153*mm, 52*mm, 6*mm, content=str(self.ra.position))
+        if len(self.ra.position) > 30:
+            self._small_box_entry(92*mm, 153*mm, 52*mm, 6*mm, content=str(self.ra.position))
+        else:
+            self._box_entry(92*mm, 153*mm, 52*mm, 6*mm, content=str(self.ra.position))
         self._box_entry(164*mm, 153*mm, 33*mm, 6*mm, content=position_no)
 
         # dates
@@ -993,7 +996,8 @@ class RARequestForm(SFUMediaMixin):
         f = Frame(23*mm, 92*mm, 179*mm, 16*mm, 0, 0, 0, 0)
 
         comments = []
-        comments.append(Paragraph(self.ra.paf_comments, style=self.NOTE_STYLE))
+        init_comment = "For total amount of $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
+        comments.append(Paragraph(init_comment + self.ra.paf_comments, style=self.NOTE_STYLE))
         f.addFromList(comments, self.c)
         
         # funding sources

@@ -7,6 +7,7 @@
     <tr><th scope="row">Student Number</th><td>{{ application.person.emplid }} </td></tr>
     <tr><th scope="row">Semester</th><td>{{ application.posting.semester }}</td></tr>
     <tr><th scope="row">Category</th><td>{{ application.get_category_display }}</td></tr>
+    <tr><th scope="row">SIN</th><td>{{ application.validsin }}</td></tr>
     <tr><th scope="row">Base Units</th><td>{{ application.base_units }}</td></tr>
     <tr><th scope="row">Current Program</th><td>{{ application.get_current_program_display }}
       {% for g in application.grad_programs %}

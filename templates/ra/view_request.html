@@ -204,10 +204,10 @@
     {% if ra_bw %}
     <tr><th>Payment Method:</th><td>Bi-Weekly</td></tr>
     <tr><th>Total Gross:</th><td>${{ req.total_gross|floatformat:2 }}</td></tr>
-    <tr><th>Weeks Vacation:</th><td>{{ req.weeks_vacation|floatformat:1 }}</td></tr>
-    <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:1 }} ({{req.get_biweekly_hours}})</td></tr>
+    <tr><th>Weeks Vacation:</th><td>{{ req.weeks_vacation|floatformat:0 }}</td></tr>
+    <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:2 }} ({{req.get_biweekly_hours}})</td></tr>
     <tr><th>Biweekly Salary:</th><td>${{ req.biweekly_salary|floatformat:2 }}</td></tr>
-    <tr><th>Vacation Hours:</th><td>{{ req.vacation_hours|floatformat:3 }} ({{req.get_vacation_hours}})</td></tr>
+    <tr><th>Vacation Hours:</th><td>{{ req.vacation_hours|floatformat:2 }} ({{req.get_vacation_hours}})</td></tr>
     <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
     {% endif %}
     {% if ra_hourly %}
