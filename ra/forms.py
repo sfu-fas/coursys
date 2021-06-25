@@ -76,7 +76,7 @@ class RARequestIntroForm(forms.ModelForm):
 
     student = forms.ChoiceField(required=True, choices=STUDENT_TYPE, widget=forms.RadioSelect, label="Is the appointee a student?")
     coop = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointee a co-op student?")
-    mitacs = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointee's co-op funded by a Mitacs scholarship in their own name?")
+    mitacs = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Will the appointment be funded by a Mitacs scholarship in the Appointee’s own name?")
     research = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Will the work performed primarily involve research?")
     thesis = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointment for the student's thesis/project?")
 

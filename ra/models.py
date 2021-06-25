@@ -716,7 +716,8 @@ class RARequest(models.Model):
     # get projects in a comma-separated list
     def get_projects(self):
         projects = []
-        projects.append(self.fs1_project)
+        if self.fs1_project:
+            projects.append(self.fs1_project)
         if self.fs2_option and self.fs2_project:
             projects.append(self.fs2_project)
         if self.fs3_option and self.fs3_project:
