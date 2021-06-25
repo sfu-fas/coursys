@@ -672,13 +672,15 @@ def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (req.slug)
     letter = FASOfficialLetter(response)
-    if req.additional_supervisor:
-        from_name_lines = [req.supervisor.letter_name(), req.additional_supervisor, req.unit.name]
+    from_name_lines = [req.supervisor.letter_name(), req.unit.name]
+    if req.additional_supervisor and req.additional_department:
+        extra_from_name_lines = [req.additional_supervisor, req.additional_department]
     else:
-        from_name_lines = [req.supervisor.letter_name(), req.unit.name]
+        extra_from_name_lines = None
     contents = LetterContents(
         to_addr_lines=[req.get_name(), req.unit.name], 
         from_name_lines=from_name_lines,
+        extra_from_name_lines = extra_from_name_lines,
         closing="Yours Truly", 
         signer=req.supervisor,
         cosigner_lines=[req.get_cosigner_line(), req.get_first_name() + " " + req.get_last_name()])

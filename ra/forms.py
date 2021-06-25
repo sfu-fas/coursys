@@ -905,7 +905,8 @@ class RARequestPAFForm (forms.Form):
     appointment_type = forms.ChoiceField(required=True, choices=APPOINTMENT_TYPE, widget=forms.RadioSelect, label="Type Of Appointment")
 
 class RARequestLetterForm(forms.ModelForm):
-    additional_supervisor = forms.CharField(required=False, label="Co-Signing Supervisor (Optional)")
+    additional_supervisor = forms.CharField(required=False, label="Co-Signing Supervisor (Optional)", help_text="Please fill out both supervisor and department field if there is a co-signer.")
+    additional_department = forms.CharField(required=False, label="Co-Signing Department (Optional)", help_text="Please fill out both supervisor and department field if there is a co-signer.")
    
     class Meta:
         model = RARequest
@@ -916,14 +917,14 @@ class RARequestLetterForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(RARequestLetterForm, self).__init__(*args, **kwargs)
-        config_init = ['additional_supervisor']
+        config_init = ['additional_supervisor', 'additional_department']
         
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
     
     def clean(self):
         cleaned_data = super().clean()
-        config_clean = ['additional_supervisor']
+        config_clean = ['additional_supervisor', 'additional_department']
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
 

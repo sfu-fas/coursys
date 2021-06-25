@@ -225,7 +225,7 @@ class LetterContents(object):
     closing: letter's closing (string)
     signer: person signing the letter, if knows (a coredata.models.Person)
     """
-    def __init__(self, to_addr_lines, from_name_lines, date=None,
+    def __init__(self, to_addr_lines, from_name_lines, extra_from_name_lines=None, date=None,
                  closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None, use_sig=True,
                  body_font_size=None, cc_lines=None):
         self.date = date or datetime.date.today()
@@ -233,6 +233,7 @@ class LetterContents(object):
         self.flowables = []
         self.to_addr_lines = to_addr_lines
         self.from_name_lines = from_name_lines
+        self.extra_from_name_lines = extra_from_name_lines
         self.cosigner_lines = cosigner_lines
         self.signer = signer
         self.use_sig = use_sig
@@ -321,6 +322,11 @@ class LetterContents(object):
         for line in self.from_name_lines:
             signature.append(Paragraph(line, style))
 
+        if self.extra_from_name_lines:
+            signature.append(Spacer(1, 4*space_height))
+            for line in self.extra_from_name_lines:
+                signature.append(Paragraph(line, style))
+
         if self.cosigner_lines:
             # we have two signatures to display: rebuild the signature part in a table with both
             data = []
@@ -329,11 +335,17 @@ class LetterContents(object):
                 data.append([img, Spacer(1, 4*space_height)])
             else:
                 data.append([Spacer(1, 4*space_height), Spacer(1, 4*space_height)])
-
+            
             extra = [''] * (len(self.from_name_lines) + len(self.cosigner_lines[1:]))
+
             for l1,l2 in zip(self.from_name_lines+extra, self.cosigner_lines[1:]+extra):
                 if l1 or l2:
                     data.append([Paragraph(l1, style), Paragraph(l2, style)])
+
+            if self.extra_from_name_lines:
+                data.append([Spacer(1, 4*space_height), Spacer(1, 4*space_height)])
+                for line in self.extra_from_name_lines:
+                    data.append([Paragraph(line, style), ''])
 
             sig_table = Table(data)
             sig_table.setStyle(TableStyle(

@@ -579,6 +579,7 @@ class RARequest(models.Model):
     science_alive = models.BooleanField(default=False)
     offer_letter_text = models.TextField(null=True, default='', help_text="Text of the offer letter to be signed by the RA and supervisor.")
     additional_supervisor = config_property('additional_supervisor', default='')
+    additional_department = config_property('additional_department', default='')
 
     # creation, deletion and status
     created_at = models.DateTimeField(auto_now_add=True)
