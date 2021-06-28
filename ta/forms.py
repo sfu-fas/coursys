@@ -201,7 +201,7 @@ class TAApplicationForm(forms.ModelForm):
         self.fields['validsin'].required = True
         self.fields['current_program'].required = True
         self.fields['resume'].required = True
-        self.fields['transcript'].required = True
+        self.fields['transcript'].required = False
 
     def add_extra_questions(self, posting):
         if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
