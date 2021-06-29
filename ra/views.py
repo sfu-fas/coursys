@@ -1038,9 +1038,11 @@ class RARequestDataJson(BaseDatatableView):
     model = RARequest
     columns = ['person', 'supervisor', 'unit', 'fund', 'project', 'start_date', 'end_date', 'total_pay']
     order_columns = [
-        ['person__get_sort_name'],
+        ['person__last_name', 'person__first_name'],
         ['supervisor__last_name', 'supervisor__first_name'],
         'unit__label',
+        'fs1_fund',
+        'fs1_project',
         'start_date',
         'end_date',
         'total_pay',
