@@ -585,6 +585,7 @@ class RARequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     deleted = models.BooleanField(null=False, default=False)
     complete = models.BooleanField(null=False, default=False)
+    draft = models.BooleanField(null=False, default=False)
 
     # email reminders
     reminded = config_property('reminded', default=False)
@@ -902,7 +903,7 @@ class RARequest(models.Model):
         """
         today = datetime.datetime.now()
         min_age = datetime.datetime.now() + datetime.timedelta(days=28)
-        expiring_ras = RARequest.objects.filter(end_date__gt=today, end_date__lte=min_age, deleted=False, complete=True)
+        expiring_ras = RARequest.objects.filter(end_date__gt=today, end_date__lte=min_age, deleted=False, draft=False, complete=True)
         ras = [ra for ra in expiring_ras if 'reminded' not in ra.config or not ra.config['reminded']]
         return ras
 

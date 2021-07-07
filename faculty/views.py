@@ -1364,7 +1364,7 @@ def otherinfo(request, userid):
     # RA appointments supervised
     ras = RAAppointment.objects.filter(deleted=False, hiring_faculty=person, unit__in=units) \
             .select_related('person', 'project', 'account')
-    reqs = RARequest.objects.filter(deleted=False, complete=True, supervisor=person, unit__in=units)
+    reqs = RARequest.objects.filter(deleted=False, complete=True, draft=False, supervisor=person, unit__in=units)
 
     services = CareerEvent.objects.not_deleted().filter(event_type='COMMITTEE', person=person,
                                                         unit__in=Unit.sub_units(request.units))

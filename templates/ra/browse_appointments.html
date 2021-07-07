@@ -19,6 +19,14 @@ $(document).ready(function() {
     "bJQueryUI": true,
     'aaSorting': [[1, 'asc']],
     } );
+    $('#drafts').dataTable( {
+    'bPaginate': false,
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[3, 'desc']],
+    } );
 });
 </script>
 <link rel="stylesheet" href="{% static 'style/ra.css' %}" />
@@ -51,8 +59,51 @@ If you have the correct permissions, so you may also create/reappoint new reques
 </div>
 {% endif %}
 
+{% if drafts %}
+<h2>My Drafts</h2>
+<div class="helptext">
+  These requests have not been submitted yet.
+</div>
+<div class="datatable_container">
+  <table id="drafts" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Appointee</th>
+        <th scope="col">Supervisor</th>
+        <th scope="col">Unit</th>
+        <th scope="col">Last Updated</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in drafts %}
+        <tr>
+          <td><b>{{ req.get_sort_name }}</b></td>
+          <td>{{ req.supervisor }}</td>
+          <td>{{ req.unit.label }}</td>
+          <td>{{ req.last_updated_at }}</td>
+          <td>
+            <form class="lineform" method="POST" action="{% url "ra:delete_request_draft" ra_slug=req.slug %}">
+              {% csrf_token %}
+              <button type='submit' class='btn confirm-submit' title="Delete Draft" data-submit-action="delete this draft">
+                  <i class='fa fa-trash-o'></i>
+              </button>
+            </form>
+            <a class="lineform" href="{% url "ra:edit_request" ra_slug=req.slug %}">
+              <button type='submit' class='btn' title="Edit Draft">
+                  <i class='fa fa-edit'></i>
+              </button>
+            </a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
 {% if reqs %}
-<h2>In Progress Requests</h2>
+<h2>My Requests In Progress</h2>
 <div class="datatable_container">
   <table id="reqs" class="display">
     <thead>
@@ -87,7 +138,11 @@ If you have the correct permissions, so you may also create/reappoint new reques
 </div>
 {% endif %}
 
-<h2>Appointments</h2>
+{% if admin %}
+<h2>All Appointments</h2>
+{% else %}
+<h2>My Appointments</h2>
+{% endif %}
 
 <form action="" id="filterform">{{ form.as_ul }}</form>
 <table class="display" id="ra_table">

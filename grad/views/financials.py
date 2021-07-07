@@ -34,7 +34,7 @@ def financials(request, grad_slug, style='complete'):
                     .prefetch_related('course')
     appointments = RAAppointment.objects.filter(person=grad.person, deleted=False)
     # new ra
-    reqs = RARequest.objects.filter(person=grad.person, deleted=False, complete=True)
+    reqs = RARequest.objects.filter(person=grad.person, deleted=False, complete=True, draft=False)
     program_history = GradProgramHistory.objects.filter(student=grad).select_related('start_semester', 'program')
     financial_comments = FinancialComment.objects.filter(student=grad, removed=False).select_related('semester')
     
