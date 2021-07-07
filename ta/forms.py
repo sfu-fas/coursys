@@ -184,7 +184,7 @@ class TAApplicationForm(forms.ModelForm):
     sin_default = '000000000'
     class Meta:
         model = TAApplication
-        exclude = ('posting', 'course_load', 'person','skills','campus_preferences','rank','late','admin_created', 'config')
+        exclude = ('posting', 'course_load', 'person','skills','campus_preferences','rank','late','admin_created', 'config', 'sin')
         widgets = {'base_units': forms.TextInput(attrs={'size': 5}),
                    'experience': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
                    'course_load': forms.Textarea(attrs={'cols': 50, 'rows': 2}),
@@ -196,11 +196,12 @@ class TAApplicationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(TAApplicationForm, self).__init__(*args, **kwargs)
-        self.fields['sin'].help_text = 'Social insurance number (required for receiving payments: if you don\'t have a SIN yet, please enter "000000000".)'
-        self.fields['sin'].required = True
+        #self.fields['sin'].help_text = 'Social insurance number (required for receiving payments: if you don\'t have a SIN yet, please enter "000000000".)'
+        #self.fields['sin'].required = True
+        self.fields['validsin'].required = True
         self.fields['current_program'].required = True
         self.fields['resume'].required = True
-        self.fields['transcript'].required = True
+        self.fields['transcript'].required = False
 
     def add_extra_questions(self, posting):
         if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
