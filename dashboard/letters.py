@@ -914,6 +914,7 @@ class RARequestForm(SFUMediaMixin):
         ra_bw = research_assistant and self.ra.ra_payment_method=="BW"
         nc_hourly = non_continuing and self.ra.nc_payment_method=="H"
         nc_bw = non_continuing and self.ra.nc_payment_method=="BW"
+        backdated = self.ra.backdated
 
         if gras_ls:
             hourly = ''
@@ -951,7 +952,7 @@ class RARequestForm(SFUMediaMixin):
             biweekhours = self.ra.get_biweekly_hours()
             lumpsum = ''
             lumphours = ''
-        elif self.ra.backdated:
+        elif backdated:
             hourly = ''
             biweekly = ''
             biweekhours = ''
@@ -1008,7 +1009,10 @@ class RARequestForm(SFUMediaMixin):
         f = Frame(23*mm, 92*mm, 179*mm, 16*mm, 0, 0, 0, 0)
 
         comments = []
-        init_comment = "For total amount of $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
+        if gras_ls or backdated or appointment_type == "LS":
+            init_comment = "For total amount of $" + str(self.ra.total_pay) + ". "
+        else:
+            init_comment = "For total amount of $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
         comments.append(Paragraph(init_comment + self.ra.paf_comments, style=self.NOTE_STYLE))
         f.addFromList(comments, self.c)
         
