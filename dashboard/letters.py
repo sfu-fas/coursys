@@ -23,6 +23,7 @@ from dashboard.models import Signature
 from coredata.models import Semester, Person
 from grad.models import STATUS_APPLICANT
 from courselib.branding import product_name
+from ra.forms import CS_CONTACT, ENSC_CONTACT, SEE_CONTACT, MSE_CONTACT, FAS_CONTACT
 
 
 PAPER_SIZE = letter
@@ -1179,11 +1180,29 @@ class RARequestForm(SFUMediaMixin):
         self.c.drawString(1*mm, 5*mm, "*Contact Name:")
         self.c.drawString(1*mm, -3*mm, "*Contact Email:")
 
+        email = None
+        unit = self.ra.unit.label
+        if graduate_research_assistant:
+            if unit == "CMPT":
+                email = CS_CONTACT
+            elif unit == "MSE":
+                email = MSE_CONTACT
+            elif unit == "ENSC":
+                email = ENSC_CONTACT
+            elif unit == "SEE":
+                email = SEE_CONTACT
+            elif unit == "APSC":
+                email = FAS_CONTACT
+        elif research_assistant or non_continuing:
+            email = FAS_CONTACT
+
         self._box_entry(32*mm, 27*mm, 60*mm, 6*mm, content='')
         self._box_entry(32*mm, 19*mm, 60*mm, 6*mm, content='')
         self._box_entry(32*mm, 11*mm, 40*mm, 6*mm, content='')
-        self._box_entry(32*mm, 3*mm, 60*mm, 6*mm, content='')
-        self._box_entry(32*mm, -5*mm, 60*mm, 6*mm, content='')
+        self._box_entry(32*mm, 3*mm, 60*mm, 6*mm, content=email)
+        self._box_entry(32*mm, -5*mm, 60*mm, 6*mm, content=email)
+
+        self.c.setFont("Helvetica", 7)
 
         self.c.drawString(115*mm, 29*mm, "Signature:")
         self.c.drawString(115*mm, 21*mm, "Print Name:")
