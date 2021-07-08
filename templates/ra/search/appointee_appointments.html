@@ -83,36 +83,6 @@
     </table>
   </div>
 
-  {% if appointments %}
-  <h2>Appointments</h2>
-  <div class="datatable_container">
-    <table id="appointments" class="display">
-      <thead>
-        <tr>
-          <th scope="col">Supervisor</th>
-          <th scope="col">Start Date</th>
-          <th scope="col">End Date</th>
-          <th scope="col">Created At</th>
-          <th scope="col">Author</th>
-          <th scope="col">Total Pay</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for req in appointments %}
-          <tr>
-            <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">{{ req.supervisor }}</a></td>
-            <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
-            <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
-            <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
-            <td>{{ req.author }}</td>
-            <td>${{ req.total_pay }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endif %}
-
   {% if reqs %}
   <h2>Requests</h2>
   <div class="datatable_container">
@@ -143,6 +113,35 @@
   </div>
   {% endif %}
 
+  {% if appointments %}
+  <h2>Appointments</h2>
+  <div class="datatable_container">
+    <table id="appointments" class="display">
+      <thead>
+        <tr>
+          <th scope="col">Supervisor</th>
+          <th scope="col">Start Date</th>
+          <th scope="col">End Date</th>
+          <th scope="col">Created At</th>
+          <th scope="col">Author</th>
+          <th scope="col">Total Pay</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in appointments %}
+          <tr>
+            <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">{{ req.supervisor }}</a></td>
+            <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
+            <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
+            <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
+            <td>{{ req.author }}</td>
+            <td>${{ req.total_pay }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
 
   {%if historic_appointments %}
   <h2>Historic Appointments</h2>
