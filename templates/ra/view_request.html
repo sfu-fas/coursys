@@ -350,7 +350,7 @@
   <h2>Notes</h2>
   <ul>
   {% if req.admin_notes %}
-    {{ req.admin_notes }}
+    {{ req.admin_notes|linebreaks }}
   {% else %}
     Notes are empty.
   {% endif %}<br>
