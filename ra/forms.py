@@ -28,7 +28,7 @@ SCIENCE_ALIVE_TYPE = (
 )
 
 FUND_CHOICES = (
-    ('', '-----------'), (11, '11'), (13, '13'), (21, '21'), (23, '23'), (24, '24'), (29, '29'), (31, '31'), (32, '32'), (35, '35'), (36, '36'), (37, '37'), (38, '38'), (40, '40')
+    ('', '-----------'), (11, '11'), (13, '13'), (21, '21'), (23, '23'), (25, '25'), (29, '29'), (31, '31'), (32, '32'), (35, '35'), (36, '36'), (37, '37'), (38, '38'), (40, '40')
 )
 
 DEPT_CHOICES = (
@@ -72,7 +72,7 @@ class RARequestIntroForm(forms.ModelForm):
 
     position = forms.CharField(required=False, label="Appointee Position Title")
     
-    people_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3}), label="Any comments about the Appointee or Hiring Supervisor?")
+    people_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3, 'maxlength':300}), label="Any comments about the Appointee or Hiring Supervisor?")
 
     student = forms.ChoiceField(required=True, choices=STUDENT_TYPE, widget=forms.RadioSelect, label="Is the appointee a student?")
     coop = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointee a co-op student?")
@@ -451,7 +451,7 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
     backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
     backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
     backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
-    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10}), label="Please provide the reason for this backdated appointment", max_length=500)
+    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Please provide the reason for this backdated appointment")
 
     gras_payment_method = forms.ChoiceField(required=False,
                                             choices=GRAS_PAYMENT_METHOD_CHOICES, 
@@ -552,9 +552,9 @@ class RARequestNonContinuingForm(forms.ModelForm):
     backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
     backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
     backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
-    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10}), label="Please provide the reason for this backdated appointment", max_length=500)
+    backdate_reason = forms.CharField(required=False, label="Please provide the reason for this backdated appointment", widget=forms.Textarea(attrs={'rows':10, 'maxlength': 500}))
 
-    nc_duties = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10}), label="Duties", help_text="Please enter duties in a comma-separated list.", max_length=500)
+    nc_duties = forms.CharField(required=False, label="Duties", help_text="Please enter duties in a comma-separated list.", widget=forms.Textarea(attrs={'rows':10, 'maxlength': 900}))
     
     nc_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
     
@@ -671,7 +671,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
     backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
     backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
-    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10}), label="Please provide the reason for this backdated appointment", max_length=500)
+    backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Please provide the reason for this backdated appointment")
     
     ra_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
     
@@ -703,7 +703,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                                              label="Writing/Reporting")
     ra_duties_pm = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_PM, widget=forms.CheckboxSelectMultiple,
                                              label="Project Management")    
-    ra_other_duties = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3}), label="Other RA Duties")
+    ra_other_duties = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3, 'maxlength':300}), label="Other RA Duties")
 
     class Meta:
         model = RARequest
@@ -822,7 +822,7 @@ class ShortClearableFileInput(forms.ClearableFileInput):
             return 'none'
 
 class RARequestSupportingForm(forms.ModelForm):
-    funding_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3}), label="Any comments about funding?")
+    funding_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3, 'maxlength':500}), label="Any comments about funding?")
     
     class Meta:
         model = RARequest
@@ -930,13 +930,13 @@ class RARequestLetterForm(forms.ModelForm):
 
 class RARequestScienceAliveForm(forms.Form):
     letter_type = forms.ChoiceField(required=True, choices=SCIENCE_ALIVE_TYPE, widget=forms.RadioSelect, label="Type Of Science Alive Letter")
-    final_bullet = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':6}), help_text="Leave blank if none.", 
+    final_bullet = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':6, 'maxlength': 500}), help_text="Leave blank if none.", 
                                    label="If you have anything to add in an additional bullet point, please enter here")
     
 class RARequestAdminPAFForm(forms.ModelForm):
     position_no = forms.IntegerField(required=False, label="Position #")
     object_code = forms.ChoiceField(required=False, label="Object Code for Funding Sources", choices=OBJECT_CHOICES)
-    paf_comments = forms.CharField(required=False, max_length=310, widget=forms.Textarea(attrs={'rows':6}), label="Comments", help_text = "Maximum of 310 characters")
+    paf_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':6, 'maxlength':275}), label="Comments", help_text = "Maximum of 310 characters")
     fs1_program = forms.ChoiceField(required=False, label="Program for Funding Source #1", choices=PROGRAM_CHOICES)
     fs2_program = forms.ChoiceField(required=False, label="Program for Funding Source #2", choices=PROGRAM_CHOICES)
     fs3_program = forms.ChoiceField(required=False, label="Program for Funding Source #3", choices=PROGRAM_CHOICES)
