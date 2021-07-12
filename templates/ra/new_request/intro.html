@@ -55,6 +55,9 @@
 {% endblock %}
 
 {% block content %}
+<noscript>
+<h2><p style="color: red">Please enable JavaScript as it is highly recommended to use this form.</p></h2>
+</noscript>
 <div class="form_container">
   {% if not edit or draft %}
     <p><i><a href="{% url "ra:new_request" %}"><u>Click here</u></a> to restart this form and clear all responses.</i></p>
