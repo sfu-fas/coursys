@@ -1030,6 +1030,8 @@ class RARequestForm(SFUMediaMixin):
 
         if self.ra.fs1_program != None:
             fs1_program = str(self.ra.fs1_program)
+            if fs1_program == "0":
+                fs1_program = "00000"
         else:
             fs1_program = ''
 
@@ -1084,6 +1086,8 @@ class RARequestForm(SFUMediaMixin):
             fs2_object = object_code
             if self.ra.fs2_program != None:
                 fs2_program = str(self.ra.fs2_program)
+                if fs2_program == "0":
+                    fs2_program = "00000"
             
         if fs3:
             fs3_project = self.ra.fs3_project
@@ -1096,6 +1100,8 @@ class RARequestForm(SFUMediaMixin):
             fs3_object = object_code
             if self.ra.fs3_program != None:
                 fs3_program = str(self.ra.fs3_program)
+                if fs3_program == "0":
+                    fs3_program = "00000"
 
 
         self._small_box_entry(1*mm, 80*mm, 42*mm, 6*mm, content="Project (6-8 digits, if applicable)")
