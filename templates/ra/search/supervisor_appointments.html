@@ -20,21 +20,21 @@
         'bFilter': true,
         'bLengthChange': false,
         "bJQueryUI": true,
-        'aaSorting': [[1, 'asc']],
+        'aaSorting': [[3, 'desc']],
     } );
     $('#appointments').dataTable( {
       'bPaginate': false,
       'bInfo': false,
       'bLengthChange': false,
       "bJQueryUI": true,
-      'aaSorting': [[1, 'asc']],
+      'aaSorting': [[1, 'desc']],
     } );
     $('#historic_appointments').dataTable( {
       'bPaginate': false,
       'bInfo': false,
       'bLengthChange': false,
       "bJQueryUI": true,
-      'aaSorting': [[1, 'asc']],
+      'aaSorting': [[0, 'desc']],
     } );
   } );
   </script>
@@ -72,36 +72,6 @@
     </table>
   </div>
   
-  {% if appointments %}
-  <h2>Appointments</h2>
-  <div class="datatable_container">
-    <table id="appointments" class="display">
-      <thead>
-        <tr>
-          <th scope="col">Appointee</th>
-          <th scope="col">Start Date</th>
-          <th scope="col">End Date</th>
-          <th scope="col">Created At</th>
-          <th scope="col">Author</th>
-          <th scope="col">Total Pay</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for req in appointments %}
-          <tr>
-            <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">{{ req.get_sort_name }}</a></td>
-            <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
-            <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
-            <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
-            <td>{{ req.author }}</td>
-            <td>${{ req.total_pay }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endif %}
-
   {% if reqs %}
   <h2>Requests</h2>
   <div class="datatable_container">
@@ -132,6 +102,35 @@
   </div>
   {% endif %}
 
+  {% if appointments %}
+  <h2>Appointments</h2>
+  <div class="datatable_container">
+    <table id="appointments" class="display">
+      <thead>
+        <tr>
+          <th scope="col">Appointee</th>
+          <th scope="col">Start Date</th>
+          <th scope="col">End Date</th>
+          <th scope="col">Created At</th>
+          <th scope="col">Author</th>
+          <th scope="col">Total Pay</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in appointments %}
+          <tr>
+            <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">{{ req.get_sort_name }}</a></td>
+            <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
+            <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
+            <td><span class="sort">{{ req.created_at.isoformat }}</span>{{ req.created_at }}</td>
+            <td>{{ req.author }}</td>
+            <td>${{ req.total_pay }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
 
   {%if historic_appointments %}
   <h2>Historic Appointments</h2>
@@ -144,7 +143,7 @@
             <th scope="col">End Date</th>
             <th scope="col">Title</th>
             <th scope="col">Type</th>
-            <th scope="col">Hiring Faculty</th>
+            <th scope="col">Appointee</th>
             <th scope="col">Actions</th>
           </tr>
         </thead>
@@ -158,7 +157,7 @@
           	  {{ appointment.end_date|date:GRAD_DATE_FORMAT }}</td>
           <td>{{ appointment.account.title }}</td>
           <td>{{ appointment.get_pay_frequency_display }}</td>
-          <td>{{ appointment.hiring_faculty.sortname }}</td>
+          <td>{{ appointment.person.sortname }}</td>
           <td><a href="{% url "ra:view" ra_slug=appointment.slug %}">View </a> |
               <a href="{% url "ra:edit" ra_slug=appointment.slug %}">Edit</a> |
               <a href="{% url "ra:edit_letter" ra_slug=appointment.slug %}">Edit Letter</a> |

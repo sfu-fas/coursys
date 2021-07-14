@@ -15,7 +15,11 @@
 
 {% block title %}
   {% if edit %}
-    Update RA Request for {{ name }}
+    {% if draft %}
+      Draft for {{ name }}
+    {% else %}
+      Update RA Request for {{ name }}
+    {% endif %}
   {% else %}
     New RA Request
   {% endif %}
@@ -23,9 +27,13 @@
 
 {% block h1 %}
   {% if edit %}
-  Update RA Request for {{ name }}
+    {% if draft %}
+      Draft for {{ name }}
+    {% else %}
+      Update RA Request for {{ name }}
+    {% endif %}
   {% else %}
-  New RA Request
+    New RA Request
   {% endif %}
 {% endblock %}
 
@@ -36,17 +44,20 @@
   <li><a href="{% url "ra:browse_appointments" %}">RA Dashboard</a></li>
   {% endif %}
   {% if edit %}
-    <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA Request for {{ name }}</a></li>
-    <li>Edit RA Request for {{ name }}</li>
+    {% if draft %}
+      <li>Draft for {{ name }}</li>
+    {% else %}
+      <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA Request for {{ name }}</a></li>
+      <li>Edit RA Request for {{ name }}</li>
+    {% endif %}
   {% else %}
     <li>New RA Request</li>
   {% endif %}
 {% endblock %}
-
 {% block content %}
 
 <div class="form_container">
-  {% if not edit %}
+  {% if not edit or draft %}
   <i><a href="{% url "ra:new_request" %}"><u>Click here</u></a> to restart this form and clear all responses. If you have any questions, please contact <b>{{ fas_contact }}.</b></i>
   {% endif %}
   {% if edit %}
@@ -98,7 +109,10 @@
     <div class="directory_buttons">
         <h3>Section {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</h3>
         <button id="prev" name="wizard_goto_step" class="btn" type="submit" value="{{ wizard.steps.prev }}" formnovalidate>{% trans "Previous" %}</button>
-        <input id="save" type="submit" value="Save and Next"/>
+        <input id="save" type="submit" class="submit" value="Next"/>
+        {% if draft or draft_option %}
+        <input id="done_draft" name="save_draft" type="submit" class="submit confirm-submit" value="Save Up to This Page as Draft" data-submit-action="safe draft up to this point"/>
+        {% endif %}
     </div>
   </form>  
 </div>

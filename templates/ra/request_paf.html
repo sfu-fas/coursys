@@ -29,6 +29,13 @@
         {% endif %}
         {% if req.fs2_option %}
         <h3>Bi-Weekly Rates and Percentages for Multiple Funding Sources</h3>
+        <h4>Overall</h4>
+        <div class="important_info row"> 
+          <b>Total Pay:</b> ${{ req.total_pay|floatformat:2 }} | 
+          <b>Start:</b> {{ req.start_date.isoformat }} | 
+          <b>End:</b> {{ req.end_date.isoformat }} | 
+          <b>Bi-Weekly Rate:</b> ${{ req.biweekly_salary|floatformat:2 }}
+        </div>
         <h4>Funding Source #1</h4>
         <div class="important_info row">
         <b>Total Pay:</b> ${{ req.fs1_amount|floatformat:2 }} | 

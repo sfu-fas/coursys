@@ -23,6 +23,7 @@ from dashboard.models import Signature
 from coredata.models import Semester, Person
 from grad.models import STATUS_APPLICANT
 from courselib.branding import product_name
+from ra.forms import CS_CONTACT, ENSC_CONTACT, SEE_CONTACT, MSE_CONTACT, FAS_CONTACT
 
 
 PAPER_SIZE = letter
@@ -225,7 +226,7 @@ class LetterContents(object):
     closing: letter's closing (string)
     signer: person signing the letter, if knows (a coredata.models.Person)
     """
-    def __init__(self, to_addr_lines, from_name_lines, date=None,
+    def __init__(self, to_addr_lines, from_name_lines, extra_from_name_lines=None, date=None,
                  closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None, use_sig=True,
                  body_font_size=None, cc_lines=None):
         self.date = date or datetime.date.today()
@@ -233,6 +234,7 @@ class LetterContents(object):
         self.flowables = []
         self.to_addr_lines = to_addr_lines
         self.from_name_lines = from_name_lines
+        self.extra_from_name_lines = extra_from_name_lines
         self.cosigner_lines = cosigner_lines
         self.signer = signer
         self.use_sig = use_sig
@@ -321,6 +323,11 @@ class LetterContents(object):
         for line in self.from_name_lines:
             signature.append(Paragraph(line, style))
 
+        if self.extra_from_name_lines:
+            signature.append(Spacer(1, 4*space_height))
+            for line in self.extra_from_name_lines:
+                signature.append(Paragraph(line, style))
+
         if self.cosigner_lines:
             # we have two signatures to display: rebuild the signature part in a table with both
             data = []
@@ -329,11 +336,17 @@ class LetterContents(object):
                 data.append([img, Spacer(1, 4*space_height)])
             else:
                 data.append([Spacer(1, 4*space_height), Spacer(1, 4*space_height)])
-
+            
             extra = [''] * (len(self.from_name_lines) + len(self.cosigner_lines[1:]))
+
             for l1,l2 in zip(self.from_name_lines+extra, self.cosigner_lines[1:]+extra):
                 if l1 or l2:
                     data.append([Paragraph(l1, style), Paragraph(l2, style)])
+
+            if self.extra_from_name_lines:
+                data.append([Spacer(1, 4*space_height), Spacer(1, 4*space_height)])
+                for line in self.extra_from_name_lines:
+                    data.append([Paragraph(line, style), ''])
 
             sig_table = Table(data)
             sig_table.setStyle(TableStyle(
@@ -902,6 +915,7 @@ class RARequestForm(SFUMediaMixin):
         ra_bw = research_assistant and self.ra.ra_payment_method=="BW"
         nc_hourly = non_continuing and self.ra.nc_payment_method=="H"
         nc_bw = non_continuing and self.ra.nc_payment_method=="BW"
+        backdated = self.ra.backdated
 
         if gras_ls:
             hourly = ''
@@ -939,7 +953,7 @@ class RARequestForm(SFUMediaMixin):
             biweekhours = self.ra.get_biweekly_hours()
             lumpsum = ''
             lumphours = ''
-        elif self.ra.backdated:
+        elif backdated:
             hourly = ''
             biweekly = ''
             biweekhours = ''
@@ -996,7 +1010,10 @@ class RARequestForm(SFUMediaMixin):
         f = Frame(23*mm, 92*mm, 179*mm, 16*mm, 0, 0, 0, 0)
 
         comments = []
-        init_comment = "For total amount of $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
+        if gras_ls or backdated or appointment_type == "LS":
+            init_comment = "For total amount of $" + str(self.ra.total_pay) + ". "
+        else:
+            init_comment = "For total amount of $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
         comments.append(Paragraph(init_comment + self.ra.paf_comments, style=self.NOTE_STYLE))
         f.addFromList(comments, self.c)
         
@@ -1013,6 +1030,8 @@ class RARequestForm(SFUMediaMixin):
 
         if self.ra.fs1_program != None:
             fs1_program = str(self.ra.fs1_program)
+            if fs1_program == "0":
+                fs1_program = "00000"
         else:
             fs1_program = ''
 
@@ -1067,6 +1086,8 @@ class RARequestForm(SFUMediaMixin):
             fs2_object = object_code
             if self.ra.fs2_program != None:
                 fs2_program = str(self.ra.fs2_program)
+                if fs2_program == "0":
+                    fs2_program = "00000"
             
         if fs3:
             fs3_project = self.ra.fs3_project
@@ -1079,6 +1100,8 @@ class RARequestForm(SFUMediaMixin):
             fs3_object = object_code
             if self.ra.fs3_program != None:
                 fs3_program = str(self.ra.fs3_program)
+                if fs3_program == "0":
+                    fs3_program = "00000"
 
 
         self._small_box_entry(1*mm, 80*mm, 42*mm, 6*mm, content="Project (6-8 digits, if applicable)")
@@ -1163,11 +1186,29 @@ class RARequestForm(SFUMediaMixin):
         self.c.drawString(1*mm, 5*mm, "*Contact Name:")
         self.c.drawString(1*mm, -3*mm, "*Contact Email:")
 
+        email = None
+        unit = self.ra.unit.label
+        if graduate_research_assistant:
+            if unit == "CMPT":
+                email = CS_CONTACT
+            elif unit == "MSE":
+                email = MSE_CONTACT
+            elif unit == "ENSC":
+                email = ENSC_CONTACT
+            elif unit == "SEE":
+                email = SEE_CONTACT
+            elif unit == "APSC":
+                email = FAS_CONTACT
+        elif research_assistant or non_continuing:
+            email = FAS_CONTACT
+
         self._box_entry(32*mm, 27*mm, 60*mm, 6*mm, content='')
         self._box_entry(32*mm, 19*mm, 60*mm, 6*mm, content='')
         self._box_entry(32*mm, 11*mm, 40*mm, 6*mm, content='')
-        self._box_entry(32*mm, 3*mm, 60*mm, 6*mm, content='')
-        self._box_entry(32*mm, -5*mm, 60*mm, 6*mm, content='')
+        self._box_entry(32*mm, 3*mm, 60*mm, 6*mm, content=email)
+        self._box_entry(32*mm, -5*mm, 60*mm, 6*mm, content=email)
+
+        self.c.setFont("Helvetica", 7)
 
         self.c.drawString(115*mm, 29*mm, "Signature:")
         self.c.drawString(115*mm, 21*mm, "Print Name:")

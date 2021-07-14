@@ -48,7 +48,7 @@ def index(request):
     has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).exists()
     form_groups = FormGroup.objects.filter(members__userid=request.user.username).exists()
     has_ras = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username, deleted=False).exists()
-    has_ra_requests = RARequest.objects.filter(Q(supervisor__userid=request.user.username) | Q(author__userid=request.user.username), deleted=False).exists()
+    has_ra_requests = RARequest.objects.filter(Q(supervisor__userid=request.user.username) | Q(author__userid=request.user.username), deleted=False, draft=False).exists()
     has_reports = AccessRule.objects.filter(person__userid=request.user.username).exists()
 
     # Only CMPT admins should see the one different TA module.  They can now also see the other module as we hope to
