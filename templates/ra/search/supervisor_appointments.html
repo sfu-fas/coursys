@@ -7,7 +7,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra:advanced_search" %}">RAs</a></li>
+<li><a href="{% url "ra:dashboard" %}">RA Dashboard</a></li>
+<li><a href="{% url "ra:advanced_search" %}">Advanced Search</a></li>
 <li>{{ person.name }}</li>
 {% endblock %}
 

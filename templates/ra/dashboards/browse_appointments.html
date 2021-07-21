@@ -33,10 +33,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-{% if admin %}
-<li><a href="{% url "ra:dashboard" %}">RA Dashboard</a></li>
-{% endif %}
-<li>Browse</li>
+<li>RA Browse</li>
 {% endblock %}
 
 {% block content %}
@@ -53,7 +50,6 @@ $(document).ready(function() {
 
 {% if not admin %}
 <div class="helptext">
-<p><b>This page is currently in TEST.</b></p>
 This page will display any RA requests/appointments that you have created or are a supervisor for. 
 If you have the correct permissions, so you may also create/reappoint new requests here.
 </div>

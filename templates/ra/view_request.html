@@ -16,9 +16,9 @@
 
 {% block subbreadcrumbs %}
 {% if admin %}
-<li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
+<li><a href="{% url "ra:dashboard" %}">RA Dashboard</a></li>
 {% else %}
-<li><a href="{% url "ra:browse_appointments" %}">RA Dashboard</a></li>
+<li><a href="{% url "ra:browse_appointments" %}">My RA Dashboard</a></li>
 {% endif %}
 <li>View RA {{ status }} for {{ req.get_name }}</li>
 {% endblock %}

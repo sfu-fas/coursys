@@ -21,8 +21,7 @@ var emplid = null;
 {% block h1 %}Update RA Appointment for {{ appointment.person.name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra:search" %}">RAs</a></li>
-<li><a href="{% url "ra:student_appointments" userid=appointment.person.userid%}"> {{ appointment.person.name }}</a></li>
+<li><a href="{% url "ra:browse" %}">Historic Appointments</a></li>
 <li><a href="{% url "ra:view" ra_slug=appointment.slug %}">{{ appointment.account.title }} starting {{ appointment.start_date|date:GRAD_DATE_FORMAT }}</a></li>
 <li>Edit</li>{% endblock %}
 

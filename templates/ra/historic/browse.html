@@ -15,17 +15,12 @@ $(document).ready(function() {
 </script>{% endblock %}
 
 {% block subbreadcrumbs %}
-{% if supervisor_only %}
-<li>RAs</li>
-{% else %}
-<li><a href="{% url "ra:search" %}">RAs</a></li>
-{% endif %}
-<li>Browse</li>
+<li><a href="{% url "ra:browse_appointments" %}">RA Browse</a></li>
+<li>Historic Appointments</li>
 {% endblock %}
 
 {% block actions %}
-<li><a href="{% url "ra:download_current_ras" %}">Download Current RAs</a></li>
-<li><a href="{% url "ra:download_all_ras" %}">Download All RAs</a></li>
+<li><a href="{% url "ra:download_historic" %}">Download All RAs</a></li>
 {% endblock %}
 
 {% block content %}

@@ -17,7 +17,7 @@
     {% if draft %}
       Draft for {{ name }}
     {% else %}
-      Update RA Request for {{ name }}
+      Update RA {{ status }} for {{ name }}
     {% endif %}
   {% else %}
     New RA Request
@@ -29,7 +29,7 @@
     {% if draft %}
       Draft for {{ name }}
     {% else %}
-      Update RA Request for {{ name }}
+      Update RA {{ status }} for {{ name }}
     {% endif %}
   {% else %}
     New RA Request
@@ -38,16 +38,16 @@
 
 {% block subbreadcrumbs %}
   {% if admin %}
-  <li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
+  <li><a href="{% url "ra:dashboard" %}">RA Dashboard</a></li>
   {% else %}
-  <li><a href="{% url "ra:browse_appointments" %}">RA Dashboard</a></li>
+  <li><a href="{% url "ra:browse_appointments" %}">My RA Dashboard</a></li>
   {% endif %}
   {% if edit %}
     {% if draft %}
       <li>Draft for {{ name }}</li>
     {% else %}
-      <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA Request for {{ name }}</a></li>
-      <li>Edit RA Request for {{ name }}</li>
+      <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA {{ status }} for {{ name }}</a></li>
+      <li>Edit RA {{ status }} for {{ name }}</li>
     {% endif %}
   {% else %}
     <li>New RA Request</li>

@@ -846,6 +846,13 @@ class RARequest(models.Model):
     def has_attachments(self):
         return self.attachments.visible().count() > 0
 
+    def status(self):
+        if self.complete:
+            status = "Appointment"
+        else:
+            status = "Request"
+        return status
+
     @classmethod
     def semester_guess(cls, date):
         """

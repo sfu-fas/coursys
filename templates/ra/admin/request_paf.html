@@ -10,8 +10,8 @@
 {% block h1 %}Payroll Appointment Form Configuration{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra:search" %}">RAs</a></li>
-<li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View RA Request for {{ req.get_name }}</a></li>
+<li><a href="{% url "ra:dashboard" %}">RA Dashboard</a></li>
+<li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View RA {{ status }} for {{ req.get_name }}</a></li>
 <li>Payroll Appointment Form Configuration</li>{% endblock %}
 
 {% block content %}
