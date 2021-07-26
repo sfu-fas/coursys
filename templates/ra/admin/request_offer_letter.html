@@ -10,8 +10,8 @@
 {% block h1 %}Offer Letter{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra:search" %}">RAs</a></li>
-<li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View RA Request for {{ req.get_name }}</a></li>
+<li><a href="{% url "ra:dashboard" %}">RA Dashboard</a></li>
+<li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View RA {{ status }} for {{ req.get_name }}</a></li>
 <li>Offer Letter</li>{% endblock %}
 
 {% block content %}

@@ -551,6 +551,9 @@ $(document).ready(function() {
         window.onbeforeunload = null;
     });
 
+    $('#done_draft').click(function(){
+        window.onbeforeunload = null;
+    });
 
     idFieldsUpdate()
     studentFieldsUpdate()

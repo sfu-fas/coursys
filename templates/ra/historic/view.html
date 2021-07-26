@@ -8,12 +8,7 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-{% if supervisor_only %}
-<li>RAs</li><li>{{ student.name }}</li>
-{% else %}
-<li><a href="{% url "ra:search" %}">RAs</a></li>
-<li><a href="{% url "ra:student_appointments" userid=appointment.person.emplid %}">{{ student.name }}</a></li>
-{% endif %}
+<li><a href="{% url "ra:browse" %}">Historic Appointments</a></li>
 <li>{{ appointment.account.title }} starting {{ appointment.start_date }}</li>
 {% endblock %}
 
@@ -25,7 +20,6 @@
       <li><a href="{% url "ra:edit_letter" ra_slug=appointment.slug %}">Edit Letter Text</a></li>
       <li><a href="{% url "ra:form" ra_slug=appointment.slug %}">Appointment Form</a></li>
       <li><a href="{% url "ra:letter" ra_slug=appointment.slug %}">Appointment Letter</a></li>
-      <li><a href="{% url "ra:reappoint" ra_slug=appointment.slug %}">Reappoint</a></li>
       <li><a href="{% url "ra:new_attachment" ra_slug=appointment.slug %}">Add Attachment</a></li>
     </ul>
   </div>

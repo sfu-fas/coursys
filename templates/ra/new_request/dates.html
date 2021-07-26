@@ -14,7 +14,11 @@
 
 {% block title %}
   {% if edit %}
-    Update RA Request for {{ name }}
+    {% if draft %}
+      Draft for {{ name }}
+    {% else %}
+      Update RA {{ status }} for {{ name }}
+    {% endif %}
   {% else %}
     New RA Request
   {% endif %}
@@ -22,21 +26,29 @@
 
 {% block h1 %}
   {% if edit %}
-  Update RA Request for {{ name }}
+    {% if draft %}
+      Draft for {{ name }}
+    {% else %}
+      Update RA {{ status }} for {{ name }}
+    {% endif %}
   {% else %}
-  New RA Request
+    New RA Request
   {% endif %}
 {% endblock %}
 
 {% block subbreadcrumbs %}
   {% if admin %}
-  <li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
+  <li><a href="{% url "ra:dashboard" %}">RA Dashboard</a></li>
   {% else %}
-  <li><a href="{% url "ra:browse_appointments" %}">RA Dashboard</a></li>
+  <li><a href="{% url "ra:browse_appointments" %}">My RA Dashboard</a></li>
   {% endif %}
   {% if edit %}
-    <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA Request for {{ name }}</a></li>
-    <li>Edit RA Request for {{ name }}</li>
+    {% if draft %}
+      <li>Draft for {{ name }}</li>
+    {% else %}
+      <li><a href="{% url "ra:view_request" ra_slug=slug %}">View RA {{ status }} for {{ name }}</a></li>
+      <li>Edit RA {{ status }} for {{ name }}</li>
+    {% endif %}
   {% else %}
     <li>New RA Request</li>
   {% endif %}
@@ -45,7 +57,7 @@
 {% block content %}
 
 <div class="form_container">
-  {% if not edit %}
+  {% if not edit or draft %}
   <i><a href="{% url "ra:new_request" %}"><u>Click here</u></a> to restart this form and clear all responses. If you have any questions, please contact <b>{{ fas_contact }}.</b></i>
   {% endif %}
   {% if edit %}
@@ -58,6 +70,16 @@
     <fieldset>
       <div class ="form_section">
         <h2><strong>Dates</strong></h2>
+        {% if reappoint %}
+        <p><div class="important_info">
+        <b>Tip For Reappointments:</b> 
+        <div class="helptext">
+        To keep the biweekly salary and hourly rate exactly the same as before, please ensure the estimated pay periods is exactly the same as the previous 
+        appointment as well as the total salary and biweekly hours. If the dates are changing, adjust the salary according to the change in the number of
+        pay periods. For example, if the number of pay periods is increasing by 2.2 and the biweekly salary is $500, increase the total salary by 2.2 X $500
+        and keep the biweekly hours the same.</div>
+        </div></p>
+        {% endif %}
         {{ wizard.management_form }}
         {% if wizard.form.forms %}
             {{ wizard.form.management_form }}
@@ -69,7 +91,7 @@
           {% endif %} 
         {% if not edit %}
         <div class="backdated_info" >
-          <p style="color:red"></p><b>This will be categorized as backdated appointment.</b></p>
+          <p style="color:red"><b>This will be categorized as backdated appointment.</b></p>
         </div>
         {% endif %}
         <div class="important_info">
@@ -80,7 +102,10 @@
     <div class="directory_buttons">
         <h3>Section {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</h3>
         <button id="prev" name="wizard_goto_step" class="btn" type="submit" value="{{ wizard.steps.prev }}" formnovalidate>{% trans "Previous" %}</button>
-        <input id="save" type="submit" value="Save and Next"/>
+        <input id="save" type="submit" class="submit" value="Next"/>
+        {% if draft or draft_option %}
+        <input id="done_draft" name="save_draft" type="submit" class="submit confirm-submit" value="Save Up to This Page as Draft" data-submit-action="safe draft up to this point"/>
+        {% endif %}
     </div>
   </form>  
 </div>

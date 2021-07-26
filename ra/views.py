@@ -23,6 +23,7 @@ from django import forms
 from django.db import transaction
 from django.http import HttpResponse, HttpRequest
 import csv
+from collections import OrderedDict
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from haystack.query import SearchQuerySet
@@ -70,8 +71,8 @@ def _can_view_ra_requests():
     Allows access to faculty members, and supervisors and authors of (any) RA.
     """
     def auth_test(request, **kwargs):
-        supervisor = RARequest.objects.filter(supervisor__userid=request.user.username).exists()
-        author = RARequest.objects.filter(author__userid=request.user.username).exists()
+        supervisor = RARequest.objects.filter(supervisor__userid=request.user.username, draft=False, deleted=False).exists() or RAAppointment.objects.filter(hiring_faculty__userid=request.user.username).exists()
+        author = RARequest.objects.filter(author__userid=request.user.username, draft=False, deleted=False).exists()
         request.is_supervisor = supervisor
         request.is_author = author
         return has_role('FAC', request, **kwargs) or has_role('FUND', request, **kwargs) or author or supervisor
@@ -118,9 +119,19 @@ def check_nc(wizard):
 def _reappointment_req(request, ra_slug):
     req = None
     if has_role('FUND', request):
-        req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
+        req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, draft=False, unit__in=request.units)
     elif has_role('FAC', request):
-        req = get_object_or_404(RARequest, Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), slug=ra_slug, deleted=False)
+        req = get_object_or_404(RARequest, Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), slug=ra_slug, draft=False, deleted=False)
+    return req
+
+# faculty members should not be able to edit any request that are not drafts they are authors for
+# admin can only edit drafts that they are authors for
+def _edit_req(request, ra_slug):
+    req = None
+    if has_role('FUND', request):
+        req = get_object_or_404(RARequest, Q(draft=False) | Q(draft=True, author__userid=request.user.username), slug=ra_slug, deleted=False, unit__in=request.units)
+    elif has_role('FAC', request):
+        req = get_object_or_404(RARequest, author__userid=request.user.username, slug=ra_slug, deleted=False, draft=True)
     return req
 
 def _email_request_notification(req, url):
@@ -186,6 +197,7 @@ class RANewRequestWizard(SessionWizardView):
             context.update({'reappoint': True, 'slug': ra_slug, 'admin': has_role('FUND', self.request)})
         else: 
             context.update({'admin': has_role('FUND', self.request)})
+        context.update({'draft_option': True})
         return context
 
     def get_form_initial(self, step):
@@ -239,6 +251,12 @@ class RANewRequestWizard(SessionWizardView):
             if step == "funding_sources":
                 req.start_date = None
                 req.end_date = None
+            # reappointments should not include documents from original appointment
+            if step == "supporting":
+                req.file_attachment_1 = ''
+                req.file_mediatype_1 = ''
+                req.file_attachment_2 = ''
+                req.file_mediatype_2 = ''
             return req
         return self.instance_dict.get(step, None)
 
@@ -270,6 +288,21 @@ class RANewRequestWizard(SessionWizardView):
                     form = super(RANewRequestWizard, self).get_form(step, data)
         return form
 
+    def process_step(self, form):
+        if self.steps.current == 'intro' and self.request.POST.get("save_draft"):
+            self.form_list = OrderedDict([("intro", RARequestIntroForm)])
+        if self.steps.current == 'dates' and self.request.POST.get("save_draft"):
+            self.form_list = OrderedDict([("intro", RARequestIntroForm), ("dates", RARequestDatesForm)])
+        if self.steps.current == 'graduate_research_assistant' and self.request.POST.get("save_draft"):
+            self.form_list = OrderedDict([("intro", RARequestIntroForm), ("dates", RARequestDatesForm), ("graduate_research_assistant", RARequestGraduateResearchAssistantForm)])
+        if self.steps.current == 'non_continuing' and self.request.POST.get("save_draft"):
+            self.form_list = OrderedDict([("intro", RARequestIntroForm), ("dates", RARequestDatesForm), ("non_continuing", RARequestNonContinuingForm)])
+        if self.steps.current == 'research_assistant' and self.request.POST.get("save_draft"):
+            self.form_list = OrderedDict([("intro", RARequestIntroForm), ("dates", RARequestDatesForm), ("research_assistant", RARequestResearchAssistantForm)])
+        if self.steps.current == 'funding_sources' and self.request.POST.get("save_draft"):
+            self.form_list = OrderedDict([("intro", RARequestIntroForm), ("dates", RARequestDatesForm), ("graduate_research_assistant", RARequestGraduateResearchAssistantForm), 
+                            ("non_continuing", RARequestNonContinuingForm), ("research_assistant", RARequestResearchAssistantForm), ("funding_sources", RARequestFundingSourceForm)])
+        return self.get_form_step_data(form)
 
     def done(self, form_list, **kwargs):
         req = RARequest()
@@ -305,24 +338,37 @@ class RANewRequestWizard(SessionWizardView):
             req.file_attachment_2 = ''
             req.file_mediatype_2 = ''
 
-        req.build_letter_text()
-        req.save()
-        
-        # email
-        url = self.request.build_absolute_uri(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
-        _email_request_notification(req, url)
+        # if user creates request as draft
+        if self.request.POST.get("save_draft"):
+            req.draft = True
+            if not req.total_pay:
+                req.total_pay = 0
+        else:
+            req.draft = False
+            req.build_letter_text()
 
-        description = "Created RA Request %s." % req
+        req.save()
+
+        if req.draft:
+            description = "Created RA Request Draft %s." % req
+            messages.success(self.request, 'Created RA Request Draft')
+        else: 
+            description = "Created RA Request %s." % req
+            messages.success(self.request, 'Created RA Request for ' + req.get_name())
+            url = self.request.build_absolute_uri(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
+            _email_request_notification(req, url)
+
         l = LogEntry(userid=self.request.user.username,
                         description=description,
                         related_object=req)
         l.save()
 
-        messages.success(self.request, 'Created RA Request for ' + req.get_name())
+        if req.draft: 
+            return HttpResponseRedirect(reverse('ra:browse_appointments'))
+        else:
+            return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
-        return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
-
-@method_decorator(requires_role("FUND"), name='dispatch')
+@method_decorator(requires_role(["FUND", "FAC"]), name='dispatch')
 class RAEditRequestWizard(SessionWizardView):
     file_storage = TemporaryFileStorage
 
@@ -331,6 +377,15 @@ class RAEditRequestWizard(SessionWizardView):
     
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
+        context.update({'fas_contact': FAS_CONTACT})
+        if self.steps.current == 'intro':
+            context.update({'ura_contact': URA_CONTACT, 
+                            'pd_contact': PD_CONTACT, 
+                            'cs_contact': CS_CONTACT, 
+                            'mse_contact': MSE_CONTACT, 
+                            'see_contact': SEE_CONTACT, 
+                            'ensc_contact': ENSC_CONTACT, 
+                            'deans_contact': DEANS_CONTACT})
         if self.steps.current == 'funding_sources':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             context.update({'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']})
@@ -345,21 +400,24 @@ class RAEditRequestWizard(SessionWizardView):
                 pay_data = self.get_cleaned_data_for_step('non_continuing')
             context.update({'total_pay': pay_data['total_pay']})
         ra_slug = self.kwargs['ra_slug']
-        req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=self.request.units)
-        context.update({'edit': True, 'slug': ra_slug, 'name': req.get_name()})
+        req = _edit_req(self.request, ra_slug)
+        context.update({'edit': True, 'draft': req.draft, 'slug': ra_slug, 'name': req.get_name(), 'admin': has_role('FUND', self.request), 'status': req.status()})
         return context
 
     def get_form_kwargs(self, step):
         step = step or self.steps.current
+        ra_slug = self.kwargs['ra_slug']
+        req = _edit_req(self.request, ra_slug)
+
         kwargs = super(RAEditRequestWizard, self).get_form_kwargs(step)
-        if step == 'dates':
+        if step == 'dates' and not req.draft:
             kwargs['edit'] = True
         return kwargs
 
     def get_form_initial(self, step):
         init = {}
         ra_slug = self.kwargs['ra_slug']
-        req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=self.request.units)
+        req = _edit_req(self.request, ra_slug)
         if step == 'intro':
             if req.nonstudent:
                 init = {'supervisor': req.supervisor.emplid}
@@ -392,7 +450,7 @@ class RAEditRequestWizard(SessionWizardView):
 
     def get_form_instance(self, step):
         ra_slug = self.kwargs['ra_slug']
-        req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=self.request.units)
+        req = _edit_req(self.request, ra_slug)
         return req
 
     def get_form(self, step=None, data=None, files=None):
@@ -420,14 +478,47 @@ class RAEditRequestWizard(SessionWizardView):
                     form = super(RAEditRequestWizard, self).get_form(step, data)
         return form
 
+    def process_step(self, form):
+        if self.steps.current == 'intro' and self.request.POST.get("save_draft"):
+            self.form_list = OrderedDict([("intro", RARequestIntroForm)])
+        if self.steps.current == 'dates' and self.request.POST.get("save_draft"):
+            self.form_list = OrderedDict([("intro", RARequestIntroForm), ("dates", RARequestDatesForm)])
+        if self.steps.current == 'graduate_research_assistant' and self.request.POST.get("save_draft"):
+            self.form_list = OrderedDict([("intro", RARequestIntroForm), ("dates", RARequestDatesForm), ("graduate_research_assistant", RARequestGraduateResearchAssistantForm)])
+        if self.steps.current == 'non_continuing' and self.request.POST.get("save_draft"):
+            self.form_list = OrderedDict([("intro", RARequestIntroForm), ("dates", RARequestDatesForm), ("non_continuing", RARequestNonContinuingForm)])
+        if self.steps.current == 'research_assistant' and self.request.POST.get("save_draft"):
+            self.form_list = OrderedDict([("intro", RARequestIntroForm), ("dates", RARequestDatesForm), ("research_assistant", RARequestResearchAssistantForm)])
+        if self.steps.current == 'funding_sources' and self.request.POST.get("save_draft"):
+            self.form_list = OrderedDict([("intro", RARequestIntroForm), ("dates", RARequestDatesForm), ("graduate_research_assistant", RARequestGraduateResearchAssistantForm), 
+                            ("non_continuing", RARequestNonContinuingForm), ("research_assistant", RARequestResearchAssistantForm), ("funding_sources", RARequestFundingSourceForm)])
+        return self.get_form_step_data(form)
+
     def done(self, form_list, **kwargs):
         ra_slug = self.kwargs['ra_slug']
         req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=self.request.units) 
         for form in form_list:
             for field, value in form.cleaned_data.items():
                 setattr(req, field, value)
-         
-        req.last_updater = get_object_or_404(Person, userid=self.request.user.username)
+
+        submission = False
+
+        # if user is editing a draft
+        if self.request.POST.get("save_draft"):
+            if not req.total_pay:
+                req.total_pay = 0
+        else:
+            # if it was a draft when they submitted
+            if req.draft:
+                submission = True
+            
+        if submission:
+            req.draft = False
+            req.build_letter_text()
+            req.created_at = datetime.datetime.now()
+            # email
+            url = self.request.build_absolute_uri(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
+            _email_request_notification(req, url)
 
         if 'supporting-file_attachment_1' in self.request.FILES:
             upfile = self.request.FILES['supporting-file_attachment_1']
@@ -455,27 +546,41 @@ class RAEditRequestWizard(SessionWizardView):
         if req.hiring_category=="NC":
             req.gras_payment_method = None
             req.ra_payment_method = None
-
-        req.save()
         
-        description = "Edited RA Request %s." % req
+        # draft was submitted 
+        if submission:
+            description = "Submitted RA Request Draft %s." % req
+            messages.success(self.request, 'Submitted RA Request Draft')
+        # editing a draft
+        elif req.draft:
+            description = "Edited RA Request Draft %s." % req
+            messages.success(self.request, 'Edited RA Request Draft')
+        # regular edit
+        else: 
+            description = "Edited RA Request %s." % req
+            messages.success(self.request, 'Edited RA ' + req.status() + ' for ' + req.get_name())
+            req.last_updater = get_object_or_404(Person, userid=self.request.user.username)
+        
+        req.save()
+
         l = LogEntry(userid=self.request.user.username,
                         description=description,
                         related_object=req)
         l.save()
 
-        messages.success(self.request, 'Edited RA Request for ' + req.get_name())
-
-        return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
+        if req.draft: 
+            return HttpResponseRedirect(reverse('ra:browse_appointments'))
+        else:
+            return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
 @requires_role("FUND")
 def dashboard(request: HttpRequest) -> HttpResponse:
     """
     View to see all RA requests
     """
-    non_continuing = RARequest.objects.filter(deleted=False, unit__in=request.units, hiring_category="NC", complete=False)
-    research_assistant = RARequest.objects.filter(deleted=False, unit__in=request.units, hiring_category="RA", complete=False)
-    graduate_research_assistant = RARequest.objects.filter(deleted=False, unit__in=request.units, hiring_category="GRAS", complete=False)
+    non_continuing = RARequest.objects.filter(deleted=False, unit__in=request.units, hiring_category="NC", complete=False, draft=False)
+    research_assistant = RARequest.objects.filter(deleted=False, unit__in=request.units, hiring_category="RA", complete=False, draft=False)
+    graduate_research_assistant = RARequest.objects.filter(deleted=False, unit__in=request.units, hiring_category="GRAS", complete=False, draft=False)
     return render(request, 'ra/dashboards/dashboard.html', {'non_continuing': non_continuing, 'research_assistant': research_assistant, 'graduate_research_assistant': graduate_research_assistant })
 
 @requires_role("FUND")
@@ -485,9 +590,9 @@ def active_appointments(request: HttpRequest) -> HttpResponse:
     """
     today = datetime.date.today()
     slack = 14 
-    non_continuing = RARequest.objects.filter(deleted=False, unit__in=request.units, hiring_category="NC", complete=True, start_date__lte=today + datetime.timedelta(days=slack), end_date__gte=today - datetime.timedelta(days=slack))
-    research_assistant = RARequest.objects.filter(deleted=False, unit__in=request.units, hiring_category="RA", complete=True, start_date__lte=today + datetime.timedelta(days=slack), end_date__gte=today - datetime.timedelta(days=slack))
-    graduate_research_assistant = RARequest.objects.filter(deleted=False, unit__in=request.units, hiring_category="GRAS", complete=True, start_date__lte=today + datetime.timedelta(days=slack), end_date__gte=today - datetime.timedelta(days=slack))
+    non_continuing = RARequest.objects.filter(deleted=False, unit__in=request.units, hiring_category="NC", complete=True, draft=False, start_date__lte=today + datetime.timedelta(days=slack), end_date__gte=today - datetime.timedelta(days=slack))
+    research_assistant = RARequest.objects.filter(deleted=False, unit__in=request.units, hiring_category="RA", complete=True, draft=False, start_date__lte=today + datetime.timedelta(days=slack), end_date__gte=today - datetime.timedelta(days=slack))
+    graduate_research_assistant = RARequest.objects.filter(deleted=False, unit__in=request.units, hiring_category="GRAS", complete=True, draft=False, start_date__lte=today + datetime.timedelta(days=slack), end_date__gte=today - datetime.timedelta(days=slack))
     return render(request, 'ra/dashboards/active_appointments.html', {'non_continuing': non_continuing, 'research_assistant': research_assistant, 'graduate_research_assistant': graduate_research_assistant })
 
 @_can_view_ra_requests()
@@ -498,11 +603,12 @@ def browse_appointments(request):
     if 'tabledata' in request.GET:
         return RARequestDataJson.as_view()(request)
     # for supervisors to see any of their current requests
-    reqs = RARequest.objects.filter(Q(supervisor__userid=request.user.username) | Q(author__userid=request.user.username), deleted=False, complete=False)
+    reqs = RARequest.objects.filter(Q(supervisor__userid=request.user.username) | Q(author__userid=request.user.username), deleted=False, complete=False, draft=False)
+    drafts = RARequest.objects.filter(author__userid=request.user.username, deleted=False, complete=False, draft=True)
     form = RABrowseForm()
     admin = has_role('FUND', request)
-    context = {'form': form, 'reqs': reqs, 'admin': admin}
-    return render(request, 'ra/browse_appointments.html', context)
+    context = {'form': form, 'reqs': reqs, 'admin': admin, 'drafts': drafts}
+    return render(request, 'ra/dashboards/browse_appointments.html', context)
 
 @requires_role("FUND")
 def appointee_appointments(request: HttpRequest, userid) -> HttpResponse:
@@ -510,8 +616,8 @@ def appointee_appointments(request: HttpRequest, userid) -> HttpResponse:
     View to see all RA Requests/Appointments where a specific person is an appointee.
     """
     person = get_object_or_404(Person, find_userid_or_emplid(userid))
-    reqs = RARequest.objects.filter(person=person, unit__in=request.units, deleted=False, complete=False).order_by("-created_at")
-    appointments = RARequest.objects.filter(person=person, unit__in=request.units, deleted=False, complete=True).order_by("-created_at")
+    reqs = RARequest.objects.filter(person=person, unit__in=request.units, deleted=False, complete=False, draft=False).order_by("-created_at")
+    appointments = RARequest.objects.filter(person=person, unit__in=request.units, deleted=False, complete=True, draft=False).order_by("-created_at")
     historic_appointments = RAAppointment.objects.filter(person=person, unit__in=request.units, deleted=False).order_by("-created_at")
     grads = GradStudent.objects.filter(person=person, program__unit__in=request.units)
     context = {'reqs': reqs, 'appointments': appointments, 'historic_appointments': historic_appointments, 'person': person, 'grads': grads}
@@ -523,8 +629,8 @@ def supervisor_appointments(request: HttpRequest, userid) -> HttpResponse:
     View to see all RA Requests/Appointments where a specific person is a supervisor.
     """
     person = get_object_or_404(Person, find_userid_or_emplid(userid))
-    reqs = RARequest.objects.filter(supervisor=person, unit__in=request.units, deleted=False, complete=False).order_by("-created_at")
-    appointments = RARequest.objects.filter(supervisor=person, unit__in=request.units, deleted=False, complete=True).order_by("-created_at")
+    reqs = RARequest.objects.filter(supervisor=person, unit__in=request.units, deleted=False, complete=False, draft=False).order_by("-created_at")
+    appointments = RARequest.objects.filter(supervisor=person, unit__in=request.units, deleted=False, complete=True, draft=False).order_by("-created_at")
     historic_appointments = RAAppointment.objects.filter(hiring_faculty=person, unit__in=request.units, deleted=False).order_by("-created_at")
     context = {'reqs': reqs, 'appointments': appointments, 'historic_appointments': historic_appointments, 'person': person}
     return render(request, 'ra/search/supervisor_appointments.html', context)
@@ -562,7 +668,7 @@ def advanced_search(request):
     context = {'supervisor_form': supervisor_form, 'appointee_form': appointee_form}
     return render(request, 'ra/search/advanced_search.html', context)
 
-# View RA Request
+# View RA Request/Appointment
 @_can_view_ra_requests()
 def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """
@@ -571,9 +677,9 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     admin = has_role('FUND', request)
 
     if admin:
-        req = get_object_or_404(RARequest, Q(unit__in=request.units), slug=ra_slug, deleted=False)
+        req = get_object_or_404(RARequest, Q(unit__in=request.units), slug=ra_slug, draft=False, deleted=False)
     else:
-        req = get_object_or_404(RARequest, Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), slug=ra_slug, deleted=False)
+        req = get_object_or_404(RARequest, Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), slug=ra_slug, draft=False, deleted=False)
 
     person = req.person
     supervisor = req.supervisor
@@ -583,17 +689,13 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     research_assistant = (req.hiring_category=="RA")
     non_cont = (req.hiring_category=="NC")
     graduate_research_assistant = (req.hiring_category=="GRAS")
-    gras_le = (graduate_research_assistant and req.gras_payment_method=="LS")
-    gras_ls = (graduate_research_assistant and req.gras_payment_method=="LE")
+    gras_ls = (graduate_research_assistant and req.gras_payment_method=="LS")
+    gras_le = (graduate_research_assistant and req.gras_payment_method=="LE")
     gras_bw = (graduate_research_assistant and req.gras_payment_method=="BW")
     ra_hourly = (research_assistant and req.ra_payment_method=="H")
     ra_bw = (research_assistant and req.ra_payment_method=="BW")
     nc_hourly = (non_cont and req.nc_payment_method=="H")
     nc_bw = (non_cont and req.nc_payment_method=="BW")
-    if req.complete:
-        status = "Appointment"
-    else:
-        status = "Request"
 
     adminform = RARequestAdminForm(instance=req)
 
@@ -602,12 +704,12 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
          'author': author, 'research_assistant': research_assistant, 'non_cont': non_cont, 'no_id': req.nonstudent,
          'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw,
          'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 'thesis': req.mitacs=="N", 'adminform': adminform, 'admin': admin, 
-         'permissions': request.units, 'status': status })
+         'permissions': request.units, 'status': req.status()})
 
 # Update admin checklist
 @requires_role("FUND")
 def request_admin_update(request: HttpRequest, ra_slug: str) -> HttpResponse:
-    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, draft=False, unit__in=request.units)
     if request.method == 'POST':
         data = request.POST.copy()
         adminform = RARequestAdminForm(data, instance=req)
@@ -627,12 +729,29 @@ def request_admin_update(request: HttpRequest, ra_slug: str) -> HttpResponse:
     
     return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
+@requires_role(["FUND", "FAC"])
+def delete_request_draft(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    View to delete a RA Request Draft.
+    """
+    req = get_object_or_404(RARequest, slug=ra_slug, author__userid=request.user.username, deleted=False, complete=False, draft=True)
+    if request.method == 'POST':
+        req.deleted = True
+        req.save()
+        messages.success(request, "Deleted RA Request Draft.")
+        l = LogEntry(userid=request.user.username,
+              description="Deleted RA Request Draft %s." % (str(req),),
+              related_object=req)
+        l.save()              
+    
+    return HttpResponseRedirect(reverse('ra:browse_appointments'))
+
 @requires_role("FUND")
 def delete_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """
     View to delete a RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, draft=False, unit__in=request.units)
     if request.method == 'POST':
         req.deleted = True
         req.save()
@@ -649,7 +768,7 @@ def edit_request_notes(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """
     View to edit notes of an RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, draft=False, unit__in=request.units)
     
     if request.method == 'POST':
         noteform = RARequestNoteForm(request.POST, instance=req)
@@ -664,21 +783,23 @@ def edit_request_notes(request: HttpRequest, ra_slug: str) -> HttpResponse:
             return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
     else: 
         noteform = RARequestNoteForm(instance=req)
-    return render(request, 'ra/edit_request_notes.html', {'noteform': noteform, 'req':req})
+    return render(request, 'ra/admin/edit_request_notes.html', {'noteform': noteform, 'req':req, 'status': req.status()})
 
 @requires_role("FUND")
 def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, backdated=False)
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (req.slug)
     letter = FASOfficialLetter(response)
-    if req.additional_supervisor:
-        from_name_lines = [req.supervisor.letter_name(), req.additional_supervisor, req.unit.name]
+    from_name_lines = [req.supervisor.letter_name(), req.unit.name]
+    if req.additional_supervisor and req.additional_department:
+        extra_from_name_lines = [req.additional_supervisor, req.additional_department]
     else:
-        from_name_lines = [req.supervisor.letter_name(), req.unit.name]
+        extra_from_name_lines = None
     contents = LetterContents(
         to_addr_lines=[req.get_name(), req.unit.name], 
         from_name_lines=from_name_lines,
+        extra_from_name_lines = extra_from_name_lines,
         closing="Yours Truly", 
         signer=req.supervisor,
         cosigner_lines=[req.get_cosigner_line(), req.get_first_name() + " " + req.get_last_name()])
@@ -694,7 +815,7 @@ def request_offer_letter_update(request: HttpRequest, ra_slug: str) -> HttpRespo
     """ 
     View to update offer letter text
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, backdated=False)
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
 
     if request.method == 'POST':
         configform = RARequestLetterForm(request.POST, instance=req)
@@ -712,15 +833,15 @@ def request_offer_letter_update(request: HttpRequest, ra_slug: str) -> HttpRespo
 
     research_assistant = (req.hiring_category=="RA")
     non_cont = (req.hiring_category=="NC")
-    context = {'req': req, 'configform': configform, 'saform': saform, 'research_assistant': research_assistant, 'non_cont': non_cont}
-    return render(request, 'ra/request_offer_letter.html', context) 
+    context = {'req': req, 'configform': configform, 'saform': saform, 'research_assistant': research_assistant, 'non_cont': non_cont, 'status': req.status()}
+    return render(request, 'ra/admin/request_offer_letter.html', context) 
 
 @requires_role("FUND")
 def request_default_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """ 
     Update offer letter text to default 
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, backdated=False)
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
     if request.method == 'POST':
         req.build_letter_text()
         req.save()
@@ -738,7 +859,7 @@ def request_science_alive(request: HttpRequest, ra_slug: str) -> HttpResponse:
     Swtich appointment to science alive, or not science alive.
     Impacts offer letter generation.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, backdated=False)
+    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
     if request.method == 'POST':
         
         if req.hiring_category == "RA" or req.hiring_category=="NC":
@@ -760,7 +881,7 @@ def request_science_alive_letter(request: HttpRequest, ra_slug: str) -> HttpResp
     """
     Configure and download science alive offer letters
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units, backdated=False)
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units, backdated=False, draft=False)
     form = RARequestScienceAliveForm(request.POST)
     if form.is_valid():
         config = ({'letter_type': form.cleaned_data['letter_type'], 'final_bullet': form.cleaned_data['final_bullet']})
@@ -775,7 +896,7 @@ def request_paf(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """
     View to configure and download payroll appointment form (and show visa info prior to download)
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, draft=False, unit__in=request.units)
     if request.method == 'POST':
         form = RARequestPAFForm(request.POST)
         if form.is_valid():
@@ -838,15 +959,15 @@ def request_paf(request: HttpRequest, ra_slug: str) -> HttpResponse:
         citizenshipUnknown = True
         citizenship = None
 
-    return render(request, 'ra/request_paf.html', {'form':form, 'adminpafform': adminpafform, 'req':req, 'info': info, 'isCanadian': isCanadian, 
-                'citizenshipUnknown': citizenshipUnknown, 'citizenship': citizenship})
+    return render(request, 'ra/admin/request_paf.html', {'form':form, 'adminpafform': adminpafform, 'req':req, 'info': info, 'isCanadian': isCanadian, 
+                'citizenshipUnknown': citizenshipUnknown, 'citizenship': citizenship, 'status': req.status()})
 
 @requires_role("FUND")
 def request_admin_paf_update(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """
     Update PAF configuration
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, draft=False, unit__in=request.units)
     if request.method == 'POST':
         data = request.POST.copy()
         if not req.fs2_option:
@@ -870,7 +991,6 @@ def request_admin_paf_update(request: HttpRequest, ra_slug: str) -> HttpResponse
                          related_object=req)
             l.save()
             messages.success(request, 'Updated PAF Config for RA Request for ' + req.get_name())
-    
     return HttpResponseRedirect(reverse('ra:request_paf', kwargs={'ra_slug': req.slug}))
 
 @requires_role("FUND")
@@ -878,7 +998,7 @@ def view_request_attachment_1(request: HttpRequest, ra_slug: str) -> HttpRespons
     """
     View to view the first attachment for an RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, draft=False, deleted=False, unit__in=request.units)
     attachment = req.file_attachment_1
     filename = attachment.name.rsplit('/')[-1]
     resp = HttpResponse(attachment.chunks(), content_type=req.file_mediatype_1)
@@ -891,7 +1011,7 @@ def view_request_attachment_2(request: HttpRequest, ra_slug: str) -> HttpRespons
     """
     View to view the second attachment for an RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, draft=False, deleted=False, unit__in=request.units)
     attachment = req.file_attachment_2
     filename = attachment.name.rsplit('/')[-1]
     resp = HttpResponse(attachment.chunks(), content_type=req.file_mediatype_2)
@@ -904,7 +1024,7 @@ def download_request_attachment_1(request: HttpRequest, ra_slug: str) -> HttpRes
     """
     View to download the first attachment for an RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, draft=False, deleted=False, unit__in=request.units)
     attachment = req.file_attachment_1
     filename = attachment.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.chunks(), content_type=req.file_mediatype_1)
@@ -917,7 +1037,7 @@ def download_request_attachment_2(request: HttpRequest, ra_slug: str) -> HttpRes
     """
     View to download the second attachment for an RA request.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, draft=False, deleted=False, unit__in=request.units)
     attachment = req.file_attachment_2
     filename = attachment.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.chunks(), content_type=req.file_mediatype_2)
@@ -931,12 +1051,11 @@ def new_admin_attachment(request, ra_slug):
     """
     View to add new admin attachments
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, draft=False, deleted=False, unit__in=request.units)
     editor = get_object_or_404(Person, userid=request.user.username)
 
     form = RARequestAdminAttachmentForm()
-    context = {"req": req,
-               "attachment_form": form}
+    context = {"req": req, "attachment_form": form, "status": req.status()}
 
     if request.method == "POST":
         form = RARequestAdminAttachmentForm(request.POST, request.FILES)
@@ -955,15 +1074,14 @@ def new_admin_attachment(request, ra_slug):
             return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
         else:
             context.update({"attachment_form": form})
-
-    return render(request, 'ra/new_request_attachment.html', context)
+    return render(request, 'ra/admin/new_request_attachment.html', context)
 
 @requires_role("FUND")
 def view_admin_attachment(request, ra_slug, attach_slug):
     """
     View to view admin attachments
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, draft=False, deleted=False, unit__in=request.units)
     attachment = get_object_or_404(req.attachments.all(), slug=attach_slug)
     filename = attachment.contents.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
@@ -976,7 +1094,7 @@ def download_admin_attachment(request, ra_slug, attach_slug):
     """
     View to download admin attachments
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, draft=False, deleted=False, unit__in=request.units)
     attachment = get_object_or_404(req.attachments.all(), slug=attach_slug)
     filename = attachment.contents.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
@@ -989,7 +1107,7 @@ def delete_admin_attachment(request, ra_slug, attach_slug):
     """
     Delete an admin attachment
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units)
+    req = get_object_or_404(RARequest, slug=ra_slug, draft=False, deleted=False, unit__in=request.units)
     attachment = get_object_or_404(req.attachments.all(), slug=attach_slug)
     attachment.hide()
     messages.add_message(request, messages.SUCCESS, 'Admin attachment deleted.')
@@ -1005,9 +1123,9 @@ def download(request, current=False, incomplete=False):
     admin = has_role('FUND', request)
 
     if admin:
-        ras = RARequest.objects.filter(Q(unit__in=request.units), deleted=False)
+        ras = RARequest.objects.filter(Q(unit__in=request.units), deleted=False, draft=False)
     else:
-        ras = RARequest.objects.filter(Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), deleted=False)
+        ras = RARequest.objects.filter(Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), deleted=False, draft=False)
 
     if incomplete:
         ras = ras.filter(complete=False)
@@ -1036,9 +1154,11 @@ class RARequestDataJson(BaseDatatableView):
     model = RARequest
     columns = ['person', 'supervisor', 'unit', 'fund', 'project', 'start_date', 'end_date', 'total_pay']
     order_columns = [
-        ['person__get_sort_name'],
+        ['person__last_name', 'person__first_name'],
         ['supervisor__last_name', 'supervisor__first_name'],
         'unit__label',
+        'fs1_fund',
+        'fs1_project',
         'start_date',
         'end_date',
         'total_pay',
@@ -1063,7 +1183,7 @@ class RARequestDataJson(BaseDatatableView):
             qs = qs.filter(Q(supervisor__userid=self.request.user.username) | Q(author__userid=self.request.user.username))
 
         # only for completed requests (which are then appointments)
-        qs = qs.filter(deleted=False, complete=True)
+        qs = qs.filter(deleted=False, draft=False, complete=True)
 
         # "current" contracts filter
         if 'current' in GET and GET['current'] == 'yes':
@@ -1107,431 +1227,6 @@ class RARequestDataJson(BaseDatatableView):
 
         return str(getattr(ra, column))
 
-### OLD RA ###
-
-#This is the search function that that returns a list of RA Appointments related to the query.
-@requires_role("FUND")
-def search(request, student_id=None):
-    if student_id:
-        student = get_object_or_404(Person, id=student_id)
-    else:
-        student = None
-    if request.method == 'POST':
-        form = RASearchForm(request.POST)
-        if not form.is_valid():
-            return HttpResponseRedirect(reverse('ra:found') + "?search=" + urllib.parse.quote_plus(form.data['search']))
-        search = form.cleaned_data['search']
-        # deal with people without active computing accounts
-        if search.userid:
-            userid = search.userid
-        else:
-            userid = search.emplid
-        return HttpResponseRedirect(reverse('ra:student_appointments', kwargs={'userid': userid}))
-    if student_id:
-        form = RASearchForm(instance=student, initial={'student': student.userid})
-    else:
-        form = RASearchForm()
-    context = {'form': form}
-    return render(request, 'ra/search.html', context)
-
-@requires_role("FUND")
-def found(request):
-    """
-    View to handle the enter-search/press-enter behaviour in the autocomplete box
-    """
-    if 'search' not in request.GET:
-        return ForbiddenResponse(request, 'must give search in query')
-    search = request.GET['search']
-    studentQuery = get_query(search, ['userid', 'emplid', 'first_name', 'last_name'])
-    people = Person.objects.filter(studentQuery)[:200]
-    for p in people:
-        # decorate with RAAppointment count
-        p.ras = RAAppointment.objects.filter(unit__in=request.units, person=p, deleted=False).count()
-
-    context = {'people': people}
-    return render(request, 'ra/found.html', context)
-
-#This is an index of all RA Appointments belonging to a given person.
-@requires_role("FUND")
-def student_appointments(request, userid):
-    student = get_object_or_404(Person, find_userid_or_emplid(userid))
-    appointments = RAAppointment.objects.filter(person=student, unit__in=request.units, deleted=False).order_by("-created_at")
-    grads = GradStudent.objects.filter(person=student, program__unit__in=request.units)
-    context = {'appointments': appointments, 'student': student,
-               'grads': grads}
-    return render(request, 'ra/student_appointments.html', context)
-
-def _appointment_defaults(units, emplid=None):
-    hiring_faculty_choices = possible_supervisors(units)
-    unit_choices = [(u.id, u.name) for u in units]
-    project_choices = [(p.id, str(p)) for p in Project.objects.filter(unit__in=units, hidden=False)]
-    account_choices = [(a.id, str(a)) for a in Account.objects.filter(unit__in=units, hidden=False)]
-    scholarship_choices = [("", '\u2014')]
-    if emplid:
-        for s in Scholarship.objects.filter(student__person__emplid=emplid):
-            scholarship_choices.append((s.pk, s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"))
-    program_choices = [('', "00000, None")] + [(p.id, str(p)) for p in Program.objects.visible_by_unit(units).order_by('program_number')]
-    return (scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices,
-            program_choices)
-
-#New RA Appointment
-@requires_role("FUND")
-def new(request):
-    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices, program_choices = \
-        _appointment_defaults(request.units)
-    if request.method == 'POST':
-        data = request.POST.copy()
-        if data['pay_frequency'] == 'L':
-            # force legal values into the non-submitted (and don't-care) fields for lump sum pay
-            data['biweekly_pay'] = 1
-            data['hourly_pay'] = 1
-            data['hours'] = 1
-            data['pay_periods'] = 1
-
-        raform = RAForm(data)
-        raform.fields['hiring_faculty'].choices = hiring_faculty_choices
-        raform.fields['unit'].choices = unit_choices
-        raform.fields['project'].choices = project_choices
-        raform.fields['account'].choices = account_choices
-        raform.fields['program'].choices = program_choices
-
-        if raform.is_valid():
-            userid = raform.cleaned_data['person'].userid_or_emplid()
-            appointment = raform.save(commit=False)
-            appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
-            appointment.save()
-            l = LogEntry(userid=request.user.username,
-                         description="Added RA appointment %s." % appointment,
-                         related_object=appointment)
-            l.save()
-            messages.success(request, 'Created RA Appointment for ' + appointment.person.name())
-            return HttpResponseRedirect(reverse('ra:student_appointments', kwargs=({'userid': userid})))
-    else:
-        semester = Semester.next_starting()
-        semesterconfig = SemesterConfig.get_config(request.units, semester)
-        raform = RAForm(initial={'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 80 })
-        raform.fields['scholarship'].choices = scholarship_choices
-        raform.fields['hiring_faculty'].choices = hiring_faculty_choices
-        raform.fields['unit'].choices = unit_choices
-        raform.fields['project'].choices = project_choices
-        raform.fields['account'].choices = account_choices
-        raform.fields['program'].choices = program_choices
-    return render(request, 'ra/new.html', { 'raform': raform })
-
-#New RA Appointment with student pre-filled.
-@requires_role("FUND")
-def new_student(request, userid):
-    person = get_object_or_404(Person, find_userid_or_emplid(userid))
-    semester = Semester.next_starting()
-    semesterconfig = SemesterConfig.get_config(request.units, semester)
-    student = get_object_or_404(Person, find_userid_or_emplid(userid))
-    initial = {'person': student.emplid, 'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 80 }
-    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices, program_choices = \
-        _appointment_defaults(request.units, emplid=student.emplid)
-    gss = GradStudent.objects.filter(person=student)
-    if gss:
-        gradstudent = gss[0]
-        initial['sin'] = gradstudent.person.sin()
-    
-    raform = RAForm(initial=initial)
-    raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
-    raform.fields['scholarship'].choices = scholarship_choices
-    raform.fields['hiring_faculty'].choices = hiring_faculty_choices
-    raform.fields['unit'].choices = unit_choices
-    raform.fields['project'].choices = project_choices
-    raform.fields['account'].choices = account_choices
-    raform.fields['program'].choices = program_choices
-    return render(request, 'ra/new.html', { 'raform': raform, 'person': person })
-
-#Edit RA Appointment
-@requires_role("FUND")
-def edit(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
-    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices, program_choices = \
-        _appointment_defaults(request.units, emplid=appointment.person.emplid)
-    if request.method == 'POST':
-        data = request.POST.copy()
-        if data['pay_frequency'] == 'L':
-            # force legal values into the non-submitted (and don't-care) fields for lump sum pay
-            data['biweekly_pay'] = 1
-            data['hourly_pay'] = 1
-            data['hours'] = 1
-            data['pay_periods'] = 1
-        
-        raform = RAForm(data, instance=appointment)
-        if raform.is_valid():
-            userid = raform.cleaned_data['person'].userid
-            appointment = raform.save(commit=False)
-            appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
-            appointment.save()
-            l = LogEntry(userid=request.user.username,
-                         description="Edited RA appointment %s." % appointment,
-                         related_object=appointment)
-            l.save()
-            messages.success(request, 'Updated RA Appointment for ' + appointment.person.first_name + " " + appointment.person.last_name)
-            return HttpResponseRedirect(reverse('ra:student_appointments', kwargs=({'userid': userid})))
-    else:
-        #The initial value needs to be the person's emplid in the form. Django defaults to the pk, which is not human readable.
-        raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'use_hourly': appointment.use_hourly()})
-        #As in the new method, choices are restricted to relevant options.
-        raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
-        raform.fields['hiring_faculty'].choices = hiring_faculty_choices
-        raform.fields['scholarship'].choices = scholarship_choices
-        raform.fields['unit'].choices = unit_choices
-        raform.fields['project'].choices = project_choices
-        raform.fields['account'].choices = account_choices
-        raform.fields['program'].choices = program_choices
-    return render(request, 'ra/edit.html', { 'raform': raform, 'appointment': appointment, 'person': appointment.person })
-
-#Quick Reappoint, The difference between this and edit is that the reappointment box is automatically checked, and date information is filled out as if a new appointment is being created.
-#Since all reappointments will be new appointments, no post method is present, rather the new appointment template is rendered with the existing data which will call the new method above when posting.
-@requires_role("FUND")
-def reappoint(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
-    semester = Semester.next_starting()
-    semesterconfig = SemesterConfig.get_config(request.units, semester)
-    raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True,
-                    'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 80,
-                    'use_hourly': appointment.use_hourly() })
-    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices, program_choices = \
-        _appointment_defaults(request.units, emplid=appointment.person.emplid)
-    raform.fields['hiring_faculty'].choices = hiring_faculty_choices
-    raform.fields['scholarship'].choices = scholarship_choices
-    raform.fields['unit'].choices = unit_choices
-    raform.fields['project'].choices = project_choices
-    raform.fields['account'].choices = account_choices
-    raform.fields['program'].choices = program_choices
-    return render(request, 'ra/new.html', { 'raform': raform, 'appointment': appointment })
-
-
-@requires_role("FUND")
-def edit_letter(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
-
-    if request.method == 'POST':
-        form = RALetterForm(request.POST, instance=appointment)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Updated RA Letter Text for ' + appointment.person.first_name + " " + appointment.person.last_name)
-            return HttpResponseRedirect(reverse('ra:student_appointments', kwargs=({'userid': appointment.person.userid})))
-    else:
-        if not appointment.offer_letter_text:
-            letter_choices = RAAppointment.letter_choices(request.units)
-            if len(letter_choices) == 1: # why make them select from one?
-                appointment.build_letter_text(letter_choices[0][0])
-            else:
-                return HttpResponseRedirect(reverse('ra:select_letter', kwargs=({'ra_slug': ra_slug})))
-        form = RALetterForm(instance=appointment)
-    
-    context = {'appointment': appointment, 'form': form}
-    return render(request, 'ra/edit_letter.html', context)
-
-# If we don't have an appointment letter yet, pick one.
-@requires_role("FUND")
-def select_letter(request, ra_slug, print_only=None):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
-    # Forcing sorting of the letter choices so the Standard template is first.
-    letter_choices = sorted(RAAppointment.letter_choices(request.units))
-    if request.method == 'POST':
-        filled_form = LetterSelectForm(data=request.POST, choices=letter_choices)
-        if filled_form.is_valid():
-            appointment.build_letter_text(filled_form.cleaned_data['letter_choice'])
-        if print_only == 'print':
-            return HttpResponseRedirect(reverse('ra:letter', kwargs=({'ra_slug': ra_slug})))
-        else:
-            return HttpResponseRedirect(reverse('ra:edit_letter', kwargs=({'ra_slug': ra_slug})))
-
-    else:
-        new_form = LetterSelectForm(choices=letter_choices)
-        context = {'form': new_form, 'ra_slug': ra_slug, 'print_only': print_only}
-        return render(request, 'ra/select_letter.html', context)
-
-#View RA Appointment
-@_can_view_ras()
-def view(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment,
-        Q(unit__in=request.units) | Q(hiring_faculty__userid=request.user.username),
-        slug=ra_slug, deleted=False)
-    student = appointment.person
-    return render(request, 'ra/view.html',
-        {'appointment': appointment, 'student': student, 'supervisor_only': not request.units})
-
-#View RA Appointment Form (PDF)
-@requires_role("FUND")
-def form(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
-    response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (appointment.slug)
-    ra_form(appointment, response)
-    return response
-
-@requires_role("FUND")
-def letter(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
-    if not appointment.offer_letter_text:
-        letter_choices = RAAppointment.letter_choices(request.units)
-        if len(letter_choices) == 1:  # why make them select from one?
-            appointment.build_letter_text(letter_choices[0][0])
-        else:
-            return HttpResponseRedirect(reverse('ra:select_letter', kwargs=({'ra_slug': ra_slug, 'print_only': 'print'})))
-    response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (appointment.slug)
-    letter = OfficialLetter(response, unit=appointment.unit)
-    contents = LetterContents(
-        to_addr_lines=[appointment.person.name(), 'c/o '+appointment.unit.name], 
-        from_name_lines=[appointment.hiring_faculty.letter_name(), appointment.unit.name],
-        closing="Yours Truly", 
-        signer=appointment.hiring_faculty,
-        cosigner_lines=['I agree to the conditions of employment', appointment.person.first_name + " " + appointment.person.last_name])
-    contents.add_paragraphs(["Dear " + appointment.person.get_title() + ' ' + appointment.person.last_name])
-    contents.add_paragraphs(appointment.letter_paragraphs())
-    letter.add_letter(contents)
-    letter.write()
-    return response
-
-@requires_role("FUND")
-def delete_ra(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
-    if request.method == 'POST':
-        appointment.deleted = True
-        appointment.save()
-        messages.success(request, "Deleted RA appointment." )
-        l = LogEntry(userid=request.user.username,
-              description="Deleted RA appointment %s." % (str(appointment),),
-              related_object=appointment)
-        l.save()              
-    
-    return HttpResponseRedirect(reverse('ra:student_appointments', kwargs={'userid': appointment.person.emplid}))
-
-# Methods relating to Account creation. These are all straight forward.
-@requires_role(["FUND", "TAAD", "GRAD"])
-def new_account(request):
-    accountform = AccountForm(request.POST or None)
-    #This restricts a user to only creating account for a unit to which they belong.
-    accountform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-    if request.method == 'POST':
-        if accountform.is_valid():
-            account = accountform.save()
-            messages.success(request, 'Created account ' + str(account.account_number))
-            return HttpResponseRedirect(reverse('ra:accounts_index'))
-    return render(request, 'ra/new_account.html', {'accountform': accountform})
-
-@requires_role("FUND")
-def accounts_index(request):
-    accounts = Account.objects.filter(unit__in=request.units, hidden=False).order_by("account_number")
-    return render(request, 'ra/accounts_index.html', {'accounts': accounts})
-
-@requires_role("FUND")
-def edit_account(request, account_slug):
-    account = get_object_or_404(Account, slug=account_slug, unit__in=request.units)
-    if request.method == 'POST':
-        accountform = AccountForm(request.POST, instance=account)
-        if accountform.is_valid():
-            accountform.save()
-            messages.success(request, 'Updated account ' + str(account.account_number))
-            return HttpResponseRedirect(reverse('ra:accounts_index'))
-    else:
-        accountform = AccountForm(instance=account)
-        accountform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-    return render(request, 'ra/edit_account.html', {'accountform': accountform, 'account': account})
-
-@requires_role("FUND")
-def remove_account(request, account_slug):
-    account = get_object_or_404(Account, slug=account_slug, unit__in=request.units)
-    account.delete()
-    messages.success(request, "Removed account %s." % str(account.account_number))
-    l = LogEntry(userid=request.user.username,
-          description="Removed account %s" % (str(account.account_number)),
-          related_object=account)
-    l.save()              
-    
-    return HttpResponseRedirect(reverse('ra:accounts_index'))
-
-#Project methods. Also straight forward.
-@requires_role("FUND")
-def new_project(request):
-    projectform = ProjectForm(request.POST or None)
-    #Again, the user should only be able to create projects for units that they belong to.
-    projectform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-    if request.method == 'POST':
-        if projectform.is_valid():
-            project = projectform.save()
-            messages.success(request, 'Created project ' + str(project.project_number))
-            return HttpResponseRedirect(reverse('ra:projects_index'))
-    return render(request, 'ra/new_project.html', {'projectform': projectform})
-
-@requires_role("FUND")
-def projects_index(request):
-    depts = Role.objects_fresh.filter(person__userid=request.user.username, role='FUND').values('unit_id')
-    projects = Project.objects.filter(unit__id__in=depts, hidden=False).order_by("project_number")
-    return render(request, 'ra/projects_index.html', {'projects': projects})
-
-@requires_role("FUND")
-def edit_project(request, project_slug):
-    project = get_object_or_404(Project, slug=project_slug, unit__in=request.units)
-    if request.method == 'POST':
-        projectform = ProjectForm(request.POST, instance=project)
-        if projectform.is_valid():
-            projectform.save()
-            messages.success(request, 'Updated project ' + str(project.project_number))
-            return HttpResponseRedirect(reverse('ra:projects_index'))
-    else:
-        projectform = ProjectForm(instance=project)
-        projectform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-    return render(request, 'ra/edit_project.html', {'projectform': projectform, 'project': project})
-
-@requires_role("FUND")
-def remove_project(request, project_slug):
-    project = get_object_or_404(Project, slug=project_slug, unit__in=request.units)
-    project.delete()
-    messages.success(request, "Removed project %s." % str(project.project_number))
-    l = LogEntry(userid=request.user.username,
-          description="Removed project %s" % (str(project.project_number)),
-          related_object=project)
-    l.save()              
-    
-    return HttpResponseRedirect(reverse('ra:projects_index'))
-
-@requires_role("FUND")
-def semester_config(request, semester_name=None):
-    if semester_name:
-        semester = get_object_or_404(Semester, name=semester_name)
-    else:
-        semester = Semester.next_starting()
-
-    unit_choices = [(u.id, u.name) for u in request.units]
-    if request.method == 'POST':
-        form = SemesterConfigForm(request.POST)
-        form.fields['unit'].choices = unit_choices
-        if form.is_valid():
-            config = SemesterConfig.get_config(units=[form.cleaned_data['unit']], semester=semester)
-            config.set_start_date(form.cleaned_data['start_date'])
-            config.set_end_date(form.cleaned_data['end_date'])
-            config.save()
-            messages.success(request, 'Updated semester configuration for %s.' % (semester.name))
-            return HttpResponseRedirect(reverse('ra:search'))
-    else:
-        config = SemesterConfig.get_config(units=request.units, semester=semester)
-        form = SemesterConfigForm(initial={'start_date': config.start_date(), 'end_date': config.end_date()})
-        form.fields['unit'].choices = unit_choices
-
-    return render(request, 'ra/semester_config.html', {'semester': semester, 'form': form})
-
-
-
-@requires_role("FUND")
-def search_scholarships_by_student(request, student_id):
-    #check permissions
-    roles = Role.all_roles(request.user.username)
-    allowed = set(['FUND'])
-    if not (roles & allowed):
-        return ForbiddenResponse(request, "Not permitted to search scholarships by student.")
-    scholarships = Scholarship.objects.filter(student__person__emplid=student_id)
-    response = HttpResponse(content_type="application/json")
-    data = [{'value': s.pk, 'display': s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"}  for s in scholarships]
-    json.dump(data, response, indent=1)
-    return response
-
 @_can_view_ras()
 def browse(request):
     if 'tabledata' in request.GET:
@@ -1539,7 +1234,7 @@ def browse(request):
 
     form = RABrowseForm()
     context = {'form': form, 'supervisor_only': not request.units}
-    return render(request, 'ra/browse.html', context)
+    return render(request, 'ra/historic/browse.html', context)
 
 
 class RADataJson(BaseDatatableView):
@@ -1612,9 +1307,11 @@ class RADataJson(BaseDatatableView):
 
         return str(getattr(ra, column))
 
-
 @_can_view_ras()
 def download_ras(request, current=True):
+    """
+    download historic RA appointments
+    """
     ras = RAAppointment.objects.filter(Q(unit__in=request.units)
                                        | Q(hiring_faculty__userid=request.user.username))\
         .select_related('person', 'hiring_faculty', 'unit', 'project', 'account').exclude(deleted=True)
@@ -1632,51 +1329,234 @@ def download_ras(request, current=True):
         writer.writerow([ra.person.sortname(), ra.person.emplid, ra.hiring_faculty.sortname(), ra.unit.label, ra.project, ra.account, ra.start_date, ra.end_date, ra.lump_sum_pay])
     return response
 
-def pay_periods(request):
-    """
-    Calculate number of pay periods between contract start and end dates.
-    i.e. number of work days in period / 10
-    
-    I swear this was easier that doing it in JS, okay?
-    """
-    day = datetime.timedelta(days=1)
-    week = datetime.timedelta(days=7)
-    if 'start' not in request.GET or 'end' not in request.GET:
-        result = ''
+#Edit RA Appointment
+@requires_role("FUND")
+def edit(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
+    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices, program_choices = \
+        _appointment_defaults(request.units, emplid=appointment.person.emplid)
+    if request.method == 'POST':
+        data = request.POST.copy()
+        if data['pay_frequency'] == 'L':
+            # force legal values into the non-submitted (and don't-care) fields for lump sum pay
+            data['biweekly_pay'] = 1
+            data['hourly_pay'] = 1
+            data['hours'] = 1
+            data['pay_periods'] = 1
+        
+        raform = RAForm(data, instance=appointment)
+        if raform.is_valid():
+            userid = raform.cleaned_data['person'].userid
+            appointment = raform.save(commit=False)
+            appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
+            appointment.save()
+            l = LogEntry(userid=request.user.username,
+                         description="Edited RA appointment %s." % appointment,
+                         related_object=appointment)
+            l.save()
+            messages.success(request, 'Updated RA Appointment for ' + appointment.person.first_name + " " + appointment.person.last_name)
+            return HttpResponseRedirect(reverse('ra:browse'))
     else:
-        st = request.GET['start']
-        en = request.GET['end']
-        try:
-            st = datetime.datetime.strptime(st, "%Y-%m-%d").date()
-            en = datetime.datetime.strptime(en, "%Y-%m-%d").date()
-        except ValueError:
-            result = ''
-        else:
-            # move start/end into Mon-Fri work week
-            if st.weekday() == 5:
-                st += 2*day
-            elif st.weekday() == 6:
-                st += day
-            if en.weekday() == 5:
-                en -= day
-            elif en.weekday() == 6:
-                en -= 2*day
+        #The initial value needs to be the person's emplid in the form. Django defaults to the pk, which is not human readable.
+        raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'use_hourly': appointment.use_hourly()})
+        #As in the new method, choices are restricted to relevant options.
+        raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
+        raform.fields['hiring_faculty'].choices = hiring_faculty_choices
+        raform.fields['scholarship'].choices = scholarship_choices
+        raform.fields['unit'].choices = unit_choices
+        raform.fields['project'].choices = project_choices
+        raform.fields['account'].choices = account_choices
+        raform.fields['program'].choices = program_choices
+    return render(request, 'ra/historic/edit.html', { 'raform': raform, 'appointment': appointment, 'person': appointment.person })
 
-            # number of full weeks (until sameday: last same weekday before end date)
-            weeks = ((en-st)/7).days
-            sameday = st + weeks*week
-            assert sameday <= en < sameday + week
-            
-            # number of days remaining
-            days = (en - sameday).days
-            if sameday.weekday() > en.weekday():
-                # don't count weekend days in between
-                days -= 2
-            
-            days += 1 # count both start and end days
-            result = "%.1f" % ((weeks*5 + days)/10.0)
+#View RA Appointment
+@_can_view_ras()
+def view(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment,
+        Q(unit__in=request.units) | Q(hiring_faculty__userid=request.user.username),
+        slug=ra_slug, deleted=False)
+    student = appointment.person
+    return render(request, 'ra/historic/view.html',
+        {'appointment': appointment, 'student': student, 'supervisor_only': not request.units})
+
+#View RA Appointment Form (PDF)
+@requires_role("FUND")
+def form(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (appointment.slug)
+    ra_form(appointment, response)
+    return response
+
+@requires_role("FUND")
+def letter(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
+    if not appointment.offer_letter_text:
+        letter_choices = RAAppointment.letter_choices(request.units)
+        if len(letter_choices) == 1:  # why make them select from one?
+            appointment.build_letter_text(letter_choices[0][0])
+        else:
+            return HttpResponseRedirect(reverse('ra:select_letter', kwargs=({'ra_slug': ra_slug, 'print_only': 'print'})))
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (appointment.slug)
+    letter = OfficialLetter(response, unit=appointment.unit)
+    contents = LetterContents(
+        to_addr_lines=[appointment.person.name(), 'c/o '+appointment.unit.name], 
+        from_name_lines=[appointment.hiring_faculty.letter_name(), appointment.unit.name],
+        closing="Yours Truly", 
+        signer=appointment.hiring_faculty,
+        cosigner_lines=['I agree to the conditions of employment', appointment.person.first_name + " " + appointment.person.last_name])
+    contents.add_paragraphs(["Dear " + appointment.person.get_title() + ' ' + appointment.person.last_name])
+    contents.add_paragraphs(appointment.letter_paragraphs())
+    letter.add_letter(contents)
+    letter.write()
+    return response
+
+@requires_role("FUND")
+def delete_ra(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
+    if request.method == 'POST':
+        appointment.deleted = True
+        appointment.save()
+        messages.success(request, "Deleted RA appointment." )
+        l = LogEntry(userid=request.user.username,
+              description="Deleted RA appointment %s." % (str(appointment),),
+              related_object=appointment)
+        l.save()              
     
-    return HttpResponse(result, content_type='text/plain;charset=utf-8')
+    return HttpResponseRedirect(reverse('ra:browse'))
+
+@requires_role("FUND")
+@transaction.atomic
+def new_attachment(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    form = RAAppointmentAttachmentForm()
+    context = {"appointment": appointment,
+               "attachment_form": form}
+
+    if request.method == "POST":
+        form = RAAppointmentAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.appointment = appointment
+            attachment.created_by = editor
+            upfile = request.FILES['contents']
+            filetype = upfile.content_type
+            if upfile.charset:
+                filetype += "; charset=" + upfile.charset
+            attachment.mediatype = filetype
+            attachment.save()
+            return HttpResponseRedirect(reverse('ra:view', kwargs={'ra_slug': appointment.slug}))
+        else:
+            context.update({"attachment_form": form})
+
+    return render(request, 'ra/historic/appointment_attachment_form.html', context)
+
+
+@requires_role("FUND")
+def view_attachment(request, ra_slug, attach_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
+    attachment = get_object_or_404(appointment.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role("FUND")
+def download_attachment(request, ra_slug, attach_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
+    attachment = get_object_or_404(appointment.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role("FUND")
+def delete_attachment(request, ra_slug, attach_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
+    attachment = get_object_or_404(appointment.attachments.all(), slug=attach_slug)
+    attachment.hide()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         'Attachment deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
+    l.save()
+    return HttpResponseRedirect(reverse('ra:view', kwargs={'ra_slug': appointment.slug}))
+
+@requires_role("FUND")
+def edit_letter(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
+
+    if request.method == 'POST':
+        form = RALetterForm(request.POST, instance=appointment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Updated RA Letter Text for ' + appointment.person.first_name + " " + appointment.person.last_name)
+            return HttpResponseRedirect(reverse('ra:browse'))
+    else:
+        if not appointment.offer_letter_text:
+            letter_choices = RAAppointment.letter_choices(request.units)
+            if len(letter_choices) == 1: # why make them select from one?
+                appointment.build_letter_text(letter_choices[0][0])
+            else:
+                return HttpResponseRedirect(reverse('ra:select_letter', kwargs=({'ra_slug': ra_slug})))
+        form = RALetterForm(instance=appointment)
+    
+    context = {'appointment': appointment, 'form': form}
+    return render(request, 'ra/historic/edit_letter.html', context)
+
+# If we don't have an appointment letter yet, pick one.
+@requires_role("FUND")
+def select_letter(request, ra_slug, print_only=None):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
+    # Forcing sorting of the letter choices so the Standard template is first.
+    letter_choices = sorted(RAAppointment.letter_choices(request.units))
+    if request.method == 'POST':
+        filled_form = LetterSelectForm(data=request.POST, choices=letter_choices)
+        if filled_form.is_valid():
+            appointment.build_letter_text(filled_form.cleaned_data['letter_choice'])
+        if print_only == 'print':
+            return HttpResponseRedirect(reverse('ra:letter', kwargs=({'ra_slug': ra_slug})))
+        else:
+            return HttpResponseRedirect(reverse('ra:edit_letter', kwargs=({'ra_slug': ra_slug})))
+
+    else:
+        new_form = LetterSelectForm(choices=letter_choices)
+        context = {'form': new_form, 'ra_slug': ra_slug, 'print_only': print_only}
+        return render(request, 'ra/historic/select_letter.html', context)
+
+@requires_role("FUND")
+def search_scholarships_by_student(request, student_id):
+    #check permissions
+    roles = Role.all_roles(request.user.username)
+    allowed = set(['FUND'])
+    if not (roles & allowed):
+        return ForbiddenResponse(request, "Not permitted to search scholarships by student.")
+    scholarships = Scholarship.objects.filter(student__person__emplid=student_id)
+    response = HttpResponse(content_type="application/json")
+    data = [{'value': s.pk, 'display': s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"}  for s in scholarships]
+    json.dump(data, response, indent=1)
+    return response
+
+def _appointment_defaults(units, emplid=None):
+    hiring_faculty_choices = possible_supervisors(units)
+    unit_choices = [(u.id, u.name) for u in units]
+    project_choices = [(p.id, str(p)) for p in Project.objects.filter(unit__in=units, hidden=False)]
+    account_choices = [(a.id, str(a)) for a in Account.objects.filter(unit__in=units, hidden=False)]
+    scholarship_choices = [("", '\u2014')]
+    if emplid:
+        for s in Scholarship.objects.filter(student__person__emplid=emplid):
+            scholarship_choices.append((s.pk, s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"))
+    program_choices = [('', "00000, None")] + [(p.id, str(p)) for p in Program.objects.visible_by_unit(units).order_by('program_number')]
+    return (scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices,
+            program_choices)
 
 @requires_role("FUND")
 def person_info(request):
@@ -1735,130 +1615,48 @@ def person_visas(request):
         result['visas'] = visas
     return HttpResponse(json.dumps(result), content_type='application/json;charset=utf-8')
 
-
-@requires_role("FUND")
-@transaction.atomic
-def new_attachment(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
-    editor = get_object_or_404(Person, userid=request.user.username)
-
-    form = RAAppointmentAttachmentForm()
-    context = {"appointment": appointment,
-               "attachment_form": form}
-
-    if request.method == "POST":
-        form = RAAppointmentAttachmentForm(request.POST, request.FILES)
-        if form.is_valid():
-            attachment = form.save(commit=False)
-            attachment.appointment = appointment
-            attachment.created_by = editor
-            upfile = request.FILES['contents']
-            filetype = upfile.content_type
-            if upfile.charset:
-                filetype += "; charset=" + upfile.charset
-            attachment.mediatype = filetype
-            attachment.save()
-            return HttpResponseRedirect(reverse('ra:view', kwargs={'ra_slug': appointment.slug}))
+def pay_periods(request):
+    """
+    Calculate number of pay periods between contract start and end dates.
+    i.e. number of work days in period / 10
+    
+    I swear this was easier that doing it in JS, okay?
+    """
+    day = datetime.timedelta(days=1)
+    week = datetime.timedelta(days=7)
+    if 'start' not in request.GET or 'end' not in request.GET:
+        result = ''
+    else:
+        st = request.GET['start']
+        en = request.GET['end']
+        try:
+            st = datetime.datetime.strptime(st, "%Y-%m-%d").date()
+            en = datetime.datetime.strptime(en, "%Y-%m-%d").date()
+        except ValueError:
+            result = ''
         else:
-            context.update({"attachment_form": form})
+            # move start/end into Mon-Fri work week
+            if st.weekday() == 5:
+                st += 2*day
+            elif st.weekday() == 6:
+                st += day
+            if en.weekday() == 5:
+                en -= day
+            elif en.weekday() == 6:
+                en -= 2*day
 
-    return render(request, 'ra/appointment_attachment_form.html', context)
-
-
-@requires_role("FUND")
-def view_attachment(request, ra_slug, attach_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
-    attachment = get_object_or_404(appointment.attachments.all(), slug=attach_slug)
-    filename = attachment.contents.name.rsplit('/')[-1]
-    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
-    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
-    resp['Content-Length'] = attachment.contents.size
-    return resp
-
-
-@requires_role("FUND")
-def download_attachment(request, ra_slug, attach_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
-    attachment = get_object_or_404(appointment.attachments.all(), slug=attach_slug)
-    filename = attachment.contents.name.rsplit('/')[-1]
-    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
-    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
-    resp['Content-Length'] = attachment.contents.size
-    return resp
-
-
-@requires_role("FUND")
-def delete_attachment(request, ra_slug, attach_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
-    attachment = get_object_or_404(appointment.attachments.all(), slug=attach_slug)
-    attachment.hide()
-    messages.add_message(request,
-                         messages.SUCCESS,
-                         'Attachment deleted.'
-                         )
-    l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
-    l.save()
-    return HttpResponseRedirect(reverse('ra:view', kwargs={'ra_slug': appointment.slug}))
-
-
-@requires_role("FUND")
-def programs_index(request):
-    unit_ids = [unit.id for unit in request.units]
-    units = Unit.objects.filter(id__in=unit_ids)
-    programs = Program.objects.visible_by_unit(units)
-    return render(request, 'ra/programs_index.html', {'programs': programs})
-
-
-@requires_role("FUND")
-def new_program(request):
-    if request.method == 'POST':
-        form = ProgramForm(request.POST)
-        if form.is_valid():
-            program = form.save()
-            messages.add_message(request,
-                                 messages.SUCCESS,
-                                 'Program was created')
-            l = LogEntry(userid=request.user.username,
-                         description="Added program %s" % program,
-                         related_object=program)
-            l.save()
-            return HttpResponseRedirect(reverse('ra:programs_index'))
-    else:
-        form = ProgramForm()
-        form.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-    return render(request, 'ra/new_program.html', {'form': form})
-
-
-@requires_role("FUND")
-def delete_program(request, program_id):
-    program = get_object_or_404(Program, pk=program_id, unit__in=request.units)
-    program.delete()
-    messages.add_message(request,
-                         messages.SUCCESS,
-                         'Program deleted.'
-                         )
-    l = LogEntry(userid=request.user.username, description="Hid program %s" % program, related_object=program)
-    l.save()
-    return HttpResponseRedirect(reverse('ra:programs_index'))
-
-
-@requires_role("FUND")
-def edit_program(request, program_slug):
-    program = get_object_or_404(Program, slug=program_slug, unit__in=request.units)
-    if request.method == 'POST':
-        form = ProgramForm(request.POST, instance=program)
-        if form.is_valid():
-            program = form.save()
-            messages.add_message(request,
-                                 messages.SUCCESS,
-                                 'Program was created')
-            l = LogEntry(userid=request.user.username,
-                         description="Added program %s" % program,
-                         related_object=program)
-            l.save()
-            return HttpResponseRedirect(reverse('ra:programs_index'))
-    else:
-        form = ProgramForm(instance=program)
-        form.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-    return render(request, 'ra/edit_program.html', {'form': form, 'program': program})
-
+            # number of full weeks (until sameday: last same weekday before end date)
+            weeks = ((en-st)/7).days
+            sameday = st + weeks*week
+            assert sameday <= en < sameday + week
+            
+            # number of days remaining
+            days = (en - sameday).days
+            if sameday.weekday() > en.weekday():
+                # don't count weekend days in between
+                days -= 2
+            
+            days += 1 # count both start and end days
+            result = "%.1f" % ((weeks*5 + days)/10.0)
+    
+    return HttpResponse(result, content_type='text/plain;charset=utf-8')

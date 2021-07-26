@@ -457,7 +457,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
                 for c in used_campuses:
                     val = request.POST.get('campus-'+c, None)
                     if val not in PREFERENCES:
-                        val = 'WIL'
+                        val = 'NONE'
                     cp = CampusPreference(app=app, campus=c, pref=val)
                     cp.save()
                 
@@ -498,7 +498,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
         for c in used_campuses:
             val = request.POST.get('campus-'+c, None)
             if val not in PREFERENCES:
-                val = 'WIL'
+                val = 'NONE'
             campus_preferences.append((c, CAMPUSES[c], val))
         skill_values = []
         for s in skills:
@@ -530,9 +530,9 @@ def _new_application(request, post_slug, manual=False, userid=None):
             try:
                 val = CampusPreference.objects.get(app=application, campus=c).pref
             except CampusPreference.DoesNotExist:
-                val = 'WIL'
+                val = 'NONE'
             if val not in PREFERENCES:
-                val = 'WIL'
+                val = 'NONE'
             campus_preferences.append((c, CAMPUSES[c], val))
         skill_values = []
         for s in skills:

@@ -198,7 +198,7 @@ DEFAULT_LETTER_NCBW_INTRO = "This is to confirm remuneration of work performed a
 DEFAULT_LETTER_RAH_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be $%(gross_hourly)s per hour plus %(vacation_pay)s percent vacation pay. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions.\n\n"""
 DEFAULT_LETTER_RABW_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. This remuneration will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s. You will be entitled to %(weeks_vacation)s weeks of paid vacation during each full calendar year of service and based on the terms of your appointment, your vacation entitlement is %(vacation_hours)s. You must submit and confirm all vacation requests.\n\n"
 DEFAULT_LETTER_GRASLS_INTRO_OUTSIDE_CAN = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be transferred to you via your student account for a total amount of $%(total_gross)s.\n\n" 
-DEFAULT_LETTER_GRASLS_INTRO_INSIDE_CAN = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you as a lump sum payment of $%(total_gross)s and will be made to you at the end of your term appointment.\n\n"
+DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you as a lump sum payment of $%(total_gross)s and will be made to you at the end of your term of appointment.\n\n"
 DEFAULT_LETTER_GRASBW_INTRO = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s.\n\n"
 
 DEFAULT_LETTER_GRAS = '\n\n'.join([
@@ -231,7 +231,7 @@ DEFAULT_LETTER_NCBW = DEFAULT_LETTER_NCBW_INTRO + DEFAULT_LETTER_NC + DEFAULT_LE
 DEFAULT_LETTER_RAH = DEFAULT_LETTER_RAH_INTRO + DEFAULT_LETTER_RA + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_RABW = DEFAULT_LETTER_RABW_INTRO + DEFAULT_LETTER_RA + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_GRASLS_OUTSIDE_CAN = DEFAULT_LETTER_GRASLS_INTRO_OUTSIDE_CAN + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
-DEFAULT_LETTER_GRASLS_INSIDE_CAN = DEFAULT_LETTER_GRASLS_INTRO_INSIDE_CAN + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
+DEFAULT_LETTER_GRASLE_INSIDE_CAN = DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_GRASBW = DEFAULT_LETTER_GRASBW_INTRO + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 
 
@@ -579,11 +579,16 @@ class RARequest(models.Model):
     science_alive = models.BooleanField(default=False)
     offer_letter_text = models.TextField(null=True, default='', help_text="Text of the offer letter to be signed by the RA and supervisor.")
     additional_supervisor = config_property('additional_supervisor', default='')
+    additional_department = config_property('additional_department', default='')
 
     # creation, deletion and status
     created_at = models.DateTimeField(auto_now_add=True)
     deleted = models.BooleanField(null=False, default=False)
     complete = models.BooleanField(null=False, default=False)
+    draft = models.BooleanField(null=False, default=False)
+
+    # email reminders
+    reminded = config_property('reminded', default=False)
     
     # last updates
     last_updated_at = models.DateTimeField(auto_now=True)
@@ -681,13 +686,20 @@ class RARequest(models.Model):
                 }
                 text = DEFAULT_LETTER_NCBW % substitutions
         elif self.hiring_category == "GRAS":
-            if self.gras_payment_method == "LS" or self.gras_payment_method == "LE":
+            if self.gras_payment_method == "LS":
                 substitutions = {
                     'start_date': self.start_date.strftime("%B %d, %Y"),
                     'end_date': self.end_date.strftime("%B %d, %Y"),
                     'total_gross': self.total_gross
                 }
-                text = DEFAULT_LETTER_GRASLS_INSIDE_CAN % substitutions
+                text = DEFAULT_LETTER_GRASLS_OUTSIDE_CAN % substitutions
+            elif self.gras_payment_method == "LE":
+                substitutions = {
+                    'start_date': self.start_date.strftime("%B %d, %Y"),
+                    'end_date': self.end_date.strftime("%B %d, %Y"),
+                    'total_gross': self.total_gross
+                }
+                text = DEFAULT_LETTER_GRASLE_INSIDE_CAN % substitutions
             elif self.gras_payment_method == "BW":
                 substitutions = {
                     'start_date': self.start_date.strftime("%B %d, %Y"),
@@ -712,7 +724,8 @@ class RARequest(models.Model):
     # get projects in a comma-separated list
     def get_projects(self):
         projects = []
-        projects.append(self.fs1_project)
+        if self.fs1_project:
+            projects.append(self.fs1_project)
         if self.fs2_option and self.fs2_project:
             projects.append(self.fs2_project)
         if self.fs3_option and self.fs3_project:
@@ -833,10 +846,18 @@ class RARequest(models.Model):
     def has_attachments(self):
         return self.attachments.visible().count() > 0
 
+    def status(self):
+        if self.complete:
+            status = "Appointment"
+        else:
+            status = "Request"
+        return status
+
     @classmethod
     def semester_guess(cls, date):
         """
         Guess the semester for a date, in the way that financial people do (without regard to class start/end dates)
+        Same method as in RAAppointment
         """
         mo = date.month
         if mo <= 4:
@@ -888,6 +909,54 @@ class RARequest(models.Model):
         Same method as in RAAppointment
         """
         return self.end_semester() - self.start_semester() + 1
+
+    @classmethod
+    def expiring_appointments(cls):
+        """
+        Get the list of RA Appointments that will expire in the next few weeks so we can send a reminder email
+        """
+        today = datetime.datetime.now()
+        min_age = datetime.datetime.now() + datetime.timedelta(days=28)
+        expiring_ras = RARequest.objects.filter(end_date__gt=today, end_date__lte=min_age, deleted=False, draft=False, complete=True)
+        ras = [ra for ra in expiring_ras if 'reminded' not in ra.config or not ra.config['reminded']]
+        return ras
+
+    def mark_reminded(self):
+        self.config['reminded'] = True
+        self.save()
+
+    @classmethod
+    def email_expiring_ras(cls):
+        """
+        Emails the supervisors of the RAs who have appointments that are about to expire.
+        Same method as in RAAppointment
+        """
+        subject = 'RA Appointment Expiry Reminder'
+        from_email = settings.DEFAULT_FROM_EMAIL
+
+        expiring_ras = cls.expiring_appointments()
+        template = get_template('ra/emails/new_reminder.txt')
+
+        for raappt in expiring_ras:
+            supervisor = raappt.supervisor
+            context = {'supervisor': supervisor, 'raappt': raappt}
+            # Let's see if we have any Funding CC supervisors that should also get the reminder.
+            cc = None
+            fund_cc_roles = Role.objects_fresh.filter(unit=raappt.unit, role='FDCC')
+            # If we do, let's add them to the CC list, but let's also make sure to use their role account email for
+            # the given role type if it exists.
+            if fund_cc_roles:
+                people = []
+                for role in fund_cc_roles:
+                    people.append(role.person)
+                people = list(set(people))
+                cc = []
+                for person in people:
+                    cc.append(person.role_account_email('FDCC'))
+            msg = EmailMultiAlternatives(subject, template.render(context), from_email, [supervisor.email()],
+                                         headers={'X-coursys-topic': 'ra'}, cc=cc)
+            msg.send()
+            raappt.mark_reminded()
 
 def ra_request_admin_attachment_upload_to(instance, filename):
     return upload_path('rarequestadminattachments', filename)

@@ -15,17 +15,12 @@ class RATest(TestCase):
         c = Client()
         c.login_user('dzhao')
 
-        test_views(self, c, 'ra:', ['search', 'new', 'accounts_index', 'new_account', 'projects_index',
-                                          'new_project', 'semester_config', 'browse'], {})
-        test_views(self, c, 'ra:', ['found'], {}, qs='search=grad')
-
-        test_views(self, c, 'ra:', ['dashboard', 'new_request'], {})
+        test_views(self, c, 'ra:', ['dashboard', 'new_request', 'browse'], {})
 
         ra = RAAppointment.objects.filter(unit__label='CMPT')[0]
 
         p = ra.person
-        test_views(self, c, 'ra:', ['student_appointments', 'new_student'], {'userid': p.userid})
-        test_views(self, c, 'ra:', ['edit', 'reappoint', 'view',], {'ra_slug': ra.slug})
+        test_views(self, c, 'ra:', ['edit', 'view'], {'ra_slug': ra.slug})
 
         # No offer text yet, we should get a redirect when trying to edit the letter text:
         url = reverse('ra:edit_letter', kwargs={'ra_slug': ra.slug})
@@ -39,12 +34,6 @@ class RATest(TestCase):
 
         # Make sure we can add attachments
         test_views(self, c, 'ra:', ['new_attachment'], {'ra_slug': ra.slug})
-
-        acct = Account.objects.filter(unit__label='CMPT')[0]
-        test_views(self, c, 'ra:', ['edit_account'], {'account_slug': acct.slug})
-
-        proj = Project.objects.filter(unit__label='CMPT')[0]
-        test_views(self, c, 'ra:', ['edit_project'], {'project_slug': proj.slug})
 
         # NEW RA
 

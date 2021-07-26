@@ -3,19 +3,18 @@
 {% load static %}
 
 {% block headextra %}
-<script type="text/javascript" src="{% static 'js/ra_application.js' %}"></script>
 <link rel="stylesheet" href="{% static 'style/ra.css' %}" />
 {% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "ra:dashboard" %}">Dashboard</a></li>
-<li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View RA Request for {{ req.get_name }}</a></li>
+<li><a href="{% url "ra:view_request" ra_slug=req.slug %}">View RA {{ status }} for {{ req.get_name }}</a></li>
 <li>Update Admin Notes</li>
 {% endblock %}
 
-{% block title %}Update Admin Notes for {{ req.get_name }}'s RA Request{% endblock %}
+{% block title %}Update Admin Notes for {{ req.get_name }}{% endblock %}
 {% block h1 %}
-Update Admin Notes for {{ req.get_name }}'s RA Request
+Update Admin Notes for {{ req.get_name }}
 {% endblock %}
 
 {% block content %}
