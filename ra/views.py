@@ -35,6 +35,7 @@ from formtools.wizard.views import SessionWizardView
 from django.conf import settings
 from courselib.storage import UploadedFileStorage, TemporaryFileStorage
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.core.mail.message import EmailMultiAlternatives
 import os
 
@@ -158,7 +159,7 @@ def _email_request_notification(req, url):
         mail = EmailMultiAlternatives(subject=subject, body=content_text, from_email=from_email, to=[email])
         mail.send()
 
-@method_decorator(requires_role(["FUND", "FAC"]), name='dispatch')
+@method_decorator([requires_role(["FUND", "FAC"]), never_cache], name='dispatch')
 class RANewRequestWizard(SessionWizardView):
 
     file_storage = TemporaryFileStorage
@@ -368,7 +369,7 @@ class RANewRequestWizard(SessionWizardView):
         else:
             return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
-@method_decorator(requires_role(["FUND", "FAC"]), name='dispatch')
+@method_decorator([requires_role(["FUND", "FAC"]), never_cache], name='dispatch')
 class RAEditRequestWizard(SessionWizardView):
     file_storage = TemporaryFileStorage
 

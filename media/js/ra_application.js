@@ -514,6 +514,11 @@ $(document).ready(function() {
         }
       });
 
+    // prevent resubmission if user clicks back into the form, will just direct to first page
+    if ( window.history.replaceState ) {
+    window.history.replaceState( null, null, window.location.href );
+    }
+    
     $('#id_intro-person').each(function() {
       $(this).autocomplete({
         source: '/data/students',
