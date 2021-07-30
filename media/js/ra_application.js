@@ -515,6 +515,7 @@ $(document).ready(function() {
       });
 
     // prevent resubmission if user clicks back into the form, will just direct to first page
+    // https://stackoverflow.com/questions/6833914/how-to-prevent-the-confirm-form-resubmission-dialog
     if ( window.history.replaceState ) {
     window.history.replaceState( null, null, window.location.href );
     }
