@@ -697,14 +697,17 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     ra_bw = (research_assistant and req.ra_payment_method=="BW")
     nc_hourly = (non_cont and req.nc_payment_method=="H")
     nc_bw = (non_cont and req.nc_payment_method=="BW")
+    nonstudent = req.student=="N"
+    show_research = nonstudent or not req.mitacs
+    show_thesis = not nonstudent and req.research
 
     adminform = RARequestAdminForm(instance=req)
 
     return render(request, 'ra/view_request.html',
-        {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': req.student=="N", 
+        {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 
          'author': author, 'research_assistant': research_assistant, 'non_cont': non_cont, 'no_id': req.nonstudent,
          'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw,
-         'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 'thesis': req.mitacs=="N", 'adminform': adminform, 'admin': admin, 
+         'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 'show_thesis': show_thesis, 'show_research': show_research, 'adminform': adminform, 'admin': admin, 
          'permissions': request.units, 'status': req.status()})
 
 # Update admin checklist
