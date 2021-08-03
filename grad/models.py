@@ -1146,9 +1146,9 @@ class Supervisor(models.Model, ConditionalSaveMixin):
     
     def can_view_details(self):
         """
-        Can this supervisor see the details of the student (funding, etc)? Yes for senior; yes for potential if no senior; no otherwise.
+        Can this supervisor see the details of the student (funding, etc)? Yes for senior/supervisor/co-supervisor; yes for potential if no senior; no otherwise.
         """
-        if self.supervisor_type == 'SEN':
+        if self.supervisor_type == 'SEN' or self.supervisor_type == 'COS' or self.supervisor_type == 'COM':
             return True
         elif self.supervisor_type == 'POT':
             return not self.student.has_committee()
