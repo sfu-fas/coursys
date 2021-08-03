@@ -45,7 +45,7 @@ def index(request):
     news_list = _get_news_list(userid, 5)
     roles = Role.all_roles(userid)
     is_grad = GradStudent.objects.filter(person__userid=userid, current_status__in=STATUS_ACTIVE).exists()
-    has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).exists()
+    has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type__in=['SEN','COM','COS'], removed=False).exists()
     form_groups = FormGroup.objects.filter(members__userid=request.user.username).exists()
     has_ras = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username, deleted=False).exists()
     has_ra_requests = RARequest.objects.filter(Q(supervisor__userid=request.user.username) | Q(author__userid=request.user.username), deleted=False, draft=False).exists()
