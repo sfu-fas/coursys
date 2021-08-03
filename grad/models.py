@@ -1119,6 +1119,12 @@ class Supervisor(models.Model, ConditionalSaveMixin):
         else:
             return self.external
 
+    def sfuemail(self):
+        if self.supervisor:
+            return "%s" % self.supervisor.email()
+        else:
+            return self.external
+        
     def save(self, *args, **kwargs):
         # make sure the data is coherent: should also be in form validation for nice UI
         is_person = bool(self.supervisor)
