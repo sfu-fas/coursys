@@ -1417,6 +1417,7 @@ class Scholarship(models.Model):
     end_semester = models.ForeignKey(Semester, related_name="scholarship_end", on_delete=models.PROTECT)
     comments = models.TextField(blank=True, null=True)
     removed = models.BooleanField(default=False)
+    entrydate = models.DateField(blank=True, null=True)
     def __str__(self):
         return "%s (%s)" % (self.scholarship_type, self.amount)
     
