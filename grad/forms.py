@@ -494,9 +494,20 @@ def getattribute(value, arg, html=True):
             pot_sups = value.supervisor_set.filter(supervisor_type='POT', removed=False)
             names = [s.sortname()+"*" for s in pot_sups]
         return '; '.join(names)
+    elif arg == 'senior_supervisors_email':
+        sups = value.supervisor_set.filter(supervisor_type='SEN', removed=False)
+        names = [s.sfuemail() for s in sups]
+        if not sups:
+            pot_sups = value.supervisor_set.filter(supervisor_type='POT', removed=False)
+            names = [s.sfuemail() for s in pot_sups]
+        return '; '.join(names)
     elif arg == 'supervisors':
-        sups = value.supervisor_set.filter(supervisor_type__in=['SEN','COM'], removed=False)
+        sups = value.supervisor_set.filter(supervisor_type__in=['SEN','COM','COS'], removed=False)
         names = [s.sortname() for s in sups]
+        return '; '.join(names)
+    elif arg == 'supervisors_email':
+        sups = value.supervisor_set.filter(supervisor_type__in=['SEN','COM','COS'], removed=False)
+        names = [s.sfuemail() for s in sups]
         return '; '.join(names)
     elif arg == 'completed_req':
         reqs = value.completedrequirement_set.all().select_related('requirement')
@@ -583,7 +594,9 @@ COLUMN_CHOICES = (
         ('current_status',          'Current Status'),
         ('active_semesters',        'Active Semesters'),
         ('senior_supervisors',      'Supervisor(s)'),
+        ('senior_supervisors_email', 'Supervisor Email(s)'),
         ('supervisors',             'Committee Members'),
+        ('supervisors_email',       'Committee Member Email(s)'),
         ('completed_req',           'Completed Req'),
         ('gpa',                     'CGPA'),
         ('visa',                    'Visa'),
@@ -612,7 +625,9 @@ COLUMN_WIDTHS_DATA = (
         ('current_status',          3000),
         ('active_semesters',        2000),
         ('senior_supervisors',      6000),
+        ('senior_supervisors_email',10000),
         ('supervisors',             9000),
+        ('supervisors_email',       10000),
         ('completed_req',           10000),
         ('gpa',                     2000),
         ('visa',                    3000),
