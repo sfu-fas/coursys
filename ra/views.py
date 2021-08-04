@@ -35,6 +35,7 @@ from formtools.wizard.views import SessionWizardView
 from django.conf import settings
 from courselib.storage import UploadedFileStorage, TemporaryFileStorage
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.core.mail.message import EmailMultiAlternatives
 import os
 
@@ -158,7 +159,7 @@ def _email_request_notification(req, url):
         mail = EmailMultiAlternatives(subject=subject, body=content_text, from_email=from_email, to=[email])
         mail.send()
 
-@method_decorator(requires_role(["FUND", "FAC"]), name='dispatch')
+@method_decorator([requires_role(["FUND", "FAC"]), never_cache], name='dispatch')
 class RANewRequestWizard(SessionWizardView):
 
     file_storage = TemporaryFileStorage
@@ -368,7 +369,7 @@ class RANewRequestWizard(SessionWizardView):
         else:
             return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
-@method_decorator(requires_role(["FUND", "FAC"]), name='dispatch')
+@method_decorator([requires_role(["FUND", "FAC"]), never_cache], name='dispatch')
 class RAEditRequestWizard(SessionWizardView):
     file_storage = TemporaryFileStorage
 
@@ -696,14 +697,17 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     ra_bw = (research_assistant and req.ra_payment_method=="BW")
     nc_hourly = (non_cont and req.nc_payment_method=="H")
     nc_bw = (non_cont and req.nc_payment_method=="BW")
+    nonstudent = req.student=="N"
+    show_research = nonstudent or not req.mitacs
+    show_thesis = not nonstudent and req.research
 
     adminform = RARequestAdminForm(instance=req)
 
     return render(request, 'ra/view_request.html',
-        {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': req.student=="N", 
+        {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 
          'author': author, 'research_assistant': research_assistant, 'non_cont': non_cont, 'no_id': req.nonstudent,
          'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw,
-         'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 'thesis': req.mitacs=="N", 'adminform': adminform, 'admin': admin, 
+         'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 'show_thesis': show_thesis, 'show_research': show_research, 'adminform': adminform, 'admin': admin, 
          'permissions': request.units, 'status': req.status()})
 
 # Update admin checklist

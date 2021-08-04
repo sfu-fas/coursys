@@ -88,8 +88,10 @@
     <tr><th>Is Co-Op:</th><td>{{ req.coop|yesno|capfirst }}</td></tr>
     <tr><th>Funded by Mitacs:</th><td>{{ req.mitacs|yesno|capfirst }}</td></tr>
     {% endif %}
+    {% if show_research %}
     <tr><th>Involves Research:</th><td>{{ req.research|yesno|capfirst }}</td></tr>
-    {% if thesis %}
+    {% endif %}
+    {% if show_thesis %}
       <tr><th>For Thesis:</th><td>{{ req.thesis|yesno|capfirst }}</td></tr>
     {% endif %}
     <tr><th>Department:</th><td>{{ req.unit }}</td></tr>
