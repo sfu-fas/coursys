@@ -34,6 +34,16 @@ section.post {
     margin: 0.5em 0;
     padding: 0.25em;
 }
+section.post.author-inst span.author::after {
+    font-style: normal;
+    font-weight: bold;
+    content: ' [instructor]';
+}
+section.post.author-ta span.author::after {
+  font-style: normal;
+  font-weight: bold;
+  content: ' [TA]';
+}
 
 .wikicontents {
 }
