@@ -55,6 +55,12 @@ ra_patterns = [ # prefix /ra/
     url(r'^' + RA_SLUG + '/admin_attach/' + ATTACH_SLUG + '/view', ra_views.view_admin_attachment, name='view_admin_attachment'),
     url(r'^' + RA_SLUG + '/admin_attach/' + ATTACH_SLUG + '/download$', ra_views.download_admin_attachment, name='download_admin_attachment'),
     
+    # for tacontracts
+    url(r'^accounts/new$', ra_views.new_account, name='new_account'),
+    url(r'^accounts/$', ra_views.accounts_index, name='accounts_index'),
+    url(r'^accounts/' + ACCOUNT_SLUG + '/delete$', ra_views.remove_account, name='remove_account'),
+    url(r'^accounts/' + ACCOUNT_SLUG + '/edit$', ra_views.edit_account, name='edit_account'),
+
     # keeping these active, for now
     url(r'^browse', ra_views.browse, name='browse'),
     url(r'^download_historic', ra_views.download_ras, kwargs={'current': False}, name='download_historic'),

@@ -1,17 +1,16 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Edit Account{% endblock %}
-{% block h1 %}Edit Account{% endblock %}
+{% block title %}New Account{% endblock %}
+{% block h1 %}New Account{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "ra:search" %}">RAs</a></li>
 <li><a href="{% url "ra:accounts_index" %}">Accounts</a></li>
-<li>Edit {{ account.account_number}} - {{ account.title }}</li>{% endblock %}
+<li>New</li>{% endblock %}
 
 {% block content %}
   <div class="form_container">
-    <form action="{% url "ra:edit_account" account_slug=account.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "ra:new_account" %}" method="post">{% csrf_token %}
       <fieldset>
         {{ accountform|as_dl }}
         <p><input type="submit" value="Submit" class="submit" /></p>
