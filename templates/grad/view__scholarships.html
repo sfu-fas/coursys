@@ -7,6 +7,7 @@
 				<th>Amount</th>
 				<th>Start Semester</th>
 				<th>End Semester</th>
+				<th>Entry Date</th>
 				{% if can_edit %}
                     <th>Actions</th>
                 {% endif %}
@@ -36,7 +37,12 @@
                         {{ s.end_semester.name }} ({{ s.end_semester }}) 
                     {% if s.removed %}</del>{% endif %}
                 </td>
-				{% if can_edit %}
+		<td> 
+                    {% if s.removed %}<del>{% endif %}
+                        {{ s.entrydate }}  
+                    {% if s.removed %}</del>{% endif %}
+                </td>
+		{% if can_edit %}
                 <td class='miniaction'>
                     {% if not s.removed %}
                         <form action="{% url "grad:remove_scholarship" grad_slug=grad.slug s_id=s.id %}" method="post">
