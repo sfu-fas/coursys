@@ -15,6 +15,7 @@ from coredata import panel
 from advisornotes.models import NonStudent
 from onlineforms.models import FormGroup, FormGroupMember
 from log.models import LogEntry
+from coredata.models import LONG_LIVED_ROLES
 from django.urls import reverse
 from django.contrib import messages
 from cache_utils.decorators import cached
@@ -53,6 +54,15 @@ def role_list(request):
 
     return render(request, 'coredata/roles.html', {'roles': roles})
 
+
+@requires_global_role("SYSA")
+def expired_role_list(request):
+    """
+    Display long-lived roles that have accidentally expired
+    """
+    roles = Role.objects.filter(role__in=LONG_LIVED_ROLES, expiry__lt=datetime.date.today()).select_related('person', 'unit')
+
+    return render(request, 'coredata/expired_roles.html', {'roles': roles})
 
 @requires_global_role("SYSA")
 def new_role(request, role=None):
