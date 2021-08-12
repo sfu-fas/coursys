@@ -622,6 +622,9 @@ class RARequest(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
+    def __str__(self):
+        return self.get_name() + " (" + self.slug + ")"
+
     def duties_list(self):
         duties = []
         duties += [duty for val, duty in DUTIES_CHOICES_EX if val in [int(i) for i in self.ra_duties_ex]]
@@ -981,7 +984,7 @@ class RARequestAttachment(models.Model):
     objects = RARequestAttachmentQueryset.as_manager()
 
     def __str__(self):
-        return self.contents.name
+        return self.contents.name + " titled " + self.title + ", for " + str(self.req)
 
     class Meta:
         ordering = ("created_at",)

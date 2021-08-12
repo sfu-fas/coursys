@@ -1075,6 +1075,7 @@ def new_admin_attachment(request, ra_slug):
             attachment.save()
             messages.add_message(request, messages.SUCCESS, 'Admin attachment added.')
             l = LogEntry(userid=request.user.username, description="Added admin attachment %s" % attachment, related_object=attachment)
+            l.save()
             return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
         else:
             context.update({"attachment_form": form})
