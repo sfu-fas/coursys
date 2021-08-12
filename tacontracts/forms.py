@@ -18,6 +18,8 @@ class GuessPayperiodsWidget(forms.TextInput):
 
 
 class HiringSemesterForm(forms.ModelForm):
+    comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':625}))
+
     def __init__(self, request, *args, **kwargs):
         super(HiringSemesterForm, self).__init__(*args, **kwargs)
         
@@ -29,6 +31,12 @@ class HiringSemesterForm(forms.ModelForm):
         units = Unit.objects.filter(id__in=unit_ids)
         self.fields['unit'].queryset = units
         self.fields['unit'].empty_label = None
+
+        self.initial['comments'] = getattr(self.instance, 'comments')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        setattr(self.instance, 'comments', cleaned_data['comments'])
 
     class Meta:
         model = HiringSemester

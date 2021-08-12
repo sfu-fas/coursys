@@ -381,7 +381,8 @@ def new_contract(request, unit_slug, semester):
             'appointment_end':hiring_semester.appointment_end,
             'pay_start':hiring_semester.pay_start,
             'pay_end':hiring_semester.pay_end,
-            'payperiods':hiring_semester.payperiods
+            'payperiods':hiring_semester.payperiods,
+            'comments':hiring_semester.comments
         })
     return render(request, 'tacontracts/new_contract.html', {
                   'unit_slug':unit_slug,
