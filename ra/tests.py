@@ -48,6 +48,11 @@ class RATest(TestCase):
         req = RARequest(person=p, unit=u, author=s, supervisor=s, config={}, hiring_category='RA', start_date=date(2021, 6, 1), end_date=date(2021, 9, 1), total_pay=1000)
         req.save()
 
+        # test accounts
+        test_views(self, c, 'ra:', ['new_account', 'accounts_index'], {})
+        acct = Account.objects.filter(unit__label='CMPT')[0]
+        test_views(self, c, 'ra:', ['edit_account'], {'account_slug': acct.slug})
+
         # test pages associated with an rarequest
         test_views(self, c, 'ra:', ['view_request', 'edit_request', 'reappoint_request', 'edit_request_notes',
                                     'request_paf', 'request_offer_letter_update', 'new_admin_attachment'], {'ra_slug': req.slug})

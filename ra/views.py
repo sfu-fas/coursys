@@ -35,6 +35,7 @@ from formtools.wizard.views import SessionWizardView
 from django.conf import settings
 from courselib.storage import UploadedFileStorage, TemporaryFileStorage
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.core.mail.message import EmailMultiAlternatives
 import os
 
@@ -158,7 +159,7 @@ def _email_request_notification(req, url):
         mail = EmailMultiAlternatives(subject=subject, body=content_text, from_email=from_email, to=[email])
         mail.send()
 
-@method_decorator(requires_role(["FUND", "FAC"]), name='dispatch')
+@method_decorator([requires_role(["FUND", "FAC"]), never_cache], name='dispatch')
 class RANewRequestWizard(SessionWizardView):
 
     file_storage = TemporaryFileStorage
@@ -368,7 +369,7 @@ class RANewRequestWizard(SessionWizardView):
         else:
             return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
-@method_decorator(requires_role(["FUND", "FAC"]), name='dispatch')
+@method_decorator([requires_role(["FUND", "FAC"]), never_cache], name='dispatch')
 class RAEditRequestWizard(SessionWizardView):
     file_storage = TemporaryFileStorage
 
@@ -696,14 +697,17 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     ra_bw = (research_assistant and req.ra_payment_method=="BW")
     nc_hourly = (non_cont and req.nc_payment_method=="H")
     nc_bw = (non_cont and req.nc_payment_method=="BW")
+    nonstudent = req.student=="N"
+    show_research = nonstudent or not req.mitacs
+    show_thesis = not nonstudent and req.research
 
     adminform = RARequestAdminForm(instance=req)
 
     return render(request, 'ra/view_request.html',
-        {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': req.student=="N", 
+        {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 
          'author': author, 'research_assistant': research_assistant, 'non_cont': non_cont, 'no_id': req.nonstudent,
          'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw,
-         'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 'thesis': req.mitacs=="N", 'adminform': adminform, 'admin': admin, 
+         'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 'show_thesis': show_thesis, 'show_research': show_research, 'adminform': adminform, 'admin': admin, 
          'permissions': request.units, 'status': req.status()})
 
 # Update admin checklist
@@ -1660,3 +1664,53 @@ def pay_periods(request):
             result = "%.1f" % ((weeks*5 + days)/10.0)
     
     return HttpResponse(result, content_type='text/plain;charset=utf-8')
+
+@requires_role(["FUND", "TAAD", "GRAD"])
+def new_account(request):
+    accountform = AccountForm(request.POST or None)
+    #This restricts a user to only creating account for a unit to which they belong.
+    accountform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
+    if request.method == 'POST':
+        if accountform.is_valid():
+            account = accountform.save()
+            messages.success(request, 'Created account ' + str(account.account_number))
+            l = LogEntry(userid=request.user.username,
+            description="Created account %s" % (str(account.account_number)),
+            related_object=account)
+            l.save()    
+            return HttpResponseRedirect(reverse('ra:accounts_index'))
+    return render(request, 'ra/new_account.html', {'accountform': accountform})
+
+@requires_role("FUND")
+def edit_account(request, account_slug):
+    account = get_object_or_404(Account, slug=account_slug, unit__in=request.units)
+    if request.method == 'POST':
+        accountform = AccountForm(request.POST, instance=account)
+        if accountform.is_valid():
+            accountform.save()
+            messages.success(request, 'Updated account ' + str(account.account_number))
+            l = LogEntry(userid=request.user.username,
+            description="Updated account %s" % (str(account.account_number)),
+            related_object=account)
+            l.save()
+            return HttpResponseRedirect(reverse('ra:accounts_index'))
+    else:
+        accountform = AccountForm(instance=account)
+        accountform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
+    return render(request, 'ra/edit_account.html', {'accountform': accountform, 'account': account})
+
+@requires_role("FUND")
+def remove_account(request, account_slug):
+    account = get_object_or_404(Account, slug=account_slug, unit__in=request.units)
+    account.delete()
+    messages.success(request, "Removed account %s." % str(account.account_number))
+    l = LogEntry(userid=request.user.username,
+          description="Removed account %s" % (str(account.account_number)),
+          related_object=account)
+    l.save()              
+    return HttpResponseRedirect(reverse('ra:accounts_index'))
+
+@requires_role("FUND")
+def accounts_index(request):
+    accounts = Account.objects.filter(unit__in=request.units, hidden=False).order_by("account_number")
+    return render(request, 'ra/accounts_index.html', {'accounts': accounts})

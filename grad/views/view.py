@@ -36,7 +36,7 @@ def _can_view_student(request, grad_slug, funding=False):
         return grad, 'graddir', request.units
 
     # senior supervisors can see their students
-    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type__in=['SEN','POT'], removed=False).select_related('student')
+    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type__in=['SEN','POT','COS','COM'], removed=False).select_related('student')
     supervisors = [sup for sup in supervisors if sup.can_view_details()]
     if request.method=='GET' and supervisors:
         grad = supervisors[0].student

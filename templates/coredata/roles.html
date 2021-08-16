@@ -25,7 +25,8 @@ function confirmDelete(url) {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url "sysadmin:new_role" %}">Add new role</a></li>
+    <li><a href="{% url "sysadmin:new_role" %}">Add New Role</a></li>
+    <li><a href="{% url "sysadmin:expired_role_list" %}">Manage Expired Roles</a></li>
     </ul>
 </div>
 {% endblock %}

@@ -1119,6 +1119,12 @@ class Supervisor(models.Model, ConditionalSaveMixin):
         else:
             return self.external
 
+    def sfuemail(self):
+        if self.supervisor:
+            return "%s" % self.supervisor.email()
+        else:
+            return self.external
+        
     def save(self, *args, **kwargs):
         # make sure the data is coherent: should also be in form validation for nice UI
         is_person = bool(self.supervisor)
@@ -1140,9 +1146,9 @@ class Supervisor(models.Model, ConditionalSaveMixin):
     
     def can_view_details(self):
         """
-        Can this supervisor see the details of the student (funding, etc)? Yes for senior; yes for potential if no senior; no otherwise.
+        Can this supervisor see the details of the student (funding, etc)? Yes for senior/supervisor/co-supervisor; yes for potential if no senior; no otherwise.
         """
-        if self.supervisor_type == 'SEN':
+        if self.supervisor_type == 'SEN' or self.supervisor_type == 'COS' or self.supervisor_type == 'COM':
             return True
         elif self.supervisor_type == 'POT':
             return not self.student.has_committee()
@@ -1411,6 +1417,7 @@ class Scholarship(models.Model):
     end_semester = models.ForeignKey(Semester, related_name="scholarship_end", on_delete=models.PROTECT)
     comments = models.TextField(blank=True, null=True)
     removed = models.BooleanField(default=False)
+    entrydate = models.DateField(blank=True, null=True)
     def __str__(self):
         return "%s (%s)" % (self.scholarship_type, self.amount)
     

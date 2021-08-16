@@ -7,6 +7,7 @@ from grad.forms import ScholarshipForm
 from django.urls import reverse
 from coredata.models import Semester
 from log.models import LogEntry
+import datetime
 
 get_semester = Semester.get_semester
 
@@ -32,7 +33,7 @@ def manage_scholarships(request, grad_slug):
             
             return HttpResponseRedirect(reverse('grad:manage_scholarships', kwargs={'grad_slug':grad.slug}))
     else:
-        form = ScholarshipForm(initial={'student':grad, 'start_semester':get_semester(), 'end_semester':get_semester(), 'amount':'0.00'})
+        form = ScholarshipForm(initial={'student':grad, 'start_semester':get_semester(), 'end_semester':get_semester(), 'amount':'0.00', 'entrydate': datetime.datetime.now})
         form.fields['scholarship_type'].choices = scholarship_type_choices
         
 

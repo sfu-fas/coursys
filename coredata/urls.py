@@ -44,6 +44,7 @@ sysadmin_patterns = [ # prefix /sysadmin/
     url(r'^$', coredata_views.sysadmin, name='sysadmin'),
     url(r'^log/$', log_views.index, name='index'),
     url(r'^roles/$', coredata_views.role_list, name='role_list'),
+    url(r'^roles/expired$', coredata_views.expired_role_list, name='expired_role_list'),
     url(r'^roles/(?P<role_id>\d+)/delete$', coredata_views.delete_role, name='delete_role'),
     url(r'^roles/(?P<role_id>\d+)/renew', coredata_views.renew_role, name='renew_role'),
     url(r'^roles/new$', coredata_views.new_role, name='new_role'),
