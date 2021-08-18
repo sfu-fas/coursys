@@ -38,8 +38,3 @@ class DisciplineTest(TestCase):
         case.save()
         test_views(self, c, 'offering:discipline:', ['view_letter'],
                    {'course_slug': offering.slug, 'case_slug': case.slug})
-
-
-
-
-
