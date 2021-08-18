@@ -4,6 +4,9 @@ This is used as an HTML email body: everything that happens here must work in em
 http://en.wikipedia.org/wiki/HTML_e-mail
 {% endcomment %}
 
+{% if from_central %}
+<p style="font-style:italic; color: black; padding: 0; margin: 0.5em 0;">[This is an amendment to the original incident report. Note the “Student Services Note” below.]</p>
+{% endif %}
 <h1 style="font-size: 125%; color: black; padding: 0; margin: 0.5em 0;">{{case.typelabel|capfirst}} Academic Incident Report</h1>
 <table style="width: 100%; border-collapse: collapse;">
 <tr>
@@ -59,7 +62,13 @@ http://en.wikipedia.org/wiki/HTML_e-mail
   </dd>
 <dt style="font-weight: bold">Case referred to Chair/Director?</dt>
   <dd><p>{{case.get_refer_display}}</p></dd>
+
+{% if case.central_note %}
+<dt style="font-weight: bold">Student Services Note [{{ case.central_note_date }}]</dt>
+  <dd>{{case|format_field:'central_note'}}</dd>
+{% endif %}
 </dl>
+
 <p>This incident report will be retained in the student's file and, in the event of further reports of academic dishonesty, this report may be used when determining penalty.</p>
 <p>Information about the disciplinary appeal process can be found at <a href="http://www.sfu.ca/students/appeals.html">http://www.sfu.ca/students/appeals.html</a>.</p>
 <p style="font-size: 75%">The information on this form is collected under the authority of the University Act (RSBC 1996, C.468, s.27[4a]), and is needed to record this incident.

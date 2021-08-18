@@ -336,6 +336,16 @@ STEP_FORM = { # map of field -> form for editing it (all ModelForm for Disciplin
         }
 
 
+class CaseCentralNoteForm(forms.ModelForm):
+    send = forms.BooleanField(label='Send email', required=False,
+                              help_text='Should the updated letter be sent to the student and instructor?')
+    class Meta:
+        model = DisciplineCaseBase
+        fields = ("central_note",)
+        widgets = {
+            'central_note': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'5'}),
+        }
+
 
 
 class NewAttachFileForm(forms.ModelForm):
@@ -356,6 +366,7 @@ class NewAttachFileForm(forms.ModelForm):
         widgets = {
             'case': forms.HiddenInput(),
         }
+
 
 class EditAttachFileForm(forms.ModelForm):
     def clean_case(self):
