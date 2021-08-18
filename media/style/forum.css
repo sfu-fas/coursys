@@ -1,6 +1,6 @@
 #forum {
     display: grid;
-    grid-template-columns: 15em 1fr;
+    grid-template-columns: min(max(15em, 25%), 25em) 1fr;
 }
 #thread-list {
     grid-column: 1;
@@ -32,7 +32,10 @@ p.sorting button.sort-button.active {
 section.post {
     border: thin solid #ddd;
     margin: 0.5em 0;
-    padding: 0.25em;
+    padding: 0;
+}
+section.post > * {
+    padding: 0.25rem;
 }
 section.post.author-inst span.author::after {
     font-style: normal;
@@ -50,6 +53,7 @@ section.post.author-ta span.author::after {
 .post-header, .post-footer {
     margin: 0;
     padding: 0;
+    background-color: #e7e7e7;
 }
 .post-footer {
     border-top: thin solid #ddd;
@@ -82,8 +86,11 @@ span.reaction {
     padding: 0.1em 0.25em;
     border: 1px solid #ddd;
     border-collapse: collapse;
-    font-size: 90%;
     line-height: 125%;
+}
+.thread-list > li > span.author {
+    font-size: 90%;
+    line-height: 1.2em;
 }
 .thread-list > li.unread .title {
     font-weight: bold;
@@ -129,6 +136,7 @@ img.avatar {
     margin: 0.25em;
     clear: right;
     overflow: hidden;
+    border: thin solid black;
 }
 ul#id_avatar_type>li, ul#id_anon_avatar_type>li {
     clear: right;
@@ -145,7 +153,7 @@ ul#id_avatar_type>li, ul#id_anon_avatar_type>li {
 }
 
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
     #forum {
         grid-template-columns: 1fr;
     }

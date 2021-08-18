@@ -39,8 +39,11 @@ def avatar_image(post: Post, viewer: Member, avatar_type=None) -> SafeString:
             avatar_type = post.author_identity.anon_avatar_type
 
     url = post.author_identity.avatar_image_url(avatar_type=avatar_type, anon=not post.sees_real_name(viewer))
-    return mark_safe(
-        '<img src="' + escape(url) + '" alt="" class="avatar" loading="lazy" referrerpolicy="no-referrer" />')
+    if url:
+        return mark_safe(
+            '<img src="' + escape(url) + '" alt="" class="avatar" loading="lazy" referrerpolicy="no-referrer" />')
+    else:
+        return mark_safe('')
 
 
 @register.simple_tag
