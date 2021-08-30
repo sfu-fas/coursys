@@ -17,11 +17,7 @@ from forum import DEFAULT_FORUM_MARKUP
 from forum.names_generator import get_random_name
 
 
-# TODO: asker should be able to explicitly mark "answered"
-# TODO: need instructor reply form: no identity field, and "don't consider this an answer" check
 # TODO: something if there are more than THREAD_LIST_MAX threads in the menu
-# TODO: instructor/TA should have default 24h digest
-# TODO: instructors can't be anonymous, so don't configure in avatar_form
 # TODO: better highlighting of unread replies
 # TODO: better highlighting of instructor content
 # TODO: better highlighting of "approved" answers or instructor approvals
@@ -32,6 +28,7 @@ from forum.names_generator import get_random_name
 # TODO: instructors should be able to "close" a thread, so no more activity (by students)
 # TODO: nice to have instructor interaction: make public and anonymous
 # TODO: some kind of display of post history
+# TODO: instructors can't be anonymous, so don't configure in avatar_form
 
 
 IDENTITY_CHOICES = [  # Identity.identity_choices should reflect any logical changes here
@@ -121,7 +118,7 @@ DIGEST_FREQUENCY_CHOICES = [
     (6, 'every 6 hours'),
     (24, 'every 24 hours'),
 ]
-
+INSTR_DEFAULT_FREQUENCY = 24
 
 class Identity(models.Model):
     """
@@ -155,6 +152,8 @@ class Identity(models.Model):
                 # Ensure unique name within offering. Technically races with other instances, but I'll take my chances.
                 break
         ident = cls(offering=offering, member=member, pseudonym=name, regen_count=0)
+        if member.role in APPROVAL_ROLES:
+            ident.digest_frequency = INSTR_DEFAULT_FREQUENCY
         if save:
             ident.save()
         return ident

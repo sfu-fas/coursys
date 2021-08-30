@@ -142,5 +142,5 @@ class ForumTest(TestCase):
         test_views(self, c, 'offering:forum:',
                    ['search'],
                    {'course_slug': self.offering.slug},
-                   qs='q=test')
+                   qs='q=sure')
 

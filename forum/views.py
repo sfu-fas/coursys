@@ -177,6 +177,11 @@ def view_thread(request: ForumHttpRequest, post_number: int) -> HttpResponse:
     context['can_mark_answered'] = can_mark_answered
     context['approval_icons'] = APPROVAL_ICONS
 
+    if request.member.role in APPROVAL_ROLES:
+        replyFormClass = InstrReplyForm
+    else:
+        replyFormClass = ReplyForm
+
     if can_mark_answered and request.method == 'POST' and 'answered' in request.POST:
         # the "mark as answered" button
         thread.post.marked_answered = True
@@ -187,7 +192,7 @@ def view_thread(request: ForumHttpRequest, post_number: int) -> HttpResponse:
 
     elif request.method == 'POST':
         # view_thread view has a form to reply to this thread
-        reply_form = ReplyForm(data=request.POST, member=request.member, offering_identity=request.forum.identity)
+        reply_form = replyFormClass(data=request.POST, member=request.member, offering_identity=request.forum.identity)
         if reply_form.is_valid():
             rep_post = reply_form.save(commit=False)
             rep_post.offering = request.offering
@@ -206,7 +211,7 @@ def view_thread(request: ForumHttpRequest, post_number: int) -> HttpResponse:
             return redirect('offering:forum:view_thread', course_slug=request.offering.slug,
                             post_number=thread.post.number)
     else:
-        reply_form = ReplyForm(member=request.member, offering_identity=request.forum.identity)
+        reply_form = replyFormClass(member=request.member, offering_identity=request.forum.identity)
 
     # mark everything we're sending to the user as read
     ReadThread.objects.bulk_create(
@@ -245,9 +250,13 @@ def new_thread(request: ForumHttpRequest) -> HttpResponse:
     context = {
         'view': 'new_thread',
     }
+    if request.member.role in APPROVAL_ROLES:
+        threadFormClass = InstrThreadForm
+    else:
+        threadFormClass = ThreadForm
 
     if request.method == 'POST':
-        thread_form = ThreadForm(data=request.POST, member=request.member, offering_identity=request.forum.identity)
+        thread_form = threadFormClass(data=request.POST, member=request.member, offering_identity=request.forum.identity)
         if thread_form.is_valid():
             post = thread_form.save(commit=False)
             post.offering = request.offering
@@ -264,7 +273,7 @@ def new_thread(request: ForumHttpRequest) -> HttpResponse:
             return redirect('offering:forum:view_thread', course_slug=request.offering.slug, post_number=post.number)
 
     else:
-        thread_form = ThreadForm(member=request.member, offering_identity=request.forum.identity)
+        thread_form = threadFormClass(member=request.member, offering_identity=request.forum.identity)
 
     context['thread_form'] = thread_form
     return _render_forum_page(request, context)

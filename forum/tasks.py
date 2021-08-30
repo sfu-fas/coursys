@@ -7,12 +7,14 @@ from django import template
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
+from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils.safestring import SafeString
 
+from coredata.models import Member
 from courselib.celerytasks import task, periodic_task
-from forum.models import Identity, Reply, ReadReply, Thread, ReadThread
-from forum.views import thread_list_context, ACCESS_AFTER_SEMESTER
+from forum.models import Identity, Reply, ReadReply, Thread, ReadThread, APPROVAL_ROLES
+from forum.views import ACCESS_AFTER_SEMESTER
 
 
 epsilon = datetime.timedelta(minutes=5)
@@ -94,16 +96,49 @@ def send_digest(ident_id: int) -> None:
         email.send(fail_silently=False)
 
 
-@periodic_task(run_every=crontab(hour='*'))
-def send_digests() -> None:
+def _relevant_idents() -> QuerySet:
     now = datetime.datetime.now()
     idents = Identity.objects.filter(
         member__offering__semester__start__lt=now,
         member__offering__semester__end__gt=now - ACCESS_AFTER_SEMESTER,
-        digest_frequency__isnull=False,
     ).select_related('offering', 'member', 'member__person')
+    return idents
 
+
+@task(queue='batch')
+def create_instr_idents() -> None:
+    """
+    Find instructors/TAs without identity objects: create Identity objects for them so they have INSTR_DEFAULT_FREQUENCY.
+    """
+    now = datetime.datetime.now()
+    idents = _relevant_idents()
+    ident_members = idents.values_list('member__id', flat=True)
+    members_without = Member.objects.filter(
+        role__in=APPROVAL_ROLES,
+        offering__semester__start__lt=now,
+        offering__semester__end__gt=now - ACCESS_AFTER_SEMESTER
+    ).exclude(id__in=ident_members).select_related('offering')
+
+    with transaction.atomic():
+        for m in members_without:
+            Identity.new(offering=m.offering, member=m, save=True)
+
+
+@periodic_task(run_every=crontab(hour='*'))
+def send_digests(immediate=False) -> None:
+    now = datetime.datetime.now()
+    idents = _relevant_idents().filter(digest_frequency__isnull=False)
     for i in idents:
         # whose digest is actually due?
         if i.last_digest < now - datetime.timedelta(hours=i.digest_frequency):
-            send_digest.delay(i.id)
+            if immediate:
+                # send now, without celery tasks
+                send_digest.apply(args=[i.id])
+            else:
+                send_digest.delay(i.id)
+
+    # create any missing Identity objects, so we pick them up on the next run.
+    if immediate:
+        create_instr_idents.apply()
+    else:
+        create_instr_idents.delay()
