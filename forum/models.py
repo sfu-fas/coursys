@@ -120,6 +120,7 @@ DIGEST_FREQUENCY_CHOICES = [
 ]
 INSTR_DEFAULT_FREQUENCY = 24
 
+
 class Identity(models.Model):
     """
     A forum identity, used throughout this offering. Created for all users, whether .pseudonym is used or not.

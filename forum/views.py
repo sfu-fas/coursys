@@ -14,7 +14,7 @@ from haystack.query import SearchQuerySet
 from coredata.models import Member, CourseOffering
 from courselib.auth import user_passes_test, is_course_member_by_slug, ForbiddenResponse
 from forum.forms import ThreadForm, ReplyForm, SearchForm, AvatarForm, InstrThreadForm, InstrReplyForm, DigestForm, \
-    PseudonymForm
+    PseudonymForm, InstrEditReplyForm, InstrEditThreadForm
 from forum.models import Thread, Identity, Forum, Reply, Reaction, \
     APPROVAL_REACTIONS, REACTION_ICONS, APPROVAL_ROLES, IDENTITY_CHOICES, ReadThread, ReadReply, Post, REGEN_MAX, \
     REGEN_POST_MAX
@@ -294,7 +294,7 @@ def edit_post(request: ForumHttpRequest, post_number: int) -> HttpResponse:
         if post.author == request.member:
             Form = ThreadForm
         else:
-            Form = InstrThreadForm
+            Form = InstrEditThreadForm
     except Http404:
         # if we got a reply's number, deal with that
         replies = list(Reply.objects.filter(post__number=post_number).filter_for(request.member)
@@ -307,7 +307,7 @@ def edit_post(request: ForumHttpRequest, post_number: int) -> HttpResponse:
             if post.author == request.member:
                 Form = ReplyForm
             else:
-                Form = InstrReplyForm
+                Form = InstrEditReplyForm
         else:
             raise
 

@@ -49,12 +49,22 @@ class ThreadForm(_PostForm):
                 self.add_error('identity', 'Private questions cannot be anonymous.')
 
 
-class InstrThreadForm(ThreadForm):
-    # instructors can't see/edit anonymity setting
+class InstrEditThreadForm(ThreadForm):
+    # instructors can't see/edit anonymity setting when editing student posts
     identity = None
 
     class Meta(ThreadForm.Meta):
         fields = ('title', 'type', 'privacy', 'content')
+
+
+class InstrThreadForm(InstrEditThreadForm):
+    # instructors can't post anonymously
+    def save(self, commit=True, *args, **kwargs):
+        res = super().save(commit=False, *args, **kwargs)
+        self.instance.identity = 'NAME'
+        if commit:
+            res.save()
+        return res
 
 
 class ReplyForm(_PostForm):
@@ -62,12 +72,22 @@ class ReplyForm(_PostForm):
         fields = ('identity', 'content')
 
 
-class InstrReplyForm(ReplyForm):
-    # instructors can't see/edit anonymity setting
+class InstrEditReplyForm(ReplyForm):
+    # instructors can't see/edit anonymity setting when editing student posts
     identity = None
 
     class Meta(ReplyForm.Meta):
         fields = ('content',)
+
+
+class InstrReplyForm(InstrEditReplyForm):
+    # instructors can't post anonymously
+    def save(self, commit=True, *args, **kwargs):
+        res = super().save(commit=False, *args, **kwargs)
+        self.instance.identity = 'NAME'
+        if commit:
+            res.save()
+        return res
 
 
 class SearchForm(forms.Form):
