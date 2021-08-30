@@ -1,3 +1,5 @@
+import datetime
+
 from django.test import TestCase
 
 from coredata.models import CourseOffering, Member
@@ -112,6 +114,8 @@ class ForumTest(TestCase):
         """
         Render as many pages as possible, to make sure they work, are valid, etc.
         """
+        self.offering.semester.end = datetime.date.today() + datetime.timedelta(days=90)
+        self.offering.semester.save()
         c = Client()
 
         # test as an instructor
@@ -120,8 +124,12 @@ class ForumTest(TestCase):
                    ['summary', 'new_thread', 'identity', 'digest'],
                    {'course_slug': self.offering.slug})
         test_views(self, c, 'offering:forum:',
-                   ['view_thread'],
+                   ['view_thread', 'edit_post'],
                    {'course_slug': self.offering.slug, 'post_number': self.thread.post.number})
+        test_views(self, c, 'offering:forum:',
+                   ['search'],
+                   {'course_slug': self.offering.slug},
+                   qs='q=test')
 
         # test as a student
         c.login_user('0aaa0')
@@ -129,6 +137,10 @@ class ForumTest(TestCase):
                    ['summary', 'new_thread', 'identity', 'digest'],
                    {'course_slug': self.offering.slug})
         test_views(self, c, 'offering:forum:',
-                   ['view_thread'],
+                   ['view_thread', 'edit_post'],
                    {'course_slug': self.offering.slug, 'post_number': self.thread.post.number})
+        test_views(self, c, 'offering:forum:',
+                   ['search'],
+                   {'course_slug': self.offering.slug},
+                   qs='q=test')
 

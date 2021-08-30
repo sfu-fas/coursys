@@ -28,6 +28,7 @@ if settings.DEPLOY_MODE == 'production':
 else:
     ACCESS_AFTER_SEMESTER = datetime.timedelta(days=365)
 
+APPROVAL_ICONS = ', '.join(REACTION_ICONS[r] for r in APPROVAL_REACTIONS)
 
 # last_time = datetime.datetime.now()
 # def _print_time(marker):
@@ -119,10 +120,8 @@ def summary(request: ForumHttpRequest) -> HttpResponse:
         unanswered_threads = Thread.objects.filter(post__type='QUES', post__status='OPEN').filter_for(request.member) \
             .select_related('post', 'post__author', 'post__offering', 'post__author__person', 'post__author_identity')
 
-        approval_icons = ', '.join(REACTION_ICONS[r] for r in APPROVAL_REACTIONS)
-
         context['unanswered_threads'] = unanswered_threads
-        context['approval_icons'] = approval_icons
+        context['approval_icons'] = APPROVAL_ICONS
         context['show_unanswered'] = True
     else:
         context['show_unanswered'] = False
@@ -172,8 +171,22 @@ def view_thread(request: ForumHttpRequest, post_number: int) -> HttpResponse:
         .select_related('post', 'post__author', 'post__author__person', 'post__offering',
                         'post__author_identity__member__person')
 
-    # view_thread view has a form to reply to this thread
-    if request.method == 'POST':
+    can_mark_answered = request.member == thread.post.author \
+                        and thread.post.editable_by(request.member) \
+                        and thread.post.status == 'OPEN'
+    context['can_mark_answered'] = can_mark_answered
+    context['approval_icons'] = APPROVAL_ICONS
+
+    if can_mark_answered and request.method == 'POST' and 'answered' in request.POST:
+        # the "mark as answered" button
+        thread.post.marked_answered = True
+        thread.post.update_status(commit=True)
+        messages.add_message(request, messages.SUCCESS, 'Question marked as answered.')
+        return redirect('offering:forum:view_thread', course_slug=request.offering.slug,
+                        post_number=thread.post.number)
+
+    elif request.method == 'POST':
+        # view_thread view has a form to reply to this thread
         reply_form = ReplyForm(data=request.POST, member=request.member, offering_identity=request.forum.identity)
         if reply_form.is_valid():
             rep_post = reply_form.save(commit=False)

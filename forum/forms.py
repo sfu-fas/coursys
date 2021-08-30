@@ -1,4 +1,5 @@
 from django import forms
+from django.urls import reverse
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
@@ -23,6 +24,8 @@ class _PostForm(MarkupContentMixin(field_name='content'), forms.ModelForm):
         super().__init__(*args, **kwargs)
         if 'identity' in self.fields:
             self.fields['identity'].choices = Identity.identity_choices(offering_identity, member)
+            ident_url = reverse('offering:forum:identity', kwargs={'course_slug': member.offering.slug})
+            self.fields['identity'].help_text = mark_safe('See <a href="%s">discussion forum identities</a> for more information.' % (ident_url,))
 
     def save(self, *args, **kwargs):
         if 'identity' in self.fields:

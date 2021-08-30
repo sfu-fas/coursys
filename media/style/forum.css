@@ -11,9 +11,11 @@
     grid-row: 1;
 }
 
-
 .forum-form div.field > * , .forum-form label {
     margin-top: 0;
+}
+input#id_title {
+    width: 100%;
 }
 
 p.sorting button.sort-button {
@@ -53,7 +55,7 @@ section.post.author-ta span.author::after {
 .post-header, .post-footer {
     margin: 0;
     padding: 0;
-    background-color: #e7e7e7;
+    background-color: #f1f1f1;
 }
 .post-footer {
     border-top: thin solid #ddd;
@@ -63,12 +65,12 @@ p.reactions, p.react-widget {
     padding: 0;
 }
 span.reaction {
-    border: thin solid #ddd;
+    border: thin solid #ccc;
     padding: 0.1em;
     margin: 0 0.25em;
 }
 .react-widget a {
-    border: thin solid #ddd;
+    border: thin solid #ccc;
     padding: 0.1em;
     margin: 0 0.25em;
 }

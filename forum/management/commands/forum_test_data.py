@@ -21,6 +21,8 @@ class Command(BaseCommand):
         assert settings.DEPLOY_MODE != 'production'
 
         o = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        o.semester.end = datetime.date.today() + datetime.timedelta(days=90)
+        o.semester.save()
         f, _ = Forum.objects.get_or_create(offering=o)
         f.enabled = True
         f.identity = 'ANON'

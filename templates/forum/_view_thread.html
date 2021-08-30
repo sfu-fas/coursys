@@ -12,11 +12,19 @@
             <span class="pin">[<a href="{% url 'offering:forum:pin' course_slug=offering.slug post_number=post.number %}?pin=yes" data-target="main-panel" data-inplace="yes"><i class="fas fa-thumbtack"></i> Pin</a>]</span>
         {% endif %}
     {% else %}
-
     {% endif %}
 </h2>
 
 {% include 'forum/_post_fragment.html' with post=post viewer=viewer instr_pinnable=instr_pinnable %}
+{% if can_mark_answered %}
+<form action="" method="post" class="subtle">{% csrf_token %}
+<p class="helptext">This question will be considered &ldquo;answered&rdquo; if
+    (1) an instructor/TA has replied,
+    (2) you or an instructor/TA react positively ({{ approval_icons }}) to a reply, or
+    (3) you mark it answered here.
+    <input class="submit" type="submit" name="answered" value="Mark as answered" /></p>
+</form>
+{% endif %}
 </section>
 
 <h2>Replies</h2>
