@@ -279,7 +279,6 @@ def new_thread(request: ForumHttpRequest) -> HttpResponse:
     return _render_forum_page(request, context)
 
 
-@transaction.atomic
 @forum_view
 def edit_post(request: ForumHttpRequest, post_number: int) -> HttpResponse:
     try:
