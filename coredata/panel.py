@@ -299,6 +299,16 @@ def deploy_checks(request=None):
     else:
         passed.append(('Emplid API', 'okay'))
 
+    # CAS connectivity
+    try:
+        resp = requests.get(settings.CAS_SERVER_URL, allow_redirects=False, timeout=5)
+        if resp.status_code != 302:
+            failed.append(('CAS Connectivity', 'Expected 302 response from CAS, but got %i' % (resp.status_code,)))
+        else:
+            passed.append(('CAS Connectivity', 'okay'))
+    except requests.exceptions.ConnectionError as e:
+        failed.append(('CAS Connectivity', 'Could not connect to CAS server: %s' % (e,)))
+
     # file creation in the necessary places
     dirs_to_check = [
         (settings.DB_BACKUP_DIR, 'DB backup dir'),
