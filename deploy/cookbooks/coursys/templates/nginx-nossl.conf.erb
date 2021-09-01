@@ -1,0 +1,8 @@
+server {
+        listen 80;
+        server_name _;
+        access_log <%= @data_root %>/nginx-logs/http.access.log;
+        error_log <%= @data_root %>/nginx-logs/http.error.log warn;
+
+        include /etc/nginx/sites-available/_common.conf;
+}

@@ -11,6 +11,9 @@ python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.majo
 python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
 data_root = '/opt'
 rabbitmq_password = node['rabbitmq_password'] || 'supersecretpassword'
+http_proxy = node['http_proxy']
+
+# TODO: docker config for SFU network
 
 raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
 
@@ -66,7 +69,7 @@ end
 
 # Python and JS deps
 execute "install_pip_requirements" do
-  command "pip3 install -r #{coursys_dir}/requirements.txt"
+  command "python3 -m pip install -r #{coursys_dir}/requirements.txt"
   creates "#{python_lib_dir}/django/__init__.py"
 end
 execute "npm-install" do
@@ -92,13 +95,28 @@ end
 
 if deploy_mode != 'devel'
   # docker
+  execute 'docker-key' do
+    command 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -'
+  end
+  directory "/lib/systemd/system/docker.service.d" do
+    owner 'root'
+    mode '0755'
+    action :create
+  end
+  if !http_proxy.nil?
+    template "/lib/systemd/system/docker.service.d/http-proxy.conf" do
+      variables(
+        :http_proxy => http_proxy,
+      )
+    end
+  end
   apt_repository 'docker' do
     uri 'https://download.docker.com/linux/ubuntu/'
     components ['stable']
     distribution ubuntu_release
     arch 'amd64'
-    key '7EA0A9C3F273FCD8'
-    keyserver 'keyserver.ubuntu.com'
+    #key '7EA0A9C3F273FCD8'
+    #keyserver 'keyserver.ubuntu.com'
     action :add
     deb_src false
   end
@@ -309,7 +327,7 @@ if deploy_mode != 'devel'
 
   # main nginx config
   template "/etc/nginx/sites-available/default" do
-    source 'nginx.conf.erb'
+    source 'nginx-nossl.conf.erb'
     variables(
       :hsts => hsts,
       :all_names => serve_names + redirect_names,
