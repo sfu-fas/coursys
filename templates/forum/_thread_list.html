@@ -1,0 +1,29 @@
+{% load forum_display %}
+
+<p>[<a href="{% url 'offering:forum:summary' course_slug=offering.slug %}" data-target="main-panel">Forum Summary</a>]</p>
+<p>[<a href="{% url 'offering:forum:new_thread' course_slug=offering.slug %}" data-target="main-panel">New Thread</a>]</p>
+
+<ul class="thread-list">
+{% for thread in threads %}
+<li class="{% if thread in unread_threads  %}unread{% else %}read{% endif %}{% if thread.pin %} pinned{% endif %}">
+    <span class="title">
+        <a href="{{ thread.get_absolute_url }}" data-target="main-panel">#{{ thread.post.number }} {{ thread.title_short }}</a>
+        {% if thread.privacy == 'INST' %}<span class="privacy-note">[Private]</span>{% endif %}
+    </span>
+    <span class="author">{{ thread.post.visible_author_short }}, last activity {{ thread.last_activity_html }}</span>
+    <span class="icons">
+        {% if thread.post.type == 'DISC' %}<i class="far fa-comments disc" title="discussion"></i>{% endif %}
+        {% if thread.post.status == 'OPEN' %}<i class="fas fa-question open" title="unanswered"></i>{% endif %}
+        {% if thread.post.instr_answer %}<i class="fas fa-chalkboard-teacher answ" title="instructor answer"></i>{% endif %}
+        {% if thread.post.approved_answer %}<i class="fas fa-thumbs-up answ" title="instructor-approved answer"></i>{% endif %}
+        {% if thread.post.marked_answered or thread.post.asker_approved_answer %}<i class="far fa-thumbs-up answ" title="asker-approved answer"></i>{% endif %}
+        {% if thread.pin %}<i class="fas fa-thumbtack pin" title="pinned"></i>{% endif %}
+    </span>
+</li>
+{% empty %}
+<li class="empty">Nothing posted yet.</li>
+{% endfor %}
+</ul>
+
+<p>[<a href="{% url 'offering:forum:identity' course_slug=offering.slug %}" data-target="main-panel">Discussion forum identities</a>]</p>
+<p>[<a href="{% url 'offering:forum:digest' course_slug=offering.slug %}" data-target="main-panel">Activity digest</a>]</p>

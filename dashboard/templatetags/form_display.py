@@ -53,7 +53,7 @@ def label_display(field, prefix=''):
 
 
 @register.filter
-def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlform', reqmessage=True):
+def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlform', reqmessage=True, submit_verb=None):
     """
     Output a Form as a nice <dl>
     """
@@ -62,7 +62,7 @@ def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlf
     out.append(str(form.media))
     out.append(str(form.non_field_errors()))
     if form.hidden_fields():
-        out.append('<div style="display:none">')
+        out.append('<div style="display:none" class="hidden">')
         for field in form.hidden_fields():
             if field.name in excludefields or (
                     includefields is not None and field.name not in includefields) :
@@ -90,6 +90,10 @@ def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlf
     out.append('</dl>')
     if reqmessage and reqcount > 0:
         out.append(required_message(None))
+
+    if submit_verb:
+        out.append('<p><input class="submit" type="submit" value="%s" /></p>' % (escape(submit_verb),))
+
     return mark_safe('\n'.join(out))
 
 

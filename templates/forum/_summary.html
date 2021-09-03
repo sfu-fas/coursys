@@ -1,0 +1,43 @@
+{% load forum_display %}
+
+{% if show_unanswered %}
+<h2 id="unanswered">Unanswered Questions</h2>
+
+<ul>
+{% for thread in unanswered_threads %}
+<li>
+    #{{ thread.post.number }}
+    <a href="{{ thread.get_absolute_url }}" data-target="main-panel">{{ thread.title }}</a>
+    by {{ thread.post|visible_author:viewer }}
+</li>
+{% empty %}
+<li class="empty">None</li>
+{% endfor %}
+</ul>
+<p class="helptext">
+    A question is considered &ldquo;answered&rdquo; if
+    (1) an instructor/TA has replied,
+    (2) an instructor/TA has reacted positively ({{ approval_icons }}) to a student reply, or
+    (3) the question-asker has marked it answered or reacted positively to a reply.
+</p>
+{% endif %}
+
+<h2 id="unread">Unread Activity</h2>
+<ul>
+{% for thread in unread_threads %}
+<li>
+    #{{ thread.post.number }}
+    <a href="{{ thread.get_absolute_url }}" data-target="main-panel">{{ thread.title }}</a>
+    by {{ thread.post|visible_author:viewer }}
+</li>
+{% empty %}
+<li class="empty">None</li>
+{% endfor %}
+</ul>
+
+<h2 id="search">Search Posts</h2>
+
+<form action="{% url 'offering:forum:search' course_slug=offering.slug %}" method="get">
+{{ search_form.as_p }}
+    <p><input type="submit" value="Search" /></p>
+</form>

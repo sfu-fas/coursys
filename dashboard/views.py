@@ -843,7 +843,7 @@ def courses_json(request, semester):
 def enable_advisor_token(request):
     user = get_object_or_404(Person, userid=request.user.username)
     configs = UserConfig.objects.filter(user=user, key="advisor-token")
-    if not len(configs) is 0:
+    if not len(configs) == 0:
         raise Http404
     if request.method == 'POST':
         form = FeedSetupForm(request.POST)

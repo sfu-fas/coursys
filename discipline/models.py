@@ -245,7 +245,10 @@ class DisciplineCaseBase(models.Model):
     letter_text = models.TextField(blank=True, null=True, verbose_name="Letter Text")
     penalty_implemented = models.BooleanField(default=False, verbose_name="Penalty Implemented?", 
             help_text='Has instructor implemented the assigned penalty?')
-    
+    central_note = models.TextField(blank=True, null=True, verbose_name="Student Services Note",
+                                    help_text='Additional notes about the case status (visible to student and instructor, '+TEXTILENOTE+')')
+    central_note_date = models.DateField(blank=True, null=True, verbose_name="Student Services Note Date",
+                                    help_text='Last update to the Student Services note.')
     ro_display = False # set in some views to prevent unnecessary links
     origsection = None # cache for get_origsection
     
@@ -325,8 +328,6 @@ class DisciplineCaseBase(models.Model):
 
     def related_activities(self):
         return [ro for ro in self.relatedobject_set.all() if isinstance(ro.content_object, Activity)]
-
-
     
     def groupmembersJSON(self):
         """
@@ -477,12 +478,14 @@ class DisciplineCaseInstr(DisciplineCaseBase):
 
         return student, instr, dept, univ
 
-
-    def send_letter(self, currentuser):
+    def send_letter(self, currentuser, from_central=False):
         """
         Send instructor's letter to the student and CC instructor
+
+        from_central: this is an update email produced by Student Services
         """
-        html_body = render_to_string('discipline/letter_body.html', { 'case': self, 'currentuser': currentuser })
+        html_body = render_to_string('discipline/letter_body.html',
+                                     { 'case': self, 'currentuser': currentuser, 'from_central': from_central })
         text_body = "Letter is included here as an HTML message, or can be viewed online at this URL:\n%s" %\
             (settings.BASE_ABS_URL + reverse('offering:discipline:view_letter', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug}))
         self.letter_text = html_body
@@ -495,9 +498,9 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         email = EmailMultiAlternatives(
             subject='Academic dishonesty in %s' % (self.get_origsection()),
             body=text_body,
-            from_email=instr,
+            from_email=currentuser.full_email() if from_central else instr,
             to=[student],
-            cc=[instr],
+            cc=[instr, currentuser.full_email()] if from_central else [instr],
             )
         email.attach_alternative("<html><body>" + html_body + "</body></html>", "text/html")
         attach = self.public_attachments()
@@ -510,7 +513,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         email = EmailMultiAlternatives(
             subject='Academic dishonesty in %s' % (self.get_origsection()),
             body=text_body,
-            from_email=instr,
+            from_email=currentuser.full_email() if from_central else instr,
             to=dept + univ,
             cc=[instr],
             )

@@ -5,6 +5,9 @@
 # TODO: just a "text with line breaks" markup
 # TODO: ... and then use for grade/marking comments?
 # TODO: the markup choice dropdown is going to be confusing for some people: simplify or something?
+from typing import Iterable
+from xml.dom.minidom import parseString, Element, Document, Text, Node
+
 from django.db import models
 from django.utils.safestring import mark_safe, SafeText
 from django.utils.html import linebreaks
@@ -71,8 +74,59 @@ def ensure_sanitary_markup(markup, markuplang, restricted=False):
     return markup
 
 
+forum_link_re = re.compile(r'#(\d+)')
+ignore_tags = {'a', 'pre', 'code'}
+
+
+def forum_text_replace(node: Text, document: Document) -> Iterable[Node]:
+    for i,t in enumerate(forum_link_re.split(node.data)):
+        if i%2 == 0:
+            # non-link text: leave it as text
+            yield document.createTextNode(t)
+        else:
+            # the cross-reference forum link itself: replace with appropriate <a>
+            a = document.createElement('a')
+            a.setAttribute('href', './'+t)
+            a.setAttribute('class', 'xref')
+            a.appendChild(document.createTextNode('#'+t))
+            yield a
+
+
+def insert_forum_links(elt: Element, document: Document) -> None:
+    """
+    Modify element (in-place), finding text like "#123" and replacing with a link to forum post 123.
+
+    Document element must be passed along to access .createTextNode and .createElement.
+    """
+    for node in list(elt.childNodes):
+        if node.nodeType == node.ELEMENT_NODE:
+            if node.tagName not in ignore_tags:
+                insert_forum_links(node, document)
+        elif node.nodeType == node.TEXT_NODE:
+            for n in forum_text_replace(node, document):
+                elt.insertBefore(n, node)
+            elt.removeChild(node)
+
+    return elt
+
+
+def convert_forum_links(html: str) -> str:
+    if not forum_link_re.search(html):
+        # literally nothing matches the #123 pattern: short-circuit and don't bother parsing/traversing/reconstructing.
+        return html
+    try:
+        document = parseString('<x>' + html + '</x>')
+    except:
+        # any exception in the parsing: don't do the forum links, but continue
+        return html
+    else:
+        insert_forum_links(document.documentElement, document)
+        return document.documentElement.toxml()[3:-4]
+
+
 @cached(36000)
-def markup_to_html(markup, markuplang, math=None, offering=None, pageversion=None, html_already_safe=False, restricted=False):
+def markup_to_html(markup, markuplang, math=None, offering=None, pageversion=None, html_already_safe=False,
+                   restricted=False, forum_links=False):
     """
     Master function to convert one of our markup languages to HTML (safely).
 
@@ -83,6 +137,7 @@ def markup_to_html(markup, markuplang, math=None, offering=None, pageversion=Non
     :param html_already_safe: markuplang=='html' and markup has already been through sanitize_html()
     :param restricted: use the restricted HTML subset for discussion (preventing format bombs)
     :param math: If non-None, add appropriate <div> to activate/deactivate MathJax
+    :param forum_links: If true, convert #123 forum post references into links
     :return: HTML markup
     """
     assert isinstance(markup, str)
@@ -124,6 +179,8 @@ def markup_to_html(markup, markuplang, math=None, offering=None, pageversion=Non
 
     assert isinstance(html, str)
     html = html.strip()
+    if forum_links:
+        html = convert_forum_links(html)
 
     if math is None:
         pass
@@ -144,7 +201,7 @@ class MarkupContentWidget(forms.MultiWidget):
     template_name = 'markup-content-widget.html'
     def __init__(self):
         widgets = (
-            forms.Textarea(attrs={'cols': 70, 'rows': 20}),
+            forms.Textarea(attrs={'rows': 20}),
             forms.Select(),
             forms.CheckboxInput(),
         )

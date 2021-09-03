@@ -88,6 +88,7 @@ INSTALLED_APPS = (
     'relationships',
     'space',
     'reminders',
+    'forum',
 )
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
@@ -311,6 +312,7 @@ if USE_CELERY:
     RABBITMQ_VHOST = getattr(localsettings, 'RABBITMQ_VHOST', 'myvhost')
 
     CELERY_BROKER_URL = 'amqp://%s:%s@%s/%s' % (RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_HOSTPORT, RABBITMQ_VHOST)
+    CELERY_BROKER_URL = getattr(secrets, 'CELERY_BROKER_URL', CELERY_BROKER_URL)
     CELERY_RESULT_BACKEND = 'rpc://'
     CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
 
@@ -412,7 +414,7 @@ if DEPLOY_MODE == 'production':
 DEBUG_TOOLBAR = getattr(localsettings, 'DEBUG_TOOLBAR', False)
 if DEBUG_TOOLBAR:
     INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
-    MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware', 'courselib.middleware.NonHtmlDebugToolbarMiddleware']
     INTERNAL_IPS = getattr(localsettings, 'INTERNAL_IPS', [])
     #DEBUG_TOOLBAR_CONFIG = {
     #    'INTERCEPT_REDIRECTS': False,

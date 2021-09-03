@@ -134,8 +134,30 @@ Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text
 {% endif %}</dd>
 <dt>Penalty Implemented?</dt>
 <dd>{{case|edit_link:'penalty_implemented'}}<p>{{case.get_penalty_implemented_display}}</p></dd>
+{% if case.central_note %}
+<dt>Student Services Note [{{ case.central_note_date }}]</dt>
+<dd>{{case|format_field:'central_note'}}</dd>
+{% endif %}
 </dl>
 
 </div>
 
+
+{% if chair and has_global_role %}
+    <h2 id="central-updates">Student Services Actions</h2>
+    {% if case.letter_sent == 'MAIL' %}
+    <form action="{% url "discipline:central_updates" course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <p>Re-open the case so the instructor can modify: <input type="submit" class="submit" name="unfinalize" value="Re-open" /></p>
+    </form>
+    {% endif %}
+    <form action="{% url "discipline:central_updates" course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <p>{{ central_form.central_note.label }}:</p>
+    <blockquote>{{ central_form.central_note }}</blockquote>
+    <p class="helptext">{{ central_form.central_note.help_text|safe }}</p>
+    <p>{{ central_form.send.label }}: {{ central_form.send }} <span class="helptext">{{ central_form.send.help_text|safe }}</span></p>
+    <p><input type="submit" class="submit" name="addnote" value="Update Note" /></p>
+    </form>
+{% endif %}
+
+    
 {% endblock %}

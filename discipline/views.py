@@ -593,9 +593,55 @@ def chair_show_instr(request, course_slug, case_slug):
     case = case.subclass()
     roles = ["DEPT"]
     case.ro_display = True
+    has_global_role = 'UNIV' in (u.label for u in request.units)
+    central_form = None
+    if has_global_role:
+        central_form = CaseCentralNoteForm(instance=case)
     
-    context = {'course': course, 'case': case, 'roles': roles, 'chair': True}
+    context = {
+        'course': course,
+        'case': case,
+        'roles': roles,
+        'chair': True,
+        'has_global_role': has_global_role,
+        'central_form': central_form,
+    }
     return render(request, "discipline/show.html", context)
+
+
+@requires_global_role("DISC")
+def central_updates(request, course_slug, case_slug):
+    """
+    Edits from Student Services
+    """
+    case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
+    case = case.subclass()
+
+    if 'unfinalize' in request.POST:
+        case.unfinalize()
+        l = LogEntry(userid=request.user.username,
+                     description="unfinalized discipline case %s" % (case.slug,),
+                     related_object=case)
+        l.save()
+        messages.add_message(request, messages.SUCCESS, 'Re-opened case for instructor editing.')
+
+    elif 'addnote' in request.POST:
+        form = CaseCentralNoteForm(request.POST, instance=case)
+        if form.is_valid():
+            form.instance.central_note_date = datetime.date.today()
+            form.save()
+            l = LogEntry(userid=request.user.username,
+                         description="updated central note on %s" % (case.slug,),
+                         related_object=case)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Updated Student Services note.')
+            if form.cleaned_data['send']:
+                case.send_letter(_currentuser(request), from_central=True)
+                messages.add_message(request, messages.SUCCESS, 'Emailed updated incident report student and instructor.')
+
+
+
+    return HttpResponseRedirect(reverse('discipline:chair_show_instr', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
 
 
 @requires_global_role('DISC')

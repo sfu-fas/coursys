@@ -1,0 +1,13 @@
+{% load forum_display %}
+{% if header_thread %}
+    <section id="post-{{ header_thread.post.number }}">
+    <h2>
+    {{ header_thread.title }}
+    </h2>
+    {% include 'forum/_post_fragment.html' with post=header_thread.post viewer=member no_reactions=True %}
+    </section>
+{% endif %}
+
+<form action="" method="post" enctype="multipart/form-data" class="close-warn">{% csrf_token %}
+{{ form | forum_form:"Update" }}
+</form>
