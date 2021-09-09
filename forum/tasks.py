@@ -101,7 +101,7 @@ def _relevant_idents() -> QuerySet:
     idents = Identity.objects.filter(
         member__offering__semester__start__lt=now,
         member__offering__semester__end__gt=now - ACCESS_AFTER_SEMESTER,
-    ).select_related('offering', 'member', 'member__person')
+    ).exclude(member__role='DROP').select_related('offering', 'member', 'member__person')
     return idents
 
 
