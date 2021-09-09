@@ -50,7 +50,7 @@ def _create_news(person, url, from_user, accept_deadline):
         # See if we can find a supervisor to notify.  The student shouldn't have Senior, CoSenior, and Potential
         #  supervisors, so we'll just get all of those and grab the first one.
         supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type__in=['SEN', 'COS', 'POT'],
-                                                removed=False)
+                                                removed=False, external__isnull=True)
         if len(supervisors) > 0:
             supervisor = supervisors[0].supervisor
             n = NewsItem(user=supervisor,
