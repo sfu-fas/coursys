@@ -13,8 +13,6 @@ data_root = '/opt'
 rabbitmq_password = node['rabbitmq_password'] || 'supersecretpassword'
 http_proxy = node['http_proxy']
 
-# TODO: docker config for SFU network
-
 raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
 
 #template '/etc/apt/sources.list' do
@@ -33,7 +31,7 @@ execute 'apt-get upgrade' do
 end
 
 # basic requirements to run/build
-package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev']
+package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev', 'unixodbc-dev']
 if deploy_mode == 'devel'
   package ['sqlite3']
 end
@@ -121,6 +119,11 @@ if deploy_mode != 'devel'
     deb_src false
   end
   package ['docker', 'docker-compose']
+  cookbook_file "/etc/docker/daemon.json" do
+    source 'docker-daemon.json'
+    owner "root"
+    mode "0644"
+  end
   execute "docker group" do
     command "gpasswd -a #{username} docker && service docker restart"
     not_if "grep docker /etc/group | grep #{username}"
@@ -350,40 +353,17 @@ end
 
 
 if deploy_mode != 'devel'
-  # SIMS database connection
-  db2_client_download = 'v10.5fp11_linuxx64_client.tar.gz'
-  # This repository doesn't provide db2_client_download because copyright.
-  # It must be inserted into cookbooks/courses/files/ manually for this to sequence to fire.
-  if File.file?(Chef::Config[:cookbook_path] + '/coursys/files/' + db2_client_download)
-    cookbook_file "#{user_home}/#{db2_client_download}" do
-      owner username
-    end
+  # CSRPT database connection
+  cookbook_file '/opt/config/package-config.txt' do
   end
-
-  execute "db2-unpack" do
-    command "tar xf #{db2_client_download}"
-    cwd user_home
-    user username
-    creates "#{user_home}/client/db2_install"
-    only_if { ::File.file?("#{user_home}/#{db2_client_download}") } # if we don't have the client, skip
+  execute "debconf_update" do
+    command "debconf-set-selections /opt/config/package-config.txt"
   end
-
-  execute "i386-arch" do
-    command "dpkg --add-architecture i386"
-    notifies :run, 'execute[apt-get update]', :immediately
-    not_if "grep -q i386 /var/lib/dpkg/arch"
+  package ['krb5-user', 'tdsodbc']
+  cookbook_file "/etc/odbcinst.ini" do
+    owner "root"
+    mode "0644"
   end
-
-  package ['libpam0g:i386', 'libaio1', 'lib32stdc++6']
-  # This fails when run from the recipe but succeeds at the command line. For reasons.
-  #execute "db2-install" do
-  #  command "./db2_install"
-  #  cwd "#{user_home}/client/"
-  #  user username
-  #  environment 'HOME' => user_home
-  #  creates "#{user_home}/sqllib/bin/db2"
-  #  only_if { ::File.file?("#{user_home}/client/db2_install") } # if we don't have the client, skip
-  #end
 
   # The MOSS source, as moss.zip is also not distributed here for copyright reasons.
   # It must be inserted into cookbooks/courses/files/ manually and should contain moss/moss.pl.

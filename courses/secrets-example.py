@@ -20,6 +20,4 @@ INITIAL_PHOTO_PASSWORD = '' # will be injected into database by 'manage.py insta
 EMPLID_API_SECRET = ''
 
 # reporting DB connection
-SIMS_USER = ''
-SIMS_PASSWORD = ''
-
+SIMS_DB_SERVER = 'foo.sfu.ca'

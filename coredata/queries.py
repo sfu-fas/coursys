@@ -69,13 +69,89 @@ class DBConn(object):
 
 
 class SIMSConn(DBConn):
+    def get_connection(self):
+        if settings.DISABLE_REPORTING_DB:
+            raise SIMSProblem("Reporting database access has been disabled in this deployment.")
+
+        import pyodbc
+        dbconn = pyodbc.connect("DRIVER={FreeTDS};SERVER=%s;PORT=1433;DATABASE=%s;Trusted_Connection=Yes"
+                                % (settings.SIMS_DB_SERVER, settings.SIMS_DB_NAME))
+        cursor = dbconn.cursor()
+        return dbconn, cursor
+
+    # adapted from _quote_simple_value from _mssql.pyx https://github.com/pymssql/pymssql/blob/master/src/pymssql/_mssql.pyx#L1930-L1933
+    def escape_arg(self, value, charset='utf8'):
+        if type(value) in (tuple, list, set):
+            return '(' + ', '.join((self.escape_arg(v) for v in value)) + ')'
+
+        if value == None:
+            return b'NULL'
+
+        if isinstance(value, bool):
+            return '1' if value else '0'
+
+        if isinstance(value, float):
+            return repr(value).encode(charset)
+
+        if isinstance(value, (int, decimal.Decimal)):
+            return str(value).encode(charset)
+
+        #if isinstance(value, uuid.UUID):
+        #    return _quote_simple_value(str(value))
+
+        if isinstance(value, str):
+            return ("N'" + value.replace("'", "''") + "'").encode(charset)
+
+        #if isinstance(value, bytearray):
+        #    return b'0x' + binascii.hexlify(bytes(value))
+
+        #if isinstance(value, (str, bytes)):
+        #    # see if it can be decoded as ascii if there are no null bytes
+        #    if b'\0' not in value:
+        #        try:
+        #            value.decode('ascii')
+        #            return b"'" + value.replace(b"'", b"''") + b"'"
+        #        except UnicodeDecodeError:
+        #            pass
+        #    # Python 3: handle bytes
+        #    # @todo - Marc - hack hack hack
+        #    if isinstance(value, bytes):
+        #        return b'0x' + binascii.hexlify(value)
+        #    # will still be string type if there was a null byte in it or if the
+        #    # decoding failed.  In this case, just send it as hex.
+        #    if isinstance(value, str):
+        #        return '0x' + value.encode('hex')
+
+        if isinstance(value, datetime.datetime):
+            return "'%04d-%02d-%02d %02d:%02d:%02d.%03d'" % (
+                value.year, value.month, value.day,
+                value.hour, value.minute, value.second,
+                value.microsecond / 1000)
+
+        if isinstance(value, datetime.date):
+            return "'%04d-%02d-%02d'" % (
+            value.year, value.month, value.day)
+
+        return None
+
+    def prep_value(self, v):
+        """
+        get result value into a useful format
+        """
+        if isinstance(v, decimal.Decimal):
+            return float(v)
+        else:
+            return v
+
+
+class OldSIMSConn(DBConn):
     """
     Singleton object representing SIMS DB connection
     """
-    sims_user = settings.SIMS_USER
-    sims_passwd = settings.SIMS_PASSWORD
-    sims_db = settings.SIMS_DB_NAME
-    schema = settings.SIMS_DB_SCHEMA
+    #sims_user = settings.SIMS_USER
+    #sims_passwd = settings.SIMS_PASSWORD
+    #sims_db = settings.SIMS_DB_NAME
+    #schema = settings.SIMS_DB_SCHEMA
     
     DatabaseError = ReferenceError # placeholder until we have the DB2 module
     DB2Error = ReferenceError
