@@ -1,4 +1,5 @@
 const thread_list_url = JSON.parse(document.getElementById('thread-list-url').textContent);
+const preview_url = JSON.parse(document.getElementById('preview-url').textContent);
 
 function by_score(a, b) {
     const ascore = parseFloat(a.getElementsByClassName('reactions')[0].dataset.score);
@@ -40,6 +41,7 @@ function fragment_update(target_id, url, inplace) {
     // update #target_id with content fetched from url?fragment=yes
     // if inplace, we're refreshing the current content, else it's a new page and scroll to the top
     // TODO https://stackoverflow.com/questions/7949040/restoring-content-when-clicking-back-button-with-history-js
+    // TODO mathjax rendering
     let oReq = new XMLHttpRequest();
     if ( url.indexOf('?') > -1 ) {
         oReq.open("GET", url + '&fragment=yes');
@@ -71,7 +73,6 @@ function partial_links_setup() {
     document.querySelectorAll('a[data-target]').forEach((a) => {
         a.onclick = function(e) {
             e.preventDefault();
-            console.log(a)
             fragment_update(this.dataset.target, this.getAttribute('href'), a.hasAttribute('data-inplace'))
         };
     });
@@ -79,9 +80,53 @@ function partial_links_setup() {
     document.querySelectorAll('a.xref').forEach((a) => {
         a.onclick = function(e) {
             e.preventDefault();
-            console.log(a)
             fragment_update('main-panel', this.getAttribute('href'), false)
         };
+    });
+}
+
+function update_preview(preview, textarea, markup, math) {
+        const params = new URLSearchParams();
+        params.set('content', textarea.value);
+        params.set('markup', markup.value);
+        params.set('math', math.checked);
+
+        let oReq = new XMLHttpRequest();
+        oReq.open("GET", preview_url + "?" + params.toString());
+        oReq.addEventListener("load", function() {
+            if ( this.readyState == 4 && this.status == 200 ) {
+                let resp = JSON.parse(this.responseText);
+                preview.html('<h4 style="clear:right;">Post Preview</h4>' + resp.html);
+                if ( math.checked ) {
+                    MathJax.typeset(preview);
+                }
+            }
+        });
+        oReq.send();
+}
+
+function setup_preview(editor) {
+    let textarea = editor.querySelector('textarea');
+    let markup = editor.querySelector('select');
+    let math = editor.querySelector('input[type=checkbox]');
+
+    let preview = $('<div class="markup-preview"></div>');
+    $(textarea.closest('form')).append(preview);
+
+    // "when-typing-stops" behaviour from https://schier.co/blog/wait-for-user-to-stop-typing-using-javascript
+    let timeout = null;
+    textarea.addEventListener('keyup', function (e) {
+        clearTimeout(timeout);
+        timeout = setTimeout(function () {
+            update_preview(preview, textarea, markup, math);
+        }, 2000);
+        return timeout;
+    });
+    markup.addEventListener('change', function(e) {
+        update_preview(preview, textarea, markup, math);
+    });
+    math.addEventListener('change', function(e) {
+        update_preview(preview, textarea, markup, math);
     });
 }
 
@@ -90,4 +135,8 @@ $(document).ready(() => {
     sort_setup('sort-score', by_score);
     sort_setup('sort-time', by_time_oldest);
     sort_setup('sort-time-newest', by_time_newest);
+
+    $('.markup-content').each(function(i, e) {
+        setup_preview(e);
+    });
 });
