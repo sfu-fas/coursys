@@ -4,18 +4,26 @@
 <h2>
     {{ thread.title }}
     {% if thread.privacy != 'ALL' %}<span class="privacy-note">[Private to instructors/TAs]</span>{% endif %}
+    {% if thread.post.status == 'LOCK' %}<i class="fas fa-lock lock" title="This thread has been locked: editing and replies are disabled."></i>{% endif %}
+    {% if instr_editing %}
+        {% if thread.post.status == 'LOCK' %}
+            <span class="lock">[<a href="{% url 'offering:forum:lock' course_slug=offering.slug post_number=post.number %}?unlock=yes" data-target="main-panel" data-inplace="yes" title="Allow student replies/edits on this thread."><i class="fas fa-unlock"></i> Unlock</a>]</span>
+        {% else %}
+            <span class="lock">[<a href="{% url 'offering:forum:lock' course_slug=offering.slug post_number=post.number %}?lock=yes" data-target="main-panel" data-inplace="yes" title="No student replies/edits on this thread."><i class="fas fa-lock"></i> Lock</a>]</span>
+        {% endif %}
+    {% endif %}
+
     {% if thread.pin %}<i class="fas fa-thumbtack pin"></i>{% endif %}
-    {% if instr_pinnable %}
+    {% if instr_editing %}
         {% if thread.pin %}
             <span class="pin">[<a href="{% url 'offering:forum:pin' course_slug=offering.slug post_number=post.number %}?unpin=yes" data-target="main-panel" data-inplace="yes">Unpin</a>]</span>
         {% else %}
-            <span class="pin">[<a href="{% url 'offering:forum:pin' course_slug=offering.slug post_number=post.number %}?pin=yes" data-target="main-panel" data-inplace="yes"><i class="fas fa-thumbtack"></i> Pin</a>]</span>
+            <span class="pin">[<a href="{% url 'offering:forum:pin' course_slug=offering.slug post_number=post.number %}?pin=yes" data-target="main-panel" data-inplace="yes" title="Keep this thread at the top of the thread list."><i class="fas fa-thumbtack"></i> Pin</a>]</span>
         {% endif %}
-    {% else %}
     {% endif %}
 </h2>
 
-{% include 'forum/_post_fragment.html' with post=post viewer=viewer instr_pinnable=instr_pinnable %}
+{% include 'forum/_post_fragment.html' with post=post viewer=viewer thread_locked=thread_locked %}
 {% if can_mark_answered %}
 <form action="" method="post" class="subtle">{% csrf_token %}
 <p class="helptext">This question will be considered &ldquo;answered&rdquo; if
@@ -38,7 +46,7 @@
 
 <section id="replies">
 {% for reply in replies %}
-{% include 'forum/_post_fragment.html' with post=reply.post viewer=viewer instr_pinnable=False extra_class='thread-reply' %}
+{% include 'forum/_post_fragment.html' with post=reply.post viewer=viewer extra_class='thread-reply' thread_locked=thread_locked %}
 {% empty %}
     <p class="empty">No replies.</p>
 {% endfor %}
@@ -47,8 +55,12 @@
 <section id="reply">
 <h3>Reply</h3>
 
+{% if thread_locked %}
+    <p class="empty">Thread locked: cannot reply.</p>
+{% else %}
 <form action="" method="post" enctype="multipart/form-data" class="close-warn">{% csrf_token %}
 {{ reply_form | forum_form:"Reply" }}
 </form>
+{% endif %}
 
 </section>

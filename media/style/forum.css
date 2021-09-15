@@ -105,15 +105,15 @@ span.reaction {
 .privacy-note {
     font-style: italic;
 }
-h2 .pin {
+h2 .pin, h2 .lock {
     margin-left: 1em;
     font-size: 60%;
 }
-h2 span.pin {
+h2 span.pin, h2 span.lock {
     margin-left: 0;
     font-size: 50%;
 }
-i.pin {
+i.pin, i.lock{
     color: #444;
 }
 .thread-list li.pinned {
