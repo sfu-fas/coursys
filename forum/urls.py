@@ -19,4 +19,5 @@ forum_patterns = [ # prefix /COURSE_SLUG/forum/
     url(r'^digest', views.digest, name='digest'),
     url(r'^search', views.search, name='search'),
     url(r'^dump', views.dump, name='dump'),
+    url(r'^preview', views.preview, name='preview'),
 ]

@@ -11,6 +11,7 @@
 
 {% block headextra %}
     {% url 'offering:forum:thread_list' course_slug=offering.slug as listurl %}{{ listurl|json_script:"thread-list-url" }}
+    {% url 'offering:forum:preview' course_slug=offering.slug as previewurl %}{{ previewurl|json_script:"preview-url" }}
     {% include 'pages/markup_view_head.html' %}
     {% include 'pages/markup_edit_head.html' %}
     {% compress css %}

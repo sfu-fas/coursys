@@ -21,11 +21,11 @@ from forum.names_generator import get_random_name
 # TODO: better highlighting of unread replies
 # TODO: better highlighting of instructor content
 # TODO: better highlighting of "approved" answers or instructor approvals
+# TODO: instructors should be able to "close" a thread, so no more activity (by students)
 
 # future TODOs...
 # TODO: thread categories
 # TODO: should a Reply have type for followup-question?
-# TODO: instructors should be able to "close" a thread, so no more activity (by students)
 # TODO: nice to have instructor interaction: make public and anonymous
 # TODO: some kind of display of post history
 # TODO: instructors can't be anonymous, so don't configure in avatar_form
