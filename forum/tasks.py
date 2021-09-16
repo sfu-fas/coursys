@@ -124,7 +124,7 @@ def create_instr_idents() -> None:
             Identity.new(offering=m.offering, member=m, save=True)
 
 
-@periodic_task(run_every=crontab(hour='*'))
+@periodic_task(run_every=crontab(hour='*', minute='0'))
 def send_digests(immediate=False) -> None:
     now = datetime.datetime.now()
     idents = _relevant_idents().filter(digest_frequency__isnull=False)
