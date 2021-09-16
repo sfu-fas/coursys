@@ -804,7 +804,7 @@ def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
         to_addr_lines=[req.get_name(), req.unit.name], 
         from_name_lines=from_name_lines,
         extra_from_name_lines = extra_from_name_lines,
-        closing="Yours Truly", 
+        closing="Yours truly", 
         signer=req.supervisor,
         cosigner_lines=[req.get_cosigner_line(), req.get_first_name() + " " + req.get_last_name()])
     contents.add_paragraphs(["Dear " + req.get_name()])

@@ -55,7 +55,7 @@ MIN_WAGE = 15.20
 MIN_WEEKS_VACATION = 2
 MIN_VACATION_PAY_PERCENTAGE = 4
 # unit contacts 
-CS_CONTACT = "cs_surrey_assistant@sfu.ca"
+CS_CONTACT = "csrahelp@sfu.ca"
 MSE_CONTACT = "msedsec@sfu.ca"
 ENSC_CONTACT = "enscfin@sfu.ca"
 SEE_CONTACT = "fas_admin_manager@sfu.ca"
