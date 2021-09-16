@@ -162,10 +162,10 @@ if deploy_mode != 'devel'
   end
 
   package 'snapd'
-  execute 'install-certbot' do
-    command 'snap install --classic certbot'
-    creates '/snap/bin/certbot'
-  end
+  #execute 'install-certbot' do
+  #  command 'snap install --classic certbot'
+  #  creates '/snap/bin/certbot'
+  #end
   # This recipe doesn't address actually *running* certbot.
 
   # There was a conflict between npm and some mysql packages, so using the mariadb client, which should be equivalent.
@@ -235,22 +235,22 @@ if deploy_mode != 'devel'
   end
 
   # nginx setup
-  execute "dh group" do
-    # generate unique DH group, per https://weakdh.org/sysadmin.html
-    command "openssl dhparam -out /etc/nginx/dhparams.pem 2048"
-    creates("/etc/nginx/dhparams.pem")
-  end
-  cookbook_file '/etc/nginx/insecure.key' do
-    mode 0400
-  end
-  cookbook_file '/etc/nginx/insecure.crt' do
-    mode 0400
-  end
+  #execute "dh group" do
+  #  # generate unique DH group, per https://weakdh.org/sysadmin.html
+  #  command "openssl dhparam -out /etc/nginx/dhparams.pem 2048"
+  #  creates("/etc/nginx/dhparams.pem")
+  #end
+  #cookbook_file '/etc/nginx/insecure.key' do
+  #  mode 0400
+  #end
+  #cookbook_file '/etc/nginx/insecure.crt' do
+  #  mode 0400
+  #end
 
-  execute 'ssl_hands_off' do
-    command 'grep -v "^\s*ssl_" /etc/nginx/nginx.conf > /tmp/nginx.conf && cp /tmp/nginx.conf /etc/nginx/nginx.conf'
-    only_if 'grep -q "^\s*ssl_" /etc/nginx/nginx.conf'
-  end
+  #execute 'ssl_hands_off' do
+  #  command 'grep -v "^\s*ssl_" /etc/nginx/nginx.conf > /tmp/nginx.conf && cp /tmp/nginx.conf /etc/nginx/nginx.conf'
+  #  only_if 'grep -q "^\s*ssl_" /etc/nginx/nginx.conf'
+  #end
   template "/etc/nginx/sites-available/_common.conf" do
     source 'nginx-common.conf.erb'
     variables(
@@ -264,43 +264,46 @@ if deploy_mode != 'devel'
   if deploy_mode == 'proddev'
     serve_names = [domain_name, 'localhost']
     redirect_names = ['foo.bar']
-    https_port = '443'
+    #https_port = '443'
+    #hsts = true  # TODO: re-enable when we're settled
     hsts = false
   end
   if deploy_mode == 'demo'
     serve_names = [domain_name]
     redirect_names = []
-    https_port = '443'
-    hsts = true
+    #https_port = '443'
+    #hsts = true  # TODO: re-enable when we're settled
+    hsts = false
   end
   if deploy_mode == 'production'
     raise "We expect the canonical domain name to be coursys.sfu.ca here: adjust server_names if something changed." unless domain_name == 'coursys.sfu.ca'
     serve_names = ['coursys.sfu.ca', 'fasit.sfu.ca']
     redirect_names = ['coursys.cs.sfu.ca', 'courses.cs.sfu.ca']
-    https_port = '443'
-    hsts = true
+    #https_port = '443'
+    #hsts = true  # TODO: re-enable when we're settled
+    hsts = false
   end
 
-  if deploy_mode == 'proddev'
-    # In proddev, use the insecure keys. In all other cases, demand that someone get a proper key in place, outside this recipe.
-    for name in serve_names+redirect_names do
-      directory "/etc/letsencrypt/live/#{name}" do
-        recursive true
-      end
-      cookbook_file "/etc/letsencrypt/live/#{name}/fullchain.pem" do
-        source 'insecure.crt'
-        mode 0400
-      end
-      cookbook_file "/etc/letsencrypt/live/#{name}/privkey.pem" do
-        source 'insecure.key'
-        mode 0400
-      end
-      cookbook_file "/etc/letsencrypt/live/#{name}/chain.pem" do
-        source 'insecure.crt'
-        mode 0400
-      end
-    end
-  end
+#   if deploy_mode == 'proddev'
+#     # In proddev, use the insecure keys. In all other cases, demand that someone get a proper key in place, outside this recipe.
+#     for name in serve_names+redirect_names do
+#       directory "/etc/letsencrypt/live/#{name}" do
+#         recursive true
+#       end
+#       cookbook_file "/etc/letsencrypt/live/#{name}/fullchain.pem" do
+#         source 'insecure.crt'
+#         mode 0400
+#       end
+#       cookbook_file "/etc/letsencrypt/live/#{name}/privkey.pem" do
+#         source 'insecure.key'
+#         mode 0400
+#       end
+#       cookbook_file "/etc/letsencrypt/live/#{name}/chain.pem" do
+#         source 'insecure.crt'
+#         mode 0400
+#       end
+#     end
+#   end
 
   # create a partial config files /etc/nginx/sites-available/#{name}.conf for each domain name we handle
   for name in serve_names do
@@ -308,7 +311,7 @@ if deploy_mode != 'devel'
       source 'nginx-site.conf.erb'
       variables(
         :domain_name => name,
-        :https_port => https_port,
+        #:https_port => https_port,
         :true_domain_name => domain_name,
         :data_root => data_root,
         :serve => true, # actually serve pages on this name
@@ -320,7 +323,7 @@ if deploy_mode != 'devel'
       source 'nginx-site.conf.erb'
       variables(
         :domain_name => name,
-        :https_port => https_port,
+        #:https_port => https_port,
         :true_domain_name => domain_name,
         :data_root => data_root,
         :serve => false, # don't serve pages; redirect to https://domain_name
@@ -336,19 +339,19 @@ if deploy_mode != 'devel'
       :all_names => serve_names + redirect_names,
       :data_root => data_root,
       :true_domain_name => domain_name,
-      :https_port => https_port,
+      #:https_port => https_port,
     )
     notifies :restart, 'service[nginx]', :immediately
   end
 
   # certbot renew: will fail when it runs if no certificate is in place
-  cron "certbot" do
-    user 'root'
-    hour 4
-    minute 48
-    weekday 0
-    command "certbot renew"
-  end
+  #cron "certbot" do
+  #  user 'root'
+  #  hour 4
+  #  minute 48
+  #  weekday 0
+  #  command "certbot renew"
+  #end
 end
 
 
