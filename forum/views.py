@@ -387,7 +387,7 @@ def react(request: ForumHttpRequest, post_number: int, reaction: str) -> HttpRes
     except Http404:
         thread = get_object_or_404(Thread.objects.filter_for(request.member).select_related('post'), post__number=post_number)
         post = thread.post
-        locked = thread.status == 'LOCK'
+        locked = thread.post.status == 'LOCK'
 
     if post.author_id != request.member.id and not locked:
         if Reaction.objects.filter(member=request.member, post=post).exists():
