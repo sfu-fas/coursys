@@ -721,6 +721,7 @@ def request_admin_update(request: HttpRequest, ra_slug: str) -> HttpResponse:
         adminform = RARequestAdminForm(data, instance=req)
         if adminform.is_valid():
             req.complete = req.get_complete()
+            req.last_updater = get_object_or_404(Person, userid=request.user.username)
             req = adminform.save()
 
             if req.complete:
@@ -780,6 +781,7 @@ def edit_request_notes(request: HttpRequest, ra_slug: str) -> HttpResponse:
         noteform = RARequestNoteForm(request.POST, instance=req)
         
         if noteform.is_valid():
+            req.last_updater = get_object_or_404(Person, userid=request.user.username)
             noteform.save()
             messages.success(request, "Edited Note for " + req.get_name())
             l = LogEntry(userid=request.user.username,
@@ -826,6 +828,7 @@ def request_offer_letter_update(request: HttpRequest, ra_slug: str) -> HttpRespo
     if request.method == 'POST':
         configform = RARequestLetterForm(request.POST, instance=req)
         if configform.is_valid():
+            req.last_updater = get_object_or_404(Person, userid=request.user.username)
             configform.save()
             messages.success(request, 'Updated Letter Text for ' + req.get_name())
             l = LogEntry(userid=request.user.username,
@@ -850,6 +853,7 @@ def request_default_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResp
     req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
     if request.method == 'POST':
         req.build_letter_text()
+        req.last_updater = get_object_or_404(Person, userid=request.user.username)
         req.save()
         messages.success(request, 'Updated Letter Text for ' + req.get_name())
         l = LogEntry(userid=request.user.username,
@@ -872,7 +876,7 @@ def request_science_alive(request: HttpRequest, ra_slug: str) -> HttpResponse:
             req.science_alive = not req.science_alive
         else: 
             req.science_alive = False
-        
+        req.last_updater = get_object_or_404(Person, userid=request.user.username)
         req.save()
         messages.success(request, "Switched Science Alive Status for " + req.get_name())
         l = LogEntry(userid=request.user.username,
@@ -991,6 +995,7 @@ def request_admin_paf_update(request: HttpRequest, ra_slug: str) -> HttpResponse
 
         adminform = RARequestAdminPAFForm(data, instance=req)
         if adminform.is_valid():
+            req.last_updater = get_object_or_404(Person, userid=request.user.username)
             req = adminform.save()
             l = LogEntry(userid=request.user.username,
                          description="Updated PAF Config for Request %s." % req,
@@ -1075,6 +1080,8 @@ def new_admin_attachment(request, ra_slug):
                 filetype += "; charset=" + upfile.charset
             attachment.mediatype = filetype
             attachment.save()
+            req.last_updater = get_object_or_404(Person, userid=request.user.username)
+            req.save()
             messages.add_message(request, messages.SUCCESS, 'Admin attachment added.')
             l = LogEntry(userid=request.user.username, description="Added admin attachment %s" % attachment, related_object=attachment)
             l.save()
@@ -1117,6 +1124,8 @@ def delete_admin_attachment(request, ra_slug, attach_slug):
     req = get_object_or_404(RARequest, slug=ra_slug, draft=False, deleted=False, unit__in=request.units)
     attachment = get_object_or_404(req.attachments.all(), slug=attach_slug)
     attachment.hide()
+    req.last_updater = get_object_or_404(Person, userid=request.user.username)
+    req.save()
     messages.add_message(request, messages.SUCCESS, 'Admin attachment deleted.')
     l = LogEntry(userid=request.user.username, description="Hid admin attachment %s" % attachment, related_object=attachment)
     l.save()
