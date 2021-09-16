@@ -355,9 +355,10 @@ class Post(models.Model):
 
         Post.update_status should be called from any code that affects these factors.
         """
-        replies = Reply.objects.filter(parent=self).select_related('post', 'post__author')
-        if self.status == 'HIDD':
+        if self.status in ['HIDD', 'LOCK']:
             return
+
+        replies = Reply.objects.filter(parent=self).select_related('post', 'post__author')
 
         if self.type != 'QUES':
             self.status = 'NOAN'
@@ -460,7 +461,8 @@ class Thread(models.Model):
         with transaction.atomic():
             self.post.save(real_change=real_change)
             self.post_id = self.post.id
-            self.last_activity = datetime.datetime.now()
+            if real_change:
+                self.last_activity = datetime.datetime.now()
             result = super().save(*args, **kwargs)
 
             if create_history:

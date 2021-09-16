@@ -12,6 +12,7 @@ forum_patterns = [ # prefix /COURSE_SLUG/forum/
     url(r'^'+POST_NUMBER+'$', views.view_thread, name='view_thread'),
     url(r'^'+POST_NUMBER+'/edit$', views.edit_post, name='edit_post'),
     url(r'^'+POST_NUMBER+'/pin', views.pin, name='pin'),
+    url(r'^'+POST_NUMBER+'/lock', views.lock, name='lock'),
     url(r'^thread-list', views.thread_list, name='thread_list'),
     url(r'^new', views.new_thread, name='new_thread'),
     url(r'^'+POST_NUMBER+r'/react/(?P<reaction>\w+)$', views.react, name='react'),

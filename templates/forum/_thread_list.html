@@ -12,12 +12,16 @@
     </span>
     <span class="author">{{ thread.post.visible_author_short }}, last activity {{ thread.last_activity_html }}</span>
     <span class="icons">
+    {% if thread.post.status == 'LOCK' %}
+        <i class="fas fa-lock lock" title="locked"></i>
+    {% else %}
         {% if thread.post.type == 'DISC' %}<i class="far fa-comments disc" title="discussion"></i>{% endif %}
         {% if thread.post.status == 'OPEN' %}<i class="fas fa-question open" title="unanswered"></i>{% endif %}
         {% if thread.post.instr_answer %}<i class="fas fa-chalkboard-teacher answ" title="instructor answer"></i>{% endif %}
         {% if thread.post.approved_answer %}<i class="fas fa-thumbs-up answ" title="instructor-approved answer"></i>{% endif %}
         {% if thread.post.marked_answered or thread.post.asker_approved_answer %}<i class="far fa-thumbs-up answ" title="asker-approved answer"></i>{% endif %}
         {% if thread.pin %}<i class="fas fa-thumbtack pin" title="pinned"></i>{% endif %}
+    {% endif %}
     </span>
 </li>
 {% empty %}
