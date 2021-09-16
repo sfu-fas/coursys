@@ -151,6 +151,8 @@ def _email_request_notification(req, url):
             email = ENSC_CONTACT
         elif req.unit.label == "SEE":
             email = SEE_CONTACT
+        else:
+            email = FAS_CONTACT
     elif req.hiring_category == "RA" or req.hiring_category == "NC":
         email = FAS_CONTACT
 
