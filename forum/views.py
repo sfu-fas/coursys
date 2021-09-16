@@ -9,6 +9,7 @@ from django.db import transaction
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404, \
     JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.cache import cache_page
 from haystack.query import SearchQuerySet
 
 from coredata.models import Member, CourseOffering
@@ -158,8 +159,7 @@ def view_thread(request: ForumHttpRequest, post_number: int) -> HttpResponse:
                        .select_related('post', 'post__offering', 'thread').order_by('post__created_at'))
         if replies:
             url = replies[0].get_absolute_url(fragment=request.fragment_request)
-            return HttpResponseRedirect(url)
-            #return HttpResponsePermanentRedirect(url)
+            return HttpResponsePermanentRedirect(url)
         else:
             raise
 
@@ -182,6 +182,9 @@ def view_thread(request: ForumHttpRequest, post_number: int) -> HttpResponse:
     else:
         replyFormClass = ReplyForm
 
+    thread_locked = thread.post.status == 'LOCK' and request.member.role not in APPROVAL_ROLES
+    context['thread_locked'] = thread_locked
+
     if can_mark_answered and request.method == 'POST' and 'answered' in request.POST:
         # the "mark as answered" button
         thread.post.marked_answered = True
@@ -191,25 +194,30 @@ def view_thread(request: ForumHttpRequest, post_number: int) -> HttpResponse:
                         post_number=thread.post.number)
 
     elif request.method == 'POST':
-        # view_thread view has a form to reply to this thread
-        reply_form = replyFormClass(data=request.POST, member=request.member, offering_identity=request.forum.identity)
-        if reply_form.is_valid():
-            rep_post = reply_form.save(commit=False)
-            rep_post.offering = request.offering
-            rep_post.author = request.member
-            # for now at least: replies are not answer-requiring questions
-            rep_post.type = 'DISC'
-            rep_post.status = 'NOAN'
-            reply = Reply(post=rep_post, thread=thread, parent=thread.post)
-            reply.save(create_history=True, real_change=True)  # also saves the reply.post
+        if thread_locked:
+            reply_form = None
+        else:
+            # view_thread view has a form to reply to this thread
+            reply_form = replyFormClass(data=request.POST, member=request.member, offering_identity=request.forum.identity)
+            if reply_form.is_valid():
+                rep_post = reply_form.save(commit=False)
+                rep_post.offering = request.offering
+                rep_post.author = request.member
+                # for now at least: replies are not answer-requiring questions
+                rep_post.type = 'DISC'
+                rep_post.status = 'NOAN'
+                reply = Reply(post=rep_post, thread=thread, parent=thread.post)
+                reply.save(create_history=True, real_change=True)  # also saves the reply.post
 
-            reply.thread.post.update_status(commit=True)
+                reply.thread.post.update_status(commit=True)
 
-            # mark it as self-read
-            ReadReply(member=request.member, reply_id=reply.id).save()
+                # mark it as self-read
+                ReadReply(member=request.member, reply_id=reply.id).save()
 
-            return redirect('offering:forum:view_thread', course_slug=request.offering.slug,
-                            post_number=thread.post.number)
+                return redirect('offering:forum:view_thread', course_slug=request.offering.slug,
+                                post_number=thread.post.number)
+    elif thread_locked:
+        reply_form = None
     else:
         reply_form = replyFormClass(member=request.member, offering_identity=request.forum.identity)
 
@@ -240,7 +248,7 @@ def view_thread(request: ForumHttpRequest, post_number: int) -> HttpResponse:
     context['replies'] = replies
     context['post_reactions'] = post_reactions
     context['viewer_reactions'] = viewer_reactions
-    context['instr_pinnable'] = request.member.role in APPROVAL_ROLES
+    context['instr_editing'] = request.member.role in APPROVAL_ROLES
 
     return _render_forum_page(request, context)
 
@@ -290,6 +298,10 @@ def edit_post(request: ForumHttpRequest, post_number: int) -> HttpResponse:
         post = thread.post
         reply = None
         header_thread = None
+        thread_locked = thread.post.status == 'LOCK' and request.member.role not in APPROVAL_ROLES
+        if thread_locked:
+            return ForbiddenResponse(request, errormsg='Posts cannot be edited because this thread is locked')
+
         if post.author == request.member:
             Form = ThreadForm
         else:
@@ -303,6 +315,10 @@ def edit_post(request: ForumHttpRequest, post_number: int) -> HttpResponse:
             post = reply.post
             thread = None
             header_thread = reply.thread
+            thread_locked = header_thread.post.status == 'LOCK' and request.member.role not in APPROVAL_ROLES
+            if thread_locked:
+                return ForbiddenResponse(request, errormsg='Posts cannot be edited because this thread is locked')
+
             if post.author == request.member:
                 Form = ReplyForm
             else:
@@ -351,16 +367,29 @@ def edit_post(request: ForumHttpRequest, post_number: int) -> HttpResponse:
     return _render_forum_page(request, context)
 
 
+@cache_page(3600)
+@forum_view
+def preview(request: ForumHttpRequest) -> JsonResponse:
+    from courselib.markup import markup_to_html
+    try:
+        html = markup_to_html(request.GET['content'], request.GET['markup'], math=request.GET['math'] == 'true', restricted=True, forum_links=True)
+        return JsonResponse({'html': html})
+    except:  # yes I'm catching anything: any failure is low-consequence, so let it go.
+        return JsonResponse({'html': ''})
+
+
 @forum_view
 def react(request: ForumHttpRequest, post_number: int, reaction: str) -> HttpResponse:
     try:
-        reply = get_object_or_404(Reply.objects.filter_for(request.member).select_related('post'), post__number=post_number)
+        reply = get_object_or_404(Reply.objects.filter_for(request.member).select_related('post', 'thread__post'), post__number=post_number)
         post = reply.post
+        locked = reply.thread.post.status == 'LOCK'
     except Http404:
-       thread = get_object_or_404(Thread.objects.filter_for(request.member).select_related('post'), post__number=post_number)
-       post = thread.post
+        thread = get_object_or_404(Thread.objects.filter_for(request.member).select_related('post'), post__number=post_number)
+        post = thread.post
+        locked = thread.post.status == 'LOCK'
 
-    if post.author_id != request.member.id:
+    if post.author_id != request.member.id and not locked:
         if Reaction.objects.filter(member=request.member, post=post).exists():
             Reaction.objects.filter(member=request.member, post=post).update(reaction=reaction)
         else:
@@ -389,12 +418,39 @@ def pin(request: ForumHttpRequest, post_number: int) -> HttpResponse:
 
     pin = 'pin' in request.GET
     thread.pin = 1 if pin else 0
-    thread.save()
+    thread.save(real_change=False)
     if not request.fragment_request:
         if pin:
             messages.add_message(request, messages.SUCCESS, 'Thread pinned.')
         else:
             messages.add_message(request, messages.SUCCESS, 'Thread unpinned.')
+
+    if request.fragment_request:
+        return HttpResponseRedirect(thread.get_absolute_url() + '?fragment=yes')
+    else:
+        return HttpResponseRedirect(thread.get_absolute_url())
+
+
+@forum_view
+def lock(request: ForumHttpRequest, post_number: int) -> HttpResponse:
+    if request.member.role not in APPROVAL_ROLES:
+        raise Http404
+
+    thread = get_object_or_404(Thread.objects.filter_for(request.member).select_related('post'), post__number=post_number)
+
+    lock = 'lock' in request.GET
+    if lock:
+        thread.post.status = 'LOCK'
+    else:
+        thread.post.status = ''
+        thread.post.update_status(commit=False)
+    thread.post.save(real_change=False)
+
+    if not request.fragment_request:
+        if lock:
+            messages.add_message(request, messages.SUCCESS, 'Thread locked.')
+        else:
+            messages.add_message(request, messages.SUCCESS, 'Thread unlocked.')
 
     if request.fragment_request:
         return HttpResponseRedirect(thread.get_absolute_url() + '?fragment=yes')

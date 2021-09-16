@@ -21,11 +21,11 @@ from forum.names_generator import get_random_name
 # TODO: better highlighting of unread replies
 # TODO: better highlighting of instructor content
 # TODO: better highlighting of "approved" answers or instructor approvals
+# TODO: instructors should be able to "close" a thread, so no more activity (by students)
 
 # future TODOs...
 # TODO: thread categories
 # TODO: should a Reply have type for followup-question?
-# TODO: instructors should be able to "close" a thread, so no more activity (by students)
 # TODO: nice to have instructor interaction: make public and anonymous
 # TODO: some kind of display of post history
 # TODO: instructors can't be anonymous, so don't configure in avatar_form
@@ -355,9 +355,10 @@ class Post(models.Model):
 
         Post.update_status should be called from any code that affects these factors.
         """
-        replies = Reply.objects.filter(parent=self).select_related('post', 'post__author')
-        if self.status == 'HIDD':
+        if self.status in ['HIDD', 'LOCK']:
             return
+
+        replies = Reply.objects.filter(parent=self).select_related('post', 'post__author')
 
         if self.type != 'QUES':
             self.status = 'NOAN'
@@ -460,7 +461,8 @@ class Thread(models.Model):
         with transaction.atomic():
             self.post.save(real_change=real_change)
             self.post_id = self.post.id
-            self.last_activity = datetime.datetime.now()
+            if real_change:
+                self.last_activity = datetime.datetime.now()
             result = super().save(*args, **kwargs)
 
             if create_history:
