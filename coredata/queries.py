@@ -1440,8 +1440,9 @@ def outlines_api_url(offering):
 
 def outlines_data_json(offering):
     url = outlines_api_url(offering)
+    url_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     try:
-        req = urllib.request.urlopen(url, timeout=30)
+        req = url_opener.open(url, timeout=30)
         jsondata = req.read()
         data = json.loads(jsondata.decode('utf8'))
     except ValueError:
@@ -1471,8 +1472,9 @@ def userid_to_emplid(userid):
     """
     qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'username': userid})
     url = EMPLID_BASE_URL + qs
+    url_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     try:
-        req = urllib.request.urlopen(url, timeout=30)
+        req = url_opener.open(url, timeout=30)
         jsondata = req.read().decode('utf8')
         data = json.loads(jsondata)
     except ValueError:
@@ -1495,8 +1497,9 @@ def emplid_to_userid(emplid):
     """
     qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'sfuid': str(emplid)})
     url = USERID_BASE_URL + qs
+    url_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     try:
-        req = urllib.request.urlopen(url, timeout=30)
+        req = url_opener.open(url, timeout=30)
         jsondata = req.read().decode('utf8')
         data = json.loads(jsondata)
     except ValueError:
