@@ -301,9 +301,10 @@ def deploy_checks(request=None):
 
     # CAS connectivity
     try:
-        resp = requests.get(settings.CAS_SERVER_URL, allow_redirects=False, timeout=5)
-        if resp.status_code != 302:
-            failed.append(('CAS Connectivity', 'Expected 302 response from CAS, but got %i' % (resp.status_code,)))
+        url_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        req = url_opener.open(urllib.parse.urljoin(settings.CAS_SERVER_URL, 'login'))
+        if req.status != 200:
+            failed.append(('CAS Connectivity', 'Expected 200 response from CAS, but got %i' % (req.status,)))
         else:
             passed.append(('CAS Connectivity', 'okay'))
     except requests.exceptions.ConnectionError as e:
