@@ -225,7 +225,7 @@ if deploy_mode != 'devel'
   cron "celery check" do
     user username
     minute '0'
-    command "python3 #{coursys_dir}/manage.py ping_celery"
+    command ". /etc/profile.d/coursys-environment.sh; python3 /coursys/manage.py ping_celery"
   end
   cron "celery restart" do
     user 'root'

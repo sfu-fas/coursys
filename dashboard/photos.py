@@ -27,7 +27,7 @@ CHUNK_SIZE = 10 # max number of photos to fetch in one request
 # max number of concurrent requests is managed by the celery 'photos' queue (it should be <= 5)
 
 PHOTO_TIMEOUT = 20 # number of seconds the views will wait for the photo service
-MAX_PHOTO_SIZE = 360 # max (width and height) dimensions of an image we'll return
+MAX_PHOTO_SIZE = 720 # max (width and height) dimensions of an image we'll return
 TASK_BACKOFF = [1,2,3,4,5,6] # times to wait for photo fetching tasks
 
 
