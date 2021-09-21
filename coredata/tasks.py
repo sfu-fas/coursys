@@ -108,7 +108,7 @@ def check_sims_task() -> Optional[str]:
     """
     try:
         db = SIMSConn()
-        db.execute("SELECT last_name FROM ps_names WHERE emplid=301355288", ())
+        db.execute("SELECT LAST_NAME FROM PS_NAMES WHERE EMPLID=301355288", ())
         result = list(db)
         # whoever this is, they have non-ASCII in their name: let's hope they don't change it.
         lname = result[0][0]

@@ -14,5 +14,5 @@ server {
         access_log <%= @data_root %>/nginx-logs/default-http.access.log;
         error_log <%= @data_root %>/nginx-logs/default-http.error.log warn;
 
-        return 301 http://<%= @true_domain_name %>$request_uri;
+        return 301 https://<%= @true_domain_name %>$request_uri;
 }

@@ -263,7 +263,7 @@ if deploy_mode != 'devel'
   # the different personalities of nginx that we can deploy...
   if deploy_mode == 'proddev'
     serve_names = [domain_name, 'localhost']
-    redirect_names = ['foo.bar']
+    redirect_names = ['coursys-dev.selfip.net']
     #https_port = '443'
     #hsts = true  # TODO: re-enable when we're settled
     hsts = false

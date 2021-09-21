@@ -362,18 +362,6 @@ MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)
 SERVER_MESSAGE_INDEX = getattr(localsettings, 'SERVER_MESSAGE_INDEX', '')
 SERVER_MESSAGE = getattr(localsettings, 'SERVER_MESSAGE', '')
 
-#PIWIK_URL = getattr(secrets, 'PIWIK_URL', None)
-#PIWIK_TOKEN = getattr(secrets, 'PIWIK_TOKEN', None)
-#PIWIK_SITEID = getattr(secrets, 'PIWIK_SITEID', 1)
-#PIWIK_CELERY = USE_CELERY
-#PIWIK_CELERY_TASK_KWARGS = {'queue': 'batch', 'rate_limit': '5/s', 'max_retries': 6, 'default_retry_delay': 600}
-#PIWIK_FAIL_SILENTLY = True
-#PIWIK_FORCE_HOST = 'courses.cs.sfu.ca'
-
-BACKUP_REMOTE_URL = getattr(secrets, 'BACKUP_REMOTE_URL', None)
-BACKUP_KEY_ID = getattr(secrets, 'BACKUP_KEY_ID', None)
-BACKUP_KEY_PASSPHRASE = getattr(secrets, 'BACKUP_KEY_PASSPHRASE', None)
-
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
 DATETIME_FORMAT = "D N d Y, H:i"

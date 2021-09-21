@@ -226,7 +226,7 @@ def deploy_checks(request=None):
     # Reporting DB connection
     try:
         db = SIMSConn()
-        db.execute("SELECT last_name FROM ps_names WHERE emplid=301355288", ())
+        db.execute("SELECT LAST_NAME FROM PS_NAMES WHERE EMPLID=301355288", ())
         result = list(db)
         # whoever this is, they have non-ASCII in their name: let's hope they don't change it.
         lname = result[0][0]
@@ -392,13 +392,13 @@ def deploy_checks(request=None):
     import ntplib
     try:
         c = ntplib.NTPClient()
-        response = c.request('pool.ntp.org')
+        response = c.request('ns2.sfu.ca')
         if abs(response.offset) > 0.1:
-            failed.append(('Server time', 'Time is %g seconds off NTP pool.' % (response.offset,)))
+            failed.append(('Server time', 'Time is %g seconds off NTP reference.' % (response.offset,)))
         else:
             passed.append(('Server time', 'okay'))
     except ntplib.NTPException as e:
-        failed.append(('Server time', 'Unable to query NTP pool: %s' % (e,)))
+        failed.append(('Server time', 'Unable to query NTP reference: %s' % (e,)))
 
     # library sanity
     err = bitfield_check()
