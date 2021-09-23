@@ -89,7 +89,7 @@ def check_sims_connection():
         return
     from coredata.queries import SIMSConn, SIMSProblem
     db = SIMSConn()
-    db.execute("SELECT descr FROM dbcsown.PS_TERM_TBL WHERE strm='1111'", ())
+    db.execute("SELECT DESCR FROM PS_TERM_TBL WHERE STRM='1111'", ())
     if len(list(db)) == 0:
         raise SIMSProblem("Didn't get any data back from SIMS query.")
 

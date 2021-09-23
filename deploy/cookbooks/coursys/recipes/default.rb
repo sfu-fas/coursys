@@ -367,6 +367,12 @@ if deploy_mode != 'devel'
     owner "root"
     mode "0644"
   end
+  cron "kinit refresh" do
+    user username
+    minute '30'
+    hour '0,12'
+    command "kinit -R"
+  end
 
   # The MOSS source, as moss.zip is also not distributed here for copyright reasons.
   # It must be inserted into cookbooks/courses/files/ manually and should contain moss/moss.pl.
@@ -383,11 +389,11 @@ if deploy_mode != 'devel'
     only_if { ::File.file?("#{user_home}/moss.zip") } # if we don't have the code, skip
   end
 
-  execute "ssh_no_passwords" do
-    command "echo '\nPasswordAuthentication no' >> /etc/ssh/sshd_config"
-    not_if "grep -q '^PasswordAuthentication no' /etc/ssh/sshd_config"
-    notifies :restart, 'service[ssh]', :immediately
-  end
+  #execute "ssh_no_passwords" do
+  #  command "echo '\nPasswordAuthentication no' >> /etc/ssh/sshd_config"
+  #  not_if "grep -q '^PasswordAuthentication no' /etc/ssh/sshd_config"
+  #  notifies :restart, 'service[ssh]', :immediately
+  #end
 
   cookbook_file "forward" do
     path "/root/.forward"

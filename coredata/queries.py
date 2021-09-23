@@ -1427,21 +1427,24 @@ def csrpt_update():
         SELECT SFU_CLONE_DTTM FROM PS_SFU_CLONE_INFO
         """, ())
     row = db.fetchone()
-    data.append(('ps_sfu_clone_info.sfu_clone_dttm', row[0]))
+    if row:
+        data.append(('ps_sfu_clone_info.sfu_clone_dttm', row[0]))
 
     db.execute("""
         SELECT MAX(ENRL_ADD_DT), MAX(STATUS_DT), MAX(GRADING_BASIS_DT) FROM PS_STDNT_ENRL WHERE STRM IN (%s, %s)
         """, (this_sem.name, this_sem.offset_name(1)))
     row = db.fetchone()
-    data.append(('max(enrl_add_dt)', row[0]))
-    data.append(('max(status_dt)', row[1]))
-    data.append(('max(grading_basis_dt)', row[2]))
+    if row:
+        data.append(('max(enrl_add_dt)', row[0]))
+        data.append(('max(status_dt)', row[1]))
+        data.append(('max(grading_basis_dt)', row[2]))
 
     db.execute("""
         SELECT MAX(SCC_ROW_ADD_DTTM) FROM PS_ACAD_PLAN
         """, ())
     row = db.fetchone()
-    data.append(('recent ps_acad_plan', row[0]))
+    if row:
+        data.append(('recent ps_acad_plan', row[0]))
 
     return data
 

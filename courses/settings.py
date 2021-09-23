@@ -39,9 +39,9 @@ sys.path.append( os.path.join(BASE_DIR, 'external') )
 
 ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
-    ('Phil Boutros', 'philb@sfu.ca'),
     ('sumo Kindersley', 'sumo@cs.sfu.ca'),
     ('FAS Software Developer', 'fas_developer@sfu.ca'),
+    ('Renee Chong', 'renee_chong@sfu.ca'),
 )
 SERVER_EMAIL = 'ggbaker@sfu.ca'
 
@@ -355,7 +355,7 @@ EMAIL_USE_SSL = getattr(localsettings, 'EMAIL_USE_SSL', True)
 DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
-SIMS_DB_SERVER = getattr(secrets, 'SIMS_DB_SERVER', '')
+SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
 SIMS_DB_NAME = "CSRPT"
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)
