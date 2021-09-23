@@ -138,7 +138,9 @@ class SIMSConn(DBConn):
         """
         get result value into a useful format
         """
-        if isinstance(v, decimal.Decimal):
+        if isinstance(v, str):
+            return v.strip()
+        elif isinstance(v, decimal.Decimal):
             return float(v)
         else:
             return v
@@ -219,9 +221,34 @@ def SIMS_problem_handler(func):
     Decorator to deal somewhat gracefully with any SIMS database problems.
     Any decorated function may raise a SIMSProblem instance to indicate a
     problem with the database connection.
-    
+
     Should be applied to any functions that use a SIMSConn object.
     """
+
+    def wrapped(*args, **kwargs):
+        return func(*args, **kwargs)  # temporary: check what errors we get
+
+        # check for the types of errors we know might happen and return an error message in a SIMSProblem
+        try:
+            return func(*args, **kwargs)
+        except SIMSConn.DatabaseError as e:
+            raise SIMSProblem("could not connect to reporting database")
+        except SIMSConn.DB2Error as e:
+            raise SIMSProblem("problem with connection to reporting database")
+
+    wrapped.__name__ = func.__name__
+    return wrapped
+
+
+def SIMS_problem_handler_old(func):
+    """
+    Decorator to deal somewhat gracefully with any SIMS database problems.
+    Any decorated function may raise a SIMSProblem instance to indicate a
+    problem with the database connection.
+
+    Should be applied to any functions that use a SIMSConn object.
+    """
+
     def wrapped(*args, **kwargs):
         # check for the types of errors we know might happen and return an error message in a SIMSProblem
         try:
