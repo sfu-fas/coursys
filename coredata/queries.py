@@ -876,10 +876,14 @@ def acad_plan_count(acad_plan, strm):
     db = SIMSConn()
 
     # most recent acad_plan, most recent acad_plan *in this program* for each student active this semester
-    last_prog_plan = "(SELECT AP.EMPLID, MAX(AP.EFFDT) AS EFFDTPROG, MAX(AP2.EFFDT) AS EFFDT " \
-                     "FROM PS_ACAD_PLAN AP, PS_ACAD_PLAN AP2, PS_STDNT_CAR_TERM CT "\
-                     "WHERE AP.EMPLID=CT.EMPLID AND AP.EMPLID=AP2.EMPLID AND CT.STRM=%s AND AP.ACAD_PLAN=%s " \
-                     "AND CT.STDNT_CAR_NBR=AP.STDNT_CAR_NBR GROUP BY AP.EMPLID)"
+    last_prog_plan = """(
+        SELECT AP.EMPLID, MAX(AP.EFFDT) AS EFFDTPROG, MAX(AP2.EFFDT) AS EFFDT
+        FROM PS_ACAD_PLAN AP
+            INNER JOIN PS_ACAD_PLAN AP2 ON (AP.EMPLID=AP2.EMPLID)
+            INNER JOIN PS_STDNT_CAR_TERM CT ON (AP.EMPLID=CT.EMPLID AND CT.STDNT_CAR_NBR=AP.STDNT_CAR_NBR )
+        WHERE CT.STRM=%s AND AP.ACAD_PLAN=%s
+        GROUP BY AP.EMPLID
+    )"""
 
     # select those whose most recent program is in this acad_plan
     db.execute("SELECT COUNT(*) FROM " + last_prog_plan + " WHERE EFFDTPROG=EFFDT", (strm, acad_plan))
@@ -927,8 +931,8 @@ def grad_student_courses(emplid):
     db = SIMSConn()
     query = "SELECT E.STRM, C.SUBJECT, C.CATALOG_NBR, C.CLASS_SECTION, C.CLASS_NBR, " \
                  "E.UNT_TAKEN, E.CRSE_GRADE_OFF, E.GRADE_POINTS " \
-                 "FROM PS_STDNT_ENRL E, PS_CLASS_TBL C " \
-                 "WHERE E.CLASS_NBR=C.CLASS_NBR AND E.STRM=C.STRM AND E.EMPLID=%s " \
+                 "FROM PS_STDNT_ENRL E INNER JOIN PS_CLASS_TBL C ON (E.CLASS_NBR=C.CLASS_NBR AND E.STRM=C.STRM) " \
+                 "WHERE E.EMPLID=%s " \
                  "AND C.CLASS_TYPE='E' AND E.STDNT_ENRL_STATUS='E' AND E.ACAD_CAREER='GRAD' " \
                  "ORDER BY E.STRM, C.SUBJECT, C.CATALOG_NBR"
     db.execute(query, (str(emplid),))
@@ -1186,7 +1190,7 @@ def get_end_of_degree(emplid, acad_prog, start_semester):
 
 #@cache_by_args
 @SIMS_problem_handler
-def guess_adm_appl_nbr( emplid, acad_prog, start_semester, end_semester ):
+def guess_adm_appl_nbr(emplid, acad_prog, start_semester, end_semester):
     """
     Given an acad_prog, find any adm_appl_nbr records between start_semester
     and end_semester that didn't result in a rejection
@@ -1224,7 +1228,7 @@ def guess_harder_at_adm_appl_nbr( emplid, acad_prog, start_semester, end_semeste
     db = SIMSConn()
     query = """
         SELECT DISTINCT 
-            pROG.ADM_APPL_NBR 
+            PROG.ADM_APPL_NBR 
         FROM PS_ADM_APPL_PROG PROG
         LEFT JOIN PS_ADM_APPL_DATA DATA
             ON PROG.ADM_APPL_NBR = DATA.ADM_APPL_NBR
@@ -1348,11 +1352,11 @@ def get_supervisory_committee(emplid, min_date=None, max_date=None):
             AND COM.EFFDT = ( SELECT MAX(TMP.EFFDT)
                                 FROM PS_COMMITTEE TMP
                                 WHERE TMP.COMMITTEE_ID = COM.COMMITTEE_ID
-                                AND EFFDT > DATE(%S)
-                                AND EFFDT < DATE(%S)
+                                AND EFFDT > %s
+                                AND EFFDT < %s
                                 AND TMP.COMMITTEE_TYPE = COM.COMMITTEE_TYPE )
         """
-    db.execute(query, (str(emplid), str(min_date), str(max_date) ))
+    db.execute(query, (str(emplid), min_date, max_date))
     return list(db)
 
 #@cache_by_args
@@ -1420,7 +1424,7 @@ def csrpt_update():
     this_sem = Semester.current()
 
     db.execute("""
-        SELECT SFU_CLONE_DTTM FROM PS_SFU_CLONE_INFO  OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
+        SELECT SFU_CLONE_DTTM FROM PS_SFU_CLONE_INFO
         """, ())
     row = db.fetchone()
     data.append(('ps_sfu_clone_info.sfu_clone_dttm', row[0]))
