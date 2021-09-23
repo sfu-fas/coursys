@@ -81,8 +81,8 @@ def get_unit(acad_org, create=False):
         unit = Unit.objects.get(acad_org=acad_org)
     except Unit.DoesNotExist:
         db = SIMSConn()
-        db.execute("SELECT descrformal FROM ps_acad_org_tbl "
-                   "WHERE eff_status='A' and acad_org=%s", (acad_org,))
+        db.execute("SELECT DESCRFORMAL FROM PS_ACAD_ORG_TBL "
+                   "WHERE EFF_STATUS='A' AND ACAD_ORG=%s", (acad_org,))
         
         name, = db.fetchone()
         if acad_org == 'COMP SCI': # for test/demo imports
@@ -232,8 +232,7 @@ def import_offerings(extra_where='1=1', import_semesters=import_semesters, cance
 
 def _person_save(p):
     """
-    Save this person object
-    #, dealing with duplicate userid as appropriate
+    Save this person object, dealing with duplicate userid as appropriate
     """
     #try:
     p.save_if_dirty()
@@ -346,9 +345,9 @@ def import_meeting_times(offering):
     Import course meeting times
     """
     db = SIMSConn()
-    db.execute("SELECT meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, "
-               "start_dt, end_dt, stnd_mtg_pat, class_section FROM ps_class_mtg_pat "
-               "WHERE crse_id=%s and class_section like %s and strm=%s",
+    db.execute("SELECT MEETING_TIME_START, MEETING_TIME_END, FACILITY_ID, MON,TUES,WED,THURS,FRI,SAT,SUN, "
+               "START_DT, END_DT, STND_MTG_PAT, CLASS_SECTION FROM PS_CLASS_MTG_PAT "
+               "WHERE CRSE_ID=%s AND CLASS_SECTION LIKE %s AND STRM=%s",
                ("%06i" % (int(offering.crse_id)), offering.section[0:2]+"%", offering.semester.name))
     # keep track of meetings we've found, so we can remove old (non-importing semesters and changed/gone)
     found_mtg = set()
@@ -472,11 +471,11 @@ def import_students(offering):
     # s students in c2
     # WHERE lines: (1) match lab/tut sections of c1 class (2) students in those
     # lab/tut sections (3) with c1 matching offering
-    query = "SELECT s.emplid, c2.class_section " \
-        "FROM ps_class_tbl c1, ps_class_tbl c2, ps_stdnt_enrl s " \
-        "WHERE c1.subject=c2.subject and c1.catalog_nbr=c2.catalog_nbr and c2.strm=c1.strm " \
-        "and s.class_nbr=c2.class_nbr and s.strm=c2.strm and s.enrl_status_reason IN ('ENRL','EWAT') " \
-        "and c1.class_nbr=%s and c1.strm=%s and c2.class_section LIKE %s"
+    query = "SELECT S.EMPLID, C2.CLASS_SECTION " \
+        "FROM PS_CLASS_TBL C1, PS_CLASS_TBL C2, PS_STDNT_ENRL S " \
+        "WHERE C1.SUBJECT=C2.SUBJECT AND C1.CATALOG_NBR=C2.CATALOG_NBR AND C2.STRM=C1.STRM " \
+        "AND S.CLASS_NBR=C2.CLASS_NBR AND S.STRM=C2.STRM AND S.ENRL_STATUS_REASON IN ('ENRL','EWAT') " \
+        "AND C1.CLASS_NBR=%s AND C1.STRM=%s AND C2.CLASS_SECTION LIKE %s"
     db.execute(query, (offering.class_nbr, offering.semester.name, offering.section[0:2]+"%"))
     labtut = {}
     for emplid, section in db:
@@ -485,11 +484,11 @@ def import_students(offering):
             continue
         labtut[emplid] = section
     
-    db.execute("SELECT e.emplid, e.acad_career, e.unt_taken, e.crse_grade_off, r.crse_grade_input "
-               "FROM ps_stdnt_enrl e LEFT JOIN ps_grade_roster r "
-               "ON e.strm=r.strm and e.acad_career=r.acad_career and e.emplid=r.emplid and e.class_nbr=r.class_nbr "
-               "WHERE e.class_nbr=%s and e.strm=%s and e.stdnt_enrl_status='E' and "
-               "e.enrl_status_reason IN ('ENRL','EWAT')", (offering.class_nbr, offering.semester.name))
+    db.execute("SELECT E.EMPLID, E.ACAD_CAREER, E.UNT_TAKEN, E.CRSE_GRADE_OFF, R.CRSE_GRADE_INPUT "
+               "FROM PS_STDNT_ENRL E LEFT JOIN PS_GRADE_ROSTER R "
+               "ON E.STRM=R.STRM AND E.ACAD_CAREER=R.ACAD_CAREER AND E.EMPLID=R.EMPLID AND E.CLASS_NBR=R.CLASS_NBR "
+               "WHERE E.CLASS_NBR=%s AND E.STRM=%s AND E.STDNT_ENRL_STATUS='E' and "
+               "E.ENRL_STATUS_REASON IN ('ENRL','EWAT')", (offering.class_nbr, offering.semester.name))
     for emplid, acad_career, unt_taken, grade_official, grade_roster in db.rows():
         p = get_person(emplid)
         sec = labtut.get(emplid, None)
@@ -542,8 +541,8 @@ def import_all_instructors(strm, extra_where='1=1', offering_map=None):
 
     Member.objects.filter(added_reason="AUTO", offering__semester__name=strm, role="INST").update(role='DROP')
     db = SIMSConn()
-    db.execute("SELECT crse_id, class_section, strm, emplid, instr_role, sched_print_instr FROM ps_class_instr WHERE " \
-               "strm=%s AND instr_role IN ('PI', 'SI') AND " + extra_where,
+    db.execute("SELECT CRSE_ID, CLASS_SECTION, STRM, EMPLID, INSTR_ROLE, SCHED_PRINT_INSTR FROM PS_CLASS_INSTR WHERE " \
+               "STRM=%s AND INSTR_ROLE IN ('PI', 'SI') AND " + extra_where,
                (strm,))
 
     for crse_id, class_section, strm, emplid, instr_role, sched_print_instr in db.rows():
@@ -573,8 +572,8 @@ def import_all_meeting_times(strm, extra_where='1=1', offering_map=None):
         offering_map = crseid_offering_map(strm)
 
     db = SIMSConn()
-    db.execute("""SELECT crse_id, class_section, strm, meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun,
-               start_dt, end_dt, stnd_mtg_pat FROM ps_class_mtg_pat WHERE strm=%s AND """ + extra_where,
+    db.execute("""SELECT CRSE_ID, CLASS_SECTION, STRM, MEETING_TIME_START, MEETING_TIME_END, FACILITY_ID, MON,TUES,WED,THURS,FRI,SAT,SUN,
+               START_DT, END_DT, STND_MTG_PAT FROM PS_CLASS_MTG_PAT WHERE STRM=%s AND """ + extra_where,
                (strm,))
     # keep track of meetings we've found, so we can remove old (non-importing semesters and changed/gone)
     found_mtg = set()
@@ -640,7 +639,7 @@ def import_joint(extra_where='1=1'):
     Find combined sections and set CourseOffering.config['joint_with'] appropriately.
     """
     db = SIMSConn()
-    db.execute("SELECT strm, class_nbr, sctn_combined_id FROM ps_sctn_cmbnd c WHERE c.strm IN %s "
+    db.execute("SELECT STRM, CLASS_NBR, SCTN_COMBINED_ID FROM PS_SCTN_CMBND C WHERE C.STRM IN %s "
                " AND ("+extra_where+")", (import_semesters(),))
 
     for k,v in itertools.groupby(db, lambda d: (d[0], d[2])):
@@ -688,9 +687,9 @@ def semester_first_day():
     " First day of classes"
     db = SIMSConn()
     db.execute("""
-        SELECT strm, sess_begin_dt
-        FROM ps_session_tbl
-        WHERE acad_career='UGRD' AND session_code='1'""", ())
+        SELECT STRM, SESS_BEGIN_DT
+        FROM PS_SESSION_TBL
+        WHERE ACAD_CAREER='UGRD' AND SESSION_CODE='1'""", ())
     return dict(db)
 
 @cache_by_args
@@ -701,15 +700,15 @@ def semester_last_day():
     # Why 250? Because "SELECT * FROM psxlatitem WHERE fieldname='TIME_PERIOD'"
     db = SIMSConn()
     db.execute("""
-        SELECT strm, end_dt
-        FROM ps_sess_time_perod
-        WHERE time_period=250 AND acad_career='UGRD' AND session_code='1'""", ())
+        SELECT STRM, END_DT
+        FROM PS_SESS_TIME_PEROD
+        WHERE TIME_PERIOD=250 AND ACAD_CAREER='UGRD' AND SESSION_CODE='1'""", ())
     return dict(db)
 
 @cache_by_args
 def all_holidays():
     db = SIMSConn()
-    db.execute("""SELECT holiday, descr FROM ps_holiday_date WHERE holiday_hrs=24""", ())
+    db.execute("""SELECT HOLIDAY, DESCR FROM PS_HOLIDAY_DATE WHERE HOLIDAY_HRS=24""", ())
     return list(db)
 
 def first_monday(start):
