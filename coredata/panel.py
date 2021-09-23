@@ -326,7 +326,7 @@ def deploy_checks(request=None):
     # are any services listening publicly that shouldn't?
     hostname = socket.gethostname()
     ports = [
-        25, # mail server
+        #25, # mail server
         #4369, # epmd, erlang port mapper daemon is okay to listen externally and won't start with ERL_EPMD_ADDRESS set. http://serverfault.com/questions/283913/turn-off-epmd-listening-port-4369-in-ubuntu-rabbitmq
         45130, # beam? rabbitmq something
         4000, # main DB stunnel

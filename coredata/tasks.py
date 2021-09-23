@@ -75,19 +75,12 @@ def set_beat_time() -> None:
 def regular_backup():
     if settings.DO_IMPORTING_HERE:
         # if we're not on the "real" database, then don't bother with regular backups
-        (backup_database.si() | backup_to_remote.si()).apply_async()
+        backup_database.si().apply_async()
 
 
 @task()
 def backup_database():
     call_command('backup_db', clean_old=True)
-
-
-@task()
-def backup_to_remote():
-    return
-    call_command('backup_remote')
-
 
 
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))

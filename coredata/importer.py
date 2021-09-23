@@ -188,18 +188,18 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     return c
 
 
-CLASS_TBL_FIELDS = 'ct.subject, ct.catalog_nbr, ct.class_section, ct.strm, ct.crse_id, ct.class_nbr, ' \
-        + 'ct.ssr_component, ct.descr, ct.campus, ct.enrl_cap, ct.enrl_tot, ct.wait_tot, ct.cancel_dt, ' \
-        + 'ct.acad_org, ct.instruction_mode, cc.rqmnt_designtn, cc.units_minimum' # cc.course_title_long
+CLASS_TBL_FIELDS = 'CT.SUBJECT, CT.CATALOG_NBR, CT.CLASS_SECTION, CT.STRM, CT.CRSE_ID, CT.CLASS_NBR, ' \
+        + 'CT.SSR_COMPONENT, CT.DESCR, CT.CAMPUS, CT.ENRL_CAP, CT.ENRL_TOT, CT.WAIT_TOT, CT.CANCEL_DT, ' \
+        + 'CT.ACAD_ORG, CT.INSTRUCTION_MODE, CC.RQMNT_DESIGNTN, CC.UNITS_MINIMUM' # cc.course_title_long
 CLASS_TBL_QUERY = """
 SELECT """ + CLASS_TBL_FIELDS + """
-FROM ps_class_tbl ct
-  LEFT OUTER JOIN ps_crse_catalog cc ON ct.crse_id=cc.crse_id
-  LEFT OUTER JOIN ps_term_tbl t ON ct.strm=t.strm AND ct.acad_career=t.acad_career
+FROM PS_CLASS_TBL CT
+  LEFT OUTER JOIN PS_CRSE_CATALOG CC ON CT.CRSE_ID=CC.CRSE_ID
+  LEFT OUTER JOIN PS_TERM_TBL T ON CT.STRM=T.STRM AND CT.ACAD_CAREER=T.ACAD_CAREER
 WHERE
-  cc.eff_status='A' AND ct.class_type='E' AND ct.class_stat='A'
-  AND cc.effdt=(SELECT MAX(effdt) FROM ps_crse_catalog
-                WHERE crse_id=cc.crse_id AND eff_status='A' AND effdt<=t.term_begin_dt)
+  CC.EFF_STATUS='A' AND CT.CLASS_TYPE='E' AND CT.CLASS_STAT='A'
+  AND CC.EFFDT=(SELECT MAX(EFFDT) FROM PS_CRSE_CATALOG
+                WHERE CRSE_ID=CC.CRSE_ID AND EFF_STATUS='A' AND EFFDT<=T.TERM_BEGIN_DT)
 """ # AND more stuff added where it is used.
 # Note that this query can return multiple rows where one course was entered in multiple sessions
 # (e.g. import_one_offering(strm='1014', subject='CMPT', number='310', section='D100')
@@ -209,7 +209,7 @@ WHERE
 
 def import_offerings(extra_where='1=1', import_semesters=import_semesters, cancel_missing=False, create_units=False):
     db = SIMSConn()
-    db.execute(CLASS_TBL_QUERY + " AND ct.strm IN %s "
+    db.execute(CLASS_TBL_QUERY + " AND CT.STRM IN %s "
                " AND ("+extra_where+")", (import_semesters(),))
     imported_offerings = set()
     for row in db.rows():
@@ -451,8 +451,8 @@ def import_instructors(offering):
     "Import instructors for this offering"
     Member.objects.filter(added_reason="AUTO", offering=offering, role="INST").update(role='DROP')
     db = SIMSConn()
-    db.execute("SELECT emplid, instr_role, sched_print_instr FROM ps_class_instr WHERE " \
-               "crse_id=%s and class_section=%s and strm=%s and instr_role IN ('PI', 'SI')",
+    db.execute("SELECT EMPLID, INSTR_ROLE, SCHED_PRINT_INSTR FROM PS_CLASS_INSTR WHERE " \
+               "CRSE_ID=%s AND CLASS_SECTION=%s AND STRM=%s AND INSTR_ROLE IN ('PI', 'SI')",
                ("%06i" % (int(offering.crse_id)), offering.section, offering.semester.name))
     for emplid, _, sched_print_instr in db.rows():
         if not emplid:

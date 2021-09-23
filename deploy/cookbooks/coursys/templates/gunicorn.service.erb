@@ -15,7 +15,6 @@ ExecStart=/usr/local/bin/gunicorn --workers=10 --worker-class=sync --max-request
 ExecReload=/bin/kill -s HUP $MAINPID
 KillMode=mixed
 TimeoutStopSec=5
-PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
