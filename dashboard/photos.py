@@ -27,8 +27,10 @@ CHUNK_SIZE = 10 # max number of photos to fetch in one request
 # max number of concurrent requests is managed by the celery 'photos' queue (it should be <= 5)
 
 PHOTO_TIMEOUT = 20 # number of seconds the views will wait for the photo service
-MAX_PHOTO_SIZE = 360 # max (width and height) dimensions of an image we'll return
+MAX_PHOTO_SIZE = 720 # max (width and height) dimensions of an image we'll return
 TASK_BACKOFF = [1,2,3,4,5,6] # times to wait for photo fetching tasks
+
+url_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
 # from http://docs.python.org/2/library/itertools.html
@@ -165,7 +167,7 @@ def _get_photo_token():
     """
     token_data = urllib.parse.urlencode({'AccountName': ACCOUNT_NAME, 'Password': get_photo_password()}).encode('utf8')
     try:
-        token_request = urllib.request.urlopen(TOKEN_URL, data=token_data)
+        token_request = url_opener.open(TOKEN_URL, data=token_data)
     except IOError:
         return ''
     else:
@@ -194,8 +196,6 @@ def possibly_resize(original):
     return resize.getvalue()
 
 
-
-
 def _get_photos(emplids):
     """
     Get actual photo data from photo service. Returns emplid -> JPEG data dict
@@ -210,7 +210,7 @@ def _get_photos(emplids):
     headers = {'Authorization': 'Bearer ' + token}
     try:
         photo_request_obj = urllib.request.Request(url=photo_url, headers=headers)
-        photo_request = urllib.request.urlopen(photo_request_obj, timeout=30)
+        photo_request = url_opener.open(photo_request_obj, timeout=30)
     except IOError:
         return {}
 
@@ -300,7 +300,7 @@ def change_photo_password():
         'OldPassword': get_photo_password(),
         'NewPassword': newpw,
     })
-    resp = urllib.request.urlopen(PASSWORD_URL, data=token_data.encode('ascii'))
+    resp = url_opener.open(PASSWORD_URL, data=token_data.encode('ascii'))
     resp_text = resp.read()
     set_photo_password(newpw)
     return resp_text

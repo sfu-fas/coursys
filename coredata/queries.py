@@ -69,13 +69,91 @@ class DBConn(object):
 
 
 class SIMSConn(DBConn):
+    def get_connection(self):
+        if settings.DISABLE_REPORTING_DB:
+            raise SIMSProblem("Reporting database access has been disabled in this deployment.")
+
+        import pyodbc
+        dbconn = pyodbc.connect("DRIVER={FreeTDS};SERVER=%s;PORT=1433;DATABASE=%s;Trusted_Connection=Yes"
+                                % (settings.SIMS_DB_SERVER, settings.SIMS_DB_NAME))
+        cursor = dbconn.cursor()
+        return dbconn, cursor
+
+    # adapted from _quote_simple_value from _mssql.pyx https://github.com/pymssql/pymssql/blob/master/src/pymssql/_mssql.pyx#L1930-L1933
+    def escape_arg(self, value, charset='utf8'):
+        if type(value) in (tuple, list, set):
+            return '(' + ', '.join((self.escape_arg(v) for v in value)) + ')'
+
+        if value == None:
+            return b'NULL'
+
+        if isinstance(value, bool):
+            return '1' if value else '0'
+
+        if isinstance(value, float):
+            return repr(value)#.encode(charset)
+
+        if isinstance(value, (int, decimal.Decimal)):
+            return str(value)#.encode(charset)
+
+        #if isinstance(value, uuid.UUID):
+        #    return _quote_simple_value(str(value))
+
+        if isinstance(value, str):
+            return ("N'" + value.replace("'", "''") + "'")#.encode(charset)
+
+        #if isinstance(value, bytearray):
+        #    return b'0x' + binascii.hexlify(bytes(value))
+
+        #if isinstance(value, (str, bytes)):
+        #    # see if it can be decoded as ascii if there are no null bytes
+        #    if b'\0' not in value:
+        #        try:
+        #            value.decode('ascii')
+        #            return b"'" + value.replace(b"'", b"''") + b"'"
+        #        except UnicodeDecodeError:
+        #            pass
+        #    # Python 3: handle bytes
+        #    # @todo - Marc - hack hack hack
+        #    if isinstance(value, bytes):
+        #        return b'0x' + binascii.hexlify(value)
+        #    # will still be string type if there was a null byte in it or if the
+        #    # decoding failed.  In this case, just send it as hex.
+        #    if isinstance(value, str):
+        #        return '0x' + value.encode('hex')
+
+        if isinstance(value, datetime.datetime):
+            return "'%04d-%02d-%02d %02d:%02d:%02d.%03d'" % (
+                value.year, value.month, value.day,
+                value.hour, value.minute, value.second,
+                value.microsecond / 1000)
+
+        if isinstance(value, datetime.date):
+            return "'%04d-%02d-%02d'" % (
+            value.year, value.month, value.day)
+
+        return None
+
+    def prep_value(self, v):
+        """
+        get result value into a useful format
+        """
+        if isinstance(v, str):
+            return v.strip()
+        elif isinstance(v, decimal.Decimal):
+            return float(v)
+        else:
+            return v
+
+
+class OldSIMSConn(DBConn):
     """
     Singleton object representing SIMS DB connection
     """
-    sims_user = settings.SIMS_USER
-    sims_passwd = settings.SIMS_PASSWORD
-    sims_db = settings.SIMS_DB_NAME
-    schema = settings.SIMS_DB_SCHEMA
+    #sims_user = settings.SIMS_USER
+    #sims_passwd = settings.SIMS_PASSWORD
+    #sims_db = settings.SIMS_DB_NAME
+    #schema = settings.SIMS_DB_SCHEMA
     
     DatabaseError = ReferenceError # placeholder until we have the DB2 module
     DB2Error = ReferenceError
@@ -143,9 +221,34 @@ def SIMS_problem_handler(func):
     Decorator to deal somewhat gracefully with any SIMS database problems.
     Any decorated function may raise a SIMSProblem instance to indicate a
     problem with the database connection.
-    
+
     Should be applied to any functions that use a SIMSConn object.
     """
+
+    def wrapped(*args, **kwargs):
+        return func(*args, **kwargs)  # temporary? Check what errors we get
+
+        # check for the types of errors we know might happen and return an error message in a SIMSProblem
+        try:
+            return func(*args, **kwargs)
+        except SIMSConn.DatabaseError as e:
+            raise SIMSProblem("could not connect to reporting database")
+        except SIMSConn.DB2Error as e:
+            raise SIMSProblem("problem with connection to reporting database")
+
+    wrapped.__name__ = func.__name__
+    return wrapped
+
+
+def SIMS_problem_handler_old(func):
+    """
+    Decorator to deal somewhat gracefully with any SIMS database problems.
+    Any decorated function may raise a SIMSProblem instance to indicate a
+    problem with the database connection.
+
+    Should be applied to any functions that use a SIMSConn object.
+    """
+
     def wrapped(*args, **kwargs):
         # check for the types of errors we know might happen and return an error message in a SIMSProblem
         try:
@@ -197,7 +300,7 @@ def userid_from_sims(emplid):
     Guess userid from campus email address. Can be wrong because of mail aliases?
     """
     db = SIMSConn()
-    db.execute("SELECT e_addr_type, email_addr, pref_email_flag FROM ps_email_addresses c WHERE e_addr_type='CAMP' and emplid=%s", (str(emplid),))
+    db.execute("SELECT E_ADDR_TYPE, EMAIL_ADDR, PREF_EMAIL_FLAG FROM PS_EMAIL_ADDRESSES C WHERE E_ADDR_TYPE='CAMP' AND EMPLID=%s", (str(emplid),))
     userid = None
     for _, email_addr, _ in db:
         if email_addr.endswith('@sfu.ca'):
@@ -214,7 +317,7 @@ def find_person(emplid, get_userid=True):
     Find the person in SIMS: return data or None (not found) or may raise a SIMSProblem.
     """
     db = SIMSConn()
-    db.execute("SELECT emplid, last_name, first_name, middle_name FROM ps_personal_data WHERE emplid=%s",
+    db.execute("SELECT EMPLID, LAST_NAME, FIRST_NAME, MIDDLE_NAME FROM PS_PERSONAL_DATA WHERE EMPLID=%s",
                (str(emplid),))
 
     for emplid, last_name, first_name, middle_name in db:
@@ -230,7 +333,7 @@ def find_person(emplid, get_userid=True):
 @SIMS_problem_handler
 def find_external_email(emplid):
     db = SIMSConn()
-    db.execute("SELECT email_addr FROM ps_email_addresses WHERE emplid=%s AND e_addr_type='WORK'",
+    db.execute("SELECT EMAIL_ADDR FROM PS_EMAIL_ADDRESSES WHERE EMPLID=%s AND E_ADDR_TYPE='WORK'",
                (str(emplid),))
     row = db.fetchone()
     if row and not row[0].endswith('sfu.ca'):
@@ -293,9 +396,9 @@ def get_names(emplid):
     pref_first_name = None
     title = None
     
-    db.execute("SELECT name_type, name_prefix, last_name, first_name, middle_name FROM ps_names WHERE "
-               "emplid=%s AND eff_status='A' AND name_type IN ('PRI','PRF') "
-               "ORDER BY effdt", (str(emplid),))
+    db.execute("SELECT NAME_TYPE, NAME_PREFIX, LAST_NAME, FIRST_NAME, MIDDLE_NAME FROM PS_NAMES WHERE "
+               "EMPLID=%s AND EFF_STATUS='A' AND NAME_TYPE IN ('PRI','PRF') "
+               "ORDER BY EFFDT", (str(emplid),))
     # order by effdt to leave the latest in the dictionary at end
     for name_type, prefix, last, first, middle in db:
         if name_type == 'PRI':
@@ -322,29 +425,32 @@ def grad_student_info(emplid):
 
 
 PLAN_QUERY = string.Template("""
-            SELECT prog.emplid, plantbl.acad_plan, plantbl.descr, plantbl.trnscr_descr
-            FROM ps_acad_prog prog, ps_acad_plan plan, ps_acad_plan_tbl AS plantbl
-            WHERE prog.emplid=plan.emplid AND prog.acad_career=plan.acad_career AND prog.stdnt_car_nbr=plan.stdnt_car_nbr AND prog.effdt=plan.effdt AND prog.effseq=plan.effseq
-              AND plantbl.acad_plan=plan.acad_plan
-              AND prog.effdt=(SELECT MAX(effdt) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt <= current date)
-              AND prog.effseq=(SELECT MAX(effseq) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt=prog.effdt)
-              AND plantbl.effdt=(SELECT MAX(effdt) FROM ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
-              AND prog.prog_status='AC' AND plantbl.eff_status='A'
+            SELECT PROG.EMPLID, PLANTBL.ACAD_PLAN, PLANTBL.DESCR, PLANTBL.TRNSCR_DESCR
+            FROM PS_ACAD_PROG AS PROG
+                INNER JOIN PS_ACAD_PLAN AS APLAN
+                    ON (PROG.EMPLID=APLAN.EMPLID AND PROG.ACAD_CAREER=APLAN.ACAD_CAREER
+                        AND PROG.STDNT_CAR_NBR=APLAN.STDNT_CAR_NBR AND PROG.EFFDT=APLAN.EFFDT AND PROG.EFFSEQ=APLAN.EFFSEQ)
+                INNER JOIN PS_ACAD_PLAN_TBL AS PLANTBL ON (PLANTBL.ACAD_PLAN=APLAN.ACAD_PLAN)
+            WHERE 
+              PROG.EFFDT=(SELECT MAX(EFFDT) FROM PS_ACAD_PROG WHERE EMPLID=PROG.EMPLID AND ACAD_CAREER=PROG.ACAD_CAREER AND STDNT_CAR_NBR=PROG.STDNT_CAR_NBR AND EFFDT <= GETDATE())
+              AND PROG.EFFSEQ=(SELECT MAX(EFFSEQ) FROM PS_ACAD_PROG WHERE EMPLID=PROG.EMPLID AND ACAD_CAREER=PROG.ACAD_CAREER AND STDNT_CAR_NBR=PROG.STDNT_CAR_NBR AND EFFDT=PROG.EFFDT)
+              AND PLANTBL.EFFDT=(SELECT MAX(EFFDT) FROM PS_ACAD_PLAN_TBL WHERE ACAD_PLAN=PLANTBL.ACAD_PLAN AND EFF_STATUS='A' AND EFFDT<=GETDATE())
+              AND PROG.PROG_STATUS='AC' AND PLANTBL.EFF_STATUS='A'
               AND $where
-            ORDER BY prog.emplid, plan.plan_sequence""")
+            ORDER BY PROG.EMPLID, PLAN.PLAN_SEQUENCE""")
 
 
 SUBPLAN_QUERY = string.Template("""
-            SELECT prog.emplid, plantbl.acad_sub_plan, plantbl.descr, plantbl.trnscr_descr
-            FROM ps_acad_prog prog, ps_acad_subplan plan, ps_acad_subpln_tbl AS plantbl
-            WHERE prog.emplid=plan.emplid AND prog.stdnt_car_nbr=plan.stdnt_car_nbr AND prog.effdt=plan.effdt AND prog.effseq=plan.effseq
-              AND plantbl.acad_plan=plan.acad_plan AND plantbl.acad_sub_plan=plan.acad_sub_plan
-              AND prog.effdt=(SELECT MAX(effdt) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt <= current date)
-              AND prog.effseq=(SELECT MAX(effseq) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt=prog.effdt)
-              AND plantbl.effdt=(SELECT MAX(effdt) FROM ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
-              AND prog.prog_status='AC' AND plantbl.eff_status='A'
+            SELECT PROG.EMPLID, PLANTBL.ACAD_SUB_PLAN, PLANTBL.DESCR, PLANTBL.TRNSCR_DESCR
+            FROM PS_ACAD_PROG PROG, PS_ACAD_SUBPLAN SPLAN, PS_ACAD_SUBPLN_TBL AS PLANTBL
+            WHERE PROG.EMPLID=SPLAN.EMPLID AND PROG.STDNT_CAR_NBR=SPLAN.STDNT_CAR_NBR AND PROG.EFFDT=SPLAN.EFFDT AND PROG.EFFSEQ=SPLAN.EFFSEQ
+              AND PLANTBL.ACAD_PLAN=SPLAN.ACAD_PLAN AND PLANTBL.ACAD_SUB_PLAN=SPLAN.ACAD_SUB_PLAN
+              AND PROG.EFFDT=(SELECT MAX(EFFDT) FROM PS_ACAD_PROG WHERE EMPLID=PROG.EMPLID AND ACAD_CAREER=PROG.ACAD_CAREER AND STDNT_CAR_NBR=PROG.STDNT_CAR_NBR AND EFFDT <= GETDATE())
+              AND PROG.EFFSEQ=(SELECT MAX(EFFSEQ) FROM PS_ACAD_PROG WHERE EMPLID=PROG.EMPLID AND ACAD_CAREER=PROG.ACAD_CAREER AND STDNT_CAR_NBR=PROG.STDNT_CAR_NBR AND EFFDT=PROG.EFFDT)
+              AND PLANTBL.EFFDT=(SELECT MAX(EFFDT) FROM PS_ACAD_PLAN_TBL WHERE ACAD_PLAN=PLANTBL.ACAD_PLAN AND EFF_STATUS='A' AND EFFDT<=GETDATE())
+              AND PROG.PROG_STATUS='AC' AND PLANTBL.EFF_STATUS='A'
               AND $where
-            ORDER BY prog.emplid""")
+            ORDER BY PROG.EMPLID""")
 
 
 ALLFIELDS = 'alldata'
@@ -363,7 +469,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     
     # get phone numbers
     if (needed == ALLFIELDS or 'phones' in needed) and 'phones' not in exclude:
-        db.execute('SELECT phone_type, country_code, phone, extension, pref_phone_flag FROM ps_personal_phone WHERE emplid=%s', (str(emplid),))
+        db.execute('SELECT PHONE_TYPE, COUNTRY_CODE, PHONE, EXTENSION, PREF_PHONE_FLAG FROM PS_PERSONAL_PHONE WHERE EMPLID=%s', (str(emplid),))
         phones = {}
         data['phones'] = phones
         for phone_type, country_code, phone, extension, pref_phone in db:
@@ -385,7 +491,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     # get addresses
     if (needed == ALLFIELDS or 'addresses' in needed) and 'addresses' not in exclude:
         # sorting by effdt to get the latest in the dictionary
-        db.execute("SELECT address_type, effdt, eff_status, c.descrshort, address1, address2, address3, address4, city, state, postal FROM ps_addresses a, ps_country_tbl c WHERE emplid=%s AND eff_status='A' AND a.country=c.country ORDER BY effdt ASC", (str(emplid),))
+        db.execute("SELECT ADDRESS_TYPE, EFFDT, EFF_STATUS, C.DESCRSHORT, ADDRESS1, ADDRESS2, ADDRESS3, ADDRESS4, CITY, STATE, POSTAL FROM PS_ADDRESSES A, PS_COUNTRY_TBL C WHERE EMPLID=%s AND EFF_STATUS='A' AND A.COUNTRY=C.COUNTRY ORDER BY EFFDT ASC", (str(emplid),))
         addresses = {}
         data['addresses'] = addresses
         for address_type, _, _, country, address1, address2, address3, address4, city, state, postal in db:
@@ -405,7 +511,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
 
     # get citizenzhip
     if (needed == ALLFIELDS or 'citizen' in needed) and 'citizen' not in exclude:
-        db.execute("SELECT c.descrshort FROM ps_citizenship cit, ps_country_tbl c WHERE emplid=%s AND cit.country=c.country", (str(emplid),))
+        db.execute("SELECT C.DESCRSHORT FROM PS_CITIZENSHIP CIT, PS_COUNTRY_TBL C WHERE EMPLID=%s AND CIT.COUNTRY=C.COUNTRY", (str(emplid),))
         #if 'citizen' in p.config:
         #    del p.config['citizen']
         for country, in db:
@@ -414,7 +520,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     # get Canadian visa status
     if (needed == ALLFIELDS or 'visa' in needed) and 'visa' not in exclude:
         # sorting by effdt to get the latest in the dictionary
-        db.execute("SELECT t.descrshort FROM ps_visa_pmt_data v, ps_visa_permit_tbl t WHERE emplid=%s AND v.visa_permit_type=t.visa_permit_type AND v.country=t.country AND v.country='CAN' AND v.visa_wrkpmt_status='A' AND t.eff_status='A' ORDER BY v.effdt ASC", (str(emplid),))
+        db.execute("SELECT T.DESCRSHORT FROM PS_VISA_PMT_DATA V, PS_VISA_PERMIT_TBL T WHERE EMPLID=%s AND V.VISA_PERMIT_TYPE=T.VISA_PERMIT_TYPE AND V.COUNTRY=T.COUNTRY AND V.COUNTRY='CAN' AND V.VISA_WRKPMT_STATUS='A' AND T.EFF_STATUS='A' ORDER BY V.EFFDT ASC", (str(emplid),))
         #if 'visa' in p.config:
         #    del p.config['visa']
         for desc, in db:
@@ -427,7 +533,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     
     # other stuff from ps_personal_data
     if (needed == ALLFIELDS or 'gender' in needed) and 'gender' not in exclude:
-        db.execute('SELECT sex FROM ps_personal_data WHERE emplid=%s', (str(emplid),))
+        db.execute('SELECT SEX FROM PS_PERSONAL_DATA WHERE EMPLID=%s', (str(emplid),))
         #if 'gender' in p.config:
         #    del p.config['gender']
         for sex, in db:
@@ -438,7 +544,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     if (needed == ALLFIELDS or 'programs' in needed) and 'programs' not in exclude:
         programs = []
         data['programs'] = programs
-        db.execute(PLAN_QUERY.substitute({'where': 'prog.emplid=%s'}), (str(emplid),))
+        db.execute(PLAN_QUERY.substitute({'where': 'PROG.EMPLID=%s'}), (str(emplid),))
         #  AND apt.trnscr_print_fl='Y'
         for emplid, acad_plan, descr, transcript in db:
             label = transcript or descr
@@ -446,7 +552,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
             programs.append(prog)
 
         # also add academic subplans
-        db.execute(SUBPLAN_QUERY.substitute({'where': 'prog.emplid=%s'}), (str(emplid),))
+        db.execute(SUBPLAN_QUERY.substitute({'where': 'PROG.EMPLID=%s'}), (str(emplid),))
         for emplid, subplan, descr, transcript in db:
             label = transcript or descr
             prog = "%s (%s subplan)" % (label, subplan)
@@ -456,7 +562,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
 
     # GPA and credit count
     if (needed == ALLFIELDS or 'gpa' in needed or 'ccredits' in needed) and 'ccredits' not in exclude:
-        db.execute('SELECT cum_gpa, tot_cumulative FROM ps_stdnt_car_term WHERE emplid=%s ORDER BY strm DESC FETCH FIRST 1 ROWS ONLY', (str(emplid),))
+        db.execute('SELECT CUM_GPA, TOT_CUMULATIVE FROM PS_STDNT_CAR_TERM WHERE EMPLID=%s ORDER BY STRM DESC  OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY', (str(emplid),))
         data['gpa'] = 0.0
         data['ccredits'] = 0
         for gpa, cred in db:
@@ -496,10 +602,10 @@ def more_offering_info(offering, browse_data=False, offering_effdt=False):
         eff_where = "AND effdt<=%s" % (db.escape_arg(effdt.isoformat()))
 
     db.execute("""
-        SELECT descr, ssr_component, course_title_long, descrlong
-        FROM ps_crse_catalog
-        WHERE eff_status='A' AND crse_id=%s """ + eff_where + """
-        ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY""", (crse_id,))
+        SELECT DESCR, SSR_COMPONENT, COURSE_TITLE_LONG, DESCRLONG
+        FROM PS_CRSE_CATALOG
+        WHERE EFF_STATUS='A' AND CRSE_ID=%s """ + eff_where + """
+        ORDER BY EFFDT DESC  OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY""", (crse_id,))
     for shorttitle, component, longtitle, descrlong in db:
         data['shorttitle'] = e(shorttitle)
         data['component'] = e(component)
@@ -523,7 +629,7 @@ def crse_id_info(crse_id):
     More info we need about this crse_id. Separate function so it can easily be cached.
     """
     db = SIMSConn()
-    offering_query = "SELECT o.subject, o.catalog_nbr, c.descr FROM ps_crse_offer o, ps_crse_catalog c WHERE o.crse_id=c.crse_id AND o.crse_id=%s ORDER BY o.effdt DESC, c.effdt DESC FETCH FIRST 1 ROWS ONLY"
+    offering_query = "SELECT O.SUBJECT, O.CATALOG_NBR, C.DESCR FROM PS_CRSE_OFFER O, PS_CRSE_CATALOG C WHERE O.CRSE_ID=C.CRSE_ID AND O.CRSE_ID=%s ORDER BY O.EFFDT DESC, C.EFFDT DESC  OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"
     db.execute(offering_query, (crse_id,))
     fields = ['subject', 'catalog_nbr', 'descr']
     for row in db:
@@ -538,7 +644,7 @@ def ext_org_info(ext_org_id):
     More info we need about this external org. Separate function so it can easily be cached.
     """
     db = SIMSConn()
-    ext_org_query = "SELECT e.descr FROM ps_ext_org_tbl e WHERE e.eff_status='A' AND e.ext_org_id=%s ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY"
+    ext_org_query = "SELECT E.DESCR FROM PS_EXT_ORG_TBL E WHERE E.EFF_STATUS='A' AND E.EXT_ORG_ID=%s ORDER BY EFFDT DESC  OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"
     db.execute(ext_org_query, (ext_org_id,))
     fields = ['ext_org']
     for row in db:
@@ -577,10 +683,10 @@ def get_reqmnt_designtn():
     """
     db = SIMSConn()
     
-    db.execute("""SELECT r.rqmnt_designtn, r.descrshort FROM ps_rqmnt_desig_tbl r
-        WHERE r.EFFDT=(SELECT MAX(effdt) FROM ps_rqmnt_desig_tbl
-                       WHERE rqmnt_designtn=r.rqmnt_designtn AND r.effdt<=current date AND eff_status='A')
-            AND r.eff_status='A'""", ())
+    db.execute("""SELECT R.RQMNT_DESIGNTN, R.DESCRSHORT FROM PS_RQMNT_DESIG_TBL R
+        WHERE R.EFFDT=(SELECT MAX(EFFDT) FROM PS_RQMNT_DESIG_TBL
+                       WHERE RQMNT_DESIGNTN=R.RQMNT_DESIGNTN AND R.EFFDT<=GETDATE() AND EFF_STATUS='A')
+            AND R.EFF_STATUS='A'""", ())
     return dict(db)
     
 @cache_by_args
@@ -590,7 +696,7 @@ def get_semester_names():
     """
     db = SIMSConn()
     
-    db.execute("SELECT t.strm, t.descr FROM ps_term_tbl t", ())
+    db.execute("SELECT T.STRM, T.DESCR FROM PS_TERM_TBL T", ())
     return dict(db)
     
 @cache_by_args
@@ -606,13 +712,13 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     db = SIMSConn()
     
     # match trns_crse_sch and trns_crse_dtl by their many keys
-    crse_join = "t.emplid=s.emplid AND t.acad_career=s.acad_career AND t.institution=s.institution AND t.model_nbr=s.model_nbr"
+    crse_join = "T.EMPLID=S.EMPLID AND T.ACAD_CAREER=S.ACAD_CAREER AND T.INSTITUTION=S.INSTITUTION AND T.MODEL_NBR=S.MODEL_NBR"
     
     # transfers
-    transfer_query = "SELECT t.crse_id, t.crse_grade_off, t.unt_trnsfr, t.repeat_code, t.articulation_term, " \
-                     " t.rqmnt_designtn, s.ext_org_id, s.src_org_name " \
-                     "FROM ps_trns_crse_dtl t, ps_trns_crse_sch s " \
-                     "WHERE " + crse_join + " AND t.emplid=%s"
+    transfer_query = "SELECT T.CRSE_ID, T.CRSE_GRADE_OFF, T.UNT_TRNSFR, T.REPEAT_CODE, T.ARTICULATION_TERM, " \
+                     " T.RQMNT_DESIGNTN, S.EXT_ORG_ID, S.SRC_ORG_NAME " \
+                     "FROM PS_TRNS_CRSE_DTL T, PS_TRNS_CRSE_SCH S " \
+                     "WHERE " + crse_join + " AND T.EMPLID=%s"
     db.execute(transfer_query, (emplid,))
     transfers = []
     data['transfers'] = transfers
@@ -646,12 +752,12 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     transfers.sort(key=lambda k: (k['subject'], k['catalog_nbr']))
 
     # active semesters
-    term_query = "SELECT t.strm, t.acad_career, t.tot_passd_prgrss, t.cur_gpa, t.cum_gpa, s.acad_stndng_actn, g.ls_gpa " \
-                 "FROM ps_stdnt_car_term t " \
-                 " LEFT JOIN ps_acad_stdng_actn s ON t.emplid=s.emplid AND t.strm=s.strm " \
-                 " LEFT JOIN ps_stdnt_spcl_gpa g ON t.emplid=g.emplid AND t.strm=g.strm " \
-                 "WHERE t.emplid=%s AND (g.gpa_type='UGPA' OR g.gpa_type IS NULL) " \
-                 "ORDER BY t.strm, s.effdt DESC, s.effseq DESC"
+    term_query = "SELECT T.STRM, T.ACAD_CAREER, T.TOT_PASSD_PRGRSS, T.CUR_GPA, T.CUM_GPA, S.ACAD_STNDNG_ACTN, G.LS_GPA " \
+                 "FROM PS_STDNT_CAR_TERM T " \
+                 " LEFT JOIN PS_ACAD_STDNG_ACTN S ON T.EMPLID=S.EMPLID AND T.STRM=S.STRM " \
+                 " LEFT JOIN PS_STDNT_SPCL_GPA G ON T.EMPLID=G.EMPLID AND T.STRM=G.STRM " \
+                 "WHERE T.EMPLID=%s AND (G.GPA_TYPE='UGPA' OR G.GPA_TYPE IS NULL) " \
+                 "ORDER BY T.STRM, S.EFFDT DESC, S.EFFSEQ DESC"
     db.execute(term_query, (emplid,))
     semesters = []
     semester_lookup = {}
@@ -672,13 +778,13 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
         
     
     # courses
-    enrl_query = "SELECT e.strm, e.class_nbr, e.unt_taken, " \
-                 "e.repeat_code, e.crse_grade_off, e.rqmnt_designtn, " \
-                 "c.subject, c.catalog_nbr, c.descr " \
-                 "FROM ps_stdnt_enrl e, ps_class_tbl c " \
-                 "WHERE e.class_nbr=c.class_nbr AND e.strm=c.strm AND e.emplid=%s " \
-                 "AND c.class_type='E' AND e.stdnt_enrl_status='E' " \
-                 "ORDER BY e.strm, c.subject, c.catalog_nbr"
+    enrl_query = "SELECT E.STRM, E.CLASS_NBR, E.UNT_TAKEN, " \
+                 "E.REPEAT_CODE, E.CRSE_GRADE_OFF, E.RQMNT_DESIGNTN, " \
+                 "C.SUBJECT, C.CATALOG_NBR, C.DESCR " \
+                 "FROM PS_STDNT_ENRL E, PS_CLASS_TBL C " \
+                 "WHERE E.CLASS_NBR=C.CLASS_NBR AND E.STRM=C.STRM AND E.EMPLID=%s " \
+                 "AND C.CLASS_TYPE='E' AND E.STDNT_ENRL_STATUS='E' " \
+                 "ORDER BY E.STRM, C.SUBJECT, C.CATALOG_NBR"
     db.execute(enrl_query, (emplid,))
     fields = ['strm', 'class_nbr', 'unit_taken', 'repeat', 'grade', 'reqdes', 'subject', 'number', 'descr']
     
@@ -709,21 +815,21 @@ def transfer_data(emplid):
     """
     emplid = str(emplid)
     db = SIMSConn()
-    transfers = "WITH crse_offer AS (select crse_id, CRSE_OFFER_NBR, subject, catalog_nbr from dbcsown.ps_crse_offer "\
-                "A where effdt=(SELECT MAX(effdt) FROM dbcsown.ps_crse_offer WHERE crse_id=A.crse_id)), ext_org_tbl AS"\
-                "(select ext_org_id, descr50 from dbcsown.ps_ext_org_tbl A where effdt=(SELECT MAX(effdt) FROM"\
-                " dbcsown.ps_ext_org_tbl WHERE ext_org_id=A.ext_org_id))"\
-                "select tcd.emplid, eot.descr50, ec.SCHOOL_SUBJECT, ec.SCHOOL_CRSE_NBR, tcd.trnsfr_eqvlncy_grp, "\
-                "tcd.trnsfr_stat, co.subject, co.catalog_nbr, tcd.CRSE_GRADE_INPUT as tcd_grade_input, "\
-                "tcd.crse_grade_off as tcd_grade_off,ec.CRSE_GRADE_INPUT as ec_grade_input, ec.crse_grade_off "\
-                "as ec_grade_off, tcd.UNT_TRNSFR "\
-                "from dbcsown.ps_trns_crse_dtl tcd inner join dbcsown.ps_trns_crse_sch tcs on tcs.emplid=tcd.emplid "\
-                "and tcd.acad_career=tcs.acad_career and tcd.institution=tcs.institution and "\
-                "tcd.model_nbr=tcs.model_nbr left outer join dbcsown.ps_ext_course ec on ec.emplid=tcd.emplid and "\
-                "ec.ext_course_nbr=tcd.ext_course_nbr and ec.ext_org_id=tcs.ext_org_id left outer join ext_org_tbl "\
-                "eot on tcd.TRNSFR_SRC_ID = eot.ext_org_id left outer join crse_offer co on tcd.crse_id = co.crse_id "\
-                "and tcd.CRSE_OFFER_NBR = co.CRSE_OFFER_NBR where tcd.trnsfr_stat='P' and tcs.model_status='P' "\
-                "and tcd.emplid=%s order by tcd.model_nbr, tcd.TRNSFR_EQVLNCY_GRP, tcd.TRNSFR_EQVLNCY_SEQ"
+    transfers = "WITH CRSE_OFFER AS (SELECT CRSE_ID, CRSE_OFFER_NBR, SUBJECT, CATALOG_NBR FROM PS_CRSE_OFFER "\
+                "A WHERE EFFDT=(SELECT MAX(EFFDT) FROM PS_CRSE_OFFER WHERE CRSE_ID=A.CRSE_ID)), EXT_ORG_TBL AS"\
+                "(SELECT EXT_ORG_ID, DESCR50 FROM PS_EXT_ORG_TBL A WHERE EFFDT=(SELECT MAX(EFFDT) FROM"\
+                " PS_EXT_ORG_TBL WHERE EXT_ORG_ID=A.EXT_ORG_ID))"\
+                "SELECT TCD.EMPLID, EOT.DESCR50, EC.SCHOOL_SUBJECT, EC.SCHOOL_CRSE_NBR, TCD.TRNSFR_EQVLNCY_GRP, "\
+                "TCD.TRNSFR_STAT, CO.SUBJECT, CO.CATALOG_NBR, TCD.CRSE_GRADE_INPUT AS TCD_GRADE_INPUT, "\
+                "TCD.CRSE_GRADE_OFF AS TCD_GRADE_OFF,EC.CRSE_GRADE_INPUT AS EC_GRADE_INPUT, EC.CRSE_GRADE_OFF "\
+                "AS EC_GRADE_OFF, TCD.UNT_TRNSFR "\
+                "FROM PS_TRNS_CRSE_DTL TCD INNER JOIN PS_TRNS_CRSE_SCH TCS ON TCS.EMPLID=TCD.EMPLID "\
+                "AND TCD.ACAD_CAREER=TCS.ACAD_CAREER AND TCD.INSTITUTION=TCS.INSTITUTION AND "\
+                "TCD.MODEL_NBR=TCS.MODEL_NBR LEFT OUTER JOIN PS_EXT_COURSE EC ON EC.EMPLID=TCD.EMPLID AND "\
+                "EC.EXT_COURSE_NBR=TCD.EXT_COURSE_NBR AND EC.EXT_ORG_ID=TCS.EXT_ORG_ID LEFT OUTER JOIN EXT_ORG_TBL "\
+                "EOT ON TCD.TRNSFR_SRC_ID = EOT.EXT_ORG_ID LEFT OUTER JOIN CRSE_OFFER CO ON TCD.CRSE_ID = CO.CRSE_ID "\
+                "AND TCD.CRSE_OFFER_NBR = CO.CRSE_OFFER_NBR WHERE TCD.TRNSFR_STAT='P' AND TCS.MODEL_STATUS='P' "\
+                "AND TCD.EMPLID=%s ORDER BY TCD.MODEL_NBR, TCD.TRNSFR_EQVLNCY_GRP, TCD.TRNSFR_EQVLNCY_SEQ"
     db.execute(transfers, (emplid,))
     fields = ['emplid', 'descr', 'school_subject', 'crse_nbr', 'trsnf_equivlncy_grp', 'transfr_stat', 'subject',
               'catalog_nbr', 'tcd_grade_input', 'tcd_grade_off', 'ec_grade_input', 'ec_grade_off', 'unt_trnsfr']
@@ -748,11 +854,11 @@ def classes_data(emplid):
     """
     emplid = str(emplid)
     db = SIMSConn()
-    courses = "SELECT e.strm, c.subject, c.catalog_nbr, c.descr, e.crse_grade_off, e.unt_taken "\
-                 "FROM ps_stdnt_enrl e, ps_class_tbl c "\
-                 "WHERE e.class_nbr=c.class_nbr AND e.strm=c.strm AND e.emplid=%s "\
-                 "AND c.class_type='E' AND e.stdnt_enrl_status='E' "\
-                 "ORDER BY e.strm, c.subject, c.catalog_nbr"
+    courses = "SELECT E.STRM, C.SUBJECT, C.CATALOG_NBR, C.DESCR, E.CRSE_GRADE_OFF, E.UNT_TAKEN "\
+                 "FROM PS_STDNT_ENRL E, PS_CLASS_TBL C "\
+                 "WHERE E.CLASS_NBR=C.CLASS_NBR AND E.STRM=C.STRM AND E.EMPLID=%s "\
+                 "AND C.CLASS_TYPE='E' AND E.STDNT_ENRL_STATUS='E' "\
+                 "ORDER BY E.STRM, C.SUBJECT, C.CATALOG_NBR"
     db.execute(courses, (emplid,))
     fields = ['strm', 'subject', 'catalog_nbr', 'descr', 'crse_grade_off', 'unt_taken']
     data = {}
@@ -773,13 +879,17 @@ def acad_plan_count(acad_plan, strm):
     db = SIMSConn()
 
     # most recent acad_plan, most recent acad_plan *in this program* for each student active this semester
-    last_prog_plan = "(SELECT ap.emplid, max(ap.effdt) as effdtprog, max(ap2.effdt) as effdt " \
-                     "FROM ps_acad_plan ap, ps_acad_plan ap2, ps_stdnt_car_term ct "\
-                     "WHERE ap.emplid=ct.emplid and ap.emplid=ap2.emplid and ct.strm=%s and ap.acad_plan=%s " \
-                     "and ct.stdnt_car_nbr=ap.stdnt_car_nbr GROUP BY ap.emplid)"
+    last_prog_plan = """(
+        SELECT AP.EMPLID, MAX(AP.EFFDT) AS EFFDTPROG, MAX(AP2.EFFDT) AS EFFDT
+        FROM PS_ACAD_PLAN AP
+            INNER JOIN PS_ACAD_PLAN AP2 ON (AP.EMPLID=AP2.EMPLID)
+            INNER JOIN PS_STDNT_CAR_TERM CT ON (AP.EMPLID=CT.EMPLID AND CT.STDNT_CAR_NBR=AP.STDNT_CAR_NBR )
+        WHERE CT.STRM=%s AND AP.ACAD_PLAN=%s
+        GROUP BY AP.EMPLID
+    )"""
 
     # select those whose most recent program is in this acad_plan
-    db.execute("SELECT count(*) FROM " + last_prog_plan + " WHERE effdtprog=effdt", (strm, acad_plan))
+    db.execute("SELECT COUNT(*) FROM " + last_prog_plan + " WHERE EFFDTPROG=EFFDT", (strm, acad_plan))
     return db.fetchone()[0]
     #for row in db:
     #    print row
@@ -796,7 +906,7 @@ def get_or_create_semester(strm):
         return oldsem[0]
 
     db = SIMSConn()
-    db.execute("SELECT strm, term_begin_dt, term_end_dt FROM ps_term_tbl WHERE strm=%s", (strm,))
+    db.execute("SELECT STRM, TERM_BEGIN_DT, TERM_END_DT FROM PS_TERM_TBL WHERE STRM=%s", (strm,))
     row = db.fetchone()
     if row is None:
         raise ValueError("Not Found: %r" % strm)
@@ -822,12 +932,12 @@ def get_or_create_semester(strm):
 @SIMS_problem_handler
 def grad_student_courses(emplid):
     db = SIMSConn()
-    query = "SELECT e.strm, c.subject, c.catalog_nbr, c.class_section, c.class_nbr, " \
-                 "e.unt_taken, e.crse_grade_off, e.grade_points " \
-                 "FROM ps_stdnt_enrl e, ps_class_tbl c " \
-                 "WHERE e.class_nbr=c.class_nbr AND e.strm=c.strm AND e.emplid=%s " \
-                 "AND c.class_type='E' AND e.stdnt_enrl_status='E' AND e.acad_career='GRAD' " \
-                 "ORDER BY e.strm, c.subject, c.catalog_nbr"
+    query = "SELECT E.STRM, C.SUBJECT, C.CATALOG_NBR, C.CLASS_SECTION, C.CLASS_NBR, " \
+                 "E.UNT_TAKEN, E.CRSE_GRADE_OFF, E.GRADE_POINTS " \
+                 "FROM PS_STDNT_ENRL E INNER JOIN PS_CLASS_TBL C ON (E.CLASS_NBR=C.CLASS_NBR AND E.STRM=C.STRM) " \
+                 "WHERE E.EMPLID=%s " \
+                 "AND C.CLASS_TYPE='E' AND E.STDNT_ENRL_STATUS='E' AND E.ACAD_CAREER='GRAD' " \
+                 "ORDER BY E.STRM, C.SUBJECT, C.CATALOG_NBR"
     db.execute(query, (str(emplid),))
     res = []
     for strm, subject, number, section, class_nbr, units, grade, gradepoints in db:
@@ -844,9 +954,9 @@ def grad_student_courses(emplid):
 @SIMS_problem_handler
 def grad_student_gpas(emplid):
     db = SIMSConn()
-    query = "SELECT t.strm, t.cur_gpa, t.cum_gpa " \
-                 "FROM ps_stdnt_car_term t " \
-                 "WHERE t.emplid=%s AND t.acad_career='GRAD'"
+    query = "SELECT T.STRM, T.CUR_GPA, T.CUM_GPA " \
+                 "FROM PS_STDNT_CAR_TERM T " \
+                 "WHERE T.EMPLID=%s AND T.ACAD_CAREER='GRAD'"
     db.execute(query, (str(emplid),))
     return list(db)
 
@@ -1016,8 +1126,8 @@ def merge_leaves( programs ):
 @SIMS_problem_handler
 def get_student_programs(emplid):
     db = SIMSConn()
-    query = """SELECT DISTINCT acad_prog_primary, strm, unt_taken_prgrss FROM ps_stdnt_car_term 
-        WHERE emplid=%s
+    query = """SELECT DISTINCT ACAD_PROG_PRIMARY, STRM, UNT_TAKEN_PRGRSS FROM PS_STDNT_CAR_TERM 
+        WHERE EMPLID=%s
         """
     db.execute(query, (str(emplid),))
     return list(db)
@@ -1026,13 +1136,13 @@ def get_student_programs(emplid):
 @SIMS_problem_handler
 def get_on_leave_semesters(emplid):
     db = SIMSConn()
-    query = """SELECT DISTINCT strm, withdraw_reason FROM ps_stdnt_car_term 
+    query = """SELECT DISTINCT STRM, WITHDRAW_REASON FROM PS_STDNT_CAR_TERM 
         WHERE
-        emplid = %s
-        AND withdraw_code != 'NWD' 
-        AND withdraw_reason IN ('OL', 'MEDI', 'AP')
-        AND acad_career='GRAD'
-        ORDER BY strm """
+        EMPLID = %s
+        AND WITHDRAW_CODE != 'NWD' 
+        AND WITHDRAW_REASON IN ('OL', 'MEDI', 'AP')
+        AND ACAD_CAREER='GRAD'
+        ORDER BY STRM """
     db.execute(query, (str(emplid),))
     return list(db)
 
@@ -1046,30 +1156,30 @@ def get_end_of_degree(emplid, acad_prog, start_semester):
     """ 
     db = SIMSConn()
     query = """SELECT DISTINCT 
-        prog_action, 
-        prog_reason, 
-        action_dt
-        FROM ps_acad_prog prog 
+        PROG_ACTION, 
+        PROG_REASON, 
+        ACTION_DT
+        FROM PS_ACAD_PROG PROG 
         WHERE 
-            prog_action in ('DISC', 'COMP')
-            AND emplid=%s 
-            AND acad_prog=%s
-            AND req_term >= %s
-            AND prog.effdt = ( SELECT MAX(tmp.effdt) 
-                                FROM ps_acad_prog tmp
-                                WHERE tmp.emplid = prog.emplid
-                                AND prog.prog_action = tmp.prog_action
-                                AND prog.acad_prog = tmp.acad_prog
-                                AND tmp.effdt <= (SELECT current timestamp FROM sysibm.sysdummy1) )
-            AND prog.effseq = ( SELECT MAX(tmp2.effseq)
-                                FROM ps_acad_prog tmp2
-                                WHERE tmp2.emplid = prog.emplid
-                                AND prog.prog_action = tmp2.prog_action
-                                AND prog.acad_prog = tmp2.acad_prog
-                                AND prog_action in ('DISC', 'COMP')
-                                AND tmp2.effdt = prog.effdt )
-        ORDER BY action_dt
-        FETCH FIRST 1 ROWS ONLY
+            PROG_ACTION IN ('DISC', 'COMP')
+            AND EMPLID=%s 
+            AND ACAD_PROG=%s
+            AND REQ_TERM >= %s
+            AND PROG.EFFDT = ( SELECT MAX(TMP.EFFDT) 
+                                FROM PS_ACAD_PROG TMP
+                                WHERE TMP.EMPLID = PROG.EMPLID
+                                AND PROG.PROG_ACTION = TMP.PROG_ACTION
+                                AND PROG.ACAD_PROG = TMP.ACAD_PROG
+                                AND TMP.EFFDT <= GETDATE() )
+            AND PROG.EFFSEQ = ( SELECT MAX(TMP2.EFFSEQ)
+                                FROM PS_ACAD_PROG TMP2
+                                WHERE TMP2.EMPLID = PROG.EMPLID
+                                AND PROG.PROG_ACTION = TMP2.PROG_ACTION
+                                AND PROG.ACAD_PROG = TMP2.ACAD_PROG
+                                AND PROG_ACTION IN ('DISC', 'COMP')
+                                AND TMP2.EFFDT = PROG.EFFDT )
+        ORDER BY ACTION_DT
+        OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
             """ 
     db.execute(query, (str(emplid),str(acad_prog),str(start_semester)))
     result = [(x[0], x[1], x[2]) for x in list(db)]
@@ -1083,7 +1193,7 @@ def get_end_of_degree(emplid, acad_prog, start_semester):
 
 #@cache_by_args
 @SIMS_problem_handler
-def guess_adm_appl_nbr( emplid, acad_prog, start_semester, end_semester ):
+def guess_adm_appl_nbr(emplid, acad_prog, start_semester, end_semester):
     """
     Given an acad_prog, find any adm_appl_nbr records between start_semester
     and end_semester that didn't result in a rejection
@@ -1091,19 +1201,19 @@ def guess_adm_appl_nbr( emplid, acad_prog, start_semester, end_semester ):
     db = SIMSConn()
     query = """
         SELECT DISTINCT 
-            prog.adm_appl_nbr 
-        FROM ps_adm_appl_prog prog
-        LEFT JOIN ps_adm_appl_data data
-            ON prog.adm_appl_nbr = data.adm_appl_nbr
+            PROG.ADM_APPL_NBR 
+        FROM PS_ADM_APPL_PROG PROG
+        LEFT JOIN PS_ADM_APPL_DATA DATA
+            ON PROG.ADM_APPL_NBR = DATA.ADM_APPL_NBR
         WHERE 
-            prog.emplid = %s
-                AND prog.prog_status NOT IN ('DC') 
-            AND ( data.appl_fee_status in ('REC', 'WVD')
-                  OR data.adm_appl_ctr in ('GRAW') )
-            AND prog.acad_prog = %s
-            AND prog.prog_action in ('ADMT', 'ACTV', 'COND', 'MATR') 
-            AND prog.admit_term >= %s
-            AND prog.admit_term <= %s
+            PROG.EMPLID = %s
+                AND PROG.PROG_STATUS NOT IN ('DC') 
+            AND ( DATA.APPL_FEE_STATUS IN ('REC', 'WVD')
+                  OR DATA.ADM_APPL_CTR IN ('GRAW') )
+            AND PROG.ACAD_PROG = %s
+            AND PROG.PROG_ACTION IN ('ADMT', 'ACTV', 'COND', 'MATR') 
+            AND PROG.ADMIT_TERM >= %s
+            AND PROG.ADMIT_TERM <= %s
         """
     db.execute(query, (str(emplid), str(acad_prog), str(start_semester), str(end_semester)))
     return [x[0] for x in list(db)]
@@ -1121,35 +1231,35 @@ def guess_harder_at_adm_appl_nbr( emplid, acad_prog, start_semester, end_semeste
     db = SIMSConn()
     query = """
         SELECT DISTINCT 
-            prog.adm_appl_nbr 
-        FROM ps_adm_appl_prog prog
-        LEFT JOIN ps_adm_appl_data data
-            ON prog.adm_appl_nbr = data.adm_appl_nbr
+            PROG.ADM_APPL_NBR 
+        FROM PS_ADM_APPL_PROG PROG
+        LEFT JOIN PS_ADM_APPL_DATA DATA
+            ON PROG.ADM_APPL_NBR = DATA.ADM_APPL_NBR
         WHERE 
-            prog.emplid = %s
-                AND prog.prog_status NOT IN ('DC') 
-            AND ( data.appl_fee_status in ('REC', 'WVD')
-                  OR data.adm_appl_ctr in ('GRAW') )
-            AND prog.acad_prog = %s
-            AND prog.admit_term >= %s
-            AND prog.admit_term <= %s
+            PROG.EMPLID = %s
+                AND PROG.PROG_STATUS NOT IN ('DC') 
+            AND ( DATA.APPL_FEE_STATUS IN ('REC', 'WVD')
+                  OR DATA.ADM_APPL_CTR IN ('GRAW') )
+            AND PROG.ACAD_PROG = %s
+            AND PROG.ADMIT_TERM >= %s
+            AND PROG.ADMIT_TERM <= %s
         """
     db.execute(query, (str(emplid), str(acad_prog), str(year_before_start_semester), str(end_semester)))
     adm_appls = [x[0] for x in list(db)]
 
     query2 = """
         SELECT DISTINCT 
-            prog.adm_appl_nbr 
-        FROM ps_adm_appl_prog prog
-        LEFT JOIN ps_adm_appl_data data
-            ON prog.adm_appl_nbr = data.adm_appl_nbr
+            PROG.ADM_APPL_NBR 
+        FROM PS_ADM_APPL_PROG PROG
+        LEFT JOIN PS_ADM_APPL_DATA DATA
+            ON PROG.ADM_APPL_NBR = DATA.ADM_APPL_NBR
         WHERE 
-            prog.emplid = %s
-                AND prog.prog_status NOT IN ('DC') 
-            AND ( data.appl_fee_status in ('REC', 'WVD')
-                  OR data.adm_appl_ctr in ('GRAW') )
-            AND prog.acad_prog = %s
-            AND prog.prog_action in ('DDEF', 'DEFR', 'DENY', 'WAIT') 
+            PROG.EMPLID = %s
+                AND PROG.PROG_STATUS NOT IN ('DC') 
+            AND ( DATA.APPL_FEE_STATUS IN ('REC', 'WVD')
+                  OR DATA.ADM_APPL_CTR IN ('GRAW') )
+            AND PROG.ACAD_PROG = %s
+            AND PROG.PROG_ACTION IN ('DDEF', 'DEFR', 'DENY', 'WAIT') 
     """
 
     db.execute(query2, (str(emplid), str(acad_prog)))
@@ -1164,16 +1274,16 @@ def get_adm_appl_nbrs( emplid ):
     db = SIMSConn()
     query = """
         SELECT DISTINCT 
-            prog.adm_appl_nbr,
-            prog.acad_prog 
-        FROM ps_adm_appl_prog prog
-        LEFT JOIN ps_adm_appl_data data
-            ON prog.adm_appl_nbr = data.adm_appl_nbr
+            PROG.ADM_APPL_NBR,
+            PROG.ACAD_PROG 
+        FROM PS_ADM_APPL_PROG PROG
+        LEFT JOIN PS_ADM_APPL_DATA DATA
+            ON PROG.ADM_APPL_NBR = DATA.ADM_APPL_NBR
         WHERE 
-            prog.emplid = %s
-                AND prog.prog_status NOT IN ('DC') 
-            AND ( data.appl_fee_status in ('REC', 'WVD')
-                  OR data.adm_appl_ctr in ('GRAW') )
+            PROG.EMPLID = %s
+                AND PROG.PROG_STATUS NOT IN ('DC') 
+            AND ( DATA.APPL_FEE_STATUS IN ('REC', 'WVD')
+                  OR DATA.ADM_APPL_CTR IN ('GRAW') )
         """
     db.execute(query, (str(emplid),))
     return list(db)
@@ -1199,15 +1309,15 @@ def get_admission_records( emplid, adm_appl_nbr ):
     db = SIMSConn()
     query = """
         SELECT DISTINCT 
-            prog.prog_action, 
-            prog.action_dt, 
-            prog.admit_term
-        FROM ps_adm_appl_prog prog
+            PROG.PROG_ACTION, 
+            PROG.ACTION_DT, 
+            PROG.ADMIT_TERM
+        FROM PS_ADM_APPL_PROG PROG
         WHERE 
-            prog.emplid = %s
-            AND prog.adm_appl_nbr = %s
-            AND prog_action IN ('APPL', 'ADMT', 'COND', 'DENY', 'MATR', 'WAPP', 'WADM') 
-        ORDER BY action_dt, prog_action
+            PROG.EMPLID = %s
+            AND PROG.ADM_APPL_NBR = %s
+            AND PROG_ACTION IN ('APPL', 'ADMT', 'COND', 'DENY', 'MATR', 'WAPP', 'WADM') 
+        ORDER BY ACTION_DT, PROG_ACTION
         """
     db.execute(query, (str(emplid), str(adm_appl_nbr)))
     return list(db)
@@ -1222,34 +1332,34 @@ def get_supervisory_committee(emplid, min_date=None, max_date=None):
     db = SIMSConn()
     query = """
         SELECT DISTINCT 
-            role.descr, 
-            mem.emplid,
-            com.effdt
+            ROLE.DESCR, 
+            MEM.EMPLID,
+            COM.EFFDT
         FROM 
-            ps_stdnt_advr_hist st, 
-            ps_committee com, 
-            ps_committee_membr mem, 
-            ps_committee_tbl comtbl, 
-            ps_commit_role_tbl role
+            PS_STDNT_ADVR_HIST ST, 
+            PS_COMMITTEE COM, 
+            PS_COMMITTEE_MEMBR MEM, 
+            PS_COMMITTEE_TBL COMTBL, 
+            PS_COMMIT_ROLE_TBL ROLE
         WHERE 
-            com.institution=st.institution 
-            AND com.committee_id=st.committee_id
-            AND mem.institution=com.institution 
-            AND mem.committee_id=com.committee_id 
-            AND mem.effdt=com.effdt
-            AND com.committee_type=comtbl.committee_type 
-            AND comtbl.eff_status='A'
-            AND role.committee_role=mem.committee_role 
-            AND role.committee_type=com.committee_type
-            AND st.emplid=%s
-            AND com.effdt = ( SELECT MAX(tmp.effdt)
-                                FROM ps_committee tmp
-                                WHERE tmp.committee_id = com.committee_id
-                                AND effdt > DATE(%s)
-                                AND effdt < DATE(%s)
-                                AND tmp.committee_type = com.committee_type )
+            COM.INSTITUTION=ST.INSTITUTION 
+            AND COM.COMMITTEE_ID=ST.COMMITTEE_ID
+            AND MEM.INSTITUTION=COM.INSTITUTION 
+            AND MEM.COMMITTEE_ID=COM.COMMITTEE_ID 
+            AND MEM.EFFDT=COM.EFFDT
+            AND COM.COMMITTEE_TYPE=COMTBL.COMMITTEE_TYPE 
+            AND COMTBL.EFF_STATUS='A'
+            AND ROLE.COMMITTEE_ROLE=MEM.COMMITTEE_ROLE 
+            AND ROLE.COMMITTEE_TYPE=COM.COMMITTEE_TYPE
+            AND ST.EMPLID=%s
+            AND COM.EFFDT = ( SELECT MAX(TMP.EFFDT)
+                                FROM PS_COMMITTEE TMP
+                                WHERE TMP.COMMITTEE_ID = COM.COMMITTEE_ID
+                                AND EFFDT > %s
+                                AND EFFDT < %s
+                                AND TMP.COMMITTEE_TYPE = COM.COMMITTEE_TYPE )
         """
-    db.execute(query, (str(emplid), str(min_date), str(max_date) ))
+    db.execute(query, (str(emplid), min_date, max_date))
     return list(db)
 
 #@cache_by_args
@@ -1258,16 +1368,16 @@ def holds_resident_visa( emplid ):
     db = SIMSConn()
     db.execute("""
         SELECT *
-        FROM ps_visa_permit_tbl tbl
-        INNER JOIN ps_visa_pmt_data data
-            ON tbl.visa_permit_type = data.visa_permit_type
+        FROM PS_VISA_PERMIT_TBL TBL
+        INNER JOIN PS_VISA_PMT_DATA DATA
+            ON TBL.VISA_PERMIT_TYPE = DATA.VISA_PERMIT_TYPE
         WHERE
-            data.effdt = ( SELECT MAX(tmp.effdt) 
-                                FROM ps_visa_pmt_data tmp
-                                WHERE tmp.emplid = data.emplid
-                                    AND tmp.effdt <= (SELECT current timestamp FROM sysibm.sysdummy1) )
-            AND data.emplid = %s
-            AND visa_permit_class = 'R'
+            DATA.EFFDT = ( SELECT MAX(TMP.EFFDT) 
+                                FROM PS_VISA_PMT_DATA TMP
+                                WHERE TMP.EMPLID = DATA.EMPLID
+                                    AND TMP.EFFDT <= GETDATE() )
+            AND DATA.EMPLID = %s
+            AND VISA_PERMIT_CLASS = 'R'
         """, (emplid,) )
     # If there's at least one record with Permit Class TYPE R!, they are a resident
     for result in db:
@@ -1279,13 +1389,13 @@ def holds_resident_visa( emplid ):
 def get_mother_tongue( emplid ):
     db = SIMSConn()
     db.execute("""
-        SELECT atbl.descr
-          FROM ps_accomplishments a,
-               ps_accomp_tbl     atbl
-         WHERE a.emplid=%s
-           AND a.native_language='Y'
-           AND a.accomplishment=atbl.accomplishment
-           AND atbl.accomp_category='LNG'
+        SELECT ATBL.DESCR
+          FROM PS_ACCOMPLISHMENTS A,
+               PS_ACCOMP_TBL     ATBL
+         WHERE A.EMPLID=%s
+           AND A.NATIVE_LANGUAGE='Y'
+           AND A.ACCOMPLISHMENT=ATBL.ACCOMPLISHMENT
+           AND ATBL.ACCOMP_CATEGORY='LNG'
         """, (emplid,) )
     for result in db:
         return str(result[0])
@@ -1296,11 +1406,11 @@ def get_mother_tongue( emplid ):
 def get_passport_issued_by( emplid ):
     db = SIMSConn()
     db.execute("""
-        SELECT cou.descr 
-        FROM ps_country_tbl cou
-        INNER JOIN ps_citizenship cit 
-            ON cit.country = cou.country
-        WHERE cit.emplid = %s
+        SELECT COU.DESCR 
+        FROM PS_COUNTRY_TBL COU
+        INNER JOIN PS_CITIZENSHIP CIT 
+            ON CIT.COUNTRY = COU.COUNTRY
+        WHERE CIT.EMPLID = %s
         """, (emplid,) )
     for result in db:
         return str(result[0])
@@ -1317,24 +1427,27 @@ def csrpt_update():
     this_sem = Semester.current()
 
     db.execute("""
-        SELECT sfu_clone_dttm FROM ps_sfu_clone_info FETCH FIRST 1 ROWS ONLY
+        SELECT SFU_CLONE_DTTM FROM PS_SFU_CLONE_INFO
         """, ())
     row = db.fetchone()
-    data.append(('ps_sfu_clone_info.sfu_clone_dttm', row[0]))
+    if row:
+        data.append(('ps_sfu_clone_info.sfu_clone_dttm', row[0]))
 
     db.execute("""
-        SELECT max(enrl_add_dt), max(status_dt), max(grading_basis_dt) FROm ps_stdnt_enrl WHERE strm IN (%s, %s)
+        SELECT MAX(ENRL_ADD_DT), MAX(STATUS_DT), MAX(GRADING_BASIS_DT) FROM PS_STDNT_ENRL WHERE STRM IN (%s, %s)
         """, (this_sem.name, this_sem.offset_name(1)))
     row = db.fetchone()
-    data.append(('max(enrl_add_dt)', row[0]))
-    data.append(('max(status_dt)', row[1]))
-    data.append(('max(grading_basis_dt)', row[2]))
+    if row:
+        data.append(('max(enrl_add_dt)', row[0]))
+        data.append(('max(status_dt)', row[1]))
+        data.append(('max(grading_basis_dt)', row[2]))
 
     db.execute("""
-        SELECT max(scc_row_add_dttm) FROM ps_acad_plan
+        SELECT MAX(SCC_ROW_ADD_DTTM) FROM PS_ACAD_PLAN
         """, ())
     row = db.fetchone()
-    data.append(('recent ps_acad_plan', row[0]))
+    if row:
+        data.append(('recent ps_acad_plan', row[0]))
 
     return data
 
@@ -1364,8 +1477,9 @@ def outlines_api_url(offering):
 
 def outlines_data_json(offering):
     url = outlines_api_url(offering)
+    url_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     try:
-        req = urllib.request.urlopen(url, timeout=30)
+        req = url_opener.open(url, timeout=30)
         jsondata = req.read()
         data = json.loads(jsondata.decode('utf8'))
     except ValueError:
@@ -1395,8 +1509,9 @@ def userid_to_emplid(userid):
     """
     qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'username': userid})
     url = EMPLID_BASE_URL + qs
+    url_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     try:
-        req = urllib.request.urlopen(url, timeout=30)
+        req = url_opener.open(url, timeout=30)
         jsondata = req.read().decode('utf8')
         data = json.loads(jsondata)
     except ValueError:
@@ -1419,8 +1534,9 @@ def emplid_to_userid(emplid):
     """
     qs = urllib.parse.urlencode({'art': EMPLID_SECRET, 'sfuid': str(emplid)})
     url = USERID_BASE_URL + qs
+    url_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     try:
-        req = urllib.request.urlopen(url, timeout=30)
+        req = url_opener.open(url, timeout=30)
         jsondata = req.read().decode('utf8')
         data = json.loads(jsondata)
     except ValueError:

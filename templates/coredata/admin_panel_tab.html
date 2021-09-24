@@ -67,3 +67,7 @@ Some guess about how fresh the reporting database is&hellip;
 </table>
 {% endif %}
 
+{% if environ %}
+{% for k,v in environ %}<pre>{{ k }}={{ v }}</pre>
+{% endfor %}
+{% endif %}

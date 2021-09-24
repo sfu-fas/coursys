@@ -4,5 +4,6 @@
   "external_hostname": "coursys.sfu.ca",
   "coursys_branch": "deployed-2020",
   "run_list": ["coursys"],
-  "rabbitmq_password": "the_rabbitmq_password"
+  "rabbitmq_password": "the_rabbitmq_password",
+  "http_proxy": "http://bby-vcontrol-proxy.its.sfu.ca:8080"
 }

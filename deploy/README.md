@@ -44,7 +44,7 @@ Get a VM. Do a `ssh-copy-id`.
 sudo apt install git chef
 git clone -b deployed-2020 https://github.com/sfu-fas/coursys.git
 cd coursys
-sudo cp ./deploy/run-list-production.json ./deploy/run-list.json
+cp ./deploy/run-list-production.json ./deploy/run-list.json
 # check ./deploy/solo.rb and ./deploy/run-list-production.json
 make chef # will fail at nginx step because of missing cert...
 cd /coursys

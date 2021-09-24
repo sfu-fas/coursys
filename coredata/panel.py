@@ -226,7 +226,7 @@ def deploy_checks(request=None):
     # Reporting DB connection
     try:
         db = SIMSConn()
-        db.execute("SELECT last_name FROM ps_names WHERE emplid=301355288", ())
+        db.execute("SELECT LAST_NAME FROM PS_NAMES WHERE EMPLID=301355288", ())
         result = list(db)
         # whoever this is, they have non-ASCII in their name: let's hope they don't change it.
         lname = result[0][0]
@@ -301,9 +301,10 @@ def deploy_checks(request=None):
 
     # CAS connectivity
     try:
-        resp = requests.get(settings.CAS_SERVER_URL, allow_redirects=False, timeout=5)
-        if resp.status_code != 302:
-            failed.append(('CAS Connectivity', 'Expected 302 response from CAS, but got %i' % (resp.status_code,)))
+        url_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        req = url_opener.open(urllib.parse.urljoin(settings.CAS_SERVER_URL, 'login'))
+        if req.status != 200:
+            failed.append(('CAS Connectivity', 'Expected 200 response from CAS, but got %i' % (req.status,)))
         else:
             passed.append(('CAS Connectivity', 'okay'))
     except requests.exceptions.ConnectionError as e:
@@ -325,7 +326,7 @@ def deploy_checks(request=None):
     # are any services listening publicly that shouldn't?
     hostname = socket.gethostname()
     ports = [
-        25, # mail server
+        #25, # mail server
         #4369, # epmd, erlang port mapper daemon is okay to listen externally and won't start with ERL_EPMD_ADDRESS set. http://serverfault.com/questions/283913/turn-off-epmd-listening-port-4369-in-ubuntu-rabbitmq
         45130, # beam? rabbitmq something
         4000, # main DB stunnel
@@ -392,13 +393,13 @@ def deploy_checks(request=None):
     import ntplib
     try:
         c = ntplib.NTPClient()
-        response = c.request('pool.ntp.org')
+        response = c.request('ns2.sfu.ca')
         if abs(response.offset) > 0.1:
-            failed.append(('Server time', 'Time is %g seconds off NTP pool.' % (response.offset,)))
+            failed.append(('Server time', 'Time is %g seconds off NTP reference.' % (response.offset,)))
         else:
             passed.append(('Server time', 'okay'))
     except ntplib.NTPException as e:
-        failed.append(('Server time', 'Unable to query NTP pool: %s' % (e,)))
+        failed.append(('Server time', 'Unable to query NTP reference: %s' % (e,)))
 
     # library sanity
     err = bitfield_check()

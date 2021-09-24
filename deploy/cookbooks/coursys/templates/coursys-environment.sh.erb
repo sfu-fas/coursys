@@ -4,7 +4,7 @@ COURSYS_USER_HOME="/home/<%= @coursys_user %>"
 export COURSYS_USER_HOME
 COURSYS_DIR="<%= @coursys_dir %>"
 export COURSYS_DIR
-COURSYS_DEPLOY_MODE="<%= @deploy_mode %>" # as set in the Chef recipe
+COURSYS_DEPLOY_MODE="<%= @deploy_mode %>"
 export COURSYS_DEPLOY_MODE
 COURSYS_STATIC_DIR="<%= @data_root %>/static"
 export COURSYS_STATIC_DIR
@@ -14,19 +14,19 @@ LANG=en_CA.UTF-8
 export LANG
 
 # imitate ~/sqllib/db2profile
-DB2INSTANCE="<%= @coursys_user %>"
-export DB2INSTANCE
-DB2_HOME=/home/<%= @coursys_user %>/sqllib
-export DB2_HOME
-LD_LIBRARY_PATH=/home/<%= @coursys_user %>/sqllib/lib64:/home/<%= @coursys_user %>/sqllib/lib64/gskit:/home/<%= @coursys_user %>/sqllib/lib32
-export LD_LIBRARY_PATH
-DB2LIB=/home/<%= @coursys_user %>/sqllib/lib
-export DB2LIB
-IBM_DB_DIR=/home/<%= @coursys_user %>/sqllib
-export IBM_DB_DIR
-IBM_DB_HOME=/home/<%= @coursys_user %>/sqllib
-export IBM_DB_HOME
-IBM_DB_INCLUDE=/home/<%= @coursys_user %>/sqllib/include
-export IBM_DB_INCLUDE
-IBM_DB_LIB=/home/<%= @coursys_user %>/sqllib/lib
-export IBM_DB_LIB
+# DB2INSTANCE="<%= @coursys_user %>"
+# export DB2INSTANCE
+# DB2_HOME=/home/<%= @coursys_user %>/sqllib
+# export DB2_HOME
+# LD_LIBRARY_PATH=/home/<%= @coursys_user %>/sqllib/lib64:/home/<%= @coursys_user %>/sqllib/lib64/gskit:/home/<%= @coursys_user %>/sqllib/lib32
+# export LD_LIBRARY_PATH
+# DB2LIB=/home/<%= @coursys_user %>/sqllib/lib
+# export DB2LIB
+# IBM_DB_DIR=/home/<%= @coursys_user %>/sqllib
+# export IBM_DB_DIR
+# IBM_DB_HOME=/home/<%= @coursys_user %>/sqllib
+# export IBM_DB_HOME
+# IBM_DB_INCLUDE=/home/<%= @coursys_user %>/sqllib/include
+# export IBM_DB_INCLUDE
+# IBM_DB_LIB=/home/<%= @coursys_user %>/sqllib/lib
+# export IBM_DB_LIB

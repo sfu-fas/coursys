@@ -55,7 +55,6 @@ def check_moss_executable(passed, failed):
         return
 
     moss_pl = os.path.join(settings.MOSS_DISTRIBUTION_PATH, 'moss.pl')
-    print(moss_pl)
     if not os.path.isfile(moss_pl) or not os.access(moss_pl, os.X_OK):
         failed.append(('MOSS subprocess', 'MOSS_DISTRIBUTION_PATH/moss.pl is not an executable'))
         return
@@ -70,7 +69,6 @@ def all_code_submissions(activity: Activity) -> List[SubmittedCodefile]:
     si = SubmissionInfo.for_activity(activity)
     si.get_all_components()
     found, individual_subcomps, last_submission = si.most_recent_submissions()
-    print(individual_subcomps)
     # flatten submitted component list: https://stackoverflow.com/a/952952
     sub_comps = [c for sublist in si.all_submitted_components for c in sublist]
     # keep only SubmittedCodefiles

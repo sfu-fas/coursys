@@ -75,19 +75,12 @@ def set_beat_time() -> None:
 def regular_backup():
     if settings.DO_IMPORTING_HERE:
         # if we're not on the "real" database, then don't bother with regular backups
-        (backup_database.si() | backup_to_remote.si()).apply_async()
+        backup_database.si().apply_async()
 
 
 @task()
 def backup_database():
     call_command('backup_db', clean_old=True)
-
-
-@task()
-def backup_to_remote():
-    return
-    call_command('backup_remote')
-
 
 
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
@@ -96,7 +89,7 @@ def check_sims_connection():
         return
     from coredata.queries import SIMSConn, SIMSProblem
     db = SIMSConn()
-    db.execute("SELECT descr FROM dbcsown.PS_TERM_TBL WHERE strm='1111'", ())
+    db.execute("SELECT DESCR FROM PS_TERM_TBL WHERE STRM='1111'", ())
     if len(list(db)) == 0:
         raise SIMSProblem("Didn't get any data back from SIMS query.")
 
@@ -108,7 +101,7 @@ def check_sims_task() -> Optional[str]:
     """
     try:
         db = SIMSConn()
-        db.execute("SELECT last_name FROM ps_names WHERE emplid=301355288", ())
+        db.execute("SELECT LAST_NAME FROM PS_NAMES WHERE EMPLID=301355288", ())
         result = list(db)
         # whoever this is, they have non-ASCII in their name: let's hope they don't change it.
         lname = result[0][0]

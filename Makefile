@@ -95,6 +95,9 @@ chef:
 
 # Utility helpers
 
+kinit: # used like: "make kinit USER=ggbaker"
+	${SUCOURSYS} kinit $(USER)@AD.SFU.CA
+
 manage: # used like: "make manage ARGS=shell"
 	${SUCOURSYS} python3 manage.py $(ARGS)
 shell:
