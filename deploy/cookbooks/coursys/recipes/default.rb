@@ -203,6 +203,10 @@ if deploy_mode != 'devel'
     recursive true
     action :create
   end
+  directory '/var/log/celery' do  # must be present, even though our logs are elsewhere
+    mode '0755'
+    action :create
+  end
   file "#{coursys_dir}/.env" do
     content "RABBITMQ_PASSWORD=#{rabbitmq_password}\n"
   end
