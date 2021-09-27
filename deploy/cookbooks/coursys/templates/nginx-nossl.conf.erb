@@ -1,0 +1,18 @@
+<% if @hsts %>
+add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains; preload';
+<% end %>
+
+<% @all_names.each do |name| %>
+include /etc/nginx/sites-available/<%= name %>.conf;
+<% end %>
+
+server {
+        # redirect any other requests to domain name URL (shouldn't happen)
+        server_name _;
+        listen 80 default_server;
+
+        access_log <%= @data_root %>/nginx-logs/default-http.access.log;
+        error_log <%= @data_root %>/nginx-logs/default-http.error.log warn;
+
+        return 301 https://<%= @true_domain_name %>$request_uri;
+}
