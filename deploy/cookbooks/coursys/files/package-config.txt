@@ -1,0 +1,6 @@
+krb5-config	krb5-config/add_servers	boolean	false
+krb5-config	krb5-config/kerberos_servers	string
+krb5-config	krb5-config/add_servers_realm	string	AD.SFU.CA
+krb5-config	krb5-config/default_realm	string	AD.SFU.CA
+krb5-config	krb5-config/admin_server	string
+krb5-config	krb5-config/read_conf	boolean	true

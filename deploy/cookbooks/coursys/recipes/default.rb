@@ -92,6 +92,20 @@ execute 'github-markdown' do
 end
 
 if deploy_mode != 'devel'
+  # some swap, so unused processes can get out of the way
+  execute 'create swapfile' do
+    command 'dd if=/dev/zero of=/swapfile bs=4096 count=1048576'
+    creates '/swapfile'
+  end
+  execute 'swap-setup' do
+    command 'chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile'
+    not_if 'cat /proc/swaps | grep /swapfile'
+  end
+  execute 'fstap-swap' do
+    command 'echo "/swapfile swap swap defaults 0 0" >> /etc/fstab'
+    not_if 'cat /etc/fstab | grep /swapfile'
+  end
+
   # docker
   execute 'docker-key' do
     command 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -'
