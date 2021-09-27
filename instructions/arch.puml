@@ -12,6 +12,7 @@
 !include <logos/rabbitmq>
 !include <logos/ruby>
 !include <logos/python>
+!include <logos/rabbitmq>
 !include <logos/memcached>
 !include <logos/elasticsearch>
 !include <logos/mariadb>
@@ -35,7 +36,7 @@ package "CourSys Server" {
     control "manage.py\ncollectstatic" as collectstatic
     
     package "Docker Containers" {
-        queue "RabbitMQ" as rabbitmq
+        queue "<$rabbitmq>\nRabbitMQ" as rabbitmq
         agent "<$ruby>\nMarkdown Converter" as markdown
         database "<$memcached>\nMemcached" as memcached
         database "<$elasticsearch>\nElasticsearch" as elasticsearch
@@ -47,7 +48,7 @@ package "CourSys Server" {
     django -> collectstatic : files
 
     gunicorn ..> django : runs
-    django <.. celery : runs
+    django <.. celery : "runs\n~*/tasks.py"
 
     'celery .> import : task
     django <.. import : runs
