@@ -150,10 +150,10 @@ class SIMSConnDB2(DBConn):
     """
     Singleton object representing SIMS DB connection
     """
-    #sims_user = settings.SIMS_USER
-    #sims_passwd = settings.SIMS_PASSWORD
-    #sims_db = settings.SIMS_DB_NAME
-    #schema = settings.SIMS_DB_SCHEMA
+    sims_user = settings.SIMS_USER
+    sims_passwd = settings.SIMS_PASSWORD
+    sims_db = settings.SIMS_DB_NAME
+    schema = settings.SIMS_DB_SCHEMA
     
     DatabaseError = ReferenceError # placeholder until we have the DB2 module
     DB2Error = ReferenceError
