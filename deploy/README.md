@@ -38,7 +38,7 @@ make start-all
 
 ## Production Server Setup
 
-Get a VM. Do a `ssh-copy-id`.
+Get a VM.
 
 ```sh
 sudo apt install git chef
@@ -54,11 +54,7 @@ sudo rm -rf ~/coursys # probably: it's all in /coursys now
 ```
 
 Double-check firewall rules: these recipes do not configure iptables, but only ports 80 and 443 should be open. Port 22 should be open to a limited IP range.
-
-To bootstrap the SSL certificates, either copy /etc/letsencrypt on a previous production server,
-or comment-out all SSL server blocks from the Nginx configs so certbot can bring up Nginx to bootstrap and:
 ```sh
-sudo certbot --nginx
 make chef
 ```
 
@@ -66,4 +62,8 @@ Check local settings:
 ```sh
 sudo nano -w /coursys/courses/localsettings.py
 sudo nano -w /coursys/courses/secrets.py
+```
+
+```shell
+make start-all
 ```

@@ -72,6 +72,8 @@ def settings_info():
         info.append(('Celery email backend', settings.CELERY_EMAIL_BACKEND))
     if hasattr(settings, 'CELERY_BROKER_URL'):
         info.append(('Celery broker', settings.CELERY_BROKER_URL.split(':')[0]))
+    if hasattr(settings, 'EMAIL_HOST'):
+        info.append(('Email host', settings.EMAIL_HOST))
 
     DATABASES = copy.deepcopy(settings.DATABASES)
     for d in DATABASES:
