@@ -68,7 +68,7 @@ class DBConn(object):
         return tuple((self.prep_value(v) for v in row))
 
 
-class SIMSConn(DBConn):
+class SIMSConnMSSQL(DBConn):
     def get_connection(self):
         if settings.DISABLE_REPORTING_DB:
             raise SIMSProblem("Reporting database access has been disabled in this deployment.")
@@ -146,7 +146,7 @@ class SIMSConn(DBConn):
             return v
 
 
-class OldSIMSConn(DBConn):
+class SIMSConnDB2(DBConn):
     """
     Singleton object representing SIMS DB connection
     """
@@ -166,8 +166,8 @@ class OldSIMSConn(DBConn):
             import ibm_db_dbi
         except ImportError:
             raise SIMSProblem("could not import DB2 module")
-        SIMSConn.DatabaseError = ibm_db_dbi.DatabaseError
-        SIMSConn.DB2Error = ibm_db_dbi.Error
+        SIMSConnDB2.DatabaseError = ibm_db_dbi.DatabaseError
+        SIMSConnDB2.DB2Error = ibm_db_dbi.Error
         try:
             dbconn = ibm_db_dbi.connect(self.sims_db, self.sims_user, self.sims_passwd)
         except ibm_db_dbi.Error:
@@ -216,7 +216,7 @@ class SIMSProblem(Exception):
     pass
 
 
-def SIMS_problem_handler(func):
+def SIMS_problem_handler_MSSQL(func):
     """
     Decorator to deal somewhat gracefully with any SIMS database problems.
     Any decorated function may raise a SIMSProblem instance to indicate a
@@ -240,7 +240,7 @@ def SIMS_problem_handler(func):
     return wrapped
 
 
-def SIMS_problem_handler_old(func):
+def SIMS_problem_handler_DB2(func):
     """
     Decorator to deal somewhat gracefully with any SIMS database problems.
     Any decorated function may raise a SIMSProblem instance to indicate a
@@ -260,6 +260,10 @@ def SIMS_problem_handler_old(func):
 
     wrapped.__name__ = func.__name__
     return wrapped
+
+
+SIMSConn = SIMSConnDB2
+SIMS_problem_handler = SIMS_problem_handler_DB2
 
 
 def _args_to_key(args, kwargs):
