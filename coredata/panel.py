@@ -1,3 +1,8 @@
+import datetime
+import http.client
+import ssl
+from email.utils import parsedate_to_datetime
+
 import psutil
 import requests
 from django.conf import settings
@@ -21,23 +26,18 @@ import random, socket, subprocess, urllib.request, urllib.error, urllib.parse, o
 def _last_component(s):
     return s.split('.')[-1]
 
-def _check_cert(filename):
-    """
-    Does this certificate file look okay?
 
-    Returns error message, or None if okay
-    """
-    try:
-        st = os.stat(filename)
-    except OSError:
-        return filename + " doesn't exist"
-    else:
-        good_perm = stat.S_IFREG | stat.S_IRUSR # | stat.S_IWUSR
-        if (st[stat.ST_UID], st[stat.ST_GID]) != (0,0):
-            return 'not owned by root.root'
-        perm = st[stat.ST_MODE]
-        if good_perm != perm:
-            return "expected permissions %o but found %o." % (good_perm, perm)
+def _certificate_expiry(domain: str) -> datetime.datetime:
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_OPTIONAL
+
+    conn = http.client.HTTPSConnection(domain, context=context)
+    conn.connect()
+    cert = conn.sock.getpeercert()
+
+    return parsedate_to_datetime(cert['notAfter'])
+
 
 def _check_file_create(directory):
     """
@@ -364,7 +364,7 @@ def deploy_checks(request=None):
         passed.append(('Ports listening externally', 'okay'))
 
     # correct serving/redirecting of production domains
-    if settings.DEPLOY_MODE == 'production':
+    if settings.DEPLOY_MODE in ['production', 'proddev']:
         production_host_fails = 0
         for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
             # check HTTPS serving/redirect
@@ -388,7 +388,7 @@ def deploy_checks(request=None):
             try:
                 url = 'http://' + host + reverse('docs:list_docs')  # must be a URL that doesn't require auth
                 resp = requests.get(url, allow_redirects=False, timeout=5)
-                if resp.status_code != 301:
+                if resp.status_code not in [301, 302]:
                     failed.append(('HTTP Serving', 'expected 301 redirect to https://, but got %i at %s' % (resp.status_code, url)))
                     production_host_fails += 1
             except requests.exceptions.RequestException:
@@ -397,6 +397,18 @@ def deploy_checks(request=None):
 
         if production_host_fails == 0:
             passed.append(('HTTPS Serving', 'okay: certs and redirects as expected, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
+
+        low_ttl_certs = 0
+        min_age = datetime.timedelta(days=14)
+        now = datetime.datetime.now(datetime.timezone.utc)
+        for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
+            # check that certs aren't expiring soon
+            expiry = _certificate_expiry(host)
+            if expiry - now < min_age:
+                low_ttl_certs += 1
+                failed.append(('Certificate TTL', 'Certificate for %s expires at %s.' % (host, expiry)))
+        if production_host_fails == 0:
+            passed.append(('Certificate TTL', 'okay'))
 
     # is the server time close to real-time?
     import ntplib
