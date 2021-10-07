@@ -118,3 +118,8 @@ table td.checkbox {
     border-bottom: 3px solid #464646;
     cursor: default;
 }
+
+table.info p input {
+    margin: 0px;
+}
+

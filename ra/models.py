@@ -590,9 +590,10 @@ class RARequest(models.Model):
     # email reminders
     reminded = config_property('reminded', default=False)
     
-    # last updates
+    # last updates and processor
     last_updated_at = models.DateTimeField(auto_now=True)
     last_updater = models.ForeignKey(Person, related_name='rarequest_last_updater', default=None, on_delete=models.PROTECT, null=True, editable=False)
+    processor = models.ForeignKey(Person, related_name='rarequest_processor', default=None, on_delete=models.PROTECT, null=True, editable=False)
 
     # all checks need to be checked off for an appointment to be complete
     def get_complete(self):

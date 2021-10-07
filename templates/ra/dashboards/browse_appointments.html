@@ -11,6 +11,14 @@
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
   ra_browser_setup("{% url 'ra:browse_appointments' %}");
+  $('#processing').dataTable( {
+    'bPaginate': false,
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[0, 'asc']],
+    } );
   $('#reqs').dataTable( {
     'bPaginate': false,
     'bInfo': true,
@@ -52,6 +60,45 @@ $(document).ready(function() {
 <div class="helptext">
 This page will display any RA requests/appointments that you have created or are a supervisor for. 
 If you have the correct permissions, so you may also create/reappoint new requests here.
+</div>
+{% endif %}
+
+{% if processing and admin %}
+<h2>Processing</h2>
+<div class="helptext">
+  These are requests that I am a processor for.
+</div>
+<div class="datatable_container">
+  <table id="processing" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Appointee</th>
+        <th scope="col">Supervisor</th>
+        <th scope="col">Unit</th>
+        <th scope="col">Fund</th>
+        <th scope="col">Project</th>
+        <th scope="col">Start Date</th>
+        <th scope="col">End Date</th>
+        <th scope="col">Total Pay</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in processing %}
+        <tr>
+          <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">
+            {{ req.get_sort_name }}
+          </a></td>
+          <td>{{ req.supervisor }}</td>
+          <td>{{ req.unit.label }}</td>
+          <td>{{ req.get_funds }}</td>
+          <td>{{ req.get_projects }}</td>
+          <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
+          <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
+          <td>${{ req.total_pay }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endif %}
 
@@ -100,6 +147,11 @@ If you have the correct permissions, so you may also create/reappoint new reques
 
 {% if reqs %}
 <h2>My Requests In Progress</h2>
+{% if admin %}
+  <div class="helptext">
+    I am either an author or a supervisor for these requests.
+  </div>
+{% endif %}
 <div class="datatable_container">
   <table id="reqs" class="display">
     <thead>

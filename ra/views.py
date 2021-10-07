@@ -608,9 +608,10 @@ def browse_appointments(request):
     # for supervisors to see any of their current requests
     reqs = RARequest.objects.filter(Q(supervisor__userid=request.user.username) | Q(author__userid=request.user.username), deleted=False, complete=False, draft=False)
     drafts = RARequest.objects.filter(author__userid=request.user.username, deleted=False, complete=False, draft=True)
+    processing = RARequest.objects.filter(processor__userid=request.user.username, deleted=False, complete=False, draft=False)
     form = RABrowseForm()
     admin = has_role('FUND', request)
-    context = {'form': form, 'reqs': reqs, 'admin': admin, 'drafts': drafts}
+    context = {'form': form, 'reqs': reqs, 'admin': admin, 'drafts': drafts, 'processing': processing}
     return render(request, 'ra/dashboards/browse_appointments.html', context)
 
 @requires_role("FUND")
@@ -678,6 +679,7 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     View to view a RA request.
     """
     admin = has_role('FUND', request)
+    user = get_object_or_404(Person, userid=request.user.username)
 
     if admin:
         req = get_object_or_404(RARequest, Q(unit__in=request.units), slug=ra_slug, draft=False, deleted=False)
@@ -702,6 +704,7 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     nonstudent = req.student=="N"
     show_research = nonstudent or not req.mitacs
     show_thesis = not nonstudent and req.research
+    is_processor = (user == req.processor)
 
     adminform = RARequestAdminForm(instance=req)
 
@@ -710,7 +713,37 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
          'author': author, 'research_assistant': research_assistant, 'non_cont': non_cont, 'no_id': req.nonstudent,
          'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw,
          'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 'show_thesis': show_thesis, 'show_research': show_research, 'adminform': adminform, 'admin': admin, 
-         'permissions': request.units, 'status': req.status()})
+         'permissions': request.units, 'status': req.status(), 'is_processor': is_processor})
+
+@requires_role("FUND")
+def update_processor(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    Update Processor
+    """
+    user = get_object_or_404(Person, userid=request.user.username)
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, draft=False, complete=False, unit__in=request.units)
+
+    if not req.processor:
+        description = "Assigned themselves as processor for Request %s." % req
+        req.processor = user
+    elif req.processor == user:
+        description = "Unassigned themselves as processor for Request %s." % req
+        req.processor = None
+    else:
+        description = "Unassigned %s as processor and assigned themselves for Request %s" % (req.processor, req)
+        req.processor = user
+    
+    req.last_updater = user
+    req.save()
+
+    l = LogEntry(userid=request.user.username,
+            description=description,
+            related_object=req)
+    l.save()              
+    messages.success(request, "Updated Processor for Request %s" % req.get_name())
+    
+    return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
+
 
 # Update admin checklist
 @requires_role("FUND")

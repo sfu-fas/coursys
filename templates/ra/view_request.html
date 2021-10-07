@@ -48,11 +48,43 @@
     <tr><th>Submission Date:</th><td>{{ req.created_at }}</td></tr>
     <tr><th>Last Update:</th><td>
       {% if req.last_updater and req.last_updated_at %}
-      {{ req.last_updated_at }} by {{ req.last_updater }} ({{ req.last_updater.email_mailto }})
+        {{ req.last_updated_at }} by {{ req.last_updater }} ({{ req.last_updater.email_mailto }})
       {% else %}
-      Never updated.
+        Never updated.
       {% endif %}
     </td></tr>
+    {% if admin %}
+      <tr><th>
+        {% if req.complete %}
+          Processed By:
+        {% else %}
+          Processor:
+        {% endif %}
+      </th><td>
+      {% if req.processor %}
+        {{ req.processor }} 
+        {% if is_processor %}
+        (Me)
+        {% else %} 
+        ({{ req.processor.email_mailto }})
+        {% endif %}
+      {% else %}
+        Unassigned
+      {% endif %}
+      {% if not req.complete %}
+        <form action="{% url "ra:update_processor" ra_slug=req.slug %}" class="lineform" method="post"> 
+          {% csrf_token %}
+          {% if not req.processor %}
+            <p><input type="submit" value="Assign Myself" /></p>
+          {% elif is_processor %}
+            <p><input type="submit" value="Unassign Myself" /></p>
+          {% else %}
+            <p><input type="submit" value="Unassign Current Processor and Assign Myself" /></p>
+          {% endif %}
+        </form>
+      {%endif %}
+      </td></tr>
+    {% endif %}
   </table>
 </div>
 
