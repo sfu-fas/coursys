@@ -1,3 +1,4 @@
+import psutil
 import requests
 from django.conf import settings
 from django.core.cache import cache
@@ -57,7 +58,6 @@ def _check_file_create(directory):
         fh.write('test file: may safely delete')
         fh.close()
         os.unlink(filename)
-
 
 
 def settings_info():
@@ -324,6 +324,13 @@ def deploy_checks(request=None):
             passed.append(('File creation in ' + label, 'okay'))
         else:
             failed.append(('File creation in ' + label, res))
+
+    # space in /tmp
+    tmp_free = psutil.disk_usage('/tmp').free
+    if tmp_free > 4*1024*1024*1024:
+        passed.append(('Space in /tmp', 'okay'))
+    else:
+        failed.append(('Space in /tmp', 'Low: %i MB' % (tmp_free/1024/1024,)))
 
     # are any services listening publicly that shouldn't?
     hostname = socket.gethostname()
