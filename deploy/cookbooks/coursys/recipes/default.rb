@@ -295,7 +295,7 @@ if deploy_mode != 'devel'
   end
   if deploy_mode == 'production'
     raise "We expect the canonical domain name to be coursys.sfu.ca here: adjust server_names if something changed." unless domain_name == 'coursys.sfu.ca'
-    serve_names = ['coursys.sfu.ca', 'fasit.sfu.ca']
+    serve_names = ['coursys.sfu.ca', 'fasit.sfu.ca', 'coursys-prd.cs.sfu.ca']  # TODO: coursys-prd should only be needed in transition
     redirect_names = ['coursys.cs.sfu.ca', 'courses.cs.sfu.ca']
     #https_port = '443'
     #hsts = true  # TODO: re-enable when we're settled

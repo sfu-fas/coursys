@@ -398,17 +398,20 @@ def deploy_checks(request=None):
         if production_host_fails == 0:
             passed.append(('HTTPS Serving', 'okay: certs and redirects as expected, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
 
-        low_ttl_certs = 0
-        min_age = datetime.timedelta(days=14)
-        now = datetime.datetime.now(datetime.timezone.utc)
-        for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
-            # check that certs aren't expiring soon
-            expiry = _certificate_expiry(host)
-            if expiry - now < min_age:
-                low_ttl_certs += 1
-                failed.append(('Certificate TTL', 'Certificate for %s expires at %s.' % (host, expiry)))
-        if production_host_fails == 0:
-            passed.append(('Certificate TTL', 'okay'))
+        if 'https_proxy' in os.environ:
+            failed.append(('Certificate TTL', 'Skipping because https_proxy environment variable is set.'))
+        else:
+            low_ttl_certs = 0
+            min_age = datetime.timedelta(days=14)
+            now = datetime.datetime.now(datetime.timezone.utc)
+            for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
+                # check that certs aren't expiring soon
+                expiry = _certificate_expiry(host)
+                if expiry - now < min_age:
+                    low_ttl_certs += 1
+                    failed.append(('Certificate TTL', 'Certificate for %s expires at %s.' % (host, expiry)))
+            if production_host_fails == 0:
+                passed.append(('Certificate TTL', 'okay'))
 
     # is the server time close to real-time?
     import ntplib
