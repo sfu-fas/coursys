@@ -1,6 +1,6 @@
 #forum {
     display: grid;
-    grid-template-columns: min(max(15em, 25%), 25em) 1fr;
+    grid-template-columns: min(max(15em, 25%), 25em) minmax(0, 1fr);
 }
 #thread-list {
     grid-column: 1;
