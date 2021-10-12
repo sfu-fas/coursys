@@ -1,3 +1,5 @@
+import socket
+
 from django.conf import settings
 from coredata.models import Member
 from cache_utils.decorators import cached
@@ -32,4 +34,5 @@ def media(request):
             'help_email': help_email(request),
             'SERVER_MESSAGE_INDEX': settings.SERVER_MESSAGE_INDEX,
             'SERVER_MESSAGE': settings.SERVER_MESSAGE,
+            'SERVER_HOSTNAME': socket.gethostname(),
             }

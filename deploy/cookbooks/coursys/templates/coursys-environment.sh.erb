@@ -13,6 +13,13 @@ export COURSYS_DATA_ROOT
 LANG=en_CA.UTF-8
 export LANG
 
+<% if @http_proxy %>
+http_proxy="<%= @http_proxy %>"
+export http_proxy
+https_proxy="<%= @http_proxy %>"
+export https_proxy
+<% end %>
+
 # imitate ~/sqllib/db2profile
 DB2INSTANCE="<%= @coursys_user %>"
 export DB2INSTANCE
