@@ -19,7 +19,7 @@ except ImportError:
 
 if getattr(localsettings, 'DEPLOY_MODE', None):
     DEPLOY_MODE = localsettings.DEPLOY_MODE
-elif hostname == 'courses':
+elif hostname == 'courses':  # TODO: this is no longer the correct condition
     # full production mode
     DEPLOY_MODE = 'production'
 elif False:
@@ -144,7 +144,8 @@ if 'test' in sys.argv[1:]:
 # security-related settings
 CANONICAL_HOST = 'coursys.sfu.ca'  # the one true hostname to forward to
 SERVE_HOSTS = ['coursys.sfu.ca', 'fasit.sfu.ca']  # hosts where we actually serve pages
-REDIRECT_HOSTS = ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca']  # hosts that actually forward to the coursys.sfu.ca domain
+SERVE_HOSTS.extend(getattr(localsettings, 'MORE_SERVE_HOSTS', []))
+REDIRECT_HOSTS = ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca']  # hosts that forward to the coursys.sfu.ca domain
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', SERVE_HOSTS + REDIRECT_HOSTS)
 if DEBUG:
     ALLOWED_HOSTS.append('localhost')
@@ -358,6 +359,10 @@ DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
 SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
 SIMS_DB_NAME = "CSRPT"
+SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')  # TODO: remove after DB2 transition
+SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')  # TODO: remove after DB2 transition
+SIMS_DB_SCHEMA = "dbcsown"  # TODO: remove after DB2 transition
+
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)
 SERVER_MESSAGE_INDEX = getattr(localsettings, 'SERVER_MESSAGE_INDEX', '')

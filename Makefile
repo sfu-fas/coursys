@@ -81,7 +81,7 @@ rebuild:
 rebuild-hardcore:
 	#make chef
 	${SYSTEMCTL} daemon-reload # catches any changed service definitions
-	${SYSTEMCTL} stop ntp && sudo ntpdate pool.ntp.org && ${SYSTEMCTL} start ntp
+	${SYSTEMCTL} stop ntp && sudo ntpdate ns2.sfu.ca && ${SYSTEMCTL} start ntp
 	${DOCKERCOMPOSE} pull
 	make 503
 	${DOCKERCOMPOSE} restart

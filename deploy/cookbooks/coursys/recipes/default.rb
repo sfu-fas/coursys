@@ -31,7 +31,7 @@ execute 'apt-get upgrade' do
 end
 
 # basic requirements to run/build
-package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev', 'unixodbc-dev']
+package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev', 'unixodbc-dev', 'rsync']
 if deploy_mode == 'devel'
   package ['sqlite3']
 end
@@ -62,6 +62,7 @@ template '/etc/profile.d/coursys-environment.sh' do
     :deploy_mode => deploy_mode == 'demo' ? 'proddev' : deploy_mode,
     :data_root => data_root,
     :rabbitmq_password => rabbitmq_password,
+    :http_proxy => http_proxy,
   )
 end
 
@@ -92,6 +93,20 @@ execute 'github-markdown' do
 end
 
 if deploy_mode != 'devel'
+  # some swap, so unused processes can get out of the way
+  execute 'create swapfile' do
+    command 'dd if=/dev/zero of=/swapfile bs=4096 count=1048576'
+    creates '/swapfile'
+  end
+  execute 'swap-setup' do
+    command 'chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile'
+    not_if 'cat /proc/swaps | grep /swapfile'
+  end
+  execute 'fstap-swap' do
+    command 'echo "/swapfile swap swap defaults 0 0" >> /etc/fstab'
+    not_if 'cat /etc/fstab | grep /swapfile'
+  end
+
   # docker
   execute 'docker-key' do
     command 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -'
@@ -281,7 +296,7 @@ if deploy_mode != 'devel'
   end
   if deploy_mode == 'production'
     raise "We expect the canonical domain name to be coursys.sfu.ca here: adjust server_names if something changed." unless domain_name == 'coursys.sfu.ca'
-    serve_names = ['coursys.sfu.ca', 'fasit.sfu.ca']
+    serve_names = ['coursys.sfu.ca', 'fasit.sfu.ca', 'coursys-prd.sfu.ca']  # TODO: coursys-prd should only be needed in transition
     redirect_names = ['coursys.cs.sfu.ca', 'courses.cs.sfu.ca']
     #https_port = '443'
     #hsts = true  # TODO: re-enable when we're settled
