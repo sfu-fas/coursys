@@ -37,7 +37,7 @@ def grad_appl_program_changes(acad_prog):
             PROG.EFFDT, PROG.EFFSEQ, PROG.ADMIT_TERM, PROG.EXP_GRAD_TERM, NULL, APLAN.ACAD_SUB_PLAN
         FROM PS_ADM_APPL_PROG PROG
           LEFT JOIN PS_ACAD_SUBPLAN APLAN ON PROG.EMPLID=APLAN.EMPLID AND PROG.EFFDT=APLAN.EFFDT
-            LEFT JOIN DBCSOWN.PS_ADM_APPL_DATA DATA
+            LEFT JOIN PS_ADM_APPL_DATA DATA
                 ON PROG.EMPLID=DATA.EMPLID AND PROG.ACAD_CAREER=DATA.ACAD_CAREER AND PROG.STDNT_CAR_NBR=DATA.STDNT_CAR_NBR AND PROG.ADM_APPL_NBR=DATA.ADM_APPL_NBR
         WHERE PROG.ACAD_CAREER='GRAD' AND PROG.ACAD_PROG=%s AND PROG.EFFDT>=%s AND PROG.ADMIT_TERM>=%s
             AND ( DATA.APPL_FEE_STATUS IN ('REC', 'WVD')
@@ -100,7 +100,7 @@ def metadata_translation_tables():
     langs = dict(db)
 
     db.execute("""
-        SELECT country, descr FROM ps_country_tbl""", ())
+        SELECT COUNTRY, DESCR FROM PS_COUNTRY_TBL""", ())
     countries = dict(db)
 
     db.execute("""
