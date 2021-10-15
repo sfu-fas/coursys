@@ -484,7 +484,7 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        config_clean = ['backdate_lump_sum', 'backdate_hours', 'backdate_reason']
+        config_clean = ['backdate_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
@@ -587,7 +587,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        config_clean = ['nc_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
+        config_clean = ['nc_duties', 'backdate_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
@@ -730,7 +730,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
 
         config_clean = ['ra_payment_method', 'ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_benefits', 'ra_other_duties', 
-                'backdate_lump_sum', 'backdate_hours', 'backdate_reason']
+                'backdate_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])

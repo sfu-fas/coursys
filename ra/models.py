@@ -640,8 +640,7 @@ class RARequest(models.Model):
 
     def build_letter_text(self):
         """
-        This takes the value passed from the letter selector menu and builds the appropriate
-        default letter based on that.
+        Builds the appropriate default letter based on hiring category and payment method.
         """
 
         substitutions = {}
@@ -712,6 +711,13 @@ class RARequest(models.Model):
                     'total_pay': self.total_pay,
                 }
                 text = DEFAULT_LETTER_GRASBW % substitutions
+            elif self.backdated: 
+                substitutions = {
+                    'start_date': self.start_date.strftime("%B %d, %Y"),
+                    'end_date': self.end_date.strftime("%B %d, %Y"),
+                    'total_gross': '%.2f' % self.backdate_lump_sum
+                }
+                text = DEFAULT_LETTER_GRASLS_OUTSIDE_CAN % substitutions
                 
         letter_text = text % substitutions
 

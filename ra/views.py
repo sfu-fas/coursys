@@ -709,10 +709,10 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     adminform = RARequestAdminForm(instance=req)
 
     return render(request, 'ra/view_request.html',
-        {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 
-         'author': author, 'research_assistant': research_assistant, 'non_cont': non_cont, 'no_id': req.nonstudent,
-         'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw,
-         'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 'show_thesis': show_thesis, 'show_research': show_research, 'adminform': adminform, 'admin': admin, 
+        {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 'no_id': req.nonstudent,
+         'author': author, 'graduate_research_assistant': graduate_research_assistant, 'research_assistant': research_assistant, 'non_cont': non_cont, 
+         'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw, 'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 
+         'show_thesis': show_thesis, 'show_research': show_research, 'adminform': adminform, 'admin': admin, 
          'permissions': request.units, 'status': req.status(), 'is_processor': is_processor})
 
 @requires_role("FUND")
@@ -828,7 +828,7 @@ def edit_request_notes(request: HttpRequest, ra_slug: str) -> HttpResponse:
 
 @requires_role("FUND")
 def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
+    req = get_object_or_404(RARequest, Q(backdated=False) | Q(hiring_category__in=['GRAS']), slug=ra_slug, unit__in=request.units, deleted=False, draft=False)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (req.slug)
     letter = FASOfficialLetter(response)
@@ -856,7 +856,7 @@ def request_offer_letter_update(request: HttpRequest, ra_slug: str) -> HttpRespo
     """ 
     View to update offer letter text
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
+    req = get_object_or_404(RARequest, Q(backdated=False) | Q(hiring_category__in=['GRAS']), slug=ra_slug, unit__in=request.units, deleted=False, draft=False)
 
     if request.method == 'POST':
         configform = RARequestLetterForm(request.POST, instance=req)
@@ -883,7 +883,7 @@ def request_default_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResp
     """ 
     Update offer letter text to default 
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
+    req = get_object_or_404(RARequest, Q(backdated=False) | Q(hiring_category__in=['GRAS']), slug=ra_slug, unit__in=request.units, deleted=False, draft=False)
     if request.method == 'POST':
         req.build_letter_text()
         req.last_updater = get_object_or_404(Person, userid=request.user.username)
@@ -902,7 +902,7 @@ def request_science_alive(request: HttpRequest, ra_slug: str) -> HttpResponse:
     Swtich appointment to science alive, or not science alive.
     Impacts offer letter generation.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
+    req = get_object_or_404(RARequest, slug=ra_slug, hiring_category__in=['RA', 'NC'], deleted=False, unit__in=request.units, backdated=False, draft=False)
     if request.method == 'POST':
         
         if req.hiring_category == "RA" or req.hiring_category=="NC":
@@ -924,7 +924,7 @@ def request_science_alive_letter(request: HttpRequest, ra_slug: str) -> HttpResp
     """
     Configure and download science alive offer letters
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units, backdated=False, draft=False)
+    req = get_object_or_404(RARequest, slug=ra_slug, hiring_category__in=['RA', 'NC'], deleted=False, unit__in=request.units, backdated=False, draft=False)
     form = RARequestScienceAliveForm(request.POST)
     if form.is_valid():
         config = ({'letter_type': form.cleaned_data['letter_type'], 'final_bullet': form.cleaned_data['final_bullet']})
