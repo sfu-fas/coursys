@@ -2,6 +2,12 @@
 add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains; preload';
 <% end %>
 
+# the default nginx "combined" log format, with $http_x_forwarded_for prefix
+log_format combined_proxy '$http_x_forwarded_for $remote_addr - $remote_user [$time_local] '
+                    '"$request" $status $body_bytes_sent '
+                    '"$http_referer" "$http_user_agent"';
+
+
 <% @all_names.each do |name| %>
 include /etc/nginx/sites-available/<%= name %>.conf;
 <% end %>

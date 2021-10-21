@@ -2,7 +2,7 @@ server {
         server_name <%= @domain_name %>;
         listen 80;
 
-        access_log <%= @data_root %>/nginx-logs/<%= @domain_name %>-http.access.log;
+        access_log <%= @data_root %>/nginx-logs/<%= @domain_name %>-http.access.log combined_proxy;
         error_log <%= @data_root %>/nginx-logs/<%= @domain_name %>-http.error.log warn;
 
         <% if @serve %>
