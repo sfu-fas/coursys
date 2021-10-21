@@ -364,7 +364,8 @@ def deploy_checks(request=None):
         passed.append(('Ports listening externally', 'okay'))
 
     # correct serving/redirecting of production domains
-    if settings.DEPLOY_MODE in ['production', 'proddev']:
+    # TODO: re-enable once we're settled with proxy settings etc
+    if False and settings.DEPLOY_MODE in ['production', 'proddev']:
         production_host_fails = 0
         for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
             # check HTTPS serving/redirect
