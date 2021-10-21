@@ -189,7 +189,10 @@ def view_page(request, course_slug, page_label):
         url = reverse('offering:pages:index_page', kwargs={'course_slug': course_slug})
         if request.path != url:
             return HttpResponseRedirect(url)
-    
+
+    if version.file_attachment and version.file_attachment.name.startswith('/data/submitted_files/'):
+        version.file_attachment.name = version.file_attachment.name.replace('/data/submitted_files', '/filestore/prod/submitted_files')
+
     context = {'offering': offering, 'page': page, 'version': version,
                'can_edit': can_edit, 'is_index': is_index, 'redirect_url': redirect_url}
     return render(request, 'pages/view_page.html', context)
