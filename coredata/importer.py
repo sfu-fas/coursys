@@ -148,7 +148,21 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     c_old = list(set(c_old1) | set(c_old2))
     
     if len(c_old)>1:
-        raise KeyError("Already duplicate courses: %r %r" % (c_old1, c_old2))
+        #raise KeyError("Already duplicate courses: %r %r" % (c_old1, c_old2))
+        c1 = c_old[0]
+        c2 = c_old[1]
+        with transaction.atomic():
+            # somebody re-used a class_nbr: swap the .class_nbr for the two sections
+            c1_nbr = c1.class_nbr
+            c2_nbr = c2.class_nbr
+            c1.class_nbr = 999999
+            c1.save()
+            c2.class_nbr = c1_nbr
+            c2.save()
+            c1.class_nbr = c2_nbr
+            c1.save()
+        mail_admins('class_nbr re-use', 'Conflict between class numbers on %s and %s: swapped their .class_nbr fields and carried on.' % (c1, c2))
+        c = c_old1
     elif len(c_old)==1:
         # already in DB: update things that might have changed
         c = c_old[0]
