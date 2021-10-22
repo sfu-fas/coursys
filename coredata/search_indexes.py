@@ -1,3 +1,5 @@
+import datetime
+
 from coredata.models import CourseOffering, Person, Member
 from haystack import indexes
 
@@ -66,11 +68,11 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
         return Member
 
     def index_queryset(self, using=None):
-        # limiting to recent semesters is hopefully temporary
+        cutoff = datetime.date.today() - datetime.timedelta(days=730)
         return self.get_model().objects.exclude(offering__component='CAN') \
                 .filter(role__in=['STUD', 'TA']) \
-                .select_related('person', 'offering__semester')
-                #.filter(offering__semester__name__gte='1124') \
+                .select_related('person', 'offering__semester') \
+                .filter(offering__semester__start__gte=cutoff)
 
     def prepare_text(self, m):
         fields = [m.offering.semester.label(), m.offering.semester.name, m.offering.name(),
