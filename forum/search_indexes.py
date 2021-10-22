@@ -1,3 +1,5 @@
+import datetime
+
 from haystack import indexes
 
 from forum.models import Thread
@@ -20,7 +22,9 @@ class ThreadIndex(indexes.SearchIndex, indexes.Indexable):
         return Thread
 
     def index_queryset(self, using=None):
-        return self.get_model().objects.exclude(post__status='HIDD').select_related('post', 'post__offering').prefetch_related('reply_set')
+        cutoff = datetime.date.today() - datetime.timedelta(days=730)
+        return self.get_model().objects.exclude(post__status='HIDD').filter(post__offering__semester__start__gte=cutoff) \
+            .select_related('post', 'post__offering').prefetch_related('reply_set')
 
     def prepare_text(self, thread):
         components = [

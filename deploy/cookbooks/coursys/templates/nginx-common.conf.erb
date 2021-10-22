@@ -33,7 +33,7 @@
                 if (-f <%= @coursys_dir %>/503) {
                         set $maintenance 1;
                 }
-                if ($remote_addr = "142.58.1.1") {
+                if ($http_x_forwarded_for = "10.1.2.3") {  # can set an IP address here to bypass 503
                         set $maintenance 0;
                 }
                 if ($maintenance = 1) {

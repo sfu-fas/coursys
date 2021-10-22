@@ -1,3 +1,5 @@
+import datetime
+
 from pages.models import Page, PageVersion
 from haystack import indexes
 
@@ -14,7 +16,9 @@ class PageIndex(indexes.SearchIndex, indexes.Indexable):
         return Page
 
     def index_queryset(self, using=None):
-        return self.get_model().objects.exclude(can_read='NONE').select_related('offering')
+        cutoff = datetime.date.today() - datetime.timedelta(days=730)
+        return self.get_model().objects.exclude(can_read='NONE').filter(offering__semester__start__gte=cutoff) \
+            .select_related('offering')
 
     def should_update(self, p):
         # no PageVersion yet? Still mid-save, so ignore.

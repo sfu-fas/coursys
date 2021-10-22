@@ -189,7 +189,7 @@ def view_page(request, course_slug, page_label):
         url = reverse('offering:pages:index_page', kwargs={'course_slug': course_slug})
         if request.path != url:
             return HttpResponseRedirect(url)
-    
+
     context = {'offering': offering, 'page': page, 'version': version,
                'can_edit': can_edit, 'is_index': is_index, 'redirect_url': redirect_url}
     return render(request, 'pages/view_page.html', context)
@@ -206,6 +206,7 @@ def _get_file(request, course_slug, page_label, disposition):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     page = get_object_or_404(Page, offering=offering, label=page_label)
     version = page.current_version()
+
     if not version.is_filepage():
         return NotFoundResponse(request)
     
