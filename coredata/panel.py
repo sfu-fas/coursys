@@ -1,3 +1,9 @@
+import datetime
+import http.client
+import ssl
+from email.utils import parsedate_to_datetime
+
+import psutil
 import requests
 from django.conf import settings
 from django.core.cache import cache
@@ -20,23 +26,18 @@ import random, socket, subprocess, urllib.request, urllib.error, urllib.parse, o
 def _last_component(s):
     return s.split('.')[-1]
 
-def _check_cert(filename):
-    """
-    Does this certificate file look okay?
 
-    Returns error message, or None if okay
-    """
-    try:
-        st = os.stat(filename)
-    except OSError:
-        return filename + " doesn't exist"
-    else:
-        good_perm = stat.S_IFREG | stat.S_IRUSR # | stat.S_IWUSR
-        if (st[stat.ST_UID], st[stat.ST_GID]) != (0,0):
-            return 'not owned by root.root'
-        perm = st[stat.ST_MODE]
-        if good_perm != perm:
-            return "expected permissions %o but found %o." % (good_perm, perm)
+def _certificate_expiry(domain: str) -> datetime.datetime:
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_OPTIONAL
+
+    conn = http.client.HTTPSConnection(domain, context=context)
+    conn.connect()
+    cert = conn.sock.getpeercert()
+
+    return parsedate_to_datetime(cert['notAfter'])
+
 
 def _check_file_create(directory):
     """
@@ -59,7 +60,6 @@ def _check_file_create(directory):
         os.unlink(filename)
 
 
-
 def settings_info():
     info = []
     info.append(('Deploy mode', settings.DEPLOY_MODE))
@@ -72,6 +72,8 @@ def settings_info():
         info.append(('Celery email backend', settings.CELERY_EMAIL_BACKEND))
     if hasattr(settings, 'CELERY_BROKER_URL'):
         info.append(('Celery broker', settings.CELERY_BROKER_URL.split(':')[0]))
+    if hasattr(settings, 'EMAIL_HOST'):
+        info.append(('Email host', settings.EMAIL_HOST))
 
     DATABASES = copy.deepcopy(settings.DATABASES)
     for d in DATABASES:
@@ -226,7 +228,7 @@ def deploy_checks(request=None):
     # Reporting DB connection
     try:
         db = SIMSConn()
-        db.execute("SELECT last_name FROM ps_names WHERE emplid=301355288", ())
+        db.execute("SELECT LAST_NAME FROM PS_NAMES WHERE EMPLID=301355288", ())
         result = list(db)
         # whoever this is, they have non-ASCII in their name: let's hope they don't change it.
         lname = result[0][0]
@@ -301,9 +303,10 @@ def deploy_checks(request=None):
 
     # CAS connectivity
     try:
-        resp = requests.get(settings.CAS_SERVER_URL, allow_redirects=False, timeout=5)
-        if resp.status_code != 302:
-            failed.append(('CAS Connectivity', 'Expected 302 response from CAS, but got %i' % (resp.status_code,)))
+        url_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        req = url_opener.open(urllib.parse.urljoin(settings.CAS_SERVER_URL, 'login'))
+        if req.status != 200:
+            failed.append(('CAS Connectivity', 'Expected 200 response from CAS, but got %i' % (req.status,)))
         else:
             passed.append(('CAS Connectivity', 'okay'))
     except requests.exceptions.ConnectionError as e:
@@ -322,10 +325,17 @@ def deploy_checks(request=None):
         else:
             failed.append(('File creation in ' + label, res))
 
+    # space in /tmp
+    tmp_free = psutil.disk_usage('/tmp').free
+    if tmp_free > 4*1024*1024*1024:
+        passed.append(('Space in /tmp', 'okay'))
+    else:
+        failed.append(('Space in /tmp', 'Low: %i MB' % (tmp_free/1024/1024,)))
+
     # are any services listening publicly that shouldn't?
     hostname = socket.gethostname()
     ports = [
-        25, # mail server
+        #25, # mail server
         #4369, # epmd, erlang port mapper daemon is okay to listen externally and won't start with ERL_EPMD_ADDRESS set. http://serverfault.com/questions/283913/turn-off-epmd-listening-port-4369-in-ubuntu-rabbitmq
         45130, # beam? rabbitmq something
         4000, # main DB stunnel
@@ -354,7 +364,8 @@ def deploy_checks(request=None):
         passed.append(('Ports listening externally', 'okay'))
 
     # correct serving/redirecting of production domains
-    if settings.DEPLOY_MODE == 'production':
+    # TODO: re-enable once we're settled with proxy settings etc
+    if False and settings.DEPLOY_MODE in ['production', 'proddev']:
         production_host_fails = 0
         for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
             # check HTTPS serving/redirect
@@ -378,7 +389,7 @@ def deploy_checks(request=None):
             try:
                 url = 'http://' + host + reverse('docs:list_docs')  # must be a URL that doesn't require auth
                 resp = requests.get(url, allow_redirects=False, timeout=5)
-                if resp.status_code != 301:
+                if resp.status_code not in [301, 302]:
                     failed.append(('HTTP Serving', 'expected 301 redirect to https://, but got %i at %s' % (resp.status_code, url)))
                     production_host_fails += 1
             except requests.exceptions.RequestException:
@@ -388,17 +399,32 @@ def deploy_checks(request=None):
         if production_host_fails == 0:
             passed.append(('HTTPS Serving', 'okay: certs and redirects as expected, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
 
+        if 'https_proxy' in os.environ:
+            failed.append(('Certificate TTL', 'Skipping because https_proxy environment variable is set.'))
+        else:
+            low_ttl_certs = 0
+            min_age = datetime.timedelta(days=14)
+            now = datetime.datetime.now(datetime.timezone.utc)
+            for host in settings.SERVE_HOSTS + settings.REDIRECT_HOSTS:
+                # check that certs aren't expiring soon
+                expiry = _certificate_expiry(host)
+                if expiry - now < min_age:
+                    low_ttl_certs += 1
+                    failed.append(('Certificate TTL', 'Certificate for %s expires at %s.' % (host, expiry)))
+            if production_host_fails == 0:
+                passed.append(('Certificate TTL', 'okay'))
+
     # is the server time close to real-time?
     import ntplib
     try:
         c = ntplib.NTPClient()
-        response = c.request('pool.ntp.org')
+        response = c.request('ns2.sfu.ca')
         if abs(response.offset) > 0.1:
-            failed.append(('Server time', 'Time is %g seconds off NTP pool.' % (response.offset,)))
+            failed.append(('Server time', 'Time is %g seconds off NTP reference.' % (response.offset,)))
         else:
             passed.append(('Server time', 'okay'))
     except ntplib.NTPException as e:
-        failed.append(('Server time', 'Unable to query NTP pool: %s' % (e,)))
+        failed.append(('Server time', 'Unable to query NTP reference: %s' % (e,)))
 
     # library sanity
     err = bitfield_check()

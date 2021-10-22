@@ -641,7 +641,8 @@ def copy_setup_pages(course_copy_from, course_copy_to):
                     # handle duplicates by mangling the directory name
                     dstpath += "_"
                 dst = os.path.join(dstpath, dstfile)
-                new_v.file_attachment = dst
+                relative_dst = os.path.relpath(dst, UploadedFileStorage.location)
+                new_v.file_attachment = relative_dst
 
                 if not os.path.exists(dstpath):
                     os.makedirs(dstpath)

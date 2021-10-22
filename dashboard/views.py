@@ -924,7 +924,6 @@ def photo_agreement(request):
     return render(request, "dashboard/photo_agreement.html", context)
 
 
-
 SEARCH_URL = 'http://www.sfu.ca/search.html?'
 MAX_RESULTS = 50
 RESULT_TYPE_DISPLAY = { # human-friendly map for result.content_type
@@ -934,6 +933,7 @@ RESULT_TYPE_DISPLAY = { # human-friendly map for result.content_type
     'pages.page': 'Class web page',
     'discuss.discussiontopic': 'Discussion topic',
 }
+
 
 def _query_results(query, person):
     """
@@ -1020,13 +1020,6 @@ def site_search(request):
         maxscore = 1
     # strip out the really bad results: elasticsearch is pretty liberal
     results = (r for r in results if r.score >= maxscore/10)
-
-    if request.user.is_authenticated:
-        # record authenticated searches for A/B testing
-        l = LogEntry(userid=request.user.username,
-                 description='User %i searched for %r' % (request.user.id, query),
-                 related_object=request.user)
-        l.save()
 
     context = {
         "query": query,

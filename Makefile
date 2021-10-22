@@ -81,7 +81,7 @@ rebuild:
 rebuild-hardcore:
 	#make chef
 	${SYSTEMCTL} daemon-reload # catches any changed service definitions
-	${SYSTEMCTL} stop ntp && sudo ntpdate pool.ntp.org && ${SYSTEMCTL} start ntp
+	${SYSTEMCTL} stop ntp && sudo ntpdate ns2.sfu.ca && ${SYSTEMCTL} start ntp
 	${DOCKERCOMPOSE} pull
 	make 503
 	${DOCKERCOMPOSE} restart
@@ -94,6 +94,9 @@ chef:
 	sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list.json
 
 # Utility helpers
+
+kinit: # used like: "make kinit USER=ggbaker"
+	${SUCOURSYS} kinit $(USER)@AD.SFU.CA
 
 manage: # used like: "make manage ARGS=shell"
 	${SUCOURSYS} python3 manage.py $(ARGS)

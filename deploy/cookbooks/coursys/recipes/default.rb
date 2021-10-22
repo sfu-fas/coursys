@@ -11,6 +11,7 @@ python_version = `python3 -c "import sys; print('%i.%i' % (sys.version_info.majo
 python_lib_dir = "/usr/local/lib/python#{python_version}/dist-packages"
 data_root = '/opt'
 rabbitmq_password = node['rabbitmq_password'] || 'supersecretpassword'
+http_proxy = node['http_proxy']
 
 raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].include?(deploy_mode)
 
@@ -30,7 +31,7 @@ execute 'apt-get upgrade' do
 end
 
 # basic requirements to run/build
-package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev']
+package ['python3', 'python3-pip', 'git', 'mercurial', 'npm', 'libmariadb-dev-compat', 'libz-dev', 'unixodbc-dev', 'rsync']
 if deploy_mode == 'devel'
   package ['sqlite3']
 end
@@ -61,12 +62,13 @@ template '/etc/profile.d/coursys-environment.sh' do
     :deploy_mode => deploy_mode == 'demo' ? 'proddev' : deploy_mode,
     :data_root => data_root,
     :rabbitmq_password => rabbitmq_password,
+    :http_proxy => http_proxy,
   )
 end
 
 # Python and JS deps
 execute "install_pip_requirements" do
-  command "pip3 install -r #{coursys_dir}/requirements.txt"
+  command "python3 -m pip install -r #{coursys_dir}/requirements.txt"
   creates "#{python_lib_dir}/django/__init__.py"
 end
 execute "npm-install" do
@@ -91,18 +93,52 @@ execute 'github-markdown' do
 end
 
 if deploy_mode != 'devel'
+  # some swap, so unused processes can get out of the way
+  execute 'create swapfile' do
+    command 'dd if=/dev/zero of=/swapfile bs=4096 count=1048576'
+    creates '/swapfile'
+  end
+  execute 'swap-setup' do
+    command 'chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile'
+    not_if 'cat /proc/swaps | grep /swapfile'
+  end
+  execute 'fstap-swap' do
+    command 'echo "/swapfile swap swap defaults 0 0" >> /etc/fstab'
+    not_if 'cat /etc/fstab | grep /swapfile'
+  end
+
   # docker
+  execute 'docker-key' do
+    command 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -'
+  end
+  directory "/lib/systemd/system/docker.service.d" do
+    owner 'root'
+    mode '0755'
+    action :create
+  end
+  if !http_proxy.nil?
+    template "/lib/systemd/system/docker.service.d/http-proxy.conf" do
+      variables(
+        :http_proxy => http_proxy,
+      )
+    end
+  end
   apt_repository 'docker' do
     uri 'https://download.docker.com/linux/ubuntu/'
     components ['stable']
     distribution ubuntu_release
     arch 'amd64'
-    key '7EA0A9C3F273FCD8'
-    keyserver 'keyserver.ubuntu.com'
+    #key '7EA0A9C3F273FCD8'
+    #keyserver 'keyserver.ubuntu.com'
     action :add
     deb_src false
   end
   package ['docker', 'docker-compose']
+  cookbook_file "/etc/docker/daemon.json" do
+    source 'docker-daemon.json'
+    owner "root"
+    mode "0644"
+  end
   execute "docker group" do
     command "gpasswd -a #{username} docker && service docker restart"
     not_if "grep docker /etc/group | grep #{username}"
@@ -141,10 +177,10 @@ if deploy_mode != 'devel'
   end
 
   package 'snapd'
-  execute 'install-certbot' do
-    command 'snap install --classic certbot'
-    creates '/snap/bin/certbot'
-  end
+  #execute 'install-certbot' do
+  #  command 'snap install --classic certbot'
+  #  creates '/snap/bin/certbot'
+  #end
   # This recipe doesn't address actually *running* certbot.
 
   # There was a conflict between npm and some mysql packages, so using the mariadb client, which should be equivalent.
@@ -182,6 +218,10 @@ if deploy_mode != 'devel'
     recursive true
     action :create
   end
+  directory '/var/log/celery' do  # must be present, even though our logs are elsewhere
+    mode '0755'
+    action :create
+  end
   file "#{coursys_dir}/.env" do
     content "RABBITMQ_PASSWORD=#{rabbitmq_password}\n"
   end
@@ -204,7 +244,7 @@ if deploy_mode != 'devel'
   cron "celery check" do
     user username
     minute '0'
-    command "python3 #{coursys_dir}/manage.py ping_celery"
+    command ". /etc/profile.d/coursys-environment.sh; python3 /coursys/manage.py ping_celery"
   end
   cron "celery restart" do
     user 'root'
@@ -214,22 +254,22 @@ if deploy_mode != 'devel'
   end
 
   # nginx setup
-  execute "dh group" do
-    # generate unique DH group, per https://weakdh.org/sysadmin.html
-    command "openssl dhparam -out /etc/nginx/dhparams.pem 2048"
-    creates("/etc/nginx/dhparams.pem")
-  end
-  cookbook_file '/etc/nginx/insecure.key' do
-    mode 0400
-  end
-  cookbook_file '/etc/nginx/insecure.crt' do
-    mode 0400
-  end
+  #execute "dh group" do
+  #  # generate unique DH group, per https://weakdh.org/sysadmin.html
+  #  command "openssl dhparam -out /etc/nginx/dhparams.pem 2048"
+  #  creates("/etc/nginx/dhparams.pem")
+  #end
+  #cookbook_file '/etc/nginx/insecure.key' do
+  #  mode 0400
+  #end
+  #cookbook_file '/etc/nginx/insecure.crt' do
+  #  mode 0400
+  #end
 
-  execute 'ssl_hands_off' do
-    command 'grep -v "^\s*ssl_" /etc/nginx/nginx.conf > /tmp/nginx.conf && cp /tmp/nginx.conf /etc/nginx/nginx.conf'
-    only_if 'grep -q "^\s*ssl_" /etc/nginx/nginx.conf'
-  end
+  #execute 'ssl_hands_off' do
+  #  command 'grep -v "^\s*ssl_" /etc/nginx/nginx.conf > /tmp/nginx.conf && cp /tmp/nginx.conf /etc/nginx/nginx.conf'
+  #  only_if 'grep -q "^\s*ssl_" /etc/nginx/nginx.conf'
+  #end
   template "/etc/nginx/sites-available/_common.conf" do
     source 'nginx-common.conf.erb'
     variables(
@@ -242,44 +282,47 @@ if deploy_mode != 'devel'
   # the different personalities of nginx that we can deploy...
   if deploy_mode == 'proddev'
     serve_names = [domain_name, 'localhost']
-    redirect_names = ['foo.bar']
-    https_port = '443'
+    redirect_names = ['coursys-dev.selfip.net']
+    #https_port = '443'
+    #hsts = true  # TODO: re-enable when we're settled
     hsts = false
   end
   if deploy_mode == 'demo'
     serve_names = [domain_name]
     redirect_names = []
-    https_port = '443'
-    hsts = true
+    #https_port = '443'
+    #hsts = true  # TODO: re-enable when we're settled
+    hsts = false
   end
   if deploy_mode == 'production'
     raise "We expect the canonical domain name to be coursys.sfu.ca here: adjust server_names if something changed." unless domain_name == 'coursys.sfu.ca'
-    serve_names = ['coursys.sfu.ca', 'fasit.sfu.ca']
+    serve_names = ['coursys.sfu.ca', 'fasit.sfu.ca', 'coursys-prd.sfu.ca']  # TODO: coursys-prd should only be needed in transition
     redirect_names = ['coursys.cs.sfu.ca', 'courses.cs.sfu.ca']
-    https_port = '443'
-    hsts = true
+    #https_port = '443'
+    #hsts = true  # TODO: re-enable when we're settled
+    hsts = false
   end
 
-  if deploy_mode == 'proddev'
-    # In proddev, use the insecure keys. In all other cases, demand that someone get a proper key in place, outside this recipe.
-    for name in serve_names+redirect_names do
-      directory "/etc/letsencrypt/live/#{name}" do
-        recursive true
-      end
-      cookbook_file "/etc/letsencrypt/live/#{name}/fullchain.pem" do
-        source 'insecure.crt'
-        mode 0400
-      end
-      cookbook_file "/etc/letsencrypt/live/#{name}/privkey.pem" do
-        source 'insecure.key'
-        mode 0400
-      end
-      cookbook_file "/etc/letsencrypt/live/#{name}/chain.pem" do
-        source 'insecure.crt'
-        mode 0400
-      end
-    end
-  end
+#   if deploy_mode == 'proddev'
+#     # In proddev, use the insecure keys. In all other cases, demand that someone get a proper key in place, outside this recipe.
+#     for name in serve_names+redirect_names do
+#       directory "/etc/letsencrypt/live/#{name}" do
+#         recursive true
+#       end
+#       cookbook_file "/etc/letsencrypt/live/#{name}/fullchain.pem" do
+#         source 'insecure.crt'
+#         mode 0400
+#       end
+#       cookbook_file "/etc/letsencrypt/live/#{name}/privkey.pem" do
+#         source 'insecure.key'
+#         mode 0400
+#       end
+#       cookbook_file "/etc/letsencrypt/live/#{name}/chain.pem" do
+#         source 'insecure.crt'
+#         mode 0400
+#       end
+#     end
+#   end
 
   # create a partial config files /etc/nginx/sites-available/#{name}.conf for each domain name we handle
   for name in serve_names do
@@ -287,7 +330,7 @@ if deploy_mode != 'devel'
       source 'nginx-site.conf.erb'
       variables(
         :domain_name => name,
-        :https_port => https_port,
+        #:https_port => https_port,
         :true_domain_name => domain_name,
         :data_root => data_root,
         :serve => true, # actually serve pages on this name
@@ -299,7 +342,7 @@ if deploy_mode != 'devel'
       source 'nginx-site.conf.erb'
       variables(
         :domain_name => name,
-        :https_port => https_port,
+        #:https_port => https_port,
         :true_domain_name => domain_name,
         :data_root => data_root,
         :serve => false, # don't serve pages; redirect to https://domain_name
@@ -309,63 +352,46 @@ if deploy_mode != 'devel'
 
   # main nginx config
   template "/etc/nginx/sites-available/default" do
-    source 'nginx.conf.erb'
+    source 'nginx-nossl.conf.erb'
     variables(
       :hsts => hsts,
       :all_names => serve_names + redirect_names,
       :data_root => data_root,
       :true_domain_name => domain_name,
-      :https_port => https_port,
+      #:https_port => https_port,
     )
     notifies :restart, 'service[nginx]', :immediately
   end
 
   # certbot renew: will fail when it runs if no certificate is in place
-  cron "certbot" do
-    user 'root'
-    hour 4
-    minute 48
-    weekday 0
-    command "certbot renew"
-  end
+  #cron "certbot" do
+  #  user 'root'
+  #  hour 4
+  #  minute 48
+  #  weekday 0
+  #  command "certbot renew"
+  #end
 end
 
 
 if deploy_mode != 'devel'
-  # SIMS database connection
-  db2_client_download = 'v10.5fp11_linuxx64_client.tar.gz'
-  # This repository doesn't provide db2_client_download because copyright.
-  # It must be inserted into cookbooks/courses/files/ manually for this to sequence to fire.
-  if File.file?(Chef::Config[:cookbook_path] + '/coursys/files/' + db2_client_download)
-    cookbook_file "#{user_home}/#{db2_client_download}" do
-      owner username
-    end
+  # CSRPT database connection
+  cookbook_file '/opt/config/package-config.txt' do
   end
-
-  execute "db2-unpack" do
-    command "tar xf #{db2_client_download}"
-    cwd user_home
+  execute "debconf_update" do
+    command "debconf-set-selections /opt/config/package-config.txt"
+  end
+  package ['krb5-user', 'tdsodbc']
+  cookbook_file "/etc/odbcinst.ini" do
+    owner "root"
+    mode "0644"
+  end
+  cron "kinit refresh" do
     user username
-    creates "#{user_home}/client/db2_install"
-    only_if { ::File.file?("#{user_home}/#{db2_client_download}") } # if we don't have the client, skip
+    minute '30'
+    hour '0,12'
+    command "kinit -R"
   end
-
-  execute "i386-arch" do
-    command "dpkg --add-architecture i386"
-    notifies :run, 'execute[apt-get update]', :immediately
-    not_if "grep -q i386 /var/lib/dpkg/arch"
-  end
-
-  package ['libpam0g:i386', 'libaio1', 'lib32stdc++6']
-  # This fails when run from the recipe but succeeds at the command line. For reasons.
-  #execute "db2-install" do
-  #  command "./db2_install"
-  #  cwd "#{user_home}/client/"
-  #  user username
-  #  environment 'HOME' => user_home
-  #  creates "#{user_home}/sqllib/bin/db2"
-  #  only_if { ::File.file?("#{user_home}/client/db2_install") } # if we don't have the client, skip
-  #end
 
   # The MOSS source, as moss.zip is also not distributed here for copyright reasons.
   # It must be inserted into cookbooks/courses/files/ manually and should contain moss/moss.pl.
@@ -382,11 +408,11 @@ if deploy_mode != 'devel'
     only_if { ::File.file?("#{user_home}/moss.zip") } # if we don't have the code, skip
   end
 
-  execute "ssh_no_passwords" do
-    command "echo '\nPasswordAuthentication no' >> /etc/ssh/sshd_config"
-    not_if "grep -q '^PasswordAuthentication no' /etc/ssh/sshd_config"
-    notifies :restart, 'service[ssh]', :immediately
-  end
+  #execute "ssh_no_passwords" do
+  #  command "echo '\nPasswordAuthentication no' >> /etc/ssh/sshd_config"
+  #  not_if "grep -q '^PasswordAuthentication no' /etc/ssh/sshd_config"
+  #  notifies :restart, 'service[ssh]', :immediately
+  #end
 
   cookbook_file "forward" do
     path "/root/.forward"

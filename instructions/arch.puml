@@ -1,0 +1,88 @@
+' To generate diagram:
+' sudo apt install plantuml
+' plantuml arch.puml 
+
+' https://github.com/plantuml/plantuml-stdlib/tree/master/logos
+
+@startuml
+
+!include <logos/nginx>
+!include <logos/gunicorn>
+!include <logos/django>
+!include <logos/rabbitmq>
+!include <logos/ruby>
+!include <logos/python>
+!include <logos/rabbitmq>
+!include <logos/memcached>
+!include <logos/elasticsearch>
+!include <logos/mariadb>
+
+actor Users as users
+
+agent "SFUCloud Load Balancer\n(terminates HTTPS)" as lb
+
+users <-> lb : HTTPS
+
+package "CourSys Server" {
+    agent "<$nginx>\nNginx" as nginx
+    agent "<$gunicorn>\nGunicorn\nlocalhost:8000" as gunicorn
+    artifact "<$django>\nApplication Code" as django
+    
+    agent "<$python>\nCelery" as celery
+    agent "Celerybeat" as celerybeat
+    
+    control "Daily Import\nTask" as import
+    storage "/opt/static" as static
+    control "manage.py\ncollectstatic" as collectstatic
+    
+    package "Docker Containers" {
+        queue "<$rabbitmq>\nRabbitMQ" as rabbitmq
+        agent "<$ruby>\nMarkdown Converter" as markdown
+        database "<$memcached>\nMemcached" as memcached
+        database "<$elasticsearch>\nElasticsearch" as elasticsearch
+    }
+
+    nginx <--> gunicorn : dynamic pages
+    static <-- collectstatic : "writes"
+    nginx <-- static : static files
+    django -> collectstatic : files
+
+    gunicorn ..> django : runs
+    django <.. celery : "runs\n~*/tasks.py"
+
+    'celery .> import : task
+    django <.. import : runs
+    
+    django ..> rabbitmq : tasks
+    django <--> rabbitmq : markdown\nconversions
+    celery <.. rabbitmq : tasks
+    django <--> memcached : cache
+    rabbitmq <-> markdown : markdown\nconversions
+    django <--> elasticsearch : search/\nautocomplete
+    celerybeat ..> rabbitmq : periodic\ntasks
+}
+
+package "Onara" {
+    database "<$mariadb>\nDatabase" as db
+}
+
+nginx <-> lb : HTTP
+django <-> db
+celery <--> db
+import --> db
+
+package "External APIs" {
+    database "CSRPT" as csrpt
+    agent "CAS" as cas
+    database "Photo API" as photo
+    database "AMAINT" as amaint
+}
+
+import <-- csrpt
+django <-- csrpt : On-Demand\nQueries
+django <..> cas : verifies\nauth
+django <-- photo : ID Photos
+import <-- amaint
+
+
+@enduml

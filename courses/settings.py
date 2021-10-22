@@ -39,9 +39,9 @@ sys.path.append( os.path.join(BASE_DIR, 'external') )
 
 ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
-    ('Phil Boutros', 'philb@sfu.ca'),
     ('sumo Kindersley', 'sumo@cs.sfu.ca'),
     ('FAS Software Developer', 'fas_developer@sfu.ca'),
+    ('Renee Chong', 'renee_chong@sfu.ca'),
 )
 SERVER_EMAIL = 'ggbaker@sfu.ca'
 
@@ -144,7 +144,8 @@ if 'test' in sys.argv[1:]:
 # security-related settings
 CANONICAL_HOST = 'coursys.sfu.ca'  # the one true hostname to forward to
 SERVE_HOSTS = ['coursys.sfu.ca', 'fasit.sfu.ca']  # hosts where we actually serve pages
-REDIRECT_HOSTS = ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca']  # hosts that actually forward to the coursys.sfu.ca domain
+SERVE_HOSTS.extend(getattr(localsettings, 'MORE_SERVE_HOSTS', []))
+REDIRECT_HOSTS = ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca']  # hosts that forward to the coursys.sfu.ca domain
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', SERVE_HOSTS + REDIRECT_HOSTS)
 if DEBUG:
     ALLOWED_HOSTS.append('localhost')
@@ -280,17 +281,18 @@ if DEPLOY_MODE == 'production':
     MIDDLEWARE = ['courselib.middleware.MonitoringMiddleware'] + MIDDLEWARE
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SUBMISSION_PATH = '/data/submitted_files'
+    SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/filestore/prod/submitted_files')
     BASE_ABS_URL = "https://coursys.sfu.ca"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
-    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS', ''),
-            'db': 'coursesvn', 'port': 4000}
+    #SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS', ''),
+    #        'db': 'coursesvn', 'port': 4000}
+    SVN_DB_CONNECT = None
 
 elif DEPLOY_MODE == 'proddev':
     MIDDLEWARE = ['courselib.middleware.MonitoringMiddleware'] + MIDDLEWARE
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    #SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SUBMISSION_PATH = getattr(localsettings, 'SUBMISSION_PATH', '/data/submitted_files')
     BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "https://localhost:8443")
     EMAIL_BACKEND = getattr(localsettings, 'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
@@ -355,26 +357,15 @@ EMAIL_USE_SSL = getattr(localsettings, 'EMAIL_USE_SSL', True)
 DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
-SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')
-SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')
-SIMS_DB_NAME = "csrpt"
-SIMS_DB_SCHEMA = "dbcsown"
+SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
+SIMS_DB_NAME = "CSRPT"
+SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')  # DB2-only
+SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')  # DB2-only
+SIMS_DB_SCHEMA = "dbcsown"  # DB2-only
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)
 SERVER_MESSAGE_INDEX = getattr(localsettings, 'SERVER_MESSAGE_INDEX', '')
 SERVER_MESSAGE = getattr(localsettings, 'SERVER_MESSAGE', '')
-
-#PIWIK_URL = getattr(secrets, 'PIWIK_URL', None)
-#PIWIK_TOKEN = getattr(secrets, 'PIWIK_TOKEN', None)
-#PIWIK_SITEID = getattr(secrets, 'PIWIK_SITEID', 1)
-#PIWIK_CELERY = USE_CELERY
-#PIWIK_CELERY_TASK_KWARGS = {'queue': 'batch', 'rate_limit': '5/s', 'max_retries': 6, 'default_retry_delay': 600}
-#PIWIK_FAIL_SILENTLY = True
-#PIWIK_FORCE_HOST = 'courses.cs.sfu.ca'
-
-BACKUP_REMOTE_URL = getattr(secrets, 'BACKUP_REMOTE_URL', None)
-BACKUP_KEY_ID = getattr(secrets, 'BACKUP_KEY_ID', None)
-BACKUP_KEY_PASSPHRASE = getattr(secrets, 'BACKUP_KEY_PASSPHRASE', None)
 
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"

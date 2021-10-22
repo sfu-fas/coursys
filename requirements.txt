@@ -28,14 +28,14 @@ django-compressor==2.4.1
 django-npm==1.0.0
 #django-cache-utils==0.7.2
 #hg+https://bitbucket.org/ggbaker/django-cache-utils/@8a29823  # python 3 compatibility
-git+git://github.com/gregbaker/django-cache-utils@a64ff6b
+git+https://github.com/gregbaker/django-cache-utils@a64ff6b
 celery==4.4.7
 django-celery-email==3.0.0
 django_celery_beat==2.2.0
 kombu==4.6.11
 #amqp  # let kombu choose the version
 iso8601==0.1.14
-django-haystack==3.0
+django-haystack==3.1.0
 whoosh==2.7.4
 #djangorestframework==3.12.4
 #djangorestframework-oauth==1.1.0
@@ -55,13 +55,13 @@ ipython
 # actually only needed in production-like environments...
 python-memcached==1.59
 #django-dbdump==1.1
-git+git://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
+git+https://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
 elasticsearch>=5.0.0,<6.0.0
 #pysolr==3.8.1
 lxml==4.6.3
 gunicorn==20.1.0
 mysqlclient==2.0.3
 paramiko>=2.7.1
-ibm_db==3.0.1
+pyodbc==4.0.32
 #django-cas-ng==3.6.0
-git+git://github.com/gregbaker/django-cas-ng.git@08509c3ad23f69d6d4e69a0a66453d0221023f3d # fix for session_key bug (PR #195), and duplicate session_key bug (PR #209)
+git+https://github.com/gregbaker/django-cas-ng.git@08509c3ad23f69d6d4e69a0a66453d0221023f3d # fix for session_key bug (PR #195), and duplicate session_key bug (PR #209)

@@ -26,12 +26,12 @@ CELERYBEAT_PID_FILE="/opt/run/celery/beat.pid"
 CELERYBEAT_LOG_FILE="<%= @data_root %>/logs/celery-beat.log"
 
 
+COURSYS_DATA_ROOT="<%= @data_root %>"
+
 LD_LIBRARY_PATH=/home/coursys/sqllib/lib64
 export LD_LIBRARY_PATH
 LANG="en_CA.UTF-8" # DB2 doesn't return UTF-8 strings otherwise
 export LANG
-
-COURSYS_DATA_ROOT="<%= @data_root %>"
 
 # imitate ~/sqllib/db2profile
 DB2INSTANCE="<%= @coursys_user %>"

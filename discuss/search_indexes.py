@@ -3,6 +3,7 @@ from haystack import indexes
 
 # Any additions here should be reflected in courselib.signals.SelectiveRealtimeSignalProcessor so reindexing happens
 
+'''
 class DiscussionIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     url = indexes.CharField(indexed=False, null=False)
@@ -26,3 +27,4 @@ class DiscussionIndex(indexes.SearchIndex, indexes.Indexable):
 
     def prepare_search_display(self, d):
         return "%s: %s" % (d.offering.name(), d.title)
+'''

@@ -101,6 +101,8 @@ def markdown_to_html_rpc(markup, retry=True, fallback=True):
     try:
         arg = json.dumps({'md': markup})
         response = markdown_client.call(arg.encode('utf-8'))
+        if not response and fallback:
+            return markdown_to_html_subprocess(markup)
         html = json.loads(response.decode('utf-8'))['html']
         return html
     except (amqp.AMQPError, socket.timeout):

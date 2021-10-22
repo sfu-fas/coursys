@@ -33,7 +33,7 @@
                 if (-f <%= @coursys_dir %>/503) {
                         set $maintenance 1;
                 }
-                if ($remote_addr = "142.58.1.1") {
+                if ($http_x_forwarded_for = "10.1.2.3") {  # can set an IP address here to bypass 503
                         set $maintenance 0;
                 }
                 if ($maintenance = 1) {
@@ -46,7 +46,7 @@
                 proxy_connect_timeout 1200;
                 proxy_redirect off;
                 proxy_set_header Host $host;
-                proxy_set_header X-Forwarded-Ssl on;
+                #proxy_set_header X-Forwarded-Ssl on;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         }
 
