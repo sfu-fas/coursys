@@ -16,7 +16,8 @@ class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
         return CourseOffering
 
     def index_queryset(self, using=None):
-        return self.get_model().objects.exclude(component='CAN').select_related('semester')
+        cutoff = datetime.date.today() - datetime.timedelta(days=3650)
+        return self.get_model().objects.exclude(component='CAN').filter(semester__start__gte=cutoff).select_related('semester')
 
     def prepare_text(self, o):
         fields = [o.subject, o.number, o.section, o.title, o.instructors_str(), o.semester.name,
@@ -68,7 +69,8 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
         return Member
 
     def index_queryset(self, using=None):
-        cutoff = datetime.date.today() - datetime.timedelta(days=730)
+        # experimenally, two years worth of Members is the largest big-ugly-query our database in reasonable time
+        cutoff = datetime.date.today() - datetime.timedelta(days=365*2)
         return self.get_model().objects.exclude(offering__component='CAN') \
                 .filter(role__in=['STUD', 'TA']) \
                 .select_related('person', 'offering__semester') \

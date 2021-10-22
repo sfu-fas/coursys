@@ -1,3 +1,5 @@
+import datetime
+
 from ra.models import RAAppointment, RARequest
 from haystack import indexes
 
@@ -12,7 +14,8 @@ class RAIndex(indexes.SearchIndex, indexes.Indexable):
         return RAAppointment
 
     def index_queryset(self, using=None):
-        return self.get_model().objects.exclude(deleted=True) \
+        cutoff = datetime.date.today() - datetime.timedelta(days=5*365)
+        return self.get_model().objects.exclude(deleted=True).filter(start_date__gte=cutoff) \
             .select_related('person', 'hiring_faculty', 'project', 'account', 'unit')
 
     def prepare_text(self, ra):
