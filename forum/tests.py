@@ -62,16 +62,16 @@ class ForumLinkTest(TestCase):
 
     def test_full_path(self):
         # full markup_to_html test
-        md = '## Hello\nSee #123 also.'
-        html = markup_to_html(md, 'markdown', forum_links=False)
-        self.assertEqual(html, '<h2>Hello</h2>\n<p>See #123 also.</p>')
-        html = markup_to_html(md, 'markdown', forum_links=True)
-        self.assertEqual(html, '<h2>Hello</h2>\n<p>See <a href="./123" class="xref">#123</a> also.</p>')
+        md = '== Hello\nSee #123 also.'
+        html = markup_to_html(md, 'creole', forum_links=False)
+        self.assertEqual(html, '<h2 id="h-hello">Hello</h2>\n<p>See #123 also.</p>')
+        html = markup_to_html(md, 'creole', forum_links=True)
+        self.assertEqual(html, '<h2 id="h-hello">Hello</h2>\n<p>See <a href="./123" class="xref">#123</a> also.</p>')
 
         # on a Post
         p = Post()
-        p.content = 'See also #4, not `#5`.'
-        p.markup = 'markdown'
+        p.content = 'See also #4, not {{{#5}}}.'
+        p.markup = 'creole'
         html = p.html_content()
         self.assertEqual(html, '<div class="tex2jax_ignore wikicontents"><p>See also <a href="./4" class="xref">#4</a>, not <code>#5</code>.</p></div>')
 
@@ -91,7 +91,7 @@ class ForumTest(TestCase):
 
         p = Post(offering=o, author=student, type='QUES')
         p.content = "Can I or not?\n\nI'm not really sure."
-        p.markup = 'markdown'
+        p.markup = 'creole'
         p.identity = 'INST'
         t = Thread(title='A Question', post=p)
         t.save()
@@ -99,7 +99,7 @@ class ForumTest(TestCase):
 
         p = Post(offering=o, author=instr)
         p.content = 'Yeah, probably.'
-        p.markup = 'markdown'
+        p.markup = 'plain'
         p.identity = 'NAME'
         r = Reply(thread=t, parent=t.post, post=p)
         r.save()

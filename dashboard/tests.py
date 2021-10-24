@@ -14,6 +14,13 @@ class DashboardTest(TestCase):
     fixtures = ['basedata', 'coredata']
 
     def test_front_page(self):
+        # make sure the test semester is reasonably current
+        s = CourseOffering.objects.get(slug=TEST_COURSE_SLUG).semester
+        today = datetime.date.today()
+        s.start = today - datetime.timedelta(days=100)
+        s.end = today + datetime.timedelta(days=100)
+        s.save()
+
         # log in as student in the course
         userid = Member.objects.filter(offering__slug=TEST_COURSE_SLUG, role="STUD")[0].person.userid
         client = Client()
@@ -22,10 +29,8 @@ class DashboardTest(TestCase):
         response = client.get("/")
         self.assertEqual(response.status_code, 200)
         
-        # this student is in this course: check for a link to its page (but it only appears after start of semester)
         c = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
-        if c.semester.start < datetime.date.today():
-            self.assertContains(response, '<a href="%s"' % (c.get_absolute_url()) )
+        self.assertContains(response, '<a href="%s"' % (c.get_absolute_url()) )
 
         validate_content(self, response.content, "index page")
 

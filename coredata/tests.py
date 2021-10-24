@@ -419,6 +419,11 @@ class SearchTest(TestCase):
         """
         fname = 'TestStudentUnusualName'
         s, c = create_offering()
+        # make sure the test semester is reasonably current
+        today = date.today()
+        s.start = today - timedelta(days=100)
+        s.end = today + timedelta(days=100)
+        s.save()
 
         # clear the search index and query: we shouldn't find anything.
         haystack_clear_index()
