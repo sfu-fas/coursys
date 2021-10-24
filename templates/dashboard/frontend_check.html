@@ -32,6 +32,17 @@
             "aaSorting": [[0, "asc"]],
         });
 
+        $( "#tabs" ).tabs({
+          cache:false,
+          beforeLoad: function() {
+             $('#fetchwait').show()
+          },
+          load: function(){
+             $('#fetchwait').hide()
+          },
+          success: function() {}
+        });
+
         var calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
             events: {
               url: '{% url "calendar:calendar_data" %}',
@@ -139,6 +150,7 @@
 <blockquote><div id='calendar' style="width:60%"></div></blockquote>
 </section>
 
+
 <section><h3>MathJax</h3>
 <div class="wikicontents tex2jax_process">
 <p>This should be an inline LaTeX formula with MathJax: \(\frac{x+1}{2}\). And this should be a display formula: \[\frac{x+1}{2}\]</p>
@@ -172,5 +184,16 @@
     </div>
 </section>
 
+<section><h3>jQuery UI</h3>
+<p>These should look consistent with the rest of the site: check that jQueryUI looks "right".
+    Our <a href="https://jqueryui.com/download/">jQuery style</a> is "smoothness".</p>
+<div id="tabs">
+  <ul>
+  <li><a href="#one">One</a></li>
+  <li><a href="#two">Two</a></li>
+  <li><a href="#three">Three</a></li>
+  </ul>
+</div>
+</section>
 
 {% endblock %}
