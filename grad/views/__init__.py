@@ -47,6 +47,7 @@ from .save_search import save_search
 from .delete_savedsearch import delete_savedsearch
 from .student_financials import student_financials
 from .financials import financials
+from .financials_report import financials_report
 from .manage_scholarships import manage_scholarships
 from .remove_scholarship import remove_scholarship
 from .manage_scholarshiptypes import new_scholarshiptype, manage_scholarshiptypes, edit_scholarshiptype, \
