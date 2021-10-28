@@ -382,6 +382,7 @@ LOGIN_REDIRECT_URL = "/"
 
 DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', False)
 DO_IMPORTING_HERE = getattr(localsettings, 'DO_IMPORTING_HERE', False)
+NTP_REFERENCE = getattr(localsettings, 'NTP_REFERENCE', 'ns2.sfu.ca' if DEPLOY_MODE == 'production' else 'pool.ntp.org')
 
 LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_loggers': False})
 
