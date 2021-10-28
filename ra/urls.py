@@ -35,6 +35,7 @@ ra_patterns = [ # prefix /ra/
     url(r'^advanced_search/appointee_appointments/' + USERID_OR_EMPLID + '/$', ra_views.appointee_appointments, name='appointee_appointments'),
     url(r'^advanced_search/supervisor_appointments/' + USERID_OR_EMPLID + '/$', ra_views.supervisor_appointments, name='supervisor_appointments'),
     url(r'^dashboard/' + RA_SLUG + '/view_request$', ra_views.view_request, name='view_request'),
+    url(r'^dashboard/' + RA_SLUG + '/update_processor$', ra_views.update_processor, name='update_processor'),
     url(r'^dashboard/' + RA_SLUG + '/edit_request_notes$', ra_views.edit_request_notes, name='edit_request_notes'),
     url(r'^dashboard/' + RA_SLUG + '/delete_request$', ra_views.delete_request, name='delete_request'),
     url(r'^dashboard/' + RA_SLUG + '/delete_request_draft$', ra_views.delete_request_draft, name='delete_request_draft'),
