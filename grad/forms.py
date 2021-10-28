@@ -959,6 +959,14 @@ class UploadApplicantsForm(forms.Form):
 class GradNotesForm(forms.Form):
     notes = forms.CharField(max_length=400, widget=forms.Textarea)
 
+FINRPT_CHOICES = (
+                 ('phd', 'Active PhD'),
+                 ('msc', 'Active MSc'),
+                 ('all', 'All Active Grads'),
+                 )
+
+class FinanceReportForm(forms.Form):
+    finreport = forms.ChoiceField(choices=FINRPT_CHOICES, label="Graduate Student Type")
 
 PCS_COLUMNS = [ # (key, header)
                ('appid', 'ID'),

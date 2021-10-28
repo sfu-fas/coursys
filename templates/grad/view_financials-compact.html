@@ -26,19 +26,19 @@
 <thead>
 <tr><th scope="col">Semester</th><th scope="col">Status</th>
 <th scope="col">TA</th><th scope="col">RA</th><th scope="col">Schol.</th><th scope="col">Other</th>
-<th scope="col">Total</th><th scope="col">Prom. End</th><th scope="col">AY</th></tr>
+<th scope="col">Total</th><th scope="col">Prom. End</th><th scope="col">Acad.Yr.</th></tr>
 </thead>
 <tbody>
 {% for semester in semesters %}
 <tr class="{% if semester.program %}newprogram{% endif %} {% if semester.semester == semester.acad_year.endsem %}end-ay{% endif %}">
-  <th scope="row">{{semester.semester.name}}</th>
+  <th scope="row">{{semester.semester.name}}-{{semester.semester.slugform}}</th>
   <td>{% if semester.status %}{{ semester.status_short }}{% endif %}</td>
   <td class="num">{% if semester.ta_total %}${{ semester.ta_total|floatformat:2 }}{% endif %}</td>
   <td class="num">{% if semester.ra_total %}${{ semester.ra_total|floatformat:2 }}{% endif %}</td>
   <td class="num">{% if semester.scholarship_total %}${{ semester.scholarship_total|floatformat:2 }}{% endif %}</td>
   <td class="num">{% if semester.other_total %}${{ semester.other_total|floatformat:2 }}{% endif %}</td>
   <td class="num">${{ semester.semester_total|floatformat:2 }}</td>
-  <td{% if semester.promise and semester.promiseowing != -1 %} class="promise-owing"{% endif %}>{% if semester.promise %}
+  <td{% if semester.promise and semester.promiseowing != -1 %} class="row"{% endif %}>{% if semester.promise %}
       ${{ semester.promise.amount|floatformat:2 }}
       (${{ semester.promisereceived|floatformat:2 }})
       {% endif %}</td>
