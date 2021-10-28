@@ -1,0 +1,140 @@
+{% extends "base-wide.html" %}
+{% load getattribute mathfunction %}
+
+{% block headextra %}
+<script type="text/javascript" src="{{STATIC_URL}}js/grad.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}jquery-ext/jquery.ba-bbq.min.js"></script>
+<script nonce="{{ CSP_NONCE }}">
+ 
+var table;
+{% if sort %}
+var sort = {{sort}};
+{% else %}
+var sort = [[0, 'asc'], [1, 'asc']];
+{% endif %}
+
+$(document).ready(function() {
+	table = $('#grads').dataTable({
+		"bJQueryUI": true,
+		"bPaginate": false,
+		"aaSorting": sort,
+		"bStateSave": true,
+		"fnStateSave": update_search_links,
+	});
+});
+</script>
+<style type="text/css">
+#actions li label {
+padding: 3px 0.2em 3px 0.8em;
+}
+#actions li input {
+margin: 3px 0 3px 0;
+width: 120px;
+}
+</style>
+{% endblock %}
+
+{% block title %}Financial Summary Report{% endblock %}
+{% block h1 %}Financial Summary Report{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li>Financial Summary Report</li>
+{% endblock %}
+
+{% block actions %}
+{% comment %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+     <li><a href="{% url "grad:financials_report" %}?excel=yes" id="excellink">Export as Excel</a></li>
+    </ul>
+</div>
+{% endcomment %}
+{% endblock %}
+
+{% block content %}
+
+<form class="noprint" action="{% url "grad:financials_report" %}" method="POST">
+
+  {% csrf_token %}  
+  {{ form.as_p }}
+  <input type="submit" value="Select" />
+</form> 
+
+{% if grads %}
+<p>
+  <a href="{% url "grad:financials_report" %}?finrpt={{ querystr }}&csv=yes" id="excellink">Export as CSV</a> |
+  <a href="{% url "grad:financials_report" %}?finrpt={{ querystr }}&excel=yes" id="excellink">Export as Excel</a>
+</p>
+
+<div class="datatable_container"></div>
+  <table class="display" id="grads">
+    <thead>
+      <tr>
+        <th>Employee ID</th>   
+        <th>Last Name</th>
+        <th>First Name</th>
+        <th>User</th>        
+        <th>Program</th>
+        <th>Supervisor(s)</th>
+        <th>Current Status</th>
+        <th>Start term</th>        
+        <th>Promise Yr 1</th>
+        <th>Promise Yr 2</th>
+        <th>Promise Yr 3</th>
+        <th>Promise Yr 4</th>
+        <th>Promise (Other yrs)</th>
+        <th>Total Promises Fund</th>
+        <th>Received Yr 1 </th>
+        <th>Received Yr 2 </th>
+        <th>Received Yr 3 </th>
+        <th>Received Yr 4 </th>   
+        <th>Received (Other yrs) </th>  
+        <th>Total Received</th>   
+        <th>Difference Yr 1</th>
+        <th>Difference Yr 2</th>
+        <th>Difference Yr 3</th>
+        <th>Difference Yr 4</th> 
+        <th>Difference (Other yrs)</th>    
+        <th>Total Difference</th>                  
+        <th class="noprint">Manage</th>
+      </tr>
+    </thead>
+    <tbody> 
+      {% for g in grads %}
+      <tr>     
+        <td>{{g.person.emplid}}</td>
+        <td>{{g.person.last_name}}</td>
+        <td>{{g.person.first_name}}</td>
+        <td>{{g.person.userid}}</td>        
+        <td>{{g.program.label}}</td>
+        <td>{{g | getattribute:'senior_supervisors'}}</td>
+        <td>{{g.current_status}}</td>
+        <td>{{g.start_semester.label }}</td>         
+        <td>{{g.get_year1_promise_amount | floatformat:2}}</td>
+        <td>{{g.get_year2_promise_amount | floatformat:2}}</td>
+        <td>{{g.get_year3_promise_amount | floatformat:2}}</td>
+        <td>{{g.get_year4_promise_amount | floatformat:2}}</td>
+        <td>{{g.get_otheryear_promise_amount | floatformat:2}}</td>
+        <td><b>{{g.get_total_promise_amount | floatformat:2 }}</b></td>
+        <td>{{g.get_year1_received | floatformat:2}}</td>
+        <td>{{g.get_year2_received | floatformat:2}}</td>
+        <td>{{g.get_year3_received | floatformat:2}}</td>
+        <td>{{g.get_year4_received | floatformat:2}}</td> 
+        <td>{{g.get_otheryear_received | floatformat:2}}</td>     
+        <td><b>{{g.get_total_received | floatformat:2 }}</b></td>           
+        <td>{{ g.get_year1_received | subtract_and_highlight:g.get_year1_promise_amount }}</td>
+        <td>{{ g.get_year2_received | subtract_and_highlight:g.get_year2_promise_amount }}</td>
+        <td>{{ g.get_year3_received | subtract_and_highlight:g.get_year3_promise_amount }}</td>
+        <td>{{ g.get_year4_received | subtract_and_highlight:g.get_year4_promise_amount }}</td>     
+        <td>{{ g.get_otheryear_received | subtract_and_highlight:g.get_otheryear_promise_amount }}</td>
+        <td><b>{{ g.get_total_received | subtract_and_highlight:g.get_total_promise_amount }}</b></td>           
+        <td class="noprint"><a href="{% url "grad:view" grad_slug=g.slug %}">View</a></td>
+    </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+ {% endif %}
+{% endblock %}

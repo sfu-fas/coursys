@@ -826,6 +826,90 @@ class GradStudent(models.Model, ConditionalSaveMixin):
               }
         return ls
 
+    def get_year1_promise_amount(self):      
+        return self.get_promise_amount(0, 3)
+
+    def get_year2_promise_amount(self):      
+        return self.get_promise_amount(3, 6)
+        
+    def get_year3_promise_amount(self):      
+        return self.get_promise_amount(6, 9)
+
+    def get_year4_promise_amount(self):      
+        return self.get_promise_amount(9, 12)
+
+    def get_otheryear_promise_amount(self):
+        return self.get_promise_amount(12, 99)
+
+    def get_total_promise_amount(self):      
+        return self.get_promise_amount(0, 99)
+
+    def get_promise_amount(self, fromsem, tosem):
+        if self.end_semester is None:  
+            promises = Promise.objects.filter(student=self, removed=False, start_semester__id__gte=self.start_semester_id+fromsem,  start_semester__id__lt=self.start_semester_id+tosem)
+        else:
+            promises = Promise.objects.filter(student=self, removed=False, start_semester__id__gte=self.start_semester_id+fromsem,  start_semester__id__lt=self.start_semester_id+tosem, end_semester__gte=self.end_semester)
+        amount = 0
+        for promise in promises:
+            amount += promise.amount                
+
+        return amount
+    
+    def get_year1_received(self):
+        return self.get_receive(0, 3)
+
+    def get_year2_received(self):   
+        return self.get_receive(3, 6)
+
+    def get_year3_received(self):
+        return self.get_receive(6, 9)
+
+    def get_year4_received(self):
+        return self.get_receive(9, 12)
+
+    def get_otheryear_received(self):
+        return self.get_receive(12, 99)
+
+    def get_total_received(self):
+        return self.get_receive(0, 99)
+
+    def get_receive(self, fromsem, tosem):
+        from ta.models import TACourse
+        from ra.models import RAAppointment
+
+        received = 0
+        # TA
+        tas = TACourse.objects.filter(contract__application__person=self.person, contract__status='ACC', contract__posting__semester__id__gte=self.start_semester_id+fromsem,
+        contract__posting__semester__id__lt=self.start_semester_id+tosem)
+        
+        for tacrs in tas:
+            received = received + tacrs.pay()
+
+        # RA
+        ras = RAAppointment.objects.filter(person=self.person, deleted=False)
+        for ra in ras:
+            # RAs are by date, not semester, so have to filter more here...
+            st = ra.start_semester()
+            en = ra.end_semester()
+            ra.semlength = ra.semester_length()
+            if ra.semlength == 0:
+                ra.semlength = 1
+            ra.semvalue = ra.lump_sum_pay / ra.semlength            
+            if (st.id >= self.start_semester_id+fromsem) and (st.id <self.start_semester_id+tosem):
+                received = received + ra.semvalue
+            
+        # scholarships
+        scholarships = Scholarship.objects.filter(student=self, removed=False, start_semester__id__gte=self.start_semester_id+fromsem, start_semester__id__lt=self.start_semester_id+tosem).filter(scholarship_type__eligible=True)
+        
+        for schol in scholarships:            
+            received = received + schol.amount
+        
+        # other funding
+        others = OtherFunding.objects.filter(student=self, removed=False, semester__id__gte=self.start_semester_id+fromsem, semester__id__lt=self.start_semester_id+tosem)
+        for other in others:
+            received = received + other.amount
+        return received
+            
     def financials_from(self, start, end):
         """
         Return information about finances from the start to end semester. eligible_only: include only things ineligible for promises?
