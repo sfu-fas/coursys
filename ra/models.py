@@ -590,9 +590,10 @@ class RARequest(models.Model):
     # email reminders
     reminded = config_property('reminded', default=False)
     
-    # last updates
+    # last updates and processor
     last_updated_at = models.DateTimeField(auto_now=True)
     last_updater = models.ForeignKey(Person, related_name='rarequest_last_updater', default=None, on_delete=models.PROTECT, null=True, editable=False)
+    processor = models.ForeignKey(Person, related_name='rarequest_processor', default=None, on_delete=models.PROTECT, null=True, editable=False)
 
     # all checks need to be checked off for an appointment to be complete
     def get_complete(self):
@@ -622,6 +623,9 @@ class RARequest(models.Model):
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
+    def __str__(self):
+        return self.get_name() + " (" + self.slug + ")"
+
     def duties_list(self):
         duties = []
         duties += [duty for val, duty in DUTIES_CHOICES_EX if val in [int(i) for i in self.ra_duties_ex]]
@@ -636,8 +640,7 @@ class RARequest(models.Model):
 
     def build_letter_text(self):
         """
-        This takes the value passed from the letter selector menu and builds the appropriate
-        default letter based on that.
+        Builds the appropriate default letter based on hiring category and payment method.
         """
 
         substitutions = {}
@@ -708,6 +711,13 @@ class RARequest(models.Model):
                     'total_pay': self.total_pay,
                 }
                 text = DEFAULT_LETTER_GRASBW % substitutions
+            elif self.backdated: 
+                substitutions = {
+                    'start_date': self.start_date.strftime("%B %d, %Y"),
+                    'end_date': self.end_date.strftime("%B %d, %Y"),
+                    'total_gross': '%.2f' % self.backdate_lump_sum
+                }
+                text = DEFAULT_LETTER_GRASLS_OUTSIDE_CAN % substitutions
                 
         letter_text = text % substitutions
 
@@ -981,7 +991,7 @@ class RARequestAttachment(models.Model):
     objects = RARequestAttachmentQueryset.as_manager()
 
     def __str__(self):
-        return self.contents.name
+        return self.contents.name + " titled " + self.title + ", for " + str(self.req)
 
     class Meta:
         ordering = ("created_at",)

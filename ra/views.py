@@ -151,6 +151,8 @@ def _email_request_notification(req, url):
             email = ENSC_CONTACT
         elif req.unit.label == "SEE":
             email = SEE_CONTACT
+        else:
+            email = FAS_CONTACT
     elif req.hiring_category == "RA" or req.hiring_category == "NC":
         email = FAS_CONTACT
 
@@ -606,9 +608,10 @@ def browse_appointments(request):
     # for supervisors to see any of their current requests
     reqs = RARequest.objects.filter(Q(supervisor__userid=request.user.username) | Q(author__userid=request.user.username), deleted=False, complete=False, draft=False)
     drafts = RARequest.objects.filter(author__userid=request.user.username, deleted=False, complete=False, draft=True)
+    processing = RARequest.objects.filter(processor__userid=request.user.username, deleted=False, complete=False, draft=False)
     form = RABrowseForm()
     admin = has_role('FUND', request)
-    context = {'form': form, 'reqs': reqs, 'admin': admin, 'drafts': drafts}
+    context = {'form': form, 'reqs': reqs, 'admin': admin, 'drafts': drafts, 'processing': processing}
     return render(request, 'ra/dashboards/browse_appointments.html', context)
 
 @requires_role("FUND")
@@ -676,6 +679,7 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     View to view a RA request.
     """
     admin = has_role('FUND', request)
+    user = get_object_or_404(Person, userid=request.user.username)
 
     if admin:
         req = get_object_or_404(RARequest, Q(unit__in=request.units), slug=ra_slug, draft=False, deleted=False)
@@ -700,15 +704,46 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     nonstudent = req.student=="N"
     show_research = nonstudent or not req.mitacs
     show_thesis = not nonstudent and req.research
+    is_processor = (user == req.processor)
 
     adminform = RARequestAdminForm(instance=req)
 
     return render(request, 'ra/view_request.html',
-        {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 
-         'author': author, 'research_assistant': research_assistant, 'non_cont': non_cont, 'no_id': req.nonstudent,
-         'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw,
-         'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 'show_thesis': show_thesis, 'show_research': show_research, 'adminform': adminform, 'admin': admin, 
-         'permissions': request.units, 'status': req.status()})
+        {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 'no_id': req.nonstudent,
+         'author': author, 'graduate_research_assistant': graduate_research_assistant, 'research_assistant': research_assistant, 'non_cont': non_cont, 
+         'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw, 'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 
+         'show_thesis': show_thesis, 'show_research': show_research, 'adminform': adminform, 'admin': admin, 
+         'permissions': request.units, 'status': req.status(), 'is_processor': is_processor})
+
+@requires_role("FUND")
+def update_processor(request: HttpRequest, ra_slug: str) -> HttpResponse:
+    """
+    Update Processor
+    """
+    user = get_object_or_404(Person, userid=request.user.username)
+    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, draft=False, complete=False, unit__in=request.units)
+
+    if not req.processor:
+        description = "Assigned themselves as processor for Request %s." % req
+        req.processor = user
+    elif req.processor == user:
+        description = "Unassigned themselves as processor for Request %s." % req
+        req.processor = None
+    else:
+        description = "Unassigned %s as processor and assigned themselves for Request %s" % (req.processor, req)
+        req.processor = user
+    
+    req.last_updater = user
+    req.save()
+
+    l = LogEntry(userid=request.user.username,
+            description=description,
+            related_object=req)
+    l.save()              
+    messages.success(request, "Updated Processor for Request %s" % req.get_name())
+    
+    return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
+
 
 # Update admin checklist
 @requires_role("FUND")
@@ -719,6 +754,7 @@ def request_admin_update(request: HttpRequest, ra_slug: str) -> HttpResponse:
         adminform = RARequestAdminForm(data, instance=req)
         if adminform.is_valid():
             req.complete = req.get_complete()
+            req.last_updater = get_object_or_404(Person, userid=request.user.username)
             req = adminform.save()
 
             if req.complete:
@@ -778,6 +814,7 @@ def edit_request_notes(request: HttpRequest, ra_slug: str) -> HttpResponse:
         noteform = RARequestNoteForm(request.POST, instance=req)
         
         if noteform.is_valid():
+            req.last_updater = get_object_or_404(Person, userid=request.user.username)
             noteform.save()
             messages.success(request, "Edited Note for " + req.get_name())
             l = LogEntry(userid=request.user.username,
@@ -791,7 +828,7 @@ def edit_request_notes(request: HttpRequest, ra_slug: str) -> HttpResponse:
 
 @requires_role("FUND")
 def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
+    req = get_object_or_404(RARequest, Q(backdated=False) | Q(hiring_category__in=['GRAS']), slug=ra_slug, unit__in=request.units, deleted=False, draft=False)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (req.slug)
     letter = FASOfficialLetter(response)
@@ -804,7 +841,7 @@ def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
         to_addr_lines=[req.get_name(), req.unit.name], 
         from_name_lines=from_name_lines,
         extra_from_name_lines = extra_from_name_lines,
-        closing="Yours Truly", 
+        closing="Yours truly", 
         signer=req.supervisor,
         cosigner_lines=[req.get_cosigner_line(), req.get_first_name() + " " + req.get_last_name()])
     contents.add_paragraphs(["Dear " + req.get_name()])
@@ -819,11 +856,12 @@ def request_offer_letter_update(request: HttpRequest, ra_slug: str) -> HttpRespo
     """ 
     View to update offer letter text
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
+    req = get_object_or_404(RARequest, Q(backdated=False) | Q(hiring_category__in=['GRAS']), slug=ra_slug, unit__in=request.units, deleted=False, draft=False)
 
     if request.method == 'POST':
         configform = RARequestLetterForm(request.POST, instance=req)
         if configform.is_valid():
+            req.last_updater = get_object_or_404(Person, userid=request.user.username)
             configform.save()
             messages.success(request, 'Updated Letter Text for ' + req.get_name())
             l = LogEntry(userid=request.user.username,
@@ -845,9 +883,10 @@ def request_default_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResp
     """ 
     Update offer letter text to default 
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
+    req = get_object_or_404(RARequest, Q(backdated=False) | Q(hiring_category__in=['GRAS']), slug=ra_slug, unit__in=request.units, deleted=False, draft=False)
     if request.method == 'POST':
         req.build_letter_text()
+        req.last_updater = get_object_or_404(Person, userid=request.user.username)
         req.save()
         messages.success(request, 'Updated Letter Text for ' + req.get_name())
         l = LogEntry(userid=request.user.username,
@@ -863,14 +902,14 @@ def request_science_alive(request: HttpRequest, ra_slug: str) -> HttpResponse:
     Swtich appointment to science alive, or not science alive.
     Impacts offer letter generation.
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, unit__in=request.units, deleted=False, backdated=False, draft=False)
+    req = get_object_or_404(RARequest, slug=ra_slug, hiring_category__in=['RA', 'NC'], deleted=False, unit__in=request.units, backdated=False, draft=False)
     if request.method == 'POST':
         
         if req.hiring_category == "RA" or req.hiring_category=="NC":
             req.science_alive = not req.science_alive
         else: 
             req.science_alive = False
-        
+        req.last_updater = get_object_or_404(Person, userid=request.user.username)
         req.save()
         messages.success(request, "Switched Science Alive Status for " + req.get_name())
         l = LogEntry(userid=request.user.username,
@@ -885,7 +924,7 @@ def request_science_alive_letter(request: HttpRequest, ra_slug: str) -> HttpResp
     """
     Configure and download science alive offer letters
     """
-    req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, unit__in=request.units, backdated=False, draft=False)
+    req = get_object_or_404(RARequest, slug=ra_slug, hiring_category__in=['RA', 'NC'], deleted=False, unit__in=request.units, backdated=False, draft=False)
     form = RARequestScienceAliveForm(request.POST)
     if form.is_valid():
         config = ({'letter_type': form.cleaned_data['letter_type'], 'final_bullet': form.cleaned_data['final_bullet']})
@@ -989,6 +1028,7 @@ def request_admin_paf_update(request: HttpRequest, ra_slug: str) -> HttpResponse
 
         adminform = RARequestAdminPAFForm(data, instance=req)
         if adminform.is_valid():
+            req.last_updater = get_object_or_404(Person, userid=request.user.username)
             req = adminform.save()
             l = LogEntry(userid=request.user.username,
                          description="Updated PAF Config for Request %s." % req,
@@ -1073,8 +1113,11 @@ def new_admin_attachment(request, ra_slug):
                 filetype += "; charset=" + upfile.charset
             attachment.mediatype = filetype
             attachment.save()
+            req.last_updater = get_object_or_404(Person, userid=request.user.username)
+            req.save()
             messages.add_message(request, messages.SUCCESS, 'Admin attachment added.')
             l = LogEntry(userid=request.user.username, description="Added admin attachment %s" % attachment, related_object=attachment)
+            l.save()
             return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
         else:
             context.update({"attachment_form": form})
@@ -1114,6 +1157,8 @@ def delete_admin_attachment(request, ra_slug, attach_slug):
     req = get_object_or_404(RARequest, slug=ra_slug, draft=False, deleted=False, unit__in=request.units)
     attachment = get_object_or_404(req.attachments.all(), slug=attach_slug)
     attachment.hide()
+    req.last_updater = get_object_or_404(Person, userid=request.user.username)
+    req.save()
     messages.add_message(request, messages.SUCCESS, 'Admin attachment deleted.')
     l = LogEntry(userid=request.user.username, description="Hid admin attachment %s" % attachment, related_object=attachment)
     l.save()
