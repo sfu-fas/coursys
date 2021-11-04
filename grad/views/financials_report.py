@@ -97,6 +97,20 @@ def _generate_csv(request, response, grads):
 
 
     for g in grads:
+         y1_promise = g.get_year1_promise_amount()
+         y2_promise = g.get_year2_promise_amount()
+         y3_promise = g.get_year3_promise_amount()
+         y4_promise = g.get_year4_promise_amount()
+         oth_promise =  g.get_otheryear_promise_amount()
+         ttl_promise = y1_promise + y2_promise + y3_promise + y4_promise + oth_promise
+
+         y1_received = g.get_year1_received()
+         y2_received = g.get_year2_received()
+         y3_received = g.get_year3_received()
+         y4_received = g.get_year4_received()
+         oth_received = g.get_otheryear_received()
+         ttl_received = y1_received + y2_received + y3_received + y4_received + oth_received
+            
          writer.writerow([
             g.person.emplid,
             g.person.last_name,
@@ -106,24 +120,24 @@ def _generate_csv(request, response, grads):
             getattribute(g, 'senior_supervisors'),
             g.current_status,
             g.start_semester.label(),
-            g.get_year1_promise_amount(),
-            g.get_year2_promise_amount(),
-            g.get_year3_promise_amount(),
-            g.get_year4_promise_amount(),
-            g.get_otheryear_promise_amount(),
-            g.get_total_promise_amount(),
-            g.get_year1_received(),
-            g.get_year2_received(),
-            g.get_year3_received(),
-            g.get_year4_received(),
-            g.get_otheryear_received(),
-            g.get_total_received(),
-            g.get_year1_received()-g.get_year1_promise_amount(),
-            g.get_year2_received()-g.get_year2_promise_amount(),
-            g.get_year3_received()-g.get_year3_promise_amount(),
-            g.get_year4_received()-g.get_year4_promise_amount(),
-            g.get_otheryear_received()-g.get_otheryear_promise_amount(),
-            g.get_total_received()-g.get_total_promise_amount()
+            y1_promise,
+            y2_promise,
+            y3_promise,
+            y4_promise,
+            oth_promise,
+            ttl_promise,
+            y1_received,
+            y2_received,
+            y3_received,
+            y4_received,
+            oth_received,
+            ttl_received,
+            y1_received-y1_promise,
+            y2_received-y2_promise,
+            y3_received-y3_promise,
+            y4_received-y4_promise,
+            oth_received-oth_promise,
+            ttl_received-ttl_promise
         ]) 
 
 
@@ -172,6 +186,19 @@ def _generate_excel(request, response, grads, finrpt):
 
     # data rows
     for i,g in enumerate(grads):
+        y1_promise = g.get_year1_promise_amount()
+        y2_promise = g.get_year2_promise_amount()
+        y3_promise = g.get_year3_promise_amount()
+        y4_promise = g.get_year4_promise_amount()
+        oth_promise =  g.get_otheryear_promise_amount()
+        ttl_promise = y1_promise + y2_promise + y3_promise + y4_promise + oth_promise
+
+        y1_received = g.get_year1_received()
+        y2_received = g.get_year2_received()
+        y3_received = g.get_year3_received()
+        y4_received = g.get_year4_received()
+        oth_received = g.get_otheryear_received()
+        ttl_received = y1_received + y2_received + y3_received + y4_received + oth_received
         
         sheet.write(i+2, 1, g.person.emplid)
         sheet.write(i+2, 2, g.person.last_name)
@@ -181,24 +208,24 @@ def _generate_excel(request, response, grads, finrpt):
         sheet.write(i+2, 6, getattribute(g, 'senior_supervisors'))
         sheet.write(i+2, 7, g.current_status)
         sheet.write(i+2, 8, g.start_semester.label())
-        sheet.write(i+2, 9, g.get_year1_promise_amount())
-        sheet.write(i+2, 10, g.get_year2_promise_amount())
-        sheet.write(i+2, 11, g.get_year3_promise_amount())
-        sheet.write(i+2, 12, g.get_year4_promise_amount())
-        sheet.write(i+2, 13, g.get_otheryear_promise_amount())
-        sheet.write(i+2, 14, g.get_total_promise_amount(), boldstyle)
-        sheet.write(i+2, 15, g.get_year1_received())
-        sheet.write(i+2, 16, g.get_year2_received())
-        sheet.write(i+2, 17, g.get_year3_received())
-        sheet.write(i+2, 18, g.get_year4_received())
-        sheet.write(i+2, 19, g.get_otheryear_received())
-        sheet.write(i+2, 20, g.get_total_received(), boldstyle)
-        diff1 =  g.get_year1_received()-g.get_year1_promise_amount()
-        diff2 =  g.get_year2_received()-g.get_year2_promise_amount()
-        diff3 =  g.get_year3_received()-g.get_year3_promise_amount()
-        diff4 =  g.get_year4_received()-g.get_year4_promise_amount()
-        diff5 =  g.get_otheryear_received()-g.get_otheryear_promise_amount()
-        diffttl =  g.get_total_received()-g.get_total_promise_amount()
+        sheet.write(i+2, 9, y1_promise)
+        sheet.write(i+2, 10, y2_promise)
+        sheet.write(i+2, 11, y3_promise)
+        sheet.write(i+2, 12, y4_promise)
+        sheet.write(i+2, 13, oth_promise)
+        sheet.write(i+2, 14, ttl_promise, boldstyle)
+        sheet.write(i+2, 15, y1_received)
+        sheet.write(i+2, 16, y2_received)
+        sheet.write(i+2, 17, y3_received)
+        sheet.write(i+2, 18, y4_received)
+        sheet.write(i+2, 19, oth_received)
+        sheet.write(i+2, 20, ttl_received, boldstyle)
+        diff1 =  y1_received-y1_promise
+        diff2 =  y2_received-y2_promise
+        diff3 =  y3_received-y3_promise
+        diff4 =  y4_received-y4_promise
+        diff5 =  oth_received-oth_promise
+        diffttl =  ttl_received-ttl_promise
         if diff1 < -0.01:
             sheet.write(i+2, 21, diff1, highlightstyle)
         else:
