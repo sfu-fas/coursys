@@ -418,7 +418,7 @@ def deploy_checks(request=None):
     import ntplib
     try:
         c = ntplib.NTPClient()
-        response = c.request('ns2.sfu.ca')
+        response = c.request(settings.NTP_REFERENCE)
         if abs(response.offset) > 0.1:
             failed.append(('Server time', 'Time is %g seconds off NTP reference.' % (response.offset,)))
         else:
