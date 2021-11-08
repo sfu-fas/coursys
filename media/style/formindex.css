@@ -1,0 +1,123 @@
+.ui-widget {
+    font-family: none !important;
+}
+
+.ui-tabs {
+    padding: 0 0 !important;
+}
+
+.ui-tabs .ui-tabs-panel {
+    padding: 0 0.3em !important;
+}
+
+.ui-widget-content {
+    border: none !important; 
+}
+
+.ui-widget-content a {
+    color: #a6192e !important;
+}
+
+.ui-tabs .ui-tabs-nav {
+    display: flex;
+    font-weight: normal;
+    background-color: rgb(255, 255, 255) !important;
+    border: none;
+}
+
+.ui-tabs .ui-tabs-nav li {
+    flex: 1;
+    display: flex;
+    white-space: normal;
+}
+
+.ui-state-default {
+    border: none !important;
+}
+
+.ui-widget-header {
+    border: none !important;
+    background: #ccc;
+    color: #222;
+    font-weight: bold;
+    padding: 0 0 !important; 
+}
+
+.ui-tabs .ui-tabs-nav li a {
+    flex: 1;
+    text-align: center;
+    background: #A6192E; 
+    color: #ffffff !important;
+    border-radius: 5px;
+    border-bottom: 3px solid rgba(0, 0, 0, 0.4) !important;
+    font-family: Verdana,Arial,sans-serif;
+}
+
+.ui-tabs-active a {
+    background: #54585A !important; 
+    color: #ffffff !important;
+    border-bottom: 3px solid rgba(0, 0, 0, 0.4) !important;
+}
+
+.ui-autocomplete {
+    max-height: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+* html .ui-autocomplete {
+    height: 600px;
+}
+
+.ui-autocomplete-unit {
+    font-weight: bold;
+    padding: .2em .4em;
+    margin: .8em 0 .2em;
+    line-height: 1.5;
+}
+
+.ui-autocomplete-description {
+    font-style: italic;
+    color:rgb(81, 81, 81);
+    font-size: 85%;
+    padding: .2em .4em;
+    line-height: 1.5;
+    width: 1200px;
+}
+
+.ui-menu {
+    background-color: rgb(255, 255, 255);
+    border-radius: 5px 5px 25px 25px;
+    font-family: Verdana,Arial,sans-serif !important;
+}
+
+.ui-menu-item {
+    color: #a6192e !important;
+}
+
+.ui-menu-item .ui-menu-item-wrapper.ui-state-active {
+    background: #f1f1f1 !important;
+    border: none !important;
+    color: #a6192e !important;
+} 
+
+#search {
+    width: 100%;
+    font-size: 16px;
+    padding: 12px 20px 12px 20px;
+    border: 1px solid #ddd;
+    border-radius:25px;
+    font-family: Verdana,Arial,sans-serif;
+}
+
+.form_section {
+    background-color: #eee;
+    padding-top: 10px;
+    padding-right: 15px;
+    padding-bottom: 10px;
+    padding-left: 15px;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    margin-top:15px;
+    margin-bottom:15px;
+}

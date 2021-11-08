@@ -28,6 +28,7 @@ from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, FormLogEntr
 from coredata.models import Person, Role, Unit
 from coredata.queries import ensure_person_from_userid, SIMSProblem
 from log.models import LogEntry
+import datetime
 import csv
 import json
 import os
@@ -982,10 +983,18 @@ def index(request):
     form_groups = None
     sheet_submissions = None
     participated = None
+    recent_forms = []
     if request.user.is_authenticated:
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
         forms = [form for form in forms if not form.unlisted()]
+        # forms recently initiated by user
+        recent_forms = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user), \
+                                                      form_submission__initiator=_userToFormFiller(loggedin_user), \
+                                                      completed_at__gte=datetime.date.today() - datetime.timedelta(days=60), \
+                                                      form_submission__form__active=True) \
+                                                      .values('form_submission__form__title', 'form_submission__form__unit__name', 'form_submission__form__slug') \
+                                                      .distinct()
         other_forms = []
         sheet_submissions = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user)) \
             .exclude(status='DONE').exclude(status='REJE')
@@ -994,7 +1003,6 @@ def index(request):
         # If the user is authenticated, see if they have forms that are done in which they participated.
         participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user))\
             .exclude(form_submission__initiator=_userToFormFiller(loggedin_user)).count() > 0
-
     else:
         forms = Form.objects.filter(active=True, initiators='ANY').order_by('unit__name', 'title')
         forms = [form for form in forms if not form.unlisted()]
@@ -1003,10 +1011,24 @@ def index(request):
 
     form_admin = Role.objects_fresh.filter(role__in=['ADMN', 'FORM'], person__userid=request.user.username).count() > 0
 
-    context = {'forms': forms, 'other_forms': other_forms, 'sheet_submissions': sheet_submissions,
+    context = {'forms': forms, 'recent_forms': recent_forms, 'other_forms': other_forms, 'sheet_submissions': sheet_submissions,
                'form_groups': form_groups, 'form_admin': form_admin, 'participated': participated}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
+def formSearchAutocomplete(request):
+    if request.is_ajax():
+        q = request.GET.get('term', '').capitalize()
+        forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
+        search_forms = forms.filter(Q(title__contains=q) | Q(description__contains=q))
+        forms = [form for form in forms if not form.unlisted()]
+        results = []
+        for r in search_forms:
+            results.append({"unit": r.unit.name, "title": r.title, "description": r.description, "value": r.slug})
+        data = json.dumps(results)
+    else:
+        data = 'fail'
+    mimetype = 'application/json'
+    return HttpResponse(data, mimetype)
 
 @login_required()
 def login(request):
