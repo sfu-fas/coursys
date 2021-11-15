@@ -43,7 +43,7 @@ class DisciplineCaseForm(forms.ModelForm):
     
     def clean_student(self):
         userid = self.cleaned_data['student']
-        members = Member.objects.filter(offering=self.offering, person__userid=userid)
+        members = Member.objects.filter(offering=self.offering, person__userid=userid).exclude(role='DROP')
         if members.count() != 1:
             raise forms.ValidationError("Can't find student")
 
