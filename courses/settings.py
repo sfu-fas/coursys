@@ -403,11 +403,11 @@ if DEPLOY_MODE == 'production':
     REPORT_CACHE_CLEAR = True
 
 
-DEBUG_TOOLBAR = getattr(localsettings, 'DEBUG_TOOLBAR', False)
+DEBUG_TOOLBAR = getattr(localsettings, 'DEBUG_TOOLBAR', True)
 if DEBUG_TOOLBAR:
     INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
     MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware', 'courselib.middleware.NonHtmlDebugToolbarMiddleware']
-    INTERNAL_IPS = getattr(localsettings, 'INTERNAL_IPS', [])
+    INTERNAL_IPS = getattr(localsettings, 'INTERNAL_IPS', ['localhost', '127.0.0.1', 'localhost:8000'])
     #DEBUG_TOOLBAR_CONFIG = {
     #    'INTERCEPT_REDIRECTS': False,
     #}

@@ -64,6 +64,7 @@
   <thead>
   	<tr>
   		<th scope="col">Person</th>
+		<th scope="col">Citizenship</th>
   		<th scope="col">Appt Category</th>
 		<th scope="col">Rank</th>
 		<th scope="col">Status</th>
@@ -78,6 +79,7 @@
   {% for contract in contracts %}
   <tr>
   	<td>{{ contract.application.person }}</td>
+	<td>{{ contract.application.person.citizen|default_if_none:"unknown" }}<br>Visa status: {{ contract.application.person.visa|default_if_none:"unknown" }} </td>	  
   	<td>{{contract.get_appt_category_display}} ({{contract.appt_category}})</td>
 	<td>{{contract.application.rank}}</td>
 	<td>{{contract.get_status_display}}</td>

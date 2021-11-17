@@ -45,6 +45,7 @@ dbpass
 submitted_files
 celerybeat-schedule
 local_settings.py
+courses/settings.py
 courses/secrets.py
 courses/localsettings.py
 media/CACHE
@@ -62,3 +63,4 @@ offering_map_cache.json
 schema.txt
 *.swp
 .env
+package-lock.json
