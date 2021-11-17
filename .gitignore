@@ -64,3 +64,4 @@ schema.txt
 *.swp
 .env
 package-lock.json
+.gitignore
