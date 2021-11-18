@@ -58,8 +58,8 @@ def _financials_report_promise(units, finrpt):
         grads = GradStudent.objects.filter(program__unit__in=units).filter(current_status__in=STATUS_ACTIVE).filter(program__slug="phd").order_by("id")
     if finrpt == 'msc':
         grads = GradStudent.objects.filter(program__unit__in=units).filter(current_status__in=STATUS_ACTIVE).filter(program__slug__startswith="msc").order_by("id")
-    if finrpt == 'all':
-        grads = GradStudent.objects.filter(program__unit__in=units).filter(current_status__in=STATUS_ACTIVE).order_by("id")
+    if finrpt == 'other':
+        grads = GradStudent.objects.filter(program__unit__in=units).filter(current_status__in=STATUS_ACTIVE).exclude(program__slug="phd").exclude(program__slug__startswith="msc").order_by("id")
     
     return grads
 

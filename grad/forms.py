@@ -962,7 +962,7 @@ class GradNotesForm(forms.Form):
 FINRPT_CHOICES = (
                  ('phd', 'Active PhD'),
                  ('msc', 'Active MSc'),
-                 ('all', 'All Active Grads'),
+                 ('other', 'Other Active Grads'),
                  )
 
 class FinanceReportForm(forms.Form):
