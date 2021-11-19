@@ -533,7 +533,10 @@ class DisciplineCaseInstrStudent(DisciplineCaseInstr):
     def student_userid(self):
         return self.student.userid
     def membership(self):
-        return Member.objects.get(offering=self.offering, person=self.student)
+        try:
+            return Member.objects.get(offering=self.offering, person=self.student)
+        except Member.MultipleObjectsReturned:
+            return Member.objects.exclude(role='DROP').get(offering=self.offering, person=self.student)
 
 
 class _FakePerson(object):
