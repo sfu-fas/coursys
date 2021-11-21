@@ -1138,9 +1138,18 @@ def contracts_table_csv(request, post_slug):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s-table.csv"' % (posting.slug)
     writer = csv.writer(response)
-    writer.writerow(['Person', 'Appt Category', 'Rank', 'Status', 'Total BU', 'TA Courses', 'Deadline'])
+    writer.writerow(['Person', 'Citizenship', 'Appt Category', 'Rank', 'Status', 'Total BU', 'TA Courses', 'Deadline'])
     for c in contracts:
-        writer.writerow([c.application.person, c.get_appt_category_display() + '(' + c.appt_category + ')',
+        citizen = ''
+        if c.application.person.citizen():
+            citizen = str(c.application.person.citizen())
+        else:
+            citizen = "unknown"
+        if c.application.person.visa():
+            citizen += "(visa: "+ str(c.application.person.visa()) + ")"
+        else:
+            citizen += "(visa: unknown)"
+        writer.writerow([c.application.person, citizen, c.get_appt_category_display() + '(' + c.appt_category + ')',
                          c.application.rank, c.get_status_display(), c.total_bu(), c.crs_list, c.deadline])
     return response
 
