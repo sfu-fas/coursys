@@ -425,6 +425,8 @@ def admin_panel(request):
             environ = [(k,v) for k,v in os.environ.items()]
             environ.sort()
             return render(request, 'coredata/admin_panel_tab.html', {'environ': environ})
+        elif request.GET['content'] == 'throw':
+            raise RuntimeError('This is a deliberately-thrown exception to test exception-handling in the system. It can be ignored.')
     elif request.method == 'POST':
         if 'email' in request.POST:
             email = request.POST['email']
