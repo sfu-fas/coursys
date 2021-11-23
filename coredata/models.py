@@ -1306,6 +1306,7 @@ class Member(models.Model, ConditionalSaveMixin):
         past2 = today - datetime.timedelta(days=730) # 2 years ago
         memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
                 .filter(offering__graded=True, person__userid=userid) \
+                .order_by() \
                 .annotate(num_activities=Count('offering__activity')) \
                 .annotate(num_pages=Count('offering__page')) \
                 .select_related('offering','offering__semester')

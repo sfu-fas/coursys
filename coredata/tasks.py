@@ -7,7 +7,6 @@ from courselib.search import haystack_update_index, haystack_rebuild_index
 from courselib.svn import update_repository
 from django.core.management import call_command
 from courselib.celerytasks import task
-from celery.schedules import crontab
 from coredata.models import Role, Unit, EnrolmentHistory
 from celery import Celery
 

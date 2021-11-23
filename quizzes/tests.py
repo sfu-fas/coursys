@@ -330,4 +330,4 @@ class QuizImportTest(TestCase):
         json_data = """{"questions": [{ "points": 1, "type": "MC", "versions":
             [{ "text": ["foo", "markdown", false], "permute": "permute", "options": [["good", 1], ["bad", 0]] }] }]}"""
         quiz, questions, versions = self.run_import(json_data)
-        self.assertEquals(versions[0].config['options'], [('good', '1'), ('bad', '0')])
+        self.assertEqual(versions[0].config['options'], [('good', '1'), ('bad', '0')])
