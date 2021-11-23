@@ -46,8 +46,8 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'onlineforms.tasks.waiting_forms_reminder',
         'schedule': crontab(day_of_week='1,3,5', hour="13", minute="0"),
     },
-    'ta.tasks.expiring_ras_reminder': {
-        'task': 'ta.tasks.expiring_ras_reminder',
+    'ra.tasks.expiring_ras_reminder': {
+        'task': 'ra.tasks.expiring_ras_reminder',
         'schedule': crontab(minute='0', hour='13'),
     },
     'reminders.tasks.daily_reminders': {
