@@ -327,6 +327,8 @@ if USE_CELERY:
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
     CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+    from courses import celery_schedule
+    CELERY_BEAT_SCHEDULE = celery_schedule.CELERY_BEAT_SCHEDULE
     DJANGO_CELERY_BEAT_TZ_AWARE = USE_TZ
     CELERYD_TASK_SOFT_TIME_LIMIT = 1200
     CELERY_ENABLE_UTC = False

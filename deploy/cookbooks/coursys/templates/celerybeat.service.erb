@@ -10,9 +10,8 @@ Group=<%= @username %>
 EnvironmentFile=<%= @data_root %>/config/celery-environment
 WorkingDirectory=<%= @coursys_dir %>
 UMask=0077
-ExecStart=/bin/sh -c '${CELERY_BIN} beat  \
-  -A ${CELERY_APP} --pidfile=${CELERYBEAT_PID_FILE} \
-  --logfile=${CELERYBEAT_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL}'
+ExecStart=/bin/sh -c '${CELERY_BIN} -A ${CELERY_APP} beat  \
+  --pidfile=${CELERYBEAT_PID_FILE} --logfile=${CELERYBEAT_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL}'
 
 [Install]
 WantedBy=multi-user.target

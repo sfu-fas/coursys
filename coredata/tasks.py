@@ -6,7 +6,7 @@ from coredata.queries import SIMSConn, SIMSProblem
 from courselib.search import haystack_update_index, haystack_rebuild_index
 from courselib.svn import update_repository
 from django.core.management import call_command
-from courselib.celerytasks import task, periodic_task
+from courselib.celerytasks import task
 from celery.schedules import crontab
 from coredata.models import Role, Unit, EnrolmentHistory
 from celery import Celery
@@ -35,7 +35,7 @@ def ping(): # used to check that celery is alive
 
 # a periodic job that has enough of an effect that we can see celerybeat working
 # (checked by ping_celery management command)
-@periodic_task(run_every=crontab(minute='*/5', hour='*'))
+@task()
 def beat_test():
     set_beat_time()
 
@@ -71,11 +71,9 @@ def set_beat_time() -> None:
     u.save()
 
 
-@periodic_task(run_every=crontab(minute=0, hour='*/3'))
+@task()
 def regular_backup():
-    if settings.DO_IMPORTING_HERE:
-        # if we're not on the "real" database, then don't bother with regular backups
-        backup_database.si().apply_async()
+    backup_database.si().apply_async()
 
 
 @task()
@@ -83,7 +81,7 @@ def backup_database():
     call_command('backup_db', clean_old=True)
 
 
-@periodic_task(run_every=crontab(minute=0, hour='*/3'))
+@task()
 def check_sims_connection():
     if settings.DISABLE_REPORTING_DB:
         return
@@ -121,7 +119,7 @@ def check_sims_task() -> Optional[str]:
         return 'Generic exception, %s' % (str(e))
 
 
-@periodic_task(run_every=crontab(minute='30', hour='7', day_of_week='mon,thu'))
+@task
 def expiring_roles():
     if settings.DO_IMPORTING_HERE:
         Role.warn_expiring()
@@ -134,7 +132,7 @@ def haystack_update():
 
 
 # purge and rebuild the search index occasionally to get any orphaned records
-@periodic_task(run_every=crontab(minute='0', hour='2', day_of_week='saturday'))
+@task
 def haystack_rebuild():
     haystack_rebuild_index()
 
@@ -167,7 +165,7 @@ def _grouper(iterable, n):
     return ((v for v in grp if v is not None) for grp in groups)
 
 
-@periodic_task(run_every=crontab(minute='30', hour='8'))
+@task()
 def daily_import():
     """
     Start the daily import work.

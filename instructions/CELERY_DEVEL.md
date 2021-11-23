@@ -37,5 +37,5 @@ docker container rm rabbitmq
 
 The workers in production are intricate, to handle concurrency and rate limiting just the right way. For development, you can likely start a single worker. If you have a virtualenv, the command will likely be:
 ```
-../bin/celery worker -A courses -l INFO -B
+../bin/celery -A courses worker -l INFO -B
 ```
