@@ -1,9 +1,10 @@
-from courselib.celerytasks import periodic_task
+from courselib.celerytasks import task
 from celery.schedules import crontab
 from grad.models import GradStudent, GradStatus, GradProgramHistory
 from coredata.models import Semester
 
-@periodic_task(run_every=crontab(minute=0, hour=3))
+
+@task()
 def update_statuses_to_current():
     """
     Update the denormalized grad status fields to reflect the current time (and catch statuses that were entered in the

@@ -1,15 +1,9 @@
+from courselib.celerytasks import task
 from django.conf import settings
 from dashboard.models import NewsItem
 from grades.models import Activity, NumericGrade, LetterGrade, GradeHistory
 import itertools
 
-if settings.USE_CELERY:
-    from celery.task import task
-else:
-    def task(*args, **kwargs):
-        def decorator(*args, **kwargs):
-            return None
-        return decorator
 
 def _send_grade_released_news(activity_id):
     activity = Activity.objects.get(id=activity_id)
@@ -26,7 +20,6 @@ def _send_grade_released_news(activity_id):
 @task(max_retries=2, queue='fast')
 def send_grade_released_news_task(activity_id):
     _send_grade_released_news(activity_id)
-
 
 
 def _create_grade_released_history(activity_id, entered_by_id):

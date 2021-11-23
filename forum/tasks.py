@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.utils.safestring import SafeString
 
 from coredata.models import Member
-from courselib.celerytasks import task, periodic_task
+from courselib.celerytasks import task
 from forum.models import Identity, Reply, ReadReply, Thread, ReadThread, APPROVAL_ROLES
 from forum.views import ACCESS_AFTER_SEMESTER
 
@@ -124,7 +124,7 @@ def create_instr_idents() -> None:
             Identity.new(offering=m.offering, member=m, save=True)
 
 
-@periodic_task(run_every=crontab(hour='*', minute='0'))
+@task()
 def send_digests(immediate=False) -> None:
     now = datetime.datetime.now()
     idents = _relevant_idents().filter(digest_frequency__isnull=False)

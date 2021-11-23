@@ -2,7 +2,6 @@
 
 from django.conf import settings
 from celery import shared_task
-from celery.task import periodic_task as celery_periodic_task
 
 from django.core.mail import mail_admins
 from functools import wraps
@@ -32,29 +31,6 @@ def task(*d_args, **d_kwargs):
     return real_decorator
 
 
-def periodic_task(*d_args, **d_kwargs):
-    # behaves like @periodic_task, but emails about exceptions.
-    def real_decorator(f):
-        @celery_periodic_task(*d_args, **d_kwargs)
-        @wraps(f)
-        def wrapper(*f_args, **f_kwargs):
-            # try the task; email any exceptions we get
-            try:
-                res = f(*f_args, **f_kwargs)
-            except Exception as e:
-                # email admins and re-raise
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                subject = 'task failure in %s.%s' % (f.__module__, f.__name__)
-                msg = 'The periodic task %s.%s failed:\n\n%s' % (f.__module__, f.__name__,
-                        '\n'.join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
-                mail_admins(subject=subject, message=msg, fail_silently=True)
-                raise
-
-            return res
-        return wrapper
-    return real_decorator
-
-
 class DummyTask(object):
     "A Task-like object that fakes enough to use in a non-celery environment"
     def __init__(self, func):
@@ -69,6 +45,7 @@ class DummyTask(object):
 
     apply_async = delay
     apply = __call__
+
 
 class DummyResult(object):
     "A task result-like object that fakes enough to use in a non-celery environment"

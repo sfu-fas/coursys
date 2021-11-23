@@ -1,6 +1,5 @@
 from django.conf import settings
-from courselib.celerytasks import task, periodic_task
-from celery.schedules import crontab
+from courselib.celerytasks import task
 from dashboard.photos import do_photo_fetch, change_photo_password
 
 @task(queue='photo')
@@ -11,7 +10,7 @@ if not settings.USE_CELERY:
     # no celery? Disable.
     fetch_photos_task.delay = lambda emplids: None
 
-@periodic_task(run_every=crontab(day_of_month="10,20,30", hour=2, minute=0))
+@task()
 def photo_password_update_task():
     if settings.DO_IMPORTING_HERE:
         change_photo_password()

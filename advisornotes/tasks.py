@@ -1,4 +1,4 @@
-from courselib.celerytasks import task, periodic_task
+from courselib.celerytasks import task
 from celery.schedules import crontab
 from coredata.queries import SIMSConn, PLAN_QUERY, SUBPLAN_QUERY
 from advisornotes.models import AdvisorVisit
@@ -28,7 +28,7 @@ def update_program_info(advisor_visit_ids):
         v.save()
 
 
-@periodic_task(run_every=crontab(minute=0, hour='2'))
+@task()
 def program_info_for_advisorvisits():
     """
     Find any AdvisorVisits that need their sims_programs filled in; pass a task to do that off to the sims queue.

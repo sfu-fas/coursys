@@ -1,6 +1,6 @@
 from coredata.models import CourseOffering
 from marking.models import copy_setup_pages
-from celery.task import task
+from courselib.celerytasks import task
 
 
 @task(queue='fast')
