@@ -29,8 +29,8 @@ django-npm==1.0.0
 #django-cache-utils==0.7.2
 #hg+https://bitbucket.org/ggbaker/django-cache-utils/@8a29823  # python 3 compatibility
 git+https://github.com/gregbaker/django-cache-utils@a64ff6b
-celery==5.0.5
-kombu==5.0.2
+celery==5.2.1
+kombu==5.2.2
 django-celery-email==3.0.0
 django_celery_beat==2.2.1
 #amqp  # let kombu choose the version
