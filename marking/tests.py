@@ -743,7 +743,7 @@ class TestMarkingImport(TestCase):
             post_data = {'file':[file]}
             response = self.client.post(url, post_data)
         self.assertEqual(response.status_code, 302)
-        
+
         marks = StudentActivityMark.objects.filter(activity=self.act, numeric_grade__member__person__userid="0aaa0")
         self.assertEqual(len(marks), 1)
         m = marks[0]
@@ -752,4 +752,5 @@ class TestMarkingImport(TestCase):
         data = m.file_attachment.read()
         self.assertEqual(data, b'Hello world!\n')
         self.assertEqual(m.attachment_filename(), 'hello.txt')
+        m.file_attachment.close()
 

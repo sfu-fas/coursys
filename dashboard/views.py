@@ -74,7 +74,7 @@ def index(request):
 def index_full(request):
     userid = request.user.username
     memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
-            .filter(offering__graded=True, person__userid=userid) \
+            .filter(offering__graded=True, person__userid=userid).order_by() \
             .annotate(num_activities=Count('offering__activity')) \
             .select_related('offering','offering__semester')
     memberships = [m for m in memberships if m.role in ['TA', 'INST', 'APPR'] or m.num_activities>0]

@@ -273,6 +273,7 @@ class SubmissionTest(TestCase):
             data = {"%i-code" % (c.id): fh}
             response = client.post(url, data)
             self.assertEqual(response.status_code, 302)
+            fh.close()
             
         finally:
             os.unlink(tmpf.name)
@@ -288,6 +289,7 @@ class SubmissionTest(TestCase):
         code = codes[0]
         code.code.open()
         self.assertEqual(code.code.read(), codecontents)
+        code.code.close()
             
     def test_pages(self):
         "Test a bunch of page views"
