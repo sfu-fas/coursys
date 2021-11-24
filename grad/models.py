@@ -827,28 +827,30 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         return ls
 
     def get_year1_promise_amount(self):      
-        return self.get_promise_amount(0, 3)
+        return self.get_promise_amount(0, 1)
 
     def get_year2_promise_amount(self):      
-        return self.get_promise_amount(3, 6)
+        return self.get_promise_amount(1, 2)
         
     def get_year3_promise_amount(self):      
-        return self.get_promise_amount(6, 9)
+        return self.get_promise_amount(2, 3)
 
     def get_year4_promise_amount(self):      
-        return self.get_promise_amount(9, 12)
+        return self.get_promise_amount(3, 4)
 
     def get_otheryear_promise_amount(self):
-        return self.get_promise_amount(12, 99)
+        return self.get_promise_amount(4, 10)
 
     def get_total_promise_amount(self):      
-        return self.get_promise_amount(0, 99)
+        return self.get_promise_amount(0, 10)
 
     def get_promise_amount(self, fromsem, tosem):
+        frs = str(int(self.start_semester.name) + (fromsem * 10))
+        tos = str(int(self.start_semester.name) + (tosem * 10))
         if self.end_semester is None:  
-            promises = Promise.objects.filter(student=self, removed=False, start_semester__id__gte=self.start_semester_id+fromsem,  start_semester__id__lt=self.start_semester_id+tosem)
+            promises = Promise.objects.filter(student=self, removed=False, start_semester__name__gte=frs,  start_semester__name__lt=tos)
         else:
-            promises = Promise.objects.filter(student=self, removed=False, start_semester__id__gte=self.start_semester_id+fromsem,  start_semester__id__lt=self.start_semester_id+tosem, end_semester__gte=self.end_semester)
+            promises = Promise.objects.filter(student=self, removed=False, start_semester__name__gte=frs,  start_semester_name__lt=tos, end_semester__gte=self.end_semester)
         amount = 0
         for promise in promises:
             amount += promise.amount                
@@ -856,58 +858,81 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         return amount
     
     def get_year1_received(self):
-        return self.get_receive(0, 3)
+        return self.get_receive(0, 1)
 
     def get_year2_received(self):   
-        return self.get_receive(3, 6)
+        return self.get_receive(1, 2)
 
     def get_year3_received(self):
-        return self.get_receive(6, 9)
+        return self.get_receive(2, 3)
 
     def get_year4_received(self):
-        return self.get_receive(9, 12)
+        return self.get_receive(3, 4)
 
     def get_otheryear_received(self):
-        return self.get_receive(12, 99)
+        return self.get_receive(4, 10)
 
     def get_total_received(self):
-        return self.get_receive(0, 99)
+        return self.get_receive(0, 10)
 
     def get_receive(self, fromsem, tosem):
-        from ta.models import TACourse
-        from ra.models import RAAppointment
-
+        from ta.models import TAContract, TACourse
+        from ra.models import RAAppointment, RARequest
+        from tacontracts.models import TAContract as NewTAContract
         received = 0
-        # TA
-        tas = TACourse.objects.filter(contract__application__person=self.person, contract__status='ACC', contract__posting__semester__id__gte=self.start_semester_id+fromsem,
-        contract__posting__semester__id__lt=self.start_semester_id+tosem)
-        
-        for tacrs in tas:
-            received = received + tacrs.pay()
+        frs = int(self.start_semester.name) + (fromsem * 10)
+        tos = int(self.start_semester.name) + (tosem * 10)
+        sem  = Semester.objects.filter(name__gte = str(frs)).filter(name__lt = str(tos))
 
-        # RA
-        ras = RAAppointment.objects.filter(person=self.person, deleted=False)
-        for ra in ras:
-            # RAs are by date, not semester, so have to filter more here...
-            st = ra.start_semester()
-            en = ra.end_semester()
-            ra.semlength = ra.semester_length()
-            if ra.semlength == 0:
-                ra.semlength = 1
-            ra.semvalue = ra.lump_sum_pay / ra.semlength            
-            if (st.id >= self.start_semester_id+fromsem) and (st.id <self.start_semester_id+tosem):
-                received = received + ra.semvalue
+        for indexs in sem:
+            # TA
+            STATUSES_NOT_TAING = ['NEW', 'REJ', 'CAN'] # statuses that mean "not actually TAing"
+
+            contracts = TAContract.objects.filter(application__person=self.person).exclude(status__in=STATUSES_NOT_TAING).select_related('posting__semester')
+            other_contracts = NewTAContract.objects.filter(person=self.person, status__in=['NEW', 'SGN']).select_related('category').prefetch_related('course')
             
-        # scholarships
-        scholarships = Scholarship.objects.filter(student=self, removed=False, start_semester__id__gte=self.start_semester_id+fromsem, start_semester__id__lt=self.start_semester_id+tosem).filter(scholarship_type__eligible=True)
+            for contract in contracts:
+                if contract.posting.semester.name == indexs.name:
+                    for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
+                        received += course.pay()
+            for contract in other_contracts:
+                if contract.category.hiring_semester.semester.name == indexs.name:
+                    if contract.status == 'SGN':
+                        for course in contract.course.all():
+                            received += course.total
+
+            # RA
+            ras = RAAppointment.objects.filter(person=self.person, deleted=False)
+            reqs = RARequest.objects.filter(person=self.person, deleted=False, complete=True, draft=False)
+            for ra in ras:
+                st = ra.start_semester()
+                en = ra.end_semester()
+                if (indexs.name >= st.name) and (indexs.name <= en.name):
+                    sem_pay = ra.lump_sum_pay / ra.semester_length()
+                    received += sem_pay
+                
+            for ra in reqs:
+                st = ra.start_semester()
+                en = ra.end_semester()
+                if (indexs.name >= st.name) and (indexs.name <= en.name):
+                    sem_pay = ra.total_pay / ra.semester_length()
+                    received += sem_pay   
+            
+            # scholarships
+            scholarships = Scholarship.objects.filter(student=self, removed=False).filter(scholarship_type__eligible=True)
+            
+            for ss in scholarships:
+                amt = ss.amount/(ss.end_semester-ss.start_semester+1)            
+                if (indexs.name >= ss.start_semester.name) and (indexs.name <= ss.end_semester.name):           
+                    received += amt
+            
+            # other funding
+            others = OtherFunding.objects.filter(student=self, removed=False, eligible=True)
+            for other in others:
+                if other.semester.name == indexs.name:
+                    received += other.amount
         
-        for schol in scholarships:            
-            received = received + schol.amount
-        
-        # other funding
-        others = OtherFunding.objects.filter(student=self, removed=False, semester__id__gte=self.start_semester_id+fromsem, semester__id__lt=self.start_semester_id+tosem)
-        for other in others:
-            received = received + other.amount
+                    
         return received
             
     def financials_from(self, start, end):
