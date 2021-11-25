@@ -203,6 +203,20 @@ class RANewRequestWizard(SessionWizardView):
         context.update({'draft_option': True})
         return context
 
+    def get_form_kwargs(self, step):
+        step = step or self.steps.current
+        kwargs = super(RANewRequestWizard, self).get_form_kwargs(step)
+
+        if step=='research_assistant':
+            intro = self.get_cleaned_data_for_step('intro') or {}
+            if intro['coop']=="True": 
+                kwargs['coop'] = True
+        if step=='non_continuing':
+            intro = self.get_cleaned_data_for_step('intro') or {}
+            if intro['coop']=="True": 
+                kwargs['coop'] = True
+        return kwargs
+
     def get_form_initial(self, step):
         init = {}
         reappoint = 'ra_slug' in self.kwargs
@@ -341,6 +355,10 @@ class RANewRequestWizard(SessionWizardView):
             req.file_attachment_2 = ''
             req.file_mediatype_2 = ''
 
+        # ensure swpp is false if not applicable
+        if req.coop == "False" or req.coop == False or req.hiring_category=="GRAS":
+            req.swpp = False
+
         # if user creates request as draft
         if self.request.POST.get("save_draft"):
             req.draft = True
@@ -415,6 +433,14 @@ class RAEditRequestWizard(SessionWizardView):
         kwargs = super(RAEditRequestWizard, self).get_form_kwargs(step)
         if step == 'dates' and not req.draft:
             kwargs['edit'] = True
+        if step=='research_assistant':
+            intro = self.get_cleaned_data_for_step('intro') or {}
+            if intro['coop']=="True": 
+                kwargs['coop'] = True
+        if step=='non_continuing':
+            intro = self.get_cleaned_data_for_step('intro') or {}
+            if intro['coop']=="True": 
+                kwargs['coop'] = True
         return kwargs
 
     def get_form_initial(self, step):
@@ -549,7 +575,11 @@ class RAEditRequestWizard(SessionWizardView):
         if req.hiring_category=="NC":
             req.gras_payment_method = None
             req.ra_payment_method = None
-        
+
+        # ensure swpp is false if not applicable
+        if req.coop == "False" or req.coop == False or req.hiring_category=="GRAS":
+            req.swpp = False
+
         # draft was submitted 
         if submission:
             description = "Submitted RA Request Draft %s." % req
@@ -1192,10 +1222,14 @@ def download(request, current=False, incomplete=False):
                                                                             'current' if current else 'all')
                                                                                 
     writer = csv.writer(response)
-    writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
-
-    for ra in ras:
-        writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay])
+    if admin:
+        writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP'])
+        for ra in ras:
+            writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay, ra.swpp])
+    else:
+        writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
+        for ra in ras:
+            writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay])
     return response
 
 # altered RADataJson, to make a very similar browse page, but for RARequests
