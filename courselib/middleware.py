@@ -1,9 +1,14 @@
+import datetime
+import json
 import time
 import logging
 from django.db import connection
 from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
+from ipware import get_client_ip
+
 logger = logging.getLogger(__name__)
+
 
 class MonitoringMiddleware(MiddlewareMixin):
     """
@@ -25,13 +30,13 @@ class MonitoringMiddleware(MiddlewareMixin):
         return response
 
 
-
 import sys
 from courselib.auth import HttpError
 try:
     from MySQLdb import OperationalError
 except ImportError:
     OperationalError = None
+
 
 class ExceptionIgnorer(MiddlewareMixin):
     """
@@ -88,4 +93,37 @@ class NonHtmlDebugToolbarMiddleware(object):
             if response['Content-Type'] == 'application/json':
                 content = json.dumps(json.loads(response.content), sort_keys=True, indent=2)
                 response = HttpResponse(u'<html><body><pre>{}</pre></body></html>'.format(escape(content)))
+        return response
+
+
+middleware_logger = logging.getLogger('django-logging')
+
+
+class LoggingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        start = datetime.datetime.utcnow()
+        response = self.get_response(request)
+        end = datetime.datetime.utcnow()
+
+        duration = (end - start).total_seconds()
+        ip, _ = get_client_ip(request)
+        user = request.user.username if request.user.is_authenticated else '-'
+        request_id = request.META.get('HTTP_X_REQUEST_ID', '-')
+
+        log_data = {
+            'timestamp': start.isoformat(timespec='milliseconds'),
+            'ip': ip,
+            'method': request.method,
+            'path': request.path,
+            'request_id': request_id,
+            'session_key': request.session.session_key,
+            'user': user,
+            'duration': duration,
+            'status_code': response.status_code,
+        }
+        middleware_logger.debug(json.dumps(log_data))
+
         return response
