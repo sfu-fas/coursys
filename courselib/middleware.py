@@ -108,22 +108,28 @@ class LoggingMiddleware:
         response = self.get_response(request)
         end = datetime.datetime.utcnow()
 
-        duration = (end - start).total_seconds()
+        elapsed = (end - start).total_seconds()
         ip, _ = get_client_ip(request)
         user = request.user.username if request.user.is_authenticated else '-'
         request_id = request.META.get('HTTP_X_REQUEST_ID', '-')
 
         log_data = {
-            'timestamp': start.isoformat(timespec='milliseconds'),
+            'timestamp': end.isoformat(timespec='milliseconds'),
             'ip': ip,
             'method': request.method,
             'path': request.path,
             'request_id': request_id,
             'session_key': request.session.session_key,
             'user': user,
-            'duration': duration,
+            'elapsed': elapsed,
             'status_code': response.status_code,
         }
-        middleware_logger.debug(json.dumps(log_data))
+
+        if elapsed < 10:
+            middleware_logger.debug(json.dumps(log_data))
+        elif elapsed < 20:
+            middleware_logger.warning(json.dumps(log_data))
+        else:
+            middleware_logger.error(json.dumps(log_data))
 
         return response
