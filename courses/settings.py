@@ -98,6 +98,7 @@ MIDDLEWARE = [
     'otp.middleware.Authentication2FAMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'courselib.middleware.LoggingMiddleware',
     'courselib.middleware.ExceptionIgnorer',
     'django_cas_ng.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
@@ -410,7 +411,7 @@ DEBUG_TOOLBAR = getattr(localsettings, 'DEBUG_TOOLBAR', False)
 if DEBUG_TOOLBAR:
     INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
     MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware', 'courselib.middleware.NonHtmlDebugToolbarMiddleware']
-    INTERNAL_IPS = getattr(localsettings, 'INTERNAL_IPS', [])
+    INTERNAL_IPS = getattr(localsettings, 'INTERNAL_IPS', ['127.0.0.1'])
     #DEBUG_TOOLBAR_CONFIG = {
     #    'INTERCEPT_REDIRECTS': False,
     #}
