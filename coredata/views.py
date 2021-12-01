@@ -427,6 +427,14 @@ def admin_panel(request):
             return render(request, 'coredata/admin_panel_tab.html', {'environ': environ})
         elif request.GET['content'] == 'throw':
             raise RuntimeError('This is a deliberately-thrown exception to test exception-handling in the system. It can be ignored.')
+        elif request.GET['content'] == 'slow':
+            import time
+            t = int(request.GET.get('t', '25'))
+            time.sleep(t)
+            resp = render(request, 'coredata/admin_panel_tab.html', {})
+            if 'okay' in request.GET:
+                resp.slow_okay = True
+            return resp
     elif request.method == 'POST':
         if 'email' in request.POST:
             email = request.POST['email']

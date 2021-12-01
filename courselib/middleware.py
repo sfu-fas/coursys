@@ -125,7 +125,9 @@ class LoggingMiddleware:
             'status_code': response.status_code,
         }
 
-        if elapsed < 10:
+        slow_okay = getattr(response, 'slow_okay', False)
+
+        if slow_okay or elapsed < 10:
             middleware_logger.debug(json.dumps(log_data))
         elif elapsed < 20:
             middleware_logger.warning(json.dumps(log_data))

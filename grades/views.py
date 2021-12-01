@@ -1355,6 +1355,7 @@ def student_photo(request, emplid):
     response.status_code = status
     response['Content-Disposition'] = 'inline; filename="%s.jpg"' % (emplid)
     response['Cache-Control'] = 'private, max-age=300'
+    response.slow_okay = True
     return response
 
 
