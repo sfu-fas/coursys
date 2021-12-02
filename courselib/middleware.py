@@ -114,10 +114,11 @@ class LoggingMiddleware:
         request_id = request.META.get('HTTP_X_REQUEST_ID', '-')
 
         log_data = {
-            'timestamp': end.isoformat(timespec='milliseconds'),
+            'timestamp': end.isoformat(timespec='microseconds'),
             'ip': ip,
             'method': request.method,
             'path': request.path,
+            'query_string': request.META.get('QUERY_STRING', ''),
             'request_id': request_id,
             'session_key': request.session.session_key,
             'user': user,
