@@ -61,7 +61,7 @@ class MarkdownRpcClient(object):
 
     def call(self, args):
         self.corr_id = str(uuid.uuid1())
-        message = amqp.Message(body=args, correlation_id=self.corr_id, reply_to=self.callback_queue)
+        message = amqp.Message(body=args, correlation_id=self.corr_id, reply_to=self.callback_queue, expiration=str(TIMEOUT*10*1000))
         self.channel.basic_publish(message, exchange='', routing_key=MarkdownRpcClient.QUEUE_NAME, timeout=TIMEOUT)
         self.connection.drain_events(timeout=TIMEOUT)
         return self.response
