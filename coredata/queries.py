@@ -602,7 +602,7 @@ def more_offering_info(offering, browse_data=False, offering_effdt=False):
     eff_where = ''
     if offering_effdt:
         effdt = offering.semester.start
-        eff_where = "AND effdt<=%s" % (db.escape_arg(effdt.isoformat()))
+        eff_where = "AND EFFDT<=%s" % (db.escape_arg(effdt.isoformat()))
 
     db.execute("""
         SELECT DESCR, SSR_COMPONENT, COURSE_TITLE_LONG, DESCRLONG

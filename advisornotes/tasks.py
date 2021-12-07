@@ -1,9 +1,9 @@
 from courselib.celerytasks import task
-from celery.schedules import crontab
 from coredata.queries import SIMSConn, PLAN_QUERY, SUBPLAN_QUERY
 from advisornotes.models import AdvisorVisit
 import datetime
 from collections import defaultdict
+
 
 @task(queue='sims')
 def update_program_info(advisor_visit_ids):
