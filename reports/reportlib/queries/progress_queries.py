@@ -40,22 +40,22 @@ class AdvisorNotes(LocalDBQuery):
 
 class InternationalGPAQuery(DB2_Query):
     query = string.Template("""
-        SELECT term.emplid, term.acad_prog_primary, term.cum_gpa, stnd.acad_stndng_actn, c.descrshort AS citizen, vtbl.descrshort AS visa
-        FROM ps_stdnt_car_term term
-           JOIN (SELECT emplid, max(strm) strm FROM ps_acad_stdng_actn GROUP BY emplid) AS stnd_strm ON stnd_strm.emplid=term.emplid
-           JOIN ps_acad_stdng_actn stnd ON stnd_strm.strm=stnd.strm AND stnd.emplid=term.emplid
-           JOIN ps_citizenship cit ON cit.emplid=term.emplid
-           JOIN ps_country_tbl c ON cit.country=c.country
-           LEFT JOIN ps_visa_pmt_data v ON v.emplid=term.emplid
-           LEFT JOIN ps_visa_permit_tbl vtbl ON v.visa_permit_type=vtbl.visa_permit_type
+        SELECT TERM.EMPLID, TERM.ACAD_PROG_PRIMARY, TERM.CUM_GPA, STND.ACAD_STNDNG_ACTN, C.DESCRSHORT AS CITIZEN, VTBL.DESCRSHORT AS VISA
+        FROM PS_STDNT_CAR_TERM TERM
+           JOIN (SELECT EMPLID, MAX(STRM) STRM FROM PS_ACAD_STDNG_ACTN GROUP BY EMPLID) AS STND_STRM ON STND_STRM.EMPLID=TERM.EMPLID
+           JOIN PS_ACAD_STDNG_ACTN STND ON STND_STRM.STRM=STND.STRM AND STND.EMPLID=TERM.EMPLID
+           JOIN PS_CITIZENSHIP CIT ON CIT.EMPLID=TERM.EMPLID
+           JOIN PS_COUNTRY_TBL C ON CIT.COUNTRY=C.COUNTRY
+           LEFT JOIN PS_VISA_PMT_DATA V ON V.EMPLID=TERM.EMPLID
+           LEFT JOIN PS_VISA_PERMIT_TBL VTBL ON V.VISA_PERMIT_TYPE=VTBL.VISA_PERMIT_TYPE
         WHERE
-            term.strm = $strm
-            AND (v.effdt IS NULL OR v.effdt=(SELECT MAX(effdt) FROM ps_visa_pmt_data WHERE emplid=term.emplid AND effdt<=current date))
-            AND term.tot_taken_gpa > 15
-            AND term.unt_taken_prgrss > 0
-            AND term.acad_prog_primary IN $acad_progs
-            AND term.withdraw_code='NWD'
-        ORDER BY term.emplid
+            TERM.STRM = $strm
+            AND (V.EFFDT IS NULL OR V.EFFDT=(SELECT MAX(EFFDT) FROM PS_VISA_PMT_DATA WHERE EMPLID=TERM.EMPLID AND EFFDT<=CURRENT DATE))
+            AND TERM.TOT_TAKEN_GPA > 15
+            AND TERM.UNT_TAKEN_PRGRSS > 0
+            AND TERM.ACAD_PROG_PRIMARY IN $acad_progs
+            AND TERM.WITHDRAW_CODE='NWD'
+        ORDER BY TERM.EMPLID
     """)
 
     default_arguments = {

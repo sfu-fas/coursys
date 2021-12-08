@@ -25,15 +25,16 @@ CELERYD_LOG_LEVEL="INFO"
 CELERYBEAT_PID_FILE="/opt/run/celery/beat.pid"
 CELERYBEAT_LOG_FILE="<%= @data_root %>/logs/celery-beat.log"
 
-
 COURSYS_DATA_ROOT="<%= @data_root %>"
 
+# TODO: remove after DB2 transition
 LD_LIBRARY_PATH=/home/coursys/sqllib/lib64
 export LD_LIBRARY_PATH
 LANG="en_CA.UTF-8" # DB2 doesn't return UTF-8 strings otherwise
 export LANG
 
 # imitate ~/sqllib/db2profile
+# TODO: remove after DB2 transition
 DB2INSTANCE="<%= @coursys_user %>"
 export DB2INSTANCE
 DB2_HOME=/home/<%= @coursys_user %>/sqllib

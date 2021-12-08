@@ -42,7 +42,7 @@ Get a VM.
 
 ```sh
 sudo apt install git chef
-git clone -b deployed-2020 https://github.com/sfu-fas/coursys.git
+git clone -b deployed-2022 https://github.com/sfu-fas/coursys.git
 cd coursys
 cp ./deploy/run-list-production.json ./deploy/run-list.json
 # check ./deploy/solo.rb and ./deploy/run-list-production.json

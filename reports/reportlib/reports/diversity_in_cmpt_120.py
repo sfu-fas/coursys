@@ -10,28 +10,28 @@ class PlansInCoursesQuery(DB2_Query):
     description = "All academic plans for students in courses, as of the start of the semester"
 
     query = string.Template("""
-    SELECT cls.strm, cls.subject, cls.catalog_nbr, cls.class_section, cls.campus, std.emplid, cls.enrl_tot,
-    cls.ENRL_CAP, plan.acad_plan, data.SEX
-    FROM ps_class_tbl cls
-      INNER JOIN ps_stdnt_enrl std
-        ON std.class_nbr=cls.class_nbr
-          AND std.strm=cls.strm
-          AND std.enrl_status_reason IN ('ENRL','EWAT')
-      INNER JOIN ps_term_tbl trm
-        ON cls.strm=trm.strm AND trm.acad_career='UGRD'
-      INNER JOIN ps_acad_plan plan
-        ON plan.emplid=std.emplid
-          AND effdt=(SELECT MAX(effdt) FROM ps_acad_plan WHERE emplid=plan.emplid AND effdt<=trm.term_begin_dt)
-          AND effseq=(SELECT MAX(effseq) FROM ps_acad_plan WHERE emplid=plan.emplid AND effdt=plan.effdt)
-       INNER JOIN PS_PERSONAL_DATA data on plan.EMPLID = data.EMPLID
+    SELECT CLS.STRM, CLS.SUBJECT, CLS.CATALOG_NBR, CLS.CLASS_SECTION, CLS.CAMPUS, STD.EMPLID, CLS.ENRL_TOT,
+    CLS.ENRL_CAP, PLAN.ACAD_PLAN, DATA.SEX
+    FROM PS_CLASS_TBL CLS
+      INNER JOIN PS_STDNT_ENRL STD
+        ON STD.CLASS_NBR=CLS.CLASS_NBR
+          AND STD.STRM=CLS.STRM
+          AND STD.ENRL_STATUS_REASON IN ('ENRL','EWAT')
+      INNER JOIN PS_TERM_TBL TRM
+        ON CLS.STRM=TRM.STRM AND TRM.ACAD_CAREER='UGRD'
+      INNER JOIN PS_ACAD_PLAN PLAN
+        ON PLAN.EMPLID=STD.EMPLID
+          AND EFFDT=(SELECT MAX(EFFDT) FROM PS_ACAD_PLAN WHERE EMPLID=PLAN.EMPLID AND EFFDT<=TRM.TERM_BEGIN_DT)
+          AND EFFSEQ=(SELECT MAX(EFFSEQ) FROM PS_ACAD_PLAN WHERE EMPLID=PLAN.EMPLID AND EFFDT=PLAN.EFFDT)
+       INNER JOIN PS_PERSONAL_DATA DATA ON PLAN.EMPLID = DATA.EMPLID
     WHERE
-      cls.class_section LIKE '%00'
-      AND cls.cancel_dt IS NULL
-      AND cls.acad_org='COMP SCI'
-      AND cls.strm IN $strm
-      AND cls.subject = 'CMPT'
-      and cls.CATALOG_NBR LIKE '%120%'
-    ORDER BY cls.strm, cls.subject ASC, cls.catalog_nbr ASC, cls.class_section ASC, std.emplid ASC, plan.acad_plan ASC""")
+      CLS.CLASS_SECTION LIKE '%00'
+      AND CLS.CANCEL_DT IS NULL
+      AND CLS.ACAD_ORG='COMP SCI'
+      AND CLS.STRM IN $strm
+      AND CLS.SUBJECT = 'CMPT'
+      AND CLS.CATALOG_NBR LIKE '%120%'
+    ORDER BY CLS.STRM, CLS.SUBJECT ASC, CLS.CATALOG_NBR ASC, CLS.CLASS_SECTION ASC, STD.EMPLID ASC, PLAN.ACAD_PLAN ASC""")
 
 
 class PlansDescriptionQuery(DB2_Query):
@@ -40,9 +40,9 @@ class PlansDescriptionQuery(DB2_Query):
 
     query = string.Template("""SELECT acad_plan, trnscr_descr
                FROM PS_ACAD_PLAN_TBL apt
-               WHERE eff_status='A' AND acad_plan IN $plans
-               AND effdt=(SELECT MAX(effdt) FROM PS_ACAD_PLAN_TBL WHERE acad_plan=apt.acad_plan)
-               ORDER BY acad_plan""")
+               WHERE EFF_STATUS='A' AND ACAD_PLAN IN $plans
+               AND EFFDT=(SELECT MAX(EFFDT) FROM PS_ACAD_PLAN_TBL WHERE ACAD_PLAN=APT.ACAD_PLAN)
+               ORDER BY ACAD_PLAN""")
 
 
 def _rowkey(row):

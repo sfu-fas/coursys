@@ -9,13 +9,13 @@ class AcceptedQuery(DB2_Query):
     description = "The list of students we accepted in specific plans who start next semester, and their gender."
 
     query = string.Template("""
-    SELECT pers.emplid, pers.sex, c.descrshort AS citizen
-      FROM PS_PERSONAL_DATA pers
-        JOIN ps_citizenship cit ON cit.emplid=pers.emplid
-        JOIN ps_country_tbl c ON cit.country=c.country
+    SELECT PERS.EMPLID, PERS.SEX, C.DESCRSHORT AS CITIZEN
+      FROM PS_PERSONAL_DATA PERS
+        JOIN PS_CITIZENSHIP CIT ON CIT.EMPLID=PERS.EMPLID
+        JOIN PS_COUNTRY_TBL C ON CIT.COUNTRY=C.COUNTRY
     WHERE
-      pers.emplid IN
-      (SELECT DISTINCT (plan.EMPLID) from PS_ACAD_PLAN plan where REQ_TERM=$strm AND ACAD_PLAN IN $acad_plans);
+      PERS.EMPLID IN
+      (SELECT DISTINCT (PLAN.EMPLID) FROM PS_ACAD_PLAN PLAN WHERE REQ_TERM=$strm AND ACAD_PLAN IN $acad_plans);
                             """)
 
     plans_list = ['CMPTMAJ','DCMPT','CMPTMIN','CMPTHON','CMPTJMA','CMPTJHO','SOSYMAJ','ZUSFU']
@@ -34,13 +34,13 @@ class EnrolledQuery(DB2_Query):
     description = "The list of students enrolled in specific programs who start next semester, and their gender."
 
     query = string.Template("""
-    SELECT pers.emplid, pers.sex, c.descrshort AS citizentest
-    FROM PS_PERSONAL_DATA pers
-      JOIN ps_citizenship cit ON cit.emplid=pers.emplid
-      JOIN ps_country_tbl c ON cit.country=c.country
-    WHERE pers.EMPLID IN (SELECT
+    SELECT PERS.EMPLID, PERS.SEX, C.DESCRSHORT AS CITIZENTEST
+    FROM PS_PERSONAL_DATA PERS
+      JOIN PS_CITIZENSHIP CIT ON CIT.EMPLID=PERS.EMPLID
+      JOIN PS_COUNTRY_TBL C ON CIT.COUNTRY=C.COUNTRY
+    WHERE PERS.EMPLID IN (SELECT
     DISTINCT (EMPLID) from PS_ACAD_PROG
-    WHERE REQ_TERM=$strm AND PROG_STATUS='AC' AND PROG_ACTION='MATR' AND ACAD_PROG in $acad_progs );
+    WHERE REQ_TERM=$strm AND PROG_STATUS='AC' AND PROG_ACTION='MATR' AND ACAD_PROG IN $acad_progs );
     """)
 
     progs_list = ['CMPT', 'CMPT2']
