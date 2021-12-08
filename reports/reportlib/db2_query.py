@@ -111,7 +111,7 @@ class DB2_Query(Query):
 
     @staticmethod
     def clean_datetime(arg): 
-        return "DATE('%s-%s-%s')" % (arg.year, arg.month, arg.day)
+        return "'%s-%s-%s'" % (arg.year, arg.month, arg.day)
 
     @staticmethod
     def clean_list(list_of_arguments):
