@@ -28,7 +28,7 @@ class GraduatedStudentQuery(DB2_Query):
     LEFT JOIN 
         PS_ACAD_PLAN APLAN
         ON
-        PLAN.EMPLID = DEGREE.EMPLID
+        APLAN.EMPLID = DEGREE.EMPLID
     WHERE 
         DEGREE.COMPLETION_TERM >= $start_semester AND
         DEGREE.COMPLETION_TERM <= $end_semester AND

@@ -34,7 +34,7 @@ class PlansDescriptionQuery(DB2_Query):
     title = "Descriptions of academic plans"
     description = "Descriptions of academic plans we care about here"
 
-    query = string.Template("""SELECT acad_plan, trnscr_descr
+    query = string.Template("""SELECT ACAD_PLAN, TRNSCR_DESCR
                FROM PS_ACAD_PLAN_TBL APT
                WHERE EFF_STATUS='A' AND ACAD_PLAN IN $plans
                AND EFFDT=(SELECT MAX(EFFDT) FROM PS_ACAD_PLAN_TBL WHERE ACAD_PLAN=APT.ACAD_PLAN)
