@@ -24,7 +24,7 @@ class ActiveProgramQuery(DB2_Query):
         PROG.ACAD_CAREER = CAR_TERM.ACAD_CAREER AND
         PROG.STDNT_CAR_NBR = CAR_TERM.STDNT_CAR_NBR
     WHERE 
-        PROG.ACAD_PROG IN $PROGRAMS
+        PROG.ACAD_PROG IN $programs
         AND PROG.PROG_STATUS = 'AC' 
         AND CAR_TERM.WITHDRAW_CODE = 'NWD'
         AND CAR_TERM.STRM < $registration_semester
