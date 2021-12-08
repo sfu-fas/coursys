@@ -74,7 +74,7 @@ class SingleCourseQuery(DB2_Query):
         AND CLASS.CLASS_TYPE = 'E'
         AND CLASS.SUBJECT = $SUBJECT
         AND CLASS.CATALOG_NBR LIKE '%$catalog_nbr%'
-        AND ENRL.CRSE_GRADE_INPUT NOT IN $EXCLUDE_LIST
+        AND ENRL.CRSE_GRADE_INPUT NOT IN $exclude_list
     ORDER BY
         ENRL.EMPLID
         """)
