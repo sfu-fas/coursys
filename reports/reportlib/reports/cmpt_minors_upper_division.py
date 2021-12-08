@@ -8,32 +8,32 @@ import string
 class GPASumByEmplidQuery(DB2_Query):
     query = string.Template("""
     SELECT DISTINCT
-            emplid,
-            SUM (UNT_EARNED) as credits_earned
+            EMPLID,
+            SUM (UNT_EARNED) AS CREDITS_EARNED
       FROM
         (SELECT DISTINCT
-            enrl.emplid,
-            class.STRM,
-            class.SUBJECT,
-            class.CATALOG_NBR,
-            enrl.UNT_EARNED
+            ENRL.EMPLID,
+            CLASS.STRM,
+            CLASS.SUBJECT,
+            CLASS.CATALOG_NBR,
+            ENRL.UNT_EARNED
         FROM
-            ps_stdnt_enrl enrl
+            PS_STDNT_ENRL ENRL
         INNER JOIN
-            ps_class_tbl class
+            PS_CLASS_TBL CLASS
             ON
-            enrl.class_nbr = class.class_nbr
-            AND enrl.strm = class.strm
-          INNER JOIN PS_PERSONAL_DATA data on enrl.EMPLID = data.EMPLID
+            ENRL.CLASS_NBR = CLASS.CLASS_NBR
+            AND ENRL.STRM = CLASS.STRM
+          INNER JOIN PS_PERSONAL_DATA DATA ON ENRL.EMPLID = DATA.EMPLID
         WHERE
-            enrl.earn_credit = 'Y'
-            AND enrl.stdnt_enrl_status = 'E'
-            AND class.class_type = 'E'
-            AND class.subject = 'CMPT'
-            AND enrl.UNITS_ATTEMPTED = 'Y'
-            AND (class.catalog_nbr LIKE ' 3%' OR class.CATALOG_NBR LIKE ' 4%')
-            AND enrl.crse_grade_input not in ('AU', 'W', 'WD', 'WE')
-            AND data.EMPLID in $emplids)
+            ENRL.EARN_CREDIT = 'Y'
+            AND ENRL.STDNT_ENRL_STATUS = 'E'
+            AND CLASS.CLASS_TYPE = 'E'
+            AND CLASS.SUBJECT = 'CMPT'
+            AND ENRL.UNITS_ATTEMPTED = 'Y'
+            AND (CLASS.CATALOG_NBR LIKE ' 3%' OR CLASS.CATALOG_NBR LIKE ' 4%')
+            AND ENRL.CRSE_GRADE_INPUT NOT IN ('AU', 'W', 'WD', 'WE')
+            AND DATA.EMPLID IN $emplids)
       GROUP BY EMPLID;
       """)
     default_arguments = {'emplids': ['301008183']}

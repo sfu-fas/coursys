@@ -11,25 +11,25 @@ class BadGPAsQuery(DB2_Query):
     # most recent term the student has *actually* taken courses (where we only
     # care about recent strms, so exclude any too old)
     MOST_RECENT_TERM = """
-        SELECT emplid, max(strm) as strm
-        FROM ps_stdnt_car_term
-        WHERE unt_taken_prgrss > 0 AND strm in $strms
-        GROUP BY emplid
+        SELECT EMPLID, MAX(STRM) AS STRM
+        FROM PS_STDNT_CAR_TERM
+        WHERE UNT_TAKEN_PRGRSS > 0 AND STRM IN $strms
+        GROUP BY EMPLID
         """
 
     # selects students who (in their most recent semester taking courses) were
     # in one of the programs we care about and had a low GPA.
     query = string.Template("""
-        SELECT term.emplid, term.acad_prog_primary, term.strm AS last_strm, term.cum_gpa, term.tot_passd_gpa AS sfu_credits
-        FROM ps_stdnt_car_term term
-            JOIN (""" + MOST_RECENT_TERM + """) maxterm
-            ON term.emplid=maxterm.emplid AND term.strm=maxterm.strm
+        SELECT TERM.EMPLID, TERM.ACAD_PROG_PRIMARY, TERM.STRM AS LAST_STRM, TERM.CUM_GPA, TERM.TOT_PASSD_GPA AS SFU_CREDITS
+        FROM PS_STDNT_CAR_TERM TERM
+            JOIN (""" + MOST_RECENT_TERM + """) MAXTERM
+            ON TERM.EMPLID=MAXTERM.EMPLID AND TERM.STRM=MAXTERM.STRM
         WHERE
-            term.acad_career='UGRD'
-            AND term.acad_prog_primary IN $acad_progs
-            AND term.cum_gpa < $gpa
-            AND term.tot_taken_gpa > 15
-            AND term.withdraw_code='NWD'
+            TERM.ACAD_CAREER='UGRD'
+            AND TERM.ACAD_PROG_PRIMARY IN $acad_progs
+            AND TERM.CUM_GPA < $gpa
+            AND TERM.TOT_TAKEN_GPA > 15
+            AND TERM.WITHDRAW_CODE='NWD'
         """)
     # TODO: I wonder if tot_taken_gpa counts co-op courses. I'd like it to.
 

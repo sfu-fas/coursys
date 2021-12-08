@@ -7,34 +7,34 @@ import string
 class StudentCourseQuery(DB2_Query):
     title = "Student Course Query"
     description = "Fetch a list of students and the courses that they are taking in a semester." 
-    query = string.Template("""
+    quERY = STRING.TEMPLATE("""
     SELECT DISTINCT
-        enrl.emplid,
-        enrl.strm,
-        enrl.repeat_code,
-        enrl.acad_career,
-        enrl.crse_grade_input,
-        class.subject,
-        class.catalog_nbr,
-        class.descr,
-        class.crse_id,
-        class.equiv_crse_id,
-        class.acad_career as class_career
+        ENRL.EMPLID,
+        ENRL.STRM,
+        ENRL.REPEAT_CODE,
+        ENRL.ACAD_CAREER,
+        ENRL.CRSE_GRADE_INPUT,
+        CLASS.SUBJECT,
+        CLASS.CATALOG_NBR,
+        CLASS.DESCR,
+        CLASS.CRSE_ID,
+        CLASS.EQUIV_CRSE_ID,
+        CLASS.ACAD_CAREER AS CLASS_CAREER
     FROM 
-        ps_stdnt_enrl enrl 
+        PS_STDNT_ENRL ENRL 
     INNER JOIN 
-        ps_class_tbl class 
+        PS_CLASS_TBL CLASS 
         ON 
-        enrl.class_nbr = class.class_nbr 
-        AND enrl.strm = class.strm
+        ENRL.CLASS_NBR = CLASS.CLASS_NBR 
+        AND ENRL.STRM = CLASS.STRM
     WHERE 
-        enrl.stdnt_enrl_status = 'E'
-        AND class.class_type = 'E'
-        AND enrl.strm = $semester
-        AND enrl.crse_grade_input not in ('AU', 'W', 'WD', 'WE', 'IP', ' ')
+        ENRL.STDNT_ENRL_STATUS = 'E'
+        AND CLASS.CLASS_TYPE = 'E'
+        AND ENRL.STRM = $semester
+        AND ENRL.CRSE_GRADE_INPUT NOT IN ('AU', 'W', 'WD', 'WE', 'IP', ' ')
     ORDER BY
-        enrl.emplid,
-        enrl.strm
+        ENRL.EMPLID,
+        ENRL.STRM
         """)
     # crse_grad_input: 
     # AU - auditing
@@ -58,25 +58,25 @@ class SingleCourseQuery(DB2_Query):
     description = "Fetch a list of students who have taken a course."
     query = string.Template("""
     SELECT DISTINCT
-        enrl.emplid,
-        class.subject,
-        class.catalog_nbr
+        ENRL.EMPLID,
+        CLASS.SUBJECT,
+        CLASS.CATALOG_NBR
     FROM 
-        ps_stdnt_enrl enrl 
+        PS_STDNT_ENRL ENRL 
     INNER JOIN 
-        ps_class_tbl class 
+        PS_CLASS_TBL CLASS 
         ON 
-        enrl.class_nbr = class.class_nbr 
-        AND enrl.strm = class.strm
+        ENRL.CLASS_NBR = CLASS.CLASS_NBR 
+        AND ENRL.STRM = CLASS.STRM
     WHERE 
-        enrl.earn_credit = 'Y'
-        AND enrl.stdnt_enrl_status = 'E'
-        AND class.class_type = 'E'
-        AND class.subject = $subject
-        AND class.catalog_nbr LIKE '%$catalog_nbr%'
-        AND enrl.crse_grade_input not in $exclude_list
+        ENRL.EARN_CREDIT = 'Y'
+        AND ENRL.STDNT_ENRL_STATUS = 'E'
+        AND CLASS.CLASS_TYPE = 'E'
+        AND CLASS.SUBJECT = $SUBJECT
+        AND CLASS.CATALOG_NBR LIKE '%$catalog_nbr%'
+        AND ENRL.CRSE_GRADE_INPUT NOT IN $EXCLUDE_LIST
     ORDER BY
-        enrl.emplid
+        ENRL.EMPLID
         """)
     exclude_list = ['AU', 'W', 'WD', 'WE']
 
@@ -109,20 +109,20 @@ class SingleTransferCourseQuery(DB2_Query):
     description = "Fetch a list of students and whether or not they have taken a single transfer course."
     query = string.Template("""
     SELECT DISTINCT 
-        transfer.emplid, 
-        offer.acad_group, 
-        offer.subject,
-        offer.catalog_nbr
+        TRANSFER.EMPLID, 
+        OFFER.ACAD_GROUP, 
+        OFFER.SUBJECT,
+        OFFER.CATALOG_NBR
     FROM
-        ps_trns_crse_dtl transfer
+        PS_TRNS_CRSE_DTL TRANSFER
     INNER JOIN
-        ps_crse_offer offer
+        PS_CRSE_OFFER OFFER
     ON 
-        transfer.crse_id = offer.crse_id AND
-        transfer.crse_offer_nbr = offer.crse_offer_nbr
+        TRANSFER.CRSE_ID = OFFER.CRSE_ID AND
+        TRANSFER.CRSE_OFFER_NBR = OFFER.CRSE_OFFER_NBR
     WHERE
-        offer.subject = $subject
-        AND offer.catalog_nbr LIKE '%$catalog_nbr%'
+        OFFER.SUBJECT = $subject
+        AND OFFER.CATALOG_NBR LIKE '%$catalog_nbr%'
     """)
     default_arguments = { 'subject': 'CMPT', 'catalog_nbr': '120' }
     
@@ -140,24 +140,24 @@ class SingleCourseStrmQuery(DB2_Query):
     description = "Fetch a list of students who have taken a course with matching strm."
     query = string.Template("""
     SELECT DISTINCT
-        enrl.emplid,
-        class.STRM
+        ENRL.EMPLID,
+        CLASS.STRM
     FROM
-        ps_stdnt_enrl enrl
+        PS_STDNT_ENRL ENRL
     INNER JOIN
-        ps_class_tbl class
+        PS_CLASS_TBL CLASS
         ON
-        enrl.class_nbr = class.class_nbr
-        AND enrl.strm = class.strm
+        ENRL.CLASS_NBR = CLASS.CLASS_NBR
+        AND ENRL.STRM = CLASS.STRM
     WHERE
-        enrl.earn_credit = 'Y'
-        AND enrl.stdnt_enrl_status = 'E'
-        AND class.class_type = 'E'
-        AND class.subject = $subject
-        AND class.catalog_nbr LIKE '%$catalog_nbr%'
-        AND enrl.crse_grade_input not in $exclude_list
+        ENRL.EARN_CREDIT = 'Y'
+        AND ENRL.STDNT_ENRL_STATUS = 'E'
+        AND CLASS.CLASS_TYPE = 'E'
+        AND CLASS.SUBJECT = $subject
+        AND CLASS.CATALOG_NBR LIKE '%$catalog_nbr%'
+        AND ENRL.CRSE_GRADE_INPUT NOT IN $exclude_list
     ORDER BY
-        enrl.emplid
+        ENRL.EMPLID
         """)
     exclude_list = ['AU', 'W', 'WD', 'WE']
 
@@ -192,26 +192,26 @@ class SingleCourseStrmGradeQuery(DB2_Query):
     description = "Fetch a students grade and STRM for a given course and list of emplids."
     query = string.Template("""
     SELECT DISTINCT
-        enrl.emplid,
-        class.STRM,
+        ENRL.EMPLID,
+        CLASS.STRM,
         CRSE_GRADE_INPUT
     FROM
-        ps_stdnt_enrl enrl
+        PS_STDNT_ENRL ENRL
     INNER JOIN
-        ps_class_tbl class
+        PS_CLASS_TBL CLASS
         ON
-        enrl.class_nbr = class.class_nbr
-        AND enrl.strm = class.strm
+        ENRL.CLASS_NBR = CLASS.CLASS_NBR
+        AND ENRL.STRM = CLASS.STRM
     WHERE
-        enrl.earn_credit = 'Y'
-        AND enrl.stdnt_enrl_status = 'E'
-        AND class.class_type = 'E'
-        AND class.subject = $subject
-        AND class.catalog_nbr LIKE '%$catalog_nbr%'
-        AND enrl.crse_grade_input not in $exclude_list
-        AND enrl.emplid IN $emplids
+        ENRL.EARN_CREDIT = 'Y'
+        AND ENRL.STDNT_ENRL_STATUS = 'E'
+        AND CLASS.CLASS_TYPE = 'E'
+        AND CLASS.SUBJECT = $subject
+        AND CLASS.CATALOG_NBR LIKE '%$catalog_nbr%'
+        AND ENRL.CRSE_GRADE_INPUT NOT IN $exclude_list
+        AND ENRL.EMPLID IN $emplids
     ORDER BY
-        enrl.emplid, class.STRM
+        ENRL.EMPLID, CLASS.STRM
         """)
     exclude_list = ['AU', 'W', 'WD', 'WE']
 

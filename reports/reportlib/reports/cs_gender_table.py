@@ -10,13 +10,13 @@ class CSPlanQuery(DB2_Query):
     title = "Plans relevant to CS"
 
     query = string.Template("""
-        SELECT plan.acad_plan, plan.trnscr_descr AS descr
-        FROM ps_acad_plan_owner owner
-            INNER JOIN ps_acad_plan_tbl plan
-            ON owner.acad_plan=plan.acad_plan
-        WHERE owner.acad_org=$acad_org
-            AND plan.eff_status='A'
-        ORDER BY plan.effdt
+        SELECT PLAN.ACAD_PLAN, PLAN.TRNSCR_DESCR AS DESCR
+        FROM PS_ACAD_PLAN_OWNER OWNER
+            INNER JOIN PS_ACAD_PLAN_TBL PLAN
+            ON OWNER.ACAD_PLAN=PLAN.ACAD_PLAN
+        WHERE OWNER.ACAD_ORG=$acad_org
+            AND PLAN.EFF_STATUS='A'
+        ORDER BY PLAN.EFFDT
     """)
     default_arguments = {
         'acad_org': 'COMP SCI',
@@ -28,35 +28,35 @@ class ProgramGenderQuery(DB2_Query):
     description = "Fetch a list of active students by academic plan"
 
     query = string.Template("""
-        SELECT admit.admit_term, plan.acad_plan, personal.sex, COUNT(*) AS n
+        SELECT ADMIT.ADMIT_TERM, PLAN.ACAD_PLAN, PERSONAL.SEX, COUNT(*) AS N
         FROM (  /* find admit_term for the career(s) */
-                SELECT prog.emplid, prog.acad_career, prog.stdnt_car_nbr, min(prog.admit_term) AS admit_term
-                FROM ps_acad_prog prog
-                WHERE prog.prog_status = 'AC'
-                GROUP BY prog.emplid, prog.acad_career, prog.stdnt_car_nbr
-            ) admit
-            INNER JOIN ps_acad_plan plan /* acad_plan at the start of that term */
-                ON admit.emplid=plan.emplid AND admit.acad_career=plan.acad_career AND admit.stdnt_car_nbr=plan.stdnt_car_nbr
-            INNER JOIN ps_personal_data personal /* attach gender */
-                ON plan.emplid = personal.emplid
-        WHERE plan.acad_plan in $plans
-            AND admit.admit_term >= $first_strm
-            AND admit.admit_term <= $last_strm
-            AND plan.effdt = (
-                    SELECT MAX(temp_plan.effdt) 
-                    FROM ps_acad_plan temp_plan
-                    WHERE plan.emplid = temp_plan.emplid AND
-                          plan.acad_career = temp_plan.acad_career AND 
-                          plan.acad_plan = temp_plan.acad_plan AND
-                          temp_plan.effdt < CURRENT DATE)
-            AND plan.effseq = (
-                    SELECT MAX(temp_plan_2.effseq)
-                    FROM ps_acad_plan temp_plan_2
-                    WHERE plan.emplid = temp_plan_2.emplid AND
-                          plan.acad_career = temp_plan_2.acad_career AND 
-                          plan.acad_plan = temp_plan_2.acad_plan AND
-                          plan.effdt = temp_plan_2.effdt)
-        GROUP BY admit.admit_term, plan.acad_plan, personal.sex
+                SELECT PROG.EMPLID, PROG.ACAD_CAREER, PROG.STDNT_CAR_NBR, MIN(PROG.ADMIT_TERM) AS ADMIT_TERM
+                FROM PS_ACAD_PROG PROG
+                WHERE PROG.PROG_STATUS = 'AC'
+                GROUP BY PROG.EMPLID, PROG.ACAD_CAREER, PROG.STDNT_CAR_NBR
+            ) ADMIT
+            INNER JOIN PS_ACAD_PLAN PLAN /* ACAD_PLAN AT THE START OF THAT TERM */
+                ON ADMIT.EMPLID=PLAN.EMPLID AND ADMIT.ACAD_CAREER=PLAN.ACAD_CAREER AND ADMIT.STDNT_CAR_NBR=PLAN.STDNT_CAR_NBR
+            INNER JOIN PS_PERSONAL_DATA PERSONAL /* ATTACH GENDER */
+                ON PLAN.EMPLID = PERSONAL.EMPLID
+        WHERE PLAN.ACAD_PLAN IN $plans
+            AND ADMIT.ADMIT_TERM >= $first_strm
+            AND ADMIT.ADMIT_TERM <= $last_strm
+            AND PLAN.EFFDT = (
+                    SELECT MAX(TEMP_PLAN.EFFDT) 
+                    FROM PS_ACAD_PLAN TEMP_PLAN
+                    WHERE PLAN.EMPLID = TEMP_PLAN.EMPLID AND
+                          PLAN.ACAD_CAREER = TEMP_PLAN.ACAD_CAREER AND 
+                          PLAN.ACAD_PLAN = TEMP_PLAN.ACAD_PLAN AND
+                          TEMP_PLAN.EFFDT < CURRENT DATE)
+            AND PLAN.EFFSEQ = (
+                    SELECT MAX(TEMP_PLAN_2.EFFSEQ)
+                    FROM PS_ACAD_PLAN TEMP_PLAN_2
+                    WHERE PLAN.EMPLID = TEMP_PLAN_2.EMPLID AND
+                          PLAN.ACAD_CAREER = TEMP_PLAN_2.ACAD_CAREER AND 
+                          PLAN.ACAD_PLAN = TEMP_PLAN_2.ACAD_PLAN AND
+                          PLAN.EFFDT = TEMP_PLAN_2.EFFDT)
+        GROUP BY ADMIT.ADMIT_TERM, PLAN.ACAD_PLAN, PERSONAL.SEX
     """)
     default_arguments = {
         'first_strm': '1007',

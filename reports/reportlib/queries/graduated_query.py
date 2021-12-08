@@ -10,30 +10,30 @@ class GraduatedStudentQuery(DB2_Query):
 
     query = string.Template("""
     SELECT DISTINCT
-        degree.emplid,
-        prog.acad_prog,
-        plan.acad_plan,
-        degree.completion_term,
-        plan.completion_term as PLAN_COMPLETION,
-        degree.degree
+        DEGREE.EMPLID,
+        PROG.ACAD_PROG,
+        PLAN.ACAD_PLAN,
+        DEGREE.COMPLETION_TERM,
+        PLAN.COMPLETION_TERM AS PLAN_COMPLETION,
+        DEGREE.DEGREE
     FROM 
-        ps_acad_degr degree 
+        PS_ACAD_DEGR DEGREE 
     INNER JOIN
-        ps_acad_prog prog
+        PS_ACAD_PROG PROG
         ON 
-        prog.emplid = degree.emplid AND
-        prog.completion_term = degree.completion_term AND
-        prog.acad_prog IN $programs AND 
-        prog.prog_action = 'COMP' 
+        PROG.EMPLID = DEGREE.EMPLID AND
+        PROG.COMPLETION_TERM = DEGREE.COMPLETION_TERM AND
+        PROG.ACAD_PROG IN $programs AND 
+        PROG.PROG_ACTION = 'COMP' 
     LEFT JOIN 
-        ps_acad_plan plan
+        PS_ACAD_PLAN PLAN
         ON
-        plan.emplid = degree.emplid
+        PLAN.EMPLID = DEGREE.EMPLID
     WHERE 
-        degree.completion_term >= $start_semester AND
-        degree.completion_term <= $end_semester AND
-        degree.emplid in $emplids AND
-        plan.COMPLETION_TERM != ''
+        DEGREE.COMPLETION_TERM >= $start_semester AND
+        DEGREE.COMPLETION_TERM <= $end_semester AND
+        DEGREE.EMPLID IN $emplids AND
+        PLAN.COMPLETION_TERM != ''
         """)
 
     default_arguments = {

@@ -11,17 +11,17 @@ class CMPT165_after_CMPT_Query(DB2_Query):
     description = "Students taking CMPT 165 after a 200-or-above CMPT course."
 
     query = string.Template("""
-        SELECT se.emplid, ct.strm, ct.subject, ct.catalog_nbr, ct.class_section, se.crse_grade_off
-        FROM ps_class_tbl ct
-          INNER JOIN ps_stdnt_enrl se ON ct.class_nbr=se.class_nbr and ct.strm=se.strm and se.enrl_status_reason IN ('ENRL','EWAT')
+        SELECT sE.EMPLID, CT.STRM, CT.SUBJECT, CT.CATALOG_NBR, CT.CLASS_SECTION, SE.CRSE_GRADE_OFF
+        FROM PS_CLASS_TBL CT
+          INNER JOIN PS_STDNT_ENRL SE ON CT.CLASS_NBR=SE.CLASS_NBR AND CT.STRM=SE.STRM AND SE.ENRL_STATUS_REASON IN ('ENRL','EWAT')
         WHERE
-          ct.strm<='$strm' AND ct.subject='CMPT'
-          AND (ct.catalog_nbr LIKE ' 2%' OR ct.catalog_nbr LIKE ' 3%' OR ct.catalog_nbr LIKE ' 4%' or ct.catalog_nbr LIKE '%125%' or ct.catalog_nbr LIKE '%135%')
-          AND ct.class_type='E'
-          AND se.emplid in (SELECT se.emplid FROM ps_class_tbl ct
-            INNER JOIN ps_stdnt_enrl se ON ct.class_nbr=se.class_nbr and ct.strm=se.strm and se.enrl_status_reason IN ('ENRL','EWAT')
-            WHERE ct.strm=$strm AND ct.subject='CMPT' AND ct.catalog_nbr LIKE '%165%')
-          ORDER BY se.emplid, ct.strm, ct.subject, ct.catalog_nbr
+          CT.STRM<='$strm' AND CT.SUBJECT='CMPT'
+          AND (CT.CATALOG_NBR LIKE ' 2%' OR CT.CATALOG_NBR LIKE ' 3%' OR CT.CATALOG_NBR LIKE ' 4%' OR CT.CATALOG_NBR LIKE '%125%' OR CT.CATALOG_NBR LIKE '%135%')
+          AND CT.CLASS_TYPE='E'
+          AND SE.EMPLID IN (SELECT SE.EMPLID FROM PS_CLASS_TBL CT
+            INNER JOIN PS_STDNT_ENRL SE ON CT.CLASS_NBR=SE.CLASS_NBR AND CT.STRM=SE.STRM AND SE.ENRL_STATUS_REASON IN ('ENRL','EWAT')
+            WHERE CT.STRM=$strm AND CT.SUBJECT='CMPT' AND CT.CATALOG_NBR LIKE '%165%')
+          ORDER BY SE.EMPLID, CT.STRM, CT.SUBJECT, CT.CATALOG_NBR
     """)
     default_arguments = {
         'strm': current_semester()

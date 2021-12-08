@@ -25,7 +25,7 @@ class BaseQuery(object):
 
     query = string.Template(
         """
-        SELECT strm FROM dbcsown.PS_TERM_TBL WHERE ACAD_YEAR='2012'
+        SELECT STRM FROM PS_TERM_TBL WHERE ACAD_YEAR='2012'
         """)
     default_arguments = { } 
     filename="query"

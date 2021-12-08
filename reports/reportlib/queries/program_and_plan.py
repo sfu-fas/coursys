@@ -12,37 +12,37 @@ class ActiveProgramQuery(DB2_Query):
 
     query = string.Template("""
     SELECT DISTINCT 
-        prog.emplid,
-        prog.acad_career,
-        prog.acad_prog
+        PROG.EMPLID,
+        PROG.ACAD_CAREER,
+        PROG.ACAD_PROG
     FROM 
-        ps_acad_prog prog
+        PS_ACAD_PROG PROG
     INNER JOIN
-        ps_stdnt_car_term car_term 
+        PS_STDNT_CAR_TERM CAR_TERM 
         ON
-        prog.emplid = car_term.emplid AND
-        prog.acad_career = car_term.acad_career AND
-        prog.stdnt_car_nbr = car_term.stdnt_car_nbr
+        PROG.EMPLID = CAR_TERM.EMPLID AND
+        PROG.ACAD_CAREER = CAR_TERM.ACAD_CAREER AND
+        PROG.STDNT_CAR_NBR = CAR_TERM.STDNT_CAR_NBR
     WHERE 
-        prog.acad_prog IN $programs
-        AND prog.prog_status = 'AC' 
-        AND car_term.withdraw_code = 'NWD'
-        AND car_term.strm < $registration_semester
-        AND car_term.strm >= $third_prior_semester
-        AND prog.effdt = (
-            SELECT MAX(temp_prog.effdt) 
-            FROM ps_acad_prog temp_prog
-            WHERE prog.emplid = temp_prog.emplid AND
-                  prog.acad_career = temp_prog.acad_career AND 
-                  prog.acad_prog = temp_prog.acad_prog AND
-                  temp_prog.effdt < $effective_date)
-        AND prog.effseq = (
-            SELECT MAX(temp_prog_2.effseq)
-            FROM ps_acad_prog temp_prog_2
-            WHERE prog.emplid = temp_prog_2.emplid AND
-                  prog.acad_career = temp_prog_2.acad_career AND 
-                  prog.acad_prog = temp_prog_2.acad_prog AND
-                  prog.effdt = temp_prog_2.effdt)
+        PROG.ACAD_PROG IN $PROGRAMS
+        AND PROG.PROG_STATUS = 'AC' 
+        AND CAR_TERM.WITHDRAW_CODE = 'NWD'
+        AND CAR_TERM.STRM < $registration_semester
+        AND CAR_TERM.STRM >= $third_prior_semester
+        AND PROG.EFFDT = (
+            SELECT MAX(TEMP_PROG.EFFDT) 
+            FROM PS_ACAD_PROG TEMP_PROG
+            WHERE PROG.EMPLID = TEMP_PROG.EMPLID AND
+                  PROG.ACAD_CAREER = TEMP_PROG.ACAD_CAREER AND 
+                  PROG.ACAD_PROG = TEMP_PROG.ACAD_PROG AND
+                  TEMP_PROG.EFFDT < $effective_date)
+        AND PROG.EFFSEQ = (
+            SELECT MAX(TEMP_PROG_2.EFFSEQ)
+            FROM PS_ACAD_PROG TEMP_PROG_2
+            WHERE PROG.EMPLID = TEMP_PROG_2.EMPLID AND
+                  PROG.ACAD_CAREER = TEMP_PROG_2.ACAD_CAREER AND 
+                  PROG.ACAD_PROG = TEMP_PROG_2.ACAD_PROG AND
+                  PROG.EFFDT = TEMP_PROG_2.EFFDT)
         """)
     default_arguments = {
         'programs': ['CMPT'],
@@ -60,47 +60,47 @@ class ActivePlanQueryWithReqTerm(DB2_Query):
 
     query = string.Template("""
     SELECT DISTINCT 
-        plan.emplid,
-        plan.acad_career,
-        prog.acad_prog,
-        plan.acad_plan,
-        plan.req_term
+        PLAN.EMPLID,
+        PLAN.ACAD_CAREER,
+        PROG.ACAD_PROG,
+        PLAN.ACAD_PLAN,
+        PLAN.REQ_TERM
     FROM 
-        ps_acad_plan plan
+        PS_ACAD_PLAN PLAN
     INNER JOIN
-        ps_stdnt_car_term car_term 
+        PS_STDNT_CAR_TERM CAR_TERM 
         ON
-        plan.emplid = car_term.emplid AND
-        plan.acad_career = car_term.acad_career AND
-        plan.stdnt_car_nbr = car_term.stdnt_car_nbr
+        PLAN.EMPLID = CAR_TERM.EMPLID AND
+        PLAN.ACAD_CAREER = CAR_TERM.ACAD_CAREER AND
+        PLAN.STDNT_CAR_NBR = CAR_TERM.STDNT_CAR_NBR
     INNER JOIN 
-        ps_acad_prog prog
+        PS_ACAD_PROG PROG
         ON
-        plan.emplid = prog.emplid AND
-        plan.acad_career = prog.acad_career AND
-        plan.stdnt_car_nbr = prog.stdnt_car_nbr AND
-        plan.effdt = prog.effdt AND
-        plan.effseq = prog.effseq 
+        PLAN.EMPLID = PROG.EMPLID AND
+        PLAN.ACAD_CAREER = PROG.ACAD_CAREER AND
+        PLAN.STDNT_CAR_NBR = PROG.STDNT_CAR_NBR AND
+        PLAN.EFFDT = PROG.EFFDT AND
+        PLAN.EFFSEQ = PROG.EFFSEQ 
     WHERE 
-        plan.acad_plan IN $plans
-        AND prog.prog_status = 'AC' 
-        AND car_term.withdraw_code = 'NWD'
-        AND car_term.strm < $registration_semester
-        AND car_term.strm >= $third_prior_semester
-        AND plan.effdt = (
-            SELECT MAX(temp_plan.effdt) 
-            FROM ps_acad_plan temp_plan
-            WHERE plan.emplid = temp_plan.emplid AND
-                  plan.acad_career = temp_plan.acad_career AND 
-                  plan.acad_plan = temp_plan.acad_plan AND
-                  temp_plan.effdt < $effective_date)
-        AND plan.effseq = (
-            SELECT MAX(temp_plan_2.effseq)
-            FROM ps_acad_plan temp_plan_2
-            WHERE plan.emplid = temp_plan_2.emplid AND
-                  plan.acad_career = temp_plan_2.acad_career AND 
-                  plan.acad_plan = temp_plan_2.acad_plan AND 
-                  plan.effdt = temp_plan_2.effdt)
+        PLAN.ACAD_PLAN IN $plans
+        AND PROG.PROG_STATUS = 'AC' 
+        AND CAR_TERM.WITHDRAW_CODE = 'NWD'
+        AND CAR_TERM.STRM < $registration_semester
+        AND CAR_TERM.STRM >= $third_prior_semester
+        AND PLAN.EFFDT = (
+            SELECT MAX(TEMP_PLAN.EFFDT) 
+            FROM PS_ACAD_PLAN TEMP_PLAN
+            WHERE PLAN.EMPLID = TEMP_PLAN.EMPLID AND
+                  PLAN.ACAD_CAREER = TEMP_PLAN.ACAD_CAREER AND 
+                  PLAN.ACAD_PLAN = TEMP_PLAN.ACAD_PLAN AND
+                  TEMP_PLAN.EFFDT < $effective_date)
+        AND PLAN.EFFSEQ = (
+            SELECT MAX(TEMP_PLAN_2.EFFSEQ)
+            FROM PS_ACAD_PLAN TEMP_PLAN_2
+            WHERE PLAN.EMPLID = TEMP_PLAN_2.EMPLID AND
+                  PLAN.ACAD_CAREER = TEMP_PLAN_2.ACAD_CAREER AND 
+                  PLAN.ACAD_PLAN = TEMP_PLAN_2.ACAD_PLAN AND 
+                  PLAN.EFFDT = TEMP_PLAN_2.EFFDT)
         """)
     default_arguments = {
         'plans': ['CMPTMAJ'],
@@ -130,44 +130,44 @@ class SubplanQuery(DB2_Query):
 
     query = string.Template("""
     SELECT DISTINCT 
-        plan.emplid,
-        plan.acad_sub_plan
+        PLAN.EMPLID,
+        PLAN.ACAD_SUB_PLAN
     FROM 
-        ps_acad_subplan plan
+        PS_ACAD_SUBPLAN PLAN
     INNER JOIN
-        ps_stdnt_car_term car_term 
+        PS_STDNT_CAR_TERM CAR_TERM 
         ON
-        plan.emplid = car_term.emplid AND
-        plan.acad_career = car_term.acad_career AND
-        plan.stdnt_car_nbr = car_term.stdnt_car_nbr
+        PLAN.EMPLID = CAR_TERM.EMPLID AND
+        PLAN.ACAD_CAREER = CAR_TERM.ACAD_CAREER AND
+        PLAN.STDNT_CAR_NBR = CAR_TERM.STDNT_CAR_NBR
     INNER JOIN 
-        ps_acad_prog prog
+        PS_ACAD_PROG PROG
         ON
-        plan.emplid = prog.emplid AND
-        plan.acad_career = prog.acad_career AND
-        plan.stdnt_car_nbr = prog.stdnt_car_nbr
+        PLAN.EMPLID = PROG.EMPLID AND
+        PLAN.ACAD_CAREER = PROG.ACAD_CAREER AND
+        PLAN.STDNT_CAR_NBR = PROG.STDNT_CAR_NBR
     WHERE 
-        prog.prog_status = 'AC' 
-        AND car_term.withdraw_code = 'NWD'
-        AND car_term.strm < $registration_semester
-        AND car_term.strm >= $third_prior_semester
-        AND plan.effdt = (
-            SELECT MAX(temp_plan.effdt) 
-            FROM ps_acad_subplan temp_plan
-            WHERE plan.emplid = temp_plan.emplid AND
-                  plan.acad_career = temp_plan.acad_career AND 
-                  plan.acad_plan = temp_plan.acad_plan AND
-                  plan.acad_sub_plan = temp_plan.acad_sub_plan AND
-                  temp_plan.effdt < $effective_date)
-        AND plan.effseq = (
-            SELECT MAX(temp_plan_2.effseq)
-            FROM ps_acad_subplan temp_plan_2
-            WHERE plan.emplid = temp_plan_2.emplid AND
-                  plan.acad_career = temp_plan_2.acad_career AND 
-                  plan.acad_plan = temp_plan_2.acad_plan AND 
-                  plan.acad_sub_plan = temp_plan_2.acad_sub_plan AND
-                  plan.effdt = temp_plan_2.effdt AND
-                  temp_plan_2.effdt < $effective_date)
+        PROG.PROG_STATUS = 'AC' 
+        AND CAR_TERM.WITHDRAW_CODE = 'NWD'
+        AND CAR_TERM.STRM < $registration_semester
+        AND CAR_TERM.STRM >= $third_prior_semester
+        AND PLAN.EFFDT = (
+            SELECT MAX(TEMP_PLAN.EFFDT) 
+            FROM PS_ACAD_SUBPLAN TEMP_PLAN
+            WHERE PLAN.EMPLID = TEMP_PLAN.EMPLID AND
+                  PLAN.ACAD_CAREER = TEMP_PLAN.ACAD_CAREER AND 
+                  PLAN.ACAD_PLAN = TEMP_PLAN.ACAD_PLAN AND
+                  PLAN.ACAD_SUB_PLAN = TEMP_PLAN.ACAD_SUB_PLAN AND
+                  TEMP_PLAN.EFFDT < $effective_date)
+        AND PLAN.EFFSEQ = (
+            SELECT MAX(TEMP_PLAN_2.EFFSEQ)
+            FROM PS_ACAD_SUBPLAN TEMP_PLAN_2
+            WHERE PLAN.EMPLID = TEMP_PLAN_2.EMPLID AND
+                  PLAN.ACAD_CAREER = TEMP_PLAN_2.ACAD_CAREER AND 
+                  PLAN.ACAD_PLAN = TEMP_PLAN_2.ACAD_PLAN AND 
+                  PLAN.ACAD_SUB_PLAN = TEMP_PLAN_2.ACAD_SUB_PLAN AND
+                  PLAN.EFFDT = TEMP_PLAN_2.EFFDT AND
+                  TEMP_PLAN_2.EFFDT < $effective_date)
         """)
     default_arguments = {
         'effective_date': datetime.datetime.now(), 

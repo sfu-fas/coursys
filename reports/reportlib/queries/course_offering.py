@@ -8,17 +8,17 @@ class CourseOfferingQuery(DB2_Query):
 
     query = string.Template("""
     SELECT DISTINCT
-        strm,
-        subject,
-        catalog_nbr,
-        location,
-        enrl_cap,
-        ssr_component,
-        enrl_tot
+        STRM,
+        SUBJECT,
+        CATALOG_NBR,
+        LOCATION,
+        ENRL_CAP,
+        SSR_COMPONENT,
+        ENRL_TOT
     FROM
-        ps_class_tbl
+        PS_CLASS_TBL
     WHERE
-        subject in $subjects
+        SUBJECT IN $subjects
         """)
     default_arguments = {
         'subjects': ['CMPT', 'ENSC', 'MATH', 'MACM', 'PHYS', 'STAT']
