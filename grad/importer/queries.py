@@ -9,13 +9,13 @@ def grad_program_changes(acad_prog):
     """
     db = SIMSConn()
     db.execute("""
-        SELECT 'ProgramStatusChange', prog.emplid, prog.stdnt_car_nbr, adm_appl_nbr, prog.acad_prog, prog.prog_status, 
-        prog.prog_action, prog.prog_reason, prog.effdt, prog.effseq, prog.admit_term, prog.exp_grad_term, 
-        prog.degr_chkout_stat, plan.acad_sub_plan
-        FROM ps_acad_prog prog
-            LEFT JOIN ps_acad_subplan plan ON prog.emplid=plan.emplid AND prog.EFFDT=plan.effdt
-        WHERE prog.acad_career='GRAD' AND prog.acad_prog=%s AND prog.effdt>=%s AND prog.admit_term>=%s
-        ORDER BY effdt, effseq
+        SELECT 'ProgramStatusChange', PROG.EMPLID, PROG.STDNT_CAR_NBR, ADM_APPL_NBR, PROG.ACAD_PROG, PROG.PROG_STATUS, 
+        PROG.PROG_ACTION, PROG.PROG_REASON, PROG.EFFDT, PROG.EFFSEQ, PROG.ADMIT_TERM, PROG.EXP_GRAD_TERM, 
+        PROG.DEGR_CHKOUT_STAT, APLAN.ACAD_SUB_PLAN
+        FROM PS_ACAD_PROG PROG
+            LEFT JOIN PS_ACAD_SUBPLAN APLAN ON PROG.EMPLID=APLAN.EMPLID AND PROG.EFFDT=APLAN.EFFDT
+        WHERE PROG.ACAD_CAREER='GRAD' AND PROG.ACAD_PROG=%s AND PROG.EFFDT>=%s AND PROG.ADMIT_TERM>=%s
+        ORDER BY EFFDT, EFFSEQ
     """, (acad_prog, IMPORT_START_DATE, IMPORT_START_SEMESTER))
     return list(db)
 
@@ -33,16 +33,16 @@ def grad_appl_program_changes(acad_prog):
     """
     db = SIMSConn()
     db.execute("""
-        SELECT 'ApplProgramChange', prog.emplid, prog.stdnt_car_nbr, prog.adm_appl_nbr, prog.acad_prog, prog.prog_status, prog.prog_action, prog.prog_reason,
-            prog.effdt, prog.effseq, prog.admit_term, prog.exp_grad_term, null, plan.ACAD_SUB_PLAN
-        FROM ps_adm_appl_prog prog
-          LEFT JOIN ps_acad_subplan plan ON prog.emplid=plan.emplid AND prog.EFFDT=plan.effdt
-            LEFT JOIN dbcsown.ps_adm_appl_data data
-                ON prog.emplid=data.emplid AND prog.acad_career=data.acad_career AND prog.stdnt_car_nbr=data.stdnt_car_nbr AND prog.adm_appl_nbr=data.adm_appl_nbr
-        WHERE prog.acad_career='GRAD' AND prog.acad_prog=%s AND prog.effdt>=%s AND prog.admit_term>=%s
-            AND ( data.appl_fee_status in ('REC', 'WVD')
-                OR data.adm_appl_ctr in ('GRAW') )
-        ORDER BY prog.effdt, prog.effseq
+        SELECT 'ApplProgramChange', PROG.EMPLID, PROG.STDNT_CAR_NBR, PROG.ADM_APPL_NBR, PROG.ACAD_PROG, PROG.PROG_STATUS, PROG.PROG_ACTION, PROG.PROG_REASON,
+            PROG.EFFDT, PROG.EFFSEQ, PROG.ADMIT_TERM, PROG.EXP_GRAD_TERM, NULL, APLAN.ACAD_SUB_PLAN
+        FROM PS_ADM_APPL_PROG PROG
+          LEFT JOIN PS_ACAD_SUBPLAN APLAN ON PROG.EMPLID=APLAN.EMPLID AND PROG.EFFDT=APLAN.EFFDT
+            LEFT JOIN PS_ADM_APPL_DATA DATA
+                ON PROG.EMPLID=DATA.EMPLID AND PROG.ACAD_CAREER=DATA.ACAD_CAREER AND PROG.STDNT_CAR_NBR=DATA.STDNT_CAR_NBR AND PROG.ADM_APPL_NBR=DATA.ADM_APPL_NBR
+        WHERE PROG.ACAD_CAREER='GRAD' AND PROG.ACAD_PROG=%s AND PROG.EFFDT>=%s AND PROG.ADMIT_TERM>=%s
+            AND ( DATA.APPL_FEE_STATUS IN ('REC', 'WVD')
+                OR DATA.ADM_APPL_CTR IN ('GRAW') )
+        ORDER BY PROG.EFFDT, PROG.EFFSEQ
     """, (acad_prog, IMPORT_START_DATE, IMPORT_START_SEMESTER))
     return list(db)
 
@@ -54,11 +54,11 @@ def grad_semesters(emplids):
     """
     db = SIMSConn()
     db.execute("""
-        SELECT 'GradSemester', emplid, strm, stdnt_car_nbr, withdraw_code, acad_prog_primary, unt_taken_prgrss
-        FROM ps_stdnt_car_term
-        WHERE acad_career='GRAD' AND emplid in %s AND strm>=%s
-            AND unt_taken_prgrss>0
-        ORDER BY strm
+        SELECT 'GradSemester', EMPLID, STRM, STDNT_CAR_NBR, WITHDRAW_CODE, ACAD_PROG_PRIMARY, UNT_TAKEN_PRGRSS
+        FROM PS_STDNT_CAR_TERM
+        WHERE ACAD_CAREER='GRAD' AND EMPLID IN %s AND STRM>=%s
+            AND UNT_TAKEN_PRGRSS>0
+        ORDER BY STRM
     """, (emplids, IMPORT_START_SEMESTER))
     return list(db)
 
@@ -72,17 +72,17 @@ def committee_members(emplids):
     """
     db = SIMSConn()
     db.execute("""
-        SELECT 'CommitteeMembership', st.emplid, st.committee_id, st.acad_prog, com.effdt, com.committee_type, mem.emplid, mem.committee_role
+        SELECT 'CommitteeMembership', ST.EMPLID, ST.COMMITTEE_ID, ST.ACAD_PROG, COM.EFFDT, COM.COMMITTEE_TYPE, MEM.EMPLID, MEM.COMMITTEE_ROLE
         FROM
-            ps_stdnt_advr_hist st
-            JOIN ps_committee com
-                ON (com.institution=st.institution AND com.committee_id=st.committee_id AND st.effdt<=com.effdt)
-            JOIN ps_committee_membr mem
-                ON (mem.institution=st.institution AND mem.committee_id=st.committee_id AND com.effdt=mem.effdt)
+            PS_STDNT_ADVR_HIST ST
+            JOIN PS_COMMITTEE COM
+                ON (COM.INSTITUTION=ST.INSTITUTION AND COM.COMMITTEE_ID=ST.COMMITTEE_ID AND ST.EFFDT<=COM.EFFDT)
+            JOIN PS_COMMITTEE_MEMBR MEM
+                ON (MEM.INSTITUTION=ST.INSTITUTION AND MEM.COMMITTEE_ID=ST.COMMITTEE_ID AND COM.EFFDT=MEM.EFFDT)
         WHERE
-            st.emplid in %s
-            AND com.committee_type IN ('GSSUPER', 'GSEXAMING')
-        ORDER BY com.effdt""",
+            ST.EMPLID IN %s
+            AND COM.COMMITTEE_TYPE IN ('GSSUPER', 'GSEXAMING')
+        ORDER BY COM.EFFDT""",
         (emplids,))
     return list(db)
 
@@ -94,17 +94,17 @@ def metadata_translation_tables():
     """
     db = SIMSConn()
     db.execute("""
-        SELECT atbl.accomplishment, atbl.descr
-        FROM ps_accomp_tbl atbl
-        WHERE atbl.accomp_category='LNG'""", ())
+        SELECT ATBL.ACCOMPLISHMENT, ATBL.DESCR
+        FROM PS_ACCOMP_TBL ATBL
+        WHERE ATBL.ACCOMP_CATEGORY='LNG'""", ())
     langs = dict(db)
 
     db.execute("""
-        SELECT country, descr FROM ps_country_tbl""", ())
+        SELECT COUNTRY, DESCR FROM PS_COUNTRY_TBL""", ())
     countries = dict(db)
 
     db.execute("""
-        SELECT visa_permit_type, visa_permit_class, descrshort FROM ps_visa_permit_tbl WHERE eff_status='A'""", ())
+        SELECT VISA_PERMIT_TYPE, VISA_PERMIT_CLASS, DESCRSHORT FROM PS_VISA_PERMIT_TBL WHERE EFF_STATUS='A'""", ())
     visas = dict((typ, (cls, desc)) for typ, cls, desc in db)
 
     return langs, countries, visas
@@ -117,20 +117,20 @@ def research_translation_tables():
     """
     db = SIMSConn()
     db.execute("""
-        SELECT acad_org, sfu_ga_res_area, descr50
-        FROM ps_sfu_ga_resareas areas
-        WHERE areas.eff_status='A'
-            AND areas.effdt = (SELECT max(effdt) FROM ps_sfu_ga_resareas tmp
-                WHERE areas.acad_org=tmp.acad_org AND areas.sfu_ga_res_area=tmp.sfu_ga_res_area)""", ())
+        SELECT ACAD_ORG, SFU_GA_RES_AREA, DESCR50
+        FROM PS_SFU_GA_RESAREAS AREAS
+        WHERE AREAS.EFF_STATUS='A'
+            AND AREAS.EFFDT = (SELECT MAX(EFFDT) FROM PS_SFU_GA_RESAREAS TMP
+                WHERE AREAS.ACAD_ORG=TMP.ACAD_ORG AND AREAS.SFU_GA_RES_AREA=TMP.SFU_GA_RES_AREA)""", ())
     areas = dict(((acad_org, area), descr) for acad_org, area, descr in db)
 
 
     db.execute("""
-        SELECT acad_org, sfu_ga_res_area, sfu_ga_reschoices, descr50
-        FROM ps_sfu_ga_reschoic choices
-        WHERE choices.effdt = (SELECT max(effdt) FROM ps_sfu_ga_reschoic tmp
-            WHERE choices.acad_org=tmp.acad_org AND choices.sfu_ga_res_area=tmp.sfu_ga_res_area
-            AND choices.sfu_ga_reschoices=tmp.sfu_ga_reschoices)""", ())
+        SELECT ACAD_ORG, SFU_GA_RES_AREA, SFU_GA_RESCHOICES, DESCR50
+        FROM PS_SFU_GA_RESCHOIC CHOICES
+        WHERE CHOICES.EFFDT = (SELECT MAX(EFFDT) FROM PS_SFU_GA_RESCHOIC TMP
+            WHERE CHOICES.ACAD_ORG=TMP.ACAD_ORG AND CHOICES.SFU_GA_RES_AREA=TMP.SFU_GA_RES_AREA
+            AND CHOICES.SFU_GA_RESCHOICES=TMP.SFU_GA_RESCHOICES)""", ())
     choices = dict(((acad_org, area, choice), descr) for acad_org, area, choice, descr in db)
 
     return areas, choices
@@ -149,24 +149,24 @@ def grad_metadata(emplids):
     # win (since they might be better for that student's TA/RA appointments later).
     # Other sort orders just to make sure we get the same record tomorrow if there are other duplicates (visa can duplicate)
     db.execute("""
-        SELECT 'GradMetadata', p.emplid, e.email_addr, a.accomplishment, cit.country, v.visa_permit_type, v.effdt,
-            case when (a.accomplishment='ENG') then 0 else 1 end s1,
-            case when (cit.country='CAN') then 0 else 1 end s2
-        FROM ps_personal_data p
-        LEFT JOIN ps_email_addresses e
-            ON (p.emplid=e.emplid AND e.pref_email_flag='Y' and e.e_addr_type<>'INAC')
-        LEFT JOIN ps_accomplishments a
-            ON (a.emplid=p.emplid AND a.native_language='Y')
-        LEFT JOIN ps_citizenship cit
-            ON (cit.emplid=p.emplid)
-        LEFT JOIN ps_visa_pmt_data v
-            ON (p.emplid=v.emplid
-                AND v.effdt = (SELECT MAX(tmp.effdt)
-                    FROM ps_visa_pmt_data tmp
-                    WHERE tmp.emplid = v.emplid
-                    AND tmp.effdt <= current date ))
-        WHERE p.emplid IN %s
-        ORDER BY s1, s2, e.email_addr, a.accomplishment, cit.country, v.visa_permit_type""", (emplids,))
+        SELECT 'GradMetadata', P.EMPLID, E.EMAIL_ADDR, A.ACCOMPLISHMENT, CIT.COUNTRY, V.VISA_PERMIT_TYPE, V.EFFDT,
+            CASE WHEN (A.ACCOMPLISHMENT='ENG') THEN 0 ELSE 1 END S1,
+            CASE WHEN (CIT.COUNTRY='CAN') THEN 0 ELSE 1 END S2
+        FROM PS_PERSONAL_DATA P
+        LEFT JOIN PS_EMAIL_ADDRESSES E
+            ON (P.EMPLID=E.EMPLID AND E.PREF_EMAIL_FLAG='Y' and E.E_ADDR_TYPE<>'INAC')
+        LEFT JOIN PS_ACCOMPLISHMENTS A
+            ON (A.EMPLID=P.EMPLID AND A.NATIVE_LANGUAGE='Y')
+        LEFT JOIN PS_CITIZENSHIP CIT
+            ON (CIT.EMPLID=P.EMPLID)
+        LEFT JOIN PS_VISA_PMT_DATA V
+            ON (P.EMPLID=V.EMPLID
+                AND V.EFFDT = (SELECT MAX(TMP.EFFDT)
+                    FROM PS_VISA_PMT_DATA TMP
+                    WHERE TMP.EMPLID = V.EMPLID
+                    AND TMP.EFFDT <= GETDATE() ))
+        WHERE P.EMPLID IN %s
+        ORDER BY S1, S2, E.EMAIL_ADDR, A.ACCOMPLISHMENT, CIT.COUNTRY, V.VISA_PERMIT_TYPE""", (emplids,))
     return list(db)
 
 
@@ -178,7 +178,7 @@ def research_areas(emplids):
     """
     db = SIMSConn()
     db.execute("""
-        SELECT 'GradResearchArea', emplid, adm_appl_nbr, acad_org, sfu_ga_res_area, sfu_ga_reschoices
-        FROM ps_sfu_ga_res_det data
-        WHERE data.emplid in %s""", (emplids,))
+        SELECT 'GradResearchArea', EMPLID, ADM_APPL_NBR, ACAD_ORG, SFU_GA_RES_AREA, SFU_GA_RESCHOICES
+        FROM PS_SFU_GA_RES_DET DATA
+        WHERE DATA.EMPLID IN %s""", (emplids,))
     return list(db)

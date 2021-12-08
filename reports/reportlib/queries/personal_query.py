@@ -8,12 +8,12 @@ class EmailQuery(DB2_Query):
     description = "Fetch a complete list of student-to-email mappings" 
     query = string.Template("""
     SELECT 
-        emplid,
-        e_addr_type,
-        email_addr,
-        pref_email_flag
+        EMPLID,
+        E_ADDR_TYPE,
+        EMAIL_ADDR,
+        PREF_EMAIL_FLAG
     FROM 
-        ps_email_addresses
+        PS_EMAIL_ADDRESSES
         """)
     default_arguments = {}
     # keep this data for 2 weeks
@@ -33,10 +33,10 @@ class NameQuery(DB2_Query):
     description = "Fetch a complete list of student-to-full-name mappings" 
     query = string.Template("""
     SELECT DISTINCT 
-        emplid,
-        name_display 
+        EMPLID,
+        NAME_DISPLAY 
     FROM 
-        ps_personal_data
+        PS_PERSONAL_DATA
         """)
     default_arguments = {}
     # keep this data for 2 weeks
@@ -47,10 +47,10 @@ class SexQuery(DB2_Query):
     description = "Fetch a complete list of student-to-sex mappings" 
     query = string.Template("""
     SELECT DISTINCT 
-        emplid,
-        sex
+        EMPLID,
+        SEX
     FROM 
-        ps_personal_data
+        PS_PERSONAL_DATA
         """)
     default_arguments = {}
     # keep this data for 2 weeks
@@ -61,15 +61,15 @@ class PreferredPhoneQuery(DB2_Query):
     description = "Fetch a complete list of student-to-phone mappings"
     query = string.Template("""
     SELECT DISTINCT
-        emplid,
-        phone_type,
-        country_code,
-        phone,
-        extension
+        EMPLID,
+        PHONE_TYPE,
+        COUNTRY_CODE,
+        PHONE,
+        EXTENSION
     FROM
-        ps_personal_phone
+        PS_PERSONAL_PHONE
     WHERE 
-        pref_phone_flag = 'Y'""")
+        PREF_PHONE_FLAG = 'Y'""")
 
     default_arguments = {}
     # keep this data for 2 weeks
@@ -90,13 +90,13 @@ class OriginQuery(DB2_Query):
     description = "Fetch a complete list of student-to-high-school/college/transfer-uni mappings"
     query = string.Template("""
     SELECT DISTINCT 
-        a.emplid,
-        a.ext_career,
-        b.descr AS origin_name
+        A.EMPLID,
+        A.EXT_CAREER,
+        B.DESCR AS ORIGIN_NAME
     FROM 
-        ps_ext_course a
-    INNER JOIN ps_ext_org_tbl b ON
-        a.ext_org_id = b.ext_org_id""")
+        PS_EXT_COURSE A
+    INNER JOIN PS_EXT_ORG_TBL B ON
+        A.EXT_ORG_ID = B.EXT_ORG_ID""")
     default_arguments = {}
     # keep this data for 2 weeks
     expires = datetime.datetime.now() + datetime.timedelta(14) 
@@ -110,13 +110,13 @@ class NationalityQuery(DB2_Query):
     description = "Fetch a complete list of student-to-nationality mappings." 
     query = string.Template("""
     SELECT DISTINCT
-        a.emplid,
-        a.country_other, 
-        b.descr
+        A.EMPLID,
+        A.COUNTRY_OTHER, 
+        B.DESCR
     FROM 
-        ps_personal_data a
-    INNER JOIN ps_country_tbl b ON
-        a.country_other = b.country
+        PS_PERSONAL_DATA A
+    INNER JOIN PS_COUNTRY_TBL B ON
+        A.COUNTRY_OTHER = B.COUNTRY
     """)
     default_arguments = {}
     expires = datetime.datetime.now() + datetime.timedelta(14) 

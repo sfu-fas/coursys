@@ -10,13 +10,13 @@ class WaitingListQuery(DB2_Query):
     description = "Everyone enrolled as Waitlisted"
 
     query = string.Template("""
-    SELECT e.emplid, e.ACAD_PROG, c.subject, c.catalog_nbr, c.CLASS_SECTION, c.class_nbr, e.STATUS_DT, e.STDNT_POSITIN
-                 FROM ps_stdnt_enrl e
-                 JOIN ps_class_tbl c
-                   ON e.class_nbr=c.class_nbr AND e.strm=c.strm
-                 AND c.class_type='E' AND e.stdnt_enrl_status='W'
-                 AND e.strm=$strm AND c.SUBJECT=$subject 
-                 ORDER BY e.strm, c.subject, c.catalog_nbr, e.STDNT_POSITIN, e.STATUS_DT, e.emplid;
+    SELECT E.EMPLID, E.ACAD_PROG, C.SUBJECT, C.CATALOG_NBR, C.CLASS_SECTION, C.CLASS_NBR, E.STATUS_DT, E.STDNT_POSITIN
+                 FROM PS_STDNT_ENRL E
+                 JOIN PS_CLASS_TBL C
+                   ON E.CLASS_NBR=C.CLASS_NBR AND E.STRM=C.STRM
+                 AND C.CLASS_TYPE='E' AND E.STDNT_ENRL_STATUS='W'
+                 AND E.STRM=$strm AND C.SUBJECT=$subject 
+                 ORDER BY E.STRM, C.SUBJECT, C.CATALOG_NBR, E.STDNT_POSITIN, E.STATUS_DT, E.EMPLID;
     """)
 
 
@@ -25,12 +25,13 @@ class ACADPlanQuery(DB2_Query):
     description = "People's ACAD PLAN(s) given a specific semester and list of emplids"
 
     query = string.Template("""
-    SELECT plan.emplid, plan.acad_plan from
-        ps_acad_plan plan, ps_term_tbl trm
-        WHERE effdt=(SELECT MAX(effdt) FROM ps_acad_plan WHERE emplid=plan.emplid AND effdt<=trm.term_begin_dt)
-        AND effseq=(SELECT MAX(effseq) FROM ps_acad_plan WHERE emplid=plan.emplid AND effdt=plan.effdt)
-        AND trm.strm=$strm AND plan.emplid IN $emplids;
-    """)
+    SELECT APLAN.EMPLID, APLAN.ACAD_PLAN FROM PS_ACAD_PLAN APLAN
+         WHERE
+         EFFDT=(SELECT MAX(EFFDT) FROM PS_ACAD_PLAN WHERE EMPLID=APLAN.EMPLID
+             AND EFFDT<=(SELECT MAX(TERM_BEGIN_DT) FROM PS_TERM_TBL WHERE STRM=$strm))
+         AND EFFSEQ=(SELECT MAX(EFFSEQ) FROM PS_ACAD_PLAN WHERE EMPLID=APLAN.EMPLID AND EFFDT=APLAN.EFFDT)
+         AND APLAN.EMPLID IN $emplids
+""")
 
 
 class CMPTWaitingListReport(Report):

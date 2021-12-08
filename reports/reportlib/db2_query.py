@@ -32,25 +32,20 @@ class DB2_Query(Query):
     
     @staticmethod
     def connect():
-        """ Connect to a DB2 database.
+        """ Connect to the CSRPT database. [Which isn't actually DB2 anymore]
 
             All subclasses of DB2_Query will use this database for queries. 
 
         """
-        
+
         if settings.DISABLE_REPORTING_DB:
             raise SIMSProblem("Reporting database access has been disabled in this deployment.")
 
-        sims_user = settings.SIMS_USER
-        sims_passwd = settings.SIMS_PASSWORD
-        sims_db_name = settings.SIMS_DB_NAME
-        sims_db_schema = settings.SIMS_DB_SCHEMA
-
-        import ibm_db_dbi
-        dbconn = ibm_db_dbi.connect(sims_db_name, sims_user, sims_passwd)
-        cursor = dbconn.cursor()
-        cursor.execute("SET SCHEMA "+sims_db_schema)
+        import pyodbc
+        dbconn = pyodbc.connect("DRIVER={FreeTDS};SERVER=%s;PORT=1433;DATABASE=%s;Trusted_Connection=Yes"
+                                % (settings.SIMS_DB_SERVER, settings.SIMS_DB_NAME))
         DB2_Query.db = dbconn
+
 
     def __init__(self, query_args={}):
         if not self.db:
@@ -116,7 +111,7 @@ class DB2_Query(Query):
 
     @staticmethod
     def clean_datetime(arg): 
-        return "DATE('%s-%s-%s')" % (arg.year, arg.month, arg.day)
+        return "'%s-%s-%s'" % (arg.year, arg.month, arg.day)
 
     @staticmethod
     def clean_list(list_of_arguments):

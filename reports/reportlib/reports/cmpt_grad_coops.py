@@ -14,26 +14,26 @@ class CMPTGradCoopQuery(DB2_Query):
     description = "All students who have taken any of CMPT 626, 627, 628."
     query = string.Template("""
         SELECT DISTINCT
-            enrl.emplid,
-            class.STRM,
-            class.subject,
-            class.catalog_nbr
+            ENRL.EMPLID,
+            CLASS.STRM,
+            CLASS.SUBJECT,
+            CLASS.CATALOG_NBR
         FROM
-            ps_stdnt_enrl enrl
+            PS_STDNT_ENRL ENRL
         INNER JOIN
-            ps_class_tbl class
+            PS_CLASS_TBL CLASS
             ON
-            enrl.class_nbr = class.class_nbr
-            AND enrl.strm = class.strm
+            ENRL.CLASS_NBR = CLASS.CLASS_NBR
+            AND ENRL.STRM = CLASS.STRM
         WHERE
-            enrl.earn_credit = 'Y'
-            AND enrl.stdnt_enrl_status = 'E'
-            AND class.class_type = 'E'
-            AND class.subject = 'CMPT'
-            AND (class.catalog_nbr LIKE '%626%' OR class.catalog_nbr LIKE '%627%' OR class.catalog_nbr LIKE '%628%')
-            AND enrl.crse_grade_input not in ('AU', 'W', 'WD', 'WE')
+            ENRL.EARN_CREDIT = 'Y'
+            AND ENRL.STDNT_ENRL_STATUS = 'E'
+            AND CLASS.CLASS_TYPE = 'E'
+            AND CLASS.SUBJECT = 'CMPT'
+            AND (CLASS.CATALOG_NBR LIKE '%626%' OR CLASS.CATALOG_NBR LIKE '%627%' OR CLASS.CATALOG_NBR LIKE '%628%')
+            AND ENRL.CRSE_GRADE_INPUT NOT IN ('AU', 'W', 'WD', 'WE')
         ORDER BY
-            enrl.emplid
+            ENRL.EMPLID
             """)
     exclude_list = ['AU', 'W', 'WD', 'WE']
 

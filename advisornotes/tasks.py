@@ -1,9 +1,9 @@
 from courselib.celerytasks import task
-from celery.schedules import crontab
 from coredata.queries import SIMSConn, PLAN_QUERY, SUBPLAN_QUERY
 from advisornotes.models import AdvisorVisit
 import datetime
 from collections import defaultdict
+
 
 @task(queue='sims')
 def update_program_info(advisor_visit_ids):
@@ -14,11 +14,11 @@ def update_program_info(advisor_visit_ids):
     # find plans and subplans for these students
     programs = defaultdict(list)
     db = SIMSConn()
-    db.execute(PLAN_QUERY.substitute({'where': 'prog.emplid IN %s'}), (emplids,))
+    db.execute(PLAN_QUERY.substitute({'where': 'PROG.EMPLID IN %s'}), (emplids,))
     for emplid, planid, _, _ in db:
         programs[emplid].append(planid)
 
-    db.execute(SUBPLAN_QUERY.substitute({'where': 'prog.emplid IN %s'}), (emplids,))
+    db.execute(SUBPLAN_QUERY.substitute({'where': 'PROG.EMPLID IN %s'}), (emplids,))
     for emplid, planid, _, _ in db:
         programs[emplid].append(planid)
 

@@ -44,7 +44,8 @@ class MarkdownServer
       exchange.publish(
         JSON.generate({:html => result}).encode('utf-8'),
         routing_key: properties.reply_to,
-        correlation_id: properties.correlation_id
+        correlation_id: properties.correlation_id,
+        expiration: "60000"
       )
     end
   end

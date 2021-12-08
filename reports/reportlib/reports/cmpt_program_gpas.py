@@ -6,21 +6,21 @@ import string
 
 class GPAs_Query(DB2_Query):
     query = string.Template("""
-        SELECT plan.acad_plan, term.cum_gpa, plantbl.descr, plantbl.trnscr_descr
-            FROM ps_acad_prog prog, ps_acad_plan plan, ps_stdnt_car_term term, ps_acad_plan_tbl AS plantbl
-            WHERE prog.emplid=plan.emplid AND prog.acad_career=plan.acad_career AND prog.stdnt_car_nbr=plan.stdnt_car_nbr AND prog.effdt=plan.effdt AND prog.effseq=plan.effseq
-              AND prog.effdt=(SELECT MAX(effdt) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt <= current date)
-              AND prog.effseq=(SELECT MAX(effseq) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt=prog.effdt)
-              AND prog.prog_status='AC'
-              AND plan.acad_plan IN (SELECT acad_plan FROM ps_acad_plan_tbl WHERE eff_status='A' AND acad_plan IN
-                (SELECT DISTINCT acad_plan FROM ps_acad_plan_owner WHERE acad_org=$acad_org))
-              AND prog.emplid=term.emplid AND term.unt_taken_prgrss>0 AND term.strm in $strms
-              AND plantbl.acad_plan=plan.acad_plan
-              AND plantbl.effdt=(SELECT MAX(effdt) FROM ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
-              AND prog.prog_status='AC' AND plantbl.eff_status='A'
-              AND term.tot_taken_gpa>15 AND term.withdraw_code='NWD'
-              AND term.strm=(SELECT MAX(strm) FROM ps_stdnt_car_term WHERE emplid=prog.emplid)
-            ORDER BY prog.emplid, plan.plan_sequence
+        SELECT PLAN.ACAD_PLAN, TERM.CUM_GPA, PLANTBL.DESCR, PLANTBL.TRNSCR_DESCR
+            FROM PS_ACAD_PROG PROG, PS_ACAD_PLAN PLAN, PS_STDNT_CAR_TERM TERM, PS_ACAD_PLAN_TBL AS PLANTBL
+            WHERE PROG.EMPLID=PLAN.EMPLID AND PROG.ACAD_CAREER=PLAN.ACAD_CAREER AND PROG.STDNT_CAR_NBR=PLAN.STDNT_CAR_NBR AND PROG.EFFDT=PLAN.EFFDT AND PROG.EFFSEQ=PLAN.EFFSEQ
+              AND PROG.EFFDT=(SELECT MAX(EFFDT) FROM PS_ACAD_PROG WHERE EMPLID=PROG.EMPLID AND ACAD_CAREER=PROG.ACAD_CAREER AND STDNT_CAR_NBR=PROG.STDNT_CAR_NBR AND EFFDT <= CURRENT DATE)
+              AND PROG.EFFSEQ=(SELECT MAX(EFFSEQ) FROM PS_ACAD_PROG WHERE EMPLID=PROG.EMPLID AND ACAD_CAREER=PROG.ACAD_CAREER AND STDNT_CAR_NBR=PROG.STDNT_CAR_NBR AND EFFDT=PROG.EFFDT)
+              AND PROG.PROG_STATUS='AC'
+              AND PLAN.ACAD_PLAN IN (SELECT ACAD_PLAN FROM PS_ACAD_PLAN_TBL WHERE EFF_STATUS='A' AND ACAD_PLAN IN
+                (SELECT DISTINCT ACAD_PLAN FROM PS_ACAD_PLAN_OWNER WHERE ACAD_ORG=$acad_org))
+              AND PROG.EMPLID=TERM.EMPLID AND TERM.UNT_TAKEN_PRGRSS>0 AND TERM.STRM IN $strms
+              AND PLANTBL.ACAD_PLAN=PLAN.ACAD_PLAN
+              AND PLANTBL.EFFDT=(SELECT MAX(EFFDT) FROM PS_ACAD_PLAN_TBL WHERE ACAD_PLAN=PLANTBL.ACAD_PLAN AND EFF_STATUS='A' AND EFFDT<=CURRENT DATE)
+              AND PROG.PROG_STATUS='AC' AND PLANTBL.EFF_STATUS='A'
+              AND TERM.TOT_TAKEN_GPA>15 AND TERM.WITHDRAW_CODE='NWD'
+              AND TERM.STRM=(SELECT MAX(STRM) FROM PS_STDNT_CAR_TERM WHERE EMPLID=PROG.EMPLID)
+            ORDER BY PROG.EMPLID, PLAN.PLAN_SEQUENCE
         """)
 
     default_arguments = {

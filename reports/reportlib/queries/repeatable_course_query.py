@@ -8,13 +8,13 @@ class RepeatableCourseQuery(DB2_Query):
     description = "Fetch a list of courses that are repeatable." 
     query = string.Template("""
     SELECT DISTINCT 
-        crse_id,
-        crse_repeat_limit
+        CRSE_ID,
+        CRSE_REPEAT_LIMIT
     FROM 
-        ps_crse_catalog
+        PS_CRSE_CATALOG
     WHERE 
-        eff_status='A' 
-        AND crse_repeatable='Y'
+        EFF_STATUS='A' 
+        AND CRSE_REPEATABLE='Y'
         """)
     default_arguments = { }
 

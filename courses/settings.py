@@ -19,7 +19,7 @@ except ImportError:
 
 if getattr(localsettings, 'DEPLOY_MODE', None):
     DEPLOY_MODE = localsettings.DEPLOY_MODE
-elif hostname == 'courses':
+elif hostname == 'courses':  # TODO: this is no longer the correct condition
     # full production mode
     DEPLOY_MODE = 'production'
 elif False:
@@ -361,10 +361,11 @@ DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
 SIMS_DB_SERVER = getattr(localsettings, 'SIMS_DB_SERVER', '')
-SIMS_DB_NAME = "CSRPT"
-SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')  # DB2-only
-SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')  # DB2-only
-SIMS_DB_SCHEMA = "dbcsown"  # DB2-only
+SIMS_DB_NAME = getattr(localsettings, 'SIMS_DB_NAME', 'CSRPT')
+SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')  # TODO: remove after DB2 transition
+SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')  # TODO: remove after DB2 transition
+SIMS_DB_SCHEMA = "dbcsown"  # TODO: remove after DB2 transition
+
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 MOSS_DISTRIBUTION_PATH = getattr(localsettings, 'MOSS_DISTRIBUTION_PATH', None)
 SERVER_MESSAGE_INDEX = getattr(localsettings, 'SERVER_MESSAGE_INDEX', '')

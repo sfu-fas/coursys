@@ -389,7 +389,7 @@ if deploy_mode != 'devel'
   cron "kinit refresh" do
     user username
     minute '30'
-    hour '0,12'
+    hour '0,6,12,18'
     command "kinit -R"
   end
 

@@ -8,13 +8,13 @@ class CGPAQuery(DB2_Query):
 
     query = string.Template("""
     SELECT DISTINCT 
-        emplid,
-        cum_gpa,
-        tot_passd_prgrss AS CREDITS
+        EMPLID,
+        CUM_GPA,
+        TOT_PASSD_PRGRSS AS CREDITS
     FROM 
-        ps_stdnt_car_term
+        PS_STDNT_CAR_TERM
     WHERE 
-        strm = $semester
+        STRM = $semester
         """)
     default_arguments = {
         'semester': current_semester()
@@ -26,17 +26,17 @@ class GPA_Query(DB2_Query):
 
     query = string.Template("""
     SELECT DISTINCT
-        emplid,
-        SUM( e.grade_points )/SUM( e.unt_taken ) as CGPA
+        EMPLID,
+        SUM( E.GRADE_POINTS )/SUM( E.UNT_TAKEN ) AS CGPA
     FROM 
-        ps_stdnt_enrl e
+        PS_STDNT_ENRL E
     WHERE
-        e.acad_career='UGRD' AND
-        e.stdnt_enrl_status='E' AND
-        e.include_in_gpa='Y' AND
-        e.crse_grade_off <> ' ' AND
-        e.emplid in $emplids
-    GROUP BY emplid
+        E.ACAD_CAREER='UGRD' AND
+        E.STDNT_ENRL_STATUS='E' AND
+        E.INCLUDE_IN_GPA='Y' AND
+        E.CRSE_GRADE_OFF <> ' ' AND
+        E.EMPLID IN $emplids
+    GROUP BY EMPLID
     """)
     default_arguments = { 'emplids': ['301008183'] }
 
@@ -46,28 +46,28 @@ class UDGPA_Query(DB2_Query):
 
     query = string.Template("""
     SELECT DISTINCT
-        emplid,
-        SUM( e.grade_points )/SUM( e.unt_taken ) as UDGPA
+        EMPLID,
+        SUM( E.GRADE_POINTS )/SUM( E.UNT_TAKEN ) AS UDGPA
     FROM
-        ps_stdnt_enrl e
+        PS_STDNT_ENRL E
     WHERE
-        e.acad_career='UGRD' AND
-        e.stdnt_enrl_status='E' AND
-        e.include_in_gpa='Y' AND
-        e.crse_grade_off <> ' ' AND
-        e.emplid in $emplids AND
+        E.ACAD_CAREER='UGRD' AND
+        E.STDNT_ENRL_STATUS='E' AND
+        E.INCLUDE_IN_GPA='Y' AND
+        E.CRSE_GRADE_OFF <> ' ' AND
+        E.EMPLID IN $emplids AND
         EXISTS ( 
             SELECT 
                 * 
             FROM 
-                ps_class_tbl c
+                PS_CLASS_TBL C
             WHERE
-                e.strm = c.strm AND
-                e.class_nbr = c.class_nbr AND
-                c.catalog_nbr >= ' 300' AND
-                c.catalog_nbr <= ' 499' 
+                E.STRM = C.STRM AND
+                E.CLASS_NBR = C.CLASS_NBR AND
+                C.CATALOG_NBR >= ' 300' AND
+                C.CATALOG_NBR <= ' 499' 
         )
-    GROUP BY emplid
+    GROUP BY EMPLID
         
     """)
     default_arguments = { 'emplids': ['301008183'] }
@@ -78,29 +78,29 @@ class Subject_UDGPA_Query(DB2_Query):
 
     query = string.Template("""
     SELECT DISTINCT
-        emplid,
-        SUM( e.grade_points )/SUM( e.unt_taken ) as SUBJECT_UDGPA
+        EMPLID,
+        SUM( E.GRADE_POINTS )/SUM( E.UNT_TAKEN ) AS SUBJECT_UDGPA
     FROM
-        ps_stdnt_enrl e
+        PS_STDNT_ENRL E
     WHERE
-        e.acad_career='UGRD' AND
-        e.stdnt_enrl_status='E' AND
-        e.include_in_gpa='Y' AND
-        e.crse_grade_off <> ' ' AND
-        e.emplid in $emplids AND
+        E.ACAD_CAREER='UGRD' AND
+        E.STDNT_ENRL_STATUS='E' AND
+        E.INCLUDE_IN_GPA='Y' AND
+        E.CRSE_GRADE_OFF <> ' ' AND
+        E.EMPLID IN $emplids AND
         EXISTS ( 
             SELECT 
                 * 
             FROM 
-                ps_class_tbl c
+                PS_CLASS_TBL C
             WHERE
-                e.strm = c.strm AND
-                e.class_nbr = c.class_nbr AND
-                c.catalog_nbr >= ' 300' AND
-                c.catalog_nbr <= ' 499' AND
-                c.subject IN $subjects
+                E.STRM = C.STRM AND
+                E.CLASS_NBR = C.CLASS_NBR AND
+                C.CATALOG_NBR >= ' 300' AND
+                C.CATALOG_NBR <= ' 499' AND
+                C.SUBJECT IN $subjects
         )
-    GROUP BY emplid
+    GROUP BY EMPLID
         
     """)
     default_arguments = { 
@@ -114,27 +114,27 @@ class LDGPA_Query(DB2_Query):
 
     query = string.Template("""
     SELECT DISTINCT
-        emplid, 
-        SUM( e.grade_points )/SUM( e.unt_taken ) as LDGPA
+        EMPLID, 
+        SUM( E.GRADE_POINTS )/SUM( E.UNT_TAKEN ) AS LDGPA
     FROM
-        ps_stdnt_enrl e
+        PS_STDNT_ENRL E
     WHERE
-        e.acad_career='UGRD' AND
-        e.stdnt_enrl_status='E' AND
-        e.include_in_gpa='Y' AND
-        e.crse_grade_off <> ' ' AND
-        e.emplid in $emplids AND
+        E.ACAD_CAREER='UGRD' AND
+        E.STDNT_ENRL_STATUS='E' AND
+        E.INCLUDE_IN_GPA='Y' AND
+        E.CRSE_GRADE_OFF <> ' ' AND
+        E.EMPLID IN $emplids AND
         EXISTS ( 
             SELECT 
                 * 
             FROM 
-                ps_class_tbl c
+                PS_CLASS_TBL C
             WHERE
-                e.strm = c.strm AND
-                e.class_nbr = c.class_nbr AND
-                c.catalog_nbr <= ' 299'
+                E.STRM = C.STRM AND
+                E.CLASS_NBR = C.CLASS_NBR AND
+                C.CATALOG_NBR <= ' 299'
         )
-    GROUP BY emplid
+    GROUP BY EMPLID
         
     """)
     default_arguments = { 'emplids': ['301008183'] }

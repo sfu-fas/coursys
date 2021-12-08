@@ -16,10 +16,10 @@ class GenderGroup(DB2_Query):
     description = "Gender breakdown of given emplids"
 
     query = string.Template("""
-        SELECT sex AS gender, count(sex) AS count_internal_transer_applicants
-        FROM ps_personal_data
-        WHERE emplid IN $emplids
-        GROUP BY sex
+        SELECT SEX AS GENDER, COUNT(SEX) AS COUNT_INTERNAL_TRANSER_APPLICANTS
+        FROM PS_PERSONAL_DATA
+        WHERE EMPLID IN $emplids
+        GROUP BY SEX
         """)
     default_arguments = {
         'emplids': ['301008183'],
@@ -31,16 +31,16 @@ class CourseWaitlistGendersShort(DB2_Query):
     description = "Gender breakdown of course waitlists"
 
     query = string.Template("""
-        SELECT c.subject, c.catalog_nbr, p.sex AS gender, COUNT(*) AS count
-                 FROM ps_stdnt_enrl e
-                 JOIN ps_class_tbl c
-                   ON e.class_nbr=c.class_nbr AND e.strm=c.strm
-                 JOIN ps_personal_data p
-                   ON e.emplid=p.emplid
-                 AND c.class_type='E' AND e.stdnt_enrl_status='W'
-                 AND e.strm=$strm AND c.SUBJECT=$subject
-                 GROUP BY c.subject, c.catalog_nbr, p.sex
-                 ORDER BY c.subject, c.catalog_nbr, p.sex;
+        SELECT C.SUBJECT, C.CATALOG_NBR, P.SEX AS GENDER, COUNT(*) AS COUNT
+                 FROM PS_STDNT_ENRL E
+                 JOIN PS_CLASS_TBL C
+                   ON E.CLASS_NBR=C.CLASS_NBR AND E.STRM=C.STRM
+                 JOIN PS_PERSONAL_DATA P
+                   ON E.EMPLID=P.EMPLID
+                 AND C.CLASS_TYPE='E' AND E.STDNT_ENRL_STATUS='W'
+                 AND E.STRM=$strm AND C.SUBJECT=$subject
+                 GROUP BY C.SUBJECT, C.CATALOG_NBR, P.SEX
+                 ORDER BY C.SUBJECT, C.CATALOG_NBR, P.SEX;
         """)
     default_arguments = {
         'strm': current_semester(),
@@ -53,16 +53,16 @@ class CourseWaitlistGendersFull(DB2_Query):
     description = "Gender breakdown of course waitlists"
 
     query = string.Template("""
-        SELECT c.subject, c.catalog_nbr, e.acad_prog, p.sex AS gender, COUNT(*) AS count
-                 FROM ps_stdnt_enrl e
-                 JOIN ps_class_tbl c
-                   ON e.class_nbr=c.class_nbr AND e.strm=c.strm
-                 JOIN ps_personal_data p
-                   ON e.emplid=p.emplid
-                 AND c.class_type='E' AND e.stdnt_enrl_status='W'
-                 AND e.strm=$strm AND c.SUBJECT=$subject
-                 GROUP BY c.subject, c.catalog_nbr, e.acad_prog, p.sex
-                 ORDER BY c.subject, c.catalog_nbr, e.acad_prog, p.sex;
+        SELECT C.SUBJECT, C.CATALOG_NBR, E.ACAD_PROG, P.SEX AS GENDER, COUNT(*) AS COUNT
+                 FROM PS_STDNT_ENRL E
+                 JOIN PS_CLASS_TBL C
+                   ON E.CLASS_NBR=C.CLASS_NBR AND E.STRM=C.STRM
+                 JOIN PS_PERSONAL_DATA P
+                   ON E.EMPLID=P.EMPLID
+                 AND C.CLASS_TYPE='E' AND E.STDNT_ENRL_STATUS='W'
+                 AND E.STRM=$strm AND C.SUBJECT=$subject
+                 GROUP BY C.SUBJECT, C.CATALOG_NBR, E.ACAD_PROG, P.SEX
+                 ORDER BY C.SUBJECT, C.CATALOG_NBR, E.ACAD_PROG, P.SEX;
         """)
     default_arguments = {
         'strm': current_semester(),
@@ -74,28 +74,28 @@ class BadGPAsQuery(DB2_Query):
     # most recent term the student has *actually* taken courses (where we only
     # care about recent strms, so exclude any too old)
     MOST_RECENT_TERM = """
-        SELECT emplid, max(strm) as strm
-        FROM ps_stdnt_car_term
-        WHERE unt_taken_prgrss > 0 AND strm in $strms
-        GROUP BY emplid
+        SELECT EMPLID, MAX(STRM) AS STRM
+        FROM PS_STDNT_CAR_TERM
+        WHERE UNT_TAKEN_PRGRSS > 0 AND STRM IN $strms
+        GROUP BY EMPLID
         """
 
     # selects students who (in their most recent semester taking courses) were
     # in one of the programs we care about and had a low GPA.
     query = string.Template("""
-        SELECT term.acad_prog_primary, p.sex AS gender, term.cum_gpa
-        FROM ps_stdnt_car_term term
-            JOIN (""" + MOST_RECENT_TERM + """) maxterm
-                ON term.emplid=maxterm.emplid AND term.strm=maxterm.strm
-            JOIN ps_personal_data p
-                ON term.emplid=p.emplid
+        SELECT TERM.ACAD_PROG_PRIMARY, P.SEX AS GENDER, TERM.CUM_GPA
+        FROM PS_STDNT_CAR_TERM TERM
+            JOIN (""" + MOST_RECENT_TERM + """) MAXTERM
+                ON TERM.EMPLID=MAXTERM.EMPLID AND TERM.STRM=MAXTERM.STRM
+            JOIN PS_PERSONAL_DATA P
+                ON TERM.EMPLID=P.EMPLID
         WHERE
-            term.acad_career='UGRD'
-            AND term.acad_prog_primary IN $acad_progs
-            AND term.cum_gpa < $gpa
-            AND term.tot_taken_gpa > 15
-            AND term.withdraw_code='NWD'
-        ORDER BY term.acad_prog_primary, p.sex, term.cum_gpa
+            TERM.ACAD_CAREER='UGRD'
+            AND TERM.ACAD_PROG_PRIMARY IN $acad_progs
+            AND TERM.CUM_GPA < $gpa
+            AND TERM.TOT_TAKEN_GPA > 15
+            AND TERM.WITHDRAW_CODE='NWD'
+        ORDER BY TERM.ACAD_PROG_PRIMARY, P.SEX, TERM.CUM_GPA
         """)
     # TODO: I wonder if tot_taken_gpa counts co-op courses. I'd like it to.
 
