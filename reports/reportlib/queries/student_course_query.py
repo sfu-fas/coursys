@@ -72,7 +72,7 @@ class SingleCourseQuery(DB2_Query):
         ENRL.EARN_CREDIT = 'Y'
         AND ENRL.STDNT_ENRL_STATUS = 'E'
         AND CLASS.CLASS_TYPE = 'E'
-        AND CLASS.SUBJECT = $SUBJECT
+        AND CLASS.SUBJECT = $subject
         AND CLASS.CATALOG_NBR LIKE '%$catalog_nbr%'
         AND ENRL.CRSE_GRADE_INPUT NOT IN $exclude_list
     ORDER BY

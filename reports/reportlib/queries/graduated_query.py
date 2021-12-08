@@ -12,9 +12,9 @@ class GraduatedStudentQuery(DB2_Query):
     SELECT DISTINCT
         DEGREE.EMPLID,
         PROG.ACAD_PROG,
-        PLAN.ACAD_PLAN,
+        APLAN.ACAD_PLAN,
         DEGREE.COMPLETION_TERM,
-        PLAN.COMPLETION_TERM AS PLAN_COMPLETION,
+        APLAN.COMPLETION_TERM AS PLAN_COMPLETION,
         DEGREE.DEGREE
     FROM 
         PS_ACAD_DEGR DEGREE 
@@ -26,14 +26,14 @@ class GraduatedStudentQuery(DB2_Query):
         PROG.ACAD_PROG IN $programs AND 
         PROG.PROG_ACTION = 'COMP' 
     LEFT JOIN 
-        PS_ACAD_PLAN PLAN
+        PS_ACAD_PLAN APLAN
         ON
         PLAN.EMPLID = DEGREE.EMPLID
     WHERE 
         DEGREE.COMPLETION_TERM >= $start_semester AND
         DEGREE.COMPLETION_TERM <= $end_semester AND
         DEGREE.EMPLID IN $emplids AND
-        PLAN.COMPLETION_TERM != ''
+        APLAN.COMPLETION_TERM != ''
         """)
 
     default_arguments = {
