@@ -7,7 +7,7 @@ import string
 class StudentCourseQuery(DB2_Query):
     title = "Student Course Query"
     description = "Fetch a list of students and the courses that they are taking in a semester." 
-    quERY = STRING.TEMPLATE("""
+    query = string.Template("""
     SELECT DISTINCT
         ENRL.EMPLID,
         ENRL.STRM,
