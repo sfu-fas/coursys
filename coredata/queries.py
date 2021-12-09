@@ -77,7 +77,7 @@ class SIMSConnMSSQL(DBConn):
         try:
             dbconn = pyodbc.connect("DRIVER={FreeTDS};SERVER=%s;PORT=1433;DATABASE=%s;Trusted_Connection=Yes"
                                     % (settings.SIMS_DB_SERVER, settings.SIMS_DB_NAME))
-        except pyodbc.ProgrammingError:
+        except (pyodbc.ProgrammingError, pyodbc.OperationalError):
             raise SIMSProblem("Unable to connect to reporting database.")
         cursor = dbconn.cursor()
         return dbconn, cursor

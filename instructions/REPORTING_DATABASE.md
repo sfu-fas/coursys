@@ -27,6 +27,16 @@ In `courses/localsettings.py`, make sure the reporting database is turned on (ob
 
 After that, your CourSys instance should be able to do reporting DB queries. This is checked by the admin panel's "Deployment Checks".
 
+## Auth in Production
+
+The production server must have [kerberos authentication](https://www.rcg.sfu.ca/workstations/kerberos.html#q-22-the-answer-to-q-21-isn-t-good-enough-i-need-my-processes-to-run-unattended-for-weeks) done by someone with Reporting Database access. On the server, that can be done like this:
+```shell
+sudo su -l coursys
+/coursys/kinit.sh
+```
+Enter your username and password when prompted. This creates authentication details in `~/kerberos` that are used by a cron job to regularly refresh the ticket.
+
+
 ## Reporting Database Tips
 
 - Many fields are somewhat cryptic, but can be joined to a table that has more verbose explanations.
