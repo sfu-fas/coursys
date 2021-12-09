@@ -74,8 +74,11 @@ class SIMSConnMSSQL(DBConn):
             raise SIMSProblem("Reporting database access has been disabled in this deployment.")
 
         import pyodbc
-        dbconn = pyodbc.connect("DRIVER={FreeTDS};SERVER=%s;PORT=1433;DATABASE=%s;Trusted_Connection=Yes"
-                                % (settings.SIMS_DB_SERVER, settings.SIMS_DB_NAME))
+        try:
+            dbconn = pyodbc.connect("DRIVER={FreeTDS};SERVER=%s;PORT=1433;DATABASE=%s;Trusted_Connection=Yes"
+                                    % (settings.SIMS_DB_SERVER, settings.SIMS_DB_NAME))
+        except pyodbc.ProgrammingError:
+            raise SIMSProblem("Unable to connect to reporting database.")
         cursor = dbconn.cursor()
         return dbconn, cursor
 
@@ -142,9 +145,6 @@ class SIMSConnMSSQL(DBConn):
             return v.strip()
         elif isinstance(v, decimal.Decimal):
             return float(v)
-        elif isinstance(v, datetime.datetime):
-            # The MSSQL CSRPT returns all dates as datetimes. We never use the time part, but existing code expects dates.
-            return v.date()
         else:
             return v
 
