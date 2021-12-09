@@ -1420,6 +1420,7 @@ def csrpt_update():
     """
     Report about when it looks like the reporting database was last updated
     """
+    import pyodbc
     data = []
     db = SIMSConn()
     this_sem = Semester.current()
@@ -1431,7 +1432,7 @@ def csrpt_update():
         row = db.fetchone()
         if row:
             data.append(('ps_sfu_clone_info.sfu_clone_dttm', row[0]))
-    except SIMSProblem as e:
+    except (SIMSProblem, pyodbc.ProgrammingError) as e:
         data.append(('ps_sfu_clone_info.sfu_clone_dttm', 'Unable to query: ' + str(e)))
 
     db.execute("""
