@@ -389,8 +389,8 @@ if deploy_mode != 'devel'
   cron "kinit refresh" do
     user username
     minute '30'
-    hour '0,6,12,18'
-    command "kinit -R"
+    hour '*/2'
+    command "/usr/bin/kinit `cat ~/kerberos/username`@AD.SFU.CA -k -t ~/kerberos/adsfu.keytab"
   end
 
   # The MOSS source, as moss.zip is also not distributed here for copyright reasons.
