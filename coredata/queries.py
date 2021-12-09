@@ -224,15 +224,12 @@ def SIMS_problem_handler_MSSQL(func):
     """
 
     def wrapped(*args, **kwargs):
-        return func(*args, **kwargs)  # temporary? Check what errors we get
-
+        import pyodbc
         # check for the types of errors we know might happen and return an error message in a SIMSProblem
         try:
             return func(*args, **kwargs)
-        except SIMSConn.DatabaseError as e:
-            raise SIMSProblem("could not connect to reporting database")
-        except SIMSConn.DB2Error as e:
-            raise SIMSProblem("problem with connection to reporting database")
+        except pyodbc.ProgrammingError as e:
+            raise SIMSProblem("reporting database error: " + str(e))
 
     wrapped.__name__ = func.__name__
     return wrapped
@@ -1427,12 +1424,15 @@ def csrpt_update():
     db = SIMSConn()
     this_sem = Semester.current()
 
-    db.execute("""
-        SELECT SFU_CLONE_DTTM FROM PS_SFU_CLONE_INFO
-        """, ())
-    row = db.fetchone()
-    if row:
-        data.append(('ps_sfu_clone_info.sfu_clone_dttm', row[0]))
+    try:
+        db.execute("""
+            SELECT SFU_CLONE_DTTM FROM PS_SFU_CLONE_INFO
+            """, ())
+        row = db.fetchone()
+        if row:
+            data.append(('ps_sfu_clone_info.sfu_clone_dttm', row[0]))
+    except SIMSProblem as e:
+        data.append(('ps_sfu_clone_info.sfu_clone_dttm', 'Unable to query: ' + str(e)))
 
     db.execute("""
         SELECT MAX(ENRL_ADD_DT), MAX(STATUS_DT), MAX(GRADING_BASIS_DT) FROM PS_STDNT_ENRL WHERE STRM IN (%s, %s)
