@@ -702,7 +702,7 @@ class CareerUnitChangeOut(ProgramStatusChange):
         """
         self.emplid = emplid
         self.adm_appl_nbr = adm_appl_nbr
-        self.effdt = effdt.date()
+        self.effdt = effdt
         self.stdnt_car_nbr = None
         self.grad_program = None
         self.oldkey = None

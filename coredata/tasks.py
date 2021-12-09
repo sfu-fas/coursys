@@ -269,7 +269,7 @@ def get_import_offerings_tasks():
 
     Doesn't actually call the jobs: just returns celery tasks to be called.
     """
-    #offerings = importer.import_offerings(extra_where="ct.subject='CMPT' and ct.catalog_nbr IN (' 383', ' 470')")
+    #offerings = importer.import_offerings(extra_where="CT.SUBJECT='CMPT' and CT.CATALOG_NBR IN (' 383', ' 470')")
     #offerings = importer.import_offerings()
     offerings = importer.import_offerings(cancel_missing=True)
     offerings = list(offerings)
