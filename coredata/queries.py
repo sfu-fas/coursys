@@ -142,6 +142,9 @@ class SIMSConnMSSQL(DBConn):
             return v.strip()
         elif isinstance(v, decimal.Decimal):
             return float(v)
+        elif isinstance(v, datetime.datetime):
+            # The MSSQL CSRPT returns all dates as datetimes. We never use the time part, but existing code expects dates.
+            return v.date()
         else:
             return v
 
