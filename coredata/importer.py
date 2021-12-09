@@ -370,7 +370,11 @@ def import_meeting_times(offering):
         # dates come in as strings from DB2/reporting DB
         if not start or not end:
             # some meeting times exist with no start/end time
-            continue        
+            continue
+        start = start.time()
+        end = end.time()
+        start_dt = start_dt.date()
+        end_dt = end_dt.date()
 
         wkdays = [n for n, day in zip(list(range(7)), (mon,tues,wed,thurs,fri,sat,sun)) if day=='Y']
         labtut_section, mtg_type = fix_mtg_info(class_section, stnd_mtg_pat)
@@ -602,6 +606,11 @@ def import_all_meeting_times(strm, extra_where='1=1', offering_map=None):
             # some meeting times exist with no start/end time
             continue
 
+        start = start.time()
+        end = end.time()
+        start_dt = start_dt.date()
+        end_dt = end_dt.date()
+
         wkdays = [n for n, day in zip(list(range(7)), (mon, tues, wed, thurs, fri, sat, sun)) if day == 'Y']
         labtut_section, mtg_type = fix_mtg_info(class_section, stnd_mtg_pat)
 
@@ -789,7 +798,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, boot
 
         # class start and end dates
         try:
-            start = semester_start[strm]
+            start = semester_start[strm].date()
         except KeyError:
             # No data found about this semester: if there's a date already around, honour it
             # Otherwise, guess "same day as this semester last year" which is probably wrong but close.
@@ -800,7 +809,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, boot
                 output.append("Guessing start date for %s." % (strm,))
 
         try:
-            end = semester_end[strm]
+            end = semester_end[strm].date()
         except KeyError:
             # no classes scheduled yet? Assume 13 weeks exactly
             end = start + datetime.timedelta(days=91)
@@ -864,8 +873,6 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, boot
             holiday.description = desc
             if not dry_run:
                 holiday.save()
-
-
 
     if verbose:
         print('\n'.join(output))
