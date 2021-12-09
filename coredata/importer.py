@@ -862,7 +862,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, boot
         # Holidays
         hs = holidays.get(strm, [])
         h_start, h_end = Semester.start_end_dates(semester)
-        for dt, desc in [(d.date(),h) for d,h in sims_holidays if h_start <= d <= h_end]:
+        for dt, desc in [(d.date(),h) for d,h in sims_holidays if h_start <= d.date() <= h_end]:
             existing = [h for h in hs if h.date == dt]
             if existing:
                 holiday = existing[0]
