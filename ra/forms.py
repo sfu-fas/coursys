@@ -82,7 +82,7 @@ class RARequestIntroForm(forms.ModelForm):
 
     class Meta:
         model = RARequest
-        fields = ('nonstudent', 'first_name', 'last_name', 'email_address', 'person', 'unit', 'hiring_category',)
+        fields = ('nonstudent', 'first_name', 'last_name', 'email_address', 'person', 'unit', 'hiring_category')
         labels = {
             'first_name': "Appointee First Name",
             'last_name': "Appointee Last Name",
@@ -116,7 +116,7 @@ class RARequestIntroForm(forms.ModelForm):
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
-        
+
         # add error messages
         nonstudent = cleaned_data.get('nonstudent')
         first_name = cleaned_data.get('first_name')
