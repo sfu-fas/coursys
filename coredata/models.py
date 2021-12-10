@@ -57,6 +57,7 @@ ROLE_CHOICES = (
         ('GRAD', 'Grad Student Administrator'),
         ('GRPD', 'Graduate Program Director'),
         ('FUND', 'Grad Funding Administrator'),
+        ('FDRE', 'Grad Funding Requester'),
         ('FDCC', 'Grad Funding Reminder CC'),
         ('TECH', 'Tech Staff'),
         ('GPA', 'GPA conversion system admin'),
@@ -73,7 +74,7 @@ ROLE_CHOICES = (
         )
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
-UNIT_ROLES = ['ADVS', 'ADVM', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'GRPD',
+UNIT_ROLES = ['ADVS', 'ADVM', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDRE', 'FDCC', 'GRPD',
               'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR', 'FACA', 'RELA', 'SPAC', 'FORM']
 # roles that give access to SIMS data
 SIMS_ROLES = ['ADVS', 'ADMV', 'DISC', 'DICC', 'FUND', 'GRAD', 'GRPD']
@@ -92,6 +93,7 @@ ROLE_DESCR = {
         'GRAD': 'Can view and update the grad student database.',
         'GRPD': 'Director of the graduate program: typically the signer of grad-related letters.',
         'FUND': 'Can work with the grad student funding database.',
+        'FDRE': 'Can submit grad student funding requests.',
         'FDCC': 'Gets copied on RA expiring reminder emails',
         'TECH': 'Can manage resources required for courses.',
         'FAC': 'Faculty Member',

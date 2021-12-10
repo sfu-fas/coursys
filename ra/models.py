@@ -418,6 +418,7 @@ def _fund_percentage(total_biweekly_rate, biweekly_rate):
     return percentage
 
 class RARequest(models.Model):
+    # swpp - whether or not student is applying for funding with swpp program
     # people_comments - comments about the appointee or supervisor
     # fs1_amount, fs2_amount, fs3_amount - amount of total pay that each funding source makes up
     # fs1_start_date, fs2_start_date, fs3_start_date - start dates of each funding source
@@ -463,6 +464,7 @@ class RARequest(models.Model):
     position = models.CharField(max_length=64, default='', null=True, blank=True)
     student = models.CharField(max_length=80, default=None, null=True, choices=STUDENT_TYPE)
     coop = models.BooleanField(null=True, blank=True)
+    swpp = config_property('swpp', default=False)
     mitacs = models.BooleanField(null=True, blank=True)
     research = models.BooleanField(null=True, blank=True)
     thesis = models.BooleanField(null=True, blank=True)
