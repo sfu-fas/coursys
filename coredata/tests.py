@@ -500,3 +500,12 @@ class DependencyTest(TestCase):
         # https://github.com/bradjasper/django-jsonfield/issues/106
         a = CalNumericActivity.objects.get(slug='test')
         self.assertIsInstance(a.config, dict)
+
+    def test_cache_utils(self):
+        from cache_utils.decorators import cached
+        @cached(36000)
+        def f(s):
+            return len(s)
+
+        n = 100
+        self.assertEqual(f('乐' * n), n)
