@@ -16,11 +16,11 @@ def financials_report(request):
     form = FinanceReportForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
             finrpt = form.data['finreport']
-            grads = _financials_report_promise(request.units, finrpt)    
+            #grads = _financials_report_promise(request.units, finrpt)    
                         
             context = {                   
                    'form':form,
-                   'grads': grads,
+                   'export': True,
                    'querystr': finrpt
                    }
     else:    
@@ -47,6 +47,7 @@ def financials_report(request):
         else:
             context = {                   
                    'form':form,
+                   'export': False,
                    'querystr': ''
                    }
     
@@ -55,11 +56,11 @@ def financials_report(request):
 
 def _financials_report_promise(units, finrpt):    
     if finrpt == 'phd':
-        grads = GradStudent.objects.filter(program__unit__in=units).filter(current_status__in=STATUS_ACTIVE).filter(program__slug="phd").order_by("id")
+        grads = GradStudent.objects.filter(program__unit__in=units).filter(current_status__in=STATUS_ACTIVE).filter(program__slug="phd").order_by("id").select_related('person').select_related('program').select_related('start_semester')
     if finrpt == 'msc':
-        grads = GradStudent.objects.filter(program__unit__in=units).filter(current_status__in=STATUS_ACTIVE).filter(program__description__startswith="MSc").order_by("id")
+        grads = GradStudent.objects.filter(program__unit__in=units).filter(current_status__in=STATUS_ACTIVE).filter(program__description__startswith="MSc").order_by("id").select_related('person').select_related('program').select_related('start_semester')
     if finrpt == 'other':
-        grads = GradStudent.objects.filter(program__unit__in=units).filter(current_status__in=STATUS_ACTIVE).exclude(program__slug="phd").exclude(program__description__startswith="MSc").order_by("id")
+        grads = GradStudent.objects.filter(program__unit__in=units).filter(current_status__in=STATUS_ACTIVE).exclude(program__slug="phd").exclude(program__description__startswith="MSc").order_by("id").select_related('person').select_related('program').select_related('start_semester')
     
     return grads
 
@@ -97,18 +98,20 @@ def _generate_csv(request, response, grads):
 
 
     for g in grads:
-         y1_promise = g.get_year1_promise_amount()
-         y2_promise = g.get_year2_promise_amount()
-         y3_promise = g.get_year3_promise_amount()
-         y4_promise = g.get_year4_promise_amount()
-         oth_promise =  g.get_otheryear_promise_amount()
+         promise_amt =  g.get_promise_amount_all()
+         y1_promise = promise_amt['year1'] #g.get_year1_promise_amount()
+         y2_promise = promise_amt['year2'] #g.get_year2_promise_amount()
+         y3_promise = promise_amt['year3'] #g.get_year3_promise_amount()
+         y4_promise = promise_amt['year4'] #g.get_year4_promise_amount()
+         oth_promise =  promise_amt['otheryear'] #g.get_otheryear_promise_amount()
          ttl_promise = y1_promise + y2_promise + y3_promise + y4_promise + oth_promise
 
-         y1_received = g.get_year1_received()
-         y2_received = g.get_year2_received()
-         y3_received = g.get_year3_received()
-         y4_received = g.get_year4_received()
-         oth_received = g.get_otheryear_received()
+         received_amt = g.get_receive_all()
+         y1_received =  received_amt['year1'] # g.get_year1_received()
+         y2_received =  received_amt['year2'] #g.get_year2_received()
+         y3_received =  received_amt['year3'] #g.get_year3_received()
+         y4_received =  received_amt['year4'] #g.get_year4_received()
+         oth_received =  received_amt['otheryear'] # g.get_otheryear_received()
          ttl_received = y1_received + y2_received + y3_received + y4_received + oth_received
             
          writer.writerow([
@@ -186,18 +189,20 @@ def _generate_excel(request, response, grads, finrpt):
 
     # data rows
     for i,g in enumerate(grads):
-        y1_promise = g.get_year1_promise_amount()
-        y2_promise = g.get_year2_promise_amount()
-        y3_promise = g.get_year3_promise_amount()
-        y4_promise = g.get_year4_promise_amount()
-        oth_promise =  g.get_otheryear_promise_amount()
+        promise_amt =  g.get_promise_amount_all()
+        y1_promise = promise_amt['year1'] #g.get_year1_promise_amount()
+        y2_promise = promise_amt['year2'] #g.get_year2_promise_amount()
+        y3_promise = promise_amt['year3'] #g.get_year3_promise_amount()
+        y4_promise = promise_amt['year4'] #g.get_year4_promise_amount()
+        oth_promise =  promise_amt['otheryear'] #g.get_otheryear_promise_amount()
         ttl_promise = y1_promise + y2_promise + y3_promise + y4_promise + oth_promise
 
-        y1_received = g.get_year1_received()
-        y2_received = g.get_year2_received()
-        y3_received = g.get_year3_received()
-        y4_received = g.get_year4_received()
-        oth_received = g.get_otheryear_received()
+        received_amt = g.get_receive_all()
+        y1_received =  received_amt['year1'] # g.get_year1_received()
+        y2_received =  received_amt['year2'] #g.get_year2_received()
+        y3_received =  received_amt['year3'] #g.get_year3_received()
+        y4_received =  received_amt['year4'] #g.get_year4_received()
+        oth_received =  received_amt['otheryear'] # g.get_otheryear_received()
         ttl_received = y1_received + y2_received + y3_received + y4_received + oth_received
         
         sheet.write(i+2, 1, g.person.emplid)

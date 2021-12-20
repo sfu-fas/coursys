@@ -62,7 +62,7 @@ width: 120px;
   <input type="submit" value="Select" />
 </form> 
 
-{% if grads %}
+{% if export %}
 <p>
   <a href="{% url "grad:financials_report" %}?finrpt={{ querystr }}&csv=yes" id="excellink">Export as CSV</a> |
   <a href="{% url "grad:financials_report" %}?finrpt={{ querystr }}&excel=yes" id="excellink">Export as Excel</a>
