@@ -406,6 +406,15 @@ class TestImportFunctionsNumeric(TestCase):
         self.assertEqual(err, ['Error found in the file (row 2): Unmatched student number (399900301).'])
         self.assertEqual(len(data_to_return), 1)
 
+    def test_import_grades_crowdmark_bad_emplid(self):
+        inName = 'marking/testfiles/crowdmark_bad_emplid.csv'
+        self.get_test_file(inName)
+        data_to_return = {}
+        with open(inName, 'rb') as inp:
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+        self.assertEqual(err, ['Error found in the file (row 1): bad student number (\'x\').', 'Error found in the file (row 2): bad student number (\'\').'])
+        self.assertEqual(len(data_to_return), 0)
+
     def test_import_grades_old_format_unknown_userid(self):
         inName = 'marking/testfiles/oldformat_unk_uid.csv'
         self.get_test_file(inName)
