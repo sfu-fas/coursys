@@ -118,7 +118,7 @@ def check_sims_task() -> Optional[str]:
         return 'Generic exception, %s' % (str(e))
 
 
-@task
+@task()
 def expiring_roles():
     if settings.DO_IMPORTING_HERE:
         Role.warn_expiring()
@@ -131,7 +131,7 @@ def haystack_update():
 
 
 # purge and rebuild the search index occasionally to get any orphaned records
-@task
+@task()
 def haystack_rebuild():
     haystack_rebuild_index()
 
