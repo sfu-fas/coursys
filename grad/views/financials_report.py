@@ -186,7 +186,8 @@ def _generate_excel(request, response, grads, finrpt):
     sheet.write(1, 24, 'Difference Yr 4',  hdrstyle)   
     sheet.write(1, 25, 'Difference (Other years)',  hdrstyle)
     sheet.write(1, 26, 'Total Difference', hdrstyle)    
-
+    sheet.write(1, 27, 'Remarks', hdrstyle)
+    
     # data rows
     for i,g in enumerate(grads):
         promise_amt =  g.get_promise_amount_all()
@@ -255,7 +256,7 @@ def _generate_excel(request, response, grads, finrpt):
             sheet.write(i+2, 26, diffttl, boldhighlightstyle)
         else:
             sheet.write(i+2, 26, diffttl, boldstyle)            
-
+        sheet.write(i+2, 27,  received_amt['remarks'])
 
     count = len(grads)
     sheet.write(count+4, 0, 'Number of students: %i' % (count))
