@@ -1478,6 +1478,10 @@ def _import_crowdmark_file(fh, students_qset, data_to_return):
     for row in reader:
         read += 1
         emplid = _strip_email_userid(row[emplid_col])
+        if not emplid or not emplid.isdigit():
+            error_info.append("Error found in the file (row %s): bad student number (%r)."
+                              % (read, emplid,))
+            continue
         target = students_qset.filter(emplid=emplid)
         if target.count() == 0:
             error_info.append("Error found in the file (row %s): Unmatched student number (%s)."
