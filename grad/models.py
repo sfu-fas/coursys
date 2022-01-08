@@ -851,7 +851,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         frs = int(self.start_semester.name)   # semester name jump 10 digits per year
         import decimal
 
-        received_amt = {"year1": decimal.Decimal(0.0), "year2": decimal.Decimal(0.0), "year3": decimal.Decimal(0.0), "year4": decimal.Decimal(0.0), "otheryear": decimal.Decimal(0.0)}
+        received_amt = {"year1": decimal.Decimal(0.0), "year2": decimal.Decimal(0.0), "year3": decimal.Decimal(0.0), "year4": decimal.Decimal(0.0), "otheryear": decimal.Decimal(0.0), "remarks": ''}
 
         from ta.models import TAContract, TACourse
         from ra.models import RAAppointment, RARequest
@@ -909,7 +909,11 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         for ra in ras:
                 st = ra.start_semester()
                 en = ra.end_semester()
-                sem_pay = ra.lump_sum_pay / ra.semester_length()
+                semlen =  ra.semester_length()
+                if semlen == 0:
+                    semlen = 1
+                    received_amt['remarks'] += 'ra semlen:0 sem:' + str(st) + '-' + str(en)
+                sem_pay = ra.lump_sum_pay / semlen
                 if (int(st.name) >= frs) & (int(st.name) < (frs+10)):
                     if ra.semester_length() >= 3:
                         received_amt['year1'] += sem_pay * 3
@@ -935,8 +939,12 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         for ra in reqs:
                 st = ra.start_semester()
-                #en = ra.end_semester()
-                sem_pay = ra.total_pay / ra.semester_length()
+                en = ra.end_semester()
+                semlen =  ra.semester_length()
+                if semlen == 0:
+                    semlen = 1
+                    received_amt['remarks'] += 'ra semlen:0 sem:' + str(st) + '-' + str(en)
+                sem_pay = ra.lump_sum_pay / semlen
                 if (int(st.name) >= frs) & (int(st.name) < (frs+10)):
                     if ra.semester_length() >= 3:
                         received_amt['year1'] += sem_pay * 3
@@ -964,7 +972,11 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         scholarships = Scholarship.objects.filter(student=self, removed=False).filter(scholarship_type__eligible=True).select_related('start_semester')
             
         for ss in scholarships:
-                amt = ss.amount/(ss.end_semester-ss.start_semester+1)         
+                semlen =  (ss.end_semester-ss.start_semester+1)  
+                if semlen == 0:
+                    semlen = 1
+                    received_amt['remarks'] += 'scholarship semlen:0 sem:' + str(ss.start_semester) + '-' + str(ss.end_semester)
+                amt = ss.amount/semlen            
                 if (int(ss.start_semester.name) >= frs) & (int(ss.start_semester.name) < (frs+10)):
                     if int(ss.end_semester.name) >= (frs+6):    
                         received_amt['year1'] += amt * 3
