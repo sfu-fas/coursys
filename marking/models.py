@@ -493,7 +493,7 @@ def copy_setup_base(course_copy_from, course_copy_to):
         if 'discussion' in course_copy_to.config and course_copy_to.config['discussion']:
             # old discussion module disallowed for new offerings: disable and replace with new.
             del course_copy_to.config['discussion']
-            forum_to = Forum(offering=course_copy_to)
+            forum_to, _ = Forum.objects.get_or_create(offering=course_copy_to)
             forum_to.enabled = True
             forum_to.save()
         else:
