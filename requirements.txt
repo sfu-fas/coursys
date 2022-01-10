@@ -1,4 +1,4 @@
-Django==2.2.24
+Django==2.2.26
 
 Creoleparser==0.7.5 # Replaced with version below that incorporates our fix for null headings, and python3 support
 Genshi==0.7.5
@@ -29,7 +29,7 @@ django-npm==1.0.0
 #django-cache-utils==0.7.2
 #hg+https://bitbucket.org/ggbaker/django-cache-utils/@8a29823  # python 3 compatibility
 git+https://github.com/gregbaker/django-cache-utils@1525c9f
-celery==5.2.1
+celery==5.2.2
 kombu==5.2.2
 django-celery-email==3.0.0
 django_celery_beat==2.2.1
@@ -58,7 +58,7 @@ python-memcached==1.59
 git+https://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
 elasticsearch>=5.0.0,<6.0.0
 #pysolr==3.8.1
-lxml==4.6.3
+lxml==4.7.1
 gunicorn==20.1.0
 mysqlclient==2.0.3
 paramiko>=2.7.1
