@@ -63,5 +63,5 @@ gunicorn==20.1.0
 mysqlclient==2.0.3
 paramiko>=2.7.1
 pyodbc==4.0.32
-#django-cas-ng==3.6.0
-git+https://github.com/gregbaker/django-cas-ng.git@08509c3ad23f69d6d4e69a0a66453d0221023f3d # fix for session_key bug (PR #195), and duplicate session_key bug (PR #209)
+django-cas-ng==4.3.0
+#git+https://github.com/gregbaker/django-cas-ng.git@08509c3ad23f69d6d4e69a0a66453d0221023f3d # fix for session_key bug (PR #195), and duplicate session_key bug (PR #209)
