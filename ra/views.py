@@ -1220,12 +1220,12 @@ def download(request, current=False, incomplete=False):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="ras-%s-%s.csv"' % (datetime.datetime.now().strftime('%Y%m%d'),
                                                                             'current' if current else 'all')
-                                                                                
+
     writer = csv.writer(response)
     if admin:
-        writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP'])
+        writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP', 'Processed By'])
         for ra in ras:
-            writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay, ra.swpp])
+            writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay, ra.swpp, ra.get_processor()])
     else:
         writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
         for ra in ras:
