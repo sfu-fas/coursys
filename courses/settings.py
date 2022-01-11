@@ -148,9 +148,10 @@ if DEBUG:
 ALLOWED_HOSTS.extend(getattr(localsettings, 'MORE_ALLOWED_HOSTS', []))
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 14*24*3600  # 2 weeks
+SESSION_COOKIE_AGE = 14*24*3600  # 14 days
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-PASSWORD_AUTH_AGE = 7*24*3600  # 1 week
+PRE_EXPIRE_AGE = 6*24*3600  # 6 days: expire how long before SESSION_COOKIE_AGE at a convenient time. Handled by coredata.tasks.expire_sessions_conveniently
+
 X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
