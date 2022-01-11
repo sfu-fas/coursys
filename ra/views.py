@@ -148,7 +148,7 @@ def _email_request_notification(req, url):
         elif req.unit.label == "MSE":
             email = MSE_CONTACT
         elif req.unit.label == "ENSC":
-            email = ENSC_CONTACT
+            email = None
         elif req.unit.label == "SEE":
             email = SEE_CONTACT
         else:
