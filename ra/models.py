@@ -197,7 +197,7 @@ DEFAULT_LETTER_NCH_INTRO = "This is to confirm remuneration of work performed as
 DEFAULT_LETTER_NCBW_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_salary)s for a total amount of $%(total_pay)s, subject to all statutory income tax and benefit deductions. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
 DEFAULT_LETTER_RAH_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be $%(gross_hourly)s per hour plus %(vacation_pay)s percent vacation pay. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions.\n\n"""
 DEFAULT_LETTER_RABW_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. This remuneration will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s. You will be entitled to %(weeks_vacation)s weeks of paid vacation during each full calendar year of service and based on the terms of your appointment, your vacation entitlement is %(vacation_hours)s. You must submit and confirm all vacation requests.\n\n"
-DEFAULT_LETTER_GRASLS_INTRO_OUTSIDE_CAN = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be transferred to you via your student account for a total amount of $%(total_gross)s.\n\n" 
+DEFAULT_LETTER_GRASLS_INTRO_OUTSIDE_CAN = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you as a lump sum payment of $%(total_gross)s.\n\n" 
 DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you as a lump sum payment of $%(total_gross)s and will be made to you at the end of your term of appointment.\n\n"
 DEFAULT_LETTER_GRASBW_INTRO = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s.\n\n"
 
@@ -817,6 +817,12 @@ class RARequest(models.Model):
         if self.person:
             email_address = self.person.email()
         return email_address
+
+    def get_processor(self):
+        processor = ""
+        if self.processor:
+            processor = self.processor.sortname()
+        return processor
 
     def get_id(self):
         ident = "None"
