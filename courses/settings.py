@@ -57,10 +57,6 @@ INSTALLED_APPS = (
     'haystack',
     'djcelery_email',
     'django_celery_beat',
-    'django_otp',
-    'django_otp.plugins.otp_totp',
-    'django_otp.plugins.otp_static',
-    'otp',
     'formtools',
     'coredata',
     'dashboard',
@@ -95,7 +91,6 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'otp.middleware.Authentication2FAMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'courselib.middleware.LoggingMiddleware',
@@ -153,15 +148,13 @@ if DEBUG:
 ALLOWED_HOSTS.extend(getattr(localsettings, 'MORE_ALLOWED_HOSTS', []))
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 1209600 # 2 weeks
+SESSION_COOKIE_AGE = 14*24*3600  # 2 weeks
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+PASSWORD_AUTH_AGE = 7*24*3600  # 1 week
 X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_TRUSTED_ORIGINS = getattr(localsettings, 'CSRF_TRUSTED_ORIGINS', [])
-
-PASSWORD_AUTH_AGE = 7*24*3600 # 1 week
-TWOFACTOR_AUTH_AGE = 31*24*3600 # 1 month
 
 # database config
 if DEPLOY_MODE in ['production', 'proddev']:
@@ -378,8 +371,7 @@ SHORT_DATETIME_FORMAT = "N d Y, H:i"
 GRAD_DATE_FORMAT = "m/d/Y"
 GRAD_DATETIME_FORMAT = "m/d/Y H:i"
 
-PASSWORD_LOGIN_URL = reverse_lazy('dashboard:login')
-LOGIN_URL = reverse_lazy('otp:login_2fa')
+LOGIN_URL = reverse_lazy('dashboard:login')
 LOGOUT_URL = reverse_lazy('dashboard:logout')
 LOGIN_REDIRECT_URL = "/"
 
@@ -395,7 +387,7 @@ FORCE_CAS = getattr(localsettings, 'FORCE_CAS', False)
 if not FORCE_CAS and (DEPLOY_MODE != 'production' or DEBUG) and hostname != 'courses':
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
     MIDDLEWARE.remove('django_cas_ng.middleware.CASMiddleware')
-    PASSWORD_LOGIN_URL = "/fake_login"
+    LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', True)
 
