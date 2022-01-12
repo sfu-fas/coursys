@@ -24,8 +24,7 @@ django-bitfield==2.0.1
 django-compressor==2.4.1
 django-npm==1.0.0
 #django-cache-utils==0.7.2
-#hg+https://bitbucket.org/ggbaker/django-cache-utils/@8a29823  # python 3 compatibility
-git+https://github.com/gregbaker/django-cache-utils@1525c9f
+git+https://github.com/gregbaker/django-cache-utils@e6a04c4
 celery==5.2.2
 kombu==5.2.2
 django-celery-email==3.0.0
