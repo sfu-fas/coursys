@@ -6,7 +6,7 @@ import itertools
 
 from django import forms
 from django.db import models
-from django.forms.forms import pretty_name
+from django.forms.utils import pretty_name
 from django.template import Context, Template
 
 from coredata.models import Role, Unit

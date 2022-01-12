@@ -237,7 +237,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
     english_fluency = models.CharField(max_length=50, blank=True, help_text="I.e. Read, Write, Speak, All.")
     mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. English, Chinese, French")
-    is_canadian = models.NullBooleanField()
+    is_canadian = models.BooleanField(null=True)
     passport_issued_by = models.CharField(max_length=30, blank=True, help_text="I.e. US, China")
     comments = models.TextField(max_length=250, blank=True, help_text="Additional information.")
 

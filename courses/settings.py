@@ -2,6 +2,7 @@ from django.conf import global_settings # Django defaults so we can modify them
 from django.urls import reverse_lazy
 import socket, sys, os
 hostname = socket.gethostname()
+assert sys.version_info >= (3, 7)  # some logic assumes the insertion-ordered dicts from Python 3.7+
 
 try:
     from . import localsettings
@@ -130,6 +131,7 @@ USE_I18N = False
 USE_L10N = False
 USE_TZ = False
 FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Disable migrations only when running tests.
 if 'test' in sys.argv[1:]:

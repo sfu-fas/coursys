@@ -3,7 +3,7 @@ import operator
 
 from django import forms
 from django.utils.safestring import mark_safe
-from django.forms.forms import pretty_name
+from django.forms.utils import pretty_name
 
 
 class SearchRule(object):

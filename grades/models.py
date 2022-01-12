@@ -319,7 +319,6 @@ class NumericActivity(Activity):
 
     class Meta:
         verbose_name_plural = "numeric activities"
-        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Numeric Graded"
@@ -358,7 +357,6 @@ class LetterActivity(Activity):
     """
     class Meta:
         verbose_name_plural = "letter activities"
-        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Letter Graded"
@@ -401,7 +399,6 @@ class CalNumericActivity(NumericActivity):
 
     class Meta:
         verbose_name_plural = "cal numeric activities"
-        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Calculated Numeric Grade"
@@ -429,7 +426,6 @@ class CalLetterActivity(LetterActivity):
     
     class Meta:
         verbose_name_plural = 'cal letter activities'
-        manager_inheritance_from_future = True
 
     def type_long(self):
         return "Calculated Letter Grade"

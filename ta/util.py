@@ -3,7 +3,8 @@ Created on Jan 27, 2012
 
 @author: jord
 '''
-from django.forms.forms import BoundField, conditional_escape
+from django.forms import BoundField
+from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 

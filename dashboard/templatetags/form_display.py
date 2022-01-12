@@ -6,7 +6,7 @@ from django.utils.html import conditional_escape as escape
 from django.utils.functional import Promise
 from django.forms.widgets import RadioSelect
 from grad.forms import SupervisorWidget
-from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.templatetags.static import static
 
 
 required_icon = '<i class="reqicon fa fa-star-o"></i>'

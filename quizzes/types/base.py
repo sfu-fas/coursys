@@ -38,7 +38,7 @@ class BaseConfigForm(forms.Form):
         super().__init__(*args, **kwargs)
         # reorder the fields, so marking and review are last
         fields = self.fields
-        assert isinstance(fields, OrderedDict), 'This logic assumes type of the Form.fields which is suddenly wrong'
+        # this code assumes dicts are insertion ordered, which they are in Python 3.7+ https://stackoverflow.com/a/39980744/6871666
         new_fields = fields.__class__()
         for f in fields:
             if f in ['marking', 'review']:
