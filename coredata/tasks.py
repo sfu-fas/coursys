@@ -136,6 +136,27 @@ def haystack_rebuild():
     haystack_rebuild_index()
 
 
+@task()
+def expire_sessions_conveniently():
+    """
+    Expire sessions before the full SESSION_COOKIE_AGE, but at a convenient time, so session don't disappear in the
+    middle of a workday.
+    """
+    hour = datetime.datetime.now().hour
+    if not (2 < hour < 6):
+        # If the task gets run at the wrong time (because celery was down or something), bail out. The whole point
+        # is to expire sessions at convenient times, so let's not fail at that. Worst case: inconvenient expiry
+        # after the full session length.
+        return
+
+    from importlib import import_module
+    engine = import_module(settings.SESSION_ENGINE)
+    session_store_class = engine.SessionStore.get_model_class()
+    cutoff = datetime.datetime.now() + datetime.timedelta(seconds=settings.PRE_EXPIRE_AGE)
+    expires_soon = session_store_class.objects.filter(expire_date__lte=cutoff)
+    expires_soon.delete()
+
+
 import logging
 logger = logging.getLogger(__name__)
 

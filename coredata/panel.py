@@ -553,8 +553,8 @@ def git_revision():
     return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
 
 def celery_info():
-    from celery.task.control import inspect
-    i = inspect()
+    from coredata.tasks import app
+    i = app.control.inspect()
     info = []
     active = i.active()
     if not active:

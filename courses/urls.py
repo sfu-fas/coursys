@@ -24,7 +24,6 @@ from inventory.urls import inventory_pattern
 from relationships.urls import relationship_patterns
 from space.urls import space_patterns
 from reminders.urls import reminders_patterns
-from otp.urls import otp_patterns
 
 import dashboard.views as dashboard_views
 import grad.views as grad_views
@@ -65,7 +64,6 @@ urlpatterns = [
     url(r'^news/', include((news_patterns, 'news'), namespace='news')),
     url(r'^students/', include((studentsearch_patterns, 'students'), namespace='students')),
     url(r'^sysadmin/', include((sysadmin_patterns, 'sysadmin'), namespace='sysadmin')),
-    url(r'^2fa/', include((otp_patterns, 'otp'), namespace='otp')),
 
     # course offering URL hierarchy: many apps sub-included there
     # among them: discipline, discuss, groups, marking, pages, submission

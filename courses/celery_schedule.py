@@ -17,6 +17,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'coredata.tasks.check_sims_connection',
         'schedule': crontab(minute=0, hour='*/3'),
     },
+    'coredata.tasks.expire_sessions_conveniently': {
+        'task': 'coredata.tasks.expire_sessions_conveniently',
+        'schedule': crontab(minute='0', hour='4'),
+    },
     'coredata.tasks.haystack_rebuild': {
         'task': 'coredata.tasks.haystack_rebuild',
         'schedule': crontab(minute='0', hour='2', day_of_week='saturday'),

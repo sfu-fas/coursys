@@ -6,9 +6,7 @@ Unidecode>=1.2.0
 
 django-autoslug==1.9.8
 django-formtools==2.3
-django-otp==0.6.0
 django-dirtyfields==1.7.0
-qrcode==6.1
 django-debug-toolbar==3.2.1
 jsonfield==3.1.0
 pyparsing==2.4.7
@@ -23,7 +21,6 @@ icalendar==4.0.7
 xlwt==1.3.0
 django-datatables-view==1.19.1
 django-bitfield==2.0.1
-##django-countries==5.3.3
 django-compressor==2.4.1
 django-npm==1.0.0
 #django-cache-utils==0.7.2
@@ -63,5 +60,5 @@ gunicorn==20.1.0
 mysqlclient==2.0.3
 paramiko>=2.7.1
 pyodbc==4.0.32
-#django-cas-ng==3.6.0
-git+https://github.com/gregbaker/django-cas-ng.git@08509c3ad23f69d6d4e69a0a66453d0221023f3d # fix for session_key bug (PR #195), and duplicate session_key bug (PR #209)
+django-cas-ng==4.3.0
+#git+https://github.com/gregbaker/django-cas-ng.git@08509c3ad23f69d6d4e69a0a66453d0221023f3d # fix for session_key bug (PR #195), and duplicate session_key bug (PR #209)
