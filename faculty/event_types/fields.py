@@ -4,7 +4,7 @@ import datetime
 from django import forms
 from django.utils.encoding import smart_str
 from fractions import Fraction
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 from django.utils.html import conditional_escape

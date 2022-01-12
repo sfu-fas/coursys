@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.models import modelformset_factory
 from django.template import Template, TemplateSyntaxError
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 
 from coredata.models import Semester, Unit, Person, Role, FuturePerson
 from coredata.forms import PersonField
