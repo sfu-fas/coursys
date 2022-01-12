@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 from courselib.urlparts import USERID_OR_EMPLID, ACCOUNT_SLUG, PROJECT_SLUG, RA_SLUG, SLUG_RE, ID_RE
 import ra.views as ra_views
 from ra.views import RANewRequestWizard, RAEditRequestWizard, FORMS, check_gras, check_ra, check_nc

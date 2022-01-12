@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 from courselib.urlparts import LETTER_TEMPLATE_SLUG, GRAD_SLUG, LETTER_TEMPLATE_ID, LETTER_SLUG, ID_RE
 import grad.views as grad_views
 

@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 from courselib.urlparts import COURSE_SLUG, USERID_OR_EMPLID, USERID_SLUG, \
                                EMPLID_SLUG, SEMESTER, UNIT_SLUG, SEMESTER
 

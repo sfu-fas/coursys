@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 from courselib.urlparts import UNIT_COURSE_SLUG, NOTE_ID, SEMESTER, COURSE_SLUG, ARTIFACT_SLUG, USERID_OR_EMPLID, \
     NONSTUDENT_SLUG, UNIT_SLUG, SLUG_RE
 import advisornotes.views as advisornotes_views

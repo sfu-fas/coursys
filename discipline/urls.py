@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 from courselib.urlparts import COURSE_SLUG, CASE_SLUG, DGROUP_SLUG
 import discipline.views as discipline_views
 

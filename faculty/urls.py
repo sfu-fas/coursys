@@ -1,5 +1,4 @@
-
-from django.conf.urls import url, include
+from django.urls import include, re_path as url
 from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE, UNIT_SLUG, COURSE_SLUG
 import faculty.views as faculty_views
 

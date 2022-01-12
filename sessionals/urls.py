@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 from sessionals import views
 from courselib.urlparts import SLUG_RE, ID_RE
 

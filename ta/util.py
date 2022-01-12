@@ -6,7 +6,7 @@ Created on Jan 27, 2012
 from django.forms import BoundField
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 
 def html_output_alt(self, normal_row, error_row, row_ender, help_text_html, errors_on_separate_row,
         extra_css_class_attr = "manual_css_classes"):
@@ -20,7 +20,7 @@ def html_output_alt(self, normal_row, error_row, row_ender, help_text_html, erro
         bf_errors = self.error_class([conditional_escape(error) for error in bf.errors]) # Escape and cache in local variable.
         if bf.is_hidden:
             if bf_errors:
-                top_errors.extend(['(Hidden field %s) extra_css_class_attr%s' % (name, force_text(e)) for e in bf_errors])
+                top_errors.extend(['(Hidden field %s) extra_css_class_attr%s' % (name, force_str(e)) for e in bf_errors])
             hidden_fields.append(str(bf))
         else:
             # Create a 'class="..."' atribute if the row should have any
@@ -30,10 +30,10 @@ def html_output_alt(self, normal_row, error_row, row_ender, help_text_html, erro
                 html_class_attr = ' class="%s"' % css_classes
 
             if errors_on_separate_row and bf_errors:
-                output.append(error_row % force_text(bf_errors))
+                output.append(error_row % force_str(bf_errors))
 
             if bf.label:
-                label = conditional_escape(force_text(bf.label))
+                label = conditional_escape(force_str(bf.label))
                 # Only add the suffix if the label does not end in
                 # punctuation.
                 if self.label_suffix:
@@ -44,13 +44,13 @@ def html_output_alt(self, normal_row, error_row, row_ender, help_text_html, erro
                 label = ''
 
             if field.help_text:
-                help_text = help_text_html % force_text(field.help_text)
+                help_text = help_text_html % force_str(field.help_text)
             else:
                 help_text = ''
 
             output.append(normal_row % {
-                'errors': force_text(bf_errors),
-                'label': force_text(label),
+                'errors': force_str(bf_errors),
+                'label': force_str(label),
                 'field': str(bf),
                 'help_text': help_text,
                 'html_class_attr': html_class_attr

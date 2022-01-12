@@ -1,5 +1,5 @@
-from django.conf.urls import url
-from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE
+from django.urls import re_path as url
+from courselib.urlparts import SLUG_RE
 import reports.views as reports_views
 
 REPORT_SLUG = '(?P<report>' + SLUG_RE + ')'

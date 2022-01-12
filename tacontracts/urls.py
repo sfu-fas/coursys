@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 from courselib.urlparts import SLUG_RE, SEMESTER, UNIT_SLUG, ID_RE
 import tacontracts.views as tacontracts_views
 

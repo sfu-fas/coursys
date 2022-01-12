@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 from courselib.urlparts import COURSE_SLUG, PAGE_LABEL
 import pages.views as pages_views
 

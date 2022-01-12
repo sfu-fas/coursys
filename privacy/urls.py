@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 import privacy.views as privacy_views
 
 privacy_patterns = [ # prefix /privacy/

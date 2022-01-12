@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 from courselib.urlparts import USERID_SLUG, ACTIVITY_MARK_ID, GROUP_SLUG
 import marking.views as marking_views
 

@@ -1,4 +1,4 @@
-from django.conf.urls import url, include
+from django.urls import include, re_path as url
 from django.views.generic import RedirectView
 from courselib.urlparts import USERID_SLUG, COURSE_SLUG, SLUG_RE, USERID_OR_EMPLID
 from privacy.urls import privacy_patterns

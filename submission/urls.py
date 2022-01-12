@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 from courselib.urlparts import USERID_SLUG, COMPONENT_SLUG, SUBMISSION_ID, GROUP_SLUG, SLUG_RE
 import submission.views as submission_views
 

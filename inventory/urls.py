@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 from inventory import views
 from courselib.urlparts import ID_RE, SLUG_RE
 
