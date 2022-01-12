@@ -102,7 +102,7 @@
         {% for comp,subcomp in submission_info.components_and_submitted %}
         <h3 id="submitted-{{ comp.slug }}">{{comp.title}}</h3>
 
-        {% ifequal subcomp None %}
+        {% if not subcomp %}
             <p class="empty"><i class="fa fa-exclamation-triangle warningmessage"></i> You haven't made a submission for this component.</p>
         {% else %}
             <ul class="component_description">
@@ -116,7 +116,7 @@
                 <li><a href="{% url "offering:submission:download_file" course_slug=course.slug activity_slug=activity.slug component_slug=comp.slug submission_id=subcomp.submission.id %}"><i class="fa fa-download"></i>
                     Download {{ subcomp.get_filename|default:'submission' }}</a></li>
             </ul>
-        {% endifequal %}
+        {% endif %}
         {% endfor %}
 
         {% else %}

@@ -36,19 +36,19 @@
                 <dt><label>Email:</label></dt>
                 <dd><p>{{ sheet_sub.filler.email_mailto }}</p></dd>
 			{% for field in fields %}
-                {% ifequal field.fieldtype "DIVI" %}
+                {% if field.fieldtype == "DIVI" %}
                     <hr class="clear" />
                 {% else %}
                     {% if sheetsWithFiles %}
                         {% for sheet_id, file_id in sheetsWithFiles.items %}
                             <dt><label>{{ field.label }}:</label></dt>
-                            <dd>{% ifequal sheet_id sheet_sub.id %}<a href="{% url "onlineforms:file_field_download" form_slug=form_slug formsubmit_slug=formsubmit_slug sheet_id=sheet_sub.id file_id=file_id disposition="attachment" %}">Download File</a>{% endifequal %}</dd>
+                            <dd>{% if sheet_id == sheet_sub.id %}<a href="{% url "onlineforms:file_field_download" form_slug=form_slug formsubmit_slug=formsubmit_slug sheet_id=sheet_sub.id file_id=file_id disposition="attachment" %}">Download File</a>{% endif %}</dd>
                         {% endfor %}
                     {% else %}
                         <dt><label>{{ field.label }}:</label></dt>
                         <dd>{{ field.html }}</dd>
                     {% endif %}
-                {% endifequal %}
+                {% endif %}
 			{% endfor %}
             <dt><label>Completed at:</label></dt>
             <dd>{% if sheet_sub.status == 'DONE' %}{{sheet_sub.completed_at}}{% else %}Still incomplete.{% endif %}</dd>

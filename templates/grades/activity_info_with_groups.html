@@ -50,14 +50,14 @@
 			</td>
   		  {% if mark_comps %}
 			<td class="iconcell">
-			{% ifequal group_grade_info.grade 'no grade'%}
+			{% if group_grade_info.grade == 'no grade'%}
 				<a href="{% url "offering:submission:take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?from_page={{from_page}}"><i class="fa fa-edit" title="Mark"></i></a>
 			{% else %}
 			    {{ group_grade_info.grade }}
 			    {% if activity.is_numeric %}
 			    <a href="{% url "offering:marking:mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}"><i class="fa fa-search" title="View detail"></i></a>
 			    {% endif %}
-			{% endifequal %}
+			{% endif %}
 			</td>
 		  {% else %}
 		  <td class="iconcell disabled"></td>

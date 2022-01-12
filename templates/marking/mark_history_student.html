@@ -41,9 +41,9 @@
 		      <td>
                <span class="sort">{{act_mark.created_at.isoformat}}</span>
 		       {{act_mark.created_at}}
-		       {% ifequal act_mark current_mark %}
+		       {% if act_mark == current_mark %}
 		       <i class="fa fa-check-circle infomessage"></i>
-		       {% endifequal %}		       
+		       {% endif %}
 		      </td>
 	          <td>{{ act_mark.created_by }}</td>           
 	          <td>{{ act_mark.mark }}/{{ activity.max_grade }}
@@ -71,9 +71,9 @@
 		      <td>
                <span class="sort">{{act_mark.created_at.isoformat}}</span>
 		       {{act_mark.created_at}}
-		       {% ifequal act_mark current_mark %}
+		       {% if act_mark == current_mark %}
 		       <i class="fa fa-check-circle infomessage"></i>
-		       {% endifequal %}		       
+		       {% endif %}
 		      </td>		      
 	          <td>{{ act_mark.group.name }}</td> 
 	          <td>{{ act_mark.created_by }}</td>          

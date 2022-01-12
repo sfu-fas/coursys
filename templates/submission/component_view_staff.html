@@ -19,7 +19,7 @@
 
 {% block content %}
 <div class="form_container">
-{% ifequal component_list|length 0 %}
+{% if component_list|length == 0 %}
     <p class="empty">
         No components configured.
     </p>
@@ -42,7 +42,7 @@
     {% endfor %}
     <p><input type="submit" class="submit" value="Update Positions"/></p>
     </form>
-{% endifequal %}
+{% endif %}
     <br/>
 </div>
 

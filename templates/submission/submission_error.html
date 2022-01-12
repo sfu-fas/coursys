@@ -3,32 +3,32 @@
 {% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{course.name}}</a></li><li><a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li><li><a href="{% url "offering:submission:show_components" course.slug activity.slug%}">Submission</a></li><li>Error Detected</li>{% endblock %}
 
 {% block h1 %}
-    {%ifequal not_submitted_comp|length 0 %}
+    {%if not_submitted_comp|length == 0 %}
         Submission succeeded
     {%else%}
-        {% ifequal submitted_comp|length 0 %}
+        {% if submitted_comp|length == 0 %}
              Nothing submitted
         {%else%}
             Problem detected in your submission
-        {% endifequal %}
-    {%endifequal%}
+        {% endif %}
+    {%endif%}
 {% endblock %}
 {% block title %}
-    {%ifequal not_submitted_comp|length 0 %}
+    {%if not_submitted_comp|length == 0 %}
         Submission succeeded
     {%else%}
-        {% ifequal submitted_comp|length 0 %}
+        {% if submitted_comp|length == 0 %}
             Nothing submitted
         {%else%}
             Problem detected in your submission
-        {% endifequal %}
-    {%endifequal%}
+        {% endif %}
+    {%endif%}
 {% endblock %}
 
 {% block content %}
     <div id="submission_error_container">
         {# If every component is submitted and has no error #}
-        {%ifequal not_submitted_comp|length 0 %}
+        {%if not_submitted_comp|length == 0 %}
             <a href="{% url "offering:submission:show_components" course_slug=course.slug activity_slug=activity.slug%}" class="button">continue</a>
         {# if there are errors in several submitted component#}
         {%else%}
@@ -49,7 +49,7 @@
             </ul>
 
             {# if no component is submitted successfully #}
-            {% ifequal submitted_comp|length 0 %}
+            {% if submitted_comp|length == 0 %}
             {% else %}
                 <h2 id="success">Successfully Submitted</h2>
                 <ul>
@@ -57,8 +57,8 @@
                       <li><i class="fa fa-check-circle successmessage"></i> {{component.component.title}}</li>
                     {% endfor %}
                 </ul>
-            {% endifequal %}
+            {% endif %}
             <p><a href="{% url "offering:submission:show_components" course_slug=course.slug activity_slug=activity.slug%}" class="button">Return to {{ activity.name }} submission</a></p>
-        {%endifequal%}
+        {%endif%}
     </div>
 {% endblock %}

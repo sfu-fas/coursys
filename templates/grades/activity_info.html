@@ -107,12 +107,12 @@ Column logic:
     <ul>
 {% if activity.group %}
 <li>
-{% ifequal activity_view_type 'group' %}
+{% if activity_view_type == 'group' %}
 <a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug%}">View By Student</a>
-{% endifequal %}
-{% ifequal activity_view_type 'individual' %}
+{% endif %}
+{% if activity_view_type == 'individual' %}
 <a href="{% url "offering:activity_info_with_groups" course_slug=course.slug activity_slug=activity.slug%}">View By Group</a>
-{% endifequal %}</li>
+{% endif %}</li>
 {% endif %}
 
 	    <li{% if activity.group %} class="newsec"{% endif %}><a href="{% url "offering:edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit Activity Details</a></li>

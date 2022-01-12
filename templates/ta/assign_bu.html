@@ -227,9 +227,9 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
         <td scope="row"><a href="{% url "ta:view_application" post_slug=posting.slug userid=a.person.userid %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
         <td>
             {% for form in formset %}
-                {% ifequal forloop.counter forloop.parentloop.counter %}
+                {% if forloop.counter == forloop.parentloop.counter %}
                   {{ form.rank }}  {{ form.rank.errors }}
-                {% endifequal %}
+                {% endif %}
             {% endfor %}
         </td>
         <td>
@@ -244,9 +244,9 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
         <td class='prep_bu'>{{ a.assigned_course.prep_bu }}</td>
         <td>
             {% for form in formset %}
-                {% ifequal forloop.counter forloop.parentloop.counter %}
+                {% if forloop.counter == forloop.parentloop.counter %}
                     {{ form.bu }}
-                {% endifequal %}
+                {% endif %}
             {% endfor %}
         </td>
       </tr>	

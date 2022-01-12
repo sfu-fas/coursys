@@ -3,12 +3,12 @@
 {% load static %}
 
 {% block h1 %}
-{% ifequal form_type 'add' %}Add Calculated Numeric Activity{% endifequal %}
-{% ifequal form_type 'edit' %}Edit Calculated Numeric Activity{% endifequal %}
+{% if form_type == 'add' %}Add Calculated Numeric Activity{% endif %}
+{% if form_type == 'edit' %}Edit Calculated Numeric Activity{% endif %}
 {% endblock %}
 {% block title %}
-{% ifequal form_type 'add' %}{{ course.name }} - Add Calculated Numeric Activity{% endifequal %}
-{% ifequal form_type 'edit' %}{{ course.name }} - Edit Calculated Numeric Activity{% endifequal %}
+{% if form_type == 'add' %}{{ course.name }} - Add Calculated Numeric Activity{% endif %}
+{% if form_type == 'edit' %}{{ course.name }} - Edit Calculated Numeric Activity{% endif %}
 {% endblock %}
 
 {% block headextra %}
@@ -22,12 +22,12 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% ifequal form_type 'add' %}<li>Add Calculated Numeric Activity</li>{% endifequal %}{% if activity %}<li><a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>{% endif %}{% ifequal form_type 'edit' %}<li>Edit</li>{% endifequal %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% if form_type == 'add' %}<li>Add Calculated Numeric Activity</li>{% endif %}{% if activity %}<li><a href="{% url "offering:activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>{% endif %}{% if form_type == 'edit' %}<li>Edit</li>{% endif %}{% endblock %}
 
 
 {% block content %}
 <div class="form_container">
-    <form action="{% ifequal form_type 'add' %}{% url "offering:add_cal_numeric_activity" course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url "offering:edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}"
+    <form action="{% if form_type == 'add' %}{% url "offering:add_cal_numeric_activity" course_slug=course.slug %}{% endif %}{% if form_type == 'edit' %}{% url "offering:edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endif %}"
                 method="post">{% csrf_token %}
         <fieldset>
             {{ form|as_dl_excludefields:"showstats,showhisto,calculation_leak" }}
@@ -77,11 +77,11 @@ $(document).ready(function() {
 
 
     </form>
-    {% ifequal form_type 'edit' %}
+    {% if form_type == 'edit' %}
     <form action="{% url "offering:delete_activity" course_slug=course.slug activity_slug=activity.slug %}" method="post" name="deleteform">{% csrf_token %}
     <p><input type="submit" class="submit confirm-submit" value="Delete Activity" id="deletesubmit" data-submit-action="delete this activity" /></p>
     </form>
-    {% endifequal %}
+    {% endif %}
 </div>
 
 <h2 id="help">Formula Help</h2>
