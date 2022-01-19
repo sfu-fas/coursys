@@ -350,6 +350,7 @@ MAX_SUBMISSION_SIZE = 30000 # kB
 CAS_SERVER_URL = "https://cas.sfu.ca/cas/"
 CAS_VERSION = '3'
 CAS_LOGIN_MSG = None
+CAS_CHECK_NEXT = False
 EMAIL_HOST = getattr(localsettings, 'EMAIL_HOST', 'mailgate.sfu.ca')
 EMAIL_PORT = getattr(localsettings, 'EMAIL_PORT', 465)
 EMAIL_USE_SSL = getattr(localsettings, 'EMAIL_USE_SSL', True)
