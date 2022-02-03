@@ -194,6 +194,11 @@ class CaseLetterSentForm(forms.ModelForm):
                             kwargs={'field': 'letter_review', 'course_slug':case.offering.slug, 'case_slug':case.slug}))))
             self.instance.send_letter_now = True # trigger email sending in view logic
         elif letter_sent=="OTHR":
+            nxt = case.next_step()
+            if nxt != 'letter_sent':
+                txt = STEP_TEXT[case.next_step()]
+                url = case.next_step_url()
+                raise forms.ValidationError(mark_safe('Cannot finalize case: you need to <a href="%s">%s</a>.' % (url, txt)))
             if not text.strip():
                 raise forms.ValidationError('Please enter details of the letter delivery.')
             if not date:
