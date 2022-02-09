@@ -95,7 +95,7 @@ STEP_TEXT = { # map of field -> description of the step
         'meeting_summary': "enter a summary of the student meeting/email",
         'facts': "summarize the facts of the case",
         'penalty': 'assign a penalty',
-        'letter_review': 'review letter to student',
+        'letter_review': 'review case details',
         'letter_sent': "send the letter",
         'penalty_implemented': "confirm penalty has been implemented",
 
