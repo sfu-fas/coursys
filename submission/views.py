@@ -101,7 +101,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         not_submitted_comp = [] #list allcomponents which has no content submitted in the POST
         if not activity.group:
             new_sub = StudentSubmission()   # the submission foreign key for newly submitted components
-            new_sub.member = get_object_or_404(Member, offering__slug=course_slug, person__userid=request.user.username)
+            new_sub.member = get_object_or_404(Member.objects.exclude(role='DROP'), offering__slug=course_slug, person__userid=request.user.username)
         elif gm:
             new_sub = GroupSubmission()
             new_sub.group = group
@@ -199,7 +199,7 @@ def show_components_submission_history(request, course_slug, activity_slug, user
     staff = False
 
     userid = userid or request.user.username
-    member = get_object_or_404(Member, find_member(userid), offering=offering)
+    member = get_object_or_404(Member, find_member(userid), offering=offering, role='STUD')
     submission_info = SubmissionInfo(student=member.person, activity=activity)
     submission_info.get_all_components()
     if not submission_info.accessible_by(request):
