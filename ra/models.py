@@ -203,8 +203,7 @@ DEFAULT_LETTER_GRASBW_INTRO = "This is to confirm your funding as a Research Tra
 
 DEFAULT_LETTER_GRAS = '\n\n'.join([
     """This agreement exists solely between you as a student and me as your research supervisor. This does not constitute as an offer of employment from Simon Fraser University.""",
-    """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from this income. You should set aside funds to cover your eventual income tax obligation.""",
-    """Hours of work: I expect these hours will not exceed 40 hours per week\n\n"""
+    """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from this income. You should set aside funds to cover your eventual income tax obligation.\n\n""",
     ])
 DEFAULT_LETTER_NC = '\n\n'.join([
     """This contract of employment exists solely between the Faculty of Applied Sciences and yourself. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
