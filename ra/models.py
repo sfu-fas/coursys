@@ -427,6 +427,7 @@ class RARequest(models.Model):
     # fs3_option - whether or not we have more than two funding sources
     # position_no - position number for appointment, to be filled out by admin for PAF configuration purposes
     # object_code - object code for appointment, to be filled out by admin for PAF configuration purposes
+    # encumbered_hours - alternate encumbered hours to be used in PAF
     # fs1_program, fs2_program, fs3_program - programs for each funding source of appointment, to be filled out by admin for PAF configuration purposes
     # fs1_biweekly_rate, fs2_biweekly_rate, fs3_biweekly_rate - biweekly rate for each funding source of appointment, to be filled out by admin for PAF configuration purposes
     # fs1_percentage, fs2_percentage, fs3_percentage - percentages for each funding source of appointment, to be filled out by admin for PAF configuration purposes
@@ -474,6 +475,9 @@ class RARequest(models.Model):
 
     # hiring category is based on the above student information
     hiring_category = models.CharField(max_length=80, default=None, choices=REQUEST_HIRING_CATEGORY)
+    
+    # encumbered hours
+    encumbered_hours = config_property('encumbered_hours', default='')
 
     # funding sources
     fs1_unit = models.IntegerField(default=0)
@@ -857,6 +861,14 @@ class RARequest(models.Model):
         elif self.hiring_category == "GRAS":
             line = "I agree to the conditions of this contract"
         return line
+
+    def get_encumbered_hours(self):
+        if self.backdated:
+            return self.backdate_hours
+        elif self.biweekly_hours > 0: 
+            return self.biweekly_hours
+        else:
+            return 0
 
     def get_absolute_url(self):
         return reverse('ra:view_request', kwargs={'ra_slug': self.slug})

@@ -960,7 +960,8 @@ class RARequestScienceAliveForm(forms.Form):
 class RARequestAdminPAFForm(forms.ModelForm):
     position_no = forms.IntegerField(required=False, label="Position #")
     object_code = forms.ChoiceField(required=False, label="Object Code for Funding Sources", choices=OBJECT_CHOICES)
-    paf_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':6, 'maxlength':275}), label="Comments", help_text = "Maximum of 310 characters")
+    paf_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':6, 'maxlength':305}), label="Comments", help_text = "Maximum of 305 characters")
+    encumbered_hours = forms.DecimalField(required=False, label="Alternate Encumbered Hours")
     fs1_program = forms.ChoiceField(required=False, label="Program for Funding Source #1", choices=PROGRAM_CHOICES)
     fs2_program = forms.ChoiceField(required=False, label="Program for Funding Source #2", choices=PROGRAM_CHOICES)
     fs3_program = forms.ChoiceField(required=False, label="Program for Funding Source #3", choices=PROGRAM_CHOICES)
@@ -978,16 +979,17 @@ class RARequestAdminPAFForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(RARequestAdminPAFForm, self).__init__(*args, **kwargs)
         config_init = ['position_no', 'object_code', 'fs1_program', 'fs2_program', 'fs3_program',
-                       'fs1_percentage', 'fs2_percentage', 'fs3_percentage', 
+                       'fs1_percentage', 'fs2_percentage', 'fs3_percentage', 'encumbered_hours',
                        'fs1_biweekly_rate', 'fs2_biweekly_rate', 'fs3_biweekly_rate', 'paf_comments']
         
+
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
     
     def clean(self):
         cleaned_data = super().clean()
         config_clean = ['position_no', 'object_code', 'fs1_program', 'fs2_program', 'fs3_program',
-                       'fs1_percentage', 'fs2_percentage', 'fs3_percentage', 
+                       'fs1_percentage', 'fs2_percentage', 'fs3_percentage', 'encumbered_hours',
                        'fs1_biweekly_rate', 'fs2_biweekly_rate', 'fs3_biweekly_rate', 'paf_comments']
 
         for field in config_clean:
