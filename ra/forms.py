@@ -56,7 +56,7 @@ MIN_WEEKS_VACATION = 2
 MIN_VACATION_PAY_PERCENTAGE = 4
 # unit contacts 
 CS_CONTACT = "csrahelp@sfu.ca"
-MSE_CONTACT = "msedsec@sfu.ca"
+MSE_CONTACT = "mse_admin_assistant@sfu.ca"
 ENSC_CONTACT = "enscfin@sfu.ca"
 SEE_CONTACT = "fas_admin_manager@sfu.ca"
 DEANS_CONTACT = "mrahinsk@sfu.ca"
@@ -518,7 +518,7 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
                     self.add_error('total_gross', error_message)
             if gras_payment_method == "BW":
                 if gross_hourly < MIN_WAGE:
-                    raise forms.ValidationError('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')')
+                    raise forms.ValidationError('Gross Hourly Rate Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')')
                 if biweekly_hours == 0 or biweekly_hours == None:
                     self.add_error('biweekly_hours', error_message)
                 if total_gross == 0 or total_gross == None:
@@ -565,7 +565,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
     biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
-    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly")
+    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly Rate ($)")
     vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)")
 
     class Meta:
@@ -635,12 +635,12 @@ class RARequestNonContinuingForm(forms.ModelForm):
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
                 if gross_hourly < MIN_WAGE:
-                    raise forms.ValidationError('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')')
+                    raise forms.ValidationError('Gross Hourly Rate Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')')
             if nc_payment_method == "H":
                 if gross_hourly == None:
                     self.add_error('gross_hourly', error_message)
                 elif gross_hourly < MIN_WAGE:
-                    self.add_error('gross_hourly', ('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')'))
+                    self.add_error('gross_hourly', ('Gross Hourly Rate Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')'))
                 if vacation_pay == None:
                     self.add_error('vacation_pay', error_message)
                 elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE:
@@ -692,12 +692,12 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
     vacation_hours = forms.DecimalField(required=False, widget=forms.HiddenInput)
-    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly")
+    gross_hourly = forms.DecimalField(required=False, label="Gross Hourly Rate ($)")
     vacation_pay = forms.DecimalField(required=False, label="Vacation Pay % (Minimum 4%)")
     
     ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
                                     label='Are you willing to provide extended health benefits?', 
-                                    help_text=mark_safe('<a href="http://www.sfu.ca/human-resources/research.html">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
+                                    help_text=mark_safe('<a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/forms/RA/RA%20Benefit%20Summary.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
 
     swpp = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Are you planning to apply for student wage subsidy through the Student Work Placement Program (SWPP)?",
                              help_text=mark_safe('<a href="https://www.sfu.ca/hire/covid19/funding.html">Please click here for information about SWPP</a>'))
@@ -788,12 +788,12 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
                 if gross_hourly < MIN_WAGE:
-                    raise forms.ValidationError('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')')
+                    raise forms.ValidationError('Gross Hourly Rate Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')')
             elif ra_payment_method == "H":
                 if gross_hourly == None:
                     self.add_error('gross_hourly', error_message)
                 elif gross_hourly < MIN_WAGE:
-                    self.add_error('gross_hourly', ('Gross Hourly Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')'))
+                    self.add_error('gross_hourly', ('Gross Hourly Rate Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')'))
                 if vacation_pay == None:
                     self.add_error('vacation_pay', error_message)
                 elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE:
@@ -960,7 +960,8 @@ class RARequestScienceAliveForm(forms.Form):
 class RARequestAdminPAFForm(forms.ModelForm):
     position_no = forms.IntegerField(required=False, label="Position #")
     object_code = forms.ChoiceField(required=False, label="Object Code for Funding Sources", choices=OBJECT_CHOICES)
-    paf_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':6, 'maxlength':275}), label="Comments", help_text = "Maximum of 310 characters")
+    paf_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':6, 'maxlength':305}), label="Comments", help_text = "Maximum of 305 characters")
+    encumbered_hours = forms.DecimalField(required=False, label="Alternate Encumbered Hours")
     fs1_program = forms.ChoiceField(required=False, label="Program for Funding Source #1", choices=PROGRAM_CHOICES)
     fs2_program = forms.ChoiceField(required=False, label="Program for Funding Source #2", choices=PROGRAM_CHOICES)
     fs3_program = forms.ChoiceField(required=False, label="Program for Funding Source #3", choices=PROGRAM_CHOICES)
@@ -978,16 +979,17 @@ class RARequestAdminPAFForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(RARequestAdminPAFForm, self).__init__(*args, **kwargs)
         config_init = ['position_no', 'object_code', 'fs1_program', 'fs2_program', 'fs3_program',
-                       'fs1_percentage', 'fs2_percentage', 'fs3_percentage', 
+                       'fs1_percentage', 'fs2_percentage', 'fs3_percentage', 'encumbered_hours',
                        'fs1_biweekly_rate', 'fs2_biweekly_rate', 'fs3_biweekly_rate', 'paf_comments']
         
+
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
     
     def clean(self):
         cleaned_data = super().clean()
         config_clean = ['position_no', 'object_code', 'fs1_program', 'fs2_program', 'fs3_program',
-                       'fs1_percentage', 'fs2_percentage', 'fs3_percentage', 
+                       'fs1_percentage', 'fs2_percentage', 'fs3_percentage', 'encumbered_hours',
                        'fs1_biweekly_rate', 'fs2_biweekly_rate', 'fs3_biweekly_rate', 'paf_comments']
 
         for field in config_clean:
