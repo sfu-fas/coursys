@@ -27,6 +27,8 @@
         {% if req.fs3_option %}
         {{ adminpafform|as_dl_includefields:"fs3_program" }}
         {% endif %}
+        {{ adminpafform|as_dl_includefields:"encumbered_hours"}} 
+        <div class="helptext">(Enter if different from <b>{{req.get_encumbered_hours}})</b></div>
         {% if req.fs2_option %}
         <h3>Bi-Weekly Rates and Percentages for Multiple Funding Sources</h3>
         <h4>Overall</h4>

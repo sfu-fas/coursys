@@ -203,8 +203,7 @@ DEFAULT_LETTER_GRASBW_INTRO = "This is to confirm your funding as a Research Tra
 
 DEFAULT_LETTER_GRAS = '\n\n'.join([
     """This agreement exists solely between you as a student and me as your research supervisor. This does not constitute as an offer of employment from Simon Fraser University.""",
-    """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from this income. You should set aside funds to cover your eventual income tax obligation.""",
-    """Hours of work: I expect these hours will not exceed 40 hours per week\n\n"""
+    """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from this income. You should set aside funds to cover your eventual income tax obligation.\n\n""",
     ])
 DEFAULT_LETTER_NC = '\n\n'.join([
     """This contract of employment exists solely between the Faculty of Applied Sciences and yourself. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
@@ -427,6 +426,7 @@ class RARequest(models.Model):
     # fs3_option - whether or not we have more than two funding sources
     # position_no - position number for appointment, to be filled out by admin for PAF configuration purposes
     # object_code - object code for appointment, to be filled out by admin for PAF configuration purposes
+    # encumbered_hours - alternate encumbered hours to be used in PAF
     # fs1_program, fs2_program, fs3_program - programs for each funding source of appointment, to be filled out by admin for PAF configuration purposes
     # fs1_biweekly_rate, fs2_biweekly_rate, fs3_biweekly_rate - biweekly rate for each funding source of appointment, to be filled out by admin for PAF configuration purposes
     # fs1_percentage, fs2_percentage, fs3_percentage - percentages for each funding source of appointment, to be filled out by admin for PAF configuration purposes
@@ -474,6 +474,9 @@ class RARequest(models.Model):
 
     # hiring category is based on the above student information
     hiring_category = models.CharField(max_length=80, default=None, choices=REQUEST_HIRING_CATEGORY)
+    
+    # encumbered hours
+    encumbered_hours = config_property('encumbered_hours', default='')
 
     # funding sources
     fs1_unit = models.IntegerField(default=0)
@@ -857,6 +860,14 @@ class RARequest(models.Model):
         elif self.hiring_category == "GRAS":
             line = "I agree to the conditions of this contract"
         return line
+
+    def get_encumbered_hours(self):
+        if self.backdated:
+            return self.backdate_hours
+        elif self.biweekly_hours > 0: 
+            return self.biweekly_hours
+        else:
+            return 0
 
     def get_absolute_url(self):
         return reverse('ra:view_request', kwargs={'ra_slug': self.slug})
