@@ -52,7 +52,7 @@ $(document).ready(function() {
     {% endif %}
     
     {% if has_grads %}<li><a href="{% url "dashboard:supervisor_index" %}"><i class="fa fa-li fa-group"></i> My Grad Students</a></li>{% endif %}
-    {% if has_ra_requests or has_ras or 'FAC' in roles %}<li><a href="{% url "ra:browse_appointments" %}"><i class="fa fa-li fa-user-plus"></i> My RA Dashboard</a></li>{% endif %}
+    {% if has_ra_requests or has_ras or 'FDRE' in roles %}<li><a href="{% url "ra:browse_appointments" %}"><i class="fa fa-li fa-user-plus"></i> My RA Dashboard</a></li>{% endif %}
 
     {% if 'SYSA' in roles %}
     <li><a href="{% url "sysadmin:sysadmin" %}"><i class="fa fa-li fa-bolt"></i> System Administration</a></li>{% endif %}
