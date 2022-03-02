@@ -716,7 +716,11 @@ class Sheet(models.Model, _FormCoherenceMixin):
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
-    
+    # 'emailsubmission':  Whether a submission should be emailed once someone submits the sheet.
+
+    defaults = {'emailsubmission': False}
+    emailsubmission, set_emailsubmission = getter_setter('emailsubmission')
+
     def autoslug(self):
         return make_slug(self.title)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='form')
@@ -790,8 +794,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
     
     def get_can_view_display_short(self):
         return VIEWABLE_SHORT[self.can_view]
-
-
+        
 class Field(models.Model, _FormCoherenceMixin):
     label = models.CharField(max_length=60, null=False, blank=False)
     # the sheet this field is a part of
@@ -1203,6 +1206,17 @@ class SheetSubmission(models.Model):
         FormLogEntry.create(sheet_submission=self, category='MAIL',
                 description='Notified %s of returned sheet.' % (self.filler.full_email(),))
 
+    def emailsubmission_to_initiator(self, formsub, recipient, filled_sheets, subjectsuffix):        
+        subject = 'Copy of %s (%s) submission %s ' % (formsub.form.title, self.sheet.title, subjectsuffix)
+        plaintext = get_template('onlineforms/emails/notify_submission_copy.txt')
+        context = {'form_submission': formsub, 'filled_sheets': filled_sheets, 'admin': formsub.initiator, 'sheet_submission': self}
+        msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(context),
+                                     from_email=settings.DEFAULT_FROM_EMAIL, to=[recipient],
+                                     headers={'X-coursys-topic': 'onlineforms'})
+        #msg.attach_alternative(html.render(context), "text/html")
+        msg.send()
+        #print ("inside email - initiator", sheet_submission.form_submission.initiator.getFormFiller().email())
+        #print ("inside email - filler", sheet_submission.filler.email())
 
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission, on_delete=models.PROTECT)

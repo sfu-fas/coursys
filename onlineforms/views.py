@@ -8,7 +8,7 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.urls import reverse
 import django.db.transaction
 from django.db.models import Q, Count
-from django.utils.html import conditional_escape
+from django.utils.html import conditional_escape, strip_tags
 from django.utils.safestring import mark_safe
 from courselib.auth import ForbiddenResponse, requires_role, requires_form_admin_by_slug, \
     requires_formgroup, login_redirect, requires_global_role
@@ -702,6 +702,8 @@ def new_sheet(request, form_slug):
             form = SheetForm(request.POST)
             if form.is_valid():
                 sheet = Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
+                sheet.set_emailsubmission(form.cleaned_data['emailsubmission'])
+                sheet.save()                
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                     description=("Created form sheet %s.") % (sheet,),
@@ -822,6 +824,8 @@ def edit_sheet_info(request, form_slug, sheet_slug):
             form = EditSheetForm(request.POST, instance=owner_sheet)
             if form.is_valid():
                 new_sheet = owner_sheet.safe_save()
+                new_sheet.set_emailsubmission(form.cleaned_data['emailsubmission'])
+                new_sheet.save()   
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                     description=("Edited form sheet %s.") % (new_sheet,),
@@ -831,6 +835,7 @@ def edit_sheet_info(request, form_slug, sheet_slug):
                     kwargs={'form_slug': owner_form.slug, 'sheet_slug': new_sheet.slug}))
         else:
             form = EditSheetForm(instance=owner_sheet)
+            form.initial['emailsubmission'] = owner_sheet.emailsubmission
 
         context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet}
         return render(request, 'onlineforms/edit_sheet_info.html', context)
@@ -1675,6 +1680,16 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
 
                         if sheet.is_initial and sheet.form.autoconfirm():
                             sheet.form.email_confirm(formFiller)
+                        if sheet.config.get('emailsubmission') == 'Y':                            
+                            filled_sheets = _readonly_sheets(form_submission, sheet_submission)
+                            subjectsuffix = ''
+                            for sheet_sub, fields in filled_sheets:
+                                for field in fields:
+                                    if field.fieldtype in ('SMTX', 'MDTX'):
+                                        subjectsuffix = ' - ' + field.label + ' ' + strip_tags                                (field.html)
+                                        break
+                                
+                            sheet_submission.emailsubmission_to_initiator(form_submission, sheet_submission.form_submission.initiator.getFormFiller().email(), filled_sheets, subjectsuffix)
 
                         messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
                         return HttpResponseRedirect(reverse('onlineforms:index'))

@@ -114,8 +114,18 @@ class NewFormForm(FormForm):
 class SheetForm(forms.Form):
     title = forms.CharField(required=True, max_length=60, label=mark_safe('Title'), help_text='Name of the sheet')
     can_view = forms.ChoiceField(required=True, choices=VIEWABLE_CHOICES, label='Can view', help_text='When someone is filling out this sheet, what else can they see?')
+    emailsubmission = forms.ChoiceField(choices=(
+            ('Y', 'Yes'),            
+            ('N', 'No')),
+            required=False,
+            widget=forms.RadioSelect, initial='N', label="Email submission", help_text="Email initiator a copy of submission")
 
 class EditSheetForm(ModelForm):
+    emailsubmission = forms.ChoiceField(choices=(
+            ('Y', 'Yes'),            
+            ('N', 'No')),
+            required=False,
+            widget=forms.RadioSelect, label="Email submission", help_text="Email initiator a copy of submission")
     class Meta:
         model = Sheet
         exclude = ('active', 'original', 'order', 'is_initial', 'config', 'form')
