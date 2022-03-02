@@ -220,13 +220,15 @@ DEFAULT_LETTER_RA = '\n\n'.join([
 
 DEFAULT_LETTER_NCBW_VACATION = "Vacation time: This offer includes %(weeks_vacation)s weeks of vacation per calendar year, which will be __ days prorated for the duration of your appointment.\n\n"
 
+DEFAULT_LETTER_NC_EMPLOYMENT_STANDARDS = "Employment Standards Act: Any terms and conditions of employment which have not been expressly addressed in this letter but which are covered by the ESA, will be dealt with in conformity with the relevant provisions of the ESA, linked <a href='https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/00_96113_01'> here.</a>\n\n"
+
 DEFAULT_LETTER_TRAINING = "Mandatory SFU Safety Orientation Training: WorkSafe BC requires all new employees to take complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"
 
 DEFAULT_LETTER_CONCLUDE = "If you accept the terms of this letter, please sign and return the letter, retaining the original for your records.\n\n"
 DEFAULT_LETTER_CONCLUDE_NC = "If you accept the terms of this appointment, please sign and return the letter, retaining the original for your records.\n\n"
 
-DEFAULT_LETTER_NCH = DEFAULT_LETTER_NCH_INTRO + DEFAULT_LETTER_NC + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE_NC
-DEFAULT_LETTER_NCBW = DEFAULT_LETTER_NCBW_INTRO + DEFAULT_LETTER_NC + DEFAULT_LETTER_NCBW_VACATION + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE_NC
+DEFAULT_LETTER_NCH = DEFAULT_LETTER_NCH_INTRO + DEFAULT_LETTER_NC + DEFAULT_LETTER_NC_EMPLOYMENT_STANDARDS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE_NC
+DEFAULT_LETTER_NCBW = DEFAULT_LETTER_NCBW_INTRO + DEFAULT_LETTER_NC + DEFAULT_LETTER_NCBW_VACATION + DEFAULT_LETTER_NC_EMPLOYMENT_STANDARDS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE_NC
 DEFAULT_LETTER_RAH = DEFAULT_LETTER_RAH_INTRO + DEFAULT_LETTER_RA + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_RABW = DEFAULT_LETTER_RABW_INTRO + DEFAULT_LETTER_RA + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_GRASLS_OUTSIDE_CAN = DEFAULT_LETTER_GRASLS_INTRO_OUTSIDE_CAN + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE

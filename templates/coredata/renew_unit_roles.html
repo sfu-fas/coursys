@@ -18,6 +18,9 @@ $(document).ready(function() {
     "bJQueryUI": true,
     'aaSorting': [[1, 'asc']],
   } );
+  $("#selectAll").change(function() {
+        $(".checkMe:checkbox").prop('checked', this.checked);
+  } );
 } );
 </script>
 {% endblock %}
@@ -27,7 +30,7 @@ $(document).ready(function() {
 {% csrf_token %}
 <div class="datatable_container">
   <table id="roles" class="display">
-    <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Expires</th><th scope="col">Unit</th><th scope="col">Renew</th></tr></thead>
+    <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Expires</th><th scope="col">Unit</th><th scope="col">Renew {% if roles %}<input type="checkbox" id="selectAll"/>{% endif %}</th></tr></thead>
     <tbody>
     <strong>The following roles are eligible for renewal:</strong>
     {% for role in roles %}
@@ -37,7 +40,7 @@ $(document).ready(function() {
     <td>{{role.expiry.isoformat}}</td>
     <td>{{role.unit}}</td>
     <td>
-      <input type="checkbox" name="renewals" value="{{role.id}}">
+      <input type="checkbox" class="checkMe" name="renewals" value="{{role.id}}">
     </td></tr>
     {% endfor %}
     </tbody>

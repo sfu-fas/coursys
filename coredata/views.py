@@ -1055,7 +1055,7 @@ EXCLUDE_EMPLIDS = set(['953022983']) # exclude these from autocomplete
 def student_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
-    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND', 'SYSA', 'FACA', 'FAC'])
+    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND', 'SYSA', 'FACA', 'FDRE'])
     if not(roles & allowed) and not has_formgroup(request) and not has_global_role('DISC', request):
         # doesn't have any allowed roles
         return ForbiddenResponse(request, "Not permitted to do student search.")
