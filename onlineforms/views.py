@@ -1686,7 +1686,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             for sheet_sub, fields in filled_sheets:
                                 for field in fields:
                                     if field.fieldtype in ('SMTX', 'MDTX'):
-                                        subjectsuffix = ' - ' + field.label + ' ' + strip_tags                                (field.html)
+                                        subjectsuffix = ' - ' + field.label + ' ' + strip_tags(field.html)
                                         break
                                 
                             sheet_submission.emailsubmission_to_initiator(form_submission, sheet_submission.form_submission.initiator.getFormFiller().email(), filled_sheets, subjectsuffix)
