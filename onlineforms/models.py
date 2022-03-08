@@ -1216,8 +1216,6 @@ class SheetSubmission(models.Model):
                                      headers={'X-coursys-topic': 'onlineforms'})
         msg.attach_alternative(html.render(context), "text/html")
         msg.send()
-        #print ("inside email - initiator", sheet_submission.form_submission.initiator.getFormFiller().email())
-        #print ("inside email - filler", sheet_submission.filler.email())
 
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission, on_delete=models.PROTECT)
