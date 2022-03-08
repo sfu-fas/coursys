@@ -1680,7 +1680,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
 
                         if sheet.is_initial and sheet.form.autoconfirm():
                             sheet.form.email_confirm(formFiller)
-                        if sheet.config.get('emailsubmission') == 'Y':                            
+                        if sheet_submission.filler.isSFUPerson() and sheet.config.get('emailsubmission') == 'Y':                            
                             filled_sheets = _readonly_sheets(form_submission, sheet_submission)
                             subjectsuffix = ''
                             for sheet_sub, fields in filled_sheets:
@@ -1689,7 +1689,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                         subjectsuffix = ' - ' + field.label + ' ' + strip_tags(field.html)
                                         break
                                 
-                            sheet_submission.emailsubmission_to_initiator(form_submission, sheet_submission.form_submission.initiator.getFormFiller().email(), filled_sheets, subjectsuffix)
+                            sheet_submission.emailsubmission_to_initiator(form_submission, sheet_submission.filler.getFormFiller().email(), filled_sheets, subjectsuffix)
 
                         messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
                         return HttpResponseRedirect(reverse('onlineforms:index'))

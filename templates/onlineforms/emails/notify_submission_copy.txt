@@ -1,9 +1,8 @@
-Dear {{ form_submission.initiator }},
+Dear {{ sheet_submission.filler }},
 
 Here is a copy of submission.
 
 Form:  {{  form_submission.form.title }}
-Form originally submitted by: {{ form_submission.initiator }}
 Sheet:  {{ sheet_submission.sheet.title }}
 Sheet submitted by: {{ sheet_submission.filler }}
 {% if filled_sheets %}
