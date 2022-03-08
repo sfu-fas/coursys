@@ -1209,11 +1209,12 @@ class SheetSubmission(models.Model):
     def emailsubmission_to_initiator(self, formsub, recipient, filled_sheets, subjectsuffix):        
         subject = 'Copy of %s (%s) submission %s ' % (formsub.form.title, self.sheet.title, subjectsuffix)
         plaintext = get_template('onlineforms/emails/notify_submission_copy.txt')
+        html = get_template('onlineforms/emails/notify_submission_copy.html')
         context = {'form_submission': formsub, 'filled_sheets': filled_sheets, 'admin': formsub.initiator, 'sheet_submission': self}
         msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(context),
                                      from_email=settings.DEFAULT_FROM_EMAIL, to=[recipient],
                                      headers={'X-coursys-topic': 'onlineforms'})
-        #msg.attach_alternative(html.render(context), "text/html")
+        msg.attach_alternative(html.render(context), "text/html")
         msg.send()
         #print ("inside email - initiator", sheet_submission.form_submission.initiator.getFormFiller().email())
         #print ("inside email - filler", sheet_submission.filler.email())
