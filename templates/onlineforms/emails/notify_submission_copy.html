@@ -13,7 +13,7 @@ Sheet submitted by: {{ sheet_submission.filler }} <br>
         {%if sheet_sub == sheet_submission %}
                 {% for field in fields %}
     {{ field.label }}:{{ field.html|striptags|safe }} <br>
-                        {% endfor %}
+                {% endfor %}
         {% endif %}
     {% endfor %}
 {% endif %}
