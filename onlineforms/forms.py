@@ -118,14 +118,14 @@ class SheetForm(forms.Form):
             ('Y', 'Yes'),            
             ('N', 'No')),
             required=False,
-            widget=forms.RadioSelect, initial='N', label="Email submission", help_text="Email initiator a copy of submission")
+            widget=forms.RadioSelect, initial='N', label="Email submission", help_text="Email form filler a copy of submission")
 
 class EditSheetForm(ModelForm):
     emailsubmission = forms.ChoiceField(choices=(
             ('Y', 'Yes'),            
             ('N', 'No')),
             required=False,
-            widget=forms.RadioSelect, label="Email submission", help_text="Email initiator a copy of submission")
+            widget=forms.RadioSelect, label="Email submission", help_text="Email form filler a copy of submission")
     class Meta:
         model = Sheet
         exclude = ('active', 'original', 'order', 'is_initial', 'config', 'form')
