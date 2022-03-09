@@ -1689,7 +1689,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                         subjectsuffix = ' - ' + field.label + ' ' + strip_tags(field.html)
                                         break
                                 
-                            sheet_submission.emailsubmission_to_initiator(form_submission, sheet_submission.filler.getFormFiller().email(), filled_sheets, subjectsuffix)
+                            sheet_submission.emailsubmission_to_filler(form_submission, sheet_submission.filler.getFormFiller().email(), filled_sheets, subjectsuffix)
 
                         messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
                         return HttpResponseRedirect(reverse('onlineforms:index'))
