@@ -8,9 +8,9 @@ Sheet submitted by: {{ sheet_submission.filler }}
 {% if filled_sheets %}
     {% for sheet_sub, fields in  filled_sheets %}
         {%if sheet_sub == sheet_submission %}
-    		{% for field in fields %}                
-    {{ field.label }}:{{ field.html|striptags|safe }}                 
-			{% endfor %}      
-        {% endif %}      
+    		{% for field in fields %}
+    {{ field.label }}:{{ field.html|striptags|safe }}
+			{% endfor %}
+        {% endif %}
     {% endfor %}
 {% endif %}
