@@ -91,7 +91,7 @@
 <div class="table_container">
   <h2>Appointee Information</h2> 
   {% if not no_id and admin %} 
-    <i>(Click <a href="{% url "ra:appointee_appointments" userid=req.person.userid %}">here</a> to view all appointments for {{ person.name }})</i>
+    <i>(Click <a href="{% url "ra:appointee_appointments" userid=req.person.userid_or_emplid %}">here</a> to view all appointments for {{ person.name }})</i>
   {% endif %}
   <table class="info">
     {% if no_id %}
@@ -143,7 +143,7 @@
 <div class="table_container">
   <h2>Supervisor Information</h2>
   {% if admin %}
-    <i>(Click <a href="{% url "ra:supervisor_appointments" userid=req.supervisor.userid %}">here</a> to view all appointments that {{ supervisor.name }} is supervisor for)</i>
+    <i>(Click <a href="{% url "ra:supervisor_appointments" userid=req.supervisor.userid_or_emplid %}">here</a> to view all appointments that {{ supervisor.name }} is supervisor for)</i>
   {% endif %}
   <table class="info">
     <tr><th>ID:</th><td>{{ supervisor.emplid }}</td></tr>
