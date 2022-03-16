@@ -372,7 +372,7 @@ def cleanup_tmp(path: str = '/tmp'):
         age = now - st.st_atime
         if age < maxage:
             continue
-        os.remove(f)
+        os.remove(os.path.join(path, f))
 
 @task(queue='sims')
 def import_active_grad_gpas():
