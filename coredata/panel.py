@@ -326,11 +326,19 @@ def deploy_checks(request=None):
             failed.append(('File creation in ' + label, res))
 
     # space in /tmp
-    tmp_free = psutil.disk_usage('/tmp').free
-    if tmp_free > 4*1024*1024*1024:
-        passed.append(('Space in /tmp', 'okay'))
+    tmp_free = psutil.disk_usage('/tmp').free/1024/1024/1024
+    if tmp_free > 4:
+        passed.append(('Space in /tmp', 'okay (%.1f GB)' % (tmp_free,)))
     else:
-        failed.append(('Space in /tmp', 'Low: %i MB' % (tmp_free/1024/1024,)))
+        failed.append(('Space in /tmp', 'Low: %.1f GB' % (tmp_free,)))
+
+    # space in SUBMISSION_PATH
+    sub_free = psutil.disk_usage(settings.SUBMISSION_PATH).free/1024/1024/1024
+    # in prod, we have been running ~7G/month, so this checks for ~1 year of space
+    if sub_free > 7*12:
+        passed.append(('Space in SUBMISSION_PATH', 'okay (%.1f GB)' % (sub_free,)))
+    else:
+        failed.append(('Space in SUBMISSION_PATH', 'Low: %.1f GB' % (sub_free,)))
 
     # are any services listening publicly that shouldn't?
     hostname = socket.gethostname()

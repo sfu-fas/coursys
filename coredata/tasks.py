@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 from django.conf import settings
@@ -351,7 +352,27 @@ def daily_cleanup():
     SimilarityResult.cleanup_old()
     # deduplicate EnrolmentHistory
     EnrolmentHistory.deduplicate(start_date=datetime.date.today() - datetime.timedelta(days=30))
+    # clear orphaned tmp files
+    cleanup_tmp()
 
+
+def cleanup_tmp(path: str = '/tmp'):
+    """
+    Remove any old temporary files. (They can be left by aborted .zip file downloads.)
+    """
+    uid = os.getuid()
+    now = time.time()
+    maxage = 7 * 24 * 3600  # 7 days
+    for f in os.listdir(path):
+        st = os.stat(os.path.join(path, f))
+        # only files owned by us
+        if st.st_uid != uid:
+            continue
+        # only files not accessed recently
+        age = now - st.st_atime
+        if age < maxage:
+            continue
+        os.remove(f)
 
 @task(queue='sims')
 def import_active_grad_gpas():
