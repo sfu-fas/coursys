@@ -9,7 +9,7 @@ from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
-import os
+import os, datetime
 
 APPOINTMENT_TYPE = (
     ('AP', 'Appointment/Re-Appointment'),
@@ -51,7 +51,28 @@ OBJECT_CHOICES = (
 # TODO: Settings - would really like all of the following to be editable by funding admins (or even sys admins)
 # it should be the same across all units, and doesn't change with the semester
 # model with a single entry doesn't seem quite right? django-dbsettings?
-MIN_WAGE = 15.20
+
+# deal with upcoming minimum wage increases (only one at a time)
+NEW_MIN_WAGE_DATE = datetime.date(2022, 6, 1) # Update to most recent or upcoming minimum wage increase date, once known
+NEW_MIN_WAGE = 15.65 # Update to most recent or upcoming new minimum wage, once known
+MIN_WAGE = 15.20 # Update to new minimum wage once another upcoming minimum wage is known 
+
+def get_minimum_wage(date):
+    if date >= NEW_MIN_WAGE_DATE:
+        return NEW_MIN_WAGE
+    else:
+        return MIN_WAGE
+
+def get_minimum_wage_error(start_date, end_date):
+    message = 'Gross Hourly Rate Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % get_minimum_wage(datetime.date.today())) + ')'
+    if get_minimum_wage(start_date) != get_minimum_wage(end_date):
+        message += ' NOTE: A minimum wage increase occurs on ' + NEW_MIN_WAGE_DATE.strftime("%B %d, %Y") + '. Gross Hourly Rate must be at least ' + ("$%.2f" % NEW_MIN_WAGE) + \
+                   ' after this date. If you would like to pay below ' + ("$%.2f" % NEW_MIN_WAGE) + ' but above ' + ("$%.2f" % get_minimum_wage(start_date)) + ' for this appointment before ' + \
+                   NEW_MIN_WAGE_DATE.strftime("%B %d, %Y") + ", please create a separate request for that time period."
+    elif datetime.date.today() < NEW_MIN_WAGE_DATE and start_date >= NEW_MIN_WAGE_DATE:
+        message += ' NOTE: Minimum wage increases on ' + NEW_MIN_WAGE_DATE.strftime("%B %d, %Y") + ' to ' + ("$%.2f" % NEW_MIN_WAGE)
+    return message
+
 MIN_WEEKS_VACATION = 2
 MIN_VACATION_PAY_PERCENTAGE = 4
 # unit contacts 
@@ -488,7 +509,7 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
-        
+
         # add error messages
         error_message = "You must answer this question."
 
@@ -502,6 +523,9 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
         backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
         backdate_hours = cleaned_data.get('backdate_hours')
         backdate_reason = cleaned_data.get('backdate_reason')
+
+        start_date = self.initial['start_date']
+        end_date = self.initial['end_date']
 
         if backdated:
             if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
@@ -517,8 +541,9 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
                 if total_gross == 0 or total_gross == None:
                     self.add_error('total_gross', error_message)
             if gras_payment_method == "BW":
-                if gross_hourly < MIN_WAGE:
-                    raise forms.ValidationError('Gross Hourly Rate Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')')
+                if float(gross_hourly) < get_minimum_wage(end_date):
+                    message = get_minimum_wage_error(start_date, end_date)
+                    raise forms.ValidationError(message)
                 if biweekly_hours == 0 or biweekly_hours == None:
                     self.add_error('biweekly_hours', error_message)
                 if total_gross == 0 or total_gross == None:
@@ -539,7 +564,6 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
                 self.cleaned_data['biweekly_hours'] = 0
                 self.cleaned_data['biweekly_salary'] = 0
                 self.cleaned_data['gross_hourly'] = 0
-                
 
 
 class RARequestNonContinuingForm(forms.ModelForm):
@@ -605,8 +629,6 @@ class RARequestNonContinuingForm(forms.ModelForm):
         gross_hourly = cleaned_data.get('gross_hourly')
         biweekly_hours = cleaned_data.get('biweekly_hours')
         vacation_hours = cleaned_data.get('vacation_hours')
-
-        gross_hourly = cleaned_data.get('gross_hourly')
         vacation_pay = cleaned_data.get('vacation_pay')
         biweekly_hours = cleaned_data.get('biweekly_hours')
         
@@ -614,6 +636,9 @@ class RARequestNonContinuingForm(forms.ModelForm):
         backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
         backdate_hours = cleaned_data.get('backdate_hours')
         backdate_reason = cleaned_data.get('backdate_reason')
+        
+        start_date = self.initial['start_date']
+        end_date = self.initial['end_date']
 
         if backdated:
             if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
@@ -634,13 +659,15 @@ class RARequestNonContinuingForm(forms.ModelForm):
                     self.add_error('weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
-                if gross_hourly < MIN_WAGE:
-                    raise forms.ValidationError('Gross Hourly Rate Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')')
+                if float(gross_hourly) < get_minimum_wage(end_date):
+                    message = get_minimum_wage_error(start_date, end_date)
+                    raise forms.ValidationError(message)
             if nc_payment_method == "H":
                 if gross_hourly == None:
                     self.add_error('gross_hourly', error_message)
-                elif gross_hourly < MIN_WAGE:
-                    self.add_error('gross_hourly', ('Gross Hourly Rate Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')'))
+                elif float(gross_hourly) < get_minimum_wage(end_date):
+                    message = get_minimum_wage_error(start_date, end_date)
+                    raise forms.ValidationError(message)
                 if vacation_pay == None:
                     self.add_error('vacation_pay', error_message)
                 elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE:
@@ -767,6 +794,9 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
         backdate_hours = cleaned_data.get('backdate_hours')
         backdate_reason = cleaned_data.get('backdate_reason')
+                
+        start_date = self.initial['start_date']
+        end_date = self.initial['end_date']
 
         if backdated:
             if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
@@ -787,13 +817,15 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('weeks_vacation', ('Weeks Vacation Must Be At Least ' + str(MIN_WEEKS_VACATION) + ' Weeks'))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
-                if gross_hourly < MIN_WAGE:
-                    raise forms.ValidationError('Gross Hourly Rate Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')')
+                if float(gross_hourly) < get_minimum_wage(end_date):
+                    message = get_minimum_wage_error(start_date, end_date)
+                    raise forms.ValidationError(message)
             elif ra_payment_method == "H":
                 if gross_hourly == None:
                     self.add_error('gross_hourly', error_message)
-                elif gross_hourly < MIN_WAGE:
-                    self.add_error('gross_hourly', ('Gross Hourly Rate Must Be At Least Minimum Wage. (Currently: $' + ("%.2f" % MIN_WAGE) + ')'))
+                elif float(gross_hourly) < get_minimum_wage(end_date):
+                    message = get_minimum_wage_error(start_date, end_date)
+                    raise forms.ValidationError(message)
                 if vacation_pay == None:
                     self.add_error('vacation_pay', error_message)
                 elif vacation_pay < MIN_VACATION_PAY_PERCENTAGE:
