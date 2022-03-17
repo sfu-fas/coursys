@@ -701,7 +701,7 @@ def new_sheet(request, form_slug):
         if request.method == 'POST':
             form = SheetForm(request.POST)
             if form.is_valid():
-                sheet = Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
+                sheet = Sheet(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
                 sheet.set_emailsubmission(form.cleaned_data['emailsubmission'])
                 sheet.save()                
                 #LOG EVENT#
@@ -823,9 +823,8 @@ def edit_sheet_info(request, form_slug, sheet_slug):
         if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
             form = EditSheetForm(request.POST, instance=owner_sheet)
             if form.is_valid():
+                owner_sheet.set_emailsubmission(form.cleaned_data['emailsubmission'])
                 new_sheet = owner_sheet.safe_save()
-                new_sheet.set_emailsubmission(form.cleaned_data['emailsubmission'])
-                new_sheet.save()   
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                     description=("Edited form sheet %s.") % (new_sheet,),
