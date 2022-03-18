@@ -31,6 +31,8 @@ class SubmittedPDF(SubmittedComponent):
             return None
     def get_filename(self):
         return os.path.split(self.pdf.name)[1]
+    def get_fieldfile(self):
+        return self.pdf
 
     def download_response(self, **kwargs):
         response = HttpResponse(content_type="application/pdf")

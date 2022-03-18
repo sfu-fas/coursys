@@ -1,3 +1,4 @@
+import threading
 import zipfile
 import tempfile
 import os
@@ -6,6 +7,7 @@ import io
 import csv
 from pipes import quote
 from datetime import datetime
+from typing import List
 
 from wsgiref.util import FileWrapper
 from django.http import StreamingHttpResponse
@@ -428,6 +430,15 @@ class SubmissionInfo(object):
 
         return found, individual_subcomps, last_submission
 
+    @staticmethod
+    def hash_all(subcomps: List[SubmittedComponent]):
+        """
+        Calculate the hash of all files, discarding the results. Calling this should pre-fetch files from disk, in an
+        effort to speed up building the .zip.
+        """
+        for sc in subcomps:
+            sc.file_hash()
+
     def generate_submission_contents(self, z, prefix='', always_summary=True):
         """
         Assemble submissions and put in ZIP file.
@@ -445,12 +456,18 @@ class SubmissionInfo(object):
         # get SubmittedComponents and metadata
         found, individual_subcomps, last_submission = self.most_recent_submissions()
 
+        # start a thread to pre-fetch the second half of the files
+        subcomps_items = list(individual_subcomps.items())
+        all_subcomps = [sc for _, subcomps in subcomps_items for _, sc in subcomps]
+        t = threading.Thread(target=self.hash_all, args=(all_subcomps[len(all_subcomps)//2:],))
+        t.start()
+
         # Now add them to the ZIP
-        for slug, subcomps in individual_subcomps.items():
+        for slug, subcomps in subcomps_items:
             lastsub = last_submission[slug]
             p = os.path.join(prefix, slug)
             self._add_to_zip(z, self.activity, subcomps, lastsub.created_at,
-                    slug=lastsub.file_slug(), prefix=p, multi=multi)
+                             slug=lastsub.file_slug(), prefix=p, multi=multi)
 
             git_tags.extend((comp.slug, slug, sub.url, sub.tag) for comp, sub in subcomps if
                             isinstance(comp, GitTagComponent) and sub)

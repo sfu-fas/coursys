@@ -83,6 +83,8 @@ class SubmittedCode(SubmittedComponent):
             return None
     def get_filename(self):
         return os.path.split(self.code.name)[1]
+    def get_fieldfile(self):
+        return self.code
 
     def download_response(self, **kwargs):
         response = HttpResponse(content_type="text/plain")

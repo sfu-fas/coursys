@@ -1,5 +1,9 @@
+import hashlib
+from typing import Optional
+
 from django.db import models
 from django.core.validators import MaxValueValidator
+from django.db.models.fields.files import FieldFile
 from django.dispatch import receiver
 from grades.models import Activity
 from coredata.models import Member, Person,CourseOffering
@@ -183,6 +187,9 @@ class SubmittedComponent(models.Model):
         return group[0].creator.person
     def __str__(self):
         return "%s@%s" % (self.submission.activity, self.submission.created_at)
+    def get_fieldfile(self) -> Optional[FieldFile]:
+        # default implementation: subclasses should override and return the relevant FieldFile.
+        return None
 
     def sendfile(self, upfile, response):
         """
@@ -209,6 +216,23 @@ class SubmittedComponent(models.Model):
             filename = os.path.join(prefix, filename)
         return filename
 
+    def file_hash(self):
+        """
+        Create sha256 Hash of the submitted file contents, or None if this subclass doesn't contain a file
+        """
+        f = self.get_fieldfile()
+        if f is None:
+            return None
+
+        try:
+            fh = f.open('rb')
+        except IOError:
+            return None
+
+        h = hashlib.sha256()
+        for data in fh:
+            h.update(data)
+        return h
 
 
 # adapted from http://stackoverflow.com/questions/849142/how-to-limit-the-maximum-value-of-a-numeric-field-in-a-django-model

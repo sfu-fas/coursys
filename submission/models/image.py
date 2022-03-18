@@ -39,6 +39,8 @@ class SubmittedImage(SubmittedComponent):
             return None
     def get_filename(self):
         return os.path.split(self.image.name)[1]
+    def get_fieldfile(self):
+        return self.image
 
     def download_response(self, **kwargs):
         # figure out the MIME type

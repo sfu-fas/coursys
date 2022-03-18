@@ -85,6 +85,8 @@ class SubmittedOffice(SubmittedComponent):
             return None
     def get_filename(self):
         return os.path.split(self.office.name)[1]
+    def get_fieldfile(self):
+        return self.office
 
     def download_response(self, **kwargs):
         # figure out the MIME type
