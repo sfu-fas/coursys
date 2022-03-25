@@ -22,7 +22,9 @@
 
     {% if error_msg %}
         <p>{{ error_msg }}</p>
-        <p>If you have a SFU account, you can <a href="/login/">login here</a>.</p>
+        {% if not request.user.is_authenticated %}
+            <p>If you have a SFU account, you can <a href="/login/">login here</a>.</p>        
+        {% endif %}
     {% else %}
         {% if errors %}
             {{ errors }}
