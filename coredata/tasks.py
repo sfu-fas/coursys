@@ -364,9 +364,10 @@ def cleanup_tmp(path: str = '/tmp'):
     now = time.time()
     maxage = 7 * 24 * 3600  # 7 days
     for f in os.listdir(path):
-        st = os.stat(os.path.join(path, f))
+        fp = os.path.join(path, f)
+        st = os.stat(fp)
         # only files owned by us
-        if st.st_uid != uid:
+        if not os.path.isfile(fp) or st.st_uid != uid:
             continue
         # only files not accessed recently
         age = now - st.st_atime
