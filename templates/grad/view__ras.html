@@ -1,0 +1,53 @@
+<div class="datatable_container datatable">
+	<table class="display">
+        <thead>
+            <tr>
+                <th>Supervisor</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Total</th>
+                <th>Unit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in ras %}
+            <tr>
+                <td>
+                    <a href="{% url "ra:view_request" ra_slug=req.slug %}">{{ req.supervisor }}</a>
+                </td>
+                <td>
+                    <span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}
+                </td>
+                <td>
+                    <span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}
+                </td>
+                <td>
+                    ${{ req.total_pay }}
+                </td>
+                <td>
+                    {{ req.unit.label }}
+                </td>
+            </tr>
+            {% endfor %}
+            {% for req in oldras %}
+            <tr>
+                <td>
+                    <a href="{% url "ra:view" ra_slug=req.slug %}">{{ req.hiring_faculty }}</a>
+                </td>
+                <td>
+                    <span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}
+                </td>
+                <td>
+                    <span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}
+                </td>
+                <td>
+                    ${{ req.lump_sum_pay }}
+                </td>
+                <td>
+                    {{ req.unit.label }}
+                </td>
+            </tr>
+            {% endfor %}
+    </tbody>
+    </table>
+</div>
