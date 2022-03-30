@@ -287,7 +287,7 @@ class TAContract(models.Model):
                                      verbose_name= "During the contract, how many bi-weekly pay periods?")
     appointment = models.CharField(max_length=4, 
                             choices=APPOINTMENT_CHOICES, 
-                            default="INIT")
+                            default="REAP")
     conditional_appointment = models.BooleanField(default=False)
     tssu_appointment = models.BooleanField(default=True)
     
