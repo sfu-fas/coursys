@@ -1438,7 +1438,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
         
         # if no one can fill out this form, stop right now
         if owner_form.initiators == "NON" and not formsubmit_slug:
-            context = {'owner_form': owner_form, 'error_msg': "No one can fill out this form."}
+            context = {'owner_form': owner_form, 'error_msg': "This form is currently disabled. No one can fill out this form."}
             return render(request, 'onlineforms/submissions/sheet_submission.html', context)
 
         #get the sheet

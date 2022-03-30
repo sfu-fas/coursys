@@ -736,7 +736,7 @@ def download_resume(request, post_slug, userid):
     if not is_ta_admin:
         return ForbiddenResponse(request, 'You cannot access this application')
     resume = application.resume
-    filename = resume.name.rsplit('/')[-1]
+    filename = application.person.name() + '-' + resume.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(resume.chunks(), content_type=application.resume_mediatype)
     resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
     resp['Content-Length'] = resume.size
@@ -766,7 +766,7 @@ def download_transcript(request, post_slug, userid):
     if not is_ta_admin:
         return ForbiddenResponse(request, 'You cannot access this application')
     transcript = application.transcript
-    filename = transcript.name.rsplit('/')[-1]
+    filename = application.person.name() + '-' + transcript.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(transcript.chunks(), content_type=application.transcript_mediatype)
     resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
     resp['Content-Length'] = transcript.size
