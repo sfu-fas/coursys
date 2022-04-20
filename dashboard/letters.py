@@ -1029,7 +1029,6 @@ class RARequestForm(SFUMediaMixin):
         # comments
         self.c.setFont("Helvetica", 5)
         self._box_entry(1*mm, 113*mm, 201.5*mm, 17.5*mm)
-
         f = Frame(2*mm, 112.5*mm, 200*mm, 17*mm, 0, 0, 0, 0)
 
         comments = []
@@ -4206,6 +4205,13 @@ def position_yellow_form_tenure(position, outfile):
 
 
 class SessionalForm(FormMixin, SFUMediaMixin):
+    NOTE_STYLE = ParagraphStyle(name='Normal',
+                            fontName='Courier',
+                            fontSize=6.6,
+                            leading=6,
+                            textColor=black)
+
+    
     def __init__(self, *args, **kwargs):
         super(SessionalForm, self).__init__(*args, **kwargs)
         self._media_setup()
@@ -4359,7 +4365,16 @@ class SessionalForm(FormMixin, SFUMediaMixin):
         self.label_mid(112, 170, 'Codes 1 or 2')
         self.label_filled_centred(20.75, 164.4, contract.offering.subject)
         self.label_filled_centred(51.15, 164.4, contract.offering.number)
-        self.label_filled_small(64, 164.4, contract.course_hours_breakdown)
+
+        if contract.course_hours_breakdown:
+            if len(contract.course_hours_breakdown) > 28:
+                breakdown = []
+                breakdown.append(Paragraph(contract.course_hours_breakdown, style=self.NOTE_STYLE))
+                f = Frame(61.5*mm, 160.8*mm, 48*mm, 8*mm, 0, 0, 0, 0)
+                f.addFromList(breakdown, self.c)
+            else:
+                self.label_filled_small(61.5, 164.4, contract.course_hours_breakdown)
+
         self.label_filled_centred(151.9, 164.4, str(contract.contact_hours))
         self.label_filled_centred(180.5, 164.4, str(contract.total_salary))
         self.hline(0, x_max, 168.7)
