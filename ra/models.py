@@ -197,7 +197,6 @@ DEFAULT_LETTER_NCH_INTRO = "This is to confirm remuneration of work performed as
 DEFAULT_LETTER_NCBW_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_salary)s for a total amount of $%(total_pay)s, subject to all statutory income tax and benefit deductions. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
 DEFAULT_LETTER_RAH_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be $%(gross_hourly)s per hour plus %(vacation_pay)s percent vacation pay. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions.\n\n"""
 DEFAULT_LETTER_RABW_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. This remuneration will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s. You will be entitled to %(weeks_vacation)s weeks of paid vacation during each full calendar year of service and based on the terms of your appointment, your vacation entitlement is %(vacation_hours)s. You must submit and confirm all vacation requests.\n\n"
-DEFAULT_LETTER_GRASLS_INTRO_OUTSIDE_CAN = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you as a lump sum payment of $%(total_gross)s.\n\n" 
 DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you as a lump sum payment of $%(total_gross)s and will be made to you at the end of your term of appointment.\n\n"
 DEFAULT_LETTER_GRASBW_INTRO = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s.\n\n"
 
@@ -231,7 +230,6 @@ DEFAULT_LETTER_NCH = DEFAULT_LETTER_NCH_INTRO + DEFAULT_LETTER_NC + DEFAULT_LETT
 DEFAULT_LETTER_NCBW = DEFAULT_LETTER_NCBW_INTRO + DEFAULT_LETTER_NC + DEFAULT_LETTER_NCBW_VACATION + DEFAULT_LETTER_NC_EMPLOYMENT_STANDARDS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE_NC
 DEFAULT_LETTER_RAH = DEFAULT_LETTER_RAH_INTRO + DEFAULT_LETTER_RA + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_RABW = DEFAULT_LETTER_RABW_INTRO + DEFAULT_LETTER_RA + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
-DEFAULT_LETTER_GRASLS_OUTSIDE_CAN = DEFAULT_LETTER_GRASLS_INTRO_OUTSIDE_CAN + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_GRASLE_INSIDE_CAN = DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_GRASBW = DEFAULT_LETTER_GRASBW_INTRO + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 
@@ -253,9 +251,7 @@ REQUEST_HIRING_CATEGORY = (
 
 GRAS_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Biweekly salary for students with Canadian bank account.'),
-    ('LE', 'Lump sum payment for students with Canadian bank account (Funds will be paid at the end of the appointment term)'),
-    ('LS', 'Lump sum payment for students without Canadian bank account (Funds will be paid at the' +
-    ' START of the appointment term to the individuals student account)')
+    ('LE', 'Lump sum payment for students with Canadian bank account (Funds will be paid at the end of the appointment term)')
 )
 
 RA_PAYMENT_METHOD_CHOICES = (
@@ -696,14 +692,7 @@ class RARequest(models.Model):
                 }
                 text = DEFAULT_LETTER_NCBW % substitutions
         elif self.hiring_category == "GRAS":
-            if self.gras_payment_method == "LS":
-                substitutions = {
-                    'start_date': self.start_date.strftime("%B %d, %Y"),
-                    'end_date': self.end_date.strftime("%B %d, %Y"),
-                    'total_gross': self.total_gross
-                }
-                text = DEFAULT_LETTER_GRASLS_OUTSIDE_CAN % substitutions
-            elif self.gras_payment_method == "LE":
+            if self.gras_payment_method == "LE" or self.gras_payment_method == "LS":
                 substitutions = {
                     'start_date': self.start_date.strftime("%B %d, %Y"),
                     'end_date': self.end_date.strftime("%B %d, %Y"),

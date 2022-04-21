@@ -293,7 +293,7 @@ function ncPaymentMethod() {
 
 function grasPaymentMethod () {
     var grasPaymentMethod = $('input[name=graduate_research_assistant-gras_payment_method]:checked')
-    if (grasPaymentMethod.val() === 'LE' || grasPaymentMethod.val() === 'LS') {
+    if (grasPaymentMethod.val() === 'LE') {
         $('.biweekly_info').hide()
         hide(grasbw_fields)
         show(grasls_fields)
