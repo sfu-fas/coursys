@@ -20,6 +20,7 @@
 
 .ui-tabs .ui-tabs-nav {
     display: flex;
+    flex-wrap: wrap;
     font-weight: normal;
     background-color: rgb(255, 255, 255) !important;
     border: none;
@@ -60,7 +61,6 @@
 }
 
 .ui-autocomplete {
-    max-height: 600px;
     overflow-y: auto;
     overflow-x: hidden;
   }
@@ -82,7 +82,6 @@
     font-size: 85%;
     padding: .2em .4em;
     line-height: 1.5;
-    width: 1200px;
 }
 
 .ui-menu {
@@ -107,6 +106,7 @@
     padding: 12px 20px 12px 20px;
     border: 1px solid #ddd;
     border-radius:25px;
+    background: #ffffff;
     font-family: Verdana,Arial,sans-serif;
 }
 
@@ -120,4 +120,16 @@
     border-radius: 8px;
     margin-top:15px;
     margin-bottom:15px;
+}
+
+.actionlist {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.actionlist .btn{
+    display: inline;
+    padding: 12px;
+    margin-right: 5px;
+    margin-left: 0px;
 }

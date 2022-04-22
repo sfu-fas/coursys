@@ -61,6 +61,11 @@
                 select: function(event, ui) {   
                     window.location.href=ui.item.value;
                     return false;
+                },
+                // https://stackoverflow.com/questions/5643767/jquery-ui-autocomplete-width-not-set-correctly
+                open: function() {
+                    $("ul.ui-menu").width( $(this).innerWidth() );
+                    $("ul.ui-menu").height( 600 );
                 }
             })
             .catcomplete( "instance" )._renderItem = function( ul, form ) {
@@ -68,7 +73,12 @@
                 .append( "<div>" + form.title + "<br><li class='ui-autocomplete-description'>" + form.description + "</div></div>" )
                 .appendTo( ul );
             };    
-    });
+    
+            $(window).resize(function() {
+                $(".ui-autocomplete").css('display', 'none');
+            });
+        });
+    
 </script>
 {% endblock %}
 
