@@ -128,8 +128,7 @@
 }
 
 .actionlist .btn{
-    display: inline;
-    padding: 12px;
+    display: inline-block;
     margin-right: 5px;
     margin-left: 0px;
 }

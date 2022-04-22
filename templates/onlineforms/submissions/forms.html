@@ -84,27 +84,24 @@
 
 {% block content %}
 
-<p><b>
+<div class="actionlist">
 {% if form_groups or form_admin %}
     {% if form_groups %}
-        <a href="{% url "onlineforms:list_all" %}">Create/Edit Forms</a></li>
-        | <a href="{% url "onlineforms:admin_list_all" %}">Manage Submissions</a></li>
+        <a class="btn" href="{% url "onlineforms:list_all" %}">Create/Edit Forms</a></li>
+        <a class="btn" href="{% url "onlineforms:admin_list_all" %}">Manage Submissions</a></li>
     {% endif %}
     {% if form_admin %}
-        | <a href="{% url "onlineforms:manage_groups" %}">Manage Form Groups</a></li>
+        <a class="btn" href="{% url "onlineforms:manage_groups" %}">Manage Form Groups</a></li>
     {% endif %}
     {% if participated %}
-        | <a href="{% url "onlineforms:participated_in" %}">
+        <a class="btn" href="{% url "onlineforms:participated_in" %}">
             View forms in which you participated
         </a>
         {% endif %}
     {% elif participated %}
-        | <a href="{% url "onlineforms:participated_in" %}">View completed forms in which you participated</a></li>
+        <a class="btn" href="{% url "onlineforms:participated_in" %}">View completed forms in which you participated</a></li>
     {% endif %}
-</b></p>
-
-
-
+</div>
 
 {% if sheet_submissions %}
 <h2 id="assigned">Assigned Forms</h2>
