@@ -478,10 +478,7 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
     gras_payment_method = forms.ChoiceField(required=False,
                                             choices=GRAS_PAYMENT_METHOD_CHOICES, 
                                             widget=forms.RadioSelect, 
-                                            label="Scholarship (No added benefit & vacation cost)",
-                                            help_text='Canadian bank status impacts how students will be paid. This generally applies to International ' +
-                                            'students currently working outside of Canada, who do not have banking status in Canada. If the status is ' + 
-                                            'unknown please confirm with the student.')
+                                            label="Scholarship (No added benefit & vacation cost)")
     total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
     biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
@@ -537,7 +534,7 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
         elif gras_payment_method == None or gras_payment_method == "":
             self.add_error('gras_payment_method', error_message)
         else:
-            if gras_payment_method == "LS" or gras_payment_method == "LE":
+            if gras_payment_method == "LE":
                 if total_gross == 0 or total_gross == None:
                     self.add_error('total_gross', error_message)
             if gras_payment_method == "BW":
@@ -560,7 +557,7 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
             self.cleaned_data["backdate_lump_sum"] = 0
             self.cleaned_data["backdate_hours"] = 0
             self.cleaned_data["backdate_reason"] = ''
-            if gras_payment_method == "LS" or gras_payment_method == "LE":
+            if gras_payment_method == "LE":
                 self.cleaned_data['biweekly_hours'] = 0
                 self.cleaned_data['biweekly_salary'] = 0
                 self.cleaned_data['gross_hourly'] = 0
