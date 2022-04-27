@@ -362,7 +362,7 @@ def cleanup_tmp(path: str = '/tmp'):
     """
     uid = os.getuid()
     now = time.time()
-    maxage = 7 * 24 * 3600  # 7 days
+    maxage = 2 * 24 * 3600  # 2 days
     for f in os.listdir(path):
         fp = os.path.join(path, f)
         st = os.stat(fp)
@@ -374,6 +374,7 @@ def cleanup_tmp(path: str = '/tmp'):
         if age < maxage:
             continue
         os.remove(os.path.join(path, f))
+
 
 @task(queue='sims')
 def import_active_grad_gpas():

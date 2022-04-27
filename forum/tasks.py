@@ -2,7 +2,6 @@ import datetime
 import itertools
 from typing import Optional, List, Tuple
 
-from celery.schedules import crontab
 from django import template
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
@@ -11,7 +10,7 @@ from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils.safestring import SafeString
 
-from coredata.models import Member
+from coredata.models import Member, Semester
 from courselib.celerytasks import task
 from forum.models import Identity, Reply, ReadReply, Thread, ReadThread, APPROVAL_ROLES
 from forum.views import ACCESS_AFTER_SEMESTER
@@ -96,11 +95,17 @@ def send_digest(ident_id: int) -> None:
         email.send(fail_silently=False)
 
 
-def _relevant_idents() -> QuerySet:
+def _relevant_semester_ids() -> List[int]:
     now = datetime.datetime.now()
+    semester_ids = list(
+        Semester.objects.filter(start__lt=now, end__gt=now - ACCESS_AFTER_SEMESTER).values_list('id', flat=True)
+    )
+    return semester_ids
+
+
+def _relevant_idents() -> QuerySet:
     idents = Identity.objects.filter(
-        member__offering__semester__start__lt=now,
-        member__offering__semester__end__gt=now - ACCESS_AFTER_SEMESTER,
+        member__offering__semester_id__in=_relevant_semester_ids()
     ).exclude(member__role='DROP').select_related('offering', 'member', 'member__person')
     return idents
 
@@ -110,13 +115,11 @@ def create_instr_idents() -> None:
     """
     Find instructors/TAs without identity objects: create Identity objects for them so they have INSTR_DEFAULT_FREQUENCY.
     """
-    now = datetime.datetime.now()
-    idents = _relevant_idents()
-    ident_members = idents.values_list('member__id', flat=True)
+    idents = _relevant_idents().filter(member__role__in=APPROVAL_ROLES)
+    ident_members = list(idents.values_list('member__id', flat=True))
     members_without = Member.objects.filter(
         role__in=APPROVAL_ROLES,
-        offering__semester__start__lt=now,
-        offering__semester__end__gt=now - ACCESS_AFTER_SEMESTER
+        offering__semester_id__in=_relevant_semester_ids(),
     ).exclude(id__in=ident_members).select_related('offering')
 
     with transaction.atomic():

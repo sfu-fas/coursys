@@ -11,7 +11,7 @@ def _create_advising_notes(data, advisor, unit):
         notes = data['notes']
         if not isinstance(notes, (list, tuple)):
             raise ValidationError("Notes not in list format")
-        if len(notes) is 0:
+        if len(notes) == 0:
             raise ValidationError("No advising notes present")
     except KeyError:
         raise ValidationError("No advising notes present")
