@@ -721,7 +721,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     
     ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
                                     label='Are you willing to provide extended health benefits?', 
-                                    help_text=mark_safe('<a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/forms/RA/RA%20Benefit%20Summary.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
+                                    help_text=mark_safe('<a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/benefits/TSSU/RA%20Summary%20April%202022v2.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
 
     swpp = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Are you planning to apply for student wage subsidy through the Student Work Placement Program (SWPP)?",
                              help_text=mark_safe('<a href="https://www.sfu.ca/hire/covid19/funding.html">Please click here for information about SWPP</a>'))
