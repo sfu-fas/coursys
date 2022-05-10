@@ -66,7 +66,6 @@
                 // https://stackoverflow.com/questions/5643767/jquery-ui-autocomplete-width-not-set-correctly
                 open: function() {
                     $("ul.ui-menu").width( $(this).innerWidth() );
-                    $("ul.ui-menu").height( 600 );
                 }
             })
             .catcomplete( "instance" )._renderItem = function( ul, form ) {
