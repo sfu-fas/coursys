@@ -1019,8 +1019,8 @@ def formSearchAutocomplete(request):
     if request.is_ajax():
         q = request.GET.get('term', '').capitalize()
         forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
-        search_forms = forms.filter(Q(title__contains=q) | Q(description__contains=q))
-        forms = [form for form in forms if not form.unlisted()]
+        forms = forms.filter(Q(title__contains=q) | Q(description__contains=q))
+        search_forms = [form for form in forms if not form.unlisted()]
         results = []
         for r in search_forms:
             results.append({"unit": r.unit.name, "title": r.title, "description": r.description, "value": r.slug})
