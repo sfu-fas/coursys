@@ -135,38 +135,41 @@
     {% endif %}
     {% regroup forms by unit as unit_list %}
 
-    <h3>Search by Keyword:</h3>
-    <div class="form_section">
-        <p><input id="search" name="search" type="search" placeholder="Type to search for a form...."></p>
-    </div>
-
+    {% if not other_forms %}
+        <h3>Search by Keyword:</h3>
+        <div class="form_section">
+            <p><input id="search" name="search" type="search" placeholder="Type to search for a form...."></p>
+        </div>
+    {% endif %}
+    
     <h3>Search by School:</h3>        
     <div id="summary_heading">
-            <ul>
+        <ul>
             {% for data in unit_list %}
                 <li><a href="#summary_heading-{{ forloop.counter }}">{{ data.grouper.name }}</a></li>
             {% endfor %}
-            </ul>
-            {% for data in unit_list %}
-                <div id="summary_heading-{{ forloop.counter }}">
-                    <table class="display">
-                        <thead>
-                            <tr>
-                                <th scope="col">Name</th>
-                                <th scope="col">Details</th>
-                            </tr>
-                        </thead>
-                            {% for f in data.list %}
-                            <tr>
-                                <td width="20%"><a href="{% url "onlineforms:sheet_submission_initial" form_slug=f.slug %}">{{ f.title }}</a> </td>
-                                <td>{{ f.description }}</td>
-                            </tr>
-                            {% endfor %}
-                    </table>
-                </div>
-            {% endfor %}
-        </div>
-        {% if other_forms %}
+        </ul>
+        {% for data in unit_list %}
+            <div id="summary_heading-{{ forloop.counter }}">
+                <table class="display">
+                    <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Details</th>
+                        </tr>
+                    </thead>
+                    {% for f in data.list %}
+                        <tr>
+                            <td width="20%"><a href="{% url "onlineforms:sheet_submission_initial" form_slug=f.slug %}">{{ f.title }}</a> </td>
+                            <td>{{ f.description }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if other_forms %}
         <h2 id="other">Forms for Logged-In Users</h2>
 
         <table class="display">
@@ -183,7 +186,7 @@
                 </tr>
             {% endfor %}
         </table>
-        {% endif %}
+    {% endif %}
 
 {% endblock %}
 
