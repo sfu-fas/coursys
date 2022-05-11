@@ -713,7 +713,7 @@ class RARequest(models.Model):
                     'end_date': self.end_date.strftime("%B %d, %Y"),
                     'total_gross': '%.2f' % self.backdate_lump_sum
                 }
-                text = DEFAULT_LETTER_GRASLS_OUTSIDE_CAN % substitutions
+                text = DEFAULT_LETTER_GRASLE_INSIDE_CAN % substitutions
                 
         letter_text = text % substitutions
 
