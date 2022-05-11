@@ -87,11 +87,11 @@
 <div class="actionlist">
 {% if form_groups or form_admin %}
     {% if form_groups %}
-        <a class="btn" href="{% url "onlineforms:list_all" %}">Create/Edit Forms</a></li>
-        <a class="btn" href="{% url "onlineforms:admin_list_all" %}">Manage Submissions</a></li>
+        <a class="btn" href="{% url "onlineforms:list_all" %}">Create/Edit Forms</a>
+        <a class="btn" href="{% url "onlineforms:admin_list_all" %}">Manage Submissions</a>
     {% endif %}
     {% if form_admin %}
-        <a class="btn" href="{% url "onlineforms:manage_groups" %}">Manage Form Groups</a></li>
+        <a class="btn" href="{% url "onlineforms:manage_groups" %}">Manage Form Groups</a>
     {% endif %}
     {% if participated %}
         <a class="btn" href="{% url "onlineforms:participated_in" %}">
@@ -99,7 +99,7 @@
         </a>
         {% endif %}
     {% elif participated %}
-        <a class="btn" href="{% url "onlineforms:participated_in" %}">View completed forms in which you participated</a></li>
+        <a class="btn" href="{% url "onlineforms:participated_in" %}">View completed forms in which you participated</a>
     {% endif %}
 </div>
 
