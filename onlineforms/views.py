@@ -1015,6 +1015,7 @@ def index(request):
                'form_groups': form_groups, 'form_admin': form_admin, 'participated': participated}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
+@login_required()
 def formSearchAutocomplete(request):
     if request.is_ajax():
         q = request.GET.get('term', '').capitalize()
@@ -1026,7 +1027,7 @@ def formSearchAutocomplete(request):
             results.append({"unit": r.unit.name, "title": r.title, "description": r.description, "value": r.slug})
         data = json.dumps(results)
     else:
-        data = 'fail'
+        return HttpResponseRedirect(reverse('onlineforms:index'))
     mimetype = 'application/json'
     return HttpResponse(data, mimetype)
 
