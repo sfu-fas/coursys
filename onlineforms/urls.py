@@ -53,6 +53,7 @@ forms_patterns = [
     url(r'^manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/field-' + FIELD_SLUG + '$', onlineforms_views.edit_field, name='edit_field'),
 
     url(r'^$', onlineforms_views.index, name='index'),
+    url(r'^ajax_calls/form_search/', onlineforms_views.formSearchAutocomplete),
     url(r'^login/$', onlineforms_views.login, name='login'),
     url(r'^bulk$', onlineforms_views.bulk_assign, name='bulk_assign'),
     url(r'^participated/$', onlineforms_views.participated_in, name='participated_in'),
