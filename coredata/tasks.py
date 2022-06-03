@@ -126,13 +126,13 @@ def expiring_roles():
     Role.purge_expired()
 
 
-@task()
+@task(queue='sims')
 def haystack_update():
     haystack_update_index()
 
 
 # purge and rebuild the search index occasionally to get any orphaned records
-@task()
+@task(queue='sims')
 def haystack_rebuild():
     haystack_rebuild_index()
 
