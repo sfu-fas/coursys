@@ -82,7 +82,8 @@ def _build_funding_totals(semester, programs, units):
 
     # scholarships
     schols = Scholarship.objects.filter(student__program__unit__in=units,
-                                        start_semester__name__lte=semester.name, end_semester__name__gte=semester.name) \
+                                        start_semester__name__lte=semester.name, end_semester__name__gte=semester.name,
+                                        removed=False) \
                         .select_related('student', 'start_semester', 'end_semester')
     for sch in schols:
         prog_id = sch.student.program_id
@@ -93,7 +94,7 @@ def _build_funding_totals(semester, programs, units):
         total.funding_schol += pay
 
     # other funding
-    others = OtherFunding.objects.filter(student__program__unit__in=units, semester=semester).select_related('student')
+    others = OtherFunding.objects.filter(student__program__unit__in=units, semester=semester, removed=False).select_related('student')
     for oth in others:
         prog_id = oth.student.program_id
         prog = prog_lookup[prog_id]
