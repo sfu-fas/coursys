@@ -4,7 +4,9 @@ from coredata.models import Semester
 from grad.models import GradProgram, GradStudent, Scholarship, OtherFunding
 from grad.views.quick_search import ACTIVE_STATUS_ORDER
 from ta.models import TACourse
-from ra.models import RAAppointment
+from tacontracts.models import TAContract
+from ra.models import RAAppointment, RARequest
+
 import decimal
 
 def __startsem_name(gs):
@@ -48,6 +50,7 @@ def _build_funding_totals(semester, programs, units):
     prog_lookup = dict((prog.id, prog) for prog in programs)
 
     # TA funding
+    # - /ta
     tacourses = TACourse.objects.filter(contract__posting__semester=semester,
                                         contract__posting__unit__in=units,
                                         contract__status='SGN') \
@@ -62,8 +65,21 @@ def _build_funding_totals(semester, programs, units):
         pay = crs.pay()
         prog.funding_ta += pay
         total.funding_ta += pay
+    # - /tacontracts
+    tacontracts = TAContract.objects.filter(category__hiring_semester__semester=semester, category__hiring_semester__unit__in=units, status='SGN')
+    for tac in tacontracts: 
+        person_id = tac.person_id
+        if person_id in student_programs:
+            prog_id = student_programs[person_id]
+            prog = prog_lookup[prog_id]
+        else:
+            prog = non_grad
+        pay = tac.total
+        prog.funding_ta += pay
+        total.funding_ta += pay
 
     # RA funding
+    # - oldra
     sem_st, sem_en = RAAppointment.start_end_dates(semester)
     raappt = RAAppointment.objects.filter(unit__in=units, deleted=False, end_date__gte=sem_st, start_date__lte=sem_en)
     for ra in raappt:
@@ -77,6 +93,22 @@ def _build_funding_totals(semester, programs, units):
         if semlen == 0:
             semlen = 1
         pay = ra.lump_sum_pay/semlen
+        prog.funding_ra += pay
+        total.funding_ra += pay
+    # - newra
+    sem_st, sem_en = RARequest.start_end_dates(semester)
+    reqs = RARequest.objects.filter(unit__in=units, deleted=False, complete=True, draft=False, end_date__gte=sem_st, start_date__lte=sem_en)
+    for ra in reqs:
+        person_id = ra.person_id
+        if person_id in student_programs:
+            prog_id = student_programs[person_id]
+            prog = prog_lookup[prog_id]
+        else:
+            prog = non_grad
+        semlen = ra.semester_length()
+        if semlen == 0:
+            semlen = 1
+        pay = ra.total_pay/semlen
         prog.funding_ra += pay
         total.funding_ra += pay
 
