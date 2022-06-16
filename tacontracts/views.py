@@ -465,14 +465,19 @@ def sign_contract(request, unit_slug, semester, contract_slug):
                                      category__hiring_semester=hiring_semester,
                                      slug=contract_slug,
                                      category__account__unit__in=request.units)
-        contract.sign()
-        messages.add_message(request, 
-                             messages.SUCCESS, 
-                             'Contract signed!')
-        l = LogEntry(userid=request.user.username,
-                     description="Signed contract %s." % str(contract),
-                     related_object=contract)
-        l.save()
+        if contract.visa_verified:
+            contract.sign()
+            messages.add_message(request, 
+                                messages.SUCCESS, 
+                                'Contract signed!')
+            l = LogEntry(userid=request.user.username,
+                        description="Signed contract %s." % str(contract),
+                        related_object=contract)
+            l.save()
+        else:
+            messages.add_message(request, 
+                                messages.ERROR, 
+                                'You must verify the TA\'s visa information before signing this contract')
         return _contract_redirect(unit_slug, semester, contract_slug)
     else:
         return _contract_redirect(unit_slug, semester, contract_slug)
