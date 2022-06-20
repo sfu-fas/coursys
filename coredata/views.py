@@ -10,7 +10,7 @@ from courselib.auth import requires_global_role, requires_role, requires_course_
         has_formgroup, has_global_role
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
-    AnyPerson, FuturePerson, RoleAccount, CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
+    AnyPerson, FuturePerson, RoleAccount, CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES, DISC_ROLES
 from coredata import panel
 from advisornotes.models import NonStudent
 from onlineforms.models import FormGroup, FormGroupMember
@@ -799,7 +799,7 @@ def offboard_unit(request):
             delete_roles = form.cleaned_data['delete_roles']
             delete_formgroups = form.cleaned_data['delete_formgroups']
             roles = Role.objects_fresh.filter(person=person, unit__in=Unit.sub_units(request.units),
-                                              role__in=UNIT_ROLES)
+                                              role__in=UNIT_ROLES + DISC_ROLES)
             groups = FormGroup.objects.filter(members=person, unit__in=Unit.sub_units(request.units))
             if delete_roles:
                 for role in roles:
