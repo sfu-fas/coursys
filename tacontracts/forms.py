@@ -85,6 +85,9 @@ class TACourseForm(forms.ModelForm):
     def __init__(self, semester, *args, **kwargs):
         super(TACourseForm, self).__init__(*args, **kwargs)
         self.fields['course'].widget.semester = semester
+        instance = getattr(self, 'instance', None)
+        if instance and instance.id:
+            self.fields['course'].widget.attrs['readonly'] = True
     
     course = OfferingField()
     class Meta:

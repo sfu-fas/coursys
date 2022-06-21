@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}TA Contracts: Edit Course for Contract {{ contract }}{% endblock %}
+{% block h1 %}TA Contracts: Edit Course for Contract {{ contract }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'tacontracts:list_all_semesters' %}">Hiring Semesters</a></li>
+<li><a href="{% url 'tacontracts:list_all_contracts' unit_slug=unit_slug semester=semester %}">{{semester}}</a></li>
+<li><a href="{% url 'tacontracts:view_contract' unit_slug=unit_slug semester=semester contract_slug=contract_slug %}">{{contract}}</a></li>
+<li>Edit Course: {{ course }}</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="form_container">
+<form action="" method="post">{% csrf_token %}
+<fieldset>
+    {{ form|as_dl }}
+</fieldset>
+<input type="submit" class="submit" value="Save" /></p>
+</fieldset>
+</form>
+</div>
+{% endblock %}

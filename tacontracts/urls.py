@@ -47,6 +47,7 @@ tacontract_patterns = [ # prefix /tacontract/
     url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/contract/'+CONTRACT_SLUG+'/copy$', tacontracts_views.copy_contract, name='copy_contract'),
     url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/contract/'+CONTRACT_SLUG+'/print$', tacontracts_views.print_contract, name='print_contract'),
     url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/contract/'+CONTRACT_SLUG+'/new_course$', tacontracts_views.new_course, name='new_course'),
+    url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/contract/'+CONTRACT_SLUG+'/'+COURSE_SLUG+'/edit_course$', tacontracts_views.edit_course, name='edit_course'),
     url(r'^' + UNIT_SLUG + '/' + SEMESTER + '/contract/' + CONTRACT_SLUG + '/new_attachment$',
         tacontracts_views.new_attachment, name='new_attachment'),
     url(r'^' + UNIT_SLUG + '/' + SEMESTER + '/contract/' + CONTRACT_SLUG + '/view_attachment/' + ATTACH_SLUG,

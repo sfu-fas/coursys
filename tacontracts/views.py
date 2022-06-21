@@ -465,14 +465,19 @@ def sign_contract(request, unit_slug, semester, contract_slug):
                                      category__hiring_semester=hiring_semester,
                                      slug=contract_slug,
                                      category__account__unit__in=request.units)
-        contract.sign()
-        messages.add_message(request, 
-                             messages.SUCCESS, 
-                             'Contract signed!')
-        l = LogEntry(userid=request.user.username,
-                     description="Signed contract %s." % str(contract),
-                     related_object=contract)
-        l.save()
+        if contract.visa_verified:
+            contract.sign()
+            messages.add_message(request, 
+                                messages.SUCCESS, 
+                                'Contract signed!')
+            l = LogEntry(userid=request.user.username,
+                        description="Signed contract %s." % str(contract),
+                        related_object=contract)
+            l.save()
+        else:
+            messages.add_message(request, 
+                                messages.ERROR, 
+                                'You must verify the TA\'s visa information before signing this contract')
         return _contract_redirect(unit_slug, semester, contract_slug)
     else:
         return _contract_redirect(unit_slug, semester, contract_slug)
@@ -637,6 +642,46 @@ def new_course(request, unit_slug, semester, contract_slug):
                   'contract':contract,
                   'form':form})
 
+@requires_role(["TAAD", "GRAD"])
+def edit_course(request, unit_slug, semester, contract_slug, course_slug):
+    hiring_semester = get_object_or_404(HiringSemester, 
+                                        semester__name=semester, 
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contract = get_object_or_404(TAContract,
+                                 category__hiring_semester=hiring_semester,
+                                 slug=contract_slug,
+                                 category__account__unit__in=request.units)
+    course = get_object_or_404(TACourse,
+                                contract=contract,
+                                slug=course_slug)
+    description_choices = [('', '---------')] + [(d.id, d.description)
+                                                 for d in
+                                                 CourseDescription.objects.filter(unit__in=request.units, hidden=False)]
+    category = contract.category
+    if request.method == 'POST':
+        form = TACourseForm(semester, request.POST, instance=course)
+        if form.is_valid():
+            course = form.save(commit=False)
+            course.contract = contract
+            course.save()
+            messages.add_message(request, 
+                                messages.SUCCESS, 
+                                'Course %s edited.' % str(course))
+            l = LogEntry(userid=request.user.username,
+                        description="Edited course %s." % str(course),
+                        related_object=course) 
+            l.save()
+            return _contract_redirect(unit_slug, semester, contract.slug)
+    else:
+        form = TACourseForm(semester, instance=course)
+        form.fields['description'].choices = description_choices
+    return render(request, 'tacontracts/edit_course.html', {'unit_slug': unit_slug,
+                                                            'semester': semester,
+                                                            'contract' : contract,
+                                                            'contract_slug': contract_slug,
+                                                            'course' : course.course,
+                                                            'form': form})
 
 @requires_role(["TAAD", "GRAD"])
 def delete_course(request, unit_slug, semester, contract_slug, course_slug):
