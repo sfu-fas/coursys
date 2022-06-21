@@ -256,15 +256,15 @@ GRAS_PAYMENT_METHOD_CHOICES = (
 
 RA_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Bi-weekly salary (The Appointee is entitled to a minimum of 10 vacation days a year per FTE. Vacation time will be prorated' +
-    ' based on the appointment terms. An additional 10% will be charged for statutory benefits.)'),
-    ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 10% for statutory benefits. Must submit biweekly' +
+    ' based on the appointment terms. An additional 11% will be charged for statutory benefits.)'),
+    ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 11% for statutory benefits. Must submit biweekly' +
     ' timesheets in order for the Appointee to be paid.)')
 )
 
 NC_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Bi-weekly salary (The Appointee is entitled to a minimum of 10 vacation days a year per FTE. Vacation time will be prorated' +
-    ' based on the appointment terms. An additional 10% will be charged for statutory benefits.)'),
-    ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 10% for statutory benefits. Must submit biweekly' +
+    ' based on the appointment terms. An additional 11% will be charged for statutory benefits.)'),
+    ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 11% for statutory benefits. Must submit biweekly' +
     ' timesheets in order for the Appointee to be paid.)')
 )
 
