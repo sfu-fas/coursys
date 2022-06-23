@@ -1,3 +1,4 @@
+from django.core.validators import RegexValidator
 from django.db import models, transaction, IntegrityError
 from django.db.models import Count
 from autoslug import AutoSlugField
@@ -124,8 +125,8 @@ class Person(models.Model, ConditionalSaveMixin):
     emplid = models.PositiveIntegerField(db_index=True, unique=True, null=False,
                                          verbose_name="ID #",
         help_text='Employee ID (i.e. student number)')
-    userid = models.CharField(max_length=32, null=True, blank=True, db_index=True, unique=True,
-                              verbose_name="User ID",
+    userid = models.CharField(max_length=32, null=True, blank=True, db_index=True, unique=True, verbose_name="User ID",
+        validators=[RegexValidator(regex=r'^[a-z0-9\-_]{2,12}$', message='userids can contain only letters and numbers')],
         help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
