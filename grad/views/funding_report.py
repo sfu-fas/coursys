@@ -146,9 +146,12 @@ def funding_report(request, semester_name=None):
 
     programs = GradProgram.objects.filter(unit__in=request.units, hidden=False).order_by('label')
     programs = _build_funding_totals(semester, programs, request.units)
+    multiple_units = False
+    if len(request.units) > 1:
+        multiple_units = True
 
     these_units = ', '.join(u.name for u in request.units)
-    context = {'semester': semester, 'programs': programs, 'these_units': these_units}
+    context = {'semester': semester, 'programs': programs, 'these_units': these_units, 'multiple_units': multiple_units}
 
     return render(request, 'grad/funding_report.html', context)
 

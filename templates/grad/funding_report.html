@@ -44,6 +44,7 @@
 		<thead>
 			<tr>
             <th scope="col">Program</th>
+			{% if multiple_units %}<th scope="col">Unit</th>{% endif %}
             <th scope="col">TA Funding</th>
             <th scope="col">RA Funding</th>
             <th scope="col">Scholarships</th>
@@ -54,6 +55,7 @@
 			{% for prog in programs %}
             <tr>
             <td scope="row">{{prog.label}}</td>
+			{% if multiple_units %}<td scope="row">{% if prog.unit %}<i>{{prog.unit.label}}</i>{% endif %}</td>{% endif %}
             <td class="num"><span class="sort">{{prog.funding_ta|floatsortable}}</span>${{prog.funding_ta|floatformat:"2"}}</td>
             <td class="num"><span class="sort">{{prog.funding_ra|floatsortable}}</span>${{prog.funding_ra|floatformat:"2"}}</td>
             <td class="num"><span class="sort">{{prog.funding_schol|floatsortable}}</span>${{prog.funding_schol|floatformat:"2"}}</td>
