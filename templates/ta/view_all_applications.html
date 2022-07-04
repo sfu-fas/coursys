@@ -36,6 +36,8 @@
 	<th scope="col">Ranked</th>
 	<th scope="col">Assigned</th>
     <th scope="col">Campus Preferences</th>
+    <th scope="col">CV</th>
+    <th scope="col">Transcript</th>
   	</tr>
   </thead>
   <tbody>
@@ -50,6 +52,11 @@
   	<td>{{ app.course_pref_display }}</td>
   	<td>{{ app.course_assigned_display }}</td>
     <td>{{ app.campus_pref_display }}</td>
+    <td>
+      {% if app.resume %}<a href="{% url "ta:download_resume" post_slug=posting.slug userid=app.person.userid %}">Download</a>
+      {% endif %}
+    </td>
+    <td>{% if app.transcript %}<a href="{% url "ta:download_transcript" post_slug=posting.slug userid=app.person.userid %}">Download</a>{% endif %}</td>
   </tr>
   {% endfor %}
   </tbody>

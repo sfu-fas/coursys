@@ -107,7 +107,7 @@ table td.checkbox {
 }
 
 .actionlist .btn{
-    display: inline;
+    display: inline-block;
     padding: 12px;
     margin-right: 5px;
     margin-left: 0px;

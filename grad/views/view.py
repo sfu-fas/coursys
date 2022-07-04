@@ -7,6 +7,7 @@ from grad.models import GradStudent, Supervisor, GradStatus, \
         OtherFunding, Promise, Letter, GradProgramHistory, \
         FinancialComment, ProgressReport, ExternalDocument
 from tacontracts.models import TAContract
+from ra.models import RARequest, RAAppointment
 from ta.models import TAContract as OldTAContract
 from visas.models import Visa
 
@@ -51,7 +52,7 @@ def _can_view_student(request, grad_slug, funding=False):
 
 all_sections = ['general', 'supervisors', 'status', 'requirements', 
                 'scholarships', 'otherfunding', 'promises', 'progressreports',
-                'tacontracts',
+                'tacontracts', 'ras',
                 'financialcomments', 'letters', 'documents', 'visas']
 
 @login_required
@@ -140,6 +141,13 @@ def view(request, grad_slug, section=None):
             context['oldcontracts'] = oldcontracts
             return render(request, 'grad/view__tacontracts.html', context)
         
+        elif section == 'ras':
+            ras = RARequest.objects.filter(person=grad.person, deleted=False, complete=True, draft=False)
+            oldras = RAAppointment.objects.filter(person=grad.person, deleted=False)
+            context['ras'] = ras
+            context['oldras'] = oldras
+            return render(request, 'grad/view__ras.html', context)
+
         elif section == 'financialcomments':
             comments = FinancialComment.objects.filter(student=grad, removed=False).order_by('created_at')
             context['financial_comments'] = comments

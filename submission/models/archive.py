@@ -39,6 +39,8 @@ class SubmittedArchive(SubmittedComponent):
             return None
     def get_filename(self):
         return os.path.split(self.archive.name)[1]
+    def get_fieldfile(self):
+        return self.archive
 
     def download_response(self, **kwargs):
         # figure out the MIME type

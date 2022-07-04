@@ -112,6 +112,9 @@ class HiringSemester(models.Model):
     payperiods = models.DecimalField(max_digits=4, decimal_places=2,
                                      verbose_name= "During the contract, how many bi-weekly pay periods?")
     config = JSONField(null=False, blank=False, editable=False, default=dict)
+    # .config['comments']: default comment for contract
+
+    comments = config_property('comments', default='')
     
     class Meta:
         unique_together = (('semester', 'unit'),)
@@ -284,7 +287,7 @@ class TAContract(models.Model):
                                      verbose_name= "During the contract, how many bi-weekly pay periods?")
     appointment = models.CharField(max_length=4, 
                             choices=APPOINTMENT_CHOICES, 
-                            default="INIT")
+                            default="REAP")
     conditional_appointment = models.BooleanField(default=False)
     tssu_appointment = models.BooleanField(default=True)
     

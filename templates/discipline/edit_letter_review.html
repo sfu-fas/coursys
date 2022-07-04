@@ -3,9 +3,9 @@
 {% block jsextra %}
 {% endblock %}
 
-{% block title %}Dishonesty Case for {{case.student.name}}: Letter Review{% endblock %}
-{% block h1 %}Dishonesty Case for {{case.student.name}}: Letter Review{% endblock %}
-{% block editlabel %}Letter Review{% endblock %}
+{% block title %}Dishonesty Case for {{case.student.name}}: Details Review{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.name}}: Details Review{% endblock %}
+{% block editlabel %}Details Review{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -25,9 +25,9 @@
     
     <h2 id="confirm">Confirm</h2>
     <form action="{% url "offering:discipline:edit_case_info" field='letter_review' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
-    <p>Letter is ready to send to the student and be filed.  {{ form.letter_review }}</p>
+    <p>Case details are correct and ready to send to the student and be filed.  {{ form.letter_review }}</p>
     {{ form.letter_review.errors }}
-    <p><input type="submit" value="Update Letter Review Status" /></p>
+    <p><input type="submit" value="Update Review Status" /></p>
     </form>
 </div>
 

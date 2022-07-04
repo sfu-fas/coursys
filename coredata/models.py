@@ -1,3 +1,4 @@
+from django.core.validators import RegexValidator
 from django.db import models, transaction, IntegrityError
 from django.db.models import Count
 from autoslug import AutoSlugField
@@ -74,8 +75,8 @@ ROLE_CHOICES = (
         )
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
-UNIT_ROLES = ['ADVS', 'ADVM', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDRE', 'FDCC', 'GRPD',
-              'FAC', 'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR', 'FACA', 'RELA', 'SPAC', 'FORM']
+UNIT_ROLES = ['ADVS', 'ADVM', 'TAAD', 'GRAD', 'FUND', 'FDRE', 'FDCC', 'GRPD',
+              'SESS', 'COOP', 'INST', 'SUPV', 'OUTR', 'INV', 'FACR', 'FACA', 'RELA', 'SPAC', 'FORM']
 # roles that give access to SIMS data
 SIMS_ROLES = ['ADVS', 'ADMV', 'DISC', 'DICC', 'FUND', 'GRAD', 'GRPD']
 
@@ -124,8 +125,8 @@ class Person(models.Model, ConditionalSaveMixin):
     emplid = models.PositiveIntegerField(db_index=True, unique=True, null=False,
                                          verbose_name="ID #",
         help_text='Employee ID (i.e. student number)')
-    userid = models.CharField(max_length=32, null=True, blank=True, db_index=True, unique=True,
-                              verbose_name="User ID",
+    userid = models.CharField(max_length=32, null=True, blank=True, db_index=True, unique=True, verbose_name="User ID",
+        validators=[RegexValidator(regex=r'^[a-z0-9\-_]{2,12}$', message='userids can contain only letters and numbers')],
         help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)

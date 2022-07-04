@@ -66,10 +66,13 @@ Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text
 <div class="showcase">
 <h2 id="notes">Notes</h2>
 <dl>
+{% if not chair %}
 <dt>Case Notes (private)</dt>
 <dd>{{case|edit_link:'notes'}}{{case|format_field:'notes'}}</dd>
+{% endif %}
 <dt>Case Notes (public)</dt>
 <dd>{{case|edit_link:'notes_public'}}{{case|format_field:'notes_public'}}</dd>
+{% if not chair %}
 <dt>Related Items (private)</dt>
 <dd>{{case|edit_link:'related'}}
 <ul>{% for ro in case.relatedobject_set.all %}
@@ -80,11 +83,12 @@ Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text
   {% endif %}
 {% empty %}<li class="empty">None</li>
 {% endfor %}</ul></dd>
+{% endif %}
 <dt>Attached Files</dt>
 <dd>{{case|edit_link:'attach'}}
-<ul>{% for f in case.caseattachment_set.all %}
+<ul>{% for f in case.caseattachment_set.all %}{% if f.public or not chair %}
   <li>{{f.name}} (<a href="{% url "offering:discipline:download_file" course_slug=course.slug case_slug=case.slug fileid=f.id %}">{{f.filename}}</a>, {{f.attachment.size|filesizeformat}}, {% if f.public %}public{% else %}private{% endif %})</li>
-{% empty %}<li class="empty">None</li>
+{% endif %}{% empty %}<li class="empty">None</li>
 {% endfor %}</ul>
 </dd>
 </dl>
@@ -105,8 +109,10 @@ Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text
 <dd>{{case|edit_link:'meeting'}}<p>{{case.meeting_date}}</p></dd>
 <dt>Meeting/Email Summary (included in letter)</dt>
 <dd>{{case|edit_link:'meeting'}}{{case|format_field:'meeting_summary'}}</dd>
+{% if not chair %}
 <dt>Meeting/Email Notes (private)</dt>
 <dd>{{case|edit_link:'meeting'}}{{case|format_field:'meeting_notes'}}</dd>
+{% endif %}
 </dl>
 
 <h2 id="facts">Facts and Decision</h2>

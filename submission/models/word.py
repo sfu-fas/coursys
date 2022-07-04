@@ -40,6 +40,8 @@ class SubmittedWord(SubmittedComponent):
             return None
     def get_filename(self):
         return os.path.split(self.word.name)[1]
+    def get_fieldfile(self):
+        return self.word
 
     def download_response(self, **kwargs):
         # figure out the MIME type

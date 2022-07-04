@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 from django.conf import settings
@@ -125,13 +126,13 @@ def expiring_roles():
     Role.purge_expired()
 
 
-@task()
+@task(queue='sims')
 def haystack_update():
     haystack_update_index()
 
 
 # purge and rebuild the search index occasionally to get any orphaned records
-@task()
+@task(queue='sims')
 def haystack_rebuild():
     haystack_rebuild_index()
 
@@ -351,6 +352,28 @@ def daily_cleanup():
     SimilarityResult.cleanup_old()
     # deduplicate EnrolmentHistory
     EnrolmentHistory.deduplicate(start_date=datetime.date.today() - datetime.timedelta(days=30))
+    # clear orphaned tmp files
+    cleanup_tmp()
+
+
+def cleanup_tmp(path: str = '/tmp'):
+    """
+    Remove any old temporary files. (They can be left by aborted .zip file downloads.)
+    """
+    uid = os.getuid()
+    now = time.time()
+    maxage = 2 * 24 * 3600  # 2 days
+    for f in os.listdir(path):
+        fp = os.path.join(path, f)
+        st = os.stat(fp)
+        # only files owned by us
+        if not os.path.isfile(fp) or st.st_uid != uid:
+            continue
+        # only files not accessed recently
+        age = now - st.st_atime
+        if age < maxage:
+            continue
+        os.remove(os.path.join(path, f))
 
 
 @task(queue='sims')

@@ -125,3 +125,18 @@ Which doesn't shut it down! It just closes your ssh connection to the VM.
 You can turn off the VM by navigating to `machines/developer` and running:
 
     vagrant halt
+
+## Proddev VM Setup
+
+To get an almost-consistent-with-production setup, Use `localsettings-proddev-example.py` as `localsettings.py` and:
+```shell
+cd /coursys
+echo "RABBITMQ_PASSWORD=the_rabbitmq_password" > .env
+sudo mkdir /opt/submitted_files
+sudo chown vagrant /opt/submitted_files
+make proddev-start
+make start-all
+./manage.py migrate
+./manage.py loaddata fixtures/*.json
+./manage.py update_index
+```

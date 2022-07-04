@@ -8,7 +8,7 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.urls import reverse
 import django.db.transaction
 from django.db.models import Q, Count
-from django.utils.html import conditional_escape
+from django.utils.html import conditional_escape, strip_tags
 from django.utils.safestring import mark_safe
 from courselib.auth import ForbiddenResponse, requires_role, requires_form_admin_by_slug, \
     requires_formgroup, login_redirect, requires_global_role
@@ -28,6 +28,7 @@ from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, FormLogEntr
 from coredata.models import Person, Role, Unit
 from coredata.queries import ensure_person_from_userid, SIMSProblem
 from log.models import LogEntry
+import datetime
 import csv
 import json
 import os
@@ -701,7 +702,9 @@ def new_sheet(request, form_slug):
         if request.method == 'POST':
             form = SheetForm(request.POST)
             if form.is_valid():
-                sheet = Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
+                sheet = Sheet(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
+                sheet.set_emailsubmission(form.cleaned_data['emailsubmission'])
+                sheet.save()                
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                     description=("Created form sheet %s.") % (sheet,),
@@ -821,6 +824,7 @@ def edit_sheet_info(request, form_slug, sheet_slug):
         if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
             form = EditSheetForm(request.POST, instance=owner_sheet)
             if form.is_valid():
+                owner_sheet.set_emailsubmission(form.cleaned_data['emailsubmission'])
                 new_sheet = owner_sheet.safe_save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
@@ -831,6 +835,7 @@ def edit_sheet_info(request, form_slug, sheet_slug):
                     kwargs={'form_slug': owner_form.slug, 'sheet_slug': new_sheet.slug}))
         else:
             form = EditSheetForm(instance=owner_sheet)
+            form.initial['emailsubmission'] = owner_sheet.emailsubmission
 
         context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet}
         return render(request, 'onlineforms/edit_sheet_info.html', context)
@@ -978,10 +983,18 @@ def index(request):
     form_groups = None
     sheet_submissions = None
     participated = None
+    recent_forms = []
     if request.user.is_authenticated:
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
         forms = [form for form in forms if not form.unlisted()]
+        # forms recently initiated by user
+        recent_forms = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user), \
+                                                      form_submission__initiator=_userToFormFiller(loggedin_user), \
+                                                      completed_at__gte=datetime.date.today() - datetime.timedelta(days=60), \
+                                                      form_submission__form__active=True) \
+                                                      .values('form_submission__form__title', 'form_submission__form__unit__name', 'form_submission__form__slug') \
+                                                      .distinct()
         other_forms = []
         sheet_submissions = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user)) \
             .exclude(status='DONE').exclude(status='REJE')
@@ -990,7 +1003,6 @@ def index(request):
         # If the user is authenticated, see if they have forms that are done in which they participated.
         participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user))\
             .exclude(form_submission__initiator=_userToFormFiller(loggedin_user)).count() > 0
-
     else:
         forms = Form.objects.filter(active=True, initiators='ANY').order_by('unit__name', 'title')
         forms = [form for form in forms if not form.unlisted()]
@@ -999,10 +1011,25 @@ def index(request):
 
     form_admin = Role.objects_fresh.filter(role__in=['ADMN', 'FORM'], person__userid=request.user.username).count() > 0
 
-    context = {'forms': forms, 'other_forms': other_forms, 'sheet_submissions': sheet_submissions,
+    context = {'forms': forms, 'recent_forms': recent_forms, 'other_forms': other_forms, 'sheet_submissions': sheet_submissions,
                'form_groups': form_groups, 'form_admin': form_admin, 'participated': participated}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
+@login_required()
+def formSearchAutocomplete(request):
+    if request.is_ajax():
+        q = request.GET.get('term', '').capitalize()
+        forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
+        forms = forms.filter(Q(title__contains=q) | Q(description__contains=q))
+        search_forms = [form for form in forms if not form.unlisted()]
+        results = []
+        for r in search_forms:
+            results.append({"unit": r.unit.name, "title": r.title, "description": r.description, "value": r.slug})
+        data = json.dumps(results)
+    else:
+        return HttpResponseRedirect(reverse('onlineforms:index'))
+    mimetype = 'application/json'
+    return HttpResponse(data, mimetype)
 
 @login_required()
 def login(request):
@@ -1434,7 +1461,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
         
         # if no one can fill out this form, stop right now
         if owner_form.initiators == "NON" and not formsubmit_slug:
-            context = {'owner_form': owner_form, 'error_msg': "No one can fill out this form."}
+            context = {'owner_form': owner_form, 'error_msg': "This form is currently disabled. No one can fill out this form."}
             return render(request, 'onlineforms/submissions/sheet_submission.html', context)
 
         #get the sheet
@@ -1675,6 +1702,16 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
 
                         if sheet.is_initial and sheet.form.autoconfirm():
                             sheet.form.email_confirm(formFiller)
+                        if sheet_submission.filler.isSFUPerson() and sheet.config.get('emailsubmission') == 'Y':                            
+                            filled_sheets = _readonly_sheets(form_submission, sheet_submission)
+                            subjectsuffix = ''
+                            for sheet_sub, fields in filled_sheets:
+                                for field in fields:
+                                    if field.fieldtype in ('SMTX', 'MDTX'):
+                                        subjectsuffix = ' - ' + field.label + ' ' + strip_tags(field.html)
+                                        break
+                                
+                            sheet_submission.emailsubmission_to_filler(form_submission, sheet_submission.filler.getFormFiller().email(), filled_sheets, subjectsuffix)
 
                         messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
                         return HttpResponseRedirect(reverse('onlineforms:index'))

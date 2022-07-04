@@ -250,6 +250,11 @@ $(document).ready(function() {
                           <i class="fa fa-trash-o"></i>
                       </button>
                 </form>
+                <a class="lineform" href="{% url "tacontracts:edit_course" unit_slug=unit_slug semester=semester course_slug=course.slug contract_slug=contract.slug %}">
+                    <button type="submit" class="btn" title="Edit Course">
+                        <i class='fa fa-edit'></i>
+                    </button>
+                </a>
                 {% endif %}
             </td>
         </tr>

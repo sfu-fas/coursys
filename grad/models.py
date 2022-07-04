@@ -835,16 +835,18 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         promise_amt = {"year1": decimal.Decimal(0.0), "year2": decimal.Decimal(0.0), "year3": decimal.Decimal(0.0), "year4": decimal.Decimal(0.0), "otheryear": decimal.Decimal(0.0)}
         
         for promise in promises:
-            if (int(promise.start_semester.name) >= frs) & (int(promise.start_semester.name) < (frs+10)):
-                promise_amt['year1'] += promise.amount
-            if (int(promise.start_semester.name) >= (frs+10)) & (int(promise.start_semester.name) < (frs+20)):
-                promise_amt['year2'] += promise.amount
-            if (int(promise.start_semester.name) >= (frs+20)) & (int(promise.start_semester.name) < (frs+30)):
-                promise_amt['year3'] += promise.amount
-            if (int(promise.start_semester.name) >= (frs+30)) & (int(promise.start_semester.name) < (frs+40)):
-                promise_amt['year4'] += promise.amount
-            if (int(promise.start_semester.name) >= (frs+40)):
-                promise_amt['otheryear'] += promise.amount
+            en = promise.end_semester
+            
+            if int(en.name) >= frs and int(en.name) < frs+10:
+                    promise_amt['year1'] += promise.amount
+            if int(en.name) >= frs+10 and int(en.name) < frs+20:
+                    promise_amt['year2'] += promise.amount
+            if int(en.name) >= frs+20 and int(en.name) < frs+30:
+                    promise_amt['year3'] += promise.amount
+            if int(en.name) >= frs+30 and int(en.name) < frs+40:
+                    promise_amt['year4'] += promise.amount
+            if int(en.name) >= frs+40:
+                    promise_amt['otheryear'] += promise.amount
         return promise_amt
     
     def get_receive_all(self):
@@ -914,28 +916,18 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                     semlen = 1
                     received_amt['remarks'] += 'ra semlen:0 sem:' + str(st) + '-' + str(en)
                 sem_pay = ra.lump_sum_pay / semlen
-                if (int(st.name) >= frs) & (int(st.name) < (frs+10)):
-                    if ra.semester_length() >= 3:
-                        received_amt['year1'] += sem_pay * 3
-                    else:
-                        received_amt['year1'] += sem_pay * (ra.semester_length() % 3)
-                if (int(st.name) >= (frs+10)) & (int(st.name) < (frs+20)):
-                    if ra.semester_length() >= 6:
-                        received_amt['year2'] += sem_pay * 3
-                    else:
-                        received_amt['year2'] += sem_pay * (ra.semester_length() % 3)
-                if (int(st.name) >= (frs+20)) & (int(st.name) < (frs+30)):
-                    if ra.semester_length() >= 9:
-                        received_amt['year3'] += sem_pay * 3
-                    else:
-                        received_amt['year3'] += sem_pay * (ra.semester_length() % 3)
-                if (int(st.name) >= (frs+30)) & (int(st.name) < (frs+40)):
-                    if ra.semester_length() >= 12:
-                        received_amt['year4'] += sem_pay * 3
-                    else:
-                        received_amt['year4'] += sem_pay * (ra.semester_length() % 3)
-                if (int(st.name) >= (frs+40)):
-                    received_amt['otheryear'] += sem_pay * (ra.semester_length()-12)
+                for i in range(semlen):
+                    if int(st.name) >= frs and int(st.name) < frs+10:
+                        received_amt['year1'] += sem_pay
+                    if int(st.name) >= frs+10 and int(st.name) < frs+20:
+                        received_amt['year2'] += sem_pay
+                    if int(st.name) >= frs+20 and int(st.name) < frs+30:
+                        received_amt['year3'] += sem_pay
+                    if int(st.name) >= frs+30 and int(st.name) < frs+40:
+                        received_amt['year4'] += sem_pay
+                    if int(st.name) >= frs+40:
+                        received_amt['otheryear'] += sem_pay
+                    st = st.next_semester()
 
         for ra in reqs:
                 st = ra.start_semester()
@@ -944,29 +936,20 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 if semlen == 0:
                     semlen = 1
                     received_amt['remarks'] += 'ra semlen:0 sem:' + str(st) + '-' + str(en)
-                sem_pay = ra.lump_sum_pay / semlen
-                if (int(st.name) >= frs) & (int(st.name) < (frs+10)):
-                    if ra.semester_length() >= 3:
-                        received_amt['year1'] += sem_pay * 3
-                    else:
-                        received_amt['year1'] += sem_pay * (ra.semester_length() % 3)
-                if (int(st.name) >= (frs+10)) & (int(st.name) < (frs+20)):
-                    if ra.semester_length() >= 6:
-                        received_amt['year2'] += sem_pay * 3
-                    else:
-                        received_amt['year2'] += sem_pay * (ra.semester_length() % 3)
-                if (int(st.name) >= (frs+20)) & (int(st.name) < (frs+30)):
-                    if ra.semester_length() >= 9:
-                        received_amt['year3'] += sem_pay * 3
-                    else:
-                        received_amt['year3'] += sem_pay * (ra.semester_length() % 3)
-                if (int(st.name) >= (frs+30)) & (int(st.name) < (frs+40)):
-                    if ra.semester_length() >= 12:
-                        received_amt['year4'] += sem_pay * 3
-                    else:
-                        received_amt['year4'] += sem_pay * (ra.semester_length() % 3)
-                if (int(st.name) >= (frs+40)):
-                    received_amt['otheryear'] += sem_pay * (ra.semester_length()-12)
+                sem_pay = ra.total_pay / semlen
+                
+                for i in range(semlen):
+                    if int(st.name) >= frs and int(st.name) < frs+10:
+                        received_amt['year1'] += sem_pay
+                    if int(st.name) >= frs+10 and int(st.name) < frs+20:
+                        received_amt['year2'] += sem_pay
+                    if int(st.name) >= frs+20 and int(st.name) < frs+30:
+                        received_amt['year3'] += sem_pay
+                    if int(st.name) >= frs+30 and int(st.name) < frs+40:
+                        received_amt['year4'] += sem_pay
+                    if int(st.name) >= frs+40:
+                        received_amt['otheryear'] += sem_pay
+                    st = st.next_semester()
  
         # scholarships
         scholarships = Scholarship.objects.filter(student=self, removed=False).filter(scholarship_type__eligible=True).select_related('start_semester')
@@ -976,32 +959,19 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 if semlen == 0:
                     semlen = 1
                     received_amt['remarks'] += 'scholarship semlen:0 sem:' + str(ss.start_semester) + '-' + str(ss.end_semester)
-                amt = ss.amount/semlen            
-                if (int(ss.start_semester.name) >= frs) & (int(ss.start_semester.name) < (frs+10)):
-                    if int(ss.end_semester.name) >= (frs+6):    
-                        received_amt['year1'] += amt * 3
-                    else:
-                        received_amt['year1'] += amt * ((ss.end_semester-ss.start_semester+1) % 3)
-                if (int(ss.start_semester.name) >= (frs+10)) & (int(ss.start_semester.name) < (frs+20)):    
-                    if int(ss.end_semester.name) >= (frs+16):    
-                        received_amt['year2'] += amt * 3
-                    else:
-                        received_amt['year2'] += amt * ((ss.end_semester-ss.start_semester+1) % 3)
-                if (int(ss.start_semester.name) >= (frs+20)) & (int(ss.start_semester.name) < (frs+30)):    
-                    if int(ss.end_semester.name) >= (frs+26):    
-                        received_amt['year3'] += amt * 3
-                    else:
-                        received_amt['year3'] += amt * ((ss.end_semester-ss.start_semester+1) % 3)
-                if (int(ss.start_semester.name) >= (frs+30)) & (int(ss.start_semester.name) < (frs+40)):    
-                    if int(ss.end_semester.name) >= (frs+36):
-                        received_amt['year4'] += amt * 3
-                    else:
-                        received_amt['year4'] += amt * ((ss.end_semester-ss.start_semester+1) % 3)
-                if (int(ss.start_semester.name) >= (frs+40)):    
-                    if (ss.end_semester-ss.start_semester+1) > 12:
-                        received_amt['otheryear'] += amt * ((ss.end_semester-ss.start_semester+1) - 12)
-                    else:
-                        received_amt['otheryear'] += 0  # probably rare case
+                amt = ss.amount/semlen   
+                for i in range(semlen):
+                    if int(ss.start_semester.name) >= frs and int(ss.start_semester.name) < frs+10:
+                        received_amt['year1'] += amt
+                    if int(ss.start_semester.name) >= frs+10 and int(ss.start_semester.name) < frs+20:
+                        received_amt['year2'] += amt
+                    if int(ss.start_semester.name) >= frs+20 and int(ss.start_semester.name) < frs+30:
+                        received_amt['year3'] += amt
+                    if int(ss.start_semester.name) >= frs+30 and int(ss.start_semester.name) < frs+40:
+                        received_amt['year4'] += amt
+                    if int(ss.start_semester.name) >= frs+40:
+                        received_amt['otheryear'] += amt
+                    ss.start_semester = ss.start_semester.next_semester()
 
         # other funding
         others = OtherFunding.objects.filter(student=self, removed=False, eligible=True).select_related('semester')

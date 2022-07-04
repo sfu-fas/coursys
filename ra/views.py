@@ -76,7 +76,7 @@ def _can_view_ra_requests():
         author = RARequest.objects.filter(author__userid=request.user.username, draft=False, deleted=False).exists()
         request.is_supervisor = supervisor
         request.is_author = author
-        return has_role('FAC', request, **kwargs) or has_role('FUND', request, **kwargs) or author or supervisor
+        return has_role('FDRE', request, **kwargs) or has_role('FUND', request, **kwargs) or author or supervisor
     
     actual_decorator = user_passes_test(auth_test)
     return actual_decorator
@@ -116,22 +116,22 @@ def check_nc(wizard):
     cleaned_data = wizard.get_cleaned_data_for_step('intro') or {'hiring_category': 'none'}
     return cleaned_data['hiring_category']=='NC'
 
-# faculty members should not be able to reappoint any appointees that they are not authors or supervisors for
+# grad funding requestors should not be able to reappoint any appointees that they are not authors or supervisors for
 def _reappointment_req(request, ra_slug):
     req = None
     if has_role('FUND', request):
         req = get_object_or_404(RARequest, slug=ra_slug, deleted=False, draft=False, unit__in=request.units)
-    elif has_role('FAC', request):
+    elif has_role('FDRE', request):
         req = get_object_or_404(RARequest, Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), slug=ra_slug, draft=False, deleted=False)
     return req
 
-# faculty members should not be able to edit any request that are not drafts they are authors for
+# grad funding requestors should not be able to edit any request that are not drafts they are authors for
 # admin can only edit drafts that they are authors for
 def _edit_req(request, ra_slug):
     req = None
     if has_role('FUND', request):
         req = get_object_or_404(RARequest, Q(draft=False) | Q(draft=True, author__userid=request.user.username), slug=ra_slug, deleted=False, unit__in=request.units)
-    elif has_role('FAC', request):
+    elif has_role('FDRE', request):
         req = get_object_or_404(RARequest, author__userid=request.user.username, slug=ra_slug, deleted=False, draft=True)
     return req
 
@@ -161,7 +161,7 @@ def _email_request_notification(req, url):
         mail = EmailMultiAlternatives(subject=subject, body=content_text, from_email=from_email, to=[email])
         mail.send()
 
-@method_decorator([requires_role(["FUND", "FAC"]), never_cache], name='dispatch')
+@method_decorator([requires_role(["FUND", "FDRE"]), never_cache], name='dispatch')
 class RANewRequestWizard(SessionWizardView):
 
     file_storage = TemporaryFileStorage
@@ -230,13 +230,13 @@ class RANewRequestWizard(SessionWizardView):
                 init = {'supervisor': req.supervisor.emplid, 'person': req.person.emplid}
         if step == 'non_continuing':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated']}
+            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
         if step == 'research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated']}
+            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
         if step == 'graduate_research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated']}
+            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
         if step == 'funding_sources':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             cleaned_data_intro = self.get_cleaned_data_for_step('intro')
@@ -389,7 +389,7 @@ class RANewRequestWizard(SessionWizardView):
         else:
             return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
-@method_decorator([requires_role(["FUND", "FAC"]), never_cache], name='dispatch')
+@method_decorator([requires_role(["FUND", "FDRE"]), never_cache], name='dispatch')
 class RAEditRequestWizard(SessionWizardView):
     file_storage = TemporaryFileStorage
 
@@ -454,13 +454,13 @@ class RAEditRequestWizard(SessionWizardView):
                 init = {'supervisor': req.supervisor.emplid, 'person': req.person.emplid}
         if step == 'non_continuing':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated']}
+            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
         if step == 'research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated']}
+            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
         if step == 'graduate_research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
-            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated']}
+            init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
         if step == 'funding_sources':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
             cleaned_data_intro = self.get_cleaned_data_for_step('intro')
@@ -799,7 +799,7 @@ def request_admin_update(request: HttpRequest, ra_slug: str) -> HttpResponse:
     
     return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
-@requires_role(["FUND", "FAC"])
+@requires_role(["FUND", "FDRE"])
 def delete_request_draft(request: HttpRequest, ra_slug: str) -> HttpResponse:
     """
     View to delete a RA Request Draft.
@@ -1223,9 +1223,9 @@ def download(request, current=False, incomplete=False):
 
     writer = csv.writer(response)
     if admin:
-        writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP', 'Processed By'])
+        writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP', 'Appointee Email', 'Appointee Co-op Status', 'Processed By'])
         for ra in ras:
-            writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay, ra.swpp, ra.get_processor()])
+            writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay, ra.swpp, ra.get_email_address(), ra.coop, ra.get_processor()])
     else:
         writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
         for ra in ras:
