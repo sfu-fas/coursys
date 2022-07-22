@@ -103,7 +103,6 @@
         extra_bu = 0;
     }
 
-    //var labtas = $("#labtas").attr('checked') == 'checked';
     var labtas = $("#labtas").prop('checked') == true;
   
   	$.post("{% url "ta:assign_bus" post_slug=posting.slug course_slug=offering.slug %}",
