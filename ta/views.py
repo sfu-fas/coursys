@@ -2029,3 +2029,4 @@ def ta_exclude_choice(request, post_slug=None):
         response = json.dumps(excluded_choices)        
         mimetype = "application/json"
     return HttpResponse(response, mimetype)
+    
