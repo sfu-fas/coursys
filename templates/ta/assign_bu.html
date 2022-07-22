@@ -103,8 +103,9 @@
         extra_bu = 0;
     }
 
-    var labtas = $("#labtas").attr('checked') == 'checked';
-  	
+    //var labtas = $("#labtas").attr('checked') == 'checked';
+    var labtas = $("#labtas").prop('checked') == true;
+  
   	$.post("{% url "ta:assign_bus" post_slug=posting.slug course_slug=offering.slug %}",
   			{'csrfmiddlewaretoken': "{{csrf_token}}", 'extra_bu': extra_bu, 'labtas': labtas},
 				function(data, success){
@@ -234,7 +235,7 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
         </td>
         <td>
             {% for st in a.active_gs %}
-                {{st.program.label}} ({{st.program.unit.label}}, {{st.get_current_status_display}}) {% if not forloop.last %}<br />{% endif %}
+            <a href="{% url "grad:view" grad_slug=st.slug %}">{{st.program.label}} ({{st.program.unit.label}}, {{st.get_current_status_display}}) </a> {% if not forloop.last %}<br />{% endif %}                
             {% endfor %}
         </td>
         <td>{{ a.get_category_display }}</td>

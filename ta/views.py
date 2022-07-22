@@ -2017,3 +2017,15 @@ def add_edit_ta_contract_email(request):
         form = TAContractEmailTextForm(instance=instance)
     return render(request, 'ta/edit_contract_email.html', {'form': form})
 
+@requires_role("TAAD")
+def ta_exclude_choice(request, post_slug=None):
+    if request.is_ajax():        
+        # existing form filtering
+        # offerings = CourseOffering.objects.filter(owner__in=request.units, semester__end__gte=datetime.date.today()).select_related('course')
+        offerings = CourseOffering.objects.filter(owner__in=request.units, semester_id=request.GET.get("semester_id")).select_related('course')
+        excluded_choices = list(set((("%s (%s)" % (o.course,  o.title), o.course_id) for o in offerings)))
+        excluded_choices.sort()
+        excluded_choices
+        response = json.dumps(excluded_choices)        
+        mimetype = "application/json"
+    return HttpResponse(response, mimetype)
