@@ -1195,39 +1195,39 @@ def delete_admin_attachment(request, ra_slug, attach_slug):
     return HttpResponseRedirect(reverse('ra:view_request', kwargs={'ra_slug': req.slug}))
 
 @_can_view_ra_requests()
-def download(request, current=False, incomplete=False):
+def download(request, current=False):
     """
     Download CSVs of appointments and requests
     """
     admin = has_role('FUND', request)
 
     if admin:
-        ras = RARequest.objects.filter(Q(unit__in=request.units), deleted=False, draft=False)
+        ras = RARequest.objects.filter(Q(unit__in=request.units), deleted=False, draft=False).order_by('complete')
     else:
-        ras = RARequest.objects.filter(Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), deleted=False, draft=False)
-
-    if incomplete:
-        ras = ras.filter(complete=False)
-    else:
-        ras = ras.filter(complete=True)
+        ras = RARequest.objects.filter(Q(author__userid=request.user.username) | Q(supervisor__userid=request.user.username), deleted=False, draft=False, complete=True)
 
     if current:
         today = datetime.date.today()
         slack = 14  # number of days to fudge the start/end
         ras = ras.filter(start_date__lte=today + datetime.timedelta(days=slack),
-                         end_date__gte=today - datetime.timedelta(days=slack))
+                         end_date__gte=today - datetime.timedelta(days=slack), complete=True)
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="ras-%s-%s.csv"' % (datetime.datetime.now().strftime('%Y%m%d'),
                                                                             'current' if current else 'all')
 
+
     writer = csv.writer(response)
     if admin:
-        writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP', 'Appointee Email', 'Appointee Co-op Status', 'Processed By'])
+        writer.writerow(['Status', 'Appointee Name', 'Appointee Email', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Supervisor Email', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP', 'Appointee Co-op Status', 'Processed By'])
         for ra in ras:
-            writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay, ra.swpp, ra.get_email_address(), ra.coop, ra.get_processor()])
+            if ra.complete:
+                status = "Complete"
+            else:
+                status = "In Progress"
+            writer.writerow([status, ra.get_sort_name(), ra.get_email_address(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.supervisor.email(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay, ra.swpp, ra.coop, ra.get_processor()])
     else:
-        writer.writerow(['Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
+        writer.writerow(['Appointee Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
         for ra in ras:
             writer.writerow([ra.get_sort_name(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay])
     return response
