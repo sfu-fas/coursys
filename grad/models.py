@@ -587,9 +587,9 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             heshe = 'she'
             himher = 'her'
         else:
-            hisher = "his/her"
-            heshe = 'he/she'
-            himher = 'him/her'
+            hisher = "their"
+            heshe = 'they'
+            himher = 'them'
         
         # financial stuff
         promises = Promise.objects.filter(student=self).order_by('-start_semester')
