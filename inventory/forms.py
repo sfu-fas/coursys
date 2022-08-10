@@ -20,7 +20,7 @@ class AssetForm(forms.ModelForm):
         self.fields['category'].choices = SORTED_CATEGORIES
 
     class Meta:
-        exclude = []
+        exclude = ['stock_status']
         model = Asset
         widgets = {
             'notes': forms.Textarea,
