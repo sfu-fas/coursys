@@ -11,6 +11,7 @@
 				<th>Description</th>
 				<th>Amount</th>
 				<th>Semester</th>
+				<th>Eligible</th>
 				{% if can_edit %}
                     <th>Actions</th>
                 {% endif %}
@@ -36,6 +37,11 @@
 				<td> 
                     {% if f.removed %}<del>{% endif %}
                         {{ f.semester.name }} ({{ f.semester }})
+                    {% if f.removed %}</del>{% endif %}
+                </td>
+                <td>
+                    {% if f.removed %}<del>{% endif %}
+                        {{ f.eligible|yesno }}
                     {% if f.removed %}</del>{% endif %}
                 </td>
 				{% if can_edit %}

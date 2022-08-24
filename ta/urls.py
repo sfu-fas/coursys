@@ -55,6 +55,7 @@ ta_patterns = [ # prefix /ta/
         name="view_transcript"),
     url(r'^' + POST_SLUG + '/application/' + USERID_SLUG + '/update$', ta_views.update_application, name='update_application'),
     url(r'^' + POST_SLUG + '/application/' + USERID_SLUG + '/edit', ta_views.edit_application, name='edit_application'),
+    url(r'^ta-exclude-choice$', ta_views.ta_exclude_choice, name='ta-exclude-choice'),   
 ]
 
 tug_patterns = [ # prefix /tugs/

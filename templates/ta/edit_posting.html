@@ -19,6 +19,43 @@
     $("#id_opens").datepicker({'dateFormat': 'yy-mm-dd'});
     $("#id_closes").datepicker({'dateFormat': 'yy-mm-dd'});
     $("#id_excluded").multiselect();
+
+ 
+    $(document).ready(function(){
+      $.fn.refreshoption = function(){
+        var $id_semester = $('#id_semester').val();
+
+        $.ajax({
+          method: "GET",
+          url: '{% url "ta:ta-exclude-choice" %}',
+          dataType: 'json',
+          data: {semester_id: $id_semester},
+          success: function(response) {      
+            var selitems = $("#id_excluded").val();
+            $("#id_excluded").empty();          
+            $.each(response, function(key, value) {
+              let isSelected = selitems.indexOf(value[1].toString());
+                if ((isSelected) >= 0)
+                  $("#id_excluded").append("<option value="+value[1]+"  selected>"+value[0]+"</option>");
+                else
+                  $("#id_excluded").append("<option value="+value[1]+">"+value[0]+"</option>");
+            });
+          
+            $("#id_excluded").val(selitems);
+            $("#id_excluded").multiselect('refresh'); 
+          },
+          error: function(){
+            console.log("error");
+          }
+        });      
+      }
+      $.fn.refreshoption();
+
+      $("#id_semester").on('change', function(){
+        $.fn.refreshoption();
+      });
+  }); 
+
   });
 </script>
 {% endblock %}
