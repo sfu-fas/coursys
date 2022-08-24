@@ -445,7 +445,7 @@ def student_notes(request, userid):
 
 @requires_role(['ADVS', 'ADVM'])
 def download_file(request, userid, note_id):
-    note = get_object_or_404(AdvisorNote, id=note_id, unit__in=request.units)
+    note = get_object_or_404(AdvisorNote, id=note_id, unit__in=Unit.sub_units(request.units))
     note.file_attachment.open()
     resp = HttpResponse(note.file_attachment, content_type=note.file_mediatype)
     resp['Content-Disposition'] = 'inline; filename="' + note.attachment_filename() + '"'

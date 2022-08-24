@@ -40,7 +40,10 @@ function hide_fields(fields) {
     }
     for (var i = 0; i < fields.length; i++)
     {
-
+        // ensure min_qty is set to 0 if hidden, so stock status still works
+        if (fields[i] == 'min_qty') { 
+            $('#id_min_qty').val(0);
+        }
         var real_id = 'id_' + fields[i];
         var label = $("label[for=" + real_id + "]");
         label.parent().hide();
