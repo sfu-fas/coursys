@@ -86,7 +86,7 @@
             {% for u in units %}
             <form target="_blank" method="post" action="{% url "advising:record_advisor_visit" userid=userid unit_slug=u.slug %}" class="subtle">
             {% csrf_token %}
-                <p><input type="submit" value="Record visit" title="Record visit to {{ u.informal_name }} advisor" /></p>
+                <p><input type="submit" value="Record Visit to {{u.slug|upper}} Advisor" title="Record visit to {{ u.informal_name }} advisor" /></p>
             </form>
             {% endfor %}
         </li>

@@ -54,7 +54,7 @@ python-memcached==1.59
 git+https://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
 elasticsearch>=5.0.0,<6.0.0
 #pysolr==3.8.1
-lxml==4.7.1
+lxml==4.9.1
 gunicorn==20.1.0
 mysqlclient==2.0.3
 paramiko>=2.7.1
