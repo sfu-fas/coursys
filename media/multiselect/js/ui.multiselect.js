@@ -146,6 +146,9 @@ $.widget("ui.multiselect", {
 		// update count
 		this._updateCount();
   },
+  refresh: function() { // https://github.com/michael/multiselect/issues/76
+	this._populateLists(this.element.find('option'));
+   },
 	_updateCount: function() {
 		this.selectedContainer.find('span.count').text(this.count+" "+$.ui.multiselect.locale.itemsCount);
 	},

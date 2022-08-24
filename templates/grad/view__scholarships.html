@@ -8,6 +8,7 @@
 				<th>Start Semester</th>
 				<th>End Semester</th>
 				<th>Entry Date</th>
+				<th>Eligible</th>
 				{% if can_edit %}
                     <th>Actions</th>
                 {% endif %}
@@ -40,6 +41,11 @@
 		<td> 
                     {% if s.removed %}<del>{% endif %}
                         {{ s.entrydate }}  
+                    {% if s.removed %}</del>{% endif %}
+                </td>
+                <td>
+                    {% if s.removed %}<del>{% endif %}
+                        {{ s.scholarship_type.eligible|yesno }}
                     {% if s.removed %}</del>{% endif %}
                 </td>
 		{% if can_edit %}
