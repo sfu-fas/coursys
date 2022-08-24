@@ -28,6 +28,7 @@ CATEGORY_CHOICES = {
     ('ADMN', 'Admin Support'),
     ('TECH', 'Tech Support'),
     ('ELEC', 'Electronics'),
+    ('PPE', 'PPE')
 }
 
 STOCK_STATUS_CHOICES = {

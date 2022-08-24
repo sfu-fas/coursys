@@ -12,6 +12,7 @@
 
 #filterform li span.field label {
     margin-left: 0.5em;
+    white-space: nowrap;
 }
 
 .filter {
