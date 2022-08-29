@@ -21,6 +21,6 @@ class CustomMultipleInputWidget(forms.MultiWidget):
         return [None] * int(self.max)
 
     def render(self, name, value, attrs=None, renderer=None):
-        output = super(CustomMultipleInputWidget, self).render(name, value, attrs=attrs, renderer=renderer)
+        output = super(CustomMultipleInputWidget, self).render(str(name), value, attrs=attrs, renderer=renderer)
         open_tag = '<div class="list-input" data-name="%s" data-min="%i" data-max="%i">' % (name, self.min, self.max)
         return mark_safe(open_tag) + conditional_escape(output) + mark_safe('</div>')
