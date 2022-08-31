@@ -1,0 +1,26 @@
+p.helptext {
+    color: black;
+    font-size: 0.75rem;
+    margin: 1em 3em;
+    line-height: 1.3em;
+}
+ul.actions {
+    list-style-type: none;
+    margin-left: 0em;
+}
+ul.actions li::before {
+    content: "\f061";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    padding: 0 0.5em 0 0;
+}
+ul.actions form {
+    display: inline;
+    margin: 0;
+    border: none;
+    padding: 0;
+    background-color: transparent;
+}
+.status {
+    font-weight: bold;
+}

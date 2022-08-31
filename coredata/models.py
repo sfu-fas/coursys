@@ -293,7 +293,6 @@ class Person(models.Model, ConditionalSaveMixin):
         visas = Visa.get_visas([self])
         return '; '.join("%s (%s)" % (v.status, v.get_validity()) for v in visas)
 
-
     @staticmethod
     def next_available_temp_emplid():
         p = Person.objects.filter(temporary=True).order_by('-emplid')
@@ -1698,8 +1697,8 @@ class Role(models.Model):
             if r.unit.slug != 'univ' and r.role in UNIT_ROLES:
                 unit_roles[r.unit] = unit_roles.get(r.unit, [])
                 unit_roles[r.unit].append(r)
-                if r.role in DISC_ROLES:
-                    discipline_roles.append(r)
+            elif r.unit.slug != 'univ' and r.role in DISC_ROLES:
+                discipline_roles.append(r)
             else:
                 global_roles.append(r)
 

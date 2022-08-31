@@ -35,6 +35,7 @@ http://en.wikipedia.org/wiki/HTML_e-mail
 <dt style="font-weight: bold">Notes</dt>
   <dd>{{case|format_field:'notes_public'}}</dd>
 {% endif %}
+{% if case.meeting_summary %}
 <dt style="font-weight: bold">Meeting with student</dt>
   <dd>
     {% if case.response == "NONE" %}
@@ -50,7 +51,8 @@ http://en.wikipedia.org/wiki/HTML_e-mail
     {% endif %}{% endif %}{% endif %}{% endif %}
   </dd>
   <dd>{{case.meeting_text}}</dd>
-<dt style="font-weight: bold">Facts of the case</dt>
+{% endif %}
+<dt style="font-weight: bold">Incident Description</dt>
   <dd>{{case|format_field:'facts'}}</dd>
 <dt style="font-weight: bold">Penalty assigned by instructor</dt>
   <dd>

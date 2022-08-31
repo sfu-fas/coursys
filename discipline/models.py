@@ -1,3 +1,4 @@
+from courselib.json_fields import JSONField, config_property
 from django.db import models
 from coredata.models import Person, Member, CourseOffering, Role
 from grades.models import Activity
@@ -15,12 +16,12 @@ import string, os, datetime, json
 
 CONTACT_CHOICES = (
         ('NONE', 'Not yet contacted'),
-        ('MAIL', 'Email student through this system'),
-        ('OTHR', 'Instructor will contact student (outside of this system)'),
+        ('MAIL', 'Student emailed through this system'),
+        ('OTHR', 'Student contacted (outside of this system)'),
         )
 RESPONSE_CHOICES = (
         ('WAIT', 'Waiting for response'),
-        ('NONE', 'No response from student (after a reasonable period of time)'),
+        ('NONE', 'No response from student'),
         ('DECL', 'Student declined to meet'),
         ('MAIL', 'Student sent statement by email'),
         ('MET', 'Met with student'),
@@ -33,6 +34,7 @@ INSTR_PENALTY_CHOICES = (
         ('MARK', 'assign a low grade for the work'),
         ('ZERO', 'assign a grade of \u201CF\u201D or zero for the work'),
         )
+"""
 CHAIR_PENALTY_CHOICES = (
         ('WAIT', 'penalty not yet assigned'),
         ('NONE', 'no further penalty assigned'),
@@ -42,6 +44,7 @@ CHAIR_PENALTY_CHOICES = (
         ('FD', 'grade of \u201CFD\u201D in the course'),
         ('OTHE', 'other penalty: see rationale'),
         )
+"""
 LETTER_CHOICES = (
         ('WAIT', 'Not yet sent'),
         ('MAIL', 'Letter emailed through this system'),
@@ -53,102 +56,19 @@ SS_STATE_CHOICES = (
         ('SCOD', 'Case sent to SCODA'),
         ('DONE', 'Case completed'),
         )
-PRE_LETTER_STEPS = ['related', 'attach', 'notes', 'contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'penalty'] # These fields affect the letter: if they are changed, letter must be re-reviewed; after letter sent, can't be changed.
+INSTR_PENALTY_DICT = dict(INSTR_PENALTY_CHOICES)
+INSTR_PENALTY_VALUES = set(INSTR_PENALTY_DICT.keys())
 
 
-STEP_VIEW = { # map of field/form -> view function ("edit_foo") that is used to edit it.
-        'notes': 'notes',
-        'notes_public': 'notes',
-        'related': 'related',
-        'attach': 'attach',
-        'contacted': 'contacted',
-        'response': 'response',
-        'meeting': 'meeting',
-        'meeting_date': 'meeting',
-        'meeting_summary': 'meeting',
-        'meeting_notes': 'meeting',
-        'facts': 'facts',
-        'penalty': 'penalty',
-        'refer': 'penalty',
-        'penalty_reason': 'penalty',
-        'letter_review': 'letter_review',
-        'letter_sent': 'letter_sent',
-        'penalty_implemented': 'penalty_implemented',
-
-        #'chair_notes': 'chair_notes',
-        #'chair_meeting': 'chair_meeting',
-        #'chair_meeting_date': 'chair_meeting',
-        #'chair_meeting_summary': 'chair_meeting',
-        #'chair_meeting_notes': 'chair_meeting',
-        #'chair_facts': 'chair_facts',
-        #'chair_penalty': 'chair_penalty',
-        #'refer_ubsd': 'chair_penalty',
-        #'chair_letter_review': 'chair_letter_review',
-        #'chair_letter_sent': 'chair_letter_sent',
-        }
-STEP_TEXT = { # map of field -> description of the step
-        'notes': 'edit your notes on the case',
-        'notes_public': 'edit your public notes on the case',
-        'contacted': 'contact the student regarding the case',
-        'response': "enter details of the student's response",
-        'meeting_date': "enter details of the student meeting/email",
-        'meeting_summary': "enter a summary of the student meeting/email",
-        'facts': "summarize the facts of the case",
-        'penalty': 'assign a penalty',
-        'letter_review': 'review case details',
-        'letter_sent': "send the letter",
-        'penalty_implemented': "confirm penalty has been implemented",
-
-        #'chair_meeting_date': "enter details of the chair's meeting",
-        #'chair_meeting_summary': "enter details of the chair's meeting",
-        #'chair_meeting_notes': "enter details of the chair's meeting",
-        #'chair_facts': "enter any additional facts of the case",
-        #'chair_penalty': "assign chair's penalty",
-        #'refer_ubsd': "assign chair's penalty",
-        #'chair_letter_review': 'review letter to student',
-        #'chair_letter_sent': "send chair's letter",
-        }
-STEP_SHORT = { # map of field -> position and short description of the step
-        'notes': (0, 'your notes'),
-        'notes_public': (0, 'your notes'),
-        'contacted': (1, 'contact'),
-        'response': (2, "student's response"),
-        'meeting_date': (3, "meeting/email"),
-        'meeting_summary': (4, "meeting/email"),
-        'facts': (5, "facts"),
+STEP_SHORT = { # map of field -> sort order and short description of the step
+        'contacted': (1, 'inform student'),
+        'response': (2, 'discuss with student'),
+        'facts': (5, 'describe case'),
         'penalty': (6, 'penalty'),
-        'letter_review': (7, 'review letter'),
-        'letter_sent': (8, "send letter"),
-        'penalty_implemented': (9, "give penalty"),
+        'letter_sent': (8, 'submit report'),
+        'penalty_implemented': (9, 'record penalty'),
         }
-STEP_DESC = { # map of field/form -> description of what is being edited
-        'notes': 'notes',
-        'notes_public': 'notes',
-        'related': 'related items',
-        'attach': 'attached files',
-        'contacted': 'initial contact information',
-        'contact_date': 'initial contact date',
-        'contact_email_text': 'initial contact email text',
-        'response': 'student response details',
-        'meeting': 'student meeting/email details',
-        'meeting_date': 'student meeting/email date',
-        'meeting_summary': 'student meeting/email summary',
-        'meeting_notes': 'student meeting/email notes',
-        'facts': 'facts of the case',
-        'penalty': 'penalty',
-        'refer': 'Chair/Director referral',
-        'penalty_reason': 'penalty rationale',
-        'letter_review': 'review status',
-        'letter_sent': "letter status",
-        'penalty_implemented': 'penalty confirmation',
 
-        #'chair_notes': "chair's notes",
-        #'chair_meeting': "chair's meeting details",
-        #'chair_facts': "chair's facts of the case",
-        #'chair_penalty': "chair's penalty",
-        #'refer_ubsd': "chair's penalty",
-        #'chair_letter_review': 'review status',
-        }
 TEMPLATE_FIELDS = { # fields that can have a template associated with them
         'notes': 'private notes',
         'notes_public': 'public notes',
@@ -158,18 +78,11 @@ TEMPLATE_FIELDS = { # fields that can have a template associated with them
         'meeting_notes': 'student meeting/email notes',
         'facts': 'facts of the case',
         'penalty_reason': 'penalty rationale',
-
-        #'chair_notes': "chair's notes",
-        #'chair_meeting_summary': "chair's meeting summary",
-        #'chair_meeting_notes': "chair's meeting notes",
-        #'chair_facts': "chair's facts of the case",
-        #'chair_penalty_reason': "chair's penalty rationale",
         }
-TEXTILENOTE = '<a href="javascript:textile_popup()">Textile markup</a> and <a href="javascript:substitution_popup()">case substitutions</a> allowed'
-TEXTILEONLYNOTE = '<a href="javascript:substitution_popup()">Case substitutions</a> allowed'
 
 MAX_ATTACHMENTS = 5*1024*1024 # maximum total size for email attachments
 MAX_ATTACHMENTS_TEXT = '5 MB'
+
 
 class DisciplineGroup(models.Model):
     """
@@ -200,7 +113,7 @@ class DisciplineCaseBase(models.Model):
         """
         for CaseClass in [DisciplineCaseInstrStudent, DisciplineCaseInstrNonStudent, DisciplineCaseChairStudent, DisciplineCaseChairNonStudent]:
             try:
-                return CaseClass.objects.get(id=self.id)
+                return CaseClass.objects.select_related('offering').get(id=self.id)
             except CaseClass.DoesNotExist:
                 pass
 
@@ -208,16 +121,15 @@ class DisciplineCaseBase(models.Model):
     
     owner = models.ForeignKey(Person, help_text="The person who created/owns this case.", on_delete=models.PROTECT)
     offering = models.ForeignKey(CourseOffering, on_delete=models.PROTECT)
-    notes = models.TextField(blank=True, null=True, verbose_name="Private Notes", help_text='Notes about the case (private notes, '+TEXTILENOTE+').')
-    notes_public = models.TextField(blank=True, null=True, verbose_name="Public Notes", help_text='Notes about the case (public notes, '+TEXTILENOTE+').')
+    notes = models.TextField(blank=True, null=True, verbose_name="Private Notes", help_text='Notes about the case (private notes).')
+    notes_public = models.TextField(blank=True, null=True, verbose_name="Public Notes", help_text='Notes about the case (public notes).')
     def autoslug(self):
         return self.student.userid
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='offering')
     group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Cluster this case belongs to (if any).", on_delete=models.PROTECT)
-    
 
     contact_email_text = models.TextField(blank=True, null=True, verbose_name="Contact Email Text",
-            help_text='The initial email sent to the student regarding the case. Please also note the date of the email. ('+TEXTILEONLYNOTE+'.)')
+            help_text='The initial email sent to the student regarding the case. Please also note the date of the email.')
     contacted = models.CharField(max_length=4, choices=CONTACT_CHOICES, default="NONE", verbose_name="Student Contacted?",
             help_text='Has the student been informed of the case?')
     contact_date = models.DateField(blank=True, null=True, verbose_name="Initial Contact Date", help_text='Date of initial contact with student regarding the case.')
@@ -225,17 +137,17 @@ class DisciplineCaseBase(models.Model):
             help_text='Has the student responded to the initial contact?')
     
     meeting_date = models.DateField(blank=True, null=True, verbose_name="Meeting/Email Date", help_text='Date of meeting/email with student.')
-    meeting_summary = models.TextField(blank=True, null=True, verbose_name="Meeting/Email Summary", help_text='Summary of the meeting/email with student (included in letter, '+TEXTILENOTE+').')
-    meeting_notes = models.TextField(blank=True, null=True, verbose_name="Meeting/Email Notes", help_text='Notes about the meeting/email with student (private notes, '+TEXTILENOTE+').')
+    meeting_summary = models.TextField(blank=True, null=True, verbose_name="Meeting/Email Summary", help_text='Summary of the meeting/email with student (included in letter).')
+    meeting_notes = models.TextField(blank=True, null=True, verbose_name="Meeting/Email Notes", help_text='Notes about the meeting/email with student (private notes).')
     
     facts = models.TextField(blank=True, null=True, verbose_name="Facts of the Case",
-            help_text='Summary of the facts of the case (included in letter, '+TEXTILENOTE+').  This should be a summary of the case from the instructor\'s perspective.')
-    penalty = models.CharField(max_length=4, choices=INSTR_PENALTY_CHOICES, default="WAIT",
+            help_text='Summary of the facts of the case (included in letter).  This should be a summary of the case from the instructor\'s perspective.')
+    penalty = models.CharField(max_length=20, default="WAIT",  # formerly choices=INSTR_PENALTY_CHOICES but now a comma-separated list of those values
             verbose_name="Instructor Penalty",
             help_text='Penalty assigned by the instructor for this case.')
     refer = models.BooleanField(default=False, help_text='Refer this case to the Chair/Director?', verbose_name="Refer to chair?")
     penalty_reason = models.TextField(blank=True, null=True, verbose_name="Penalty Rationale/Details",
-            help_text='Rationale for assigned penalty, or notes/details concerning penalty.  Optional but recommended. (included in letter, '+TEXTILENOTE+')')
+            help_text='Rationale for assigned penalty, or notes/details concerning penalty.  Optional but recommended. (included in letter)')
     
     letter_review = models.BooleanField(default=False, verbose_name="Reviewed?", 
             help_text='Has instructor reviewed the letter before sending?')
@@ -246,29 +158,32 @@ class DisciplineCaseBase(models.Model):
     penalty_implemented = models.BooleanField(default=False, verbose_name="Penalty Implemented?", 
             help_text='Has instructor implemented the assigned penalty?')
     central_note = models.TextField(blank=True, null=True, verbose_name="Student Services Note",
-                                    help_text='Additional notes about the case status (visible to student and instructor, '+TEXTILENOTE+')')
+                                    help_text='Additional notes about the case status (visible to student and instructor)')
     central_note_date = models.DateField(blank=True, null=True, verbose_name="Student Services Note Date",
                                     help_text='Last update to the Student Services note.')
+
+    config = JSONField(null=False, blank=False, default=dict)
+
     ro_display = False # set in some views to prevent unnecessary links
     origsection = None # cache for get_origsection
     
     """
     # fields for chair/director
-    chair_notes = models.TextField(blank=True, null=True, help_text='Notes about the case (private notes, '+TEXTILENOTE+').')
+    chair_notes = models.TextField(blank=True, null=True, help_text='Notes about the case (private notes.')
     chair_meeting_date = models.DateField(blank=True, null=True,
             help_text='Date of meeting with student and Chair/Director (if applicable)')
     chair_meeting_summary = models.TextField(blank=True, null=True,
-            help_text='Summary of the meeting with student and Chair/Director (included in letter, '+TEXTILENOTE+')')
+            help_text='Summary of the meeting with student and Chair/Director (included in letter)')
     chair_meeting_notes = models.TextField(blank=True, null=True,
-            help_text='Notes about the meeting with student and Chair/Director (private notes, '+TEXTILENOTE+')')
+            help_text='Notes about the meeting with student and Chair/Director (private notes)')
     chair_facts = models.TextField(blank=True, null=True, verbose_name="Facts of the Case from Chair/Director",
-            help_text='Summary of the facts of the case (included in letter, '+TEXTILENOTE+').  This should contain any additions/updates to the facts presented by the instructor.')
+            help_text='Summary of the facts of the case (included in letter).  This should contain any additions/updates to the facts presented by the instructor.')
 
     chair_penalty = models.CharField(max_length=4, choices=CHAIR_PENALTY_CHOICES, default="WAIT",
             help_text='Penalty assigned by the Chair/Director for this case.')
     refer_ubsd = models.BooleanField(default=False, help_text='Refer case to the UBSD?', verbose_name="Refer UBSD?")
     chair_penalty_reason = models.TextField(blank=True, null=True, verbose_name="Penalty Rationale",
-            help_text='Rationale for penalty assigned by Chair/Director, or notes concerning penalty (included in letter, '+TEXTILENOTE+')')
+            help_text='Rationale for penalty assigned by Chair/Director, or notes concerning penalty (included in letter)')
     
     chair_letter_review = models.BooleanField(default=False, verbose_name="Chair Letter Reviewed?", 
             help_text='Has the chair/directory reviewed the letter before sending?')
@@ -283,7 +198,7 @@ class DisciplineCaseBase(models.Model):
     ss_state = models.CharField(max_length=4, choices=SS_STATE_CHOICES, default="WAIT",
             help_text='State of the case for Student Services.')
     ss_notes = models.TextField(blank=True, null=True,
-            help_text="Student Services' notes about the case (private notes, "+TEXTILENOTE+')')
+            help_text="Student Services' notes about the case (private notes)")
     """
 
     def __str__(self):
@@ -291,6 +206,7 @@ class DisciplineCaseBase(models.Model):
 
     def get_absolute_url(self):
         return reverse('offering:discipline:show', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug})
+
     def get_origsection(self):
         if not self.origsection:
             # no cached section: look up
@@ -300,51 +216,79 @@ class DisciplineCaseBase(models.Model):
 
     def get_refer_display(self):
         return "Yes" if self.refer else "No"
+
     def get_letter_review_display(self):
         return "Yes" if self.letter_review else "No"
+
     def get_penalty_implemented_display(self):
         return "Yes" if self.penalty_implemented else "No"
 
+    def get_penalty_display(self):
+        return '; '.join(INSTR_PENALTY_DICT[k] for k in self.penalty.split(','))
+
+    def sendable(self):
+        return self.contacted != 'NONE' and self.response != 'WAIT' and self.facts_wordcount() > 0 and self.penalty != 'WAIT'
+
     def done(self):
         return self.penalty=="NONE" or self.penalty_implemented
+
+    def editable(self):
+        return self.penalty != "NONE" and self.letter_sent == 'WAIT'
+
     def can_edit(self, field):
         """
         Can this field be modified for this case?
         
-        Logic: after letter sent, can only modify penalty implemented status.  After that, nothing.
+        Logic: after letter sent, can only modify penalty implemented status.
         """
-        return not self.penalty_implemented and not (self.letter_sent!="WAIT" and field != 'penalty_implemented')
+        return self.letter_sent == "WAIT" or field == 'penalty_implemented'
+
     def caseid(self):
         if self.contact_date:
-            year = "%4i" % (self.contact_date.year)
+            year = "%4i" % (self.contact_date.year,)
         else:
             year = "xxxx"
-        return "CMS-%s-%04i" % (year, self.pk)
+        return "CMS-%s-%06i" % (year, self.pk)
 
     def public_attachments(self):
         return CaseAttachment.objects.filter(case=self, public=True)
+
     def public_attachments_size(self):
         return sum(a.attachment.size for a in self.public_attachments())
 
     def related_activities(self):
         return [ro for ro in self.relatedobject_set.all() if isinstance(ro.content_object, Activity)]
-    
+
+    def groupmembers(self):
+        """
+        Return list of other group cases as a JSON-able object.
+        """
+        if not self.group:
+            return []
+        else:
+            return [
+                {"id": c.id, "name": "%s (%s)" % (c.subclass().student.name(), c.subclass().student_userid())}
+                for c in self.group.disciplinecasebase_set.exclude(pk=self.pk)
+            ]
+
     def groupmembersJSON(self):
         """
         Return list of other group cases as a JSON object.
         """
         if not self.group:
             return json.dumps([])
-        
-        return json.dumps(
-                [{"id": c.id,
-                  "name": "%s (%s)" % (c.subclass().student.name(), c.subclass().student_userid() )}
-                for c in self.group.disciplinecasebase_set.exclude(pk=self.pk)]
-                )
 
-    def next_step_text(self):
-        "The text description of the next step."
-        return STEP_TEXT[self.next_step()]
+        return json.dumps(
+            [{"id": c.id,
+              "name": "%s (%s)" % (c.subclass().student.name(), c.subclass().student_userid())}
+             for c in self.group.disciplinecasebase_set.exclude(pk=self.pk)]
+        )
+
+    def facts_wordcount(self) -> int:
+        return 0 if not self.facts else len(self.facts.split())
+
+    def attachment_count(self) -> int:
+        return CaseAttachment.objects.filter(case=self).count()
 
     def create_infodict(self):
         """
@@ -378,6 +322,9 @@ class DisciplineCaseBase(models.Model):
         """
         Return field with substitutions as promised.
         """
+        if text is None:
+            return ''
+
         SUB_FIELDS = ['LNAME', 'FNAME', 'COURSE', 'ACTIVITIES', 'SEMESTER']
         if not hasattr(self, 'infodict'):
             self.create_infodict()
@@ -397,8 +344,6 @@ class DisciplineCaseBase(models.Model):
         self.save()
 
 
-
-
 class DisciplineCaseInstr(DisciplineCaseBase):
     """
     An instructor's case
@@ -413,46 +358,26 @@ class DisciplineCaseInstr(DisciplineCaseBase):
             return "contacted"
         elif self.response=="WAIT":
             return "response"
-        elif self.response in ["MET", "MAIL"] and not self.meeting_date:
-            return "meeting_date"
-        elif self.response in ["MET", "MAIL"] and not self.meeting_summary:
-            return "meeting_summary"
         elif not self.facts:
             return "facts"
         elif self.penalty=="WAIT":
             return "penalty"
-        elif self.penalty!="NONE" and not self.letter_review:
-            return "letter_review"
         elif self.penalty!="NONE" and self.letter_sent=="WAIT":
             return "letter_sent"
         elif self.penalty!="NONE" and not self.penalty_implemented:
             return "penalty_implemented"
-
-    def next_step_url(self):
-        "The URL to edit view for the next step."
-        return reverse('offering:discipline:edit_case_info',
-            kwargs={'field': STEP_VIEW[self.next_step()], 'course_slug':self.offering.slug, 'case_slug': self.slug})
 
     def next_step_short(self):
         "The short description of the next step, used by index view."
         short = STEP_SHORT[self.next_step()]
         return (10-short[0], short[1])
 
-    def chair_case(self):
-        """
-        Related Chair's case (or None)
-        """
-        cases = DisciplineCaseChair.objects.filter(instr_case=self)
-        if cases:
-            return cases[0]
-        return None
-
     def send_contact_email(self):
         """
         Send contact email to the student and CC instructor
         """
         body = wrap(self.substitite_values(self.contact_email_text), 72)
-        
+
         email = EmailMessage(
             subject='Academic dishonesty in %s' % (self.get_origsection()),
             body=body,
@@ -490,6 +415,8 @@ class DisciplineCaseInstr(DisciplineCaseBase):
             (settings.BASE_ABS_URL + reverse('offering:discipline:view_letter', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug}))
         self.letter_text = html_body
         self.letter_date = datetime.date.today()
+        self.letter_review = True
+        self.letter_sent = 'MAIL'
         self.save()
 
         student, instr, dept, univ = self.letter_recipients()
@@ -525,6 +452,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         
         email.send(fail_silently=False)
 
+
 class DisciplineCaseInstrStudent(DisciplineCaseInstr):
     student = models.ForeignKey(Person, help_text="The student this case concerns.", on_delete=models.PROTECT)
     def is_in_course(self):
@@ -537,6 +465,9 @@ class DisciplineCaseInstrStudent(DisciplineCaseInstr):
             return Member.objects.get(offering=self.offering, person=self.student)
         except Member.MultipleObjectsReturned:
             return Member.objects.exclude(role='DROP').get(offering=self.offering, person=self.student)
+
+    def full_name(self):
+        return f'{self.student.name()}'
 
 
 class _FakePerson(object):
@@ -592,6 +523,8 @@ class DisciplineCaseInstrNonStudent(DisciplineCaseInstr):
         return self.email
     def membership(self):
         return self.member
+    def full_name(self):
+        return f'{self.first_name} {self.last_name}'
 
     def __init__(self, *args, **kwargs):
         super(DisciplineCaseInstrNonStudent, self).__init__(*args, **kwargs)
@@ -600,8 +533,6 @@ class DisciplineCaseInstrNonStudent(DisciplineCaseInstr):
         self.member = _FakeMember()
         self.member.populate_from(self)
 
-        
-
 
 class DisciplineCaseChair(DisciplineCaseBase):
     """
@@ -609,12 +540,14 @@ class DisciplineCaseChair(DisciplineCaseBase):
     """
     instr_case = models.ForeignKey(DisciplineCaseInstr, help_text="The instructor's case that triggered this case", on_delete=models.PROTECT)
 
+
 class DisciplineCaseChairStudent(DisciplineCaseChair):
     student = models.ForeignKey(Person, help_text="The student this case concerns.", on_delete=models.PROTECT)
     def is_in_course(self):
         return True
     def student_userid(self):
         return self.student.userid
+
 
 class DisciplineCaseChairNonStudent(DisciplineCaseChair):
     emplid = models.PositiveIntegerField(null=True, blank=True, verbose_name="Student Number", help_text="SFU student number, if known")
@@ -631,21 +564,6 @@ class DisciplineCaseChairNonStudent(DisciplineCaseChair):
         super(DisciplineCaseChairNonStudent, self).__init__(*args, **kwargs)
         self.student = _FakePerson()
         self.student.populate_from(self)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class RelatedObject(models.Model):
@@ -674,7 +592,6 @@ class CaseAttachment(models.Model):
     """
     A piece of evidence to attach to a case
     """
-
     case = models.ForeignKey(DisciplineCaseBase, on_delete=models.PROTECT)
     name = models.CharField(max_length=150, blank=True, null=True, verbose_name="Name", help_text="Identifying name for the attachment")
     attachment = models.FileField(upload_to=_disc_upload_to, max_length=500, verbose_name="File", storage=UploadedFileStorage)
@@ -686,9 +603,9 @@ class CaseAttachment(models.Model):
 
     class Meta:
         unique_together = (("case", "name"),)
+
     def filename(self):
         return os.path.basename(self.attachment.name)
-
 
 
 class DisciplineTemplate(models.Model):
@@ -700,12 +617,15 @@ class DisciplineTemplate(models.Model):
     label = models.CharField(max_length=50, null=False,
             verbose_name="Label", help_text="A short label for the menu of templates")
     text = models.TextField(blank=False, null=False,
-            verbose_name="Text", help_text='The text for the template.  Templates can contain '+TEXTILENOTE+' (except the initial contact email) and substitutions described below.')
+            verbose_name="Text", help_text='The text for the template.  Templates can contain substitutions described below.')
+
     class Meta:
         unique_together = (("field", "label"),)
         ordering = ('field', 'label')
+
     def __str__(self):
         return "%s: %s" % (self.field, self.label)
+
     def JSON_data(self):
         """
         Convert this template to a JSON snippet.

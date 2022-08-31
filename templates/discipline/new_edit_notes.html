@@ -1,0 +1,25 @@
+{% extends "discipline/new_editbase.html" %}
+{% load discipline_filters %}
+
+{% block title %}Dishonesty Case for {{case.student.name}}: Edit Notes{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.name}}: Edit Notes{% endblock %}
+{% block editlabel %}Notes{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block disc_content %}
+
+<div class="form_container">
+<form action="" method="post">{% csrf_token %}
+    <p>You can make extra notes about the case here. They are <strong>not</strong> included in the incident report,
+    visible to the student, Chair, or Student Services,
+    but please be aware that it is possible they could be subject to Freedom Of Information requests.</p>
+        <dl class="dlform">
+            {{ form.notes | discipline_field }}
+            {% if form.case.group %}{{ form.also_for | discipline_field }}{% endif %}
+        </dl>
+        <p><input type="submit" class="submit" value="Save" {% if not case.editable %}disabled="disabled" title="case is not editable"{% endif %} /></p>
+    </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "discipline/new_editbase.html" %}
+{% load discipline_filters %}
+
+{% block title %}Dishonesty Case for {{case.student.name}}: Contact Email{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.name}}: Contact Email{% endblock %}
+{% block editlabel %}Contact Email{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block disc_content %}
+
+<div class="form_container">
+    <form action="" method="post">{% csrf_token %}
+<p>Per <a href="https://www.sfu.ca/content/dam/sfu/policies/files/students/S10.01_Procedures.pdf">S10.01</a>:
+<q>Upon becoming aware that a student may have engaged in academic dishonesty in their
+course, an instructor must notify the student, outlining the nature of the concern, within
+two (2) weeks.</q></p>
+
+        <dl class="dlform">
+            {{ form.contact_email_text | discipline_field }}
+            {% if form.case.group %}{{ form.also_for | discipline_field }}{% endif %}
+        </dl>
+        <p><input type="submit" class="submit" value="Email Student Now" /></p>
+    </form>
+</div>
+
+{% endblock %}

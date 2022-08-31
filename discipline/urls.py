@@ -12,16 +12,25 @@ discipline_patterns = [ # prefix /discipline/
 
 discipline_offering_patterns = [ # prefix /COURSE_SLUG/dishonesty/
     url(r'^$', discipline_views.index, name='index'),
+    url(r'^preview$', discipline_views.markup_preview, name='markup_preview'),
     url(r'^new$', discipline_views.new, name='new'),
     url(r'^newgroup$', discipline_views.newgroup, name='newgroup'),
     url(r'^new_nonstudent$', discipline_views.new_nonstudent, name='new_nonstudent'),
     url(r'^clusters/' + DGROUP_SLUG + '$', discipline_views.showgroup, name='showgroup'),
+
     url(r'^cases/' + CASE_SLUG + '$', discipline_views.show, name='show'),
-    url(r'^cases/' + CASE_SLUG + '/related$', discipline_views.edit_related, name='edit_related'),
+    url(r'^cases/' + CASE_SLUG + '/notify$', discipline_views.CaseNotify.as_view(), name='notify'),
+    url(r'^cases/' + CASE_SLUG + '/response$', discipline_views.CaseResponse.as_view(), name='response'),
+    url(r'^cases/' + CASE_SLUG + '/facts$', discipline_views.CaseFacts.as_view(), name='facts'),
+    url(r'^cases/' + CASE_SLUG + '/penalty$', discipline_views.CasePenalty.as_view(), name='penalty'),
+    url(r'^cases/' + CASE_SLUG + '/send$', discipline_views.CaseSend.as_view(), name='send'),
+    url(r'^cases/' + CASE_SLUG + '/notes$', discipline_views.CaseNotes.as_view(), name='notes'),
+    url(r'^cases/' + CASE_SLUG + '/implemented$', discipline_views.CasePenaltyImplemented.as_view(), name='penalty_implemented'),
+
     url(r'^cases/' + CASE_SLUG + '/letter$', discipline_views.view_letter, name='view_letter'),
     url(r'^cases/' + CASE_SLUG + '/attach$', discipline_views.edit_attach, name='edit_attach'),
     url(r'^cases/' + CASE_SLUG + '/attach/new$', discipline_views.new_file, name='new_file'),
+    url(r'^cases/' + CASE_SLUG + '/attach/delete', discipline_views.CaseDeleteAttachment.as_view(), name='delete_attachment'),
     url(r'^cases/' + CASE_SLUG + '/attach/(?P<fileid>\d+)$', discipline_views.download_file, name='download_file'),
-    url(r'^cases/' + CASE_SLUG + '/attach/(?P<fileid>\d+)/edit$', discipline_views.edit_file, name='edit_file'),
-    url(r'^cases/' + CASE_SLUG + '/(?P<field>[a-z_]+)$', discipline_views.edit_case_info, name='edit_case_info'),
+    #url(r'^cases/' + CASE_SLUG + '/attach/(?P<fileid>\d+)/edit$', discipline_views.edit_file, name='edit_file'),
 ]

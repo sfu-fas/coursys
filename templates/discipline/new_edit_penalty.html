@@ -1,0 +1,40 @@
+{% extends "discipline/new_editbase.html" %}
+{% load discipline_filters %}
+
+{% block title %}Dishonesty Case for {{case.student.name}}: Penalty{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.name}}: Penalty{% endblock %}
+{% block editlabel %}Penalty{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block disc_content %}
+
+<div class="form_container">
+    <form action="" method="post" id="penalty-form">{% csrf_token %}
+<p>Per <a href="https://www.sfu.ca/content/dam/sfu/policies/files/students/S10.01_Procedures.pdf">S10.01</a>:
+<q>If an instructor finds, on a balance of probabilities, that a student has engaged in academic dishonesty, the instructor may&hellip; impose one or more of the following penalties&hellip;
+      [If] the instructor believes that a penalty is warranted beyond that &hellip; the Chair may impose a different penalty</q></p>
+
+<p>Please consider consulting with the departmental Academic Integrity Advisor or Chair before deciding penalty. SFU's <a href="http://www.sfu.ca/policies/gazette/student.html">Student Academic Integrity Policy</a> has this to say about deciding penalty:</p>
+<blockquote style="font-size: 80%;">
+	<p>6.7  In deciding upon the appropriate penalty to be imposed for an act of academic dishonesty or academic misconduct, consideration must be given to the following factors:</p>
+	<ol style="list-style-type: decimal;">
+	<li>the extent of the academic dishonesty or academic misconduct;</li>
+	<li>whether the academic dishonesty or academic misconduct was deliberate;</li>
+	<li>the importance of the work in question as a component of the course or program;</li>
+	<li>whether the act in question is an isolated incident or part of repeated acts of academic dishonesty, academic misconduct, and/or non- academic misconduct; and</li>
+	<li>any other mitigating or aggravating circumstances.</li>
+	</ol>
+</blockquote>
+
+        <dl class="dlform">
+            {{ form.penalty | discipline_field }}
+            {{ form.refer | discipline_field }}
+            {{ form.penalty_reason | discipline_field }}
+            {% if form.case.group %}{{ form.also_for | discipline_field }}{% endif %}
+        </dl>
+        <p><input type="submit" class="submit" value="Save" /></p>
+    </form>
+</div>
+
+{% endblock %}

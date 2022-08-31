@@ -755,13 +755,15 @@ hr.fieldsep {
 div.form_container>form>ul>li {
   list-style-type: none;
 }
+div.form_container>form>ul.bulleted>li {
+  list-style-type: circle;
+}
 div.discside {
   float: right;
   clear: right;
   width: 15em;
   border: dashed 1px #ccc;
   margin-bottom: 0.5em;
-  display: none; /* display controlled by JS */
 }
 div.disc-details ul {
   list-style-type: circle;

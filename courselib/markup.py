@@ -270,7 +270,7 @@ class MarkupContentField(forms.MultiValueField):
         return content, markup, math
 
 
-def MarkupContentMixin(field_name='content'):
+def MarkupContentMixin(field_name='content', handle_metadata=True):
     """
     Mixin for a model that uses MarkupContentField. Usage should be something like:
         class MessageForm(MarkupContentMixin(field_name='content'), forms.ModelForm):
@@ -281,8 +281,12 @@ def MarkupContentMixin(field_name='content'):
     """
     class _MarkupContentMixin(object):
         def __init__(self, instance=None, *args, **kwargs):
-            super(_MarkupContentMixin, self).__init__(instance=instance, *args, **kwargs)
+            if instance:
+                super(_MarkupContentMixin, self).__init__(instance=instance, *args, **kwargs)
+            else:
+                super(_MarkupContentMixin, self).__init__(*args, **kwargs)
             self.field_name = field_name
+            self.handle_metadata = handle_metadata
             if instance:
                 try:
                     self.initial[self.field_name] = [getattr(instance, self.field_name), instance.markup(), instance.math()]
@@ -303,12 +307,13 @@ def MarkupContentMixin(field_name='content'):
         def save(self, commit=True, *args, **kwargs):
             instance = super(_MarkupContentMixin, self).save(commit=False, *args, **kwargs)
             setattr(instance, self.field_name, self.cleaned_data[self.field_name])
-            try:
-                instance.set_markup(self.cleaned_data['_markup'])
-                instance.set_math(self.cleaned_data['_math'])
-            except AttributeError:
-                instance.markup = self.cleaned_data['_markup']
-                instance.math = self.cleaned_data['_math']
+            if self.handle_metadata:
+                try:
+                    instance.set_markup(self.cleaned_data['_markup'])
+                    instance.set_math(self.cleaned_data['_math'])
+                except AttributeError:
+                    instance.markup = self.cleaned_data['_markup']
+                    instance.math = self.cleaned_data['_math']
 
             if commit:
                 instance.save()

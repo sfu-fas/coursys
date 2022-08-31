@@ -1400,6 +1400,7 @@ def _offering_meeting_time_data(request, offering):
     json.dump(data, response, indent=1)
     return response
 
+
 @requires_role("ADMN")
 def new_temporary_person(request):
     if request.method == 'POST':
@@ -1428,6 +1429,7 @@ def new_temporary_person(request):
         form = TemporaryPersonForm()
 
     return render(request, 'coredata/new_temporary_person.html', {'form': form})
+
 
 @cached(3600*12)
 def _has_homepages(unit_id, semester_id):

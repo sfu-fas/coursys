@@ -14,12 +14,8 @@
     <p>{{form.attachment.label}}: {{ form.attachment }}</p>
     {{form.attachment.errors}}
     <p>{{form.public.label}} {{ form.public }} <span class="helptext">{{ form.public.help_text|safe }}</span></p>
-    
-    <p>{{ form.notes.label }}:</p>
-    <blockquote>{{ form.notes }}</blockquote>
-    <p class="helptext">{{ form.notes.help_text|safe }}</p>
 
-    <p><input type="submit" value="Create File" /></p>
+    <p><input type="submit" value="Attach File" /></p>
     </form>
 </div>
 {% endblock %}

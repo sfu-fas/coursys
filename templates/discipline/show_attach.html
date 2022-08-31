@@ -1,11 +1,17 @@
 {% extends "base.html" %}
+{% load discipline_filters %}{% load static %}
 
 {% block headextra %}
+<link rel="stylesheet" href="{% static "style/discipline.css" %}" />
 {% endblock %}
 
 {% block title %}Dishonesty Case for {{case.student.name}}: Attached Files{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.name}}: Attached Files{% endblock %}
-{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "offering:discipline:index" course_slug=course.slug %}">Dishonesty Cases</a></li><li><a href="{% url "offering:discipline:show" course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.name}}</a></li><li>Attached Files</li>{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+    <li><a href="{% url "offering:discipline:index" course_slug=course.slug %}">Dishonesty Cases</a></li>
+    <li><a href="{% url "offering:discipline:show" course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.name}}</a></li>
+    <li>Attached Files</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
@@ -18,18 +24,22 @@
 {% endblock %}
 
 {% block content %}
-<h2 id="pub">Public Files</h2>
+<h2 id="pub">Attached Files</h2>
 <p>These files will be included in correspondence with student.</p>
 <ul>
 {% for f in attach_pub %}
-<li>{{f.name}} (<a href="{% url "offering:discipline:download_file" course_slug=course.slug case_slug=case.slug fileid=f.id %}">{{f.filename}}</a>, {{f.attachment.size|filesizeformat}})
-[<a href="{% url "offering:discipline:edit_file" course_slug=course.slug case_slug=case.slug fileid=f.id %}">edit</a>]
+<li>
+    {{f.name}}
+    (<a href="{% url "offering:discipline:download_file" course_slug=course.slug case_slug=case.slug fileid=f.id %}">{{f.filename}}</a>,
+    {{f.attachment.size|filesizeformat}})
+    <ul class="actions">{% discipline_action case 'delete_attachment' f.id 'Delete attachment' %}</ul>
 </li>
 {% empty %}
 <li class="empty">None</li>
 {% endfor %}
 </ul>
 
+{% if attach_pri %}{# legacy: private files can no longer be created in the UI #}
 <h2 id="pri">Private Files</h2>
 <p>These files will be retained as information about the case.</p>
 <ul>
@@ -41,6 +51,7 @@
 <li class="empty">None</li>
 {% endfor %}
 </ul>
+{% endif %}
 
 
 {% endblock %}

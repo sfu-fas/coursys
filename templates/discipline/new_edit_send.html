@@ -1,0 +1,53 @@
+{% extends "discipline/new_editbase.html" %}
+{% load discipline_filters %}
+
+{% block title %}Dishonesty Case for {{case.student.name}}: Review and Submit Report{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.name}}: Review and Submit Report{% endblock %}
+{% block editlabel %}Review and Submit Report{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block disc_content %}
+
+<div class="letter">{% include "discipline/letter_body.html" %}</div>
+
+{% if case.sendable %}
+<div class="form_container">
+<form action="" method="post">{% csrf_token %}
+        <dl class="dlform">
+            {{ form.letter_review | discipline_field }}
+            <dt>Incident report will be sent to:</dt>
+            <dd>{% with recip=case.letter_recipients %}
+            <ul class="bulleted">
+                <li>The student: {{ recip.0 }}</li>
+                <li>The instructor: {{ recip.1 }}</li>
+                <li>{{case.offering.owner.name}}:
+                    {% for r in recip.2 %}
+                    {{ r }}{% if not forloop.last %},{% endif %}
+                    {% empty %}
+                    <span class="empty warningmessage">No contacts known: please forward to your department office as appropriate.</span>
+                    {% endfor %}
+                </li>
+                <li>Student Services:
+                    {% for r in recip.3 %}
+                    {{ r }}{% if not forloop.last %},{% endif %}
+                    {% empty %}
+                    <span class="empty">No admin CCs known: please forward manually for filing.</span>
+                    {% endfor %}
+                </li>
+            </ul>
+            {% endwith %}</dd>
+        </dl>
+        <p><input type="submit" class="submit" value="Send Report and Complete Case" /></p>
+<p class="helptext">This will send the case report to those listed above, and finalize the case, so it is no longer be editable.</p>
+    </form>
+</div>
+{% else %}
+    <p>
+        Cannot sent report yet: some steps incomplete.
+        Look for <i class="fa fa-question infomessage"></i> on the
+        <a href="{% url "offering:discipline:show" course_slug=offering.slug case_slug=case.slug %}">case page</a>.
+    </p>
+{% endif %}
+
+{% endblock %}

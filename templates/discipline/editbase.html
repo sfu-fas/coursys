@@ -1,10 +1,12 @@
 {% extends "base.html" %}
-{% load discipline_filters %}
+{% load discipline_filters %}{% load static %}
 
 {% block headextra %}
-<link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
-<script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}js/discipline.js"></script>
+<link type="text/css" href="{% static 'multiselect/css/ui.multiselect.css' %}" rel="stylesheet" />
+<script type="text/javascript" src="{% static 'multiselect/js/ui.multiselect.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/discipline.js' %}"></script>
+<link rel="stylesheet" href="{% static "style/discipline.css" %}" />
+
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
     $('form[method=post]').areYouSure();

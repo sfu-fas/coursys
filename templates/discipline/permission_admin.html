@@ -39,7 +39,7 @@ $(document).ready(function() {
   {% for role in disc_roles %}
   <tr{% if role.expires_soon %} class="warningmessage"{% endif %}><td scope="row"><span class="sort">{{role.person.sortname}}</span>{{role.person}} (<a href="mailto:{{ role.person.email }}">{{ role.person.email }}</a>)</td>
       <td>{% if role.role == 'DISC' %}Admin: can view cases online{% else %}Filer: receives reports by email{% endif %}</td>
-      <td>{{ role.expiry }}</td>
+      <td><span class="sort">{{ role.expiry.isoformat }}</span>{{ role.expiry }}</td>
       <td>{{role.unit}}</td>
       <td>
           <a href="{% url 'discipline:permission_admin' %}?delete={{ role.pk }}" class="confirm-submit" data-submit-action="delete this role"><i class="fa fa-trash" title="delete permission"></i><span class="sr-only">delete</span></a>

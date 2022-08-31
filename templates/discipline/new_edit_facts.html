@@ -1,0 +1,31 @@
+{% extends "discipline/new_editbase.html" %}
+{% load discipline_filters %}
+
+{% block title %}Dishonesty Case for {{case.student.name}}: Edit Facts{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.name}}: Edit Facts{% endblock %}
+{% block editlabel %}Facts{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block disc_content %}
+
+<div class="form_container">
+<form action="" method="post">{% csrf_token %}
+<p>Per <a href="https://www.sfu.ca/content/dam/sfu/policies/files/students/S10.01_Procedures.pdf">S10.01</a>:
+<q>The instructor must submit an academic incident report regarding the nature of the dishonesty or misconduct and the decision in a timely manner.</q></p>
+
+<p>Please include here:</p>
+<ul class="bulleted">
+    <li>The nature of the work in question, and its weight in the course. (e.g. a 5% assignment, a 50% final exam)</li>
+    <li>Results of the meeting/correspondence with the student.</li>
+    <li>Description of the nature of the dishonesty, and the evidence for dishonesty.</li>
+</ul>
+        <dl class="dlform">
+            {{ form.facts | discipline_field }}
+            {% if form.case.group %}{{ form.also_for | discipline_field }}{% endif %}
+        </dl>
+        <p><input type="submit" class="submit" value="Save" /></p>
+    </form>
+</div>
+
+{% endblock %}

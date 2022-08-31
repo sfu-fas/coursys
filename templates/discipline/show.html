@@ -1,10 +1,18 @@
 {% extends "base.html" %}
-{% load discipline_filters %}
+{% load discipline_filters %}{% load static %}
 
 {% block title %}Dishonesty Case for {{case.student.name}}{% if chair %}: Instructor's case{% endif %}{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.name}}{% if chair %}: Instructor's case{% endif %}{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "offering:discipline:index" course_slug=course.slug %}">Dishonesty Cases</a></li>{% if chair %}<li>Instructor's case</li>{% endif %}{% endblock %}
+{% block subbreadcrumbs %}
+    <li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+    <li><a href="{% url "offering:discipline:index" course_slug=course.slug %}">Dishonesty Cases</a></li>
+    <li>{{case.student.name}} {% if chair %} (instructor's case){% endif %}</li>
+{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/discipline.css" %}" />
+{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -36,117 +44,134 @@
   <th scope="col">Case Cluster</th>
   <td>{% if case.group %}<a href="{% url "offering:discipline:showgroup" course_slug=course.slug group_slug=case.group.slug %}">{{ case.group.name }}</a>{% else %}&mdash;{% endif %}</td>
 </tr>
-<tr>
-  <th scope="col">Case Owner</th>
-  <td>{% if chair %}<a href="mailto:{{case.owner.email}}">{{ case.owner.name }}</a>{% else %}{{ case.owner.name }}{% endif %}</td>
-</tr>
 </tbody>
 </table>
 </div>
 
-{% if not chair %}
-<div id="nextstep">
-{% if not case.done %}
-Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text}}</a>.
-  {% if case.next_step == 'contacted' or case.next_step == 'response' %}
-  Optional but useful: Enter <a href="{% url "offering:discipline:edit_related" course_slug=course.slug case_slug=case.slug %}">related items</a> or <a href="{% url "offering:discipline:edit_attach" course_slug=course.slug case_slug=case.slug %}">attach files</a>.
-  {% endif %}
-{% else %}
-    Case is completed.
-    {% if case.letter_sent == 'MAIL' %}
-      <a href="{% url "offering:discipline:view_letter" course_slug=course.slug case_slug=case.slug %}">View the letter that was sent</a>.
-    {% endif %}
-{% endif %}
-</div>
-{% else %}
-{% if case.letter_sent == 'MAIL' %}
-<div id="nextstep">Instructor's letter has been sent. <a href="{% url "offering:discipline:view_letter" course_slug=course.slug case_slug=case.slug %}">View the letter</a>.</div>{% endif %}
-{% endif %}
+<p class="helptext">The steps listed here are required by SFU's <a href="https://www.sfu.ca/policies/gazette/student.html">Student Discipline procedures</a>.
+    Steps that have been confirmed completed are marked with &ldquo;<i class="fa fa-check successmessage"></i>&rdquo; below.
+    Steps that have not been completed (as far as this system knows) are marked &ldquo;<i class="fa fa-question infomessage"></i>&rdquo;.</p>
 
-<div class="showcase">
-<h2 id="notes">Notes</h2>
-<dl>
-{% if not chair %}
-<dt>Case Notes (private)</dt>
-<dd>{{case|edit_link:'notes'}}{{case|format_field:'notes'}}</dd>
-{% endif %}
-<dt>Case Notes (public)</dt>
-<dd>{{case|edit_link:'notes_public'}}{{case|format_field:'notes_public'}}</dd>
-{% if not chair %}
-<dt>Related Items (private)</dt>
-<dd>{{case|edit_link:'related'}}
-<ul>{% for ro in case.relatedobject_set.all %}
-  {% if ro.content_object.get_absolute_url %}
-  <li><a href="{{ro.content_object.get_absolute_url}}">{{ro.content_object.short_str}}</a></li>
+
+<section id="contact">
+  <h2>Step 1: Notify The Student {% step_done_unless case case.contacted 'NONE' %}</h2>
+  <p class="helptext">Per <a href="https://www.sfu.ca/policies/gazette/student.html">S10.01</a>:
+      <q>Upon becoming aware that a student may have engaged in academic dishonesty in their
+course, an instructor must notify the student, outlining the nature of the concern, within
+two (2) weeks.</q></p>
+  {% if not case.editable %}
+  {% elif case.contacted != 'NONE' %}
+  <p class="status">Complete: {{ case.get_contacted_display }} {% if case.contact_date %}({{ case.contact_date }}){% endif %}</p>
+  <ul class="actions">
+    {% discipline_action case 'notify' 'NONE' 'Clear: student has not been notified' %}
+  </ul>
   {% else %}
-  <li>{{ro.content_object.short_str}}</li>
+  <ul class="actions">
+    {% discipline_action case 'notify' 'OTHR' 'I have already notified the student' %}
+    {% discipline_action case 'notify' None 'Email the student&hellip;' %}
+  </ul>
   {% endif %}
-{% empty %}<li class="empty">None</li>
-{% endfor %}</ul></dd>
-{% endif %}
-<dt>Attached Files</dt>
-<dd>{{case|edit_link:'attach'}}
-<ul>{% for f in case.caseattachment_set.all %}{% if f.public or not chair %}
-  <li>{{f.name}} (<a href="{% url "offering:discipline:download_file" course_slug=course.slug case_slug=case.slug fileid=f.id %}">{{f.filename}}</a>, {{f.attachment.size|filesizeformat}}, {% if f.public %}public{% else %}private{% endif %})</li>
-{% endif %}{% empty %}<li class="empty">None</li>
-{% endfor %}</ul>
-</dd>
-</dl>
+</section>
 
-<h2 id="contact">Initial Contact</h2>
-<dl>
-<dt>Student Contacted?</dt>
-<dd>{{case|edit_link:'contacted'}}<p>{{case.get_contacted_display}} {% if case.contact_date %}on {{case.contact_date}}{% endif %}.</p></dd>
-<dt>Contact Email or Contact Information</dt>
-<dd>{{case|edit_link:'contacted'}}{{case|format_field:'contact_email_text'}}</dd>
-<dt>Student Response</dt>
-<dd>{{case|edit_link:'response'}}<p>{{case.get_response_display}}</p></dd>
-</dl>
 
-<h2 id="meeting">Meeting with (or Email from) Student</h2>
-<dl>
-<dt>Meeting Date</dt>
-<dd>{{case|edit_link:'meeting'}}<p>{{case.meeting_date}}</p></dd>
-<dt>Meeting/Email Summary (included in letter)</dt>
-<dd>{{case|edit_link:'meeting'}}{{case|format_field:'meeting_summary'}}</dd>
-{% if not chair %}
-<dt>Meeting/Email Notes (private)</dt>
-<dd>{{case|edit_link:'meeting'}}{{case|format_field:'meeting_notes'}}</dd>
-{% endif %}
-</dl>
+<section id="meet">
+  <h2>Step 2: Discuss With The Student {% step_done_unless case case.response 'WAIT' %}</h2>
+  <p class="helptext">Per <a href="https://www.sfu.ca/policies/gazette/student.html">S10.01</a>:
+      <q>The student must be given the opportunity to discuss the matter with the instructor in a timely manner.</q></p>
+  {% if not case.editable %}
+  {% elif case.response != 'WAIT' %}
+  <p class="status">Complete: {{ case.get_response_display }} {% if case.meeting_date %}({{ case.meeting_date }}){% endif %}</p>
+  <ul class="actions">
+    {% discipline_action case 'response' 'WAIT' 'Clear: response is still pending' %}
+  </ul>
+  {% else %}
+  <ul class="actions">
+    {% discipline_action case 'response' 'NONE' 'No response from student' %}
+    {% discipline_action case 'response' 'MAIL' 'Student responded by email' %}
+    {% discipline_action case 'response' 'MET' 'Discussed case with student' %}
+  </ul>
+  {% endif %}
+</section>
 
-<h2 id="facts">Facts and Decision</h2>
-<dl>
-<dt>Facts of case (included in letter)</dt>
-<dd>{{case|edit_link:'facts'}}{{case|format_field:'facts'}}</dd>
-<dt>Penalty assigned by instructor</dt>
-<dd>{{case|edit_link:'penalty'}}<p>{{case.get_penalty_display}}</p></dd>
-<dt>Refer to Chair/Director?</dt>
-<dd>{{case|edit_link:'penalty'}}<p>{{case.get_refer_display}}</p></dd>
-<dt>Penalty Rationale (included in letter)</dt>
-<dd>{{case|edit_link:'penalty'}}{{case|format_field:'penalty_reason'}}</dd>
-</dl>
 
-<h2 id="facts">Finalizing Case</h2>
-<dl>
-<dt>Letter Reviewed?</dt>
-<dd>{{case|edit_link:'letter_review'}}<p>{{case.get_letter_review_display}}</p></dd>
-<dt>Letter Sent?</dt>
-<dd>{{case|edit_link:'letter_sent'}}<p>{{case.get_letter_sent_display}}
-{% if case.letter_date %} on {{case.letter_date}}{% endif %}
-</p>
-{% if case.letter_sent == "OTHR" %}
-{{case|format_field:'letter_text'}}
-{% endif %}</dd>
-<dt>Penalty Implemented?</dt>
-<dd>{{case|edit_link:'penalty_implemented'}}<p>{{case.get_penalty_implemented_display}}</p></dd>
-{% if case.central_note %}
-<dt>Student Services Note [{{ case.central_note_date }}]</dt>
-<dd>{{case|format_field:'central_note'}}</dd>
-{% endif %}
-</dl>
+<section id="facts">
+  <h2>Step 3: Describe The Case {% step_done_if_truthy case case.facts %}</h2>
+  <p class="helptext">Per <a href="https://www.sfu.ca/policies/gazette/student.html">S10.01</a>:
+      <q>The instructor must submit an academic incident report regarding the nature of the dishonesty or misconduct and the decision in a timely manner.</q></p>
+  {% if case.editable %}
+  {% with case.facts_wordcount as wc %}{% with case.attachment_count as n_attach %}
+      {% if wc == 0 and n_attach == 0 %}
+      {% else %}
+          <p class="status">Status: {% if wc == 0 %}no description entered{% else %}description entered ({{ wc }} words){% endif %}, {{ n_attach }} attachment{{ n_attach|pluralize }}.</p>
+      {% endif %}
+  {% endwith %}{% endwith %}
+  <ul class="actions">
+    {% discipline_action case 'facts' None 'Edit the description of the case&hellip;' %}
+    {% discipline_action case 'edit_attach' None 'Manage attachments&hellip; (optional)' %}
+  </ul>
+  {% endif %}
+</section>
 
-</div>
+
+<section id="send">
+  <h2>Step 4: Determine a Penalty {% step_done_unless case case.penalty 'WAIT' %}</h2>
+  <p class="helptext">Per <a href="https://www.sfu.ca/policies/gazette/student.html">S10.01</a>:
+      <q>If an instructor finds, on a balance of probabilities, that a student has engaged in academic dishonesty, the instructor may&hellip; impose one or more of the following penalties&hellip;
+      [If] the instructor believes that a penalty is warranted beyond that &hellip; the Chair may impose a different penalty</q></p>
+  {% if case.editable %}
+  {% if case.penalty != 'WAIT' %}
+  <p class="status">Complete: {{ case.get_penalty_display }}</p>
+  {% endif %}
+  <ul class="actions">
+    {% discipline_action case 'penalty' None 'Edit penalty&hellip;' %}
+  </ul>
+  {% elif case.penalty == 'NONE' %}
+      <p class="status">Case dropped without penalty.</p>
+  {% endif %}
+</section>
+
+
+<section id="send">
+  <h2>Step 5: Review and Submit Report {% step_done_unless case case.letter_sent 'WAIT' %}</h2>
+  <p class="helptext">Per <a href="https://www.sfu.ca/policies/gazette/student.html">S10.01</a>:
+      <q>The instructor must submit an academic incident report&hellip;.</q></p>
+  {% if case.letter_sent != 'WAIT' %}
+  <p class="status">The case report has been sent. <a href="{% url "offering:discipline:view_letter" course_slug=course.slug case_slug=case.slug %}">View the report</a>.</p>
+  {% elif case.penalty == 'NONE' %}
+      <p class="status">Case dropped without penalty: cannot send report</p>
+  {% else %}
+  <ul class="actions">
+    {% if case.sendable %}
+    {% discipline_action case 'send' None 'Review and submit the report&hellip;' %}
+    {% else %}
+    {% discipline_action case 'send' None 'Preview the report&hellip; (cannot submit until all steps complete)' %}
+    {% endif %}
+  </ul>
+  {% endif %}
+</section>
+
+
+<section id="notes">
+  <h2>Optional: Notes to Yourself</h2>
+  <p class="helptext">You may add notes about the case, which will <strong>not</strong> be included in the incident report.</p>
+  <ul class="actions">
+    {% discipline_action case 'notes' None 'Manage notes&hellip;' %}
+  </ul>
+</section>
+
+
+<section id="implement-penalty">
+  <h2>Optional: Confirm Penalty Given {% step_done_unless case case.penalty_implemented False %}</h2>
+  <p class="helptext">This step is completely for your own records, but you can record here that whatever penalty
+      assigned has actually been recorded/calculated.</p>
+  <ul class="actions">
+      {% if case.penalty_implemented %}
+      {% discipline_action case 'penalty_implemented' 'no' 'Clear: Penalty Not Given' %}
+      {% else %}
+      {% discipline_action case 'penalty_implemented' 'yes' 'Confirm Penalty Given' %}
+      {% endif %}
+  </ul>
+</section>
 
 
 {% if chair and has_global_role %}
@@ -165,5 +190,5 @@ Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text
     </form>
 {% endif %}
 
-    
+
 {% endblock %}

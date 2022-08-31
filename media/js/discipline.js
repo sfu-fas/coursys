@@ -9,77 +9,64 @@ function textile_popup() {
       });
 }
 
-function use_template(n) {
-  // put corresponding template text in its field
-  var t = templates[n];
-  var input = $('#id_'+t['field']);
-  input.val(t['text']);
-  /*
-  if (t['activities'] && !hasRelAct) {
-    alert("This template uses the {{ACTIVITIES}} substitution, but you haven't indicated related activities: the system has no useful value to fill in.");
-  }
-  */
+function penalty_select_logic(e) {
+    // handle incompatible values in the UI
+    const val = e.target.value;
+    if ( e.target.checked ) {
+        if (val == 'WAIT') {
+            $('input[name=penalty][value!=WAIT]').prop("checked", false);
+        } else if (val == 'NONE') {
+            $('input[name=penalty][value!=NONE]').prop("checked", false);
+        } else {
+            $('input[name=penalty][value=WAIT]').prop("checked", false);
+            $('input[name=penalty][value=NONE]').prop("checked", false);
+        }
+    }
+    refer_select_logic();
 }
 
-function setup_templates(field) {
-  // set up the template selector for this field
-  var div = document.getElementById('templates_'+field);
-  var h3, ul, li, a, i, t;
-  var count = 0;
-  ul = document.createElement('ul');
-  for ( i=0; i<templates.length; i++ ) {
-    t = templates[i];
-    if ( t['field'] == field ) {
-      count += 1;
-      li = document.createElement('li');
-      a = document.createElement('a');
-      a.setAttribute('href', 'javascript:use_template(' + i + ')');
-      a.setAttribute('title', t['text']);
-      a.appendChild(document.createTextNode(t['label']));
-      li.appendChild(a);
-      ul.appendChild(li);
+function refer_select_logic(e) {
+    // gently prod for penalty consistency when referring to chair
+    const refer = $('input[name=refer]').is(':checked');
+    const zero = $('input[name=penalty][value=ZERO]').is(':checked');
+    let err = $('input[name=refer]').next();
+    if ( err.length == 0 ) {
+        $('input[name=refer]').after('<span></span>');
+        err = $('input[name=refer]').next();
     }
-  }
-
-  if ( count > 0 ) {
-    h3 = document.createElement('h3');
-    h3.appendChild(document.createTextNode("Templates"));
-    div.appendChild(h3);
-    div.appendChild(ul);
-    div.style.setProperty('display','block',null);
-  }
-
-  setup_groupmembers(field);
+    if ( refer && !zero ) {
+        err.html('<ul class="errorlist"><li id="dynamicerror">Referring a case to the Chair is generally done because it &ldquo;deserves a penalty more severe than that imposed by the instructor&rdquo;. It is unusual (but not disallowed) to refer the case without assigning an F for the work.</li></ul>');
+    } else {
+        err.html('<span></span>');
+    }
 }
 
-function setup_groupmembers(field) {
-  // set up the "use same value for other group members" box for this field
-  var div, h3, ul, li, check, label, member;
-  if ( groupmembers.length > 0 ) {
-    div = document.getElementById('group_'+field);
-    if ( div == null ) {
-      return;
+function confirm_penalty(e) {
+    // setting penalty to "NONE" has more consequences than are obvious: confirm.
+    if ( $('input[name=penalty][value=NONE]').prop('checked') ) {
+        const confirm = window.confirm("Are you sure you want drop the case without penalty? This will close the case and make it uneditable.");
+        return confirm;
+    } else {
+        return true;
     }
-    h3 = document.createElement('h3');
-    h3.appendChild(document.createTextNode("Set same value for:"));
-    div.appendChild(h3);
-    ul = document.createElement('ul');
-    div.appendChild(ul);
-    
-    for ( i=0; i<groupmembers.length; i++ ) {
-      member = groupmembers[i];
-      check = document.createElement('input');
-      check.setAttribute('type', 'checkbox');
-      check.setAttribute('name', 'also-' + field + "-" + member.id);
+}
 
-      label = document.createElement('label');
-      label.appendChild(check);
-      label.appendChild(document.createTextNode(member.name));
-      li = document.createElement('li');
-      li.appendChild(label)
-      ul.appendChild(li);
+function setup_templates(heading) {
+    let links = document.getElementsByClassName('template-link');
+    for (let a of links) {
+        a.addEventListener('click', function () {
+            const txt = a.dataset.text;
+            let fld = document.getElementById(a.dataset.field);
+            if ( ! fld ) {
+                fld = document.getElementById(a.dataset.field + '_0');
+            }
+            fld.value = txt;
+        });
     }
-    
-    div.style.setProperty('display','block',null);
-  }
+
+    setup_previews(heading);
+
+    $('input[name=penalty]').change(penalty_select_logic);
+    $('input[name=refer]').change(refer_select_logic);
+    $('form#penalty-form').submit(confirm_penalty);
 }

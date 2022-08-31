@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load discipline_filters %}{% load static %}{% load compress %}
+
+{% block headextra %}
+{% url 'offering:discipline:markup_preview' course_slug=offering.slug as previewurl %}{{ previewurl|json_script:"preview-url" }}
+{% compress css %}
+<link type="text/css" href="{% static 'multiselect/css/ui.multiselect.css' %}" rel="stylesheet" />
+<link rel="stylesheet" href="{% static "style/discipline.css" %}" />
+{% endcompress %}
+{% compress js %}
+<script src="{% static 'multiselect/js/ui.multiselect.js' %}"></script>
+<script src="{% static 'js/markup-preview.js' %}"></script>
+<script src="{% static 'js/discipline.js' %}"></script>
+{% endcompress %}
+{% include 'pages/markup_edit_head.html' %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('form[method=post]').areYouSure();
+    setup_templates('Preview');
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>
+    <li><a href="{% url "offering:discipline:index" course_slug=offering.slug %}">Dishonesty Cases</a></li>
+    <li><a href="{% url "offering:discipline:show" course_slug=offering.slug case_slug=case.slug %}">Case for {{case.student.name}}</a></li>
+    <li>Edit {% block editlabel %}{% endblock %}</li>{% endblock %}
+
+{% block content %}
+{% block disc_content %}{% endblock %}
+
+{% include "discipline/substitutions.html" %}
+
+{% endblock %}
