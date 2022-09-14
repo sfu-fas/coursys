@@ -4,12 +4,13 @@
 {% block h1 %}New Query{% endblock %}
 
 {% block headextra %}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.46.0/codemirror.min.css" referrerpolicy="no-referrer" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.46.0/codemirror.min.js" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.46.0/mode/sql/sql.min.js" referrerpolicy="no-referrer"></script>
+    <link type="text/css" href="{{STATIC_URL}}codemirror/lib/codemirror.css" rel="stylesheet" />
+    <script type="text/javascript" src="{{STATIC_URL}}codemirror/lib/codemirror.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}codemirror/mode/sql/sql.js"></script>
     <script nonce="{{ CSP_NONCE }}">
         $(function(){
             var editor = CodeMirror.fromTextArea( $("#id_query").get()[0], {'mode':'text/x-sql'});
+            $('#id_query').removeAttr('required'); // https://stackoverflow.com/questions/42304472/an-invalid-form-control-with-name-is-not-focusable
         });
     </script>
 {% endblock %}
