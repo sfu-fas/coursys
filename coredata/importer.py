@@ -211,7 +211,7 @@ FROM PS_CLASS_TBL CT
   LEFT OUTER JOIN PS_CRSE_CATALOG CC ON CT.CRSE_ID=CC.CRSE_ID
   LEFT OUTER JOIN PS_TERM_TBL T ON CT.STRM=T.STRM AND CT.ACAD_CAREER=T.ACAD_CAREER
 WHERE
-  CC.EFF_STATUS='A' AND CT.CLASS_TYPE='E' AND CT.CLASS_STAT='A'
+  CC.EFF_STATUS='A' AND CT.CLASS_TYPE='E' AND CT.CLASS_STAT IN ('A','S')
   AND CC.EFFDT=(SELECT MAX(EFFDT) FROM PS_CRSE_CATALOG
                 WHERE CRSE_ID=CC.CRSE_ID AND EFF_STATUS='A' AND EFFDT<=T.TERM_BEGIN_DT)
 """ # AND more stuff added where it is used.
@@ -219,7 +219,7 @@ WHERE
 # (e.g. import_one_offering(strm='1014', subject='CMPT', number='310', section='D100')
 # They seem to have different class_nbr values, but are otherwise identical.
 # Students are imported by class_nbr but are unified in our DB, so that might be bad, but it hasn't come up.
-
+# CLASS_STAT values: 'A' = active; 'S' = stop further enrollment; 'T' = tentative section; 'X' = cancelled
 
 def import_offerings(extra_where='1=1', import_semesters=import_semesters, cancel_missing=False, create_units=False):
     db = SIMSConn()

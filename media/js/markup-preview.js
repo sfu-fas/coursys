@@ -40,7 +40,7 @@ function setup_preview(heading, editor) {
         clearTimeout(timeout);
         timeout = setTimeout(function () {
             update_preview(heading, preview, textarea, markup, math);
-        }, 2000);
+        }, 1000);
         return timeout;
     });
     markup.addEventListener('change', function(e) {
