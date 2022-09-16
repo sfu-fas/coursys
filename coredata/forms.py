@@ -113,6 +113,28 @@ class PersonForm(forms.ModelForm):
             self.instance.set_email(email)
         return email
 
+class EditPersonForm(forms.ModelForm):
+    last_name = forms.CharField(max_length=32, required=True)
+    first_name = forms.CharField(max_length=32, required=True)
+    middle_name = forms.CharField(max_length=32, required=False)
+    pref_first_name = forms.CharField(max_length=32, required=False, label="Preferred First Name")
+    email = forms.CharField(max_length=50, required=False,
+                            help_text='Person\'s email address (if not userid@sfu.ca)',
+                            widget=forms.TextInput(attrs={'size':'20'}))
+
+    class Meta:
+        model = Person
+        fields = ('last_name', 'first_name', 'middle_name', 'pref_first_name',)
+
+    def clean_email(self):
+        """
+        Get the email address into the config, where it belongs
+        """
+        email = self.cleaned_data['email']
+        if email:
+            self.instance.set_email(email)
+        return email
+
 class PersonWidget(forms.TextInput):
     """
     A widget to allow selecting a person by emplid, where they might not be in the coredata.Person table yet

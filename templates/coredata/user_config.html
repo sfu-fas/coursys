@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load form_display %}
 {% block title %}User Config {{person.userid}}{% endblock %}
 {% block h1 %}User Config {{person.userid}}{% endblock %}
 
@@ -23,4 +23,13 @@
 {% else %}
 <p class="empty">No config options.</p>
 {% endif %}
+<div class="form_container">
+    <form action="{% url "sysadmin:user_config" userid=person.userid_or_emplid %}" method="post">{% csrf_token %}
+        <fieldset>
+        <legend>Edit Person Config</legend>
+        {{ form|as_dl }}
+        <p><input type="submit" class="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+</div>
 {% endblock %}
