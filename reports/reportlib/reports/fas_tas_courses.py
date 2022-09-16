@@ -14,7 +14,7 @@ class FASTACoursesReport(Report):
         
         # - /ta
         tas = ta_courses.objects.filter(contract__posting__semester=semester, 
-                                        contract__status='SGN',
+                                        contract__status__in=['SGN', 'ACC'],
                                         contract__posting__unit__in=units)
         # - /tacontracts
         tacontracts = tacontracts_courses.objects.filter(contract__category__hiring_semester__semester=semester, 
