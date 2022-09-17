@@ -272,7 +272,18 @@ def new_thread(request: ForumHttpRequest) -> HttpResponse:
             post.update_status(commit=False)
             thread = Thread(post=post, title=thread_form.cleaned_data['title'],
                             privacy=thread_form.cleaned_data['privacy'])
+
+            # record broadcast_announcement logic (actual broadcast action handled below)
+            thread.was_broadcast = ('broadcast_announcement' in thread_form.cleaned_data
+                    and thread_form.cleaned_data['broadcast_announcement']
+                    and request.member.role in APPROVAL_ROLES)
+            # also pin if it's an announcement
+            thread.pin = 1 if thread.was_broadcast else 0
+
             thread.save(create_history=True, real_change=True)  # also saves the thread.post
+
+            if thread.was_broadcast:
+                thread.broadcast_announcement()
 
             # mark it as self-read
             ReadThread(member=request.member, thread_id=thread.id).save()

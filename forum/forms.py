@@ -58,6 +58,9 @@ class InstrEditThreadForm(ThreadForm):
 
 
 class InstrThreadForm(InstrEditThreadForm):
+    broadcast_announcement = forms.BooleanField(required=False, help_text='This will cause the post to be emailed'
+        'directly to students in the course and pin the post (until you un-pin it). We ask instructors to use this sparingly.')
+
     # instructors can't post anonymously
     def save(self, commit=True, *args, **kwargs):
         res = super().save(commit=False, *args, **kwargs)
@@ -65,6 +68,13 @@ class InstrThreadForm(InstrEditThreadForm):
         if commit:
             res.save()
         return res
+
+    def clean(self):
+        super().clean()
+        broadcast_announcement = self.cleaned_data.get('broadcast_announcement')
+        privacy = self.cleaned_data.get('privacy')
+        if broadcast_announcement and privacy != 'ALL':
+            self.add_error('broadcast_announcement', 'You cannot broadcast a private thread: it must be visible to students to broadcast as an announcement.')
 
 
 class ReplyForm(_PostForm):

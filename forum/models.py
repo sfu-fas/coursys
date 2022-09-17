@@ -1,8 +1,12 @@
 import datetime
 import hashlib
+import random
 from collections import Counter
 from typing import Dict, Any, List
 
+from courselib.branding import product_name
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
 from django.db import models, transaction, IntegrityError
 from django.db.models import Max
 from django.http import Http404
@@ -447,6 +451,8 @@ class Thread(models.Model):
     last_activity = models.DateTimeField(default=datetime.datetime.now, null=False, blank=False)
     config = JSONField(null=False, blank=False, default=dict)
 
+    was_broadcast = config_property('was_broadcast', False)  # was this an broadcast_announcement thread that was pushed?
+
     objects = ThreadManager.from_queryset(ThreadQuerySet)()
 
     class Meta:
@@ -497,6 +503,48 @@ class Thread(models.Model):
             'replies': [],
         })
         return data
+
+    def broadcast_announcement(self):
+        """
+        Email contents of this post to everyone in the course.
+        """
+        url = settings.BASE_ABS_URL + self.post.get_absolute_url()
+        title = self.title_short()
+
+        text_content = f'''The instructor has broadcast an announcement from the discussion forum on {product_name(hint='course')} which you can view here: {url}'''
+        html_content = f'''<base href="{escape(url)}" />
+            <p style="font-size: smaller; font-style: italic;">[The instructor has broadcast this {product_name(hint='course')}
+            discussion forum post as an announcement to the class.
+            You can also view it on {product_name(hint='course')}:
+            <a href="{escape(url)}">#{self.post.number} {escape(title)}</a>.]</p>'''
+        html_content += self.post.html_content()
+        html_content += f'''
+            <p style="font-size: smaller; border-top: 1px solid black;">You received this email from {product_name(hint='course')}.
+            The course instructor/TA requested that it be broadcast as an announcement to all students.
+            You cannot unsubscribe from these messages, but we do ask instructors to use them sparingly.</p>
+            '''
+
+        subject = f'{self.post.offering.name()}: {title}'
+        from_email = self.post.author.person.full_email()
+
+        headers = {
+            'Precedence': 'bulk',
+            'Auto-Submitted': 'auto-generated',
+            'X-coursys-topic': 'forum',
+            'X-course': self.post.offering.slug,
+        }
+
+        members = Member.objects.exclude(role='DROP').filter(offering=self.post.offering).select_related('person')
+        members = list(members)
+        random.shuffle(members)
+
+        for m in members:
+            to_email = m.person.email()
+            if not to_email:
+                continue
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email], headers=headers)
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
 
 
 class Reply(models.Model):
