@@ -221,7 +221,8 @@ def user_config(request, userid):
             l.save()
             return HttpResponseRedirect(reverse('sysadmin:user_config', kwargs={'userid': person.emplid}))
     else:
-        form = EditPersonForm(instance=person, initial={"email": person.config['email'] if 'email' in person.config else None})
+        form = EditPersonForm(instance=person, initial={"email": person.config['email'] if 'email' in person.config else None,
+                                                        "pref_first_name": person.config['pref_first_name'] if 'pref_first_name' in person.config else None})
     return render(request, "coredata/user_config.html", {'person': person, 'form': form})
 
 

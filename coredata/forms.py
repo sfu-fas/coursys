@@ -114,17 +114,15 @@ class PersonForm(forms.ModelForm):
         return email
 
 class EditPersonForm(forms.ModelForm):
-    last_name = forms.CharField(max_length=32, required=True)
-    first_name = forms.CharField(max_length=32, required=True)
-    middle_name = forms.CharField(max_length=32, required=False)
-    pref_first_name = forms.CharField(max_length=32, required=False, label="Preferred First Name")
+    pref_first_name = forms.CharField(max_length=32, required=False,
+                                      label="Preferred First Name", widget=forms.TextInput(attrs={'size':'20'}))
     email = forms.CharField(max_length=50, required=False,
                             help_text='Person\'s email address (if not userid@sfu.ca)',
                             widget=forms.TextInput(attrs={'size':'20'}))
 
     class Meta:
         model = Person
-        fields = ('last_name', 'first_name', 'middle_name', 'pref_first_name',)
+        fields = ()
 
     def clean_email(self):
         """
@@ -134,6 +132,15 @@ class EditPersonForm(forms.ModelForm):
         if email:
             self.instance.set_email(email)
         return email
+
+    def clean_pref_first_name(self):
+        """
+        Get the preferred first name into the config
+        """
+        pref_first_name = self.cleaned_data['pref_first_name']
+        if pref_first_name or 'pref_first_name' in self.instance.config:
+            self.instance.set_pref_first_name(pref_first_name)
+        return pref_first_name
 
 class PersonWidget(forms.TextInput):
     """
