@@ -131,6 +131,8 @@ class EditPersonForm(forms.ModelForm):
         email = self.cleaned_data['email']
         if email:
             self.instance.set_email(email)
+        elif 'email' in self.instance.config:
+            del self.instance.config['email']
         return email
 
     def clean_pref_first_name(self):
@@ -138,8 +140,10 @@ class EditPersonForm(forms.ModelForm):
         Get the preferred first name into the config
         """
         pref_first_name = self.cleaned_data['pref_first_name']
-        if pref_first_name or 'pref_first_name' in self.instance.config:
+        if pref_first_name:
             self.instance.set_pref_first_name(pref_first_name)
+        elif 'pref_first_name' in self.instance.config:
+            del self.instance.config['pref_first_name']
         return pref_first_name
 
 class PersonWidget(forms.TextInput):
