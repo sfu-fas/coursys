@@ -160,6 +160,7 @@ class Person(models.Model, ConditionalSaveMixin):
                 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,
                 'sin': '000000000', 'phone_ext': None, 'birthdate': None}
     _, set_email = getter_setter('email')
+    _, set_pref_first_name = getter_setter('pref_first_name')
     gender, _ = getter_setter('gender')
     addresses, _ = getter_setter('addresses')
     gpa, _ = getter_setter('gpa')

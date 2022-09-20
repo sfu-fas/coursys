@@ -5,7 +5,7 @@ from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
         TemporaryPersonForm, CourseHomePageForm, OneOfferingForm, NewCombinedForm, AnyPersonForm, RoleAccountForm, \
-        OffboardForm
+        OffboardForm, EditPersonForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
         has_formgroup, has_global_role
 from courselib.search import get_query, find_userid_or_emplid
@@ -210,7 +210,20 @@ def user_summary(request, userid):
 def user_config(request, userid):
     query = find_userid_or_emplid(userid)
     person = get_object_or_404(Person, query)
-    return render(request, "coredata/user_config.html", {'person': person})
+    if request.method == 'POST':
+        form = EditPersonForm(request.POST, instance=person)
+        if form.is_valid():
+            form.save()
+            # LOG EVENT #
+            l = LogEntry(userid=request.user.username,
+                  description=("person config edited: %s (%s)") % (form.instance.name(), form.instance.userid),
+                  related_object=form.instance)
+            l.save()
+            return HttpResponseRedirect(reverse('sysadmin:user_config', kwargs={'userid': person.emplid}))
+    else:
+        form = EditPersonForm(instance=person, initial={"email": person.config['email'] if 'email' in person.config else None,
+                                                        "pref_first_name": person.config['pref_first_name'] if 'pref_first_name' in person.config else None})
+    return render(request, "coredata/user_config.html", {'person': person, 'form': form})
 
 
 @requires_global_role("SYSA")
