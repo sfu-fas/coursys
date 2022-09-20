@@ -25,7 +25,6 @@ from forum.names_generator import get_random_name
 # TODO: better highlighting of unread replies
 # TODO: better highlighting of instructor content
 # TODO: better highlighting of "approved" answers or instructor approvals
-# TODO: instructors should be able to "close" a thread, so no more activity (by students)
 
 # future TODOs...
 # TODO: thread categories

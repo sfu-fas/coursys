@@ -296,7 +296,7 @@ h2.note .collapsible-heading-status, .collapsiblecomment .collapsible-heading-st
         display: inline;
         padding-left: 0;
     }
-    .subnav-wrapper ul.fa-ul li .fa {
+    .subnav-wrapper ul.fa-ul li .fa, .subnav-wrapper ul.fa-ul li .far {
         display: none;
     }
     .subnav-wrapper ul li:before {

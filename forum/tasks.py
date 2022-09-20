@@ -1,5 +1,6 @@
 import datetime
 import itertools
+import time
 from typing import Optional, List, Tuple
 
 from django import template
@@ -46,6 +47,9 @@ def digest_content(ident: Identity) -> Optional[SafeString]:
     for t in unread_threads:
         # find threads where the thread is newly started/edited (but no replies)
         if t.id in found_thread_ids:
+            continue
+        # Exclude broadcasted threads, since they have already been pushed by email.
+        if t.was_broadcast:
             continue
         activity.append((t, []))
 
@@ -145,3 +149,13 @@ def send_digests(immediate=False) -> None:
         create_instr_idents.apply()
     else:
         create_instr_idents.delay()
+
+
+@task(queue='batch')
+def broadcast_announcement(thread_id: int) -> None:
+    try:
+        thread = Thread.objects.get(id=thread_id)
+    except Thread.DoesNotExist:
+        time.sleep(5)  # give the view a chance to commit its transaction
+        thread = Thread.objects.get(id=thread_id)
+    thread.broadcast_announcement()

@@ -283,7 +283,11 @@ def new_thread(request: ForumHttpRequest) -> HttpResponse:
             thread.save(create_history=True, real_change=True)  # also saves the thread.post
 
             if thread.was_broadcast:
-                thread.broadcast_announcement()
+                if False and settings.USE_CELERY:
+                    from .tasks import broadcast_announcement
+                    broadcast_announcement.delay(thread.id)
+                else:
+                    thread.broadcast_announcement()
 
             # mark it as self-read
             ReadThread(member=request.member, thread_id=thread.id).save()
@@ -587,3 +591,11 @@ def dump(request: ForumHttpRequest) -> JsonResponse:
     response = JsonResponse(data)
     response['Content-Disposition'] = 'inline; filename="forum-%s.json"' % (request.offering.slug,)
     return response
+
+
+@forum_view
+def debug_digest(request: ForumHttpRequest) -> HttpResponse:
+    from forum.tasks import digest_content
+    identity = Identity.for_member(request.member)
+    html = digest_content(identity)
+    return HttpResponse(html)

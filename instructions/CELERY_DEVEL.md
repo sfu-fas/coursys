@@ -11,6 +11,9 @@ If you do need Celery for development, there are a couple of things to set up...
 In `courses/localsettings.py`, ask for Celery:
 ```
 USE_CELERY = True
+RABBITMQ_USER = 'guest'
+RABBITMQ_HOSTPORT = 'localhost:5672'
+RABBITMQ_VHOST = '/'
 ```
 
 Celery (as we have configured it) uses AMQP implementation [RabbitMQ](https://www.rabbitmq.com/) as a message transport. It needs to be installed. In Ubuntu:
@@ -18,9 +21,9 @@ Celery (as we have configured it) uses AMQP implementation [RabbitMQ](https://ww
 apt-get install rabbitmq-server
 ```
 
-Then in `courses/secrets.py`, make sure the broker URL is right. You can use the default guest account for devel:
+Then in `courses/secrets.py`:
 ```
-CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+RABBITMQ_PASSWORD = 'guest'
 ```
 
 ## RabbitMQ Docker
