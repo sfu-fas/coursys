@@ -58,7 +58,7 @@ class InstrEditThreadForm(ThreadForm):
 
 
 class InstrThreadForm(InstrEditThreadForm):
-    broadcast_announcement = forms.BooleanField(required=False, help_text='This will cause the post to be emailed'
+    broadcast_announcement = forms.BooleanField(required=False, help_text='This will cause the post to be emailed '
         'directly to students in the course and pin the post (until you un-pin it). We ask instructors to use this sparingly.')
 
     # instructors can't post anonymously

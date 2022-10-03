@@ -376,7 +376,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         """
         Send contact email to the student and CC instructor
         """
-        body = wrap(self.substitite_values(self.contact_email_text), 72)
+        body = self.substitite_values(self.contact_email_text)
 
         email = EmailMessage(
             subject='Academic dishonesty in %s' % (self.get_origsection()),
