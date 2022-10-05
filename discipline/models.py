@@ -267,7 +267,7 @@ class DisciplineCaseBase(models.Model):
             return []
         else:
             return [
-                {"id": c.id, "name": "%s (%s)" % (c.subclass().student.name(), c.subclass().student_userid())}
+                {"id": c.id, "name": "%s (%s)" % (c.subclass().student.name_with_pref(), c.subclass().student_userid())}
                 for c in self.group.disciplinecasebase_set.exclude(pk=self.pk)
             ]
 
@@ -280,7 +280,7 @@ class DisciplineCaseBase(models.Model):
 
         return json.dumps(
             [{"id": c.id,
-              "name": "%s (%s)" % (c.subclass().student.name(), c.subclass().student_userid())}
+              "name": "%s (%s)" % (c.subclass().student.name_with_pref(), c.subclass().student_userid())}
              for c in self.group.disciplinecasebase_set.exclude(pk=self.pk)]
         )
 
@@ -467,7 +467,7 @@ class DisciplineCaseInstrStudent(DisciplineCaseInstr):
             return Member.objects.exclude(role='DROP').get(offering=self.offering, person=self.student)
 
     def full_name(self):
-        return f'{self.student.name()}'
+        return f'{self.student.name_with_pref()}'
 
 
 class _FakePerson(object):
@@ -492,6 +492,7 @@ class _FakePerson(object):
         return "%s %s" % (self.first_name, self.last_name)
     def sortname(self):
         return "%s, %s" % (self.last_name, self.first_name)
+
 
 class _FakeMember(object):
     """
