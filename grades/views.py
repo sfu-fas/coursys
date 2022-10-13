@@ -1417,7 +1417,6 @@ def student_search(request, course_slug):
         return HttpResponseRedirect(reverse('offering:student_info',
                                                 kwargs={'course_slug': course_slug, 'userid': student.person.userid}))
 
-
     form = StudentSearchForm()
     context = {'course': course, 'form': form}
     return render(request, 'grades/student_search.html', context)
@@ -1426,11 +1425,14 @@ def student_search(request, course_slug):
 @requires_course_staff_by_slug
 def student_info(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
+    member = get_object_or_404(Member, find_member(userid), offering__slug=course_slug)
     requestor = get_object_or_404(Member, ~Q(role='DROP'), person__userid=request.user.username, offering__slug=course_slug)
     activities = all_activities_filter(offering=course)
-    
-    if member.role != "STUD":
+
+    if requestor.role in ['INST', 'APPR'] and member.role == 'DROP':
+        # let instructors see that this is a dropped student, others get 404
+        pass
+    elif member.role != "STUD":
         return NotFoundResponse(request)
     
     grade_info = []

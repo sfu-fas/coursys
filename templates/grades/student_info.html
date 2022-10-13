@@ -30,6 +30,9 @@
 
 {% block content %}
 
+{% if member.role == 'DROP' %}
+    <p class="infomessage"><i class="fas fa-info-circle"></i> <strong>This student had dropped the course.</strong> Their data is preserved in this system, but they will not appear on class lists, be able to submit assignments, etc.</p>
+{% endif %}
 {% if can_photo %}<div class="idphoto studentinfo"><img src="{% url 'data:student_photo' emplid=member.person.emplid %}" alt="" /></div>{% endif %}
 <div class="table_container">
     <table class="info">
