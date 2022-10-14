@@ -1,7 +1,13 @@
 import re
+from typing import Type, Iterable
+
+from django.conf import settings
+from django.db import models
 
 from django.core.management import call_command
 from django.db.models import Q
+from haystack.utils import loading
+
 
 def find_userid_or_emplid(userid):
     """
@@ -77,3 +83,21 @@ def haystack_rebuild_index():
 
 def haystack_clear_index():
     call_command("clear_index", verbosity=0, interactive=False)
+
+
+def haystack_index(model: Type[models.Model], qs: Iterable[models.Model], commit=True):
+    """
+    Create/update haystack index of collection of instances of the given `model`.
+
+    i.e. imitate haystack's update_index.Command.handle, but only index `qs`, not some larger queryset
+
+    e.g.
+    haystack_index(Foo, Foo.objects.filter(interesting=True))
+    """
+    haystack_connections = loading.ConnectionHandler(settings.HAYSTACK_CONNECTIONS)
+    backends = haystack_connections.connections_info.keys()
+    for using in backends:
+        backend = haystack_connections[using].get_backend()
+        unified_index = haystack_connections[using].get_unified_index()
+        index = unified_index.get_index(model)
+        backend.update(index, qs, commit=commit)

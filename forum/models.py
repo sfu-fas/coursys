@@ -5,6 +5,7 @@ from collections import Counter
 from typing import Dict, Any, List
 
 from courselib.branding import product_name
+from courselib.search import haystack_index
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.db import models, transaction, IntegrityError
@@ -32,7 +33,6 @@ from forum.names_generator import get_random_name
 # TODO: nice to have instructor interaction: make public and anonymous
 # TODO: some kind of display of post history
 # TODO: instructors can't be anonymous, so don't configure in avatar_form
-
 
 IDENTITY_CHOICES = [  # Identity.identity_choices should reflect any logical changes here
     ('NAME', 'Names must be fully visible to instructors and students'),
@@ -478,6 +478,7 @@ class Thread(models.Model):
                 # something worth noting changed: mark unread for everybody
                 ReadThread.objects.filter(thread_id=self.id).delete()
 
+        self.index_now()
         return result
 
     def get_absolute_url(self):
@@ -545,6 +546,12 @@ class Thread(models.Model):
             msg.attach_alternative(html_content, "text/html")
             msg.send()
 
+    def index_now(self):
+        """
+        Create/update haystack index of this thread.
+        """
+        haystack_index(Thread, [self])
+
 
 class Reply(models.Model):
     class ReplyQuerySet(models.QuerySet):
@@ -586,6 +593,7 @@ class Reply(models.Model):
                 ReadThread.objects.filter(thread_id=self.thread_id).delete()
                 ReadReply.objects.filter(reply_id=self.id).delete()
 
+        self.thread.index_now()
         return result
 
     def get_absolute_url(self, fragment=False):

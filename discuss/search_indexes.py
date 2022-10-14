@@ -1,8 +1,6 @@
 from discuss.models import DiscussionTopic, DiscussionMessage
 from haystack import indexes
 
-# Any additions here should be reflected in courselib.signals.SelectiveRealtimeSignalProcessor so reindexing happens
-
 '''
 class DiscussionIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
