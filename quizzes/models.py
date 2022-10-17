@@ -526,6 +526,7 @@ class QuestionVersion(models.Model):
     review = config_property('review', default=('', DEFAULT_QUIZ_MARKUP, False))
 
     objects = VersionStatusManager()
+    all_objects = models.Manager()
 
     class Meta:
         ordering = ['question', 'created_at', 'id']
