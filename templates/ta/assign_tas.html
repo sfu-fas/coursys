@@ -68,10 +68,12 @@
     <th scope="col">Campus</th>
 	<th scope="col">Assigned</th>
 	<th scope="col">Applicants</th>
-	<th scope="col">Required BU</th>
+  <th scope="col">Required BU (by capacity)</th>
+	<th scope="col">Required BU (by enrol.)</th>
     <th scope="col">Assigned BU</th>
     <th scope="col">Diff</th>
-    <th scope="col">Required @Cap</th></tr></thead>
+  </tr>
+ </thead>
 <tbody>
 {% for o in offerings %}
 <tr>
@@ -85,13 +87,14 @@
   <td>{{o.get_campus_display}}</td>
   <td>
   	{% for tacrs in o.assigned %}
-    {% if tacrs.bu > 0 %}
+    {% if tacrs.total_bu > 0 %}
   	    <a href="mailto:{{tacrs.contract.application.person.email}}">{{tacrs.contract.application.person.sortname}}</a>
-  	    ({{tacrs.bu}}){% if not forloop.last %}, {% endif %}
+  	    ({{tacrs.total_bu }}){% if not forloop.last %}, {% endif %}
     {% endif %}
   	{% endfor %}
   </td>
   <td class="num">{{ o|display_applicant_count:posting }}</td>
+  <td class="num">{{ o|display_bu_cap:posting }}</td>
   <td class="num">{{ o|display_required_bu:posting }}
     {% if o|display_extra_bu:posting != "0.00" %} 
         <br/>({{ o|display_default_bu:posting }}+{{o|display_extra_bu:posting}}) 
@@ -99,7 +102,6 @@
   </td>
   <td class="num">{{ o|display_assigned_bu:posting }}</td>
   <td class="num">{{ o|display_bu_difference:posting }}</td>
-  <td class="num">{{ o|display_bu_cap:posting }}</td>
 </tr>	
 {% endfor %}
 </tbody>
