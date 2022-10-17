@@ -614,10 +614,10 @@ def download_all_applications(request, post_slug):
                                       (posting.semester.name, datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
     if applications:
-        writer.writerow(['Person', 'ID', 'Category', 'Program', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned', 'Campus Preferences'])
+        writer.writerow(['Person', 'ID', 'Email', 'Category', 'Program', 'Other program comment', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned', 'Campus Preferences'])
 
         for a in applications:
-            writer.writerow([a.person.sortname(), a.person.emplid, a.get_category_display(), a.get_current_program_display(), a.base_units_assigned(),
+            writer.writerow([a.person.sortname(), a.person.emplid, a.person.email(), a.get_category_display(), a.get_current_program_display(), a.program_comment, a.base_units_assigned(),
                              a.base_units, a.course_pref_display(), a.course_assigned_display(), a.campus_pref_display()])
     return response
 
@@ -840,8 +840,8 @@ def download_assign_csv(request, post_slug):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s-assigsnment-table.csv"' % (posting.slug)
     writer = csv.writer(response)
-    writer.writerow(['Offering', 'Instructor', 'Enrollment', 'Campus', 'Assigned', 'Applicants', 'Required BU',
-                     'Assigned BU', 'Diff', 'Required @Cap'])
+    writer.writerow(['Offering', 'Instructor', 'Enrollment', 'Campus', 'Assigned', 'Applicants', 'Required BU (by capacity)',
+                     'Required BU (by enrol)', 'Assigned BU', 'Diff'])
     for o in offerings:
         enrollment_string = '%s/%s' % (o.enrl_tot, o.enrl_cap)
         if o.wait_tot:
@@ -856,8 +856,8 @@ def download_assign_csv(request, post_slug):
         if o.extra_bu() != 0:
             required_bus += '(%s +%s)' % (posting.default_bu(o, count=o.enrl_cap), o.extra_bu_str())
         writer.writerow([o.name(), o.instructors_str(), enrollment_string, o.get_campus_display(), assigned_string,
-                         posting.applicant_count(o),  required_bus, posting.assigned_bu(o),
-                         posting.assigned_bu(o)-posting.required_bu(o), posting.required_bu(o, count=o.enrl_cap)])
+                         posting.applicant_count(o), posting.required_bu(o, count=o.enrl_cap), required_bus, posting.assigned_bu(o),
+                         posting.assigned_bu(o)-posting.required_bu(o)])
     return response
 
 
@@ -1713,7 +1713,7 @@ def generate_csv(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Rank', 'Name', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU',
+    off = ['Rank', 'Name', 'SFUID', 'Email', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU',
            'Campus', 'Assigned Course(s)', 'Assigned BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
     csvWriter.writerow(off)
     
@@ -1764,7 +1764,7 @@ def generate_csv(request, post_slug):
                 assigned_courses = ', '.join([tacourse.course.name() for tacourse in ta_courses])
                 assigned_bus = sum([t.total_bu for t in ta_courses])
 
-        row = [rank, app.person.sortname(), app.category, app.get_current_program_display(), system_program, status, unit, startsem,
+        row = [rank, app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.get_current_program_display(), system_program, status, unit, startsem,
                app.base_units, campuspref, assigned_courses, assigned_bus]
         
         for off in offerings:

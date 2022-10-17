@@ -29,6 +29,8 @@ LAB_PREP_HOURS = 13 # min hours of prep for courses with tutorials/labs
 
 HOLIDAY_HOURS_PER_BU = decimal.Decimal('1.1')
 
+CMPT_WCOURSE_BU = decimal.Decimal('3.17') 
+CMPT_COURSE_BU = decimal.Decimal('1.17') 
 
 DEPT_CHOICES = [
     ('CMPT', 'CMPT student'),
@@ -310,25 +312,53 @@ class TAPosting(models.Model):
         return strategy( self, offering, count )
 
     def required_bu(self, offering, count=None):
-        """
-        Actual BUs to assign to this course: default + extra + 0.17*number of TA's
-        """
-        default = self.default_bu(offering, count=count)
-        extra = offering.extra_bu()
-
-        if offering.labtas():
-            tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
-            return default + extra + decimal.Decimal(LAB_BONUS_DECIMAL * len(tacourses)) 
+        if self.unit.label in ["CMPT", "COMP"] and self.semester >= Semester.objects.get(name="1231"):
+            """
+            new calculation for CMPT BU
+            all course: default + extra + 1.17 CMPT_COURSE_BU
+            W course: default + extra + 3.17 CMPT_WCOURSE_BU
+            """
+            print ("newbu")
+            default = self.default_bu(offering, count=count)
+            extra = offering.extra_bu()        
+            if offering.flags.write:
+                return default + extra + CMPT_WCOURSE_BU
+            else:
+                return default + extra + CMPT_COURSE_BU
         else:
-            return default + extra
+            """
+                Actual BUs to assign to this course: default + extra + 0.17*number of TA's
+            """
+            default = self.default_bu(offering, count=count)
+            extra = offering.extra_bu()
+
+            if offering.labtas():
+                tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
+                return default + extra + decimal.Decimal(LAB_BONUS_DECIMAL * len(tacourses)) 
+            else:
+                return default + extra
 
     def required_bu_cap(self, offering):
-        """
-        Actual BUs to assign to this course at its enrolment cap
-        """
-        default = self.default_bu(offering, offering.enrl_cap)
-        extra = offering.extra_bu()
-        return default + extra
+        if self.unit.label in ["CMPT", "COMP"] and self.semester >= Semester.objects.get(name="1231"):
+            """
+            new calculation for CMPT BU
+            all course: default + extra + 1.17 CMPT_COURSE_BU
+            W course: default + extra + 3.17 CMPT_WCOURSE_BU
+            """
+
+            default = self.default_bu(offering, count= offering.enrl_cap)
+            extra = offering.extra_bu()        
+            if offering.flags.write:
+                return default + extra + CMPT_WCOURSE_BU
+            else:
+                return default + extra + CMPT_COURSE_BU
+        else:
+            """
+            Actual BUs to assign to this course at its enrolment cap
+            """
+            default = self.default_bu(offering, offering.enrl_cap)
+            extra = offering.extra_bu()
+            return default + extra
 
     def assigned_bu(self, offering):
         """
@@ -434,6 +464,8 @@ class TAApplication(models.Model):
     category = models.CharField(max_length=4, blank=False, null=False, choices=CATEGORY_CHOICES, verbose_name='Program')
     current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Department", choices=DEPT_CHOICES,
         help_text='In what department are you a student?')
+    program_comment = models.CharField(max_length=100, verbose_name='Other program comment', null=True, blank=True, help_text='If you select "Other program" in Department, please indicate which programs did you study.')
+
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN",help_text="Social insurance number (required for receiving payments)")
     validsin = models.CharField(choices=VALIDSIN_CHOICES, max_length=3, verbose_name="SIN",help_text='Do you have valid SIN at the time of employment?')
     base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,

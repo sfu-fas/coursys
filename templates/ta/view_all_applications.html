@@ -31,6 +31,7 @@
     <th scope="col">ID</th>
 	<th scope="col">Category</th>
     <th scope="col">Program</th>
+    <th scope="col">Other Program Comment</th>
 	<th scope="col">Assigned BUs</th>
 	<th scope="col">Max BUs</th>
 	<th scope="col">Ranked</th>
@@ -47,6 +48,7 @@
     <td>{{ app.person.emplid }}</td>
   	<td>{{ app.get_category_display }}</td>
     <td>{{ app.get_current_program_display }}</td>
+    <td>{{ app.program_comment }} </td>
   	<td>{{ app.base_units_assigned }}</td>
   	<td>{{ app.base_units }}</td>
   	<td>{{ app.course_pref_display }}</td>

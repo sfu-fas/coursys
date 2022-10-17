@@ -15,6 +15,7 @@
       <a href="{% url "grad:view" grad_slug=g.slug %}">{{g}} - {{g.get_current_status_display}}</a>
       {% endfor %}
     </td></tr>
+    <tr><th scope="row">Other program comments</th><td>{{ application.program_comment }}</td></tr>
     <tr><th scope="row">Experience</th><td>{{ application.experience|linebreaksbr }}</td></tr>
     <tr><th scope="row">Course Load</th><td>{{ application.course_load|linebreaksbr }}</td></tr>
     <tr><th scope="row">Other Support</th><td>{{ application.other_support|linebreaksbr }}</td></tr>
