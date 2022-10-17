@@ -312,13 +312,12 @@ class TAPosting(models.Model):
         return strategy( self, offering, count )
 
     def required_bu(self, offering, count=None):
-        if self.unit.label in ["CMPT", "COMP"] and self.semester >= Semester.objects.get(name="1231"):
+        if self.unit.label in ["CMPT", "COMP"] and self.semester.name >= "1231":
             """
             new calculation for CMPT BU
             all course: default + extra + 1.17 CMPT_COURSE_BU
             W course: default + extra + 3.17 CMPT_WCOURSE_BU
             """
-            print ("newbu")
             default = self.default_bu(offering, count=count)
             extra = offering.extra_bu()        
             if offering.flags.write:
@@ -339,7 +338,7 @@ class TAPosting(models.Model):
                 return default + extra
 
     def required_bu_cap(self, offering):
-        if self.unit.label in ["CMPT", "COMP"] and self.semester >= Semester.objects.get(name="1231"):
+        if self.unit.label in ["CMPT", "COMP"] and self.semester.name >= "1231":
             """
             new calculation for CMPT BU
             all course: default + extra + 1.17 CMPT_COURSE_BU
