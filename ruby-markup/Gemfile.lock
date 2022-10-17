@@ -5,7 +5,7 @@ GEM
     bunny (2.18.0)
       amq-protocol (~> 2.3, >= 2.3.1)
       sorted_set (~> 1, >= 1.0.2)
-    commonmarker (0.23.4)
+    commonmarker (0.23.6)
     github-markup (4.0.0)
     rbtree (0.4.4)
     set (1.0.1)
