@@ -24,7 +24,7 @@
 {% if visit.programs %}<tr><th>Programs</th><td>{{ visit.programs|linebreaks }}</td></tr>{% endif %}
 {% if visit.cgpa %}<tr><th>CGPA</th><td>{{ visit.cgpa }}</td></tr>{% endif %}
 {% if visit.credits %}<tr><th>Credits</th><td>{{ visit.credits }}</td></tr>{% endif %}
-{% if visit.gender %}<tr><th>Gender</th><td>{{ visit.gender }}</td></tr>{% endif %}
+{% if visit.gender %}<tr><th>Gender</th><td>{{ visit.get_gender_display }}</td></tr>{% endif %}
 {% if visit.citizenship %}<tr><th>Citizenship</th><td>{{ visit.citizenship }}</td></tr>{% endif %}
     </table>
 {% endif %}

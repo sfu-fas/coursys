@@ -536,7 +536,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
         #    del p.config['gender']
         for sex, in db:
             if sex:
-                data['gender'] = sex # 'M', 'F', 'U'    
+                data['gender'] = sex  # should match keys from coredata.models.GENDER_DESCR
     
     # academic programs
     if (needed == ALLFIELDS or 'programs' in needed) and 'programs' not in exclude:

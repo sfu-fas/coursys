@@ -10,7 +10,7 @@ from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, \
         ProgressReport, ExternalDocument, \
         GRAD_CAMPUS_CHOICES, THESIS_TYPE_CHOICES, THESIS_OUTCOME_CHOICES
 from courselib.forms import StaffSemesterField
-from coredata.models import Person, Semester, Role, VISA_STATUSES
+from coredata.models import Person, Semester, Role, VISA_STATUSES, GENDER_CHOICES
 from django.forms.models import BaseModelFormSet
 #from django.core.exceptions import ValidationError
 from django.forms.widgets import HiddenInput
@@ -697,8 +697,7 @@ class SearchForm(forms.Form):
     
     gpa_min = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
     gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
-    gender = forms.ChoiceField(choices=(('','---------'), ('M','Male'), ('F','Female'), ('U','Unknown')),
-            required=False)
+    gender = forms.ChoiceField(choices=[('', '-')] + GENDER_CHOICES, required=False)
     visa = forms.MultipleChoiceField(choices=VISA_STATUSES, required=False,)
     scholarship_sem = forms.ModelMultipleChoiceField(queryset=Semester.objects.all(),
             label='Scholarship Semester Received', required=False)

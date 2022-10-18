@@ -113,6 +113,16 @@ ROLE_DESCR = {
 }
 INSTR_ROLES = ["FAC", "SESS", "COOP", 'INST']  # roles that are given to categorize course instructors
 
+# These are the gender values that are possible in SIMS. All other gender-handling should refer to this as a master
+# list of values/descriptions.
+GENDER_CHOICES = [
+    ('M', 'male'),
+    ('F', 'female'),
+    ('X', 'non-binary'),
+    ('U', 'prefer not to answer'),
+]
+GENDER_DESCR = dict(GENDER_CHOICES)
+
 
 ROLE_MAX_EXPIRY = 730  # maximum days in the future a role can expire (except LONG_LIVED_ROLES roles)
 LONG_LIVED_ROLES = ['FAC', 'SUPV'] # roles that don't allow access to anything, so may be longer lived
@@ -139,7 +149,7 @@ class Person(models.Model, ConditionalSaveMixin):
         # 'pref_first_name': really, truly preferred first name (which can be set in DB if necessary)
         # 'phones': dictionary of phone number values. Possible keys: 'pref', 'home', 'cell', 'main'
         # 'addresses': dictionary of phone number values. Possible keys: 'home', 'mail'
-        # 'gender': 'M', 'F', 'U'
+        # 'gender': key from GENDER_CHOICES
         # 'citizen': country of citizenship (e.g. 'Canada')
         # 'visa': Canadian visa status (e.g. 'No visa st', 'Perm resid')
         # 'birthdate': birth date (e.g. '1980-12-31')
@@ -250,6 +260,12 @@ class Person(models.Model, ConditionalSaveMixin):
     def userid_or_emplid(self):
         "userid if possible or emplid if not: inverse of find_userid_or_emplid searching"
         return self.userid or str(self.emplid)
+
+    def get_gender_display(self):
+        if 'gender' in self.config:
+            return GENDER_DESCR.get(self.config['gender'], 'unknown')
+        else:
+            return 'unknown'
 
     def __lt__(self, other):
         return (self.last_name, self.first_name, self.userid_or_emplid()) < (other.last_name, other.first_name, other.userid_or_emplid())
