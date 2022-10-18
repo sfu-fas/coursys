@@ -14,7 +14,7 @@ application = get_wsgi_application()
 from django.conf import settings
 from django.core import serializers
 from coredata.models import Person, Unit, Role, Semester, SemesterWeek, Holiday, CourseOffering, Course, Member, \
-    MeetingTime, CAMPUS_CHOICES, VISA_STATUSES
+    MeetingTime, CAMPUS_CHOICES, VISA_STATUSES, GENDER_DESCR
 from dashboard.models import UserConfig
 from coredata.importer import import_semester_info, import_offerings, import_offering_members, ensure_member
 from coredata.queries import add_person, SIMSConn, cache_by_args
@@ -211,7 +211,7 @@ def create_coredata():
         else:
             pref = fname
         p = Person(emplid=300000500+i, userid=userid, last_name='Grad', first_name=fname, middle_name=randname(6), pref_first_name=pref)
-        p.config['gender'] = random.choice(('M','F','U'))
+        p.config['gender'] = random.choice(list(GENDER_DESCR.keys()))
         p.config['gpa'] = round(random.triangular(0.0, 4.33, 2.33), 2)
         p.config['visa'] = random.choice([x for x,_ in VISA_STATUSES])
         p.config['citizen'] = random.choice(('Canadian', 'OtherCountrian'))

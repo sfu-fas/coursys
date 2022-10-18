@@ -392,9 +392,9 @@ class CareerEvent(models.Model):
             heshe = 'she'
             himher = 'her'
         else:
-            hisher = "his/her"
-            heshe = 'he/she'
-            himher = 'him/her'
+            hisher = "their"
+            heshe = 'they'
+            himher = 'them'
 
         # grab event type specific config data
         handler = self.get_handler()

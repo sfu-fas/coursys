@@ -1,6 +1,6 @@
 from django.db import models
 from autoslug import AutoSlugField
-from coredata.models import Person, Unit, Course, CourseOffering
+from coredata.models import Person, Unit, Course, CourseOffering, GENDER_DESCR
 from courselib.json_fields import JSONField, config_property
 from courselib.slugs import make_slug
 from courselib.storage import UploadedFileStorage, upload_path
@@ -382,6 +382,9 @@ class AdvisorVisit(models.Model):
             return self.student.email()
         else:
             return self.nonstudent.email()
+
+    def get_gender_display(self):
+        GENDER_DESCR.get(self.gender, 'unknown')
 
     def get_created_at_display(self):
         return self.created_at.strftime("%Y/%m/%d %H:%M")

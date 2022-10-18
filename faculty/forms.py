@@ -3,7 +3,7 @@ from django.forms.models import modelformset_factory
 from django.template import Template, TemplateSyntaxError
 from django.utils.translation import gettext_lazy as _
 
-from coredata.models import Semester, Unit, Person, Role, FuturePerson
+from coredata.models import Semester, Unit, Person, Role, FuturePerson, GENDER_CHOICES
 from coredata.forms import PersonField
 from coredata.widgets import DollarInput
 
@@ -381,10 +381,7 @@ class FuturePersonForm(forms.ModelForm):
     email = forms.EmailField(required=False)
     sin = forms.CharField(required=False, max_length=9, label='SIN')
     birthdate = forms.DateField(required=False, label='Date of Birth')
-    gender = forms.ChoiceField(choices=(
-            ('M', 'Male'),
-            ('F', 'Female'),
-            ('U', 'Unknown')),
+    gender = forms.ChoiceField(choices=GENDER_CHOICES,
             required=False, initial='AND',
             widget=forms.RadioSelect)
 
