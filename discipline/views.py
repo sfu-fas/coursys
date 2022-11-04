@@ -54,7 +54,8 @@ def newgroup(request, course_slug):
     drop_cutoff = course.semester.start.isoformat()  # assume students can't get into too much trouble before the semester start
     student_choices = [
             (m.person.userid,
-               "%s (%s, %s)" % (m.person.sortname(), m.person.emplid, m.person.userid))
+               "%s (%s, %s%s)" % (m.person.sortname(), m.person.emplid, m.person.userid,
+                                  ', dropped' if m.role == 'DROP' else ''))
             for m in
             Member.objects.filter(offering=course, role__in=["STUD", "DROP"]).select_related('person')
             if m.role == 'STUD' or ('drop_date' in m.config and m.config['drop_date'] > drop_cutoff)]
@@ -96,7 +97,8 @@ def new(request, course_slug):
     drop_cutoff = course.semester.start.isoformat()  # assume students can't get into too much trouble before the semester start
     student_choices = [
             (m.person.userid,
-               "%s (%s, %s)" % (m.person.sortname(), m.person.emplid, m.person.userid))
+               "%s (%s, %s%s)" % (m.person.sortname(), m.person.emplid, m.person.userid,
+                                  ', dropped' if m.role == 'DROP' else ''))
             for m in
             Member.objects.filter(offering=course, role__in=["STUD", "DROP"]).select_related('person')
             if m.role == 'STUD' or ('drop_date' in m.config and m.config['drop_date'] > drop_cutoff)]
