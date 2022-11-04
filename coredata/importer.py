@@ -530,7 +530,7 @@ def import_drop_dates(offering):
     # find corresponding Members
     members = Member.objects.filter(offering=offering, person__emplid__in=emplids).select_related('person')
     for m in members:
-        d = drop_dates[str(m.person.emplid)].strftime('%Y-%m-%d')
+        d = drop_dates[str(m.person.emplid)].isoformat()
         m.config['drop_date'] = d
         m.save_if_dirty()
 
@@ -544,6 +544,7 @@ def import_offering_members(offering, students=True):
     import_instructors(offering)
     if students:
         import_students(offering)
+        import_drop_dates(offering)
     import_meeting_times(offering)
     if settings.SVN_DB_CONNECT:
         update_offering_repositories(offering)
