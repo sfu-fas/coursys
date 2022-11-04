@@ -514,6 +514,27 @@ def import_students(offering):
         ensure_member(p, offering, "STUD", unt_taken, "AUTO", acad_career, labtut_section=sec, grade=grade)
 
 
+@transaction.atomic
+def import_drop_dates(offering):
+    """
+    Record drop date so the discipline app can display "students who have dropped, but not too long ago".
+    """
+    # find dropped students in SIMS
+    db = SIMSConn()
+    query = """SELECT E.EMPLID, E.ENRL_DROP_DT FROM PS_STDNT_ENRL E
+        WHERE E.CLASS_NBR=%s AND E.STRM=%s AND E.ENRL_STATUS_REASON NOT IN ('ENRL','EWAT') AND E.ENRL_DROP_DT IS NOT NULL"""
+    db.execute(query, (offering.class_nbr, offering.semester.name))
+    drop_dates = dict(db)
+    emplids = drop_dates.keys()
+
+    # find corresponding Members
+    members = Member.objects.filter(offering=offering, person__emplid__in=emplids).select_related('person')
+    for m in members:
+        d = drop_dates[str(m.person.emplid)].strftime('%Y-%m-%d')
+        m.config['drop_date'] = d
+        m.save_if_dirty()
+
+
 def import_offering_members(offering, students=True):
     """
     Import all data for the course: instructors, TAs, students, meeting times.
