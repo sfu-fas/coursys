@@ -17,7 +17,7 @@ from tacontracts.models import TACourse as NewTACourse
 from ra.models import Account
 from grad.models import GradStudent, STATUS_REAL_PROGRAM
 from dashboard.models import NewsItem
-from coredata.models import Member, Role, CourseOffering, Person, Semester, CAMPUSES
+from coredata.models import Member, Role, CourseOffering, Person, Semester, CAMPUSES, CombinedOffering
 from coredata.queries import more_personal_info, SIMSProblem, ensure_person_from_userid
 from grad.models import GradStatus, GradStudent, Supervisor
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
@@ -832,7 +832,7 @@ def download_assign_csv(request, post_slug):
     all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course',
                                                                                         'contract__application__person')
     for o in all_offerings:
-        o.assigned = [crs for crs in all_assignments if crs.course == o and crs.contract.bu() > 0]
+        o.assigned = [crs for crs in all_assignments if crs.course == o and crs.contract.bu() > 0]        
 
     # ignore excluded courses
     excl = set(posting.excluded())
@@ -840,7 +840,7 @@ def download_assign_csv(request, post_slug):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s-assigsnment-table.csv"' % (posting.slug)
     writer = csv.writer(response)
-    writer.writerow(['Offering', 'Instructor', 'Enrollment', 'Campus', 'Assigned', 'Applicants', 'Required BU (by capacity)',
+    writer.writerow(['Offering', 'Combined to', 'Instructor', 'Enrollment', 'Campus', 'Assigned', 'Applicants', 'Required BU (by capacity)',
                      'Required BU (by enrol)', 'Assigned BU', 'Diff'])
     for o in offerings:
         enrollment_string = '%s/%s' % (o.enrl_tot, o.enrl_cap)
@@ -855,7 +855,15 @@ def download_assign_csv(request, post_slug):
         required_bus = str(posting.required_bu(o, count=o.enrl_tot))
         if o.extra_bu() != 0:
             required_bus += '(%s +%s)' % (posting.default_bu(o, count=o.enrl_cap), o.extra_bu_str())
-        writer.writerow([o.name(), o.instructors_str(), enrollment_string, o.get_campus_display(), assigned_string,
+
+        combinedto = ''
+        combinedlist = CombinedOffering.objects.filter(offerings=o)      
+
+        for c in combinedlist:
+            combinedto += c.subject + c.number + c.section +'\n'
+        combinedto = combinedto.rstrip('\n')
+
+        writer.writerow([o.name(), combinedto, o.instructors_str(), enrollment_string, o.get_campus_display(), assigned_string,
                          posting.applicant_count(o), posting.required_bu(o, count=o.enrl_cap), required_bus, posting.assigned_bu(o),
                          posting.assigned_bu(o)-posting.required_bu(o)])
     return response
