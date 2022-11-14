@@ -826,7 +826,7 @@ def download_assign_csv(request, post_slug):
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this page')
 
-    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).exclude(component='CAN')
 
     # decorate offerings with currently-assigned TAs
     all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course',
@@ -1791,7 +1791,7 @@ def generate_csv(request, post_slug):
 def generate_csv_by_course(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     
-    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).select_related('course')
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).exclude(component='CAN').select_related('course')
     excl = set(posting.excluded())
     offerings = [o for o in all_offerings if o.course_id not in excl]
     
