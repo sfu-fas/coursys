@@ -501,7 +501,8 @@ def import_students(offering):
             # not interested in lecture section now.
             continue
         labtut[emplid] = section
-    
+
+    # import actual enrolments
     db.execute("SELECT E.EMPLID, E.ACAD_CAREER, E.UNT_TAKEN, E.CRSE_GRADE_OFF, R.CRSE_GRADE_INPUT "
                "FROM PS_STDNT_ENRL E LEFT JOIN PS_GRADE_ROSTER R "
                "ON E.STRM=R.STRM AND E.ACAD_CAREER=R.ACAD_CAREER AND E.EMPLID=R.EMPLID AND E.CLASS_NBR=R.CLASS_NBR "
@@ -512,6 +513,22 @@ def import_students(offering):
         sec = labtut.get(emplid, None)
         grade = grade_official or grade_roster
         ensure_member(p, offering, "STUD", unt_taken, "AUTO", acad_career, labtut_section=sec, grade=grade)
+
+    # Record drop date so the discipline app can display "students who have dropped, but not too long ago".
+    # find dropped students in SIMS
+    query = """SELECT E.EMPLID, E.ENRL_DROP_DT FROM PS_STDNT_ENRL E
+        WHERE E.CLASS_NBR=%s AND E.STRM=%s
+        AND E.ENRL_STATUS_REASON NOT IN ('ENRL','EWAT') AND E.ENRL_DROP_DT IS NOT NULL"""
+    db.execute(query, (offering.class_nbr, offering.semester.name))
+    drop_dates = dict(db)
+    emplids = drop_dates.keys()
+
+    # find corresponding Members and record drop date
+    members = Member.objects.filter(offering=offering, person__emplid__in=emplids).select_related('person')
+    for m in members:
+        d = drop_dates[str(m.person.emplid)].isoformat()
+        m.config['drop_date'] = d
+        m.save_if_dirty()
 
 
 def import_offering_members(offering, students=True):

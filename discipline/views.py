@@ -51,11 +51,14 @@ def index(request, course_slug):
 @requires_discipline_user
 def newgroup(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
+    drop_cutoff = course.semester.start.isoformat()  # assume students can't get into too much trouble before the semester start
     student_choices = [
             (m.person.userid,
-               "%s (%s, %s)" % (m.person.sortname(), m.person.emplid, m.person.userid))
+               "%s (%s, %s%s)" % (m.person.sortname(), m.person.emplid, m.person.userid,
+                                  ', dropped' if m.role == 'DROP' else ''))
             for m in
-            Member.objects.filter(offering=course, role="STUD").select_related('person')]
+            Member.objects.filter(offering=course, role__in=["STUD", "DROP"]).select_related('person')
+            if m.role == 'STUD' or ('drop_date' in m.config and m.config['drop_date'] > drop_cutoff)]
 
     if request.method == 'POST':
         form = DisciplineGroupForm(offering=course, data=request.POST)
@@ -91,11 +94,14 @@ def newgroup(request, course_slug):
 @requires_discipline_user
 def new(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
+    drop_cutoff = course.semester.start.isoformat()  # assume students can't get into too much trouble before the semester start
     student_choices = [
             (m.person.userid,
-               "%s (%s, %s)" % (m.person.sortname(), m.person.emplid, m.person.userid))
+               "%s (%s, %s%s)" % (m.person.sortname(), m.person.emplid, m.person.userid,
+                                  ', dropped' if m.role == 'DROP' else ''))
             for m in
-            Member.objects.filter(offering=course, role="STUD").select_related('person')]
+            Member.objects.filter(offering=course, role__in=["STUD", "DROP"]).select_related('person')
+            if m.role == 'STUD' or ('drop_date' in m.config and m.config['drop_date'] > drop_cutoff)]
     group_choices = [('', '\u2014')] + [(g.id, g.name) for g in DisciplineGroup.objects.filter(offering=course)]
 
     if request.method == 'POST':

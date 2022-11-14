@@ -1283,6 +1283,7 @@ class Member(models.Model, ConditionalSaveMixin):
         # 'teaching_credit_reason': reason for the teaching credit override
         # 'last_discuss': Last view of the offering's discussion forum (seconds from epoch)
         # 'sched_print_instr': should this instructor be displayed in the course browser? ps_class_instr.sched_print_instr from SIMS
+        # 'drop_date': for dropped students, the drop dates from SIMS (like '2000-12-31')
 
     defaults = {'bu': 0, 'teaching_credit': 1, 'teaching_credit_reason': None, 'last_discuss': 0,
                 'sched_print_instr': True}

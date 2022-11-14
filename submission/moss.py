@@ -318,7 +318,10 @@ class MOSS(object):
             resp = render(request, 'submission/similarity-moss.html', context=context)
             return resp
 
-        content = data.file.read().decode('utf8')
+        try:
+            content = data.file.read().decode('utf8')
+        except FileNotFoundError:
+            content = 'missing file'
         resp = HttpResponse(content)
         resp.allow_frames_csp = True
         resp['X-Frame-Options'] = 'SAMEORIGIN'

@@ -14,14 +14,14 @@ POSSIBLE_LOGGING_CONFIG = {
         }
     },
     'handlers': {
-        'logfile': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': './coursys.log',
-            'maxBytes': 1024*1024*15,  # 15MB
-            'backupCount': 10,
-            'formatter': 'raw',
-        },
+#        'logfile': {
+#            'level': 'DEBUG',
+#            'class': 'logging.handlers.RotatingFileHandler',
+#            'filename': './coursys.log',
+#            'maxBytes': 1024*1024*15,  # 15MB
+#            'backupCount': 10,
+#            'formatter': 'raw',
+#        },
         'console': {
             'level': 'WARN',
             'class': 'logging.StreamHandler',
