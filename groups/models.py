@@ -23,7 +23,12 @@ class Group(models.Model):
 
     # preface slug with "g-" to avoid conflict with userids (so they can be used in same places in URLs)
     def autoslug(self):
-        return 'g-' + make_slug(self.name)
+        s = make_slug(self.name)
+        if len(s) == 0:
+            return 'g-null'
+        else:
+            return 'g-' + s
+
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='courseoffering')
     svn_slug = AutoSlugField(max_length=17, populate_from='slug', null=True, editable=False, unique_with='courseoffering')
 
