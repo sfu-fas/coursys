@@ -87,6 +87,9 @@
   <td> {% for c in o.combinedoffering_set.all %}
       {{ c.subject }} {{ c.number }} {{ c.section }} <br>        
       {% endfor %}
+      {% if o.config.joint_with %}
+        <br><i class="fa fa-link" title="Joint with (from SIMS)"></i>  {{ o.config.joint_with |slice:"7:"|upper }}
+      {% endif %}
   </td>
   <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
   <td class="num">{{o.enrl_tot}}/{{o.enrl_cap}}{% if o.wait_tot %} (+{{ o.wait_tot }}) {% endif %}</td>
