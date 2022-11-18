@@ -840,7 +840,7 @@ def download_assign_csv(request, post_slug):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s-assigsnment-table.csv"' % (posting.slug)
     writer = csv.writer(response)
-    writer.writerow(['Offering', 'Combined to', 'Instructor', 'Enrollment', 'Campus', 'Assigned', 'Applicants', 'Required BU (by capacity)',
+    writer.writerow(['Offering', 'Combined to', 'Joint with (from SIM)', 'Instructor', 'Enrollment', 'Campus', 'Assigned', 'Applicants', 'Required BU (by capacity)',
                      'Required BU (by enrol)', 'Assigned BU', 'Diff'])
     for o in offerings:
         enrollment_string = '%s/%s' % (o.enrl_tot, o.enrl_cap)
@@ -863,7 +863,9 @@ def download_assign_csv(request, post_slug):
             combinedto += c.subject + c.number + c.section +'\n'
         combinedto = combinedto.rstrip('\n')
 
-        writer.writerow([o.name(), combinedto, o.instructors_str(), enrollment_string, o.get_campus_display(), assigned_string,
+        joint_with = str(o.config.get('joint_with'))[7:].upper()
+        
+        writer.writerow([o.name(), combinedto, joint_with, o.instructors_str(), enrollment_string, o.get_campus_display(), assigned_string,
                          posting.applicant_count(o), posting.required_bu(o, count=o.enrl_cap), required_bus, posting.assigned_bu(o),
                          posting.assigned_bu(o)-posting.required_bu(o)])
     return response
