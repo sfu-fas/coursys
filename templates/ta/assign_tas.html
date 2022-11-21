@@ -88,7 +88,7 @@
       {{ c.subject }} {{ c.number }} {{ c.section }} <br>        
       {% endfor %}
       {% if o.config.joint_with %}
-        <br><i class="fa fa-link" title="Joint with (from SIMS)"></i>  {{ o.config.joint_with |slice:"7:"|upper }}
+        <br><i class="fa fa-link" title="Joint with (from SIMS)"></i> {{ o.config.joint_with | display_joint_with  }} 
       {% endif %}
   </td>
   <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
