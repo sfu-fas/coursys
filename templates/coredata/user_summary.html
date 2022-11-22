@@ -82,6 +82,16 @@ $(document).ready(function() {
 <p class="empty">Not assigned any roles.</p>
 {% endif %}
 
+<h2 id="roles">Form Groups</h2>
+{% if groups %}
+<ul>
+  {% for g in groups %}
+  <li>{{g.formgroup.name}} (Email: {{g.config.email | yesno }}) </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty">Not assigned any form groups.</p>
+{% endif %}
 
 <form action="" method="post">{% csrf_token %}
     <input type="submit" name="import" value="SIMS Import">

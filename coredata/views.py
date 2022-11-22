@@ -201,8 +201,9 @@ def user_summary(request, userid):
     
     memberships = Member.objects.filter(person=person)
     roles = Role.objects_fresh.filter(person=person).exclude(role="NONE").select_related('unit')
-    
-    context = {'person': person, 'memberships': memberships, 'roles': roles}
+    groups = FormGroupMember.objects.filter(person=person).order_by('formgroup__name')    
+
+    context = {'person': person, 'memberships': memberships, 'roles': roles, 'groups': groups}
     return render(request, "coredata/user_summary.html", context)
 
 

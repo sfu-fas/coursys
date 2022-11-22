@@ -56,3 +56,15 @@ def display_all_total_pay(val):
 @register.filter
 def display_ta_count(offering, posting):
     return posting.ta_count(offering)
+
+@register.filter
+def display_joint_with(joint_with):
+    newlist = ''
+    if joint_with:
+        for index, j in enumerate(joint_with):
+            start = j.find('-')+1
+            if index == 0:
+                newlist = j.upper()[start:].replace("-", " ")
+            else:
+                newlist += ', '+ j.upper()[start:].replace("-", " ")
+    return newlist

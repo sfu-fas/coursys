@@ -863,9 +863,17 @@ def download_assign_csv(request, post_slug):
             combinedto += c.subject + c.number + c.section +'\n'
         combinedto = combinedto.rstrip('\n')
 
-        joint_with = str(o.config.get('joint_with'))[7:].upper()
-        
-        writer.writerow([o.name(), combinedto, joint_with, o.instructors_str(), enrollment_string, o.get_campus_display(), assigned_string,
+        joint_with = o.config.get('joint_with')
+        newlist = ''
+        if joint_with:
+            for index, j in enumerate(joint_with):
+                start = j.find('-')+1
+                if index == 0:
+                    newlist = j.upper()[start:].replace("-", " ")
+                else:
+                    newlist += ', '+ j.upper()[start:].replace("-", " ")
+
+        writer.writerow([o.name(), combinedto, newlist, o.instructors_str(), enrollment_string, o.get_campus_display(), assigned_string,
                          posting.applicant_count(o), posting.required_bu(o, count=o.enrl_cap), required_bus, posting.assigned_bu(o),
                          posting.assigned_bu(o)-posting.required_bu(o)])
     return response
