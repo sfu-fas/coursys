@@ -15,6 +15,7 @@ from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from coredata.models import Member, CourseOffering, Person, Role, Unit
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from discipline.models import DisciplineCaseBase, DisciplineCaseInstrStudent, DisciplineCaseInstrNonStudent, \
     DisciplineGroup, MAX_ATTACHMENTS, MAX_ATTACHMENTS_TEXT, DisciplineCaseInstr, DisciplineCaseChair, DisciplineTemplate,\
@@ -410,12 +411,17 @@ class CasePenaltyImplemented(CaseEditView):
         return redirect('offering:discipline:show', course_slug=self.case.offering.slug, case_slug=self.case.slug)
 
 
+@csrf_exempt
 @cache_page(3600)
 @requires_discipline_user
 def markup_preview(request: HttpRequest, course_slug: str) -> JsonResponse:
     from courselib.markup import markup_to_html
     try:
-        html = markup_to_html(request.GET['content'], request.GET['markup'], math=request.GET['math'] == 'true', restricted=True, forum_links=True)
+        try:
+            content, markup, math = request.GET['content'], request.GET['markup'], request.GET['math'] == 'true'
+        except KeyError:
+            content, markup, math = request.POST['content'], request.POST['markup'], request.POST['math'] == 'true'
+        html = markup_to_html(content, markup, math=math, restricted=True, forum_links=False)
         return JsonResponse({'html': html})
     except:  # yes I'm catching anything: any failure is low-consequence, so let it go.
         return JsonResponse({'html': ''})
