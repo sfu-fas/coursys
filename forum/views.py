@@ -10,6 +10,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, HttpRes
     JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_exempt
 from haystack.query import SearchQuerySet
 
 from coredata.models import Member, CourseOffering
@@ -382,12 +383,17 @@ def edit_post(request: ForumHttpRequest, post_number: int) -> HttpResponse:
     return _render_forum_page(request, context)
 
 
+@csrf_exempt
 @cache_page(3600)
 @forum_view
 def preview(request: ForumHttpRequest) -> JsonResponse:
     from courselib.markup import markup_to_html
     try:
-        html = markup_to_html(request.GET['content'], request.GET['markup'], math=request.GET['math'] == 'true', restricted=True, forum_links=True)
+        try:
+            content, markup, math = request.GET['content'], request.GET['markup'], request.GET['math'] == 'true'
+        except KeyError:
+            content, markup, math = request.POST['content'], request.POST['markup'], request.POST['math'] == 'true'
+        html = markup_to_html(content, markup, math=math, restricted=True, forum_links=True)
         return JsonResponse({'html': html})
     except:  # yes I'm catching anything: any failure is low-consequence, so let it go.
         return JsonResponse({'html': ''})
