@@ -211,6 +211,8 @@ class RANewRequestWizard(SessionWizardView):
             intro = self.get_cleaned_data_for_step('intro') or {}
             if intro['coop']=="True": 
                 kwargs['coop'] = True
+            if intro['usra']:
+                kwargs['usra'] = True
         if step=='non_continuing':
             intro = self.get_cleaned_data_for_step('intro') or {}
             if intro['coop']=="True": 
@@ -358,6 +360,11 @@ class RANewRequestWizard(SessionWizardView):
         # ensure swpp is false if not applicable
         if req.coop == "False" or req.coop == False or req.hiring_category=="GRAS":
             req.swpp = False
+        
+        # ensure swpp and ra_benefits are false if not applicable
+        if req.usra == "True" or req.usra == True:
+            req.swpp = False
+            req.ra_benefits = "N"
 
         # if user creates request as draft
         if self.request.POST.get("save_draft"):
@@ -437,6 +444,8 @@ class RAEditRequestWizard(SessionWizardView):
             intro = self.get_cleaned_data_for_step('intro') or {}
             if intro['coop']=="True": 
                 kwargs['coop'] = True
+            if intro['usra']:
+                kwargs['usra'] = True
         if step=='non_continuing':
             intro = self.get_cleaned_data_for_step('intro') or {}
             if intro['coop']=="True": 
@@ -579,6 +588,11 @@ class RAEditRequestWizard(SessionWizardView):
         # ensure swpp is false if not applicable
         if req.coop == "False" or req.coop == False or req.hiring_category=="GRAS":
             req.swpp = False
+        
+        # ensure swpp and ra_benefits are false if not applicable
+        if req.usra == "True" or req.usra == True:
+            req.swpp = False
+            req.ra_benefits = "N"
 
         # draft was submitted 
         if submission:
@@ -1219,13 +1233,17 @@ def download(request, current=False):
 
     writer = csv.writer(response)
     if admin:
-        writer.writerow(['Status', 'Appointee Name', 'Appointee Email', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Supervisor Email', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP', 'Appointee Co-op Status', 'Processed By'])
+        writer.writerow(['Status', 'Appointee Name', 'Appointee Email', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Supervisor Email', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP', 'Appointee Co-op Status', 'USRA', 'Processed By'])
         for ra in ras:
             if ra.complete:
                 status = "Complete"
             else:
                 status = "In Progress"
-            writer.writerow([status, ra.get_sort_name(), ra.get_email_address(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.supervisor.email(), ra.start_date, ra.end_date, ra.hiring_category, ra.total_pay, ra.swpp, ra.coop, ra.get_processor()])
+            if ra.usra:
+                usra = " (USRA)"
+            else:
+                usra = ""
+            writer.writerow([status, ra.get_sort_name(), ra.get_email_address(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.supervisor.email(), ra.start_date, ra.end_date, ra.hiring_category + usra, ra.total_pay, ra.swpp, ra.coop, ra.usra, ra.get_processor()])
     else:
         writer.writerow(['Appointee Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
         for ra in ras:

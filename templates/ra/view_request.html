@@ -119,6 +119,7 @@
     {% if not nonstudent %}
     <tr><th>Is Co-Op:</th><td>{{ req.coop|yesno|capfirst }}
         {% if req.swpp and req.coop %} (and applying for funding through SWPP) {% endif %}</td></tr>
+    <tr><th>USRA:</th><td>{{ req.usra|yesno|capfirst }}</td></tr>
     <tr><th>Funded by Mitacs:</th><td>{{ req.mitacs|yesno|capfirst }}</td></tr>
     {% endif %}
     {% if show_research %}
@@ -178,7 +179,9 @@
 <div class="table_container">
   <h2>Hiring Category</h2>
   <table class="info">
-    <tr><th>Category:</th><td><u>{{ req.get_hiring_category_display }}</u></td></tr>
+    <tr><th>Category:</th><td><u>{{ req.get_hiring_category_display }}
+        {% if req.usra %} (USRA) {% endif %}
+    </u></td></tr>
   </table>
 </div>
 

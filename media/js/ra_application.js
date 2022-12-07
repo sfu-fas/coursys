@@ -1,7 +1,7 @@
 var noIdFields = ['intro-first_name', 'intro-last_name', 'intro-email_address']
 var idFields = ['intro-person']
 
-var studentFields = ['intro-coop', 'intro-mitacs', 'intro-thesis', 'intro-research']
+var studentFields = ['intro-coop', 'intro-mitacs', 'intro-thesis', 'intro-research', 'intro-usra']
 
 var fs1MultiFields = ['funding_sources-fs1_start_date', 'funding_sources-fs1_end_date', 'funding_sources-fs1_amount']
 
@@ -65,55 +65,59 @@ function idFieldsUpdate () {
 function studentFieldsUpdate () {
     var student_checked = $('input[name=intro-student]').is(':checked')
     var student = $('input[name=intro-student]:checked')
+    var usra = $('input[name=intro-usra]:checked')
     if (student.val() != 'N' && student_checked === true) {
-        show(['intro-coop', 'intro-mitacs'])
-        hide(['intro-research'])
+        show(['intro-coop'])
+        if (student.val() == 'U') {
+            show(['intro-usra'])
+            if (usra.val() === 'False') {
+                show(['intro-mitacs'])
+            } else {
+                hide(['intro-mitacs', 'intro-research', 'intro-thesis'])
+                setToNone(['intro-mitacs', 'intro-research', 'intro-thesis'])
+            }
+        } else if (student.val() == 'M' || student.val() == 'P') {
+            show(['intro-mitacs'])
+            hide(['intro-usra'])
+            setToNone(['intro-usra'])
+        }
+        var mitacs = $('input[name=intro-mitacs]:checked')
+        var research = $('input[name=intro-research]:checked')
+        if (mitacs.val() === 'False') {
+            show(['intro-research'])
+            if (research.val() === 'True') {
+                show(['intro-thesis'])
+            } else {
+                hide(['intro-thesis'])
+                setToNone(['intro-thesis'])
+            }
+        } else {
+            hide(['intro-research', 'intro-thesis'])
+            setToNone(['intro-research', 'intro-thesis'])
+        }
     } else if (student.val() == 'N' && student_checked == true) {
         show(['intro-research'])
-        hide(['intro-coop', 'intro-mitacs', 'intro-thesis'])
-        setToNone(['intro-coop', 'intro-mitacs', 'intro-thesis'])
+        hide(['intro-coop', 'intro-mitacs', 'intro-usra', 'intro-thesis'])
+        setToNone(['intro-coop', 'intro-mitacs', 'intro-usra', 'intro-thesis'])
     } else {
         hide(studentFields)
         setToNone(studentFields)
     }
 }
 
-function mitacsFieldsUpdate () {
-    var student_checked = $('input[name=intro-student]').is(':checked')
-    var student = $('input[name=intro-student]:checked')
-    var mitacs = $('input[name=intro-mitacs]:checked')
-    if (mitacs.val() === 'True') {
-        hide(['intro-research', 'intro-thesis'])
-        setToNone(['intro-research', 'intro-thesis'])
-    } else if (mitacs.val() === 'False') {
-        show(['intro-research'])
-    } else if (!(student.val() == 'N' && student_checked == true)) {
-        hide(['intro-research'])
-        setToNone(['intro-research'])
-    }
-}
-
-function researchFieldsUpdate() {
-    var student = $('input[name=intro-student]:checked')
-    var research = $('input[name=intro-research]:checked')
-    if (student.val() != 'N' && research.val() === 'True') {
-        show(['intro-thesis'])
-    } else if (research.val() === 'False') {
-        hide(['intro-thesis'])
-        setToNone(['intro-thesis'])
-    } else {
-        hide(['intro-thesis'])
-        setToNone(['intro-thesis'])
-    }
-}
-
 function researchAssistant () {
+    var usra =  $('input[name=intro-usra]:checked')
     $('#id_intro-hiring_category').val('RA')
-
     $('.need_more_info').hide()
-    $('.ra_info').show()
     $('.gras_info').hide()
     $('.nc_info').hide()
+    if (usra.val() === 'True') {
+        $('.usra_info').show() 
+        $('.ra_info').hide()  
+    } else {
+        $('.usra_info').hide()
+        $('.ra_info').show()
+    }
 }
 
 function graduateResearchAssistant () {
@@ -122,6 +126,7 @@ function graduateResearchAssistant () {
     $('.need_more_info').hide()
     $('.gras_info').show()
     $('.ra_info').hide()
+    $('.usra_info').hide()
     $('.nc_info').hide()
 }
 
@@ -131,6 +136,7 @@ function nonContinuing () {
     $('.need_more_info').hide()
     $('.nc_info').show()
     $('.ra_info').hide()
+    $('.usra_info').hide()
     $('.gras_info').hide()
 }
 
@@ -139,11 +145,14 @@ function hiringCategoryRec () {
     var thesis = $('input[name=intro-thesis]:checked')
     var mitacs =  $('input[name=intro-mitacs]:checked')
     var research =  $('input[name=intro-research]:checked')
+    var usra =  $('input[name=intro-usra]:checked')
     
     if (student.val() === 'N' & research.val() === 'True') {   
         researchAssistant()
     } else if (student.val() === 'N' & research.val() === 'False') {
         nonContinuing()
+    } else if (usra.val() === 'True' & student.val() === 'U') {
+        researchAssistant()
     } else if (mitacs.val() === 'True') {
         graduateResearchAssistant()
     } else if (research.val() === 'False') {
@@ -153,10 +162,12 @@ function hiringCategoryRec () {
     } else if (thesis.val() == 'False') {
         researchAssistant()
     } else {
+        $('#id_intro-hiring_category').val('None')
         $('.need_more_info').show()
         $('.ra_info').hide()
         $('.nc_info').hide()
         $('.gras_info').hide()
+        $('.usra_info').hide()
     }
 }
 
@@ -563,8 +574,6 @@ $(document).ready(function() {
 
     idFieldsUpdate()
     studentFieldsUpdate()
-    mitacsFieldsUpdate()
-    researchFieldsUpdate()
     hiringCategoryRec()
 
     fs2ChoiceUpdate()
@@ -601,11 +610,13 @@ $(document).ready(function() {
     
     // is the appointee a student?
     $('#id_intro-student').change(studentFieldsUpdate)
-    $('#id_intro-mitacs').change(mitacsFieldsUpdate)
-    $('#id_intro-research').change(researchFieldsUpdate)
+    $('#id_intro-usra').change(studentFieldsUpdate)
+    $('#id_intro-mitacs').change(studentFieldsUpdate)
+    $('#id_intro-research').change(studentFieldsUpdate)
 
     $('#id_intro-student').change(hiringCategoryRec)
     $('#id_intro-mitacs').change(hiringCategoryRec)
+    $('#id_intro-usra').change(hiringCategoryRec)
     $('#id_intro-research').change(hiringCategoryRec)
     $('#id_intro-thesis').change(hiringCategoryRec)
 
