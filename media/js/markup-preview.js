@@ -13,7 +13,14 @@ function update_preview(heading, preview, textarea, markup, math) {
         params.set('math', m);
 
         let oReq = new XMLHttpRequest();
-        oReq.open("GET", preview_url + "?" + params.toString());
+        let param_str = params.toString();
+        if ( param_str.length < 2000 ) {
+            oReq.open("GET", preview_url + "?" + param_str);
+        } else {
+            // POST larger requests: there's a limit on request string lengths
+            oReq.open("POST", preview_url);
+            oReq.send(params);
+        }
         oReq.addEventListener("load", function() {
             if ( this.readyState == 4 && this.status == 200 ) {
                 let resp = JSON.parse(this.responseText);
