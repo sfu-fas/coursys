@@ -91,7 +91,7 @@ class RARequestIntroForm(forms.ModelForm):
     person = PersonField(label='Appointee', required=False, help_text="Please ensure you are appointing the correct student.")
     supervisor = PersonField(label='Hiring Supervisor', required=True)
 
-    position = forms.CharField(required=False, label="Appointee Position Title")
+    position = forms.CharField(max_length=64, required=False, label="Appointee Position Title")
     
     people_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3, 'maxlength':300}), label="Any comments about the Appointee or Hiring Supervisor?")
 
