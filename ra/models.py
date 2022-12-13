@@ -463,6 +463,7 @@ class RARequest(models.Model):
     student = models.CharField(max_length=80, default=None, null=True, choices=STUDENT_TYPE)
     coop = models.BooleanField(null=True, blank=True)
     swpp = config_property('swpp', default=False)
+    usra = config_property('usra', default=False)
     mitacs = models.BooleanField(null=True, blank=True)
     research = models.BooleanField(null=True, blank=True)
     thesis = models.BooleanField(null=True, blank=True)

@@ -91,12 +91,13 @@ class RARequestIntroForm(forms.ModelForm):
     person = PersonField(label='Appointee', required=False, help_text="Please ensure you are appointing the correct student.")
     supervisor = PersonField(label='Hiring Supervisor', required=True)
 
-    position = forms.CharField(required=False, label="Appointee Position Title")
+    position = forms.CharField(max_length=64, required=False, label="Appointee Position Title")
     
     people_comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':3, 'maxlength':300}), label="Any comments about the Appointee or Hiring Supervisor?")
 
     student = forms.ChoiceField(required=True, choices=STUDENT_TYPE, widget=forms.RadioSelect, label="Is the appointee a student?")
     coop = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointee a co-op student?")
+    usra = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label=" Is this an Undergraduate Student Research Awards (USRA) faculty supplement?")
     mitacs = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Will the appointment be funded by a Mitacs scholarship in the Appointee’s own name?")
     research = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Will the work performed primarily involve research?")
     thesis = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Is the appointment for the student's thesis/project?")
@@ -120,7 +121,7 @@ class RARequestIntroForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(RARequestIntroForm, self).__init__(*args, **kwargs)
         
-        config_init = ['people_comments', 'coop', 'mitacs', 'student', 'thesis', 'research', 'position']
+        config_init = ['people_comments', 'coop', 'usra', 'mitacs', 'student', 'thesis', 'research', 'position']
 
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
@@ -133,7 +134,7 @@ class RARequestIntroForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        config_clean = ['people_comments', 'coop', 'mitacs', 'student', 'thesis', 'research', 'position']
+        config_clean = ['people_comments', 'coop', 'usra', 'mitacs', 'student', 'thesis', 'research', 'position']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
@@ -159,6 +160,12 @@ class RARequestIntroForm(forms.ModelForm):
 
         if nonstudent == None and person == None:
             raise forms.ValidationError("Cannot be a student and not have an SFU ID.")
+        
+        usra = cleaned_data.get('usra')
+        if usra == "True":
+            self.cleaned_data['usra'] = True
+        else:
+            self.cleaned_data['usra'] = False
 
         student = cleaned_data.get('student')
         coop = cleaned_data.get('coop')
@@ -169,17 +176,25 @@ class RARequestIntroForm(forms.ModelForm):
         if (student == 'N'):
             if research == None or research == '':
                 self.add_error('research', error_message)
-        if (student == 'U' or student == 'M' or student == 'P'):
+        elif (student == 'U' or student == 'M' or student == 'P'):
             if coop == None or coop == '':
                 self.add_error('coop', error_message)
-            if mitacs == None or mitacs == '':
-                self.add_error('mitacs', error_message)
-            if mitacs == 'False':
-                if research == None or research == '':
-                    self.add_error('research', error_message)
-                if research == 'True':
-                    if thesis == None or thesis == '':
-                        self.add_error('thesis', error_message)
+            if (student == 'U') and (usra == None or usra == ''):
+                self.add_error('usra', error_message)
+            if (student == 'M' or student == 'P') or usra=='False':
+                if mitacs == None or mitacs == '':
+                    self.add_error('mitacs', error_message)
+                if mitacs == 'False':
+                    if research == None or research == '':
+                        self.add_error('research', error_message)
+                    if research == 'True':
+                        if thesis == None or thesis == '':
+                            self.add_error('thesis', error_message)
+
+        hiring_category = cleaned_data.get('hiring_category')
+        if hiring_category == None or hiring_category == 'None':
+            self.add_error('student', 'Please answer all questions to determine hiring category.')
+
 
         # remove irrelevant information
         if nonstudent:
@@ -192,12 +207,20 @@ class RARequestIntroForm(forms.ModelForm):
             self.cleaned_data['coop'] = False
             self.cleaned_data['mitacs'] = False
             self.cleaned_data['thesis'] = False
-        elif (student == 'U' or student == 'M' or student == 'P'):
-            if (mitacs=='True'):
+            self.cleaned_data['usra'] = False
+        elif (student=='U' or student == 'M' or student == 'P'):
+            if (student=='U' and usra=='True'):
+                self.cleaned_data['mitacs'] = False
+                self.cleaned_data['thesis'] = False
                 self.cleaned_data['research'] = False
-                self.cleaned_data['thesis'] = False
-            elif (research=='False'):
-                self.cleaned_data['thesis'] = False
+            else:
+                if (mitacs=='True'):
+                    self.cleaned_data['research'] = False
+                    self.cleaned_data['thesis'] = False
+                    self.cleaned_data['usra'] = False
+                elif (research=='False'):
+                    self.cleaned_data['thesis'] = False
+                    self.cleaned_data['usra'] = False
 
 class RARequestDatesForm(forms.ModelForm):
     backdated = forms.BooleanField(required=False, label="Is this a backdated appointment?")
@@ -753,7 +776,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             'total_pay': forms.HiddenInput() 
         }
 
-    def __init__(self, coop=False, *args, **kwargs):
+    def __init__(self, coop=False, usra=False, *args, **kwargs):
         super(RARequestResearchAssistantForm, self).__init__(*args, **kwargs)
         
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
@@ -763,8 +786,11 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
         
-        if not coop:
+        if not coop or usra:
             self.fields['swpp'].widget=forms.HiddenInput()
+        if usra: 
+            self.fields['ra_benefits'].widget=forms.HiddenInput()
+            self.fields['ra_benefits'].required=False
 
     def clean(self):
         cleaned_data = super().clean()
