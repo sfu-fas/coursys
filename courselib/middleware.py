@@ -112,6 +112,13 @@ class LoggingMiddleware:
         ip, _ = get_client_ip(request)
         user = request.user.username if request.user.is_authenticated else '-'
         request_id = request.META.get('HTTP_X_REQUEST_ID', '-')
+        session_key = request.session.session_key if request.session and request.session.session_key else '-'
+        if 'CONTENT_LENGTH' in request.META and request.META['CONTENT_LENGTH'].isnumeric():
+            request_content_length = int(request.META['CONTENT_LENGTH'])
+        else:
+            request_content_length = 0
+
+        response_content_type = response.headers.get('Content-Type', '-')
 
         log_data = {
             'timestamp': end.isoformat(timespec='microseconds'),
@@ -120,8 +127,10 @@ class LoggingMiddleware:
             'path': request.path,
             'query_string': request.META.get('QUERY_STRING', ''),
             'request_id': request_id,
-            'session_key': request.session.session_key,
+            'session_key': session_key,
             'user': user,
+            'response_content_type': response_content_type,
+            'request_content_length': request_content_length,
             'elapsed': elapsed,
             'status_code': response.status_code,
         }
@@ -129,10 +138,13 @@ class LoggingMiddleware:
         slow_okay = getattr(response, 'slow_okay', False)
 
         if slow_okay or elapsed < 10:
+            log_data['level'] = 'debug'
             middleware_logger.debug(json.dumps(log_data))
         elif elapsed < 20:
+            log_data['level'] = 'warn'
             middleware_logger.warning(json.dumps(log_data))
         else:
+            log_data['level'] = 'error'
             middleware_logger.error(json.dumps(log_data))
 
         return response
