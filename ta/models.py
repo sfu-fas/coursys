@@ -19,7 +19,8 @@ from dashboard.letters import ta_form
 from django.core.mail import EmailMultiAlternatives
 from courselib.markup import markup_to_html
 from courselib.storage import UploadedFileStorage, upload_path
-
+from django.template.loader import get_template
+from grad.models import GradStudent, Supervisor
 from . import bu_rules
 
 LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
@@ -35,7 +36,7 @@ CMPT_COURSE_BU = decimal.Decimal('1.17')
 DEPT_CHOICES = [
     ('CMPT', 'CMPT student'),
     ('OTHR', 'Other program'),
-    ('NONS', 'Not a student'),
+    ('NONS', 'Not currently a student'),
 ]
 
 
@@ -460,11 +461,11 @@ class TAApplication(models.Model):
 
     posting = models.ForeignKey(TAPosting, on_delete=models.PROTECT)
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
-    category = models.CharField(max_length=4, blank=False, null=False, choices=CATEGORY_CHOICES, verbose_name='Program')
-    current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Department", choices=DEPT_CHOICES,
-        help_text='In what department are you a student?')
+    category = models.CharField(max_length=4, blank=False, null=False, choices=CATEGORY_CHOICES, verbose_name='Category', help_text='What category of program are you currently studying?')
+    current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Current program", choices=DEPT_CHOICES,
+        help_text='In what department are you currently a student?')
     program_comment = models.CharField(max_length=100, verbose_name='Other program comment', null=True, blank=True, help_text='If you select "Other program" in Department, please indicate which programs did you study.')
-
+    supervisor = models.ForeignKey(Person, blank=True, related_name='tasupervisor', null=True, verbose_name="If you are CS grad student, please identify your supervisor", on_delete=models.PROTECT)
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN",help_text="Social insurance number (required for receiving payments)")
     validsin = models.CharField(choices=VALIDSIN_CHOICES, max_length=3, verbose_name="SIN",help_text='Do you have valid SIN at the time of employment?')
     base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,
@@ -532,6 +533,30 @@ class TAApplication(models.Model):
             cmp.append(p.get_campus_display() + ': ' + p.get_pref_display())
         return ', '.join(cmp)
 
+    def email_application(self):
+            plaintext = get_template('ta/emails/notify_application.txt')
+            html = get_template('ta/emails/notify_application.html')
+
+            email_context = {'person': self.person, 'posting': self.posting}
+            subject = 'Thank you for applying TA position (%s) ' % (self.posting.semester)
+            if self.posting.contact():
+                from_email = self.posting.contact().email()
+            else:
+                from_email = settings.DEFAULT_FROM_EMAIL
+            to = self.person.email()
+
+            msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                    from_email=from_email, to=[to], headers={'X-coursys-topic': 'ta'})
+            msg.attach_alternative(html.render(email_context), "text/html")
+            msg.send()
+
+    def coursys_supervisor_display(self):
+        supervisor = ''
+        gradids = GradStudent.objects.filter(person_id=self.person_id, current_status='ACTI').values_list('id', flat=True)
+        supers = Supervisor.objects.filter(student_id__in=gradids).all()
+        for s in supers:
+            supervisor += s.supervisor.name() + ' ('+ str(s.supervisor_type) + '), '
+        return supervisor[:-2]
 
 PREFERENCE_CHOICES = (
         ('PRF', 'Preferred'),

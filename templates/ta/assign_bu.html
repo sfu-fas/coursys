@@ -214,6 +214,7 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
       <th scope="col">Rank</th>
       <th scope="col">Grad Program</th>
       <th scope="col">Category</th>
+      <th scope="col">Supervisor</th>
       <th scope="col">Course Rank</th>
       <th scope="col">Campus Pref.</th>
       <th scope="col">Max BUs</th> <!-- this is the maximum number of BU's the student is willing to accept. -->
@@ -238,6 +239,12 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
             {% endfor %}
         </td>
         <td>{{ a.get_category_display }}</td>
+        <td>{{ a.supervisor }} 
+
+            {% if a.coursys_supervisor_display %} 
+                <i class="fa fa-info-circle" title="System: {{ a.coursys_supervisor_display }} "></i>  
+            {% endif %}            
+        </td>
         <td>{{ a.course_rank }}</td>
         <td>{{ a.campus_preference.get_pref_display }}</td>
         <td>{{ a.base_units }}</td>

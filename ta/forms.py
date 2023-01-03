@@ -2,7 +2,7 @@ import re
 from django import forms
 from django.forms.utils import ErrorList
 from collections import OrderedDict
-from coredata.models import Member
+from coredata.models import Member, Role, Person
 from coredata.widgets import CalendarWidget
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
         CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES, TAContractEmailText
@@ -202,6 +202,9 @@ class TAApplicationForm(forms.ModelForm):
         self.fields['current_program'].required = True
         self.fields['resume'].required = True
         self.fields['transcript'].required = False
+        rolepersonids = Role.objects.filter(unit=self.initial['unit'], role__in=['FAC', 'SUPV']).values_list('person_id', flat=True)
+        person = Person.objects.filter(id__in=rolepersonids)
+        self.fields['supervisor'].queryset = person
 
     def add_extra_questions(self, posting):
         if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:

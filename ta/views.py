@@ -388,9 +388,9 @@ def _new_application(request, post_slug, manual=False, userid=None):
                 return HttpResponseRedirect(reverse('ta:view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
         
         if editing:
-            ta_form = TAApplicationForm(request.POST, request.FILES, prefix='ta', instance=application)
+            ta_form = TAApplicationForm(request.POST, request.FILES, prefix='ta', initial={'unit': posting.unit.id}, instance=application)
         else:
-            ta_form = TAApplicationForm(request.POST, request.FILES, prefix='ta')
+            ta_form = TAApplicationForm(request.POST, request.FILES, prefix='ta', initial={'unit': posting.unit.id})
 
         ta_form.add_extra_questions(posting)
 
@@ -491,6 +491,16 @@ def _new_application(request, post_slug, manual=False, userid=None):
                     course.rank = 0
                     course.save()
                 
+                # Email confirmation to student if everything is saved
+                # Save the event to log file
+                if not manual and not editing:
+                    app.email_application()                    
+
+                l = LogEntry(userid=request.user.username,
+                        description="Submitted TA position for %s %s (%s in %s)." % (app.person.name(), app.person.userid, app.posting.semester, app.posting.unit),
+                        related_object=app)
+                l.save()
+                
                 return HttpResponseRedirect(reverse('ta:view_application', kwargs={'post_slug': app.posting.slug, 'userid': app.person.userid}))
         
         # redisplaying form: build values for template with entered values
@@ -510,7 +520,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
     elif editing:
         # editing: build initial form from existing values
         
-        ta_form = TAApplicationForm(prefix='ta', instance=application)
+        ta_form = TAApplicationForm(prefix='ta', initial={'unit': posting.unit.id}, instance=application)
         # Stupidly, the filefields don't consider themselves "filled" if we have a previous instance that contained
         # the right fields anyway.  Manually check and clear the required part.
         if application.resume:
@@ -549,7 +559,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
         courses_formset = CoursesFormSet()
         for f in courses_formset:
             f.fields['course'].choices = course_choices
-        ta_form = TAApplicationForm(prefix='ta', initial={'sin': sin})
+        ta_form = TAApplicationForm(prefix='ta', initial={'sin': sin, 'unit': posting.unit.id})
         ta_form.add_extra_questions(posting)
         campus_preferences = [(lbl, name, 'WIL') for lbl,name in CAMPUS_CHOICES if lbl in used_campuses]
         skill_values = [(s.position, s.name, 'NONE') for s in skills]
@@ -614,10 +624,10 @@ def download_all_applications(request, post_slug):
                                       (posting.semester.name, datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
     if applications:
-        writer.writerow(['Person', 'ID', 'Email', 'Category', 'Program', 'Other program comment', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned', 'Campus Preferences'])
+        writer.writerow(['Person', 'ID', 'Email', 'Category', 'Current Program', 'Other program comment', 'Supervisor', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned', 'Campus Preferences'])
 
         for a in applications:
-            writer.writerow([a.person.sortname(), a.person.emplid, a.person.email(), a.get_category_display(), a.get_current_program_display(), a.program_comment, a.base_units_assigned(),
+            writer.writerow([a.person.sortname(), a.person.emplid, a.person.email(), a.get_category_display(), a.get_current_program_display(), a.program_comment, a.supervisor, a.base_units_assigned(),
                              a.base_units, a.course_pref_display(), a.course_assigned_display(), a.campus_pref_display()])
     return response
 
@@ -1156,7 +1166,7 @@ def contracts_table_csv(request, post_slug):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s-table.csv"' % (posting.slug)
     writer = csv.writer(response)
-    writer.writerow(['Person', 'Citizenship', 'Appt Category', 'Rank', 'Status', 'Total BU', 'TA Courses', 'Deadline'])
+    writer.writerow(['Person', 'Email', 'Citizenship', 'Appt Category', 'Rank', 'Status', 'Total BU', 'TA Courses', 'Deadline'])
     for c in contracts:
         citizen = ''
         if c.application.person.citizen():
@@ -1167,7 +1177,7 @@ def contracts_table_csv(request, post_slug):
             citizen += "(visa: "+ str(c.application.person.visa()) + ")"
         else:
             citizen += "(visa: unknown)"
-        writer.writerow([c.application.person, citizen, c.get_appt_category_display() + '(' + c.appt_category + ')',
+        writer.writerow([c.application.person, c.application.person.email(), citizen, c.get_appt_category_display() + '(' + c.appt_category + ')',
                          c.application.rank, c.get_status_display(), c.total_bu(), c.crs_list, c.deadline])
     return response
 
@@ -1731,7 +1741,7 @@ def generate_csv(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Rank', 'Name', 'SFUID', 'Email', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU',
+    off = ['Rank', 'Name', 'SFUID', 'Email', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Supervisor (Reported)', 'Supervisor (System)', 'Unit', 'Start Sem', 'BU',
            'Campus', 'Assigned Course(s)', 'Assigned BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
     csvWriter.writerow(off)
     
@@ -1782,7 +1792,8 @@ def generate_csv(request, post_slug):
                 assigned_courses = ', '.join([tacourse.course.name() for tacourse in ta_courses])
                 assigned_bus = sum([t.total_bu for t in ta_courses])
 
-        row = [rank, app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.get_current_program_display(), system_program, status, unit, startsem,
+        supervisorlist = app.coursys_supervisor_display()
+        row = [rank, app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.get_current_program_display(), system_program, status, app.supervisor, supervisorlist, unit, startsem,
                app.base_units, campuspref, assigned_courses, assigned_bus]
         
         for off in offerings:

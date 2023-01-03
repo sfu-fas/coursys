@@ -1,0 +1,6 @@
+Dear, {{ person.name }},
+
+This email confirms that your TA application for {{ posting.semester }} has been submitted.
+Thank you.
+
+{{ posting.unit }}
