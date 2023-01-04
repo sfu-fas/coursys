@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coredata', '0026_auto_20230103_1440'),
+        ('coredata', '0025_update_choices'),
         ('ta', '0012_add_program_comment'),
     ]
 
