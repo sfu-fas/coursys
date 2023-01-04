@@ -1730,6 +1730,5 @@ class ExternalDocument(models.Model):
         Return the filename only (no path) for the attachment.
         """
         _, filename = os.path.split(self.file_attachment.name)
-        print("FILENAME:", filename)
         return filename
 
