@@ -555,7 +555,8 @@ class TAApplication(models.Model):
         gradids = GradStudent.objects.filter(person_id=self.person_id, current_status='ACTI').values_list('id', flat=True)
         supers = Supervisor.objects.filter(student_id__in=gradids).all()
         for s in supers:
-            supervisor += s.supervisor.name() + ' ('+ str(s.supervisor_type) + '), '
+            if s.supervisor is not None:
+                supervisor += s.supervisor.name() + ' ('+ str(s.supervisor_type) + '), '
         return supervisor[:-2]
 
 PREFERENCE_CHOICES = (
