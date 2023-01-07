@@ -861,6 +861,18 @@ class RARequest(models.Model):
         else:
             return 0
 
+    def get_student_status(self):
+        if self.student == 'N':
+            return "Not A Student"
+        elif self.student == 'U':
+            return "Undergraduate"
+        elif self.student == 'M':
+            return "Masters"
+        elif self.student == 'P':
+            return "PhD"
+        else:
+            return ""
+
     def get_absolute_url(self):
         return reverse('ra:view_request', kwargs={'ra_slug': self.slug})
     
