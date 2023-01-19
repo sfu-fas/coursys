@@ -33,6 +33,7 @@ forms_patterns = [
         name='pending_summary_csv'),
     url(r'^admin/completed/' + FORM_SLUG + '/waiting_summary$', onlineforms_views.waiting_summary_csv,
         name='waiting_summary_csv'),
+    url(r'^admin/bulk_close/', onlineforms_views.bulk_close, name='bulk_close'),
 
     url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/assign$', onlineforms_views.admin_assign, name='admin_assign'),
     url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/assign-nonsfu$', onlineforms_views.admin_assign_nonsfu, name='admin_assign_nonsfu'),
