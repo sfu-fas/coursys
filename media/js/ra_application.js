@@ -10,7 +10,7 @@ var rah_fields = ['research_assistant-gross_hourly', 'research_assistant-vacatio
 var ncbw_fields = ['non_continuing-total_gross', 'non_continuing-weeks_vacation', 'non_continuing-biweekly_hours']
 var nch_fields = ['non_continuing-gross_hourly', 'non_continuing-vacation_pay', 'non_continuing-biweekly_hours']
 var grasls_fields = ['graduate_research_assistant-total_gross']
-var grasbw_fields = ['graduate_research_assistant-total_gross', 'graduate_research_assistant-biweekly_hours']
+var grasbw_fields = ['graduate_research_assistant-total_gross']
 
 var ra_backdated_fields = ['research_assistant-backdate_hours', 'research_assistant-backdate_lump_sum', 'research_assistant-backdate_reason']
 var nc_backdated_fields = ['non_continuing-backdate_hours', 'non_continuing-backdate_lump_sum', 'non_continuing-backdate_reason']

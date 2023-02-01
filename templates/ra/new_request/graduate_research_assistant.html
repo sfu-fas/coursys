@@ -73,7 +73,7 @@
         <div class="helptext">
           <ul>
             <li>This is a scholarship appointment; therefore, there will be no additional deductions for statutory/welfare benefits and vacation from your grant.</li>
-            <li>The total salary indicated will be the total deducted from the project.</li>
+            <li>The total funding indicated will be the total deducted from the project.</li>
             <li>This also means that the Appointee is not eligible for employment benefits (i.e. EHT, CPP, EI, WCB and other discretionary health and dental benefits) as this is not an employment appointment.</li>
           </ul>
         </div>
@@ -84,23 +84,25 @@
                 {{ form }}
             {% endfor %}
         {% else %}
-            {{ wizard.form|as_dl }}
-          {% endif %} 
-          <div class="biweekly_info">
+            {{ wizard.form|as_dl_excludefields:"scholarship_confirmation_1,scholarship_confirmation_2,scholarship_confirmation_3,scholarship_confirmation_4,scholarship_confirmation_5,scholarship_confirmation_6,scholarship_confirmation_7,scholarship_confirmation_8,scholarship_confirmation_9,scholarship_subsequent,scholarship_notes" }} 
+            <div class="biweekly_info">
+              <p><div class="important_info">
+                <b>Estimated Biweekly Rate:</b> $<span class="biweekly_rate_info"></span>
+                <div class="helptext"><span class="biweekly_rate_calc"></span></div>
+              </div></p>
+            </div>
             <p><div class="important_info">
-              <b>Estimated Biweekly Rate:</b> $<span class="biweekly_rate_info"></span>
-              <div class="helptext"><span class="biweekly_rate_calc"></span></div>
+              <b>Estimated Total Funding:</b> $<span class="total_pay_info"></span>
+              <div class="helptext"><span class="total_pay_calc"></span></div>
             </div></p>
-            <p><div class="important_info">
-              <b>Estimated Hourly Rate:</b> $<span class="hourly_rate_info"></span>
-              <div class="helptext"><span class="hourly_rate_calc"></span></div>
-            </div></p>
-          </div>
-          <p><div class="important_info">
-            <b>Estimated Total Pay:</b> $<span class="total_pay_info"></span>
-            <div class="helptext"><span class="total_pay_calc"></span></div>
-          </div></p>
-      </div>
+            <p>Please answer below required questions to confirm the full payment is for scholarship/stipend purpose:</p>
+            <p><b>1. Does/will the funding from your grant(s) result in research or research-related activities being performed by the student that:</b></p>
+            <div class="indent">{{ wizard.form|as_dl_includefields:"scholarship_confirmation_1,scholarship_confirmation_2,scholarship_confirmation_3,scholarship_confirmation_4" }}</div>
+            <p><b>2. As part of your interaction with the student who is receiving the scholarship, do you/will you:</b></p>
+            <div class="indent">{{ wizard.form|as_dl_includefields:"scholarship_confirmation_5,scholarship_confirmation_6,scholarship_confirmation_7,scholarship_confirmation_8,scholarship_confirmation_9" }}</div>
+            {{ wizard.form|as_dl_includefields:"scholarship_subsequent,scholarship_notes" }}
+        {% endif %}
+    </div>
     </fieldset>
     <div class="directory_buttons">
         <h3>Section {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</h3>
