@@ -2,12 +2,27 @@ import datetime
 import json
 import time
 import logging
+
+from django.core.exceptions import PermissionDenied
 from django.db import connection
 from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
 from ipware import get_client_ip
 
 logger = logging.getLogger(__name__)
+
+
+class BlockingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if hasattr(settings, 'BLOCK_IPS') and settings.BLOCK_IPS:
+            ip, _ = get_client_ip(request)
+            if ip in settings.BLOCK_IPS:
+                raise PermissionDenied()
+        response = self.get_response(request)
+        return response
 
 
 class MonitoringMiddleware(MiddlewareMixin):

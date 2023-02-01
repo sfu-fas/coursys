@@ -1502,7 +1502,11 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
         filled_sheets = []
         # get the submission objects(if they exist) and create the form
         if formsubmit_slug and sheetsubmit_slug:
-            form_submission = get_object_or_404(FormSubmission, form=owner_form, slug=formsubmit_slug)
+            try:
+                form_submission = get_object_or_404(FormSubmission, form=owner_form, slug=formsubmit_slug)
+            except FormSubmission.MultipleObjectsReturned:
+                # some formsubmissions by an attacker have raced their way to identical slugs.
+                return Http404()
             sheet_submission = get_object_or_404(SheetSubmission, sheet__original=sheet.original,
                                                  form_submission=form_submission, slug=sheetsubmit_slug)
             sheet = sheet_submission.sheet # revert to the old version that the user was working with.

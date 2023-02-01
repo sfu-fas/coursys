@@ -30,7 +30,7 @@
 
           <ul class="bulleted">
               {% for m in info.unique_members %}
-              <li>{{ m.member.person.name }}, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
+              <li>{{ m.member.person.name_pref }}, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
               {% if m.missing %}(not for 
               {% for a in m.missing %}
               {{ a.name }}{% if forloop.last %}){% else %}, {% endif %}

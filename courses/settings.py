@@ -96,6 +96,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'courselib.middleware.LoggingMiddleware',
     'courselib.middleware.ExceptionIgnorer',
+    'courselib.middleware.BlockingMiddleware',
     'django_cas_ng.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
     'courselib.csp.CSPMiddleware',
@@ -158,6 +159,7 @@ X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_TRUSTED_ORIGINS = getattr(localsettings, 'CSRF_TRUSTED_ORIGINS', [])
+BLOCK_IPS = getattr(localsettings, 'BLOCK_IPS', [])
 
 # database config
 if DEPLOY_MODE in ['production', 'proddev']:
