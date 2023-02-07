@@ -832,7 +832,7 @@ def contracts_csv(request, unit_slug, semester):
     writer = csv.writer(response)
     writer.writerow(['Batch ID', 'Term ID', 'Contract Signed', 
                      'Benefits Indicator', 'EmplID', 'SIN',
-                     'Last Name', 'First Name 1', 'First Name 2', 
+                     'Last Name', 'First Name 1', 'First Name 2', 'Email',
                      'Payroll Start Date', 'Payroll End Date',
                      'Action', 'Action Reason', 'Position Number', 
                      'Job Code', 'Full_Part time', 'Pay Group',
@@ -882,6 +882,8 @@ def contracts_csv(request, unit_slug, semester):
         row.extend([c.person.last_name, 
                     c.person.first_name, 
                     c.person.middle_name])
+        #Email
+        row.append(c.person.email())
         #Payroll Start Date, Payroll End Date
         row.append(c.pay_start.strftime("%Y%m%d"))
         row.append(c.pay_end.strftime("%Y%m%d"))

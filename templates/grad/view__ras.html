@@ -1,10 +1,11 @@
 <div class="datatable_container datatable">
-	<table class="display">
+	<table class="display sort-1">
         <thead>
             <tr>
                 <th>Supervisor</th>
                 <th>Start Date</th>
                 <th>End Date</th>
+                <th>Object Code</th>
                 <th>Total</th>
                 <th>Unit</th>
             </tr>
@@ -20,6 +21,9 @@
                 </td>
                 <td>
                     <span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}
+                </td>
+                <td>
+                    {{ req.object_code }}
                 </td>
                 <td>
                     ${{ req.total_pay }}
@@ -39,6 +43,9 @@
                 </td>
                 <td>
                     <span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}
+                </td>
+                <td>
+                    {{ req.account.account_number }}
                 </td>
                 <td>
                     ${{ req.lump_sum_pay }}

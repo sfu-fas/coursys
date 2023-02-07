@@ -1746,7 +1746,7 @@ def generate_csv(request, post_slug):
     csvWriter.writerow(off)
     
     # next row: campuses
-    off = ['']*12 + [str(CAMPUSES_SHORTENED[o.campus]) for o in offerings]
+    off = ['']*16 + [str(CAMPUSES_SHORTENED[o.campus]) for o in offerings]
     csvWriter.writerow(off)
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')
