@@ -105,17 +105,7 @@
     <tr><th>Last Name:</th><td>{{ person.last_name }}</td></tr>
     <tr><th>Email:</th><td>{{ person.email_mailto }}</td></tr>
     {% endif %}
-    <tr><th>Student Type:</th><td>
-      {% if req.student == 'N' %}
-      Not a Student
-      {% elif req.student == 'U' %}
-      Undergraduate
-      {% elif req.student == 'M' %}
-      Masters
-      {% elif req.student == 'P' %}
-      PhD
-      {% endif %}
-    </td></tr>
+    <tr><th>Student Type:</th><td>{{ req.get_student_status }}</td></tr>
     {% if not nonstudent %}
     <tr><th>Is Co-Op:</th><td>{{ req.coop|yesno|capfirst }}
         {% if req.swpp and req.coop %} (and applying for funding through SWPP) {% endif %}</td></tr>
