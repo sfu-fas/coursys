@@ -788,10 +788,7 @@ class TACourse(models.Model):
         """
         Return the prep BUs for this assignment
         """
-        if self.contract.posting.unit.label in ["CMPT", "COMP"] and self.course.semester.name >= "1231":
-            if self.course.flags.write:
-                return CMPT_COURSE_BU + CMPT_WCOURSE_BU
-            else:                
+        if self.contract.posting.unit.label in ["CMPT", "COMP"] and self.course.semester.name >= "1234":                           
                 return CMPT_COURSE_BU
         else:
             if self.has_labtut():

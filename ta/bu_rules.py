@@ -44,6 +44,14 @@ def cmpt_after_1224_strategy( posting, offering, count=None ):
         return decimal.Decimal(0)
     return decimal.Decimal(str(default))
 
+def cmpt_after_1234_strategy( posting, offering, count=None ):
+    if count is None:
+        count = offering.enrl_tot
+    default = round(count * CMPT_BU_ALLOCATION_CONSTANT_1224, 2)
+    if default < 2:
+        return decimal.Decimal(0)
+    return decimal.Decimal(str(default))  
+
 def does_bu_strategy_involve_defaults( semester, unit ):
     if unit.label in ["CMPT", "COMP"] and semester < semester_1134():
         return True
@@ -54,6 +62,8 @@ def get_bu_strategy( semester, unit ):
         return cmpt_before_1134_strategy
     if unit.label in ["CMPT", "COMP"] and semester >= semester_1134() and semester <= Semester.objects.get(name="1221"):        
         return cmpt_after_1134_strategy
-    if unit.label in ["CMPT", "COMP"] and semester >= Semester.objects.get(name="1224"):
+    if unit.label in ["CMPT", "COMP"] and semester >= Semester.objects.get(name="1224") and semester <= Semester.objects.get(name="1231"):
         return cmpt_after_1224_strategy
+    if unit.label in ["CMPT", "COMP"] and semester >= Semester.objects.get(name="1234"):
+        return cmpt_after_1234_strategy
     return default_strategy
