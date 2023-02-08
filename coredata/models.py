@@ -208,7 +208,7 @@ class Person(models.Model, ConditionalSaveMixin):
         return "%s%s" % (self.first_name[0], self.last_name[0])
 
     def full_email(self):
-        return "%s <%s>" % (self.name(), self.email())
+        return "%s <%s>" % (self.name_pref(), self.email())
 
     def real_pref_first(self):
         return self.config.get('pref_first_name', None) or self.pref_first_name or self.first_name
@@ -268,7 +268,7 @@ class Person(models.Model, ConditionalSaveMixin):
             return 'unknown'
 
     def __lt__(self, other):
-        return (self.last_name, self.first_name, self.userid_or_emplid()) < (other.last_name, other.first_name, other.userid_or_emplid())
+        return (self.last_name, self.first_with_pref, self.userid_or_emplid()) < (other.last_name, other.first_name, other.userid_or_emplid())
 
     class Meta:
         verbose_name_plural = "People"
@@ -286,7 +286,7 @@ class Person(models.Model, ConditionalSaveMixin):
             return "None"
 
     def search_label_value(self):
-        return "%s (%s), %s" % (self.name(), self.userid, self.emplid)
+        return "%s (%s), %s" % (self.name_with_pref(), self.userid, self.emplid)
 
     def get_role_account(self, type):
         """
