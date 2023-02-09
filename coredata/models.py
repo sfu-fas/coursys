@@ -268,7 +268,7 @@ class Person(models.Model, ConditionalSaveMixin):
             return 'unknown'
 
     def __lt__(self, other):
-        return (self.last_name, self.first_with_pref, self.userid_or_emplid()) < (other.last_name, other.first_name, other.userid_or_emplid())
+        return (self.last_name, self.first_with_pref(), self.userid_or_emplid()) < (other.last_name, other.first_with_pref(), other.userid_or_emplid())
 
     class Meta:
         verbose_name_plural = "People"
