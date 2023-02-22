@@ -20,7 +20,7 @@ from django.core.mail import EmailMultiAlternatives
 from courselib.markup import markup_to_html
 from courselib.storage import UploadedFileStorage, upload_path
 from django.template.loader import get_template
-from grad.models import GradStudent, Supervisor
+from grad.models import GradStudent, Supervisor, STATUS_REAL_PROGRAM
 from . import bu_rules
 
 LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
@@ -524,7 +524,8 @@ class TAApplication(models.Model):
         cmp = []
         prefs = self.campuspreference_set.all()
         for p in prefs:
-            cmp.append(p.get_campus_display() + ': ' + p.get_pref_display())
+              if p.pref == 'PRF':
+                cmp.append(p.get_campus_display())
         return ', '.join(cmp)
 
     def email_application(self):
@@ -550,9 +551,73 @@ class TAApplication(models.Model):
         supers = Supervisor.objects.filter(student_id__in=gradids).all()
         for s in supers:
             if s.supervisor is not None:
-                supervisor += s.supervisor.name() + ' ('+ str(s.supervisor_type) + '), '
+                supervisor += s.supervisor.name_pref() + ' ('+ str(s.supervisor_type) + '), '
         return supervisor[:-2]
 
+    def grad_program_information(self):
+        active_gs = GradStudent.objects.filter(person=self.person, current_status__in=STATUS_REAL_PROGRAM) \
+                .select_related('program__unit')
+        gradprogram = []
+        for st in active_gs:
+            gradprogram.append(st.program.label)
+        return ', '.join(gradprogram)
+
+    def grad_program_type(self):
+        active_gs = GradStudent.objects.filter(person=self.person, current_status__in=STATUS_REAL_PROGRAM) \
+                .select_related('program__unit').first()
+        if active_gs is not None:
+            if 'PhD' in active_gs.program.label:
+                return 'P1'
+            elif 'MSc' in active_gs.program.label:
+                return 'P2'
+            elif 'Prof' in active_gs.program.label:
+                return 'P3'
+            else:
+                return 'P4'
+        return ''
+    
+    def grad_program_yearsem(self):
+        active_gs = GradStudent.objects.filter(person=self.person, current_status__in=STATUS_REAL_PROGRAM) \
+                .select_related('program__unit').first()
+        if active_gs is not None:
+            if 'Prof' in active_gs.program.label:
+                return active_gs.semester_as_of()
+            else:
+                return active_gs.year_as_of()        
+        return ''
+
+    def contract_status_display(self):
+        status = ''
+        tacontract = TAContract.objects.filter(application=self).first()
+        if tacontract is not None:
+            status = tacontract.get_status_display() + ': '+ str(tacontract.bu())
+        return status
+
+    def skill_level_display(self):
+        skill = []
+        taskill = SkillLevel.objects.filter(app=self)
+        for s in taskill:
+            if s is not None and s.get_level_display() is not 'None':
+                skill.append(s.skill.name + ': '+ s.get_level_display())
+        return ', '.join(skill)
+
+    def past_experience_display(self):
+        pastexp = []
+        previous_experience = TACourse.objects.filter(contract__application__person=self.person) \
+                    .exclude(contract__application=self).select_related('course__semester')
+        for p in previous_experience:
+            if p.course.name is not None and p.bu > 0:
+                pastexp.append(p.course.subject + ' ' + p.course.number + ' ' + p.course.section)
+        return ', '.join(pastexp)
+
+    def past_enroll_display(self):
+        member = []
+        membership = Member.objects.filter(person=self.person, role='STUD', offering__semester__end__lte=datetime.date.today())
+        for m in membership:
+            if m.offering.name is not None :
+                member.append(m.offering.subject + ' ' + m.offering.number + ' ' + m.offering.section)
+        return ', '.join(member)
+        
 PREFERENCE_CHOICES = (
         ('PRF', 'Preferred'),
         ('NOP', 'No Preference'),

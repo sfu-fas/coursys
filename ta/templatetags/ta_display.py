@@ -58,13 +58,34 @@ def display_ta_count(offering, posting):
     return posting.ta_count(offering)
 
 @register.filter
-def display_joint_with(joint_with):
+def display_joint_with(joint_with, offeringname):
     newlist = ''
     if joint_with:
         for index, j in enumerate(joint_with):
             start = j.find('-')+1
-            if index == 0:
-                newlist = j.upper()[start:].replace("-", " ")
+            if j[-2:] == '00':
+                joint_course = j.upper()[start:].replace("-", " ")[:-2]
             else:
-                newlist += ', '+ j.upper()[start:].replace("-", " ")
+                joint_course = j.upper()[start:].replace("-", " ")
+            
+            if joint_course > offeringname:
+                joint_with = offeringname + "/" + joint_course
+            else:
+                joint_with = joint_course + "/" + offeringname
+            if index == 0:
+                newlist = joint_with
+            else:
+                newlist += ', '+ joint_with
     return newlist
+
+@register.filter
+def display_ta_promise(gradstudent):    
+    return  sum(gradstudent.get_promise_amount_all().values())
+
+@register.filter
+def display_ta_owe(gradstudent):    
+    received_amt = gradstudent.get_receive_all()
+    amt = received_amt['year1'] + received_amt['year2'] + received_amt['year3'] + received_amt['year4'] + received_amt['otheryear']
+
+    amt_owning =  sum(gradstudent.get_promise_amount_all().values()) - amt
+    return  amt_owning
