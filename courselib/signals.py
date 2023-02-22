@@ -89,6 +89,15 @@ class DISABLED_SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
             else:
                 super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
 
+        elif cls == 'Visa':
+            #logger.debug('Reindexing Visa %s' % (instance))
+            if instance.deleted:
+                # deleted request
+                self.handle_delete(sender=sender, instance=instance, **kwargs)
+            else:
+                super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
+
+
         #else:
         #    ignore everything else, since we don't care.
 
