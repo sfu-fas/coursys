@@ -322,20 +322,13 @@ function grasPaymentMethod () {
 
 function grasBW () {
     totalPay = $('#id_graduate_research_assistant-total_gross').val()
-    biweeklyHours = $('#id_graduate_research_assistant-biweekly_hours').val()
     payPeriods = $('#id_graduate_research_assistant-pay_periods').val()
     if (payPeriods != 0) {
         biweeklySalary = totalPay/payPeriods
     } else {
         biweeklySalary = 0
     }
-    if (biweeklyHours != 0) {
-        hourlyRate = biweeklySalary/biweeklyHours
-    } else {
-        hourlyRate = 0
-    }
     
-    hourlyRate = hourlyRate.toFixed(2)
     biweeklySalary = biweeklySalary.toFixed(2)
 
     if (totalPay == '') {
@@ -344,9 +337,6 @@ function grasBW () {
     $('#id_graduate_research_assistant-biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
     $('.biweekly_rate_calc').text('Total Pay (' + totalPay + ') / Pay Periods (' + payPeriods + ')')
-    $('#id_graduate_research_assistant-gross_hourly').val(hourlyRate)
-    $('.hourly_rate_info').text(hourlyRate)
-    $('.hourly_rate_calc').text('Bi-Weekly Rate (' + biweeklySalary + ') / Bi-Weekly Hours (' + biweeklyHours + ')')
     $('#id_graduate_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
     $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
@@ -643,7 +633,6 @@ $(document).ready(function() {
     // gras payment method
     $('#id_graduate_research_assistant-gras_payment_method').change(grasPaymentMethod)
     $('#id_graduate_research_assistant-total_gross').change(grasPaymentMethod)
-    $('#id_graduate_research_assistant-biweekly_hours').change(grasPaymentMethod)
 
     // backdated appointments
     $('#id_non_continuing-backdate_lump_sum').change(ncBackDated)

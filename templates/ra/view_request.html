@@ -277,7 +277,7 @@
     <tr><th>Hours:</th><td>{{ req.backdate_hours|floatformat:2 }} ({{req.get_backdate_hours}})</td></tr>
     <tr><th>Reason:</th><td>{{ req.backdate_reason }}</td></tr>
     {% endif %}
-    {% if gras_bw or gras_ls or gras_le %}
+    {% if graduate_research_assistant %}
     <tr><th>Total Funding:</th><td>${{ req.total_pay}}</td></tr>
     {% else %}
     <tr><th>Total Pay:</th><td>${{ req.total_pay}}</td></tr>

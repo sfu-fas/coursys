@@ -595,9 +595,14 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
 
         # remove irrelevant information
         if backdated:
-            self.cleaned_data['gras_payment_method'] = ''
-            self.cleaned_data['total_gross'] = 0
-            self.cleaned_data['biweekly_salary'] = 0
+            self.cleaned_data["gras_payment_method"] = ''
+            self.cleaned_data["total_gross"] = 0
+            self.cleaned_data["weeks_vacation"] = 0
+            self.cleaned_data["biweekly_hours"] = 0
+            self.cleaned_data["biweekly_salary"] = 0
+            self.cleaned_data["vacation_hours"] = 0
+            self.cleaned_data["gross_hourly"] = 0
+            self.cleaned_data["vacation_pay"] = 0
         else: 
             self.cleaned_data["backdate_lump_sum"] = 0
             self.cleaned_data["backdate_hours"] = 0
