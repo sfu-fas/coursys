@@ -771,6 +771,11 @@ class RARequestForm(SFUMediaMixin):
         self.c.setFont("Helvetica", 8)
         self.c.drawString(x+5*mm, y+0.5*mm+leading, text)
 
+    def _large_checkbox(self, x, y, text="", filled=0, leading=0):
+        self.c.rect(x+1*mm, y+0.5*mm, 5*mm, 5*mm, fill=filled)
+        self.c.setFont("Helvetica", 10)
+        self.c.drawString(x+7*mm, y+1.5*mm+leading, text)
+
     def _box_entry(self, x, y, width, height, content=None):
         self.c.setLineWidth(1)
         self.c.rect(x, y, width, height)
@@ -935,7 +940,7 @@ class RARequestForm(SFUMediaMixin):
             hourly = ''
             biweekly = "$%.2f" % (self.ra.biweekly_salary)
             biweekhours_hourly = ''
-            biweekhours_bw = "%.2f" % self.ra.biweekly_hours
+            biweekhours_bw = ''
             lumpsum = ''
             lumphours = ''
         elif ra_hourly:
@@ -1051,7 +1056,9 @@ class RARequestForm(SFUMediaMixin):
 
         # encumbered hours
         self.c.setFont("Helvetica", 8)
-        if self.ra.encumbered_hours:
+        if graduate_research_assistant:
+            encumbered_hours = ''
+        elif self.ra.encumbered_hours:
             encumbered_hours = str(self.ra.encumbered_hours)
         else:
             hours = self.ra.get_encumbered_hours()
@@ -1488,7 +1495,129 @@ class RARequestForm(SFUMediaMixin):
             else:
                 f.addFromList(duties, self.c)
 
+        elif graduate_research_assistant and self.ra.get_scholarship_confirmation_complete():
+        # PAGE TWO
+            self.c.translate(6*mm, 16*mm) # origin = bottom-left of the content
+            self.c.setFillColor(self.sfu_red)
+            self.c.setStrokeColor(self.sfu_red)
+            self._box_entry(159*mm, 245*mm, 32*mm, 9*mm, content='')
+            self.c.drawString(163*mm, 248*mm, "Reset Form")
+            self.c.setFont("Helvetica", 13)
+            self.c.drawString(18*mm, 240*mm, "EMPLOYMENT VS SCHOLARSHIP QUESTIONNAIRE")
+            self.c.setFont("Helvetica", 10)
+            self.c.drawString(18*mm, 230*mm, "Principal Investigators are asked to provide information about those individuals receiving scholarship funds")
+            self.c.drawString(18*mm, 225*mm, "from grants to help determine whether they are in an employment relationship or are true scholarship.")
+            self.c.setFont("Helvetica-Bold", 10)
+            self.c.setFillColor(black)
+            self.c.setStrokeColor(black)
+
+            self.c.drawString(18*mm, 215*mm, "Principal Investigator:")
+            self.c.line(56*mm, 214*mm, 107*mm, 214*mm)
+            self.c.drawString(110*mm, 215*mm, "Student Name:")
+            self.c.line(136*mm, 214*mm, 190*mm, 214*mm)
+            self.c.setFont("Helvetica", 10)
+            self.c.drawString(56*mm, 215*mm, str(self.ra.supervisor.name()))
+            self.c.drawString(136*mm, 215*mm, str(self.ra.get_name()))
+
+            self.c.drawString(18*mm, 205*mm, "1.")
+            self.c.setFont("Helvetica-Bold", 10)
+            self.c.drawString(25*mm, 205*mm, "Based on the information provided on page 1, is the funding from your grant for this student:")
+            
+            self._circle_checkbox(28*mm, 198*mm, filled=False)
+            self.c.setFont("Helvetica", 10)
+            self.c.drawString(35*mm, 198*mm, "Employment > if this box is checked, there is no need to complete any further questions")
+            self.c.line(58*mm, 197*mm, 172*mm, 197*mm)
+            self._circle_checkbox(28*mm, 190*mm, filled=True)
+            self.c.setFont("Helvetica", 10)
+            self.c.drawString(35*mm, 190*mm, "Scholarship > if this box is checked, please answer the additional questions")
+            self.c.line(57*mm, 189*mm, 153*mm, 189*mm)
+            self._circle_checkbox(28*mm, 182*mm, filled=False)
+            self.c.setFont("Helvetica", 10)
+            self.c.drawString(35*mm, 182*mm, "Unsure > if this box is checked, please answer the additional questions")
+            self.c.line(50*mm, 181*mm, 146*mm, 181*mm)
+
+            self.c.drawString(18*mm, 173*mm, "2.")
+            self.c.setFont("Helvetica-Bold", 10)
+            self.c.drawString(25*mm, 173*mm, "Does/will the funding from your grant(s) result in research or research-related activities being")
+            self.c.drawString(25*mm, 169*mm, "performed by the student that:")
+
+            self.c.setFont("Helvetica", 10)
+            self.c.drawString(25*mm, 162*mm, "a)   primarily contribute to the student’s academic progress, for")
+            self.c.drawString(31*mm, 157*mm, "example by inclusion in the student’s thesis?")
+            self._large_checkbox(153*mm, 158*mm, text="Yes", filled=self.ra.scholarship_confirmation_1)
+            self._large_checkbox(170*mm, 158*mm, text="No", filled=not self.ra.scholarship_confirmation_1)
+
+            self.c.drawString(25*mm, 151*mm, "b)   primarily contribute to or benefit someone other than the")
+            self.c.drawString(31*mm, 146*mm, "student, for example by supporting your research program or")
+            self.c.drawString(31*mm, 141*mm, "the grant?")
+            self._large_checkbox(153*mm, 147*mm, text="Yes", filled=self.ra.scholarship_confirmation_2)
+            self._large_checkbox(170*mm, 147*mm, text="No", filled=not self.ra.scholarship_confirmation_2)
+
+            self.c.drawString(25*mm, 135*mm, "c)   are not meant to be included in the student’s thesis?")
+            self.c.line(37*mm, 134*mm, 57*mm, 134*mm)
+            self._large_checkbox(153*mm, 133*mm, text="Yes", filled=self.ra.scholarship_confirmation_3)
+            self._large_checkbox(170*mm, 133*mm, text="No", filled=not self.ra.scholarship_confirmation_3)
+
+            self.c.drawString(25*mm, 129*mm, "d)   are not meant to be part of the student’s education in the")
+            self.c.drawString(31*mm, 124*mm, "student’s academic discipline?")
+            self.c.line(37*mm, 128*mm, 57*mm, 128*mm)
+            self._large_checkbox(153*mm, 125*mm, text="Yes", filled=self.ra.scholarship_confirmation_4)
+            self._large_checkbox(170*mm, 125*mm, text="No", filled=not self.ra.scholarship_confirmation_4)
+            
+            self.c.drawString(18*mm, 116*mm, "3.")
+            self.c.setFont("Helvetica-Bold", 10)
+            self.c.drawString(25*mm, 116*mm, "As part of your interaction with the student who is receiving the")
+            self.c.drawString(25*mm, 111*mm, "scholarship, do you/will you:")
+
+            self.c.setFont("Helvetica", 10)
+            self.c.drawString(25*mm, 104*mm, "a)   ask the student to perform research or research-related activities")
+            self.c.drawString(31*mm, 99*mm, "at specific times or places?")
+            self._large_checkbox(153*mm, 101*mm, text="Yes", filled=self.ra.scholarship_confirmation_5)
+            self._large_checkbox(170*mm, 101*mm, text="No", filled=not self.ra.scholarship_confirmation_5)
+
+            self.c.setFont("Helvetica", 10)
+            self.c.drawString(25*mm, 93*mm, "b)   require the student to track and/or report the hours during which")
+            self.c.drawString(31*mm, 88*mm, "the student is performing research or research-related activities?")
+            self._large_checkbox(153*mm, 89*mm, text="Yes", filled=self.ra.scholarship_confirmation_6)
+            self._large_checkbox(170*mm, 89*mm, text="No", filled=not self.ra.scholarship_confirmation_6)
+
+            self.c.setFont("Helvetica", 10)
+            self.c.drawString(25*mm, 82*mm, "c)   ask or expect the student to perform a specified amount of")
+            self.c.drawString(31*mm, 77*mm, "research or research-related activities in a given week?")
+            self._large_checkbox(153*mm, 78*mm, text="Yes", filled=self.ra.scholarship_confirmation_7)
+            self._large_checkbox(170*mm, 78*mm, text="No", filled=not self.ra.scholarship_confirmation_7)
+
+            self.c.setFont("Helvetica", 10)
+            self.c.drawString(25*mm, 70*mm, "d)   ask the student to discuss with you on a regular basis their")
+            self.c.drawString(31*mm, 65*mm, "research and/or research related activities for any reason other")
+            self.c.drawString(31*mm, 60*mm, "than supporting the student’s academic progress?")
+            self._large_checkbox(153*mm, 66*mm, text="Yes", filled=self.ra.scholarship_confirmation_8)
+            self._large_checkbox(170*mm, 66*mm, text="No", filled=not self.ra.scholarship_confirmation_8)
+
+            self.c.setFont("Helvetica", 10)
+            self.c.drawString(25*mm, 53*mm, "e)   ask the student to train or otherwise support other researchers")
+            self.c.drawString(31*mm, 48*mm, "in your research group for any reason other than supporting the")
+            self.c.drawString(31*mm, 43*mm, "student’s academic progress?")
+            self._large_checkbox(153*mm, 49*mm, text="Yes", filled=self.ra.scholarship_confirmation_9)
+            self._large_checkbox(170*mm, 49*mm, text="No", filled=not self.ra.scholarship_confirmation_9)
+
+            self.c.setFont("Helvetica-Bold", 10)
+            self.c.drawString(18*mm, 36*mm, "Subsequent semester appointments will have the same answers to these questions.")
+            self._large_checkbox(170*mm, 35*mm, text="Yes", filled=self.ra.scholarship_subsequent)
+
+            self.c.setFont("Helvetica", 10)
+            self.c.drawString(18*mm, 29*mm, "Feel free to provide any additional information below. ")
+
+            self._box_entry(18*mm, 0*mm, 180*mm, 28*mm)
+            f = Frame(19*mm, 0*mm, 180*mm, 28*mm, 0, 0, 0, 0)
+            f.addFromList([Paragraph(self.ra.scholarship_notes, style=self.NOTE_STYLE)], self.c)
+
+            self.c.setFont("Helvetica", 7)
+            self.c.drawString(18*mm, -5*mm, "Created 20230213")
+            self.c.drawString(175*mm, -5*mm, "pg. 2 of 2")
+
         self.c.save()
+    
 
 class RAForm(SFUMediaMixin):
     MAIN_WIDTH = 8*inch # size of the main box

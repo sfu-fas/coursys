@@ -197,8 +197,8 @@ DEFAULT_LETTER_NCH_INTRO = "This is to confirm remuneration of work performed as
 DEFAULT_LETTER_NCBW_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_salary)s for a total amount of $%(total_pay)s, subject to all statutory income tax and benefit deductions. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
 DEFAULT_LETTER_RAH_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be $%(gross_hourly)s per hour plus %(vacation_pay)s percent vacation pay. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions.\n\n"""
 DEFAULT_LETTER_RABW_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. This remuneration will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s. You will be entitled to %(weeks_vacation)s weeks of paid vacation during each full calendar year of service and based on the terms of your appointment, your vacation entitlement is %(vacation_hours)s. You must submit and confirm all vacation requests.\n\n"
-DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you as a lump sum payment of $%(total_gross)s and will be made to you at the end of your term of appointment.\n\n"
-DEFAULT_LETTER_GRASBW_INTRO = "This is to confirm your funding as a Research Trainee from %(start_date)s to %(end_date)s. The funding will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s.\n\n"
+DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN = "This is to confirm your funding as a True Scholarship from %(start_date)s to %(end_date)s. The funding will be provided to you as a lump sum payment of $%(total_gross)s and will be made to you at the end of your term of appointment.\n\n"
+DEFAULT_LETTER_GRASBW_INTRO = "This is to confirm your funding as a True Scholarship from %(start_date)s to %(end_date)s. The funding will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s.\n\n"
 
 DEFAULT_LETTER_GRAS = '\n\n'.join([
     """This agreement exists solely between you as a student and me as your research supervisor. This does not constitute as an offer of employment from Simon Fraser University.""",
@@ -250,7 +250,7 @@ REQUEST_HIRING_CATEGORY = (
 )
 
 GRAS_PAYMENT_METHOD_CHOICES = (
-    ('BW', 'Biweekly salary for students with Canadian bank account.'),
+    ('BW', 'Biweekly funding for students with Canadian bank account.'),
     ('LE', 'Lump sum payment for students with Canadian bank account (Funds will be paid at the end of the appointment term)')
 )
 
@@ -440,7 +440,7 @@ class RARequest(models.Model):
     # pay_periods - pay periods in this appointment, calculated from dates
     # funding_available, grant_active, salary_allowable, supervisor_check, visa_valid, payroll_collected, paf_signed, admin_notes 
     #   - whether or not each task has been completed
-
+    # scholarship_confirmation_1-9, scholarship_subsequent, and scholarship_notes - these questions were previosity submitted in a separate questionaire by applicants to determine funding purpose, now to be integrated into the form for graduate research assistants only
     person = models.ForeignKey(Person, related_name='rarequest_person', on_delete=models.PROTECT, null=True)
 
     nonstudent = models.BooleanField(default=False)
@@ -560,6 +560,19 @@ class RARequest(models.Model):
 
     # nc only options
     nc_duties = config_property('ra_other_duties', default='')
+
+    # gras only options
+    scholarship_confirmation_1 = config_property('scholarship_confirmation_1', default='')
+    scholarship_confirmation_2 = config_property('scholarship_confirmation_2', default='')
+    scholarship_confirmation_3 = config_property('scholarship_confirmation_3', default='')
+    scholarship_confirmation_4 = config_property('scholarship_confirmation_4', default='')
+    scholarship_confirmation_5 = config_property('scholarship_confirmation_5', default='')
+    scholarship_confirmation_6 = config_property('scholarship_confirmation_6', default='')
+    scholarship_confirmation_7 = config_property('scholarship_confirmation_7', default='')
+    scholarship_confirmation_8 = config_property('scholarship_confirmation_8', default='')
+    scholarship_confirmation_9 = config_property('scholarship_confirmation_9', default='')
+    scholarship_subsequent = config_property('scholarship_subsequent', default='')
+    scholarship_notes = config_property('scholarship_notes', default='')
     
     # admin
     funding_available = config_property('funding_available', default=False)
@@ -641,6 +654,20 @@ class RARequest(models.Model):
         duties += [duty for val, duty in DUTIES_CHOICES_WR if val in [int(i) for i in self.ra_duties_wr]]
         duties += [duty for val, duty in DUTIES_CHOICES_PM if val in [int(i) for i in self.ra_duties_pm]]
         return duties
+
+    def get_scholarship_confirmation_complete(self):
+        """
+        Checks if the scholarship confirmation questionnaire has been completed.
+        """
+        if self.hiring_category != "GRAS":
+            return ""
+        scholarship_confirmation_list = [self.scholarship_confirmation_1, self.scholarship_confirmation_2, self.scholarship_confirmation_3, 
+                                         self.scholarship_confirmation_4, self.scholarship_confirmation_5, self.scholarship_confirmation_6, 
+                                         self.scholarship_confirmation_7, self.scholarship_confirmation_8, self.scholarship_confirmation_9]
+        for question in scholarship_confirmation_list:
+            if question == '':
+                return False
+        return True
 
     def build_letter_text(self):
         """

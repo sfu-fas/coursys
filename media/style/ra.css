@@ -123,3 +123,6 @@ table.info p input {
     margin: 0px;
 }
 
+.indent {
+    padding-left: 30px;
+}

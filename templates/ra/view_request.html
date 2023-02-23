@@ -254,9 +254,7 @@
     {% if gras_bw %}
     <tr><th>Payment Method:</th><td>Bi-Weekly</td></tr>
     <tr><th>Total Gross:</th><td>${{ req.total_gross|floatformat:2 }}</td></tr>
-    <tr><th>Biweekly Hours:</th><td>{{ req.biweekly_hours|floatformat:2 }} ({{req.get_biweekly_hours}})</td></tr>
-    <tr><th>Biweekly Salary:</th><td>${{ req.biweekly_salary|floatformat:2 }}</td></tr>
-    <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
+    <tr><th>Biweekly Funding:</th><td>${{ req.biweekly_salary|floatformat:2 }}</td></tr>
     {% endif %}
     {% if nc_bw %}
     <tr><th>Payment Method:</th><td>Bi-Weekly</td></tr>
@@ -279,7 +277,11 @@
     <tr><th>Hours:</th><td>{{ req.backdate_hours|floatformat:2 }} ({{req.get_backdate_hours}})</td></tr>
     <tr><th>Reason:</th><td>{{ req.backdate_reason }}</td></tr>
     {% endif %}
+    {% if graduate_research_assistant %}
+    <tr><th>Total Funding:</th><td>${{ req.total_pay}}</td></tr>
+    {% else %}
     <tr><th>Total Pay:</th><td>${{ req.total_pay}}</td></tr>
+    {% endif %}
   </table>
 </div>
 
@@ -320,6 +322,62 @@
       {% endif %}
     </table>
 </div>
+{% endif %}
+
+{% if graduate_research_assistant %}
+  <div class="table_container">
+    <h2>True Scholarship Questionnaire</h2>
+    <table class="info">
+      {% if req.get_scholarship_confirmation_complete %}
+      <br><b>Does/Will the funding from your grant(s) result in research or research-related activities being performed by the student that:</b>
+      <tr><th style="width:90%">primarily contribute to the student’s academic progress, for example by inclusion in the student’s thesis?</th>
+        <td>{{ req.scholarship_confirmation_1|yesno|capfirst }}</td>
+      </td></tr>
+      <tr><th style="width:90%">primarily contribute to or benefit someone other than the student, for example by supporting your research program or the grant?</th>
+        <td>{{ req.scholarship_confirmation_2|yesno|capfirst }}</td>
+      </td></tr>
+      <tr><th style="width:90%">are not meant to be included in the student’s thesis?</th>
+        <td>{{ req.scholarship_confirmation_3|yesno|capfirst }}</td>
+      </td></tr>
+      <tr><th style="width:90%">are not meant to part of the student’s education in the student’s academic discipline?</th>
+        <td>{{ req.scholarship_confirmation_4|yesno|capfirst }}</td>
+      </td></tr>
+    </table>
+    <table class="info">
+      <br><b>As part of your interaction with the student who is receiving the scholarship, do you/will you:</b>
+      <tr><th style="width:90%">ask the student to perform research or research-related activities at specific times or places?</th>
+        <td>{{ req.scholarship_confirmation_5|yesno|capfirst }}</td>
+      </td></tr>
+      <tr><th style="width:90%">require the student to track and/or report the hours during which the student is performing research or research-related activities?</th>
+        <td>{{ req.scholarship_confirmation_6|yesno|capfirst }}</td>
+      </td></tr>
+      <tr><th style="width:90%">ask or expect the student to perform a specified amount of research or research-related activities in a given week?</th>
+        <td>{{ req.scholarship_confirmation_7|yesno|capfirst }}</td>
+      </td></tr>
+      <tr><th style="width:90%">ask the student to discuss with you on a regular basis their research and/or research related activities for any reason other than supporting the student’s academic progress?</th>
+        <td>{{ req.scholarship_confirmation_8|yesno|capfirst }}</td>
+      </td></tr>
+      <tr><th style="width:90%">ask the student to train or otherwise support other researchers in your research group for any reason other than supporting the student’s academic progress?</th>
+        <td>{{ req.scholarship_confirmation_9|yesno|capfirst }}</td>
+      </td></tr>
+    </table>
+    <table class="info">
+      <br><tr><th style="width:90%">Subsequent semester appointments will have the same answers to these questions:</th>
+        <td>{{ req.scholarship_subsequent|yesno|capfirst }}</td>
+      </td></tr>
+    </table>
+    <table class="info">  
+       <br><tr><th>Any important notes:</th>
+        <td>{% if req.scholarship_notes %}{{ req.scholarship_notes }}{% else %}None.{% endif %}</td>
+      </td></tr>
+    </table>  
+      {% else %}
+        <tr><td>
+          Not Completed.
+        </td></tr>
+      {% endif %}
+    </table>
+  </div>
 {% endif %}
 
 {% if research_assistant %}

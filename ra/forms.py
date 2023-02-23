@@ -502,30 +502,51 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
                                             choices=GRAS_PAYMENT_METHOD_CHOICES, 
                                             widget=forms.RadioSelect, 
                                             label="Scholarship (No added benefit & vacation cost)")
-    total_gross = forms.DecimalField(required=False, label="Total Gross Salary Paid")
-    biweekly_hours = forms.DecimalField(required=False, label="Bi-Weekly Hours")
+    total_gross = forms.DecimalField(required=False, label="Total Funding Provided")
     biweekly_salary = forms.DecimalField(required=False, widget=forms.HiddenInput)
-    gross_hourly = forms.DecimalField(required=False, widget=forms.HiddenInput)
+    scholarship_confirmation_1 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="a) primarily contribute to the student’s academic progress, for example by inclusion in the student’s thesis?")
+    scholarship_confirmation_2 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="b) primarily contribute to or benefit someone other than the student, for example by supporting your research program or the grant?")
+    scholarship_confirmation_3 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label=mark_safe("c) <u>are not</u> meant to be included in the student’s thesis?"))
+    scholarship_confirmation_4 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label=mark_safe("d) <u>are not</u> meant to part of the student’s education in the student’s academic discipline?"))
+    scholarship_confirmation_5 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="a) ask the student to perform research or research-related activities at specific times or places?")
+    scholarship_confirmation_6 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="b) require the student to track and/or report the hours during which the student is performing research or research-related activities?")
+    scholarship_confirmation_7 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="c) ask or expect the student to perform a specified amount of research or research-related activities in a given week?")
+    scholarship_confirmation_8 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="d) ask the student to discuss with you on a regular basis their research and/or research related activities for any reason other than supporting the student’s academic progress?")
+    scholarship_confirmation_9 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="e) ask the student to train or otherwise support other researchers in your research group for any reason other than supporting the student’s academic progress?")
+    scholarship_subsequent = forms.BooleanField(required=False, label="Check if subsequent semester appointments will have the same answers to these questions")
+    scholarship_notes = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Any important notes below")
+
 
     class Meta:
         model = RARequest
-        fields = ('gras_payment_method', 'total_pay', 'total_gross', 'biweekly_hours', 'biweekly_salary', 'gross_hourly')
+        fields = ('gras_payment_method', 'total_pay', 'total_gross', 'biweekly_salary')
         widgets = {
             'total_pay': forms.HiddenInput(),     
         }
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, complete=False, *args, **kwargs):
         super(RARequestGraduateResearchAssistantForm, self).__init__(*args, **kwargs)
         
-        config_init = ['backdate_lump_sum', 'backdate_hours', 'backdate_reason']
+        config_init = ['backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'scholarship_confirmation_1', 'scholarship_confirmation_2',
+                       'scholarship_confirmation_3', 'scholarship_confirmation_4', 'scholarship_confirmation_5', 'scholarship_confirmation_6', 
+                       'scholarship_confirmation_7', 'scholarship_confirmation_8', 'scholarship_confirmation_9', 'scholarship_subsequent', 'scholarship_notes']
 
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
 
+        if complete: 
+            scholarship_confirmation_list = ['scholarship_confirmation_1', 'scholarship_confirmation_2', 'scholarship_confirmation_3', 
+                                             'scholarship_confirmation_4', 'scholarship_confirmation_5', 'scholarship_confirmation_6', 
+                                             'scholarship_confirmation_7', 'scholarship_confirmation_8', 'scholarship_confirmation_9']
+            for question in scholarship_confirmation_list:
+                self.fields[question].required=False
+
     def clean(self):
         cleaned_data = super().clean()
 
-        config_clean = ['backdate_reason']
+        config_clean = ['backdate_reason', 'scholarship_confirmation_1', 'scholarship_confirmation_2',
+                       'scholarship_confirmation_3', 'scholarship_confirmation_4', 'scholarship_confirmation_5', 'scholarship_confirmation_6', 
+                       'scholarship_confirmation_7', 'scholarship_confirmation_8', 'scholarship_confirmation_9', 'scholarship_subsequent', 'scholarship_notes']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
@@ -535,8 +556,6 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
 
         gras_payment_method = cleaned_data.get('gras_payment_method')
         total_gross = cleaned_data.get('total_gross')
-        gross_hourly = cleaned_data.get('gross_hourly')
-        biweekly_hours = cleaned_data.get('biweekly_hours')
         biweekly_salary = cleaned_data.get('biweekly_salary')
         
         backdated = self.initial["backdated"]
@@ -561,29 +580,35 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
                 if total_gross == 0 or total_gross == None:
                     self.add_error('total_gross', error_message)
             if gras_payment_method == "BW":
-                if float(gross_hourly) < get_minimum_wage(end_date):
-                    message = get_minimum_wage_error(start_date, end_date)
-                    raise forms.ValidationError(message)
-                if biweekly_hours == 0 or biweekly_hours == None:
-                    self.add_error('biweekly_hours', error_message)
                 if total_gross == 0 or total_gross == None:
                     self.add_error('total_gross', error_message)
-        
+    
+        scholarship_confirmation_list = ['scholarship_confirmation_1', 'scholarship_confirmation_2', 'scholarship_confirmation_3', 
+                                         'scholarship_confirmation_4', 'scholarship_confirmation_5', 'scholarship_confirmation_6', 
+                                         'scholarship_confirmation_7', 'scholarship_confirmation_8', 'scholarship_confirmation_9']
+        for question in scholarship_confirmation_list:
+            q = cleaned_data.get(question)
+            if q == "True":
+                self.cleaned_data[question] = True
+            elif q == "False":
+                self.cleaned_data[question] = False
+
         # remove irrelevant information
         if backdated:
-            self.cleaned_data['gras_payment_method'] = ''
-            self.cleaned_data['total_gross'] = 0
-            self.cleaned_data['biweekly_hours'] = 0
-            self.cleaned_data['biweekly_salary'] = 0
-            self.cleaned_data['gross_hourly'] = 0
+            self.cleaned_data["gras_payment_method"] = ''
+            self.cleaned_data["total_gross"] = 0
+            self.cleaned_data["weeks_vacation"] = 0
+            self.cleaned_data["biweekly_hours"] = 0
+            self.cleaned_data["biweekly_salary"] = 0
+            self.cleaned_data["vacation_hours"] = 0
+            self.cleaned_data["gross_hourly"] = 0
+            self.cleaned_data["vacation_pay"] = 0
         else: 
             self.cleaned_data["backdate_lump_sum"] = 0
             self.cleaned_data["backdate_hours"] = 0
             self.cleaned_data["backdate_reason"] = ''
             if gras_payment_method == "LE":
-                self.cleaned_data['biweekly_hours'] = 0
                 self.cleaned_data['biweekly_salary'] = 0
-                self.cleaned_data['gross_hourly'] = 0
 
 
 class RARequestNonContinuingForm(forms.ModelForm):
