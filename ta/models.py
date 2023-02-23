@@ -30,7 +30,7 @@ LAB_PREP_HOURS = 13 # min hours of prep for courses with tutorials/labs
 
 HOLIDAY_HOURS_PER_BU = decimal.Decimal('1.1')
 
-CMPT_WCOURSE_BU = decimal.Decimal('3.17') 
+CMPT_WCOURSE_BU = decimal.Decimal('2')  # additional BU for writing course
 CMPT_COURSE_BU = decimal.Decimal('1.17') 
 
 DEPT_CHOICES = [
@@ -316,15 +316,17 @@ class TAPosting(models.Model):
         if self.unit.label in ["CMPT", "COMP"] and self.semester.name >= "1231":
             """
             new calculation for CMPT BU
-            all course: default + extra + 1.17 CMPT_COURSE_BU
-            W course: default + extra + 3.17 CMPT_WCOURSE_BU
+            all course: default + extra + 1.17 CMPT_COURSE_BU * TA
+            W course: default + extra + 2 CMPT_WCOURSE_BU + 1.17 CMPT_COURSE_BU * TA
+            labs: no formula 
             """
             default = self.default_bu(offering, count=count)
             extra = offering.extra_bu()        
+            tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
             if offering.flags.write:
-                return default + extra + CMPT_WCOURSE_BU
-            else:
-                return default + extra + CMPT_COURSE_BU
+                return default + extra + CMPT_WCOURSE_BU + decimal.Decimal(CMPT_COURSE_BU * len(tacourses)) 
+            else:                
+                return default + extra + decimal.Decimal(CMPT_COURSE_BU * len(tacourses)) 
         else:
             """
                 Actual BUs to assign to this course: default + extra + 0.17*number of TA's
@@ -341,17 +343,9 @@ class TAPosting(models.Model):
     def required_bu_cap(self, offering):
         if self.unit.label in ["CMPT", "COMP"] and self.semester.name >= "1231":
             """
-            new calculation for CMPT BU
-            all course: default + extra + 1.17 CMPT_COURSE_BU
-            W course: default + extra + 3.17 CMPT_WCOURSE_BU
+            Call required_bu function with enrl_cap
             """
-
-            default = self.default_bu(offering, count= offering.enrl_cap)
-            extra = offering.extra_bu()        
-            if offering.flags.write:
-                return default + extra + CMPT_WCOURSE_BU
-            else:
-                return default + extra + CMPT_COURSE_BU
+            return self.required_bu(self, offering, offering.enrl_cap)
         else:
             """
             Actual BUs to assign to this course at its enrolment cap
@@ -794,15 +788,18 @@ class TACourse(models.Model):
         """
         Return the prep BUs for this assignment
         """
-        if self.has_labtut():
-            # If the contract that is attached to this course has been cancelled/rejected, there
-            # really aren't any BUs that are really used here.
-            if self.contract.status in ('CAN', 'REJ'):
-                return 0
-            else:
-                return LAB_BONUS_DECIMAL
+        if self.contract.posting.unit.label in ["CMPT", "COMP"] and self.course.semester.name >= "1234":                           
+                return CMPT_COURSE_BU
         else:
-            return 0
+            if self.has_labtut():
+                # If the contract that is attached to this course has been cancelled/rejected, there
+                # really aren't any BUs that are really used here.
+                if self.contract.status in ('CAN', 'REJ'):
+                    return 0
+                else:
+                    return LAB_BONUS_DECIMAL
+            else:
+                return 0
 
     @property
     def total_bu(self):

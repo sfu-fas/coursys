@@ -1,7 +1,16 @@
 ## Proddev VM Setup
 
-Start with a `vagrant up`. Create `courses/localsettings.py` with `localsettings-proddev-example.py` as a template.
-In the VM (`vagrant ssh`),
+Install [VirtualBox](https://www.virtualbox.org/) and [Vagrant](http://vagrantup.com/).
+
+Create `courses/localsettings.py` with `localsettings-proddev-example.py` as a template.
+
+Get the VM running:
+```sh
+cd deploy
+vagrant up
+```
+
+In the VM (i.e. after `vagrant ssh`),
 ```sh
 cd /coursys
 docker-compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
@@ -10,6 +19,7 @@ docker-compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
 ./manage.py update_index
 make proddev-start-all
 ```
+In theory, you can then access http://localhost:8080/ for the site, and http://localhost:8025/ for the development email.
 
 ## Demo Server Setup
 
