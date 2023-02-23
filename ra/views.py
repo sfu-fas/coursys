@@ -1236,7 +1236,7 @@ def download(request, current=False):
 
     writer = csv.writer(response)
     if admin:
-        writer.writerow(['Status', 'Appointee Name', 'Appointee Email', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Supervisor Email', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP', 'Appointee Co-op Status', 'USRA', 'Processed By', 'Student Status', 'Object Code', 'True Scholarship Questionnaire'])
+        writer.writerow(['Status', 'Appointee Name', 'Appointee Email', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Supervisor Email', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP', 'Appointee Co-op Status', 'USRA', 'Mitacs', 'Processed By', 'Student Status', 'Object Code', 'True Scholarship Questionnaire'])
         for ra in ras:
             if ra.complete:
                 status = "Complete"
@@ -1246,7 +1246,7 @@ def download(request, current=False):
                 usra = " (USRA)"
             else:
                 usra = ""
-            writer.writerow([status, ra.get_sort_name(), ra.get_email_address(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.supervisor.email(), ra.start_date, ra.end_date, ra.hiring_category + usra, ra.total_pay, ra.swpp, ra.coop, ra.usra, ra.get_processor(), ra.get_student_status(), ra.object_code,  ra.get_scholarship_confirmation_complete()])
+            writer.writerow([status, ra.get_sort_name(), ra.get_email_address(), ra.get_id(), ra.unit.label, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.supervisor.email(), ra.start_date, ra.end_date, ra.hiring_category + usra, ra.total_pay, ra.swpp, ra.coop, ra.usra, ra.mitacs, ra.get_processor(), ra.get_student_status(), ra.object_code,  ra.get_scholarship_confirmation_complete()])
     else:
         writer.writerow(['Appointee Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
         for ra in ras:
