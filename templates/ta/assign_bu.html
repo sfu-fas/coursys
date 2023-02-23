@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% load form_display ta_display %}
 
 {% block title %}Assign TAs for {{ offering.subject }} {{ offering.number }} {{ offering.section }} at {{ offering.get_campus_display}}{% endblock %}
@@ -27,9 +27,9 @@
   	
     table = $('#ta_app').dataTable({
         "bPaginate": false,
-        "bFilter": false,
+        "bFilter": true,
 		"bJQueryUI": true,
-		"aaSorting": [],
+		"aaSorting": [0, "asc"],
 	});
 
     server_side_labtas_set = $("#labtas").attr('checked') == 'checked';
@@ -206,21 +206,25 @@ diff: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span>.
 <form class="subtle" action="{% url "ta:assign_bus" post_slug=posting.slug course_slug=offering.slug%}" method="post">{% csrf_token %}
 <div><input id="submit_button1" class="submit submit_button" style='margin-right:18px' type="submit" value="Submit"/></div>
 <div class="clearfix"></div>
-<div class="form_container">
+<div class="datatable_container">
 {{ formset.management_form }}
 <table class="display" id="ta_app">
 <thead>
     <tr>
       <th scope="col">Applicant</th>
       <th scope="col">Rank</th>
-      <th scope="col">Grad Program</th>
-      <th scope="col">Category</th>
-      <th scope="col">Supervisor</th>
-      <th scope="col">Course Rank</th>
+      <th scope="col">Type</th>
+      <th scope="col">Year/Sem</th>
+      <th scope="col">Grad Program Information</th>
+      <th scope="col">Category</th>      
+      <th scope="col">Supervisor</th>      
+      <th scope="col" title="Student's priority. 0 - have assigned BU but not select the course. 99 - Not select the course.">Course Rank</th>
       <th scope="col">Campus Pref.</th>
+      <th scope="col">Experience (TA/Enroll)</th>
       <th scope="col">Max BUs</th> <!-- this is the maximum number of BU's the student is willing to accept. -->
       <th scope="col">Prep BUs</th>
       <th scope="col">Assigned BUs</th>
+      <th scope="col">Contract Status</th>
     </tr>
 </thead>
 <tbody>
@@ -235,19 +239,49 @@ diff: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span>.
             {% endfor %}
         </td>
         <td>
+            {{ a.grad_program_type }}
+        </td>   
+        <td>
+            {{ a.grad_program_yearsem }}
+        </td>             
+        <td>
             {% for st in a.active_gs %}
-            <a href="{% url "grad:view" grad_slug=st.slug %}">{{st.program.label}} ({{st.program.unit.label}}, {{st.get_current_status_display}}) </a> {% if not forloop.last %}<br />{% endif %}                
+            <a href="{% url "grad:view" grad_slug=st.slug %}">  {{st.program.label}} ({{st.program.unit.label}}, {{st.get_current_status_display}}) Promise: {{ st|display_ta_promise |floatformat}} Owing: {{ st|display_ta_owe |floatformat}}</a> {% if not forloop.last %}<br />{% endif %}
             {% endfor %}
         </td>
-        <td>{{ a.get_category_display }}</td>
+        <td>{{ a.get_category_display }}
+            {% for st in a.active_gs %}
+                {% if forloop.first %}
+                    {% if 'PhD' in st.program.label and a.get_category_display == 'PhD' %}
+                    <i class="fa fa-check" title="Category matched"></i>
+                    {% elif 'MSc' in st.program.label or 'Prof' in st.program.label and a.get_category_display == 'Masters' %}
+                    <i class="fa fa-check" title="Category matched"></i>              
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </td>
         <td>{{ a.supervisor }} 
-
             {% if a.coursys_supervisor_display %} 
                 <i class="fa fa-info-circle" title="System: {{ a.coursys_supervisor_display }} "></i>  
+                {% if a.supervisor.name_pref in a.coursys_supervisor_display %}
+                    <i class="fa fa-check" title="Supervisor matched"></i>
+                {% endif %}
             {% endif %}            
         </td>
         <td>{{ a.course_rank }}</td>
-        <td>{{ a.campus_pref_display }}</td>
+        <td>{{ a.campus_pref_display }}
+            {% if offering.get_campus_display in a.campus_pref_display %}
+                    <i class="fa fa-check" title="Campus matched"></i>
+            {% endif %}
+        </td>
+        <td>            
+            {% if offering.name in a.past_experience_display %}
+                T
+            {% endif %}     
+            {% if offering.name in a.past_enroll_display %}
+                E
+            {% endif %}       
+        </td>
         <td>{{ a.base_units }}</td>
         <td class='prep_bu'>{{ a.assigned_course.prep_bu }}</td>
         <td>
@@ -257,6 +291,7 @@ diff: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span>.
                 {% endif %}
             {% endfor %}
         </td>
+        <td>{{ a.contract_status_display }}</td>
       </tr>	
 {% endfor %}
 </tbody>

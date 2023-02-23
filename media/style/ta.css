@@ -1,0 +1,34 @@
+.over {
+    color: #b00;
+    font-weight: bold;
+  }
+  .under {
+    color: #090;
+    font-weight: bold;
+  }
+
+.actionlist {
+    padding-top: 20px;
+    padding-bottom: 20px;    
+}
+
+.actionlist .btn{
+    display: inline-block;
+    padding: 12px;
+    margin-right: 5px;
+    margin-left: 0px;
+}
+
+.actionlist .unpressed {
+    background-color: #777777;
+    border-bottom: 3px solid #464646;
+    cursor: default;
+}
+
+table.info p input {
+    margin: 0px;
+}
+
+tr.inactive{
+    display: none;
+    }

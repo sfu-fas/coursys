@@ -13,7 +13,7 @@ import itertools, datetime, os, uuid
 import coredata.queries
 from django.conf import settings
 import django.db.transaction
-
+import math
 
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False, on_delete=models.PROTECT)
@@ -534,6 +534,21 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             return gph.program
         else:
             return None
+
+    def year_as_of(self, semester=None):
+        if semester == None:
+            semester = Semester.current()
+        
+        frs = int(self.start_semester.name)   
+        studyyear = math.ceil((int(semester.name) - frs) / 10) # semester name jump 10 digits per year                
+        return studyyear
+
+    def semester_as_of(self, semester=None):
+        if semester == None:
+            semester = Semester.current()
+        
+        s = Semester.objects.filter(name__gte=self.start_semester.name, name__lte=semester.name)    
+        return s.count()
 
     def flags_and_values(self):
         """

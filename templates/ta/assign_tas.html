@@ -35,6 +35,41 @@
 	});
   });
 </script>
+<script>
+  $(document).ready(function(){
+    $("#btn_undergrad").click(function(){    
+      if ($(this).hasClass("unpressed")){
+        $(".offeringtype_undergrad").removeClass("inactive");   
+        $(this).removeClass("unpressed"); 
+      }
+      else{
+        $(".offeringtype_undergrad").addClass("inactive");   
+        $(this).addClass("unpressed"); 
+      }
+  });
+  $("#btn_grad").click(function(){    
+      if ($(this).hasClass("unpressed")){
+        $(".offeringtype_grad").removeClass("inactive");   
+        $(this).removeClass("unpressed"); 
+      }
+      else{
+        $(".offeringtype_grad").addClass("inactive");   
+        $(this).addClass("unpressed"); 
+      }
+  });  
+  $("#btn_mpcs").click(function(){    
+      if ($(this).hasClass("unpressed")){
+        $(".offeringtype_mpcs").removeClass("inactive");   
+        $(this).removeClass("unpressed"); 
+      }
+      else{
+        $(".offeringtype_mpcs").addClass("inactive");   
+        $(this).addClass("unpressed"); 
+      }
+  });  
+});
+</script>
+<link rel="stylesheet" href="{{STATIC_URL}}style/ta.css" />
 <style type="text/css">
   .over {
     color: #b00;
@@ -47,6 +82,10 @@
 </style>
 {% endblock %}
 
+<div class="actionlist">  
+  <a class="btn" id ="btn_undergrad">Undergraduate Courses</a>
+  <a class="btn" id ="btn_grad">Graduate Courses</a>  
+</div>
 {% block actions %}
 <div id="actions">
 <h2 class="heading">Actions</h2>
@@ -64,7 +103,7 @@
 <thead>
     <tr>
     <th scope="col">Offering</th>
-    <th scope="col">Combined to</th>
+    <th scope="col">Combined to (from SIMS)</th>
     <th scope="col">Instructor</th>
     <th scope="col">Enrol</th>
     <th scope="col">Campus</th>
@@ -78,17 +117,15 @@
  </thead>
 <tbody>
 {% for o in offerings %}
-<tr>
+<tr class="{% if  o.number < '500' %}offeringtype_undergrad{% endif %} {% if  o.number >= '500' %}offeringtype_grad{% endif %} active">
   <td scope="row" title="{{o.title}}">
     {% if o.component == "CAN" %}<del>{% endif %}
     <a href="{% url "ta:assign_bus" post_slug=posting.slug course_slug=o.slug %}">{{o.name}}</a>
     {% if o.component == "CAN" %}</del>{% endif %}
     </td>
-  <td> {% for c in o.combinedoffering_set.all %}
-      {{ c.subject }} {{ c.number }} {{ c.section }} <br>        
-      {% endfor %}
+  <td> 
       {% if o.config.joint_with %}
-        <br><i class="fa fa-link" title="Joint with (from SIMS)"></i> {{ o.config.joint_with | display_joint_with  }} 
+      <br>{{ o.config.joint_with | display_joint_with:o.name  }} 
       {% endif %}
   </td>
   <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>

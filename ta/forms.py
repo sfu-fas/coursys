@@ -201,7 +201,7 @@ class TAApplicationForm(forms.ModelForm):
         self.fields['validsin'].required = True
         self.fields['current_program'].required = True
         self.fields['resume'].required = True
-        self.fields['transcript'].required = False
+        self.fields['transcript'].required = True
         rolepersonids = Role.objects.filter(unit=self.initial['unit'], role__in=['FAC', 'SUPV']).values_list('person_id', flat=True)
         person = Person.objects.filter(id__in=rolepersonids)
         self.fields['supervisor'].queryset = person

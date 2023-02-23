@@ -624,11 +624,11 @@ def download_all_applications(request, post_slug):
                                       (posting.semester.name, datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
     if applications:
-        writer.writerow(['Person', 'ID', 'Email', 'Category', 'Current Program', 'Other program comment', 'Supervisor', 'Assigned BUs', 'Max BUs', 'Ranked', 'Assigned', 'Campus Preferences'])
+        writer.writerow(['Person', 'Grad Program', 'ID', 'Email', 'Category', 'Current Program', 'Other program comment', 'Supervisor', 'Max BUs', 'Ranked', 'Campus Preferences', 'Skill',  'Assigned', 'Assigned BUs' ])
 
         for a in applications:
-            writer.writerow([a.person.sortname(), a.person.emplid, a.person.email(), a.get_category_display(), a.get_current_program_display(), a.program_comment, a.supervisor, a.base_units_assigned(),
-                             a.base_units, a.course_pref_display(), a.course_assigned_display(), a.campus_pref_display()])
+            writer.writerow([a.person.sortname(), a.grad_program_information(), a.person.emplid, a.person.email(), a.get_category_display(), a.get_current_program_display(), a.program_comment, a.supervisor,
+                             a.base_units, a.course_pref_display(), a.campus_pref_display(), a.skill_level_display(), a.course_assigned_display(), a.base_units_assigned()])
     return response
 
 
@@ -850,7 +850,7 @@ def download_assign_csv(request, post_slug):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s-assigsnment-table.csv"' % (posting.slug)
     writer = csv.writer(response)
-    writer.writerow(['Offering', 'Combined to', 'Joint with (from SIM)', 'Instructor', 'Enrollment', 'Campus', 'Assigned', 'Applicants', 'Required BU (by capacity)',
+    writer.writerow(['Offering', 'Combined to (from SIMS)', 'Instructor', 'Enrollment', 'Campus', 'Assigned', 'Applicants', 'Required BU (by capacity)',
                      'Required BU (by enrol)', 'Assigned BU', 'Diff'])
     for o in offerings:
         enrollment_string = '%s/%s' % (o.enrl_tot, o.enrl_cap)
@@ -859,31 +859,34 @@ def download_assign_csv(request, post_slug):
 
         assigned_strings = []
         for tacrs in o.assigned:
-            if tacrs.bu > 0:
-                assigned_strings.append(tacrs.contract.application.person.sortname() + ' (' + str(tacrs.bu) + ')')
+            if tacrs.total_bu > 0:
+                assigned_strings.append(tacrs.contract.application.person.sortname() + ' (' + str(tacrs.total_bu) + ')')
         assigned_string = ', '.join(assigned_strings)
         required_bus = str(posting.required_bu(o, count=o.enrl_tot))
         if o.extra_bu() != 0:
             required_bus += '(%s +%s)' % (posting.default_bu(o, count=o.enrl_cap), o.extra_bu_str())
 
-        combinedto = ''
-        combinedlist = CombinedOffering.objects.filter(offerings=o)      
-
-        for c in combinedlist:
-            combinedto += c.subject + c.number + c.section +'\n'
-        combinedto = combinedto.rstrip('\n')
-
         joint_with = o.config.get('joint_with')
-        newlist = ''
-        if joint_with:
-            for index, j in enumerate(joint_with):
-                start = j.find('-')+1
-                if index == 0:
-                    newlist = j.upper()[start:].replace("-", " ")
-                else:
-                    newlist += ', '+ j.upper()[start:].replace("-", " ")
+        newlist = ''   
 
-        writer.writerow([o.name(), combinedto, newlist, o.instructors_str(), enrollment_string, o.get_campus_display(), assigned_string,
+        if joint_with:
+                for index, j in enumerate(joint_with):
+                    start = j.find('-')+1
+                    if j[-2:] == '00':
+                        joint_course = j.upper()[start:].replace("-", " ")[:-2]
+                    else:
+                        joint_course = j.upper()[start:].replace("-", " ")
+                    
+                    if joint_course > o.name():
+                        joint_with = o.name() + "/" + joint_course
+                    else:
+                        joint_with = joint_course + "/" + o.name()
+                    if index == 0:
+                        newlist = joint_with
+                    else:
+                        newlist += ', '+ joint_with
+
+        writer.writerow([o.name(), newlist, o.instructors_str(), enrollment_string, o.get_campus_display(), assigned_string,
                          posting.applicant_count(o), posting.required_bu(o, count=o.enrl_cap), required_bus, posting.assigned_bu(o),
                          posting.assigned_bu(o)-posting.required_bu(o)])
     return response
@@ -1634,6 +1637,19 @@ def edit_posting(request, post_slug=None):
 def posting_admin(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     default_visible = bu_rules.does_bu_strategy_involve_defaults(posting.semester, posting.unit) 
+    # check any delete courses with BU assigned
+    cancel_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit, component="CAN")
+    all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course', 'contract')
+    message = []
+    
+    for o in cancel_offerings:        
+        for crs in all_assignments:
+            if crs.course == o and crs.contract.bu() > 0:
+                message.append('Course ' + o.name() +' was cancelled, but still have BU assigned')
+        
+    context = {'posting': posting, 
+               'default_visible': default_visible}
+    messages.add_message(request, messages.WARNING, ', '.join(message))
 
     context = {'posting': posting, 
                'default_visible': default_visible }
@@ -1751,7 +1767,7 @@ def generate_csv(request, post_slug):
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')
     for app in apps:
-        rank = 'P%d' % app.rank
+        rank = 'R%d' % app.rank
         system_program = ''
         startsem = ''
         status = ''
@@ -1826,7 +1842,8 @@ def generate_csv_by_course(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Rank', 'Name', 'Student ID', 'Email', 'Category', 'Program', 'BU']
+    off = ['Rank', 'Name', 'Student ID', 'Type', 'Year/Sem', 'Email', 'Grad Program', 'Category', 'Program', \
+        'Supervisor', 'Supervisor (System)', 'Campus', 'Experience(T/E)', 'Max BU', 'Assigned BU', 'Contract Status']
     extra_questions = []
     if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
         for question in posting.config['extra_questions']:
@@ -1835,12 +1852,27 @@ def generate_csv_by_course(request, post_slug):
 
     offering_rows = []
     for offering in offerings: 
-        offering_rows.append([offering.course.subject + " " + offering.course.number + " " + offering.section])
+        offering_rows.append([offering.course.subject + " " + offering.course.number + " " + offering.section, '',  \
+            'Req BU (Cap)', posting.required_bu(offering, offering.enrl_cap), 'Req BU (Enrol)', posting.required_bu(offering, offering.enrl_tot)])
         applications_for_this_offering = [pref.app for pref in prefs if 
             (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
         for app in applications_for_this_offering:
-            rank = 'P%d' % app.rank
-            row = [rank, app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.get_current_program_display(), app.base_units]
+            rank = 'R%d' % app.rank
+            exp = ''
+            if offering.name() in app.past_experience_display():
+                exp = 'T'
+            if offering.name() in app.past_enroll_display():
+                exp = exp + 'E'            
+            
+            assigned_bu = 0
+            tacrss = TACourse.objects.filter(contract__application=app, course=offering).exclude(contract__status__in=['CAN', 'REJ'])\
+            .select_related('course')
+            for tacrs in tacrss:
+                assigned_bu += tacrs.bu
+
+            row = [rank, app.person.sortname(), app.person.emplid, app.grad_program_type(), app.grad_program_yearsem(), app.person.email(), app.grad_program_information(), app.category, app.get_current_program_display(), \
+            app.supervisor, app.coursys_supervisor_display(),  app.campus_pref_display(), exp, app.base_units, assigned_bu, app.contract_status_display()]
+            
             if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:
                 for question in extra_questions:
                     try:

@@ -17,10 +17,10 @@
     </td></tr>
     <tr><th scope="row">Other program comments</th><td>{{ application.program_comment }}</td></tr>
     <tr><th scope="row">Supervisor</th><td>{{ application.supervisor }}</td></tr>
-    <tr><th scope="row">Experience</th><td>{{ application.experience|linebreaksbr }}</td></tr>
+    <tr><th scope="row">Additional Experience</th><td>{{ application.experience|linebreaksbr }}</td></tr>
     <tr><th scope="row">Course Load</th><td>{{ application.course_load|linebreaksbr }}</td></tr>
-    <tr><th scope="row">Other Support</th><td>{{ application.other_support|linebreaksbr }}</td></tr>
-    <tr><th scope="row">Comments</th><td>{{ application.comments|linebreaksbr }}</td></tr>
+    <tr><th scope="row">Other Financial Support</th><td>{{ application.other_support|linebreaksbr }}</td></tr>
+    <tr><th scope="row">Additional Comments</th><td>{{ application.comments|linebreaksbr }}</td></tr>
     <tr><th score="row">Attended New Workers Training</th><td>{{ application.new_workers_training|yesno }}</td></tr>
   </table>
 
@@ -50,7 +50,7 @@
   <p><strong>Course preference comment:</strong> {{ application.preference_comment }}</p>
   {% endif %}
 
-  {% if campuses %}
+  {% if application.campuses %}
   <h3>Campus Preference</h3>
   <table class="info">
       {% for campus in application.campuses %}
@@ -59,7 +59,7 @@
   </table>
   {% endif %}
 
-  {% if skills %}
+  {% if application.skills %}
   <h3>Skills</h3>
   <table class="info">
       {% for skill in application.skills %}
