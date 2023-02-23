@@ -1842,8 +1842,63 @@ def generate_csv_by_course(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Rank', 'Name', 'Student ID', 'Type', 'Year/Sem', 'Email', 'Grad Program', 'Category', 'Program', \
-        'Supervisor', 'Supervisor (System)', 'Campus', 'Experience(T/E)', 'Max BU', 'Assigned BU', 'Contract Status']
+    off = ['Rank', 'Name', 'Student ID', 'Email', 'Category', 'Program', 'Max BU']
+    extra_questions = []
+    if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
+        for question in posting.config['extra_questions']:
+            off.append(question[0:75])
+            extra_questions.append(question)
+
+    offering_rows = []
+    for offering in offerings: 
+        offering_rows.append([offering.course.subject + " " + offering.course.number + " " + offering.section])
+        applications_for_this_offering = [pref.app for pref in prefs if 
+            (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
+        for app in applications_for_this_offering:
+            rank = 'R%d' % app.rank      
+            row = [rank, app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.get_current_program_display(), app.base_units]
+            
+            if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:
+                for question in extra_questions:
+                    try:
+                        row.append(app.config['extra_questions'][question])
+                    except KeyError:
+                        row.append("")
+                for question in app.config['extra_questions']:
+                    if not question in extra_questions:
+                        off.append(question[0:75])
+                        extra_questions.append(question)
+                        row.append(app.config['extra_questions'][question])
+            
+            offering_rows.append(row)
+        offering_rows.append([])
+
+    csvWriter.writerow(off)
+    for row in offering_rows:
+        csvWriter.writerow(row)
+    
+    return response
+
+@requires_role("TAAD")
+def generate_csv_by_course_detail(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).exclude(component='CAN').select_related('course')
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    
+    # collect all course preferences in a sensible way
+    prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
+    
+    # generate CSV
+    filename = str(posting.slug) + '_by_course.csv'
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s"'% filename
+    csvWriter = csv.writer(response)
+    
+    #First csv row: all the course names
+    off = ['Rank', 'Name', 'Student ID', 'Type', 'Year/Sem', 'Email', 'Category', 'Program', \
+        'Experience(T/E)', 'Max BU']
     extra_questions = []
     if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
         for question in posting.config['extra_questions']:
@@ -1870,8 +1925,8 @@ def generate_csv_by_course(request, post_slug):
             for tacrs in tacrss:
                 assigned_bu += tacrs.bu
 
-            row = [rank, app.person.sortname(), app.person.emplid, app.grad_program_type(), app.grad_program_yearsem(), app.person.email(), app.grad_program_information(), app.category, app.get_current_program_display(), \
-            app.supervisor, app.coursys_supervisor_display(),  app.campus_pref_display(), exp, app.base_units, assigned_bu, app.contract_status_display()]
+            row = [rank, app.person.sortname(), app.person.emplid, app.grad_program_type(), app.grad_program_yearsem(), app.person.email(), app.category, app.get_current_program_display(), \
+            exp, app.base_units]
             
             if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:
                 for question in extra_questions:

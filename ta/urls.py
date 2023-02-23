@@ -19,6 +19,7 @@ ta_patterns = [ # prefix /ta/
     url(r'^' + POST_SLUG + '/admin$', ta_views.posting_admin, name='posting_admin'),
     url(r'^' + POST_SLUG + '/applicant_csv$', ta_views.generate_csv, name='generate_csv'),
     url(r'^' + POST_SLUG + '/applicant_csv_by_course$', ta_views.generate_csv_by_course, name='generate_csv_by_course'),
+    url(r'^' + POST_SLUG + '/applicant_csv_by_course_detail$', ta_views.generate_csv_by_course_detail, name='generate_csv_by_course_detail'),
     url(r'^' + POST_SLUG + '/edit$', ta_views.edit_posting, name='edit_posting'),
     url(r'^' + POST_SLUG + '/bu$', ta_views.edit_bu, name='edit_bu'),
     url(r'^' + POST_SLUG + '/bu_formset$', ta_views.bu_formset, name='bu_formset'),

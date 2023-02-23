@@ -539,9 +539,12 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         if semester == None:
             semester = Semester.current()
         
-        frs = int(self.start_semester.name)   
-        studyyear = math.ceil((int(semester.name) - frs) / 10) # semester name jump 10 digits per year                
-        return studyyear
+        if self.start_semester is not None:
+            frs = int(self.start_semester.name)   
+            studyyear = math.ceil((int(semester.name) - frs) / 10) # semester name jump 10 digits per year                
+            return studyyear
+        else:
+            return ''
 
     def semester_as_of(self, semester=None):
         if semester == None:
@@ -842,166 +845,248 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         return ls
 
     def get_promise_amount_all(self):
-        frs = int(self.start_semester.name)   # semester name jump 10 digits per year
-        promises = Promise.objects.filter(student=self, removed=False).select_related('start_semester').order_by('start_semester')
-        #print(frs)
-        import decimal
+        if self.start_semester is not None:
+            frs = int(self.start_semester.name)   # semester name jump 10 digits per year
+            promises = Promise.objects.filter(student=self, removed=False).select_related('start_semester').order_by('start_semester')
+            #print(frs)
+            import decimal
 
-        promise_amt = {"year1": decimal.Decimal(0.0), "year2": decimal.Decimal(0.0), "year3": decimal.Decimal(0.0), "year4": decimal.Decimal(0.0), "otheryear": decimal.Decimal(0.0)}
-        
-        for promise in promises:
-            en = promise.end_semester
+            promise_amt = {"year1": decimal.Decimal(0.0), "year2": decimal.Decimal(0.0), "year3": decimal.Decimal(0.0), "year4": decimal.Decimal(0.0), "otheryear": decimal.Decimal(0.0)}
             
-            if int(en.name) >= frs and int(en.name) < frs+10:
-                    promise_amt['year1'] += promise.amount
-            if int(en.name) >= frs+10 and int(en.name) < frs+20:
-                    promise_amt['year2'] += promise.amount
-            if int(en.name) >= frs+20 and int(en.name) < frs+30:
-                    promise_amt['year3'] += promise.amount
-            if int(en.name) >= frs+30 and int(en.name) < frs+40:
-                    promise_amt['year4'] += promise.amount
-            if int(en.name) >= frs+40:
-                    promise_amt['otheryear'] += promise.amount
+            for promise in promises:
+                en = promise.end_semester
+                
+                if int(en.name) >= frs and int(en.name) < frs+10:
+                        promise_amt['year1'] += promise.amount
+                if int(en.name) >= frs+10 and int(en.name) < frs+20:
+                        promise_amt['year2'] += promise.amount
+                if int(en.name) >= frs+20 and int(en.name) < frs+30:
+                        promise_amt['year3'] += promise.amount
+                if int(en.name) >= frs+30 and int(en.name) < frs+40:
+                        promise_amt['year4'] += promise.amount
+                if int(en.name) >= frs+40:
+                        promise_amt['otheryear'] += promise.amount
+        else:
+            promises = Promise.objects.filter(student=self, removed=False).select_related('start_semester').order_by('start_semester')
+            import decimal
+
+            promise_amt = {"year1": decimal.Decimal(0.0), "year2": decimal.Decimal(0.0), "year3": decimal.Decimal(0.0), "year4": decimal.Decimal(0.0), "otheryear": decimal.Decimal(0.0)}
+            
+            for promise in promises:
+                en = promise.end_semester                
+                promise_amt['otheryear'] += promise.amount
+
         return promise_amt
     
     def get_receive_all(self):
-        frs = int(self.start_semester.name)   # semester name jump 10 digits per year
-        import decimal
-
-        received_amt = {"year1": decimal.Decimal(0.0), "year2": decimal.Decimal(0.0), "year3": decimal.Decimal(0.0), "year4": decimal.Decimal(0.0), "otheryear": decimal.Decimal(0.0), "remarks": ''}
-
-        from ta.models import TAContract, TACourse
-        from ra.models import RAAppointment, RARequest
-        from tacontracts.models import TAContract as NewTAContract
-        
-        # TA
-        STATUSES_NOT_TAING = ['NEW', 'REJ', 'CAN'] # statuses that mean "not actually TAing"
-
-        contracts = TAContract.objects.filter(application__person=self.person).exclude(status__in=STATUSES_NOT_TAING).select_related('posting__semester')
-        other_contracts = NewTAContract.objects.filter(person=self.person, status__in=['NEW', 'SGN']).select_related('category').prefetch_related('course')
+        if self.start_semester is not None:
+            frs = int(self.start_semester.name)   # semester name jump 10 digits per year
             
-        for contract in contracts:
-                if (int(contract.posting.semester.name) >= frs) & (int(contract.posting.semester.name) < (frs+10)):
-                    for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
-                        received_amt['year1'] +=  course.pay()
-                if (int(contract.posting.semester.name) >= (frs+10)) & (int(contract.posting.semester.name) < (frs+20)):
-                    for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
-                        received_amt['year2'] +=  course.pay()
-                if (int(contract.posting.semester.name) >= (frs+20)) & (int(contract.posting.semester.name) < (frs+30)):
-                    for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
-                        received_amt['year3'] +=  course.pay()
-                if (int(contract.posting.semester.name) >= (frs+30)) & (int(contract.posting.semester.name) < (frs+40)):
-                    for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
-                        received_amt['year4'] +=  course.pay()
-                if (int(contract.posting.semester.name) >= (frs+40)):
-                    for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
-                        received_amt['otheryear'] +=  course.pay()
-                
-                
-        for contract in other_contracts:
-                if (int(contract.category.hiring_semester.semester.name) >= frs) & (int(contract.category.hiring_semester.semester.name) < (frs+10)):
-                    if contract.status == 'SGN':
-                        for course in contract.course.all():
-                             received_amt['year1'] += course.total
-                if (int(contract.category.hiring_semester.semester.name) >= (frs+10)) & (int(contract.category.hiring_semester.semester.name) < (frs+20)):
-                    if contract.status == 'SGN':
-                        for course in contract.course.all():
-                             received_amt['year2'] += course.total
-                if (int(contract.category.hiring_semester.semester.name) >= (frs+20)) & (int(contract.category.hiring_semester.semester.name) < (frs+30)):
-                    if contract.status == 'SGN':
-                        for course in contract.course.all():
-                             received_amt['year3'] += course.total
-                if (int(contract.category.hiring_semester.semester.name) >= (frs+30)) & (int(contract.category.hiring_semester.semester.name) < (frs+40)):
-                    if contract.status == 'SGN':
-                        for course in contract.course.all():
-                             received_amt['year4'] += course.total
-                if (int(contract.category.hiring_semester.semester.name) >= (frs+40)):
-                    if contract.status == 'SGN':
-                        for course in contract.course.all():
-                             received_amt['otheryear'] += course.total
+            import decimal
 
-        # RA
-        ras = RAAppointment.objects.filter(person=self.person, deleted=False)
-        reqs = RARequest.objects.filter(person=self.person, deleted=False, complete=True, draft=False)
-        for ra in ras:
-                st = ra.start_semester()
-                en = ra.end_semester()
-                semlen =  ra.semester_length()
-                if semlen == 0:
-                    semlen = 1
-                    received_amt['remarks'] += 'ra semlen:0 sem:' + str(st) + '-' + str(en)
-                sem_pay = ra.lump_sum_pay / semlen
-                for i in range(semlen):
-                    if int(st.name) >= frs and int(st.name) < frs+10:
-                        received_amt['year1'] += sem_pay
-                    if int(st.name) >= frs+10 and int(st.name) < frs+20:
-                        received_amt['year2'] += sem_pay
-                    if int(st.name) >= frs+20 and int(st.name) < frs+30:
-                        received_amt['year3'] += sem_pay
-                    if int(st.name) >= frs+30 and int(st.name) < frs+40:
-                        received_amt['year4'] += sem_pay
-                    if int(st.name) >= frs+40:
-                        received_amt['otheryear'] += sem_pay
-                    st = st.next_semester()
+            received_amt = {"year1": decimal.Decimal(0.0), "year2": decimal.Decimal(0.0), "year3": decimal.Decimal(0.0), "year4": decimal.Decimal(0.0), "otheryear": decimal.Decimal(0.0), "remarks": ''}
 
-        for ra in reqs:
-                st = ra.start_semester()
-                en = ra.end_semester()
-                semlen =  ra.semester_length()
-                if semlen == 0:
-                    semlen = 1
-                    received_amt['remarks'] += 'ra semlen:0 sem:' + str(st) + '-' + str(en)
-                sem_pay = ra.total_pay / semlen
-                
-                for i in range(semlen):
-                    if int(st.name) >= frs and int(st.name) < frs+10:
-                        received_amt['year1'] += sem_pay
-                    if int(st.name) >= frs+10 and int(st.name) < frs+20:
-                        received_amt['year2'] += sem_pay
-                    if int(st.name) >= frs+20 and int(st.name) < frs+30:
-                        received_amt['year3'] += sem_pay
-                    if int(st.name) >= frs+30 and int(st.name) < frs+40:
-                        received_amt['year4'] += sem_pay
-                    if int(st.name) >= frs+40:
-                        received_amt['otheryear'] += sem_pay
-                    st = st.next_semester()
- 
-        # scholarships
-        scholarships = Scholarship.objects.filter(student=self, removed=False).filter(scholarship_type__eligible=True).select_related('start_semester')
+            from ta.models import TAContract, TACourse
+            from ra.models import RAAppointment, RARequest
+            from tacontracts.models import TAContract as NewTAContract
             
-        for ss in scholarships:
-                semlen =  (ss.end_semester-ss.start_semester+1)  
-                if semlen == 0:
-                    semlen = 1
-                    received_amt['remarks'] += 'scholarship semlen:0 sem:' + str(ss.start_semester) + '-' + str(ss.end_semester)
-                amt = ss.amount/semlen   
-                for i in range(semlen):
-                    if int(ss.start_semester.name) >= frs and int(ss.start_semester.name) < frs+10:
-                        received_amt['year1'] += amt
-                    if int(ss.start_semester.name) >= frs+10 and int(ss.start_semester.name) < frs+20:
-                        received_amt['year2'] += amt
-                    if int(ss.start_semester.name) >= frs+20 and int(ss.start_semester.name) < frs+30:
-                        received_amt['year3'] += amt
-                    if int(ss.start_semester.name) >= frs+30 and int(ss.start_semester.name) < frs+40:
-                        received_amt['year4'] += amt
-                    if int(ss.start_semester.name) >= frs+40:
+            # TA
+            STATUSES_NOT_TAING = ['NEW', 'REJ', 'CAN'] # statuses that mean "not actually TAing"
+
+            contracts = TAContract.objects.filter(application__person=self.person).exclude(status__in=STATUSES_NOT_TAING).select_related('posting__semester')
+            other_contracts = NewTAContract.objects.filter(person=self.person, status__in=['NEW', 'SGN']).select_related('category').prefetch_related('course')
+                
+            for contract in contracts:
+                    if (int(contract.posting.semester.name) >= frs) & (int(contract.posting.semester.name) < (frs+10)):
+                        for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
+                            received_amt['year1'] +=  course.pay()
+                    if (int(contract.posting.semester.name) >= (frs+10)) & (int(contract.posting.semester.name) < (frs+20)):
+                        for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
+                            received_amt['year2'] +=  course.pay()
+                    if (int(contract.posting.semester.name) >= (frs+20)) & (int(contract.posting.semester.name) < (frs+30)):
+                        for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
+                            received_amt['year3'] +=  course.pay()
+                    if (int(contract.posting.semester.name) >= (frs+30)) & (int(contract.posting.semester.name) < (frs+40)):
+                        for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
+                            received_amt['year4'] +=  course.pay()
+                    if (int(contract.posting.semester.name) >= (frs+40)):
+                        for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
+                            received_amt['otheryear'] +=  course.pay()
+                    
+                    
+            for contract in other_contracts:
+                    if (int(contract.category.hiring_semester.semester.name) >= frs) & (int(contract.category.hiring_semester.semester.name) < (frs+10)):
+                        if contract.status == 'SGN':
+                            for course in contract.course.all():
+                                received_amt['year1'] += course.total
+                    if (int(contract.category.hiring_semester.semester.name) >= (frs+10)) & (int(contract.category.hiring_semester.semester.name) < (frs+20)):
+                        if contract.status == 'SGN':
+                            for course in contract.course.all():
+                                received_amt['year2'] += course.total
+                    if (int(contract.category.hiring_semester.semester.name) >= (frs+20)) & (int(contract.category.hiring_semester.semester.name) < (frs+30)):
+                        if contract.status == 'SGN':
+                            for course in contract.course.all():
+                                received_amt['year3'] += course.total
+                    if (int(contract.category.hiring_semester.semester.name) >= (frs+30)) & (int(contract.category.hiring_semester.semester.name) < (frs+40)):
+                        if contract.status == 'SGN':
+                            for course in contract.course.all():
+                                received_amt['year4'] += course.total
+                    if (int(contract.category.hiring_semester.semester.name) >= (frs+40)):
+                        if contract.status == 'SGN':
+                            for course in contract.course.all():
+                                received_amt['otheryear'] += course.total
+
+            # RA
+            ras = RAAppointment.objects.filter(person=self.person, deleted=False)
+            reqs = RARequest.objects.filter(person=self.person, deleted=False, complete=True, draft=False)
+            for ra in ras:
+                    st = ra.start_semester()
+                    en = ra.end_semester()
+                    semlen =  ra.semester_length()
+                    if semlen == 0:
+                        semlen = 1
+                        received_amt['remarks'] += 'ra semlen:0 sem:' + str(st) + '-' + str(en)
+                    sem_pay = ra.lump_sum_pay / semlen
+                    for i in range(semlen):
+                        if int(st.name) >= frs and int(st.name) < frs+10:
+                            received_amt['year1'] += sem_pay
+                        if int(st.name) >= frs+10 and int(st.name) < frs+20:
+                            received_amt['year2'] += sem_pay
+                        if int(st.name) >= frs+20 and int(st.name) < frs+30:
+                            received_amt['year3'] += sem_pay
+                        if int(st.name) >= frs+30 and int(st.name) < frs+40:
+                            received_amt['year4'] += sem_pay
+                        if int(st.name) >= frs+40:
+                            received_amt['otheryear'] += sem_pay
+                        st = st.next_semester()
+
+            for ra in reqs:
+                    st = ra.start_semester()
+                    en = ra.end_semester()
+                    semlen =  ra.semester_length()
+                    if semlen == 0:
+                        semlen = 1
+                        received_amt['remarks'] += 'ra semlen:0 sem:' + str(st) + '-' + str(en)
+                    sem_pay = ra.total_pay / semlen
+                    
+                    for i in range(semlen):
+                        if int(st.name) >= frs and int(st.name) < frs+10:
+                            received_amt['year1'] += sem_pay
+                        if int(st.name) >= frs+10 and int(st.name) < frs+20:
+                            received_amt['year2'] += sem_pay
+                        if int(st.name) >= frs+20 and int(st.name) < frs+30:
+                            received_amt['year3'] += sem_pay
+                        if int(st.name) >= frs+30 and int(st.name) < frs+40:
+                            received_amt['year4'] += sem_pay
+                        if int(st.name) >= frs+40:
+                            received_amt['otheryear'] += sem_pay
+                        st = st.next_semester()
+    
+            # scholarships
+            scholarships = Scholarship.objects.filter(student=self, removed=False).filter(scholarship_type__eligible=True).select_related('start_semester')
+                
+            for ss in scholarships:
+                    semlen =  (ss.end_semester-ss.start_semester+1)  
+                    if semlen == 0:
+                        semlen = 1
+                        received_amt['remarks'] += 'scholarship semlen:0 sem:' + str(ss.start_semester) + '-' + str(ss.end_semester)
+                    amt = ss.amount/semlen   
+                    for i in range(semlen):
+                        if int(ss.start_semester.name) >= frs and int(ss.start_semester.name) < frs+10:
+                            received_amt['year1'] += amt
+                        if int(ss.start_semester.name) >= frs+10 and int(ss.start_semester.name) < frs+20:
+                            received_amt['year2'] += amt
+                        if int(ss.start_semester.name) >= frs+20 and int(ss.start_semester.name) < frs+30:
+                            received_amt['year3'] += amt
+                        if int(ss.start_semester.name) >= frs+30 and int(ss.start_semester.name) < frs+40:
+                            received_amt['year4'] += amt
+                        if int(ss.start_semester.name) >= frs+40:
+                            received_amt['otheryear'] += amt
+                        ss.start_semester = ss.start_semester.next_semester()
+
+            # other funding
+            others = OtherFunding.objects.filter(student=self, removed=False, eligible=True).select_related('semester')
+            for other in others:
+                    if (int(other.semester.name) >= frs) & (int(other.semester.name) < (frs+10)):
+                        received_amt['year1'] += other.amount
+                    if (int(other.semester.name) >= (frs+10)) & (int(other.semester.name) < (frs+20)):
+                        received_amt['year2'] += other.amount
+                    if (int(other.semester.name) >= (frs+20)) & (int(other.semester.name) < (frs+30)):
+                        received_amt['year3'] += other.amount
+                    if (int(other.semester.name) >= (frs+30)) & (int(other.semester.name) < (frs+40)):
+                        received_amt['year4'] += other.amount
+                    if (int(other.semester.name) >= (frs+40)):
+                        received_amt['otheryear'] += other.amount
+        else:
+            import decimal
+
+            received_amt = {"year1": decimal.Decimal(0.0), "year2": decimal.Decimal(0.0), "year3": decimal.Decimal(0.0), "year4": decimal.Decimal(0.0), "otheryear": decimal.Decimal(0.0), "remarks": ''}
+
+            from ta.models import TAContract, TACourse
+            from ra.models import RAAppointment, RARequest
+            from tacontracts.models import TAContract as NewTAContract
+            
+            # TA
+            STATUSES_NOT_TAING = ['NEW', 'REJ', 'CAN'] # statuses that mean "not actually TAing"
+
+            contracts = TAContract.objects.filter(application__person=self.person).exclude(status__in=STATUSES_NOT_TAING).select_related('posting__semester')
+            other_contracts = NewTAContract.objects.filter(person=self.person, status__in=['NEW', 'SGN']).select_related('category').prefetch_related('course')
+                
+            for contract in contracts:                    
+                        for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
+                            received_amt['otheryear'] +=  course.pay()
+                    
+                    
+            for contract in other_contracts:                    
+                        if contract.status == 'SGN':
+                            for course in contract.course.all():
+                                received_amt['otheryear'] += course.total
+
+            # RA
+            ras = RAAppointment.objects.filter(person=self.person, deleted=False)
+            reqs = RARequest.objects.filter(person=self.person, deleted=False, complete=True, draft=False)
+            for ra in ras:
+                    st = ra.start_semester()
+                    en = ra.end_semester()
+                    semlen =  ra.semester_length()
+                    if semlen == 0:
+                        semlen = 1
+                        received_amt['remarks'] += 'ra semlen:0 sem:' + str(st) + '-' + str(en)
+                    sem_pay = ra.lump_sum_pay / semlen
+                    for i in range(semlen):
+                        received_amt['otheryear'] += sem_pay
+                        st = st.next_semester()
+
+            for ra in reqs:
+                    st = ra.start_semester()
+                    en = ra.end_semester()
+                    semlen =  ra.semester_length()
+                    if semlen == 0:
+                        semlen = 1
+                        received_amt['remarks'] += 'ra semlen:0 sem:' + str(st) + '-' + str(en)
+                    sem_pay = ra.total_pay / semlen
+                    
+                    for i in range(semlen):
+                        received_amt['otheryear'] += sem_pay
+                        st = st.next_semester()
+    
+            # scholarships
+            scholarships = Scholarship.objects.filter(student=self, removed=False).filter(scholarship_type__eligible=True).select_related('start_semester')
+                
+            for ss in scholarships:
+                    semlen =  (ss.end_semester-ss.start_semester+1)  
+                    if semlen == 0:
+                        semlen = 1
+                        received_amt['remarks'] += 'scholarship semlen:0 sem:' + str(ss.start_semester) + '-' + str(ss.end_semester)
+                    amt = ss.amount/semlen   
+                    for i in range(semlen):
                         received_amt['otheryear'] += amt
-                    ss.start_semester = ss.start_semester.next_semester()
+                        ss.start_semester = ss.start_semester.next_semester()
 
-        # other funding
-        others = OtherFunding.objects.filter(student=self, removed=False, eligible=True).select_related('semester')
-        for other in others:
-                if (int(other.semester.name) >= frs) & (int(other.semester.name) < (frs+10)):
-                    received_amt['year1'] += other.amount
-                if (int(other.semester.name) >= (frs+10)) & (int(other.semester.name) < (frs+20)):
-                    received_amt['year2'] += other.amount
-                if (int(other.semester.name) >= (frs+20)) & (int(other.semester.name) < (frs+30)):
-                    received_amt['year3'] += other.amount
-                if (int(other.semester.name) >= (frs+30)) & (int(other.semester.name) < (frs+40)):
-                    received_amt['year4'] += other.amount
-                if (int(other.semester.name) >= (frs+40)):
-                    received_amt['otheryear'] += other.amount
-
+            # other funding
+            others = OtherFunding.objects.filter(student=self, removed=False, eligible=True).select_related('semester')
+            for other in others:                    
+                        received_amt['otheryear'] += other.amount
         return received_amt
     
     def financials_from(self, start, end):
