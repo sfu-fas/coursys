@@ -240,18 +240,18 @@ diff: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span>.
         </td>    
             {% if a.active_gs %}  
                 <td>
-                    {% if 'PhD' in a.active_gs.program.label %} 
+                    {% if 'phd' in a.active_gs.program.slug %} 
                         P1
-                    {% elif 'MSc' in a.active_gs.program.label %} 
-                        P2
-                    {% elif 'Prof' in a.active_gs.program.label %} 
+                    {% elif 'profmsc' in a.active_gs.program.slug %} 
                         P3
+                    {% elif 'msc' in a.active_gs.program.slug %} 
+                        P2
                     {% else %} 
                         P4
                     {% endif %}
                 </td>
                 <td>
-                    {% if 'Prof' in a.active_gs.program.label %}
+                    {% if 'profmsc' in a.active_gs.program.slug %}
                         {{ a.active_gs.semester_as_of }}
                     {% else %}
                         {{ a.active_gs.year_as_of }} 
@@ -261,9 +261,9 @@ diff: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span>.
                     <a href="{% url "grad:view" grad_slug=a.active_gs.slug %}"  target="_blank">  {{a.active_gs.program.label}} ({{a.active_gs.program.unit.label}}, {{a.active_gs.get_current_status_display}}) </a> 
                 </td>
                 <td>{{ a.get_category_display }}
-                    {% if 'PhD' in a.active_gs.program.label and a.get_category_display == 'PhD' %}
+                    {% if 'phd' in a.active_gs.program.slug and a.get_category_display == 'PhD' %}
                         <i class="fa fa-check" title="Category matched"></i>
-                    {% elif 'MSc' in a.active_gs.program.label or 'Prof' in a.active_gs.program.label and a.get_category_display == 'Masters' %}
+                    {% elif 'msc' in a.active_gs.program.slug and a.get_category_display == 'Masters' %}
                         <i class="fa fa-check" title="Category matched"></i>              
                     {% endif %}          
                 </td>

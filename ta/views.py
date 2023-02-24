@@ -1908,15 +1908,15 @@ def generate_csv_detail(request, post_slug):
         # grad program info        
         for g in active_gs:
                 if g.person_id == app.person_id:
-                    if 'PhD' in g.program.label:
+                    if 'phd' in g.program.slug:
                         gptype =  'P1'
                         gpyear = g.year_as_of()
-                    elif 'MSc' in g.program.label:
-                        gptype = 'P2'
-                        gpyear = g.year_as_of()
-                    elif 'Prof' in g.program.label:
+                    elif 'profmsc' in g.program.slug:
                         gptype = 'P3'
                         gpyear = g.semester_as_of()
+                    elif 'msc' in g.program.slug:
+                        gptype = 'P2'
+                        gpyear = g.year_as_of()
                     else:
                         gptype = 'P4'
 
