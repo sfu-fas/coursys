@@ -1844,6 +1844,130 @@ def generate_csv(request, post_slug):
     return response
 
 @requires_role("TAAD")
+def generate_csv_detail(request, post_slug):
+    # An even shorter Campus name, for smaller columns in the CSV.
+    CAMPUS_CHOICES_SHORTENED = (
+        ('BRNBY', 'BBY'),
+        ('SURRY', 'SRY'),
+        ('VANCR', 'VCR'),
+        ('OFFST', 'OFF'),
+        ('GNWC', 'GNW'),
+        ('METRO', 'OTHR'),
+    )
+    CAMPUSES_SHORTENED = dict(CAMPUS_CHOICES_SHORTENED)
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).exclude(component='CAN').select_related('course')
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+
+    # collect all course preferences in a sensible way
+    course_prefs = {}
+    prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
+    for cp in prefs:
+        a = cp.app
+        c = cp.course
+        if a not in course_prefs:
+            course_prefs[a] = {}
+        course_prefs[a][c] = cp
+    
+    # generate CSV
+    filename = str(posting.slug) + '.csv'
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s"' % (filename)
+    csvWriter = csv.writer(response)
+    
+    #First csv row: all the course names
+    off = ['Rank', 'Name', 'SFUID', 'Email', 'Type', 'Year/Sem', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Supervisor (Reported)', 'Supervisor (System)', 'TA Experience', 'Unit', 'Start Sem', 'BU',
+           'Campus', 'Assigned Course(s)', 'Assigned BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
+    csvWriter.writerow(off)
+    
+    # next row: campuses
+    off = ['']*19 + [str(CAMPUSES_SHORTENED[o.campus]) for o in offerings]
+    csvWriter.writerow(off)
+    
+    # collect all grad program who apply ta posting
+    personids = TAApplication.objects.filter(posting=posting).values_list('person_id', flat=True)
+    active_gs = GradStudent.objects.filter(person_id__in=personids, current_status__in=STATUS_REAL_PROGRAM) \
+                .select_related('program__unit')
+
+    # collect all campus preferences in a sensible way
+    allcp = CampusPreference.objects.filter(app__posting=posting)
+    
+    apps = TAApplication.objects.filter(posting=posting).order_by('person')
+    for app in apps:
+        rank = 'R%d' % app.rank
+        
+        system_program = ''
+        startsem = ''
+        status = ''
+        unit = ''
+        gptype = '' 
+        gpyear = '' 
+
+        # grad program info        
+        for g in active_gs:
+                if g.person_id == app.person_id:
+                    if 'PhD' in g.program.label:
+                        gptype =  'P1'
+                        gpyear = g.year_as_of()
+                    elif 'MSc' in g.program.label:
+                        gptype = 'P2'
+                        gpyear = g.year_as_of()
+                    elif 'Prof' in g.program.label:
+                        gptype = 'P3'
+                        gpyear = g.semester_as_of()
+                    else:
+                        gptype = 'P4'
+
+                    system_program = g.program.label
+                    status = g.get_current_status_display()
+                    unit = g.program.unit.label
+                    if g.start_semester:
+                        startsem = g.start_semester.name
+                    else:
+                        startsem = ''
+                    
+                    break
+
+        campuspref = ''
+        for cp in allcp:
+            if cp.app == app:
+                if cp.pref == 'PRF':
+                    campuspref += cp.campus[0].upper()
+                elif cp.pref == 'WIL':
+                    campuspref += cp.campus[0].lower()
+
+        # Get all TAContracts that match this posting and application, then the matching TACourses
+        # so we can find out if a course/courses have been assigned to this TA
+
+        assigned_courses = ''
+        assigned_bus = ''
+        ta_contracts = TAContract.objects.filter(posting=posting, application=app).exclude(status__in=['CAN', 'REJ'])
+        if len(ta_contracts) > 0:
+            ta_courses = TACourse.objects.filter(contract__in=ta_contracts).select_related('course')
+            if len(ta_courses) > 0:
+                assigned_courses = ', '.join([tacourse.course.name() for tacourse in ta_courses])
+                assigned_bus = sum([t.total_bu for t in ta_courses])
+
+        supervisorlist = app.coursys_supervisor_display()
+                
+        row = [rank, app.person.sortname(), app.person.emplid, app.person.email(), gptype, gpyear, app.category, app.get_current_program_display(), system_program, status, app.supervisor, supervisorlist, app.past_experience_display(), unit, startsem,
+               app.base_units, campuspref, assigned_courses, assigned_bus]
+        
+        for off in offerings:
+            crs = off.course
+            if app in course_prefs and crs in course_prefs[app]:
+                pref = course_prefs[app][crs]
+                row.append(pref.rank)
+            else:
+                row.append(None)
+            
+        csvWriter.writerow(row)
+    
+    return response
+
+@requires_role("TAAD")
 def generate_csv_by_course(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     
@@ -1897,95 +2021,6 @@ def generate_csv_by_course(request, post_slug):
         csvWriter.writerow(row)
     
     return response
-
-@requires_role("TAAD")
-def generate_csv_by_course_detail(request, post_slug):
-    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
-    
-    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).exclude(component='CAN').select_related('course')
-    excl = set(posting.excluded())
-    offerings = [o for o in all_offerings if o.course_id not in excl]
-    
-    # collect all course preferences in a sensible way
-    prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app__person', 'course')
-    
-    # collect all grad program who apply ta posting
-    personids = TAApplication.objects.filter(posting=posting).values_list('person_id', flat=True)
-    active_gs = GradStudent.objects.filter(person_id__in=personids, current_status__in=STATUS_REAL_PROGRAM) \
-                .select_related('program__unit')
-
-    # generate CSV
-    filename = str(posting.slug) + '_by_course.csv'
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'inline; filename="%s"'% filename
-    csvWriter = csv.writer(response)
-    
-    #First csv row: all the course names
-    off = ['Rank', 'Name', 'Student ID', 'Type', 'Year/Sem', 'Email', 'Category', 'Program', \
-        'Experience(T/E)', 'Max BU']
-    extra_questions = []
-    if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
-        for question in posting.config['extra_questions']:
-            off.append(question[0:75])
-            extra_questions.append(question)
-
-    offering_rows = []
-    for offering in offerings: 
-        offering_rows.append([offering.course.subject + " " + offering.course.number + " " + offering.section, '',  \
-            'Req BU (Cap)', posting.required_bu(offering, offering.enrl_cap), 'Req BU (Enrol)', posting.required_bu(offering, offering.enrl_tot)])
-        applications_for_this_offering = [pref.app for pref in prefs if 
-            (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
-        for app in applications_for_this_offering:
-            rank = 'R%d' % app.rank
-            
-            gptype = '' 
-            gpyear = '' 
-
-            for g in active_gs:
-                if g.person_id == app.person_id:
-                    if 'PhD' in g.program.label:
-                        gptype =  'P1'
-                        gpyear = g.year_as_of()
-                    elif 'MSc' in g.program.label:
-                        gptype = 'P2'
-                        gpyear = g.year_as_of()
-                    elif 'Prof' in g.program.label:
-                        gptype = 'P3'
-                        gpyear = g.semester_as_of()
-                    else:
-                        gptype = 'P4'
-                    break
-
-            exp = ''
-            if offering.name() in app.past_experience_display():
-                exp = 'T'
-            if offering.name() in app.past_enroll_display():
-                exp = exp + 'E'            
-            
-            row = [rank, app.person.sortname(), app.person.emplid, gptype, gpyear, app.person.email(), app.category, app.get_current_program_display(), \
-            exp, app.base_units]
-            
-            if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:
-                for question in extra_questions:
-                    try:
-                        row.append(app.config['extra_questions'][question])
-                    except KeyError:
-                        row.append("")
-                for question in app.config['extra_questions']:
-                    if not question in extra_questions:
-                        off.append(question[0:75])
-                        extra_questions.append(question)
-                        row.append(app.config['extra_questions'][question])
-            
-            offering_rows.append(row)
-        offering_rows.append([])
-
-    csvWriter.writerow(off)
-    for row in offering_rows:
-        csvWriter.writerow(row)
-    
-    return response
-
     
 @requires_role("TAAD")
 def view_financial(request, post_slug):
