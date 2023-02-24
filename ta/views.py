@@ -901,7 +901,6 @@ def assign_bus(request, post_slug, course_slug):
     course_prefs = CoursePreference.objects.filter(app__posting=posting, course=offering.course, app__late=False).select_related('app')
     tacourses = TACourse.objects.filter(course=offering).select_related('contract__application__person')
     all_applicants = TAApplication.objects.filter(posting=posting).select_related('person')
-    
     descrs = CourseDescription.objects.filter(unit=posting.unit)
     if not descrs.filter(labtut=True) or not descrs.filter(labtut=False):
         messages.error(request, "Must have at least one course description for TAs with and without labs/tutorials before assigning TAs.")
@@ -958,6 +957,7 @@ def assign_bus(request, post_slug, course_slug):
     applicants = []
     assigned_ta = []
     initial = [] # used to initialize formset
+    personids = []
 
     # First, people who have assigned BUs
     for ta_course in tacourses:
@@ -971,7 +971,8 @@ def assign_bus(request, post_slug, course_slug):
         
         # Determine Rank
         applicant.course_rank = course_preference.rank
-        
+        personids.append(applicant.person.id)
+
         if applicant not in applicants:
             applicants.append(applicant)
         else:
@@ -979,6 +980,13 @@ def assign_bus(request, post_slug, course_slug):
                 if existing_applicant == applicant:
                     existing_applicant.course_rank = course_preference.rank
 
+    # collect all grad program who apply ta posting
+    active_gs = GradStudent.objects.filter(person_id__in=personids, current_status__in=STATUS_REAL_PROGRAM) \
+                .select_related('program__unit').order_by("person_id","-created_at")    
+
+    # collect all Campus Preference
+    campus_preference = CampusPreference.objects.filter(campus=offering.campus).select_related('app')
+       
     # Then, anybody else. 
     for applicant in all_applicants:
         applicant.course_rank = 99
@@ -987,16 +995,27 @@ def assign_bus(request, post_slug, course_slug):
 
     for applicant in applicants:
         # Determine Current Grad Status
-        applicant.active_gs = GradStudent.objects.filter(person=applicant.person, current_status__in=STATUS_REAL_PROGRAM) \
-                .select_related('program__unit').order_by("-created_at").first()
+        for g in active_gs:
+                if g.person_id == applicant.person_id:
+                    applicant.active_gs = g
+                    break
+                    
+        #applicant.active_gs = GradStudent.objects.filter(person=applicant.person, current_status__in=STATUS_REAL_PROGRAM) \
+        #        .select_related('program__unit').order_by("-created_at").first()
         
+        # Determine  Campus Preference
+        for c in campus_preference:
+                if c.app == applicant:
+                    applicant.campus_preference = c
+                    break
+                
         # Determine Campus Preference
-        try:
-            campus_preference = CampusPreference.objects.get(app=applicant, campus=offering.campus)
-        except CampusPreference.DoesNotExist:
+        #try:
+        #    campus_preference = CampusPreference.objects.get(app=applicant, campus=offering.campus)
+        #except CampusPreference.DoesNotExist:
             # temporary fake object: shouldn't happen, but don't die if it does.
-            campus_preference = CampusPreference(app=applicant, campus=offering.campus, pref="NOT")
-        applicant.campus_preference = campus_preference
+        #    campus_preference = CampusPreference(app=applicant, campus=offering.campus, pref="NOT")
+        #applicant.campus_preference = campus_preference
 
         #Find BU assigned to this applicant through contract
         course_assignments = tacourses.filter(contract__application=applicant)
@@ -1943,12 +1962,6 @@ def generate_csv_by_course_detail(request, post_slug):
             if offering.name() in app.past_enroll_display():
                 exp = exp + 'E'            
             
-            assigned_bu = 0
-            tacrss = TACourse.objects.filter(contract__application=app, course=offering).exclude(contract__status__in=['CAN', 'REJ'])\
-            .select_related('course')
-            for tacrs in tacrss:
-                assigned_bu += tacrs.bu
-
             row = [rank, app.person.sortname(), app.person.emplid, gptype, gpyear, app.person.email(), app.category, app.get_current_program_display(), \
             exp, app.base_units]
             
