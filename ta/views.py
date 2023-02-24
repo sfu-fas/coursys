@@ -817,7 +817,7 @@ def assign_tas(request, post_slug):
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
 
     # decorate offerings with currently-assigned TAs
-    all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course', 'contract__application__person')
+    all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course').select_related('contract__application__person')
     for o in all_offerings:
         o.assigned = [crs for crs in all_assignments if crs.course == o and crs.contract.bu() > 0]
     
@@ -898,9 +898,9 @@ def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     instructors = offering.instructors()
-    course_prefs = CoursePreference.objects.filter(app__posting=posting, course=offering.course, app__late=False)
-    tacourses = TACourse.objects.filter(course=offering)
-    all_applicants = TAApplication.objects.filter(posting=posting)
+    course_prefs = CoursePreference.objects.filter(app__posting=posting, course=offering.course, app__late=False).select_related('app')
+    tacourses = TACourse.objects.filter(course=offering).select_related('contract__application__person')
+    all_applicants = TAApplication.objects.filter(posting=posting).select_related('person')
     
     descrs = CourseDescription.objects.filter(unit=posting.unit)
     if not descrs.filter(labtut=True) or not descrs.filter(labtut=False):
@@ -944,7 +944,7 @@ def assign_bus(request, post_slug, course_slug):
         
         # if the course's Lab (+0.17) status has changed, change all TA contracts to conform to the new Lab (+0.17) status.
         if response_data['labtas_changed']:
-            for ta_course in TACourse.objects.filter( course=offering ):
+            for ta_course in TACourse.objects.filter( course=offering ).select_related('contract__posting'):
                 if ta_course.contract.posting == posting and ta_course.description != ta_course.default_description():
                     # change the description
                     ta_course.description = ta_course.default_description()
@@ -988,7 +988,7 @@ def assign_bus(request, post_slug, course_slug):
     for applicant in applicants:
         # Determine Current Grad Status
         applicant.active_gs = GradStudent.objects.filter(person=applicant.person, current_status__in=STATUS_REAL_PROGRAM) \
-                .select_related('program__unit')
+                .select_related('program__unit').order_by("-created_at").first()
         
         # Determine Campus Preference
         try:
@@ -1888,8 +1888,13 @@ def generate_csv_by_course_detail(request, post_slug):
     offerings = [o for o in all_offerings if o.course_id not in excl]
     
     # collect all course preferences in a sensible way
-    prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
+    prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app__person', 'course')
     
+    # collect all grad program who apply ta posting
+    personids = TAApplication.objects.filter(posting=posting).values_list('person_id', flat=True)
+    active_gs = GradStudent.objects.filter(person_id__in=personids, current_status__in=STATUS_REAL_PROGRAM) \
+                .select_related('program__unit')
+
     # generate CSV
     filename = str(posting.slug) + '_by_course.csv'
     response = HttpResponse(content_type='text/csv')
@@ -1913,6 +1918,25 @@ def generate_csv_by_course_detail(request, post_slug):
             (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
         for app in applications_for_this_offering:
             rank = 'R%d' % app.rank
+            
+            gptype = '' 
+            gpyear = '' 
+
+            for g in active_gs:
+                if g.person_id == app.person_id:
+                    if 'PhD' in g.program.label:
+                        gptype =  'P1'
+                        gpyear = g.year_as_of()
+                    elif 'MSc' in g.program.label:
+                        gptype = 'P2'
+                        gpyear = g.year_as_of()
+                    elif 'Prof' in g.program.label:
+                        gptype = 'P3'
+                        gpyear = g.semester_as_of()
+                    else:
+                        gptype = 'P4'
+                    break
+
             exp = ''
             if offering.name() in app.past_experience_display():
                 exp = 'T'
@@ -1925,7 +1949,7 @@ def generate_csv_by_course_detail(request, post_slug):
             for tacrs in tacrss:
                 assigned_bu += tacrs.bu
 
-            row = [rank, app.person.sortname(), app.person.emplid, app.grad_program_type(), app.grad_program_yearsem(), app.person.email(), app.category, app.get_current_program_display(), \
+            row = [rank, app.person.sortname(), app.person.emplid, gptype, gpyear, app.person.email(), app.category, app.get_current_program_display(), \
             exp, app.base_units]
             
             if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:

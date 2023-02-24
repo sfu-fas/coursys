@@ -230,35 +230,50 @@ diff: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span>.
 <tbody>
 {% for a in applications %}
       <tr class='application_row'>
-        <td scope="row"><a href="{% url "ta:view_application" post_slug=posting.slug userid=a.person.userid %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
+        <td scope="row"><a href="{% url "ta:view_application" post_slug=posting.slug userid=a.person.userid %}"  target="_blank">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
         <td>
             {% for form in formset %}
                 {% if forloop.counter == forloop.parentloop.counter %}
                   {{ form.rank }}  {{ form.rank.errors }}
                 {% endif %}
             {% endfor %}
-        </td>
-        <td>
-            {{ a.grad_program_type }}
-        </td>   
-        <td>
-            {{ a.grad_program_yearsem }}
-        </td>             
-        <td>
-            {% for st in a.active_gs %}
-            <a href="{% url "grad:view" grad_slug=st.slug %}">  {{st.program.label}} ({{st.program.unit.label}}, {{st.get_current_status_display}}) Promise: {{ st|display_ta_promise |floatformat}} Owing: {{ st|display_ta_owe |floatformat}}</a> {% if not forloop.last %}<br />{% endif %}
-            {% endfor %}
-        </td>
-        <td>{{ a.get_category_display }}
-            {% for st in a.active_gs %}
-                {% if forloop.first %}
-                    {% if 'PhD' in st.program.label and a.get_category_display == 'PhD' %}
-                    <i class="fa fa-check" title="Category matched"></i>
-                    {% elif 'MSc' in st.program.label or 'Prof' in st.program.label and a.get_category_display == 'Masters' %}
-                    <i class="fa fa-check" title="Category matched"></i>              
+        </td>    
+            {% if a.active_gs %}  
+                <td>
+                    {% if 'PhD' in a.active_gs.program.label %} 
+                        P1
+                    {% elif 'MSc' in a.active_gs.program.label %} 
+                        P2
+                    {% elif 'Prof' in a.active_gs.program.label %} 
+                        P3
+                    {% else %} 
+                        P4
                     {% endif %}
-                {% endif %}
-            {% endfor %}
+                </td>
+                <td>
+                    {% if 'Prof' in a.active_gs.program.label %}
+                        {{ a.active_gs.semester_as_of }}
+                    {% else %}
+                        {{ a.active_gs.year_as_of }} 
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url "grad:view" grad_slug=a.active_gs.slug %}"  target="_blank">  {{a.active_gs.program.label}} ({{a.active_gs.program.unit.label}}, {{a.active_gs.get_current_status_display}}) </a> 
+                </td>
+                <td>{{ a.get_category_display }}
+                    {% if 'PhD' in a.active_gs.program.label and a.get_category_display == 'PhD' %}
+                        <i class="fa fa-check" title="Category matched"></i>
+                    {% elif 'MSc' in a.active_gs.program.label or 'Prof' in a.active_gs.program.label and a.get_category_display == 'Masters' %}
+                        <i class="fa fa-check" title="Category matched"></i>              
+                    {% endif %}          
+                </td>
+            {% else %}
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{{ a.get_category_display }}</td>
+            {% endif %}
+        
         </td>
         <td>{{ a.supervisor }} 
             {% if a.coursys_supervisor_display %} 

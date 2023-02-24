@@ -562,30 +562,6 @@ class TAApplication(models.Model):
             gradprogram.append(st.program.label)
         return ', '.join(gradprogram)
 
-    def grad_program_type(self):
-        active_gs = GradStudent.objects.filter(person=self.person, current_status__in=STATUS_REAL_PROGRAM) \
-                .select_related('program__unit').first()
-        if active_gs is not None:
-            if 'PhD' in active_gs.program.label:
-                return 'P1'
-            elif 'MSc' in active_gs.program.label:
-                return 'P2'
-            elif 'Prof' in active_gs.program.label:
-                return 'P3'
-            else:
-                return 'P4'
-        return ''
-    
-    def grad_program_yearsem(self):
-        active_gs = GradStudent.objects.filter(person=self.person, current_status__in=STATUS_REAL_PROGRAM) \
-                .select_related('program__unit').first()
-        if active_gs is not None:
-            if 'Prof' in active_gs.program.label:
-                return active_gs.semester_as_of()
-            else:
-                return active_gs.year_as_of()        
-        return ''
-
     def contract_status_display(self):
         status = ''
         tacontract = TAContract.objects.filter(application=self).first()
