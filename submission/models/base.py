@@ -143,7 +143,7 @@ class GroupSubmission(Submission):
                 n = NewsItem(user = member.student.person, author=self.creator.person, course=member.group.courseoffering,
                     source_app="submit_group", title="New Group Submission",
                     content="Your group member %s has made a submission for %s."
-                        % (self.creator.person.name(), self.activity.name),
+                        % (self.creator.person.name_pref(), self.activity.name),
                     url=reverse('offering:submission:show_components', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': member.activity.slug})
                     )
                 n.save()

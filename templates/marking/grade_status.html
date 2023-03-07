@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Change Grade: {{student.name}}, {{activity.name}}{% endblock %}
-{% block h1 %}Change Grade: {{student.name}}, {{activity.name}}{% endblock %}
+{% block title %}Change Grade: {{student.name_with_pref}}, {{activity.name}}{% endblock %}
+{% block h1 %}Change Grade: {{student.name_with_pref}}, {{activity.name}}{% endblock %}
 
 
 {% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
@@ -21,7 +21,7 @@
 		 <tr>
 	    	<th scope="row">Student Name</th>
 	        <td>
-	            {{student.name}}  
+	            {{student.name_with_pref}}  
 	        </td>
 	    </tr>
 	    <tr>
