@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}Marking: {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
-{% block h1 %}Marking: {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
+{% block title %}Marking: {% if student %}{{student.name_pref}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
+{% block h1 %}Marking: {% if student %}{{student.name_pref}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Marking Summary</li>{% endblock %}

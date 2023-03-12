@@ -44,7 +44,7 @@
 {% for d in student_data %}
 <tr>
   <td>{{ d.form.selected }}</td> 
-  <td>{{ d.member.person.name }} ({{ d.member.person.userid }}, {{ d.member.person.emplid }})</td>
+  <td>{{ d.member.person.name_with_pref }} ({{ d.member.person.userid }}, {{ d.member.person.emplid }})</td>
 </tr> 
 {% endfor %}
 </tbody>

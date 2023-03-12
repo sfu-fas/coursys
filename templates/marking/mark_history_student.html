@@ -14,13 +14,13 @@
 </script>
 {% endblock %}
 
-{% block title %}Marking History: {{student.name}}, {{activity.name}}{% endblock %}
-{% block h1 %}Marking History: {{student.name}}, {{activity.name}}{% endblock %}
+{% block title %}Marking History: {{student.name_with_pref}}, {{activity.name}}{% endblock %}
+{% block h1 %}Marking History: {{student.name_with_pref}}, {{activity.name}}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li>
-<li><a href="{% url "offering:marking:mark_summary_student" course_slug=course.slug activity_slug=activity.slug userid=student.userid_or_emplid %}">{{student.name}} Marking</a></li>
+<li><a href="{% url "offering:marking:mark_summary_student" course_slug=course.slug activity_slug=activity.slug userid=student.userid_or_emplid %}">{{student.name_with_pref}} Marking</a></li>
 <li>History</li>
 {% endblock %}
 
