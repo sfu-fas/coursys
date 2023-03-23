@@ -31,7 +31,7 @@ LAB_PREP_HOURS = 13 # min hours of prep for courses with tutorials/labs
 HOLIDAY_HOURS_PER_BU = decimal.Decimal('1.1')
 
 CMPT_WCOURSE_BU = decimal.Decimal('2')  # additional BU for writing course
-CMPT_COURSE_BU = decimal.Decimal('1.17') 
+CMPT_COURSE_BU = decimal.Decimal('0.17') 
 
 DEPT_CHOICES = [
     ('CMPT', 'CMPT student'),
