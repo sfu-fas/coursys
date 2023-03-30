@@ -22,7 +22,7 @@
 			<tr>
 				<td> 
                     {% if d.removed %}<del>{% endif %}
-                        {{ d.date }}
+                        <span class="sort">{{ d.date.isoformat }}</span>{{ d.date }}
                     {% if d.removed %}</del>{% endif %}
                 </td>
                 <td>
