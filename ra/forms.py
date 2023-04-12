@@ -53,9 +53,9 @@ OBJECT_CHOICES = (
 # model with a single entry doesn't seem quite right? django-dbsettings?
 
 # deal with upcoming minimum wage increases (only one at a time)
-NEW_MIN_WAGE_DATE = datetime.date(2022, 6, 1) # Update to most recent or upcoming minimum wage increase date, once known
-NEW_MIN_WAGE = 15.65 # Update to most recent or upcoming new minimum wage, once known
-MIN_WAGE = 15.20 # Update to new minimum wage once another upcoming minimum wage is known 
+NEW_MIN_WAGE_DATE = datetime.date(2023, 6, 1) # Update to most recent or upcoming minimum wage increase date, once known
+NEW_MIN_WAGE = 16.75 # Update to most recent or upcoming new minimum wage, once known
+MIN_WAGE = 15.65 # Update to new minimum wage once another upcoming minimum wage is known 
 
 def get_minimum_wage(date):
     if date >= NEW_MIN_WAGE_DATE:
