@@ -15,7 +15,7 @@ from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContra
     HOLIDAY_HOURS_PER_BU, LAB_PREP_HOURS, TAContractEmailText
 from tacontracts.models import TACourse as NewTACourse
 from ra.models import Account
-from grad.models import GradStudent, STATUS_REAL_PROGRAM
+from grad.models import GradStudent, STATUS_REAL_PROGRAM, STATUS_ACTIVE
 from dashboard.models import NewsItem
 from coredata.models import Member, Role, CourseOffering, Person, Semester, CAMPUSES, CombinedOffering
 from coredata.queries import more_personal_info, SIMSProblem, ensure_person_from_userid
@@ -44,7 +44,7 @@ def _format_currency(i):
 def _create_news(person, url, from_user, accept_deadline):
 
     # attempt to e-mail the student's supervisor
-    gradstudents = GradStudent.get_canonical(person)
+    gradstudents = GradStudent.objects.filter(person=person, current_status__in=STATUS_ACTIVE)
     if len(gradstudents) > 0:
         gradstudent = gradstudents[0]
         # See if we can find a supervisor to notify.  The student shouldn't have Senior, CoSenior, and Potential
@@ -1978,6 +1978,10 @@ def generate_csv_by_course(request, post_slug):
     # collect all course preferences in a sensible way
     prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
     
+    # collect those applicants without choose any course
+    prefsappid = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course').values_list('app_id', flat=True)
+    noprefs = TAApplication.objects.filter(posting=posting).exclude(id__in=prefsappid)
+
     # generate CSV
     filename = str(posting.slug) + '_by_course.csv'
     response = HttpResponse(content_type='text/csv')
@@ -2016,10 +2020,18 @@ def generate_csv_by_course(request, post_slug):
             offering_rows.append(row)
         offering_rows.append([])
 
+    noprefs_rows = []
+    for nopref in noprefs: 
+        noprefs_rows.append(['', nopref.person.sortname(), nopref.person.emplid, nopref.person.email(), nopref.category, nopref.get_current_program_display(), nopref.base_units])
+
     csvWriter.writerow(off)
     for row in offering_rows:
         csvWriter.writerow(row)
     
+    if len(noprefs) > 0:
+        csvWriter.writerow(['Below applicants have no course preference'])
+        for row in noprefs_rows:
+            csvWriter.writerow(row)
     return response
     
 @requires_role("TAAD")
