@@ -900,7 +900,7 @@ def assign_bus(request, post_slug, course_slug):
     instructors = offering.instructors()
     course_prefs = CoursePreference.objects.filter(app__posting=posting, course=offering.course, app__late=False).select_related('app')
     tacourses = TACourse.objects.filter(course=offering).select_related('contract__application__person')
-    all_applicants = TAApplication.objects.filter(posting=posting).select_related('person')
+    all_applicants = TAApplication.objects.filter(posting=posting).select_related('person').select_related('supervisor')
     descrs = CourseDescription.objects.filter(unit=posting.unit)
     if not descrs.filter(labtut=True) or not descrs.filter(labtut=False):
         messages.error(request, "Must have at least one course description for TAs with and without labs/tutorials before assigning TAs.")
