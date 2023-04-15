@@ -53,9 +53,9 @@ OBJECT_CHOICES = (
 # model with a single entry doesn't seem quite right? django-dbsettings?
 
 # deal with upcoming minimum wage increases (only one at a time)
-NEW_MIN_WAGE_DATE = datetime.date(2022, 6, 1) # Update to most recent or upcoming minimum wage increase date, once known
-NEW_MIN_WAGE = 15.65 # Update to most recent or upcoming new minimum wage, once known
-MIN_WAGE = 15.20 # Update to new minimum wage once another upcoming minimum wage is known 
+NEW_MIN_WAGE_DATE = datetime.date(2023, 6, 1) # Update to most recent or upcoming minimum wage increase date, once known
+NEW_MIN_WAGE = 16.75 # Update to most recent or upcoming new minimum wage, once known
+MIN_WAGE = 15.65 # Update to new minimum wage once another upcoming minimum wage is known 
 
 def get_minimum_wage(date):
     if date >= NEW_MIN_WAGE_DATE:
@@ -507,7 +507,7 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
     scholarship_confirmation_1 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="a) primarily contribute to the student’s academic progress, for example by inclusion in the student’s thesis?")
     scholarship_confirmation_2 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="b) primarily contribute to or benefit someone other than the student, for example by supporting your research program or the grant?")
     scholarship_confirmation_3 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label=mark_safe("c) <u>are not</u> meant to be included in the student’s thesis?"))
-    scholarship_confirmation_4 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label=mark_safe("d) <u>are not</u> meant to part of the student’s education in the student’s academic discipline?"))
+    scholarship_confirmation_4 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label=mark_safe("d) <u>are not</u> meant to be part of the student’s education in the student’s academic discipline?"))
     scholarship_confirmation_5 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="a) ask the student to perform research or research-related activities at specific times or places?")
     scholarship_confirmation_6 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="b) require the student to track and/or report the hours during which the student is performing research or research-related activities?")
     scholarship_confirmation_7 = forms.ChoiceField(required=True, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="c) ask or expect the student to perform a specified amount of research or research-related activities in a given week?")
@@ -769,7 +769,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     
     ra_benefits = forms.ChoiceField(required=True, choices=RA_BENEFITS_CHOICES, widget=forms.RadioSelect, 
                                     label='Are you willing to provide extended health benefits?', 
-                                    help_text=mark_safe('<a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/benefits/TSSU/RA%20Summary%20April%202022v2.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
+                                    help_text=mark_safe('<a href="https://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/forms/RA/RA%20Benefit%20Summary%20-%20April%202023.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
 
     swpp = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Are you planning to apply for student wage subsidy through the Student Work Placement Program (SWPP)?",
                              help_text=mark_safe('<a href="https://www.sfu.ca/hire/covid19/funding.html">Please click here for information about SWPP</a>'))
