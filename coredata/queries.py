@@ -400,16 +400,14 @@ def get_names(emplid):
     # order by effdt to leave the latest in the dictionary at end
     for name_type, prefix, last, first, middle in db:
         if name_type == 'PRI':
-            last_name = last
             first_name = first
-            middle_name = middle
-            title = prefix
         elif name_type == 'PRF':
             pref_first_name = first
-
-    # ensure we have a pref_first_name of some kind
-    #if not pref_first_name:
-    #    pref_first_name = first_name
+        # Use most-recent last/middle from either PRI or PRF,
+        # whichever is most recent. Seems to be what SIMS does.
+        last_name = last
+        middle_name = middle
+        title = prefix
     
     return last_name, first_name, middle_name, pref_first_name, title
 
