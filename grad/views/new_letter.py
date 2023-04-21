@@ -22,8 +22,10 @@ def new_letter(request, grad_slug, letter_template_slug):
     directors = Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id')
     if directors:
         default_from = directors[0].person.id
+        default_fromlines = "%s. %s\r\n%s" % (directors[0].person.get_title(), directors[0].person.letter_name(), 'Graduate Program Director')
     else:
         default_from = None
+        default_fromlines = None
     
     ls = grad.letter_info()
     if request.method == 'POST':
@@ -42,7 +44,7 @@ def new_letter(request, grad_slug, letter_template_slug):
             l.save()            
             return HttpResponseRedirect(reverse('grad:manage_letters', kwargs={'grad_slug':grad_slug}))
     else:
-        form = LetterForm(initial={'student': grad, 'date': datetime.date.today(), 'from_person': default_from})
+        form = LetterForm(initial={'student': grad, 'date': datetime.date.today(), 'from_person': default_from, 'from_lines': default_fromlines})
         form.fields['from_person'].choices = from_choices
         
     context = {
