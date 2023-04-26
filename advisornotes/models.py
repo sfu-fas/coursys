@@ -163,6 +163,8 @@ ARTIFACT_CATEGORIES = (
 class Artifact(models.Model):
     name = models.CharField(max_length=140, help_text='The name of the artifact', null=False, blank=False)
     category = models.CharField(max_length=3, choices=ARTIFACT_CATEGORIES, null=False, blank=False)
+    # flag if artifact is retired
+    hidden = models.BooleanField(null=False, default=False)
 
     def autoslug(self):
         return make_slug(self.unit.label + '-' + self.name)

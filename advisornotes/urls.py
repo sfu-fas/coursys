@@ -38,11 +38,13 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^offerings/' + COURSE_SLUG + '/$', advisornotes_views.view_offering_notes, name='view_offering_notes'),
     url(r'^offerings/' + COURSE_SLUG + '/' + NOTE_ID + '/edit$', advisornotes_views.edit_artifact_note, name='edit_artifact_note'),
     url(r'^artifacts/$', advisornotes_views.view_artifacts, name='view_artifacts'),
+    url(r'^artifacts/retired$', advisornotes_views.view_retired_artifacts, name='view_retired_artifacts'),
     url(r'^artifacts/' + ARTIFACT_SLUG + '/new$', advisornotes_views.new_artifact_note, name='new_artifact_note'),
     url(r'^artifacts/' + ARTIFACT_SLUG + '/$', advisornotes_views.view_artifact_notes, name='view_artifact_notes'),
     url(r'^artifacts/' + ARTIFACT_SLUG + '/' + NOTE_ID + '/edit$', advisornotes_views.edit_artifact_note, name='edit_artifact_note'),
     url(r'^new_artifact$', advisornotes_views.new_artifact, name='new_artifact'),
     url(r'^artifacts/' + ARTIFACT_SLUG + '/edit$', advisornotes_views.edit_artifact, name='edit_artifact'),
+    url(r'^artifacts/' + ARTIFACT_SLUG + '/delete$', advisornotes_views.delete_artifact, name='delete_artifact'),
     url(r'^artifacts/' + NOTE_ID + '/file', advisornotes_views.download_artifact_file, name='download_artifact_file'),
 
     url(r'^students/' + USERID_OR_EMPLID + '/new$', advisornotes_views.new_note, name='new_note'),

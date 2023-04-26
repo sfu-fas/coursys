@@ -6,7 +6,7 @@
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
 $(function() {
-  $('.artifacts').dataTable( {
+  $('#artifacts').dataTable( {
     'bPaginate': false,
     'bInfo': false,
     'bLengthChange': true,
@@ -26,6 +26,7 @@ $(function() {
     <h2 class="heading">Actions</h2>
     <ul>
         <li><a href="{% url "advising:new_artifact" %}">Create new artifact</a></li>
+        <li><a href="{% url "advising:view_retired_artifacts" %}">View retired artifacts</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -33,11 +34,12 @@ $(function() {
 {% block content %}
 
 {% if artifacts %}
-<table class="display artifacts">
+<table id="artifacts" class="display">
     <thead>
         <tr>
             <th class="category">Category</th>
             <th class="name">Name</th>
+            <th class="delete">Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -45,6 +47,19 @@ $(function() {
         <tr>
             <td>{{ artifact.get_category_display }}</td>
             <td><a href="{% url "advising:view_artifact_notes" artifact_slug=artifact.slug %}">{{ artifact.name }}</a></td>
+            <td>
+                <form class="lineform" method="POST" action="{% url "advising:delete_artifact" artifact_slug=artifact.slug %}">
+                    {% csrf_token %}
+                    <button type='submit' class='btn confirm-submit' title="Delete Artifact" data-submit-action="delete this artifact">
+                        <i class='fa fa-trash-o'></i>
+                    </button>
+                </form>
+                <a class="lineform" href="{% url "advising:edit_artifact" artifact_slug=artifact.slug %}">
+                    <button type='submit' class='btn' title="Edit Artifact">
+                        <i class='fa fa-edit'></i>
+                    </button>
+                </a>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
