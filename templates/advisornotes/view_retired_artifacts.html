@@ -26,7 +26,7 @@ $(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url "advising:new_artifact" %}">Create new artifact</a></li>
+        <li><a href="{% url "advising:view_artifacts" %}">View Artifacts</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -51,7 +51,7 @@ $(function() {
     </tbody>
 </table>
 {% else %}
-<p>There are no artifacts. <a href="{% url "advising:new_artifact" %}">Create one now.</a></p>
+<p>There are no retired artifacts.</p>
 {% endif %}
 
 {% endblock %}
