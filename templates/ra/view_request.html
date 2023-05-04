@@ -112,7 +112,9 @@
     {% if req.student == 'U' %}
         <tr><th>USRA:</th><td>{{ req.usra|yesno|capfirst }}</td></tr>
     {% endif %}
+    {% if show_mitacs %}
     <tr><th>Funded by Mitacs:</th><td>{{ req.mitacs|yesno|capfirst }}</td></tr>
+    {% endif %}
     {% endif %}
     {% if show_research %}
     <tr><th>Involves Research:</th><td>{{ req.research|yesno|capfirst }}</td></tr>

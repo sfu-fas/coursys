@@ -1,7 +1,7 @@
 var noIdFields = ['intro-first_name', 'intro-last_name', 'intro-email_address']
 var idFields = ['intro-person']
 
-var studentFields = ['intro-coop', 'intro-mitacs', 'intro-thesis', 'intro-research', 'intro-usra']
+var studentFields = ['intro-coop', 'intro-thesis', 'intro-research', 'intro-usra']
 
 var fs1MultiFields = ['funding_sources-fs1_start_date', 'funding_sources-fs1_end_date', 'funding_sources-fs1_amount']
 
@@ -71,34 +71,27 @@ function studentFieldsUpdate () {
         if (student.val() == 'U') {
             show(['intro-usra'])
             if (usra.val() === 'False') {
-                show(['intro-mitacs'])
+                show(['intro-research'])
             } else {
-                hide(['intro-mitacs', 'intro-research', 'intro-thesis'])
-                setToNone(['intro-mitacs', 'intro-research', 'intro-thesis'])
+                hide(['intro-research', 'intro-thesis'])
+                setToNone(['intro-research', 'intro-thesis'])
             }
         } else if (student.val() == 'M' || student.val() == 'P') {
-            show(['intro-mitacs'])
+            show(['intro-research'])
             hide(['intro-usra'])
             setToNone(['intro-usra'])
         }
-        var mitacs = $('input[name=intro-mitacs]:checked')
         var research = $('input[name=intro-research]:checked')
-        if (mitacs.val() === 'False') {
-            show(['intro-research'])
-            if (research.val() === 'True') {
-                show(['intro-thesis'])
-            } else {
-                hide(['intro-thesis'])
-                setToNone(['intro-thesis'])
-            }
+        if (research.val() === 'True') {
+            show(['intro-thesis'])
         } else {
-            hide(['intro-research', 'intro-thesis'])
-            setToNone(['intro-research', 'intro-thesis'])
+            hide(['intro-thesis'])
+            setToNone(['intro-thesis'])
         }
     } else if (student.val() == 'N' && student_checked == true) {
         show(['intro-research'])
-        hide(['intro-coop', 'intro-mitacs', 'intro-usra', 'intro-thesis'])
-        setToNone(['intro-coop', 'intro-mitacs', 'intro-usra', 'intro-thesis'])
+        hide(['intro-coop', 'intro-usra', 'intro-thesis'])
+        setToNone(['intro-coop', 'intro-usra', 'intro-thesis'])
     } else {
         hide(studentFields)
         setToNone(studentFields)
@@ -143,7 +136,6 @@ function nonContinuing () {
 function hiringCategoryRec () {
     var student = $('input[name=intro-student]:checked')
     var thesis = $('input[name=intro-thesis]:checked')
-    var mitacs =  $('input[name=intro-mitacs]:checked')
     var research =  $('input[name=intro-research]:checked')
     var usra =  $('input[name=intro-usra]:checked')
     
@@ -153,8 +145,6 @@ function hiringCategoryRec () {
         nonContinuing()
     } else if (usra.val() === 'True' & student.val() === 'U') {
         researchAssistant()
-    } else if (mitacs.val() === 'True') {
-        graduateResearchAssistant()
     } else if (research.val() === 'False') {
         nonContinuing()
     } else if (thesis.val() == 'True') {
@@ -601,11 +591,9 @@ $(document).ready(function() {
     // is the appointee a student?
     $('#id_intro-student').change(studentFieldsUpdate)
     $('#id_intro-usra').change(studentFieldsUpdate)
-    $('#id_intro-mitacs').change(studentFieldsUpdate)
     $('#id_intro-research').change(studentFieldsUpdate)
 
     $('#id_intro-student').change(hiringCategoryRec)
-    $('#id_intro-mitacs').change(hiringCategoryRec)
     $('#id_intro-usra').change(hiringCategoryRec)
     $('#id_intro-research').change(hiringCategoryRec)
     $('#id_intro-thesis').change(hiringCategoryRec)
