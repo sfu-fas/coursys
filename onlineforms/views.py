@@ -984,9 +984,10 @@ def index(request):
     sheet_submissions = None
     participated = None
     recent_forms = []
+    fas_units = Unit.objects.filter(label__in=['APSC', 'CMPT', 'ENSC', 'MSE', 'SEE'])
     if request.user.is_authenticated:
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
-        forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
+        forms = Form.objects.filter(active=True, unit__in=fas_units).exclude(initiators='NON').order_by('unit__name', 'title')
         forms = [form for form in forms if not form.unlisted()]
         # forms recently initiated by user
         recent_forms = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user), \
@@ -1004,9 +1005,9 @@ def index(request):
         participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user))\
             .exclude(form_submission__initiator=_userToFormFiller(loggedin_user)).count() > 0
     else:
-        forms = Form.objects.filter(active=True, initiators='ANY').order_by('unit__name', 'title')
+        forms = Form.objects.filter(active=True, initiators='ANY', unit__in=fas_units).order_by('unit__name', 'title')
         forms = [form for form in forms if not form.unlisted()]
-        other_forms = Form.objects.filter(active=True, initiators='LOG')
+        other_forms = Form.objects.filter(active=True, initiators='LOG', unit__in=fas_units)
         other_forms = [form for form in other_forms if not form.unlisted()]
 
     form_admin = Role.objects_fresh.filter(role__in=['ADMN', 'FORM'], person__userid=request.user.username).count() > 0
