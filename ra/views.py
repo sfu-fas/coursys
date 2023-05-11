@@ -330,6 +330,7 @@ class RANewRequestWizard(SessionWizardView):
                 setattr(req, field, value)
 
         req.author = get_object_or_404(Person, userid=self.request.user.username)
+        req.mitacs = ""
 
         if req.hiring_category=="GRAS":
             req.ra_payment_method = None
@@ -749,8 +750,9 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     nc_hourly = (non_cont and req.nc_payment_method=="H")
     nc_bw = (non_cont and req.nc_payment_method=="BW")
     nonstudent = req.student=="N"
-    show_research = nonstudent or not req.mitacs
+    show_research = nonstudent or not req.usra
     show_thesis = not nonstudent and req.research
+    show_mitacs = (req.mitacs == True or req.mitacs == False)
     is_processor = (user == req.processor)
 
     adminform = RARequestAdminForm(instance=req)
@@ -759,7 +761,7 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
         {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 'no_id': req.nonstudent,
          'author': author, 'graduate_research_assistant': graduate_research_assistant, 'research_assistant': research_assistant, 'non_cont': non_cont, 
          'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw, 'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 
-         'show_thesis': show_thesis, 'show_research': show_research, 'adminform': adminform, 'admin': admin, 
+         'show_thesis': show_thesis, 'show_research': show_research, 'show_mitacs': show_mitacs, 'adminform': adminform, 'admin': admin, 
          'permissions': request.units, 'status': req.status(), 'is_processor': is_processor})
 
 @requires_role("FUND")
