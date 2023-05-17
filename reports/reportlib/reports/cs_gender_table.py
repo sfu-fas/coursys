@@ -86,6 +86,9 @@ PLAN_CATEGORY = {
     'GISMAJ': 'Joint Maj',
     'SOSYMAJ': 'Major',
     'ZUSFU': 'DDP',
+    'CPMC': 'MSc',
+    'CPMVC': 'MSc',
+    'CPPMS': 'MSc',
 }
 CATEGORIES = [
     'Major',

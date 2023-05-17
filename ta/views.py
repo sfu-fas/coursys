@@ -1302,6 +1302,10 @@ def accept_contract(request, post_slug, userid, preview=False):
            
             if "reject" in request.POST:
                 contract.status = 'REJ'
+                l = LogEntry(userid=request.user.username,
+                        description="TA Rejected for %s (%s in %s)." % (contract.application.person.userid, contract.application.posting.semester, contract.application.posting.unit),
+                        related_object=contract.application)
+                l.save()
             elif "accept" in request.POST:
                 contract.status = 'ACC'
             contract.save()
@@ -1310,6 +1314,10 @@ def accept_contract(request, post_slug, userid, preview=False):
             # Do this after the save, just in case something went wrong during saving:
             if "accept" in request.POST:
                 contract.email_contract()
+                l = LogEntry(userid=request.user.username,
+                        description="TA Accepted and contract sent to %s email %s." % (contract.application.person.userid, contract.application.person.email()),
+                        related_object=contract.application)
+                l.save()
                 messages.info(request, "You should be receiving an email with your contract attached.")
 
             ##not sure where to redirect to...so currently redirects to itself
