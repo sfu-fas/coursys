@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}
 {% block title %}Notes for {{ artifact }}{% endblock %}
-{% block h1 %}Notes for {{ artifact }}{% endblock %}
+{% block h1 %}Notes for {{ artifact }} {% if retired %}(RETIRED){% endif %}{% endblock %}
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
@@ -38,11 +38,13 @@ $(function() {
 
 {% block actions %}
 <div id="actions">
+    {% if not retired %}
     <h2>Actions</h2>
     <ul>
         <li><a href="{% url "advising:new_artifact_note" artifact_slug=artifact.slug %}">New Note</a></li>
         <li><a href="{% url "advising:edit_artifact" artifact_slug=artifact.slug %}">Edit Artifact</a></li>
     </ul>
+    {% endif %}
 </div>
 {% endblock %}
 
@@ -65,7 +67,7 @@ $(function() {
     {% endfor %}
 {%endif%}
 
-{% if not important_notes and not notes %}
+{% if not important_notes and not notes and not retired %}
     <p>No notes yet. <a href="{% url "advising:new_artifact_note" artifact_slug=artifact.slug %}">Create a new note.</a></p>
 {%endif%}
 </div>

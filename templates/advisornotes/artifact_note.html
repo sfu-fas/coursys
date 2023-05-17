@@ -15,23 +15,25 @@
         </dl>
 
         <div class="hideshow">
-            <label>
-                {% if note.hidden %}
-                    <input type="checkbox" class="hide-show" value="{{note.id}}" checked="checked" />
-                {% else %}
-                    <input type="checkbox" class="hide-show" value="{{note.id}}"/>
-                {% endif %}
-                <span>Hide this note?</span>
-            </label>
+            {% if not retired %}
+                <label>
+                    {% if note.hidden %}
+                        <input type="checkbox" class="hide-show" value="{{note.id}}" checked="checked" />
+                    {% else %}
+                        <input type="checkbox" class="hide-show" value="{{note.id}}"/>
+                    {% endif %}
+                    <span>Hide this note?</span>
+                </label>
 
-            {% if course %}
-            <a href="{% url "advising:edit_artifact_note" note_id=note.id unit_course_slug=course.slug %}">Edit</a>
-            {% endif %}
-            {% if offering %}
-            <a href="{% url "advising:edit_artifact_note" note_id=note.id course_slug=offering.slug %}">Edit</a>
-            {% endif %}
-            {% if artifact %}
-            <a href="{% url "advising:edit_artifact_note" note_id=note.id artifact_slug=artifact.slug %}">Edit</a>
+                {% if course %}
+                <a href="{% url "advising:edit_artifact_note" note_id=note.id unit_course_slug=course.slug %}">Edit</a>
+                {% endif %}
+                {% if offering %}
+                <a href="{% url "advising:edit_artifact_note" note_id=note.id course_slug=offering.slug %}">Edit</a>
+                {% endif %}
+                {% if artifact %}
+                <a href="{% url "advising:edit_artifact_note" note_id=note.id artifact_slug=artifact.slug %}">Edit</a>
+                {% endif %}
             {% endif %}
         </div>
     </div>

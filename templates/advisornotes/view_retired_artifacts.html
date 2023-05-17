@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Retired Artifacts{% endblock %}
+{% block h1 %}Retired Artifacts{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(function() {
+  $('#retired_artifacts').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:view_artifacts" %}">Artifacts</a></li>
+<li>Retired Artifacts</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url "advising:view_artifacts" %}">View Artifacts</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if retired_artifacts %}
+<table id="retired_artifacts" class="display">
+    <thead>
+        <tr>
+            <th class="category">Category</th>
+            <th class="name">Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for artifact in retired_artifacts %}
+        <tr>
+            <td>{{ artifact.get_category_display }}</td>
+            <td><a href="{% url "advising:view_artifact_notes" artifact_slug=artifact.slug %}">{{ artifact.name }}</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>There are no retired artifacts.</p>
+{% endif %}
+
+{% endblock %}

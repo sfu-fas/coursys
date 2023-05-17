@@ -307,7 +307,7 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
     elif course_slug != None:
         related = offering = get_object_or_404(CourseOffering, slug=course_slug)
     else:
-        related = artifact = get_object_or_404(Artifact, slug=artifact_slug)
+        related = artifact = get_object_or_404(Artifact, slug=artifact_slug, hidden=False)
 
     if request.method == 'POST':
         form = ArtifactNoteForm(request.POST, request.FILES)
@@ -363,7 +363,7 @@ def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None
     elif course_slug != None:
         related = offering = get_object_or_404(CourseOffering, slug=course_slug)
     else:
-        related = artifact = get_object_or_404(Artifact, slug=artifact_slug)
+        related = artifact = get_object_or_404(Artifact, slug=artifact_slug, hidden=False)
 
     if request.method == 'POST':
         form = EditArtifactNoteForm(request.POST, request.FILES, instance=note)
@@ -918,7 +918,7 @@ def edit_artifact(request, artifact_slug):
     """
     View to edit a new artifact
     """
-    artifact = get_object_or_404(Artifact, slug=artifact_slug)
+    artifact = get_object_or_404(Artifact, slug=artifact_slug, hidden=False)
     unit_choices = [(u.id, str(u)) for u in request.units]
     if request.POST:
         form = ArtifactForm(request.POST, instance=artifact)
@@ -938,18 +938,47 @@ def edit_artifact(request, artifact_slug):
         form.fields['unit'].choices = unit_choices
     return render(request, 'advisornotes/edit_artifact.html', {'form': form, 'artifact': artifact})
 
-
 @requires_role(['ADVS', 'ADVM'])
 def view_artifacts(request):
     """
-    View to view all artifacts
+    View to view all unretired artifacts
     """
-    artifacts = Artifact.objects.filter(unit__in=request.units)
+    artifacts = Artifact.objects.filter(unit__in=request.units, hidden=False)
     return render(request,
         'advisornotes/view_artifacts.html',
         {'artifacts': artifacts}
     )
 
+@requires_role(['ADVS', 'ADVM'])
+def view_retired_artifacts(request):
+    """
+    View to view all retired artifacts
+    """
+    retired_artifacts = Artifact.objects.filter(unit__in=request.units, hidden=True)
+    return render(request,
+        'advisornotes/view_retired_artifacts.html',
+        {'retired_artifacts': retired_artifacts}
+    )
+
+@requires_role(['ADVS', 'ADVM'])
+def delete_artifact(request: HttpRequest, artifact_slug: str) -> HttpResponse:
+    """
+    View to hide an artifact
+    """
+    if request.method == 'POST':
+        artifact = get_object_or_404(Artifact, slug=artifact_slug)
+        messages.add_message(request,
+                            messages.SUCCESS,
+                            'Artifact retired'
+                            )
+        l = LogEntry(userid=request.user.username,
+                     description="retired artifact: %s" % (artifact),
+                     related_object=artifact
+                     )
+        l.save()
+        artifact.hidden = True
+        artifact.save()
+    return HttpResponseRedirect(reverse('advising:view_artifacts'))
 
 @requires_role(['ADVS', 'ADVM'])
 def view_artifact_notes(request, artifact_slug):
@@ -957,12 +986,13 @@ def view_artifact_notes(request, artifact_slug):
     View to view all notes for a specific artifact
     """
     artifact = get_object_or_404(Artifact, slug=artifact_slug, unit__in=request.units)
+    retired = artifact.hidden
     notes = ArtifactNote.objects.filter(artifact__slug=artifact_slug).order_by('category', 'created_at')
     important_notes = notes.filter(important=True)
     notes = notes.exclude(important=True)
     return render(request,
         'advisornotes/view_artifact_notes.html',
-        {'artifact': artifact, 'notes': notes, 'important_notes': important_notes}
+        {'artifact': artifact, 'notes': notes, 'important_notes': important_notes, 'retired': retired}
     )
 
 
