@@ -128,3 +128,34 @@
     margin-right: 5px;
     margin-left: 0px;
 }
+
+.unit-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.unit {
+    background-color: #ffffff;
+    padding: 0px;
+    border: none;
+    font-family: "Times New Roman", Times, serif;
+    color: #a6192e;
+}
+
+.unit-options {
+display: none;
+position: absolute;
+background-color: #f1f1f1;
+min-width: 250px;
+border-radius: 8px;
+}
+
+.unit-options a {
+color: black;
+padding: 8px;
+display: block;
+}
+
+.unit-options a:hover {background-color: #ddd; border-radius: 8px;}
+
+.unit-menu:hover .unit-options {display: block;}
