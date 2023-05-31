@@ -53,7 +53,7 @@ def _build_funding_totals(semester, programs, units):
     # - /ta
     tacourses = TACourse.objects.filter(contract__posting__semester=semester,
                                         contract__posting__unit__in=units,
-                                        contract__status='SGN') \
+                                        contract__status__in=['ACC', 'SGN']) \
                         .select_related('contract__application')
     for crs in tacourses:
         person_id = crs.contract.application.person_id
