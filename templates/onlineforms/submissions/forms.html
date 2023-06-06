@@ -1,11 +1,25 @@
 {% extends "base-wide.html" %}
 {% load form_display %}
 {% load static %}
-{% block h1 %} Forms {% endblock %}
-{% block title %} Forms {% endblock %}
+{% block h1 %}{{unit.name}} Forms {% endblock %}
+{% block title %}{{unit.label}} Forms {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>Forms</li>
+<li><a href="{% url "onlineforms:index" %}">Forms</a></li>
+{% if unit_options %}
+<li>
+    <div class="unit-menu">
+        <button class="unit">{{unit.label}} &#9660</button>
+            <div class="unit-options">
+                {% for unit in unit_options %}
+                    <a href="{% url "onlineforms:index" unit_slug=unit.label %}">{{unit.name}}</a>
+                {% endfor %}
+            </div>
+    </div>
+</li>
+{% else %}
+{% if unit %}<li>{{unit.label}}</li>{% endif %}
+{% endif %}
 {% endblock %}
 
 {% block headextra %}
@@ -56,10 +70,10 @@
         
             $( "#search" ).catcomplete({
                 delay: 0,
-                source: "ajax_calls/form_search/",
+                source: "{{unit.label}}" + "/ajax_calls/form_search/",
                 minLength: 1,
                 select: function(event, ui) {   
-                    window.location.href=ui.item.value;
+                    window.location.pathname = "/forms/" + ui.item.value;
                     this.value = "";
                     return false;
                 },
@@ -126,7 +140,7 @@
 {% endif %}
 
 <h2 id="new">Available Forms</h2>
- 	<p>These forms can be filled out and submitted online.</p>
+ 	{% if forms %}<p>These forms can be filled out and submitted online.</p>{% endif %}
     {% if recent_forms %}
         <h3 class="summary_heading collapsible"><a href="#!general"></a>Forms Initiated in the Last 60 Days</h3>
         <div id="summary_content" class="collapse_menu">
@@ -135,6 +149,7 @@
     {% endif %}
     {% regroup forms by unit as unit_list %}
 
+    {% if forms %}
     {% if not other_forms %}
         <h3>Search by Keyword:</h3>
         <div class="form_section">
@@ -168,6 +183,9 @@
             </div>
         {% endfor %}
     </div>
+    {% else %}
+    {% if unit %}<p>There are no forms available to fill out for: {{unit.name}} (or any sub-units).</p>{% endif %}
+    {% endif %}
 
     {% if other_forms %}
         <h2 id="other">Forms for Logged-In Users</h2>

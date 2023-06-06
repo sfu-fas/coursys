@@ -33,6 +33,8 @@ import csv
 import json
 import os
 
+UNIVERSITY_UNIT = 'UNIV'
+PRIMARY_FACULTY_UNIT = 'APSC'
 #######################################################################
 # Group Management
 
@@ -979,14 +981,33 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 #######################################################################
 # Submitting sheets
 
-def index(request):
+def index(request, unit_slug=PRIMARY_FACULTY_UNIT):
+    unit = None
+    unit_options = []
+    try: 
+        university_unit = Unit.objects.get(label=UNIVERSITY_UNIT)
+        faculty_units = Unit.objects.filter(parent_id=university_unit.id)
+
+        unit = Unit.objects.get(label=unit_slug.upper())
+        units = Unit.sub_units([unit])
+        unit_options = faculty_units.exclude(label=unit.label)
+    except:
+        units = Unit.objects.all()
+    
+    if unit and faculty_units:
+        if unit not in faculty_units:
+            raise Http404
+
+    # faculty navigation options
+    unit_options_with_forms = []
+
     form_groups = None
     sheet_submissions = None
     participated = None
     recent_forms = []
     if request.user.is_authenticated:
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
-        forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
+        forms = Form.objects.filter(active=True, unit__in=units).exclude(initiators='NON').order_by('unit__name', 'title')
         forms = [form for form in forms if not form.unlisted()]
         # forms recently initiated by user
         recent_forms = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user), \
@@ -1003,23 +1024,39 @@ def index(request):
         # If the user is authenticated, see if they have forms that are done in which they participated.
         participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user))\
             .exclude(form_submission__initiator=_userToFormFiller(loggedin_user)).count() > 0
+        # only provide navigation options to other faculties if they have at least one available form
+        for unit_option in unit_options:
+            unit_forms = Form.objects.filter(active=True, unit__in=Unit.sub_units([unit_option])).exclude(initiators='NON')
+            unit_forms = [form for form in unit_forms if not form.unlisted()]
+            if len(unit_forms) > 0:
+                unit_options_with_forms.append(unit_option)
+
     else:
-        forms = Form.objects.filter(active=True, initiators='ANY').order_by('unit__name', 'title')
+        forms = Form.objects.filter(active=True, initiators='ANY', unit__in=units).order_by('unit__name', 'title')
         forms = [form for form in forms if not form.unlisted()]
-        other_forms = Form.objects.filter(active=True, initiators='LOG')
+        other_forms = Form.objects.filter(active=True, initiators='LOG', unit__in=units)
         other_forms = [form for form in other_forms if not form.unlisted()]
+        # only provide navigation options to other faculties if they have at least one available form
+        for unit_option in unit_options:
+            unit_forms = Form.objects.filter(active=True, initiators__in=['ANY', 'LOG'], unit__in=Unit.sub_units([unit_option]))
+            unit_forms = [form for form in unit_forms if not form.unlisted()]
+            if len(unit_forms) > 0:
+                unit_options_with_forms.append(unit_option)   
 
     form_admin = Role.objects_fresh.filter(role__in=['ADMN', 'FORM'], person__userid=request.user.username).count() > 0
 
     context = {'forms': forms, 'recent_forms': recent_forms, 'other_forms': other_forms, 'sheet_submissions': sheet_submissions,
-               'form_groups': form_groups, 'form_admin': form_admin, 'participated': participated}
+               'form_groups': form_groups, 'form_admin': form_admin, 'participated': participated, 'unit': unit, 'unit_options': unit_options_with_forms}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
 @login_required()
-def formSearchAutocomplete(request):
+def formSearchAutocomplete(request, unit_slug=PRIMARY_FACULTY_UNIT):
+    unit = Unit.objects.get(label=unit_slug.upper())
+    units = Unit.sub_units([unit])
+
     if request.is_ajax():
         q = request.GET.get('term', '').capitalize()
-        forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
+        forms = Form.objects.filter(active=True, unit__in=units).exclude(initiators='NON').order_by('unit__name', 'title')
         forms = forms.filter(Q(title__contains=q) | Q(description__contains=q))
         search_forms = [form for form in forms if not form.unlisted()]
         results = []
@@ -1027,7 +1064,7 @@ def formSearchAutocomplete(request):
             results.append({"unit": r.unit.name, "title": r.title, "description": r.description, "value": r.slug})
         data = json.dumps(results)
     else:
-        return HttpResponseRedirect(reverse('onlineforms:index'))
+        return HttpResponseRedirect(reverse('onlineforms:index'), kwargs={'unit_slug': unit.label})
     mimetype = 'application/json'
     return HttpResponse(data, mimetype)
 
