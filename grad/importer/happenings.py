@@ -38,6 +38,7 @@ def build_program_map():
     program_map['MSEMS'] = GradProgram.objects.get(label="M.A.Sc.", unit=mechunit)
     program_map['MESMS'] = GradProgram.objects.get(label="M.Eng.", unit=mechunit)
     program_map['MSEGX'] = GradProgram.objects.get(label="GrExc", unit=mechunit)
+    program_map['MECHVRS'] = GradProgram.objects.get(label="V.R.S.", unit=mechunit)
     program_map['ESMEN'] = GradProgram.objects.get(label="M.Eng.", unit=engunit)
     program_map['ESMAS'] = GradProgram.objects.get(label="M.A.Sc.", unit=engunit)
     program_map['ESPHD'] = GradProgram.objects.get(label="Ph.D.", unit=engunit)
