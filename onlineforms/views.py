@@ -331,11 +331,10 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
 
         if assign_to_sfu_account:
             form = AdminAssignFormForm(data=request.POST or None,
-                query_set=Form.objects.filter(active=True, owner__in=request.formgroups).exclude(initiators='NON'))
+                query_set=Form.objects.filter(active=True, owner__in=request.formgroups).exclude(initiators='NON').order_by('title'))
         else:
             form = AdminAssignFormForm_nonsfu(data=request.POST or None,
-                query_set=Form.objects.filter(active=True, owner__in=request.formgroups, initiators='ANY'))
-
+                query_set=Form.objects.filter(active=True, owner__in=request.formgroups, initiators='ANY').order_by('title'))
         if request.method == 'POST' and form.is_valid():
             # get the person to assign too
             if assign_to_sfu_account:
@@ -628,7 +627,7 @@ def list_all(request):
 @requires_formgroup()
 def new_form(request):
     with django.db.transaction.atomic():
-        group_choices = [(fg.id, str(fg)) for fg in request.formgroups]
+        group_choices = [(fg.id, str(fg)) for fg in sorted(request.formgroups, key=lambda x: x.name)]
         if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'add':
             form = NewFormForm(request.POST)
             form.fields['owner'].choices = group_choices
@@ -673,7 +672,7 @@ def view_form(request, form_slug):
 def edit_form(request, form_slug):
     with django.db.transaction.atomic():
         owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
-        group_choices = [(fg.id, str(fg)) for fg in request.formgroups]
+        group_choices = [(fg.id, str(fg)) for fg in sorted(request.formgroups, key=lambda x: x.name)]
 
         if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
             form = FormForm(request.POST, instance=owner_form)
