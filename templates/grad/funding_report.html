@@ -45,10 +45,10 @@
 			<tr>
             <th scope="col">Program</th>
 			{% if multiple_units %}<th scope="col">Unit</th>{% endif %}
-            <th scope="col">TA Funding</th>
-            <th scope="col">RA Funding</th>
-            <th scope="col">Scholarships</th>
-            <th scope="col">Other Funding</th>
+            <th scope="col"><a href="{% url "grad:funding_report_tas" semester_name=semester.name %}">TA Funding</a></th>
+            <th scope="col"><a href="{% url "grad:funding_report_ras" semester_name=semester.name %}">RA Funding</a></th>
+            <th scope="col"><a href="{% url "grad:funding_report_scholarships" semester_name=semester.name %}">Scholarships</a></th>
+            <th scope="col"><a href="{% url "grad:funding_report_other" semester_name=semester.name %}">Other Funding</a></th>
 			</tr>
 		</thead>
 		<tbody>
