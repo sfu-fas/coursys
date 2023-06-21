@@ -803,9 +803,6 @@ class TAContract(models.Model):
         subject = 'TA %s has %s the TA offer for %s' % (self.application.person.name(), status, self.posting.semester)
         content = 'TA %s has %s the TA offer for %s' % (self.application.person.name(), status, self.posting.semester)
         
-        response = HttpResponse(content_type="application/pdf")
-        response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % (self.posting.slug,
-                                                                            self.application.person.userid)
         to_email = self.posting.contact().email()
         from_email = settings.DEFAULT_FROM_EMAIL
         msg = EmailMultiAlternatives(subject=subject, body=content, from_email=from_email,
