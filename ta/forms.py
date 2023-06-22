@@ -272,7 +272,7 @@ class TAContractForm(forms.ModelForm):
 
     class Meta:
         model = TAContract
-        exclude = ['posting', 'application', 'created_by']
+        exclude = ['posting', 'application', 'created_by', 'config']
         widgets = {'remarks': forms.Textarea(attrs={'rows': 3, 'cols': 60}),
                    'appointment_start': CalendarWidget,
                    'appointment_end': CalendarWidget}
@@ -459,6 +459,9 @@ class TAPostingForm(forms.ModelForm):
         max_value=20, min_value=1, widget=forms.TextInput(attrs={'size': 5}))
     contact = forms.ChoiceField(label="Contact Person", 
         help_text="Person to give applicants/offers to ask questions.")
+    send_notify = forms.BooleanField(label="Send Notify to Contact Person", initial=True, 
+        required=False,
+        help_text='Contact person will receive email notification when someone accepts or declines an offer.')
     max_courses = forms.IntegerField(label="Maximum courses", 
         help_text="The maximum number of courses an applicant can specify.")
     min_courses = forms.IntegerField(label="Minimum courses", 
@@ -502,6 +505,7 @@ class TAPostingForm(forms.ModelForm):
         self.initial['min_courses'] = self.instance.min_courses()
         self.initial['payperiods'] = decimal.Decimal(self.instance.payperiods())
         self.initial['contact'] = self.instance.contact().id
+        self.initial['send_notify'] = self.instance.send_notify()
         self.initial['offer_text'] = self.instance.offer_text()
         skills = Skill.objects.filter(posting=self.instance)
         self.initial['extra_questions'] = '\n'.join(self.instance.extra_questions())
@@ -655,6 +659,11 @@ class TAPostingForm(forms.ModelForm):
         self.instance.config['hide_campuses'] = hide_campuses
         return hide_campuses
 
+    def clean_send_notify(self):
+        send_notify = self.cleaned_data['send_notify']
+        self.instance.config['send_notify'] = send_notify
+        return send_notify
+    
 class BUForm(forms.Form):
     students = forms.IntegerField(min_value=0, max_value=1000)
     bus = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2, widget=forms.TextInput(attrs={'class' : 'smallnumberinput'}))

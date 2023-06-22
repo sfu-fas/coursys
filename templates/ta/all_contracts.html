@@ -68,6 +68,7 @@
   		<th scope="col">Appt Category</th>
 		<th scope="col">Rank</th>
 		<th scope="col">Status</th>
+		<th scope="col">Acc/Rej Date</th>
 		<th scope="col">Total BU</th>
 		<th scope="col">TA Courses</th>
 		<th scope="col">Deadline</th>
@@ -83,6 +84,7 @@
   	<td>{{contract.get_appt_category_display}} ({{contract.appt_category}})</td>
 	<td>{{contract.application.rank}}</td>
 	<td>{{contract.get_status_display}}</td>
+	<td>{{contract.accrej_date|date:"M d Y"}}</td>
 	<td>{{contract.total_bu}}</td>
 	<td>{{contract.crs_list|linebreaksbr}}</td>
 	<td>{{ contract.deadline|date:"M d Y" }}</td>

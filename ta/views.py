@@ -34,6 +34,7 @@ import csv
 from ta.templatetags import ta_display
 import json
 from . import bu_rules
+import iso8601;
 
 locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' ) #fiddle with this if you cant get the following function to work
 def _format_currency(i):
@@ -579,7 +580,8 @@ def _new_application(request, post_slug, manual=False, userid=None):
                     'skill_values': skill_values,
                     'skill_choices': LEVEL_CHOICES,
                     'instructions': posting.instructions(),
-                    'hide_campuses': posting.hide_campuses()
+                    'hide_campuses': posting.hide_campuses(),
+                    'send_notify': posting.send_notify()
                   }
     return render(request, 'ta/new_application.html', context)
 
@@ -1165,7 +1167,11 @@ def all_contracts(request, post_slug):
         courses = TACourse.objects.filter(contract=contract)
         for course in courses:
             crs_list += course.course.subject+" "+course.course.number+" "+course.course.section+" ("+str(course.total_bu)+")\n"
-        contract.crs_list = crs_list    
+        contract.crs_list = crs_list
+        if contract.status == 'ACC' and contract.config.get('accepted_date') is not None:            
+            contract.accrej_date = iso8601.parse_date(contract.config.get('accepted_date'))
+        if contract.status == 'REJ' and contract.config.get('rejected_date') is not None:
+            contract.accrej_date = iso8601.parse_date(contract.config.get('rejected_date'))    
             
     #postings = TAPosting.objects.filter(unit__in=request.units).exclude(Q(semester=posting.semester))
     applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
@@ -1188,7 +1194,7 @@ def contracts_table_csv(request, post_slug):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s-table.csv"' % (posting.slug)
     writer = csv.writer(response)
-    writer.writerow(['Person', 'Email', 'Citizenship', 'Appt Category', 'Rank', 'Status', 'Total BU', 'TA Courses', 'Deadline'])
+    writer.writerow(['Person', 'Email', 'Citizenship', 'Appt Category', 'Rank', 'Status', 'Acc/Rej Date', 'Total BU', 'TA Courses', 'Deadline'])
     for c in contracts:
         citizen = ''
         if c.application.person.citizen():
@@ -1199,8 +1205,15 @@ def contracts_table_csv(request, post_slug):
             citizen += "(visa: "+ str(c.application.person.visa()) + ")"
         else:
             citizen += "(visa: unknown)"
+
+        statusdate = ''
+        if c.status == 'ACC' and c.config.get('accepted_date') is not None:            
+            statusdate = iso8601.parse_date(c.config.get('accepted_date')).strftime("%Y/%m/%d")
+        if c.status == 'REJ' and c.config.get('rejected_date') is not None:
+            statusdate = iso8601.parse_date(c.config.get('rejected_date')).strftime("%Y/%m/%d")
+
         writer.writerow([c.application.person, c.application.person.email(), citizen, c.get_appt_category_display() + '(' + c.appt_category + ')',
-                         c.application.rank, c.get_status_display(), c.total_bu(), c.crs_list, c.deadline])
+                         c.application.rank, c.get_status_display(), statusdate, c.total_bu(), c.crs_list, c.deadline])
     return response
 
 
@@ -1302,12 +1315,18 @@ def accept_contract(request, post_slug, userid, preview=False):
            
             if "reject" in request.POST:
                 contract.status = 'REJ'
+                contract.config['rejected_date'] = datetime.datetime.now()
+                if posting.config['send_notify'] is not None and posting.config['send_notify']:
+                    contract.send_notify('rejected')
                 l = LogEntry(userid=request.user.username,
                         description="TA Rejected for %s (%s in %s)." % (contract.application.person.userid, contract.application.posting.semester, contract.application.posting.unit),
                         related_object=contract.application)
                 l.save()
             elif "accept" in request.POST:
                 contract.status = 'ACC'
+                contract.config['accepted_date'] = datetime.datetime.now()
+                if posting.config['send_notify'] is not None and posting.config['send_notify']:
+                    contract.send_notify('accepted')
             contract.save()
             messages.success(request, "Successfully %s the offer." % (contract.get_status_display()))
             
