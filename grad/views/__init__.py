@@ -3,7 +3,7 @@ from .quick_search import quick_search
 from .not_found import not_found
 from .supervisor_index import supervisor_index, download_my_grads_csv
 from .all_promises import all_promises, download_promises
-from .funding_report import funding_report
+from .funding_report import funding_report, funding_report_download
 from .view import view
 from .grad_more_info import grad_more_info
 from .get_form import get_form

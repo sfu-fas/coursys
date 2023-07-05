@@ -27,6 +27,10 @@ grad_patterns = [ # prefix /grad/
     url(r'^promises_csv/(?P<semester_name>\d{4})$', grad_views.download_promises, name='download_promises'),
     url(r'^funding/$', grad_views.funding_report, name='funding_report'),
     url(r'^funding/(?P<semester_name>\d{4})$', grad_views.funding_report, name='funding_report'),
+    url(r'^funding/(?P<semester_name>\d{4})/download_tas', grad_views.funding_report_download, kwargs={'type': 'tas'}, name='funding_report_tas'),
+    url(r'^funding/(?P<semester_name>\d{4})/download_ras', grad_views.funding_report_download, kwargs={'type': 'ras'}, name='funding_report_ras'),
+    url(r'^funding/(?P<semester_name>\d{4})/download_scholarships', grad_views.funding_report_download, kwargs={'type': 'scholarships'}, name='funding_report_scholarships'),
+    url(r'^funding/(?P<semester_name>\d{4})/download_other', grad_views.funding_report_download, kwargs={'type': 'other'}, name='funding_report_other'),
     url(r'^financials_report', grad_views.financials_report, name='financials_report'),
     
     url(r'^' + GRAD_SLUG + '/$', grad_views.view, name='view'),
