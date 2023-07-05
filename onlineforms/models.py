@@ -459,7 +459,7 @@ class Form(models.Model, _FormCoherenceMixin):
                 print("Copied sheet %s." % s.title)
             print("Done!")
 
-    def all_submission_summary(self, statuses=['DONE']):
+    def all_submission_summary(self, statuses=['DONE'], fromdate=None, todate=None):
         """
         Generate summary data of each submission for CSV output
         (with FormSubmission and SheetSubmission statuses in given statuses list).
@@ -509,10 +509,17 @@ class Form(models.Model, _FormCoherenceMixin):
 
         # go through FormSubmissions and create a row for each
         formsubs = FormSubmission.objects.filter(form__original_id=self.original_id, status__in=statuses) \
-                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
+                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form') \
+                .annotate(last_sheet_dt=Max('sheetsubmission__completed_at'))
                 # selecting only fully completed forms: does it make sense to be more liberal and report status?
 
         # choose a winning SheetSubmission: there may be multiples of each sheet but we're only outputting one
+        if fromdate != None and fromdate != "":
+                fromdate = datetime.datetime.strptime(fromdate, "%Y-%m-%d").date()
+                formsubs = formsubs.filter(last_sheet_dt__gte=fromdate)        
+        if todate != None and todate != "" :                
+                todate = datetime.datetime.strptime(todate, "%Y-%m-%d").date() + datetime.timedelta(days = 1)
+                formsubs = formsubs.filter(last_sheet_dt__lte=todate) 
         sheetsubs = SheetSubmission.objects.filter(form_submission__form__original_id=self.original_id, form_submission__status__in=statuses) \
                 .order_by('given_at').select_related('sheet', 'filler__sfuFormFiller', 'filler__nonSFUFormFiller')
         # Docs for the dict constructor: "If a key occurs more than once, the last value for that key becomes the corresponding value in the new dictionary."
@@ -574,7 +581,7 @@ class Form(models.Model, _FormCoherenceMixin):
 
         return headers, data
 
-    def all_submission_summary_special(self, statuses=['DONE'], recurring_sheet_slug=None):
+    def all_submission_summary_special(self, statuses=['DONE'], recurring_sheet_slug=None, fromdate=None, todate=None):
         """
         A special case of the summary method, for one particular form which will be obsoleted after the hiring module
         is done.  The recurring_sheet_slug gives us a sheet for which we want *all* the submissions.  For the purposes
@@ -624,8 +631,16 @@ class Form(models.Model, _FormCoherenceMixin):
 
         # go through FormSubmissions and create a row for each
         formsubs = FormSubmission.objects.filter(form__original_id=self.original_id, status__in=statuses) \
-            .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
+            .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form') \
+            .annotate(last_sheet_dt=Max('sheetsubmission__completed_at'))
 
+        if fromdate != None and fromdate != "":
+                fromdate = datetime.datetime.strptime(fromdate, "%Y-%m-%d").date()
+                formsubs = formsubs.filter(last_sheet_dt__gte=fromdate)        
+        if todate != None and todate != "" :                
+                todate = datetime.datetime.strptime(todate, "%Y-%m-%d").date() + datetime.timedelta(days = 1)
+                formsubs = formsubs.filter(last_sheet_dt__lte=todate) 
+                
         sheetsubs = SheetSubmission.objects.filter(form_submission__form__original_id=self.original_id,
                                                    form_submission__status__in=statuses, sheet__in=sheets_list) \
             .order_by('given_at').select_related('sheet', 'filler__sfuFormFiller', 'filler__nonSFUFormFiller')

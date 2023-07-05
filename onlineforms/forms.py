@@ -10,6 +10,7 @@ from courselib.search import find_userid_or_emplid
 from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
 from django.forms.utils import ErrorList
+import datetime
 
 class DividerFieldWidget(forms.TextInput):
     def render(self, name, value, attrs=None, renderer=None):
@@ -361,3 +362,12 @@ class BulkAssignForm(forms.Form):
             people.append(person)
 
         return people
+
+class SearchCompletedForm(forms.Form):    
+    fromdate = forms.DateField(label='Completed Date - From',  widget=forms.DateInput(format = '%Y-%m-%d'), input_formats=['%Y-%m-%d'], required=False)
+    todate = forms.DateField(label='Completed Date - End (inclusive)',  widget=forms.DateInput(format = '%Y-%m-%d'), input_formats=['%Y-%m-%d'], required=False) 
+    
+    def __init__(self, *args, **kwargs):
+        super(SearchCompletedForm, self).__init__(*args, **kwargs)
+        self.initial['fromdate'] = datetime.datetime.today() - datetime.timedelta(days=365)
+        self.initial['todate'] = datetime.datetime.today()

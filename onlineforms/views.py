@@ -19,7 +19,7 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from onlineforms.forms import FormForm, NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignFormForm, AdminAssignSheetForm, EditGroupForm, EmployeeSearchForm, \
     AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm, \
-    BulkAssignForm
+    BulkAssignForm, SearchCompletedForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, FormGroup, \
     FormGroupMember, FieldSubmissionFile, FILE_SECRET_LENGTH
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
@@ -481,13 +481,39 @@ def admin_completed_deleted(request):
     return render(request, "onlineforms/admin/admin_completed_deleted.html", context)
 
 @requires_formgroup()
-def admin_completed_form(request, form_slug):
-    form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
-    formsubs = FormSubmission.objects.filter(form=form, status='DONE') \
+def admin_completed_form(request, form_slug):    
+    import datetime
+    searchform = SearchCompletedForm(request.POST or None)
+    if request.method == 'POST':
+       
+            fromdate = searchform.data['fromdate']
+            todate = searchform.data['todate']
+            form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)  
+            
+            formsubs = FormSubmission.objects.filter(form=form, status='DONE') \
            .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller') \
            .annotate(last_sheet_dt=Max('sheetsubmission__completed_at'))
 
-    context = {'form': form, 'formsubs': formsubs}
+            try:
+                if fromdate != None and fromdate != "":
+                    fromdate = datetime.datetime.strptime(fromdate, "%Y-%m-%d").date()
+                    formsubs = formsubs.filter(last_sheet_dt__gte=fromdate)        
+                if todate != None and todate != "" :                
+                    todate = datetime.datetime.strptime(todate, "%Y-%m-%d").date() + datetime.timedelta(days = 1)
+                    formsubs = formsubs.filter(last_sheet_dt__lte=todate)      
+                context = {'form': form, 'formsubs': formsubs, 'searchform': searchform, 'fromdate':searchform.data['fromdate'], 'todate': searchform.data['todate']}               
+            except ValueError:
+                    formsubs = None
+                    context = {'form': form, 'formsubs': formsubs, 'searchform': searchform}    
+                    
+    else:            
+            fromdate = None
+            todate = None
+            form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)    
+            formsubs = None
+            context = {'form': form, 'formsubs': formsubs, 'searchform': searchform}
+
+    
     return render(request, "onlineforms/admin/admin_completed_form.html", context)
 
 
@@ -597,6 +623,36 @@ def waiting_summary_csv(request, form_slug):
         writer.writerow(row)
     return response
 
+@requires_formgroup()
+def download_result_csv(request, form_slug):
+    form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
+    response = HttpResponse(content_type='text/csv;charset=utf-8')
+    response['Content-Disposition'] = 'inline; filename="%s-summary.csv"' % (form_slug)
+    writer = csv.writer(response)
+    fromdate = request.GET['fromdate']
+    todate = request.GET['todate']
+
+    # A special case for one particular form, for now.
+    if form_slug == 'mse-mse-ta-application-mse-graduate-students':
+        headers, data = form.all_submission_summary_special(recurring_sheet_slug='instructor-approval-7', fromdate=fromdate, todate=todate)
+    # All the SEE hiring forms are duplicates of one another with a different title.  They all also need
+    # this special handling.  Their recurring sheet is all titled the same.
+    #
+    # If we're going to use this code path any more than this, then a better suggestion would be to store the recurring
+    # sheet in the config of the form, look for said config variable, and just call the alternate method if it exists.
+    elif form_slug in ['apsc-see-lecturer-electrical-and-electronics', 'apsc-see-lecturer-engineering-and-design-2',
+                       'apsc-see-lecturer-writing-ethics-and-economics',
+                       'apsc-see-researcher-materials-for-energy-systems', 'apsc-see-researcher-thermo-fluids']:
+        headers, data = form.all_submission_summary_special(recurring_sheet_slug='initial-scoring', fromdate=fromdate, todate=todate)
+    #  This one is just slightly different (the sheet we want to be recurring is named differently.)
+    elif form_slug == 'apsc-see-professor-of-professional-practice':
+        headers, data = form.all_submission_summary_special(recurring_sheet_slug='support-for-interview', fromdate=fromdate, todate=todate)
+    else:
+        headers, data = form.all_submission_summary(fromdate=fromdate, todate=todate)
+    writer.writerow(headers)
+    for row in data:
+        writer.writerow(row)
+    return response
 
 #######################################################################
 # Creating/editing forms
