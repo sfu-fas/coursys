@@ -1316,7 +1316,7 @@ def accept_contract(request, post_slug, userid, preview=False):
             if "reject" in request.POST:
                 contract.status = 'REJ'
                 contract.config['rejected_date'] = datetime.datetime.now()
-                if posting.config['send_notify'] is not None and posting.config['send_notify']:
+                if 'send_notify' in posting.config and posting.config['send_notify']:
                     contract.send_notify('rejected')
                 l = LogEntry(userid=request.user.username,
                         description="TA Rejected for %s (%s in %s)." % (contract.application.person.userid, contract.application.posting.semester, contract.application.posting.unit),
