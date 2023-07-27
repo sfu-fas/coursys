@@ -1325,7 +1325,7 @@ def accept_contract(request, post_slug, userid, preview=False):
             elif "accept" in request.POST:
                 contract.status = 'ACC'
                 contract.config['accepted_date'] = datetime.datetime.now()
-                if posting.config['send_notify'] is not None and posting.config['send_notify']:
+                if 'send_notify' in posting.config and posting.config['send_notify']:
                     contract.send_notify('accepted')
             contract.save()
             messages.success(request, "Successfully %s the offer." % (contract.get_status_display()))
