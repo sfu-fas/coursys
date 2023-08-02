@@ -807,7 +807,7 @@ def _return_visits_csv(visits=None, admin=False):
                      'Credits', 'Gender', 'Citizenship'])
     for v in visits:
         writer.writerow([v.get_created_at_display(), v.get_end_time_display(), v.get_duration(), v.get_campus_display(),
-                         v.get_full_name(), v.advisor.sortname(), v.categories_display(), v.programs, v.cgpa, v.credits,
+                         v.get_full_name(), v.advisor.sortname_pref_only(), v.categories_display(), v.programs, v.cgpa, v.credits,
                          v.gender, v.citizenship])
     return response
 

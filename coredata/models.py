@@ -226,6 +226,9 @@ class Person(models.Model, ConditionalSaveMixin):
     def sortname_pref(self):
         return "%s, %s" % (self.last_name, self.first_with_pref())
 
+    def sortname_pref_only(self):
+        return "%s, %s" % (self.last_name, self.real_pref_first())
+
     def name_with_pref(self):
         return "%s %s" % (self.first_with_pref(), self.last_name)
 

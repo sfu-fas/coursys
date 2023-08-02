@@ -5,7 +5,7 @@
             <dd>{{note.created_at}}</dd>
 
             <dt>By<dt>
-            <dd>{{ note.advisor.first_name }} {{ note.advisor.last_name }}</dd>
+            <dd>{{ note.advisor.name_pref }}</dd>
 
             <dt>Best before</dt>
             <dd>{{ note.best_before }} {% if note.is_expired %}(Expired){% endif %}</dd>
