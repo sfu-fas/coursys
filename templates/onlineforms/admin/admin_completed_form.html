@@ -13,6 +13,10 @@
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
+$(function() {
+    $("#id_fromdate").datepicker({'dateFormat': 'yy-mm-dd'});
+    $("#id_todate").datepicker({'dateFormat': 'yy-mm-dd'});
+    
     $(document).ready(function() {
         $('#done_table').dataTable({
                     "bPaginate": false,
@@ -20,6 +24,7 @@
                     "aaSorting": [[1, "desc"]],
         });
     });
+});
 </script>
 {% endblock %}
 
@@ -31,10 +36,19 @@
         <li><a href="{% url "onlineforms:pending_summary_csv" form_slug=form.slug %}">Summary of pending submissions</a></li>
         <li><a href="{% url "onlineforms:waiting_summary_csv" form_slug=form.slug %}">Summary of waiting submissions</a></li>
         <li><a href="{% url "onlineforms:admin_rejected_form" form_slug=form.slug %}">Rejected submissions</a></li>
+        <li><a href="{% url "onlineforms:download_result_csv" form_slug=form.slug %}?fromdate={{fromdate}}&amp;todate={{todate}}">Download Result Table (CSV)</a></li>
     </ul>
 </div>{% endblock %}
 
 {% block content %}
+    <form class="noprint" action="" method="POST">
+
+    {% csrf_token %}  
+    {{ searchform.as_p }}
+
+    <input type="submit" value="Select" />
+  </form> 
+
     {% if formsubs %}
         <table class="display" id="done_table">
             <thead>
