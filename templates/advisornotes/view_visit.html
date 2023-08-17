@@ -9,7 +9,7 @@
 {% block content %}
     <table class="info">
 <tr><th>Student</th><td>{{ visit.get_full_name }}</td></tr>
-<tr><th>Advisor</th><td>{{ visit.advisor }}</td></tr>
+<tr><th>Advisor</th><td>{{ visit.advisor.sortname_pref_only }}</td></tr>
 <tr><th>Unit</th><td>{{ visit.unit }}</td></tr>
 <tr><th>Start Time</th><td>{{ visit.created_at }}</td></tr>
 {% if visit.end_time %}<tr><th>End Time</th><td>{{ visit.end_time }}</td></tr>{% endif %}
