@@ -92,11 +92,7 @@ class AttachmentForm(forms.ModelForm):
         exclude = ("career_event", "created_by")
 
         widgets = {
-            'contents': forms.ClearableFileInput(attrs={'multiple': True})
-        }
-        help_texts = {
-            'contents': "You can enter one or multiple files.  Please note that multiple files will "
-                        "have the same title if a title is provided."
+            'contents': forms.ClearableFileInput(attrs={'multiple': False})
         }
 
 
@@ -106,11 +102,7 @@ class PositionAttachmentForm(forms.ModelForm):
         exclude = ("position", "created_by")
 
         widgets = {
-            'contents': forms.ClearableFileInput(attrs={'multiple': True})
-        }
-        help_texts = {
-            'contents': "You can enter one or multiple files.  Please note that multiple files will "
-                        "have the same title if a title is provided."
+            'contents': forms.ClearableFileInput(attrs={'multiple': False})
         }
 
 
