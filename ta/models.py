@@ -577,7 +577,7 @@ class TAApplication(models.Model):
         skill = []
         taskill = SkillLevel.objects.filter(app=self)
         for s in taskill:
-            if s is not None and s.get_level_display() is not 'None':
+            if s is not None and s.get_level_display() != 'None':
                 skill.append(s.skill.name + ': '+ s.get_level_display())
         return ', '.join(skill)
 

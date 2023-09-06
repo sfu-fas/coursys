@@ -28,11 +28,11 @@ def _time_delta_to_string(time):
         if hours == 0:
             if minutes == 0:
                 return '%d seconds ago' % seconds
-            elif minutes is 1:
+            elif minutes == 1:
                 return '1 minute ago'
             else:
                 return '%d minutes ago' % minutes
-        elif hours is 1:
+        elif hours == 1:
             return '1 hour ago'
         else:
             return '%d hours ago' % hours
