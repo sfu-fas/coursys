@@ -379,14 +379,13 @@ def import_meeting_times(offering):
         wkdays = [n for n, day in zip(list(range(7)), (mon,tues,wed,thurs,fri,sat,sun)) if day=='Y']
         labtut_section, mtg_type = fix_mtg_info(class_section, stnd_mtg_pat)
         for wkd in wkdays:
-            m_old = MeetingTime.objects.filter(offering=offering, weekday=wkd, start_time=start, end_time=end, labtut_section=labtut_section, room=room)
+            m_old = MeetingTime.objects.filter(offering=offering, weekday=wkd, start_day=start_dt, end_day=end_dt, start_time=start, end_time=end, labtut_section=labtut_section, room=room)
             if len(m_old)>1:
                 raise KeyError("Already duplicate meeting: %r" % (m_old))
             elif len(m_old)==1:
                 # new data: just replace.
                 m_old = m_old[0]
-                if m_old.start_day==start_dt and m_old.end_day==end_dt and m_old.room==room \
-                        and m_old.meeting_type==mtg_type and m_old.labtut_section==labtut_section:
+                if m_old.room==room and m_old.meeting_type==mtg_type and m_old.labtut_section==labtut_section:
                     # unchanged: leave it.
                     found_mtg.add(m_old.id)
                     continue
