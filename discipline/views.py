@@ -324,12 +324,18 @@ class CaseFacts(CaseEditView):
     edit_form = FactsForm
 
     def initial_data(self):
-        return {'facts': [self.case.facts, self.case.config.get('facts_markup', 'textile'), False]}
+        return {
+            'facts': [self.case.facts, self.case.config.get('facts_markup', 'textile'), False],
+            'weight': self.case.config.get('weight', ''),
+            'mode': self.case.config.get('mode', 'NOAN'),
+        }
 
     @staticmethod
     def handle(request: HttpRequest, case: DisciplineCaseInstr, form: Form) -> None:
         case.facts = form.cleaned_data['facts'][0]
         case.config['facts_markup'] = form.cleaned_data['facts'][1]
+        case.config['weight'] = form.cleaned_data['weight']
+        case.config['mode'] = form.cleaned_data['mode']
         case.save()
         messages.add_message(request, messages.INFO, f"Updated facts for {case.full_name()}.")
 

@@ -52,6 +52,10 @@ http://en.wikipedia.org/wiki/HTML_e-mail
   </dd>
   <dd>{{case.meeting_text}}</dd>
 {% endif %}
+{% if case.config.weight %}
+<dt style="font-weight: bold">Weight of work</dt>
+  <dd>{{ case.config.weight }}</dd>
+{% endif %}
 <dt style="font-weight: bold">Incident Description</dt>
   <dd>{{case|format_field:'facts'}}</dd>
 <dt style="font-weight: bold">Penalty assigned by instructor</dt>

@@ -34,6 +34,13 @@ INSTR_PENALTY_CHOICES = (
         ('MARK', 'assign a low grade for the work'),
         ('ZERO', 'assign a grade of \u201CF\u201D or zero for the work'),
         )
+MODE_CHOICES = (
+    ('INPE', 'in-person or proctored'),
+    ('NOPR', 'take-home or online'),
+    ('OTHE', 'mixed or other'),
+    ('NOAN', 'no answer'),
+)
+
 """
 CHAIR_PENALTY_CHOICES = (
         ('WAIT', 'penalty not yet assigned'),
