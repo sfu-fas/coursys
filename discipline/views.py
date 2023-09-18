@@ -1,6 +1,6 @@
 import datetime
 import itertools
-import json
+import csv
 import re
 from typing import Any, Dict
 
@@ -584,8 +584,7 @@ class CaseDeleteAttachment(CaseEditView):
 
 # Discipline chair/admin views
 
-@requires_role("DISC")
-def chair_index(request):
+def __chair_cases(request):
     # discipline admin for these departments
     subunit_ids = Unit.sub_unit_ids(request.units)
     has_global_role = 'UNIV' in (u.label for u in request.units)
@@ -598,9 +597,38 @@ def chair_index(request):
 
     # can see cases either (1) in your unit, or (2) in subunits if the letter has been sent
     instr_cases = [c for c in instr_cases if (c.offering.owner in request.units) or (c.letter_sent != 'WAIT')]
+    return instr_cases, has_global_role
 
+
+@requires_role("DISC")
+def chair_index(request):
+    instr_cases, has_global_role = __chair_cases(request)
     context = {'instr_cases': instr_cases, 'has_global_role': has_global_role}
     return render(request, "discipline/chair-index.html", context)
+
+
+@requires_role("DISC")
+def chair_csv(request):
+    instr_cases, has_global_role = __chair_cases(request)
+    response = HttpResponse(
+        content_type="text/plain; charset=utf-8",
+        headers={"Content-Disposition": 'inline; filename="dishonesty_cases.csv"'},
+    )
+    writer = csv.writer(response)
+    writer.writerow(['Student Name', 'Emplid', 'Email', 'Case Cluster', 'Semester', 'Course', 'Instructor', 'Instr Email', 'Offering Mode', 'Mode (instr provided)'])
+    for c in instr_cases:
+        writer.writerow([
+            c.student.sortname(), c.student.emplid, c.student.email(),
+            c.group.name if c.group else None,
+            c.offering.semester.name,
+            c.offering.name(),
+            c.owner.sortname(),
+            c.owner.email(),
+            c.offering.get_mode_display(),
+            c.get_mode_display(),
+        ])
+
+    return response
 
 
 @requires_role("DISC")
