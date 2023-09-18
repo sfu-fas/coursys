@@ -34,6 +34,14 @@ INSTR_PENALTY_CHOICES = (
         ('MARK', 'assign a low grade for the work'),
         ('ZERO', 'assign a grade of \u201CF\u201D or zero for the work'),
         )
+MODE_CHOICES_MUST_ANSWER = (
+    ('INPE', 'in-person or proctored'),
+    ('NOPR', 'take-home or online'),
+    ('OTHE', 'mixed or other'),
+)
+MODE_CHOICES =  MODE_CHOICES_MUST_ANSWER + (('NOAN', 'no answer'),)
+MODE_CHOICES_DICT = dict(MODE_CHOICES)
+
 """
 CHAIR_PENALTY_CHOICES = (
         ('WAIT', 'penalty not yet assigned'),
@@ -225,6 +233,12 @@ class DisciplineCaseBase(models.Model):
 
     def get_penalty_display(self):
         return '; '.join(INSTR_PENALTY_DICT[k] for k in self.penalty.split(','))
+
+    def get_mode(self):
+        return self.config.get('mode', 'NOAN')
+
+    def get_mode_display(self):
+        return MODE_CHOICES_DICT[self.config.get('mode', 'NOAN')]
 
     def sendable(self):
         return self.contacted != 'NONE' and self.response != 'WAIT' and self.facts_wordcount() > 0 and self.penalty != 'WAIT'

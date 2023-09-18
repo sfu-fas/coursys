@@ -3,7 +3,7 @@ from courselib.markup import MarkupContentField
 from django import forms
 from discipline.models import DisciplineGroup, DisciplineCaseInstrStudent, DisciplineCaseInstrNonStudent, \
     DisciplineTemplate, DisciplineCaseBase, MAX_ATTACHMENTS, \
-    CaseAttachment, INSTR_PENALTY_CHOICES, INSTR_PENALTY_VALUES, MAX_ATTACHMENTS_TEXT
+    CaseAttachment, INSTR_PENALTY_CHOICES, INSTR_PENALTY_VALUES, MAX_ATTACHMENTS_TEXT, MODE_CHOICES_MUST_ANSWER
 from coredata.models import Member, Unit
 
 INPUT_WIDTH = 70
@@ -171,6 +171,10 @@ class NotifyEmailForm(CaseEditForm):
 
 
 class FactsForm(CaseEditForm):
+    weight = forms.CharField(label="Weight of work", required=False, widget=forms.TextInput(attrs={'size': '60'}),
+         help_text='The work in question and its weight in the course. (e.g. "two assignments worth 5% each", "40% final exam")')
+    mode = forms.ChoiceField(choices=MODE_CHOICES_MUST_ANSWER, widget=forms.RadioSelect(), required=True,
+         help_text='Type of work in this case. Used for statistics of cases: not included in the incident report.')
     facts = MarkupContentField(label="Description of the case", required=False, allow_math=False, with_wysiwyg=True)
 
 
