@@ -611,9 +611,10 @@ def chair_index(request):
 def chair_csv(request):
     instr_cases, has_global_role = __chair_cases(request)
     response = HttpResponse(
-        content_type="text/plain; charset=utf-8",
+        content_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": 'inline; filename="dishonesty_cases.csv"'},
     )
+    instr_cases.sort(key=lambda c: (c.offering.semester.name, c.offering.name(), c.student.sortname()))
     writer = csv.writer(response)
     writer.writerow(['Student Name', 'Emplid', 'Email', 'Case Cluster', 'Semester', 'Course', 'Instructor', 'Instr Email', 'Offering Mode', 'Mode (instr provided)'])
     for c in instr_cases:
