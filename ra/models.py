@@ -889,14 +889,14 @@ class RARequest(models.Model):
             return 0
 
     def get_base_pay(self):
-        if self.vacation_pay and self.total_pay:
-            return self.total_pay - (self.total_pay * self.vacation_pay/100)
+        if self.pay_periods and self.gross_hourly and self.biweekly_hours:
+            return self.pay_periods * float(self.gross_hourly) * float(self.biweekly_hours)
         else:
             return 0
 
     def get_vacation_pay(self):
-        if self.vacation_pay and self.total_pay:
-            return self.total_pay * (self.vacation_pay/100)
+        if self.vacation_pay:
+            return float(self.total_pay) - self.get_base_pay()
         else:
             return 0
 
