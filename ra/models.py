@@ -888,6 +888,18 @@ class RARequest(models.Model):
         else:
             return 0
 
+    def get_base_pay(self):
+        if self.vacation_pay and self.total_pay:
+            return self.total_pay - (self.total_pay * self.vacation_pay/100)
+        else:
+            return 0
+
+    def get_vacation_pay(self):
+        if self.vacation_pay and self.total_pay:
+            return self.total_pay * (self.vacation_pay/100)
+        else:
+            return 0
+
     def get_student_status(self):
         if self.student == 'N':
             return "Not A Student"
