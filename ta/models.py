@@ -323,8 +323,8 @@ class TAPosting(models.Model):
             CMPT_WCOURSE_BU = 2
             CMPT_COURSE_BU = 1
             LAB_BONUS_DECIMAL = 0.17 = Prep BU
-            W course: default + extra + 2 + (1 + 0.17 * TA)
-            all course: default + extra + (1 + 0.17 * TA)
+            W course: default + extra + 2 + ((1 + 0.17) * TA)
+            all course: default + extra + ((1 + 0.17) * TA)
             labs: no additional BU given since all TA will get 0.17
             """
             default = self.default_bu(offering, count=count)
