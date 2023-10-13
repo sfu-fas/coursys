@@ -32,7 +32,7 @@ LAB_PREP_HOURS = 13 # min hours of prep for courses with tutorials/labs
 HOLIDAY_HOURS_PER_BU = decimal.Decimal('1.1')
 
 CMPT_WCOURSE_BU = decimal.Decimal('2')  # additional BU for writing course
-CMPT_COURSE_BU = decimal.Decimal('0.17') 
+CMPT_COURSE_BU = decimal.Decimal('1')
 
 DEPT_CHOICES = [
     ('CMPT', 'CMPT student'),
@@ -320,17 +320,20 @@ class TAPosting(models.Model):
         if self.unit.label in ["CMPT", "COMP"] and self.semester.name >= "1231":
             """
             new calculation for CMPT BU
-            all course: default + extra + 1.17 CMPT_COURSE_BU * TA
-            W course: default + extra + 2 CMPT_WCOURSE_BU + 1.17 CMPT_COURSE_BU * TA
-            labs: no formula 
+            CMPT_WCOURSE_BU = 2
+            CMPT_COURSE_BU = 1
+            LAB_BONUS_DECIMAL = 0.17 = Prep BU
+            W course: default + extra + 2 + (1 + 0.17 * TA)
+            all course: default + extra + (1 + 0.17 * TA)
+            labs: no additional BU given since all TA will get 0.17
             """
             default = self.default_bu(offering, count=count)
             extra = offering.extra_bu()        
             tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
             if offering.flags.write:
-                return default + extra + CMPT_WCOURSE_BU + decimal.Decimal(CMPT_COURSE_BU * len(tacourses)) 
+                return default + extra + CMPT_WCOURSE_BU + decimal.Decimal((CMPT_COURSE_BU + LAB_BONUS_DECIMAL) * len(tacourses)) 
             else:                
-                return default + extra + decimal.Decimal(CMPT_COURSE_BU * len(tacourses)) 
+                return default + extra + decimal.Decimal((CMPT_COURSE_BU + LAB_BONUS_DECIMAL)* len(tacourses)) 
         else:
             """
                 Actual BUs to assign to this course: default + extra + 0.17*number of TA's
@@ -846,7 +849,7 @@ class TACourse(models.Model):
         Return the prep BUs for this assignment
         """
         if self.contract.posting.unit.label in ["CMPT", "COMP"] and self.course.semester.name >= "1234":                           
-                return CMPT_COURSE_BU
+            return LAB_BONUS_DECIMAL
         else:
             if self.has_labtut():
                 # If the contract that is attached to this course has been cancelled/rejected, there

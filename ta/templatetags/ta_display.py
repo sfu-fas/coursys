@@ -32,11 +32,11 @@ def display_default_bu_cap(offering, posting):
 def display_bu_difference(offering, posting):
     required = posting.required_bu(offering)
     assigned = posting.assigned_bu(offering)
-    diff = assigned-required
+    diff = required-assigned
     if diff < -0.01:
         return mark_safe('<span class="over">%.2f</span>' % (diff))
-    elif diff > 0.01:
-        return mark_safe('<span class="under">+%.2f</span>' % (diff))
+    #elif diff > 0.01:
+    #    return mark_safe('<span class="under">+%.2f</span>' % (diff))
     return mark_safe("<span>%.2f</span>" % (abs(diff)))
 
 @register.filter
