@@ -193,8 +193,8 @@ DEFAULT_LETTERS = {
 
 # offer letters
 
-DEFAULT_LETTER_NCH_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be $%(gross_hourly)s per hour plus %(vacation_pay)s percent vacation pay. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
-DEFAULT_LETTER_NCBW_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_salary)s for a total amount of $%(total_pay)s, subject to all statutory income tax and benefit deductions. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
+DEFAULT_LETTER_NCH_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be $%(gross_hourly)s per hour plus 4 percent vacation pay. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
+DEFAULT_LETTER_NCBW_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_salary)s for a total amount of $%(total_pay)s. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
 DEFAULT_LETTER_RAH_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be $%(gross_hourly)s per hour plus %(vacation_pay)s percent vacation pay. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions.\n\n"""
 DEFAULT_LETTER_RABW_INTRO = "This is to confirm remuneration for your work performed as a Research Assistant from %(start_date)s to %(end_date)s. This remuneration will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s. You will be entitled to %(weeks_vacation)s weeks of paid vacation during each full calendar year of service and based on the terms of your appointment, your vacation entitlement is %(vacation_hours)s. You must submit and confirm all vacation requests.\n\n"
 DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN = "This is to confirm your funding as a True Scholarship from %(start_date)s to %(end_date)s. The funding will be provided to you as a lump sum payment of $%(total_gross)s and will be made to you at the end of your term of appointment.\n\n"
@@ -204,12 +204,36 @@ DEFAULT_LETTER_GRAS = '\n\n'.join([
     """This agreement exists solely between you as a student and me as your research supervisor. This does not constitute as an offer of employment from Simon Fraser University.""",
     """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from this income. You should set aside funds to cover your eventual income tax obligation.\n\n""",
     ])
-DEFAULT_LETTER_NC = '\n\n'.join([
-    """This contract of employment exists solely between the Faculty of Applied Sciences and yourself. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
-    """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 40 hours per week.""",
+DEFAULT_LETTER_NCH = '\n\n'.join([
+    """<u>General Conditions of Employment</u>""",
+    """There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed %(biweekly_hours)s hours bi-weekly.""",
     """Your responsibilities and duties (Duties) will be:""",
-    """- %(nc_duties)s\n\n"""
+    """ \u2022 %(nc_duties)s""",
+    """<u>Employment Standards Act</u>""",
+    """Any terms and conditions of employment which have not been expressly addressed in this letter but which are covered by the ESA, will be dealt with in conformity with the relevant provisions of the ESA: https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/00_96113_01""",
+    """<u>Policies</u>""",
+    """You are subject to and must comply with all applicable University policies and procedures including but not limited to:""",
+    """GP 18 Human Rights Policy\n GP 37 Conflict of Interest\nGP 44 Sexual Violence and Misconduct Prevention, Education and Support\nGP 47 Bullying and Harassment Policy\nI 10.04 Access to Information and Protection of Privacy\nR 30.03 Intellectual Property Policy""",
+    """<u>Mandatory SFU Safety Orientation Training</u>""",
+    """WorkSafe BC requires all new graduate students to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"""
     ])
+
+DEFAULT_LETTER_NCBW = '\n\n'.join([
+    """<u>General Conditions of Employment</u>""",
+    """There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed %(biweekly_hours)s hours bi-weekly.""",
+    """Your responsibilities and duties (Duties) will be:""",
+    """ \u2022 %(nc_duties)s""",
+    """This offer includes 2 weeks of paid vacation per calendar year, which will be %(vacation_hours)s prorated for the duration of your appointment.""",
+    """<u>Employment Standards Act</u>""",
+    """Any terms and conditions of employment which have not been expressly addressed in this letter but which are covered by the ESA, will be dealt with in conformity with the relevant provisions of the ESA: https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/00_96113_01""",
+    """<u>Policies</u>""",
+    """You are subject to and must comply with all applicable University policies and procedures including but not limited to:""",
+    """GP 18 Human Rights Policy\n GP 37 Conflict of Interest\nGP 44 Sexual Violence and Misconduct Prevention, Education and Support\nGP 47 Bullying and Harassment Policy\nI 10.04 Access to Information and Protection of Privacy\nR 30.03 Intellectual Property Policy""",
+    """<u>Mandatory SFU Safety Orientation Training</u>""",
+    """WorkSafe BC requires all new graduate students to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"""
+    ])
+
+
 DEFAULT_LETTER_RA = '\n\n'.join([
     """This agreement exists solely between you as a Research Assistant and myself as the recipient of research funding or manager of this project. This does not constitute as an offer of employment from Simon Fraser University.""",
     """Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).""",
@@ -217,17 +241,13 @@ DEFAULT_LETTER_RA = '\n\n'.join([
     """Hours of work: I expect these hours will not exceed 40 hours per week.\n\n"""
     ])
 
-DEFAULT_LETTER_NCBW_VACATION = "Vacation time: This offer includes %(weeks_vacation)s weeks of vacation per calendar year, which will be __ days prorated for the duration of your appointment.\n\n"
-
-DEFAULT_LETTER_NC_EMPLOYMENT_STANDARDS = "Employment Standards Act: Any terms and conditions of employment which have not been expressly addressed in this letter but which are covered by the ESA, will be dealt with in conformity with the relevant provisions of the ESA, linked <a href='https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/00_96113_01'> here.</a>\n\n"
-
 DEFAULT_LETTER_TRAINING = "Mandatory SFU Safety Orientation Training: WorkSafe BC requires all new graduate students to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"
 
 DEFAULT_LETTER_CONCLUDE = "If you accept the terms of this letter, please sign and return the letter, retaining the original for your records.\n\n"
 DEFAULT_LETTER_CONCLUDE_NC = "If you accept the terms of this appointment, please sign and return the letter, retaining the original for your records.\n\n"
 
-DEFAULT_LETTER_NCH = DEFAULT_LETTER_NCH_INTRO + DEFAULT_LETTER_NC + DEFAULT_LETTER_NC_EMPLOYMENT_STANDARDS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE_NC
-DEFAULT_LETTER_NCBW = DEFAULT_LETTER_NCBW_INTRO + DEFAULT_LETTER_NC + DEFAULT_LETTER_NCBW_VACATION + DEFAULT_LETTER_NC_EMPLOYMENT_STANDARDS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE_NC
+DEFAULT_LETTER_NCH = DEFAULT_LETTER_NCH_INTRO + DEFAULT_LETTER_NCH + DEFAULT_LETTER_CONCLUDE_NC
+DEFAULT_LETTER_NCBW = DEFAULT_LETTER_NCBW_INTRO + DEFAULT_LETTER_NCBW + DEFAULT_LETTER_CONCLUDE_NC
 DEFAULT_LETTER_RAH = DEFAULT_LETTER_RAH_INTRO + DEFAULT_LETTER_RA + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_RABW = DEFAULT_LETTER_RABW_INTRO + DEFAULT_LETTER_RA + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_GRASLE_INSIDE_CAN = DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
@@ -704,6 +724,7 @@ class RARequest(models.Model):
                     'end_date': self.end_date.strftime("%B %d, %Y"),
                     'position': self.position,
                     'gross_hourly': self.gross_hourly,
+                    'biweekly_hours': self.biweekly_hours,
                     'vacation_pay': self.vacation_pay,
                     'nc_duties': self.nc_duties
                 }
@@ -714,7 +735,9 @@ class RARequest(models.Model):
                     'end_date': self.end_date.strftime("%B %d, %Y"),
                     'position': self.position,
                     'biweekly_salary': self.biweekly_salary,
+                    'biweekly_hours': self.biweekly_hours,
                     'weeks_vacation': self.weeks_vacation,
+                    'vacation_hours': self.get_vacation_hours(),
                     'total_pay': self.total_pay,
                     'nc_duties': self.nc_duties
                 }
@@ -885,6 +908,18 @@ class RARequest(models.Model):
             return self.backdate_hours
         elif self.biweekly_hours > 0: 
             return self.biweekly_hours
+        else:
+            return 0
+
+    def get_base_pay(self):
+        if self.pay_periods and self.gross_hourly and self.biweekly_hours:
+            return self.pay_periods * float(self.gross_hourly) * float(self.biweekly_hours)
+        else:
+            return 0
+
+    def get_vacation_pay(self):
+        if self.vacation_pay:
+            return float(self.total_pay) - self.get_base_pay()
         else:
             return 0
 

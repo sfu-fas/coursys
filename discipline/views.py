@@ -1,6 +1,6 @@
 import datetime
 import itertools
-import json
+import csv
 import re
 from typing import Any, Dict
 
@@ -324,12 +324,18 @@ class CaseFacts(CaseEditView):
     edit_form = FactsForm
 
     def initial_data(self):
-        return {'facts': [self.case.facts, self.case.config.get('facts_markup', 'textile'), False]}
+        return {
+            'facts': [self.case.facts, self.case.config.get('facts_markup', 'textile'), False],
+            'weight': self.case.config.get('weight', ''),
+            'mode': self.case.config.get('mode', 'NOAN'),
+        }
 
     @staticmethod
     def handle(request: HttpRequest, case: DisciplineCaseInstr, form: Form) -> None:
         case.facts = form.cleaned_data['facts'][0]
         case.config['facts_markup'] = form.cleaned_data['facts'][1]
+        case.config['weight'] = form.cleaned_data['weight']
+        case.config['mode'] = form.cleaned_data['mode']
         case.save()
         messages.add_message(request, messages.INFO, f"Updated facts for {case.full_name()}.")
 
@@ -578,8 +584,7 @@ class CaseDeleteAttachment(CaseEditView):
 
 # Discipline chair/admin views
 
-@requires_role("DISC")
-def chair_index(request):
+def __chair_cases(request):
     # discipline admin for these departments
     subunit_ids = Unit.sub_unit_ids(request.units)
     has_global_role = 'UNIV' in (u.label for u in request.units)
@@ -592,9 +597,39 @@ def chair_index(request):
 
     # can see cases either (1) in your unit, or (2) in subunits if the letter has been sent
     instr_cases = [c for c in instr_cases if (c.offering.owner in request.units) or (c.letter_sent != 'WAIT')]
+    return instr_cases, has_global_role
 
+
+@requires_role("DISC")
+def chair_index(request):
+    instr_cases, has_global_role = __chair_cases(request)
     context = {'instr_cases': instr_cases, 'has_global_role': has_global_role}
     return render(request, "discipline/chair-index.html", context)
+
+
+@requires_role("DISC")
+def chair_csv(request):
+    instr_cases, has_global_role = __chair_cases(request)
+    response = HttpResponse(
+        content_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'inline; filename="dishonesty_cases.csv"'},
+    )
+    instr_cases.sort(key=lambda c: (c.offering.semester.name, c.offering.name(), c.student.sortname()))
+    writer = csv.writer(response)
+    writer.writerow(['Student Name', 'Emplid', 'Email', 'Case Cluster', 'Semester', 'Course', 'Instructor', 'Instr Email', 'Offering Mode', 'Mode (instr provided)'])
+    for c in instr_cases:
+        writer.writerow([
+            c.student.sortname(), c.student.emplid, c.student.email(),
+            c.group.name if c.group else None,
+            c.offering.semester.name,
+            c.offering.name(),
+            c.owner.sortname(),
+            c.owner.email(),
+            c.offering.get_mode_display(),
+            c.get_mode_display(),
+        ])
+
+    return response
 
 
 @requires_role("DISC")

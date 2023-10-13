@@ -64,7 +64,7 @@ $(function() {
                 {% if visit.student %}<a href="{% url "advising:student_notes" userid=visit.get_userid %}">{{ visit.student.sortname }} ({{ visit.student.emplid }})</a>{% endif %}
                 {% if visit.nonstudent %}<a href="{% url "advising:student_notes" nonstudent_slug=visit.get_userid %}">{{ visit.nonstudent.sortname }}</a>{% endif %}
             </td>
-            <td>{{ visit.advisor.sortname }}</td>
+            <td>{{ visit.advisor.sortname_pref_only }}</td>
             <td>{{ visit.categories_display }}</td>
             <td style="min-width: 100px">
                 {% if mine %}

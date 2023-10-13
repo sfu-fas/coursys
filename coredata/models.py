@@ -226,6 +226,9 @@ class Person(models.Model, ConditionalSaveMixin):
     def sortname_pref(self):
         return "%s, %s" % (self.last_name, self.first_with_pref())
 
+    def sortname_pref_only(self):
+        return "%s, %s" % (self.last_name, self.real_pref_first())
+
     def name_with_pref(self):
         return "%s %s" % (self.first_with_pref(), self.last_name)
 
@@ -1061,6 +1064,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     
     def instructors(self):
         return (m.person for m in self.member_set.filter(role="INST").select_related('person'))
+
     def instructors_str(self):
         @cached(60*60*24*2)
         def _instr_str(pk):
@@ -1101,6 +1105,12 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
             return CAMPUSES_SHORT[self.campus]
         else:
             return 'unknown'
+
+    def get_mode_display(self):
+        if self.section.startswith('B'):
+            return 'Blended'
+        else:
+            return INSTR_MODE[self.instr_mode]
 
     def maillist(self):
         """

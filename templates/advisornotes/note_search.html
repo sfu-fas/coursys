@@ -39,7 +39,7 @@
     <a href="{% url "advising:student_notes" userid=note.nonstudent.slug %}">{{note.nonstudent.sortname}}</a> (prospective)
   {% endif %}
   </td>
-  <td>{{note.advisor.sortname}}</td>
+  <td>{{note.advisor.sortname_pref_only}}</td>
   <td><span class="sort">{{note.created_at.isoformat}}</span>{{note.created_at}}</td>
   <td>{% if note.file_attachment %}Y{% endif %}</td>
   </tr>

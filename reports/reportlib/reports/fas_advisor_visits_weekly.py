@@ -32,6 +32,6 @@ class FASAdvisorVisitsWeeklyReport(Report):
         for v in visits:
             results.append_row(
                 [v.get_created_at_display(), v.get_end_time_display(), v.get_duration(), v.get_campus_display(),
-                 v.get_full_name(), v.advisor.sortname(), v.categories_display(), v.programs, v.cgpa, v.credits,
+                 v.get_full_name(), v.advisor.sortname_pref_only(), v.categories_display(), v.programs, v.cgpa, v.credits,
                  v.gender, v.citizenship])
         self.artifacts.append(results)

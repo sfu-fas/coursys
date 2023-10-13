@@ -104,7 +104,7 @@
             </tr>
             <tr>
                 <th>First Name</th>
-                <td>{{ student.first_name }}</td>
+                <td>{{ student.first_with_pref }}</td>
             </tr>
             <tr>
                 <th>Middle Name</th>
@@ -159,7 +159,7 @@
             {% if visits  %}
                 <tr>
                     <th>Last Visit</th>
-                    <td>{% with visits|first as visit %} {{ visit.created_at }} with {{ visit.advisor }} {% endwith %}</td>
+                    <td>{% with visits|first as visit %} {{ visit.created_at }} with {{ visit.advisor.sortname_pref_only }} {% endwith %}</td>
                 </tr>
             {% endif %}
             <tr>
@@ -185,7 +185,7 @@
                 <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
                 <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
                 <td>{{ visit.categories_display }}</td>
-                <td>{{ visit.advisor.sortname }}</td>
+                <td>{{ visit.advisor.sortname_pref_only }}</td>
                 <td><a class="lineform" href="{% url "advising:view_visit" visit_slug=visit.slug %}">
                     <button type='submit' class='btn' title="View visit">
                         <i class='fa fa-eye'></i>
@@ -205,7 +205,7 @@
 {% with item as note %}
 <div id='note-whole-{{note.id}}' class="{% if note.hidden %}deletednote{% endif %}" {% if note.hidden %}style="display:none;"{% endif %} >
 <h2 class="note" id="note-{{note.id}}">
-    {{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}
+    {{note.created_at}} by {{note.advisor.name_pref}}
     {% with "Student was emailed the contents of this note" as email_note %}
     {% if note.emailed %}<i class="fa fa-envelope-o" title="This note was emailed to the student"></i>{% endif %}
     {% endwith %}

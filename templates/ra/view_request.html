@@ -247,6 +247,8 @@
     <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
     <tr><th>Vacation Pay:</th><td>{{ req.vacation_pay|floatformat:1 }}%</td></tr>
     <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:2 }} ({{req.get_biweekly_hours}})</td></tr>
+    <tr><th>Pay:</th><td>${{ req.get_base_pay|floatformat:2 }}</td></tr>
+    <tr><th>Vacation Pay:</th><td>${{ req.get_vacation_pay|floatformat:2 }}</td></tr>
     {% endif %}
     {% if gras_le %}
       <tr><th>Payment Method:</th><td>Lump Sum</td></tr>
@@ -269,9 +271,11 @@
     {% endif %}
     {% if nc_hourly %}
     <tr><th>Payment Method:</th><td>Hourly</td></tr>
-    <tr><th>Gross Hourly:</th><td>{{ req.gross_hourly|floatformat:2 }}</td></tr>
+    <tr><th>Gross Hourly:</th><td>${{ req.gross_hourly|floatformat:2 }}</td></tr>
     <tr><th>Vacation Pay:</th><td>{{ req.vacation_pay|floatformat:1 }}%</td></tr>
     <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:2 }} ({{req.get_biweekly_hours}})</td></tr>
+    <tr><th>Pay:</th><td>${{ req.get_base_pay|floatformat:2 }}</td></tr>
+    <tr><th>Vacation Pay:</th><td>${{ req.get_vacation_pay|floatformat:2 }}</td></tr>
     {% endif %}
     {% if req.backdated %}
     <b>This is a backdated appointment!</b>
@@ -282,7 +286,7 @@
     {% if graduate_research_assistant %}
     <tr><th>Total Funding:</th><td>${{ req.total_pay}}</td></tr>
     {% else %}
-    <tr><th>Total Pay:</th><td>${{ req.total_pay}}</td></tr>
+    <tr><th><div class="info-bubble">Total Pay: <i class="fa fa-info-circle"></i> <span class="info">Exclusive of statutory benefit rate (Employer portion of EHT, CPP, EI, and WCB)</span></div></th><td>${{ req.total_pay}}</td></tr>
     {% endif %}
   </table>
 </div>
