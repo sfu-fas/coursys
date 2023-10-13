@@ -853,7 +853,7 @@ def download_assign_csv(request, post_slug):
     response['Content-Disposition'] = 'inline; filename="%s-assigsnment-table.csv"' % (posting.slug)
     writer = csv.writer(response)
     writer.writerow(['Offering', 'Combined to (from SIMS)', 'Instructor', 'Enrollment', 'Campus', 'Assigned', 'Applicants', 'Required BU (by capacity)',
-                     'Required BU (by enrol)', 'Assigned BU', 'Diff'])
+                    'Required BU (by enrol)', 'Assigned BU', 'Remaining'])
     for o in offerings:
         enrollment_string = '%s/%s' % (o.enrl_tot, o.enrl_cap)
         if o.wait_tot:
@@ -890,7 +890,7 @@ def download_assign_csv(request, post_slug):
 
         writer.writerow([o.name(), newlist, o.instructors_str(), enrollment_string, o.get_campus_display(), assigned_string,
                          posting.applicant_count(o), posting.required_bu(o, count=o.enrl_cap), required_bus, posting.assigned_bu(o),
-                         posting.assigned_bu(o)-posting.required_bu(o)])
+                         posting.required_bu(o)-posting.assigned_bu(o)])
     return response
 
 
