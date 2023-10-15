@@ -333,12 +333,15 @@ def deploy_checks(request=None):
         failed.append(('Space in /tmp', 'Low: %.1f GB' % (tmp_free,)))
 
     # space in SUBMISSION_PATH
-    sub_free = psutil.disk_usage(settings.SUBMISSION_PATH).free/1024/1024/1024
-    # in prod, we have been running ~7G/month, so this checks for ~1 year of space
-    if sub_free > 7*12:
-        passed.append(('Space in SUBMISSION_PATH', 'okay (%.1f GB)' % (sub_free,)))
-    else:
-        failed.append(('Space in SUBMISSION_PATH', 'Low: %.1f GB' % (sub_free,)))
+    try:
+        sub_free = psutil.disk_usage(settings.SUBMISSION_PATH).free/1024/1024/1024
+        # in prod, we have been running ~7G/month, so this checks for ~1 year of space
+        if sub_free > 7*12:
+            passed.append(('Space in SUBMISSION_PATH', 'okay (%.1f GB)' % (sub_free,)))
+        else:
+            failed.append(('Space in SUBMISSION_PATH', 'Low: %.1f GB' % (sub_free,)))
+    except FileNotFoundError:
+        failed.append(('Space in SUBMISSION_PATH', 'directory does not exist'))
 
     # are any services listening publicly that shouldn't?
     hostname = socket.gethostname()
