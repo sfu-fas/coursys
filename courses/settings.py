@@ -330,6 +330,7 @@ if USE_CELERY:
     CELERYD_TASK_SOFT_TIME_LIMIT = 1200
     CELERY_ENABLE_UTC = False
     CELERY_TIMEZONE = TIME_ZONE
+    CELERY_TASK_ALWAYS_EAGER = False
 
     CELERY_TASK_DEFAULT_QUEUE = 'batch'
     CELERY_TASK_QUEUES = { # any new queues should be reflected in the /etc/defaults/celery setup
@@ -344,6 +345,9 @@ if USE_CELERY:
         'rate_limit' : '30/m',
         'queue': 'email',
         'serializer': 'pickle', # email objects aren't JSON serializable
+        # retry-on-failure config: be very liberal in queuing failed mail...
+        'default_retry_delay': 4*3600, # retry every 4 hours
+        'max_retries': 18,             # ... for 3 days
     }
 
 MAX_SUBMISSION_SIZE = 30000 # kB
