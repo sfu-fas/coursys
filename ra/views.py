@@ -894,7 +894,12 @@ def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
         signer=req.supervisor,
         cosigner_lines=[req.get_cosigner_line(), req.get_first_name() + " " + req.get_last_name()])
     contents.add_paragraphs(["Dear " + req.get_name()])
-    contents.add_paragraphs(req.letter_paragraphs())
+    try:
+        contents.add_paragraphs(req.letter_paragraphs())
+    except ValueError as e:
+        messages.error(request, f'Could not render letter. Error was: {e}')
+        return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
+
     letter.add_letter(contents)
     letter.write()
     return response

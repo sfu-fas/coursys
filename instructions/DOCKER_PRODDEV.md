@@ -44,4 +44,9 @@ In another, start a Django dev server:
 python3 manage.py runserver
 ```
 
+## Shutting Down
 
+```shell
+docker-compose -f docker-compose.yml -f docker-compose-proddev.yml stop
+docker-compose -f docker-compose.yml -f docker-compose-proddev.yml rm
+```
