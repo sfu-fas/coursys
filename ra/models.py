@@ -215,7 +215,7 @@ DEFAULT_LETTER_NCH = '\n\n'.join([
     """You are subject to and must comply with all applicable University policies and procedures including but not limited to:""",
     """GP 18 Human Rights Policy\n GP 37 Conflict of Interest\nGP 44 Sexual Violence and Misconduct Prevention, Education and Support\nGP 47 Bullying and Harassment Policy\nI 10.04 Access to Information and Protection of Privacy\nR 30.03 Intellectual Property Policy""",
     """<u>Mandatory SFU Safety Orientation Training</u>""",
-    """WorkSafe BC requires all new graduate students to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"""
+    """WorkSafe BC requires all new employees to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"""
     ])
 
 DEFAULT_LETTER_NCBW = '\n\n'.join([
@@ -223,14 +223,14 @@ DEFAULT_LETTER_NCBW = '\n\n'.join([
     """There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed %(biweekly_hours)s hours bi-weekly.""",
     """Your responsibilities and duties (Duties) will be:""",
     """ \u2022 %(nc_duties)s""",
-    """This offer includes 2 weeks of paid vacation per calendar year, which will be %(vacation_hours)s prorated for the duration of your appointment.""",
+    """This offer includes 2 weeks of paid vacation per calendar year, which will be %(vacation_hours)s (%(vacation_hours_formatted)s) prorated for the duration of your appointment.""",
     """<u>Employment Standards Act</u>""",
     """Any terms and conditions of employment which have not been expressly addressed in this letter but which are covered by the ESA, will be dealt with in conformity with the relevant provisions of the ESA: https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/00_96113_01""",
     """<u>Policies</u>""",
     """You are subject to and must comply with all applicable University policies and procedures including but not limited to:""",
     """GP 18 Human Rights Policy\n GP 37 Conflict of Interest\nGP 44 Sexual Violence and Misconduct Prevention, Education and Support\nGP 47 Bullying and Harassment Policy\nI 10.04 Access to Information and Protection of Privacy\nR 30.03 Intellectual Property Policy""",
     """<u>Mandatory SFU Safety Orientation Training</u>""",
-    """WorkSafe BC requires all new graduate students to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"""
+    """WorkSafe BC requires all new employees to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"""
     ])
 
 
@@ -737,7 +737,8 @@ class RARequest(models.Model):
                     'biweekly_salary': self.biweekly_salary,
                     'biweekly_hours': self.biweekly_hours,
                     'weeks_vacation': self.weeks_vacation,
-                    'vacation_hours': self.get_vacation_hours(),
+                    'vacation_hours': self.vacation_hours,
+                    'vacation_hours_formatted': self.get_vacation_hours(),
                     'total_pay': self.total_pay,
                     'nc_duties': self.nc_duties
                 }

@@ -412,8 +412,9 @@ function ncBW () {
     biweeklySalary = biweeklySalary.toFixed(2)
     hourlyRate = hourlyRate.toFixed(2)
     if (totalPay == '') {
-        totalPay = parseInt(0).toFixed(2)
+        totalPay = 0
     }
+    totalPay = parseInt(totalPay).toFixed(2)
     $('#id_non_continuing-biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
     $('.biweekly_rate_calc').text('Total Pay (' + totalPay + ') / Pay Periods (' + payPeriods + ')')
