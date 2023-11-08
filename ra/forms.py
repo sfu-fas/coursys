@@ -484,7 +484,6 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
     # fill out if backdated
     backdated = forms.BooleanField(required=False, widget=forms.HiddenInput)
     backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
-    backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
     backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Please provide the reason for this backdated appointment")
 
     gras_payment_method = forms.ChoiceField(required=False,
@@ -549,7 +548,6 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
         
         backdated = self.initial["backdated"]
         backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
-        backdate_hours = cleaned_data.get('backdate_hours')
         backdate_reason = cleaned_data.get('backdate_reason')
 
         start_date = self.initial['start_date']
@@ -558,8 +556,6 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
         if backdated:
             if backdate_lump_sum == 0 or backdate_lump_sum == None or backdate_lump_sum == '':
                 self.add_error('backdate_lump_sum', error_message)          
-            if backdate_hours == 0 or backdate_hours == None or backdate_hours == '':
-                self.add_error('backdate_hours', error_message)
             if backdate_reason == '' or backdate_reason == None:
                 self.add_error('backdate_reason', error_message)
         elif gras_payment_method == None or gras_payment_method == "":
@@ -594,10 +590,11 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
             self.cleaned_data["vacation_pay"] = 0
         else: 
             self.cleaned_data["backdate_lump_sum"] = 0
-            self.cleaned_data["backdate_hours"] = 0
             self.cleaned_data["backdate_reason"] = ''
             if gras_payment_method == "LE":
                 self.cleaned_data['biweekly_salary'] = 0
+        # hours always irrelevant for gras
+        self.cleaned_data["backdate_hours"] = 0
 
 
 class RARequestNonContinuingForm(forms.ModelForm):
