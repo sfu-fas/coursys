@@ -1048,10 +1048,18 @@ class RARequestForm(SFUMediaMixin):
         f = Frame(2*mm, 112.5*mm, 200*mm, 17*mm, 0, 0, 0, 0)
 
         comments = []
-        if gras_ls or backdated or appointment_type == "LS":
-            init_comment = "For total amount of $" + str(self.ra.total_pay) + ". "
+        if backdated or appointment_type == "LS":
+            init_comment = "Lump sum amount $" + str(self.ra.total_pay) + ". "
+        elif gras_ls:
+            init_comment = "Lump sum funding amount $" + str(self.ra.total_pay) + ". "
+        elif gras_bw:
+            init_comment = "Total funding amount $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
+        elif ra_hourly or nc_hourly:
+            init_comment = "Expected $" + str(self.ra.biweekly_hours) + " hours bi-weekly over " + str(self.ra.pay_periods) + " pay periods plus " + str(self.ra.vacation_pay) + "% vacation pay, total pay $" + str(self.ra.total_pay) + ". "
+        elif ra_bw or nc_bw:
+            init_comment = "Salary amount $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
         else:
-            init_comment = "For total amount of $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
+            init_comment = ""
         comments.append(Paragraph("COMMENTS: " + init_comment + self.ra.paf_comments, style=self.NOTE_STYLE))
         f.addFromList(comments, self.c)
         
