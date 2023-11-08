@@ -50,5 +50,3 @@ python3 manage.py runserver
 docker-compose -f docker-compose.yml -f docker-compose-proddev.yml stop
 docker-compose -f docker-compose.yml -f docker-compose-proddev.yml rm
 ```
-
-
