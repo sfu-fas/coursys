@@ -245,7 +245,7 @@ def import_grads():  # replaced by import_grad_task_chain
     grad_importer.import_grads(dry_run=False, verbosity=1)
 
 
-def import_grad_task_chain() -> celery.canvas.Signature:
+def import_grad_task_chain():
     """
     Create a chain of tasks for import of grad timelines.
     """
