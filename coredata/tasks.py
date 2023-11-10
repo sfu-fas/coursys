@@ -201,7 +201,7 @@ def daily_import():
     import_task.apply_async()
 
 
-@task(queue='sims')
+@task(queue='sims', serializer='pickle')
 def import_task():
     """
     Enter all of the daily import tasks into the queue, where they can grind away from there.
@@ -250,12 +250,12 @@ def import_grad_task_chain():
     Create a chain of tasks for import of grad timelines.
     """
     timeline_data = grad_importer.get_timelines(verbosity=0, import_emplids=None)
-    timeline_groups = _grouper(timeline_data.items(), 200)
+    timeline_groups = _grouper(timeline_data.items(), 50)
     grad_import_chain = celery.chain(*[import_timelines.si(dict(td)) for td in timeline_groups])
     return grad_import_chain
 
 
-@task(queue='sims')
+@task(queue='sims', serializer='pickle')
 def import_timelines(timeline_data: dict) -> None:
     """
     Task to call grad_importer.import_timelines on a reasonably-sized of grads.
