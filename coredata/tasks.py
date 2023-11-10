@@ -9,9 +9,9 @@ from courselib.svn import update_repository
 from django.core.management import call_command
 from courselib.celerytasks import task
 from coredata.models import Role, Unit, EnrolmentHistory
-from celery import Celery
+import celery
 
-app = Celery(broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND)  # periodic tasks don't fire without app constructed
+app = celery.Celery(broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND)  # periodic tasks don't fire without app constructed
 
 
 # the maximum beat test age we'd be happy with
@@ -169,18 +169,20 @@ from coredata.models import CourseOffering, Member
 from dashboard.models import NewsItem
 from log.models import LogEntry
 from coredata import importer
-from celery import chain
 from grad import importer as grad_importer
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
 import itertools, datetime, time
 import logging
 logger = logging.getLogger('coredata.importer')
 
+
 # adapted from https://docs.python.org/2/library/itertools.html
 # Used to chunk big lists into task-sized blocks.
 def _grouper(iterable, n):
-    "Collect data into fixed-length chunks or blocks"
-    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
+    """
+    Collect data into fixed-length chunks or blocks
+    grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
+    """
     args = [iter(iterable)] * n
     groups = itertools.zip_longest(fillvalue=None, *args)
     return ((v for v in grp if v is not None) for grp in groups)
@@ -214,18 +216,15 @@ def import_task():
         daily_cleanup.si(),
         fix_unknown_emplids.si(),
         get_role_people.si(),
-        import_grads.si(),
+        #import_grads.si(),
+        import_grad_task_chain(),
         get_update_grads_task(),
         import_offerings.si(continue_import=True),
         import_semester_info.si(),
         import_active_grad_gpas.si(),
-        #get_import_offerings_task(),
-        #import_combined_sections.si(),
-        #send_report.si()
-        haystack_update.si(),
     ]
 
-    chain(*tasks).apply_async()
+    celery.chain(*tasks).apply_async()
 
 
 @task(queue='sims')
@@ -233,15 +232,37 @@ def fix_unknown_emplids():
     logger.info('Fixing unknown emplids')
     importer.fix_emplid()
 
+
 @task(queue='sims')
 def get_role_people():
     logger.info('Importing people with roles')
     importer.get_role_people()
 
+
 @task(queue='sims')
-def import_grads():
+def import_grads():  # replaced by import_grad_task_chain
     logger.info('Importing grad data from SIMS')
     grad_importer.import_grads(dry_run=False, verbosity=1)
+
+
+def import_grad_task_chain() -> celery.canvas.Signature:
+    """
+    Create a chain of tasks for import of grad timelines.
+    """
+    timeline_data = grad_importer.get_timelines(verbosity=0, import_emplids=None)
+    timeline_groups = _grouper(timeline_data.items(), 200)
+    grad_import_chain = celery.chain(*[import_timelines.si(dict(td)) for td in timeline_groups])
+    return grad_import_chain
+
+
+@task(queue='sims')
+def import_timelines(timeline_data: dict) -> None:
+    """
+    Task to call grad_importer.import_timelines on a reasonably-sized of grads.
+    """
+    assert len(timeline_data) < 500  # the whole point is to keep tasks reasonably short.
+    grad_importer.import_timelines(timeline_data, dry_run=False, verbosity=0)
+
 
 def get_update_grads_task():
     """
@@ -256,11 +277,15 @@ def get_update_grads_task():
     emplids = set(gs.person.emplid for gs in grads)
     emplid_groups = _grouper(emplids, 20)
 
-    grad_import_chain = chain(*[import_grad_group.si(list(emplids)) for emplids in emplid_groups])
+    grad_import_chain = celery.chain(*[import_grad_group.si(list(emplids)) for emplids in emplid_groups])
     return grad_import_chain
+
 
 @task(queue='sims')
 def import_grad_group(emplids):
+    """
+    Import grad Person information for this collection of emplids.
+    """
     for emplid in emplids:
         logger.debug('Importing grad %s' % (emplid,))
         importer.get_person_grad(emplid)
@@ -277,9 +302,9 @@ def import_offerings(continue_import=False):
     tasks = get_import_offerings_tasks()
 
     if continue_import:
-        #import_combined_sections.apply_async()
         tasks = tasks | import_combined_sections.si()
         tasks = tasks | import_joint.si()
+        tasks = tasks | haystack_update.si()
 
     logger.info('Starting offering subtasks')
     tasks.apply_async()
@@ -292,7 +317,6 @@ def get_import_offerings_tasks():
     Doesn't actually call the jobs: just returns celery tasks to be called.
     """
     #offerings = importer.import_offerings(extra_where="CT.SUBJECT='CMPT' and CT.CATALOG_NBR IN (' 383', ' 470')")
-    #offerings = importer.import_offerings()
     offerings = importer.import_offerings(cancel_missing=True)
     offerings = list(offerings)
     offerings.sort()
@@ -303,7 +327,7 @@ def get_import_offerings_tasks():
     #tasks = [import_offering_group.si(slugs) for slugs in slug_groups]
     #return tasks
 
-    offering_import_chain = chain(*[import_offering_group.si(slugs) for slugs in slug_groups])
+    offering_import_chain = celery.chain(*[import_offering_group.si(slugs) for slugs in slug_groups])
     return offering_import_chain
 
 from requests.exceptions import Timeout
