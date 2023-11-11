@@ -467,10 +467,9 @@ def admin_panel(request):
                 program_info_for_advisorvisits.apply_async()
                 messages.success(request, 'Advisor visit task started.')
             elif 'grad' in request.POST:
-                from coredata.tasks import import_grad_task_chain
-                from grad.tasks import update_statuses_to_current
+                from grad.tasks import grad_daily_import, update_statuses_to_current
                 update_statuses_to_current.apply_async()
-                import_grad_task_chain().apply_async()
+                grad_daily_import.apply_async()
                 messages.success(request, 'Grad update and import tasks started.')
 
     context = {

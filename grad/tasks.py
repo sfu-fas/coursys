@@ -42,18 +42,15 @@ def update_statuses_to_current():
         gs.update_status_fields()
 
 
-@task(queue='sims')
-def import_grads():  # replaced by import_grad_task_chain
-    grad_importer.import_grads(dry_run=False, verbosity=1)
-
-
-def import_grad_task_chain():
+def import_grad_task_chain(start=False):
     """
     Create a chain of tasks for import of grad timelines.
     """
     timeline_data = grad_importer.get_timelines(verbosity=0, import_emplids=None)
     timeline_groups = grouper(timeline_data.items(), 50)
     grad_import_chain = celery.chain(*[import_timelines.si(dict(td)) for td in timeline_groups])
+    if start:
+        grad_import_chain.apply_async(serializer='pickle')
     return grad_import_chain
 
 

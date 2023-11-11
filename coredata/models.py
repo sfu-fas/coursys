@@ -1066,7 +1066,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         return (m.person for m in self.member_set.filter(role="INST").select_related('person'))
 
     def instructors_str(self):
-        @cached(60*60)
+        @cached(60*60*24*2)
         def _instr_str(pk):
             return '; '.join(p.sortname_pref() for p in CourseOffering.objects.get(pk=pk).instructors())
         return _instr_str(self.pk)
@@ -1076,7 +1076,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         return (m.person for m in self.member_set.filter(role="INST").select_related('person')
                 if m.sched_print_instr())
     def instructors_printing_str(self):
-        @cached(60*60)
+        @cached(60*60*24*2)
         def _instr_printing_str(pk):
             return '; '.join(p.sortname_pref() for p in CourseOffering.objects.get(pk=pk).instructors_printing())
         return _instr_printing_str(self.pk)

@@ -5,7 +5,7 @@ import datetime
 from collections import defaultdict
 
 
-@task(queue='sims')
+@task()
 def update_program_info(advisor_visit_ids):
     visits = AdvisorVisit.objects.filter(id__in=advisor_visit_ids) \
             .exclude(student__isnull=True).select_related('student')
@@ -31,7 +31,7 @@ def update_program_info(advisor_visit_ids):
 @task()
 def program_info_for_advisorvisits():
     """
-    Find any AdvisorVisits that need their sims_programs filled in; pass a task to do that off to the sims queue.
+    Find any AdvisorVisits that need their sims_programs filled in; start a task to do that.
     """
     cutoff = datetime.datetime.now() - datetime.timedelta(days=5)
     visit_ids = AdvisorVisit.objects.filter(created_at__gte=cutoff)\
