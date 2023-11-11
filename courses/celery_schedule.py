@@ -13,6 +13,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'coredata.tasks.daily_import',
         'schedule': crontab(minute='30', hour='8'),
     },
+    'grad.tasks.grad_daily_import': {
+        'task': 'grad.tasks.grad_daily_import',
+        'schedule': crontab(minute='40', hour='8'),
+    },
     'coredata.tasks.check_sims_connection': {
         'task': 'coredata.tasks.check_sims_connection',
         'schedule': crontab(minute=0, hour='*/3'),
