@@ -224,7 +224,7 @@ def import_task():
         import_active_grad_gpas.si(),
     ]
 
-    celery.chain(*tasks).apply_async()
+    celery.chain(*tasks).apply_async(serializer='pickle')
 
 
 @task(queue='sims')
