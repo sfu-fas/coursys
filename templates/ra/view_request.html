@@ -280,7 +280,7 @@
     {% if req.backdated %}
     <b>This is a backdated appointment!</b>
     <tr><th>Lump Sum:</th><td>${{ req.backdate_lump_sum|floatformat:2 }}</td></tr>
-    <tr><th>Hours:</th><td>{{ req.backdate_hours|floatformat:2 }} ({{req.get_backdate_hours}})</td></tr>
+    {% if not graduate_research_assistant %}<tr><th>Hours:</th><td>{{ req.backdate_hours|floatformat:2 }} ({{req.get_backdate_hours}})</td></tr>{% endif %}
     <tr><th>Reason:</th><td>{{ req.backdate_reason }}</td></tr>
     {% endif %}
     {% if graduate_research_assistant %}

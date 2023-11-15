@@ -1243,7 +1243,9 @@ def download(request, current=False):
 
     writer = csv.writer(response)
     if admin:
-        writer.writerow(['Status', 'Appointee Name', 'Appointee Email', 'ID', 'Unit', 'Position Title', 'Fund', 'Project', 'Supervisor', 'Supervisor Email', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP', 'Appointee Co-op Status', 'USRA', 'Mitacs', 'Processed By', 'Student Status', 'Object Code', 'True Scholarship Questionnaire'])
+        writer.writerow(['Status', 'Appointee Name', 'Appointee Email', 'ID', 'Unit', 'Position Title', 'Fund', 'Project', 'Supervisor', 'Supervisor Email', 
+                         'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'SWPP', 'Appointee Co-op Status', 'USRA', 'Mitacs', 'Processed By', 'Student Status', 
+                         'Object Code', 'True Scholarship Questionnaire', 'Pay Periods', 'Payment Method', 'Bi-Weekly Hours', 'Bi-Weekly Salary/Funding', 'Gross Hourly', 'Weeks Vacation', 'Vacation Pay', 'Vacation Hours'])
         for ra in ras:
             if ra.complete:
                 status = "Complete"
@@ -1253,7 +1255,35 @@ def download(request, current=False):
                 usra = " (USRA)"
             else:
                 usra = ""
-            writer.writerow([status, ra.get_sort_name(), ra.get_email_address(), ra.get_id(), ra.unit.label, ra.position, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.supervisor.email(), ra.start_date, ra.end_date, ra.hiring_category + usra, ra.total_pay, ra.swpp, ra.coop, ra.usra, ra.mitacs, ra.get_processor(), ra.get_student_status(), ra.object_code,  ra.get_scholarship_confirmation_complete()])
+
+            # payment terms, for finance
+            cat = ra.hiring_category
+            research_assistant = (cat=="RA")
+            non_cont = (cat=="NC")
+            graduate_research_assistant = (cat=="GRAS")
+
+            gras_ls = (graduate_research_assistant and (ra.gras_payment_method=="LS" or ra.gras_payment_method=="LE"))
+            gras_bw = (graduate_research_assistant and ra.gras_payment_method=="BW")
+            ra_hourly = (research_assistant and ra.ra_payment_method=="H")
+            ra_bw = (research_assistant and ra.ra_payment_method=="BW")
+            nc_hourly = (non_cont and ra.nc_payment_method=="H")
+            nc_bw = (non_cont and ra.nc_payment_method=="BW")
+            
+            payment_terms = [""] * 7
+            if ra_bw or nc_bw:
+                payment_terms = ["Bi-Weekly", ra.biweekly_hours, ra.biweekly_salary, ra.gross_hourly, ra.weeks_vacation, "", ra.vacation_hours]
+            elif ra_hourly or nc_hourly: 
+                payment_terms = ["Hourly", ra.biweekly_hours, "", ra.gross_hourly, "", ra.vacation_pay, ""]
+            elif gras_ls:
+                payment_terms = ["Lump Sum"] + ([""] * 6)
+            elif gras_bw:
+                payment_terms = ["Bi-Weekly", "", ra.biweekly_salary] + ([""] * 4)
+            if ra.backdated:
+                payment_terms = ["Backdated"] + ([""] * 6)
+
+            writer.writerow([status, ra.get_sort_name(), ra.get_email_address(), ra.get_id(), ra.unit.label, ra.position, ra.get_funds(), ra.get_projects(), ra.supervisor.sortname(), ra.supervisor.email(), 
+                             ra.start_date, ra.end_date, ra.hiring_category + usra, ra.total_pay, ra.swpp, ra.coop, ra.usra, ra.mitacs, ra.get_processor(), ra.get_student_status(), 
+                             ra.object_code,  ra.get_scholarship_confirmation_complete(), ra.pay_periods] + payment_terms )
     else:
         writer.writerow(['Appointee Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
         for ra in ras:
