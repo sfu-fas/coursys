@@ -1,7 +1,11 @@
 import os
-from typing import Optional
+from typing import Optional, Iterable, Type
 
 from django.conf import settings
+from django.db import models
+from haystack.exceptions import NotHandled
+from haystack.utils import loading
+from haystack.utils.app_loading import haystack_get_models, haystack_load_apps
 
 from coredata.queries import SIMSConn, SIMSProblem
 from courselib.search import haystack_update_index, haystack_rebuild_index
@@ -124,17 +128,6 @@ def expiring_roles():
     if settings.DO_IMPORTING_HERE:
         Role.warn_expiring()
     Role.purge_expired()
-
-
-@task(queue='sims')
-def haystack_update():
-    haystack_update_index()
-
-
-# purge and rebuild the search index occasionally to get any orphaned records
-@task(queue='sims')
-def haystack_rebuild():
-    haystack_rebuild_index()
 
 
 @task()
@@ -346,3 +339,64 @@ def cleanup_tmp(path: str = '/tmp'):
 def import_active_grad_gpas():
     logger.info('Importing active grad GPAs')
     importer.import_active_grads_gpas()
+
+
+###################################################################################################
+# Search-related tasks
+
+
+@task(queue='sims')
+def haystack_update():
+    haystack_update_index()
+
+
+# purge and rebuild the search index occasionally to get any orphaned records
+@task(queue='sims')
+def haystack_rebuild():
+    haystack_rebuild_index()
+
+
+@task(queue='batch')
+def our_update_index(group_size: int = 2500, update_only: bool = True):
+    """
+    Roughly equivalent to the Haystack update_index management command, but handles the work in reasonably-sized
+    Celery tasks.
+    group_size: the number of objects to index in a task
+    update_only: don't necessarily index *everything*. Honour the SearchIndex's .update_filter() method if present.
+    """
+    haystack_connections = loading.ConnectionHandler(settings.HAYSTACK_CONNECTIONS)
+    backends = haystack_connections.connections_info.keys()
+    for label in haystack_load_apps():
+        for using in backends:
+            unified_index = haystack_connections[using].get_unified_index()
+            for model in haystack_get_models(label):
+                try:
+                    index = unified_index.get_index(model)
+                except NotHandled:
+                    continue
+
+                qs = index.build_queryset(using=using)
+
+                if update_only and hasattr(index, 'update_filter'):  # allow updating of only-likely-changing instances
+                    qs = index.update_filter(qs)
+
+                tasks = []
+                for group in grouper(qs.values('pk'), group_size):
+                    t = update_index_chunk.si(using=using, model=model, pks=[o['pk'] for o in group])
+                    tasks.append(t)
+                chain = celery.chain(*tasks)
+                print(tasks)
+                chain.delay()
+
+
+@task(queue='batch', serializer='pickle')
+def update_index_chunk(using: str, model: Type[models.Model], pks: Iterable[int], commit: bool = True) -> None:
+    """
+    Index these instances (type model, primary keys in pks) with Haystack.
+    """
+    haystack_connections = loading.ConnectionHandler(settings.HAYSTACK_CONNECTIONS)
+    backend = haystack_connections[using].get_backend()
+    unified_index = haystack_connections[using].get_unified_index()
+    index = unified_index.get_index(model)
+    qs = model.objects.filter(pk__in=pks)
+    backend.update(index, qs, commit=commit)

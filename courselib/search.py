@@ -101,3 +101,5 @@ def haystack_index(model: Type[models.Model], qs: Iterable[models.Model], commit
         unified_index = haystack_connections[using].get_unified_index()
         index = unified_index.get_index(model)
         backend.update(index, qs, commit=commit)
+
+

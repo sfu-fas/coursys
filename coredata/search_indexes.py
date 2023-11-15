@@ -19,6 +19,10 @@ class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
         cutoff = datetime.date.today() - datetime.timedelta(days=3650)
         return self.get_model().objects.exclude(component='CAN').filter(semester__start__gte=cutoff).select_related('semester')
 
+    def update_filter(self, qs):
+        cutoff = datetime.date.today() - datetime.timedelta(days=365)
+        return qs.filter(semester__start__gte=cutoff)
+
     def prepare_text(self, o):
         fields = [o.subject, o.number, o.section, o.title, o.instructors_str(), o.semester.name,
                   o.semester.label(), o.get_campus_display()]
@@ -75,6 +79,10 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
                 .filter(role__in=['STUD', 'TA']) \
                 .select_related('person', 'offering__semester') \
                 .filter(offering__semester__start__gte=cutoff)
+
+    def update_filter(self, qs):
+        cutoff = datetime.date.today() - datetime.timedelta(days=365)
+        return qs.filter(offering__semester__start__gte=cutoff)
 
     def prepare_text(self, m):
         fields = [m.offering.semester.label(), m.offering.semester.name, m.offering.name(),
