@@ -385,7 +385,6 @@ def our_update_index(group_size: int = 2500, update_only: bool = True):
                     t = update_index_chunk.si(using=using, model=model, pks=[o['pk'] for o in group])
                     tasks.append(t)
                 chain = celery.chain(*tasks)
-                print(tasks)
                 chain.delay()
 
 
