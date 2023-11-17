@@ -1384,6 +1384,7 @@ def browse_courses_info(request, course_slug):
         response = HttpResponse(content_type='application/json')
         data = outlines_data_json(offering)
         response.write(data)
+        response.slow_okay = True
         return response
 
     # the page itself (with most data assembled by AJAX requests to the above)
