@@ -66,7 +66,7 @@ OUM3QjREMTIyQ0YzQjNGMDA+XQo+PgpzdGFydHhyZWYKMjE1OQolJUVPRgo=""")
 
 
 class SubmissionTest(TestCase):
-    fixtures = ['basedata', 'coredata', 'grades']
+    fixtures = ['basedata', 'coredata']
     
     def setUp(self):
         pass

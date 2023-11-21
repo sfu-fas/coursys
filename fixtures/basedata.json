@@ -1,405 +1,1131 @@
 [
 {
  "fields": {
-  "end": "2010-04-16",
-  "name": "1101",
-  "start": "2010-01-04"
- },
- "model": "coredata.semester",
- "pk": 134
-},
-{
- "fields": {
-  "end": "2010-08-11",
-  "name": "1104",
-  "start": "2010-05-12"
- },
- "model": "coredata.semester",
- "pk": 135
-},
-{
- "fields": {
-  "end": "2010-12-06",
-  "name": "1107",
-  "start": "2010-09-07"
- },
- "model": "coredata.semester",
- "pk": 136
-},
-{
- "fields": {
-  "end": "2011-04-11",
-  "name": "1111",
-  "start": "2011-01-06"
- },
- "model": "coredata.semester",
- "pk": 137
-},
-{
- "fields": {
-  "end": "2011-08-08",
-  "name": "1114",
-  "start": "2011-05-09"
- },
- "model": "coredata.semester",
- "pk": 138
-},
-{
- "fields": {
-  "end": "2011-12-05",
-  "name": "1117",
-  "start": "2011-09-06"
- },
- "model": "coredata.semester",
- "pk": 139
-},
-{
- "fields": {
-  "end": "2012-04-11",
-  "name": "1121",
-  "start": "2012-01-05"
- },
- "model": "coredata.semester",
- "pk": 140
-},
-{
- "fields": {
-  "end": "2012-08-03",
-  "name": "1124",
-  "start": "2012-05-07"
- },
- "model": "coredata.semester",
- "pk": 141
-},
-{
- "fields": {
-  "end": "2012-12-03",
-  "name": "1127",
-  "start": "2012-09-04"
- },
- "model": "coredata.semester",
- "pk": 142
-},
-{
- "fields": {
-  "end": "2013-04-12",
+  "end": "2013-04-15",
   "name": "1131",
-  "start": "2013-01-07"
+  "start": "2013-01-02"
  },
  "model": "coredata.semester",
- "pk": 143
+ "pk": 1
 },
 {
  "fields": {
-  "end": "2013-08-02",
+  "end": "2013-08-15",
   "name": "1134",
-  "start": "2013-05-06"
+  "start": "2013-05-02"
  },
  "model": "coredata.semester",
- "pk": 144
+ "pk": 2
 },
 {
  "fields": {
-  "end": "2013-12-02",
+  "end": "2013-12-15",
   "name": "1137",
-  "start": "2013-09-03"
+  "start": "2013-09-02"
  },
  "model": "coredata.semester",
- "pk": 145
+ "pk": 3
 },
 {
  "fields": {
-  "end": "2014-04-09",
+  "end": "2014-04-15",
   "name": "1141",
-  "start": "2014-01-06"
+  "start": "2014-01-02"
  },
  "model": "coredata.semester",
- "pk": 146
+ "pk": 4
 },
 {
  "fields": {
-  "end": "2014-08-01",
+  "end": "2014-08-15",
   "name": "1144",
-  "start": "2014-05-05"
+  "start": "2014-05-02"
  },
  "model": "coredata.semester",
- "pk": 147
+ "pk": 5
 },
 {
  "fields": {
-  "end": "2014-12-01",
+  "end": "2014-12-15",
   "name": "1147",
   "start": "2014-09-02"
  },
  "model": "coredata.semester",
- "pk": 148
+ "pk": 6
 },
 {
  "fields": {
-  "end": "2015-04-13",
+  "end": "2015-04-15",
   "name": "1151",
-  "start": "2015-01-06"
+  "start": "2015-01-02"
  },
  "model": "coredata.semester",
- "pk": 149
+ "pk": 7
 },
 {
  "fields": {
-  "end": "2015-08-10",
+  "end": "2015-08-15",
   "name": "1154",
-  "start": "2015-05-11"
+  "start": "2015-05-02"
  },
  "model": "coredata.semester",
- "pk": 150
+ "pk": 8
 },
 {
  "fields": {
-  "end": "2015-12-07",
+  "end": "2015-12-15",
   "name": "1157",
-  "start": "2015-09-08"
+  "start": "2015-09-02"
  },
  "model": "coredata.semester",
- "pk": 151
+ "pk": 9
 },
 {
  "fields": {
-  "end": "2016-04-11",
+  "end": "2016-04-15",
   "name": "1161",
-  "start": "2016-01-05"
+  "start": "2016-01-02"
  },
  "model": "coredata.semester",
- "pk": 152
+ "pk": 10
 },
 {
  "fields": {
-  "end": "2016-08-08",
+  "end": "2016-08-15",
   "name": "1164",
-  "start": "2016-05-09"
+  "start": "2016-05-02"
  },
  "model": "coredata.semester",
- "pk": 153
+ "pk": 11
 },
 {
  "fields": {
-  "end": "2016-12-05",
+  "end": "2016-12-15",
   "name": "1167",
-  "start": "2016-09-06"
+  "start": "2016-09-02"
  },
  "model": "coredata.semester",
- "pk": 154
+ "pk": 12
 },
 {
  "fields": {
-  "end": "2017-04-07",
+  "end": "2017-04-15",
   "name": "1171",
-  "start": "2017-01-04"
+  "start": "2017-01-02"
  },
  "model": "coredata.semester",
- "pk": 155
+ "pk": 13
 },
 {
  "fields": {
-  "end": "2017-08-04",
+  "end": "2017-08-15",
   "name": "1174",
-  "start": "2017-05-08"
+  "start": "2017-05-02"
  },
  "model": "coredata.semester",
- "pk": 156
+ "pk": 14
 },
 {
  "fields": {
-  "end": "2017-12-04",
+  "end": "2017-12-15",
   "name": "1177",
-  "start": "2017-09-05"
+  "start": "2017-09-02"
  },
  "model": "coredata.semester",
- "pk": 157
+ "pk": 15
 },
 {
  "fields": {
-  "end": "2018-04-10",
+  "end": "2018-04-15",
   "name": "1181",
-  "start": "2018-01-03"
+  "start": "2018-01-02"
  },
  "model": "coredata.semester",
- "pk": 158
+ "pk": 16
 },
 {
  "fields": {
-  "end": "2018-08-03",
+  "end": "2018-08-15",
   "name": "1184",
-  "start": "2018-05-07"
+  "start": "2018-05-02"
  },
  "model": "coredata.semester",
- "pk": 159
+ "pk": 17
 },
 {
  "fields": {
-  "end": "2018-12-03",
+  "end": "2018-12-15",
   "name": "1187",
-  "start": "2018-09-04"
+  "start": "2018-09-02"
  },
  "model": "coredata.semester",
- "pk": 160
+ "pk": 18
 },
 {
  "fields": {
-  "end": "2019-04-08",
+  "end": "2019-04-15",
   "name": "1191",
-  "start": "2019-01-03"
+  "start": "2019-01-02"
  },
  "model": "coredata.semester",
- "pk": 161
+ "pk": 19
 },
 {
  "fields": {
-  "end": "2019-08-02",
+  "end": "2019-08-15",
   "name": "1194",
-  "start": "2019-05-06"
+  "start": "2019-05-02"
  },
  "model": "coredata.semester",
- "pk": 162
+ "pk": 20
 },
 {
  "fields": {
-  "end": "2019-12-02",
+  "end": "2019-12-15",
   "name": "1197",
-  "start": "2019-09-03"
+  "start": "2019-09-02"
  },
  "model": "coredata.semester",
- "pk": 163
+ "pk": 21
 },
 {
  "fields": {
-  "end": "2020-04-10",
+  "end": "2020-04-15",
   "name": "1201",
-  "start": "2020-01-06"
+  "start": "2020-01-02"
  },
  "model": "coredata.semester",
- "pk": 164
+ "pk": 22
 },
 {
  "fields": {
-  "end": "2020-08-10",
+  "end": "2020-08-15",
   "name": "1204",
-  "start": "2020-05-11"
+  "start": "2020-05-02"
  },
  "model": "coredata.semester",
- "pk": 165
+ "pk": 23
 },
 {
  "fields": {
-  "end": "2020-12-08",
+  "end": "2020-12-15",
   "name": "1207",
-  "start": "2020-09-09"
+  "start": "2020-09-02"
  },
  "model": "coredata.semester",
- "pk": 166
+ "pk": 24
 },
 {
  "fields": {
-  "end": "2021-04-12",
+  "end": "2021-04-15",
   "name": "1211",
-  "start": "2021-01-05"
+  "start": "2021-01-02"
  },
  "model": "coredata.semester",
- "pk": 167
+ "pk": 25
 },
 {
  "fields": {
-  "end": "2021-08-09",
+  "end": "2021-08-15",
   "name": "1214",
-  "start": "2021-05-10"
+  "start": "2021-05-02"
  },
  "model": "coredata.semester",
- "pk": 168
+ "pk": 26
 },
 {
  "fields": {
-  "end": "2021-12-07",
+  "end": "2021-12-15",
   "name": "1217",
-  "start": "2021-09-08"
+  "start": "2021-09-02"
  },
  "model": "coredata.semester",
- "pk": 169
+ "pk": 27
 },
 {
  "fields": {
-  "end": "2022-04-08",
+  "end": "2022-04-15",
   "name": "1221",
-  "start": "2022-01-05"
+  "start": "2022-01-02"
  },
  "model": "coredata.semester",
- "pk": 170
+ "pk": 28
 },
 {
  "fields": {
-  "end": "2022-08-08",
+  "end": "2022-08-15",
   "name": "1224",
-  "start": "2022-05-09"
+  "start": "2022-05-02"
  },
  "model": "coredata.semester",
- "pk": 171
+ "pk": 29
 },
 {
  "fields": {
-  "end": "2022-12-06",
+  "end": "2022-12-15",
   "name": "1227",
-  "start": "2022-09-07"
+  "start": "2022-09-02"
  },
  "model": "coredata.semester",
- "pk": 172
+ "pk": 30
 },
 {
  "fields": {
-  "end": "2023-04-11",
+  "end": "2023-04-15",
   "name": "1231",
-  "start": "2023-01-04"
+  "start": "2023-01-02"
  },
  "model": "coredata.semester",
- "pk": 173
+ "pk": 31
 },
 {
  "fields": {
-  "end": "2023-08-04",
+  "end": "2023-08-15",
   "name": "1234",
-  "start": "2023-05-08"
+  "start": "2023-05-02"
  },
  "model": "coredata.semester",
- "pk": 174
+ "pk": 32
 },
 {
  "fields": {
-  "end": "2023-12-05",
+  "end": "2023-12-15",
   "name": "1237",
-  "start": "2023-09-06"
+  "start": "2023-09-02"
  },
  "model": "coredata.semester",
- "pk": 175
+ "pk": 33
 },
 {
  "fields": {
-  "end": "2024-04-09",
+  "end": "2024-04-15",
   "name": "1241",
-  "start": "2024-01-03"
+  "start": "2024-01-02"
  },
  "model": "coredata.semester",
- "pk": 176
+ "pk": 34
 },
 {
  "fields": {
-  "config": "{}",
-  "emplid": 200000100,
-  "first_name": "Gregor\u028f",
-  "last_name": "Baker",
-  "middle_name": "Garnet",
-  "pref_first_name": "Greg",
-  "temporary": false,
-  "title": null,
-  "userid": "ggbaker"
+  "end": "2024-08-15",
+  "name": "1244",
+  "start": "2024-05-02"
  },
- "model": "coredata.person",
+ "model": "coredata.semester",
+ "pk": 35
+},
+{
+ "fields": {
+  "end": "2024-12-15",
+  "name": "1247",
+  "start": "2024-09-02"
+ },
+ "model": "coredata.semester",
+ "pk": 36
+},
+{
+ "fields": {
+  "end": "2025-04-15",
+  "name": "1251",
+  "start": "2025-01-02"
+ },
+ "model": "coredata.semester",
+ "pk": 37
+},
+{
+ "fields": {
+  "end": "2025-08-15",
+  "name": "1254",
+  "start": "2025-05-02"
+ },
+ "model": "coredata.semester",
+ "pk": 38
+},
+{
+ "fields": {
+  "end": "2025-12-15",
+  "name": "1257",
+  "start": "2025-09-02"
+ },
+ "model": "coredata.semester",
+ "pk": 39
+},
+{
+ "fields": {
+  "end": "2026-04-15",
+  "name": "1261",
+  "start": "2026-01-02"
+ },
+ "model": "coredata.semester",
+ "pk": 40
+},
+{
+ "fields": {
+  "end": "2026-08-15",
+  "name": "1264",
+  "start": "2026-05-02"
+ },
+ "model": "coredata.semester",
+ "pk": 41
+},
+{
+ "fields": {
+  "end": "2026-12-15",
+  "name": "1267",
+  "start": "2026-09-02"
+ },
+ "model": "coredata.semester",
+ "pk": 42
+},
+{
+ "fields": {
+  "end": "2027-04-15",
+  "name": "1271",
+  "start": "2027-01-02"
+ },
+ "model": "coredata.semester",
+ "pk": 43
+},
+{
+ "fields": {
+  "end": "2027-08-15",
+  "name": "1274",
+  "start": "2027-05-02"
+ },
+ "model": "coredata.semester",
+ "pk": 44
+},
+{
+ "fields": {
+  "end": "2027-12-15",
+  "name": "1277",
+  "start": "2027-09-02"
+ },
+ "model": "coredata.semester",
+ "pk": 45
+},
+{
+ "fields": {
+  "end": "2028-04-15",
+  "name": "1281",
+  "start": "2028-01-02"
+ },
+ "model": "coredata.semester",
+ "pk": 46
+},
+{
+ "fields": {
+  "end": "2028-08-15",
+  "name": "1284",
+  "start": "2028-05-02"
+ },
+ "model": "coredata.semester",
+ "pk": 47
+},
+{
+ "fields": {
+  "end": "2028-12-15",
+  "name": "1287",
+  "start": "2028-09-02"
+ },
+ "model": "coredata.semester",
+ "pk": 48
+},
+{
+ "fields": {
+  "end": "2029-04-15",
+  "name": "1291",
+  "start": "2029-01-02"
+ },
+ "model": "coredata.semester",
+ "pk": 49
+},
+{
+ "fields": {
+  "end": "2029-08-15",
+  "name": "1294",
+  "start": "2029-05-02"
+ },
+ "model": "coredata.semester",
+ "pk": 50
+},
+{
+ "fields": {
+  "end": "2029-12-15",
+  "name": "1297",
+  "start": "2029-09-02"
+ },
+ "model": "coredata.semester",
+ "pk": 51
+},
+{
+ "fields": {
+  "end": "2030-04-15",
+  "name": "1301",
+  "start": "2030-01-02"
+ },
+ "model": "coredata.semester",
+ "pk": 52
+},
+{
+ "fields": {
+  "end": "2030-08-15",
+  "name": "1304",
+  "start": "2030-05-02"
+ },
+ "model": "coredata.semester",
+ "pk": 53
+},
+{
+ "fields": {
+  "end": "2030-12-15",
+  "name": "1307",
+  "start": "2030-09-02"
+ },
+ "model": "coredata.semester",
+ "pk": 54
+},
+{
+ "fields": {
+  "end": "2031-04-15",
+  "name": "1311",
+  "start": "2031-01-02"
+ },
+ "model": "coredata.semester",
+ "pk": 55
+},
+{
+ "fields": {
+  "end": "2031-08-15",
+  "name": "1314",
+  "start": "2031-05-02"
+ },
+ "model": "coredata.semester",
+ "pk": 56
+},
+{
+ "fields": {
+  "end": "2031-12-15",
+  "name": "1317",
+  "start": "2031-09-02"
+ },
+ "model": "coredata.semester",
+ "pk": 57
+},
+{
+ "fields": {
+  "end": "2032-04-15",
+  "name": "1321",
+  "start": "2032-01-02"
+ },
+ "model": "coredata.semester",
+ "pk": 58
+},
+{
+ "fields": {
+  "end": "2032-08-15",
+  "name": "1324",
+  "start": "2032-05-02"
+ },
+ "model": "coredata.semester",
+ "pk": 59
+},
+{
+ "fields": {
+  "end": "2032-12-15",
+  "name": "1327",
+  "start": "2032-09-02"
+ },
+ "model": "coredata.semester",
+ "pk": 60
+},
+{
+ "fields": {
+  "monday": "2013-01-07",
+  "semester": 1,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
  "pk": 1
+},
+{
+ "fields": {
+  "monday": "2013-05-06",
+  "semester": 2,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 2
+},
+{
+ "fields": {
+  "monday": "2013-09-02",
+  "semester": 3,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 3
+},
+{
+ "fields": {
+  "monday": "2014-01-06",
+  "semester": 4,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 4
+},
+{
+ "fields": {
+  "monday": "2014-05-05",
+  "semester": 5,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 5
+},
+{
+ "fields": {
+  "monday": "2014-09-01",
+  "semester": 6,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 6
+},
+{
+ "fields": {
+  "monday": "2015-01-05",
+  "semester": 7,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 7
+},
+{
+ "fields": {
+  "monday": "2015-05-04",
+  "semester": 8,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 8
+},
+{
+ "fields": {
+  "monday": "2015-09-07",
+  "semester": 9,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 9
+},
+{
+ "fields": {
+  "monday": "2016-01-04",
+  "semester": 10,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 10
+},
+{
+ "fields": {
+  "monday": "2016-05-02",
+  "semester": 11,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 11
+},
+{
+ "fields": {
+  "monday": "2016-09-05",
+  "semester": 12,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 12
+},
+{
+ "fields": {
+  "monday": "2017-01-02",
+  "semester": 13,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 13
+},
+{
+ "fields": {
+  "monday": "2017-05-01",
+  "semester": 14,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 14
+},
+{
+ "fields": {
+  "monday": "2017-09-04",
+  "semester": 15,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 15
+},
+{
+ "fields": {
+  "monday": "2018-01-01",
+  "semester": 16,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 16
+},
+{
+ "fields": {
+  "monday": "2018-05-07",
+  "semester": 17,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 17
+},
+{
+ "fields": {
+  "monday": "2018-09-03",
+  "semester": 18,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 18
+},
+{
+ "fields": {
+  "monday": "2019-01-07",
+  "semester": 19,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 19
+},
+{
+ "fields": {
+  "monday": "2019-05-06",
+  "semester": 20,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 20
+},
+{
+ "fields": {
+  "monday": "2019-09-02",
+  "semester": 21,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 21
+},
+{
+ "fields": {
+  "monday": "2020-01-06",
+  "semester": 22,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 22
+},
+{
+ "fields": {
+  "monday": "2020-05-04",
+  "semester": 23,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 23
+},
+{
+ "fields": {
+  "monday": "2020-09-07",
+  "semester": 24,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 24
+},
+{
+ "fields": {
+  "monday": "2021-01-04",
+  "semester": 25,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 25
+},
+{
+ "fields": {
+  "monday": "2021-05-03",
+  "semester": 26,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 26
+},
+{
+ "fields": {
+  "monday": "2021-09-06",
+  "semester": 27,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 27
+},
+{
+ "fields": {
+  "monday": "2022-01-03",
+  "semester": 28,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 28
+},
+{
+ "fields": {
+  "monday": "2022-05-02",
+  "semester": 29,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 29
+},
+{
+ "fields": {
+  "monday": "2022-09-05",
+  "semester": 30,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 30
+},
+{
+ "fields": {
+  "monday": "2023-01-02",
+  "semester": 31,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 31
+},
+{
+ "fields": {
+  "monday": "2023-05-01",
+  "semester": 32,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 32
+},
+{
+ "fields": {
+  "monday": "2023-09-04",
+  "semester": 33,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 33
+},
+{
+ "fields": {
+  "monday": "2024-01-01",
+  "semester": 34,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 34
+},
+{
+ "fields": {
+  "monday": "2024-05-06",
+  "semester": 35,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 35
+},
+{
+ "fields": {
+  "monday": "2024-09-02",
+  "semester": 36,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 36
+},
+{
+ "fields": {
+  "monday": "2025-01-06",
+  "semester": 37,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 37
+},
+{
+ "fields": {
+  "monday": "2025-05-05",
+  "semester": 38,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 38
+},
+{
+ "fields": {
+  "monday": "2025-09-01",
+  "semester": 39,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 39
+},
+{
+ "fields": {
+  "monday": "2026-01-05",
+  "semester": 40,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 40
+},
+{
+ "fields": {
+  "monday": "2026-05-04",
+  "semester": 41,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 41
+},
+{
+ "fields": {
+  "monday": "2026-09-07",
+  "semester": 42,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 42
+},
+{
+ "fields": {
+  "monday": "2027-01-04",
+  "semester": 43,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 43
+},
+{
+ "fields": {
+  "monday": "2027-05-03",
+  "semester": 44,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 44
+},
+{
+ "fields": {
+  "monday": "2027-09-06",
+  "semester": 45,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 45
+},
+{
+ "fields": {
+  "monday": "2028-01-03",
+  "semester": 46,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 46
+},
+{
+ "fields": {
+  "monday": "2028-05-01",
+  "semester": 47,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 47
+},
+{
+ "fields": {
+  "monday": "2028-09-04",
+  "semester": 48,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 48
+},
+{
+ "fields": {
+  "monday": "2029-01-01",
+  "semester": 49,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 49
+},
+{
+ "fields": {
+  "monday": "2029-05-07",
+  "semester": 50,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 50
+},
+{
+ "fields": {
+  "monday": "2029-09-03",
+  "semester": 51,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 51
+},
+{
+ "fields": {
+  "monday": "2030-01-07",
+  "semester": 52,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 52
+},
+{
+ "fields": {
+  "monday": "2030-05-06",
+  "semester": 53,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 53
+},
+{
+ "fields": {
+  "monday": "2030-09-02",
+  "semester": 54,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 54
+},
+{
+ "fields": {
+  "monday": "2031-01-06",
+  "semester": 55,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 55
+},
+{
+ "fields": {
+  "monday": "2031-05-05",
+  "semester": 56,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 56
+},
+{
+ "fields": {
+  "monday": "2031-09-01",
+  "semester": 57,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 57
+},
+{
+ "fields": {
+  "monday": "2032-01-05",
+  "semester": 58,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 58
+},
+{
+ "fields": {
+  "monday": "2032-05-03",
+  "semester": 59,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 59
+},
+{
+ "fields": {
+  "monday": "2032-09-06",
+  "semester": 60,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 60
+},
+{
+ "fields": {
+  "acad_org": "COMP SCI",
+  "config": "{\n    \"address\": [\n        \"9971 Applied Sciences Building\",\n        \"8888 University Drive, Burnaby, BC\",\n        \"Canada V5A 1S6\"\n    ],\n    \"email\": \"csdept@sfu.ca\",\n    \"web\": \"http://www.cs.sfu.ca/\",\n    \"tel\": \"778-782-4277\",\n    \"fax\": \"778-782-3045\",\n    \"informal_name\": \"Computing Science\",\n    \"deptid\": \"12345\"\n}",
+  "label": "CMPT",
+  "name": "School of Computing Science",
+  "parent": 2,
+  "slug": "cmpt"
+ },
+ "model": "coredata.unit",
+ "pk": 5
+},
+{
+ "fields": {
+  "acad_org": "ENG SCI",
+  "config": "{}",
+  "label": "ENSC",
+  "name": "School of Engineering Science",
+  "parent": 2,
+  "slug": "ensc"
+ },
+ "model": "coredata.unit",
+ "pk": 3
+},
+{
+ "fields": {
+  "acad_org": null,
+  "config": "{}",
+  "label": "FAS",
+  "name": "Faculty of Applied Sciences",
+  "parent": 1,
+  "slug": "fas"
+ },
+ "model": "coredata.unit",
+ "pk": 2
+},
+{
+ "fields": {
+  "acad_org": "MECH SYS",
+  "config": "{}",
+  "label": "MSE",
+  "name": "School of Mechatronic Systems Engineering",
+  "parent": 2,
+  "slug": "mse"
+ },
+ "model": "coredata.unit",
+ "pk": 4
 },
 {
  "fields": {
@@ -416,12 +1142,16 @@
 {
  "fields": {
   "config": "{}",
-  "expiry": "2033-01-23",
-  "person": 1,
-  "role": "SYSA",
-  "unit": 1
+  "emplid": 200000001,
+  "first_name": "Gregorʏ",
+  "last_name": "Baker",
+  "middle_name": null,
+  "pref_first_name": "Greg",
+  "temporary": false,
+  "title": null,
+  "userid": "ggbaker"
  },
- "model": "coredata.role",
+ "model": "coredata.person",
  "pk": 1
 }
 ]

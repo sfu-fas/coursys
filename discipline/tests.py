@@ -6,7 +6,7 @@ from django.urls import reverse
 
 
 class DisciplineTest(TestCase):
-    fixtures = ['basedata', 'coredata', 'discipline']
+    fixtures = ['basedata', 'coredata']
 
     def post_it(self, case, view, data, status_code=302):
         url = reverse('offering:discipline:' + view, kwargs={'course_slug': case.offering.slug, 'case_slug': case.slug})

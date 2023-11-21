@@ -8,7 +8,7 @@ from submission.models import GroupSubmission
 
 
 class GroupTest(TestCase):
-    fixtures = ['basedata', 'coredata', 'grades']
+    fixtures = ['basedata', 'coredata']
 
     def setUp(self):
         self.c_slug = '1114-cmpt-120-d100'
