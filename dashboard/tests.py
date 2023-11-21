@@ -1,7 +1,8 @@
 from coredata.tests import create_offering
 from coredata.models import Person, Member, CourseOffering, Role, Semester
 from dashboard.models import UserConfig, NewsItem
-from courselib.testing import TEST_COURSE_SLUG, Client, validate_content, create_test_offering, test_views
+from courselib.testing import TEST_COURSE_SLUG, Client, validate_content, create_test_offering, test_views, \
+    freshen_roles
 from django.test import TestCase
 from django.urls import reverse
 from django.core.management import call_command
@@ -121,6 +122,7 @@ class DashboardTest(TestCase):
         """
         Test impersonation logic
         """
+        freshen_roles()
         client = Client()
         url = reverse('offering:groups:groupmanage', kwargs={'course_slug': TEST_COURSE_SLUG})
 
@@ -287,6 +289,7 @@ class DashboardTest(TestCase):
         test_views(self, c, 'docs:', ['view_doc'], {'doc_slug': 'impersonate'})
 
         # admin views for signatures
+        freshen_roles()
         r = Role.objects_fresh.filter(role='ADMN')[0]
         c.login_user(r.person.userid)
         test_views(self, c, 'admin:', ['signatures', 'new_signature'], {})

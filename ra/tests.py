@@ -1,5 +1,5 @@
 from django.test import TestCase
-from courselib.testing import Client, test_views
+from courselib.testing import Client, test_views, freshen_roles
 from ra.models import RAAppointment, RARequest, Account, Project, Unit, Person
 from django.urls import reverse
 from datetime import date
@@ -12,6 +12,7 @@ class RATest(TestCase):
         """
         Test basic page rendering
         """
+        freshen_roles()
         c = Client()
         c.login_user('dzhao')
 

@@ -5,12 +5,14 @@ from django.test import TestCase
 from django.urls import reverse
 from coredata.models import Person, Unit
 from advisornotes.models import NonStudent, AdvisorNote
-from courselib.testing import basic_page_tests, Client
+from courselib.testing import basic_page_tests, Client, freshen_roles
+
 
 class AdvisorNotestest(TestCase):
     fixtures = ['basedata', 'coredata']
 
     def test_pages(self):
+        freshen_roles()
         client = Client()
         client.login_user("dzhao")
         adv = Person.objects.get(userid='dzhao')
@@ -106,12 +108,14 @@ class AdvisorNotestest(TestCase):
         self.assertEqual(response.status_code, 403, "Student shouldn't have access")
 
     def test_new_nonstudent_is_advisor(self):
+        freshen_roles()
         client = Client()
         client.login_user("dzhao")
         response = client.get(reverse('advising:new_nonstudent'))
         self.assertEqual(response.status_code, 200)
 
     def test_new_nonstudent_post_failure(self):
+        freshen_roles()
         client = Client()
         client.login_user("dzhao")
         response = client.post(reverse('advising:new_nonstudent'), {'first_name': 'test123'})
@@ -120,6 +124,7 @@ class AdvisorNotestest(TestCase):
         self.assertEqual(len(q), 0, "Nonstudent should not have been created")
 
     def test_new_nonstudent_post_success(self):
+        freshen_roles()
         client = Client()
         client.login_user("dzhao")
         year = datetime.date.today().year
@@ -133,6 +138,7 @@ class AdvisorNotestest(TestCase):
         """
         Check overall pages for the grad module and make sure they all load
         """
+        freshen_roles()
         client = Client()
         client.login_user("dzhao")
 

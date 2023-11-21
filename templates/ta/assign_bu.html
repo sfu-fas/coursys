@@ -274,8 +274,7 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
                 <td>{{ a.get_category_display }}</td>
             {% endif %}
         
-        </td>
-        <td>{{ a.supervisor }} 
+        <td>{{ a.supervisor }}
             {% if a.coursys_supervisor_display %} 
                 <i class="fa fa-info-circle" title="System: {{ a.coursys_supervisor_display }} "></i>  
                 {% if a.supervisor.name_pref in a.coursys_supervisor_display %}

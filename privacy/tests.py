@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-from courselib.testing import basic_page_tests, Client
+from courselib.testing import basic_page_tests, Client, freshen_roles
 
 from coredata.models import Person
 
@@ -11,6 +11,7 @@ class PrivacyTestCase(TestCase):
         """
         Test the privacy policy workflow and page exclusions
         """
+        freshen_roles()
         # clear privacy agreement from test data
         p = Person.objects.get(userid='dzhao')
         p.config = {}

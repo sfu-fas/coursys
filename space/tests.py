@@ -1,7 +1,7 @@
-from courselib.testing import test_views, Client
+from courselib.testing import test_views, Client, freshen_roles
 from django.test import TestCase
 from django.urls import reverse
-from coredata.models import Unit, Role
+from coredata.models import Unit, Role, Person
 from space.models import BookingRecord
 import datetime
 
@@ -11,6 +11,9 @@ class SpaceTestCase(TestCase):
 
     today = datetime.date.today()
     long_start = today - datetime.timedelta(days=5 * 365)
+
+    def setUp(self):
+        freshen_roles()
 
     def test_inaccessible_pages(self):
         # Presumably, our booking that starts more than 5 years ago is the one generated in the fixtures.  If there are
