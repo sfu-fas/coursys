@@ -110,10 +110,115 @@
 {
  "fields": {
   "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.529",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RA2",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 25,
+  "program": null,
+  "project": 2,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg11",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 18
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": false\n}",
+  "created_at": "2023-11-21T14:50:01.532",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "GRA",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 25,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg11-2",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 19
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.469",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "NS",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 11,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg4",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 3
+},
+{
+ "fields": {
+  "account": 5,
   "biweekly_pay": "0.00",
   "comments": "",
   "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.882",
+  "created_at": "2023-11-21T14:50:01.520",
   "deleted": false,
   "dental_benefits": false,
   "end_date": "2023-12-15",
@@ -128,13 +233,83 @@
   "offer_letter_text": null,
   "pay_frequency": "L",
   "pay_periods": "8.0",
-  "person": 33,
+  "person": 37,
   "program": null,
   "project": 2,
   "reappointment": false,
   "scholarship": null,
   "sin": 123456789,
-  "slug": "cmpt-2023-0ggg15",
+  "slug": "cmpt-2023-0ggg17",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 16
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.547",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RA2",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 37,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg17-2",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 23
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": false\n}",
+  "created_at": "2023-11-21T14:50:01.574",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RAR",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 37,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg17-3",
   "start_date": "2023-09-02",
   "unit": 5,
   "visa_verified": false
@@ -148,11 +323,11 @@
   "biweekly_pay": "1250.00",
   "comments": "",
   "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.781",
+  "created_at": "2023-11-21T14:50:01.482",
   "deleted": false,
   "dental_benefits": false,
   "end_date": "2023-12-15",
-  "hiring_category": "RAR",
+  "hiring_category": "RA2",
   "hiring_faculty": 1,
   "hourly_pay": "31.00",
   "hours": "40.00",
@@ -180,850 +355,10 @@
 {
  "fields": {
   "account": 5,
-  "biweekly_pay": "0.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.847",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RSS",
-  "hiring_faculty": 1,
-  "hourly_pay": "0.00",
-  "hours": "0.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "4000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "L",
-  "pay_periods": "8.0",
-  "person": 31,
-  "program": null,
-  "project": 1,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg14-2",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 21
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "0.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.798",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RSS",
-  "hiring_faculty": 1,
-  "hourly_pay": "0.00",
-  "hours": "0.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "4000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "L",
-  "pay_periods": "8.0",
-  "person": 7,
-  "program": null,
-  "project": 1,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg2",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 9
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "0.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.816",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "GRA",
-  "hiring_faculty": 1,
-  "hourly_pay": "0.00",
-  "hours": "0.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "4000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "L",
-  "pay_periods": "8.0",
-  "person": 7,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg2-2",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 13
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.787",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RA",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 21,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg9",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 7
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "0.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": false\n}",
-  "created_at": "2023-11-21T14:18:01.746",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "ONC",
-  "hiring_faculty": 1,
-  "hourly_pay": "0.00",
-  "hours": "0.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "4000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "L",
-  "pay_periods": "8.0",
-  "person": 27,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg12",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 1
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.878",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RA",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 27,
-  "program": null,
-  "project": 1,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg12-2",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 28
-},
-{
- "fields": {
-  "account": 5,
   "biweekly_pay": "1250.00",
   "comments": "",
   "config": "{\n    \"use_hourly\": false\n}",
-  "created_at": "2023-11-21T14:18:01.803",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "PDF",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 35,
-  "program": null,
-  "project": 1,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg16",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 10
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "0.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.811",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "GRA",
-  "hiring_faculty": 1,
-  "hourly_pay": "0.00",
-  "hours": "0.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "4000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "L",
-  "pay_periods": "8.0",
-  "person": 9,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg3",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 12
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": false\n}",
-  "created_at": "2023-11-21T14:18:01.829",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "ONC",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 17,
-  "program": null,
-  "project": 1,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg7",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 16
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "0.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.844",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RSS",
-  "hiring_faculty": 1,
-  "hourly_pay": "0.00",
-  "hours": "0.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "4000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "L",
-  "pay_periods": "8.0",
-  "person": 17,
-  "program": null,
-  "project": 1,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg7-2",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 20
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": false\n}",
-  "created_at": "2023-11-21T14:18:01.836",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RA2",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 13,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg5",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 18
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "0.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": false\n}",
-  "created_at": "2023-11-21T14:18:01.820",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "ONC",
-  "hiring_faculty": 1,
-  "hourly_pay": "0.00",
-  "hours": "0.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "4000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "L",
-  "pay_periods": "8.0",
-  "person": 29,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg13",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 14
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.774",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RAR",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 15,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg6",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 5
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "0.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": false\n}",
-  "created_at": "2023-11-21T14:18:01.807",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "PDF",
-  "hiring_faculty": 1,
-  "hourly_pay": "0.00",
-  "hours": "0.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "4000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "L",
-  "pay_periods": "8.0",
-  "person": 15,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg6-2",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 11
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "0.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.865",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RA",
-  "hiring_faculty": 1,
-  "hourly_pay": "0.00",
-  "hours": "0.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "4000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "L",
-  "pay_periods": "8.0",
-  "person": 23,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg10",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 25
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.766",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RSS",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 5,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg1",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 4
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": false\n}",
-  "created_at": "2023-11-21T14:18:01.840",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RAR",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 5,
-  "program": null,
-  "project": 1,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg1-2",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 19
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": false\n}",
-  "created_at": "2023-11-21T14:18:01.856",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RSS",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 5,
-  "program": null,
-  "project": 1,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0ggg1-3",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 23
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.852",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RSS",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 20,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0aaa9",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 22
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.751",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RSS",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 12,
-  "program": null,
-  "project": 1,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0aaa5",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 2
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "0.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.825",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RSS",
-  "hiring_faculty": 1,
-  "hourly_pay": "0.00",
-  "hours": "0.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "4000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "L",
-  "pay_periods": "8.0",
-  "person": 24,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0aaa11",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 15
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "0.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.792",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RSS",
-  "hiring_faculty": 1,
-  "hourly_pay": "0.00",
-  "hours": "0.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "4000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "L",
-  "pay_periods": "8.0",
-  "person": 2,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0aaa0",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 8
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": false\n}",
-  "created_at": "2023-11-21T14:18:01.832",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RSS",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 2,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0aaa0-2",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 17
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.870",
-  "deleted": false,
-  "dental_benefits": false,
-  "end_date": "2023-12-15",
-  "hiring_category": "RA",
-  "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
-  "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
-  "medical_benefits": false,
-  "notes": "",
-  "offer_letter_text": null,
-  "pay_frequency": "B",
-  "pay_periods": "8.0",
-  "person": 4,
-  "program": null,
-  "project": 2,
-  "reappointment": false,
-  "scholarship": null,
-  "sin": 123456789,
-  "slug": "cmpt-2023-0aaa1",
-  "start_date": "2023-09-02",
-  "unit": 5,
-  "visa_verified": false
- },
- "model": "ra.raappointment",
- "pk": 26
-},
-{
- "fields": {
-  "account": 5,
-  "biweekly_pay": "1250.00",
-  "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.758",
+  "created_at": "2023-11-21T14:50:01.556",
   "deleted": false,
   "dental_benefits": false,
   "end_date": "2023-12-15",
@@ -1038,19 +373,579 @@
   "offer_letter_text": null,
   "pay_frequency": "B",
   "pay_periods": "8.0",
-  "person": 22,
+  "person": 15,
   "program": null,
   "project": 1,
   "reappointment": false,
   "scholarship": null,
   "sin": 123456789,
-  "slug": "cmpt-2023-0aaa10",
+  "slug": "cmpt-2023-0ggg6",
   "start_date": "2023-09-02",
   "unit": 5,
   "visa_verified": false
  },
  "model": "ra.raappointment",
- "pk": 3
+ "pk": 25
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "0.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": false\n}",
+  "created_at": "2023-11-21T14:50:01.562",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RA",
+  "hiring_faculty": 1,
+  "hourly_pay": "0.00",
+  "hours": "0.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "4000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "L",
+  "pay_periods": "8.0",
+  "person": 27,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg12",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 26
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "0.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": false\n}",
+  "created_at": "2023-11-21T14:50:01.491",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RA2",
+  "hiring_faculty": 1,
+  "hourly_pay": "0.00",
+  "hours": "0.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "4000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "L",
+  "pay_periods": "8.0",
+  "person": 5,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg1",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 8
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.578",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RSS",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 5,
+  "program": null,
+  "project": 2,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg1-2",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 30
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.478",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RAR",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 35,
+  "program": null,
+  "project": 2,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg16",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 5
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.516",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RAR",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 35,
+  "program": null,
+  "project": 2,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg16-2",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 15
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "0.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.525",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "PDF",
+  "hiring_faculty": 1,
+  "hourly_pay": "0.00",
+  "hours": "0.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "4000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "L",
+  "pay_periods": "8.0",
+  "person": 35,
+  "program": null,
+  "project": 2,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg16-3",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 17
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.498",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "PDF",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 29,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg13",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 10
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.536",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "NS",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 29,
+  "program": null,
+  "project": 2,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg13-2",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 20
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "0.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": false\n}",
+  "created_at": "2023-11-21T14:50:01.487",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "ONC",
+  "hiring_faculty": 1,
+  "hourly_pay": "0.00",
+  "hours": "0.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "4000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "L",
+  "pay_periods": "8.0",
+  "person": 41,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg19",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 7
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "0.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.502",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RAR",
+  "hiring_faculty": 1,
+  "hourly_pay": "0.00",
+  "hours": "0.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "4000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "L",
+  "pay_periods": "8.0",
+  "person": 41,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg19-2",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 11
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.509",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RSS",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 41,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg19-3",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 13
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "0.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": false\n}",
+  "created_at": "2023-11-21T14:50:01.513",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RAR",
+  "hiring_faculty": 1,
+  "hourly_pay": "0.00",
+  "hours": "0.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "4000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "L",
+  "pay_periods": "8.0",
+  "person": 9,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg3",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 14
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "0.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.551",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RA2",
+  "hiring_faculty": 1,
+  "hourly_pay": "0.00",
+  "hours": "0.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "4000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "L",
+  "pay_periods": "8.0",
+  "person": 21,
+  "program": null,
+  "project": 2,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg9",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 24
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.566",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "NS",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 21,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0ggg9-2",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 27
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "0.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": false\n}",
+  "created_at": "2023-11-21T14:50:01.570",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RAR",
+  "hiring_faculty": 1,
+  "hourly_pay": "0.00",
+  "hours": "0.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "4000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "L",
+  "pay_periods": "8.0",
+  "person": 38,
+  "program": null,
+  "project": 2,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0aaa18",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 28
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "0.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.473",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "NS",
+  "hiring_faculty": 1,
+  "hourly_pay": "0.00",
+  "hours": "0.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "4000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "L",
+  "pay_periods": "8.0",
+  "person": 20,
+  "program": null,
+  "project": 2,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0aaa9",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 4
 },
 {
  "fields": {
@@ -1058,7 +953,42 @@
   "biweekly_pay": "1250.00",
   "comments": "",
   "config": "{\n    \"use_hourly\": false\n}",
-  "created_at": "2023-11-21T14:18:01.886",
+  "created_at": "2023-11-21T14:50:01.544",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RAR",
+  "hiring_faculty": 1,
+  "hourly_pay": "31.00",
+  "hours": "40.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "10000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "B",
+  "pay_periods": "8.0",
+  "person": 32,
+  "program": null,
+  "project": 2,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0aaa15",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 22
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "1250.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.462",
   "deleted": false,
   "dental_benefits": false,
   "end_date": "2023-12-15",
@@ -1073,89 +1003,159 @@
   "offer_letter_text": null,
   "pay_frequency": "B",
   "pay_periods": "8.0",
-  "person": 22,
+  "person": 12,
   "program": null,
   "project": 2,
   "reappointment": false,
   "scholarship": null,
   "sin": 123456789,
-  "slug": "cmpt-2023-0aaa10-2",
+  "slug": "cmpt-2023-0aaa5",
   "start_date": "2023-09-02",
   "unit": 5,
   "visa_verified": false
  },
  "model": "ra.raappointment",
- "pk": 30
+ "pk": 1
 },
 {
  "fields": {
   "account": 5,
-  "biweekly_pay": "1250.00",
+  "biweekly_pay": "0.00",
   "comments": "",
   "config": "{\n    \"use_hourly\": false\n}",
-  "created_at": "2023-11-21T14:18:01.874",
+  "created_at": "2023-11-21T14:50:01.506",
   "deleted": false,
   "dental_benefits": false,
   "end_date": "2023-12-15",
-  "hiring_category": "RA2",
+  "hiring_category": "NS",
   "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
+  "hourly_pay": "0.00",
+  "hours": "0.00",
   "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
+  "lump_sum_pay": "4000.00",
   "medical_benefits": false,
   "notes": "",
   "offer_letter_text": null,
-  "pay_frequency": "B",
+  "pay_frequency": "L",
   "pay_periods": "8.0",
-  "person": 28,
+  "person": 8,
   "program": null,
-  "project": 1,
+  "project": 2,
   "reappointment": false,
   "scholarship": null,
   "sin": 123456789,
-  "slug": "cmpt-2023-0aaa13",
+  "slug": "cmpt-2023-0aaa3",
   "start_date": "2023-09-02",
   "unit": 5,
   "visa_verified": false
  },
  "model": "ra.raappointment",
- "pk": 27
+ "pk": 12
 },
 {
  "fields": {
   "account": 5,
-  "biweekly_pay": "1250.00",
+  "biweekly_pay": "0.00",
   "comments": "",
-  "config": "{\n    \"use_hourly\": true\n}",
-  "created_at": "2023-11-21T14:18:01.861",
+  "config": "{\n    \"use_hourly\": false\n}",
+  "created_at": "2023-11-21T14:50:01.494",
   "deleted": false,
   "dental_benefits": false,
   "end_date": "2023-12-15",
-  "hiring_category": "GRA",
+  "hiring_category": "PDF",
   "hiring_faculty": 1,
-  "hourly_pay": "31.00",
-  "hours": "40.00",
+  "hourly_pay": "0.00",
+  "hours": "0.00",
   "lump_sum_hours": null,
-  "lump_sum_pay": "10000.00",
+  "lump_sum_pay": "4000.00",
   "medical_benefits": false,
   "notes": "",
   "offer_letter_text": null,
-  "pay_frequency": "B",
+  "pay_frequency": "L",
   "pay_periods": "8.0",
-  "person": 36,
+  "person": 18,
   "program": null,
-  "project": 1,
+  "project": 2,
   "reappointment": false,
   "scholarship": null,
   "sin": 123456789,
-  "slug": "cmpt-2023-0aaa17",
+  "slug": "cmpt-2023-0aaa8",
   "start_date": "2023-09-02",
   "unit": 5,
   "visa_verified": false
  },
  "model": "ra.raappointment",
- "pk": 24
+ "pk": 9
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "0.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.539",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RAR",
+  "hiring_faculty": 1,
+  "hourly_pay": "0.00",
+  "hours": "0.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "4000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "L",
+  "pay_periods": "8.0",
+  "person": 18,
+  "program": null,
+  "project": 1,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0aaa8-2",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 21
+},
+{
+ "fields": {
+  "account": 5,
+  "biweekly_pay": "0.00",
+  "comments": "",
+  "config": "{\n    \"use_hourly\": true\n}",
+  "created_at": "2023-11-21T14:50:01.466",
+  "deleted": false,
+  "dental_benefits": false,
+  "end_date": "2023-12-15",
+  "hiring_category": "RSS",
+  "hiring_faculty": 1,
+  "hourly_pay": "0.00",
+  "hours": "0.00",
+  "lump_sum_hours": null,
+  "lump_sum_pay": "4000.00",
+  "medical_benefits": false,
+  "notes": "",
+  "offer_letter_text": null,
+  "pay_frequency": "L",
+  "pay_periods": "8.0",
+  "person": 14,
+  "program": null,
+  "project": 2,
+  "reappointment": false,
+  "scholarship": null,
+  "sin": 123456789,
+  "slug": "cmpt-2023-0aaa6",
+  "start_date": "2023-09-02",
+  "unit": 5,
+  "visa_verified": false
+ },
+ "model": "ra.raappointment",
+ "pk": 2
 },
 {
  "fields": {
@@ -1194,7 +1194,7 @@
 {
  "fields": {
   "admin_created": false,
-  "base_units": "4.00",
+  "base_units": "3.00",
   "category": "GTA2",
   "comments": null,
   "config": "{}",
@@ -1204,7 +1204,7 @@
   "late": false,
   "new_workers_training": false,
   "other_support": null,
-  "person": 41,
+  "person": 25,
   "posting": 1,
   "preference_comment": null,
   "program_comment": null,
@@ -1233,7 +1233,7 @@
   "late": false,
   "new_workers_training": false,
   "other_support": null,
-  "person": 37,
+  "person": 39,
   "posting": 1,
   "preference_comment": null,
   "program_comment": null,
@@ -1252,7 +1252,65 @@
 {
  "fields": {
   "admin_created": false,
-  "base_units": "5.00",
+  "base_units": "3.00",
+  "category": "GTA2",
+  "comments": null,
+  "config": "{}",
+  "course_load": "",
+  "current_program": "CMPT",
+  "experience": null,
+  "late": false,
+  "new_workers_training": false,
+  "other_support": null,
+  "person": 17,
+  "posting": 1,
+  "preference_comment": null,
+  "program_comment": null,
+  "rank": 0,
+  "resume": "",
+  "resume_mediatype": null,
+  "sin": "123456789",
+  "supervisor": null,
+  "transcript": "",
+  "transcript_mediatype": null,
+  "validsin": ""
+ },
+ "model": "ta.taapplication",
+ "pk": 3
+},
+{
+ "fields": {
+  "admin_created": false,
+  "base_units": "3.00",
+  "category": "GTA2",
+  "comments": null,
+  "config": "{}",
+  "course_load": "",
+  "current_program": "CMPT",
+  "experience": null,
+  "late": false,
+  "new_workers_training": false,
+  "other_support": null,
+  "person": 11,
+  "posting": 1,
+  "preference_comment": null,
+  "program_comment": null,
+  "rank": 0,
+  "resume": "",
+  "resume_mediatype": null,
+  "sin": "123456789",
+  "supervisor": null,
+  "transcript": "",
+  "transcript_mediatype": null,
+  "validsin": ""
+ },
+ "model": "ta.taapplication",
+ "pk": 4
+},
+{
+ "fields": {
+  "admin_created": false,
+  "base_units": "3.00",
   "category": "GTA1",
   "comments": null,
   "config": "{}",
@@ -1276,13 +1334,13 @@
   "validsin": ""
  },
  "model": "ta.taapplication",
- "pk": 3
+ "pk": 5
 },
 {
  "fields": {
   "admin_created": false,
   "base_units": "3.00",
-  "category": "GTA1",
+  "category": "GTA2",
   "comments": null,
   "config": "{}",
   "course_load": "",
@@ -1291,7 +1349,7 @@
   "late": false,
   "new_workers_training": false,
   "other_support": null,
-  "person": 25,
+  "person": 37,
   "posting": 1,
   "preference_comment": null,
   "program_comment": null,
@@ -1305,13 +1363,13 @@
   "validsin": ""
  },
  "model": "ta.taapplication",
- "pk": 4
+ "pk": 6
 },
 {
  "fields": {
   "admin_created": false,
   "base_units": "5.00",
-  "category": "GTA1",
+  "category": "GTA2",
   "comments": null,
   "config": "{}",
   "course_load": "",
@@ -1334,71 +1392,13 @@
   "validsin": ""
  },
  "model": "ta.taapplication",
- "pk": 5
-},
-{
- "fields": {
-  "admin_created": false,
-  "base_units": "4.00",
-  "category": "GTA1",
-  "comments": null,
-  "config": "{}",
-  "course_load": "",
-  "current_program": "CMPT",
-  "experience": null,
-  "late": false,
-  "new_workers_training": false,
-  "other_support": null,
-  "person": 7,
-  "posting": 1,
-  "preference_comment": null,
-  "program_comment": null,
-  "rank": 0,
-  "resume": "",
-  "resume_mediatype": null,
-  "sin": "123456789",
-  "supervisor": null,
-  "transcript": "",
-  "transcript_mediatype": null,
-  "validsin": ""
- },
- "model": "ta.taapplication",
- "pk": 6
-},
-{
- "fields": {
-  "admin_created": false,
-  "base_units": "4.00",
-  "category": "GTA1",
-  "comments": null,
-  "config": "{}",
-  "course_load": "",
-  "current_program": "CMPT",
-  "experience": null,
-  "late": false,
-  "new_workers_training": false,
-  "other_support": null,
-  "person": 19,
-  "posting": 1,
-  "preference_comment": null,
-  "program_comment": null,
-  "rank": 0,
-  "resume": "",
-  "resume_mediatype": null,
-  "sin": "123456789",
-  "supervisor": null,
-  "transcript": "",
-  "transcript_mediatype": null,
-  "validsin": ""
- },
- "model": "ta.taapplication",
  "pk": 7
 },
 {
  "fields": {
   "admin_created": false,
-  "base_units": "3.00",
-  "category": "GTA2",
+  "base_units": "5.00",
+  "category": "GTA1",
   "comments": null,
   "config": "{}",
   "course_load": "",
@@ -1407,7 +1407,7 @@
   "late": false,
   "new_workers_training": false,
   "other_support": null,
-  "person": 21,
+  "person": 15,
   "posting": 1,
   "preference_comment": null,
   "program_comment": null,
@@ -1426,8 +1426,8 @@
 {
  "fields": {
   "admin_created": false,
-  "base_units": "3.00",
-  "category": "GTA1",
+  "base_units": "5.00",
+  "category": "GTA2",
   "comments": null,
   "config": "{}",
   "course_load": "",
@@ -1455,8 +1455,37 @@
 {
  "fields": {
   "admin_created": false,
-  "base_units": "5.00",
-  "category": "GTA2",
+  "base_units": "3.00",
+  "category": "GTA1",
+  "comments": null,
+  "config": "{}",
+  "course_load": "",
+  "current_program": "CMPT",
+  "experience": null,
+  "late": false,
+  "new_workers_training": false,
+  "other_support": null,
+  "person": 5,
+  "posting": 1,
+  "preference_comment": null,
+  "program_comment": null,
+  "rank": 0,
+  "resume": "",
+  "resume_mediatype": null,
+  "sin": "123456789",
+  "supervisor": null,
+  "transcript": "",
+  "transcript_mediatype": null,
+  "validsin": ""
+ },
+ "model": "ta.taapplication",
+ "pk": 10
+},
+{
+ "fields": {
+  "admin_created": false,
+  "base_units": "4.00",
+  "category": "GTA1",
   "comments": null,
   "config": "{}",
   "course_load": "",
@@ -1479,42 +1508,13 @@
   "validsin": ""
  },
  "model": "ta.taapplication",
- "pk": 10
-},
-{
- "fields": {
-  "admin_created": false,
-  "base_units": "3.00",
-  "category": "GTA1",
-  "comments": null,
-  "config": "{}",
-  "course_load": "",
-  "current_program": "CMPT",
-  "experience": null,
-  "late": false,
-  "new_workers_training": false,
-  "other_support": null,
-  "person": 3,
-  "posting": 1,
-  "preference_comment": null,
-  "program_comment": null,
-  "rank": 0,
-  "resume": "",
-  "resume_mediatype": null,
-  "sin": "123456789",
-  "supervisor": null,
-  "transcript": "",
-  "transcript_mediatype": null,
-  "validsin": ""
- },
- "model": "ta.taapplication",
  "pk": 11
 },
 {
  "fields": {
   "admin_created": false,
-  "base_units": "3.00",
-  "category": "GTA1",
+  "base_units": "4.00",
+  "category": "GTA2",
   "comments": null,
   "config": "{}",
   "course_load": "",
@@ -1523,7 +1523,7 @@
   "late": false,
   "new_workers_training": false,
   "other_support": null,
-  "person": 9,
+  "person": 19,
   "posting": 1,
   "preference_comment": null,
   "program_comment": null,
@@ -1538,93 +1538,6 @@
  },
  "model": "ta.taapplication",
  "pk": 12
-},
-{
- "fields": {
-  "admin_created": false,
-  "base_units": "5.00",
-  "category": "GTA1",
-  "comments": null,
-  "config": "{}",
-  "course_load": "",
-  "current_program": "CMPT",
-  "experience": null,
-  "late": false,
-  "new_workers_training": false,
-  "other_support": null,
-  "person": 17,
-  "posting": 1,
-  "preference_comment": null,
-  "program_comment": null,
-  "rank": 0,
-  "resume": "",
-  "resume_mediatype": null,
-  "sin": "123456789",
-  "supervisor": null,
-  "transcript": "",
-  "transcript_mediatype": null,
-  "validsin": ""
- },
- "model": "ta.taapplication",
- "pk": 13
-},
-{
- "fields": {
-  "admin_created": false,
-  "base_units": "3.00",
-  "category": "GTA1",
-  "comments": null,
-  "config": "{}",
-  "course_load": "",
-  "current_program": "CMPT",
-  "experience": null,
-  "late": false,
-  "new_workers_training": false,
-  "other_support": null,
-  "person": 39,
-  "posting": 1,
-  "preference_comment": null,
-  "program_comment": null,
-  "rank": 0,
-  "resume": "",
-  "resume_mediatype": null,
-  "sin": "123456789",
-  "supervisor": null,
-  "transcript": "",
-  "transcript_mediatype": null,
-  "validsin": ""
- },
- "model": "ta.taapplication",
- "pk": 14
-},
-{
- "fields": {
-  "admin_created": false,
-  "base_units": "4.00",
-  "category": "GTA1",
-  "comments": null,
-  "config": "{}",
-  "course_load": "",
-  "current_program": "CMPT",
-  "experience": null,
-  "late": false,
-  "new_workers_training": false,
-  "other_support": null,
-  "person": 13,
-  "posting": 1,
-  "preference_comment": null,
-  "program_comment": null,
-  "rank": 0,
-  "resume": "",
-  "resume_mediatype": null,
-  "sin": "123456789",
-  "supervisor": null,
-  "transcript": "",
-  "transcript_mediatype": null,
-  "validsin": ""
- },
- "model": "ta.taapplication",
- "pk": 15
 },
 {
  "fields": {
@@ -1653,12 +1566,12 @@
   "validsin": ""
  },
  "model": "ta.taapplication",
- "pk": 16
+ "pk": 13
 },
 {
  "fields": {
   "admin_created": false,
-  "base_units": "3.00",
+  "base_units": "5.00",
   "category": "GTA1",
   "comments": null,
   "config": "{}",
@@ -1668,7 +1581,7 @@
   "late": false,
   "new_workers_training": false,
   "other_support": null,
-  "person": 15,
+  "person": 13,
   "posting": 1,
   "preference_comment": null,
   "program_comment": null,
@@ -1682,12 +1595,12 @@
   "validsin": ""
  },
  "model": "ta.taapplication",
- "pk": 17
+ "pk": 14
 },
 {
  "fields": {
   "admin_created": false,
-  "base_units": "3.00",
+  "base_units": "4.00",
   "category": "GTA1",
   "comments": null,
   "config": "{}",
@@ -1711,7 +1624,36 @@
   "validsin": ""
  },
  "model": "ta.taapplication",
- "pk": 18
+ "pk": 15
+},
+{
+ "fields": {
+  "admin_created": false,
+  "base_units": "4.00",
+  "category": "GTA1",
+  "comments": null,
+  "config": "{}",
+  "course_load": "",
+  "current_program": "CMPT",
+  "experience": null,
+  "late": false,
+  "new_workers_training": false,
+  "other_support": null,
+  "person": 41,
+  "posting": 1,
+  "preference_comment": null,
+  "program_comment": null,
+  "rank": 0,
+  "resume": "",
+  "resume_mediatype": null,
+  "sin": "123456789",
+  "supervisor": null,
+  "transcript": "",
+  "transcript_mediatype": null,
+  "validsin": ""
+ },
+ "model": "ta.taapplication",
+ "pk": 16
 },
 {
  "fields": {
@@ -1726,7 +1668,65 @@
   "late": false,
   "new_workers_training": false,
   "other_support": null,
-  "person": 11,
+  "person": 9,
+  "posting": 1,
+  "preference_comment": null,
+  "program_comment": null,
+  "rank": 0,
+  "resume": "",
+  "resume_mediatype": null,
+  "sin": "123456789",
+  "supervisor": null,
+  "transcript": "",
+  "transcript_mediatype": null,
+  "validsin": ""
+ },
+ "model": "ta.taapplication",
+ "pk": 17
+},
+{
+ "fields": {
+  "admin_created": false,
+  "base_units": "4.00",
+  "category": "GTA1",
+  "comments": null,
+  "config": "{}",
+  "course_load": "",
+  "current_program": "CMPT",
+  "experience": null,
+  "late": false,
+  "new_workers_training": false,
+  "other_support": null,
+  "person": 7,
+  "posting": 1,
+  "preference_comment": null,
+  "program_comment": null,
+  "rank": 0,
+  "resume": "",
+  "resume_mediatype": null,
+  "sin": "123456789",
+  "supervisor": null,
+  "transcript": "",
+  "transcript_mediatype": null,
+  "validsin": ""
+ },
+ "model": "ta.taapplication",
+ "pk": 18
+},
+{
+ "fields": {
+  "admin_created": false,
+  "base_units": "5.00",
+  "category": "GTA1",
+  "comments": null,
+  "config": "{}",
+  "course_load": "",
+  "current_program": "CMPT",
+  "experience": null,
+  "late": false,
+  "new_workers_training": false,
+  "other_support": null,
+  "person": 21,
   "posting": 1,
   "preference_comment": null,
   "program_comment": null,
@@ -1745,8 +1745,8 @@
 {
  "fields": {
   "admin_created": false,
-  "base_units": "5.00",
-  "category": "GTA2",
+  "base_units": "4.00",
+  "category": "GTA1",
   "comments": null,
   "config": "{}",
   "course_load": "",
@@ -1755,7 +1755,7 @@
   "late": false,
   "new_workers_training": false,
   "other_support": null,
-  "person": 5,
+  "person": 3,
   "posting": 1,
   "preference_comment": null,
   "program_comment": null,
@@ -1775,7 +1775,7 @@
  "fields": {
   "app": 1,
   "course": 5,
-  "exper": "SOM",
+  "exper": "FAM",
   "rank": 1,
   "taken": "KNO"
  },
@@ -1785,7 +1785,7 @@
 {
  "fields": {
   "app": 1,
-  "course": 1,
+  "course": 10,
   "exper": "SOM",
   "rank": 2,
   "taken": "NO"
@@ -1796,10 +1796,10 @@
 {
  "fields": {
   "app": 1,
-  "course": 7,
-  "exper": "NOT",
+  "course": 6,
+  "exper": "FAM",
   "rank": 3,
-  "taken": "NO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 3
@@ -1807,10 +1807,10 @@
 {
  "fields": {
   "app": 1,
-  "course": 4,
-  "exper": "NOT",
+  "course": 7,
+  "exper": "FAM",
   "rank": 4,
-  "taken": "SIM"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 4
@@ -1821,7 +1821,7 @@
   "course": 3,
   "exper": "SOM",
   "rank": 5,
-  "taken": "SIM"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 5
@@ -1829,10 +1829,10 @@
 {
  "fields": {
   "app": 2,
-  "course": 9,
-  "exper": "FAM",
+  "course": 11,
+  "exper": "NOT",
   "rank": 1,
-  "taken": "KNO"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 6
@@ -1841,9 +1841,9 @@
  "fields": {
   "app": 2,
   "course": 7,
-  "exper": "SOM",
+  "exper": "FAM",
   "rank": 2,
-  "taken": "SIM"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 7
@@ -1851,10 +1851,10 @@
 {
  "fields": {
   "app": 2,
-  "course": 11,
-  "exper": "FAM",
+  "course": 9,
+  "exper": "SOM",
   "rank": 3,
-  "taken": "SIM"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 8
@@ -1862,8 +1862,8 @@
 {
  "fields": {
   "app": 2,
-  "course": 8,
-  "exper": "FAM",
+  "course": 10,
+  "exper": "NOT",
   "rank": 4,
   "taken": "SIM"
  },
@@ -1873,8 +1873,8 @@
 {
  "fields": {
   "app": 2,
-  "course": 5,
-  "exper": "NOT",
+  "course": 3,
+  "exper": "FAM",
   "rank": 5,
   "taken": "YES"
  },
@@ -1884,10 +1884,10 @@
 {
  "fields": {
   "app": 3,
-  "course": 8,
-  "exper": "FAM",
+  "course": 5,
+  "exper": "SOM",
   "rank": 1,
-  "taken": "NO"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 11
@@ -1895,10 +1895,10 @@
 {
  "fields": {
   "app": 3,
-  "course": 4,
-  "exper": "SOM",
+  "course": 9,
+  "exper": "NOT",
   "rank": 2,
-  "taken": "YES"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 12
@@ -1906,8 +1906,8 @@
 {
  "fields": {
   "app": 3,
-  "course": 5,
-  "exper": "SOM",
+  "course": 6,
+  "exper": "NOT",
   "rank": 3,
   "taken": "NO"
  },
@@ -1917,10 +1917,10 @@
 {
  "fields": {
   "app": 3,
-  "course": 10,
+  "course": 1,
   "exper": "NOT",
   "rank": 4,
-  "taken": "SIM"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 14
@@ -1928,8 +1928,8 @@
 {
  "fields": {
   "app": 3,
-  "course": 6,
-  "exper": "SOM",
+  "course": 10,
+  "exper": "FAM",
   "rank": 5,
   "taken": "YES"
  },
@@ -1939,10 +1939,10 @@
 {
  "fields": {
   "app": 4,
-  "course": 4,
-  "exper": "FAM",
+  "course": 11,
+  "exper": "NOT",
   "rank": 1,
-  "taken": "SIM"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 16
@@ -1950,10 +1950,10 @@
 {
  "fields": {
   "app": 4,
-  "course": 1,
+  "course": 6,
   "exper": "FAM",
   "rank": 2,
-  "taken": "KNO"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 17
@@ -1961,10 +1961,10 @@
 {
  "fields": {
   "app": 4,
-  "course": 6,
+  "course": 7,
   "exper": "FAM",
   "rank": 3,
-  "taken": "NO"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 18
@@ -1972,8 +1972,8 @@
 {
  "fields": {
   "app": 4,
-  "course": 8,
-  "exper": "FAM",
+  "course": 2,
+  "exper": "NOT",
   "rank": 4,
   "taken": "YES"
  },
@@ -1983,10 +1983,10 @@
 {
  "fields": {
   "app": 4,
-  "course": 3,
-  "exper": "NOT",
+  "course": 10,
+  "exper": "SOM",
   "rank": 5,
-  "taken": "SIM"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 20
@@ -1994,10 +1994,10 @@
 {
  "fields": {
   "app": 5,
-  "course": 9,
-  "exper": "SOM",
+  "course": 4,
+  "exper": "FAM",
   "rank": 1,
-  "taken": "YES"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 21
@@ -2005,10 +2005,10 @@
 {
  "fields": {
   "app": 5,
-  "course": 10,
-  "exper": "FAM",
+  "course": 7,
+  "exper": "SOM",
   "rank": 2,
-  "taken": "KNO"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 22
@@ -2016,10 +2016,10 @@
 {
  "fields": {
   "app": 5,
-  "course": 5,
-  "exper": "NOT",
+  "course": 2,
+  "exper": "FAM",
   "rank": 3,
-  "taken": "SIM"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 23
@@ -2027,10 +2027,10 @@
 {
  "fields": {
   "app": 5,
-  "course": 3,
-  "exper": "NOT",
+  "course": 11,
+  "exper": "FAM",
   "rank": 4,
-  "taken": "KNO"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 24
@@ -2038,10 +2038,10 @@
 {
  "fields": {
   "app": 5,
-  "course": 8,
-  "exper": "FAM",
+  "course": 5,
+  "exper": "SOM",
   "rank": 5,
-  "taken": "KNO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 25
@@ -2049,10 +2049,10 @@
 {
  "fields": {
   "app": 6,
-  "course": 8,
-  "exper": "SOM",
+  "course": 7,
+  "exper": "NOT",
   "rank": 1,
-  "taken": "KNO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 26
@@ -2060,10 +2060,10 @@
 {
  "fields": {
   "app": 6,
-  "course": 3,
-  "exper": "FAM",
+  "course": 1,
+  "exper": "SOM",
   "rank": 2,
-  "taken": "SIM"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 27
@@ -2071,8 +2071,8 @@
 {
  "fields": {
   "app": 6,
-  "course": 10,
-  "exper": "NOT",
+  "course": 11,
+  "exper": "FAM",
   "rank": 3,
   "taken": "NO"
  },
@@ -2082,10 +2082,10 @@
 {
  "fields": {
   "app": 6,
-  "course": 5,
-  "exper": "SOM",
+  "course": 4,
+  "exper": "NOT",
   "rank": 4,
-  "taken": "SIM"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 29
@@ -2093,10 +2093,10 @@
 {
  "fields": {
   "app": 6,
-  "course": 1,
-  "exper": "NOT",
+  "course": 6,
+  "exper": "SOM",
   "rank": 5,
-  "taken": "NO"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 30
@@ -2104,10 +2104,10 @@
 {
  "fields": {
   "app": 7,
-  "course": 9,
-  "exper": "SOM",
+  "course": 4,
+  "exper": "FAM",
   "rank": 1,
-  "taken": "NO"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 31
@@ -2116,9 +2116,9 @@
  "fields": {
   "app": 7,
   "course": 3,
-  "exper": "NOT",
+  "exper": "FAM",
   "rank": 2,
-  "taken": "KNO"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 32
@@ -2126,10 +2126,10 @@
 {
  "fields": {
   "app": 7,
-  "course": 1,
+  "course": 2,
   "exper": "FAM",
   "rank": 3,
-  "taken": "SIM"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 33
@@ -2137,10 +2137,10 @@
 {
  "fields": {
   "app": 7,
-  "course": 8,
-  "exper": "FAM",
+  "course": 7,
+  "exper": "NOT",
   "rank": 4,
-  "taken": "NO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 34
@@ -2148,8 +2148,8 @@
 {
  "fields": {
   "app": 7,
-  "course": 7,
-  "exper": "SOM",
+  "course": 6,
+  "exper": "FAM",
   "rank": 5,
   "taken": "NO"
  },
@@ -2159,10 +2159,10 @@
 {
  "fields": {
   "app": 8,
-  "course": 1,
-  "exper": "NOT",
+  "course": 10,
+  "exper": "SOM",
   "rank": 1,
-  "taken": "SIM"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 36
@@ -2170,10 +2170,10 @@
 {
  "fields": {
   "app": 8,
-  "course": 3,
-  "exper": "SOM",
+  "course": 2,
+  "exper": "FAM",
   "rank": 2,
-  "taken": "KNO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 37
@@ -2182,9 +2182,9 @@
  "fields": {
   "app": 8,
   "course": 6,
-  "exper": "NOT",
+  "exper": "SOM",
   "rank": 3,
-  "taken": "YES"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 38
@@ -2192,10 +2192,10 @@
 {
  "fields": {
   "app": 8,
-  "course": 11,
-  "exper": "NOT",
+  "course": 9,
+  "exper": "FAM",
   "rank": 4,
-  "taken": "SIM"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 39
@@ -2203,8 +2203,8 @@
 {
  "fields": {
   "app": 8,
-  "course": 10,
-  "exper": "FAM",
+  "course": 5,
+  "exper": "SOM",
   "rank": 5,
   "taken": "YES"
  },
@@ -2214,10 +2214,10 @@
 {
  "fields": {
   "app": 9,
-  "course": 6,
-  "exper": "FAM",
+  "course": 10,
+  "exper": "SOM",
   "rank": 1,
-  "taken": "KNO"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 41
@@ -2225,10 +2225,10 @@
 {
  "fields": {
   "app": 9,
-  "course": 5,
-  "exper": "SOM",
+  "course": 11,
+  "exper": "NOT",
   "rank": 2,
-  "taken": "KNO"
+  "taken": "SIM"
  },
  "model": "ta.coursepreference",
  "pk": 42
@@ -2236,10 +2236,10 @@
 {
  "fields": {
   "app": 9,
-  "course": 4,
-  "exper": "FAM",
+  "course": 1,
+  "exper": "NOT",
   "rank": 3,
-  "taken": "KNO"
+  "taken": "SIM"
  },
  "model": "ta.coursepreference",
  "pk": 43
@@ -2247,10 +2247,10 @@
 {
  "fields": {
   "app": 9,
-  "course": 8,
-  "exper": "NOT",
+  "course": 6,
+  "exper": "SOM",
   "rank": 4,
-  "taken": "NO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 44
@@ -2261,7 +2261,7 @@
   "course": 2,
   "exper": "FAM",
   "rank": 5,
-  "taken": "NO"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 45
@@ -2269,10 +2269,10 @@
 {
  "fields": {
   "app": 10,
-  "course": 3,
-  "exper": "FAM",
+  "course": 6,
+  "exper": "SOM",
   "rank": 1,
-  "taken": "KNO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 46
@@ -2280,8 +2280,8 @@
 {
  "fields": {
   "app": 10,
-  "course": 2,
-  "exper": "FAM",
+  "course": 5,
+  "exper": "SOM",
   "rank": 2,
   "taken": "SIM"
  },
@@ -2291,7 +2291,7 @@
 {
  "fields": {
   "app": 10,
-  "course": 7,
+  "course": 10,
   "exper": "NOT",
   "rank": 3,
   "taken": "KNO"
@@ -2302,10 +2302,10 @@
 {
  "fields": {
   "app": 10,
-  "course": 5,
-  "exper": "SOM",
+  "course": 4,
+  "exper": "FAM",
   "rank": 4,
-  "taken": "KNO"
+  "taken": "SIM"
  },
  "model": "ta.coursepreference",
  "pk": 49
@@ -2313,10 +2313,10 @@
 {
  "fields": {
   "app": 10,
-  "course": 11,
-  "exper": "FAM",
+  "course": 2,
+  "exper": "SOM",
   "rank": 5,
-  "taken": "YES"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 50
@@ -2324,8 +2324,8 @@
 {
  "fields": {
   "app": 11,
-  "course": 8,
-  "exper": "SOM",
+  "course": 9,
+  "exper": "NOT",
   "rank": 1,
   "taken": "KNO"
  },
@@ -2335,10 +2335,10 @@
 {
  "fields": {
   "app": 11,
-  "course": 11,
+  "course": 7,
   "exper": "NOT",
   "rank": 2,
-  "taken": "SIM"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 52
@@ -2346,10 +2346,10 @@
 {
  "fields": {
   "app": 11,
-  "course": 4,
-  "exper": "NOT",
+  "course": 11,
+  "exper": "FAM",
   "rank": 3,
-  "taken": "YES"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 53
@@ -2357,10 +2357,10 @@
 {
  "fields": {
   "app": 11,
-  "course": 3,
-  "exper": "FAM",
+  "course": 8,
+  "exper": "NOT",
   "rank": 4,
-  "taken": "KNO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 54
@@ -2368,10 +2368,10 @@
 {
  "fields": {
   "app": 11,
-  "course": 2,
+  "course": 10,
   "exper": "SOM",
   "rank": 5,
-  "taken": "YES"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 55
@@ -2379,10 +2379,10 @@
 {
  "fields": {
   "app": 12,
-  "course": 10,
-  "exper": "SOM",
+  "course": 9,
+  "exper": "NOT",
   "rank": 1,
-  "taken": "KNO"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 56
@@ -2390,10 +2390,10 @@
 {
  "fields": {
   "app": 12,
-  "course": 6,
+  "course": 11,
   "exper": "NOT",
   "rank": 2,
-  "taken": "NO"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 57
@@ -2401,10 +2401,10 @@
 {
  "fields": {
   "app": 12,
-  "course": 7,
-  "exper": "NOT",
+  "course": 2,
+  "exper": "SOM",
   "rank": 3,
-  "taken": "YES"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 58
@@ -2412,10 +2412,10 @@
 {
  "fields": {
   "app": 12,
-  "course": 9,
-  "exper": "FAM",
+  "course": 8,
+  "exper": "SOM",
   "rank": 4,
-  "taken": "YES"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 59
@@ -2423,8 +2423,8 @@
 {
  "fields": {
   "app": 12,
-  "course": 4,
-  "exper": "FAM",
+  "course": 5,
+  "exper": "NOT",
   "rank": 5,
   "taken": "YES"
  },
@@ -2434,10 +2434,10 @@
 {
  "fields": {
   "app": 13,
-  "course": 10,
-  "exper": "NOT",
+  "course": 11,
+  "exper": "SOM",
   "rank": 1,
-  "taken": "SIM"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 61
@@ -2445,10 +2445,10 @@
 {
  "fields": {
   "app": 13,
-  "course": 6,
-  "exper": "NOT",
+  "course": 2,
+  "exper": "SOM",
   "rank": 2,
-  "taken": "KNO"
+  "taken": "SIM"
  },
  "model": "ta.coursepreference",
  "pk": 62
@@ -2456,8 +2456,8 @@
 {
  "fields": {
   "app": 13,
-  "course": 2,
-  "exper": "FAM",
+  "course": 7,
+  "exper": "SOM",
   "rank": 3,
   "taken": "KNO"
  },
@@ -2467,8 +2467,8 @@
 {
  "fields": {
   "app": 13,
-  "course": 8,
-  "exper": "SOM",
+  "course": 6,
+  "exper": "NOT",
   "rank": 4,
   "taken": "SIM"
  },
@@ -2478,10 +2478,10 @@
 {
  "fields": {
   "app": 13,
-  "course": 4,
+  "course": 10,
   "exper": "SOM",
   "rank": 5,
-  "taken": "SIM"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 65
@@ -2489,10 +2489,10 @@
 {
  "fields": {
   "app": 14,
-  "course": 8,
+  "course": 9,
   "exper": "SOM",
   "rank": 1,
-  "taken": "KNO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 66
@@ -2500,10 +2500,10 @@
 {
  "fields": {
   "app": 14,
-  "course": 3,
-  "exper": "SOM",
+  "course": 1,
+  "exper": "FAM",
   "rank": 2,
-  "taken": "SIM"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 67
@@ -2511,10 +2511,10 @@
 {
  "fields": {
   "app": 14,
-  "course": 2,
-  "exper": "FAM",
+  "course": 5,
+  "exper": "NOT",
   "rank": 3,
-  "taken": "SIM"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 68
@@ -2522,10 +2522,10 @@
 {
  "fields": {
   "app": 14,
-  "course": 5,
-  "exper": "FAM",
+  "course": 6,
+  "exper": "NOT",
   "rank": 4,
-  "taken": "SIM"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 69
@@ -2534,9 +2534,9 @@
  "fields": {
   "app": 14,
   "course": 7,
-  "exper": "FAM",
+  "exper": "NOT",
   "rank": 5,
-  "taken": "NO"
+  "taken": "SIM"
  },
  "model": "ta.coursepreference",
  "pk": 70
@@ -2544,8 +2544,8 @@
 {
  "fields": {
   "app": 15,
-  "course": 8,
-  "exper": "SOM",
+  "course": 10,
+  "exper": "FAM",
   "rank": 1,
   "taken": "SIM"
  },
@@ -2555,10 +2555,10 @@
 {
  "fields": {
   "app": 15,
-  "course": 1,
-  "exper": "NOT",
+  "course": 7,
+  "exper": "FAM",
   "rank": 2,
-  "taken": "SIM"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 72
@@ -2566,10 +2566,10 @@
 {
  "fields": {
   "app": 15,
-  "course": 2,
+  "course": 11,
   "exper": "NOT",
   "rank": 3,
-  "taken": "SIM"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 73
@@ -2577,10 +2577,10 @@
 {
  "fields": {
   "app": 15,
-  "course": 6,
-  "exper": "NOT",
+  "course": 2,
+  "exper": "FAM",
   "rank": 4,
-  "taken": "YES"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 74
@@ -2588,10 +2588,10 @@
 {
  "fields": {
   "app": 15,
-  "course": 4,
-  "exper": "SOM",
+  "course": 9,
+  "exper": "FAM",
   "rank": 5,
-  "taken": "NO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 75
@@ -2599,8 +2599,8 @@
 {
  "fields": {
   "app": 16,
-  "course": 8,
-  "exper": "NOT",
+  "course": 9,
+  "exper": "SOM",
   "rank": 1,
   "taken": "YES"
  },
@@ -2610,10 +2610,10 @@
 {
  "fields": {
   "app": 16,
-  "course": 2,
-  "exper": "SOM",
+  "course": 11,
+  "exper": "NOT",
   "rank": 2,
-  "taken": "SIM"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 77
@@ -2621,10 +2621,10 @@
 {
  "fields": {
   "app": 16,
-  "course": 6,
+  "course": 2,
   "exper": "NOT",
   "rank": 3,
-  "taken": "KNO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 78
@@ -2633,9 +2633,9 @@
  "fields": {
   "app": 16,
   "course": 10,
-  "exper": "SOM",
+  "exper": "FAM",
   "rank": 4,
-  "taken": "NO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 79
@@ -2644,9 +2644,9 @@
  "fields": {
   "app": 16,
   "course": 4,
-  "exper": "FAM",
+  "exper": "NOT",
   "rank": 5,
-  "taken": "YES"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 80
@@ -2654,10 +2654,10 @@
 {
  "fields": {
   "app": 17,
-  "course": 9,
-  "exper": "FAM",
+  "course": 1,
+  "exper": "SOM",
   "rank": 1,
-  "taken": "NO"
+  "taken": "SIM"
  },
  "model": "ta.coursepreference",
  "pk": 81
@@ -2665,7 +2665,7 @@
 {
  "fields": {
   "app": 17,
-  "course": 8,
+  "course": 10,
   "exper": "NOT",
   "rank": 2,
   "taken": "KNO"
@@ -2677,9 +2677,9 @@
  "fields": {
   "app": 17,
   "course": 6,
-  "exper": "FAM",
+  "exper": "NOT",
   "rank": 3,
-  "taken": "KNO"
+  "taken": "SIM"
  },
  "model": "ta.coursepreference",
  "pk": 83
@@ -2687,10 +2687,10 @@
 {
  "fields": {
   "app": 17,
-  "course": 3,
-  "exper": "NOT",
+  "course": 8,
+  "exper": "FAM",
   "rank": 4,
-  "taken": "NO"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 84
@@ -2698,10 +2698,10 @@
 {
  "fields": {
   "app": 17,
-  "course": 5,
-  "exper": "NOT",
+  "course": 2,
+  "exper": "SOM",
   "rank": 5,
-  "taken": "NO"
+  "taken": "SIM"
  },
  "model": "ta.coursepreference",
  "pk": 85
@@ -2709,10 +2709,10 @@
 {
  "fields": {
   "app": 18,
-  "course": 3,
-  "exper": "SOM",
+  "course": 9,
+  "exper": "FAM",
   "rank": 1,
-  "taken": "KNO"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 86
@@ -2720,10 +2720,10 @@
 {
  "fields": {
   "app": 18,
-  "course": 2,
+  "course": 5,
   "exper": "SOM",
   "rank": 2,
-  "taken": "NO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 87
@@ -2731,8 +2731,8 @@
 {
  "fields": {
   "app": 18,
-  "course": 5,
-  "exper": "FAM",
+  "course": 8,
+  "exper": "NOT",
   "rank": 3,
   "taken": "NO"
  },
@@ -2742,8 +2742,8 @@
 {
  "fields": {
   "app": 18,
-  "course": 4,
-  "exper": "FAM",
+  "course": 6,
+  "exper": "NOT",
   "rank": 4,
   "taken": "KNO"
  },
@@ -2753,10 +2753,10 @@
 {
  "fields": {
   "app": 18,
-  "course": 8,
-  "exper": "FAM",
+  "course": 3,
+  "exper": "SOM",
   "rank": 5,
-  "taken": "KNO"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 90
@@ -2764,10 +2764,10 @@
 {
  "fields": {
   "app": 19,
-  "course": 3,
+  "course": 9,
   "exper": "NOT",
   "rank": 1,
-  "taken": "KNO"
+  "taken": "SIM"
  },
  "model": "ta.coursepreference",
  "pk": 91
@@ -2775,7 +2775,7 @@
 {
  "fields": {
   "app": 19,
-  "course": 8,
+  "course": 11,
   "exper": "NOT",
   "rank": 2,
   "taken": "YES"
@@ -2786,10 +2786,10 @@
 {
  "fields": {
   "app": 19,
-  "course": 2,
+  "course": 6,
   "exper": "FAM",
   "rank": 3,
-  "taken": "YES"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 93
@@ -2797,10 +2797,10 @@
 {
  "fields": {
   "app": 19,
-  "course": 6,
+  "course": 10,
   "exper": "FAM",
   "rank": 4,
-  "taken": "YES"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 94
@@ -2809,9 +2809,9 @@
  "fields": {
   "app": 19,
   "course": 7,
-  "exper": "FAM",
+  "exper": "NOT",
   "rank": 5,
-  "taken": "SIM"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 95
@@ -2820,9 +2820,9 @@
  "fields": {
   "app": 20,
   "course": 2,
-  "exper": "FAM",
+  "exper": "NOT",
   "rank": 1,
-  "taken": "NO"
+  "taken": "KNO"
  },
  "model": "ta.coursepreference",
  "pk": 96
@@ -2830,8 +2830,8 @@
 {
  "fields": {
   "app": 20,
-  "course": 9,
-  "exper": "SOM",
+  "course": 11,
+  "exper": "NOT",
   "rank": 2,
   "taken": "KNO"
  },
@@ -2841,8 +2841,8 @@
 {
  "fields": {
   "app": 20,
-  "course": 3,
-  "exper": "SOM",
+  "course": 7,
+  "exper": "FAM",
   "rank": 3,
   "taken": "KNO"
  },
@@ -2852,10 +2852,10 @@
 {
  "fields": {
   "app": 20,
-  "course": 1,
+  "course": 10,
   "exper": "FAM",
   "rank": 4,
-  "taken": "SIM"
+  "taken": "NO"
  },
  "model": "ta.coursepreference",
  "pk": 99
@@ -2863,13 +2863,40 @@
 {
  "fields": {
   "app": 20,
-  "course": 6,
-  "exper": "NOT",
+  "course": 4,
+  "exper": "SOM",
   "rank": 5,
-  "taken": "NO"
+  "taken": "YES"
  },
  "model": "ta.coursepreference",
  "pk": 100
+},
+{
+ "fields": {
+  "application": 3,
+  "appointment_end": "2023-12-15",
+  "appointment_start": "2023-09-02",
+  "appt": "INIT",
+  "appt_category": "GTA2",
+  "appt_cond": false,
+  "appt_tssu": true,
+  "config": "{}",
+  "created_at": "2023-11-21T14:50:01.130",
+  "created_by": "",
+  "deadline": "2023-08-23",
+  "pay_end": "2023-12-15",
+  "pay_per_bu": "972.00",
+  "pay_start": "2023-09-02",
+  "position_number": 2,
+  "posting": 1,
+  "remarks": "",
+  "scholarship_per_bu": "340.00",
+  "sin": "123456789",
+  "status": "ACC",
+  "updated_at": "2023-11-21T14:50:01.130"
+ },
+ "model": "ta.tacontract",
+ "pk": 1
 },
 {
  "fields": {
@@ -2877,26 +2904,26 @@
   "appointment_end": "2023-12-15",
   "appointment_start": "2023-09-02",
   "appt": "INIT",
-  "appt_category": "GTA1",
+  "appt_category": "GTA2",
   "appt_cond": false,
   "appt_tssu": true,
   "config": "{}",
-  "created_at": "2023-11-21T14:18:01.383",
+  "created_at": "2023-11-21T14:50:01.154",
   "created_by": "",
   "deadline": "2023-08-23",
   "pay_end": "2023-12-15",
   "pay_per_bu": "972.00",
   "pay_start": "2023-09-02",
-  "position_number": 1,
+  "position_number": 2,
   "posting": 1,
   "remarks": "",
-  "scholarship_per_bu": "135.00",
+  "scholarship_per_bu": "340.00",
   "sin": "123456789",
   "status": "OPN",
-  "updated_at": "2023-11-21T14:18:01.383"
+  "updated_at": "2023-11-21T14:50:01.154"
  },
  "model": "ta.tacontract",
- "pk": 1
+ "pk": 2
 },
 {
  "fields": {
@@ -2908,7 +2935,7 @@
   "appt_cond": false,
   "appt_tssu": true,
   "config": "{}",
-  "created_at": "2023-11-21T14:18:01.410",
+  "created_at": "2023-11-21T14:50:01.183",
   "created_by": "",
   "deadline": "2023-08-23",
   "pay_end": "2023-12-15",
@@ -2919,11 +2946,11 @@
   "remarks": "",
   "scholarship_per_bu": "135.00",
   "sin": "123456789",
-  "status": "NEW",
-  "updated_at": "2023-11-21T14:18:01.411"
+  "status": "ACC",
+  "updated_at": "2023-11-21T14:50:01.183"
  },
  "model": "ta.tacontract",
- "pk": 2
+ "pk": 3
 },
 {
  "fields": {
@@ -2931,26 +2958,26 @@
   "appointment_end": "2023-12-15",
   "appointment_start": "2023-09-02",
   "appt": "INIT",
-  "appt_category": "GTA1",
+  "appt_category": "GTA2",
   "appt_cond": false,
   "appt_tssu": true,
   "config": "{}",
-  "created_at": "2023-11-21T14:18:01.437",
+  "created_at": "2023-11-21T14:50:01.210",
   "created_by": "",
   "deadline": "2023-08-23",
   "pay_end": "2023-12-15",
   "pay_per_bu": "972.00",
   "pay_start": "2023-09-02",
-  "position_number": 1,
+  "position_number": 2,
   "posting": 1,
   "remarks": "",
-  "scholarship_per_bu": "135.00",
+  "scholarship_per_bu": "340.00",
   "sin": "123456789",
   "status": "NEW",
-  "updated_at": "2023-11-21T14:18:01.437"
+  "updated_at": "2023-11-21T14:50:01.210"
  },
  "model": "ta.tacontract",
- "pk": 3
+ "pk": 4
 },
 {
  "fields": {
@@ -2958,38 +2985,11 @@
   "appointment_end": "2023-12-15",
   "appointment_start": "2023-09-02",
   "appt": "INIT",
-  "appt_category": "GTA2",
-  "appt_cond": false,
-  "appt_tssu": true,
-  "config": "{}",
-  "created_at": "2023-11-21T14:18:01.489",
-  "created_by": "",
-  "deadline": "2023-08-23",
-  "pay_end": "2023-12-15",
-  "pay_per_bu": "972.00",
-  "pay_start": "2023-09-02",
-  "position_number": 2,
-  "posting": 1,
-  "remarks": "",
-  "scholarship_per_bu": "340.00",
-  "sin": "123456789",
-  "status": "ACC",
-  "updated_at": "2023-11-21T14:18:01.489"
- },
- "model": "ta.tacontract",
- "pk": 4
-},
-{
- "fields": {
-  "application": 9,
-  "appointment_end": "2023-12-15",
-  "appointment_start": "2023-09-02",
-  "appt": "INIT",
   "appt_category": "GTA1",
   "appt_cond": false,
   "appt_tssu": true,
   "config": "{}",
-  "created_at": "2023-11-21T14:18:01.522",
+  "created_at": "2023-11-21T14:50:01.251",
   "created_by": "",
   "deadline": "2023-08-23",
   "pay_end": "2023-12-15",
@@ -3001,64 +3001,10 @@
   "scholarship_per_bu": "135.00",
   "sin": "123456789",
   "status": "NEW",
-  "updated_at": "2023-11-21T14:18:01.522"
+  "updated_at": "2023-11-21T14:50:01.251"
  },
  "model": "ta.tacontract",
  "pk": 5
-},
-{
- "fields": {
-  "application": 10,
-  "appointment_end": "2023-12-15",
-  "appointment_start": "2023-09-02",
-  "appt": "INIT",
-  "appt_category": "GTA2",
-  "appt_cond": false,
-  "appt_tssu": true,
-  "config": "{}",
-  "created_at": "2023-11-21T14:18:01.552",
-  "created_by": "",
-  "deadline": "2023-08-23",
-  "pay_end": "2023-12-15",
-  "pay_per_bu": "972.00",
-  "pay_start": "2023-09-02",
-  "position_number": 2,
-  "posting": 1,
-  "remarks": "",
-  "scholarship_per_bu": "340.00",
-  "sin": "123456789",
-  "status": "OPN",
-  "updated_at": "2023-11-21T14:18:01.552"
- },
- "model": "ta.tacontract",
- "pk": 6
-},
-{
- "fields": {
-  "application": 11,
-  "appointment_end": "2023-12-15",
-  "appointment_start": "2023-09-02",
-  "appt": "INIT",
-  "appt_category": "GTA1",
-  "appt_cond": false,
-  "appt_tssu": true,
-  "config": "{}",
-  "created_at": "2023-11-21T14:18:01.576",
-  "created_by": "",
-  "deadline": "2023-08-23",
-  "pay_end": "2023-12-15",
-  "pay_per_bu": "972.00",
-  "pay_start": "2023-09-02",
-  "position_number": 1,
-  "posting": 1,
-  "remarks": "",
-  "scholarship_per_bu": "135.00",
-  "sin": "123456789",
-  "status": "NEW",
-  "updated_at": "2023-11-21T14:18:01.576"
- },
- "model": "ta.tacontract",
- "pk": 7
 },
 {
  "fields": {
@@ -3066,26 +3012,26 @@
   "appointment_end": "2023-12-15",
   "appointment_start": "2023-09-02",
   "appt": "INIT",
-  "appt_category": "GTA1",
+  "appt_category": "GTA2",
   "appt_cond": false,
   "appt_tssu": true,
   "config": "{}",
-  "created_at": "2023-11-21T14:18:01.599",
+  "created_at": "2023-11-21T14:50:01.303",
   "created_by": "",
   "deadline": "2023-08-23",
   "pay_end": "2023-12-15",
   "pay_per_bu": "972.00",
   "pay_start": "2023-09-02",
-  "position_number": 1,
+  "position_number": 2,
   "posting": 1,
   "remarks": "",
-  "scholarship_per_bu": "135.00",
+  "scholarship_per_bu": "340.00",
   "sin": "123456789",
   "status": "NEW",
-  "updated_at": "2023-11-21T14:18:01.599"
+  "updated_at": "2023-11-21T14:50:01.303"
  },
  "model": "ta.tacontract",
- "pk": 8
+ "pk": 6
 },
 {
  "fields": {
@@ -3097,61 +3043,7 @@
   "appt_cond": false,
   "appt_tssu": true,
   "config": "{}",
-  "created_at": "2023-11-21T14:18:01.618",
-  "created_by": "",
-  "deadline": "2023-08-23",
-  "pay_end": "2023-12-15",
-  "pay_per_bu": "972.00",
-  "pay_start": "2023-09-02",
-  "position_number": 1,
-  "posting": 1,
-  "remarks": "",
-  "scholarship_per_bu": "135.00",
-  "sin": "123456789",
-  "status": "NEW",
-  "updated_at": "2023-11-21T14:18:01.618"
- },
- "model": "ta.tacontract",
- "pk": 9
-},
-{
- "fields": {
-  "application": 14,
-  "appointment_end": "2023-12-15",
-  "appointment_start": "2023-09-02",
-  "appt": "INIT",
-  "appt_category": "GTA1",
-  "appt_cond": false,
-  "appt_tssu": true,
-  "config": "{}",
-  "created_at": "2023-11-21T14:18:01.638",
-  "created_by": "",
-  "deadline": "2023-08-23",
-  "pay_end": "2023-12-15",
-  "pay_per_bu": "972.00",
-  "pay_start": "2023-09-02",
-  "position_number": 1,
-  "posting": 1,
-  "remarks": "",
-  "scholarship_per_bu": "135.00",
-  "sin": "123456789",
-  "status": "ACC",
-  "updated_at": "2023-11-21T14:18:01.638"
- },
- "model": "ta.tacontract",
- "pk": 10
-},
-{
- "fields": {
-  "application": 17,
-  "appointment_end": "2023-12-15",
-  "appointment_start": "2023-09-02",
-  "appt": "INIT",
-  "appt_category": "GTA1",
-  "appt_cond": false,
-  "appt_tssu": true,
-  "config": "{}",
-  "created_at": "2023-11-21T14:18:01.677",
+  "created_at": "2023-11-21T14:50:01.327",
   "created_by": "",
   "deadline": "2023-08-23",
   "pay_end": "2023-12-15",
@@ -3163,14 +3055,14 @@
   "scholarship_per_bu": "135.00",
   "sin": "123456789",
   "status": "OPN",
-  "updated_at": "2023-11-21T14:18:01.677"
+  "updated_at": "2023-11-21T14:50:01.327"
  },
  "model": "ta.tacontract",
- "pk": 11
+ "pk": 7
 },
 {
  "fields": {
-  "application": 18,
+  "application": 14,
   "appointment_end": "2023-12-15",
   "appointment_start": "2023-09-02",
   "appt": "INIT",
@@ -3178,7 +3070,61 @@
   "appt_cond": false,
   "appt_tssu": true,
   "config": "{}",
-  "created_at": "2023-11-21T14:18:01.697",
+  "created_at": "2023-11-21T14:50:01.351",
+  "created_by": "",
+  "deadline": "2023-08-23",
+  "pay_end": "2023-12-15",
+  "pay_per_bu": "972.00",
+  "pay_start": "2023-09-02",
+  "position_number": 1,
+  "posting": 1,
+  "remarks": "",
+  "scholarship_per_bu": "135.00",
+  "sin": "123456789",
+  "status": "OPN",
+  "updated_at": "2023-11-21T14:50:01.351"
+ },
+ "model": "ta.tacontract",
+ "pk": 8
+},
+{
+ "fields": {
+  "application": 16,
+  "appointment_end": "2023-12-15",
+  "appointment_start": "2023-09-02",
+  "appt": "INIT",
+  "appt_category": "GTA1",
+  "appt_cond": false,
+  "appt_tssu": true,
+  "config": "{}",
+  "created_at": "2023-11-21T14:50:01.387",
+  "created_by": "",
+  "deadline": "2023-08-23",
+  "pay_end": "2023-12-15",
+  "pay_per_bu": "972.00",
+  "pay_start": "2023-09-02",
+  "position_number": 1,
+  "posting": 1,
+  "remarks": "",
+  "scholarship_per_bu": "135.00",
+  "sin": "123456789",
+  "status": "OPN",
+  "updated_at": "2023-11-21T14:50:01.387"
+ },
+ "model": "ta.tacontract",
+ "pk": 9
+},
+{
+ "fields": {
+  "application": 20,
+  "appointment_end": "2023-12-15",
+  "appointment_start": "2023-09-02",
+  "appt": "INIT",
+  "appt_category": "GTA1",
+  "appt_cond": false,
+  "appt_tssu": true,
+  "config": "{}",
+  "created_at": "2023-11-21T14:50:01.436",
   "created_by": "",
   "deadline": "2023-08-23",
   "pay_end": "2023-12-15",
@@ -3190,10 +3136,10 @@
   "scholarship_per_bu": "135.00",
   "sin": "123456789",
   "status": "NEW",
-  "updated_at": "2023-11-21T14:18:01.697"
+  "updated_at": "2023-11-21T14:50:01.436"
  },
  "model": "ta.tacontract",
- "pk": 12
+ "pk": 10
 },
 {
  "fields": {
@@ -3207,9 +3153,9 @@
 },
 {
  "fields": {
-  "bu": "5.00",
+  "bu": "3.00",
   "contract": 2,
-  "course": 5,
+  "course": 2,
   "description": 1
  },
  "model": "ta.tacourse",
@@ -3217,9 +3163,9 @@
 },
 {
  "fields": {
-  "bu": "5.00",
-  "contract": 2,
-  "course": 8,
+  "bu": "3.00",
+  "contract": 3,
+  "course": 7,
   "description": 1
  },
  "model": "ta.tacourse",
@@ -3227,10 +3173,10 @@
 },
 {
  "fields": {
-  "bu": "4.00",
+  "bu": "3.00",
   "contract": 3,
-  "course": 1,
-  "description": 2
+  "course": 2,
+  "description": 1
  },
  "model": "ta.tacourse",
  "pk": 4
@@ -3247,8 +3193,8 @@
 },
 {
  "fields": {
-  "bu": "3.00",
-  "contract": 4,
+  "bu": "5.00",
+  "contract": 5,
   "course": 10,
   "description": 1
  },
@@ -3257,9 +3203,9 @@
 },
 {
  "fields": {
-  "bu": "3.00",
+  "bu": "5.00",
   "contract": 5,
-  "course": 5,
+  "course": 2,
   "description": 1
  },
  "model": "ta.tacourse",
@@ -3267,9 +3213,9 @@
 },
 {
  "fields": {
-  "bu": "3.00",
+  "bu": "5.00",
   "contract": 5,
-  "course": 4,
+  "course": 6,
   "description": 1
  },
  "model": "ta.tacourse",
@@ -3277,9 +3223,9 @@
 },
 {
  "fields": {
-  "bu": "5.00",
+  "bu": "4.00",
   "contract": 6,
-  "course": 2,
+  "course": 8,
   "description": 1
  },
  "model": "ta.tacourse",
@@ -3287,9 +3233,9 @@
 },
 {
  "fields": {
-  "bu": "5.00",
-  "contract": 6,
-  "course": 11,
+  "bu": "4.00",
+  "contract": 7,
+  "course": 6,
   "description": 1
  },
  "model": "ta.tacourse",
@@ -3297,9 +3243,9 @@
 },
 {
  "fields": {
-  "bu": "3.00",
-  "contract": 7,
-  "course": 8,
+  "bu": "5.00",
+  "contract": 8,
+  "course": 6,
   "description": 1
  },
  "model": "ta.tacourse",
@@ -3307,9 +3253,9 @@
 },
 {
  "fields": {
-  "bu": "3.00",
-  "contract": 7,
-  "course": 11,
+  "bu": "5.00",
+  "contract": 8,
+  "course": 7,
   "description": 1
  },
  "model": "ta.tacourse",
@@ -3317,9 +3263,9 @@
 },
 {
  "fields": {
-  "bu": "3.00",
-  "contract": 8,
-  "course": 10,
+  "bu": "4.00",
+  "contract": 9,
+  "course": 9,
   "description": 1
  },
  "model": "ta.tacourse",
@@ -3327,9 +3273,9 @@
 },
 {
  "fields": {
-  "bu": "5.00",
+  "bu": "4.00",
   "contract": 9,
-  "course": 10,
+  "course": 4,
   "description": 1
  },
  "model": "ta.tacourse",
@@ -3337,32 +3283,12 @@
 },
 {
  "fields": {
-  "bu": "3.00",
+  "bu": "4.00",
   "contract": 10,
-  "course": 8,
+  "course": 4,
   "description": 1
  },
  "model": "ta.tacourse",
  "pk": 15
-},
-{
- "fields": {
-  "bu": "3.00",
-  "contract": 11,
-  "course": 9,
-  "description": 1
- },
- "model": "ta.tacourse",
- "pk": 16
-},
-{
- "fields": {
-  "bu": "3.00",
-  "contract": 12,
-  "course": 3,
-  "description": 1
- },
- "model": "ta.tacourse",
- "pk": 17
 }
 ]

@@ -113,12 +113,12 @@ def create_admin_data():
 def create_test_offering():
     instructor = Person.objects.get(userid='ggbaker')
 
-    test_course = Course(subject='CMPT', number='120', title='Introduction to Computing Science and Programming I')
+    test_course = Course(subject='CMPT', number='120', title='Intro to CS and Progr I')
     test_course.save()
     semester = Semester.objects.get(name='1237')
     test_offering = CourseOffering(
         semester=semester, subject='CMPT', number='120', section='D100',
-        title='Introduction to Computing Science and Programming I', owner=Unit.objects.get(slug='cmpt'),
+        title='Intro to CS and Progr I', owner=Unit.objects.get(slug='cmpt'),
         component='LEC', instr_mode='P',
         crse_id=1234, class_nbr=12345, campus='BRNBY',
         enrl_cap=150, enrl_tot=20, wait_tot=0, units=3,
@@ -128,16 +128,16 @@ def create_test_offering():
     assert test_offering.slug == TEST_COURSE_SLUG, "courselib.testing.TEST_COURSE_SLUG must match the created test_offering"
 
     other_offerings = [
-        (1, '125', 'Introduction to Computing Science and Programming II'),
+        (1, '125', 'Intro to CS and Progr II'),
         (2, '140', 'Introductory Computering'),
-        (3, '145', 'Introductory Advanced Computering'),
+        (3, '145', 'Intro Advanced Computering'),
         (4, '199', 'Secondary System Studies'),
         (5, '299', 'Tertiary Systems Studies'),
         (6, '001', 'The On Switch'),
-        (7, '302', 'Specialized Computer Stuff, but not too specialized'),
-        (8, '303', 'Completely Different Computer Stuff'),
-        (9, '407', 'Extremely Specialized Computer Stuff'),
-        (10, '499', 'Introduction To Running Out Of Funny Course Titles'),
+        (7, '302', 'Specialized Computer Stuff'),
+        (8, '303', 'Different Computer Stuff'),
+        (9, '407', 'Extremely Spec Computer Stuff'),
+        (10, '499', 'Intro To Funny Course Titles'),
     ]
     for i, number, title in other_offerings:
         other_course = Course(subject='CMPT', number=number, title=title)
