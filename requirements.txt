@@ -46,6 +46,7 @@ psutil==5.8.0
 intervaltree==3.1.0
 requests
 ntplib==0.3.4
+git+https://github.com/gregbaker/python-logging-rabbitmq.git@91bd6a7  # pending PR #42 https://github.com/albertomr86/python-logging-rabbitmq/pull/42
 ipython
 
 # actually only needed in production-like environments...

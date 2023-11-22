@@ -133,18 +133,19 @@ class LoggingMiddleware:
             'request_content_length': request_content_length,
             'elapsed': elapsed,
             'status_code': response.status_code,
+            'test': '💩',
         }
 
         slow_okay = getattr(response, 'slow_okay', False)
 
         if slow_okay or elapsed < 10:
             log_data['level'] = 'debug'
-            middleware_logger.debug(json.dumps(log_data))
+            middleware_logger.debug(log_data)
         elif elapsed < 20:
             log_data['level'] = 'warn'
-            middleware_logger.warning(json.dumps(log_data))
+            middleware_logger.warning(log_data)
         else:
             log_data['level'] = 'error'
-            middleware_logger.error(json.dumps(log_data))
+            middleware_logger.error(log_data)
 
         return response
