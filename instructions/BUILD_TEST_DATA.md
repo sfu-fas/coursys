@@ -11,3 +11,4 @@ rm db.sqlite
 cp db.empty db.sqlite && ./manage.py create_test_data
 git add fixtures/*.json
 ```
+

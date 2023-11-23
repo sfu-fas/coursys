@@ -24,6 +24,7 @@ services:
     environment:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 
   memcached:
     image: 'memcached:latest'
