@@ -7,6 +7,8 @@ from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
 from ipware import get_client_ip
 
+from log.models import RequestLog
+
 logger = logging.getLogger(__name__)
 
 
@@ -108,44 +110,30 @@ class LoggingMiddleware:
         response = self.get_response(request)
         end = datetime.datetime.utcnow()
 
-        elapsed = (end - start).total_seconds()
         ip, _ = get_client_ip(request)
-        user = request.user.username if request.user.is_authenticated else '-'
-        request_id = request.META.get('HTTP_X_REQUEST_ID', '-')
-        session_key = request.session.session_key if request.session and request.session.session_key else '-'
+        user = request.user.username if request.user.is_authenticated else None
+        request_id = request.META.get('HTTP_X_REQUEST_ID', None)
+        session_key = request.session.session_key if request.session and request.session.session_key else None
         if 'CONTENT_LENGTH' in request.META and request.META['CONTENT_LENGTH'].isnumeric():
             request_content_length = int(request.META['CONTENT_LENGTH'])
         else:
             request_content_length = 0
 
-        response_content_type = response.headers.get('Content-Type', '-')
+        response_content_type = response.headers.get('Content-Type', None)
 
         log_data = {
-            'timestamp': end.isoformat(timespec='microseconds'),
             'ip': ip,
             'method': request.method,
             'path': request.path,
             'query_string': request.META.get('QUERY_STRING', ''),
             'request_id': request_id,
             'session_key': session_key,
-            'user': user,
             'response_content_type': response_content_type,
             'request_content_length': request_content_length,
-            'elapsed': elapsed,
             'status_code': response.status_code,
             'test': '💩',
         }
-
-        slow_okay = getattr(response, 'slow_okay', False)
-
-        if slow_okay or elapsed < 10:
-            log_data['level'] = 'debug'
-            middleware_logger.debug(log_data)
-        elif elapsed < 20:
-            log_data['level'] = 'warn'
-            middleware_logger.warning(log_data)
-        else:
-            log_data['level'] = 'error'
-            middleware_logger.error(log_data)
+        log = RequestLog(time=start, duration=end - start, username=user, data=log_data)
+        log.save()
 
         return response

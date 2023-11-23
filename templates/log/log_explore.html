@@ -1,0 +1,72 @@
+{% extends "base-wide.html" %}
+{% load browser_display %}
+{% load static %}
+{% load compress %}
+
+{% block title %}Browse Log Entries{% endblock %}
+{% block h1 %}Browse Log Entries{% endblock %}
+
+{% block subbreadcrumbs %}<li>Browse Log Entries</li>{% endblock %}
+
+{% block headextra %}
+{% compress js %}
+<script src="{% static 'jquery-ext/jquery.ba-bbq.min.js' %}"></script>
+<script src="{% static 'js/browse.js' %}"></script>
+{{ display_columns|json_script:"display_columns" }}
+{{ table_column_config|json_script:"table_column_config" }}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  const my_url = '{% url "sysadmin:log_explore" %}';
+  const display_columns = JSON.parse(document.getElementById('display_columns').textContent);
+  const table_column_config = JSON.parse(document.getElementById('table_column_config').textContent);
+  restore_form();
+  var table = $('#courses').dataTable( {
+    'jQueryUI': true,
+    'pagingType': 'full_numbers',
+    'pageLength' : 20,
+    'order': [[0,'desc'],[1,'asc']],
+    'processing': true,
+    'serverSide': true,
+    'columns': table_column_config,
+    'ajax': {
+        'url': my_url,
+        'type': 'GET',
+        'cache': true,
+        'data': function (data) {
+            // append all of the form filters to the query data, so we can find the server-side
+            server_params().forEach(function(p) {
+                if (!(p.name in data)) {
+                    data[p.name] = [];
+                }
+                data[p.name].push(p.value)
+            });
+            data.tabledata = 'yes';
+            return data;
+        }
+    }
+  } );
+  $('#filterform').change(refresh);
+} );
+</script>
+{% endcompress %}
+{% endblock %}
+
+{% block content %}
+<form action="" id="filterform">
+<ul>
+{{ form.method|browser_field }}
+</ul>
+</form>
+
+<div id="browser_container">
+<table id="courses" class="display">
+  <thead><tr>
+      {% for col in display_columns %}
+      <th scope="col">{{ col }}</th>
+      {% endfor %}
+  </tr></thead>
+  <tbody>
+  </tbody>
+</table>
+</div>
+{% endblock %}

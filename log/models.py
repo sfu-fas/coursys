@@ -1,4 +1,10 @@
-from django.db import models
+import copy
+import uuid
+from sqlite3 import NotSupportedError
+from typing import Any
+
+import django.db.utils
+from django.db import models, connection
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
@@ -46,3 +52,72 @@ class LogEntry(models.Model):
 
     __str__ = display
 
+
+class EventLogManager(models.Manager):
+    def data_contains(self, data: dict[str, Any]):
+        if connection.features.supports_json_field_contains:
+            return self.get_queryset().filter(data__contains=data)
+        else:
+            # fake it in sqlite for dev
+            qs = self.get_queryset()
+            for o in qs:
+                for k,v in data.items():
+                    if not (k in o.data and o.data[k] == v):
+                        break
+                else:
+                    yield o
+
+
+def data_property(field, default=None):
+    def getter(self):
+        return self.data[field] if field in self.data else copy.copy(default)
+
+    def setter(self, val):
+        self.data[field] = val
+
+    return property(getter, setter)
+
+
+class EventLogEntry(models.Model):
+    """
+    Abstract base class for logging system events.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
+    time = models.DateTimeField(blank=False, null=False, help_text='Time of the *start* of this event.')
+    duration = models.DurationField(blank=False, null=False)
+    username = models.CharField(max_length=32, null=True, db_index=True)
+    data = models.JSONField()
+
+    objects = EventLogManager()
+
+    class Meta:
+        abstract = True
+        ordering = ['-time']
+
+    def __str__(self):
+        return f'EventLogEntry@{self.time.isoformat()}'
+
+    path = data_property('path')
+
+class RequestLog(EventLogEntry):
+    """
+    Log of an HTTP request (handled by Django: non-static file).
+    """
+    display_columns = ['time', 'path', 'user', 'status_code']
+    table_column_config = [None, {'orderable': False}, {'orderable': False}, {'orderable': False}]
+
+
+
+
+class CeleryTaskLog(EventLogEntry):
+    """
+    Log of a Celery task
+    """
+    pass
+
+
+# dict of EventLogEntry for discovery in log exploration UI
+EVENT_LOG_TYPES = {
+    'request': RequestLog,
+    'task': CeleryTaskLog,
+}
