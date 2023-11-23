@@ -1,4 +1,5 @@
 # prettification of celery tasks
+import datetime
 
 from django.conf import settings
 from celery import shared_task
@@ -6,6 +7,8 @@ from celery import shared_task
 from django.core.mail import mail_admins
 from functools import wraps
 import sys, traceback
+
+from log.models import CeleryTaskLog
 
 
 def task(*d_args, **d_kwargs):
@@ -16,7 +19,9 @@ def task(*d_args, **d_kwargs):
         def wrapper(*f_args, **f_kwargs):
             # try the task; email any exceptions we get
             try:
+                start = datetime.datetime.utcnow()
                 res = f(*f_args, **f_kwargs)
+                end = datetime.datetime.utcnow()
             except Exception as e:
                 # email admins and re-raise
                 exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -25,6 +30,12 @@ def task(*d_args, **d_kwargs):
                         '\n'.join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
                 mail_admins(subject=subject, message=msg, fail_silently=True)
                 raise
+
+            log_data = {
+                'task': f'{f.__module__}.{f.__name__}'
+            }
+            log = CeleryTaskLog(time=start, duration=end - start, username=None, data=log_data)
+            log.save()
 
             return res
         return wrapper
