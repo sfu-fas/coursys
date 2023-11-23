@@ -19,7 +19,7 @@ def task(*d_args, **d_kwargs):
         def wrapper(*f_args, **f_kwargs):
             # try the task; email any exceptions we get
             log_data = {}
-            start = datetime.datetime.utcnow()
+            start = datetime.datetime.now()
             try:
                 res = f(*f_args, **f_kwargs)
             except Exception as e:
@@ -33,7 +33,8 @@ def task(*d_args, **d_kwargs):
                 log_data['exception_message'] = str(e)
                 raise
             finally:
-                end = datetime.datetime.utcnow()
+                # log the task
+                end = datetime.datetime.now()
                 task = f'{f.__module__}.{f.__name__}'
                 log = CeleryTaskLog(time=start, duration=end - start, task=task, data=log_data)
                 log.save()

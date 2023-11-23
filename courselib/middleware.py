@@ -1,9 +1,8 @@
 import datetime
-import json
 import time
 import logging
 from django.db import connection
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
 from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
 from ipware import get_client_ip
@@ -106,6 +105,9 @@ class LoggingMiddleware:
         self.logged_exception = False
 
     def request_log(self, request: HttpRequest) -> RequestLog:
+        """
+        Build basic RequestLog for this request.
+        """
         ip, _ = get_client_ip(request)
         username = request.user.username if request.user.is_authenticated else None
         request_id = request.META.get('HTTP_X_REQUEST_ID', None)
@@ -121,28 +123,39 @@ class LoggingMiddleware:
             'request_id': request_id,
             'session_key': session_key,
             'request_content_length': request_content_length,
-            'test': '💩',
+            'n_queries': len(connection.queries),
         }
-        return RequestLog(time=self.start, username=username, path=request.path, method=request.method, data=log_data)
+        return RequestLog(
+            time=self.start,
+            duration=datetime.datetime.now() - self.start,
+            username=username,
+            path=request.path,
+            method=request.method,
+            data=log_data
+        )
 
     def __call__(self, request):
-        self.start = datetime.datetime.utcnow()
+        self.start = datetime.datetime.now()
         response = self.get_response(request)
 
         # exceptions are logged in process_exception: don't double-log
         if not self.logged_exception:
             log = self.request_log(request)
-            log.duration = datetime.datetime.utcnow() - self.start
-            log.data['response_content_type'] = response.headers.get('Content-Type', None)
             log.data['status_code'] = response.status_code
-            log.data['n_queries'] = len(connection.queries)
+            log.data['response_content_type'] = response.headers.get('Content-Type', None)
+            try:
+                if isinstance(response, HttpResponse):  # exclude streaming responses
+                    log.data['response_content_length'] = sum(len(c) for c in response._container)
+            except Exception:
+                pass  # don't throw if the internal ._container implementation changes
+
             log.save()
 
+        self.logged_exception = False
         return response
 
     def process_exception(self, request, exception):
         log = self.request_log(request)
-        log.duration = datetime.datetime.utcnow() - self.start
         log.data['exception'] = exception.__class__.__name__
         log.data['exception_message'] = str(exception)
         log.data['status_code'] = 500
