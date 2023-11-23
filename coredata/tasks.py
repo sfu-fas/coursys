@@ -37,6 +37,11 @@ def ping(): # used to check that celery is alive
     return True
 
 
+@task(queue='fast')
+def failing_task(): # used to check celery error handling
+    raise RuntimeError('This is a deliberately-thrown exception to test exception-handling from a Celery task. It can be ignored.')
+
+
 # a periodic job that has enough of an effect that we can see celerybeat working
 # (checked by ping_celery management command)
 @task()
@@ -160,7 +165,7 @@ logger = logging.getLogger(__name__)
 from django.conf import settings
 from coredata.models import CourseOffering, Member
 from dashboard.models import NewsItem
-from log.models import LogEntry
+from log.models import LogEntry, EventLogEntry
 from coredata import importer
 import itertools, datetime, time
 import logging
@@ -311,6 +316,8 @@ def daily_cleanup():
     SimilarityResult.cleanup_old()
     # deduplicate EnrolmentHistory
     EnrolmentHistory.deduplicate(start_date=datetime.date.today() - datetime.timedelta(days=30))
+    # purge old EventLogs
+    EventLogEntry.purge_old_logs()
     # clear orphaned tmp files
     cleanup_tmp()
 

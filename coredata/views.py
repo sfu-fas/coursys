@@ -440,7 +440,12 @@ def admin_panel(request):
             environ.sort()
             return render(request, 'coredata/admin_panel_tab.html', {'environ': environ})
         elif request.GET['content'] == 'throw':
-            raise RuntimeError('This is a deliberately-thrown exception to test exception-handling in the system. It can be ignored.')
+            raise RuntimeError(
+                'This is a deliberately-thrown exception to test exception-handling in the system. It can be ignored.')
+        elif request.GET['content'] == 'failing_task':
+            from coredata.tasks import failing_task
+            failing_task.delay()
+            messages.success(request, 'Failing task started.')
         elif request.GET['content'] == 'slow':
             import time
             t = int(request.GET.get('t', '25'))

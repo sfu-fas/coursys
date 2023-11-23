@@ -1,11 +1,13 @@
 import datetime
-import json
 import time
 import logging
 from django.db import connection
+from django.http import HttpRequest, HttpResponse
 from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
 from ipware import get_client_ip
+
+from log.models import RequestLog
 
 logger = logging.getLogger(__name__)
 
@@ -96,55 +98,67 @@ class NonHtmlDebugToolbarMiddleware(object):
         return response
 
 
-middleware_logger = logging.getLogger('django-logging')
-
-
 class LoggingMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
+        self.start = None
+        self.logged_exception = False
 
-    def __call__(self, request):
-        start = datetime.datetime.utcnow()
-        response = self.get_response(request)
-        end = datetime.datetime.utcnow()
-
-        elapsed = (end - start).total_seconds()
+    def request_log(self, request: HttpRequest) -> RequestLog:
+        """
+        Build basic RequestLog for this request.
+        """
         ip, _ = get_client_ip(request)
-        user = request.user.username if request.user.is_authenticated else '-'
-        request_id = request.META.get('HTTP_X_REQUEST_ID', '-')
-        session_key = request.session.session_key if request.session and request.session.session_key else '-'
+        username = request.user.username if request.user.is_authenticated else None
+        request_id = request.META.get('HTTP_X_REQUEST_ID', None)
+        session_key = request.session.session_key if request.session and request.session.session_key else None
         if 'CONTENT_LENGTH' in request.META and request.META['CONTENT_LENGTH'].isnumeric():
             request_content_length = int(request.META['CONTENT_LENGTH'])
         else:
             request_content_length = 0
 
-        response_content_type = response.headers.get('Content-Type', '-')
-
         log_data = {
-            'timestamp': end.isoformat(timespec='microseconds'),
             'ip': ip,
-            'method': request.method,
-            'path': request.path,
             'query_string': request.META.get('QUERY_STRING', ''),
             'request_id': request_id,
             'session_key': session_key,
-            'user': user,
-            'response_content_type': response_content_type,
             'request_content_length': request_content_length,
-            'elapsed': elapsed,
-            'status_code': response.status_code,
+            'n_queries': len(connection.queries),
         }
+        return RequestLog(
+            time=self.start,
+            duration=datetime.datetime.now() - self.start,
+            username=username,
+            path=request.path,
+            method=request.method,
+            data=log_data
+        )
 
-        slow_okay = getattr(response, 'slow_okay', False)
+    def __call__(self, request):
+        self.start = datetime.datetime.now()
+        response = self.get_response(request)
 
-        if slow_okay or elapsed < 10:
-            log_data['level'] = 'debug'
-            middleware_logger.debug(json.dumps(log_data))
-        elif elapsed < 20:
-            log_data['level'] = 'warn'
-            middleware_logger.warning(json.dumps(log_data))
-        else:
-            log_data['level'] = 'error'
-            middleware_logger.error(json.dumps(log_data))
+        # exceptions are logged in process_exception: don't double-log
+        if not self.logged_exception:
+            log = self.request_log(request)
+            log.data['status_code'] = response.status_code
+            log.data['response_content_type'] = response.headers.get('Content-Type', None)
+            try:
+                if isinstance(response, HttpResponse):  # exclude streaming responses
+                    log.data['response_content_length'] = sum(len(c) for c in response._container)
+            except Exception:
+                pass  # don't throw if the internal ._container implementation changes
 
+            log.save()
+
+        self.logged_exception = False
         return response
+
+    def process_exception(self, request, exception):
+        log = self.request_log(request)
+        log.data['exception'] = exception.__class__.__name__
+        log.data['exception_message'] = str(exception)
+        log.data['status_code'] = 500
+        log.save()
+
+        self.logged_exception = True

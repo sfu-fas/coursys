@@ -1,5 +1,9 @@
 # Want to use LoggingMiddleware? In localsettings.py:
 # from courselib.logging import POSSIBLE_LOGGING_CONFIG as LOGGING
+
+from courses import localsettings
+from courses import secrets
+
 POSSIBLE_LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -23,7 +27,7 @@ POSSIBLE_LOGGING_CONFIG = {
 #            'formatter': 'raw',
 #        },
         'console': {
-            'level': 'WARN',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'django.server'
         },

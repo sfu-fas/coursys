@@ -1,6 +1,15 @@
-from django.db import models
+import copy
+import datetime
+import uuid
+from typing import Any
+
+from django.db import models, connection
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+
+
+PURGE_AFTER_DAYS = 30
+
 
 class LogEntry(models.Model):
     """
@@ -46,3 +55,76 @@ class LogEntry(models.Model):
 
     __str__ = display
 
+
+# class EventLogManager(models.Manager):
+#     def data_contains(self, data: dict[str, Any]):
+#         if connection.features.supports_json_field_contains:
+#             return self.get_queryset().filter(data__contains=data)
+#         else:
+#             # fake it in sqlite for dev
+#             qs = self.get_queryset()
+#             for o in qs:
+#                 for k, v in data.items():
+#                     if not (k in o.data and o.data[k] == v):
+#                         break
+#                 else:
+#                     yield o
+
+
+class EventLogEntry(models.Model):
+    """
+    Abstract base class for logging system events.
+
+    Logic of the database field vs JSON data split:
+    * real field: efficient querying and sorting. Use for things that and likely to be searched and/or always there.
+    * JSON data: flexible. Use for everything else.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
+    time = models.DateTimeField(blank=False, null=False, help_text='Time of the *start* of this event.')
+    duration = models.DurationField(blank=False, null=False, help_text='Time taken for this event.')
+    data = models.JSONField()
+
+    #objects = EventLogManager()
+
+    class Meta:
+        abstract = True
+        ordering = ['-time']
+
+    def __str__(self):
+        return f'EventLogEntry@{self.time.isoformat()}'
+
+    @staticmethod
+    def purge_old_logs(days=PURGE_AFTER_DAYS):
+        for cls in EVENT_LOG_TYPES.values():
+            cutoff = datetime.datetime.now() - datetime.timedelta(days=days)
+            cls.objects.filter(time__lt=cutoff).delete()
+
+
+class RequestLog(EventLogEntry):
+    """
+    Log of an HTTP request (which was handled by Django: non-static response).
+
+    Created by courselib.middleware.LoggingMiddleware
+    """
+    username = models.CharField(max_length=32, null=True, db_index=True)
+    method = models.CharField(max_length=10, null=False)
+    path = models.CharField(max_length=1024, null=False)
+
+    display_columns = ['time', 'username', 'method', 'path', 'status_code']
+    table_column_config = [None, None, None, None, {'orderable': False}]
+
+
+class CeleryTaskLog(EventLogEntry):
+    """
+    Log of a Celery task.
+
+    Created by courselib.celerytasks.task
+    """
+    task = models.CharField(max_length=255, null=False, db_index=True)
+
+
+# dict of EventLogEntry for discovery in log exploration UI
+EVENT_LOG_TYPES = {
+    'request': RequestLog,
+    'task': CeleryTaskLog,
+}
