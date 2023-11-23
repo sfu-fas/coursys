@@ -40,12 +40,3 @@ services:
     restart: always
     environment:
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
-
-  couchdb:
-    image: 'couchdb:3'
-    restart: always
-    ports:
-      - "127.0.0.1:5984:5984"
-    environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=password
