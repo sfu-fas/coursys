@@ -342,12 +342,12 @@ if USE_CELERY:
     }
     CELERY_SEND_TASK_ERROR_EMAILS = True
     CELERY_EMAIL_TASK_CONFIG = {
-        'rate_limit' : '30/m',
+        'rate_limit' : '60/m',
         'queue': 'email',
         'serializer': 'pickle', # email objects aren't JSON serializable
         # retry-on-failure config: be very liberal in queuing failed mail...
-        'default_retry_delay': 4*3600, # retry every 4 hours
-        'max_retries': 18,             # ... for 3 days
+        'default_retry_delay': 1800, # retry every half hour
+        'max_retries': 48*3,         # ... for 3 days
     }
 
 MAX_SUBMISSION_SIZE = 30000 # kB
@@ -355,9 +355,9 @@ CAS_SERVER_URL = "https://cas.sfu.ca/cas/"
 CAS_VERSION = '3'
 CAS_LOGIN_MSG = None
 CAS_CHECK_NEXT = False
-EMAIL_HOST = getattr(localsettings, 'EMAIL_HOST', 'mailgate.sfu.ca')
-EMAIL_PORT = getattr(localsettings, 'EMAIL_PORT', 465)
-EMAIL_USE_SSL = getattr(localsettings, 'EMAIL_USE_SSL', True)
+EMAIL_HOST = getattr(localsettings, 'EMAIL_HOST', 'smtpserver.sfu.ca')
+EMAIL_PORT = getattr(localsettings, 'EMAIL_PORT', 25)
+EMAIL_USE_SSL = getattr(localsettings, 'EMAIL_USE_SSL', False)
 DEFAULT_FROM_EMAIL = 'CourSys <nobody@coursys.sfu.ca>'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
