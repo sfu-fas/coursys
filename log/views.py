@@ -57,8 +57,13 @@ class OfferingDataJson(BaseDatatableView):
     #order_columns = [COLUMN_ORDERING[col] for col in columns]
 
     def render_column(self, logentry, column):
-        if column == 'FOO':
+        if column == 'status_code':
+            col = logentry.data.get('status_code', None)
+        elif column == 'path':
             col = logentry.path
+            qs = logentry.data.get('query_string', '')
+            if qs:
+                col += '?...'
         else:
             col = getattr(logentry, column)
 
@@ -70,11 +75,19 @@ class OfferingDataJson(BaseDatatableView):
     def filter_queryset(self, qs):
         # use request parameters to filter queryset
         GET = self.request.GET
-        print(GET)
-        methods = GET.get('method[]', None)
-        if methods:
-            print(methods)
-            qs = qs
+
+        method = GET.get('method[]', None)
+        if method:
+            qs = qs.filter(method=method)
+
+        username = GET.get('username[]', None)
+        if username:
+            qs = qs.filter(username__contains=username)
+
+        path = GET.get('path[]', None)
+        if path:
+            qs = qs.filter(path__contains=path)
+
         return qs
 
 _log_data = OfferingDataJson.as_view()

@@ -1,12 +1,15 @@
 import copy
+import datetime
 import uuid
-from sqlite3 import NotSupportedError
 from typing import Any
 
-import django.db.utils
 from django.db import models, connection
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+
+
+PURGE_AFTER_DAYS = 30
+
 
 class LogEntry(models.Model):
     """
@@ -81,6 +84,10 @@ class EventLogManager(models.Manager):
 class EventLogEntry(models.Model):
     """
     Abstract base class for logging system events.
+
+    Logic of the field vs JSON data split:
+    * real field: efficient querying, can sort by. Use for things that are core and/or always there.
+    * JSON data: flexible. Use for everything else.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
     time = models.DateTimeField(blank=False, null=False, help_text='Time of the *start* of this event.')
@@ -96,22 +103,32 @@ class EventLogEntry(models.Model):
     def __str__(self):
         return f'EventLogEntry@{self.time.isoformat()}'
 
-    path = data_property('path')
+    @staticmethod
+    def purge_old_logs():
+        for cls in EVENT_LOG_TYPES.values():
+            cutoff = datetime.datetime.utcnow() - datetime.timedelta(seconds=PURGE_AFTER_DAYS)
+            cls.objects.filter(time__lt=cutoff).delete()
 
 
 class RequestLog(EventLogEntry):
     """
     Log of an HTTP request (handled by Django: non-static file).
+
+    Created by courselib.middleware.LoggingMiddleware
     """
     username = models.CharField(max_length=32, null=True, db_index=True)
+    method = models.CharField(max_length=10, null=False)
+    path = models.CharField(max_length=1024, null=False)
 
-    display_columns = ['time', 'path', 'user', 'status_code']
-    table_column_config = [None, {'orderable': False}, {'orderable': False}, {'orderable': False}]
+    display_columns = ['time', 'username', 'method', 'path', 'status_code']
+    table_column_config = [None, None, None, None, {'orderable': False}]
 
 
 class CeleryTaskLog(EventLogEntry):
     """
-    Log of a Celery task
+    Log of a Celery task.
+
+    Created by courselib.celerytasks.task
     """
     task = models.CharField(max_length=255, null=False, db_index=True)
 

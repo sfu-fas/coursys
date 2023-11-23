@@ -10,6 +10,8 @@ METHOD_CHOICES = [
 
 class RequestLogForm(forms.Form):
     method = forms.ChoiceField(choices=METHOD_CHOICES)
+    username = forms.CharField()
+    path = forms.CharField()
 
     def __init__(self, *args, **kwargs):
         super(RequestLogForm, self).__init__(*args, **kwargs)

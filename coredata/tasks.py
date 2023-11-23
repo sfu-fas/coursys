@@ -165,7 +165,7 @@ logger = logging.getLogger(__name__)
 from django.conf import settings
 from coredata.models import CourseOffering, Member
 from dashboard.models import NewsItem
-from log.models import LogEntry
+from log.models import LogEntry, EventLogEntry
 from coredata import importer
 import itertools, datetime, time
 import logging
@@ -316,6 +316,8 @@ def daily_cleanup():
     SimilarityResult.cleanup_old()
     # deduplicate EnrolmentHistory
     EnrolmentHistory.deduplicate(start_date=datetime.date.today() - datetime.timedelta(days=30))
+    # purge old EventLogs
+    EventLogEntry.purge_old_logs()
     # clear orphaned tmp files
     cleanup_tmp()
 

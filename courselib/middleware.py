@@ -105,8 +105,7 @@ class LoggingMiddleware:
         self.start = None
         self.logged_exception = False
 
-    @staticmethod
-    def log_data(request: HttpRequest):
+    def request_log(self, request: HttpRequest) -> RequestLog:
         ip, _ = get_client_ip(request)
         username = request.user.username if request.user.is_authenticated else None
         request_id = request.META.get('HTTP_X_REQUEST_ID', None)
@@ -117,17 +116,14 @@ class LoggingMiddleware:
             request_content_length = 0
 
         log_data = {
-            'username': username,
             'ip': ip,
-            'method': request.method,
-            'path': request.path,
             'query_string': request.META.get('QUERY_STRING', ''),
             'request_id': request_id,
             'session_key': session_key,
             'request_content_length': request_content_length,
             'test': '💩',
         }
-        return log_data
+        return RequestLog(time=self.start, username=username, path=request.path, method=request.method, data=log_data)
 
     def __call__(self, request):
         self.start = datetime.datetime.utcnow()
@@ -135,28 +131,21 @@ class LoggingMiddleware:
 
         # exceptions are logged in process_exception: don't double-log
         if not self.logged_exception:
-            end = datetime.datetime.utcnow()
-            log_data = self.log_data(request)
-            log_data['response_content_type'] = response.headers.get('Content-Type', None)
-            log_data['status_code'] = response.status_code
-            log_data['n_queries'] = len(connection.queries)
-            username = log_data['username']
-            del log_data['username']
-            log = RequestLog(time=self.start, duration=end - self.start, username=username, data=log_data)
+            log = self.request_log(request)
+            log.duration = datetime.datetime.utcnow() - self.start
+            log.data['response_content_type'] = response.headers.get('Content-Type', None)
+            log.data['status_code'] = response.status_code
+            log.data['n_queries'] = len(connection.queries)
             log.save()
 
         return response
 
     def process_exception(self, request, exception):
-        end = datetime.datetime.utcnow()
-        log_data = self.log_data(request)
-        log_data['exception'] = exception.__class__.__name__
-        log_data['exception_message'] = str(exception)
-        log_data['status_code'] = 500
-        username = log_data['username']
-        del log_data['username']
-
-        log = RequestLog(time=self.start, duration=end - self.start, username=username, data=log_data)
+        log = self.request_log(request)
+        log.duration = datetime.datetime.utcnow() - self.start
+        log.data['exception'] = exception.__class__.__name__
+        log.data['exception_message'] = str(exception)
+        log.data['status_code'] = 500
         log.save()
 
         self.logged_exception = True
