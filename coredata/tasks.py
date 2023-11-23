@@ -37,6 +37,11 @@ def ping(): # used to check that celery is alive
     return True
 
 
+@task(queue='fast')
+def failing_task(): # used to check celery error handling
+    raise RuntimeError('This is a deliberately-thrown exception to test exception-handling from a Celery task. It can be ignored.')
+
+
 # a periodic job that has enough of an effect that we can see celerybeat working
 # (checked by ping_celery management command)
 @task()

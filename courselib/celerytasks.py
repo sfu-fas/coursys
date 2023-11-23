@@ -18,10 +18,12 @@ def task(*d_args, **d_kwargs):
         @wraps(f)
         def wrapper(*f_args, **f_kwargs):
             # try the task; email any exceptions we get
+            log_data = {
+                'task': f'{f.__module__}.{f.__name__}'
+            }
+            start = datetime.datetime.utcnow()
             try:
-                start = datetime.datetime.utcnow()
                 res = f(*f_args, **f_kwargs)
-                end = datetime.datetime.utcnow()
             except Exception as e:
                 # email admins and re-raise
                 exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -29,13 +31,13 @@ def task(*d_args, **d_kwargs):
                 msg = 'The task %s.%s failed:\n\n%s' % (f.__module__, f.__name__,
                         '\n'.join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
                 mail_admins(subject=subject, message=msg, fail_silently=True)
+                log_data['exception'] = e.__class__.__name__
+                log_data['exception_message'] = str(e)
                 raise
-
-            log_data = {
-                'task': f'{f.__module__}.{f.__name__}'
-            }
-            log = CeleryTaskLog(time=start, duration=end - start, username=None, data=log_data)
-            log.save()
+            finally:
+                end = datetime.datetime.utcnow()
+                log = CeleryTaskLog(time=start, duration=end - start, username=None, data=log_data)
+                log.save()
 
             return res
         return wrapper

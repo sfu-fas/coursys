@@ -99,14 +99,13 @@ class EventLogEntry(models.Model):
 
     path = data_property('path')
 
+
 class RequestLog(EventLogEntry):
     """
     Log of an HTTP request (handled by Django: non-static file).
     """
     display_columns = ['time', 'path', 'user', 'status_code']
     table_column_config = [None, {'orderable': False}, {'orderable': False}, {'orderable': False}]
-
-
 
 
 class CeleryTaskLog(EventLogEntry):
