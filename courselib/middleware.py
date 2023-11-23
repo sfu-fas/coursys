@@ -103,10 +103,10 @@ class LoggingMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
         self.start = None
-        self.end = None
         self.logged_exception = False
 
-    def log_data(self, request: HttpRequest):
+    @staticmethod
+    def log_data(request: HttpRequest):
         ip, _ = get_client_ip(request)
         username = request.user.username if request.user.is_authenticated else None
         request_id = request.META.get('HTTP_X_REQUEST_ID', None)
@@ -130,32 +130,33 @@ class LoggingMiddleware:
         return log_data
 
     def __call__(self, request):
-        log_data = self.log_data(request)
-
         self.start = datetime.datetime.utcnow()
         response = self.get_response(request)
-        self.end = datetime.datetime.utcnow()
 
+        # exceptions are logged in process_exception: don't double-log
         if not self.logged_exception:
-            # exceptions are logged in process_exception
+            end = datetime.datetime.utcnow()
+            log_data = self.log_data(request)
             log_data['response_content_type'] = response.headers.get('Content-Type', None)
             log_data['status_code'] = response.status_code
             log_data['n_queries'] = len(connection.queries)
-            log = RequestLog(time=self.start, duration=self.end - self.start, username=log_data['username'], data=log_data)
+            username = log_data['username']
+            del log_data['username']
+            log = RequestLog(time=self.start, duration=end - self.start, username=username, data=log_data)
             log.save()
 
         return response
 
     def process_exception(self, request, exception):
+        end = datetime.datetime.utcnow()
         log_data = self.log_data(request)
-        if not self.end:
-            self.end = datetime.datetime.utcnow()
-
         log_data['exception'] = exception.__class__.__name__
         log_data['exception_message'] = str(exception)
         log_data['status_code'] = 500
+        username = log_data['username']
+        del log_data['username']
 
-        log = RequestLog(time=self.start, duration=self.end - self.start, username=log_data['username'], data=log_data)
+        log = RequestLog(time=self.start, duration=end - self.start, username=username, data=log_data)
         log.save()
 
         self.logged_exception = True

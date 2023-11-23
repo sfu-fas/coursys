@@ -53,6 +53,16 @@ class LogEntry(models.Model):
     __str__ = display
 
 
+def data_property(field, default=None):
+    def getter(self):
+        return self.data[field] if field in self.data else copy.copy(default)
+
+    def setter(self, val):
+        self.data[field] = val
+
+    return property(getter, setter)
+
+
 class EventLogManager(models.Manager):
     def data_contains(self, data: dict[str, Any]):
         if connection.features.supports_json_field_contains:
@@ -68,16 +78,6 @@ class EventLogManager(models.Manager):
                     yield o
 
 
-def data_property(field, default=None):
-    def getter(self):
-        return self.data[field] if field in self.data else copy.copy(default)
-
-    def setter(self, val):
-        self.data[field] = val
-
-    return property(getter, setter)
-
-
 class EventLogEntry(models.Model):
     """
     Abstract base class for logging system events.
@@ -85,7 +85,6 @@ class EventLogEntry(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
     time = models.DateTimeField(blank=False, null=False, help_text='Time of the *start* of this event.')
     duration = models.DurationField(blank=False, null=False)
-    username = models.CharField(max_length=32, null=True, db_index=True)
     data = models.JSONField()
 
     objects = EventLogManager()
@@ -104,6 +103,8 @@ class RequestLog(EventLogEntry):
     """
     Log of an HTTP request (handled by Django: non-static file).
     """
+    username = models.CharField(max_length=32, null=True, db_index=True)
+
     display_columns = ['time', 'path', 'user', 'status_code']
     table_column_config = [None, {'orderable': False}, {'orderable': False}, {'orderable': False}]
 
@@ -112,7 +113,7 @@ class CeleryTaskLog(EventLogEntry):
     """
     Log of a Celery task
     """
-    pass
+    task = models.CharField(max_length=255, null=False, db_index=True)
 
 
 # dict of EventLogEntry for discovery in log exploration UI
