@@ -1,54 +1,24 @@
-# coding=utf-8
-
-# importer to create fake data for development
-# suggestion execution:
-#   rm db.sqlite && ./manage.py migrate && cp db.sqlite db.empty
-#   rm fixtures/*; cp db.empty db.sqlite && python coredata/devtest_importer.py
-
-import os, sys, socket
-from django.core.wsgi import get_wsgi_application
-sys.path.append('.')
-os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
-application = get_wsgi_application()
+import socket
 
 from django.conf import settings
 from django.core import serializers
-from coredata.models import Person, Unit, Role, Semester, SemesterWeek, Holiday, CourseOffering, Course, Member, \
-    MeetingTime, CAMPUS_CHOICES, VISA_STATUSES, GENDER_DESCR
-from dashboard.models import UserConfig
-from coredata.importer import import_semester_info, import_offerings, import_offering_members, ensure_member
-from coredata.queries import add_person, SIMSConn, cache_by_args
-from grades.models import NumericActivity
-from privacy.models import set_privacy_signed, set_privacy_da_signed
+
+from coredata.importer import first_monday
+from coredata.models import Person, Unit, Role, Semester, CourseOffering, Course, Member, GENDER_DESCR, VISA_STATUSES, \
+    CAMPUS_CHOICES, SemesterWeek
 from courselib.testing import TEST_COURSE_SLUG
 import itertools, random, string
-import datetime, time
+import datetime
 
-SEMESTER_CUTOFF = '1100' # semesters with label >= this will be included
-role_expiry = datetime.date.today() + datetime.timedelta(days=1000)
+from dashboard.models import UserConfig
+from grades.models import NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, Activity
+from groups.models import Group, GroupMember
+from marking.models import ActivityComponent
+from privacy.models import set_privacy_signed, set_privacy_da_signed
+from submission.models import SubmissionComponent
+from submission.models.code import CodeComponent
+from submission.models.pdf import PDFComponent
 
-def import_strms():
-    s = Semester.current()
-    return [s.name, s.offset_name(1), s.offset_name(2), s.offset_name(3), s.offset_name(4), s.offset_name(5),
-        s.offset_name(6), s.offset_name(7), s.offset_name(8), s.offset_name(9)]
-
-def test_semester():
-    return Semester.current().offset(1)
-
-
-
-def fake_emplids():
-    """
-    Replace student numbers with fakes
-    """
-    people = Person.objects.all()
-    fake = 200000101
-    for p in people:
-        p.emplid = fake
-        if 'lastimport' in p.config: # no need for this in the JSON
-            del p.config['lastimport']
-        p.save()
-        fake += 1
 
 def randname(l):
     """
@@ -59,70 +29,37 @@ def randname(l):
         n = n + random.choice(string.ascii_lowercase + 'àêïõú')
     return n
 
-randnullbool = lambda:random.choice((False, True, None))
-randbool = lambda:random.choice((False, True))
-
-@cache_by_args
-def find_emplid(userid):
-    """
-    Find emplid from userid by looking at email addresses: incorrect in general but works for the few people needed here.
-    """
-    db = SIMSConn()
-    db.execute("""SELECT emplid FROM ps_email_addresses WHERE email_addr=%s""", (userid+'@sfu.ca',))
-    return db.fetchone()[0]
-
-@cache_by_args
-def guess_userid(emplid):
-    """
-    Find userid from emplid by looking at email addresses: incorrect in general but works enough for some test data.
-    """
-    db = SIMSConn()
-    db.execute("""SELECT email_addr FROM ps_email_addresses WHERE emplid=%s AND email_addr LIKE '%%@sfu.ca %%'""", (emplid,))
-    row = db.fetchone()
-    if row:
-        email = row[0]
-        return email[:-7]
+randnullbool = lambda: random.choice((False, True, None))
+randbool = lambda: random.choice((False, True))
 
 
-def find_person(userid):
-    """
-    Find a this person, creating if necessary.
-    """
-    people = Person.objects.filter(userid=userid)
-    if people:
-        return people[0]
-    else:
-        emplid = find_emplid(userid)
-        p = add_person(emplid, commit=False)
-        p.userid = userid
-        p.save()
-        return p
+fake_emplid = 200000001
+role_expiry = datetime.date.today() + datetime.timedelta(days=365*10)
 
 
-def create_true_core():
-    """
-    Just enough data to bootstrap a minimal environment.
-    """
-    import_semester_info(dry_run=False, verbose=False, long_long_ago=True, bootstrap=True)
-    p = find_person('ggbaker')
-    p.emplid = '200000100'
-    p.first_name = 'Gregorʏ'
-    p.pref_first_name = 'Greg'
+def create_person(fname, prefname, lname, userid):
+    global fake_emplid
+    p = Person(first_name=fname, pref_first_name=prefname, last_name=lname, userid=userid)
+    p.emplid = fake_emplid
     p.save()
-    u = Unit(label='UNIV', name='Simon Fraser University')
-    u.save()
-    r = Role(person=p, role='SYSA', unit=u, expiry=role_expiry)
-    r.save()
+    fake_emplid += 1
+    return p
 
-    return itertools.chain(
-        Semester.objects.filter(name__gt=SEMESTER_CUTOFF),
-        Person.objects.filter(userid='ggbaker'),
-        Unit.objects.all(),
-        Role.objects.all(),
-    )
+
+def create_semesters():
+    this_yr = datetime.date.today().year
+    for yr in range(this_yr - 10, this_yr + 10):
+        Semester(name=f'{yr-1900}1', start=datetime.date(yr, 1, 2), end=datetime.date(yr, 4, 15)).save()
+        Semester(name=f'{yr-1900}4', start=datetime.date(yr, 5, 2), end=datetime.date(yr, 8, 15)).save()
+        Semester(name=f'{yr-1900}7', start=datetime.date(yr, 9, 2), end=datetime.date(yr, 12, 15)).save()
+
+    for s in Semester.objects.all():
+        SemesterWeek(semester=s, week=1, monday=first_monday(s.start)).save()
+
 
 def create_units():
-    univ = Unit.objects.get(slug='univ')
+    univ = Unit(label='UNIV', name='Simon Fraser University', parent=None)
+    univ.save()
     fas = Unit(label='FAS', name='Faculty of Applied Sciences', parent=univ)
     fas.save()
     ensc = Unit(label='ENSC', name='School of Engineering Science', parent=fas, acad_org='ENG SCI')
@@ -140,200 +77,187 @@ def create_units():
     cmpt.save()
 
 
-def create_coredata():
-    """
-    Create enough of the coredata.models stuff to run basic tests
-    """
+def create_basedata():
+    create_semesters()
     create_units()
+    p = create_person('Gregorʏ', 'Greg', 'Baker', 'ggbaker')
 
-    # restore ggbaker's real emplid so import_offerings will match
-    p = find_person('ggbaker')
-    p.emplid = find_emplid('ggbaker')
-    p.first_name = 'Gregorʏ'
-    p.pref_first_name = 'Greg'
-    p.save()
+    return itertools.chain(
+        Semester.objects.all(),
+        SemesterWeek.objects.all(),
+        Unit.objects.all(),
+        [p],
+    )
 
-    # import a few more people we definitely need later
-    find_person('popowich')
-    find_person('dixon')
-    find_person('diana')
-    find_person('dzhao')
-    find_person('pba7')
+def create_admin_data():
+    create_person('Anthony', 'Tony', 'Dixon', 'dixon')
+    admin = create_person('Danyu', 'Danyu', 'Zhao', 'dzhao')
+    set_privacy_signed(admin)
+    set_privacy_da_signed(admin)
+    config = UserConfig(user=admin, key='photo-agreement', value={'agree': True})
+    config.save()
 
-    # import a limited set of course offerings
-    offerings = import_offerings(import_semesters=import_strms, extra_where=
-        "(subject='CMPT' AND (catalog_nbr LIKE '%% 12%%')) "
-        "OR (subject='CMPT' AND (catalog_nbr LIKE '%% 16%%')) "
-        "OR (subject='ENSC' AND (catalog_nbr LIKE '%% 10%%')) "
+    u = Unit.objects.get(slug='cmpt')
+    Role(person=admin, role='ADVS', unit=u, expiry=role_expiry).save()
+    Role(person=admin, role='ADMN', unit=u, expiry=role_expiry).save()
+    Role(person=admin, role='INV', unit=u, expiry=role_expiry).save()
+    Role(person=admin, role='OUTR', unit=u, expiry=role_expiry).save()
+    Role(person=admin, role='SPAC', unit=u, expiry=role_expiry).save()
+
+    sysadmin = create_person('Phil', 'Phil', 'Boutrol', 'pba7')
+    Role(person=sysadmin, role='SYSA', unit=Unit.objects.get(slug='univ'), expiry=role_expiry).save()
+    Role(person=Person.objects.get(userid='ggbaker'), role='SYSA', unit=Unit.objects.get(slug='univ'),
+              expiry=role_expiry).save()
+
+
+def create_test_offering():
+    instructor = Person.objects.get(userid='ggbaker')
+
+    test_course = Course(subject='CMPT', number='120', title='Intro to CS and Progr I')
+    test_course.save()
+    semester = Semester.objects.get(name='1237')
+    test_offering = CourseOffering(
+        semester=semester, subject='CMPT', number='120', section='D100',
+        title='Intro to CS and Progr I', owner=Unit.objects.get(slug='cmpt'),
+        component='LEC', instr_mode='P',
+        crse_id=1234, class_nbr=12345, campus='BRNBY',
+        enrl_cap=150, enrl_tot=20, wait_tot=0, units=3,
+        course=test_course,
+    )
+    test_offering.save()
+    assert test_offering.slug == TEST_COURSE_SLUG, "courselib.testing.TEST_COURSE_SLUG must match the created test_offering"
+
+    other_offerings = [
+        (1, '125', 'Intro to CS and Progr II'),
+        (2, '140', 'Introductory Computering'),
+        (3, '145', 'Intro Advanced Computering'),
+        (4, '199', 'Secondary System Studies'),
+        (5, '299', 'Tertiary Systems Studies'),
+        (6, '001', 'The On Switch'),
+        (7, '302', 'Specialized Computer Stuff'),
+        (8, '303', 'Different Computer Stuff'),
+        (9, '407', 'Extremely Spec Computer Stuff'),
+        (10, '499', 'Intro To Funny Course Titles'),
+    ]
+    for i, number, title in other_offerings:
+        other_course = Course(subject='CMPT', number=number, title=title)
+        other_course.save()
+        other_offering = CourseOffering(
+            semester=semester, subject='CMPT', number=number, section='D100',
+            title=title, owner=Unit.objects.get(slug='cmpt'),
+            component='LEC', instr_mode='P',
+            crse_id=1235 + i, class_nbr=12346 + i, campus='BRNBY',
+            enrl_cap=150, enrl_tot=0, wait_tot=0, units=3,
+            course=other_course,
         )
-    offerings = list(offerings)
-    offerings.sort()
+        other_offering.save()
 
-    if not CourseOffering.objects.filter(slug=TEST_COURSE_SLUG):
-        o = CourseOffering.objects.filter(subject='CMPT', semester__name=import_strms()[0]) \
-            .order_by('number', 'section').first()
-        raise ValueError("courselib.testing.TEST_COURSE_SLUG isn't an offering we have. Maybe use '%s'." % (o.slug))
+    test_offering.set_labtut(True)
+    test_offering.set_discussion(True)
+    test_offering.set_url("http://www.cs.sfu.ca/")
+    test_offering.set_taemail("contact-list@example.com")
+    test_offering.save()
 
-    # import instructors
-    for o in offerings:
-        import_offering_members(o, students=False)
-
-    # try to guess instructors' userids
-    for p in Person.objects.filter(userid__isnull=True):
-        p.userid = guess_userid(p.emplid)
-        p.save()
-
-    fake_emplids()
-    p = find_person('ggbaker')
-    p.first_name = 'Gregorʏ'
-    p.pref_first_name = 'Greg'
-    p.save()
-
-    # use/import no real emplids after this
-
-    # create some fake undergrad/grad students
     for i in range(20):
         userid = "0aaa%i" % (i)
         fname = randname(8)
-        p = random.randint(1,2)
+        p = random.randint(1, 2)
         if p == 1:
             pref = fname[:4]
         else:
             pref = fname
-        p = Person(emplid=300000300+i, userid=userid, last_name='Student', first_name=fname, middle_name=randname(6), pref_first_name=pref)
+        p = Person(emplid=300000300 + i, userid=userid, last_name='Student', first_name=fname,
+                   middle_name=randname(6), pref_first_name=pref)
         p.save()
+        Member(person=p, offering=test_offering, role='STUD').save()
 
         userid = "0ggg%i" % (i)
         fname = randname(8)
-        p = random.randint(1,2)
+        p = random.randint(1, 2)
         if p == 1:
             pref = fname[:4]
         else:
             pref = fname
-        p = Person(emplid=300000500+i, userid=userid, last_name='Grad', first_name=fname, middle_name=randname(6), pref_first_name=pref)
+        p = Person(emplid=300000500 + i, userid=userid, last_name='Grad', first_name=fname, middle_name=randname(6),
+                   pref_first_name=pref)
         p.config['gender'] = random.choice(list(GENDER_DESCR.keys()))
         p.config['gpa'] = round(random.triangular(0.0, 4.33, 2.33), 2)
-        p.config['visa'] = random.choice([x for x,_ in VISA_STATUSES])
+        p.config['visa'] = random.choice([x for x, _ in VISA_STATUSES])
         p.config['citizen'] = random.choice(('Canadian', 'OtherCountrian'))
         p.save()
 
-    # some memberships/roles/etc assumed by tests
-    o = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
-    ensure_member(Person.objects.get(userid='ggbaker'), o, "INST", 0, "AUTO", "NONS")
-    ensure_member(Person.objects.get(userid='0ggg0'), o, "TA", 0, "AUTO", "NONS")
-    ensure_member(Person.objects.get(userid='0aaa0'), o, "STUD", 3, "AUTO", "UGRD")
-    ensure_member(Person.objects.get(userid='0aaa1'), o, "STUD", 3, "AUTO", "UGRD")
-
-    d = Person.objects.get(userid='dzhao')
-    set_privacy_signed(d)
-    set_privacy_da_signed(d)
-    config = UserConfig(user=d, key='photo-agreement', value={'agree': True})
-    config.save()
-    u = Unit.objects.get(slug='cmpt')
-    r1 = Role(person=d, role='ADVS', unit=u, expiry=role_expiry)
-    r1.save()
-    r2 = Role(person=d, role='ADMN', unit=u, expiry=role_expiry)
-    r2.save()
-    r3 = Role(person=Person.objects.get(userid='pba7'), role='SYSA', unit=Unit.objects.get(slug='univ'), expiry=role_expiry)
-    r3.save()
-    r4 = Role(person=d, role='INV', unit=u, expiry=role_expiry)
-    r4.save()
-    r5 = Role(person=d, role='OUTR', unit=u, expiry=role_expiry)
-    r5.save()
-    r6 = Role(person=d, role='SPAC', unit=u, expiry=role_expiry)
-    r6.save()
-
-    # ensures course appears in menu for students
-    a = NumericActivity(offering=o, name='Assignmenț 1', short_name='A1', status='URLS', position=1, percent=10,
-        max_grade=10, due_date=(o.semester.start + datetime.timedelta(days=60)))
-    a.save()
-
-    return itertools.chain(
-        SemesterWeek.objects.filter(semester__name__gt=SEMESTER_CUTOFF),
-        Unit.objects.all(),
-        Course.objects.all(),
-        CourseOffering.objects.all(),
-        Person.objects.order_by('emplid'),
-        Member.objects.all(),
-        UserConfig.objects.all(),
-        [r1, r2, r3, r4, r5, r6, a.activity_ptr, a],
-    )
-
-def create_test_offering():
-    """
-    main test course: interesting data for grades, marking, submission, groups
-    """
-    from grades.models import Activity, LetterActivity, CalNumericActivity, CalLetterActivity
-    from submission.models import SubmissionComponent
-    from submission.models.code import CodeComponent
-    from submission.models.pdf import PDFComponent
-    from groups.models import Group, GroupMember
-    from marking.models import ActivityComponent
-
-    crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
-
-    crs.set_labtut(True)
-    crs.set_discussion(True)
-    crs.set_url("http://www.cs.sfu.ca/CC/165/common/")
-    crs.set_taemail("cmpt-165-contact@sfu.ca")
-    crs.save()
+    Member(person=instructor, offering=test_offering, role='INST').save()
+    Member(person=Person.objects.get(userid='0ggg0'), offering=test_offering, role='TA').save()
 
     # create example activities
-    a1 = NumericActivity.objects.get(offering=crs, slug='a1')
-    a2 = NumericActivity(offering=crs, name="Assignment 2", short_name="A2", status="URLS",
-        due_date=crs.semester.start + datetime.timedelta(days=70), percent=10, group=True,
-        max_grade=20, position=2)
-    a2.set_url("http://www.cs.sfu.ca/CC/165/common/a2")
-    a2.save()
-    pr = LetterActivity(offering=crs, name="Project", short_name="Proj", status="URLS",
-        due_date=crs.semester.start + datetime.timedelta(days=80), percent=40, group=True, position=3)
-    pr.save()
-    re = LetterActivity(offering=crs, name="Report", short_name="Rep", status="URLS",
-        due_date=crs.semester.start + datetime.timedelta(days=81), percent=10, group=False, position=4)
-    re.save()
-    ex = NumericActivity(offering=crs, name="Final Exam", short_name="Exam", status="URLS",
-        due_date=None, percent=30, group=False, max_grade=90, position=5)
-    ex.save()
-    to = CalNumericActivity(offering=crs, name="Final Percent", short_name="Perc", status="INVI",
-        due_date=None, percent=0, group=False, max_grade=100, formula="[[activitytotal]]", position=6)
-    to.save()
-    to = CalLetterActivity(offering=crs, name="Letter Grade", short_name="Letter", status="INVI",
-        due_date=None, percent=0, group=False, numeric_activity=to, position=6)
-    to.save()
+    a1 = NumericActivity(offering=test_offering, name='Assignmenț 1', short_name='A1', status='URLS', position=1,
+                    percent=10, max_grade=10, due_date=(test_offering.semester.start + datetime.timedelta(days=60))
+                    )
+    a1.save()
+    NumericActivity(offering=test_offering, name="Assignment 2", short_name="A2", status="URLS",
+                    due_date=test_offering.semester.start + datetime.timedelta(days=70), percent=10, group=True,
+                    max_grade=20, position=2).save()
+    LetterActivity(offering=test_offering, name="Project", short_name="Proj", status="URLS",
+                   due_date=test_offering.semester.start + datetime.timedelta(days=80), percent=40, group=True,
+                   position=3).save()
+    LetterActivity(offering=test_offering, name="Report", short_name="Rep", status="URLS",
+                   due_date=test_offering.semester.start + datetime.timedelta(days=81), percent=10, group=False, position=4
+                   ).save()
+    NumericActivity(offering=test_offering, name="Final Exam", short_name="Exam", status="URLS", due_date=None,
+                    percent=30, group=False, max_grade=90, position=5).save()
+    total = CalNumericActivity(offering=test_offering, name="Final Percent", short_name="Perc", status="INVI",
+                       due_date=None, percent=0, group=False, max_grade=100, formula="[[activitytotal]]", position=6
+                       )
+    total.save()
+    CalLetterActivity(offering=test_offering, name="Letter Grade", short_name="Letter", status="INVI",
+                      due_date=None, percent=0, group=False, numeric_activity=total, position=6).save()
 
     # make A1 submittable and markable
     s = CodeComponent(activity=a1, title="Cöde File", description="The code you're submitting.",
-        allowed=".py,.java")
+                      allowed=".py,.java")
     s.save()
     s = PDFComponent(activity=a1, title="Report", description="Report on what you did.",
-        specified_filename="report.pdf")
+                     specified_filename="report.pdf")
     s.save()
 
-    m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part ➀", description="Part ➀ was done well and seems to work.", position=1, slug='part-1')
+    m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part ➀",
+                          description="Part ➀ was done well and seems to work.", position=1, slug='part-1')
     m.save()
-    m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part 2", description="Part 2 was done well and seems to work.", position=2)
+    m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part 2",
+                          description="Part 2 was done well and seems to work.", position=2)
     m.save()
 
     # create some groups
-    members = list(Member.objects.filter(offering=crs, role='STUD'))
+    members = list(Member.objects.filter(offering=test_offering, role='STUD'))
     random.shuffle(members)
     m = members.pop()
-    g = Group(name="SomeGroup", courseoffering=crs, manager=m)
+    g = Group(name="SomeGroup", courseoffering=test_offering, manager=m)
     g.save()
     for m in [m, members.pop()]:
-        gm = GroupMember(group=g, student=m, confirmed=True, activity=a2)
+        gm = GroupMember(group=g, student=m, confirmed=True, activity=Activity.objects.get(slug='a2'))
         gm.save()
 
     m = members.pop()
-    g = Group(name="AnotherGroup", courseoffering=crs, manager=m)
+    g = Group(name="AnotherGroup", courseoffering=test_offering, manager=m)
     g.save()
     for m in [m, members.pop(), members.pop()]:
-        gm = GroupMember(group=g, student=m, confirmed=True, activity=a2)
+        gm = GroupMember(group=g, student=m, confirmed=True, activity=Activity.objects.get(slug='a2'))
         gm.save()
-        gm = GroupMember(group=g, student=m, confirmed=True, activity=pr)
+        gm = GroupMember(group=g, student=m, confirmed=True, activity=Activity.objects.get(slug='proj'))
         gm.save()
 
+
+def create_coredata():
+    create_test_offering()
+    create_admin_data()
+
     return itertools.chain(
+        Course.objects.all(),
+        CourseOffering.objects.all(),
+        Person.objects.all(),
+        Role.objects.all(),
+        UserConfig.objects.all(),
+        Member.objects.all(),
         Activity.objects.all(),
         NumericActivity.objects.all(),
         LetterActivity.objects.all(),
@@ -345,73 +269,6 @@ def create_test_offering():
         Group.objects.all(),
         GroupMember.objects.all(),
         ActivityComponent.objects.all(),
-    )
-
-
-def create_grades():
-    """
-    Test data for grades, marking, submission, groups
-    """
-    undergrads = list(Person.objects.filter(last_name='Student'))
-    grads = list(Person.objects.filter(last_name='Grad').exclude(userid='0ggg0'))
-    for o in CourseOffering.objects.all():
-        # TA
-        m = Member(person=random.choice(grads), role='TA', offering=o, credits=0, career='NONS', added_reason='TAC')
-        m.config['bu'] = 5
-        m.save()
-
-        # students
-        if o.slug == TEST_COURSE_SLUG:
-            # there are some specific students we need in this offering for the marking/testfiles/* imports
-            students = set(random.sample(undergrads, 6) + list(Person.objects.filter(userid__in=['0aaa0', '0aaa1', '0aaa2'])))
-        else:
-            students = random.sample(undergrads, 4)
-
-        for p in students:
-            Member.objects.get_or_create(person=p, role='STUD', offering=o, credits=3, career='UGRD', added_reason='AUTO')
-
-    return itertools.chain(
-        Holiday.objects.filter(semester__name__gt=SEMESTER_CUTOFF),
-        MeetingTime.objects.all(),
-        Member.objects.filter(role__in=['TA', 'STUD']),
-        create_test_offering(),
-    )
-
-
-def create_discussion():
-    """
-    Test data for discussion
-    """
-    from discuss.models import DiscussionTopic, DiscussionMessage
-    offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
-    members = list(Member.objects.filter(offering=offering, role='STUD'))
-    random.shuffle(members)
-
-    m = members.pop()
-    t1 = DiscussionTopic(offering=offering, title='Discussion One', author=m,
-                         content='//Hello classmates//.\n\nWe have **many** things to discuss.')
-    t1.set_markup('creole')
-    t1.save()
-
-    m = members.pop()
-    t2 = DiscussionTopic(offering=offering, title='Discussion Two', author=m,
-                         content="I *really* can't figure out if \\\\(x+1=y\\\\).")
-    t2.set_markup('markdown')
-    t2.set_math(True)
-    t2.save()
-
-    m = members.pop()
-    m1 = DiscussionMessage(topic=t1, content='Hello, friend.', author=m)
-    m1.save()
-
-    m = members.pop()
-    m2 = DiscussionMessage(topic=t1, author=m, content='''Run this program:\n```python\nfor i in range(2):\n    print(i)\n````''')
-    m2.set_markup('markdown')
-    m2.save()
-
-    return itertools.chain(
-        DiscussionTopic.objects.all(),
-        DiscussionMessage.objects.all()
     )
 
 
@@ -430,7 +287,7 @@ def create_grad():
     d = Person.objects.get(userid='dzhao')
     r1 = Role(person=d, role='GRAD', unit=cmpt, expiry=role_expiry)
     r1.save()
-    r2 = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=cmpt, expiry=role_expiry)
+    r2 = Role(person=Person.objects.get(userid='dixon'), role="GRPD", unit=cmpt, expiry=role_expiry)
     r2.save()
     roles = [r1, r2]
 
@@ -604,7 +461,7 @@ def create_ta_ra():
     r2 = Role(person=d, role='FUND', unit=unit, expiry=role_expiry)
     r2.save()
 
-    s = Semester.current().next_semester()
+    s = CourseOffering.objects.get(slug=TEST_COURSE_SLUG).semester
     admin = Person.objects.get(userid='dixon')
     CourseDescription(unit=unit, description="Office/Marking", labtut=False).save()
     CourseDescription(unit=unit, description="Office/Marking/Lab", labtut=True).save()
@@ -827,7 +684,7 @@ def create_space():
 
 def create_reminders():
     from reminders.models import Reminder
-    person = find_person('ggbaker')
+    person = Person.objects.get(userid='ggbaker')
     offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
     r1 = Reminder(title='New Year', reminder_type='PERS', person=person, content="Happy new year! It's Jan 1.",
                   date_type='YEAR', month=1, day=1)
@@ -852,37 +709,27 @@ def create_reminders():
 
 
 def serialize_result(data_func, filename):
-    print("creating %s.json" % (filename))
-    start = time.time()
+    print("creating %s.json" % (filename,))
     objs = data_func()
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
     fh = open('fixtures/' + filename + '.json', 'w')
     fh.write(data)
     fh.close()
-    done = time.time()
-    #print "(%.1f s)" % (done-start)
 
-def main():
-    assert not settings.DISABLE_REPORTING_DB
-    assert settings.SIMS_PASSWORD
+
+def create_all():
+    hostname = socket.gethostname()
+    assert hostname != 'courses'
+    assert settings.DEPLOY_MODE != 'production'
     assert Semester.objects.all().count() == 0, "Database must be empty before we start this."
 
-    serialize_result(create_true_core, 'basedata')
+    serialize_result(create_basedata, 'basedata')
     serialize_result(create_coredata, 'coredata')
-    # use/import no real emplids after this
-    serialize_result(create_grades, 'grades')
-    serialize_result(create_discussion, 'discussion')
     serialize_result(create_grad, 'grad')
-    serialize_result(create_onlineforms, 'onlineforms')
     serialize_result(create_ta_ra, 'ta_ra')
+    serialize_result(create_onlineforms, 'onlineforms')
     serialize_result(create_outreach, 'outreach')
+    serialize_result(create_reminders, 'reminders')
     serialize_result(create_sessionals, 'sessionals')
     serialize_result(create_inventory, 'inventory')
     serialize_result(create_space, 'space')
-    serialize_result(create_reminders, 'reminders')
-
-if __name__ == "__main__":
-    hostname = socket.gethostname()
-    if hostname == 'courses':
-        raise NotImplementedError("Don't do that.")
-    main()

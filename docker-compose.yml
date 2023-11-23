@@ -40,4 +40,3 @@ services:
     restart: always
     environment:
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
-

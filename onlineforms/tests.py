@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.forms import Field as DjangoFormsField, Form as DjangoForm
 
 from coredata.models import Person, Unit
-from courselib.testing import basic_page_tests, Client
+from courselib.testing import basic_page_tests, Client, freshen_roles
 
 from onlineforms.models import FormGroup, FormGroupMember, Form, Sheet, Field
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission, SheetSubmissionSecretUrl
@@ -22,6 +22,7 @@ class ModelTests(TestCase):
 
     def setUp(self):
         self.unit = Unit.objects.get(label="CMPT")
+        freshen_roles()
 
     def test_FormGroups(self):
         groupName = "admins_test"
@@ -301,6 +302,7 @@ class ViewTestCase(TestCase):
         ff = sheetsub.filler
         ff.sfuFormFiller = logged_in_person
         ff.save()
+        freshen_roles()
 
     def test_no_arg_pages(self):
         views = ['manage_groups',

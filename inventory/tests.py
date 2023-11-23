@@ -1,4 +1,4 @@
-from courselib.testing import test_views, Client
+from courselib.testing import test_views, Client, freshen_roles
 from django.test import TestCase
 from django.urls import reverse
 
@@ -7,6 +7,7 @@ class InventoryTestCase(TestCase):
     fixtures = ['basedata', 'coredata', 'inventory']
 
     def test_unaccessible_pages(self):
+        freshen_roles()
         client = Client()
         # First, without logging in:
         url = reverse('inventory:inventory_index')
@@ -20,6 +21,7 @@ class InventoryTestCase(TestCase):
 
 
     def test_pages(self):
+        freshen_roles()
         client = Client()
         asset_slug = 'cmpt-something'
         asset_id = 1

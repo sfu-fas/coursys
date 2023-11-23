@@ -1,4 +1,5 @@
 # prettification of celery tasks
+import datetime
 
 from django.conf import settings
 from celery import shared_task
@@ -6,6 +7,8 @@ from celery import shared_task
 from django.core.mail import mail_admins
 from functools import wraps
 import sys, traceback
+
+from log.models import CeleryTaskLog
 
 
 def task(*d_args, **d_kwargs):
@@ -15,6 +18,8 @@ def task(*d_args, **d_kwargs):
         @wraps(f)
         def wrapper(*f_args, **f_kwargs):
             # try the task; email any exceptions we get
+            log_data = {}
+            start = datetime.datetime.now()
             try:
                 res = f(*f_args, **f_kwargs)
             except Exception as e:
@@ -24,7 +29,15 @@ def task(*d_args, **d_kwargs):
                 msg = 'The task %s.%s failed:\n\n%s' % (f.__module__, f.__name__,
                         '\n'.join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
                 mail_admins(subject=subject, message=msg, fail_silently=True)
+                log_data['exception'] = e.__class__.__name__
+                log_data['exception_message'] = str(e)
                 raise
+            finally:
+                # log the task
+                end = datetime.datetime.now()
+                task = f'{f.__module__}.{f.__name__}'
+                log = CeleryTaskLog(time=start, duration=end - start, task=task, data=log_data)
+                log.save()
 
             return res
         return wrapper

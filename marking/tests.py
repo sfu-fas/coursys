@@ -22,7 +22,7 @@ from courselib.testing import basic_page_tests, TEST_COURSE_SLUG, Client
 
 
 class BasicTest(TestCase):
-    fixtures = ['basedata', 'coredata', 'grades']
+    fixtures = ['basedata', 'coredata']
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
@@ -336,7 +336,7 @@ class BasicTest(TestCase):
         response = basic_page_tests(self, client, url)
 
 class TestImportFunctionsNumeric(TestCase):
-    fixtures = ['basedata', 'coredata', 'grades']
+    fixtures = ['basedata', 'coredata']
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
@@ -540,7 +540,7 @@ class TestImportFunctionsNumeric(TestCase):
 
 
 class TestImportFunctionsLetter(TestCase):
-    fixtures = ['basedata', 'coredata', 'grades']
+    fixtures = ['basedata', 'coredata']
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
@@ -588,7 +588,7 @@ class TestImportFunctionsLetter(TestCase):
         self.compare_grade_lists(data_to_return)
 
 class TestImportViews(TestCase):
-    fixtures = ['basedata', 'coredata', 'grades']
+    fixtures = ['basedata', 'coredata']
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
@@ -631,7 +631,7 @@ class TestImportViews(TestCase):
         self.check_student_db_grade(num_grades[1], stud2, STUD2_GRADE)
 
 class TestImportViewsLet(TestCase):
-    fixtures = ['basedata', 'coredata', 'grades']
+    fixtures = ['basedata', 'coredata']
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
@@ -676,7 +676,7 @@ class TestImportViewsLet(TestCase):
 
 
 class TestMarkingImport(TestCase):
-    fixtures = ['basedata', 'coredata', 'grades']
+    fixtures = ['basedata', 'coredata']
     
     def setUp(self):
         self.client = Client()

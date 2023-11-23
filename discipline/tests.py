@@ -6,7 +6,7 @@ from django.urls import reverse
 
 
 class DisciplineTest(TestCase):
-    fixtures = ['basedata', 'coredata', 'discipline']
+    fixtures = ['basedata', 'coredata']
 
     def post_it(self, case, view, data, status_code=302):
         url = reverse('offering:discipline:' + view, kwargs={'course_slug': case.offering.slug, 'case_slug': case.slug})
@@ -38,7 +38,7 @@ class DisciplineTest(TestCase):
         self.post_it(case, 'notes', {'notes_0': 'I am suspicious. _Very_ suspicious', 'notes_1': 'textile'})
         self.post_it(case, 'notify', {'notify': 'OTHR'})
         self.post_it(case, 'response', {'response': 'MET'})
-        self.post_it(case, 'facts', {'facts_0': 'It was a dishonesty.', 'facts_1': 'markdown'})
+        self.post_it(case, 'facts', {'facts_0': 'It was a dishonesty.', 'facts_1': 'markdown', 'mode': 'INPE'})
         self.post_it(case, 'penalty', {'penalty': 'ZERO', 'penalty_reason_0': 'It was a bad.', 'penalty_reason_1': 'markdown'})
 
         # have a look at each form

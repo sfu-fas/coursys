@@ -242,3 +242,4 @@ class Command(BaseCommand):
             CalNumericActivity.objects.all(),
             CalLetterActivity.objects.all(),
         ))
+

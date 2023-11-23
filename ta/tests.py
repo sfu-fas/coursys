@@ -1,5 +1,5 @@
 from django.test import TestCase
-from courselib.testing import basic_page_tests, Client, test_views, TEST_COURSE_SLUG
+from courselib.testing import basic_page_tests, Client, test_views, TEST_COURSE_SLUG, freshen_roles
 from ta.models import CourseDescription, TAPosting, TAApplication, TAContract, CampusPreference, CoursePreference, TUG
 from coredata.models import Person, Semester, Unit, CourseOffering, Course, Role, Member
 from ra.models import Account
@@ -9,6 +9,7 @@ from datetime import date
 class ApplicationTest(TestCase):
     fixtures = ['basedata', 'coredata', 'ta_ra']
     def setUp(self):
+        freshen_roles()
         p1 = Person(emplid=210012345, userid="test1",
                 last_name="Lname", first_name="Fname", pref_first_name="Fn", middle_name="M")
         p1.save()

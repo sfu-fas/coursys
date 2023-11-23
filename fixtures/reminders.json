@@ -43,9 +43,9 @@
 },
 {
  "fields": {
-  "config": "{\"markup\":\"markdown\"}",
+  "config": "{\n    \"markup\": \"markdown\"\n}",
   "content": "It's probably *almost* time for the final exam.\r\n\r\nCreate it.",
-  "course": 4,
+  "course": 1,
   "date_type": "SEM",
   "day": null,
   "month": null,

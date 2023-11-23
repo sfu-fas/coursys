@@ -14,7 +14,7 @@
 {
  "fields": {
   "future_person": null,
-  "person": 26,
+  "person": 5,
   "role_account": null
  },
  "model": "coredata.anyperson",
@@ -23,20 +23,20 @@
 {
  "fields": {
   "account": 1,
-  "appointment_end": "2020-08-10",
-  "appointment_start": "2020-05-11",
+  "appointment_end": "2023-12-15",
+  "appointment_start": "2023-09-02",
   "appt_guarantee": "GUAR",
   "appt_type": "INIT",
   "config": "{}",
   "contact_hours": "45.60",
   "course_hours_breakdown": null,
-  "created": "2020-04-28T12:19:36.079",
+  "created": "2023-11-21T14:50:01.755",
   "created_by": "devtest",
   "hidden": false,
   "notes": null,
-  "offering": 6,
-  "pay_end": "2020-08-08",
-  "pay_start": "2020-05-09",
+  "offering": 1,
+  "pay_end": "2023-12-13",
+  "pay_start": "2023-08-31",
   "sessional": 1,
   "sin": "000000000",
   "slug": "a-test-sessionalcontract",

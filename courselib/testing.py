@@ -92,6 +92,13 @@ def test_views(testcase, client, view_prefix, views, url_args, qs=None):
             raise
 
 
+def freshen_roles():
+    """
+    Make sure all Roles are current for expected test behaviour
+    """
+    expiry = datetime.date.today() + datetime.timedelta(days=365)
+    Role.objects.all().update(expiry=expiry)
+
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -145,7 +152,7 @@ class Client(OriginalClient):
         # Save the session values.
         request.session.save()
 
-from coredata.models import Semester, SemesterWeek
+from coredata.models import Semester, SemesterWeek, Role
 import datetime
 def create_fake_semester(strm):
     """

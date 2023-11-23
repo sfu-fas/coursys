@@ -6,7 +6,7 @@ from grad.models import GradStudent, GradRequirement, GradProgram, Letter, Lette
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
         Promise, GradProgramHistory, FinancialComment, STATUS_ORDER, SHORT_STATUSES, STATUS_CHOICES
 from grad.views.financials import STYLES
-from courselib.testing import basic_page_tests, Client, test_views
+from courselib.testing import basic_page_tests, Client, test_views, freshen_roles
 from grad.views.view import all_sections
 from django.http import QueryDict
 from grad.forms import SearchForm
@@ -20,6 +20,7 @@ class GradTest(TestCase):
         gs = GradStudent.objects.filter(program__unit__slug='cmpt')[0]
         self.gs_userid = gs.person.userid
         self.gs = gs
+        freshen_roles()
 
     def test_grad_quicksearch(self):
         """

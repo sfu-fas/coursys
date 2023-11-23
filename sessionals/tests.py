@@ -1,4 +1,4 @@
-from courselib.testing import test_views, Client
+from courselib.testing import test_views, Client, freshen_roles
 from django.test import TestCase
 from django.urls import reverse
 from sessionals.models import SessionalContract
@@ -7,6 +7,7 @@ class SessionalTestCase(TestCase):
     fixtures = ['basedata', 'coredata', 'sessionals']
 
     def test_inaccessible_pages(self):
+        freshen_roles()
         client = Client()
         contract_id = 1
         url = reverse('sessionals:sessionals_index')
@@ -22,6 +23,7 @@ class SessionalTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_pages(self):
+        freshen_roles()
         client = Client()
         account_slug = 'cmpt-234-sfufa-account'
         contract_slug = 'a-test-sessionalcontract'

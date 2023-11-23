@@ -1,4 +1,4 @@
-from courselib.testing import test_views, Client
+from courselib.testing import test_views, Client, freshen_roles
 from django.test import TestCase
 from django.urls import reverse
 from outreach.models import OutreachEvent, OutreachEventRegistration
@@ -10,6 +10,7 @@ class OutreachTestCase(TestCase):
     fixtures = ['basedata', 'coredata', 'outreach']
 
     def test_inaccessible_pages(self):
+        freshen_roles()
         client = Client()
         # First, without logging in:
         url = reverse('outreach:outreach_index')
@@ -22,6 +23,7 @@ class OutreachTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_pages(self):
+        freshen_roles()
         client = Client()
         today = datetime.date.today()
         long_start = today + datetime.timedelta(days=5*365)

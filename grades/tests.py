@@ -37,8 +37,9 @@ test_formulas = [ # expression, correct-result pairs
         ("BEST(4, 1.0, 0.2, 0.5, 0.0,	0.0)", 1.7)
         ]
 
+
 class GradesTest(TestCase):
-    fixtures = ['basedata', 'coredata', 'grades']
+    fixtures = ['basedata', 'coredata']
     
     def setUp(self):
         self.course_slug=TEST_COURSE_SLUG
@@ -652,7 +653,7 @@ class GradesTest(TestCase):
 
 #class APITests(TestCase):
 class APITestsDISABLED():
-    fixtures = ['basedata', 'coredata', 'grades']
+    fixtures = ['basedata', 'coredata']
 
     def _get_by_slug(self, data, slug):
         for d in data:
@@ -750,9 +751,8 @@ class APITestsDISABLED():
 
 
 
-
 class PagesTests(TestCase):
-    fixtures = ['basedata', 'coredata', 'grades']
+    fixtures = ['basedata', 'coredata']
 
     def test_course_level(self):
         crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
