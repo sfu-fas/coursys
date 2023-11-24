@@ -366,7 +366,7 @@ class TAPosting(models.Model):
         BUs already assigned to this course
         """
         total = decimal.Decimal(0)
-        tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
+        tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN']).select_related('course__semester', 'contract__posting__unit')
         if(tacourses.count() > 0):
             total = sum([t.total_bu for t in tacourses])
         return decimal.Decimal(total)
@@ -555,7 +555,7 @@ class TAApplication(models.Model):
     def coursys_supervisor_display(self):
         supervisor = ''
         gradids = GradStudent.objects.filter(person_id=self.person_id, current_status='ACTI').values_list('id', flat=True)
-        supers = Supervisor.objects.filter(student_id__in=gradids).all()
+        supers = Supervisor.objects.filter(student_id__in=gradids).all().select_related('supervisor')
         for s in supers:
             if s.supervisor is not None:
                 supervisor += s.supervisor.name_pref() + ' ('+ str(s.supervisor_type) + '), '
@@ -571,7 +571,7 @@ class TAApplication(models.Model):
 
     def contract_status_display(self):
         status = ''
-        tacontract = TAContract.objects.filter(application=self).first()
+        tacontract = self.tacontract_set.first()
         if tacontract is not None:
             status = tacontract.get_status_display() + ': '+ str(tacontract.bu())
         return status
@@ -595,7 +595,7 @@ class TAApplication(models.Model):
 
     def past_enroll_display(self):
         member = []
-        membership = Member.objects.filter(person=self.person, role='STUD', offering__semester__end__lte=datetime.date.today())
+        membership = Member.objects.filter(person=self.person, role='STUD', offering__semester__end__lte=datetime.date.today()).select_related('offering')
         for m in membership:
             if m.offering.name is not None :
                 member.append(m.offering.subject + ' ' + m.offering.number + ' ' + m.offering.section)
@@ -715,7 +715,6 @@ class TAContract(models.Model):
                 course.bu = 0
                 course.save()
 
-
     def first_assign(self, application, posting):
         self.application = application
         self.posting = posting
@@ -741,7 +740,7 @@ class TAContract(models.Model):
         self.save()
 
     def bu(self):
-        courses = TACourse.objects.filter(contract=self)
+        courses = self.tacourse_set.all()
         if self.status in ('CAN', 'REJ'):
             return 0
         return sum([course.bu for course in courses])
@@ -811,6 +810,7 @@ class TAContract(models.Model):
         msg = EmailMultiAlternatives(subject=subject, body=content, from_email=from_email,
                                      to=[to_email], headers={'X-coursys-topic': 'ta'})        
         msg.send()
+
 
 class CourseDescription(models.Model):
     """
