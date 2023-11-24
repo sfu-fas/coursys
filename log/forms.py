@@ -6,19 +6,34 @@ METHOD_CHOICES = [
     ('GET', 'GET'),
     ('POST', 'POST'),
 ]
+BOOLEAN_FILTER_CHOICES = [
+    ('', '\u2014'),
+    ('YES', 'Yes'),
+    ('NO', 'No'),
+]
 
 
-class RequestLogForm(forms.Form):
+class EventLogFilterForm(forms.Form):
+    duration = forms.FloatField(label='Duration (s) ≥ ')
+
+    def bound_fields(self):
+        # hack to let us discover the bound-fields in the template.
+        for ident in self.fields:
+            yield self[ident]
+
+
+class RequestLogForm(EventLogFilterForm):
     method = forms.ChoiceField(choices=METHOD_CHOICES)
     username = forms.CharField()
-    path = forms.CharField()
+    path = forms.CharField(label='Path contains')
+    ip = forms.CharField(label='IP address')
+    session_key = forms.CharField()
+    status_code = forms.IntegerField()
 
-    def __init__(self, *args, **kwargs):
-        super(RequestLogForm, self).__init__(*args, **kwargs)
 
-
-class CeleryTaskForm(forms.Form):
-    pass
+class CeleryTaskForm(EventLogFilterForm):
+    task = forms.CharField(label='Task contains')
+    exception = forms.ChoiceField(choices=BOOLEAN_FILTER_CHOICES)
 
 
 # dict of forms for discovery in log exploration UI

@@ -118,8 +118,8 @@ class LoggingMiddleware:
             request_content_length = 0
 
         log_data = {
-            'ip': ip,
             'query_string': request.META.get('QUERY_STRING', ''),
+            'ip': ip,
             'request_id': request_id,
             'session_key': session_key,
             'request_content_length': request_content_length,

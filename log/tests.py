@@ -1,11 +1,11 @@
-from django import forms
 from django.test import TestCase
 from django.urls import reverse
 
 from courselib.testing import Client, test_views
 from courses import settings
-from log.forms import EVENT_FORM_TYPES
+from log.forms import EVENT_FORM_TYPES, EventLogFilterForm
 from log.models import EventLogEntry, RequestLog, EVENT_LOG_TYPES, CeleryTaskLog
+from log.views import EVENT_DATA_VIEWS
 
 
 class EventLogEntryTest(TestCase):
@@ -16,12 +16,20 @@ class EventLogEntryTest(TestCase):
         Make sure the various EventLogEntry discovery stuff is coherent.
         """
         self.assertEqual(set(EVENT_LOG_TYPES.keys()), set(EVENT_FORM_TYPES.keys()))
+        self.assertEqual(set(EVENT_LOG_TYPES.keys()), set(EVENT_DATA_VIEWS.keys()))
 
+        # EVENT_LOG_TYPES: map of type to model subclass
         for cls in EVENT_LOG_TYPES.values():
             self.assertTrue(issubclass(cls, EventLogEntry))
 
+        # EVENT_FORM_TYPES: map of type to filtering form
         for cls in EVENT_FORM_TYPES.values():
-            self.assertTrue(issubclass(cls, forms.Form))
+            self.assertTrue(issubclass(cls, EventLogFilterForm))
+
+        # EVENT_DATA_VIEWS: map of type to data view
+        for t, cls in EVENT_DATA_VIEWS.items():
+            self.assertEqual(cls.model, EVENT_LOG_TYPES[t])
+            self.assertEqual(cls.columns, EVENT_LOG_TYPES[t].display_columns)
 
     def test_requestlog_creation(self):
         """

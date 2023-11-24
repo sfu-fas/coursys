@@ -1,0 +1,25 @@
+{% extends "base-wide.html" %}
+{% load browser_display %}
+{% load static %}
+{% load compress %}
+
+{% block title %}Browse Log Entries{% endblock %}
+{% block h1 %}Browse Log Entries{% endblock %}
+
+{% block subbreadcrumbs %}<li><a href="{% url 'sysadmin:log_explore' %}?type={{ log_type }}">Browse Log Entries</a></li><li>{{ logentry.id }}</li>{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block content %}
+
+<table>
+    <thead><tr><th scope="col">Field</th><th scope="col">Value</th></tr></thead>
+    <tbody>
+    {% for f, v in display_data.items %}
+    <tr><th scope="row">{{ f }}</th><td>{% if v is None %}&mdash;{% else %}{{ v }}{% endif %}</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

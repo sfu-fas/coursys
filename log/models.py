@@ -56,19 +56,27 @@ class LogEntry(models.Model):
     __str__ = display
 
 
-# class EventLogManager(models.Manager):
-#     def data_contains(self, data: dict[str, Any]):
-#         if connection.features.supports_json_field_contains:
-#             return self.get_queryset().filter(data__contains=data)
-#         else:
-#             # fake it in sqlite for dev
-#             qs = self.get_queryset()
-#             for o in qs:
-#                 for k, v in data.items():
-#                     if not (k in o.data and o.data[k] == v):
-#                         break
-#                 else:
-#                     yield o
+class EventLogQuerySet(models.QuerySet):
+    def data_contains(self, data: dict[str, Any]):
+        if connection.features.supports_json_field_contains:
+            return self.filter(data__contains=data)
+        else:
+            # fake it in sqlite for dev: iterate the queryset to manually find matches
+            pks = set()
+
+            for o in self:
+                for k, v in data.items():
+                    if not (k in o.data and o.data[k] == v):
+                        break
+                else:
+                    pks.add(o.pk)
+
+            return self.filter(pk__in=pks)
+
+
+class EventLogManager(models.Manager):
+    def get_queryset(self):
+        return EventLogQuerySet(self.model, using=self._db)
 
 
 class EventLogEntry(models.Model):
@@ -84,7 +92,7 @@ class EventLogEntry(models.Model):
     duration = models.DurationField(blank=False, null=False, help_text='Time taken for this event.')
     data = models.JSONField()
 
-    #objects = EventLogManager()
+    objects = EventLogManager()
 
     class Meta:
         abstract = True
@@ -110,8 +118,8 @@ class RequestLog(EventLogEntry):
     method = models.CharField(max_length=10, null=False)
     path = models.CharField(max_length=1024, null=False)
 
-    display_columns = ['time', 'username', 'method', 'path', 'status_code']
-    table_column_config = [None, None, None, None, {'orderable': False}]
+    display_columns = ['time', 'duration', 'username', 'method', 'path', 'status_code']
+    table_column_config = [None, None, None, None, None, {'orderable': False}]
 
 
 class CeleryTaskLog(EventLogEntry):
@@ -121,6 +129,8 @@ class CeleryTaskLog(EventLogEntry):
     Created by courselib.celerytasks.task
     """
     task = models.CharField(max_length=255, null=False, db_index=True)
+    display_columns = ['time', 'duration', 'task']
+    table_column_config = [None, None, None]
 
 
 # dict of EventLogEntry for discovery in log exploration UI
