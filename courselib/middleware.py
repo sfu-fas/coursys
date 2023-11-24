@@ -1,8 +1,11 @@
 import datetime
 import time
 import logging
+
+from django.core.exceptions import PermissionDenied, BadRequest, SuspiciousOperation
 from django.db import connection
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, Http404
+from django.http.multipartparser import MultiPartParserError
 from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
 from ipware import get_client_ip
@@ -160,6 +163,11 @@ class LoggingMiddleware:
         return response
 
     def process_exception(self, request, exception):
+        # Ignore exceptions that are converted to some other response by
+        # django.core.handlers.exception.response_for_exception and treat them as "regular" responses.
+        if isinstance(exception, (Http404, PermissionDenied, MultiPartParserError, BadRequest, SuspiciousOperation)):
+            return
+
         log = self.request_log(request)
         log.data['exception'] = exception.__class__.__name__
         log.data['exception_message'] = str(exception)
