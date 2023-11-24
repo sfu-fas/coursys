@@ -1,7 +1,7 @@
 import copy
 import datetime
 import uuid
-from typing import Any
+from typing import Any, Dict
 
 from django.db import models, connection
 from django.contrib.contenttypes.models import ContentType
@@ -57,7 +57,7 @@ class LogEntry(models.Model):
 
 
 class EventLogQuerySet(models.QuerySet):
-    def data_contains(self, data: dict[str, Any]):
+    def data_contains(self, data: Dict[str, Any]):
         if connection.features.supports_json_field_contains:
             return self.filter(data__contains=data)
         else:
