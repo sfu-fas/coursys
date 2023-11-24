@@ -83,7 +83,8 @@ sysadmin_patterns = [ # prefix /sysadmin/
     url(r'^roleaccount/delete/(?P<roleaccount_id>\d+)$', coredata_views.delete_roleaccount, name='delete_roleaccount'),
     url(r'^roleaccount/new/$', coredata_views.add_roleaccount, name='add_roleaccount'),
     url(r'^roleaccount/edit/(?P<roleaccount_id>\d+)$', coredata_views.edit_roleaccount, name='edit_roleaccount'),
-    #url(r'^logging/$', log_views.log_explore, name='log_explore'),
+    url(r'^logging/$', log_views.log_explore, name='log_explore'),
+    url(r'^logging/(?P<log_type>\w+)/(?P<log_id>[0-9a-z\-]+)$', log_views.log_view, name='log_view'),
 ]
 
 browse_patterns = [ # prefix /browse/

@@ -337,7 +337,7 @@ class SlowCoredataTest(TestCase):
         url += '?tabledata=yes&data_type=json&iDisplayStart=0&iDisplayLength=10&iSortingCols=0'
         response = client.get(url)
         data = json.loads(response.content.decode('utf8'))
-        self.assertEqual(len(data['aaData']), 2)
+        self.assertEqual(len(data['aaData']), 10)
 
         # courseoffering detail page
         url = reverse('browse:browse_courses_info', kwargs={'course_slug': TEST_COURSE_SLUG})
