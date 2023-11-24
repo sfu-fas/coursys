@@ -111,6 +111,7 @@ class LoggingMiddleware:
         ip, _ = get_client_ip(request)
         username = request.user.username if request.user.is_authenticated else None
         request_id = request.META.get('HTTP_X_REQUEST_ID', None)
+        referer = request.META.get('HTTP_REFERER', None)
         session_key = request.session.session_key if request.session and request.session.session_key else None
         if 'CONTENT_LENGTH' in request.META and request.META['CONTENT_LENGTH'].isnumeric():
             request_content_length = int(request.META['CONTENT_LENGTH'])
@@ -120,10 +121,11 @@ class LoggingMiddleware:
         log_data = {
             'query_string': request.META.get('QUERY_STRING', ''),
             'ip': ip,
+            'referer': referer,
             'request_id': request_id,
             'session_key': session_key,
             'request_content_length': request_content_length,
-            'n_queries': len(connection.queries),
+            #'n_queries': len(connection.queries),  # connection.queries is only available when DEBUG==True
         }
         return RequestLog(
             time=self.start,
@@ -143,6 +145,9 @@ class LoggingMiddleware:
             log = self.request_log(request)
             log.data['status_code'] = response.status_code
             log.data['response_content_type'] = response.headers.get('Content-Type', None)
+            if 'Location' in response:
+                log.data['redirect-location'] = response['Location']
+
             try:
                 if isinstance(response, HttpResponse):  # exclude streaming responses
                     log.data['response_content_length'] = sum(len(c) for c in response._container)
