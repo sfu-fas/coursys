@@ -37,11 +37,11 @@ ul.sf-menu li li li:hover ul,ul.sf-menu li li li.sfHover ul{left:10em;top:0;}
 .fancybox-error{color:#444;font:14px/20px "Helvetica Neue",Helvetica,Arial,sans-serif;margin:0;padding:10px;}
 .fancybox-image,.fancybox-iframe{display:block;width:100%;height:100%;border:0;padding:0;margin:0;vertical-align:top;}
 .fancybox-image{max-width:100%;max-height:100%;}
-#fancybox-loading,.fancybox-close,.fancybox-prev span,.fancybox-next span{background-image:url('../../../sfu/clientlibs/fancybox/source/fancybox_sprite.png');}
+#fancybox-loading,.fancybox-close,.fancybox-prev span,.fancybox-next span{}
 #fancybox-loading{position:fixed;top:50%;left:50%;margin-top:-22px;margin-left:-22px;background-position:0 -108px;opacity:.8;cursor:pointer;z-index:8020;}
-#fancybox-loading div{width:44px;height:44px;background:url('../../../sfu/clientlibs/fancybox/source/fancybox_loading.gif') center center no-repeat;}
+#fancybox-loading div{width:44px;height:44px;}
 .fancybox-close{position:absolute;top:-18px;right:-18px;width:36px;height:36px;cursor:pointer;z-index:8040;}
-.fancybox-nav{position:absolute;top:0;width:40%;height:100%;cursor:pointer;background:transparent url('../../../sfu/clientlibs/fancybox/source/blank.gif');-webkit-tap-highlight-color:rgba(0,0,0,0);z-index:8040;}
+.fancybox-nav{position:absolute;top:0;width:40%;height:100%;cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0);z-index:8040;}
 .fancybox-prev{left:0;}
 .fancybox-next{right:0;}
 .fancybox-nav span{position:absolute;top:50%;width:36px;height:34px;margin-top:-18px;cursor:pointer;z-index:8040;visibility:hidden;}
@@ -61,7 +61,7 @@ ul.sf-menu li li li:hover ul,ul.sf-menu li li li.sfHover ul{left:10em;top:0;}
 #fancybox-buttons{position:fixed;top:10px;left:0;width:100%;z-index:1005;}
 #fancybox-buttons ul{display:block;width:170px;height:30px;margin:0 auto;padding:0;list-style:none;background:#111;-webkit-box-shadow:0 1px 3px #000,0 0 0 1px rgba(0,0,0,.7),inset 0 0 0 1px rgba(255,255,255,.05);-moz-box-shadow:0 1px 3px #000,0 0 0 1px rgba(0,0,0,.7),inset 0 0 0 1px rgba(255,255,255,.05);background:#111 -webkit-gradient(linear,0% 0,0% 100%,from(rgba(255,255,255,.2)),color-stop(.5,rgba(255,255,255,.15)),color-stop(.5,rgba(255,255,255,.1)),to(rgba(255,255,255,.15)));background:#111 -moz-linear-gradient(top,rgba(255,255,255,.2) 0,rgba(255,255,255,.15) 50%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.15) 100%);border-radius:3px;}
 #fancybox-buttons ul li{float:left;}
-#fancybox-buttons a{display:block;width:30px;line-height:30px;text-indent:-9999px;background-image:url('../../../sfu/clientlibs/fancybox/source/helpers/fancybox_buttons.png');background-repeat:no-repeat;}
+#fancybox-buttons a{display:block;width:30px;line-height:30px;text-indent:-9999px;background-repeat:no-repeat;}
 #fancybox-buttons a.btnPrev{width:32px;background-position:6px 0;}
 #fancybox-buttons a.btnNext{background-position:-33px 0;border-right:1px solid #3e3e3e;}
 #fancybox-buttons a.btnPlay{background-position:0 -30px;}
@@ -110,7 +110,7 @@ html[xmlns] .slides{display:block;}
 .loading .flex-viewport{max-height:300px;}
 .flexslider .slides{zoom:1;}
 .flex-direction-nav{*height:0;}
-.flex-direction-nav a{width:30px;height:30px;margin:-20px 0 0;display:block;background:url(../../../sfu/clientlibs/carousel/source/assets/bg_direction_nav.png) no-repeat 0 0;position:absolute;top:50%;z-index:10;cursor:pointer;text-indent:-9999px;opacity:0;-webkit-transition:all .3s ease;}
+.flex-direction-nav a{width:30px;height:30px;margin:-20px 0 0;display:block;position:absolute;top:50%;z-index:10;cursor:pointer;text-indent:-9999px;opacity:0;-webkit-transition:all .3s ease;}
 .flex-direction-nav .flex-next{background-position:100% 0;right:-36px;}
 .flex-direction-nav .flex-prev{left:-36px;}
 .flexslider:hover .flex-next{opacity:.8;right:5px;}
@@ -249,7 +249,7 @@ header fieldset{border:none;padding:0;width:100%;}
 #page-content .mobile,#page-content .tablet,#page-content img.mobile+br,#page-content img.tablet+br{display:none;}
 .deptNews{border:1px solid #ddd;padding:1.5em;margin-bottom:6%;box-shadow:inset 0 0 10px 1px #ddd;}
 .intro p{font-size:1.1em;line-height:1.6em;margin-top:0;}
-.toggle{display:inline-block;background:url("/content/dam/sfu/assets/icons/content-toggle-icon.png") 0 4px no-repeat;padding-left:20px;cursor:pointer;margin-top:1%;}
+.toggle{display:inline-block;padding-left:20px;cursor:pointer;margin-top:1%;}
 .toggle p,.toggle h1,.toggle h2,.toggle h3,.toggle h4,.toggle h5{padding-bottom:0;padding-top:0;margin-top:0;margin-bottom:.5em;}
 .toggleContent{padding-left:2%;border-left:5px solid #ddd;}
 .toggleContent p:first-child{margin-top:1%;}
@@ -415,7 +415,7 @@ div.cq-colctrl-lt8-c1{width:25%;padding-right:3%;}
 div.cq-colctrl-lt8-c2{width:25%;padding-right:3%;}
 div.cq-colctrl-lt8-c3{width:25%;padding-right:3%;}
 .text ul,.dynamictext ul{list-style-type:none;margin-bottom:3%;margin-left:0;}
-.text ul li,.dynamictext ul li{background:url(/content/dam/sfu/assets/common/bullet_red.gif) 0 14px no-repeat;padding-left:16px;padding-top:3px;}
+.text ul li,.dynamictext ul li{padding-left:16px;padding-top:3px;}
 .relatedTopics h3{margin-bottom:2%;}
 .text .relatedTopics ul,.relatedTopics ul,ul.relatedTopics{margin:0;padding:0;padding-left:12px;border-left:5px solid #eee;list-style-type:none;margin-bottom:2%;}
 .relatedTopics{padding-bottom:2%;}
@@ -430,7 +430,7 @@ footer .text ul{list-style-type:none;margin-left:0;}
 .textimage small{color:#999;margin-bottom:2%;}
 .textimage .clear{clear:left;}
 .textimage ul li{background:none;}
-.textimage ul li:before{content:url("/content/dam/sfu/assets/common/bullet_red.gif");padding-right:10px;}
+.textimage ul li:before{padding-right:10px;}
 .sub .textimage .image{float:none;width:100%;margin-right:0;}
 .sub .textimage .text{width:100%;}
 .image-overlay .image{float:none;width:100%;}
@@ -473,7 +473,7 @@ a.current{font-weight:bold;}
 .next{display:inline;}
 .dropdown{margin-bottom:1em;}
 ul.default{margin-bottom:1em;}
-ul.default li{padding-left:.75em;margin-bottom:.1875em;background:url(/content/dam/sfu/assets/common/bullet_red.gif) 0 8px no-repeat;}
+ul.default li{padding-left:.75em;margin-bottom:.1875em;}
 .news li{margin-bottom:1em;}
 .news-date{font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;}
 .newsList li{margin-bottom:2em;}
@@ -490,7 +490,7 @@ ul.default li{padding-left:.75em;margin-bottom:.1875em;background:url(/content/d
 .storyImage{width:100%;overflow:hidden;}
 .storyImage img{width:100%;}
 .storyImage span.storyMeta{width:100%;background:#000;color:#ccc;opacity:.8;height:30px;float:left;margin:-37px 0 0;}
-.storyComments{font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;background:transparent url("/content/dam/sfu/assets/icons/comment_bubble.png") 0 1px no-repeat;float:right;margin:7px 5px 0;padding:0 0 0 12px;}
+.storyComments{font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;float:right;margin:7px 5px 0;padding:0 0 0 12px;}
 .storyDatestamp{float:left;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;text-transform:uppercase;color:#eee;margin:7px 5px 0;}
 .newsFeed li{clear:left;margin:1em 0 2em;}
 .newsThumbnail{width:25%;float:left;margin:0 2% 0 0;}
@@ -557,7 +557,7 @@ ul.profile .tag{font-style:italic;color:#777;}
 .tweet_list li.tweet_first{padding-top:0;}
 .tweet_list strong{font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;}
 .tweet_time,.tweet_action{font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;}
-a.linkFeed{background:url("/content/dam/sfu/assets/icons/feed.png") no-repeat scroll left top transparent;font-size:.75em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:.75em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;padding:0 2px 2px 18px;text-transform:uppercase;}
+a.linkFeed{font-size:.75em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:.75em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;padding:0 2px 2px 18px;text-transform:uppercase;}
 .datestamp{font-size:1em;line-height:1.3125em;font-family:"DINWebLight",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebLight",sans-serif;font-weight:normal;margin-bottom:3%;}
 .carousel{width:100%;margin-bottom:4%;}
 .carousel .flex-control-nav{bottom:-29px;}
@@ -624,7 +624,7 @@ div.download span.icon.type_eps{background:url(//www.sfu.ca/etc/designs/default/
 div.download span.icon.type_gif{background:url(//www.sfu.ca/etc/designs/default/assets/icons/zip.gif) no-repeat;}
 div.download span.icon.type_jpg{background:url(//www.sfu.ca/etc/designs/default/assets/icons/jpg.gif) no-repeat;}
 div.download span.icon.type_pdf{background:url(//www.sfu.ca/etc/designs/default/assets/icons/pdf.gif) no-repeat;}
-div.download span.icon.type_ppt{background:url(etc/designs/clf/clientlibs/designs/default/assets/icons/ppt.gif) no-repeat;}
+div.download span.icon.type_ppt{background:url(//www.sfu.ca/etc/designs/clf/clientlibs/designs/default/assets/icons/ppt.gif) no-repeat;}
 div.download span.icon.type_tif{background:url(//www.sfu.ca/etc/designs/default/assets/icons/tif.gif) no-repeat;}
 div.download span.icon.type_txt{background:url(//www.sfu.ca/etc/designs/default/assets/icons/txt.gif) no-repeat;}
 div.download span.icon.type_xls{background:url(//www.sfu.ca/etc/designs/default/assets/icons/xls.gif) no-repeat;}
