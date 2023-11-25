@@ -115,6 +115,7 @@ class LoggingMiddleware:
         username = request.user.username if request.user.is_authenticated else None
         request_id = request.META.get('HTTP_X_REQUEST_ID', None)
         referer = request.META.get('HTTP_REFERER', None)
+        user_agent = request.META.get('HTTP_USER_AGENT', None)
         session_key = request.session.session_key if request.session and request.session.session_key else None
         if 'CONTENT_LENGTH' in request.META and request.META['CONTENT_LENGTH'].isnumeric():
             request_content_length = int(request.META['CONTENT_LENGTH'])
@@ -124,6 +125,7 @@ class LoggingMiddleware:
         log_data = {
             'query_string': request.META.get('QUERY_STRING', ''),
             'ip': ip,
+            'user_agent': user_agent,
             'referer': referer,
             'request_id': request_id,
             'session_key': session_key,
