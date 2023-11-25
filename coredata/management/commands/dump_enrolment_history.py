@@ -30,9 +30,9 @@ class Command(BaseCommand):
                     'component': eh.offering.component,
                     'instr_mode': eh.offering.instr_mode,
                     'date': eh.date.isoformat(),
-                    'enrl_cap': eh.offering.enrl_cap,
-                    'enrl_tot': eh.offering.enrl_tot,
-                    'wait_tot': eh.offering.wait_tot,
+                    'enrl_cap': eh.enrl_cap,
+                    'enrl_tot': eh.enrl_tot,
+                    'wait_tot': eh.wait_tot,
                 }
                 outfile.write(json.dumps(data))
                 outfile.write('\n')
