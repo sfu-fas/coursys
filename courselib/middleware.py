@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied, BadRequest, SuspiciousOpera
 from django.db import connection
 from django.http import HttpRequest, HttpResponse, Http404
 from django.http.multipartparser import MultiPartParserError
+from django.urls.resolvers import ResolverMatch
 from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
 from ipware import get_client_ip
@@ -130,6 +131,10 @@ class LoggingMiddleware:
             'request_content_length': request_content_length,
             #'n_queries': len(connection.queries),  # connection.queries is only available when DEBUG==True
         }
+
+        if hasattr(request, 'resolver_match') and isinstance(request.resolver_match, ResolverMatch):
+            log_data['view_name'] = request.resolver_match.view_name
+
         return RequestLog(
             time=self.start,
             duration=datetime.datetime.now() - self.start,
