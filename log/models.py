@@ -1,7 +1,7 @@
 import copy
 import datetime
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, Tuple, List
 
 from django.db import models, connection
 from django.contrib.contenttypes.models import ContentType
@@ -56,6 +56,16 @@ class LogEntry(models.Model):
     __str__ = display
 
 
+def data_property(field, default=None):
+    def getter(self):
+        return self.data[field] if field in self.data else copy.copy(default)
+
+    def setter(self, val):
+        self.data[field] = val
+
+    return property(getter, setter)
+
+
 class EventLogQuerySet(models.QuerySet):
     def data_contains(self, data: Dict[str, Any]):
         if connection.features.supports_json_field_contains:
@@ -72,6 +82,12 @@ class EventLogQuerySet(models.QuerySet):
                     pks.add(o.pk)
 
             return self.filter(pk__in=pks)
+
+    def to_polars(self, schema: List[Tuple[str, type]]) -> 'pl.LazyFrame':
+        import polars as pl
+        columns = [pr[0] for pr in schema]
+        data = [tuple(getattr(o, c) for c in columns) for o in self]
+        return pl.LazyFrame(data=data, schema=schema, orient='row')
 
 
 class EventLogManager(models.Manager):
@@ -117,9 +133,19 @@ class RequestLog(EventLogEntry):
     username = models.CharField(max_length=32, null=True, db_index=True)
     method = models.CharField(max_length=10, null=False)
     path = models.CharField(max_length=1024, null=False)
+    ip = data_property('ip')
 
     display_columns = ['time', 'duration', 'username', 'method', 'path', 'status_code']
     table_column_config = [None, None, None, None, None, {'orderable': False}]
+
+    @classmethod
+    def ip_address_report(cls) -> 'pl.LazyFrame':
+        import polars as pl
+        cutoff = datetime.datetime.now() - datetime.timedelta(days=7)
+        qs = cls.objects.filter(time__gte=cutoff)
+        schema = [('ip', str), ('method', str)]
+        df = qs.to_polars(schema)
+        return df.group_by('ip').agg(pl.count('*')).rename({'method': 'count'}).sort('count', descending=True)
 
 
 class CeleryTaskLog(EventLogEntry):
