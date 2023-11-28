@@ -134,6 +134,10 @@ class RequestLog(EventLogEntry):
     method = models.CharField(max_length=10, null=False)
     path = models.CharField(max_length=1024, null=False)
     ip = data_property('ip')
+    user_agent = data_property('user_agent')
+    session_key = data_property('session_key')
+    view_name = data_property('view_name')
+    status_code = data_property('status_code')
 
     display_columns = ['time', 'duration', 'username', 'method', 'path', 'status_code']
     table_column_config = [None, None, None, None, None, {'orderable': False}]
@@ -155,6 +159,8 @@ class CeleryTaskLog(EventLogEntry):
     Created by courselib.celerytasks.task
     """
     task = models.CharField(max_length=255, null=False, db_index=True)
+    queue = data_property('queue')
+
     display_columns = ['time', 'duration', 'task']
     table_column_config = [None, None, None]
 
