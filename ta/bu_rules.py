@@ -53,17 +53,17 @@ def cmpt_after_1234_strategy( posting, offering, count=None ):
     return decimal.Decimal(str(default))  
 
 def does_bu_strategy_involve_defaults( semester, unit ):
-    if unit.label in ["CMPT", "COMP"] and semester < semester_1134():
+    if unit.label in ["CMPT", "COMP"] and semester.name < '1134':
         return True
     return False
 
 def get_bu_strategy( semester, unit ):
-    if unit.label in ["CMPT", "COMP"] and semester < semester_1134():
+    if unit.label in ["CMPT", "COMP"] and semester.name < '1134':
         return cmpt_before_1134_strategy
-    if unit.label in ["CMPT", "COMP"] and semester >= semester_1134() and semester <= Semester.objects.get(name="1221"):        
+    if unit.label in ["CMPT", "COMP"] and '1134' <= semester.name <= '1221':
         return cmpt_after_1134_strategy
-    if unit.label in ["CMPT", "COMP"] and semester >= Semester.objects.get(name="1224") and semester <= Semester.objects.get(name="1231"):
+    if unit.label in ["CMPT", "COMP"] and semester.name >= '1224' and semester.name <= '1231':
         return cmpt_after_1224_strategy
-    if unit.label in ["CMPT", "COMP"] and semester >= Semester.objects.get(name="1234"):
+    if unit.label in ["CMPT", "COMP"] and semester.name >= '1234':
         return cmpt_after_1234_strategy
     return default_strategy

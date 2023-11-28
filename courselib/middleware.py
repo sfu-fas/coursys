@@ -1,8 +1,12 @@
 import datetime
 import time
 import logging
+
+from django.core.exceptions import PermissionDenied, BadRequest, SuspiciousOperation
 from django.db import connection
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, Http404
+from django.http.multipartparser import MultiPartParserError
+from django.urls.resolvers import ResolverMatch
 from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
 from ipware import get_client_ip
@@ -112,6 +116,7 @@ class LoggingMiddleware:
         username = request.user.username if request.user.is_authenticated else None
         request_id = request.META.get('HTTP_X_REQUEST_ID', None)
         referer = request.META.get('HTTP_REFERER', None)
+        user_agent = request.META.get('HTTP_USER_AGENT', None)
         session_key = request.session.session_key if request.session and request.session.session_key else None
         if 'CONTENT_LENGTH' in request.META and request.META['CONTENT_LENGTH'].isnumeric():
             request_content_length = int(request.META['CONTENT_LENGTH'])
@@ -121,12 +126,17 @@ class LoggingMiddleware:
         log_data = {
             'query_string': request.META.get('QUERY_STRING', ''),
             'ip': ip,
+            'user_agent': user_agent,
             'referer': referer,
             'request_id': request_id,
             'session_key': session_key,
             'request_content_length': request_content_length,
             #'n_queries': len(connection.queries),  # connection.queries is only available when DEBUG==True
         }
+
+        if hasattr(request, 'resolver_match') and isinstance(request.resolver_match, ResolverMatch):
+            log_data['view_name'] = request.resolver_match.view_name
+
         return RequestLog(
             time=self.start,
             duration=datetime.datetime.now() - self.start,
@@ -160,6 +170,11 @@ class LoggingMiddleware:
         return response
 
     def process_exception(self, request, exception):
+        # Ignore exceptions that are converted to some other response by
+        # django.core.handlers.exception.response_for_exception and treat them as "regular" responses.
+        if isinstance(exception, (Http404, PermissionDenied, MultiPartParserError, BadRequest, SuspiciousOperation)):
+            return
+
         log = self.request_log(request)
         log.data['exception'] = exception.__class__.__name__
         log.data['exception_message'] = str(exception)

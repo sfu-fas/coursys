@@ -816,12 +816,12 @@ def assign_tas(request, post_slug):
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this page')
     
-    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).select_related('course')
 
     # decorate offerings with currently-assigned TAs
-    all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course').select_related('contract__application__person')
+    all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course', 'contract__application__person', 'course__semester')
     for o in all_offerings:
-        o.assigned = [crs for crs in all_assignments if crs.course == o and crs.contract.bu() > 0]
+        o.assigned = [crs for crs in all_assignments if crs.course_id == o.id and crs.contract.bu() > 0]
     
     # ignore excluded courses
     excl = set(posting.excluded())
@@ -901,8 +901,9 @@ def assign_bus(request, post_slug, course_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     instructors = offering.instructors()
     course_prefs = CoursePreference.objects.filter(app__posting=posting, course=offering.course, app__late=False).select_related('app')
-    tacourses = TACourse.objects.filter(course=offering).select_related('contract__application__person')
-    all_applicants = TAApplication.objects.filter(posting=posting).select_related('person').select_related('supervisor')
+    tacourses = TACourse.objects.filter(course=offering).select_related('contract__application', 'contract__application__person')
+    tacourses = list(tacourses)
+    all_applicants = TAApplication.objects.filter(posting=posting).select_related('person', 'supervisor').prefetch_related('campuspreference_set')
     descrs = CourseDescription.objects.filter(unit=posting.unit)
     if not descrs.filter(labtut=True) or not descrs.filter(labtut=False):
         messages.error(request, "Must have at least one course description for TAs with and without labs/tutorials before assigning TAs.")
@@ -973,7 +974,7 @@ def assign_bus(request, post_slug, course_slug):
         
         # Determine Rank
         applicant.course_rank = course_preference.rank
-        personids.append(applicant.person.id)
+        personids.append(applicant.person_id)
 
         if applicant not in applicants:
             applicants.append(applicant)
@@ -1020,8 +1021,8 @@ def assign_bus(request, post_slug, course_slug):
         #applicant.campus_preference = campus_preference
 
         #Find BU assigned to this applicant through contract
-        course_assignments = tacourses.filter(contract__application=applicant)
-        if course_assignments.count() == 1:
+        course_assignments = [c for c in tacourses if c.contract.application_id == applicant.id]
+        if len(course_assignments) == 1:
             assignment_for_this_course = course_assignments[0]
             applicant.assigned_course = assignment_for_this_course
         else:
@@ -1053,8 +1054,8 @@ def assign_bus(request, post_slug, course_slug):
                     #create new TACourse if bu field is nonempty
                     if formset[i]['bu'].value() != '' and formset[i]['bu'].value() != '0':
                         #create new TAContract if there isn't one
-                        contracts = TAContract.objects.filter(application=applicants[i], posting=posting)
-                        if contracts.count() > 0: #count is 1
+                        contracts = list(TAContract.objects.filter(application=applicants[i], posting=posting))
+                        if len(contracts) > 0: #count is 1
                             # if we've added to the contract, we've invalidated it. 
                             contract = contracts[0]
                             contract.status = "NEW"

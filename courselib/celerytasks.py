@@ -18,7 +18,9 @@ def task(*d_args, **d_kwargs):
         @wraps(f)
         def wrapper(*f_args, **f_kwargs):
             # try the task; email any exceptions we get
-            log_data = {}
+            log_data = {
+                'queue': getattr(wrapper, 'queue', None),
+            }
             start = datetime.datetime.now()
             try:
                 res = f(*f_args, **f_kwargs)
@@ -36,6 +38,7 @@ def task(*d_args, **d_kwargs):
                 # log the task
                 end = datetime.datetime.now()
                 task = f'{f.__module__}.{f.__name__}'
+
                 log = CeleryTaskLog(time=start, duration=end - start, task=task, data=log_data)
                 log.save()
 
