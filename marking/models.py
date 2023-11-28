@@ -677,6 +677,7 @@ def copyCourseSetup(course_copy_from, course_copy_to, redirect_pages):
 def to_decimal(x: str) -> decimal.Decimal:
     d = decimal.Decimal(x)
     if not d.is_normal():
+        # json.load allows NaN and Inf as numeric values: we don't accept them.
         raise decimal.InvalidOperation()
     return d
 
