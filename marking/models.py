@@ -676,7 +676,7 @@ def copyCourseSetup(course_copy_from, course_copy_to, redirect_pages):
 
 def to_decimal(x: str) -> decimal.Decimal:
     d = decimal.Decimal(x)
-    if not d.is_normal():
+    if d.is_infinite() or d.is_nan():
         # json.load allows NaN and Inf as numeric values: we don't accept them.
         raise decimal.InvalidOperation()
     return d
@@ -768,7 +768,6 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
         # Added for the special case where we have a numeric mark only, without components.  This can happen when
         # using the "mark for all groups/users" form.
         the_mark = decimal.Decimal(0)
-
 
         if combine and old_am:
             late_percent = old_am.late_penalty
