@@ -5,7 +5,7 @@
 
 
 def help_email(request=None, hint='course'):
-    return 'fas-help@sfu.ca'
+    return 'coursys-help@sfu.ca'
 
 
 def product_name(request=None, hint='course'):
