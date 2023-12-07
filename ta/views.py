@@ -1408,7 +1408,9 @@ def view_form(request, post_slug, userid):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     contract = get_object_or_404(TAContract, posting=posting, application__person__userid=userid)
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % (posting.slug, userid)
+    filename =  "%s_%s_%s_%s.pdf" % (contract.application.person.last_name, contract.application.person.first_name , 
+                                                                              contract.application.person.emplid, posting.slug)
+    response['Content-Disposition'] = 'inline; filename="%s"' % (filename)
     ta_form(contract, response)
     return response
 
@@ -1907,7 +1909,7 @@ def generate_csv_detail(request, post_slug):
     
     #First csv row: all the course names
     off = ['Rank', 'Name', 'SFUID', 'Email', 'Type', 'Year/Sem', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Supervisor (Reported)', 'Supervisor (System)', 'TA Experience', 'Unit', 'Start Sem', 'BU',
-           'Campus', 'Assigned Course(s)', 'Assigned BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
+           'Campus', 'Course preference comment', 'Assigned Course(s)', 'Assigned BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
     csvWriter.writerow(off)
     
     # next row: campuses
@@ -1981,7 +1983,7 @@ def generate_csv_detail(request, post_slug):
         supervisorlist = app.coursys_supervisor_display()
                 
         row = [rank, app.person.sortname(), app.person.emplid, app.person.email(), gptype, gpyear, app.category, app.get_current_program_display(), system_program, status, app.supervisor, supervisorlist, app.past_experience_display(), unit, startsem,
-               app.base_units, campuspref, assigned_courses, assigned_bus]
+               app.base_units, campuspref, app.preference_comment, assigned_courses, assigned_bus]
         
         for off in offerings:
             crs = off.course
@@ -2006,10 +2008,6 @@ def generate_csv_by_course(request, post_slug):
     # collect all course preferences in a sensible way
     prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
     
-    # collect those applicants without choose any course
-    prefsappid = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course').values_list('app_id', flat=True)
-    noprefs = TAApplication.objects.filter(posting=posting).exclude(id__in=prefsappid)
-
     # generate CSV
     filename = str(posting.slug) + '_by_course.csv'
     response = HttpResponse(content_type='text/csv')
@@ -2025,8 +2023,10 @@ def generate_csv_by_course(request, post_slug):
             extra_questions.append(question)
 
     offering_rows = []
+    courseids = []
     for offering in offerings: 
         offering_rows.append([offering.course.subject + " " + offering.course.number + " " + offering.section])
+        courseids.append(offering.course_id)
         applications_for_this_offering = [pref.app for pref in prefs if 
             (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
         for app in applications_for_this_offering:
@@ -2048,6 +2048,10 @@ def generate_csv_by_course(request, post_slug):
             offering_rows.append(row)
         offering_rows.append([])
 
+    # collect those applicants without choose any course
+    prefsappid = CoursePreference.objects.filter(app__posting=posting, course_id__in=courseids).exclude(rank=0).order_by('app__person').select_related('app', 'course').values_list('app_id', flat=True)
+    noprefs = TAApplication.objects.filter(posting=posting).exclude(id__in=prefsappid)
+
     noprefs_rows = []
     for nopref in noprefs: 
         noprefs_rows.append(['', nopref.person.sortname(), nopref.person.emplid, nopref.person.email(), nopref.category, nopref.get_current_program_display(), nopref.base_units])
@@ -2057,7 +2061,7 @@ def generate_csv_by_course(request, post_slug):
         csvWriter.writerow(row)
     
     if len(noprefs) > 0:
-        csvWriter.writerow(['Below applicants have no course preference'])
+        csvWriter.writerow(['Below applicants have no course preference or selected course was canceled'])
         for row in noprefs_rows:
             csvWriter.writerow(row)
     return response
