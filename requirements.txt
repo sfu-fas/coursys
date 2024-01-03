@@ -1,4 +1,4 @@
-Django==4.1.13
+Django==4.2.9
 
 Creoleparser==0.7.5 # Replaced with version below that incorporates our fix for null headings, and python3 support
 Genshi==0.7.7
