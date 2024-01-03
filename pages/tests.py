@@ -546,7 +546,7 @@ class PagesTest(TestCase):
 
         html = markup_to_html('A&nbsp;&nbsp;<p align="center">&nbsp;</p><h1 align="center">B</h1></table>',
                               'html', restricted=True)
-        self.assertEqual(html, 'A&nbsp;&nbsp;<p>&nbsp;</p>B')
+        self.assertEqual(html, 'A&nbsp;&nbsp;<p>&nbsp;</p>\nB')
 
 
         # unsafe if we ask for it

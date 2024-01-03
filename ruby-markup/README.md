@@ -15,6 +15,7 @@ minimal Ruby development environment. Something like this:
 ```shell
 sudo apt install ruby-bundler
 cd ruby-markup
+rm Gemfile.lock
 bundle install
 git add Gemfile.lock
 ```

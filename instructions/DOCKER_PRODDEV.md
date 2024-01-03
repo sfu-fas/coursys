@@ -21,7 +21,7 @@ Get the Docker-based things up and running:
 ```sh
 export RABBITMQ_PASSWORD=rabbitmq_password
 docker-compose -f docker-compose.yml -f docker-compose-proddev.yml pull
-docker-compose -f docker-compose.yml -f docker-compose-proddev.yml build
+docker-compose -f docker-compose.yml -f docker-compose-proddev.yml build --pull
 docker-compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
 ```
 

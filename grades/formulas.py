@@ -30,7 +30,7 @@ def create_parser():
     
     Parser throws ParseException if something goes wrong.
     """
-    from pyparsing import Literal, Word, Optional, CaselessLiteral, Group, StringStart, StringEnd, Suppress, CharsNotIn, Forward, nums, delimitedList, operatorPrecedence, opAssoc
+    from pyparsing import Literal, Word, Optional, CaselessLiteral, Group, StringStart, StringEnd, Suppress, CharsNotIn, Forward, nums, delimitedList, infixNotation, opAssoc
 
     def column_parse(toks):
         """
@@ -102,7 +102,7 @@ def create_parser():
     multop = Literal("*") | Literal("/")
     plusop = Literal("+") | Literal("-")
 
-    expr << operatorPrecedence( operand,
+    expr << infixNotation( operand,
 	[(signop, 1, opAssoc.RIGHT, expr_parse),
 	 (multop, 2, opAssoc.LEFT, expr_parse),
 	 (plusop, 2, opAssoc.LEFT, expr_parse),]

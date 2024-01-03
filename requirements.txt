@@ -1,37 +1,37 @@
 Django==3.2.23
 
 Creoleparser==0.7.5 # Replaced with version below that incorporates our fix for null headings, and python3 support
-Genshi==0.7.5
+Genshi==0.7.7
 Unidecode>=1.2.0
 
-django-autoslug==1.9.8
-django-formtools==2.3
-django-dirtyfields==1.7.0
-django-debug-toolbar==3.2.1
+django-autoslug==1.9.9
+django-formtools==2.5.1
+django-dirtyfields==1.9.2
+django-debug-toolbar==4.2.0
 jsonfield==3.1.0
-pyparsing==2.4.7
-pytz>=2021.1
-textile==4.0.1
+pyparsing==3.1.1
+pytz>=2023.3
+textile==4.0.2
 html5lib==1.1
-beautifulsoup4==4.9.3
-bleach==3.3.0
-reportlab==3.6.13
-pillow>=7.2.0
-icalendar==4.0.7
+beautifulsoup4==4.12.2
+bleach==6.1.0
+reportlab==4.0.8
+pillow>=10.2.0
+icalendar==5.0.11
 xlwt==1.3.0
-django-datatables-view==1.19.1
-django-bitfield==2.0.1
-django-compressor==2.4.1
+django-datatables-view==1.20.0
+django-bitfield==2.2.0
+django-compressor==4.4
 django-npm==1.0.0
 #django-cache-utils==0.7.2
 git+https://github.com/gregbaker/django-cache-utils@e6a04c4
-celery==5.2.2
-kombu==5.2.2
+celery==5.3.6
+kombu==5.3.4
 django-celery-email==3.0.0
-django_celery_beat==2.2.1
+django_celery_beat==2.5.0
 #amqp  # let kombu choose the version
-iso8601==0.1.14
-django-haystack==3.1.0
+iso8601==2.1.0
+django-haystack==3.2.1
 whoosh==2.7.4
 #djangorestframework==3.12.4
 #djangorestframework-oauth==1.1.0
@@ -41,23 +41,23 @@ whoosh==2.7.4
 #oauth2 @ git+git://github.com/i-kiwamu/python3-oauth2.git@a6b31832ae0427e27e6eda3ce3d121e385c7e9d5 # ensure python3 compatibility
 #django-rest-swagger==2.2.0
 markdown # for markup fallback
-django-ipware==3.0.2
-psutil==5.8.0
+django-ipware==6.0.3
+psutil==5.9.7
 intervaltree==3.1.0
 requests
-ntplib==0.3.4
+ntplib==0.4.0
 ipython
 
 # actually only needed in production-like environments...
-python-memcached==1.59
+python-memcached==1.61
 #django-dbdump==1.1
 git+https://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
 elasticsearch>=5.0.0,<6.0.0
 #pysolr==3.8.1
-lxml==4.9.1
-gunicorn==20.1.0
-mysqlclient==2.0.3
+lxml==5.0.0
+gunicorn==21.2.0
+mysqlclient==2.2.1
 paramiko>=2.7.1
-pyodbc==4.0.32
+pyodbc==5.0.1
 #django-cas-ng==4.3.0
 git+https://github.com/gregbaker/django-cas-ng.git@132b2da79 # fix for mysql indexing bug (PR #291)

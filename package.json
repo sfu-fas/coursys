@@ -1,20 +1,20 @@
 {
   "name": "coursys",
-  "version": "1.0.0",
-  "description": "CourSys npm dependancies",
+  "version": "1.0.1",
+  "description": "CourSys npm dependencies",
   "main": "index.js",
   "dependencies": {
-    "@fingerprintjs/fingerprintjs": "^2.1.4",
-    "@fortawesome/fontawesome-free": "^5.14.0",
-    "codemirror": "^5.61.0",
+    "@fingerprintjs/fingerprintjs": "^4.2.1",
+    "@fortawesome/fontawesome-free": "^5.15.4",
+    "codemirror": "^6.0.1",
     "datatables": "^1.10.18",
-    "fullcalendar": "^5.7.0",
-    "jquery": "^3.6.0",
+    "fullcalendar": "^6.1.10",
+    "jquery": "^3.7.1",
     "jquery.are-you-sure": "^1.9.0",
-    "mathjax": "^3.1.4",
-    "moment": "^2.29.4",
+    "mathjax": "^3.2.2",
+    "moment": "^2.30.1",
     "styled-notifications": "^1.0.3",
-    "tinymce": "^5.10"
+    "tinymce": "^6.8.2"
   },
   "devDependencies": {},
   "scripts": {
