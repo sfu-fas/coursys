@@ -10,7 +10,8 @@ import os
 
 # model objects must be defined at top-level so Django notices them for DB creation, etc.
 class URLComponent(SubmissionComponent):
-    check = models.BooleanField(default=False, help_text="Check that the page really exists?  Will reject missing or password-protected URLs.")
+    # .check conflicts with Model.check() in Django >=4. It's effecitively unusable on production anyway dur to firewall restrictions, so just remove.
+    #check = models.BooleanField(default=False, help_text="Check that the page really exists?  Will reject missing or password-protected URLs.")
     prefix = models.CharField(blank=True, null=True, max_length=200, help_text='Prefix that the URL *must* start with. (e.g. "http://server.com/course/", blank for none.)')
     class Meta:
         app_label = 'submission'
@@ -61,7 +62,7 @@ class URL:
     class ComponentForm(BaseComponentForm):
         class Meta:
             model = URLComponent
-            fields = ['title', 'description', 'check', 'prefix', 'deleted']
+            fields = ['title', 'description', 'prefix', 'deleted']
             # widgets = {
             #     'description': Textarea(attrs={'cols':50, 'rows':5}),
             # }
@@ -87,14 +88,14 @@ class URL:
                 if not url.startswith(self.component.prefix):
                     raise forms.ValidationError('Submitted URL must start with "%s".' % (self.component.prefix))
 
-            if self.component.check:
-                # instructor asked to check that URLs really exist: do it.
-                validator = QuickURLValidator()
-                try:
-                    validator(url) # throws ValidationError if there's a problem
-                except forms.ValidationError:
-                    # re-throw to produce a better error message
-                    raise forms.ValidationError("The submitted URL doesn't seem to exist: please check the URL and resubmit.")
+            # if self.component.check:
+            #     # instructor asked to check that URLs really exist: do it.
+            #     validator = QuickURLValidator()
+            #     try:
+            #         validator(url) # throws ValidationError if there's a problem
+            #     except forms.ValidationError:
+            #         # re-throw to produce a better error message
+            #         raise forms.ValidationError("The submitted URL doesn't seem to exist: please check the URL and resubmit.")
             return url
 
 SubmittedURL.Type = URL

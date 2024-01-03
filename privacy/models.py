@@ -1,7 +1,7 @@
 from django.urls import reverse
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseRedirect
-from django.utils.http import urlquote
+from urllib.parse import quote as urlquote
 from coredata.models import Person, Role
 import datetime
 

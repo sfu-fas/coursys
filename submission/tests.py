@@ -302,11 +302,9 @@ class SubmissionTest(TestCase):
         # instructor views
         client.login_user("ggbaker")
 
-        component1 = URL.Component(activity=activity, title='Sample URL 1', description='Please submit some URL.',
-                                   check=False, prefix='')
+        component1 = URL.Component(activity=activity, title='Sample URL 1', description='Please submit some URL.', prefix='')
         component1.save()
-        component2 = URL.Component(activity=activity, title='Sample URL 2', description='Please submit some URL.',
-                                   check=False, prefix='')
+        component2 = URL.Component(activity=activity, title='Sample URL 2', description='Please submit some URL.', prefix='')
         component2.save()
 
         test_views(self, client, 'offering:submission:', ['show_components', 'add_component'],

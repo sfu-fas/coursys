@@ -3,7 +3,7 @@ import os
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html, conditional_escape
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.safestring import mark_safe
 # App
 from coredata.models import Person, CourseOffering, FuturePerson, AnyPerson
@@ -145,7 +145,7 @@ class NotClearableFileInput(forms.FileInput):
 
         if value:
             template = self.template_with_initial
-            substitutions['initial'] = format_html(force_text(os.path.basename(value.name)))
+            substitutions['initial'] = format_html(force_str(os.path.basename(value.name)))
 
         return mark_safe(template % substitutions)
 

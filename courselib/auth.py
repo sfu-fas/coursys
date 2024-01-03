@@ -2,13 +2,14 @@ from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.utils.http import urlquote, urlencode
+from django.utils.http import urlencode
 from django.utils.safestring import mark_safe
 from django.db.models import Q
 from coredata.models import Role, CourseOffering, Member, Semester
 from onlineforms.models import FormGroup, Form
 from privacy.models import needs_privacy_signature, privacy_redirect, needs_privacy_signature_da, privacy_da_redirect
 import urllib.request, urllib.parse, urllib.error
+from urllib.parse import quote as urlquote
 import datetime
 
 try:

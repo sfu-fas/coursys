@@ -159,11 +159,11 @@ email <a href="mailto:{{ help_email }}">{{ help_email }}</a> to get it set up <e
                 
                 <td>{% if activity.group %}group{% else %}individual{% endif %}</td>
                 
-                {% ifnotequal activity.max_grade None %}
+                {% if activity.max_grade is not None %}
                 <td>{{ activity.max_grade }}</td>
                 {% else %}
                 <td>&mdash;</td>
-                {% endifnotequal %}
+                {% endif %}
 		<td>
 		    {% if activity.is_numeric %}
 		    	{% if activity.is_calculated %}
@@ -179,11 +179,11 @@ email <a href="mailto:{{ help_email }}">{{ help_email }}</a> to get it set up <e
 		    	{% endif %}
 		    {% endif %}
 		</td>
-		{% ifnotequal activity.percent None %}
+		{% if activity.percent is not None %}
                 <td>{{ activity.percent }}%</td>
 		{% else %}
                 <td>&mdash;</td>
-                {% endifnotequal %}
+        {% endif %}
                 <td class="{{activity.status|lower}}">{{ activity.get_status_display_staff }}</td>
                 <td class="{{activity.due_class}}"><span class="sort">{{ activity.due_date.isoformat }}</span>{{ activity.due_date }}</td>
             </tr>

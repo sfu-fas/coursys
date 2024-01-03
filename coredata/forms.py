@@ -6,7 +6,7 @@ from coredata.queries import find_person, add_person, SIMSProblem, userid_to_emp
 from cache_utils.decorators import cached
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from coredata.widgets import CalendarWidget
 
 
@@ -25,7 +25,7 @@ class CAPhoneNumberField(forms.Field):
         super(CAPhoneNumberField, self).clean(value)
         if value in EMPTY_VALUES:
             return ''
-        value = re.sub('(\(|\)|\s+)', '', force_text(value))
+        value = re.sub('(\(|\)|\s+)', '', force_str(value))
         m = phone_digits_re.search(value)
         if m:
             return '%s-%s-%s' % (m.group(1), m.group(2), m.group(3))

@@ -8,7 +8,6 @@ from django.core.exceptions import ValidationError
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_text
 import os, datetime
 
 APPOINTMENT_TYPE = (
