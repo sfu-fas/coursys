@@ -1,4 +1,4 @@
-Django==4.0.10
+Django==4.1.13
 
 Creoleparser==0.7.5 # Replaced with version below that incorporates our fix for null headings, and python3 support
 Genshi==0.7.7
@@ -49,7 +49,7 @@ ntplib==0.4.0
 ipython
 
 # actually only needed in production-like environments...
-python-memcached==1.61
+pymemcache==4.0.0
 #django-dbdump==1.1
 git+https://github.com/jfscyberpub/django-dbdump.git@6c84bae7f35258c2159cc94e9dbe4b7c6bfd3015 # django 1.10 compatibility
 elasticsearch>=5.0.0,<6.0.0

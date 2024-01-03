@@ -229,6 +229,8 @@ class TACategory(models.Model):
         If any of the contracts in this category are SGN or CAN, this
         category can never be changed, only hidden. 
         """
+        if self.id is None:  # a not-yet-saved category won't have any associated TAContracts
+            return False
         bools = [contract.frozen for contract in self.contract.all()]
         return True in bools
 
