@@ -100,9 +100,24 @@ def news(request: HttpRequest) -> HttpResponse:
     """
     View to show news page
     """
-    entries = Announcement.objects.filter(hidden=False, unit__in=request.units)
+    entries = Announcement.objects.filter(created_at__gte=datetime.datetime.now()-datetime.timedelta(days=180), hidden=False, unit__in=request.units)
     return render(request, 'advisornotes/news.html', {'entries': entries})
 
+@requires_role(['ADVS', 'ADVM'])
+def news_archive(request: HttpRequest) -> HttpResponse:
+    """
+    View to show news archive page
+    """
+    entries = Announcement.objects.filter(created_at__lt=datetime.datetime.now()-datetime.timedelta(days=180), hidden=False, unit__in=request.units)
+    return render(request, 'advisornotes/news_archive.html', {'entries': entries})
+
+@requires_role(['ADVS', 'ADVM'])
+def view_announcement(request: HttpRequest, entry_id: str) -> HttpResponse:
+    """
+    View to show individual announcement
+    """
+    entry = get_object_or_404(Announcement, pk=entry_id, hidden=False, unit__in=request.units)
+    return render(request, 'advisornotes/view_announcement.html', {'announcement': entry})
 
 @requires_role(['ADVS', 'ADVM'])
 def delete_announcement(request: HttpRequest, entry_id: str) -> HttpResponse:

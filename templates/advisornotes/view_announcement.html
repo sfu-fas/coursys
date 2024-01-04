@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}View Announcement{% endblock %}
+{% block h1 %}View Announcement{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:news" %}">Advising News</a></li>
+<li><a href="{% url "advising:news_archive" %}">News Archive</a></li>
+<li>{{ announcement.title }}</li>
+{% endblock %}
+
+{% block content %}
+<div id="advisor_newsitems">
+    <table><tr><td>
+        <div class="newsitem">
+            <h3>{{announcement.title}}</h3>
+            <div class="newsdate">{{announcement.created_at}} by {{announcement.author.sortname_pref_only}}</div>
+            <div class="newscontent">{{announcement.html_content}}</div>
+        </div>
+        </td></tr></table>
+</div>
+{% endblock %}
