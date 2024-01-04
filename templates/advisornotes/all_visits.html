@@ -1,9 +1,11 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
+{% load static %}
 
 {% block title %}{% if mine %}My Visits{% elif admin %}All Visits{% endif %}{% endblock %}
 {% block h1 %}{% if mine %}My Visits{% elif admin %}All Visits{% endif %}{% endblock %}
 
 {% block headextra %}
+<link rel="stylesheet" href="{% static 'style/advisornotes.css' %}" />
 <script nonce="{{ CSP_NONCE }}">
 $(function() {
   $('.display').dataTable( {
@@ -12,24 +14,20 @@ $(function() {
     "bJQueryUI": true,
     'bPaginate': true,
     'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
-    'aaSorting': [[0, 'desc']]
+    'aaSorting': [[0, 'desc']],
+    'scrollY': false, 
+    "columnDefs": [
+    { "width": "14%", "targets": [0, 1] },
+    { "width": "7%", "targets": [2, 3, 4] },
+    { "width": "13%", "targets": [5, 6] },
+    { "width": "15%", "targets": 7 },
+    { "width": "10%", "targets": 8 },
+    ]
   } );
 } );
 </script>
 {% endblock %}
 
-{% block actions %}
-    <div id="actions">
-    <h2>Actions</h2>
-    <ul>
-        {% if mine %}
-        <li><a href="{% url "advising:download_my_visits" %}">Download CSV</a></li>
-        {% elif admin %}
-        <li><a href="{% url "advising:download_all_visits" %}">Download CSV</a></li>
-        {% endif %}
-    </ul>
-</div>
-{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "advising:advising" %}">Advising</a></li>
@@ -37,6 +35,14 @@ $(function() {
 {% endblock %}
 
 {% block content %}
+
+<div class="actionlist">
+    {% if mine %}
+    <a class="btn" href="{% url "advising:download_my_visits" %}">Download CSV</a>
+    {% elif admin %}
+    <a class="btn" href="{% url "advising:download_all_visits" %}">Download CSV</a>
+    {% endif %}
+</div>
 
 {% if visits %}
     <div id="messages"><ul><li class="warning">Only showing up to the last 5000 visits due to database limitations.</li></ul></div>
@@ -46,6 +52,7 @@ $(function() {
             <th scope="col">Start</th>
             <th scope="col">End</th>
             <th scope="col">Duration</th>
+            <th scope="col">Mode</th>
             <th scope="col">Campus</th>
             <th scope="col">Student</th>
             <th scope="col">Advisor</th>
@@ -59,6 +66,7 @@ $(function() {
             <td><span class="sort">{{ visit.created_at.isoformat }}</span>{{ visit.created_at }}</td>
             <td><span class="sort">{{ visit.end_time.isoformat }}</span>{{ visit.end_time }}</td>
             <td>{{ visit.get_duration }}</td>
+            <td>{{ visit.get_mode_display }}</td>
             <td>{{ visit.get_campus_display }}</td>
             <td>
                 {% if visit.student %}<a href="{% url "advising:student_notes" userid=visit.get_userid %}">{{ visit.student.sortname }} ({{ visit.student.emplid }})</a>{% endif %}

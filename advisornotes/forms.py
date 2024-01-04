@@ -1,7 +1,7 @@
 from typing import Iterable
 
 from advisornotes.models import AdvisorNote, Announcement, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory, \
-    ADVISING_CAMPUS_CHOICES
+    ADVISING_MODE_CHOICES, ADVISING_CAMPUS_CHOICES
 from coredata.models import Person, Unit
 from coredata.forms import OfferingField, CourseField
 from django import forms
@@ -202,16 +202,18 @@ class AdvisorVisitFormInitial(forms.ModelForm):
         self.fields['gender'].widget.attrs['readonly'] = True
         self.fields['citizenship'].widget.attrs['readonly'] = True
         # You have to manually reset the choices for the widget not to have the blank line.
+        self.fields['mode'].widget.choices = ADVISING_MODE_CHOICES
         self.fields['campus'].widget.choices = ADVISING_CAMPUS_CHOICES
         if categories.count() > 0:
             self.fields['categories'].required = True
 
     class Meta:
         model = AdvisorVisit
-        fields = ['programs', "cgpa", "credits", "gender", "citizenship", "campus", "categories", "note",
+        fields = ['programs', "cgpa", "credits", "gender", "citizenship", "mode", "campus", "categories", "note",
                   "file_attachment", "email_student"]
         widgets = {
             'categories': forms.CheckboxSelectMultiple(),
+            'mode': forms.RadioSelect(),
             'campus': forms.RadioSelect()
         }
 
@@ -238,16 +240,18 @@ class AdvisorVisitFormSubsequent(forms.ModelForm):
         initial = kwargs.setdefault('initial', {})
         initial['categories'] = [c.pk for c in kwargs['instance'].categories.all()]
         # You have to manually reset the choices for the widget not to have the blank line.
+        self.fields['mode'].widget.choices = ADVISING_MODE_CHOICES
         self.fields['campus'].widget.choices = ADVISING_CAMPUS_CHOICES
         if categories.count() > 0:
             self.fields['categories'].required = True
 
     class Meta:
         model = AdvisorVisit
-        fields = ["campus", "end_time", "categories"]
+        fields = ["mode", "campus", "end_time", "categories"]
         widgets = {
             'categories': forms.CheckboxSelectMultiple(),
             'end_time': forms.SplitDateTimeWidget(),
+            'mode': forms.RadioSelect(),
             'campus': forms.RadioSelect()
         }
 

@@ -20,6 +20,7 @@ class FASAdvisorVisitsAnuallyReport(Report):
         results.append_column('Start')
         results.append_column('End')
         results.append_column('Duration')
+        results.append_column('Mode')
         results.append_column('Campus')
         results.append_column('Student')
         results.append_column('Advisor')
@@ -32,7 +33,7 @@ class FASAdvisorVisitsAnuallyReport(Report):
 
         for v in visits:
             results.append_row(
-                [v.get_created_at_display(), v.get_end_time_display(), v.get_duration(), v.get_campus_display(),
+                [v.get_created_at_display(), v.get_end_time_display(), v.get_duration(), v.get_mode_display(), v.get_campus_display(),
                  v.get_full_name(), v.advisor.sortname_pref_only(), v.categories_display(), v.programs, v.cgpa, v.credits,
                  v.gender, v.citizenship])
         self.artifacts.append(results)
