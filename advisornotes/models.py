@@ -20,6 +20,12 @@ ADVISING_CAMPUS_CHOICES = (
         ('VANCR', 'Vancouver'),
         )
 
+ADVISING_MODE_CHOICES = (
+        ('IP', 'In-Person'),
+        ('R', 'Remote'),
+        ('N', '')
+        )
+
 
 def attachment_upload_to(instance, filename):
     return upload_path('advisornotes', filename)
@@ -324,6 +330,7 @@ class AdvisorVisit(models.Model):
 
     created_at = models.DateTimeField(default=datetime.datetime.now)
     end_time = models.DateTimeField(null=True, blank=True)
+    mode = models.CharField(null=False, blank=False, default="N", choices=ADVISING_MODE_CHOICES, max_length=2)
     campus = models.CharField(null=False, blank=False, choices=ADVISING_CAMPUS_CHOICES, max_length=5)
     categories = models.ManyToManyField(AdvisorVisitCategory, blank=True)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this visit', null=False,

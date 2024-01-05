@@ -100,9 +100,24 @@ def news(request: HttpRequest) -> HttpResponse:
     """
     View to show news page
     """
-    entries = Announcement.objects.filter(hidden=False, unit__in=request.units)
+    entries = Announcement.objects.filter(created_at__gte=datetime.datetime.now()-datetime.timedelta(days=180), hidden=False, unit__in=request.units)
     return render(request, 'advisornotes/news.html', {'entries': entries})
 
+@requires_role(['ADVS', 'ADVM'])
+def news_archive(request: HttpRequest) -> HttpResponse:
+    """
+    View to show news archive page
+    """
+    entries = Announcement.objects.filter(created_at__lt=datetime.datetime.now()-datetime.timedelta(days=180), hidden=False, unit__in=request.units)
+    return render(request, 'advisornotes/news_archive.html', {'entries': entries})
+
+@requires_role(['ADVS', 'ADVM'])
+def view_announcement(request: HttpRequest, entry_id: str) -> HttpResponse:
+    """
+    View to show individual announcement
+    """
+    entry = get_object_or_404(Announcement, pk=entry_id, hidden=False, unit__in=request.units)
+    return render(request, 'advisornotes/view_announcement.html', {'announcement': entry})
 
 @requires_role(['ADVS', 'ADVM'])
 def delete_announcement(request: HttpRequest, entry_id: str) -> HttpResponse:
@@ -803,10 +818,10 @@ def _return_visits_csv(visits=None, admin=False):
                                       (datetime.datetime.now().strftime('%Y%m%d'), filename_prefix)
     writer = csv.writer(response)
 
-    writer.writerow(['Start', 'End', 'Duration', 'Campus', 'Student', 'Advisor', 'Categories', 'Programs', 'CGPA',
+    writer.writerow(['Start', 'End', 'Duration', 'Mode', 'Campus', 'Student', 'Advisor', 'Categories', 'Programs', 'CGPA',
                      'Credits', 'Gender', 'Citizenship'])
     for v in visits:
-        writer.writerow([v.get_created_at_display(), v.get_end_time_display(), v.get_duration(), v.get_campus_display(),
+        writer.writerow([v.get_created_at_display(), v.get_end_time_display(), v.get_duration(), v.get_mode_display(), v.get_campus_display(),
                          v.get_full_name(), v.advisor.sortname_pref_only(), v.categories_display(), v.programs, v.cgpa, v.credits,
                          v.gender, v.citizenship])
     return response
