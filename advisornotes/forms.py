@@ -1,7 +1,6 @@
 from typing import Iterable
 
-from advisornotes.models import AdvisorNote, Announcement, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory, \
-    ADVISING_CAMPUS_CHOICES
+from advisornotes.models import AdvisorNote, Announcement, NonStudent, ArtifactNote, Artifact, AdvisorVisit, AdvisorVisitCategory
 from coredata.models import Person, Unit
 from coredata.forms import OfferingField, CourseField
 from django import forms
@@ -12,6 +11,12 @@ from courselib.markup import MarkupContentMixin, MarkupContentField
 import datetime
 
 TEXT_WIDTH = 70
+
+ADVISING_CAMPUS_FORM_CHOICES = (
+        ('BRNBY', 'Burnaby'),
+        ('SURRY', 'Surrey'),
+        ('OFFCA', 'Off-Campus')
+        )
 
 ADVISING_MODE_FORM_CHOICES = (
         ('IP', 'In-Person'),
@@ -207,7 +212,8 @@ class AdvisorVisitFormInitial(forms.ModelForm):
         self.fields['citizenship'].widget.attrs['readonly'] = True
         # You have to manually reset the choices for the widget not to have the blank line.
         self.fields['mode'].widget.choices = ADVISING_MODE_FORM_CHOICES
-        self.fields['campus'].widget.choices = ADVISING_CAMPUS_CHOICES
+        self.fields['campus'].widget.choices = ADVISING_CAMPUS_FORM_CHOICES
+        self.fields['campus'].label = "Location"
         if categories.count() > 0:
             self.fields['categories'].required = True
 
@@ -245,7 +251,8 @@ class AdvisorVisitFormSubsequent(forms.ModelForm):
         initial['categories'] = [c.pk for c in kwargs['instance'].categories.all()]
         # You have to manually reset the choices for the widget not to have the blank line.
         self.fields['mode'].widget.choices = ADVISING_MODE_FORM_CHOICES
-        self.fields['campus'].widget.choices = ADVISING_CAMPUS_CHOICES
+        self.fields['campus'].widget.choices = ADVISING_CAMPUS_FORM_CHOICES
+        self.fields['campus'].label = "Location"
         if categories.count() > 0:
             self.fields['categories'].required = True
 
