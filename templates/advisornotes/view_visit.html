@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 
+{% block title %}View Visit for {{ visit.get_full_name }} at {{ visit.get_created_at_display }}{% endblock %}
+{% block h1 %}View Visit for {{ visit.get_full_name }} at {{ visit.get_created_at_display }}{% endblock %}
+
 {% block subbreadcrumbs %}
 <li><a href="{% url "advising:advising" %}">Advising</a></li>
-<li><a href="{% url "advising:student_notes" userid=userid %}">Notes for {{ userid }}</a></li>
+<li><a href="{% url "advising:student_notes" userid=userid %}">{{ visit.get_full_name }}</a></li>
 <li>View Visit</li>
 {% endblock %}
 
@@ -14,6 +17,7 @@
 <tr><th>Start Time</th><td>{{ visit.created_at }}</td></tr>
 {% if visit.end_time %}<tr><th>End Time</th><td>{{ visit.end_time }}</td></tr>{% endif %}
 {% if visit.end_time %}<tr><th>Duration</th><td>{{ visit.get_duration }}</td></tr>{% endif %}
+{% if visit.mode %}<tr><th>Mode</th><td>{{ visit.get_mode_display }}</td></tr>{% endif %}
 {% if visit.campus %}<tr><th>Campus</th><td>{{ visit.get_campus_display }}</td></tr>{% endif %}
 {% if visit.has_categories %}<tr><th>Categories</th><td>{{ visit.categories_display }}</td></tr>{% endif %}
     </table>

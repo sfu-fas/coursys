@@ -1,0 +1,59 @@
+{% extends "base-wide.html" %}
+{% load static %}
+
+{% block title %}Advising News Archive{% endblock %}
+{% block h1 %}Advising News Archive{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(function() {
+  $('.display').dataTable( {
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+    'bPaginate': true,
+    'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
+    'aaSorting': [[2, 'desc']],
+    'scrollY': false, 
+    "columnDefs": [
+    { "width": "20%", "targets": 2 },
+    ]
+  } );
+} );
+</script>
+{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:news" %}">Advising News</a></li>
+<li>News Archive</li>
+{% endblock %}
+
+{% block content %}
+<div class="helptext">
+    Announcements shown on this page were posted more than 180 days ago.
+</div>
+{% if entries %}
+<table class="display announcements">
+    <thead>
+        <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Author</th>
+            <th scope="col">Created At</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in entries %}
+        <tr>
+            <td><a href="{% url "advising:view_announcement" entry_id=entry.id %}">{{ entry.title }}</td>
+            <td>{{ entry.author }}</td>
+            <td><span class="sort">{{ entry.created_at.isoformat }}</span>{{ entry.created_at }}</td>    
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<h2>There are no archived announcements to display.</h2>
+{% endif %}
+{% endblock %}
