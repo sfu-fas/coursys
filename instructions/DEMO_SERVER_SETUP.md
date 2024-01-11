@@ -81,9 +81,13 @@ On the production server, capture the basic public info we want to have:
 Copy `demodata.json` to the demo server and **on the demo server**:
 ```shell
 cd /coursys
-rm db.sqlite
+make proddev-stop
+make proddev-rm-all
+sudo rm -rf /data/mysql/*
+make proddev-start
 ./manage.py migrate
-./manage.py load_demo_data /tmp/demo.json
+make rebuild-hardcore
+./manage.py load_demo_data /tmp/demo_data.json
 ./manage.py rebuild_index
 ```
 
