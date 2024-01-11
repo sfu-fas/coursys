@@ -18,6 +18,7 @@ ADVISING_CAMPUS_CHOICES = (
         ('BRNBY', 'Burnaby'),
         ('SURRY', 'Surrey'),
         ('VANCR', 'Vancouver'),
+        ('OFFCA', 'Off-Campus')
         )
 
 ADVISING_MODE_CHOICES = (
