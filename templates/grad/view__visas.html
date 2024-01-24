@@ -1,3 +1,10 @@
+{% if can_edit %}
+<p class="manage_link">
+    <a href="{% url "visas:new_visa" emplid=grad.person.userid_or_emplid %}">
+    Add New Visa
+    </a>
+</p>
+{% endif %}
 <div class="datatable_container datatable">
 	<table class="display">
 		<thead>
