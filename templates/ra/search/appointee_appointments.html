@@ -121,6 +121,7 @@
     <table id="appointments" class="display">
       <thead>
         <tr>
+          <th scope="col">Appointment Category</th>
           <th scope="col">Supervisor</th>
           <th scope="col">Start Date</th>
           <th scope="col">End Date</th>
@@ -132,6 +133,7 @@
       <tbody>
         {% for req in appointments %}
           <tr>
+            <td>{{ req.get_hiring_category_display }} {% if req.usra and req.hiring_category == "RA" %} (USRA) {% endif %}</td>
             <td><a href="{% url "ra:view_request" ra_slug=req.slug %}">{{ req.supervisor }}</a></td>
             <td><span class="sort">{{ req.start_date.isoformat }}</span>{{ req.start_date }}</td>
             <td><span class="sort">{{ req.end_date.isoformat }}</span>{{ req.end_date }}</td>
