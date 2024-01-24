@@ -57,4 +57,4 @@ from .remove_progress import remove_progress
 from .manage_documents import manage_documents
 from .remove_document import remove_document
 from .download_file import download_file
-from .notes import add_note, delete_note
+from .notes import update_note

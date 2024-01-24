@@ -34,9 +34,6 @@
         {% if grad.program.unit.uses_fasnet %}
             <li><a href="{% url "grad:get_form" grad_slug=grad.slug %}?type=fasnet">FASnet Account Form</a></li>
         {% endif %}
-        {% if not grad.notes %}
-            <li><a href="{% url "grad:add_note" grad_slug=grad.slug %}">Add Note</a></li>
-        {% endif %}
         <li><a href="{% url "grad:manage_start_end_semesters" grad_slug=grad.slug %}">Manage Start/End Semesters</a></li>
     {% endif %}
 	</ul>
@@ -175,17 +172,15 @@ $(document).ready(function() {
         </td>
     </tr>
 {% endif %}
-{% if grad.notes %}
-    <tr>
-    <th>Notes</th>
-    <td>
-        {{ grad.notes|linebreaks }}
-        {% if can_edit %}
-            <a class="editlink" href="{% url "grad:delete_note" grad_slug=grad.slug %}">Delete</a>
-        {% endif %}
-    </td>
-    </tr>
-{% endif %}
+<tr>
+<th>Notes</th>
+<td>
+    {{ grad.notes|linebreaks }}
+    {% if can_edit %}
+    <a class="editlink" href="{% url "grad:update_note" grad_slug=grad.slug %}">Update Notes</a>
+    {% endif %}
+</td>
+</tr>
 </tbody>
 </table>
 </div>
