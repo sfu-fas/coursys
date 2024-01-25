@@ -50,7 +50,8 @@ $(document).ready(function() {
         <td>{{ o.title }}</td>
         <td>{{ o.get_campus_short_display }}</td>
         <td>{{ o.instructors_str }}</td>
-        {% if unit.slug == 'cmpt' %}<td><a href="http://www.cs.sfu.ca/CourseCentral/Hypermail/{{ o.maillist }}">{{ o.maillist }}</a></td>{% endif %}
+        {% if unit.slug == 'cmpt' %}<td>
+          {% if o.subject != 'CHIN' %}<a href="http://www.cs.sfu.ca/CourseCentral/Hypermail/{{ o.maillist }}">{{ o.maillist }}{% endif %}</a></td>{% endif %}
     </tr>
     {% endfor %}
     </tbody>

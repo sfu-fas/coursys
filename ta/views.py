@@ -748,7 +748,10 @@ def download_resume(request, post_slug, userid):
     if not is_ta_admin:
         return ForbiddenResponse(request, 'You cannot access this application')
     resume = application.resume
-    filename = application.person.name() + '-' + resume.name.rsplit('/')[-1]
+    #filename = application.person.name() + '-' + resume.name.rsplit('/')[-1]
+    original_filename = resume.name.rsplit('/')[-1]
+    filename = "%s_%s_%s_CV.%s" % (application.person.last_name, application.person.first_name , 
+                                                                              application.person.emplid, original_filename.rsplit('.')[-1])
     resp = StreamingHttpResponse(resume.chunks(), content_type=application.resume_mediatype)
     resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
     resp['Content-Length'] = resume.size
@@ -778,7 +781,10 @@ def download_transcript(request, post_slug, userid):
     if not is_ta_admin:
         return ForbiddenResponse(request, 'You cannot access this application')
     transcript = application.transcript
-    filename = application.person.name() + '-' + transcript.name.rsplit('/')[-1]
+    #filename = application.person.name() + '-' + transcript.name.rsplit('/')[-1]
+    original_filename = transcript.name.rsplit('/')[-1]
+    filename = "%s_%s_%s_transcript.%s" % (application.person.last_name, application.person.first_name , 
+                                                                              application.person.emplid, original_filename.rsplit('.')[-1])
     resp = StreamingHttpResponse(transcript.chunks(), content_type=application.transcript_mediatype)
     resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
     resp['Content-Length'] = transcript.size
@@ -853,7 +859,7 @@ def download_assign_csv(request, post_slug):
     response['Content-Disposition'] = 'inline; filename="%s-assigsnment-table.csv"' % (posting.slug)
     writer = csv.writer(response)
     writer.writerow(['Offering', 'Combined to (from SIMS)', 'Instructor', 'Enrollment', 'Campus', 'Assigned', 'Applicants', 'Required BU (by capacity)',
-                    'Required BU (by enrol)', 'Assigned BU', 'Remaining'])
+                    'Required BU (by enrol)', 'Assigned Total BU', 'Remaining'])
     for o in offerings:
         enrollment_string = '%s/%s' % (o.enrl_tot, o.enrl_cap)
         if o.wait_tot:
@@ -1909,11 +1915,11 @@ def generate_csv_detail(request, post_slug):
     
     #First csv row: all the course names
     off = ['Rank', 'Name', 'SFUID', 'Email', 'Type', 'Year/Sem', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Supervisor (Reported)', 'Supervisor (System)', 'TA Experience', 'Unit', 'Start Sem', 'BU',
-           'Campus', 'Course preference comment', 'Assigned Course(s)', 'Assigned BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
+           'Campus', 'Course preference comment', 'Assigned Course(s)', 'Assigned Total BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
     csvWriter.writerow(off)
     
     # next row: campuses
-    off = ['']*19 + [str(CAMPUSES_SHORTENED[o.campus]) for o in offerings]
+    off = ['']*20 + [str(CAMPUSES_SHORTENED[o.campus]) for o in offerings]
     csvWriter.writerow(off)
     
     # collect all grad program who apply ta posting
