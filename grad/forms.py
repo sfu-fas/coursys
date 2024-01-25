@@ -955,8 +955,20 @@ class UploadApplicantsForm(forms.Form):
         return csvfile
 
 
-class GradNotesForm(forms.Form):
-    notes = forms.CharField(max_length=400, widget=forms.Textarea)
+class GradNotesForm(ModelForm):
+    class Meta:
+        model = GradStudent
+        fields = ()
+
+    notes = forms.CharField(max_length=800, widget=forms.Textarea(attrs={'cols': '70', 'rows': '20'}), required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(GradNotesForm, self).__init__(*args, **kwargs)
+        self.initial['notes'] = getattr(self.instance, 'notes')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        setattr(self.instance, 'notes', cleaned_data['notes'])
 
 FINRPT_CHOICES = (
                  ('phd', 'Active PhD'),
