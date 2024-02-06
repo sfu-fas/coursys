@@ -80,7 +80,7 @@ CS_CONTACT = "csrahelp@sfu.ca"
 MSE_CONTACT = "mse_admin_assistant@sfu.ca"
 ENSC_CONTACT = "enscfin@sfu.ca"
 SEE_CONTACT = "fas_admin_manager@sfu.ca"
-DEANS_CONTACT = "mrahinsk@sfu.ca"
+DEANS_CONTACT = "fas_budget_manager@sfu.ca"
 # general ra contact
 FAS_CONTACT = "fasra@sfu.ca"
 # intro contacts
