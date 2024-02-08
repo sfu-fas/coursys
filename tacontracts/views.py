@@ -13,8 +13,10 @@ from django.views.decorators.http import require_POST
 # Local
 from courselib.auth import requires_role
 from coredata.models import Semester, Unit, CourseOffering, Person
+from grad.models import GradStudent
 from dashboard.models import NewsItem
 from log.models import LogEntry
+import json
 
 # App
 from .models import HiringSemester, TACategory, TAContract, TACourse, \
@@ -1185,3 +1187,32 @@ def delete_attachment(request,  unit_slug, semester, contract_slug, attach_slug)
                                                 'semester': semester,
                                                 'contract_slug': contract_slug}))
 
+@requires_role(["TAAD", "GRAD"])
+def person_grad_programs(request, semester):
+    """
+    Get info on this person's grad programs.
+    """
+    result = {'grad_status': []}
+    semester = get_object_or_404(Semester, name=semester)
+    emplid = request.GET.get('emplid', None)
+    if not emplid or not emplid.isdigit() or len(emplid) != 9:
+        pass
+    else:
+        grad_program = []
+        person = Person.objects.get(emplid=emplid)
+        grad_students = GradStudent.get_canonical(person, semester)
+        for gs in grad_students:
+            active_status = False
+            if gs.current_status == 'ACTI':
+                active_status = True
+            data = {
+                'name': gs.person.name_pref() + ", " + gs.program.label,
+                'unit': gs.program.unit.name,
+                'status': gs.get_current_status_display(),
+                'active_status': active_status,
+                'slug': gs.slug
+            }
+            grad_program.append(data)
+        result['grad_program'] = grad_program
+        result['semester'] = semester.label()
+    return HttpResponse(json.dumps(result), content_type='application/json;charset=utf-8')
