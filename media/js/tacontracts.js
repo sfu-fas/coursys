@@ -1,15 +1,34 @@
-function guess_pay_periods() {
-    date_1 = $('#id_pay_start').val();
-    date_2 = $('#id_pay_end').val();
-    moment_1 = moment(date_1, 'YYYY-MM-DD');
-    moment_2 = moment(date_2, 'YYYY-MM-DD');
-    days = Math.abs(moment_2.diff(moment_1, 'days'))+1;
-    payperiods = Math.round(days/14);
-    $('#id_payperiods').val(payperiods);
+function guessPayPeriods (start_date, end_date) {
+    date_1 = new Date (start_date)
+    date_2 = new Date (end_date)
+    date_1 = new Date(date_1.getTime() + date_1.getTimezoneOffset() * 60000)
+    date_2 = new Date(date_2.getTime() + date_2.getTimezoneOffset() * 60000)
+
+    let workingDays = 0
+
+    while (date_1 <= date_2) {
+        if (date_1.getDay() !== 0 && date_1.getDay() !== 6) {
+            workingDays++;
+        }
+        date_1.setDate(date_1.getDate() + 1)
+    }
+    if (workingDays > 0) {
+        diff = (Math.abs(workingDays))/(10)
+        payPeriods = diff.toFixed(1)
+    }
+    else {
+        payPeriods = 0
+    }
+    return payPeriods
+}
+
+function getGuessPayPeriods () {
+    var payPeriods = guessPayPeriods($('#id_pay_start').val(), $('#id_pay_end').val())
+    $('#id_payperiods').val(payPeriods)
     $('#id_payperiods').effect('highlight');
 }
 
-function get_grad_status(emplid) {
+function getGradStatus(emplid) {
     $.ajax({
         type: 'GET',
         url: persongradprograms_url + '?emplid=' + emplid,
@@ -42,16 +61,16 @@ function get_grad_status(emplid) {
 
 $(document).ready(function(){
     $('dl.dlform').first().before('<div id="grad_status"></div>');
-    let person_id = $('#id_person');
-    person_id.change(function() {
+    let personId = $('#id_person');
+    personId.change(function() {
         if ($(this).val().length === 9)
         {
-            get_grad_status($(this).val());
+            getGradStatus($(this).val());
         }
     });
-    person_id.change();
+    personId.change();
     $('#id_payperiods').each(function(){ // if there's an id_payperiods, activate code to guess the value
-        $('#id_pay_start').change(guess_pay_periods);
-        $('#id_pay_end').change(guess_pay_periods);
+        $('#id_pay_start').change(getGuessPayPeriods);
+        $('#id_pay_end').change(getGuessPayPeriods);
     });
 });
