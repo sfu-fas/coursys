@@ -8,13 +8,6 @@ from ra.models import Account
 from .models import HiringSemester, TACategory, TAContract, TACourse, CourseDescription, TAContractAttachment
 
 
-class GuessPayperiodsWidget(forms.TextInput):
-    """
-    A widget to guess at pay-periods.
-    Assumes that you have fields named "pay_start", "pay_end", and "payperiods"
-    """
-    class Media:
-        js = ('moment.min.js', 'js/tacontracts.js')
 
 
 class HiringSemesterForm(forms.ModelForm):
@@ -47,7 +40,6 @@ class HiringSemesterForm(forms.ModelForm):
                     'pay_end': CalendarWidget,
                     'appointment_start': CalendarWidget,
                     'appointment_end': CalendarWidget,
-                    'payperiods': GuessPayperiodsWidget,
                 }
 
 
@@ -77,7 +69,6 @@ class TAContractForm(forms.ModelForm):
             'pay_start': CalendarWidget,
             'pay_end': CalendarWidget,
             'deadline_for_acceptance': CalendarWidget,
-            'payperiods': GuessPayperiodsWidget,
         }
 
 
