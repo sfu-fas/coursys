@@ -52,7 +52,11 @@ CELERY_BEAT_SCHEDULE = {
     },
     'onlineforms.tasks.waiting_forms_reminder': {
         'task': 'onlineforms.tasks.waiting_forms_reminder',
-        'schedule': crontab(day_of_week='1,3,5', hour="13", minute="0"),
+        'schedule': crontab(day_of_week="1", hour="13", minute="0"),
+    },
+    'onlineforms.tasks.reject_dormant_initial': {
+        'task': 'onlineforms.tasks.reject_dormant_initial',
+        'schedule': crontab(hour="18", minute="0"),
     },
     'ra.tasks.expiring_ras_reminder': {
         'task': 'ra.tasks.expiring_ras_reminder',

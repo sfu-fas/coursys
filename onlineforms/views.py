@@ -1825,6 +1825,8 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                 description='Saved sheet without submitting.')
 
                         messages.success(request, 'All fields without errors were saved. Use this page\'s URL to edit this submission in the future.')
+                        if sheet.is_initial and not sheet_submission.assigner():
+                            messages.warning(request, 'If you do not submit this form by ' + str(sheet_submission.estimate_dormant_close_date()) + ', the system will automatically discard it.')
                         return HttpResponseRedirect(access_url)
                     elif 'submit' in request.POST:
                         # all the fields have been submitted, this sheet is done
