@@ -309,7 +309,7 @@ def deploy_checks(request=None):
             failed.append(('CAS Connectivity', 'Expected 200 response from CAS, but got %i' % (req.status,)))
         else:
             passed.append(('CAS Connectivity', 'okay'))
-    except requests.exceptions.ConnectionError as e:
+    except (requests.exceptions.ConnectionError, urllib.error.HTTPError) as e:
         failed.append(('CAS Connectivity', 'Could not connect to CAS server: %s' % (e,)))
 
     # file creation in the necessary places
