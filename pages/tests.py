@@ -150,7 +150,7 @@ class PagesTest(TestCase):
         # ... and the head has the current contents
         self.assertEqual(v3.wikitext, contents3)
         self.assertEqual(v3.diff_from, None)
-    
+
     def test_api(self):
         crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         memb = Member.objects.get(offering=crs, person__userid="ggbaker")
@@ -236,7 +236,7 @@ class PagesTest(TestCase):
         c.login_user('ggbaker')
         
         # test the basic rendering of the core pages
-        test_views(self, c, 'offering:pages:', ['index_page', 'all_pages', 'new_page', 'new_file'],
+        test_views(self, c, 'offering:pages:', ['index_page', 'all_pages', 'new_page', 'new_file', 'permissions'],
                 {'course_slug': crs.slug})
 
         test_views(self, c, 'offering:pages:', ['view_page', 'page_history', 'edit_page'],

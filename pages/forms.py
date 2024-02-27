@@ -1,8 +1,9 @@
 from django import forms
 from django.db import transaction
-from pages.models import Page, PageVersion, READ_ACL_CHOICES, WRITE_ACL_CHOICES
+
+from coredata.models import Person
+from pages.models import Page, PageVersion, PagePermission, PERMISSION_ACL_CHOICES
 from courselib.markup import MarkupContentField, MarkupContentMixin
-import urllib.request, urllib.error, urllib.parse, urllib.parse
 
 
 class WikiField(forms.CharField):
@@ -10,8 +11,9 @@ class WikiField(forms.CharField):
     def __init__(self, *args, **kwargs):
         self.widget = forms.Textarea(attrs={'cols': 70, 'rows': 20})
         if 'help_text' not in kwargs:
-            kwargs['help_text'] = 'Page formatted in <a href="/docs/pages">WikiCreole markup</a>.' # hard-coded URL since this is evaluated before urls.py: could be reverse_lazy?
+            kwargs['help_text'] = 'Page formatted in <a href="/docs/pages">WikiCreole markup</a>.'  # hard-coded URL since this is evaluated before urls.py: could be reverse_lazy?
         super(WikiField, self).__init__(*args, **kwargs)
+
 
 class CommentField(forms.CharField):
     def __init__(self, *args, **kwargs):
@@ -156,4 +158,25 @@ class EditFileFormRestricted(EditFileForm):
             del self.fields['label']
         del self.fields['can_write']
 
+
 EditFileForm.restricted_form = EditFileFormRestricted
+
+
+PERSON_ACL_CHOICES = [
+    ('STAF', 'TA-equivalent'),
+    ('STUD', 'student-equivalent')
+]
+
+class PermissionForm(forms.Form):
+    person = forms.CharField(required=True, label="Username", max_length=8,
+                             help_text="The person's SFU username. Must be the ID they use to log in, not an email alias.",
+                             widget=forms.TextInput(attrs={'size': '9'}))
+    role = forms.ChoiceField(required=True, label="Role", choices=PERSON_ACL_CHOICES, initial='STUD')
+
+    def clean_person(self) -> Person:
+        userid = self.cleaned_data['person']
+        try:
+            person = Person.objects.get(userid=userid)
+        except Person.DoesNotExist:
+            raise forms.ValidationError('That username does not exist')
+        return person

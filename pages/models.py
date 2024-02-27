@@ -478,3 +478,10 @@ class PagePermission(models.Model):
     class Meta:
         unique_together = (('offering', 'person'), )
 
+    def get_role_display(self):
+        if self.role == 'STUD':
+            return 'student-equivalent'
+        elif self.role == 'STAF':
+            return 'TA-equivalent'
+        else:
+            return ACL_DESC[self.role]

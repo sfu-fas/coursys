@@ -1,4 +1,5 @@
-from django.http import HttpResponse, HttpResponseRedirect
+from django.db import IntegrityError
+from django.http import HttpResponse, HttpResponseRedirect, HttpRequest
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib import messages
@@ -7,15 +8,14 @@ from django.conf import settings
 import django.db.transaction
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape
-from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from pages.models import Page, PageVersion, PagePermission, MEMBER_ROLES, ACL_ROLES, MACRO_LABEL
-from pages.forms import EditPageForm, EditFileForm
+from pages.forms import EditPageForm, EditFileForm, PermissionForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
-from courselib.auth import NotFoundResponse, ForbiddenResponse, HttpError
+from courselib.auth import NotFoundResponse, ForbiddenResponse, HttpError, requires_course_instr_by_slug
 from urllib.parse import urljoin
-import json, datetime
+import json
 
 
 def _allowed_member(userid, offering, acl_value):
@@ -190,7 +190,7 @@ def view_page(request, course_slug, page_label):
         if request.path != url:
             return HttpResponseRedirect(url)
 
-    context = {'offering': offering, 'page': page, 'version': version,
+    context = {'offering': offering, 'page': page, 'version': version, 'member': member,
                'can_edit': can_edit, 'is_index': is_index, 'redirect_url': redirect_url}
     return render(request, 'pages/view_page.html', context)
 
@@ -615,8 +615,44 @@ def api_import(request, course_slug):
     return HttpError(request, status=200, title='Success', error='Page import successful.', simple=True)
 
 
+@requires_course_instr_by_slug
+def permissions(request: HttpRequest, course_slug: str) -> HttpResponse:
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    perms = PagePermission.objects.filter(offering__slug=course_slug).select_related('person')
 
+    if request.method == 'POST' and 'pid' in request.POST:
+        pp = get_object_or_404(PagePermission, offering=offering, id=request.POST['pid'])
+        pp.delete()
+        messages.success(request, "Removed permission.")
+        l = LogEntry(userid=request.user.username,
+                     description="Removed page permission for %s in %s" % (pp.person.userid, offering.slug),
+                     related_object=offering)
+        l.save()
+        return HttpResponseRedirect(reverse('offering:pages:permissions', kwargs={'course_slug': course_slug}))
 
+    if request.method == 'POST' and 'add' in request.POST:
+        form = PermissionForm(data=request.POST)
+        if form.is_valid():
+            m = Member.objects.filter(offering=offering, person=form.cleaned_data['person']).exclude(role='DROP')
+            if m.exists():
+                messages.error(request, "That person is a member of the course: they cannot be given an additional permission.")
+            else:
+                try:
+                    pp = PagePermission(offering=offering, person=form.cleaned_data['person'],
+                                        role=form.cleaned_data['role'])
+                    pp.save()
+                    return HttpResponseRedirect(reverse('offering:pages:permissions', kwargs={'course_slug': course_slug}))
+                except IntegrityError:
+                    messages.error(request, "That person already has a permission granted: remove it first.")
+    else:
+        form = PermissionForm()
+
+    context = {
+        'offering': offering,
+        'perms': perms,
+        'form': form,
+    }
+    return render(request, 'pages/permissions.html', context)
 
 
 
