@@ -70,7 +70,7 @@
 <h2>{{status|capfirst}} Forms</h2>
 
 {% if status == 'pending' %}
-<p class="helptext">These forms have been completed by the person filling things out <b>at least two weeks ago</b>. You can mark them complete here in bulk (maximum of 25 at a time).</b></p>
+<p class="helptext">These forms have been completed by the person filling things out <b>at least two weeks ago</b>. You can mark them complete here in bulk (maximum of 25 at a time).</p>
 <form action="{% url "onlineforms:bulk_close_pending" %}" method="post">
 {% csrf_token %}
     <div class="datatable_container">
