@@ -1199,7 +1199,7 @@ def person_grad_programs(request, semester):
         pass
     else:
         grad_program = []
-        person = Person.objects.get(emplid=emplid)
+        person = get_object_or_404(Person, emplid=emplid)
         grad_students = GradStudent.get_canonical(person, semester)
         for gs in grad_students:
             active_status = False
