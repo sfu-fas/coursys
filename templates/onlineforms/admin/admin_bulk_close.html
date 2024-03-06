@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% load form_display %}
 
-{% block title %}Bulk Close Pending Forms{% endblock %}
-{% block h1 %}Bulk Close Pending Forms{% endblock %}
+{% block title %}Bulk Close {{status|capfirst}} Forms{% endblock %}
+{% block h1 %}Bulk Close {{status|capfirst}} Forms{% endblock %}
 
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}">
@@ -23,14 +23,36 @@
                         "targets": "no-sort"
                     }]
         });
-        $("#selectAll").change(function() {
-            $(".checkMe:checkbox").prop('checked', this.checked);
+        $('#wait_table').dataTable({
+                    "bPaginate": true,
+                    "lengthChange": false,
+                    "pageLength": 25,
+                    "bJQueryUI": true,
+                    "aaSorting": [[2, "asc"]],
+                    "bFilter": false,
+                    "bInfo": true,
+                    "bSortable": false,
+                    "ordering": true,
+                    "columnDefs": [{
+                        "orderable": false,
+                        "targets": "no-sort"
+                    }]
+        });
+        $("#selectAllPend").change(function() {
+            $(".checkPend:checkbox").prop('checked', this.checked);
+        } );
+        $("#selectAllWait").change(function() {
+            $(".checkWait:checkbox").prop('checked', this.checked);
         } );
     });
-    function confirmDelete(url) {
-        // https://stackoverflow.com/questions/14800954/how-to-check-if-all-checkboxes-are-unchecked
-        var checked_formsubs = document.querySelectorAll('input[type="checkbox"]:checked:not(#selectAll)').length;
-        return confirm("Are you sure you want to close " + checked_formsubs + " form(s)?");
+    // https://stackoverflow.com/questions/14800954/how-to-check-if-all-checkboxes-are-unchecked
+    function confirmDeletePend(url) {
+        var checked_formsubs = document.querySelectorAll('input[type="checkbox"]:checked:not(#selectAllPend, #selectAllWait, #waitSelect)').length;
+        return confirm("Are you sure you want to close " + checked_formsubs + " pending form(s)?");
+    }
+    function confirmDeleteWait(url) {
+        var checked_formsubs = document.querySelectorAll('input[type="checkbox"]:checked:not(#selectAllPend, #selectAllWait, #pendSelect)').length;
+        return confirm("Are you sure you want to close " + checked_formsubs + " waiting form(s)?");
     }
 </script>
 {% endblock %}
@@ -38,15 +60,18 @@
 {% block subbreadcrumbs %}
     <li><a href="{% url "onlineforms:index" %}">Forms</a></li>
     <li><a href="{% url "onlineforms:admin_list_all" %}">Admin Forms</a></li>
-    <li>Bulk Close</li>
+    <li>Bulk Close {{status|capfirst}} Forms</li>
 {% endblock %}
 
 {% block actions %}
 {% endblock %}
 
 {% block content %}
-<p class="helptext">These forms have been completed by the person filling things out <b>at least two weeks ago</b>. You can mark them complete here in bulk (maximum of 25 at a time).</b></p>
-<form action="{% url "onlineforms:bulk_close" %}" method="post">
+<h2>{{status|capfirst}} Forms</h2>
+
+{% if status == 'pending' %}
+<p class="helptext">These forms have been completed by the person filling things out <b>at least two weeks ago</b>. You can mark them complete here in bulk (maximum of 25 at a time).</p>
+<form action="{% url "onlineforms:bulk_close_pending" %}" method="post">
 {% csrf_token %}
     <div class="datatable_container">
         {% if pend_submissions %}
@@ -56,7 +81,7 @@
                         <th scope="col">Form</th>
                         <th scope="col">Initiator</th>
                         <th scope="col">Last Submission</th>
-                        <th scope="col" class="no-sort">Close {% if pend_submissions %}<input type="checkbox" id="selectAll"/>{% endif %}</th>
+                        <th scope="col" class="no-sort">Close {% if pend_submissions %}<input type="checkbox" id="selectAllPend"/>{% endif %}</th>
                     </tr>
                 </thead>
                 {% for form_sub in pend_submissions %}
@@ -64,14 +89,51 @@
                         <td>{{ form_sub.form.title }}</td>
                         <td><a href="{% url "onlineforms:view_submission" form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
                         <td><span class="sort">{{ form_sub.last_sheet_completion.isoformat }}</span>{{ form_sub.last_sheet_completion }}</td>
-                        <td><input type="checkbox" class="checkMe" name="forms_to_close" value="{{form_sub.form.slug}},{{form_sub.slug}}"></td>
+                        <td><input id="pendSelect" type="checkbox" class="checkPend" name="forms_to_close" value="{{form_sub.form.slug}},{{form_sub.slug}}"></td>
                     </tr>
                 {% endfor %}
             </table>
-        <p><input type="submit" class="submit" value="Close" onclick="return confirmDelete()"/></p>
+        <p><input type="submit" class="submit" value="Close" onclick="return confirmDeletePend()"/></p>
         {% else %}
                 <p>There are currently no pending forms that need any action.</p>
         {% endif %}
     </div>
 </form>
+{% endif %}
+
+{% if status == 'waiting' %}
+<p class="helptext">These forms have been given to someone <b>at least two weeks ago</b>and are waiting completion of their sheet. You can mark them complete here in bulk (maximum of 25 at a time).</p>
+<form action="{% url "onlineforms:bulk_close_waiting" %}" method="post">
+{% csrf_token %}
+    <div class="datatable_container">
+        {% if wait_submissions %}
+            <table class="display" id="wait_table">
+                <thead>
+                    <tr>
+                        <th scope="col">Form</th>
+                        <th scope="col">Initiator</th>
+                        <th scope="col">Waiting Sheet</th>
+                        <th scope="col">Assigned to</th>
+                        <th scope="col">Elapsed Time</th>
+                        <th scope="col" class="no-sort">Close {% if wait_submissions %}<input type="checkbox" id="selectAllWait"/>{% endif %}</th>
+                    </tr>
+                </thead>
+                {% for form_sub in wait_submissions %}
+                    <tr>
+                        <td>{{ form_sub.form.title }}</td>
+                        <td><a href="{% url "onlineforms:view_submission" form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
+                        <td>{{ form_sub.assigned_to.sheet.title }}</td>
+                        <td>{{ form_sub.assigned_to.filler }}</td>
+                        <td><span class="sort">{{ form_sub.assigned_to.given_at.isoformat }}</span>{{ form_sub.assigned_to.given_at|timesince }}</td>
+                        <td><input id="waitSelect" type="checkbox" class="checkWait" name="forms_to_close" value="{{form_sub.form.slug}},{{form_sub.slug}}"></td>
+                    </tr>
+                {% endfor %}
+            </table>
+            <p><input type="submit" class="submit" value="Close" onclick="return confirmDeleteWait()"/></p>
+        {% else %}
+                <p>There are currently no forms being worked on.</p>
+        {% endif %}
+    </div>
+</form>
+{% endif %}
 {% endblock %}

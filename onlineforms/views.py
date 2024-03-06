@@ -1426,15 +1426,28 @@ def view_submission(request, form_slug, formsubmit_slug):
 
 
 @requires_formgroup()
-def bulk_close(request):
+def bulk_close(request, status=None):
     admin = get_object_or_404(Person, userid=request.user.username)
     form_groups = FormGroup.objects.filter(members=admin)
     pend_submissions = []
-    if form_groups:
+    wait_submissions = []
+    if form_groups and status:
         cutoff = datetime.date.today() - datetime.timedelta(days=14)
         pend_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='PEND', sheetsubmission__completed_at__lte=cutoff ) \
                 .annotate(last_sheet_dt=Max('sheetsubmission__completed_at')) \
                 .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
+        
+        wait_submissions = list(FormSubmission.objects.filter(owner__in=form_groups, status='WAIT') \
+                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form'))
+        wait_lookup = dict((fs.id, fs) for fs in wait_submissions)
+        wait_ss = SheetSubmission.objects.filter(form_submission__in=wait_submissions).order_by('given_at') \
+                .select_related('filler__sfuFormFiller', 'filler__nonSFUFormFiller', 'sheet')
+        for ss in wait_ss:
+            wait_lookup[ss.form_submission_id].assigned_to = ss
+            wait_lookup[ss.form_submission_id].is_initial = ss.sheet.is_initial and not ss.assigner()
+            wait_lookup[ss.form_submission_id].date_range = ss.given_at.date() <= cutoff
+        wait_submissions = [f for f in wait_submissions if not f.is_initial and f.date_range]
+
     if request.method == 'POST':
         to_close = request.POST.getlist('forms_to_close')
         num_to_close = len(to_close)
@@ -1447,27 +1460,25 @@ def bulk_close(request):
                 form_slug, formsubmit_slug = form_submission.split(',') 
                 with django.db.transaction.atomic():
                     form_submission, is_advisor = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug)
-                    can_admin = not is_advisor and form_submission.status == 'PEND'
+                    can_admin = not is_advisor and (form_submission.status == 'PEND' or form_submission.status == 'WAIT')
                     if form_submission and can_admin:
                         admin = Person.objects.get(userid=request.user.username)
-                        email = False
-                        email_cc = None
                         form_submission.set_closer(admin.id)
                         form_submission.status = 'DONE'
                         form_submission.save()
                         messages.success(request, 'Form submission %s for %s marked as completed.' % (form_submission.form.title, form_submission.initiator))
                         FormLogEntry.create(form_submission=form_submission, user=admin, category='ADMN',
-                                            description='Marked form completed in bulk (user was not emailed through system).')
+                                            description='Marked %s form completed in bulk (user was not emailed through system).' % (status))
                         #LOG EVENT#
                         l = LogEntry(userid=request.user.username,
-                            description=("Marked form submission %s done (in bulk).") % (form_submission,),
+                            description=("Marked %s form submission %s done (in bulk).") % (status, form_submission),
                             related_object=form_submission)
                         l.save()
                     else:
                         messages.error(request, 'Form submission %s for %s cannot be marked as completed.' % (form_submission.form.title, form_submission.initiator))
-        return HttpResponseRedirect(reverse('onlineforms:bulk_close'))
-    context = {'pend_submissions': pend_submissions}
-    return render(request, 'onlineforms/admin/admin_bulk_close.html', {'pend_submissions': pend_submissions})
+        return HttpResponseRedirect(reverse('onlineforms:bulk_close_' + status, kwargs={'status': status}))
+    context = {'status': status, 'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions}
+    return render(request, 'onlineforms/admin/admin_bulk_close.html', context)
 
 @requires_formgroup()
 def reopen_submission(request, form_slug, formsubmit_slug):
