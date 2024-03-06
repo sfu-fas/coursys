@@ -109,6 +109,7 @@ STATUS_DESCR = {
 
 FILE_SECRET_LENGTH = 32
 
+WAIT_FORM_DISCARDS_AFTER_DAYS = 28
 
 class NonSFUFormFiller(models.Model):
     """
@@ -917,7 +918,7 @@ class FormSubmission(models.Model):
         html = get_template('onlineforms/emails/notify_completed.html')
 
         email_context = {'formsub': self, 'admin': admin}
-        subject = '%s for %s submission complete' % (self.form.title, self.initiator.name())
+        subject = '%s for %s Submission Complete' % (self.form.title, self.initiator.name())
         from_email = FormFiller.form_full_email(admin)
         to = self.initiator.full_email()
         if email_cc:
@@ -941,7 +942,7 @@ class FormSubmission(models.Model):
                                     kwargs={'form_slug': self.form.slug,
                                             'formsubmit_slug': self.slug}))
         email_context = {'formsub': self, 'admin': admin, 'adminurl': full_url}
-        subject = '%s submission transferred' % (self.form.title)
+        subject = '%s Submission Transferred' % (self.form.title)
         from_email = FormFiller.form_full_email(admin)
         to = self.owner.notify_emails()
         msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
@@ -1089,22 +1090,23 @@ class SheetSubmission(models.Model):
                                 'sheet_slug': self.sheet.slug,
                                 'sheetsubmit_slug': self.slug})
 
-
-    @classmethod
-    def sheet_maintenance(cls):
+    def estimate_dormant_close_date(self):
         """
-        Do all of the stuff we need to update on a regular basis.
+        Estimated date for waiting initial sheet to be purged if not submitted
         """
-        cls.reject_dormant_initial()
-        cls.email_waiting_sheets()
+        if self.status != 'WAIT' or not self.sheet.is_initial or self.assigner():
+            return None
+        else:
+            given_at = self.given_at.date()
+            close_date = given_at + datetime.timedelta(days=WAIT_FORM_DISCARDS_AFTER_DAYS)
+            return close_date.strftime("%B %d, %Y")
 
     @classmethod
     def reject_dormant_initial(cls):
         """
         Close any initial sheets that have been hanging around for too long.
         """
-        days = 14
-        min_age = datetime.datetime.now() - datetime.timedelta(days=days)
+        min_age = datetime.datetime.today() - datetime.timedelta(days=WAIT_FORM_DISCARDS_AFTER_DAYS)
         sheetsubs = SheetSubmission.objects.filter(sheet__is_initial=True, status='WAIT', given_at__lt=min_age)
         #  Sheets that have specifically been assigned should not be cleared, even if they are the initial sheet.
         sheetsubs = [s for s in sheetsubs if not s.assigner()]
@@ -1124,7 +1126,7 @@ class SheetSubmission(models.Model):
     @classmethod
     def waiting_sheets_by_user(cls):
         min_age = datetime.datetime.now() - datetime.timedelta(hours=24)
-        max_age = datetime.datetime.now() + datetime.timedelta(days=180)  # give up emailing after 6 months
+        max_age = datetime.datetime.now() - datetime.timedelta(days=180)  # give up emailing after 6 months
         sheet_subs = SheetSubmission.objects.exclude(status='DONE').exclude(status='REJE') \
                 .exclude(given_at__gt=min_age).exclude(given_at__lt=max_age) \
                 .order_by('filler__id') \
@@ -1137,7 +1139,7 @@ class SheetSubmission(models.Model):
         Email those with sheets waiting for their attention.
         """
         full_url = settings.BASE_ABS_URL + reverse('onlineforms:login')
-        subject = 'Waiting form reminder'
+        subject = 'Waiting Form Reminder'
         from_email = settings.DEFAULT_FROM_EMAIL
 
         filler_ss = cls.waiting_sheets_by_user()
@@ -1181,8 +1183,7 @@ class SheetSubmission(models.Model):
     def email_assigned(self, request, admin, assignee):
         full_url = request.build_absolute_uri(self.get_submission_url())
         context = {'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url, 'sheetsub': self}
-        subject = '%s: You have been assigned a sheet in a form submitted by %s.' % (product_name(hint='forms'),
-                                                                                     self.form_submission.initiator.name())
+        subject = 'Sheet Assigned in Form Submitted by %s' % (self.form_submission.initiator.name())
         self._send_email(request, 'sheet_assigned', subject, FormFiller.form_full_email(admin),
                          [assignee.full_email()], context)
 
@@ -1192,7 +1193,7 @@ class SheetSubmission(models.Model):
     def email_started(self, request):
         full_url = request.build_absolute_uri(self.get_submission_url())
         context = {'initiator': self.filler.name(), 'sheeturl': full_url, 'sheetsub': self}
-        subject = '%s submission incomplete' % (self.sheet.form.title)
+        subject = '%s Submission Incomplete' % (self.sheet.form.title)
         self._send_email(request, 'nonsfu_sheet_started', subject,
                          settings.DEFAULT_FROM_EMAIL, [self.filler.full_email()], context)
 
@@ -1205,7 +1206,7 @@ class SheetSubmission(models.Model):
                                             'formsubmit_slug': self.form_submission.slug}))
         context = {'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form,
                                  'rejected': rejected}
-        subject = '%s submission' % (self.sheet.form.title)
+        subject = '%s Submission' % (self.sheet.form.title)
         self._send_email(request, 'sheet_submitted', subject,
                          settings.DEFAULT_FROM_EMAIL, self.sheet.form.owner.notify_emails(), context)
 
@@ -1222,7 +1223,7 @@ class SheetSubmission(models.Model):
                 description='Notified %s of returned sheet.' % (self.filler.full_email(),))
 
     def emailsubmission_to_filler(self, formsub, recipient, filled_sheets, subjectsuffix):        
-        subject = 'Copy of %s (%s) submission %s ' % (formsub.form.title, self.sheet.title, subjectsuffix)
+        subject = 'Copy of %s (%s) Submission %s ' % (formsub.form.title, self.sheet.title, subjectsuffix)
         plaintext = get_template('onlineforms/emails/notify_submission_copy.txt')
         html = get_template('onlineforms/emails/notify_submission_copy.html')
         context = {'form_submission': formsub, 'filled_sheets': filled_sheets,'sheet_submission': self}
