@@ -1,11 +1,17 @@
-.visaexpired {
+.visaexpired, .visaexpired a {
     color: red;
 }
 
-.visaalmostexpired {
+.visaalmostexpired, .visaalmostexpired a {
     color: orange;
 }
 
-.visavalid {
+.visavalid, .visavalid a {
     color: green;
+}
+
+.actionlist .btn{
+    display: inline-block;
+    margin-right: 5px;
+    margin-left: 0px;
 }
