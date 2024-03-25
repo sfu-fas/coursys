@@ -1112,12 +1112,12 @@ class SheetSubmission(models.Model):
         sheetsubs = [s for s in sheetsubs if not s.assigner()]
         for ss in sheetsubs:
             ss.status = 'REJE'
-            ss.set_reject_reason('Automatically closed by system after being dormant %i days.' % (days))
+            ss.set_reject_reason('Automatically closed by system after being dormant %i days.' % (WAIT_FORM_DISCARDS_AFTER_DAYS))
             ss.save()
 
             fs = ss.form_submission
             fs.status = 'DONE'
-            fs.set_summary('Automatically closed by system after being dormant %i days.' % (days))
+            fs.set_summary('Automatically closed by system after being dormant %i days.' % (WAIT_FORM_DISCARDS_AFTER_DAYS))
             fs.save()
 
             FormLogEntry.create(sheet_submission=ss, category='SYST',
