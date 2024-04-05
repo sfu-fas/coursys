@@ -1199,14 +1199,16 @@ class OfferingDataJson(BaseDatatableView):
         if column == 'coursecode':
             txt = '%s\u00a0%s\u00a0%s' % (offering.subject, offering.number, offering.section) # those are nbsps
             url = reverse('browse:browse_courses_info', kwargs={'course_slug': offering.slug})
-            #col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
+            col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
+            
             
             joint_with = offering.config.get('joint_with')
+            """
             if joint_with:
                 col = mark_safe('<a href="%s">%s</a> <i class="fa fa-clone" title="Crosslisted with %s"></i>' % (url, conditional_escape(txt), joint_with))
             else:
                 col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
-                
+            """    
             # crosslisted
             GET = self.request.GET
             xlist_filters = GET.getlist('xlist[]')
@@ -1228,7 +1230,7 @@ class OfferingDataJson(BaseDatatableView):
                             crosslist += mark_safe('<br> X ')+ joint_course_link
 
                     col = col + crosslist
-
+            
         elif column == 'instructors':
             col = offering.instructors_printing_str()
         elif column == 'campus':
