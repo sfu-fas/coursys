@@ -1199,7 +1199,36 @@ class OfferingDataJson(BaseDatatableView):
         if column == 'coursecode':
             txt = '%s\u00a0%s\u00a0%s' % (offering.subject, offering.number, offering.section) # those are nbsps
             url = reverse('browse:browse_courses_info', kwargs={'course_slug': offering.slug})
-            col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
+            #col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
+            
+            joint_with = offering.config.get('joint_with')
+            if joint_with:
+                col = mark_safe('<a href="%s">%s</a> <i class="fa fa-clone" title="Crosslisted with %s"></i>' % (url, conditional_escape(txt), joint_with))
+            else:
+                col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
+                
+            # crosslisted
+            GET = self.request.GET
+            xlist_filters = GET.getlist('xlist[]')
+            if 'yes' in xlist_filters:                
+                if joint_with:
+                    for index, j in enumerate(joint_with):
+                        start = j.find('-')+1
+                        if j[-2:] == '00':
+                            joint_course = j.upper()[start:].replace("-", " ")[:-2]
+                        else:
+                            joint_course = j.upper()[start:].replace("-", " ")
+                                            
+                        joint_course_url = reverse('browse:browse_courses_info', kwargs={'course_slug': j})
+                        joint_course_link = mark_safe('<a href="%s">%s</a>' % (joint_course_url, joint_course))
+
+                        if index == 0:
+                            crosslist = mark_safe('<br> X ')+ joint_course_link
+                        else:
+                            crosslist += mark_safe('<br> X ')+ joint_course_link
+
+                    col = col + crosslist
+
         elif column == 'instructors':
             col = offering.instructors_printing_str()
         elif column == 'campus':
@@ -1208,6 +1237,33 @@ class OfferingDataJson(BaseDatatableView):
             col = '%i/%i' % (offering.enrl_tot, offering.enrl_cap)
             if offering.wait_tot:
                 col += ' (+%i)' % (offering.wait_tot,)
+             # crosslisted
+            GET = self.request.GET
+            xlist_filters = GET.getlist('xlist[]')
+            if 'yes' in xlist_filters:                
+                joint_with = offering.config.get('joint_with')
+            
+                if joint_with:
+                    for index, j in enumerate(joint_with):
+                        start = j.find('-')+1
+                        if j[-2:] == '00':
+                            joint_course = j.upper()[start:].replace("-", " ")[:-2]
+                        else:
+                            joint_course = j.upper()[start:].replace("-", " ")
+
+                        xerol = ''
+                        try:  
+                            xoffering = CourseOffering.objects.get(slug=j)
+                            
+                            if index == 0:
+                                xerol = mark_safe('<br> X  %i/%i' % (xoffering.enrl_tot, xoffering.enrl_cap))
+                            else:
+                                xerol += mark_safe('<br> X  %i/%i' % (xoffering.enrl_tot, xoffering.enrl_cap))                        
+                        except:
+                            return ''
+                        
+                    col =  mark_safe(col) + xerol
+
         elif column == 'semester':
             col = str(offering.semester).replace(' ', '\u00a0') # nbsp
         elif hasattr(offering, 'get_%s_display' % column):
@@ -1305,8 +1361,13 @@ class OfferingDataJson(BaseDatatableView):
             qs = qs.filter(enrl_tot__lt=F('enrl_cap'))
         if 'nowait' in space_filters:
             qs = qs.filter(wait_tot=0)
-
-        return qs
+        
+        # crosslist
+        #xlist_filters = GET.getlist('xlist[]')
+        #if 'yes' in xlist_filters:
+        #    qs = qs.filter(config__contains='joint_with')
+            
+        return qs        
 
     #def XXX_prepare_results(self, qs):
     #    "Prepare for mData-style data handling"
