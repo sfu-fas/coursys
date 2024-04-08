@@ -16,7 +16,10 @@
     <h2 class="heading">Actions</h2>
     <ul>
     {% if is_old %}<li><a href="{% url "offering:pages:view_page" course_slug=offering.slug page_label=page.label %}">View current version</a></li>{% endif %}
-    {% if is_index %}<li><a href="{% url "offering:pages:all_pages" course_slug=offering.slug %}">List All Pages</a></li>{% endif %}
+    {% if is_index %}
+        <li><a href="{% url "offering:pages:all_pages" course_slug=offering.slug %}">List All Pages</a></li>
+        {% if member.role == 'INST' %}<li><a href="{% url "offering:pages:permissions" course_slug=offering.slug %}">Manage additional permissions</a></li>{% endif %}
+    {% endif %}
     {% if can_edit %}
     <li><a href="{% url "offering:pages:edit_page" course_slug=offering.slug page_label=page.label %}">Edit this {% if version.is_filepage %}file{% else %}page{% endif %}</a></li>
     <li><a href="{% url "offering:pages:page_history" course_slug=offering.slug page_label=page.label %}">View History</a></li>{% endif %}

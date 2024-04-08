@@ -1,10 +1,16 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 
 {% block title %}Ta Contracts : Edit Contract{% endblock %}
 {% block h1 %}TA Contracts : Edit Contract{% endblock %}
 
 {% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+var persongradprograms_url = "{% url 'tacontracts:person_grad_programs' semester=semester %}";
+</script>
+<link rel="stylesheet" href="{% static 'style/tacontracts.css' %}" />
+<script type="text/javascript" src="{% static 'js/tacontracts.js' %}"></script>
 {% endblock %}
 
 {% block subbreadcrumbs %}

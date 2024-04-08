@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Additional Page Permissions{% endblock %}
+{% block h1 %}Additional Page Permissions{% endblock %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "offering:course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>
+<li><a href="{% url "offering:pages:index_page" course_slug=offering.slug %}">Pages</a></li>
+<li>Additional Permissions</li>
+{% endblock %}
+
+
+{% block content %}
+<p class="helptext">If you restrict viewing pages but would like to allow additional logged-in users to view them as a
+    student or TA would, you can do so here. Anyone you add here will be able to view your content (and as a TA-equivalent, edit it): use with appropriate caution.</p>
+
+<table>
+    <thead><tr><th scope="col">Person</th><th scope="col">Role</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for p in perms %}
+    <tr>
+        <td>{{ p.person.name_pref }} ({{ p.person.userid }})</td>
+        <td>{{ p.get_role_display }}</td>
+        <td>
+            <form class="lineform" method="POST" action="">{% csrf_token %}<input class="hidden" name="pid" value="{{ p.id }}" />
+            <button type='submit' class='btn' title="Delete" data-submit-action="delete this permission"><i class='fa fa-trash-o'></i></button>
+            </form>
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="3" class="empty">none</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+<h2 id="add">Add Permission</h2>
+<form method="post" action="">{% csrf_token %}
+{{ form | as_dl }}
+<p><input class="hidden" name="add" value="yes" /><input class="submit" type="submit" value="Add" /></p>
+</form>
+
+{% endblock %}

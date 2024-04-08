@@ -2,4 +2,6 @@ You recently started filling out the form "{{sheetsub.sheet.form.title}}" on {{ 
 
 You can access the form to complete it at {{ sheeturl }}.
 
-If you do not submit this form within 14 days of creating it, the system will automatically discard it.
+{% if not sheetsub.assigner and sheetsub.sheet.is_initial %}
+If you do not submit this form by {{sheetsub.estimate_dormant_close_date}}, the system will automatically discard it.
+{% endif %}
