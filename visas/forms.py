@@ -54,6 +54,9 @@ class VisaFilterForm(forms.Form):
 
     def __init__(self, units, person, *args, **kwargs):
         super(VisaFilterForm, self).__init__(*args, **kwargs)
-        units = [(str(u.label), str(u.informal_name())) for u in units]
-        self.fields['unit'].choices = [('all', 'All Units')] + units
+        if len(units) == 1:
+            self.fields['unit'].choices = [('all', units[0].informal_name())]
+        else:
+            units = [(str(u.label), str(u.informal_name())) for u in units]
+            self.fields['unit'].choices = [('all', 'All Units')] + units
         self.fields['hide_expired'].initial = False if person else True
