@@ -16,7 +16,7 @@ In `courses/secrets.py`:
 RABBITMQ_PASSWORD = 'rabbitmq_password'
 ```
 
-Make sure you have Vagrant and VirtualBox installed. Then,
+Make sure you have [VirtualBox](https://www.virtualbox.org/) and [Vagrant](http://vagrantup.com/) installed. Then,
 ```shell
 cd deploy
 vagrant up
@@ -38,6 +38,6 @@ python3 manage.py loaddata fixtures/*.json
 python3 manage.py update_index
 ```
 
-Head to http://localhost:8080/ and make sure things are working
+In theory, you can then access http://localhost:8080/ for the site, and http://localhost:8025/ for the development email.
 
-
+There is more information on the deployment in `deployment/README.md`.
