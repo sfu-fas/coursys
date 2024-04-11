@@ -65,8 +65,8 @@ class VisaDataJson(BaseDatatableView):
         if emplid:
             person = Person.objects.get(find_userid_or_emplid(self.emplid))
             qs = qs.visible_given_user(person)
-        else:
-            qs = qs.visible_by_unit(Unit.sub_units(self.request.units))
+        
+        qs = qs.visible_by_unit(Unit.sub_units(self.request.units))
 
         # search box
         srch = GET.get('sSearch', None)
@@ -148,7 +148,7 @@ def new_visa(request, emplid=None):
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def edit_visa(request, visa_id):
-    visa = get_object_or_404(Visa, pk=visa_id)
+    visa = get_object_or_404(Visa, pk=visa_id, hidden=False)
     if request.method == 'POST':
         form = VisaForm(request, request.POST, instance=visa)
         if form.is_valid():
@@ -174,14 +174,14 @@ def edit_visa(request, visa_id):
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def view_visa(request, visa_id):
-    visa = get_object_or_404(Visa, pk=visa_id)
+    visa = get_object_or_404(Visa, pk=visa_id, hidden=False)
     return render(request, 'visas/view_visa.html', {'visa': visa})
 
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def delete_visa(request, visa_id):
     if request.method == 'POST':
-        visa = get_object_or_404(Visa, pk=visa_id)
+        visa = get_object_or_404(Visa, pk=visa_id, hidden=False)
         messages.add_message(request,
                              messages.SUCCESS,
                             'Visa for %s was deleted.' % visa.person.name()
@@ -219,7 +219,7 @@ def download_visas_csv(request):
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 @transaction.atomic
 def new_attachment(request, visa_id):
-    visa = get_object_or_404(Visa, pk=visa_id)
+    visa = get_object_or_404(Visa, pk=visa_id, hidden=False)
     editor = get_object_or_404(Person, userid=request.user.username)
 
     form = VisaAttachmentForm()
@@ -252,7 +252,7 @@ def new_attachment(request, visa_id):
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def view_attachment(request, visa_id, attach_slug):
-    visa = get_object_or_404(Visa, pk=visa_id)
+    visa = get_object_or_404(Visa, pk=visa_id, hidden=False)
     attachment = get_object_or_404(visa.attachments.all(), slug=attach_slug)
     filename = attachment.contents.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
@@ -263,7 +263,7 @@ def view_attachment(request, visa_id, attach_slug):
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def download_attachment(request, visa_id, attach_slug):
-    visa = get_object_or_404(Visa, pk=visa_id)
+    visa = get_object_or_404(Visa, pk=visa_id, hidden=False)
     attachment = get_object_or_404(visa.attachments.all(), slug=attach_slug)
     filename = attachment.contents.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
@@ -274,7 +274,7 @@ def download_attachment(request, visa_id, attach_slug):
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def delete_attachment(request, visa_id, attach_slug):
-    visa = get_object_or_404(Visa, pk=visa_id)
+    visa = get_object_or_404(Visa, pk=visa_id, hidden=False)
     attachment = get_object_or_404(visa.attachments.all(), slug=attach_slug)
     attachment.hide()
     messages.add_message(request,
