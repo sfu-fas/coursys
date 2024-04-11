@@ -450,6 +450,7 @@ def deploy_checks(request=None):
 
     # github-flavoured markdown
     from courselib.github_markdown import markdown_to_html_rpc, markdown_to_html_subprocess
+    from amqp import AMQPError
     md = 'test *markup*\n\n```python\nprint(1)\n```\n\u2605\U0001F600'
     correct = '<p>test <em>markup</em></p>\n<pre lang="python"><code>print(1)\n</code></pre>\n<p>\u2605\U0001F600</p>'
 
@@ -476,6 +477,8 @@ def deploy_checks(request=None):
         failed.append(('Markdown RPC', 'unable to connect for RPC: docker container may be down'))
     except AttributeError:
         failed.append(('Markdown RPC', 'unable to connect to RabbitMQ: not configured in settings.py'))
+    except AMQPError as e:
+        failed.append(('Markdown RPC', 'unable to connect to RabbitMQ: ' + str(e)))
 
     # MOSS subprocess
     from submission.moss import check_moss_executable
