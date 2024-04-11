@@ -40,14 +40,15 @@ python3 manage.py check_things
 ```
 Or visit https://coursys.sfu.ca/sysadmin/panel (as an account with system admin role) and check the "Deployment Checks" tab.
 
-## CSRPT Tunnel
 
-An SSH tunnel to the reporting database must be created manually on system restart (or if it drops).
-The most effective way to do this seems to be to start a screen session (`screen`), start this command, and exit the screen session (ctrl-a d).
+## CSRPT Auth
+
+The production server must have [kerberos authentication](https://sfu.teamdynamix.com/TDClient/255/ITServices/KB/ArticleDet?ID=3932) done by someone with Reporting Database access. On the server, that can be done like this:
 ```shell
-ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -o ServerAliveInterval=60 -N USERNAME@pf.sfu.ca
+sudo su -l coursys
+/coursys/kinit.sh
 ```
-A periodic task will email `settings.ADMINS` if the tunnel is down.
+Enter your username and password when prompted. This creates authentication details in `~/kerberos` that are used by a cron job to regularly refresh the ticket.
 
 
 ## Common Tasks
