@@ -102,7 +102,7 @@ if deploy_mode != 'devel'
     command 'chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile'
     not_if 'cat /proc/swaps | grep /swapfile'
   end
-  execute 'fstap-swap' do
+  execute 'fstab-swap' do
     command 'echo "/swapfile swap swap defaults 0 0" >> /etc/fstab'
     not_if 'cat /etc/fstab | grep /swapfile'
   end
@@ -183,7 +183,7 @@ if deploy_mode != 'devel'
   template "#{data_root}/static/503.html" do
   end
 
-  package 'snapd'
+  #package 'snapd'
   #execute 'install-certbot' do
   #  command 'snap install --classic certbot'
   #  creates '/snap/bin/certbot'
