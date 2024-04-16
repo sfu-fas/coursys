@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from coredata.models import Person, Unit, Semester, Role
+from visas.models import Visa
 from courselib.json_fields import JSONField, config_property
 from courselib.json_fields import getter_setter
 from autoslug import AutoSlugField
@@ -935,6 +936,17 @@ class RARequest(models.Model):
             return "PhD"
         else:
             return ""
+
+    # only most recent 2 visas relevant for csvs
+    def get_visa_info(self):
+        today = datetime.datetime.today()
+        appointee_visas = Visa.objects.visible().filter(person=self.person, start_date__lte=today, end_date__gt=today).order_by('start_date')
+        if appointee_visas.count() == 0:
+            return None
+        elif appointee_visas.count() == 1:
+            return (appointee_visas[0], None)
+        else:
+            return (appointee_visas[0], appointee_visas[1])
 
     def get_absolute_url(self):
         return reverse('ra:view_request', kwargs={'ra_slug': self.slug})
