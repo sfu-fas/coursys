@@ -2,89 +2,49 @@
 {% load static %}
 {% load visa_display %}
 
-{% block title %}Visas{% if person %} for {{ person }}{% endif %}{% endblock %}
-{% block h1 %}Visas{% if person %} for {{ person }}{% endif %}{% endblock %}
+{% block title %}Visas{% if person %} for {{ person.name }}{% endif %}{% endblock %}
+{% block h1 %}Visas{% if person %} for {{ person.name }}{% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>Visas{% if person %} for {{ person }}{% endif %}</li>
+{% if person %}<li><a href="{% url "visas:list_all_visas" %}">Visas</a></li>{% endif %}
+<li>Visas{% if person %} for {{ person.name }}{% endif %}</li>
 {% endblock %}
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/visas.css" %}" type="text/css">
 <link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
+<script src="{% static 'js/visas.js' %}"></script>
 <script nonce="{{ CSP_NONCE }}">
 $(document).ready(function() {
-    $('#visas').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    'bLengthChange': false,
-    "bJQueryUI": true,
-    'aaSorting': [[3, 'asc']]
-  } );
+    var url = "{% if person %}{% url 'visas:list_all_visas' emplid=person.userid_or_emplid %}{% else %}{% url 'visas:list_all_visas' %}{% endif %}"
+    visa_browser_setup(url);
 } );
 </script>
 {% endblock %}
 
 {% block content %}
 
-<p>
-    <a href="{% url "visas:new_visa" %}">Add New Visa</a>
-    | <a href="{% url 'visas:download_visas_csv' %}">Download CSV</a>
-</p>
+<div class="actionlist">
+    {% if person %}
+        <a class="btn" href="{% url "visas:new_visa" emplid=person.userid_or_emplid %}">Add New Visa for {{ person.name }}</a>
+    {% else %}
+        <a class="btn" href="{% url "visas:new_visa" %}">Add New Visa</a>
+        <a class="btn" href="{% url "visas:download_visas_csv" %}">Download All Visas</a>
+    {% endif %}
+</div>
 
-{% if visa_list %}
-    <table id="visas" class="display">
-        <thead>
-            <tr>
-                <th>Person</th>
-                <th>ID</th>
-                <th>Unit</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Type</th>
-                <th>Validity</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for visa in visa_list %}
-                <tr {{ visa|add_visa_display_class }}>
-                    <td>
-                        {{ visa.person }} {% if visa.has_attachments %} &nbsp;
-                        <i class="fa fa-paperclip" title="Attachment(s)"></i>{% endif %}
-                    </td>
-                    <td>{{ visa.person.emplid }}</td>
-                    <td>{{ visa.unit.label }}</td>
-                    <td><span class="sort">{{ visa.start_date.isoformat }}</span>{{ visa.start_date }}</td>
-                    <td><span class="sort">{{ visa.end_date.isoformat }}</span>{{ visa.end_date }}</td>
-                    <td>{{ visa.status }}</td>
-                    <td>{{ visa.get_validity }}</td>
-                    <td>
-                        <form class="lineform" method="POST"
-                              action="{% url "visas:delete_visa" visa_id=visa.id %}">
-                            {% csrf_token %}
-                            <button type='submit' class='btn confirm-submit' title="Hide Visa" data-submit-action="delete this visa">
-                                <i class='fa fa-trash-o'></i>
-                            </button>
-                        </form>
-                        <a class="lineform" href="{% url "visas:edit_visa" visa_id=visa.id %}">
-                            <button type='submit' class='btn' title="Edit Visa">
-                                <i class='fa fa-edit'></i>
-                            </button>
-                        </a>
-                        <a class="lineform" href="{% url "visas:view_visa" visa_id=visa.id %}">
-                            <button type='submit' class='btn' title="View Visa">
-                                <i class='fa fa-eye'></i>
-                            </button>
-                        </a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-{% else %}
-    <h2>There are no visas to display.</h2>
-{% endif %}
+<form action="" id="filterform">
+    {{ form.as_ul }}
+</form>
+<table class="display" id="visa_table">
+<thead>
+    <tr>
+        <th scope="col">Person</th><th scope="col">ID</th><th scope="col">Unit</th>
+        <th scope="col">Start Date</th><th scope="col">End Date</th><th scope="col">Type</th>
+        <th scope="col">Validity</th>
+    </tr>
+</thead>
+<tbody></tbody>
+</table>
 
 {% endblock %}

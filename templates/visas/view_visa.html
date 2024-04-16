@@ -2,45 +2,62 @@
 {% load form_display %}
 {% load static %}
 
-{% block title %}View Visa{% endblock %}
-{% block h1 %}View Visa{% endblock %}
+{% block title %}View Visa for {{ visa.person.name }}{% endblock %}
+{% block h1 %}View Visa for {{ visa.person.name }}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "visas:list_all_visas" %}">Visas</a></li>
-<li>View Visa</li>
+<li>View Visa for {{ visa.person.name }}</li>
 {% endblock %}
 
 {% block actions %}
 <div id="actions">
   <h2>Actions</h2>
     <ul>
+        <li><a href="{% url 'visas:edit_visa' visa_id=visa.id %}">Edit Visa</a></li>
         <li><a href="{% url 'visas:new_attachment' visa_id=visa.id %}">Add File Attachment</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {% block content %}
-    <dt>Person</dt><dd>{{ visa.person }}</dd>
-    <dt>ID</dt><dd>{{ visa.person.emplid }}</dd>
-    <dt>Unit</dt><dd>{{ visa.unit.name }}</dd>
-    <dt>Status</dt><dd>{{ visa.get_status_display }}</dd>
-    <dt>Start Date</dt><dd>{{ visa.start_date }}</dd>
-    <dt>End Date</dt><dd>{{ visa.end_date }}</dd>
+<div class="table_container">
+  <i>(Click <a href="{% url 'visas:list_all_visas' emplid=visa.person.userid_or_emplid %}">here</a> to view all visas for {{ visa.person.name }})</i>
+  <table class="info">
+    <tr><th>Person</th><td>{{ visa.person }}</td></tr>
+    <tr><th>ID</th><td>{{ visa.person.emplid }}</td></tr>
+    <tr><th>Unit</th><td>{{ visa.unit.name }}</td></tr>
+    <tr><th>Status</th><td>{{ visa.get_status_display }}</td></tr>
+    <tr><th>Start Date</th><td>{{ visa.start_date }}</td></tr>
+    <tr><th>End Date</th><td>{{ visa.end_date }}</td></tr>
+  </table>
+</div>    
 
-    {% with attachments=visa.attachments.visible %}
-    {% if attachments %}
-    <h2 id="attachments">Attachments</h2>
-    <ul>
+<h2 id="attachments">Attachments</h2>
+  {% with attachments=visa.attachments.visible %}
+  {% if attachments %}
     {% for a in attachments %}
-    <li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
-      <a href="{% url 'visas:view_attachment' visa_id=visa.id  attach_slug=a.slug %}">View</a> |
-      <a href="{% url 'visas:download_attachment' visa_id=visa.id  attach_slug=a.slug %}">Download</a> |
-      <a href="{% url 'visas:delete_attachment' visa_id=visa.id  attach_slug=a.slug  %}">Delete</a>
-    </li>
+      <ul>
+        <li><b><u>{{ a.title }}</u></b><br>
+        ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }}) by {{a.created_by}}<br>
+        <a href="{% url 'visas:view_attachment' visa_id=visa.id  attach_slug=a.slug %}">View</a> |
+        <a href="{% url 'visas:download_attachment' visa_id=visa.id  attach_slug=a.slug %}">Download</a> |
+        <a href="{% url 'visas:delete_attachment' visa_id=visa.id  attach_slug=a.slug  %}">Delete</a>
+        </li>
+      </ul>
     {% endfor %}
-    </ul>
-    {% endif %}
-    {% endwith %}
+  {% else %}
+    <ul>No attachments found.</ul>
+  {% endif %} 
+  {% endwith %}
+  <ul><b><a href="{% url 'visas:new_attachment' visa_id=visa.id %}">+ Add File Attachment</a></b></ul>
+
+<h2>Delete</h2>
+<form action="{% url 'visas:delete_visa' visa_id=visa.id %}" method="post">
+{% csrf_token %}
+<p class="actionbutton">
+    <input type="submit" class="btn confirm-submit" value="Delete Visa" data-submit-action="delete this visa" />
+</p>
 
 {% endblock %}
 
