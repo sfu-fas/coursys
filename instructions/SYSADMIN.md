@@ -25,11 +25,11 @@ The services running in production are either docker containers (configured in `
 * Memcached (docker container): temporary caching (through the Django caching framework). May be safely restarted any time.
 * Ruby Markup microservice (docker container): a microservice to let us user the (Ruby-only) library for github-flavoured markdown.
 
+See `arch.png` for that in diagram form.
+
 ## Web Server
 
 The frontend web server is Nginx, which serves static files and proxies dynamic requests to Gunicorn. Its logs are in `/opt/nginx-logs/`. 
-
-We are using Let's Encrypt SSL/TLS certificates. A cron job runs `certbot renew` weekly, and should automatically update certificates as needed.
 
 ## System Checks
 
