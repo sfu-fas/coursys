@@ -23,7 +23,7 @@ raise 'Bad deploy_mode' unless ['devel', 'proddev', 'demo', 'production'].includ
 #  notifies :run, 'execute[apt-get update]', :immediately
 #end
 execute 'apt-get update' do
-  action :nothing
+  action :run
 end
 execute 'apt-get upgrade' do
   command 'apt-get dist-upgrade -y'
@@ -88,7 +88,7 @@ end
 # ruby for markdown markup
 package ['ruby', 'ruby-dev']
 execute 'github-markdown' do
-  command 'gem install commonmarker github-markup'
+  command 'gem install commonmarker -v 0.23.10 && gem install github-markup'
   creates '/usr/local/bin/github-markup'
 end
 
@@ -102,7 +102,7 @@ if deploy_mode != 'devel'
     command 'chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile'
     not_if 'cat /proc/swaps | grep /swapfile'
   end
-  execute 'fstap-swap' do
+  execute 'fstab-swap' do
     command 'echo "/swapfile swap swap defaults 0 0" >> /etc/fstab'
     not_if 'cat /etc/fstab | grep /swapfile'
   end
@@ -166,6 +166,13 @@ if deploy_mode != 'devel'
     action :create
   end
 
+  execute "pyopenssh-fix" do
+    # this is a hack around a broken pip3 + pyOpenSSL install, per https://stackoverflow.com/a/74243128/6871666
+    # It should only fire if currently needed (the "not_if" guard)
+    command "wget https://files.pythonhosted.org/packages/54/a7/2104f674a5a6845b04c8ff01659becc6b8978ca410b82b94287e0b1e018b/pyOpenSSL-24.1.0-py3-none-any.whl -O /tmp/pyOpenSSL-24.1.0-py3-none-any.whl && python3 -m easy_install /tmp/pyOpenSSL-24.1.0-py3-none-any.whl"
+    not_if "pip3 > /dev/null"
+  end
+
   execute "django-static" do
     command "python3 manage.py collectstatic --no-input"
     cwd coursys_dir
@@ -176,7 +183,7 @@ if deploy_mode != 'devel'
   template "#{data_root}/static/503.html" do
   end
 
-  package 'snapd'
+  #package 'snapd'
   #execute 'install-certbot' do
   #  command 'snap install --classic certbot'
   #  creates '/snap/bin/certbot'

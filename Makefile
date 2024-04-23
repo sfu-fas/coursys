@@ -81,7 +81,7 @@ rebuild:
 rebuild-hardcore:
 	#make chef
 	${SYSTEMCTL} daemon-reload # catches any changed service definitions
-	${SYSTEMCTL} stop ntp && sudo ntpdate ns2.sfu.ca && ${SYSTEMCTL} start ntp
+	make ntpdate
 	${DOCKERCOMPOSE} pull
 	make 503
 	${DOCKERCOMPOSE} restart
@@ -89,6 +89,9 @@ rebuild-hardcore:
 	make rebuild
 	make rm503
 	${SUCOURSYS} docker system prune -f # clear any orphaned docker images/containers
+
+ntpdate:
+	${SYSTEMCTL} stop ntp && (sudo ntpdate ns2.sfu.ca || sudo ntpdate pool.ntp.org) && ${SYSTEMCTL} start ntp
 
 chef:
 	sudo chef-solo -c ./deploy/solo.rb -j ./deploy/run-list.json

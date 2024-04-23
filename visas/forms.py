@@ -1,5 +1,5 @@
 from django import forms
-from .models import Visa, VisaDocumentAttachment
+from .models import Visa, VisaDocumentAttachment, VISA_STATUSES
 from coredata.widgets import CalendarWidget
 from coredata.forms import PersonField
 from coredata.models import Unit
@@ -44,3 +44,19 @@ class VisaAttachmentForm(forms.ModelForm):
     class Meta:
         model = VisaDocumentAttachment
         exclude = ("visa", "created_by")
+
+
+class VisaFilterForm(forms.Form):
+    hide_expired = forms.ChoiceField(label = 'Hide Expired?', choices = [(True, 'Yes'), (False, 'No')], widget=forms.RadioSelect())
+    start_date = forms.DateField(label = 'Min. Start Date', widget = forms.DateInput)
+    unit = forms.ChoiceField(initial = 'all')
+    type = forms.ChoiceField(choices = (('all', 'All Types'),) + VISA_STATUSES, initial='all')
+
+    def __init__(self, units, person, *args, **kwargs):
+        super(VisaFilterForm, self).__init__(*args, **kwargs)
+        if len(units) == 1:
+            self.fields['unit'].choices = [('all', units[0].informal_name())]
+        else:
+            units = [(str(u.label), str(u.informal_name())) for u in units]
+            self.fields['unit'].choices = [('all', 'All Units')] + units
+        self.fields['hide_expired'].initial = False if person else True
