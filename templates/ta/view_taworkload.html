@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/ta-tug-noprint.css' %}" media="all" />
+<link rel="stylesheet" href="{% static 'style/ta-tug-print.css' %}" media="print" />
+<script nonce="{{ CSP_NONCE }}">
+	$(document).ready(function() {
+		$('#print-tug').click(function(){
+			print();
+			return false;
+		});
+	});
+</script>
+ 
+{% endblock %}
+
+{% block title %}TA Workload Review{% endblock %}
+{% block h1 %}<div class="noprint">TA Workload Review</div>{% endblock %}
+
+{% block subbreadcrumbs %}
+    {% if user_role == "ADMN" %}
+    <li><a href="{% url "tugs:all_tugs_admin" %}">All TUGs</a></li>
+	<li>{{tug.member.person}}</li>
+    {% else %}{% if user_role != "TA" %}
+    <li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+    <li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li>
+    <li><a href="{% url "offering:manage_tas" course_slug=course.slug %}">Manage TAs</a></li>
+    <li>{{ta.person.name}}</li>
+    {% endif %}{% endif %}
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+{% if user_role == "ADMN" %}
+<li><a href="{% url "offering:edit_ta_workload" course_slug=course.slug userid=ta.person.userid %}">Edit TA Workload Review</a></li>
+{% else %}{% if user_role != "TA" %}
+<li><a href="{% url "offering:edit_ta_workload" course_slug=course.slug userid=ta.person.userid %}">Edit TA Workload Review</a></li>
+{% endif %}{% endif %}
+<li><a href="#" id="print-tug">Print Workload</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="noprint">
+<table>
+  <tr>
+      <td><b>Instructors:</b> {{ course.instructors_str }}</td>
+      <td><b>TA:</b> {{ta.person.name}}</td>
+  </tr>
+  <tr>
+  <td><b>Semester/Course:</b> {{course}}</td>
+  <td><b>Original Hours Assigned:</b> {{ tug.total_hours }} </td>
+  </tr>
+</table>
+<hr />
+<p><b>Will the number of hours required exceed the number of hours assigned?</b></p>  
+<p>{{ taworkload.reviewhour|yesno }} </p>  
+<p><b>Comment:</b></p>
+<p>{{ taworkload.reviewcomment }} </p>
+<p><b>Signature of instructor:</b></p>
+<p>{{ taworkload.reviewsignature }} </p>
+<p> <b>Date of Review:</b></p>
+<p> {{ taworkload.reviewdate }}.</p> 
+</div>
+
+<div id="tugPrintHeader">
+    Simon Fraser University<br/>
+    TA Workload Review
+</div>
+
+<div class="printonly">    
+    <div class="bigtopgap">        
+        <table style="width: 100%" class="bigtopgap">
+            <tr>
+                <td style="width: 66%;">Instructor:</td>
+                <td style="width: 33%;">TA/TM:</td>
+            </tr>
+            <tr style="height: 20px">
+                <td style="width: 66%; border-bottom: 1px solid;">{{course.instructors_str}}</p> </td>
+                <td style="width: 33%; border-bottom: 1px solid;">{{ta.person.name}}</td>
+            </tr>
+        </table>
+
+        <table style="width: 100%">
+            <tr>
+                <td style="width: 33%;">Semester: {{course.semester }}</td>
+                <td style="width: 33%;">Course #: {{course.name }}</td>
+                <td style="width: 33%;">Original hrs Assigned: {{ tug.total_hours }}</td>
+            </tr>
+                <tr style="height: 20px">
+                <td style="width: 33%; border-bottom: 1px solid;"></td>
+                <td style="width: 33%; border-bottom: 1px solid;"></td>
+                <td style="width: 33%; border-bottom: 1px solid;"></td>
+            </tr>
+        </table>
+        <div class="centre ul topgap">Will the number of hours required exceed the number of hours assigned?</div>
+		{% if taworkload %}
+		<div class="tugField centre">
+		{{ taworkload.reviewhour|yesno|title }}
+		</div>
+		{% else %}
+        <div class="centre topgap">YES &nbsp;&nbsp;&nbsp;NO</div>
+		{% endif %}
+        <table style="width: 100%">
+            <tr>
+                <td style="width: 33%;" class="centre">Signature of Instructor:</td>
+                <td style="width: 33%;"></td>
+                <td style="width: 33%;" class="centre">Date of Review</td>
+            </tr>
+			{% if taworkload %}
+            <tr style="height: 20px">
+                <td style="width: 33%; border-bottom: 1px solid;" class="centre">{{ taworkload.reviewsignature }}</td>
+                <td style="width: 33%;"></td>
+                <td style="width: 33%; border-bottom: 1px solid;" class="centre">{{ taworkload.reviewdate }}</td>
+            </tr>
+			{% else %}
+			<tr style="height: 20px">
+                <td style="width: 33%; border-bottom: 1px solid;" class="centre"></td>
+                <td style="width: 33%;"></td>
+                <td style="width: 33%; border-bottom: 1px solid;" class="centre"></td>
+            </tr>
+			{% endif %}
+        </table>
+        <div class="centre topgap">Decision if number of hours required exceeds the number or hours assigned:</div>
+		{% if taworkload %}		
+		<div class="tugField underline">
+		{{ taworkload.reviewcomment }}        
+		</div>
+        <table style="width: 100%">
+            <tr style="height: 30px">
+                <td style="width: 100%; border-bottom: 1px solid;"></td>
+            </tr>
+            <tr style="height: 30px">
+                <td style="width: 100%; border-bottom: 1px solid;"></td>
+            </tr>           
+        </table>		
+		{% else %}
+        <table style="width: 100%">
+            <tr style="height: 30px">
+                <td style="width: 100%; border-bottom: 1px solid;"></td>
+            </tr>
+            <tr style="height: 30px">
+                <td style="width: 100%; border-bottom: 1px solid;"></td>
+            </tr>
+            <tr style="height: 30px">
+                <td style="width: 100%; border-bottom: 1px solid;"></td>
+            </tr>
+        </table>		
+		{% endif %}
+        <table style="width: 100%">
+            <tr style="height: 30px">
+                <td style="width: 40%; border-bottom: 2px solid;"></td>
+                <td style="width: 40%;">"Signature of Authorized person in the Department"</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

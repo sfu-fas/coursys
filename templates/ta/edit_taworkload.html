@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+  $("#id_reviewdate").datepicker({'dateFormat': 'yy-mm-dd'});
+  if ($("#id_reviewdate").val().length == 0)
+    $("#id_reviewdate").datepicker('setDate', new Date());
+});
+</script>
+{% endblock %}
+
+{% block title %}TA Workload Review{% endblock %}
+{% block h1 %}TA Workload Review{% endblock %}
+
+{% block subbreadcrumbs %}
+    {% if user_role == "ADMN" %}
+    <li><a href="{% url "tugs:all_tugs_admin" %}">All TUGs</a></li>
+	<li>{{tug.member.person}}</li>
+    {% else %}
+    <li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+    <li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li>
+    <li><a href="{% url "offering:manage_tas" course_slug=course.slug %}">Manage TAs</a></li>
+    <li>{{ta.person.name}}</li>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<table>
+    <tr>
+        <td><b>Instructors:</b> {{ course.instructors_str }}</p>    </td>
+        <td><b>TA:</b> {{ta.person.name}}</td>
+    </tr>
+    <tr>
+    <td><b>Semester/Course:</b> {{course}}</td>
+    <td><b>Original Hours Assigned:</b> {{ tug.total_hours }} </td>
+    </tr>
+</table>
+{% if tug %}
+<p align="center"><a href="{% url "offering:view_tug" course_slug=course.slug userid=ta.person.userid %}" target="_blank">View TUG - Last Updated: {{ tug.last_update|default:"Unknown" }}</a></p>
+<div>
+<form action="" method="post" id="edit-ta-workload-review">{% csrf_token %}
+<fieldset>
+{{ form|as_dl_safe }}
+<p><input type="submit" class="submit" value="Submit TA workload review" /></p>
+</fieldset>
+
+</form>
+{% endif %}
+</div>
+
+
+<script type="text/javascript" src="{{STATIC_URL}}js/ta.js"></script>
+<script nonce="{{ CSP_NONCE }}">
+ 
+</script>
+{% block extrascripts %}{% endblock %}
+{% endblock %}

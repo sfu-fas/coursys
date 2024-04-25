@@ -5,7 +5,7 @@ from collections import OrderedDict
 from coredata.models import Member, Role, Person
 from coredata.widgets import CalendarWidget
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
-        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES, TAContractEmailText
+        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES, TAContractEmailText, TAWorkloadReview
 from ta.util import table_row__Form
 import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
@@ -180,6 +180,45 @@ class TUGForm(forms.ModelForm):
         return super(TUGForm, self).save(*args, **kwargs)
 
 
+class TAWorkloadReviewForm(forms.ModelForm):
+    from datetime import date
+    reviewhour = forms.ChoiceField(label="Will the number of hours required exceed the number of hours assigned?", required=True, 
+        help_text='Choose "yes" if further review is required.', widget=forms.RadioSelect, choices=[( True, 'Yes'), (False, 'No')],)
+    reviewcomment = forms.CharField(label="Comment", required=False, widget=forms.Textarea(),
+        help_text='Please add a comment if above answer is "yes".')
+    reviewsignature = forms.CharField(label="Signature of Instructor", required=True, 
+        help_text='Please type your first and last name.')    
+    reviewdate = forms.DateField(label="Date of Review",
+        help_text='YYYY-MM-DD', required=True)
+
+
+    class Meta:
+        model = TAWorkloadReview
+        exclude = ('member','last_update') 
+    
+    def __init__(self, *args, **kwargs):
+        super(TAWorkloadReviewForm, self).__init__(*args, **kwargs)
+
+    def clean_reviewhour(self):
+        reviewhour = self.cleaned_data['reviewhour']
+        self.instance.reviewhour = reviewhour        
+        return reviewhour
+    
+    def clean_reviewcomment(self):
+        reviewcomment = self.cleaned_data['reviewcomment']
+        self.instance.reviewcomment = reviewcomment        
+        return reviewcomment
+    
+    def clean_reviewsignature(self):
+        reviewsignature = self.cleaned_data['reviewsignature']
+        self.instance.reviewsignature = reviewsignature        
+        return reviewsignature
+
+    def clean_reviewdate(self):
+        reviewdate = self.cleaned_data['reviewdate']
+        self.instance.reviewdate = reviewdate
+        return reviewdate
+ 
 class TAApplicationForm(forms.ModelForm):
     sin_default = '000000000'
     class Meta:
@@ -707,4 +746,3 @@ class TAContractEmailTextForm(forms.ModelForm):
         widgets = {
             'content': forms.Textarea(attrs={'rows': '20', 'cols': '60'}),
         }
-
