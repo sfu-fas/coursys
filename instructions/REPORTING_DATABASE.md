@@ -29,7 +29,7 @@ After that, your CourSys instance should be able to do reporting DB queries. Thi
 
 ## Auth in Production
 
-The production server must have [kerberos authentication](https://www.rcg.sfu.ca/workstations/kerberos.html#q-22-the-answer-to-q-21-isn-t-good-enough-i-need-my-processes-to-run-unattended-for-weeks) done by someone with Reporting Database access. On the server, that can be done like this:
+The production server must have [kerberos authentication](https://sfu.teamdynamix.com/TDClient/255/ITServices/KB/ArticleDet?ID=3932) done by someone with Reporting Database access. On the server, that can be done like this:
 ```shell
 sudo su -l coursys
 /coursys/kinit.sh

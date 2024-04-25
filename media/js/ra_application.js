@@ -324,6 +324,7 @@ function grasBW () {
     if (totalPay == '') {
         totalPay = parseInt(0).toFixed(2)
     }
+    totalPay = parseFloat(totalPay).toFixed(2)
     $('#id_graduate_research_assistant-biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
     $('.biweekly_rate_calc').text('Total Pay (' + totalPay + ') / Pay Periods (' + payPeriods + ')')
@@ -337,6 +338,7 @@ function grasLS () {
     if (totalPay == '') {
         totalPay = parseInt(0).toFixed(2)
     } 
+    totalPay = parseFloat(totalPay).toFixed(2)
     $('#id_graduate_research_assistant-total_pay').val(totalPay)
     $('.total_pay_info').text(totalPay)
     $('.total_pay_calc').text('Total Gross (' + totalPay + ')')
@@ -365,6 +367,7 @@ function raBW () {
     if (totalPay == '') {
         totalPay = parseInt(0).toFixed(2)
     }
+    totalPay = parseFloat(totalPay).toFixed(2)
     $('#id_research_assistant-biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
     $('.biweekly_rate_calc').text('Total Pay (' + totalPay + ') / Pay Periods (' + payPeriods + ')')
@@ -412,9 +415,9 @@ function ncBW () {
     biweeklySalary = biweeklySalary.toFixed(2)
     hourlyRate = hourlyRate.toFixed(2)
     if (totalPay == '') {
-        totalPay = 0
+        totalPay = parseInt(0).toFixed(2)
     }
-    totalPay = parseInt(totalPay).toFixed(2)
+    totalPay = parseFloat(totalPay).toFixed(2)
     $('#id_non_continuing-biweekly_salary').val(biweeklySalary)
     $('.biweekly_rate_info').text(biweeklySalary)
     $('.biweekly_rate_calc').text('Total Pay (' + totalPay + ') / Pay Periods (' + payPeriods + ')')

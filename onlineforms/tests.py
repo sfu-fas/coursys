@@ -311,7 +311,9 @@ class ViewTestCase(TestCase):
                         'admin_assign_any',
                         'list_all',
                         'new_form',
-                        'index']
+                        'index',
+                        'bulk_close_pending',
+                        'bulk_close_waiting']
         self.run_basic_page_tests(views, {})
 
     def test_formgroup_pages(self):

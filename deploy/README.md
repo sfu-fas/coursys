@@ -1,50 +1,6 @@
 ## Proddev VM Setup
 
-Install [VirtualBox](https://www.virtualbox.org/) and [Vagrant](http://vagrantup.com/).
-
-Create `courses/localsettings.py` with `localsettings-proddev-example.py` as a template.
-
-Get the VM running:
-```sh
-cd deploy
-vagrant up
-```
-
-In the VM (i.e. after `vagrant ssh`),
-```sh
-cd /coursys
-docker-compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
-./manage.py migrate
-./manage.py loaddata fixtures/*.json
-./manage.py update_index
-make proddev-start-all
-```
-In theory, you can then access http://localhost:8080/ for the site, and http://localhost:8025/ for the development email.
-
-## Demo Server Setup
-
-See `instructions/DEMO_SERVER_SETUP.md`.
-
-## Proddev VM Setup: different user
-
-This is used to test having a different login/sudo user from the user running the CourSys code, as we do in production. In the `Vagrantfile`, set the username in `CONFIG` to "coursys" and comment-out the `config.vm.synced_folder` line. 
-
-Start with a `vagrant up`. In the VM (`vagrant ssh`),
-```sh
-sudo su -l coursys
-cd /coursys
-```
-
-Create `courses/localsettings.py` with `localsettings-proddev-example.py` as a template.
-```sh
-docker-compose -f docker-compose.yml -f docker-compose-proddev.yml up -d
-./manage.py migrate
-./manage.py loaddata fixtures/*.json
-./manage.py update_index
-make proddev-start
-make start-all
-```
-
+See `instructions/VM_PRODDEV.md` for setup information
 
 ## Production Server Setup
 

@@ -53,9 +53,9 @@ OBJECT_CHOICES = (
 # model with a single entry doesn't seem quite right? django-dbsettings?
 
 # deal with upcoming minimum wage increases (only one at a time)
-NEW_MIN_WAGE_DATE = datetime.date(2023, 6, 1) # Update to most recent or upcoming minimum wage increase date, once known
-NEW_MIN_WAGE = 16.75 # Update to most recent or upcoming new minimum wage, once known
-MIN_WAGE = 15.65 # Update to new minimum wage once another upcoming minimum wage is known 
+NEW_MIN_WAGE_DATE = datetime.date(2024, 6, 1) # Update to most recent or upcoming minimum wage increase date, once known
+NEW_MIN_WAGE = 17.40 # Update to most recent or upcoming new minimum wage, once known
+MIN_WAGE = 16.75 # Update to new minimum wage once another upcoming minimum wage is known 
 
 def get_minimum_wage(date):
     if date >= NEW_MIN_WAGE_DATE:
@@ -80,7 +80,7 @@ CS_CONTACT = "csrahelp@sfu.ca"
 MSE_CONTACT = "mse_admin_assistant@sfu.ca"
 ENSC_CONTACT = "enscfin@sfu.ca"
 SEE_CONTACT = "fas_admin_manager@sfu.ca"
-DEANS_CONTACT = "mrahinsk@sfu.ca"
+DEANS_CONTACT = "fas_budget_manager@sfu.ca"
 # general ra contact
 FAS_CONTACT = "fasra@sfu.ca"
 # intro contacts

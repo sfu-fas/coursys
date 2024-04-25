@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# based on https://www.rcg.sfu.ca/workstations/kerberos.html
+# based on https://sfu.teamdynamix.com/TDClient/255/ITServices/KB/ArticleDet?ID=3932
 set -e 
 
 printf "Username: "

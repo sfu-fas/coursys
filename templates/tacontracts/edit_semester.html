@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 
 {% block title %}TA Contracts : Edit Semester {{hiring_semester.semester.name}}{% endblock %}
 {% block h1 %}TA Contracts : Edit Semester {{hiring_semester.semester.name}}{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{% static 'js/tacontracts.js' %}"></script>
 {% endblock %}
 
 {% block subbreadcrumbs %}

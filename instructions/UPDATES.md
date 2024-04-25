@@ -5,6 +5,9 @@ And how do we validate that things are okay after the update?
 
 ## Python Pip
 
+### Django
+
+check DB version
 
 
 ### Celery

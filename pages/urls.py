@@ -8,6 +8,7 @@ pages_patterns = [ # prefix /COURSE_SLUG/pages/
     url(r'^_new$', pages_views.new_page, name='new_page'),
     url(r'^_newfile$', pages_views.new_file, name='new_file'),
     url(r'^_push$', pages_views.api_import, name='api_import'),
+    url(r'^_permissions', pages_views.permissions, name='permissions'),
     url(r'^' + PAGE_LABEL + '$', pages_views.view_page, name='view_page'),
     url(r'^' + PAGE_LABEL + '/view$', pages_views.view_file, name='view_file'),
     url(r'^' + PAGE_LABEL + '/download$', pages_views.download_file, name='download_file'),

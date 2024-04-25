@@ -18,6 +18,7 @@ tacontract_patterns = [ # prefix /tacontract/
     url(r'^description/' + DESCRIPTION_ID + '/delete$', tacontracts_views.delete_description,
         name='delete_description'),
     url(r'^new_semester$', tacontracts_views.new_semester, name='new_semester'),
+    url(r'^_persongradprogams/(?P<semester>\d+)$', tacontracts_views.person_grad_programs, name='person_grad_programs'),
 
     url(r'^student/'+SEMESTER+'$', tacontracts_views.student_contract, name='student_contract'),
     url(r'^student/'+SEMESTER+'/'+CONTRACT_SLUG+'$', tacontracts_views.accept_contract, name='accept_contract'),

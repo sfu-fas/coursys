@@ -6,7 +6,7 @@ from autoslug import AutoSlugField
 from django.db import models
 
 from django.conf import settings
-
+from django.urls import reverse
 from coredata.models import VISA_STATUSES as REAL_VISA_STATUSES, Person, Unit
 from django.utils import timezone
 from courselib.json_fields import JSONField
@@ -121,6 +121,8 @@ class Visa (models.Model):
         """
         return Visa.objects.visible().filter(person__in=people).order_by('start_date')
 
+    def get_absolute_url(self):
+        return reverse('visas:view_visa', kwargs={'visa_id': self.id})
 
 def visa_attachment_upload_to(instance, filename):
     return upload_path('visas', filename)
