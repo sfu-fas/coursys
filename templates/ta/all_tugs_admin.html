@@ -51,6 +51,7 @@
         <th scope="col">TUG</th>
         <th scope="col">BU</th>
         <th scope="col">Hours</th>
+        <th scope="col">TA Workload Review</th>  
     </tr>
 </thead>
 <tbody>
@@ -78,6 +79,20 @@
   <td class="{% if data.tug and data.tug.total_hours > data.tug.max_hours %}over{% endif %}">
   	{% if data.tug %}
   	{{data.tug.total_hours}} / {{data.tug.max_hours}}
+  	{% endif %}
+  </td>
+  <td>
+  	{% if data.tug and data.ta.offering.owner.label == 'CMPT' and is_wr_visible %}  	
+      {% if data.taworkload.reviewdate %}
+        <a href="{% url "offering:view_ta_workload" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Reviewed on: {{ data.taworkload.reviewdate|default:"Unknown" }} <br> 
+          {% if data.taworkload.reviewhour %} <i class="fa fa-star">Need Action</i>{% endif %}</a>
+  	  {% else %}
+        {% if data.is_instr or admin %}
+        <a href="{% url "offering:new_ta_workload" course_slug=data.ta.offering.slug userid=data.ta.person.userid_or_emplid %}">Create</a>
+        {% endif %}
+      {% endif %}  
+    {% else %}
+      --
   	{% endif %}
   </td>
   </tr>

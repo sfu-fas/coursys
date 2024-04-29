@@ -72,7 +72,9 @@ offering_patterns = [ # prefix /COURSE_SLUG/
     url(r'^config/tugs/' + USERID_SLUG + '/new$', ta_views.new_tug, name='new_tug'),
     url(r'^config/tugs/' + USERID_SLUG + '/edit$', ta_views.edit_tug, name='edit_tug'),
     url(r'^config/taoffers/$', ta_views.ta_offers, name='ta_offers'),
-
+    url(r'^config/taworkload/' + USERID_SLUG + '/$', ta_views.view_ta_workload, name='view_ta_workload'),
+    url(r'^config/taworkload/' + USERID_SLUG + '/new$', ta_views.new_ta_workload, name='new_ta_workload'),
+    url(r'^config/taworkload/' + USERID_SLUG + '/edit$', ta_views.edit_ta_workload, name='edit_ta_workload'),
     url(r'^groups$', RedirectView.as_view(url='/%(course_slug)s/groups/', permanent=True)),
     url(r'^groups/', include((group_patterns, 'groups'), namespace='groups')),
     url(r'^discussion/', include((discussion_patterns, 'discussion'), namespace='discussion')),
