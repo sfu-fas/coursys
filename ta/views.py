@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse, HttpRequest
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.db.models import Q
@@ -12,17 +12,17 @@ from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
     CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU, \
-    HOLIDAY_HOURS_PER_BU, LAB_PREP_HOURS, TAContractEmailText
+    HOLIDAY_HOURS_PER_BU, LAB_PREP_HOURS, TAContractEmailText, TAWorkloadReview
 from tacontracts.models import TACourse as NewTACourse
 from ra.models import Account
 from grad.models import GradStudent, STATUS_REAL_PROGRAM, STATUS_ACTIVE
 from dashboard.models import NewsItem
-from coredata.models import Member, Role, CourseOffering, Person, Semester, CAMPUSES, CombinedOffering
+from coredata.models import Member, Role, CourseOffering, Person, Semester, CAMPUSES, CombinedOffering, SemesterWeek
 from coredata.queries import more_personal_info, SIMSProblem, ensure_person_from_userid
 from grad.models import GradStatus, GradStudent, Supervisor
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
-    CourseDescriptionForm, LabelledHidden, NewTAContractForm, TAContractEmailTextForm
+    CourseDescriptionForm, LabelledHidden, NewTAContractForm, TAContractEmailTextForm, TAWorkloadReviewForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form, ta_forms
@@ -35,6 +35,10 @@ from ta.templatetags import ta_display
 import json
 from . import bu_rules
 import iso8601;
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+from collections import OrderedDict
+from formtools.wizard.views import SessionWizardView
 
 locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' ) #fiddle with this if you cant get the following function to work
 def _format_currency(i):
@@ -145,11 +149,18 @@ def all_tugs_admin(request, semester_name=None):
     all_tugs = TUG.objects.filter(member__in=all_tas).select_related('member__person')
     tug_dict = dict((tug.member_id, tug) for tug in all_tugs)
 
+    all_taworkloads = TAWorkloadReview.objects.filter(member__in=all_tas).select_related('member__person')
+    taworkload_dict = dict((taworkload.member_id, taworkload) for taworkload in all_taworkloads)
+
+    sw5 = SemesterWeek.objects.get(semester=semester, week=1).monday + datetime.timedelta(days=28) # week 5 - 28 days
+    is_wr_visible = datetime.date.today() >= sw5
+
     tas_with_tugs = [
         {
             'ta': ta,
             'tug': tug_dict.get(ta.id, None),
-            'is_instr': ta in instr_tas
+            'is_instr': ta in instr_tas,
+            'taworkload': taworkload_dict.get(ta.id, None)
         }
         for ta in all_tas]
 
@@ -157,6 +168,7 @@ def all_tugs_admin(request, semester_name=None):
             'admin': admin,
             'semester': semester,
             'tas_with_tugs': tas_with_tugs,
+            'is_wr_visible': is_wr_visible
             }
 
     return render(request, 'ta/all_tugs_admin.html', context)
@@ -210,7 +222,12 @@ def view_tug(request, course_slug, userid):
             hours_per_bu = HOURS_PER_BU
             total_bu = tug.base_units + LAB_BONUS_DECIMAL
             max_hours = tug.base_units * HOURS_PER_BU
-        
+
+        try:
+            taworkload = TAWorkloadReview.objects.get(member=member)
+        except TAWorkloadReview.DoesNotExist:            
+            taworkload = None
+
         context = {'tug': tug, 
                 'ta':member, 
                 'course':course, 
@@ -226,7 +243,8 @@ def view_tug(request, course_slug, userid):
                 'lab_bonus_hours': lab_bonus_decimal*hours_per_bu,
                 'hours_per_bu': hours_per_bu,
                 'holiday_hours_per_bu': holiday_hours_per_bu,
-                'total_bu': total_bu
+                'total_bu': total_bu,
+                'taworkload': taworkload
                 }
         return render(request, 'ta/view_tug.html',context)
 
@@ -302,6 +320,79 @@ def _edit_tug(request, course_slug, userid, tug=None):
     return render(request,'ta/edit_tug.html',context)
 
 
+@_requires_course_staff_or_admin_by_slug
+def view_ta_workload(request, course_slug, userid):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    member = get_object_or_404(Member, offering=course, person__userid=userid, role="TA")  
+        
+    try:
+        curr_user_role = Member.objects.exclude(role='DROP').get(person__userid=request.user.username, offering=course).role
+    except Member.DoesNotExist:
+        # we'll just assume this since it's the only other possibility 
+        #  since we're checking authorization in the decorator
+        curr_user_role = "ADMN"
+    
+    #If the currently logged in user is a TA for the course and is viewing a TUG for another TA, show forbidden message
+    if curr_user_role=="TA" and not userid==request.user.username: 
+        return ForbiddenResponse(request)
+    else:
+        tug = get_object_or_404(TUG, member=member)        
+        taworkload = get_object_or_404(TAWorkloadReview, member__offering__slug=course_slug, member__person__userid=userid, member__role='TA')
+        
+         
+        context = {'tug': tug, 
+                'ta':member, 
+                'course':course,
+                'taworkload': taworkload,
+                'user_role': curr_user_role,
+                }
+        return render(request, 'ta/view_taworkload.html',context)
+
+
+@_requires_course_instr_or_admin_by_slug
+def new_ta_workload(request, course_slug, userid):
+    return _edit_ta_workload(request, course_slug, userid)
+
+@_requires_course_instr_or_admin_by_slug
+def edit_ta_workload(request, course_slug, userid):
+    taworkload = get_object_or_404(TAWorkloadReview, member__offering__slug=course_slug, member__person__userid=userid, member__role='TA')
+    return _edit_ta_workload(request, course_slug, userid, taworkload=taworkload)
+
+@transaction.atomic
+def _edit_ta_workload(request, course_slug, userid, taworkload=None):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
+    #tug = get_object_or_404(TUG, member__offering__slug=course_slug, member__person__userid=userid, member__role='TA')
+    tug = get_object_or_404(TUG, member=member)
+
+    if not taworkload:
+        taworkload = TAWorkloadReview(member=member)
+        description = "Create Workload Review for TA %s "  % userid 
+    else:
+        description = "Edit Workload Review for TA %s "  % userid          
+    
+    ta_workloadreviewform = TAWorkloadReviewForm(request.POST or None, instance=taworkload)
+    
+    if request.method == "POST":
+        if ta_workloadreviewform.is_valid():
+            ta_workloadreviewform.save()                        
+           
+            l = LogEntry(userid=request.user.username,
+                        description=description,
+                        related_object=taworkload)
+            l.save()
+
+            return HttpResponseRedirect(reverse('offering:view_ta_workload', args=(course.slug, userid)))
+        
+    context = {'ta':member,
+               'course':course,               
+               'userid':userid,
+               'tug': tug,
+               'taworkload': taworkload,
+               'user_role': 'ADMN',
+               'form': ta_workloadreviewform 
+               }
+    return render(request,'ta/edit_taworkload.html',context)
 
 @requires_role("TAAD")
 def new_application_manual(request, post_slug):
