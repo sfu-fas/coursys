@@ -169,6 +169,50 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOUR
         """
         return round(sum((decimal.Decimal(data['total']) for _,data in self.iterfielditems() if data['total'])), 2)
 
+class TAWorkloadReview(models.Model):
+    """
+    WR filled out by instructors
+    
+    Based on form in Appendix C (p. 73) of the collective agreement:
+    http://www.tssu.ca/wp-content/uploads/2010/01/CA-2004-2010.pdf
+    """	
+    member = models.OneToOneField(Member, null=False, on_delete=models.PROTECT)    
+    last_update = models.DateField(auto_now=True)
+    reviewhour= models.BooleanField(help_text='Choose "yes" if further review is required.')
+    reviewcomment = models.TextField(help_text='If No, explain briefly')
+    reviewsignature = models.CharField(max_length=100, help_text="Instruction's Signature")
+    reviewdate = models.DateField(help_text='Year/Month/Day')
+    
+
+    def save(self, newsitem=True, newsitem_author=None, *args, **kwargs):      
+        super(TAWorkloadReview, self).save(*args, **kwargs)
+        if newsitem:
+            n = NewsItem(user=self.member.person, author=newsitem_author, course=self.member.offering,
+                    source_app='ta', title='%s TA Workload Review Changed' % (self.member.offering.name()),
+                    content='Your TA Workload Review for %s has been changed. If you have not already, please review it with the instructor.' % (self.member.offering.name()),
+                    url=self.get_absolute_url())
+            n.save()
+        if self.reviewhour:
+            self.send_notify()
+
+    def get_absolute_url(self):
+        return reverse('offering:view_ta_workload', kwargs={
+                'course_slug': self.member.offering.slug, 
+                'userid':self.member.person.userid})    
+
+    def send_notify(self):
+        subject = "Need action: TA %s Workload Review for %s (%s) needs action." % (self.member.person.name(), self.member.offering.name(), self.member.offering.semester)
+        content = "Need action: TA %s Workload Review for %s (%s) needs action.\nFor more information, see %s" \
+            % (self.member.person.name(), self.member.offering.name(),  self.member.offering.semester, settings.BASE_ABS_URL + self.get_absolute_url())
+        
+        posting = TAPosting.objects.get(semester=self.member.offering.semester, unit=self.member.offering.owner)
+
+        to_email = posting.contact().email()
+        from_email = settings.DEFAULT_FROM_EMAIL
+        msg = EmailMultiAlternatives(subject=subject, body=content, from_email=from_email,
+                                     to=[to_email], headers={'X-coursys-topic': 'ta'})        
+        msg.send()
+
 CATEGORY_CHOICES = ( # order must match list in TAPosting.config['salary']
         ('GTA1', 'Masters'),
         ('GTA2', 'PhD'),

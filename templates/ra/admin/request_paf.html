@@ -115,7 +115,9 @@
           {% endif %}
         {% endif %}
       {% endif %}
-      <a href="{% url "visas:new_visa" emplid=req.person.userid_or_emplid %}"><b>+ Add New Visa for {{ req.get_name }}</b></a>
+      {% if req.person %}
+        <a href="{% url "visas:new_visa" emplid=req.person.userid_or_emplid %}"><b>+ Add New Visa for {{ req.get_name }}</b></a>
+      {% endif %}
     </ul>
   </div>
 

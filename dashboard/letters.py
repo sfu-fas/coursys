@@ -24,7 +24,7 @@ from coredata.models import Semester, Person
 from grad.models import STATUS_APPLICANT
 from courselib.branding import product_name
 from ra.forms import CS_CONTACT, ENSC_CONTACT, SEE_CONTACT, MSE_CONTACT, FAS_CONTACT
-
+import iso8601;
 
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
@@ -2227,6 +2227,12 @@ class TAForm(object):
         scholarship_pay = bu * contract.scholarship_per_bu
         biweekly_scholarship = scholarship_pay / payperiods
 
+        acc_date = ''        
+        if contract.status == 'ACC' and contract.config.get('accepted_date') is not None:  
+            if type(contract.config.get('accepted_date')) is str:
+                acc_date = contract.config.get('accepted_date')[:10]
+            else:
+                acc_date = contract.config.get('accepted_date').strftime("%Y/%m/%d")     
 
         return self.draw_form(
             emplid=contract.application.person.emplid,
@@ -2250,6 +2256,7 @@ class TAForm(object):
             total_schol=scholarship_pay,
             biweek_schol=biweekly_scholarship,
             remarks=contract.remarks,
+            acc_date=acc_date,
             sigs=Signature.objects.filter(user__userid=contract.created_by),
         )
 
@@ -2301,12 +2308,13 @@ class TAForm(object):
             total_schol=contract.scholarship_pay,
             biweek_schol=contract.biweekly_scholarship,
             remarks=contract.comments,
+            acc_date='',
             sigs=Signature.objects.filter(user__userid=contract.created_by),
         )
 
     def draw_form(self, emplid, sin, last_name, first_name, unit_name, deptid, appointment_start, appointment_end,
                   pay_start, pay_end, initial_appointment_fill, reappointment_fill, position_number, courses,
-                  appt_category, appt_cond, total_pay, biweek_pay, total_schol, biweek_schol, remarks, sigs):
+                  appt_category, appt_cond, total_pay, biweek_pay, total_schol, biweek_schol, remarks, acc_date, sigs):
         """
         Generic TA Form drawing method: probably called by one of the above that abstract out the object details.
         """
@@ -2487,7 +2495,8 @@ class TAForm(object):
         self.c.setFont("Helvetica", self.CONTENT_SIZE)
         date = datetime.date.today()
         self.c.drawString(10*mm, 2*mm, str(date))
-
+        self.c.drawString(131*mm, 2*mm, acc_date)
+        
         # links
         self.c.setLineWidth(0.3)
         self.c.linkURL('https://www2.gov.bc.ca/gov/content/employment-business/employment-standards-advice/employment-standards/forms-resources/igm', (1*mm, -4*mm, 24*mm, -3.5*mm), relative=1)

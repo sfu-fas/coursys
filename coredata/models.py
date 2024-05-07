@@ -1444,8 +1444,18 @@ class Member(models.Model, ConditionalSaveMixin):
         else:
             tug = None
         return tug
+    
+    def get_tawr(self):
+        assert self.role == 'TA'
+        from ta.models import TAWorkloadReview
 
-
+        tawrs = TAWorkloadReview.objects.filter(member=self)
+        if tawrs:
+            tawr = tawrs[0]
+        else:
+            tawr = None
+        return tawr
+ 
     def svn_url(self):
         "SVN URL for this member (assuming offering.uses_svn())"
         return urllib.parse.urljoin(settings.SVN_URL_BASE, repo_name(self.offering, self.person.userid))
