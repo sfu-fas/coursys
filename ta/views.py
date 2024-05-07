@@ -46,7 +46,7 @@ def _format_currency(i):
     return locale.currency(float(i), grouping=True)
 
 
-def _create_news(person, url, from_user, accept_deadline):
+def _create_news(person, url, from_user, accept_deadline, total_bu ):
 
     # attempt to e-mail the student's supervisor
     gradstudents = GradStudent.objects.filter(person=person, current_status__in=STATUS_ACTIVE)
@@ -62,7 +62,7 @@ def _create_news(person, url, from_user, accept_deadline):
                          source_app="ta_contract",
                          title="TA Contract Offer for %s" % person,
                          author=from_user,
-                         content="Your student %s has been offered a TA contract." % person
+                         content="Your student %s has been offered a TA contract with %s BUs." % (person, total_bu)
                          )
             n.save()
 
@@ -1232,7 +1232,7 @@ def all_contracts(request, post_slug):
                 app = contract.application.person
                 offer_url = reverse('ta:accept_contract', kwargs={'post_slug': post_slug, 'userid': app.userid})
                 contract.status = 'OPN'
-                _create_news(app, offer_url, from_user, contract.deadline)
+                _create_news(app, offer_url, from_user, contract.deadline, contract.total_bu())
                 contract.save()
                 ccount += 1
                 
@@ -1632,7 +1632,7 @@ def edit_contract(request, post_slug, userid):
                 offer_url = reverse('ta:accept_contract', kwargs={'post_slug': post_slug, 'userid': userid})
                 from_user = posting.contact()
                 if contract.status == 'OPN':
-                    _create_news(person, offer_url, from_user, contract.deadline)
+                    _create_news(person, offer_url, from_user, contract.deadline, contract.total_bu())
                 
                 grad = GradStudent.objects.filter(person=person)           
                 if grad.count()>0:
