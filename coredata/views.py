@@ -343,22 +343,37 @@ def new_combined(request):
             combined.semester = offering.semester
             combined.crse_id = offering.crse_id
             combined.class_nbr = _new_fake_class_nbr(combined.semester)
-            combined.save()
-            combined.offerings.add(offering)
-            combined.create_combined_offering()
-            #LOG EVENT#
-            l = LogEntry(userid=request.user.username,
-                  description=("created combined offering %i with %s") % (combined.id, offering.slug),
-                  related_object=combined)
-            l.save()
-            messages.success(request, 'Created combined offering.')
-            return HttpResponseRedirect(reverse('sysadmin:combined_offerings', kwargs={}))
+            # check combined section name duplicated
+            existingcombinedoffering = CombinedOffering.objects.filter(subject=combined.subject, number=combined.number, section=combined.section, semester=combined.semester).count()    
+            if existingcombinedoffering:
+                messages.error(request, 'The combined offering name is duplicated. Please change it.')
+            else:
+                combined.save()
+                combined.offerings.add(offering)
+                combined.create_combined_offering()
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                    description=("created combined offering %i with %s") % (combined.id, offering.slug),
+                    related_object=combined)
+                l.save()
+                messages.success(request, 'Created combined offering.')
+                return HttpResponseRedirect(reverse('sysadmin:combined_offerings', kwargs={}))
     else:
         # set up creation form from the offering given
+
+        # give a section suggestion based on last 'X' section
+        suggestedsection = 'X100'
+
+        existingcombinedoffering = CombinedOffering.objects.filter(subject=offering.subject, number=offering.number, section__startswith="X", semester=offering.semester).order_by("section").last()  
+        if existingcombinedoffering:
+           if existingcombinedoffering.section[1:2].isdigit():
+                suggestedsection = str(int(existingcombinedoffering.section[1:2]) + 1)      
+                suggestedsection = ('X'+suggestedsection+'00')[0:4]
+                
         initial = {
             'subject': offering.subject,
             'number': offering.number,
-            'section': 'X100',
+            'section': suggestedsection,
             'component': offering.component,
             'instr_mode': offering.instr_mode,
             'owner': offering.owner,
