@@ -610,7 +610,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
     backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
     backdate_reason = forms.CharField(required=False, label="Please provide the reason for this backdated appointment", widget=forms.Textarea(attrs={'rows':10, 'maxlength': 500}))
     swpp = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Are you planning to apply for student wage subsidy through the Student Work Placement Program (SWPP)?",
-                             help_text=mark_safe('<a href="https://www.sfu.ca/hire/covid19/funding.html">Please click here for information about SWPP</a>'))
+                             help_text=mark_safe('<a href="https://www.sfu.ca/hire/coop/funding.html">Please click here for information about SWPP</a>'))
     nc_duties = forms.CharField(required=False, label="Duties", help_text="Please enter duties in a comma-separated list.", widget=forms.Textarea(attrs={'rows':10, 'maxlength': 900}))
     
     nc_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
@@ -758,7 +758,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                                     help_text=mark_safe('<a href="http://www.sfu.ca/content/dam/sfu/human-resources/forms-documents/forms/RA/Research%20Benefit%20Summary%20-%20Summer%202024.pdf">Please click here and refer to "Summary of RA Benefit Plan" for the cost of each medical and dental care plan</a>'))
 
     swpp = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Are you planning to apply for student wage subsidy through the Student Work Placement Program (SWPP)?",
-                             help_text=mark_safe('<a href="https://www.sfu.ca/hire/covid19/funding.html">Please click here for information about SWPP</a>'))
+                             help_text=mark_safe('<a href="https://www.sfu.ca/hire/coop/funding.html">Please click here for information about SWPP</a>'))
 
     ra_duties_ex = forms.MultipleChoiceField(required=False, choices=DUTIES_CHOICES_EX, widget=forms.CheckboxSelectMultiple,
                                              label="Experimental/Research Activities")
