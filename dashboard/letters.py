@@ -1060,7 +1060,12 @@ class RARequestForm(SFUMediaMixin):
             init_comment = "Salary amount $" + str(self.ra.total_pay) + " over " + str(self.ra.pay_periods) + " pay periods. "
         else:
             init_comment = ""
+        
+        post_comment = ""
+        if non_continuing:
+            post_comment += "Supervisor: " + str(self.ra.supervisor.name()) + " / Grant signing authority:" 
         comments.append(Paragraph("COMMENTS: " + init_comment + self.ra.paf_comments, style=self.NOTE_STYLE))
+        comments.append(Paragraph(post_comment, style=self.NOTE_STYLE))
         f.addFromList(comments, self.c)
         
         self.c.setFillColor(self.sfu_red)
@@ -1366,7 +1371,7 @@ class RARequestForm(SFUMediaMixin):
 
         self.c.showPage()
 
-        if research_assistant or non_continuing:
+        if research_assistant:
         # PAGE TWO
 
             self.c.setStrokeColor(black)
