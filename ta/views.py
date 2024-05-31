@@ -375,7 +375,8 @@ def _edit_ta_workload(request, course_slug, userid, taworkload=None):
     
     if request.method == "POST":
         if ta_workloadreviewform.is_valid():
-            ta_workloadreviewform.save()                        
+            ta_wr = ta_workloadreviewform.save(False)                                    
+            ta_wr.save(newsitem_author=Person.objects.get(userid=request.user.username))
            
             l = LogEntry(userid=request.user.username,
                         description=description,
