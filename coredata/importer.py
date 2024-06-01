@@ -6,7 +6,7 @@ from coredata.queries import SIMSConn, get_reqmnt_designtn, import_person,\
     userid_to_emplid, cache_by_args, REQMNT_DESIGNTN_FLAGS
 from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, Holiday
 from coredata.models import CombinedOffering, EnrolmentHistory, CAMPUSES, COMPONENTS, INSTR_MODE
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.conf import settings
 from django.core.cache import cache
 from django.urls import reverse
@@ -190,16 +190,20 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     for pos, key in enumerate(c.flags.keys()):
         c.flags.set_bit(pos, key in flags)
 
-    c.save_if_dirty()
-    
-    crs = c.course
-    if crs.title != c.title:
-        crs.title = c.title
-        crs.save()
+    try:
+        c.save_if_dirty()
+    except IntegrityError as e:
+        import_admin_email(source='coredata.importer.import_offering', message='DB integrity error in import. This likely points to incoherent CSRPT that should be fixed in SIMS:\n' + str(e))
+    else:
+        crs = c.course
+        if crs.title != c.title:
+            crs.title = c.title
+            crs.save()
 
-    EnrolmentHistory.from_offering(c, save=True)
+        EnrolmentHistory.from_offering(c, save=True)
 
-    return c
+        return c
+
 
 
 CLASS_TBL_FIELDS = 'CT.SUBJECT, CT.CATALOG_NBR, CT.CLASS_SECTION, CT.STRM, CT.CRSE_ID, CT.CLASS_NBR, ' \
