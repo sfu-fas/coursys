@@ -149,7 +149,6 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     c_old = list(set(c_old1) | set(c_old2) | set(c_old3))
     
     if len(c_old)>1:
-        #raise KeyError("Already duplicate courses: %r %r" % (c_old1, c_old2))
         c1 = c_old[0]
         c2 = c_old[1]
         with transaction.atomic():
@@ -163,7 +162,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
             c1.class_nbr = c2_nbr
             c1.save()
         mail_admins('class_nbr re-use', 'Conflict between unique keys on %s and %s: swapped their .class_nbr fields and carried on.' % (c1, c2))
-        c = c_old1[0]
+        return  # update it properly on the next import when things are hopefully coherent
     elif len(c_old)==1:
         # already in DB: update things that might have changed
         c = c_old[0]
