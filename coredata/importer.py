@@ -142,10 +142,11 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
 
     owner = get_unit(acad_org, create=create_units)
 
-    # search for existing offerings both possible ways and make sure we're consistent
+    # search for existing offerings all possible ways and make sure we're internally consistent
     c_old1 = CourseOffering.objects.filter(subject=subject, number=number, section=section, semester=semester).select_related('course')
     c_old2 = CourseOffering.objects.filter(class_nbr=class_nbr, semester=semester)
-    c_old = list(set(c_old1) | set(c_old2))
+    c_old3 = CourseOffering.objects.filter(semester=semester, crse_id=crse_id, section=section)
+    c_old = list(set(c_old1) | set(c_old2) | set(c_old3))
     
     if len(c_old)>1:
         #raise KeyError("Already duplicate courses: %r %r" % (c_old1, c_old2))
