@@ -162,7 +162,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
             c2.save()
             c1.class_nbr = c2_nbr
             c1.save()
-        mail_admins('class_nbr re-use', 'Conflict between class numbers on %s and %s: swapped their .class_nbr fields and carried on.' % (c1, c2))
+        mail_admins('class_nbr re-use', 'Conflict between unique keys on %s and %s: swapped their .class_nbr fields and carried on.' % (c1, c2))
         c = c_old1[0]
     elif len(c_old)==1:
         # already in DB: update things that might have changed
