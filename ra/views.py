@@ -470,6 +470,7 @@ class RAEditRequestWizard(SessionWizardView):
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
         if step == 'research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
+
             init = {'pay_periods': cleaned_data['pay_periods'], 'backdated': cleaned_data['backdated'], 'start_date': cleaned_data['start_date'], 'end_date': cleaned_data['end_date']}
         if step == 'graduate_research_assistant':
             cleaned_data = self.get_cleaned_data_for_step('dates') or {}
@@ -747,8 +748,10 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     gras_bw = (graduate_research_assistant and req.gras_payment_method=="BW")
     ra_hourly = (research_assistant and req.ra_payment_method=="H")
     ra_bw = (research_assistant and req.ra_payment_method=="BW")
+    ra_ls = (research_assistant and req.ra_payment_method=="LS")
     nc_hourly = (non_cont and req.nc_payment_method=="H")
     nc_bw = (non_cont and req.nc_payment_method=="BW")
+    nc_ls = (non_cont and req.nc_payment_method=="LS")
     nonstudent = req.student=="N"
     show_research = nonstudent or not req.usra
     show_thesis = not nonstudent and req.research
@@ -761,7 +764,7 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
         {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 'no_id': req.nonstudent,
          'author': author, 'graduate_research_assistant': graduate_research_assistant, 'research_assistant': research_assistant, 'non_cont': non_cont, 
          'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw, 'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 
-         'show_thesis': show_thesis, 'show_research': show_research, 'show_mitacs': show_mitacs, 'adminform': adminform, 'admin': admin, 
+         'ra_ls': ra_ls, nc_ls: 'nc_ls', show_thesis: show_thesis, 'show_research': show_research, 'show_mitacs': show_mitacs, 'adminform': adminform, 'admin': admin, 
          'permissions': request.units, 'status': req.status(), 'is_processor': is_processor})
 
 @requires_role("FUND")

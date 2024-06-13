@@ -609,6 +609,8 @@ class RARequestNonContinuingForm(forms.ModelForm):
     backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
     backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
     backdate_reason = forms.CharField(required=False, label="Please provide the reason for this backdated appointment", widget=forms.Textarea(attrs={'rows':10, 'maxlength': 500}))
+    lump_sum_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
+    lump_sum_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Please provide the reason for this lump sum payment")
     swpp = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=BOOL_CHOICES, label="Are you planning to apply for student wage subsidy through the Student Work Placement Program (SWPP)?",
                              help_text=mark_safe('<a href="https://www.sfu.ca/hire/coop/funding.html">Please click here for information about SWPP</a>'))
     nc_duties = forms.CharField(required=False, label="Duties", help_text="Please enter duties in a comma-separated list.", widget=forms.Textarea(attrs={'rows':10, 'maxlength': 900}))
@@ -635,7 +637,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
     def __init__(self, coop=False, *args, **kwargs):
         super(RARequestNonContinuingForm, self).__init__(*args, **kwargs) 
         
-        config_init = ['nc_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'swpp']
+        config_init = ['nc_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'swpp', 'lump_sum_hours', 'lump_sum_reason']
 
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
@@ -646,7 +648,7 @@ class RARequestNonContinuingForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        config_clean = ['nc_duties', 'backdate_reason', 'swpp']
+        config_clean = ['nc_duties', 'backdate_reason', 'swpp', 'lump_sum_hours', 'lump_sum_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
@@ -733,6 +735,13 @@ class RARequestNonContinuingForm(forms.ModelForm):
                 self.cleaned_data["vacation_hours"] = 0
             elif nc_payment_method == "BW":
                 self.cleaned_data["vacation_pay"] = 0
+            elif nc_payment_method == "LS":
+                self.cleaned_data["weeks_vacation"] = 0
+                self.cleaned_data["biweekly_salary"] = 0
+                self.cleaned_data["gross_hourly"] = 0
+                self.cleaned_data["vacation_hours"] = 0
+                self.cleaned_data["vacation_pay"] = 0
+                self.cleaned_data["biweekly_hours"] = 0
 
 
 class RARequestResearchAssistantForm(forms.ModelForm):
@@ -742,6 +751,8 @@ class RARequestResearchAssistantForm(forms.ModelForm):
     backdate_lump_sum = forms.DecimalField(required=False, label="As this is a backdated appointment, please provide a lump sum", max_digits=8, decimal_places=2)
     backdate_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
     backdate_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Please provide the reason for this backdated appointment")
+    lump_sum_hours = forms.DecimalField(required=False, label="How many hours is this lump sum based on?", max_digits=8, decimal_places=2)
+    lump_sum_reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':500}), label="Please provide the reason for this lump sum payment")
     
     ra_payment_method = forms.ChoiceField(required=False, choices=RA_PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect, label="Please select from the following")
     
@@ -792,7 +803,8 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         
         config_init = ['ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 
-                'ra_benefits', 'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'swpp']
+                'ra_benefits', 'ra_other_duties', 'backdate_lump_sum', 'backdate_hours', 'backdate_reason', 'swpp',
+                'lump_sum_hours', 'lump_sum_reason']
         
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
@@ -808,7 +820,7 @@ class RARequestResearchAssistantForm(forms.ModelForm):
 
         config_clean = ['ra_payment_method', 'ra_duties_ex', 'ra_duties_dc', 'ra_duties_pd', 'ra_duties_im', 
                 'ra_duties_eq', 'ra_duties_su', 'ra_duties_wr', 'ra_duties_pm', 'ra_benefits', 'ra_other_duties', 
-                'backdate_reason', 'swpp']
+                'backdate_reason', 'swpp', 'lump_sum_hours', 'lump_sum_reason']
 
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
@@ -894,6 +906,13 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                 self.cleaned_data["vacation_hours"] = 0
             elif ra_payment_method == "BW":
                 self.cleaned_data["vacation_pay"] = 0
+            elif ra_payment_method == "LS":
+                self.cleaned_data["weeks_vacation"] = 0
+                self.cleaned_data["biweekly_salary"] = 0
+                self.cleaned_data["gross_hourly"] = 0
+                self.cleaned_data["vacation_hours"] = 0
+                self.cleaned_data["vacation_pay"] = 0
+                self.cleaned_data["biweekly_hours"] = 0
             
 class ShortClearableFileInput(forms.ClearableFileInput):
     """

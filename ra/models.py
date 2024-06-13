@@ -269,14 +269,16 @@ RA_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Bi-weekly salary (The Appointee is entitled to a minimum of 10 vacation days a year per FTE. Vacation time will be prorated' +
     ' based on the appointment terms. An additional 11% will be charged for statutory benefits.)'),
     ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 11% for statutory benefits. Must submit biweekly' +
-    ' timesheets in order for the Appointee to be paid.)')
+    ' timesheets in order for the Appointee to be paid.)'),
+    ('LS', 'Lump Sum Amount')
 )
 
 NC_PAYMENT_METHOD_CHOICES = (
     ('BW', 'Bi-weekly salary (The Appointee is entitled to a minimum of 10 vacation days a year per FTE. Vacation time will be prorated' +
     ' based on the appointment terms. An additional 11% will be charged for statutory benefits.)'),
     ('H', 'Hourly (4% vacation pay will be deducted from the project in addition to 11% for statutory benefits. Must submit biweekly' +
-    ' timesheets in order for the Appointee to be paid.)')
+    ' timesheets in order for the Appointee to be paid.)'),
+    ('LS', 'Lump Sum Amount')
 )
 
 RA_VACATION_DAYS_CHOICES = (
@@ -536,6 +538,10 @@ class RARequest(models.Model):
     gross_hourly = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     vacation_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     vacation_pay = models.DecimalField(max_digits=8, decimal_places=1, default=0)
+
+    # lump sum appointments 
+    lump_sum_hours = config_property('lump_sum_hours', default=0)
+    lump_sum_reason = config_property('lump_sum_reason', default='')
 
     # for backdated appointments
     backdated = models.BooleanField(default=False)

@@ -232,7 +232,9 @@
   <table class="info">
     <tr><th>Start Date:</th><td>{{ req.start_date }}</td></tr>
     <tr><th>End Date:</th><td>{{ req.end_date }}</td></tr>
+    {% if not ra_ls or nc_ls %}
     <tr><th>Pay Periods:</th><td>{{ req.pay_periods}}</td></tr>
+    {% endif %}
     {% if ra_bw %}
     <tr><th>Payment Method:</th><td>Bi-Weekly</td></tr>
     <tr><th>Total Gross:</th><td>${{ req.total_gross|floatformat:2 }}</td></tr>
@@ -276,6 +278,11 @@
     <tr><th>Bi-Weekly Hours:</th><td>{{ req.biweekly_hours|floatformat:2 }} ({{req.get_biweekly_hours}})</td></tr>
     <tr><th>Pay:</th><td>${{ req.get_base_pay|floatformat:2 }}</td></tr>
     <tr><th>Vacation Pay:</th><td>${{ req.get_vacation_pay|floatformat:2 }}</td></tr>
+    {% endif %}
+    {% if nc_ls or ra_ls %}
+    <b>This is a lump sum appointment!</b>
+    <tr><th>Lump Sum Hours:</th><td>{{ req.lump_sum_hours }}</td></tr>
+    <tr><th>Lump Sum Reason:</th><td>{{ req.lump_sum_reason }}</td></tr>
     {% endif %}
     {% if req.backdated %}
     <b>This is a backdated appointment!</b>
