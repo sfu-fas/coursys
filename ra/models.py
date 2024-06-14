@@ -196,6 +196,7 @@ DEFAULT_LETTERS = {
 
 DEFAULT_LETTER_NCH_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be $%(gross_hourly)s per hour plus 4 percent vacation pay. You must report your total work hours to your supervisor/delegate on a bi-weekly basis. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
 DEFAULT_LETTER_NCBW_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_salary)s for a total amount of $%(total_pay)s. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
+DEFAULT_LETTER_NCLS_INTRO = "This is to confirm remuneration of work performed as a %(position)s from %(start_date)s to %(end_date)s. The remuneration will be provided to you as a lump sum payment of $%(total_pay)s (inclusive of 4 percent vacation pay in lieu of vacation time) and will be made to you at the end of your term of appointment. This remuneration will be subject to all statutory income tax and benefit deductions. Any earnings paid by Canadian Sources are subject to the regulations set out by the Canada Revenue Agency (CRA). By law, deductions are taken from the salary for Canada Income Tax, Canada Pension Plan (CPP) and Employment Insurance (EI).\n\n"
 DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN = "This is to confirm your funding as a True Scholarship from %(start_date)s to %(end_date)s. The funding will be provided to you as a lump sum payment of $%(total_gross)s and will be made to you at the end of your term of appointment.\n\n"
 DEFAULT_LETTER_GRASBW_INTRO = "This is to confirm your funding as a True Scholarship from %(start_date)s to %(end_date)s. The funding will be provided to you in biweekly payments of $%(biweekly_salary)s for a total amount of $%(total_pay)s.\n\n"
 
@@ -232,7 +233,16 @@ DEFAULT_LETTER_NCBW = '\n\n'.join([
     """WorkSafe BC requires all new employees to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"""
     ])
 
-
+DEFAULT_LETTER_NCLS = '\n\n'.join([
+    """There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 80 hours bi-weekly.""",
+    """<u>Employment Standards Act</u>""",
+    """Any terms and conditions of employment which have not been expressly addressed in this letter but which are covered by the ESA, will be dealt with in conformity with the relevant provisions of the ESA: https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/00_96113_01""",
+    """<u>Policies</u>""",
+    """You are subject to and must comply with all applicable University policies and procedures including but not limited to:""",
+    """GP 18 Human Rights Policy\n GP 37 Conflict of Interest\nGP 44 Sexual Violence and Misconduct Prevention, Education and Support\nGP 47 Bullying and Harassment Policy\nI 10.04 Access to Information and Protection of Privacy\nR 30.03 Intellectual Property Policy""",
+    """<u>Mandatory SFU Safety Orientation Training</u>""",
+    """WorkSafe BC requires all new employees to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"""
+    ])
 
 DEFAULT_LETTER_TRAINING = "Mandatory SFU Safety Orientation Training: WorkSafe BC requires all new graduate students to take and complete safety orientation training.  SFU has a short online module you can take here: https://canvas.sfu.ca/enroll/RR8WDW, and periodically offers classroom sessions of the same material.  You shall be informed if any additional training is required.\n\n"
 
@@ -241,6 +251,7 @@ DEFAULT_LETTER_CONCLUDE_NC = "If you accept the terms of this appointment, pleas
 
 DEFAULT_LETTER_NCH = DEFAULT_LETTER_NCH_INTRO + DEFAULT_LETTER_NCH + DEFAULT_LETTER_CONCLUDE_NC
 DEFAULT_LETTER_NCBW = DEFAULT_LETTER_NCBW_INTRO + DEFAULT_LETTER_NCBW + DEFAULT_LETTER_CONCLUDE_NC
+DEFAULT_LETTER_NCLS = DEFAULT_LETTER_NCLS_INTRO + DEFAULT_LETTER_NCLS + DEFAULT_LETTER_CONCLUDE_NC
 DEFAULT_LETTER_GRASLE_INSIDE_CAN = DEFAULT_LETTER_GRASLE_INTRO_INSIDE_CAN + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 DEFAULT_LETTER_GRASBW = DEFAULT_LETTER_GRASBW_INTRO + DEFAULT_LETTER_GRAS + DEFAULT_LETTER_TRAINING + DEFAULT_LETTER_CONCLUDE
 
@@ -720,6 +731,15 @@ class RARequest(models.Model):
                     'nc_duties': self.nc_duties
                 }
                 text = DEFAULT_LETTER_NCBW % substitutions
+            elif self.nc_payment_method == "LS":
+                substitutions = {
+                    'start_date': self.start_date.strftime("%B %d, %Y"),
+                    'end_date': self.end_date.strftime("%B %d, %Y"),
+                    'position': self.position,
+                    'total_pay': self.total_pay,
+                }
+                print(DEFAULT_LETTER_NCLS)
+                text = DEFAULT_LETTER_NCLS % substitutions
         elif self.hiring_category == "GRAS":
             if self.gras_payment_method == "LE" or self.gras_payment_method == "LS":
                 substitutions = {

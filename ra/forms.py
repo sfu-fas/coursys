@@ -669,6 +669,9 @@ class RARequestNonContinuingForm(forms.ModelForm):
         backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
         backdate_hours = cleaned_data.get('backdate_hours')
         backdate_reason = cleaned_data.get('backdate_reason')
+
+        lump_sum_hours = cleaned_data.get('lump_sum_hours')
+        lump_sum_reason = cleaned_data.get('lump_sum_reason')
         
         start_date = self.initial['start_date']
         end_date = self.initial['end_date']
@@ -707,6 +710,13 @@ class RARequestNonContinuingForm(forms.ModelForm):
                     self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
+            if nc_payment_method == "LS":
+                if total_gross == 0 or total_gross == None:
+                    self.add_error('total_gross', error_message)
+                if lump_sum_hours == 0 or lump_sum_hours == None or lump_sum_hours == '':
+                    self.add_error('lump_sum_hours', error_message)
+                if lump_sum_reason == '' or lump_sum_reason == None:
+                    self.add_error('lump_sum_reason', error_message)
 
         swpp = cleaned_data.get('swpp')
         if swpp == "True":
@@ -840,6 +850,9 @@ class RARequestResearchAssistantForm(forms.ModelForm):
         backdate_lump_sum = cleaned_data.get('backdate_lump_sum')
         backdate_hours = cleaned_data.get('backdate_hours')
         backdate_reason = cleaned_data.get('backdate_reason')
+
+        lump_sum_hours = cleaned_data.get('lump_sum_hours')
+        lump_sum_reason = cleaned_data.get('lump_sum_reason')
                 
         start_date = self.initial['start_date']
         end_date = self.initial['end_date']
@@ -878,6 +891,13 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                     self.add_error('vacation_pay', ('Vacation Pay Must Be At Least % ' + str(MIN_VACATION_PAY_PERCENTAGE)))
                 if biweekly_hours == None or biweekly_hours == 0:
                     self.add_error('biweekly_hours', error_message)
+            if ra_payment_method == "LS":
+                if total_gross == 0 or total_gross == None:
+                    self.add_error('total_gross', error_message)
+                if lump_sum_hours == 0 or lump_sum_hours == None or lump_sum_hours == '':
+                    self.add_error('lump_sum_hours', error_message)
+                if lump_sum_reason == '' or lump_sum_reason == None:
+                    self.add_error('lump_sum_reason', error_message)
 
         swpp = cleaned_data.get('swpp')
         if swpp == "True":
