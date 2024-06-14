@@ -595,6 +595,8 @@ class RARequestGraduateResearchAssistantForm(forms.ModelForm):
                 self.cleaned_data['biweekly_salary'] = 0
         # hours always irrelevant for gras
         self.cleaned_data["backdate_hours"] = 0
+        self.cleaned_data["lump_sum_hours"] = 0
+        self.cleaned_data["lump_sum_reason"] = ''
 
 
 class RARequestNonContinuingForm(forms.ModelForm):
@@ -734,6 +736,8 @@ class RARequestNonContinuingForm(forms.ModelForm):
             self.cleaned_data["vacation_hours"] = 0
             self.cleaned_data["vacation_pay"] = 0
             self.cleaned_data["biweekly_hours"] = 0
+            self.cleaned_data["lump_sum_hours"] = 0
+            self.cleaned_data["lump_sum_reason"] = ''
         else: 
             self.cleaned_data["backdate_lump_sum"] = 0
             self.cleaned_data["backdate_hours"] = 0
@@ -743,8 +747,12 @@ class RARequestNonContinuingForm(forms.ModelForm):
                 self.cleaned_data["weeks_vacation"] = 0
                 self.cleaned_data["biweekly_salary"] = 0
                 self.cleaned_data["vacation_hours"] = 0
+                self.cleaned_data["lump_sum_hours"] = 0
+                self.cleaned_data["lump_sum_reason"] = ''
             elif nc_payment_method == "BW":
                 self.cleaned_data["vacation_pay"] = 0
+                self.cleaned_data["lump_sum_hours"] = 0
+                self.cleaned_data["lump_sum_reason"] = ''
             elif nc_payment_method == "LS":
                 self.cleaned_data["weeks_vacation"] = 0
                 self.cleaned_data["biweekly_salary"] = 0
@@ -915,6 +923,8 @@ class RARequestResearchAssistantForm(forms.ModelForm):
             self.cleaned_data["vacation_hours"] = 0
             self.cleaned_data["gross_hourly"] = 0
             self.cleaned_data["vacation_pay"] = 0
+            self.cleaned_data["lump_sum_hours"] = 0
+            self.cleaned_data["lump_sum_reason"] = ''
         else: 
             self.cleaned_data["backdate_lump_sum"] = 0
             self.cleaned_data["backdate_hours"] = 0
@@ -924,8 +934,12 @@ class RARequestResearchAssistantForm(forms.ModelForm):
                 self.cleaned_data["weeks_vacation"] = 0
                 self.cleaned_data["biweekly_salary"] = 0
                 self.cleaned_data["vacation_hours"] = 0
+                self.cleaned_data["lump_sum_hours"] = 0
+                self.cleaned_data["lump_sum_reason"] = ''
             elif ra_payment_method == "BW":
                 self.cleaned_data["vacation_pay"] = 0
+                self.cleaned_data["lump_sum_hours"] = 0
+                self.cleaned_data["lump_sum_reason"] = ''
             elif ra_payment_method == "LS":
                 self.cleaned_data["weeks_vacation"] = 0
                 self.cleaned_data["biweekly_salary"] = 0
