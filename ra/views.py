@@ -8,7 +8,7 @@ from ra.models import RAAppointment, RARequest, Project, Account, SemesterConfig
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, \
     LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RARequestAdminForm, RARequestNoteForm, RARequestAdminAttachmentForm, \
     RARequestPAFForm, RARequestLetterForm, RARequestResearchAssistantForm, RARequestGraduateResearchAssistantForm, RARequestNonContinuingForm, \
-    RARequestFundingSourceForm, RARequestSupportingForm, RARequestDatesForm, RARequestIntroForm, RARequestAdminPAFForm, RARequestScienceAliveForm, \
+    RARequestFundingSourceForm, RARequestSupportingForm, RARequestDatesForm, RARequestIntroForm, RARequestAdminPAFForm, \
     CS_CONTACT, ENSC_CONTACT, SEE_CONTACT, MSE_CONTACT, FAS_CONTACT, PD_CONTACT, URA_CONTACT, DEANS_CONTACT, AppointeeSearchForm, SupervisorSearchForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
@@ -18,7 +18,7 @@ from courselib.search import find_userid_or_emplid, get_query
 from grad.models import GradStudent, Scholarship
 from visas.models import Visa
 from log.models import LogEntry
-from dashboard.letters import ra_form, ra_paf, ra_science_alive, FASOfficialLetter, OfficialLetter, LetterContents
+from dashboard.letters import ra_form, ra_paf, FASOfficialLetter, OfficialLetter, LetterContents
 from django import forms
 from django.db import transaction
 from django.http import HttpResponse, HttpRequest
@@ -885,12 +885,17 @@ def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
     response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (req.slug)
     letter = FASOfficialLetter(response)
     from_name_lines = [req.supervisor.letter_name(), req.unit.name]
+    to_addr_lines = [req.get_name(), req.unit.name]
     if req.additional_supervisor and req.additional_department:
         extra_from_name_lines = [req.additional_supervisor, req.additional_department]
     else:
         extra_from_name_lines = None
+    if req.science_alive:
+        to_addr_lines += ["Faculty of Applied Sciences"]
+        from_name_lines = [req.supervisor.letter_name(), "Science Alive"]
+
     contents = LetterContents(
-        to_addr_lines=[req.get_name(), req.unit.name], 
+        to_addr_lines=to_addr_lines, 
         from_name_lines=from_name_lines,
         extra_from_name_lines = extra_from_name_lines,
         closing="Yours truly", 
@@ -902,7 +907,6 @@ def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
     except ValueError as e:
         messages.error(request, f'Could not render letter. Error was: {e}')
         return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
-
     letter.add_letter(contents)
     letter.write()
     return response
@@ -928,11 +932,10 @@ def request_offer_letter_update(request: HttpRequest, ra_slug: str) -> HttpRespo
             return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
     else:
         configform = RARequestLetterForm(instance=req)
-        saform = RARequestScienceAliveForm()
 
     research_assistant = (req.hiring_category=="RA")
     non_cont = (req.hiring_category=="NC")
-    context = {'req': req, 'configform': configform, 'saform': saform, 'research_assistant': research_assistant, 'non_cont': non_cont, 'status': req.status()}
+    context = {'req': req, 'configform': configform, 'research_assistant': research_assistant, 'non_cont': non_cont, 'status': req.status()}
     return render(request, 'ra/admin/request_offer_letter.html', context) 
 
 @requires_role("FUND")
@@ -966,6 +969,7 @@ def request_science_alive(request: HttpRequest, ra_slug: str) -> HttpResponse:
             req.science_alive = not req.science_alive
         else: 
             req.science_alive = False
+        req.build_letter_text()
         req.last_updater = get_object_or_404(Person, userid=request.user.username)
         req.save()
         messages.success(request, "Switched Science Alive Status for " + req.get_name())
@@ -976,20 +980,6 @@ def request_science_alive(request: HttpRequest, ra_slug: str) -> HttpResponse:
     
     return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
 
-@requires_role("FUND")
-def request_science_alive_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
-    """
-    Configure and download science alive offer letters
-    """
-    req = get_object_or_404(RARequest, slug=ra_slug, hiring_category__in=['RA', 'NC'], deleted=False, unit__in=request.units, backdated=False, draft=False)
-    form = RARequestScienceAliveForm(request.POST)
-    if form.is_valid():
-        config = ({'letter_type': form.cleaned_data['letter_type'], 'final_bullet': form.cleaned_data['final_bullet']})
-        response = HttpResponse(content_type="application/pdf")
-        response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (req.slug)
-        ra_science_alive(req, config, response)
-        return response
-    return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
 
 @requires_role("FUND")
 def request_paf(request: HttpRequest, ra_slug: str) -> HttpResponse:

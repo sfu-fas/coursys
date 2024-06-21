@@ -20,12 +20,6 @@ APPOINTMENT_TYPE = (
     ('LS', 'Lump Sum')
 )
 
-SCIENCE_ALIVE_TYPE = (
-    ('TL', 'Team Lead'),
-    ('TE', 'Tech Ed'),
-    ('DCRS', 'DCRS Instructor'),
-    ('SA', 'Summer Academy Instructor')
-)
 
 FUND_CHOICES = (
     ('', '-----------'), (11, '11'), (13, '13'), (21, '21'), (23, '23'), (25, '25'), (29, '29'), (31, '31'), (32, '32'), (35, '35'), (36, '36'), (37, '37'), (38, '38'), (40, '40')
@@ -1071,10 +1065,6 @@ class RARequestLetterForm(forms.ModelForm):
         for field in config_clean:
             setattr(self.instance, field, cleaned_data[field])
 
-class RARequestScienceAliveForm(forms.Form):
-    letter_type = forms.ChoiceField(required=True, choices=SCIENCE_ALIVE_TYPE, widget=forms.RadioSelect, label="Type Of Science Alive Letter")
-    final_bullet = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':6, 'maxlength': 500}), help_text="Leave blank if none.", 
-                                   label="If you have anything to add in an additional bullet point, please enter here")
     
 class RARequestAdminPAFForm(forms.ModelForm):
     position_no = forms.IntegerField(required=False, label="Position #")
