@@ -367,11 +367,11 @@ def _edit_ta_workload(request, course_slug, userid, taworkload=None):
 
     if not taworkload:
         taworkload = TAWorkloadReview(member=member)
-        description = "Create Workload Review for TA %s "  % userid 
+        description = "Create Workload Review for TA %s "  % userid
+        ta_workloadreviewform = TAWorkloadReviewForm(request.POST or None, instance=taworkload, initial={'reviewhour': False}) 
     else:
-        description = "Edit Workload Review for TA %s "  % userid          
-    
-    ta_workloadreviewform = TAWorkloadReviewForm(request.POST or None, instance=taworkload)
+        description = "Edit Workload Review for TA %s "  % userid
+        ta_workloadreviewform = TAWorkloadReviewForm(request.POST or None, instance=taworkload)                
     
     if request.method == "POST":
         if ta_workloadreviewform.is_valid():
