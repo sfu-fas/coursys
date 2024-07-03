@@ -12,3 +12,8 @@ def index(request):
     #other_savedsearches = SavedSearch.objects.filter(person__in=other_gradadmin).exclude(person__userid=(request.user.username))
     context = {}
     return render(request, 'grad/index.html', context)
+
+@requires_role("GRAD")
+def config(request):
+    context = {}
+    return render(request, 'grad/config.html', context)

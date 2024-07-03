@@ -1,0 +1,52 @@
+{% extends "base-wide.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block title %}Graduate Student Records Configuration{% endblock %}
+{% block h1 %}Graduate Student Records Configuration{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/grad.css' %}" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li>Configuration</li>
+{% endblock %}
+
+{% block content %}
+<div class="actionlist">
+    <div class="btn pressed">Configuration</div>
+    <a class="btn" href="#">Reports</a>
+    <a class="btn" href="#">Advanced Search</a>
+    <a class="btn" href="#">Browse All Students</a>
+    <a class="btn" href="{% url "grad:index" %}">Active Students</a>
+</div>
+<table id="masters" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Link</th>
+        <th scope="col">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><a href="{% url "grad:programs" %}">Manage Programs</a></td>
+            <td>Manage Programs Here...</td>
+        </tr>
+        <tr>
+            <td><a href="{% url "grad:requirements" %}">Manage Requirements</a></td>
+            <td>Manage Requirements Here...</td>
+        </tr>
+        <tr>
+            <td><a href="{% url "grad:letter_templates" %}">View Letter Templates</a></td>
+            <td>View Letter Templates Here...</td>
+        </tr>
+        <tr>
+            <td><a href="{% url "grad:manage_scholarshiptypes" %}">Manage Scholarship Types</a></td>
+            <td>Manage Scholarship Types Here...</td>
+        </tr>
+
+    </tbody>
+</table>
+{% endblock %}
