@@ -1,51 +1,40 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% load static %}
-
-{% block headextra %}
-  <link rel="stylesheet" href="{% static "style/grad_quicksearch.css" %}" />
-
-<script nonce="{{ CSP_NONCE }}">
-    $.widget("custom.alteredcomplete", $.ui.autocomplete, {
-        _renderItem: function(ul, item) {
-        var cls="quicksearch-"+item.label.split(",")[2].trim().toLowerCase().replace(/\s/g, "-");
-        return $("<li>")
-            .data( 'item.autocomplete', item )
-            .append( $("<a>")
-                .attr( "class", cls )
-                .text( item.label ) )
-            .appendTo( ul );
-        }
-    });
-    
-	$(document).ready(function() {
-	    $("#id_search").focus();
-	    $("#id_search").alteredcomplete({
-            source: '{% url "grad:quick_search" %}',
-            minLength: 2
-        });
-	});
-</script>
-
-{% endblock %}
+{% load form_display %}
 
 {% block title %}Graduate Student Records{% endblock %}
 {% block h1 %}Graduate Student Records{% endblock %}
 
-{% block actions %}
-<div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url "grad:programs" %}">Manage Programs</a></li>
-<li><a href="{% url "grad:requirements" %}">Manage Requirements</a></li>
-<li><a href="{% url "grad:letter_templates" %}">View Letter Templates</a></li>
-<li><a href="{% url "grad:manage_scholarshiptypes" %}">Manage Scholarship Types</a></li>
-<li class="newsec"><a href="{% url "grad:search" %}">Advanced Search</a></li>
-<li><a href="{% url "grad:all_promises" %}">Ending Promises</a></li>
-<li><a href="{% url "grad:funding_report" %}">Funding Report</a></li>
-<li><a href="{% url "grad:financials_report" %}">Financial Summary Report</a></li>	
-</ul>
-
-</div>
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}">
+$(document).ready(function() {
+    $('#masters').dataTable( {
+    'bPaginate': false,
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[4, 'desc']],
+    } );
+    $('#doctoral').dataTable( {
+    'bPaginate': false,
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[4, 'desc']],
+    } );
+    $('#other').dataTable( {
+    'bPaginate': false,
+    'bInfo': true,
+    'bFilter': true,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[4, 'desc']],
+    } );
+} );
+</script>
+<link rel="stylesheet" href="{% static 'style/grad.css' %}" />
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -53,33 +42,92 @@
 {% endblock %}
 
 {% block content %}
-<p>You can view grad student records for {{units|pluralize:"this unit,these units"}}: 
-{% for u in units %}{{u.name}}{% if not forloop.last %}, {% endif %}{% endfor %}.
-</p>
+<div class="actionlist">
+    <a class="btn" href="#">Configuration</a>
+    <a class="btn" href="#">Reports</a>
+    <a class="btn" href="#">Advanced Search</a>
+    <a class="btn" href="#">Browse All Students</a>
+    <div class="btn pressed">Active Students</div>
+</div>
 
-<form action="{% url "grad:quick_search" %}" method="get">
-<p>{{form.search.label}}: {{form.search}} <span class="helptext">{{form.search.help_text}}</span></p>
-<p><input class="submit" type="submit" class="submit" value="Go" /></p>
-</form>
+<h3>Master's Graduate Students</h3>
+<div class="datatable_container">
+  <table id="masters" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Student ID</th>
+        <th scope="col">Program</th>
+        <th scope="col">Start Semester</th>
+        <th scope="col">Completion Progress</th>
+        <th scope="col">Requirements</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </tbody>
+  </table>
+</div>
 
-{% if savedsearches %}
-<h2 id="saved" style="clear: right;">My Saved Searches</h2>
-<ul>
-{% for s in savedsearches %}
-<li><a href="{% url "grad:search" %}?{{ s.query }}">{{s.name}}</a></li>
-{% endfor %}
-</ul>
-{% endif %}
+<h3>Doctoral Graduate Students</h3>
+<div class="datatable_container">
+  <table id="doctoral" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Student ID</th>
+        <th scope="col">Program</th>
+        <th scope="col">Start Semester</th>
+        <th scope="col">Completion Progress</th>
+        <th scope="col">Requirements</th>
+        <th scope="col">Supervisor</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </tbody>
+  </table>
+</div>
 
-{% if other_savedsearches %}
-<h2 id="saved" style="clear: right;">All Saved Searches</h2>
-<ul>
-{% for s in other_savedsearches %}
-<li><a href="{% url "grad:search" %}?{{ s.query }}">{{s.name}}</a></li>
-{% endfor %}
-</ul>
-{% endif %}
-
-
+<h3>Other Graduate Students</h3>
+<div class="datatable_container">
+  <table id="other" class="display">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Student ID</th>
+        <th scope="col">Program</th>
+        <th scope="col">Start Semester</th>
+        <th scope="col">Completion Progress</th>
+        <th scope="col">Requirements</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </tbody>
+  </table>
+</div>
 
 {% endblock %} 

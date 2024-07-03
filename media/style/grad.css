@@ -153,3 +153,23 @@ transform: rotate(90deg);
 /* Internet Explorer */
 filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1); 
 }
+
+.actionlist {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.actionlist .btn{
+  display: inline-block;
+  padding: 8px;
+  margin-right: 5px;
+  margin-left: 0px;
+  width: 175px;
+  text-align: center;
+}
+
+.actionlist .pressed {
+  background-color: #777777;
+  border-bottom: 3px solid #464646;
+  cursor: default;
+}
