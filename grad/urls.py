@@ -15,6 +15,7 @@ grad_patterns = [ # prefix /grad/
     url(r'^qs', grad_views.quick_search, name='quick_search'),
 
     url(r'^program/new$', grad_views.new_program, name='new_program'),
+    url(r'^program/(?P<program_id>\d+)/edit', grad_views.edit_program, name='edit_program'),
     url(r'^program/$', grad_views.programs, name='programs'),
     url(r'^requirement/$', grad_views.requirements, name='requirements'),
     url(r'^requirement/new$', grad_views.new_requirement, name='new_requirement'),

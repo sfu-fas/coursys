@@ -59,7 +59,7 @@
 				<td>{{s.expected_completion_terms}}</td>
 				<td>{{s.grad_category}}</td>
 				<td>
-					<a class="lineform" href="#" %}">
+					<a class="lineform" href="{% url "grad:edit_program" program_id=s.id %}">
 						<button type='submit' class='btn' title="Edit Program">
 							<i class='fa fa-edit'></i>
 						</button>

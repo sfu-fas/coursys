@@ -25,6 +25,7 @@ from .manage_promises import manage_promises
 from .remove_promise import remove_promise
 #from new import new
 from .new_program import new_program
+from .edit_program import edit_program
 from .programs import programs
 from .requirements import requirements, toggle_requirement
 from .new_requirement import new_requirement
