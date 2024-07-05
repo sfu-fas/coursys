@@ -1,16 +1,18 @@
 from courselib.auth import requires_role
-#from coredata.models import Role
 from django.shortcuts import render
-#from grad.forms import QuickSearchForm
-#from grad.models import SavedSearch
+from grad.models import GradStudent
 
 @requires_role("GRAD", get_only=["GRPD"])
 def index(request):
-    #form = QuickSearchForm()
-    #savedsearches = SavedSearch.objects.filter(person__userid=(request.user.username))
-    #other_gradadmin = [r['person_id'] for r in Role.objects_fresh.filter(role="GRAD", unit__in=request.units).values('person_id')]
-    #other_savedsearches = SavedSearch.objects.filter(person__in=other_gradadmin).exclude(person__userid=(request.user.username))
-    context = {}
+    grads = GradStudent.objects.filter(program__unit__in=request.units, current_status="ACTI").select_related('person', 'program').distinct()
+    masters_grads = grads.filter(program__grad_category="MA")
+    doctoral_grads = grads.filter(program__grad_category="DR")
+    other_grads = grads.filter(program__grad_category="OT")
+    context = {
+        'masters_grads': masters_grads,
+        'doctoral_grads': doctoral_grads,
+        'other_grads': other_grads,
+    }
     return render(request, 'grad/index.html', context)
 
 @requires_role("GRAD")

@@ -14,7 +14,14 @@ $(document).ready(function() {
     'bFilter': true,
     'bLengthChange': false,
     "bJQueryUI": true,
-    'aaSorting': [[4, 'desc']],
+    'aaSorting': [[3, 'asc']],
+    'scrollY': false, 
+		"columnDefs": [
+      { "width": "20%", "targets": 0 },
+      { "width": "10%", "targets": 1 },
+      { "width": "15%", "targets": [2,3] },
+      { "width": "10%", "targets": [4,5] },
+      ]
     } );
     $('#doctoral').dataTable( {
     'bPaginate': false,
@@ -22,7 +29,14 @@ $(document).ready(function() {
     'bFilter': true,
     'bLengthChange': false,
     "bJQueryUI": true,
-    'aaSorting': [[4, 'desc']],
+    'aaSorting': [[3, 'asc']],
+    'scrollY': false, 
+    "columnDefs": [
+      { "width": "20%", "targets": 0 },
+      { "width": "10%", "targets": 1 },
+      { "width": "15%", "targets": [2,3] },
+      { "width": "12%", "targets": [4,5] },
+    	]
     } );
     $('#other').dataTable( {
     'bPaginate': false,
@@ -30,7 +44,14 @@ $(document).ready(function() {
     'bFilter': true,
     'bLengthChange': false,
     "bJQueryUI": true,
-    'aaSorting': [[4, 'desc']],
+    'aaSorting': [[3, 'asc']],
+    'scrollY': false, 
+			"columnDefs": [
+        { "width": "20%", "targets": 0 },
+        { "width": "10%", "targets": 1 },
+        { "width": "15%", "targets": [2,3] },
+        { "width": "10%", "targets": [4,5] },
+    	]
     } );
 } );
 </script>
@@ -64,14 +85,16 @@ $(document).ready(function() {
       </tr>
     </thead>
     <tbody>
+      {% for grad in masters_grads %}
         <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}</a></td>
+            <td>{{grad.person.emplid}}</td>
+            <td>{{grad.program.unit.label}}, {{grad.program.label}}</td>
+            <td>{{grad.start_semester.name}} ({{grad.start_semester.label}})</td>
+            <td>{{grad.active_semesters.0}} / {{grad.program.expected_completion_terms}}</td>
+            <td>{{grad.num_completed_requirements}} / {{grad.program.num_grad_requirements}}</td>
         </tr>
+      {% endfor %}
     </tbody>
   </table>
 </div>
@@ -91,15 +114,17 @@ $(document).ready(function() {
       </tr>
     </thead>
     <tbody>
+      {% for grad in doctoral_grads %}
         <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}</a></td>
+            <td>{{grad.person.emplid}}</td>
+            <td>{{grad.program.unit.label}}, {{grad.program.label}}</td>
+            <td>{{grad.start_semester.name}} ({{grad.start_semester.label}})</td>
+            <td>{{grad.active_semesters.0}} / {{grad.program.expected_completion_terms}}</td>
+            <td>{{grad.num_completed_requirements}} / {{grad.program.num_grad_requirements}}</td>
+            <td>{{grad.list_supervisors}}</td>
         </tr>
+      {% endfor %}
     </tbody>
   </table>
 </div>
@@ -118,14 +143,16 @@ $(document).ready(function() {
       </tr>
     </thead>
     <tbody>
+      {% for grad in other_grads %}
         <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td><a href="{% url "grad:view" grad_slug=grad.slug%}">{{grad.person.name}}</a></td>
+            <td>{{grad.person.emplid}}</td>
+            <td>{{grad.program.unit.label}}, {{grad.program.label}}</td>
+            <td>{{grad.start_semester.name}} ({{grad.start_semester.label}})</td>
+            <td>{{grad.active_semesters.0}} / {{grad.program.expected_completion_terms}}</td>
+            <td>{{grad.num_completed_requirements}} / {{grad.program.num_grad_requirements}}</td>
         </tr>
+      {% endfor %}
     </tbody>
   </table>
 </div>

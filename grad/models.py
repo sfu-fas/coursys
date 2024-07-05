@@ -42,6 +42,9 @@ class GradProgram(models.Model):
     def __str__ (self):
         return "%s" % (self.label)
     
+    def num_grad_requirements(self):
+        return GradRequirement.objects.filter(program=self, hidden=False).count()
+
     def cmpt_program_type(self):
         """
         REJEck for CMPT progress reports system export.
@@ -506,6 +509,10 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             cache.set(key, res)
 
         return bool(res)
+    
+    def list_supervisors(self):
+        supervisors = ", ".join(str(s.sortname()) for s in Supervisor.objects.filter(student=self, removed=False))
+        return supervisors
 
     def active_semesters_display(self):
         """
@@ -524,6 +531,8 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         """
         return _program_start_end_semesters_display(self.pk)
 
+    def num_completed_requirements(self):
+        return CompletedRequirement.objects.filter(student=self, removed=False).count()
 
     def program_as_of(self, semester=None, future_if_necessary=False):
         if semester == None:
