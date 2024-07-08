@@ -226,7 +226,7 @@ class LetterContents(object):
     closing: letter's closing (string)
     signer: person signing the letter, if knows (a coredata.models.Person)
     """
-    def __init__(self, to_addr_lines, from_name_lines, extra_from_name_lines=None, date=None,
+    def __init__(self, to_addr_lines, from_name_lines, extra_from_name_lines=None, extra_signature_prompt=None, date=None,
                  closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None, use_sig=True,
                  body_font_size=None, cc_lines=None):
         self.date = date or datetime.date.today()
@@ -235,6 +235,7 @@ class LetterContents(object):
         self.to_addr_lines = to_addr_lines
         self.from_name_lines = from_name_lines
         self.extra_from_name_lines = extra_from_name_lines
+        self.extra_signature_prompt = extra_signature_prompt
         self.cosigner_lines = cosigner_lines
         self.signer = signer
         self.use_sig = use_sig
@@ -332,6 +333,8 @@ class LetterContents(object):
             # we have two signatures to display: rebuild the signature part in a table with both
             data = []
             data.append([Paragraph(self.closing+",", style), Paragraph(self.cosigner_lines[0]+",", style)])
+            if self.extra_signature_prompt:
+                data.append(["", Paragraph(self.extra_signature_prompt, style)])
             if img:
                 data.append([img, Spacer(1, 4*space_height)])
             else:
