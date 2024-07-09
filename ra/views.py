@@ -8,7 +8,7 @@ from ra.models import RAAppointment, RARequest, Project, Account, SemesterConfig
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, \
     LetterSelectForm, RAAppointmentAttachmentForm, ProgramForm, RARequestAdminForm, RARequestNoteForm, RARequestAdminAttachmentForm, \
     RARequestPAFForm, RARequestLetterForm, RARequestResearchAssistantForm, RARequestGraduateResearchAssistantForm, RARequestNonContinuingForm, \
-    RARequestFundingSourceForm, RARequestSupportingForm, RARequestDatesForm, RARequestIntroForm, RARequestAdminPAFForm, RARequestScienceAliveForm, \
+    RARequestFundingSourceForm, RARequestSupportingForm, RARequestDatesForm, RARequestIntroForm, RARequestAdminPAFForm, \
     CS_CONTACT, ENSC_CONTACT, SEE_CONTACT, MSE_CONTACT, FAS_CONTACT, PD_CONTACT, URA_CONTACT, DEANS_CONTACT, AppointeeSearchForm, SupervisorSearchForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
@@ -18,7 +18,7 @@ from courselib.search import find_userid_or_emplid, get_query
 from grad.models import GradStudent, Scholarship
 from visas.models import Visa
 from log.models import LogEntry
-from dashboard.letters import ra_form, ra_paf, ra_science_alive, FASOfficialLetter, OfficialLetter, LetterContents
+from dashboard.letters import ra_form, ra_paf, FASOfficialLetter, OfficialLetter, LetterContents
 from django import forms
 from django.db import transaction
 from django.http import HttpResponse, HttpRequest
@@ -747,8 +747,10 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
     gras_bw = (graduate_research_assistant and req.gras_payment_method=="BW")
     ra_hourly = (research_assistant and req.ra_payment_method=="H")
     ra_bw = (research_assistant and req.ra_payment_method=="BW")
+    ra_ls = (research_assistant and req.ra_payment_method=="LS")
     nc_hourly = (non_cont and req.nc_payment_method=="H")
     nc_bw = (non_cont and req.nc_payment_method=="BW")
+    nc_ls = (non_cont and req.nc_payment_method=="LS")
     nonstudent = req.student=="N"
     show_research = nonstudent or not req.usra
     show_thesis = not nonstudent and req.research
@@ -761,7 +763,7 @@ def view_request(request: HttpRequest, ra_slug: str) -> HttpResponse:
         {'req': req, 'person': person, 'supervisor': supervisor, 'nonstudent': nonstudent, 'no_id': req.nonstudent,
          'author': author, 'graduate_research_assistant': graduate_research_assistant, 'research_assistant': research_assistant, 'non_cont': non_cont, 
          'gras_le': gras_le, 'gras_ls': gras_ls, 'gras_bw': gras_bw, 'ra_hourly': ra_hourly, 'ra_bw': ra_bw, 'nc_bw': nc_bw, 'nc_hourly': nc_hourly, 
-         'show_thesis': show_thesis, 'show_research': show_research, 'show_mitacs': show_mitacs, 'adminform': adminform, 'admin': admin, 
+         'ra_ls': ra_ls, 'nc_ls': nc_ls, 'show_thesis': show_thesis, 'show_research': show_research, 'show_mitacs': show_mitacs, 'adminform': adminform, 'admin': admin, 
          'permissions': request.units, 'status': req.status(), 'is_processor': is_processor})
 
 @requires_role("FUND")
@@ -882,14 +884,22 @@ def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
     response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (req.slug)
     letter = FASOfficialLetter(response)
     from_name_lines = [req.supervisor.letter_name(), req.unit.name]
+    to_addr_lines = [req.get_name(), req.unit.name]
+    extra_signature_prompt = None
     if req.additional_supervisor and req.additional_department:
         extra_from_name_lines = [req.additional_supervisor, req.additional_department]
     else:
         extra_from_name_lines = None
+    if req.science_alive:
+        to_addr_lines += ["Faculty of Applied Sciences"]
+        from_name_lines = [req.supervisor.letter_name(), "Science Alive"]
+        extra_signature_prompt = "Signature:"
+
     contents = LetterContents(
-        to_addr_lines=[req.get_name(), req.unit.name], 
+        to_addr_lines=to_addr_lines, 
         from_name_lines=from_name_lines,
         extra_from_name_lines = extra_from_name_lines,
+        extra_signature_prompt = extra_signature_prompt,
         closing="Yours truly", 
         signer=req.supervisor,
         cosigner_lines=[req.get_cosigner_line(), req.get_first_name() + " " + req.get_last_name()])
@@ -899,7 +909,6 @@ def request_offer_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
     except ValueError as e:
         messages.error(request, f'Could not render letter. Error was: {e}')
         return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
-
     letter.add_letter(contents)
     letter.write()
     return response
@@ -925,11 +934,10 @@ def request_offer_letter_update(request: HttpRequest, ra_slug: str) -> HttpRespo
             return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
     else:
         configform = RARequestLetterForm(instance=req)
-        saform = RARequestScienceAliveForm()
 
     research_assistant = (req.hiring_category=="RA")
     non_cont = (req.hiring_category=="NC")
-    context = {'req': req, 'configform': configform, 'saform': saform, 'research_assistant': research_assistant, 'non_cont': non_cont, 'status': req.status()}
+    context = {'req': req, 'configform': configform, 'research_assistant': research_assistant, 'non_cont': non_cont, 'status': req.status()}
     return render(request, 'ra/admin/request_offer_letter.html', context) 
 
 @requires_role("FUND")
@@ -963,6 +971,7 @@ def request_science_alive(request: HttpRequest, ra_slug: str) -> HttpResponse:
             req.science_alive = not req.science_alive
         else: 
             req.science_alive = False
+        req.build_letter_text()
         req.last_updater = get_object_or_404(Person, userid=request.user.username)
         req.save()
         messages.success(request, "Switched Science Alive Status for " + req.get_name())
@@ -973,20 +982,6 @@ def request_science_alive(request: HttpRequest, ra_slug: str) -> HttpResponse:
     
     return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
 
-@requires_role("FUND")
-def request_science_alive_letter(request: HttpRequest, ra_slug: str) -> HttpResponse:
-    """
-    Configure and download science alive offer letters
-    """
-    req = get_object_or_404(RARequest, slug=ra_slug, hiring_category__in=['RA', 'NC'], deleted=False, unit__in=request.units, backdated=False, draft=False)
-    form = RARequestScienceAliveForm(request.POST)
-    if form.is_valid():
-        config = ({'letter_type': form.cleaned_data['letter_type'], 'final_bullet': form.cleaned_data['final_bullet']})
-        response = HttpResponse(content_type="application/pdf")
-        response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (req.slug)
-        ra_science_alive(req, config, response)
-        return response
-    return HttpResponseRedirect(reverse('ra:request_offer_letter_update', kwargs={'ra_slug': req.slug}))
 
 @requires_role("FUND")
 def request_paf(request: HttpRequest, ra_slug: str) -> HttpResponse:
@@ -1245,7 +1240,7 @@ def download(request, current=False):
     if admin:
         writer.writerow(['Status', 'Appointee Name', 'Appointee Email', 'ID', 'Unit', 'Position Title', 'Fund', 'Project 1', 'Project 2', 'Project 3', 'Supervisor', 'Supervisor Email', 
                          'Start Date', 'End Date', 'Hiring Category', 'Total Pay', 'Appointee Co-op Status', 'Processed By', 'Student Status', 'Visa 1', 'Visa Expiry 1', 'Visa 2', 'Visa Expiry 2',
-                         'True Scholarship Questionnaire', 'Pay Periods', 'Payment Method', 'Bi-Weekly Hours', 'Bi-Weekly Salary/Funding', 'Gross Hourly', 'Weeks Vacation', 'Vacation Pay', 'Vacation Hours'])
+                         'True Scholarship Questionnaire', 'Pay Periods', 'Payment Method', 'Bi-Weekly Hours', 'Bi-Weekly Salary/Funding', 'Gross Hourly', 'Weeks Vacation', 'Vacation Pay', 'Vacation Hours', 'Author'])
         for ra in ras:
             if ra.complete:
                 status = "Complete"
@@ -1291,7 +1286,7 @@ def download(request, current=False):
                 payment_terms = ["Backdated"] + ([""] * 6)
 
             writer.writerow([status, ra.get_sort_name(), ra.get_email_address(), ra.get_id(), ra.unit.label, ra.position, ra.get_funds(), ra.fs1_project, ra.fs2_project, ra.fs3_project, ra.supervisor.sortname(), ra.supervisor.email(), 
-                             ra.start_date, ra.end_date, ra.hiring_category + usra, ra.total_pay, ra.coop, ra.get_processor(), ra.get_student_status()] + visa_1_info + visa_2_info + [ra.get_scholarship_confirmation_complete(), ra.pay_periods] + payment_terms )
+                             ra.start_date, ra.end_date, ra.hiring_category + usra, ra.total_pay, ra.coop, ra.get_processor(), ra.get_student_status()] + visa_1_info + visa_2_info + [ra.get_scholarship_confirmation_complete(), ra.pay_periods] + payment_terms + [ra.author.sortname()] )
     else:
         writer.writerow(['Appointee Name', 'ID', 'Unit', 'Fund', 'Project', 'Supervisor', 'Start Date', 'End Date', 'Hiring Category', 'Total Pay'])
         for ra in ras:
