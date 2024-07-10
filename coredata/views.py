@@ -1106,7 +1106,7 @@ def student_search(request):
     
     # non-haystack version of the above query
     if len(student_qs) == 0:
-        studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
+        studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name', 'pref_first_name'])
         students = Person.objects.filter(studentQuery)[:20]
         data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if str(s.emplid) not in EXCLUDE_EMPLIDS]
 
