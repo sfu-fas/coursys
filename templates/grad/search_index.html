@@ -1,0 +1,26 @@
+{% extends "base-wide.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block title %}Graduate Student Search{% endblock %}
+{% block h1 %}Graduate Student Search{% endblock %}
+
+{% block headextra %}
+<script nonce="{{ CSP_NONCE }}"></script>
+<link rel="stylesheet" href="{% static 'style/grad.css' %}" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>Grads</li>
+{% endblock %}
+
+{% block content %}
+<div class="actionlist">
+    <a class="btn" href="{% url "grad:config" %}">Configuration</a>
+    <a class="btn" href="{% url "grad:reports" %}">Reports</a>
+    <div class="btn pressed">Advanced Search</div>
+    <a class="btn" href="#">Browse All Students</a>
+    <a class="btn" href="{% url "grad:index" %}">Active Students</a>
+</div>
+
+{% endblock %} 

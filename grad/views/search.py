@@ -93,7 +93,10 @@ def _generate_excel(response, columns, headers, grads):
     
     book.save(response)
 
-
+@requires_role("GRAD", get_only=["GRPD"])
+def search_index(request):
+    context = {}
+    return render(request, 'grad/search_index.html', context)
 
 @requires_role("GRAD", get_only=["GRPD"])
 def search(request):

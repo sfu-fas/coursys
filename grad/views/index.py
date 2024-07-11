@@ -19,3 +19,8 @@ def index(request):
 def config(request):
     context = {}
     return render(request, 'grad/config.html', context)
+
+@requires_role("GRAD")
+def reports(request):
+    context = {}
+    return render(request, 'grad/reports.html', context)

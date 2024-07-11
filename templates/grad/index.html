@@ -65,8 +65,8 @@ $(document).ready(function() {
 {% block content %}
 <div class="actionlist">
     <a class="btn" href="{% url "grad:config" %}">Configuration</a>
-    <a class="btn" href="#">Reports</a>
-    <a class="btn" href="#">Advanced Search</a>
+    <a class="btn" href="{% url "grad:reports" %}">Reports</a>
+    <a class="btn" href="{% url "grad:search_index" %}">Advanced Search</a>
     <a class="btn" href="#">Browse All Students</a>
     <div class="btn pressed">Active Students</div>
 </div>

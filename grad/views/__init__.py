@@ -1,4 +1,4 @@
-from .index import index, config
+from .index import index, config, reports
 from .quick_search import quick_search
 from .not_found import not_found
 from .supervisor_index import supervisor_index, download_my_grads_csv
@@ -43,7 +43,7 @@ from .get_addresses import get_addresses
 from .get_letter import get_letter
 from .view_letter import view_letter
 from .copy_letter import copy_letter
-from .search import search
+from .search import search, search_index
 from .save_search import save_search
 from .delete_savedsearch import delete_savedsearch
 from .student_financials import student_financials
