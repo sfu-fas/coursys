@@ -1100,7 +1100,7 @@ def student_search(request):
 
     # do the query with Haystack
     # experimentally, score >= 1 seems to correspond to useful things
-    student_qs = SearchQuerySet().models(Person).filter(text_fuzzy=term)[:20]
+    student_qs = SearchQuerySet().models(Person).filter(text__fuzzy=term)[:20]
     data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs
             if r and r.score >= 1 and str(r.emplid) not in EXCLUDE_EMPLIDS]
     
