@@ -670,7 +670,6 @@ class SearchForm(forms.Form):
     # status_asof = StaffSemesterField(label='Status as of', required=False, initial='')
 
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
-    program_asof = StaffSemesterField(label='Program as of', required=False, initial='')
     grad_flags = forms.MultipleChoiceField(choices=[],
             label='Program Options', required=False)
     campus = forms.MultipleChoiceField(choices=GRAD_CAMPUS_CHOICES, required=False)
@@ -727,7 +726,6 @@ class SearchForm(forms.Form):
             ]
     program_fields = [
             'program',
-            'program_asof',
             'grad_flags',
             'campus',
             'supervisor',
@@ -788,11 +786,6 @@ class SearchForm(forms.Form):
                 ]
 
         manual_queries = []
-
-        if not self.cleaned_data.get('program_asof', None):
-            # current program: is in table
-            auto_queries.append(('program','program__in'))
-        # else:  selected semester so must calculate. Handled in secondary_filter
 
         if not self.cleaned_data.get('status_asof', None):
             # current status: is in table
@@ -892,12 +885,6 @@ class SearchForm(forms.Form):
                 (gradstudent.person.visa() in self.cleaned_data['visa']
                 if _is_not_empty(self.cleaned_data.get('visa', None))
                 else True)
-                and
-
-                (
-                    not self.cleaned_data.get('program_asof', None) or not self.cleaned_data.get('program', None)
-                    or gradstudent.program_as_of(self.cleaned_data.get('program_asof', None)) in self.cleaned_data.get('program', None)
-                )
                 and
                 (
                     not self.cleaned_data.get('status_asof', None) or not self.cleaned_data.get('student_status', None)
