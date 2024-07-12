@@ -8,10 +8,47 @@
 {% block headextra %}
 <script nonce="{{ CSP_NONCE }}"></script>
 <link rel="stylesheet" href="{% static 'style/grad.css' %}" />
+
+<script nonce="{{ CSP_NONCE }}">
+    $.widget("custom.alteredcomplete", $.ui.autocomplete, {
+        _renderItem: function(ul, item) {
+        var cls="quicksearch-"+item.label.split(",")[2].trim().toLowerCase().replace(/\s/g, "-");
+        return $("<li>")
+            .data( 'item.autocomplete', item )
+            .append( $("<a>")
+                .attr( "class", cls )
+                .text( item.label ) )
+            .appendTo( ul );
+        }
+    });
+
+	$(document).ready(function() {
+	    $("#id_search").focus();
+	    $("#id_search").alteredcomplete({
+            source: '{% url "grad:quick_search" %}',
+            minLength: 2
+        });
+        $('#saved_searches').dataTable( {
+            'bPaginate': false,
+            'bInfo': true,
+            'bFilter': true,
+            'bLengthChange': false,
+            "bJQueryUI": true,
+            'aaSorting': [[3, 'asc']],
+            'scrollY': false, 
+            "columnDefs": [
+                { "width": "45%", "targets": 0 },
+                { "width": "30%", "targets": 1 },
+                { "width": "15%", "targets": [2,3] },
+                ]
+        } );
+	});
+</script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>Grads</li>
+<li><a href="{% url "grad:index" %}">Grad</a></li>
+<li>Search</li>
 {% endblock %}
 
 {% block content %}
@@ -23,4 +60,46 @@
     <a class="btn" href="{% url "grad:index" %}">Active Students</a>
 </div>
 
+<h2>Search Grad Profiles by Student</h2>
+<form action="{% url "grad:quick_search" %}" method="get">
+    <p>{{form.search.label}}: {{form.search}} <span class="helptext">{{form.search.help_text}}</span></p>
+    <p><input class="submit" type="submit" class="submit" value="Go" /></p>
+</form>
+
+<h2>Saved Searches</h2>
+<div class="actionlist">
+<a class="btn" href="{% url "grad:search" %}">Add New Search</a>
+</div>
+
+<div class="datatable_container">
+    <table id="saved_searches" class="display">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Created By</th>
+          <th scope="col">Date</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in savedsearches %}
+          <tr>
+              <td><a href="{% url "grad:search" %}?{{ s.query }}">{{s.name}}</a></td>
+              <td>{{s.person.name_pref}}</td>
+              <td>{{s.created_at}}</td>
+              <td>
+                <form class="lineform" method="POST" action="{% url "grad:delete_savedsearch" %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="person" value="{{ s.person.pk }}" id="id_person">
+                    <input type="hidden" name="query" value="{{ s.query }}" id="id_query">
+                    <button type='submit' class='btn confirm-submit' title="Delete" data-submit-action="delete this saved search">
+                        <i class='fa fa-trash-o'></i>
+                    </button>
+                </form>
+              </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</div>
 {% endblock %} 

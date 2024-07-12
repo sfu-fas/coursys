@@ -5,13 +5,14 @@ from grad.models import GradStudent, GradFlag, GradProgram, SavedSearch, GradReq
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.safestring import mark_safe
 from django.contrib import messages
-from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES, COLUMN_WIDTHS
+from grad.forms import SearchForm, SaveSearchForm, QuickSearchForm, COLUMN_CHOICES, COLUMN_WIDTHS
 from django.urls import reverse
-from coredata.models import Person
+from coredata.models import Person, Role
 import csv
 import copy, datetime, json
 from grad.templatetags.getattribute import getattribute
 from dashboard.letters import card_req_forms, fasnet_forms
+from django.db.models import Q
 
 MAX_RESULTS = 1000
 
@@ -95,7 +96,10 @@ def _generate_excel(response, columns, headers, grads):
 
 @requires_role("GRAD", get_only=["GRPD"])
 def search_index(request):
-    context = {}
+    form = QuickSearchForm()
+    other_gradadmin = [r['person_id'] for r in Role.objects_fresh.filter(role="GRAD", unit__in=request.units).values('person_id')]
+    savedsearches = SavedSearch.objects.filter(Q(person__in=other_gradadmin) | Q(person__userid=(request.user.username)))
+    context = {'units': request.units, 'form': form, 'savedsearches': savedsearches}
     return render(request, 'grad/search_index.html', context)
 
 @requires_role("GRAD", get_only=["GRPD"])

@@ -1793,7 +1793,7 @@ class GradFlagValue(models.Model):
         return "%s: %s" % (self.flag.label, self.value)
 
 class SavedSearch(models.Model):
-    person = models.ForeignKey(Person, null=True, on_delete=models.PROTECT)
+    person = models.ForeignKey(Person, null=True, on_delete=models.PROTECT) # created_by
     query = models.TextField()
     config = JSONField(null=False, blank=False, default=dict)
     
@@ -1801,8 +1801,9 @@ class SavedSearch(models.Model):
         #unique_together = (('person', 'query'),)
         pass
         
-    defaults = {'name': ''}
+    defaults = {'name': '', 'created_at': None}
     name, set_name = getter_setter('name')
+    created_at, set_created_at = getter_setter('created_at')
 
 
 class ProgressReport(models.Model):
