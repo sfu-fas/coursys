@@ -173,3 +173,21 @@ filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
   border-bottom: 3px solid #464646;
   cursor: default;
 }
+
+#filterform {
+  padding: 10px 0;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+form select {
+  height: 2.25em;
+  padding: .4em;
+  border: 1px solid #DDD;
+  border-radius: 4px;
+  box-shadow: 0 0 5px -2px #777;
+}
+
+form label {
+  padding: 5px;
+}

@@ -304,3 +304,60 @@ function update_search_links() {
 	$('#editlink').attr('href', new_url+"&edit_search=yes");
 	$('#id_query').val(qs);
 }
+
+var table;
+
+function handle_form_change() {
+  table.fnDraw();
+}
+
+function grad_browser_setup(my_url) {
+  //$("#id_start_date").datepicker({'dateFormat': 'yy-mm-dd'});
+  table = $('#grad_table').dataTable( {
+    'jQueryUI': true,
+    'pagingType': 'full_numbers',
+    'pageLength' : 25,
+    'processing': true,
+    'serverSide': true,
+    'scrollY': false, 
+    'columnDefs': [
+      { "orderable": false, "targets": [4,5] },
+	  { "width": "25%", "targets": [0] },
+	  { "width": "10%", "targets": [1,2,4] },
+	  { "width": "12%", "targets": [3,5,6] },
+
+  ],
+    'sAjaxSource': my_url + '?tabledata=yes',
+    'fnServerData': function ( sSource, aoData, fnCallback ) {
+      /*if ( $('#id_type').val() != 'all' ) {
+        aoData.push( { "name": "type", "value": $('#id_type').val() } );
+      }
+      if ( $('#id_start_date').val() != '' ) {
+        aoData.push( { "name": "start_date", "value": $('#id_start_date').val() } );
+      }
+      if ( $('input:radio[name=hide_expired]:checked').val() != '' ) {
+        aoData.push( { "name": "hide_expired", "value": $('input:radio[name=hide_expired]:checked').val() } );
+      }
+	  */
+      if ( $('#id_unit').val() != 'all' ) {
+        aoData.push( { "name": "unit", "value": $('#id_unit').val() } );
+      }
+	  if ( $('#id_program').val() != 'all' ) {
+        aoData.push( { "name": "program", "value": $('#id_program').val() } );
+      }
+	  if ( $('#id_started_by').val() != 'all' ) {
+        aoData.push( { "name": "started_by", "value": $('#id_started_by').val() } );
+      }
+	  if ( $('#id_supervisor').val() != 'all' ) {
+        aoData.push( { "name": "supervisor", "value": $('#id_supervisor').val() } );
+      }
+	  if ( $('#id_status').val() != 'all' ) {
+        aoData.push( { "name": "status", "value": $('#id_status').val() } );
+      }
+      $.getJSON( sSource, aoData, function (json) {
+        fnCallback(json);
+      } );
+    },
+  } );
+  $('#filterform').change(handle_form_change);
+}

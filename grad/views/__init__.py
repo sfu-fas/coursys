@@ -59,3 +59,4 @@ from .manage_documents import manage_documents
 from .remove_document import remove_document
 from .download_file import download_file
 from .notes import update_note
+from .browse import browse

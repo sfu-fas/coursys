@@ -57,7 +57,7 @@
 				<td>{{s.label}}</td>
 				<td>{{s.description}}</td>
 				<td>{{s.expected_completion_terms}}</td>
-				<td>{{s.grad_category}}</td>
+				<td>{{s.get_grad_category_display}}</td>
 				<td>
 					<a class="lineform" href="{% url "grad:edit_program" program_id=s.id %}">
 						<button type='submit' class='btn' title="Edit Program">

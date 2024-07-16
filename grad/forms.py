@@ -1184,3 +1184,43 @@ def process_pcs_export(csvdata, unit_id, semester_id, user):
 
     return message
         
+class GradFilterForm(forms.Form):
+    unit = forms.ChoiceField(initial = 'all')
+    program = forms.ChoiceField(initial = 'all')
+    started_by = forms.ChoiceField(initial = 'all', label = 'Started By')
+    supervisor = forms.ChoiceField(initial = 'all', label = 'Supervisor Emplid')
+    status = forms.ChoiceField(choices = (('all', 'All Statuses'),) + gradmodels.STATUS_CHOICES, initial='all')
+
+    @classmethod
+    def grad_semesters(self, units):
+        today = datetime.date.today()
+        grad_semesters = GradStudent.objects.filter(program__unit__in=units).order_by().values('start_semester').distinct()
+        semesters = Semester.objects.filter(id__in=grad_semesters, name__gte='1101', start__lte=today+datetime.timedelta(days=730)).order_by('-name')
+        return semesters
+
+    @classmethod
+    def grad_supervisors(self, units):
+        grad_supervisors = Supervisor.objects.filter(student__program__unit__in=units)
+        return grad_supervisors
+
+    def __init__(self, units, programs, *args, **kwargs):
+        super(GradFilterForm, self).__init__(*args, **kwargs)
+        # units
+        if len(units) == 1:
+            self.fields['unit'].choices = [('all', units[0].informal_name())]
+        else:
+            unit_choices = [(str(u.label), str(u.informal_name())) for u in units]
+            self.fields['unit'].choices = [('all', 'All Units')] + unit_choices
+        # programs
+        if len(programs) == 1:
+            self.fields['program'].choices = [('all', programs[0].label)]
+        else:
+            programs = [([str(p.label), str(p.unit.label)], str(p.unit.label) + ", " + str(p.label) ) for p in programs]
+            self.fields['program'].choices = [('all', 'All Programs')] + programs
+        # semesters
+        semesters = [(str(s.name), str(s.label())) for s in self.grad_semesters(units)]
+        self.fields['started_by'].choices = [('all', 'Any Semester')] + semesters
+
+        # supervisors
+        supervisors = list(dict.fromkeys([(str(s.sortname()), str(s.sortname())) for s in self.grad_supervisors(units)]))
+        self.fields['supervisor'].choices = [('all', 'All Supervisors')] + supervisors

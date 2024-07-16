@@ -14,6 +14,7 @@ import coredata.queries
 from django.conf import settings
 import django.db.transaction
 import math
+from django.urls import reverse
 
 CATEGORY_CHOICES = (
     ("MA", "Masters"),
@@ -317,6 +318,9 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         super(GradStudent, self).save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        return reverse('grad:view', kwargs={'grad_slug': self.slug})
+
     def status_as_of(self, semester=None):
         """ Like 'current status', but for an arbitrary semester.
 
@@ -510,9 +514,15 @@ class GradStudent(models.Model, ConditionalSaveMixin):
 
         return bool(res)
     
-    def list_supervisors(self):
-        supervisors = ", ".join(str(s.sortname()) for s in Supervisor.objects.filter(student=self, removed=False))
+    def _get_supervisors(self):
+        supervisors = Supervisor.objects.filter(student=self, removed=False)
         return supervisors
+
+    def list_supervisors(self):
+        supervisors = list(dict.fromkeys([str(s.sortname()) for s in self._get_supervisors()]))
+        supervisors = ", ".join(supervisors)
+        return supervisors
+
 
     def active_semesters_display(self):
         """

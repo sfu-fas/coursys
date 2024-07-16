@@ -6,6 +6,7 @@ ST_ID = '(?P<st_id>' + ID_RE + ')'
 
 grad_patterns = [ # prefix /grad/
     url(r'^$', grad_views.index, name='index'),
+    url(r'^browse$', grad_views.browse, name='browse'),
     #url(r'^import$', grad_views.import_applic, name='import_applic'),
     url(r'^config$', grad_views.config, name='config'),
     url(r'^reports$', grad_views.reports, name='reports'),
