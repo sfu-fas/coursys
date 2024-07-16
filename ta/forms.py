@@ -183,9 +183,9 @@ class TUGForm(forms.ModelForm):
 class TAWorkloadReviewForm(forms.ModelForm):
     from datetime import date
     reviewhour = forms.ChoiceField(label="Will the number of hours required exceed the number of hours assigned?", required=True, 
-        help_text='Choose "yes" if further review is required.', widget=forms.RadioSelect, choices=[( True, 'Yes'), (False, 'No')],)
-    reviewcomment = forms.CharField(label="Comment", required=False, widget=forms.Textarea(),
-        help_text='Please add a comment if above answer is "yes".')
+        help_text='If you choose yes, the number of hours required will exceed the number of hours assigned, please explain the situation in the explanation box below.', widget=forms.RadioSelect, choices=[(False, 'No'), ( True, 'Yes')],)
+    reviewcomment = forms.CharField(label="Explanation", required=False, widget=forms.Textarea(),
+        help_text='Please elaborate the situation, need X more hours, justification, ... etc')
     reviewsignature = forms.CharField(label="Signature of Instructor", required=True, 
         help_text='Please type your first and last name.')    
     reviewdate = forms.DateField(label="Date of Review",

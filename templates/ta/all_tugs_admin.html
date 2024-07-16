@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block h1 %}Time Use Guidelines for {{semester}}{% endblock %}
-{% block title %}Time Use Guidelines for {{semester}}{% endblock %}
+{% block h1 %}Time Use Guidelines, Workload Review, and TA Evaluations for {{semester}}{% endblock %}
+{% block title %}Time Use Guidelines, Workload Review, and TA Evaluations for {{semester}}{% endblock %}
 
 {% block headextra %}
 <style type="text/css">
@@ -48,6 +48,12 @@
 
 {% block content %}
 
+<ul class="fa-ul">
+There are three TA-related processes that course instructors need to complete as per the TSSU Collective Agreement: 
+<li>a.	the Time Use Guidelines (TUG) is due by the end of week 1 of the term.</li>
+<li>b.	the Workload Review is due by the end of week 6 of the term.</li>
+<li>c.	the TA Evaluation is due by the end of the term.</li>
+</ul>
 {% if admin %}
 <p class="infomessage">You can direct instructors to this URL: they will see a list of their own TAs and can create/update TUGS here.</p>
 {% endif %}
@@ -60,10 +66,10 @@
         <th scope="col">Offering</th>
         {% if admin %}<th scope="col">Instructor</th>{% endif %}
         <th scope="col">TA</th>
-        <th scope="col">TUG</th>
-        <th scope="col">BU</th>
+        <th scope="col">Time Use Guidelines (TUG) due week 1</th>
+        <th scope="col">Base Units (BU)</th>
         <th scope="col">Hours</th>
-        <th scope="col">TA Workload Review</th>  
+        <th scope="col">Workload Review due week 6</th>  
         <th scope="col">TA evaluation due by end of term</th>
         {% if admin %}
         <th scope="col" title="The evaluations are sent to TAs automatically on the first day of the following term. This function can can be used to remind TAs who have not completed Section E yet.">Select to action &nbsp;<input type="checkbox" id="select_tog"></th>  

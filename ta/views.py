@@ -560,15 +560,16 @@ def _edit_ta_workload(request, course_slug, userid, taworkload=None):
 
     if not taworkload:
         taworkload = TAWorkloadReview(member=member)
-        description = "Create Workload Review for TA %s "  % userid 
+        description = "Create Workload Review for TA %s "  % userid
+        ta_workloadreviewform = TAWorkloadReviewForm(request.POST or None, instance=taworkload, initial={'reviewhour': False}) 
     else:
-        description = "Edit Workload Review for TA %s "  % userid          
-    
-    ta_workloadreviewform = TAWorkloadReviewForm(request.POST or None, instance=taworkload)
+        description = "Edit Workload Review for TA %s "  % userid
+        ta_workloadreviewform = TAWorkloadReviewForm(request.POST or None, instance=taworkload)                
     
     if request.method == "POST":
         if ta_workloadreviewform.is_valid():
-            ta_workloadreviewform.save()                        
+            ta_wr = ta_workloadreviewform.save(False)                                    
+            ta_wr.save(newsitem_author=Person.objects.get(userid=request.user.username))
            
             l = LogEntry(userid=request.user.username,
                         description=description,
