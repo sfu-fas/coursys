@@ -8,7 +8,6 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coredata', '0026_auto_20240612_1104'),
         ('ta', '0015_ta_workload'),
     ]
 
@@ -31,7 +30,7 @@ class Migration(migrations.Migration):
                 ('criteria_instr_content', models.IntegerField(blank=True, null=True, verbose_name='Instructional Content')),
                 ('criteria_others', models.IntegerField(blank=True, null=True, verbose_name='Other Job Requirements')),
                 ('criteria_other_comment', models.TextField(blank=True, null=True, verbose_name='Comments')),
-                ('positive_comment', models.TextField(blank=True, null=True, verbose_name="Please comment on the TA's positive contributions to instruction (e.g. teching methods, grading, ability to lead discussion) - or other noteworthy strengths")),
+                ('positive_comment', models.TextField(blank=True, null=True, verbose_name="Please comment on the TA's positive contributions to instruction (e.g. teaching methods, grading, ability to lead discussion) - or other noteworthy strengths")),
                 ('improve_comment', models.TextField(blank=True, null=True, verbose_name="Please comment on those duties which you noted as not meeting job requirements and suggest ways in which the TA's performance could be improved")),
                 ('overall_evalation', models.BooleanField(blank=True, null=True, verbose_name='Overall Meets Jobs Requirements')),
                 ('recommend_TA', models.BooleanField(blank=True, null=True, verbose_name='Would you recommend this TA for reappointment?')),
