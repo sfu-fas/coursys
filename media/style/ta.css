@@ -28,7 +28,30 @@
 table.info p input {
     margin: 0px;
 }
+table.shortinfo th {
+    font-weight: bold;   
+    background-color: #DDDDDD;
+    border: 1px solid #bbb;
+    width: 10em;
+    padding: .25em .5em;
+    line-height: 2.25em;
+}
 
+table.info th {
+    font-weight: bold;   
+    background-color: #DDDDDD;
+    border: 1px solid #bbb;
+    width: 30em;
+    padding: .25em .5em;
+    line-height: 2.25em;
+}
+table.info td {
+    font-weight: bold;   
+    background-color: #eee;
+    border: 1px solid #bbb;
+    padding: .25em .5em;
+    line-height: 2.25em;
+}
 tr.inactive{
     display: none;
     }

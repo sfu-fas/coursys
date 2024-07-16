@@ -1,0 +1,7 @@
+Dear admin,  
+
+See attached TA Evaluation for {{ person.name }} in {{ offering }}.
+
+This TA has not provided comments for section E.
+
+You can also view it here: {{ url }}

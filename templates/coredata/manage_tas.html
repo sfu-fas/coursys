@@ -27,7 +27,7 @@
 <div class="datatable_container">
 <table class="display" id="tas_table">
 <thead>
-<tr><th scope="col">Name</th><th scope="col">Userid</th><th scope="col">TUG</th><th scope="col">TA Workload Review</th><th scope="col">Actions</th></tr>
+    <tr><th scope="col">Name</th><th scope="col">Userid</th><th scope="col">TUG</th><th scope="col">TA Workload Review</th><th scope="col">TA Evaluation</th><th scope="col">Actions</th></tr>
 </thead>
 <tbody>
 {% for m in tas %}
@@ -52,6 +52,19 @@
         {% endwith %} 
     {% else %}
     --
+    {% endif %}
+</td>
+<td>
+    {% if tug and course.owner.label == 'CMPT' %}
+        {% with taeval=m.get_taeval %}
+        {% if taeval %}
+        <a href="{% url "offering:view_ta_evaluation" course_slug=course.slug userid=m.person.userid %}">View Eval {% if taeval.draft %} (DRAFT) {% endif %}</a>
+        {% else %}
+        <a href="{% url "offering:new_ta_evaluation_wizard" course_slug=course.slug userid=m.person.userid %}">Create Eval</a>
+        {% endif %}
+        {% endwith %}
+    {% else %}
+        --
     {% endif %}
 </td>
 <td class="miniaction">

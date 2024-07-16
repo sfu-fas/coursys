@@ -23,6 +23,7 @@ from django.template.loader import get_template
 from grad.models import GradStudent, Supervisor, STATUS_REAL_PROGRAM
 from . import bu_rules
 from django.utils import timezone
+from dashboard.letters import ta_evaluation_form
 
 LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
 LAB_BONUS = float(LAB_BONUS_DECIMAL)
@@ -205,14 +206,252 @@ class TAWorkloadReview(models.Model):
         content = "Need action: TA %s Workload Review for %s (%s) needs action.\nFor more information, see %s" \
             % (self.member.person.name(), self.member.offering.name(),  self.member.offering.semester, settings.BASE_ABS_URL + self.get_absolute_url())
         
-        posting = TAPosting.objects.get(semester=self.member.offering.semester, unit=self.member.offering.owner)
+        # for ta
+        posting = TAPosting.objects.filter(semester=self.member.offering.semester, unit=self.member.offering.owner).first()
 
-        to_email = posting.contact().email()
-        from_email = settings.DEFAULT_FROM_EMAIL
-        msg = EmailMultiAlternatives(subject=subject, body=content, from_email=from_email,
-                                     to=[to_email], headers={'X-coursys-topic': 'ta'})        
-        msg.send()
+        if posting != None:
+            to_email = posting.contact().email()
+            from_email = settings.DEFAULT_FROM_EMAIL
+            msg = EmailMultiAlternatives(subject=subject, body=content, from_email=from_email,
+                                        to=[to_email], headers={'X-coursys-topic': 'ta'})        
+            msg.send()
 
+class TAEvaluation(models.Model):
+    """
+    TA Evaluation filled out by instructors with TA's comments
+    
+    """	
+    # Section A
+    member = models.OneToOneField(Member, null=False, on_delete=models.PROTECT)
+    first_appoint = models.BooleanField(help_text="TA's First Appoint?", blank=True, null=True)
+    draft = models.BooleanField(null=False, default=False)
+    """ 
+    Evaluation criteria
+    Score - 1 meeting job requirements - good
+            2 meeting job requirements - satisfactory
+            3 does not meet job requirements - require more improvement
+            4 does not meet job requirements - require major improvement
+            N/A No opportunity to evaluate or criterion is not applicable
+
+    """
+    # Section B
+    criteria_lab_prep = models.IntegerField(verbose_name='Preparation of Lab/Tutorial Material', blank=True, null=True)
+    criteria_meet_deadline = models.IntegerField(verbose_name='Meets Deadlines', blank=True, null=True)
+    criteria_maintain_hour = models.IntegerField(verbose_name='Maintains Office Hours', blank=True, null=True)
+    criteria_attend_plan = models.IntegerField(verbose_name='Attendance at Planning/Coordinating Meetings', blank=True, null=True)
+    criteria_attend_lec = models.IntegerField(verbose_name='Attendance at Lectures', blank=True, null=True)
+    criteria_grading_fair = models.IntegerField(verbose_name='Grading Fair/Consistent', blank=True, null=True)
+    criteria_lab_performance = models.IntegerField(verbose_name='Performance in Lab/Tutorial', blank=True, null=True)
+    criteria_quality_of_feedback = models.IntegerField(verbose_name='Quality of Feedback', blank=True, null=True)
+    criteria_quiz_prep = models.IntegerField(verbose_name='Quiz Preparation/Assist in Exam Preparation', blank=True, null=True)
+    criteria_instr_content = models.IntegerField(verbose_name='Instructional Content', blank=True, null=True)
+    criteria_others = models.IntegerField(verbose_name='Other Job Requirements', blank=True, null=True)
+    criteria_other_comment = models.TextField(verbose_name='Comments', blank=True, null=True)
+    # Section C
+    positive_comment = models.TextField(verbose_name="Please comment on the TA's positive contributions to instruction (e.g. teaching methods, grading, ability to lead discussion) - or other noteworthy strengths", blank=True, null=True)
+    improve_comment = models.TextField(verbose_name="Please comment on those duties which you noted as not meeting job requirements and suggest ways in which the TA's performance could be improved", blank=True, null=True)
+    # Section D
+    overall_evalation = models.BooleanField(verbose_name='Overall Meets Jobs Requirements', blank=True, null=True)
+    recommend_TA = models.BooleanField(verbose_name='Would you recommend this TA for reappointment?', blank=True, null=True)
+    no_recommend_comment = models.TextField(verbose_name='If No, explain briefly', blank=True, null=True)
+    instructor_sign = models.CharField(verbose_name="Instruction's Signature", max_length=200)
+    instructor_signdate = models.DateField(verbose_name='Evaluation Date', help_text='Year-Month-Day')
+    # Section E
+    ta_comment = models.TextField(verbose_name="TA's comment", blank=True, null=True)
+    ta_sign = models.CharField(verbose_name="TA's Signature", blank=True, null=True, max_length=200)
+    ta_signdate = models.DateField(verbose_name='TA Signed Date', help_text='Year-Month-Day', blank=True, null=True)
+    
+    last_update = models.DateField(auto_now=True)
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff
+    # 'released': indicate whether release sent to TA for TA comments
+    # 'reminded': indicate whether reminder sent to TA for TA comments
+    defaults = {'released': False, 'reminded': False}
+    reminded, set_reminded = getter_setter('reminded')
+    released, set_release = getter_setter('released')
+
+    def is_past_nextsemstart(self):
+        try:
+            nextsemstart = self.member.offering.semester.next_semester().start               
+            from datetime import date
+            is_past_nextsemstart = date.today() >= nextsemstart
+        except:
+            is_past_nextsemstart = False
+        return is_past_nextsemstart
+    
+    def is_past_nextsemend(self):
+        try:
+            nextsemend = self.member.offering.semester.next_semester().end            
+            from datetime import date
+            is_past_nextsemend = date.today() > nextsemend
+        except:
+            is_past_nextsemend = False
+        return is_past_nextsemend
+        
+    @classmethod
+    def send_reminders_for_draft_evals(cls):
+        """
+        Execute on day 0 of next term
+        Get the list of TA Evals that was in draft and send reminders to the instructors
+        """
+        from log.models import LogEntry
+        semester = Semester.current()
+        released_semester = semester.previous_semester()
+        # Tempopary for CMPT only       
+        all_lastsem_draft = TAEvaluation.objects.filter(draft=True, member__offering__owner__label='CMPT', 
+                                                          member__offering__semester=released_semester, member__role="TA").select_related('member__person', 'member__offering')
+        
+        for drafteval in all_lastsem_draft:
+            from_email = settings.DEFAULT_FROM_EMAIL
+
+            # Send email notification to each instructor
+            subject = 'You have a draft TA Evaluation for your TA %s. Please review and submit it.' % drafteval.member.person
+            plaintext = get_template('ta/emails/notify_draft_ta_eval_for_instructor.txt')
+            url = settings.BASE_ABS_URL + reverse('offering:edit_ta_evaluation_wizard', kwargs={'course_slug': drafteval.member.offering.slug, 'userid': drafteval.member.person.userid})
+            email_context = {'person': drafteval.member.person, 'offering': drafteval.member.offering, 'url': url, 'instructor': drafteval.member.offering.instructors_str()}
+    
+            instructors = Member.objects.filter(role='INST', offering=drafteval.member.offering) 
+            instructor_email_list = []   
+            for member in instructors:
+                instructor_email_list.append(member.person.email())    
+            msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                                         from_email=from_email, to=instructor_email_list, headers={'X-coursys-topic': 'ta'})
+            msg.send()
+            l = LogEntry(userid='sysadmin',
+                         description=("automatically email notification to instructor %s for drafted Eval for %s %s") % (
+                             drafteval.member.offering.instructors_str(), drafteval.member.offering, drafteval.member.person),
+                         related_object=drafteval)
+            l.save()
+       
+        return cls
+    
+    @classmethod
+    def release_ta_evals(cls):
+        """
+        Execute on day 1 of next term
+        Get the list of TA Evals that can be released so we can add a news item for the TA (and includes send them notification as well)
+        """
+        from log.models import LogEntry
+        semester = Semester.current()
+        released_semester = semester.previous_semester()
+        # Tempopary for CMPT only       
+        all_lastsem_taevals = TAEvaluation.objects.filter(draft=False, ta_signdate=None, member__offering__owner__label='CMPT', 
+                                                          member__offering__semester=released_semester, member__role="TA").select_related('member__person', 'member__offering')
+        
+        for taeval in all_lastsem_taevals:
+            if not taeval.config.get('released'):
+                from_email = settings.DEFAULT_FROM_EMAIL
+
+                # create news item for each TA
+                ta_edit_url = reverse('offering:edit_ta_evaluation_by_ta', kwargs={'course_slug': taeval.member.offering.slug, 'userid': taeval.member.person.userid})
+                n = NewsItem(user=taeval.member.person, source_app="ta_evaluation", title="Your TA Evaluation Form is created. Please review and provide your comment.",
+                    url=ta_edit_url, author=taeval.member.person, content="Your TA Evaluation Form is released. Please review and provide your comment.")
+                n.save()
+                
+                # Send email notification to each TA (in case they turned off news notication)
+                subject = 'Your TA Evaluation for %s is released. Please review and provide your comment.' % released_semester
+                plaintext = get_template('ta/emails/notify_ta_eval_release_for_ta.txt')
+                url = settings.BASE_ABS_URL + reverse('offering:edit_ta_evaluation_by_ta', kwargs={'course_slug': taeval.member.offering.slug, 'userid': taeval.member.person.userid})
+                email_context = {'person': taeval.member.person, 'semester': released_semester, 'unit': taeval.member.offering.owner, 'url': url}
+
+                to_email = taeval.member.person.email()        
+                msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                                    from_email=from_email, to=[to_email], headers={'X-coursys-topic': 'ta'})
+                msg.send()
+            
+                taeval.config['released'] = True
+                taeval.save()
+
+                l = LogEntry(userid='sysadmin',
+                            description=("automatically TA Eval Release to TA %s for %s") % (
+                            taeval.member.person, released_semester),
+                            related_object=taeval)
+                l.save()
+        return cls
+    
+    @classmethod
+    def send_reminders_for_incomplete_evals(cls):
+        """
+        Execute on day 7, 14 of next term
+        Get the list of incomplete TA Evals so we can add a news item for the TA (and includes send them notification as well)
+        """
+        from log.models import LogEntry
+        semester = Semester.current()
+        released_semester = semester.previous_semester()
+        # Tempopary for CMPT only       
+        all_lastsem_taevals = TAEvaluation.objects.filter(draft=False, ta_signdate=None, member__offering__owner__label='CMPT', 
+                                                          member__offering__semester=released_semester, member__role="TA").select_related('member__person', 'member__offering')
+        
+        for taeval in all_lastsem_taevals:
+            from_email = settings.DEFAULT_FROM_EMAIL
+
+            # Send email notification to each TA
+            subject = 'Your have not completed your part of the TA Evaluation for %s. Please review and provide your comment.' % released_semester
+            plaintext = get_template('ta/emails/notify_tocomplete_ta_eval_for_ta.txt')
+            url = settings.BASE_ABS_URL + reverse('offering:edit_ta_evaluation_by_ta', kwargs={'course_slug': taeval.member.offering.slug, 'userid': taeval.member.person.userid})
+            email_context = {'person': taeval.member.person, 'semester': released_semester, 'unit': taeval.member.offering.owner, 'url': url}
+
+            to_email = taeval.member.person.email()        
+            msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                                from_email=from_email, to=[to_email], headers={'X-coursys-topic': 'ta'})
+            msg.send()
+            taeval.config['reminded'] = True
+            taeval.save()
+
+            l = LogEntry(userid='sysadmin',
+                        description=("automatically TA Eval Reminder to TA %s for %s") % (
+                        taeval.member.person, released_semester),
+                        related_object=taeval)
+            l.save()            
+        
+        return cls
+    
+    @classmethod
+    def send_incomplete_to_admin(cls):
+        """
+        On day 28 of next term
+        Get the list of TA Evals that didn't have TA comments and send the PDF to admin
+        """
+        from log.models import LogEntry        
+        semester = Semester.current()
+        released_semester = semester.previous_semester()
+        # Tempopary for CMPT only       
+        all_lastsem_incomplete_taevals = TAEvaluation.objects.filter(draft=False, ta_signdate=None, member__offering__owner__label='CMPT', 
+                                                          member__offering__semester=released_semester, member__role="TA").select_related('member__person', 'member__offering')
+        for taeval in all_lastsem_incomplete_taevals:
+            to_email = []
+            # get TA contact person
+            # /ta
+            try:
+                posting = TAPosting.objects.get(semester=released_semester, unit=taeval.member.offering.owner)
+            except:
+                posting = None
+
+            if posting:
+                to_email = posting.contact().email()
+                
+            subject = 'An incompleted TA Evaluation Form for TA %s (%s) was sent to you for filing' % (taeval.member.person.name(), taeval.member.offering.semester)    
+            plaintext = get_template('ta/emails/notify_incomplete_ta_eval_for_admin.txt')
+            url = settings.BASE_ABS_URL + reverse('offering:view_ta_evaluation', kwargs={'course_slug': taeval.member.offering.slug, 'userid': taeval.member.person.userid})
+            email_context = {'person': taeval.member.person, 'posting': taeval.member.offering, 'url': url, 'status': 'an incompleted'}
+                
+            response = HttpResponse(content_type="application/pdf")   
+            ta_evaluation_form(taeval, taeval.member, taeval.member.offering, response)
+                
+            from_email = settings.DEFAULT_FROM_EMAIL
+            msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                        from_email=from_email, to=[to_email], headers={'X-coursys-topic': 'ta'})
+            msg.attach(('%s-%s.pdf' % (taeval.member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))), response.getvalue(),
+                        'application/pdf')
+            msg.send()  
+
+            l = LogEntry(userid='sysadmin',
+                    description=("automatically sending incomplete TA Eval for %s on %s") % (
+                    taeval.member.person, released_semester),
+                    related_object=taeval)
+            l.save()      
+
+        return cls
+    
 CATEGORY_CHOICES = ( # order must match list in TAPosting.config['salary']
         ('GTA1', 'Masters'),
         ('GTA2', 'PhD'),

@@ -15,6 +15,7 @@ import grades.views as grades_views
 import marking.views as marking_views
 import coredata.views as coredata_views
 import ta.views as ta_views
+from ta.views import TAEvalNewWizard, TAEvalEditWizard
 
 activity_patterns = [ # prefix /COURSE_SLUG/+ACTIVITY_SLUG/
     url(r'^$', grades_views.activity_info, name='activity_info'),
@@ -75,6 +76,11 @@ offering_patterns = [ # prefix /COURSE_SLUG/
     url(r'^config/taworkload/' + USERID_SLUG + '/$', ta_views.view_ta_workload, name='view_ta_workload'),
     url(r'^config/taworkload/' + USERID_SLUG + '/new$', ta_views.new_ta_workload, name='new_ta_workload'),
     url(r'^config/taworkload/' + USERID_SLUG + '/edit$', ta_views.edit_ta_workload, name='edit_ta_workload'),
+    url(r'^config/taevaluation/' + USERID_SLUG + '/$', ta_views.view_ta_evaluation, name='view_ta_evaluation'),
+    url(r'^config/taevaluationwizard/'+ USERID_SLUG + '/new$', TAEvalNewWizard.as_view(), name='new_ta_evaluation_wizard'),
+    url(r'^config/taevaluationwizard/'+ USERID_SLUG + '/edit$', TAEvalEditWizard.as_view(), name='edit_ta_evaluation_wizard'),
+    url(r'^config/taevaluation/' + USERID_SLUG + '/download$', ta_views.download_ta_evaluation, name='download_ta_evaluation'),
+    url(r'^config/taevaluation/' + USERID_SLUG + '/edit_by_ta$', ta_views.edit_ta_evaluation_by_ta, name='edit_ta_evaluation_by_ta'),
     url(r'^groups$', RedirectView.as_view(url='/%(course_slug)s/groups/', permanent=True)),
     url(r'^groups/', include((group_patterns, 'groups'), namespace='groups')),
     url(r'^discussion/', include((discussion_patterns, 'discussion'), namespace='discussion')),

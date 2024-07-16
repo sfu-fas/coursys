@@ -5,7 +5,7 @@ from collections import OrderedDict
 from coredata.models import Member, Role, Person
 from coredata.widgets import CalendarWidget
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
-        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES, TAContractEmailText, TAWorkloadReview
+        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES, TAContractEmailText, TAWorkloadReview, TAEvaluation
 from ta.util import table_row__Form
 import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
@@ -218,7 +218,32 @@ class TAWorkloadReviewForm(forms.ModelForm):
         reviewdate = self.cleaned_data['reviewdate']
         self.instance.reviewdate = reviewdate
         return reviewdate
- 
+
+class TAEvaluationForm(forms.ModelForm):
+    overall_evalation = forms.ChoiceField(label = 'Overall Meets Jobs Requirements:', initial=None, choices = [(True, 'Yes'), (False, 'No')], widget=forms.RadioSelect())
+    recommend_TA = forms.ChoiceField(label = 'Would you recommend this TA for reappointment?', initial=None, choices = [(True, 'Yes'), (False, 'No')], widget=forms.RadioSelect())
+
+    class Meta:
+        model = TAEvaluation        
+        exclude = ('member','last_update', 'config', 'ta_comment','ta_sign', 'ta_signdate') 
+
+    def __init__(self, *args, **kwargs):
+        super(TAEvaluationForm, self).__init__(*args, **kwargs)
+        self.fields['instructor_sign'].required = True
+        self.fields['instructor_signdate'].required = True
+
+class TAEvaluationFormbyTA(forms.ModelForm):
+    class Meta:
+        model = TAEvaluation        
+        fields = ('ta_comment','ta_sign', 'ta_signdate')
+    
+    def __init__(self, *args, **kwargs):
+        super(TAEvaluationFormbyTA, self).__init__(*args, **kwargs)
+        self.fields['ta_comment'].required = True
+        self.fields['ta_sign'].required = True
+        self.fields['ta_signdate'].required = True
+
+
 class TAApplicationForm(forms.ModelForm):
     sin_default = '000000000'
     class Meta:
@@ -500,7 +525,7 @@ class TAPostingForm(forms.ModelForm):
         help_text="Person to give applicants/offers to ask questions.")
     send_notify = forms.BooleanField(label="Send Notify to Contact Person", initial=True, 
         required=False,
-        help_text='Contact person will receive email notification when someone accepts or declines an offer.')
+        help_text='Contact person will receive email notification for TA activities (e.g. when someone accepts or declines an offer, instructor submitted TUG, WR needs action and TA Eval.)')
     max_courses = forms.IntegerField(label="Maximum courses", 
         help_text="The maximum number of courses an applicant can specify.")
     min_courses = forms.IntegerField(label="Minimum courses", 

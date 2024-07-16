@@ -1,0 +1,7 @@
+Dear {{ person.name }},  
+
+Your TA Evaluation for {{ semester }} was released. 
+Please review and provide your comment in here: {{ url }}
+Thank you.
+
+{{ unit }}
