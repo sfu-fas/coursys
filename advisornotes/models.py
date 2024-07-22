@@ -73,12 +73,17 @@ class NonStudent(models.Model):
     start_year = models.IntegerField(null=True, blank=True, help_text="The predicted/potential start year")
     notes = models.TextField(help_text="Any general information for the student", blank=True)
     unit = models.ForeignKey(Unit, help_text='The potential academic unit for the student', null=True, blank=True, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(null=True, blank=True)
 
     def autoslug(self):
         return make_slug(self.first_name + ' ' + self.last_name)
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
+
+    gender = config_property('gender', '')
+    program = config_property('program', '')
+    campus = config_property('campus', '')
 
     def __str__(self):
         return "%s, %s" % (self.last_name, self.first_name)
@@ -87,6 +92,12 @@ class NonStudent(models.Model):
         return "%s %s" % (self.first_name, self.last_name)
     def sortname(self):
         return "%s, %s" % (self.last_name, self.first_name)
+    
+    def first_with_pref(self):
+        name = self.first_name
+        if self.pref_first_name and (self.pref_first_name != self.first_name):
+            name += ' (%s)' % (self.pref_first_name)
+        return name
 
     def search_label_value(self):
         return "%s (Prospective %s)" % (self.name(), self.start_year)
