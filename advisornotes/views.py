@@ -883,7 +883,8 @@ def delete_visit_admin(request, visit_slug):
 
 @requires_role(['ADVS', 'ADVM'])
 def view_nonstudents(request):
-    nonstudents = NonStudent.objects.filter(unit__in=request.units)
+    start = datetime.datetime.now() - datetime.timedelta(days=365)
+    nonstudents = NonStudent.objects.filter(unit__in=request.units, created_at__isnull=False, created_at__gte=start)
     context = {'nonstudents': nonstudents}
     return render(request, 'advisornotes/view_nonstudents.html', context)
 
@@ -942,7 +943,8 @@ def edit_nonstudent(request, nonstudent_slug):
 
 @requires_role(['ADVS', 'ADVM'])
 def download_nonstudents(request):
-    nonstudents = NonStudent.objects.filter(unit__in=request.units).order_by("-created_at")
+    start = datetime.datetime.now() - datetime.timedelta(days=365)
+    nonstudents = NonStudent.objects.filter(unit__in=request.units, created_at__isnull=False, created_at__gte=start)
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="prospective-students-%s.csv"' % (datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)

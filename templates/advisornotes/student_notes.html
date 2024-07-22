@@ -97,7 +97,7 @@
 {% endblock %}
 
 {% block content %}
-{% if nonstudent %}
+{% if nonstudent and student.created_at %}
 This prospective student was created on {{student.created_at}}.
 {% endif %}
 {% if student.emplid %}<div class="idphoto studentinfo"><img src="{% url 'data:student_photo' emplid=student.emplid %}" alt="" /></div>{% endif %}
