@@ -890,7 +890,7 @@ def view_nonstudents(request):
 
 @requires_role(['ADVS', 'ADVM'])
 @transaction.atomic
-def new_nonstudent(request):
+def new_nonstudent(request: HttpRequest) -> HttpResponse:
     """
     View to create a new non-student
     """
@@ -916,9 +916,9 @@ def new_nonstudent(request):
 
 @requires_role(['ADVS', 'ADVM'])
 @transaction.atomic
-def edit_nonstudent(request, nonstudent_slug):
+def edit_nonstudent(request: HttpRequest, nonstudent_slug: str) -> HttpResponse:
     """
-    View to edit a new non-student
+    View to edit a non-student
     """
     nonstudent = get_object_or_404(NonStudent, slug=nonstudent_slug, unit__in=request.units)
     unit_choices = [(u.id, str(u)) for u in request.units]
@@ -938,11 +938,13 @@ def edit_nonstudent(request, nonstudent_slug):
     else:
         form = NonStudentForm(instance=nonstudent)
         form.fields['unit'].choices = unit_choices
-        print("HERE")
     return render(request, 'advisornotes/edit_nonstudent.html', {'form': form, 'nonstudent': nonstudent})
 
 @requires_role(['ADVS', 'ADVM'])
-def download_nonstudents(request):
+def download_nonstudents(request: HttpRequest) -> HttpResponse:
+    """
+    View to download nonstudents
+    """
     start = datetime.datetime.now() - datetime.timedelta(days=365)
     nonstudents = NonStudent.objects.filter(unit__in=request.units, created_at__isnull=False, created_at__gte=start)
     response = HttpResponse(content_type='text/csv')

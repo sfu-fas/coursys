@@ -37,16 +37,17 @@
 {% endblock %}
 
 {% block actions %}
+{% if not visit.nonstudent %}
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        {% if not visit.nonstudent %}
         <li id="moreinfo">
             <a href="#">Refresh SIMS info <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></a>
         </li>
-        {% endif %}
+        
     </ul>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block content %}
