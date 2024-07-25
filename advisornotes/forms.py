@@ -171,7 +171,7 @@ class NonStudentForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(NonStudentForm, self).__init__(*args, **kwargs)
         config_init = ['program', 'campus', 'gender']  
-
+        self.fields['unit'].help_text = "The ownership unit for this prospective student"
         for field in config_init:
             self.initial[field] = getattr(self.instance, field)
     
