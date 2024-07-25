@@ -28,6 +28,7 @@ function confirmMerge() {
 <li>Merge With Existing Student</li>{% endblock %}
 
 {% block content %}
+<p>A form to merge this Prospective Student's profile with a student in our system. This will merge: notes, visits, high school, college and email address.</p>
 <div class="form_container">
     <form action="{% url "advising:merge_nonstudent" nonstudent_slug=nonstudent.slug %}" method="post">
 		{% csrf_token %}
