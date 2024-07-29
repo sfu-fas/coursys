@@ -1,9 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
-{% block h1 %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+{% block title %}Advising Notes for {% if nonstudent%}Prospective Student{% endif%} {{ student.first_name}} {{ student.last_name }}{% endblock %}
+{% block h1 %}Advising Notes for {% if nonstudent%}Prospective Student{% endif%} {{ student.first_name}} {{ student.last_name }}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "advising:advising" %}">Advising</a></li>
+{% if nonstudent %}<li><a href="{% url "advising:view_nonstudents" %}">Prospective Students</a></li>{% endif %}
 <li>{{ student.name }}</li>
 {% endblock %}
 
@@ -78,7 +79,8 @@
         </li>
         {% endif %}
         {% if nonstudent %}
-        <li><a href="{% url "advising:merge_nonstudent" nonstudent_slug=student.slug %}">Merge with existing student</a></li>
+        <li><a href="{% url "advising:edit_nonstudent" nonstudent_slug=student.slug %}">Edit Prospective Student Details</a></li>
+        <li><a href="{% url "advising:merge_nonstudent" nonstudent_slug=student.slug %}">Merge with Existing Student</a></li>
         {% endif %}
         <li><a href="#" class='show_deleted'>Show Deleted Notes</a></li> 
         <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li>
@@ -95,6 +97,9 @@
 {% endblock %}
 
 {% block content %}
+{% if nonstudent and student.created_at %}
+This prospective student was created on {{student.created_at}}.
+{% endif %}
 {% if student.emplid %}<div class="idphoto studentinfo"><img src="{% url 'data:student_photo' emplid=student.emplid %}" alt="" /></div>{% endif %}
     <table class="info">
         <tbody>
@@ -140,6 +145,18 @@
                 <td>{{ student.college|default:"&mdash;" }}</td>
             </tr>
             <tr>
+                <th>Program:</th>
+                <td>{{ student.program }}</td>
+            </tr>
+            <tr>
+                <th>Preferred Campus:</th>
+                <td>{{ student.campus }}</td>
+            </tr>
+            <tr>
+                <th>Gender:</th>
+                <td>{{ student.gender }}</td>
+            </tr>
+            <tr>
                 <th>Start Year:</th>
                 <td>{{ student.start_year|default_if_none:"--" }}</td>
             </tr>
@@ -154,6 +171,12 @@
             <tr>
                 <th>College (Pre-admission record)</th>
                 <td>{{ student.nonstudent_colg }}</td>
+            </tr>
+            {% endif %}
+            {% if not nonstudent and student.nonstudent_notes %}
+            <tr>
+                <th>Notes</th>
+                <td>{{ student.nonstudent_notes }}</td>
             </tr>
             {% endif %}
             {% if visits  %}

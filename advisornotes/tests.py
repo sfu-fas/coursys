@@ -38,6 +38,11 @@ class AdvisorNotestest(TestCase):
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
+        # list nonstudents
+        url = reverse('advising:view_nonstudents', kwargs={})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+
         # new nonstudent form
         url = reverse('advising:new_nonstudent', kwargs={})
         response = basic_page_tests(self, client, url)
@@ -128,7 +133,9 @@ class AdvisorNotestest(TestCase):
         client = Client()
         client.login_user("dzhao")
         year = datetime.date.today().year
-        response = client.post(reverse('advising:new_nonstudent'), {'first_name': 'test123', 'last_name': 'test_new_nonstudent_post', 'start_year': year})
+        now = datetime.datetime.now()
+        response = client.post(reverse('advising:new_nonstudent'), {'first_name': 'test123', 'last_name': 'test_new_nonstudent_post', 'start_year': year, 
+                                                                    'email_address': 'alan.turing@example.net', 'created_at': now})
         self.assertEqual(response.status_code, 302, 'Should have been redirected')
         q = NonStudent.objects.filter(first_name='test123')
         self.assertEqual(len(q), 1, "There should only be one result")
@@ -142,7 +149,7 @@ class AdvisorNotestest(TestCase):
         client = Client()
         client.login_user("dzhao")
 
-        for view in ['new_nonstudent', 'new_artifact', 'view_artifacts',
+        for view in ['new_nonstudent', 'view_nonstudents', 'new_artifact', 'view_artifacts',
                      'view_courses', 'view_course_offerings', 'view_all_semesters']:
             try:
                 url = reverse('advising:' + view, kwargs={})
