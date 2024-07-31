@@ -165,7 +165,7 @@ def all_tugs_admin(request, semester_name=None):
 
     if request.method == "POST" and 'send_instr_reminders' in request.POST:
         # POST request to send reminders to Instructors
-        ccount = send_reminders_to_instr(request, semester_name, all_taevals)          
+        ccount = _send_reminders_to_instr(request, semester_name, all_taevals)          
         if ccount > 1:
             messages.success(request, "Successfully sent %s reminders." % ccount)
         elif ccount > 0:
@@ -173,7 +173,7 @@ def all_tugs_admin(request, semester_name=None):
 
     if request.method == "POST" and 'sendrelease' in request.POST:
         # POST request to send release to TA
-        ccount = send_release_to_tas(request, semester_name, all_taevals)          
+        ccount = _send_release_to_tas(request, semester_name, all_taevals)          
         if ccount > 1:
             messages.success(request, "Successfully sent %s reminders." % ccount)
         elif ccount > 0:
@@ -181,7 +181,7 @@ def all_tugs_admin(request, semester_name=None):
 
     if request.method == "POST" and 'sendreminders' in request.POST:
         # POST request to send reminders to TA
-        ccount = send_reminders_to_tas(request, semester_name, all_taevals)          
+        ccount = _send_reminders_to_tas(request, semester_name, all_taevals)          
         if ccount > 1:
             messages.success(request, "Successfully sent %s reminders." % ccount)
         elif ccount > 0:
@@ -189,7 +189,7 @@ def all_tugs_admin(request, semester_name=None):
 
     if request.method == "POST" and 'sendincomplete' in request.POST:
         # POST request to send incomplete evals to admin
-        ccount = send_incomplete_to_admin(request, semester_name, all_taevals)  
+        ccount = _send_incomplete_to_admin(request, semester_name, all_taevals)  
         if ccount > 1:
             messages.success(request, "Successfully sent %s incompleted TA evals." % ccount)
         elif ccount > 0:
@@ -224,7 +224,7 @@ def all_tugs_admin(request, semester_name=None):
 
     return render(request, 'ta/all_tugs_admin.html', context)
 
-def send_reminders_to_instr(request, semester_name=None, all_taevals=None):
+def _send_reminders_to_instr(request, semester_name=None, all_taevals=None):
     if semester_name:
         semester = get_object_or_404(Semester, name=semester_name)
     else:
@@ -268,7 +268,7 @@ def send_reminders_to_instr(request, semester_name=None, all_taevals=None):
 
     return ccount
 
-def send_release_to_tas(request, semester_name=None, all_taevals=None):
+def _send_release_to_tas(request, semester_name=None, all_taevals=None):
     if semester_name:
         semester = get_object_or_404(Semester, name=semester_name)
     else:
@@ -302,7 +302,7 @@ def send_release_to_tas(request, semester_name=None, all_taevals=None):
 
     return ccount
 
-def send_reminders_to_tas(request, semester_name=None, all_taevals=None):
+def _send_reminders_to_tas(request, semester_name=None, all_taevals=None):
     if semester_name:
         semester = get_object_or_404(Semester, name=semester_name)
     else:
@@ -338,7 +338,7 @@ def send_reminders_to_tas(request, semester_name=None, all_taevals=None):
 
     return ccount
 
-def send_incomplete_to_admin(request, semester_name=None, all_taevals=None):
+def _send_incomplete_to_admin(request, semester_name=None, all_taevals=None):
     if semester_name:
         semester = get_object_or_404(Semester, name=semester_name)
     else:
@@ -357,7 +357,7 @@ def send_incomplete_to_admin(request, semester_name=None, all_taevals=None):
     for taeval in all_taevals:
         evalid = 'taeval_%s' % taeval.id
         if evalid in request.POST and not taeval.draft and taeval.ta_signdate is None:
-            send_notify_to_admin(taeval, 'incomplete')
+            _send_notify_to_admin(taeval, 'incomplete')
             l = LogEntry(userid='sysadmin',
                     description=("manually sending incomplete TA Eval for %s on %s") % (
                     taeval.member.person, semester.name),
@@ -818,8 +818,8 @@ def edit_ta_evaluation_by_ta(request, course_slug, userid):
 
             # if TA completed their section (section E)
             if taevaluation.ta_signdate:                        
-                send_notify_to_instr(taevaluation)           
-                send_notify_to_admin(taevaluation, "completed")
+                _send_notify_to_instr(taevaluation)           
+                _send_notify_to_admin(taevaluation, "completed")
                 # create news item for TA to view
                 ta_view_url = reverse('offering:view_ta_evaluation', kwargs={'course_slug': course.slug, 'userid': userid})
                 n = NewsItem(user=taevaluation.member.person, source_app="ta_evaluation", title="Your TA Evaluation Form is completed.",
@@ -838,7 +838,7 @@ def edit_ta_evaluation_by_ta(request, course_slug, userid):
     return render(request, 'ta/edit_taevaluation_by_ta.html',context)
 
 
-def send_notify_to_instr(taevaluation):    
+def _send_notify_to_instr(taevaluation):    
     subject = 'TA %s has completed their section of the TA Evaluation for %s' % (taevaluation.member.person.name(), taevaluation.member.offering.semester)
     plaintext = get_template('ta/emails/notify_ta_eval_for_instructor.txt')
     url = settings.BASE_ABS_URL + reverse('offering:view_ta_evaluation', kwargs={'course_slug': taevaluation.member.offering.slug, 'userid': taevaluation.member.person.userid})
@@ -855,7 +855,7 @@ def send_notify_to_instr(taevaluation):
                                         to=instructor_email_list, headers={'X-coursys-topic': 'ta'})        
         msg.send()
 
-def send_notify_to_admin(taevaluation, status):    
+def _send_notify_to_admin(taevaluation, status):    
     subject = 'TA Evaluation for %s for %s' % (taevaluation.member.person.name(), taevaluation.member.offering.semester)     
     plaintext = get_template('ta/emails/notify_'+status+'_ta_eval_for_admin.txt')
     url = settings.BASE_ABS_URL + reverse('offering:view_ta_evaluation', kwargs={'course_slug': taevaluation.member.offering.slug, 'userid': taevaluation.member.person.userid})
