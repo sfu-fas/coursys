@@ -1,0 +1,7 @@
+Dear {{ instructor }},  
+
+You have a draft TA Evaluation for your TA {{ person.name }}. Please review and submit it in here: 
+{{ url }}
+Thank you.
+
+{{ offering.owner.name }}

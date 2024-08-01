@@ -25,6 +25,7 @@ from grad.models import STATUS_APPLICANT
 from courselib.branding import product_name
 from ra.forms import CS_CONTACT, ENSC_CONTACT, SEE_CONTACT, MSE_CONTACT, FAS_CONTACT
 import iso8601;
+from textwrap import wrap
 
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
@@ -4575,3 +4576,621 @@ def key_form(booking, outfile):
     doc = KeyForm(outfile)
     doc.draw_form(booking)
     doc.save()
+
+def ta_evaluation_form(ta_evaluation, member, course, outfile):
+    """
+    Generate TUG Form for individual TA.
+    """
+    doc = TAEvalForm(outfile)
+    doc.draw_form_ta_eval(ta_evaluation, member, course)
+    doc.save()  
+
+class TAEvalForm(object):
+    """
+    For for HR to appoint a TA
+    """
+    BOX_HEIGHT = 0.25*inch
+    LABEL_RIGHT = 2
+    LABEL_UP = 2
+    CONTENT_RIGHT = 4
+    CONTENT_UP = 4
+    LABEL_SIZE = 6
+    CONTENT_SIZE = 12
+    NOTE_STYLE = ParagraphStyle(name='Normal',
+                                fontName='Helvetica',
+                                fontSize=7,
+                                leading=10,
+                                alignment=TA_LEFT,
+                                textColor=black)
+                        
+
+    def __init__(self, outfile):
+        """
+        Create TAEvalForm in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+
+    def _draw_box(self, x, y, width, label='', label_size=LABEL_SIZE, content='', content_size=CONTENT_SIZE, right=False):
+        height = self.BOX_HEIGHT
+        self.c.setLineWidth(1)
+        self.c.rect(x, y, width, height)
+
+        if label:
+            self.c.setFont("Helvetica", label_size)
+            self.c.drawString(x + self.LABEL_RIGHT, y + height + self.LABEL_UP, label)
+
+        if content:
+            self.c.setFont("Helvetica", content_size)
+            if right:
+                self.c.drawRightString(x + width - self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+            else:
+                self.c.drawString(x + self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+
+
+    def draw_form_ta_eval(self, ta_evaluation, member, course):
+        """
+        Draw the form for an new-style contract (tacontract module)
+        """        
+        return self.draw_form(
+                ta_evaluation = ta_evaluation, member = member, course = course
+        )
+
+    def draw_form(self, ta_evaluation, member, course):
+        """
+        Generic TA Form drawing method: probably called by one of the above that abstract out the object details.
+        """
+
+        self.c.setStrokeColor(black)
+        self.c.translate(15.8*mm, 31.7*mm) # origin = lower-left of the main box        
+
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.5)
+        p = self.c.beginPath()
+
+        # header
+        # x = from 179-225mm  
+        self.c.setFont("Helvetica", 10)
+        self.c.drawString(0, 225*mm, "APPENDIX E")
+        p.moveTo(0, 224*mm)   #x, y
+        p.lineTo(22*mm, 224*mm)
+        self.c.drawImage(logofile, x=20.5*mm, y=210*mm, width=20.5*mm, height=10.3*mm)
+        self.c.setFont("Helvetica-Oblique", 10)
+        self.c.drawString(60.35*mm, 215*mm, "SIMON FRASER UNIVERSITY")
+        p.moveTo(60.35*mm, 214*mm)   #x, y
+        p.lineTo(110.5*mm, 214*mm)
+        self.c.setFont("Helvetica-Bold", 10)
+        self.c.drawString(60.35*mm, 210*mm, "Teaching Assistant Evaluation")
+        
+        # description
+        self.c.setFont("Helvetica", 7)
+        self.c.drawString(0, 195*mm, "1. You must review this Evaluation Form and Evaluative Criteria with your TA at the beginning of the semester (ref. Art. 20 A).")
+        self.c.drawString(0, 190*mm, "2. Whenever reasonably possible, supervisors shall bring serious or continuing problems to the attention of the TA before citing in this Evaluation Form (ref. Art. 20 I).")       
+        self.c.drawString(0, 185*mm, "3. This form is to be completed by you at the conclusion of the semester. Your assessment of the TA's teaching abilities will become part of the TA's employment")
+        self.c.drawString(0, 182*mm, "record. This feedback is intended to enhance teaching performance.")
+
+        self.draw_form_page_1(ta_evaluation, member, course)
+        self.draw_form_page_2(ta_evaluation)
+
+
+    def draw_form_page_1(self, ta_evaluation, member, course):
+        # section A
+        # x = from 158-174mm       
+        main_width = 184.15*mm
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.5)
+        p = self.c.beginPath() 
+        p.moveTo(0, 158*mm)   #x, y
+        p.lineTo(0, 174*mm)
+        p.lineTo(main_width, 174*mm)
+        p.lineTo(main_width, 158*mm)
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        if ta_evaluation.draft:
+            self.c.setFont("Helvetica", 12)        
+            self.c.drawString(1*mm, 176*mm, "DRAFT")
+        moving_y = 170*mm
+
+        self.c.setFont("Helvetica-Bold", 9)        
+        self.c.drawString(1*mm, moving_y, "SECTION A: Teaching Assistant Information")
+        moving_y = moving_y-5*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(1*mm, moving_y, "Name")
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(10*mm, moving_y, member.person.name())        
+        p.moveTo(10*mm, moving_y-1*mm)   #x, y
+        p.lineTo(60*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(65*mm, moving_y, "Department")
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(83*mm, moving_y, course.owner.name)
+        p.moveTo(83*mm, moving_y-1*mm)   #x, y
+        p.lineTo(125*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(128*mm, moving_y, "Semester")
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(142*mm, moving_y, course.semester.name)
+        p.moveTo(142*mm, moving_y-1*mm)   #x, y
+        p.lineTo(150*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(152*mm, moving_y, "Course#")
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(165*mm, moving_y, course.name())
+        p.moveTo(165*mm, moving_y-1*mm)   #x, y
+        p.lineTo(183*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        moving_y = moving_y-5*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(1*mm, moving_y, "Course Title")
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(20*mm, moving_y, course.title)
+        p.moveTo(20*mm, moving_y-1*mm)   #x, y
+        p.lineTo(62*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(65*mm, moving_y, "Instructor")
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(83*mm, moving_y, course.instructors_str())
+        p.moveTo(83*mm, moving_y-1*mm)   #x, y
+        p.lineTo(150*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(152*mm, moving_y, "TA's 1st Appt.")
+        self.c.setFont("Helvetica", 8)
+        if ta_evaluation.first_appoint:
+            self.c.drawString(175*mm, moving_y, 'Yes')
+        else:
+            self.c.drawString(175*mm, moving_y, 'No')
+        p.moveTo(175*mm, moving_y-1*mm)   #x, y
+        p.lineTo(183*mm, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        # section B
+        # x = from 50-155mm
+        main_width = 184.15*mm
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.5)
+        p = self.c.beginPath() 
+        p.moveTo(0, 50*mm)   #x, y
+        p.lineTo(0, 150*mm)
+        p.lineTo(main_width, 150*mm)
+        p.lineTo(main_width, 50*mm)
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+         
+        self.c.setFont("Helvetica-Bold", 9)
+        moving_y = 146*mm
+        self.c.drawString(1*mm, moving_y, "SECTION B: EVALUATIVE CRITERIA")
+        moving_y = moving_y-5*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(1*mm, moving_y, "Using the evaluative criteria below, indicate whether the TA's performance:")
+        moving_y = moving_y-5*mm
+        self.c.drawString(1*mm, moving_y, "1     Meets Job Requirements - Good")
+        self.c.drawString(90*mm, moving_y, "2     Meets Job Requirements - Satistactory")
+        moving_y = moving_y-5*mm
+        self.c.drawString(1*mm, moving_y, "3     Does not meet job requirement -")
+        self.c.drawString(90*mm, moving_y, "4     Does not meet job requirement -")
+        moving_y = moving_y-3*mm
+        self.c.drawString(6.5*mm, moving_y, "Requires some improvement *")
+        self.c.drawString(95.5*mm, moving_y, "Requires major improvement *")        
+        moving_y = moving_y-5*mm
+        self.c.drawString(1*mm, moving_y, "5     No opportunity to evaluate or criterion is not applicable.")
+        
+        moving_y = moving_y-5*mm
+        self.c.drawString(1*mm, moving_y, "* Whenever reasonably possible, supervisors shall bring serious or continuing problems to the attention of the TA before citing in this")
+        moving_y = moving_y-3*mm
+        self.c.drawString(1*mm, moving_y, "Evaluation Form(ref. Art. 20 I ).")
+        p.moveTo(0, moving_y-1*mm)   #x, y
+        p.lineTo(main_width, moving_y-1*mm)
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        # section B - criterion
+        moving_y = moving_y-10*mm
+        
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(4.5*mm, moving_y, str(ta_evaluation.criteria_lab_prep))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(15*mm, moving_y, "Preparation of Lab/Tutorial Material")
+        
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(94.5*mm, moving_y, str(ta_evaluation.criteria_meet_deadline))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(105*mm, moving_y, "Meets Deadlines")
+
+        moving_y = moving_y-10*mm
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(4.5*mm, moving_y, str(ta_evaluation.criteria_maintain_hour))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(15*mm, moving_y, "Maintains Office Hours")
+        
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(94.5*mm, moving_y, str(ta_evaluation.criteria_attend_plan))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(105*mm, moving_y, "Attendance at Planning/Coordinating Meetings")
+
+        moving_y = moving_y-10*mm
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(4.5*mm, moving_y, str(ta_evaluation.criteria_attend_lec))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(15*mm, moving_y, "Attendance at Lectures")
+        
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(94.5*mm, moving_y, str(ta_evaluation.criteria_grading_fair))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(105*mm, moving_y, "Grading Fair/Consistent")
+
+        moving_y = moving_y-10*mm
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(4.5*mm, moving_y, str(ta_evaluation.criteria_lab_performance))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(15*mm, moving_y, "Performance in Lab/Tutorial")
+        
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(94.5*mm, moving_y, str(ta_evaluation.criteria_quality_of_feedback))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(105*mm, moving_y, "Quality of Feedback")
+
+        moving_y = moving_y-10*mm
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(4.5*mm, moving_y, str(ta_evaluation.criteria_quiz_prep))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(15*mm, moving_y, "Quiz Preparation/Assist in Exam Preparation")
+        
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(94.5*mm, moving_y, str(ta_evaluation.criteria_instr_content))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(105*mm, moving_y, "Instructional Content")
+
+        moving_y = moving_y-10*mm
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(4.5*mm, moving_y, str(ta_evaluation.criteria_others))
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(15*mm, moving_y, "Other Job Requirements")
+        
+        p.moveTo(55*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(180*mm, moving_y-(2*mm))    
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(55*mm, moving_y, str(ta_evaluation.criteria_other_comment))
+
+    def draw_form_page_2(self, ta_evaluation):
+        
+        self.c.showPage()
+        p = self.c.beginPath()
+        self.c.setStrokeColor(black)
+        self.c.translate(15.8*mm, 31.7*mm) # origin = lower-left of the main box
+        self.c.setLineWidth(0.5)
+        main_width = 184.15*mm
+        moving_y = 220*mm
+        wrap_line_max = 138
+
+        # section C
+        # x around from 145-225mm          
+        self.c.setFont("Helvetica-Bold", 9)        
+        self.c.drawString(1*mm, moving_y, "SECTION C: EVALUATION COMMENTARY")
+        moving_y = moving_y-3*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(1*mm, moving_y, "Please comment on the TA's positive contributions to instruction (e.g. teching methods, grading, ")
+        moving_y = moving_y-3*mm
+        self.c.drawString(1*mm, moving_y, "ability to lead discussion) - or other noteworthy strengths")
+
+        moving_y = moving_y-5*mm
+        self.c.setFont("Helvetica", 8)
+        lines = wrap(str(ta_evaluation.positive_comment), wrap_line_max)        
+
+        for line in lines:
+            self.c.drawString(5*mm, moving_y, line)
+            p.moveTo(5, moving_y-(1*mm))   #x, y
+            p.lineTo(main_width-2*mm, moving_y-(1*mm))
+            self.c.drawPath(p, stroke=1, fill=0)
+            moving_y = moving_y-5*mm
+ 
+        if len(lines) < 3:
+            for n in range(1, 3-len(lines)+1):            
+                p.moveTo(5, moving_y-(1*mm))   #x, y
+                p.lineTo(main_width-2*mm, moving_y-(1*mm))
+                self.c.drawPath(p, stroke=1, fill=0)
+                moving_y = moving_y-5*mm
+
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(1*mm, moving_y, "Please comment on those duties which you noted as not meeting job requirements and suggest ")
+        moving_y = moving_y-3*mm
+        self.c.drawString(1*mm, moving_y, "ways in which the TA's performance could be improved")
+
+        moving_y = moving_y-5*mm
+        self.c.setFont("Helvetica", 8)
+        lines = wrap(str(ta_evaluation.improve_comment), wrap_line_max)        
+
+        for line in lines:
+            self.c.drawString(5*mm, moving_y, line)
+            p.moveTo(5, moving_y-(1*mm))   #x, y
+            p.lineTo(main_width-2*mm, moving_y-(1*mm))
+            self.c.drawPath(p, stroke=1, fill=0)
+            moving_y = moving_y-5*mm
+ 
+        if len(lines) < 3:
+            for n in range(1, 3-len(lines)+1):            
+                p.moveTo(5, moving_y-(1*mm))   #x, y
+                p.lineTo(main_width-2*mm, moving_y-(1*mm))
+                self.c.drawPath(p, stroke=1, fill=0)
+                moving_y = moving_y-5*mm                
+
+        # draw section c box at the end as we need to know the lines
+        p.moveTo(0, moving_y)   #x, y
+        p.lineTo(0, 225*mm)
+        p.lineTo(main_width, 225*mm)
+        p.lineTo(main_width, moving_y)
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        # section D        
+        # roughly calculate the section box height, if no enough for this page, show on new page
+        lines = wrap(str(ta_evaluation.no_recommend_comment), wrap_line_max) 
+        section_d_height = (45*mm) + (len(lines) * 5)*mm
+
+        if section_d_height > moving_y:
+            self.c.showPage()
+            p = self.c.beginPath()
+            self.c.setStrokeColor(black)
+            self.c.translate(15.8*mm, 31.7*mm) # origin = lower-left of the main box
+            self.c.setLineWidth(0.5)
+            main_width = 184.15*mm
+            moving_y = 220*mm
+
+        section_d_start = moving_y        
+        moving_y = moving_y-10*mm        
+        self.c.setFont("Helvetica-Bold", 9)        
+        self.c.drawString(1*mm, moving_y, "SECTION D: SUMMARY/OVERALL EVALUATION")
+        
+        moving_y = moving_y-8*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        p.moveTo(2*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(2*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y+(4*mm))
+        p.lineTo(8*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)        
+        self.c.drawString(15*mm, moving_y, "Meets Job Requirements")
+
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)        
+        self.c.drawString(105*mm, moving_y, "Does Not Meeting Requirements")
+
+        if ta_evaluation.overall_evalation is not None:
+            self.c.setFont("Helvetica", 8)
+            if ta_evaluation.overall_evalation:
+                self.c.drawString(4.5*mm, moving_y, "X")
+            else:
+                self.c.drawString(94.5*mm, moving_y, "X")
+
+        moving_y = moving_y-7*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(2*mm, moving_y, "Would you recommend this TA for reappointment?")
+        p.moveTo(92*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(92*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y+(4*mm))
+        p.lineTo(98*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)        
+        self.c.drawString(105*mm, moving_y, "Yes")
+
+        p.moveTo(122*mm, moving_y-(2*mm))   #x, y
+        p.lineTo(122*mm, moving_y+(4*mm))
+        p.lineTo(128*mm, moving_y+(4*mm))
+        p.lineTo(128*mm, moving_y-(2*mm))
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)        
+        self.c.drawString(135*mm, moving_y, "No")
+
+        if ta_evaluation.recommend_TA is not None:
+            self.c.setFont("Helvetica", 8)
+            if ta_evaluation.recommend_TA:
+                self.c.drawString(94.5*mm, moving_y, "X")
+            else:
+                self.c.drawString(124.5*mm, moving_y, "X")
+        
+        moving_y = moving_y-7*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(2*mm, moving_y, "If No, explain briefly")
+        moving_y = moving_y-5*mm        
+        self.c.setFont("Helvetica", 8)
+        lines = wrap(str(ta_evaluation.no_recommend_comment), wrap_line_max)        
+
+        for line in lines:
+            self.c.drawString(5*mm, moving_y, line)
+            p.moveTo(5, moving_y-(1*mm))   #x, y
+            p.lineTo(main_width-2*mm, moving_y-(1*mm))
+            self.c.drawPath(p, stroke=1, fill=0)
+            moving_y = moving_y-5*mm
+ 
+        if len(lines) < 3:
+            for n in range(1, 3-len(lines)+1):            
+                p.moveTo(5, moving_y-(1*mm))   #x, y
+                p.lineTo(main_width-2*mm, moving_y-(1*mm))
+                self.c.drawPath(p, stroke=1, fill=0)
+                moving_y = moving_y-5*mm     
+
+        moving_y = moving_y-5*mm
+        p.moveTo(5*mm, moving_y)   #x, y
+        p.lineTo(80*mm, moving_y)
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.drawString(10*mm, moving_y+(1*mm), ta_evaluation.instructor_sign)        
+        p.moveTo(105*mm, moving_y)   #x, y
+        p.lineTo(175*mm, moving_y)
+        self.c.drawPath(p, stroke=1, fill=0)
+        if ta_evaluation.instructor_signdate:
+            self.c.drawString(110*mm, moving_y+(1*mm), ta_evaluation.instructor_signdate.strftime('%Y/%m/%d'))
+        moving_y = moving_y-3*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(20*mm, moving_y, "Instruction's Signature")
+        self.c.drawString(130*mm, moving_y, "Year/Month/Day")
+        moving_y = moving_y-5*mm
+        
+        # draw section d box at the end as we need to know the lines
+        p.moveTo(0, moving_y)   #x, y
+        p.lineTo(0, section_d_start-(5*mm))
+        p.lineTo(main_width, section_d_start-(5*mm))
+        p.lineTo(main_width, moving_y)
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        # section E 
+        # roughly calculate the section box height, if no enough for this page, show on new page
+        lines = wrap(str(ta_evaluation.ta_comment), wrap_line_max) 
+        section_d_height = (23*mm) + (len(lines) * 5)*mm
+
+        if section_d_height > moving_y:
+            self.c.showPage()
+            p = self.c.beginPath()
+            self.c.setStrokeColor(black)
+            self.c.translate(15.8*mm, 31.7*mm) # origin = lower-left of the main box
+            self.c.setLineWidth(0.5)
+            main_width = 184.15*mm
+            moving_y = 220*mm
+
+        section_e_start = moving_y
+        moving_y = moving_y-10*mm
+        self.c.setFont("Helvetica-Bold", 9)        
+        self.c.drawString(1*mm, moving_y, "SECTION E: TEACHING ASSISTANT'S COMMENTS")
+
+        self.c.setFont("Helvetica-Bold", 8)
+        moving_y = moving_y-5*mm        
+        self.c.setFont("Helvetica", 8)
+        lines = wrap(str(ta_evaluation.ta_comment), wrap_line_max)        
+
+        for line in lines:
+            self.c.drawString(5*mm, moving_y, line)
+            p.moveTo(5, moving_y-(1*mm))   #x, y
+            p.lineTo(main_width-2*mm, moving_y-(1*mm))
+            self.c.drawPath(p, stroke=1, fill=0)
+            moving_y = moving_y-5*mm
+ 
+        if len(lines) < 3:
+            for n in range(1, 3-len(lines)+1):            
+                p.moveTo(5, moving_y-(1*mm))   #x, y
+                p.lineTo(main_width-2*mm, moving_y-(1*mm))
+                self.c.drawPath(p, stroke=1, fill=0)
+                moving_y = moving_y-5*mm     
+
+        moving_y = moving_y-5*mm
+        p.moveTo(5*mm, moving_y)   #x, y
+        p.lineTo(80*mm, moving_y)
+        self.c.drawPath(p, stroke=1, fill=0)
+        self.c.drawString(10*mm, moving_y+(1*mm), str(ta_evaluation.ta_sign))        
+        p.moveTo(105*mm, moving_y)   #x, y
+        p.lineTo(175*mm, moving_y)
+        self.c.drawPath(p, stroke=1, fill=0)
+        if ta_evaluation.ta_signdate:
+            self.c.drawString(110*mm, moving_y+(1*mm), ta_evaluation.ta_signdate.strftime('%Y/%m/%d'))
+        moving_y = moving_y-3*mm
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(20*mm, moving_y, "Teaching Assistant's Signature")
+        self.c.drawString(130*mm, moving_y, "Year/Month/Day")
+        moving_y = moving_y-5*mm
+
+        # draw section e box at the end as we need to know the lines
+        p.moveTo(0, moving_y)   #x, y
+        p.lineTo(0, section_e_start-(5*mm))
+        p.lineTo(main_width, section_e_start-(5*mm))
+        p.lineTo(main_width, moving_y)
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
+        
+        moving_y = moving_y-5*mm
+        if moving_y < (12*mm):
+            self.c.showPage()
+            p = self.c.beginPath()
+            moving_y = 220*mm
+
+        self.c.setFont("Helvetica-Bold", 7)
+        self.c.drawString(5*mm, moving_y, "Distribution of and retention of the Evaluation Form")
+        moving_y = moving_y-3*mm
+        self.c.drawString(5*mm, moving_y, "1. The original coy of the Evaluation Form must be forwarded to the Department Chair on completion and included in the TA's employment file.")
+        moving_y = moving_y-3*mm
+        self.c.drawString(5*mm, moving_y, "2. The TA must receive a copy of the Evaluation Form no later than the end of the first week of classes of the following semester")
+        moving_y = moving_y-3*mm
+        self.c.drawString(5*mm, moving_y, "3. The TA may make comments on the evaluation and such comments will then be added to the employment file. The TA should complete TA comments")
+        moving_y = moving_y-3*mm
+        self.c.drawString(5*mm, moving_y, "section, sign and date the form and return the form to the Department Chair as soon as possible.")
+        
+    def save(self):
+        self.c.save()    
