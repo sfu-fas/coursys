@@ -49,20 +49,29 @@
 
 <div class="table_container">
     <h2>Section B: Evaluation Criteria</h2>    
+    <div>        
+        <ul>            
+            <li><small>1. Meets Job Requirements- Good</small></li>
+            <li><small>2. Meets Job Requirements- Satisfactory</small></li>
+            <li><small>3. Does not meet job requirements - Requires some improvement</small></li>
+            <li><small>4. Does not meet job requirements - Requires major improvement*</small></li>
+            <li><small>N/A. No opportunity to evaluate or criterion is not applicable.</small></li>
+        </ul>
+    </div> 
     <table class="info">
-    <tr><td scope="row" style="width:70%">Preparation of Lab/Tutorial Material: </td><td> {{ eval.criteria_lab_prep }}</td></tr>
-    <tr><td scope="row" >Meets Deadlines:</td><td>{{ eval.criteria_meet_deadline }} </td></tr>
-    <tr><td scope="row">Maintains Office Hours:</td><td> {{ eval.criteria_maintain_hour }} </td></tr>
-    <tr><td scope="row">Attendance at Planning/Coordinating Meetings:</td><td> {{ eval.criteria_attend_plan }}</td></tr>
-    <tr><td scope="row">Attendance at Lectures: </td><td>{{ eval.criteria_attend_lec }} </td></tr>
-    <tr><td scope="row">Grading Fair/Consistent: </td><td>{{ eval.criteria_grading_fair }} </td></tr>
-    <tr><td scope="row">Performance in Lab/Tutorial: </td><td>{{ eval.criteria_lab_performance }} </td></tr>
-    <tr><td scope="row">Quality of Feedback: </td><td>{{ eval.criteria_quality_of_feedback }} </td></tr>
-    <tr><td scope="row">Quiz Preparation/Assist in Exam Preparation : </td><td>{{ eval.criteria_quiz_prep }} </td></tr>
-    <tr><td scope="row">Instructional Content:</td><td> {{ eval.criteria_instr_content }} </td></tr>
-    <tr><td scope="row">Other Job Requirements: </td><td>{{ eval.criteria_others }} </td></tr>
-    <tr><td scope="row"> Comments: <br> </td><td> {{ eval.criteria_other_comment }} </td></tr>
-    </table>
+        <tr><td scope="row" style="width:70%">Preparation of Lab/Tutorial Material: </td><td> {% if eval.criteria_lab_prep == 5 %} N/A {% else %} {{ eval.criteria_lab_prep }}{% endif %}</td></tr>
+        <tr><td scope="row" >Meets Deadlines:</td><td>{% if eval.criteria_meet_deadline == 5 %} N/A {% else %} {{ eval.criteria_meet_deadline }} {% endif %}</td></tr>
+        <tr><td scope="row">Maintains Office Hours:</td><td> {% if eval.criteria_maintain_hour == 5 %} N/A {% else %} {{ eval.criteria_maintain_hour }} {% endif %}</td></tr>
+        <tr><td scope="row">Attendance at Planning/Coordinating Meetings:</td><td> {% if eval.criteria_attend_plan == 5 %} N/A {% else %} {{ eval.criteria_attend_plan }}{% endif %}</td></tr>
+        <tr><td scope="row">Attendance at Lectures: </td><td>{% if eval.criteria_attend_lec == 5 %} N/A {% else %} {{ eval.criteria_attend_lec }} {% endif %}</td></tr>
+        <tr><td scope="row">Grading Fair/Consistent: </td><td>{% if eval.criteria_grading_fair == 5 %} N/A {% else %} {{ eval.criteria_grading_fair }} {% endif %}</td></tr>
+        <tr><td scope="row">Performance in Lab/Tutorial: </td><td>{% if eval.criteria_lab_performance == 5 %} N/A {% else %} {{ eval.criteria_lab_performance }} {% endif %}</td></tr>
+        <tr><td scope="row">Quality of Feedback: </td><td>{% if eval.criteria_quality_of_feedback == 5 %} N/A {% else %} {{ eval.criteria_quality_of_feedback }} {% endif %}</td></tr>
+        <tr><td scope="row">Quiz Preparation/Assist in Exam Preparation : </td><td>{% if eval.criteria_quiz_prep == 5 %} N/A {% else %} {{ eval.criteria_quiz_prep }} {% endif %}</td></tr>
+        <tr><td scope="row">Instructional Content:</td><td> {% if eval.criteria_instr_content == 5 %} N/A {% else %} {{ eval.criteria_instr_content }} {% endif %}</td></tr>
+        <tr><td scope="row">Other Job Requirements: </td><td>{% if eval.criteria_others == 5 %} N/A {% else %} {{ eval.criteria_others }} {% endif %}</td></tr>
+        <tr><td scope="row"> Comments: <br> </td><td> {% if eval.criteria_other_comment == 5 %} N/A {% else %} {{ eval.criteria_other_comment }} {% endif %}</td></tr>
+        </table>
 </div>
 
 <div class="table_container">

@@ -4760,12 +4760,14 @@ class TAEvalForm(object):
         self.c.setStrokeColor(black)
         self.c.setLineWidth(0.5)
         p = self.c.beginPath() 
-        p.moveTo(0, 50*mm)   #x, y
-        p.lineTo(0, 150*mm)
-        p.lineTo(main_width, 150*mm)
-        p.lineTo(main_width, 50*mm)
-        p.close()        
-        self.c.drawPath(p, stroke=1, fill=0)
+        
+        # Section B - border
+        #p.moveTo(0, 50*mm)   #x, y
+        #p.lineTo(0, 150*mm)
+        #p.lineTo(main_width, 150*mm)
+        #p.lineTo(main_width, 50*mm)
+        #p.close()        
+        #self.c.drawPath(p, stroke=1, fill=0)
          
         self.c.setFont("Helvetica-Bold", 9)
         moving_y = 146*mm
@@ -4922,11 +4924,31 @@ class TAEvalForm(object):
         self.c.setFont("Helvetica-Bold", 8)
         self.c.drawString(15*mm, moving_y, "Other Job Requirements")
         
-        p.moveTo(55*mm, moving_y-(2*mm))   #x, y
-        p.lineTo(180*mm, moving_y-(2*mm))    
-        self.c.drawPath(p, stroke=1, fill=0)
+        #p.moveTo(55*mm, moving_y-(2*mm))   #x, y
+        #p.lineTo(180*mm, moving_y-(2*mm))    
+        #self.c.drawPath(p, stroke=1, fill=0)
+        #self.c.setFont("Helvetica", 8)
+        #self.c.drawString(55*mm, moving_y, str(ta_evaluation.criteria_other_comment))
+
         self.c.setFont("Helvetica", 8)
-        self.c.drawString(55*mm, moving_y, str(ta_evaluation.criteria_other_comment))
+        wrap_line_max = 100
+        lines = wrap(str(ta_evaluation.criteria_other_comment), wrap_line_max)
+
+        for line in lines:
+            self.c.drawString(55*mm, moving_y, line)
+            p.moveTo(55*mm, moving_y-(1*mm))   #x, y
+            p.lineTo(main_width-2*mm, moving_y-(1*mm))
+            self.c.drawPath(p, stroke=1, fill=0)
+            moving_y = moving_y-5*mm
+ 
+        self.c.setFont("Helvetica-Bold", 8)
+        # Section B - border
+        p.moveTo(0, moving_y)   #x, y
+        p.lineTo(0, 150*mm)
+        p.lineTo(main_width, 150*mm)
+        p.lineTo(main_width, moving_y)
+        p.close()        
+        self.c.drawPath(p, stroke=1, fill=0)
 
     def draw_form_page_2(self, ta_evaluation):
         
