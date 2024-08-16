@@ -118,12 +118,12 @@ There are three TA-related processes that course instructors need to complete as
   	{% endif %}
   </td>
   <td>
-      {% if data.tug and data.taeval and data.ta.offering.owner.label == 'CMPT'%}        
+      {% if data.taeval %}        
         <a href="{% url "offering:view_ta_evaluation" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">{% if data.taeval.draft %}(DRAFT)<br>{% endif %} Evaluated on: {{ data.taeval.instructor_signdate|default:"Unknown" }} </a>
         {% if not data.taeval.draft and not data.taeval.ta_signdate %}  <i class="fa fa-question"> Missing TA comments</i> {% endif %}
   	  {% else %}
         {% if data.is_instr or admin %}
-          {% if data.tug and not data.tug.draft  %}
+          {% if data.tug and data.ta.offering.owner.label == 'CMPT' %}
             <a href="{% url "offering:new_ta_evaluation_wizard" course_slug=data.ta.offering.slug userid=data.ta.person.userid_or_emplid %}">Create</a>
           {% else %}
           --  
