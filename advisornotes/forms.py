@@ -151,7 +151,7 @@ class StartYearField(forms.IntegerField):
 
 class NonStudentForm(ModelForm):
     email_address = forms.EmailField(required=True, label="Email Address")
-    start_year = StartYearField(help_text="The predicted/potential start year", required=True, label="Start Year")
+    start_year = StartYearField(help_text="The predicted/potential start year", required=True, label="Start Year", widget=forms.TextInput())
     gender = forms.ChoiceField(choices= GENDER_CHOICES_NONSTUDENT, required=False)
     campus = forms.ChoiceField(label="Preferred Campus", choices=CAMPUS_CHOICES_NONSTUDENT, required=False)
     program = forms.ChoiceField(required=False, choices=PROGRAM_CHOICES_NONSTUDENT, label="Potential Program")
