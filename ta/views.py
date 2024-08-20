@@ -26,7 +26,7 @@ from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceFor
     TAEvaluationForm, TAEvaluationFormbyTA
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
-from dashboard.letters import ta_form, ta_forms, ta_evaluation_form
+from dashboard.letters import ta_form, ta_forms, tug_form, taworkload_form, ta_evaluation_form
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
@@ -44,6 +44,14 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import get_template
 from datetime import date
+from tacontracts.models import HiringSemester
+
+# Template 
+# 2022-2025 TUG: view_tug_2022-2025.html 
+# old version before 2022: view_tug.html     
+
+# prod > 1247
+TUG_FORMAT_CUTOFF = '1247'
 
 locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' ) #fiddle with this if you cant get the following function to work
 def _format_currency(i):
@@ -130,14 +138,14 @@ def all_tugs_admin(request, semester_name=None):
     if admin:
         courses = CourseOffering.objects.filter(owner__in=request.units, semester=semester)
         course_ids = [o.id for o in courses]
-        admin_tas = Member.objects.filter(offering_id__in=course_ids, role="TA").select_related('offering__semester', 'person')
+        admin_tas = Member.objects.filter(offering_id__in=course_ids, role="TA").select_related('offering__semester', 'person', 'offering__owner')
         admin_tas = set(admin_tas)
 
     if instr_members:
         # allow all instructors to see the page, but only populate with current semester's TAs
         instr_members = instr_members.filter(offering__semester=semester)
         offering_ids = set(m.offering_id for m in instr_members)
-        instr_tas = Member.objects.filter(offering_id__in=offering_ids, role='TA').select_related('offering__semester')
+        instr_tas = Member.objects.filter(offering_id__in=offering_ids, role='TA').select_related('offering__semester', 'offering__owner')
         instr_tas = set(instr_tas)
 
     all_tas = admin_tas | instr_tas
@@ -244,8 +252,7 @@ def _send_reminders_to_instr(request, semester_name=None, all_taevals=None):
         evalid = 'taeval_%s' % taeval.id        
         if evalid in request.POST and taeval.draft:                            
             from_email = settings.DEFAULT_FROM_EMAIL            
-            # Send email notification to each instructor
-            print ("send_instr_reminders-instructor")
+            # Send email notification to each instructor            
             subject = 'You have a draft TA Evaluation for your TA %s. Please review and submit it.' % taeval.member.person
             plaintext = get_template('ta/emails/notify_draft_ta_eval_for_instructor.txt')
             url = settings.BASE_ABS_URL + reverse('offering:edit_ta_evaluation_wizard', kwargs={'course_slug': taeval.member.offering.slug, 'userid': taeval.member.person.userid})
@@ -253,8 +260,7 @@ def _send_reminders_to_instr(request, semester_name=None, all_taevals=None):
     
             instructors = Member.objects.filter(role='INST', offering=taeval.member.offering) 
             instructor_email_list = []   
-            for member in instructors:
-                print ("send_instr_reminders-instructor", member.person.email())
+            for member in instructors:                
                 instructor_email_list.append(member.person.email())    
             msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
                                          from_email=from_email, to=instructor_email_list, headers={'X-coursys-topic': 'ta'})
@@ -394,6 +400,8 @@ def view_tug(request, course_slug, userid):
         return ForbiddenResponse(request)
     else:
         tug = get_object_or_404(TUG, member=member)
+        if curr_user_role=="TA" and tug.draft: 
+            return ForbiddenResponse(request)                
         iterable_fields = [(_, params) for _, params in tug.config.items() if hasattr(params, '__iter__') ]
         total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in iterable_fields if params.get('total',0) is not None)
         total_hours = round(total_hours, 2)
@@ -404,7 +412,7 @@ def view_tug(request, course_slug, userid):
             has_lab_or_tut = contract_info.has_labtut()
             lab_bonus_decimal = contract_info.prep_bu
             holiday_hours_per_bu = contract_info.holiday_hours_per_bu
-            hours_per_bu = contract_info.hours
+            hours_per_bu = HOURS_PER_BU
             total_bu = contract_info.total_bu
             max_hours = contract_info.hours
         else:
@@ -416,13 +424,8 @@ def view_tug(request, course_slug, userid):
             total_bu = tug.base_units + LAB_BONUS_DECIMAL
             max_hours = tug.base_units * HOURS_PER_BU
 
-        try:
-            taworkload = TAWorkloadReview.objects.get(member=member)
-        except TAWorkloadReview.DoesNotExist:            
-            taworkload = None
-
         context = {'tug': tug, 
-                'ta':member, 
+                'ta':member.person, 
                 'course':course, 
                 'bu': bu,
                 'max_hours': max_hours, 
@@ -437,9 +440,15 @@ def view_tug(request, course_slug, userid):
                 'hours_per_bu': hours_per_bu,
                 'holiday_hours_per_bu': holiday_hours_per_bu,
                 'total_bu': total_bu,
-                'taworkload': taworkload
+                'draft': tug.draft,
                 }
-        return render(request, 'ta/view_tug.html',context)
+        
+
+        if course.semester.name >= TUG_FORMAT_CUTOFF:
+            template_file = 'ta/view_tug_2022-2025.html'
+        else:
+            template_file = 'ta/view_tug.html'
+        return render(request, template_file,context)
 
 
 @_requires_course_instr_or_admin_by_slug
@@ -478,28 +487,58 @@ def _edit_tug(request, course_slug, userid, tug=None):
 
     if not tug:
         tug = TUG(member=member)
+        draft = True
+    else:
+        draft = tug.draft        
+
+    if course.semester.name >= TUG_FORMAT_CUTOFF:
+        new_format = True
+    else:
+        new_format = False
 
     if request.method == "POST":
-        form = TUGForm(instance=tug, data=request.POST, offering=course, userid=userid, enforced_prep_min=prep_min)
-        if form.is_valid():
+        form = TUGForm(instance=tug, data=request.POST, offering=course, userid=userid, enforced_prep_min=prep_min, new_format=new_format)
+        
+        if form.is_valid():            
             tug = form.save(False)
-            tug.save(newsitem_author=Person.objects.get(userid=request.user.username))
+            if 'save_draft' in request.POST:
+                tug.draft = True
+                tug.save(newsitem=False)
+            else:
+                tug.draft = False
+                tug.save(newsitem_author=Person.objects.get(userid=request.user.username))
+
+            if not tug.draft: 
+                contract_info = __get_contract_info(tug.member)               
+                _email_tug(tug, contract_info)
             return HttpResponseRedirect(reverse('offering:view_tug', args=(course.slug, userid)))
     else:
         form = TUGForm(instance=tug, offering=course, userid=userid, enforced_prep_min=prep_min, initial={
             'holiday':{'total': holiday_hours},
             'prep':{'total': prep_min or ''},
-            'base_units': bu})
+            'base_units': bu}, new_format=new_format)
         if prep_bu:
             form.fields['base_units'].help_text = \
-                ('+ %s base units not assignable because of labs/tutorials' %
-                    (prep_bu,))
+                ('x %s = Maxinum Hours: %s (+ %s base units not assignable because of labs/tutorials)' %
+                    (hours_per_bu, bu * hours_per_bu, prep_bu,))
+        else:
+            form.fields['base_units'].help_text = 'x %s = Maxinum Hours: %s' % (hours_per_bu, bu * hours_per_bu)
 
     if member.bu():
         # we know BUs from the TA application: don't allow editing
         form.fields['base_units'].widget = LabelledHidden()
         form.subforms['holiday'].fields['total'].widget = LabelledHidden()
         form.subforms['holiday'].fields['weekly'].widget = LabelledHidden()
+
+    #/ta
+    try:
+        posting = TAPosting.objects.get(semester=course.semester, unit=course.owner)
+    except:
+        posting = None
+    if posting: 
+        tssu_link = posting.tssu_link()
+    else:  
+        tssu_link = 'https://www.sfu.ca/human-resources/tssu.html'
 
     context = {'ta':member.person,
                'course':course,
@@ -509,9 +548,81 @@ def _edit_tug(request, course_slug, userid, tug=None):
                'LAB_BONUS_4': lab_bonus+4, # used in the help text
                'HOURS_PER_BU': hours_per_bu,
                'HOLIDAY_HOURS_PER_BU': HOLIDAY_HOURS_PER_BU,
+               'tssu_link': tssu_link,
+               'draft': draft,                
                }
     return render(request,'ta/edit_tug.html',context)
 
+@_requires_course_staff_or_admin_by_slug
+def download_tug(request, course_slug, userid):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    member = get_object_or_404(Member, offering=course, person__userid=userid, role="TA")
+    try:
+        curr_user_role = Member.objects.exclude(role='DROP').get(person__userid=request.user.username, offering=course).role
+    except Member.DoesNotExist:
+        # we'll just assume this since it's the only other possibility 
+        #  since we're checking authorization in the decorator
+        curr_user_role = "ADMN"
+
+    #If the currently logged in user is a TA for the course and is viewing a TUG for another TA, show forbidden message
+    if curr_user_role=="TA" and not userid==request.user.username: 
+        return ForbiddenResponse(request)
+    else:
+        tug = get_object_or_404(TUG, member=member)
+        contract_info = __get_contract_info(tug.member)    
+        if tug.member.offering.semester.name >= TUG_FORMAT_CUTOFF:
+            new_format = True
+        else:
+            new_format = False
+
+        response = HttpResponse(content_type="application/pdf")
+        filename =  "%s-%s.pdf" % (tug.member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))
+        response['Content-Disposition'] = 'inline; filename="%s"' % (filename)
+        tug_form(tug, contract_info, new_format, response)
+        return response
+
+def _email_tug(tug, contract_info):         
+    # Email TA and Admin when instructor submit the TUG     
+    subject = "TUG for %s (%s) in %s in %s" % (tug.member.person.sortname(), tug.member.person.emplid,tug.member.offering.name(), tug.member.offering.semester )
+    plaintext = get_template('ta/emails/notify_tug.txt')
+    posting = TAPosting.objects.filter(semester=tug.member.offering.semester, unit=tug.member.offering.owner).first()
+    email_context = {'person': tug.member.person, 'posting': posting, 'offering': tug.member.offering}
+    from_email = settings.DEFAULT_FROM_EMAIL
+    response = HttpResponse(content_type="application/pdf")
+
+    if tug.member.offering.semester.name >= TUG_FORMAT_CUTOFF:
+        new_format = True
+    else:
+        new_format = False
+
+    tug_form(tug, contract_info, new_format, response)
+
+    # send to TA themselves
+    to_email = []
+    to_email.append(tug.member.person.email())
+
+    # send to TA admin
+    #/ta
+    try:
+        posting = TAPosting.objects.get(semester=tug.member.offering.semester, unit=tug.member.offering.owner)
+    except:
+        posting = None
+    if posting: 
+        to_email.append(posting.contact().email())
+
+    #/tacontracts
+    try: 
+        hiring_semester = HiringSemester.objects.filter(semester=tug.member.offering.semester, unit=tug.member.offering.owner).first()
+    except: 
+        hiring_semester = None
+    if hiring_semester:
+        to_email.append(hiring_semester.contact)
+
+    msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                    from_email=from_email, to=to_email, headers={'X-coursys-topic': 'ta'})
+    msg.attach(('%s_%s_%s_%s_TUG.pdf' % (tug.member.person.last_name, tug.member.person.first_name, tug.member.person.emplid, tug.member.offering.semester.slugform())), response.getvalue(),
+                   'application/pdf')
+    msg.send()
 
 @_requires_course_staff_or_admin_by_slug
 def view_ta_workload(request, course_slug, userid):
@@ -534,7 +645,7 @@ def view_ta_workload(request, course_slug, userid):
         
          
         context = {'tug': tug, 
-                'ta':member, 
+                'ta':member.person, 
                 'course':course,
                 'taworkload': taworkload,
                 'user_role': curr_user_role,
@@ -578,7 +689,7 @@ def _edit_ta_workload(request, course_slug, userid, taworkload=None):
 
             return HttpResponseRedirect(reverse('offering:view_ta_workload', args=(course.slug, userid)))
         
-    context = {'ta':member,
+    context = {'ta':member.person,
                'course':course,               
                'userid':userid,
                'tug': tug,
@@ -587,6 +698,18 @@ def _edit_ta_workload(request, course_slug, userid, taworkload=None):
                'form': ta_workloadreviewform 
                }
     return render(request,'ta/edit_taworkload.html',context)
+
+@_requires_course_staff_or_admin_by_slug
+def download_ta_workload(request, course_slug, userid):    
+    taworkload = get_object_or_404(TAWorkloadReview, member__offering__slug=course_slug, member__person__userid=userid, member__role='TA')
+    tug = get_object_or_404(TUG, member__offering__slug=course_slug, member__person__userid=userid, member__role='TA')
+
+    response = HttpResponse(content_type="application/pdf")
+    filename =  "%s-%s.pdf" % (taworkload.member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))
+    response['Content-Disposition'] = 'inline; filename="%s"' % (filename)
+    max_hours = tug.total_hours()
+    taworkload_form(taworkload, max_hours, response)
+    return response
 
 @_requires_course_staff_or_admin_by_slug
 def view_ta_evaluation(request, course_slug, userid):
@@ -871,14 +994,23 @@ def _send_notify_to_admin(taevaluation, status):
     if posting: 
         to_email.append(posting.contact().email())                    
 
+    #/tacontracts
+    try: 
+        hiring_semester = HiringSemester.objects.filter(semester=taevaluation.member.offering.semester, unit=taevaluation.member.offering.owner).first()
+    except: 
+        hiring_semester = None
+    if hiring_semester:
+        to_email.append(hiring_semester.contact)
+
     response = HttpResponse(content_type="application/pdf")   
     ta_evaluation_form(taevaluation, taevaluation.member, taevaluation.member.offering, response)    
     
-    msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
-                from_email=from_email, to=[to_email], headers={'X-coursys-topic': 'ta'})
-    msg.attach(('%s-%s.pdf' % (taevaluation.member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))), response.getvalue(),
-                       'application/pdf')
-    msg.send()
+    if to_email:
+        msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                    from_email=from_email, to=[to_email], headers={'X-coursys-topic': 'ta'})
+        msg.attach(('%s-%s.pdf' % (taevaluation.member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))), response.getvalue(),
+                        'application/pdf')
+        msg.send()
 
 @requires_role("TAAD")
 def new_application_manual(request, post_slug):
@@ -2171,6 +2303,7 @@ def _copy_posting_defaults(source, destination):
     destination.set_payperiods(source.payperiods())
     destination.set_contact(source.contact().id)
     destination.set_offer_text(source.offer_text())
+    destination.set_tssu_link(source.tssu_link())       
     # TODO: also copy Skill values
 
 @requires_role("TAAD")

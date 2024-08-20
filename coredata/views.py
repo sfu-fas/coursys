@@ -710,7 +710,7 @@ def add_roleaccount(request):
 
 @requires_course_staff_by_slug
 def manage_tas(request, course_slug):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
+    course = get_object_or_404(CourseOffering.objects.select_related('owner'), slug=course_slug)
     longform = False
     if not Member.objects.filter(offering=course, person__userid=request.user.username, role="INST"):
         # only instructors can manage TAs
@@ -769,7 +769,7 @@ def manage_tas(request, course_slug):
     else:
         form = TAForm(offering=course)
 
-    tas = Member.objects.filter(role="TA", offering=course)
+    tas = Member.objects.filter(role="TA", offering=course).select_related('person')
     context = {'course': course, 'form': form, 'tas': tas, 'longform': longform}
     return render(request, 'coredata/manage_tas.html', context)
 

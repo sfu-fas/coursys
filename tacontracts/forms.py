@@ -12,6 +12,8 @@ from .models import HiringSemester, TACategory, TAContract, TACourse, CourseDesc
 
 class HiringSemesterForm(forms.ModelForm):
     comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows':10, 'maxlength':625}))
+    contact = forms.EmailField(required=False, label="Email Contact", help_text="Notification Email for Time Use Guidelines.")
+    tssu_link = forms.URLField(required=False, label="Link to TSSU Collective Agreement", help_text="Link to TSSU Collective Agreement for Time Use Guidelines.")
 
     def __init__(self, request, *args, **kwargs):
         super(HiringSemesterForm, self).__init__(*args, **kwargs)
@@ -26,11 +28,15 @@ class HiringSemesterForm(forms.ModelForm):
         self.fields['unit'].empty_label = None
 
         self.initial['comments'] = getattr(self.instance, 'comments')
+        self.initial['contact'] = getattr(self.instance, 'contact')
+        self.initial['tssu_link'] = getattr(self.instance, 'tssu_link')
 
     def clean(self):
         cleaned_data = super().clean()
         setattr(self.instance, 'comments', cleaned_data['comments'])
-
+        setattr(self.instance, 'contact', cleaned_data['contact'])
+        setattr(self.instance, 'tssu_link', cleaned_data['tssu_link'])
+        
     class Meta:
         model = HiringSemester
         exclude = []

@@ -1,0 +1,5 @@
+Dear {{ person.name }},
+Please see attached the Time Use Guidelines (TUG) for your TAship in {{ offering }}.
+This TUG has been completed by the course instructor.
+Thank you,
+{{ posting.unit }}

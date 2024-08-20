@@ -42,30 +42,31 @@
     
 </td>
 <td>
-    {% if tug and course.owner.label == 'CMPT' %}
-        {% with tawr=m.get_tawr %}
-        {% if tawr %}
+    {% with tawr=m.get_tawr %}
+    {% if tawr %}
         <a href="{% url "offering:view_ta_workload" course_slug=course.slug userid=m.person.userid %}">View WR</a>
-        {% else %}
-        <a href="{% url "offering:new_ta_workload" course_slug=course.slug userid=m.person.userid %}">Create WR</a>
-        {% endif %}
-        {% endwith %} 
     {% else %}
-    --
+        {% if tug and not tug.draft %}
+            <a href="{% url "offering:new_ta_workload" course_slug=course.slug userid=m.person.userid %}">Create WR</a>
+        {% else %}
+            --
+        {% endif %}
     {% endif %}
+    {% endwith %} 
+
 </td>
 <td>
-    {% if tug and course.owner.label == 'CMPT' %}
-        {% with taeval=m.get_taeval %}
-        {% if taeval %}
+    {% with taeval=m.get_taeval %}
+    {% if taeval %}
         <a href="{% url "offering:view_ta_evaluation" course_slug=course.slug userid=m.person.userid %}">View Eval {% if taeval.draft %} (DRAFT) {% endif %}</a>
-        {% else %}
-        <a href="{% url "offering:new_ta_evaluation_wizard" course_slug=course.slug userid=m.person.userid %}">Create Eval</a>
-        {% endif %}
-        {% endwith %}
     {% else %}
-        --
+        {% if tug and not tug.draft %}
+            <a href="{% url "offering:new_ta_evaluation_wizard" course_slug=course.slug userid=m.person.userid %}">Create Eval</a>
+        {% else %}
+            --
+        {% endif %}            
     {% endif %}
+    {% endwith %}    
 </td>
 <td class="miniaction">
 {% if m.added_reason == "TAIN" %}

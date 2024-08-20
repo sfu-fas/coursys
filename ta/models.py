@@ -23,6 +23,7 @@ from django.template.loader import get_template
 from grad.models import GradStudent, Supervisor, STATUS_REAL_PROGRAM
 from . import bu_rules
 from django.utils import timezone
+from tacontracts.models import HiringSemester
 from dashboard.letters import ta_evaluation_form
 
 LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
@@ -61,6 +62,7 @@ class TUG(models.Model):
     """	
     member = models.OneToOneField(Member, null=False, on_delete=models.PROTECT)
     base_units = models.DecimalField(max_digits=4, decimal_places=2, blank=False, null=False)
+    draft = models.BooleanField(null=False, default=False)    
     last_update = models.DateField(auto_now=True)
     config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # t.config['prep']: Preparation for labs/tutorials
@@ -80,6 +82,12 @@ class TUG(models.Model):
         # t.config['other1']
         # t.config['other2']
         # As the other fields, but adding 'label'.
+
+        ########### Four duties are added on 2024.06        
+        # t.config['prep_lectures']: Preparation for lectures
+        # t.config['support']: Support classroom course delivery, including technical support
+        # t.config['leading']: Leading dicussions
+        # t.config['e_communication']: Electronic communication
     
     prep = property(*getter_setter('prep'))
     meetings = property(*getter_setter('meetings'))
@@ -91,6 +99,11 @@ class TUG(models.Model):
     holiday = property(*getter_setter('holiday'))
     other1 = property(*getter_setter('other1'))
     other2 = property(*getter_setter('other2'))
+
+    prep_lectures = property(*getter_setter('prep_lectures'))
+    support = property(*getter_setter('support'))
+    leading = property(*getter_setter('leading'))
+    e_communication = property(*getter_setter('e_communication'))
     
     def iterothers(self):
         return (other for key, other in self.config.items() 
@@ -101,17 +114,24 @@ class TUG(models.Model):
     others = lambda self:list(self.iterothers())
     
     def iterfielditems(self):
-        return ((field, self.config[field]) for field in self.all_fields 
+        return ((field, self.config[field]) for field in self.new_all_fields 
                  if field in self.config)
-    
+        
     regular_fields = ['prep', 'meetings', 'lectures', 'tutorials',
             'office_hours', 'grading', 'test_prep', 'holiday']
     other_fields = ['other1', 'other2']
     all_fields = regular_fields + other_fields
 
-    defaults = dict([(field, {'weekly': 0, 'total': 0, 'comment': ''}) for field in regular_fields] +
-        [(field, {'label': '', 'weekly': 0, 'total': 0, 'comment': ''}) for field in other_fields])
+    #defaults = dict([(field, {'weekly': 0, 'total': 0, 'comment': ''}) for field in regular_fields] +
+    #    [(field, {'label': '', 'weekly': 0, 'total': 0, 'comment': ''}) for field in other_fields])
+
+    new_regular_fields = ['prep', 'meetings', 'prep_lectures', 'lectures', 'support', 'tutorials',
+            'leading', 'office_hours', 'e_communication', 'grading', 'test_prep', 'holiday']
+    new_all_fields = new_regular_fields + other_fields
     
+    defaults = dict([(field, {'weekly': 0, 'total': 0, 'comment': ''}) for field in new_regular_fields] +
+        [(field, {'label': '', 'weekly': 0, 'total': 0, 'comment': ''}) for field in other_fields])
+
     # depicts the above comment in code
     config_meta = {'prep':{'label':'Preparation', 
                     'help':'1. Preparation for labs/tutorials'},
@@ -135,13 +155,45 @@ may occur in a semester, the total workload required will be reduced by %s
 hour(s) for each base unit assigned excluding the additional %s B.U. for
 preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOURS_PER_BU, LAB_BONUS, 4.4, 4+LAB_BONUS)}}
     
+    # new version of TUG duties
+    new_config_meta = {
+            'prep':{'label':'Preparation for labs/tutorials/workshops', 
+                    'help':'1. Preparation for labs/tutorials/workshops'},
+            'meetings':{'label':'Attendance at orientation and planning/coodinating meetings with instructor', 
+                    'help':'2. Attendance at orientation and planning/coodinating meetings with instructor'}, 
+            'prep_lectures':{'label':'Preparation for lectures', 
+                    'help':'3. Preparation for lectures'}, 
+            'lectures':{'label':'Attendance at lectures, including breakout group', 
+                    'help':'4. Attendance at lectures, including breakout group'}, 
+            'support':{'label':'Support classroom course delivery, including technical support', 
+                    'help':'5. Support classroom course delivery, including technical support'}, 
+            'tutorials':{'label':'Attendance at labs/tutorials/workshops', 
+                    'help':'6. Attendance at labs/tutorials/workshops'}, 
+            'leading':{'label':'Leading dicussions', 
+                    'help':'7. Leading dicussions'}, 
+            'office_hours':{'label':'Office hours/student consultation', 
+                    'help':'8. Office hours/student consultation'}, 
+            'e_communication':{'label':'Electronic communication', 
+                    'help':'9. Electronic communication'}, 
+            'grading':{'label':'Grading', 
+                    'help':'10. Grading\u2020',
+                    'extra':'\u2020Includes grading of all assignments, reports and examinations.'}, 
+            'test_prep':{'label':'Quiz/exam preparation and invigilation', 
+                    'help':'11. Quiz preparation/assist in exam preparation/Invigilation of exams'}, 
+            'holiday':{'label':'Holiday compensation', 
+                    'help':'12. Statutory Holiday Compensation\u2021',
+                    'extra':'''\u2021To compensate for all statutory holidays which  
+may occur in a semester, the total workload required will be reduced by %s
+hour(s) for each base unit assigned excluding the additional %s B.U. for
+preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOURS_PER_BU, LAB_BONUS, 4.4, 4+LAB_BONUS)}}
+    
     def __str__(self):
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
     
     def save(self, newsitem=True, newsitem_author=None, *args, **kwargs):
         for f in self.config:
             # if 'weekly' in False is invalid, so we have to check if self.config[f] is iterable
-            # before we check for 'weekly' or 'total' 
+            # before we check for 'weekly' or 'total'             
             if hasattr(self.config[f], '__iter__'):
                 if 'weekly' in self.config[f]:
                     self.config[f]['weekly'] = _round_hours(self.config[f]['weekly'])
@@ -202,15 +254,29 @@ class TAWorkloadReview(models.Model):
                 'userid':self.member.person.userid})    
 
     def send_notify(self):
-        subject = "Need action: TA %s Workload Review for %s (%s) needs action." % (self.member.person.name(), self.member.offering.name(), self.member.offering.semester)
-        content = "Need action: TA %s Workload Review for %s (%s) needs action.\nFor more information, see %s" \
+        subject = "Needs action: TA %s Workload Review for %s (%s) needs action." % (self.member.person.name(), self.member.offering.name(), self.member.offering.semester)
+        content = "Needs action: TA %s Workload Review for %s (%s) needs action.\nFor more information, see %s" \
             % (self.member.person.name(), self.member.offering.name(),  self.member.offering.semester, settings.BASE_ABS_URL + self.get_absolute_url())
         
-        # for ta
-        posting = TAPosting.objects.filter(semester=self.member.offering.semester, unit=self.member.offering.owner).first()
+        to_email = []
 
-        if posting != None:
-            to_email = posting.contact().email()
+        #/ta
+        try:
+            posting = TAPosting.objects.filter(semester=self.member.offering.semester, unit=self.member.offering.owner).first()
+        except:
+            posting = None
+        if posting: 
+            to_email.append(posting.contact().email())
+
+        #/tacontracts
+        try: 
+            hiring_semester = HiringSemester.objects.filter(semester=self.member.offering.semester, unit=self.member.offering.owner).first()
+        except: 
+            hiring_semester = None
+        if hiring_semester:
+            to_email.append(hiring_semester.contact)
+
+        if to_email:
             from_email = settings.DEFAULT_FROM_EMAIL
             msg = EmailMultiAlternatives(subject=subject, body=content, from_email=from_email,
                                         to=[to_email], headers={'X-coursys-topic': 'ta'})        
@@ -295,9 +361,8 @@ class TAEvaluation(models.Model):
         """
         from log.models import LogEntry
         semester = Semester.current()
-        released_semester = semester.previous_semester()
-        # Tempopary for CMPT only       
-        all_lastsem_draft = TAEvaluation.objects.filter(draft=True, member__offering__owner__label='CMPT', 
+        released_semester = semester.previous_semester()        
+        all_lastsem_draft = TAEvaluation.objects.filter(draft=True,  
                                                           member__offering__semester=released_semester, member__role="TA").select_related('member__person', 'member__offering')
         
         for drafteval in all_lastsem_draft:
@@ -332,9 +397,8 @@ class TAEvaluation(models.Model):
         """
         from log.models import LogEntry
         semester = Semester.current()
-        released_semester = semester.previous_semester()
-        # Tempopary for CMPT only       
-        all_lastsem_taevals = TAEvaluation.objects.filter(draft=False, ta_signdate=None, member__offering__owner__label='CMPT', 
+        released_semester = semester.previous_semester()        
+        all_lastsem_taevals = TAEvaluation.objects.filter(draft=False, ta_signdate=None, 
                                                           member__offering__semester=released_semester, member__role="TA").select_related('member__person', 'member__offering')
         
         for taeval in all_lastsem_taevals:
@@ -376,9 +440,8 @@ class TAEvaluation(models.Model):
         """
         from log.models import LogEntry
         semester = Semester.current()
-        released_semester = semester.previous_semester()
-        # Tempopary for CMPT only       
-        all_lastsem_taevals = TAEvaluation.objects.filter(draft=False, ta_signdate=None, member__offering__owner__label='CMPT', 
+        released_semester = semester.previous_semester()        
+        all_lastsem_taevals = TAEvaluation.objects.filter(draft=False, ta_signdate=None, 
                                                           member__offering__semester=released_semester, member__role="TA").select_related('member__person', 'member__offering')
         
         for taeval in all_lastsem_taevals:
@@ -413,42 +476,49 @@ class TAEvaluation(models.Model):
         """
         from log.models import LogEntry        
         semester = Semester.current()
-        released_semester = semester.previous_semester()
-        # Tempopary for CMPT only       
-        all_lastsem_incomplete_taevals = TAEvaluation.objects.filter(draft=False, ta_signdate=None, member__offering__owner__label='CMPT', 
+        released_semester = semester.previous_semester()        
+        all_lastsem_incomplete_taevals = TAEvaluation.objects.filter(draft=False, ta_signdate=None, 
                                                           member__offering__semester=released_semester, member__role="TA").select_related('member__person', 'member__offering')
         for taeval in all_lastsem_incomplete_taevals:
             to_email = []
             # get TA contact person
             # /ta
             try:
-                posting = TAPosting.objects.get(semester=released_semester, unit=taeval.member.offering.owner)
+                posting = TAPosting.objects.filter(semester=released_semester, unit=taeval.member.offering.owner).first()
             except:
                 posting = None
-
             if posting:
                 to_email = posting.contact().email()
                 
-            subject = 'An incompleted TA Evaluation Form for TA %s (%s) was sent to you for filing' % (taeval.member.person.name(), taeval.member.offering.semester)    
-            plaintext = get_template('ta/emails/notify_incomplete_ta_eval_for_admin.txt')
-            url = settings.BASE_ABS_URL + reverse('offering:view_ta_evaluation', kwargs={'course_slug': taeval.member.offering.slug, 'userid': taeval.member.person.userid})
-            email_context = {'person': taeval.member.person, 'posting': taeval.member.offering, 'url': url, 'status': 'an incompleted'}
-                
-            response = HttpResponse(content_type="application/pdf")   
-            ta_evaluation_form(taeval, taeval.member, taeval.member.offering, response)
-                
-            from_email = settings.DEFAULT_FROM_EMAIL
-            msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
-                        from_email=from_email, to=[to_email], headers={'X-coursys-topic': 'ta'})
-            msg.attach(('%s-%s.pdf' % (taeval.member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))), response.getvalue(),
-                        'application/pdf')
-            msg.send()  
+            #/tacontracts
+            try: 
+                hiring_semester = HiringSemester.objects.filter(semester=released_semester, unit=taeval.member.offering.owner).first()
+            except: 
+                hiring_semester = None
+            if hiring_semester:
+                to_email.append(hiring_semester.contact)
 
-            l = LogEntry(userid='sysadmin',
-                    description=("automatically sending incomplete TA Eval for %s on %s") % (
-                    taeval.member.person, released_semester),
-                    related_object=taeval)
-            l.save()      
+            if to_email:
+                subject = 'An incompleted TA Evaluation Form for TA %s (%s) was sent to you for filing' % (taeval.member.person.name(), taeval.member.offering.semester)    
+                plaintext = get_template('ta/emails/notify_incomplete_ta_eval_for_admin.txt')
+                url = settings.BASE_ABS_URL + reverse('offering:view_ta_evaluation', kwargs={'course_slug': taeval.member.offering.slug, 'userid': taeval.member.person.userid})
+                email_context = {'person': taeval.member.person, 'posting': taeval.member.offering, 'url': url, 'status': 'an incompleted'}
+                    
+                response = HttpResponse(content_type="application/pdf")   
+                ta_evaluation_form(taeval, taeval.member, taeval.member.offering, response)
+                    
+                from_email = settings.DEFAULT_FROM_EMAIL
+                msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                            from_email=from_email, to=[to_email], headers={'X-coursys-topic': 'ta'})
+                msg.attach(('%s-%s.pdf' % (taeval.member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))), response.getvalue(),
+                            'application/pdf')
+                msg.send()  
+
+                l = LogEntry(userid='sysadmin',
+                        description=("automatically sending incomplete TA Eval for %s on %s") % (
+                        taeval.member.person, released_semester),
+                        related_object=taeval)
+                l.save()      
 
         return cls
     
@@ -490,6 +560,7 @@ class TAPosting(models.Model):
         # 'instructions': instructions for completing the TA Application
         # 'hide_campuses': whether or not to prompt for Campus
         # 'send_notify': send email notification to contact person when someone accepts or declines an offer (default True)
+        # 'tssu_link': URL showing on TUG for TSSU collective agreement
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
@@ -511,7 +582,8 @@ class TAPosting(models.Model):
             'extra_questions': [],
             'instructions': '',
             'hide_campuses': False,            
-            'send_notify': True
+            'send_notify': True,
+            'tssu_link': 'https://www.sfu.ca/human-resources/tssu.html'
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
@@ -531,6 +603,7 @@ class TAPosting(models.Model):
     instructions, set_instructions = getter_setter('instructions')
     hide_campuses, set_hide_campuses = getter_setter('hide_campuses')
     send_notify, set_send_notify = getter_setter('send_notify')
+    tssu_link, set_tssu_link = getter_setter('tssu_link')    
     _, set_contact = getter_setter('contact')
     
     class Meta:
