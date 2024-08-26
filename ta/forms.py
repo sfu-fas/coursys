@@ -94,12 +94,12 @@ class TUGForm(forms.ModelForm):
     
     class Meta:
         model = TUG
-        exclude = ('config',)
+        exclude = ('config', 'draft')
     
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':',
                  empty_permitted=False, instance=None,
-                 offering=None, userid=None, enforced_prep_min=0):
+                 offering=None, userid=None, enforced_prep_min=0, new_format=0):
         super(TUGForm, self).__init__(data, files, auto_id, prefix, initial,
                  error_class, label_suffix, empty_permitted, instance)
         # see old revisions (git id 1d1d2f9) for a dropdown
@@ -110,8 +110,8 @@ class TUGForm(forms.ModelForm):
         else:
             assert False
 
-        self.enforced_prep_min = enforced_prep_min
-
+        self.enforced_prep_min = enforced_prep_min   
+        self.new_format = new_format
         self.initial['member'] = member
         self.fields['member'].widget = forms.widgets.HiddenInput()
         
@@ -125,11 +125,17 @@ class TUGForm(forms.ModelForm):
         #  label=TUG.config_meta[field]['label'] if field in TUG.config_meta else '')) 
         #  for field, klass in itertools.chain(((f, TUGDutyForm) for f in TUG.regular_fields), 
         #  ((f, TUGDutyOtherForm) for f in TUG.other_fields)))
-        field_names_and_formclasses = itertools.chain(
-                ((f, TUGDutyForm) for f in TUG.regular_fields),
+
+        if self.new_format:
+            field_names_and_formclasses = itertools.chain(
+                ((f, TUGDutyForm) for f in TUG.new_regular_fields),
                 ((f, TUGDutyOtherForm) for f in TUG.other_fields))
-        
-        get_label = lambda field: TUG.config_meta[field]['label'] if field in TUG.config_meta else ''
+            get_label = lambda field: TUG.new_config_meta[field]['label'] if field in TUG.new_config_meta else ''
+        else:
+            field_names_and_formclasses = itertools.chain(
+                ((f, TUGDutyForm) for f in TUG.regular_fields),
+                ((f, TUGDutyOtherForm) for f in TUG.other_fields))        
+            get_label = lambda field: TUG.config_meta[field]['label'] if field in TUG.config_meta else ''
         
         get_initial = lambda field: None
         if instance:
@@ -162,11 +168,17 @@ class TUGForm(forms.ModelForm):
         return super(TUGForm, self).full_clean()
     def clean(self):
         data = super(TUGForm, self).clean()
-        get_data = lambda subform: subform.cleaned_data if subform.cleaned_data else subform.initial
-        try: data['config'] = OrderedDict((field, get_data(self.subforms[field]))
-                for field in TUG.all_fields)
-        except AttributeError:
-            raise forms.ValidationError([])
+        get_data = lambda subform: subform.cleaned_data if subform.cleaned_data else subform.initial        
+        if self.new_format:
+            try: data['config'] = OrderedDict((field, get_data(self.subforms[field]))
+                    for field in TUG.new_all_fields)
+            except AttributeError:
+                raise forms.ValidationError([])
+        else:
+            try: data['config'] = OrderedDict((field, get_data(self.subforms[field]))
+                    for field in TUG.all_fields)
+            except AttributeError:
+                raise forms.ValidationError([])
 
         # this can't possibly be the business logic, right?
         #prep_hours = data['config']['prep']['total']
@@ -176,7 +188,7 @@ class TUGForm(forms.ModelForm):
         return data
 
     def save(self, *args, **kwargs):
-        self.instance.config = self.cleaned_data['config']
+        self.instance.config = self.cleaned_data['config']        
         return super(TUGForm, self).save(*args, **kwargs)
 
 
@@ -546,7 +558,9 @@ class TAPostingForm(forms.ModelForm):
         help_text='Do not prompt students for their Campus choice.')
     offer_text = WikiField(label="Offer Text", required=False, 
         help_text='Presented as "More Information About This Offer"; formatted in <a href="/docs/pages">WikiCreole markup</a>.')
-
+    tssu_link = forms.URLField(required=True, label="TSSU URL", help_text="URL showing on TUG for TSSU collective agreement",
+                               widget=forms.TextInput(attrs={'size': 120}))
+    
     # TODO: sanity-check the dates against semester start/end
     
     class Meta:
@@ -576,7 +590,8 @@ class TAPostingForm(forms.ModelForm):
         self.initial['skills'] = '\n'.join((s.name for s in skills))
         self.initial['instructions'] = self.instance.instructions()
         self.initial['hide_campuses'] = self.instance.hide_campuses()
-    
+        self.initial['tssu_link'] = self.instance.tssu_link()
+
     def clean_payperiods(self):
         payperiods = self.cleaned_data['payperiods']
         self.instance.config['payperiods'] = payperiods
@@ -728,6 +743,11 @@ class TAPostingForm(forms.ModelForm):
         self.instance.config['send_notify'] = send_notify
         return send_notify
     
+    def clean_tssu_link(self):
+        tssu_link = self.cleaned_data['tssu_link']
+        self.instance.config['tssu_link'] = tssu_link
+        return tssu_link
+
 class BUForm(forms.Form):
     students = forms.IntegerField(min_value=0, max_value=1000)
     bus = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2, widget=forms.TextInput(attrs={'class' : 'smallnumberinput'}))

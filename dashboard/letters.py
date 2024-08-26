@@ -18,7 +18,7 @@ from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT
 from coredata.models import Role
 from django.conf import settings
 import os
-import datetime
+import datetime, decimal
 from dashboard.models import Signature
 from coredata.models import Semester, Person
 from grad.models import STATUS_APPLICANT
@@ -5216,3 +5216,521 @@ class TAEvalForm(object):
         
     def save(self):
         self.c.save()    
+
+def tug_form(tug, contract_info, new_format, outfile):
+    """
+    Generate TUG Form for individual TA.
+    """
+    doc = TUGForm(outfile)
+    doc.draw_form_tug(tug, contract_info, new_format)
+    doc.save()    
+
+class TUGForm(object):
+    """
+    For for HR to appoint a TA
+    """
+    BOX_HEIGHT = 0.25*inch
+    LABEL_RIGHT = 2
+    LABEL_UP = 2
+    CONTENT_RIGHT = 4
+    CONTENT_UP = 4
+    LABEL_SIZE = 6
+    CONTENT_SIZE = 12
+    NOTE_STYLE = ParagraphStyle(name='Normal',
+                                fontName='Helvetica',
+                                fontSize=7,
+                                leading=10,
+                                alignment=TA_LEFT,
+                                textColor=black)
+
+
+    def __init__(self, outfile):
+        """
+        Create TUGForm in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+
+    def _draw_box(self, x, y, width, label='', label_size=LABEL_SIZE, content='', content_size=CONTENT_SIZE, right=False):
+        height = self.BOX_HEIGHT
+        self.c.setLineWidth(1)
+        self.c.rect(x, y, width, height)
+
+        if label:
+            self.c.setFont("Helvetica", label_size)
+            self.c.drawString(x + self.LABEL_RIGHT, y + height + self.LABEL_UP, label)
+
+        if content:
+            self.c.setFont("Helvetica", content_size)
+            if right:
+                self.c.drawRightString(x + width - self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+            else:
+                self.c.drawString(x + self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+
+
+    def draw_form_tug(self, tug, contract_info, new_format):
+        """
+        Draw the form for an new-style contract (tacontract module)
+        """
+        iterable_fields = [(_, params) for _, params in tug.config.items() if hasattr(params, '__iter__') ]
+        total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in iterable_fields if params.get('total',0) is not None)
+        total_hours = round(total_hours, 2)
+
+        from ta.models import LAB_BONUS_DECIMAL, HOLIDAY_HOURS_PER_BU, HOURS_PER_BU, LAB_BONUS_DECIMAL, HOURS_PER_BU
+
+        contract_info = None
+        if contract_info:
+            bu = contract_info.bu
+            has_lab_or_tut = contract_info.has_labtut()
+            lab_bonus_decimal = contract_info.prep_bu
+            holiday_hours_per_bu = contract_info.holiday_hours_per_bu
+            hours_per_bu = HOURS_PER_BU
+            total_bu = contract_info.total_bu
+            max_hours = contract_info.hours
+        else:
+            bu = tug.base_units
+            has_lab_or_tut = tug.member.offering.labtas()
+            lab_bonus_decimal = LAB_BONUS_DECIMAL
+            holiday_hours_per_bu = HOLIDAY_HOURS_PER_BU
+            hours_per_bu = HOURS_PER_BU
+            total_bu = tug.base_units + LAB_BONUS_DECIMAL
+            max_hours = tug.base_units * HOURS_PER_BU
+
+        if new_format:
+            return self.draw_form_newformat(
+                tug = tug, 
+                ta = tug.member, 
+                course = tug.member.offering, 
+                bu = bu,
+                max_hours = max_hours, 
+                total_hours = total_hours,                
+                has_lab_or_tut= has_lab_or_tut,
+                lab_bonus = lab_bonus_decimal,
+                lab_bonus_4 = lab_bonus_decimal+4,                
+                lab_bonus_hours = lab_bonus_decimal*hours_per_bu,
+                hours_per_bu = hours_per_bu,
+                holiday_hours_per_bu = holiday_hours_per_bu,
+                total_bu = total_bu,
+                draft = tug.draft,
+            )
+        else:
+            return self.draw_form(
+                tug = tug, 
+                ta = tug.member, 
+                course = tug.member.offering, 
+                bu = bu,
+                max_hours = max_hours, 
+                total_hours = total_hours,                
+                has_lab_or_tut= has_lab_or_tut,
+                lab_bonus = lab_bonus_decimal,
+                lab_bonus_4 = lab_bonus_decimal+4,                
+                lab_bonus_hours = lab_bonus_decimal*hours_per_bu,
+                hours_per_bu = hours_per_bu,
+                holiday_hours_per_bu = holiday_hours_per_bu,
+                total_bu = total_bu,
+                draft = tug.draft,
+            )
+
+    def draw_form(self, tug, ta, course, bu, max_hours, total_hours, has_lab_or_tut, lab_bonus, lab_bonus_4,
+                  lab_bonus_hours, hours_per_bu, holiday_hours_per_bu, total_bu, draft):
+        """
+        Generic TA Form drawing method: probably called by one of the above that abstract out the object details.
+        """
+
+        self.c.setStrokeColor(black)
+        self.c.translate(0.625*inch, 1.25*inch) # origin = lower-left of the main box
+        main_width = 7.25*inch
+
+        # main outline
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.5)
+        p = self.c.beginPath()
+        p.moveTo(0, 7.975*inch)   #x, y
+        p.lineTo(0, 8.875*inch)
+        p.lineTo(main_width, 8.875*inch)
+        p.lineTo(main_width, 7.975*inch)
+        p.close()
+        p.moveTo(0, 158*mm)   #x, y
+        p.lineTo(main_width, 158*mm)
+        #p.close()
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        # header
+        #self.c.drawImage(logofile, x=main_width/2 - 0.5*inch, y=227*mm, width=1*inch, height=0.5*inch)
+        self.c.drawImage(logofile, x=0, y=227*mm, width=1*inch, height=0.5*inch)
+        self.c.setFont("Times-Roman", 12)
+        self.c.drawString(2.5*inch, 235*mm, "Simon Fraser University")
+        self.c.setFont("Times-Roman", 12)
+        self.c.drawString(2*inch, 228*mm, "Teaching Assistant Time Use Guideline")
+        if draft:
+            self.c.drawString(6*inch, 228*mm, "DRAFT")
+
+        # draw tug summary
+        self.c.setFont("Times-Roman", 10)
+        self.c.drawString(5, 220*mm, "TA Name: " + ta.person.name())
+        self.c.drawString(main_width/2, 220*mm, "Instructor: " + course.instructors_str())
+        self.c.drawString(5, 215*mm, "Course: " + str(course))
+        self.c.drawString(5, 210*mm, "Maximum Hours to be Assigned: " + str(max_hours))
+        self.c.drawString(5, 205*mm, "Base Units Assigned*:" + str(bu) + " x " + str(hours_per_bu) + ' = Maximum Hours: ' + str(max_hours) )
+        if has_lab_or_tut:
+            self.c.drawString(main_width/2, 205*mm, "{ + " + str(lab_bonus) + " for prep = "+ str(total_bu) + "}" )
+
+       # draw tug description
+        self.c.drawString(5, 195*mm, "Teaching Assistant total workload for the semester should approach but not exceed the maximum hours over the term of the ")
+        self.c.drawString(5, 190*mm, "semester (normally 17 weeks).")
+        self.c.setFont("Helvetica-Oblique", 9)
+        self.c.drawString(5, 180*mm, "The following summary is an approximation of the length of time expected to be devoted to the major activities. There may be shifts ")
+        self.c.drawString(5, 175*mm, "between activities, but the total hours required over the semester cannot exceed the maximum hours set out above.")
+
+
+        # draw tug detail - title
+        self.c.setFont("Times-Roman", 10)
+        self.c.drawString(main_width*0.8, 165*mm, "Average")
+        self.c.drawString(main_width*0.9, 165*mm, "Total")
+        self.c.drawString(5, 160*mm, "Duties and Responsibilities")
+        self.c.drawString(main_width*0.8, 160*mm, "hrs/week")
+        self.c.drawString(main_width*0.9, 160*mm, "hrs/semester")
+
+        # draw tug detail - detail
+        # item
+        self.c.drawString(5, 150*mm, "1. Preparation for labs/tutorials")
+        self.c.drawString(5, 143*mm, "2. Attendance at planning/coordinating meetings with instructor")
+        self.c.drawString(5, 136*mm, "3. Attendance at lectures")
+        self.c.drawString(5, 129*mm, "4. Attendance at labs/tutorials")
+        self.c.drawString(5, 122*mm, "5. Office hours/student consultation/electronic communication")
+        self.c.drawString(5, 115*mm, "6. Grading **")
+        self.c.drawString(5, 108*mm, "7. Quiz preparation/assist in exam preparation/Invigilation of exams")
+        self.c.drawString(5, 101*mm, "8. Statutory Holiday Compensation -")
+        self.c.drawString(15, 96*mm, "To compensate for all statutory holidays which may occur in a semester, the total workload")
+        self.c.drawString(15, 91*mm, "required will be reduced by " + str(holiday_hours_per_bu) + " hour(s) for each base unit assigned excluding the additional")
+        self.c.drawString(15, 86*mm, str(lab_bonus)+ " B.U. for preparation, e.g. 4.4 hours reduction for "+ str(lab_bonus_4) + " B.U. appointment.")        
+        self.c.drawString(5, 79*mm, "9. Other - specify***")
+        xpos = 74*mm
+        for other in tug.others():
+            self.c.drawString(15, xpos, other.get('label'))            
+            xpos = xpos - (5*mm)
+        self.c.drawString(5, xpos-2*mm, "Required Total Hours =")
+
+        # weekly 
+        self.c.drawString(main_width*0.8, 150*mm, str({None: ''}.get(tug.config['prep']['weekly'], tug.config['prep']['weekly'])))
+        self.c.drawString(main_width*0.8, 143*mm, str({None: ''}.get(tug.config['meetings']['weekly'], tug.config['meetings']['weekly'])))
+        self.c.drawString(main_width*0.8, 136*mm, str({None: ''}.get(tug.config['lectures']['weekly'], tug.config['lectures']['weekly'])))
+        self.c.drawString(main_width*0.8, 129*mm, str({None: ''}.get(tug.config['tutorials']['weekly'], tug.config['tutorials']['weekly'])))
+        self.c.drawString(main_width*0.8, 122*mm, str({None: ''}.get(tug.config['office_hours']['weekly'], tug.config['office_hours']['weekly'])))
+        self.c.drawString(main_width*0.8, 115*mm, str({None: ''}.get(tug.config['grading']['weekly'], tug.config['grading']['weekly'])))
+        self.c.drawString(main_width*0.8, 108*mm, str({None: ''}.get(tug.config['test_prep']['weekly'], tug.config['test_prep']['weekly'])))
+        self.c.drawString(main_width*0.8, 101*mm, str({None: ''}.get(tug.config['holiday']['weekly'], tug.config['holiday']['weekly'])))        
+        xpos = 74*mm
+        for other in tug.others():
+            self.c.drawString(main_width*0.8, xpos, str({None: ''}.get(other.get('weekly'), other.get('weekly'))))            
+            xpos = xpos - (5*mm)
+
+        # total 
+        self.c.drawString(main_width*0.9, 150*mm, str({None: ''}.get(tug.config['prep']['total'], tug.config['prep']['total'])))
+        self.c.drawString(main_width*0.9, 143*mm, str({None: ''}.get(tug.config['meetings']['total'], tug.config['meetings']['total'])))
+        self.c.drawString(main_width*0.9, 136*mm, str({None: ''}.get(tug.config['lectures']['total'], tug.config['lectures']['total'])))
+        self.c.drawString(main_width*0.9, 129*mm, str({None: ''}.get(tug.config['tutorials']['total'], tug.config['tutorials']['total'])))
+        self.c.drawString(main_width*0.9, 122*mm, str({None: ''}.get(tug.config['office_hours']['total'], tug.config['office_hours']['total'])))
+        self.c.drawString(main_width*0.9, 115*mm, str({None: ''}.get(tug.config['grading']['total'], tug.config['grading']['total'])))
+        self.c.drawString(main_width*0.9, 108*mm, str({None: ''}.get(tug.config['test_prep']['total'], tug.config['test_prep']['total'])))
+        self.c.drawString(main_width*0.9, 101*mm, str({None: ''}.get(tug.config['holiday']['total'], tug.config['holiday']['total'])))
+        xpos = 74*mm
+        for other in tug.others():
+            self.c.drawString(main_width*0.9, xpos, str({None: ''}.get(other.get('total'), other.get('total'))))            
+            xpos = xpos - (5*mm)
+        self.c.drawString(main_width*0.9, xpos-2*mm, str({None: ''}.get(total_hours, total_hours)))
+
+        # draw tug description
+        self.c.drawString(5, xpos-20*mm, "Teaching Assistants and course instructors should familiarize themselves with the general working conditions set out in Article 13C, ")
+        self.c.drawString(5, xpos-25*mm, "assignment and compensation in Article 13D, and workload review mechanisms in Article 13E.")
+
+        self.c.drawString(5, xpos-30*mm, "*There are no hours of work associated with the additional 0.17 base unit for preparation, Article 13D. 2 b. See Appendix B for")
+        self.c.drawString(5, xpos-35*mm, "calculation of hours.")
+        self.c.drawString(5, xpos-40*mm, "** Includes grading of all assignments, reports and examinations.")
+        self.c.drawString(5, xpos-45*mm, "*** Attendance at a TA/TM Day/Training")
+
+        self.c.drawString(5, xpos-55*mm, "Instructor Signature:")
+        self.c.drawString(main_width/2, xpos-55*mm, "TA Signature:")
+        self.c.drawString(5, xpos-60*mm, "Date:")
+        self.c.drawString(main_width/2, xpos-60*mm, "Date:")
+
+    def draw_form_newformat(self, tug, ta, course, bu, max_hours, total_hours, has_lab_or_tut, lab_bonus, lab_bonus_4,
+                  lab_bonus_hours, hours_per_bu, holiday_hours_per_bu, total_bu, draft):
+        """
+        Generic TA Form drawing method: probably called by one of the above that abstract out the object details.
+        """
+
+        self.c.setStrokeColor(black)
+        self.c.translate(0.625*inch, 1.25*inch) # origin = lower-left of the main box
+        main_width = 7.25*inch
+
+        # main outline
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.5)
+        p = self.c.beginPath()
+        p.moveTo(0, 7.975*inch)   #x, y
+        p.lineTo(0, 8.675*inch)
+        p.lineTo(main_width, 8.675*inch)
+        p.lineTo(main_width, 7.975*inch)
+        p.close()
+        p.moveTo(0, 158*mm)   #x, y
+        p.lineTo(main_width, 158*mm)
+        #p.close()
+        self.c.drawPath(p, stroke=1, fill=0)
+
+        # header
+        #self.c.drawImage(logofile, x=main_width/2 - 0.5*inch, y=227*mm, width=1*inch, height=0.5*inch)
+        self.c.drawImage(logofile, x=0, y=227*mm, width=1*inch, height=0.5*inch)
+        self.c.setFont("Times-Roman", 12)
+        self.c.drawString(2.5*inch, 235*mm, "Simon Fraser University")
+        self.c.setFont("Times-Roman", 12)
+        self.c.drawString(2*inch, 228*mm, "Teaching Assistant Time Use Guideline")
+        if draft:
+            self.c.drawString(6*inch, 228*mm, "DRAFT")
+
+        # draw tug summary
+        self.c.setFont("Times-Roman", 10)
+        self.c.drawString(5, 215*mm, "TA Name: " + ta.person.name())
+        self.c.drawString(main_width/2, 215*mm, "Instructor: " + course.instructors_str())
+        self.c.drawString(5, 210*mm, "Course: " + str(course))
+        #self.c.drawString(5, 210*mm, "Maximum Hours to be Assigned: " + str(max_hours))
+        self.c.drawString(5, 205*mm, "Base Units Assigned*:" + str(bu) + " x " + str(hours_per_bu) + ' = Maximum Hours: ' + str(max_hours) )
+        if has_lab_or_tut:
+            self.c.drawString(main_width/2, 205*mm, "{ + " + str(lab_bonus) + " for prep = "+ str(total_bu) + "}" )
+
+       # draw tug description
+        self.c.drawString(5, 195*mm, "Teaching Assistant total workload for the semester should approach but not exceed the maximum hours over the term of the ")
+        self.c.drawString(5, 190*mm, "semester (normally 17 weeks).")
+        self.c.setFont("Helvetica-Oblique", 9)
+        self.c.drawString(5, 180*mm, "The following summary is an approximation of the length of time expected to be devoted to the major activities. There may be shifts ")
+        self.c.drawString(5, 175*mm, "between activities, but the total hours required over the semester cannot exceed the maximum hours set out above.")
+
+
+        # draw tug detail - title
+        self.c.setFont("Times-Roman", 10)
+        self.c.drawString(main_width*0.8, 165*mm, "Average")
+        self.c.drawString(main_width*0.9, 165*mm, "Total")
+        self.c.drawString(5, 160*mm, "Duties and Responsibilities")
+        self.c.drawString(main_width*0.8, 160*mm, "hrs/week")
+        self.c.drawString(main_width*0.9, 160*mm, "hrs/semester")
+
+        # draw tug detail - detail
+        # item
+        self.c.drawString(5, 150*mm, "1. Preparation for labs/tutorials/workshops")
+        self.c.drawString(5, 144*mm, "2. Attendance at orientation and planning/coordinating meetings with instructor")
+        self.c.drawString(5, 138*mm, "3. Preparation for lectures")
+        self.c.drawString(5, 132*mm, "4. Attendance at lectures, including breakout groups")
+        self.c.drawString(5, 126*mm, "5. Support classroom course delivery, including technical support")
+        self.c.drawString(5, 120*mm, "6. Attendance at labs/tutorials/workshops")
+        self.c.drawString(5, 114*mm, "7. Leading dicussions")
+        self.c.drawString(5, 108*mm, "8. Office hours/student consultation")
+        self.c.drawString(5, 102*mm, "9. Electronic communication")
+        self.c.drawString(5, 96*mm, "10. Grading **")
+        self.c.drawString(5, 90*mm, "11. Quiz preparation/assist in exam preparation/Invigilation of exams")
+        self.c.drawString(5, 84*mm, "12. Statutory Holiday Compensation -")
+        self.c.drawString(15, 79*mm, "To compensate for all statutory holidays which may occur in a semester, the total workload")
+        self.c.drawString(15, 74*mm, "required will be reduced by " + str(holiday_hours_per_bu) + " hour(s) for each base unit assigned excluding the additional")
+        self.c.drawString(15, 69*mm, str(lab_bonus)+ " B.U. for preparation, e.g. 4.4 hours reduction for "+ str(lab_bonus_4) + " B.U. appointment.")        
+        self.c.drawString(5, 63*mm, "13. Other - specify***")
+        xpos = 57*mm
+        for other in tug.others():
+            self.c.drawString(15, xpos, other.get('label'))            
+            xpos = xpos - (5*mm)
+        self.c.drawString(5, xpos-2*mm, "Required Total Hours =")
+
+        # weekly 
+        self.c.drawString(main_width*0.8, 150*mm, str({None: ''}.get(tug.config['prep']['weekly'], tug.config['prep']['weekly'])))
+        self.c.drawString(main_width*0.8, 144*mm, str({None: ''}.get(tug.config['meetings']['weekly'], tug.config['meetings']['weekly'])))
+        self.c.drawString(main_width*0.8, 138*mm, str({None: ''}.get(tug.config['prep_lectures']['weekly'], tug.config['prep_lectures']['weekly'])))
+        self.c.drawString(main_width*0.8, 132*mm, str({None: ''}.get(tug.config['lectures']['weekly'], tug.config['lectures']['weekly'])))
+        self.c.drawString(main_width*0.8, 126*mm, str({None: ''}.get(tug.config['support']['weekly'], tug.config['support']['weekly'])))
+        self.c.drawString(main_width*0.8, 120*mm, str({None: ''}.get(tug.config['tutorials']['weekly'], tug.config['tutorials']['weekly'])))
+        self.c.drawString(main_width*0.8, 114*mm, str({None: ''}.get(tug.config['leading']['weekly'], tug.config['leading']['weekly'])))
+        self.c.drawString(main_width*0.8, 108*mm, str({None: ''}.get(tug.config['office_hours']['weekly'], tug.config['office_hours']['weekly'])))
+        self.c.drawString(main_width*0.8, 102*mm, str({None: ''}.get(tug.config['e_communication']['weekly'], tug.config['e_communication']['weekly'])))
+        self.c.drawString(main_width*0.8, 96*mm, str({None: ''}.get(tug.config['grading']['weekly'], tug.config['grading']['weekly'])))
+        self.c.drawString(main_width*0.8, 90*mm, str({None: ''}.get(tug.config['test_prep']['weekly'], tug.config['test_prep']['weekly'])))
+        self.c.drawString(main_width*0.8, 84*mm, str({None: ''}.get(tug.config['holiday']['weekly'], tug.config['holiday']['weekly'])))        
+        xpos = 57*mm
+        for other in tug.others():
+            self.c.drawString(main_width*0.8, xpos, str({None: ''}.get(other.get('weekly'), other.get('weekly'))))            
+            xpos = xpos - (5*mm)
+
+        # total 
+        self.c.drawString(main_width*0.9, 150*mm, str({None: ''}.get(tug.config['prep']['total'], tug.config['prep']['total'])))
+        self.c.drawString(main_width*0.9, 144*mm, str({None: ''}.get(tug.config['meetings']['total'], tug.config['meetings']['total'])))
+        self.c.drawString(main_width*0.9, 138*mm, str({None: ''}.get(tug.config['prep_lectures']['total'], tug.config['prep_lectures']['total'])))
+        self.c.drawString(main_width*0.9, 132*mm, str({None: ''}.get(tug.config['lectures']['total'], tug.config['lectures']['total'])))
+        self.c.drawString(main_width*0.9, 126*mm, str({None: ''}.get(tug.config['support']['total'], tug.config['support']['total'])))
+        self.c.drawString(main_width*0.9, 120*mm, str({None: ''}.get(tug.config['tutorials']['total'], tug.config['tutorials']['total'])))
+        self.c.drawString(main_width*0.9, 114*mm, str({None: ''}.get(tug.config['leading']['total'], tug.config['leading']['total'])))
+        self.c.drawString(main_width*0.9, 108*mm, str({None: ''}.get(tug.config['office_hours']['total'], tug.config['office_hours']['total'])))
+        self.c.drawString(main_width*0.9, 102*mm, str({None: ''}.get(tug.config['e_communication']['total'], tug.config['e_communication']['total'])))
+        self.c.drawString(main_width*0.9, 96*mm, str({None: ''}.get(tug.config['grading']['total'], tug.config['grading']['total'])))
+        self.c.drawString(main_width*0.9, 90*mm, str({None: ''}.get(tug.config['test_prep']['total'], tug.config['test_prep']['total'])))
+        self.c.drawString(main_width*0.9, 84*mm, str({None: ''}.get(tug.config['holiday']['total'], tug.config['holiday']['total'])))
+        xpos = 57*mm
+        for other in tug.others():
+            self.c.drawString(main_width*0.9, xpos, str({None: ''}.get(other.get('total'), other.get('total'))))            
+            xpos = xpos - (5*mm)
+        self.c.drawString(main_width*0.9, xpos-2*mm, str({None: ''}.get(total_hours, total_hours)))
+
+        # draw tug description
+        self.c.drawString(5, xpos-10*mm, "Teaching Assistants and course instructors should familiarize themselves with the general working conditions set out in Article 13C, ")
+        self.c.drawString(5, xpos-15*mm, "assignment and compensation in Article 13D, and workload review mechanisms in Article 13E.")
+
+        self.c.drawString(5, xpos-20*mm, "*There are no hours of work associated with the additional 0.17 base unit for preparation, Article 13D. 2 b. See Appendix B for")
+        self.c.drawString(5, xpos-25*mm, "calculation of hours.")
+        self.c.drawString(5, xpos-30*mm, "** Includes grading of all assignments, reports and examinations - whether in class/lab or afterwards.")
+        self.c.drawString(5, xpos-35*mm, "*** Attendance at a TA/TM Day/and other required Training")
+
+        self.c.drawString(5, xpos-50*mm, "Instructor Signature:")
+        self.c.drawString(main_width/2, xpos-50*mm, "TA Signature:")
+        self.c.drawString(5, xpos-55*mm, "Date:")
+        self.c.drawString(main_width/2, xpos-55*mm, "Date:")
+
+    def save(self):
+        self.c.save()
+
+def taworkload_form(taworkload, max_hours, outfile):
+    """
+    Generate TUG Form for individual TA.
+    """
+    doc = WRForm(outfile)
+    doc.draw_form_wr(taworkload, max_hours)
+    doc.save()    
+
+class WRForm(object):
+    """
+    For for HR to appoint a TA
+    """
+    BOX_HEIGHT = 0.25*inch
+    LABEL_RIGHT = 2
+    LABEL_UP = 2
+    CONTENT_RIGHT = 4
+    CONTENT_UP = 4
+    LABEL_SIZE = 6
+    CONTENT_SIZE = 12
+    NOTE_STYLE = ParagraphStyle(name='Normal',
+                                fontName='Helvetica',
+                                fontSize=7,
+                                leading=10,
+                                alignment=TA_LEFT,
+                                textColor=black)
+                        
+
+    def __init__(self, outfile):
+        """
+        Create TUGForm in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+
+    def _draw_box(self, x, y, width, label='', label_size=LABEL_SIZE, content='', content_size=CONTENT_SIZE, right=False):
+        height = self.BOX_HEIGHT
+        self.c.setLineWidth(1)
+        self.c.rect(x, y, width, height)
+
+        if label:
+            self.c.setFont("Helvetica", label_size)
+            self.c.drawString(x + self.LABEL_RIGHT, y + height + self.LABEL_UP, label)
+
+        if content:
+            self.c.setFont("Helvetica", content_size)
+            if right:
+                self.c.drawRightString(x + width - self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+            else:
+                self.c.drawString(x + self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+
+
+    def draw_form_wr(self, taworkload, max_hours):
+        """
+        Draw the form for an new-style contract (tacontract module)
+        """
+        return self.draw_form(                
+                taworkload = taworkload,
+                max_hours = max_hours
+        )
+
+    def draw_form(self, taworkload, max_hours):
+        """
+        Generic TA Form drawing method: probably called by one of the above that abstract out the object details.
+        """
+
+        self.c.setStrokeColor(black)
+        self.c.translate(0.625*inch, 1.25*inch) # origin = lower-left of the main box
+        main_width = 7.25*inch
+
+        # draw line
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.5)
+        p = self.c.beginPath()
+
+        # WR
+        #self.c.drawImage(logofile, x=main_width/2 - 0.5*inch, y=227*mm, width=1*inch, height=0.5*inch)
+        self.c.drawImage(logofile, x=0, y=227*mm, width=1*inch, height=0.5*inch)
+        self.c.setFont("Times-Roman", 12)
+        self.c.drawString(2.8*inch, 235*mm, "Simon Fraser University")
+        self.c.setFont("Times-Roman", 12)
+        self.c.drawString(3*inch, 228*mm, "TA Workload Review")
+
+        # draw WR header
+        self.c.setFont("Times-Roman", 10)
+        self.c.drawString(0, 200*mm, "Instructor: " + taworkload.member.offering.instructors_str())
+        self.c.drawString(main_width*0.7, 200*mm, "TA Name: " + taworkload.member.person.name())
+        p.moveTo(0, 198*mm)   #x, y
+        p.lineTo(main_width, 198*mm)
+
+        self.c.drawString(0, 190*mm, "Semester: " + str(taworkload.member.offering.semester))
+        self.c.drawString(main_width*0.3, 190*mm, "Course #: " + str(taworkload.member.offering.name()))
+        self.c.drawString(main_width*0.7, 190*mm, "Original hrs Assigned: " + str(max_hours))
+        p.moveTo(0, 188*mm)
+        p.lineTo(main_width, 188*mm)
+
+        self.c.drawString(main_width*0.2, 180*mm, "Will the number of hours required exceed the number of hours assigned?")
+        if taworkload:
+            if taworkload.reviewhour:
+                self.c.drawString(main_width/2-18*mm, 170*mm, "YES")
+            else:
+                self.c.drawString(main_width/2-18*mm, 170*mm, "NO")
+        p.moveTo(main_width/2-18*mm, 168*mm)
+        p.lineTo((main_width+18*mm)/2, 168*mm)
+
+        self.c.drawString(0, 160*mm, "Signature of Instructor:")
+        self.c.drawString(main_width*0.7, 160*mm, "Date of Review:")
+        if taworkload:
+            self.c.drawString(0, 150*mm, str(taworkload.reviewsignature))
+        p.moveTo(0, 148*mm)
+        p.lineTo(main_width*0.3, 148*mm)
+        if taworkload:
+            self.c.drawString(main_width*0.7, 150*mm, str(taworkload.reviewdate))
+        p.moveTo(main_width*0.7, 148*mm)
+        p.lineTo(main_width, 148*mm)
+
+        import textwrap
+        self.c.drawString(main_width*0.2, 130*mm, "Decision if number of hours required exceeds the number or hours assigned:")
+        if taworkload:
+            reviewcomment = textwrap.wrap(str(taworkload.reviewcomment), 128)        
+            xpos = 120*mm
+            for i in range(len(reviewcomment)):
+                self.c.drawString(0, xpos, str(reviewcomment[i]))
+                p.moveTo(0, xpos-2*mm)   #x, y
+                p.lineTo(main_width, xpos-2*mm)
+                xpos = xpos-7*mm
+                if i>12:
+                    break
+
+        if xpos-10*mm > 0:
+            self.c.drawString(main_width/2, xpos-10*mm, "Signature of Authorized person in the Department")
+            p.moveTo(0, xpos-10*mm)
+            p.lineTo(main_width/2, xpos-10*mm)
+        else:
+            self.c.showPage()
+            self.c.drawString(main_width/2, 220*mm, "Signature of Authorized person in the Department")
+            p.moveTo(0, 220*mm)
+            p.lineTo(main_width/2, 220*mm)
+
+        #p.close()
+        self.c.drawPath(p, stroke=1, fill=0)
+
+
+    def save(self):
+        self.c.save()         

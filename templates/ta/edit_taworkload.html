@@ -23,7 +23,7 @@ $(document).ready(function() {
     <li><a href="{% url "offering:course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
     <li><a href="{% url "offering:course_config" course_slug=course.slug %}">Setup</a></li>
     <li><a href="{% url "offering:manage_tas" course_slug=course.slug %}">Manage TAs</a></li>
-    <li>{{ta.person.name}}</li>
+    <li>{{ta.name}}</li>
     {% endif %}
 {% endblock %}
 
@@ -31,7 +31,7 @@ $(document).ready(function() {
 <table>
     <tr>
         <td><b>Instructors:</b> {{ course.instructors_str }}</p>    </td>
-        <td><b>TA:</b> {{ta.person.name}}</td>
+        <td><b>TA:</b> {{ta.name}}</td>
     </tr>
     <tr>
     <td><b>Semester/Course:</b> {{course}}</td>
@@ -39,7 +39,7 @@ $(document).ready(function() {
     </tr>
 </table>
 {% if tug %}
-<p align="center"><a href="{% url "offering:view_tug" course_slug=course.slug userid=ta.person.userid %}" target="_blank">View TUG - Last Updated: {{ tug.last_update|default:"Unknown" }}</a></p>
+<p align="center"><a href="{% url "offering:view_tug" course_slug=course.slug userid=ta.userid %}" target="_blank">View TUG - Last Updated: {{ tug.last_update|default:"Unknown" }}</a></p>
 <div>
 <form action="" method="post" id="edit-ta-workload-review">{% csrf_token %}
     <i class="fa fa-info-circle infomessage" title="The Workload Review is to confirm that the hours assigned to the TA as listed on the Time Use Guidelines (TUG) are still aligned with the work expected to be completed until the end of the TA contract.

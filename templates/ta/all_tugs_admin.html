@@ -87,7 +87,7 @@ There are three TA-related processes that course instructors need to complete as
   <td>
   	{% if data.tug %}
   	<span class="sort">{{ data.tug.last_update.isoformat }}</span>
-        <a href="{% url "offering:view_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Last Updated: {{ data.tug.last_update|default:"Unknown" }}</a>
+        <a href="{% url "offering:view_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">{% if data.tug.draft %}(DRAFT)<br> {% endif %} Last Updated: {{ data.tug.last_update|default:"Unknown" }}</a>
   	{% else %}
       {% if data.is_instr or admin %}
       <a href="{% url "offering:new_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid_or_emplid %}">Create TUG</a>
@@ -104,13 +104,17 @@ There are three TA-related processes that course instructors need to complete as
   	{% endif %}
   </td>
   <td>
-  	{% if data.tug and data.ta.offering.owner.label == 'CMPT' and is_wr_visible %}  	
+  	{% if data.tug and is_wr_visible %}  	
       {% if data.taworkload.reviewdate %}
         <a href="{% url "offering:view_ta_workload" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Reviewed on: {{ data.taworkload.reviewdate|default:"Unknown" }} <br> 
-          {% if data.taworkload.reviewhour %} <i class="fa fa-star">Need Action</i>{% endif %}</a>
+          {% if data.taworkload.reviewhour %} <i class="fa fa-star">Needs Action</i>{% endif %}</a>
   	  {% else %}
         {% if data.is_instr or admin %}
-        <a href="{% url "offering:new_ta_workload" course_slug=data.ta.offering.slug userid=data.ta.person.userid_or_emplid %}">Create</a>
+          {% if not data.tug.draft  %}
+            <a href="{% url "offering:new_ta_workload" course_slug=data.ta.offering.slug userid=data.ta.person.userid_or_emplid %}">Create</a>
+          {% else %}
+                --  
+          {% endif %}
         {% endif %}
       {% endif %}  
     {% else %}
@@ -118,22 +122,25 @@ There are three TA-related processes that course instructors need to complete as
   	{% endif %}
   </td>
   <td>
+    {% if data.tug %}  	
       {% if data.taeval %}        
         <a href="{% url "offering:view_ta_evaluation" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">{% if data.taeval.draft %}(DRAFT)<br>{% endif %} Evaluated on: {{ data.taeval.instructor_signdate|default:"Unknown" }} </a>
         {% if not data.taeval.draft and not data.taeval.ta_signdate %}  <i class="fa fa-question"> Missing TA comments</i> {% endif %}
   	  {% else %}
         {% if data.is_instr or admin %}
-          {% if data.tug and data.ta.offering.owner.label == 'CMPT' %}
+          {% if not data.tug.draft %}
             <a href="{% url "offering:new_ta_evaluation_wizard" course_slug=data.ta.offering.slug userid=data.ta.person.userid_or_emplid %}">Create</a>
           {% else %}
-          --  
+                --  
           {% endif %}   
         {% endif %}
       {% endif %}  
+    {% else %}
+      --
+  	{% endif %}      
   </td>
     {% if admin %}
     <td class="miniaction">
-      {% if data.ta.offering.owner.label == 'CMPT' %}         
         {% if data.tug and data.taeval %}  
           {% if not data.taeval.ta_signdate %}
             {% if data.taeval.config.released %}          
@@ -145,7 +152,6 @@ There are three TA-related processes that course instructors need to complete as
               <input name="taeval_{{data.taeval.id}}" class="taeval" type="checkbox"/>
           {% endif %}
         {% endif %}
-      {% endif %}
     </td>
     {% endif %}
   </tr>
