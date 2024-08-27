@@ -23,6 +23,28 @@ ADVISING_MODE_FORM_CHOICES = (
         ('R', 'Remote'),
     )
 
+GENDER_CHOICES_NONSTUDENT = (
+     ('', 'Prefer not to answer'),
+     ('M', 'Male'),
+     ('F', 'Female'),
+     ('X', 'Non-binary')
+)
+
+CAMPUS_CHOICES_NONSTUDENT = (
+    ('', '--------'),
+    ('Burnaby', 'Burnaby'),
+    ('Surrey', 'Surrey'),
+)
+
+PROGRAM_CHOICES_NONSTUDENT = (
+    ('', '--------'),
+    ('CMPT', 'Computing Science'),
+    ('ENSC', 'Engineering Science'),
+    ('MSE', 'Mechatronic Systems Engineering'),
+    ('SS', 'Software Systems'),
+    ('SEE', 'Sustainable Energy Engineering'),
+)
+
 class AdvisorNoteForm(MarkupContentMixin(field_name='text'), forms.ModelForm):
     text = MarkupContentField(label="Content", default_markup='plain', allow_math=False, restricted=False, with_wysiwyg=True)
     email_student = forms.BooleanField(required=False,
@@ -128,11 +150,36 @@ class StartYearField(forms.IntegerField):
 
 
 class NonStudentForm(ModelForm):
-    start_year = StartYearField(help_text="The predicted/potential start year", required=True)
+    email_address = forms.EmailField(required=True, label="Email Address")
+    start_year = StartYearField(help_text="The predicted/potential start year", required=True, label="Start Year", widget=forms.TextInput())
+    gender = forms.ChoiceField(choices= GENDER_CHOICES_NONSTUDENT, required=False)
+    campus = forms.ChoiceField(label="Preferred Campus", choices=CAMPUS_CHOICES_NONSTUDENT, required=False)
+    program = forms.ChoiceField(required=False, choices=PROGRAM_CHOICES_NONSTUDENT, label="Potential Program")
+    first_name = forms.CharField(label="Preferred First Name")
+    last_name = forms.CharField(label="Last Name")
+    middle_name = forms.CharField(label="Middle Name", required=False)
+    high_school = forms.CharField(label="High School", required=False)
 
     class Meta:
         model = NonStudent
-        exclude = ('config', 'notes')
+        exclude = ('config', 'notes', 'created_at', 'pref_first_name')
+
+    field_order = ['first_name', 'last_name', 'middle_name', 'gender', 'email_address', 
+                   'high_school', 'college', 'start_year', 'unit', 'program', 'preferred_campus']
+
+    def __init__(self, *args, **kwargs):
+        super(NonStudentForm, self).__init__(*args, **kwargs)
+        config_init = ['program', 'campus', 'gender']  
+        self.fields['unit'].help_text = "The ownership unit for this prospective student"
+        for field in config_init:
+            self.initial[field] = getattr(self.instance, field)
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        config_clean = ['program', 'campus', 'gender']
+
+        for field in config_clean:
+            setattr(self.instance, field, cleaned_data[field])
 
 
 class ArtifactForm(forms.ModelForm):

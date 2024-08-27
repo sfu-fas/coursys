@@ -1,0 +1,70 @@
+{% extends "base-wide.html" %}
+{% load static %}
+{% block title %}Prospective Students{% endblock %}
+{% block h1 %}Prospective Students{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'style/advisornotes.css' %}" />
+<script nonce="{{ CSP_NONCE }}">
+$(function() {
+  $('#nonstudents').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+    'aaSorting': [[8, 'desc']]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li>Prospective Students</li>
+{% endblock %}
+
+{% block content %}
+<div class="actionlist">
+    <a class="btn" href="{% url "advising:new_nonstudent" %}">New Prospective Student</a>
+    <a class="btn" href="{% url "advising:download_nonstudents" %}">Download CSV</a>
+</div>
+
+This view shows prospective students created within the last year.
+
+{% if nonstudents %}
+<table id="nonstudents" class="display">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Gender</th>
+            <th scope="col">Start Year</th>
+            <th scope="col">High School</th>
+            <th scope="col">College</th>
+            <th scope="col">Potential Program</th>
+            <th scope="col">Preferred Campus</th>
+            <th scope="col">Created At</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        {% for nonstudent in nonstudents %}
+        <tr>
+            <td><a href="{% url "advising:student_notes" userid=nonstudent.slug %}">{{ nonstudent.name }}</a></td>
+            <td>{{ nonstudent.email }}</td>
+            <td>{{ nonstudent.gender}}</td>
+            <td>{{ nonstudent.start_year }}</td>
+            <td>{{ nonstudent.high_school }}</td>
+            <td>{{ nonstudent.college }}</td>
+            <td>{{ nonstudent.program }}</td>
+            <td>{{ nonstudent.campus }}</td>
+            <td><span class="sort">{{ nonstudent.created_at.isoformat }}</span>{{ nonstudent.created_at }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>There are no prospective students to show. <a href="{% url "advising:new_nonstudent" %}">Create one now.</a></p>
+{% endif %}
+
+{% endblock %}

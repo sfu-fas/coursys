@@ -4,12 +4,10 @@
 {% block h1 %}New Prospective Student{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-    <a href="{% url "advising:advising" %}">Advising</a>
-</li>
-<li>
-    New Prospective Student
-</li>{% endblock %}
+<li><a href="{% url "advising:advising" %}">Advising</a></li>
+<li><a href="{% url "advising:view_nonstudents" %}">Prospective Students</a></li>
+<li>New Prospective Student</li>
+{% endblock %}
 
 {% block content %}
 <div class="form_container">
