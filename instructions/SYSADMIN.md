@@ -97,6 +97,13 @@ Some information about the way the process started is in the systemd logs: `sudo
 Celery's main log file are `/opt/logs/celery-*`. A separate log file is kept for each queue/worker.
 
 
+## Server Updates
+
+```shell
+sudo apt update
+sudo apt upgrade
+```
+
 ## Deploying code
 
 different user: handling it
@@ -124,7 +131,7 @@ If it's necessary to do a database migration, it's probably worth putting the se
 ```shell
 make 503
 make pull
-make migration-safe  # takes database snapshots before and after migration
+make migrate-safe  # takes database snapshots before and after migration
 make manage ARGS=check_things
 make new-code
 make rm503
