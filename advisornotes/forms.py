@@ -151,21 +151,20 @@ class StartYearField(forms.IntegerField):
 
 class NonStudentForm(ModelForm):
     email_address = forms.EmailField(required=True, label="Email Address")
-    start_year = StartYearField(help_text="The predicted/potential start year", required=True, label="Start Year")
+    start_year = StartYearField(help_text="The predicted/potential start year", required=True, label="Start Year", widget=forms.TextInput())
     gender = forms.ChoiceField(choices= GENDER_CHOICES_NONSTUDENT, required=False)
     campus = forms.ChoiceField(label="Preferred Campus", choices=CAMPUS_CHOICES_NONSTUDENT, required=False)
     program = forms.ChoiceField(required=False, choices=PROGRAM_CHOICES_NONSTUDENT, label="Potential Program")
-    first_name = forms.CharField(label="First Name")
-    pref_first_name = forms.CharField(label="Preferred First Name", required=False)
+    first_name = forms.CharField(label="Preferred First Name")
     last_name = forms.CharField(label="Last Name")
     middle_name = forms.CharField(label="Middle Name", required=False)
     high_school = forms.CharField(label="High School", required=False)
 
     class Meta:
         model = NonStudent
-        exclude = ('config', 'notes', 'created_at')
+        exclude = ('config', 'notes', 'created_at', 'pref_first_name')
 
-    field_order = ['first_name', 'last_name', 'middle_name', 'pref_first_name', 'gender', 'email_address', 
+    field_order = ['first_name', 'last_name', 'middle_name', 'gender', 'email_address', 
                    'high_school', 'college', 'start_year', 'unit', 'program', 'preferred_campus']
 
     def __init__(self, *args, **kwargs):
