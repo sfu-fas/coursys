@@ -279,7 +279,7 @@ class TAWorkloadReview(models.Model):
         if to_email:
             from_email = settings.DEFAULT_FROM_EMAIL
             msg = EmailMultiAlternatives(subject=subject, body=content, from_email=from_email,
-                                        to=[to_email], headers={'X-coursys-topic': 'ta'})        
+                                        to=to_email, headers={'X-coursys-topic': 'ta'})        
             msg.send()
 
 class TAEvaluation(models.Model):
@@ -509,7 +509,7 @@ class TAEvaluation(models.Model):
                     
                 from_email = settings.DEFAULT_FROM_EMAIL
                 msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
-                            from_email=from_email, to=[to_email], headers={'X-coursys-topic': 'ta'})
+                            from_email=from_email, to=to_email, headers={'X-coursys-topic': 'ta'})
                 msg.attach(('%s-%s.pdf' % (taeval.member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))), response.getvalue(),
                             'application/pdf')
                 msg.send()  
