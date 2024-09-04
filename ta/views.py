@@ -1007,7 +1007,7 @@ def _send_notify_to_admin(taevaluation, status):
     
     if to_email:
         msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
-                    from_email=from_email, to=[to_email], headers={'X-coursys-topic': 'ta'})
+                    from_email=from_email, to=to_email, headers={'X-coursys-topic': 'ta'})
         msg.attach(('%s-%s.pdf' % (taevaluation.member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))), response.getvalue(),
                         'application/pdf')
         msg.send()
