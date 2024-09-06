@@ -6,7 +6,7 @@
 {% block subbreadcrumbs %}<li>{{ course.name }} ({{course.semester.label}})</li>{% endblock %}
 
 {% block actions %}
-{% if any_group or has_index or course.discussion %}
+{% if any_group or has_index or course.discussion or forum_enabled %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
@@ -52,10 +52,10 @@
                   {% if course.taemail %}<a href="mailto:{{ course.taemail }}">{{ course.taemail }}</a>
                   {% else %}<a href="{{ course.contact_url }}">{{ course.contact_url }}</a>
                   {% endif %}
-                  ({% for ta in course.tas %}{{ ta.name_with_pref }} &lt;{{ ta.userid }}@&gt;{% if not forloop.last %}, {% endif %}{% endfor %})
+                  ({% for ta in course.tas %}{{ ta.name_pref }} &lt;{{ ta.userid }}@&gt;{% if not forloop.last %}, {% endif %}{% endfor %})
                 {% else %}
                   {% for ta in course.tas %}
-                    {{ ta.name }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}
+                    {{ ta.name_pref }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}
                   {% endfor %}
                 {% endif %}
                 </td>
