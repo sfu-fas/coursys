@@ -510,6 +510,7 @@ def _edit_tug(request, course_slug, userid, tug=None):
 
             if not tug.draft: 
                 contract_info = __get_contract_info(tug.member)               
+                tug = get_object_or_404(TUG, member=member)
                 _email_tug(tug, contract_info)
             return HttpResponseRedirect(reverse('offering:view_tug', args=(course.slug, userid)))
     else:
