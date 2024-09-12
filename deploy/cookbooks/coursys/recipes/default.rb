@@ -88,7 +88,7 @@ end
 # ruby for markdown markup
 package ['ruby', 'ruby-dev']
 execute 'github-markdown' do
-  command 'gem install commonmarker -v 0.23.10 && gem install github-markup'
+  command 'gem install commonmarker -v 0.23.10 && gem install github-markup -v 4.0.2'
   creates '/usr/local/bin/github-markup'
 end
 
