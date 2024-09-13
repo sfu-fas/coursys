@@ -576,8 +576,8 @@ def download_tug(request, course_slug, userid):
         else:
             new_format = False
 
-        response = HttpResponse(content_type="application/pdf")
-        filename =  "%s-%s.pdf" % (tug.member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))
+        response = HttpResponse(content_type="application/pdf")        
+        filename = "%s_%s_%s_TUG_%s.pdf" % (tug.member.person.last_name, tug.member.person.first_name , tug.member.person.emplid, course_slug)
         response['Content-Disposition'] = 'inline; filename="%s"' % (filename)
         tug_form(tug, contract_info, new_format, response)
         return response
@@ -706,7 +706,7 @@ def download_ta_workload(request, course_slug, userid):
     tug = get_object_or_404(TUG, member__offering__slug=course_slug, member__person__userid=userid, member__role='TA')
 
     response = HttpResponse(content_type="application/pdf")
-    filename =  "%s-%s.pdf" % (taworkload.member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))
+    filename = "%s_%s_%s_TAWR_%s.pdf" % (taworkload.member.person.last_name, taworkload.member.person.first_name , taworkload.member.person.emplid, course_slug)
     response['Content-Disposition'] = 'inline; filename="%s"' % (filename)
     max_hours = tug.total_hours()
     taworkload_form(taworkload, max_hours, response)
@@ -755,7 +755,9 @@ class TAEvalNewWizard(SessionWizardView):
         userid = self.kwargs['userid']
         course = get_object_or_404(CourseOffering, slug=course_slug)
         member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
-        init = {'ta': member, 'course': course, 'draft': True}
+        init = {'ta': member, 'course': course, 'draft': True, 'criteria_lab_prep': 5, 'criteria_meet_deadline':5, 'criteria_maintain_hour': 5, 
+                'criteria_attend_plan': 5, 'criteria_attend_lec': 5, 'criteria_grading_fair': 5, 'criteria_lab_performance': 5, 
+                'criteria_quality_of_feedback': 5, 'criteria_quiz_prep': 5, 'criteria_instr_content': 5, 'criteria_others': 5}
         
         return self.initial_dict.get(step, init)        
 
@@ -900,8 +902,8 @@ def download_ta_evaluation(request, course_slug, userid):
     if curr_user_role=="TA" and (not userid==request.user.username or not taevaluation.is_past_nextsemstart() or taevaluation.draft):
         return ForbiddenResponse(request)
        
-    response = HttpResponse(content_type="application/pdf")
-    filename =  "%s-%s-TA-Eval.pdf" % (member.person.emplid, datetime.datetime.now().strftime('%Y%m%dT%H%M%S'))
+    response = HttpResponse(content_type="application/pdf")    
+    filename = "%s_%s_%s_TAEval_%s.pdf" % (member.person.last_name, member.person.first_name , member.person.emplid, course_slug)
     response['Content-Disposition'] = 'inline; filename="%s"' % (filename)
     ta_evaluation_form(taevaluation, member, course, response)
     return response
