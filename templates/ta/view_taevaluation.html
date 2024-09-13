@@ -36,8 +36,10 @@
 <h2 class="heading">Actions</h2>
 <ul>
 {% if user_role == "ADMN" %}
+<li><a href="{% url "tugs:all_tugs_admin" %}">View All TUGs</a></li>
 <li><a href="{% url "offering:edit_ta_evaluation_wizard" course_slug=course.slug userid=ta.userid %}">Edit TA Evaluation</a></li>
 {% else %}{% if user_role != "TA" %}
+<li><a href="{% url "tugs:all_tugs_admin" %}">View All TUGs</a></li>
 <li><a href="{% url "offering:edit_ta_evaluation_wizard" course_slug=course.slug userid=ta.userid %}">Edit TA Evaluation</a></li>
 {% endif %}{% endif %}
 <li><a href="{% url "offering:download_ta_evaluation" course_slug=course.slug userid=ta.userid %}">Download TA Evaluation</a></li>

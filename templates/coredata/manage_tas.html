@@ -35,7 +35,7 @@
 {% with tug=m.get_tug %}    
 <td>    
     {% if tug %}
-    <a href="{% url "offering:view_tug" course_slug=course.slug userid=m.person.userid %}">View TUG</a>
+    <a href="{% url "offering:view_tug" course_slug=course.slug userid=m.person.userid %}">View TUG {% if tug.draft %} (DRAFT) {% endif %}</a>
     {% else %}
     <a href="{% url "offering:new_tug" course_slug=course.slug userid=m.person.userid %}">Create TUG</a>
     {% endif %}
