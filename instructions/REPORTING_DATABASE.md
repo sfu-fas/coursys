@@ -8,7 +8,7 @@ That means you must `kinit` to initially authenticate, and occasionally `kinit -
 We use FreeTDS to connect to CSRPT. It comes with `tsql` as a command-line client.
 ```shell
 kinit username@AD.SFU.CA
-tsql -S ss-csrpt-db01.dc.sfu.ca -D CSRPT
+tsql -S ss-csrpt-db1.dc.sfu.ca -D CSRPT
 ```
 
 You can type queries, and `go` to run them.
@@ -23,7 +23,7 @@ You can type queries, and `go` to run them.
 In `courses/localsettings.py`, make sure the reporting database is turned on (obviously don't do this for demos or other places non-trusted users will be accessing things freely):
 
     DISABLE_REPORTING_DB = False
-    SIMS_DB_SERVER = 'ss-csrpt-db01.dc.sfu.ca'
+    SIMS_DB_SERVER = 'ss-csrpt-db1.dc.sfu.ca'
 
 After that, your CourSys instance should be able to do reporting DB queries. This is checked by the admin panel's "Deployment Checks".
 
