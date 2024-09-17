@@ -4746,7 +4746,9 @@ class TAEvalForm(object):
         self.c.setFont("Helvetica-Bold", 8)
         self.c.drawString(152*mm, moving_y, "TA's 1st Appt.")
         self.c.setFont("Helvetica", 8)
-        if ta_evaluation.first_appoint:
+        if ta_evaluation.first_appoint is None:
+            self.c.drawString(172*mm, moving_y, 'Unknown')
+        elif ta_evaluation.first_appoint:
             self.c.drawString(175*mm, moving_y, 'Yes')
         else:
             self.c.drawString(175*mm, moving_y, 'No')
@@ -4933,6 +4935,9 @@ class TAEvalForm(object):
         self.c.setFont("Helvetica", 8)
         wrap_line_max = 100
         lines = wrap(str(ta_evaluation.criteria_other_comment), wrap_line_max)
+        
+        if len(lines) == 0:
+            moving_y = moving_y-5*mm
 
         for line in lines:
             self.c.drawString(55*mm, moving_y, line)
