@@ -191,3 +191,15 @@ form select {
 form label {
   padding: 5px;
 }
+
+abbr .title {
+  background-color: #777777;
+  color: white;
+  text-align: center;
+  border-radius: 10px;
+  padding: 5px 0;
+  top: 100%;
+  left: 50%;
+  margin-left: -50px;
+  font-weight: 100;
+}

@@ -55,22 +55,23 @@
 <div class="actionlist">
     <a class="btn" href="{% url "grad:config" %}">Configuration</a>
     <a class="btn" href="{% url "grad:reports" %}">Reports</a>
-    <div class="btn pressed">Advanced Search</div>
+    <div class="btn pressed">Search</div>
     <a class="btn" href="{% url "grad:browse" %}">Browse All Students</a>
     <a class="btn" href="{% url "grad:index" %}">Active Students</a>
 </div>
 
-<h2>Search Grad Profiles by Student</h2>
+<h2>Search by Student</h2>
 <form action="{% url "grad:quick_search" %}" method="get">
     <p>{{form.search.label}}: {{form.search}} <span class="helptext">{{form.search.help_text}}</span></p>
     <p><input class="submit" type="submit" class="submit" value="Go" /></p>
 </form>
 
-<h2>Saved Searches</h2>
-<div class="actionlist">
-<a class="btn" href="{% url "grad:search" %}">Add New Search</a>
-</div>
+<h2>Search by Advanced Fields</h2>
+<form action="{% url "grad:search" %}">
+  <input class="submit" type="submit" class="submit" value="Go" /></p>
+</form>
 
+<h2>Saved Advanced Searches</h2>
 <div class="datatable_container">
     <table id="saved_searches" class="display">
       <thead>

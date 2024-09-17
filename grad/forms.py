@@ -1,6 +1,6 @@
 from django.forms.models import ModelForm
 from django import forms
-from django.db.models import Q
+from django.db.models import Q, F
 from django.db.models.query import QuerySet
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, \
@@ -1201,7 +1201,9 @@ class GradFilterForm(forms.Form):
     @classmethod
     def grad_supervisors(self, units):
         grad_supervisors = Supervisor.objects.filter(student__program__unit__in=units)
-        return grad_supervisors
+        externals = grad_supervisors.filter(external__isnull=False)
+        users = grad_supervisors.filter(supervisor__isnull=False)
+        return (externals, users)
 
     def __init__(self, units, programs, *args, **kwargs):
         super(GradFilterForm, self).__init__(*args, **kwargs)
@@ -1222,5 +1224,7 @@ class GradFilterForm(forms.Form):
         self.fields['started_by'].choices = [('all', 'Any Semester')] + semesters
 
         # supervisors
-        supervisors = list(dict.fromkeys([(str(s.sortname()), str(s.sortname())) for s in self.grad_supervisors(units)]))
-        self.fields['supervisor'].choices = [('all', 'All Supervisors')] + supervisors
+        externals, users = self.grad_supervisors(units)
+        externals = list(dict.fromkeys([(str(s.external), str(s.sortname())) for s in externals]))
+        users = list(dict.fromkeys([(s.supervisor.userid, str(s.sortname())) for s in users]))
+        self.fields['supervisor'].choices = [('all', 'All Supervisors')] + users + externals

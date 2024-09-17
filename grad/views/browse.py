@@ -71,7 +71,15 @@ class GradDataJson(BaseDatatableView):
 
         supervisor = GET.get('supervisor', None)
         if supervisor:
-            qs = qs.filter()
+            try:
+                person = Person.objects.get(userid=supervisor)
+                supervisors = Supervisor.objects.filter(supervisor=person).values('student')
+            except Person.DoesNotExist:
+                supervisors = Supervisor.objects.filter(external=supervisor).values('student')
+            except:
+                supervisors = []
+            if supervisors: 
+                qs = qs.filter(id__in=supervisors)
 
         status = GET.get('status', None)
         if status:

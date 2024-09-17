@@ -6,17 +6,19 @@
 	$(document).ready(function() {
 		$('#programs').dataTable({
 			"bJQueryUI" : true,
-			"bPaginate": false,
+			'bPaginate': true,
+    		'lengthMenu': [[25, -1], [25, 'All']],
 			"bFilter": false,
 			"bInfo": false,
 			"aaSorting" : [[1, "asc"]],
 			'scrollY': false, 
 			"columnDefs": [
-			{ "orderable": false, "targets": 5 },
+			{ "orderable": false, "targets": 6 },
 			{ "width": "8%", "targets": 0 },
-			{ "width": "17%", "targets": [3,4] },
-			{ "width": "4%", "targets": 5 },
-    		]
+			{ "width": "17%", "targets": 3 },
+			{ "width": "13%", "targets": [4,5] },
+			{ "width": "4%", "targets": 6 },
+    		],
 		});
 	});
 
@@ -46,6 +48,7 @@
 				<th scope="col">Program Name</th>
 				<th scope="col">Description</th>
 				<th scope="col">Expected Completion Terms</th>
+				<th scope="col">Requires Supervisor</th>
 				<th scope="col">Graduate Category</th>
 				<th>Action</th>
 			</tr>
@@ -57,6 +60,7 @@
 				<td>{{s.label}}</td>
 				<td>{{s.description}}</td>
 				<td>{{s.expected_completion_terms}}</td>
+				<td>{{s.requires_supervisor|yesno|capfirst}}</td>
 				<td>{{s.get_grad_category_display}}</td>
 				<td>
 					<a class="lineform" href="{% url "grad:edit_program" program_id=s.id %}">

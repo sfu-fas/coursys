@@ -25,7 +25,7 @@ $(document).ready(function() {
 <div class="actionlist">
     <a class="btn" href="{% url "grad:config" %}">Configuration</a>
     <a class="btn" href="{% url "grad:reports" %}">Reports</a>
-    <a class="btn" href="{% url "grad:search_index" %}">Advanced Search</a>
+    <a class="btn" href="{% url "grad:search_index" %}">Search</a>
     <div class="btn pressed">Browse All Students</div>
     <a class="btn" href="{% url "grad:index" %}">Active Students</a>
 </div>
@@ -36,8 +36,12 @@ $(document).ready(function() {
 <table class="display" id="grad_table">
 <thead>
     <tr>
-        <th scope="col">Name</th><th scope="col">Student ID</th><th scope="col">Program</th>
-        <th scope="col">Start Semester</th><th scope="col">Completion Progress</th><th scope="col">Supervisor</th>
+        <th scope="col">Name</th>
+        <th scope="col">Student ID</th>
+        <th scope="col">Program</th>
+        <th scope="col">Start Semester</th>
+        <th scope="col"><abbr title="Active Terms / Expected Completion Terms">Completion Progress <i class="fa fa-info-circle"></i></abbr></th>
+        <th scope="col">Supervisor</th>
         <th scope="col">Current Status</th>
     </tr>
 </thead>
@@ -45,3 +49,4 @@ $(document).ready(function() {
 </table>
 
 {% endblock %}
+

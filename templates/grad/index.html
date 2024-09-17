@@ -20,7 +20,7 @@ $(document).ready(function() {
       { "width": "20%", "targets": 0 },
       { "width": "10%", "targets": 1 },
       { "width": "15%", "targets": [2,3] },
-      { "width": "10%", "targets": [4,5] },
+      { "width": "12%", "targets": [4,5] },
       ]
     } );
     $('#doctoral').dataTable( {
@@ -35,7 +35,7 @@ $(document).ready(function() {
       { "width": "20%", "targets": 0 },
       { "width": "10%", "targets": 1 },
       { "width": "15%", "targets": [2,3] },
-      { "width": "12%", "targets": [4,5] },
+      { "width": "14%", "targets": [4,5] },
     	]
     } );
     $('#other').dataTable( {
@@ -50,7 +50,7 @@ $(document).ready(function() {
         { "width": "20%", "targets": 0 },
         { "width": "10%", "targets": 1 },
         { "width": "15%", "targets": [2,3] },
-        { "width": "10%", "targets": [4,5] },
+        { "width": "12%", "targets": [4,5] },
     	]
     } );
 } );
@@ -66,7 +66,7 @@ $(document).ready(function() {
 <div class="actionlist">
     <a class="btn" href="{% url "grad:config" %}">Configuration</a>
     <a class="btn" href="{% url "grad:reports" %}">Reports</a>
-    <a class="btn" href="{% url "grad:search_index" %}">Advanced Search</a>
+    <a class="btn" href="{% url "grad:search_index" %}">Search</a>
     <a class="btn" href="{% url "grad:browse" %}">Browse All Students</a>
     <div class="btn pressed">Active Students</div>
 </div>
@@ -80,7 +80,7 @@ $(document).ready(function() {
         <th scope="col">Student ID</th>
         <th scope="col">Program</th>
         <th scope="col">Start Semester</th>
-        <th scope="col">Completion Progress</th>
+        <th><abbr title="Active Terms / Expected Completion Terms">Completion Progress <i class="fa fa-info-circle"></i></abbr></th>
         <th scope="col">Requirements</th>
       </tr>
     </thead>
@@ -108,7 +108,7 @@ $(document).ready(function() {
         <th scope="col">Student ID</th>
         <th scope="col">Program</th>
         <th scope="col">Start Semester</th>
-        <th scope="col">Completion Progress</th>
+        <th><abbr title="Active Terms / Expected Completion Terms">Completion Progress <i class="fa fa-info-circle"></i></abbr></th>
         <th scope="col">Requirements</th>
         <th scope="col">Supervisor</th>
       </tr>
@@ -138,7 +138,7 @@ $(document).ready(function() {
         <th scope="col">Student ID</th>
         <th scope="col">Program</th>
         <th scope="col">Start Semester</th>
-        <th scope="col">Completion Progress</th>
+        <th><abbr title="Active Terms / Expected Completion Terms">Completion Progress <i class="fa fa-info-circle"></i></abbr></th>
         <th scope="col">Requirements</th>
       </tr>
     </thead>

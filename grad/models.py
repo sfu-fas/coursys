@@ -28,6 +28,7 @@ class GradProgram(models.Model):
     description = models.CharField(max_length=100, blank=True)
     grad_category = models.CharField(max_length=2, choices=CATEGORY_CHOICES, default="OT")
     expected_completion_terms = models.PositiveIntegerField(default=0)
+    requires_supervisor = models.BooleanField(null=False, default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     created_by = models.CharField(max_length=32, null=False, help_text='Grad Program created by.')
